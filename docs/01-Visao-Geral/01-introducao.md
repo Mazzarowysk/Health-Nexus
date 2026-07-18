@@ -66,7 +66,7 @@ O Health Nexus adere aos seguintes requisitos não funcionais e arquiteturais:
 *   **WebSockets**: Protocolo bidirecional via `Socket.io` para comunicação real-time.
 
 ### Banco de Dados
-*   **PostgreSQL**: Banco de dados relacional com suporte a JSONB para dados semiestruturados e integridade referencial forte para faturamento financeiro.
+*   **Turso (LibSQL/SQLite)**: Banco de dados relacional e distribuído na borda, com suporte nativo a dados semiestruturados (funções JSON) e integridade referencial forte para faturamento financeiro.
 
 ### APIs e Integrações Planejadas
 *   **ViaCEP**: Autocomplete de endereço do paciente pelo CEP.

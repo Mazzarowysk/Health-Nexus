@@ -9,8 +9,6 @@ Este manual orienta novos engenheiros de software na configuração rápida do a
 ### Pré-requisitos
 Certifique-se de possuir instalado na máquina de desenvolvimento:
 *   **Node.js** (Versão 18.x LTS ou superior).
-*   **PostgreSQL** (Versão 15.x ou superior).
-*   **Redis** (Versão 7.x ou superior).
 *   **Git** instalado.
 
 ---
@@ -19,36 +17,31 @@ Certifique-se de possuir instalado na máquina de desenvolvimento:
 
 ### 1. Clonar o Repositório e Criar o Workspace
 ```bash
-git clone https://github.com/instituicao/health-nexus.git "C:\Health Nexus"
+git clone https://github.com/Mazzarowysk/Health-Nexus.git "C:\Health Nexus"
 cd "C:\Health Nexus"
 ```
 
 ### 2. Configurar o Ambiente de Variáveis (.env)
-Copie o arquivo de exemplo de variáveis de ambiente e preencha as credenciais do seu banco de dados PostgreSQL local:
+Copie o arquivo de exemplo de variáveis de ambiente:
 ```bash
-cp backend/.env.example backend/.env
+cp .env.example .env
 ```
+*(Por padrão, o arquivo já vem configurado para usar o banco local SQLite em `file:local.db`, o que dispensa qualquer instalação local de banco de dados).*
 
-### 3. Instalar Dependências do Backend
-Navegue para a pasta backend e execute o instalador de dependências do npm:
+### 3. Instalar Dependências do Projeto
+Execute o comando na raiz para instalar as dependências do frontend e backend:
 ```bash
-cd backend
 npm install
 ```
 
-### 4. Executar Migrações do Banco de Dados
-Rode o script Knex/Prisma (conforme ORM configurado) para criar as tabelas e relacionamentos iniciais no PostgreSQL, além de popular a base com registros padrões necessários (ex: CIDs, tabelas TUSS e perfis de usuários):
-```bash
-npm run db:migrate
-npm run db:seed
-```
-
-### 5. Iniciar a Aplicação em Modo de Desenvolvimento
-Rode o servidor em modo de escuta ativa (com recarregamento automático usando nodemon):
+### 4. Iniciar a Aplicação em Modo de Desenvolvimento
+Rode o comando na raiz para rodar simultaneamente o frontend (Vite) e o backend (Express):
 ```bash
 npm run dev
 ```
-O servidor da API iniciará na porta `3000` (ex: `http://localhost:3000`).
+*   O frontend iniciará na porta `5173` (ex: `http://localhost:5173`).
+*   O backend iniciará na porta `3001` (ex: `http://localhost:3001`).
+*   O banco de dados local será criado automaticamente na raiz como `local.db`.
 
 ---
 
