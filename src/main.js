@@ -22,8 +22,7 @@ function renderAppStructure() {
       <!-- Sidebar de Navegação -->
       <aside class="app-sidebar">
         <div class="brand-logo">
-          <i class="fa-solid fa-heart-pulse"></i>
-          <span>Health Nexus</span>
+          <img src="/assets/logo.png" alt="Health Nexus" class="brand-logo-img">
         </div>
         <nav>
           <ul class="nav-menu">
