@@ -132,7 +132,7 @@ async function renderTabContent() {
               <span>Pacientes Ativos</span>
               <div class="kpi-icon primary"><i class="fa-solid fa-bed"></i></div>
             </div>
-            <div class="kpi-value">${data.activePatients}</div>
+            <div class="kpi-value" id="kpi-active-patients">${data.activePatients}</div>
             <div class="kpi-trend trend-up">
               <i class="fa-solid fa-arrow-trend-up"></i>
               <span>Pacientes no Turso DB</span>
@@ -165,29 +165,87 @@ async function renderTabContent() {
             </div>
           </div>
         </div>
+
+        <!-- Seção de Gráficos Interativos -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h4 class="chart-card-title">
+              <i class="fa-solid fa-chart-pie" style="color: var(--color-primary);"></i> Ocupação de Leitos por Ala
+            </h4>
+            <div class="chart-container">
+              <canvas id="occupancyChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h4 class="chart-card-title">
+              <i class="fa-solid fa-chart-line" style="color: var(--color-accent);"></i> Histórico de Atendimentos Mensais
+            </h4>
+            <div class="chart-container">
+              <canvas id="appointmentsChart"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
     `;
+
+    // Inicialização dos gráficos com pequeno delay para garantir montagem do canvas
+    setTimeout(() => {
+      initDashboardCharts(data);
+    }, 50);
+
   } else if (state.activeTab === 'pacientes') {
     contentArea.innerHTML = `
       <div class="tab-section active">
         <div class="patients-grid">
-          <!-- Coluna 1: Formulário CRUD -->
+          <!-- Coluna 1: Formulário Completo com Máscaras -->
           <div class="patients-form-container">
             <h3 id="form-title" style="margin-bottom: 20px; font-family: 'Outfit'; font-weight: 600;">Admissão de Paciente</h3>
             <form id="patient-form">
               <input type="hidden" id="editId">
+              
               <div class="form-group">
                 <label class="form-label" for="fullName">* Nome Completo:</label>
                 <input type="text" id="fullName" class="form-input" required placeholder="Nome completo civil">
               </div>
-              <div class="form-group">
-                <label class="form-label" for="cpf">* CPF:</label>
-                <input type="text" id="cpf" class="form-input" required placeholder="000.000.000-00">
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="cpf">* CPF:</label>
+                  <input type="text" id="cpf" class="form-input" required placeholder="000.000.000-00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="birthDate">* Data Nasc.:</label>
+                  <input type="date" id="birthDate" class="form-input" required>
+                </div>
               </div>
-              <div class="form-group">
-                <label class="form-label" for="birthDate">* Data de Nascimento:</label>
-                <input type="date" id="birthDate" class="form-input" required>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="address">Endereço:</label>
+                  <input type="text" id="address" class="form-input" placeholder="Av. Paulista, 1000">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="city">Cidade:</label>
+                  <input type="text" id="city" class="form-input" placeholder="Ex: Campinas">
+                </div>
               </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="phone">Telefone Fixo:</label>
+                  <input type="text" id="phone" class="form-input" placeholder="(18) 3528-5022">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cellphone">Celular:</label>
+                  <input type="text" id="cellphone" class="form-input" placeholder="(18) 98817-5809">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="billingValue">Valor da Consulta/Mensalidade:</label>
+                <input type="text" id="billingValue" class="form-input" placeholder="R$ 0,00">
+              </div>
+
               <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1;">Registrar Paciente</button>
                 <button type="button" id="cancel-edit-btn" class="btn" style="display: none; background-color: var(--bg-tertiary); color: var(--text-primary);">Cancelar</button>
@@ -195,10 +253,18 @@ async function renderTabContent() {
             </form>
           </div>
 
-          <!-- Coluna 2: Tabela de Listagem -->
+          <!-- Coluna 2: Lista com Busca Inteligente -->
           <div class="patients-list-container">
-            <h3 style="margin-bottom: 20px; font-family: 'Outfit'; font-weight: 600;">Pacientes Cadastrados</h3>
-            <div id="patients-table-wrapper">
+            <h3 style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 600;">Pacientes Cadastrados</h3>
+            
+            <div class="search-container">
+              <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar paciente por nome, CPF, cidade ou ID (ignora caixa e acentos)...">
+              </div>
+            </div>
+
+            <div id="patients-table-wrapper" style="overflow-x: auto;">
               <div style="text-align: center; color: var(--text-secondary); padding: 40px;">Carregando registros...</div>
             </div>
           </div>
@@ -206,105 +272,133 @@ async function renderTabContent() {
       </div>
     `;
 
-    const loadAndRenderTable = async () => {
+    // Aplicar máscaras de input
+    applyInputMasks();
+
+    let allPatients = [];
+
+    const renderTableRows = (patientsToRender) => {
       const wrapper = document.getElementById('patients-table-wrapper');
+      
+      if (patientsToRender.length === 0) {
+        wrapper.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhum paciente encontrado.</div>`;
+        return;
+      }
+
+      let tableHtml = `
+        <table class="patients-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome Completo</th>
+              <th>CPF</th>
+              <th>Data Nasc.</th>
+              <th>Cidade</th>
+              <th>Telefones</th>
+              <th>Valor</th>
+              <th style="text-align: right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      patientsToRender.forEach(p => {
+        let formattedDate = p.birthDate;
+        if (p.birthDate && p.birthDate.includes('-')) {
+          const [y, m, d] = p.birthDate.split('-');
+          formattedDate = `${d}/${m}/${y}`;
+        }
+        
+        // Combina telefone e celular de forma limpa
+        const phones = [p.phone, p.cellphone].filter(Boolean).join(' / ');
+        
+        tableHtml += `
+          <tr>
+            <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${p.id}</td>
+            <td style="font-weight: 500;">${p.fullName}</td>
+            <td style="font-family: monospace; font-size: 0.9rem;">${p.cpf}</td>
+            <td>${formattedDate}</td>
+            <td>${p.city || '-'}</td>
+            <td style="font-size: 0.85rem; color: var(--text-secondary);">${phones || '-'}</td>
+            <td style="font-family: monospace; font-weight: 500;">${p.billingValue || 'R$ 0,00'}</td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn-icon btn-icon-edit" 
+                  data-edit-id="${p.id}" 
+                  data-full-name="${p.fullName}" 
+                  data-cpf="${p.cpf}" 
+                  data-birth-date="${p.birthDate}"
+                  data-address="${p.address || ''}"
+                  data-city="${p.city || ''}"
+                  data-phone="${p.phone || ''}"
+                  data-cellphone="${p.cellphone || ''}"
+                  data-billing-value="${p.billingValue || ''}"
+                  title="Editar">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="btn-icon btn-icon-delete" data-delete-id="${p.id}" title="Excluir">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tableHtml += `</tbody></table>`;
+      wrapper.innerHTML = tableHtml;
+
+      // Registrar eventos dos botões na tabela
+      document.querySelectorAll('.btn-icon-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('editId').value = btn.getAttribute('data-edit-id');
+          document.getElementById('fullName').value = btn.getAttribute('data-full-name');
+          document.getElementById('cpf').value = btn.getAttribute('data-cpf');
+          document.getElementById('birthDate').value = btn.getAttribute('data-birth-date');
+          document.getElementById('address').value = btn.getAttribute('data-address');
+          document.getElementById('city').value = btn.getAttribute('data-city');
+          document.getElementById('phone').value = btn.getAttribute('data-phone');
+          document.getElementById('cellphone').value = btn.getAttribute('data-cellphone');
+          document.getElementById('billingValue').value = btn.getAttribute('data-billing-value');
+
+          document.getElementById('form-title').textContent = "Editar Paciente";
+          document.getElementById('submit-btn').textContent = "Salvar Alterações";
+          document.getElementById('cancel-edit-btn').style.display = "inline-flex";
+        });
+      });
+
+      document.querySelectorAll('.btn-icon-delete').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-delete-id');
+          if (confirm('Tem certeza de que deseja excluir este paciente?')) {
+            try {
+              const deleteRes = await fetch(`${API_URL}/patients/${id}`, { method: 'DELETE' });
+              if (deleteRes.ok) {
+                loadAndRenderTable();
+                if (document.getElementById('editId').value === id) {
+                  resetForm();
+                }
+                state.loading = true;
+              } else {
+                alert('Erro ao excluir paciente.');
+              }
+            } catch (err) {
+              alert('Erro ao conectar-se à API.');
+            }
+          }
+        });
+      });
+    };
+
+    const loadAndRenderTable = async () => {
       try {
         const res = await fetch(`${API_URL}/patients`);
         if (!res.ok) throw new Error();
-        const patients = await res.json();
-        
-        if (patients.length === 0) {
-          wrapper.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhum paciente cadastrado.</div>`;
-          return;
-        }
-
-        let tableHtml = `
-          <table class="patients-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nome Completo</th>
-                <th>CPF</th>
-                <th>Data Nasc.</th>
-                <th style="text-align: right;">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-
-        patients.forEach(p => {
-          let formattedDate = p.birthDate;
-          if (p.birthDate && p.birthDate.includes('-')) {
-            const [y, m, d] = p.birthDate.split('-');
-            formattedDate = `${d}/${m}/${y}`;
-          }
-          tableHtml += `
-            <tr>
-              <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${p.id}</td>
-              <td style="font-weight: 500;">${p.fullName}</td>
-              <td style="font-family: monospace; font-size: 0.95rem;">${p.cpf}</td>
-              <td>${formattedDate}</td>
-              <td>
-                <div class="actions-cell">
-                  <button class="btn-icon btn-icon-edit" data-edit-id="${p.id}" data-full-name="${p.fullName}" data-cpf="${p.cpf}" data-birth-date="${p.birthDate}" title="Editar">
-                    <i class="fa-solid fa-pen"></i>
-                  </button>
-                  <button class="btn-icon btn-icon-delete" data-delete-id="${p.id}" title="Excluir">
-                    <i class="fa-solid fa-trash-can"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `;
-        });
-
-        tableHtml += `</tbody></table>`;
-        wrapper.innerHTML = tableHtml;
-
-        // Registrar ações de edição
-        document.querySelectorAll('.btn-icon-edit').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const id = btn.getAttribute('data-edit-id');
-            const fullName = btn.getAttribute('data-full-name');
-            const cpf = btn.getAttribute('data-cpf');
-            const birthDate = btn.getAttribute('data-birth-date');
-
-            document.getElementById('editId').value = id;
-            document.getElementById('fullName').value = fullName;
-            document.getElementById('cpf').value = cpf;
-            document.getElementById('birthDate').value = birthDate;
-
-            document.getElementById('form-title').textContent = "Editar Paciente";
-            document.getElementById('submit-btn').textContent = "Salvar Alterações";
-            document.getElementById('cancel-edit-btn').style.display = "inline-flex";
-          });
-        });
-
-        // Registrar ações de exclusão
-        document.querySelectorAll('.btn-icon-delete').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-delete-id');
-            if (confirm('Tem certeza de que deseja excluir este paciente?')) {
-              try {
-                const deleteRes = await fetch(`${API_URL}/patients/${id}`, { method: 'DELETE' });
-                if (deleteRes.ok) {
-                  loadAndRenderTable();
-                  if (document.getElementById('editId').value === id) {
-                    resetForm();
-                  }
-                  state.loading = true; // Recarrega estatísticas em segundo plano
-                } else {
-                  alert('Erro ao excluir paciente.');
-                }
-              } catch (err) {
-                alert('Erro ao conectar-se à API.');
-              }
-            }
-          });
-        });
-
+        allPatients = await res.json();
+        renderTableRows(allPatients);
       } catch (err) {
-        wrapper.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Erro ao carregar dados do banco de dados.</div>`;
+        document.getElementById('patients-table-wrapper').innerHTML = 
+          `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Erro ao carregar dados do banco de dados.</div>`;
       }
     };
 
@@ -316,14 +410,33 @@ async function renderTabContent() {
       document.getElementById('cancel-edit-btn').style.display = "none";
     };
 
+    // Registrar cancelamento
     document.getElementById('cancel-edit-btn').addEventListener('click', resetForm);
 
+    // Registrar busca inteligente (Sem acentos / Sensível a caixa)
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      const query = removeAccents(e.target.value.trim());
+      const filtered = allPatients.filter(p => {
+        return removeAccents(p.fullName).includes(query) ||
+               removeAccents(p.cpf).includes(query) ||
+               removeAccents(p.city || '').includes(query) ||
+               removeAccents(p.id).includes(query);
+      });
+      renderTableRows(filtered);
+    });
+
+    // Enviar formulário CRUD
     document.getElementById('patient-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const editId = document.getElementById('editId').value;
       const fullName = document.getElementById('fullName').value;
       const cpf = document.getElementById('cpf').value;
       const birthDate = document.getElementById('birthDate').value;
+      const address = document.getElementById('address').value;
+      const city = document.getElementById('city').value;
+      const phone = document.getElementById('phone').value;
+      const cellphone = document.getElementById('cellphone').value;
+      const billingValue = document.getElementById('billingValue').value;
 
       const isEdit = !!editId;
       const url = isEdit ? `${API_URL}/patients/${editId}` : `${API_URL}/patients`;
@@ -333,21 +446,22 @@ async function renderTabContent() {
         const res = await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, cpf, birthDate })
+          body: JSON.stringify({ fullName, cpf, birthDate, address, city, phone, cellphone, billingValue })
         });
         const data = await res.json();
         if (res.ok) {
           resetForm();
           loadAndRenderTable();
-          state.loading = true; // Recarrega dashboard
+          state.loading = true;
         } else {
-          alert(`Erro: ${data.message || 'Falha ao salvar'}`);
+          alert(`Erro: ${data.message || 'Falha ao salvar paciente.'}`);
         }
       } catch (err) {
         alert('Erro ao conectar-se à API.');
       }
     });
 
+    // Carregar tabela inicialmente
     loadAndRenderTable();
 
   } else if (state.activeTab === 'atendimento') {
@@ -408,7 +522,7 @@ async function renderTabContent() {
         const data = await res.json();
         if (res.ok) {
           alert('Sucesso: 5 pacientes fictícios foram inseridos no banco Turso.');
-          state.loading = true; // Força recarga da dashboard
+          state.loading = true;
         } else {
           alert(`Erro: ${data.message || 'Falha ao popular banco.'}`);
         }
@@ -424,7 +538,7 @@ async function renderTabContent() {
           const data = await res.json();
           if (res.ok) {
             alert('Sucesso: Todos os dados de pacientes foram removidos.');
-            state.loading = true; // Força recarga da dashboard
+            state.loading = true;
           } else {
             alert(`Erro: ${data.message || 'Falha ao resetar banco.'}`);
           }
@@ -454,6 +568,151 @@ async function fetchDashboardData() {
     };
   } finally {
     state.loading = false;
+  }
+}
+
+// --- FUNÇÃO PARA INICIALIZAR GRÁFICOS CHART.JS ---
+function initDashboardCharts(data) {
+  const occupancyCtx = document.getElementById('occupancyChart');
+  const appointmentsCtx = document.getElementById('appointmentsChart');
+
+  if (occupancyCtx) {
+    new Chart(occupancyCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Urgência', 'Maternidade', 'UTI Geral', 'Pediatria', 'Clínica Médica'],
+        datasets: [{
+          data: [25, 15, 30, 10, 20],
+          backgroundColor: [
+            '#0064ff', // Urgência
+            '#00d2fc', // Maternidade
+            '#ff3b30', // UTI Geral
+            '#34c759', // Pediatria
+            '#af52de'  // Clínica Médica
+          ],
+          borderWidth: 1,
+          borderColor: '#1e2229'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              color: '#a0aec0',
+              font: { family: 'Outfit', size: 11 }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  if (appointmentsCtx) {
+    new Chart(appointmentsCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
+        datasets: [{
+          label: 'Atendimentos',
+          data: [540, 620, 780, 710, 890, 940, 1020],
+          fill: true,
+          backgroundColor: 'rgba(0, 100, 255, 0.1)',
+          borderColor: '#0064ff',
+          borderWidth: 2,
+          tension: 0.3,
+          pointBackgroundColor: '#0064ff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255,255,255,0.03)' },
+            ticks: { color: '#a0aec0', font: { family: 'Inter', size: 10 } }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.03)' },
+            ticks: { color: '#a0aec0', font: { family: 'Inter', size: 10 } }
+          }
+        }
+      }
+    });
+  }
+}
+
+// --- MÁSCARAS DE INPUT ---
+function maskCPF(value) {
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+    .substring(0, 14);
+}
+
+function maskPhone(value) {
+  let v = value.replace(/\D/g, "");
+  if (v.length > 11) v = v.substring(0, 11);
+  if (v.length <= 2) {
+    return v;
+  } else if (v.length <= 6) {
+    return `(${v.slice(0, 2)}) ${v.slice(2)}`;
+  } else if (v.length <= 10) {
+    return `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
+  } else {
+    return `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+  }
+}
+
+function maskCurrency(value) {
+  let v = value.replace(/\D/g, "");
+  if (!v) return "R$ 0,00";
+  let number = (parseInt(v, 10) / 100).toFixed(2);
+  let parts = number.split(".");
+  let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  let decimalPart = parts[1];
+  return `R$ ${integerPart},${decimalPart}`;
+}
+
+function removeAccents(str) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function applyInputMasks() {
+  const cpfInput = document.getElementById('cpf');
+  const phoneInput = document.getElementById('phone');
+  const cellphoneInput = document.getElementById('cellphone');
+  const billingValueInput = document.getElementById('billingValue');
+
+  if (cpfInput) {
+    cpfInput.addEventListener('input', (e) => {
+      e.target.value = maskCPF(e.target.value);
+    });
+  }
+  if (phoneInput) {
+    phoneInput.addEventListener('input', (e) => {
+      e.target.value = maskPhone(e.target.value);
+    });
+  }
+  if (cellphoneInput) {
+    cellphoneInput.addEventListener('input', (e) => {
+      e.target.value = maskPhone(e.target.value);
+    });
+  }
+  if (billingValueInput) {
+    billingValueInput.addEventListener('input', (e) => {
+      e.target.value = maskCurrency(e.target.value);
+    });
+    billingValueInput.addEventListener('focus', (e) => {
+      if (!e.target.value) e.target.value = "R$ 0,00";
+    });
   }
 }
 

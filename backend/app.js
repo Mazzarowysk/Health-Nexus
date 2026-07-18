@@ -18,9 +18,25 @@ app.use(express.json());
         fullName TEXT NOT NULL,
         cpf TEXT UNIQUE NOT NULL,
         birthDate TEXT NOT NULL,
+        address TEXT,
+        city TEXT,
+        phone TEXT,
+        cellphone TEXT,
+        billingValue TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Auto-migração para banco de dados que já existe
+    const columns = ['address', 'city', 'phone', 'cellphone', 'billingValue'];
+    for (const col of columns) {
+      try {
+        await db.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`);
+      } catch (err) {
+        // Ignora se a coluna já existe no SQLite
+      }
+    }
+
     console.log('Banco de dados local/Turso inicializado com sucesso.');
   } catch (err) {
     console.error('Falha ao inicializar tabela de banco de dados:', err);
@@ -101,7 +117,7 @@ async function generatePatientId(fullName) {
 
 // Endpoint para criação de pacientes
 app.post('/api/patients', async (req, res) => {
-  const { fullName, cpf, birthDate } = req.body;
+  const { fullName, cpf, birthDate, address, city, phone, cellphone, billingValue } = req.body;
 
   if (!fullName || !cpf || !birthDate) {
     return res.status(400).json({
@@ -115,8 +131,8 @@ app.post('/api/patients', async (req, res) => {
     
     // Inserção no banco de dados Turso (LibSQL)
     await db.execute({
-      sql: 'INSERT INTO patients (id, fullName, cpf, birthDate) VALUES (?, ?, ?, ?)',
-      args: [patientId, fullName, cpf, birthDate]
+      sql: 'INSERT INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [patientId, fullName, cpf, birthDate, address || '', city || '', phone || '', cellphone || '', billingValue || '']
     });
 
     res.status(201).json({
@@ -157,7 +173,7 @@ app.get('/api/patients', async (req, res) => {
 // Endpoint para atualizar um paciente
 app.put('/api/patients/:id', async (req, res) => {
   const { id } = req.params;
-  const { fullName, cpf, birthDate } = req.body;
+  const { fullName, cpf, birthDate, address, city, phone, cellphone, billingValue } = req.body;
 
   if (!fullName || !cpf || !birthDate) {
     return res.status(400).json({
@@ -180,8 +196,8 @@ app.put('/api/patients/:id', async (req, res) => {
     }
 
     await db.execute({
-      sql: 'UPDATE patients SET fullName = ?, cpf = ?, birthDate = ? WHERE id = ?',
-      args: [fullName, cpf, birthDate, id]
+      sql: 'UPDATE patients SET fullName = ?, cpf = ?, birthDate = ?, address = ?, city = ?, phone = ?, cellphone = ?, billingValue = ? WHERE id = ?',
+      args: [fullName, cpf, birthDate, address || '', city || '', phone || '', cellphone || '', billingValue || '', id]
     });
 
     res.status(200).json({
@@ -223,11 +239,11 @@ app.delete('/api/patients/:id', async (req, res) => {
 // Endpoint para gerar dados fictícios (Seed)
 app.post('/api/settings/seed', async (req, res) => {
   const mockPatients = [
-    { fullName: 'Ana Beatriz Oliveira', cpf: '123.456.789-01', birthDate: '1992-05-14' },
-    { fullName: 'Carlos Henrique Santos', cpf: '234.567.890-12', birthDate: '1985-11-23' },
-    { fullName: 'Bruno Silva Souza', cpf: '345.678.901-23', birthDate: '1979-08-05' },
-    { fullName: 'Mariana Costa Lima', cpf: '456.789.012-34', birthDate: '2001-02-18' },
-    { fullName: 'Roberto Alves Prado', cpf: '567.890.123-45', birthDate: '1965-07-30' }
+    { fullName: 'Ana Beatriz Oliveira', cpf: '123.456.789-01', birthDate: '1992-05-14', address: 'Av. Paulista, 1200 - Bela Vista', city: 'São Paulo', phone: '(11) 3214-5589', cellphone: '(11) 98745-1234', billingValue: 'R$ 350,00' },
+    { fullName: 'Carlos Henrique Santos', cpf: '234.567.890-12', birthDate: '1985-11-23', address: 'Rua das Flores, 45 - Centro', city: 'Campinas', phone: '(19) 3456-7890', cellphone: '(19) 99876-5432', billingValue: 'R$ 1.250,50' },
+    { fullName: 'Bruno Silva Souza', cpf: '345.678.901-23', birthDate: '1979-08-05', address: 'Rua Silva Jardim, 380 - Cambuí', city: 'Campinas', phone: '(19) 3212-4040', cellphone: '(19) 98817-5809', billingValue: 'R$ 10.534,22' },
+    { fullName: 'Mariana Costa Lima', cpf: '456.789.012-34', birthDate: '2001-02-18', address: 'Av. Copacabana, 850 - Ap 402', city: 'Rio de Janeiro', phone: '(21) 2548-9900', cellphone: '(21) 97765-4321', billingValue: 'R$ 80,00' },
+    { fullName: 'Roberto Alves Prado', cpf: '567.890.123-45', birthDate: '1965-07-30', address: 'Av. Afonso Pena, 2300', city: 'Belo Horizonte', phone: '(31) 3224-8899', cellphone: '(31) 98877-6655', billingValue: 'R$ 4.500,00' }
   ];
 
   try {
@@ -240,8 +256,8 @@ app.post('/api/settings/seed', async (req, res) => {
       });
       if (check.rows.length === 0) {
         await db.execute({
-          sql: 'INSERT INTO patients (id, fullName, cpf, birthDate) VALUES (?, ?, ?, ?)',
-          args: [patientId, patient.fullName, patient.cpf, patient.birthDate]
+          sql: 'INSERT INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          args: [patientId, patient.fullName, patient.cpf, patient.birthDate, patient.address, patient.city, patient.phone, patient.cellphone, patient.billingValue]
         });
       }
     }
