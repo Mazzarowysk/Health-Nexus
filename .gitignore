@@ -23,6 +23,7 @@ lerna-debug.log*
 # IDEs e Editores
 .vscode/
 .idea/
+*.lnk
 *.suo
 *.ntvs*
 *.njsproj
