@@ -96,9 +96,10 @@ body {
 
 .brand-logo {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 24px;
   padding: 0 8px;
 }
 
@@ -486,4 +487,173 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* --- CUSTOM HEADINGS & BRANDING --- */
+.header-brand-text {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.2px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-logo-subtext {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  line-height: 1.3;
+  margin-top: 4px;
+}
+
+/* --- CRUD LAYOUT FOR PATIENTS --- */
+.patients-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 28px;
+  align-items: start;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.patients-form-container {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.patients-list-container {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+}
+
+.patients-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.patients-table th {
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.patients-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.patients-table tr:last-child td {
+  border-bottom: none;
+}
+
+.patients-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.btn-icon-edit:hover {
+  background-color: rgba(0, 100, 255, 0.2);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-icon-delete:hover {
+  background-color: rgba(255, 50, 80, 0.2);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* --- SETTINGS TAB STYLES --- */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.settings-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-indicator.success {
+  background-color: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent);
 }

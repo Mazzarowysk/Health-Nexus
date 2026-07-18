@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import crypto from 'crypto';
 import { db } from './database/client.js';
 
 const app = express();
@@ -63,6 +64,41 @@ app.get('/api/dashboard/summary', async (req, res) => {
   }
 });
 
+// Função auxiliar para gerar ID personalizado do paciente (Ex: "AO-0001")
+async function generatePatientId(fullName) {
+  const nameParts = fullName.trim().toUpperCase().split(/\s+/);
+  let initials = 'HN';
+  if (nameParts.length >= 1) {
+    const firstInitial = nameParts[0].charAt(0);
+    const lastInitial = nameParts[nameParts.length - 1].charAt(0);
+    initials = `${firstInitial}${lastInitial}`;
+  }
+
+  const result = await db.execute({
+    sql: "SELECT id FROM patients WHERE id LIKE ? ORDER BY id DESC",
+    args: [`${initials}-%`]
+  });
+
+  let nextNumber = 1;
+  if (result.rows.length > 0) {
+    let maxNum = 0;
+    result.rows.forEach(row => {
+      const idStr = String(row.id);
+      const parts = idStr.split('-');
+      if (parts.length === 2) {
+        const num = parseInt(parts[1], 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    });
+    nextNumber = maxNum + 1;
+  }
+
+  const seqString = String(nextNumber).padStart(4, '0');
+  return `${initials}-${seqString}`;
+}
+
 // Endpoint para criação de pacientes
 app.post('/api/patients', async (req, res) => {
   const { fullName, cpf, birthDate } = req.body;
@@ -75,7 +111,7 @@ app.post('/api/patients', async (req, res) => {
   }
 
   try {
-    const patientId = crypto.randomUUID ? crypto.randomUUID() : 'patient_' + Math.random().toString(36).substr(2, 9);
+    const patientId = await generatePatientId(fullName);
     
     // Inserção no banco de dados Turso (LibSQL)
     await db.execute({
@@ -100,6 +136,142 @@ app.post('/api/patients', async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Falha ao salvar paciente no banco de dados.'
+    });
+  }
+});
+
+// Endpoint para obter todos os pacientes
+app.get('/api/patients', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM patients ORDER BY created_at DESC');
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar pacientes:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao buscar lista de pacientes.'
+    });
+  }
+});
+
+// Endpoint para atualizar um paciente
+app.put('/api/patients/:id', async (req, res) => {
+  const { id } = req.params;
+  const { fullName, cpf, birthDate } = req.body;
+
+  if (!fullName || !cpf || !birthDate) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Os campos fullName, cpf e birthDate são de preenchimento obrigatório.'
+    });
+  }
+
+  try {
+    const checkCpf = await db.execute({
+      sql: 'SELECT id FROM patients WHERE cpf = ? AND id != ?',
+      args: [cpf, id]
+    });
+
+    if (checkCpf.rows.length > 0) {
+      return res.status(409).json({
+        status: 'error',
+        message: 'Outro paciente já está cadastrado com este CPF.'
+      });
+    }
+
+    await db.execute({
+      sql: 'UPDATE patients SET fullName = ?, cpf = ?, birthDate = ? WHERE id = ?',
+      args: [fullName, cpf, birthDate, id]
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Paciente atualizado com sucesso.'
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar paciente:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao atualizar paciente.'
+    });
+  }
+});
+
+// Endpoint para excluir um paciente
+app.delete('/api/patients/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await db.execute({
+      sql: 'DELETE FROM patients WHERE id = ?',
+      args: [id]
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Paciente excluído com sucesso.'
+    });
+  } catch (err) {
+    console.error('Erro ao excluir paciente:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao excluir paciente.'
+    });
+  }
+});
+
+// Endpoint para gerar dados fictícios (Seed)
+app.post('/api/settings/seed', async (req, res) => {
+  const mockPatients = [
+    { fullName: 'Ana Beatriz Oliveira', cpf: '123.456.789-01', birthDate: '1992-05-14' },
+    { fullName: 'Carlos Henrique Santos', cpf: '234.567.890-12', birthDate: '1985-11-23' },
+    { fullName: 'Bruno Silva Souza', cpf: '345.678.901-23', birthDate: '1979-08-05' },
+    { fullName: 'Mariana Costa Lima', cpf: '456.789.012-34', birthDate: '2001-02-18' },
+    { fullName: 'Roberto Alves Prado', cpf: '567.890.123-45', birthDate: '1965-07-30' }
+  ];
+
+  try {
+    for (const patient of mockPatients) {
+      const patientId = await generatePatientId(patient.fullName);
+      
+      const check = await db.execute({
+        sql: 'SELECT id FROM patients WHERE cpf = ?',
+        args: [patient.cpf]
+      });
+      if (check.rows.length === 0) {
+        await db.execute({
+          sql: 'INSERT INTO patients (id, fullName, cpf, birthDate) VALUES (?, ?, ?, ?)',
+          args: [patientId, patient.fullName, patient.cpf, patient.birthDate]
+        });
+      }
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Dados fictícios gerados com sucesso.'
+    });
+  } catch (err) {
+    console.error('Erro ao gerar dados fictícios:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao gerar dados fictícios no banco.'
+    });
+  }
+});
+
+// Endpoint para resetar todos os pacientes do banco
+app.post('/api/settings/reset', async (req, res) => {
+  try {
+    await db.execute('DELETE FROM patients');
+    res.status(200).json({
+      status: 'success',
+      message: 'Banco de dados de pacientes limpo com sucesso.'
+    });
+  } catch (err) {
+    console.error('Erro ao limpar banco de dados:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao limpar banco de dados.'
     });
   }
 });
