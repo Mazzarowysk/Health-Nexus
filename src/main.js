@@ -153,6 +153,33 @@ const showSyncComparisonModal = (syncData) => {
     } catch (e) { return '—'; }
   };
 
+  const diffTables = ['users', 'patients', 'encounters', 'triages', 'clinical_notes'];
+  const cloudNewer = diffTables.some((t) => {
+    const localVal = local[t] || 0;
+    const cloudVal = cloud[t] || 0;
+    const localTime = new Date(localTs[t] || 0).getTime();
+    const cloudTime = new Date(cloudTs[t] || 0).getTime();
+    return cloudTime > localTime || (cloudVal > localVal && cloudTime === localTime);
+  });
+  const localNewer = diffTables.some((t) => {
+    const localVal = local[t] || 0;
+    const cloudVal = cloud[t] || 0;
+    const localTime = new Date(localTs[t] || 0).getTime();
+    const cloudTime = new Date(cloudTs[t] || 0).getTime();
+    return localTime > cloudTime || (localVal > cloudVal && localTime === cloudTime);
+  });
+
+  let recommendationText = '';
+  if (cloudNewer && !localNewer) {
+    recommendationText = '<strong style="color: #2563eb;">Recomendado:</strong> baixar os dados mais recentes da nuvem para atualizar o banco local.';
+  } else if (localNewer && !cloudNewer) {
+    recommendationText = '<strong style="color: #059669;">Recomendado:</strong> enviar os dados locais para a nuvem para manter o Turso atualizado.';
+  } else if (cloudNewer && localNewer) {
+    recommendationText = '<strong style="color: #d97706;">Atenção:</strong> alterações recentes existem em ambos os lados. Verifique a origem de verdade antes de sincronizar.';
+  } else {
+    recommendationText = '<strong style="color: #10b981;">Tudo certo:</strong> local e nuvem estão alinhados ou não há dados suficientes para comparar.';
+  }
+
   // Ícone e texto de status adaptados ao contexto
   let syncIcon, syncStatusText;
   if (syncData.vercelHasUpdates) {
@@ -236,6 +263,10 @@ const showSyncComparisonModal = (syncData) => {
             : `Comparativo de registros entre <strong style="color: var(--text-primary); margin: 0 2px;"><i class="fa-solid ${originIcon}" style="margin-right:4px;"></i>${originLabel}</strong> e o banco Turso na nuvem:`
           }
         </p>
+
+        <div style="padding: 14px 16px; margin-bottom: 18px; border: 1px solid rgba(59,130,246,0.12); border-radius: 10px; background: rgba(59,130,246,0.05); color: var(--text-primary); font-size: 0.92rem; line-height: 1.5;">
+          ${recommendationText}
+        </div>
 
         <!-- Tabela de comparação -->
         <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 18px;">
@@ -417,7 +448,7 @@ const syncLocalChangesToCloud = async () => {
 };
 
 const shouldPromptCloudSync = (statusData) => {
-  return statusData && statusData.cloudConfigured;
+  return statusData && statusData.cloudConfigured && !statusData.isVercel;
 };
 
 const requestSyncPromptIfConfigured = async () => {
