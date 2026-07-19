@@ -142,7 +142,8 @@ const authenticateToken = (req, res, next) => {
 };
 
 // --- ROTAS E LÓGICA DE HEARTBEAT (Auto-shutdown) ---
-let lastHeartbeat = Date.now() + 15000; // 15 segundos de carência inicial
+// Dá 60 segundos iniciais para o Vite compilar e o navegador abrir
+let lastHeartbeat = Date.now() + 60000; 
 
 app.post('/api/heartbeat', (req, res) => {
   lastHeartbeat = Date.now();

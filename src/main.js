@@ -1323,6 +1323,31 @@ async function renderTabContent() {
             </div>
           </details>
 
+          <!-- Accordion de Gerenciamento de Usuários (Apenas Master) -->
+          <details class="settings-accordion">
+            <summary class="settings-accordion-header">
+              <i class="fa-solid fa-users-gear"></i> Gerenciamento de Usuários
+              ${state.user?.username === 'mazzarowysk' ? '<span class="status-badge" style="margin-left:auto;"><span class="status-indicator success"></span>MASTER</span>' : '<span class="status-badge" style="margin-left:auto; background:rgba(255,0,0,0.1);"><i class="fa-solid fa-lock"></i> BLOQUEADO</span>'}
+            </summary>
+            <div class="settings-accordion-body">
+              ${state.user?.username === 'mazzarowysk' ? `
+                <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
+                  <strong>Bem-vindo, Master.</strong> Aqui você poderá editar perfis, resetar senhas e alterar permissões de outros usuários da clínica.
+                </p>
+                <div class="settings-actions">
+                  <button class="btn btn-primary" onclick="alert('Funcionalidade de edição de usuários será implementada na próxima fase.')">
+                    <i class="fa-solid fa-user-pen"></i> Editar Permissões
+                  </button>
+                </div>
+              ` : `
+                <div style="text-align: center; padding: 20px 0; color: var(--color-danger); opacity: 0.8;">
+                  <i class="fa-solid fa-shield-halved" style="font-size: 2rem; margin-bottom: 12px;"></i>
+                  <p>Acesso negado. Apenas o usuário master (<strong>mazzarowysk</strong>) pode alterar as configurações de outros usuários.</p>
+                </div>
+              `}
+            </div>
+          </details>
+
         </div>
       </div>
     `;
