@@ -574,8 +574,8 @@ function renderAppStructure() {
           <ul class="nav-menu">
             <li>
               <a class="nav-item ${state.activeTab === 'dashboard' ? 'active' : ''}" data-tab="dashboard">
-                <i class="fa-solid fa-chart-line"></i>
-                <span>Dashboard</span>
+                <i class="fa-solid fa-house-medical"></i>
+                <span>Health Nexus</span>
               </a>
             </li>
             <li>
@@ -620,7 +620,7 @@ function renderAppStructure() {
       <!-- Cabeçalho Superior -->
       <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 24px;">
         <div style="display: flex; align-items: center; gap: 16px;">
-          <h1 class="page-title" id="page-title-label" style="margin: 0;">Dashboard</h1>
+          <h1 class="page-title" id="page-title-label" style="margin: 0;">Health Nexus</h1>
           <div class="header-brand-text" style="margin: 0;">
             <i class="fa-solid fa-circle-nodes"></i>
             <span>Sistema de Gestão Hospitalar Health Nexus</span>
@@ -753,6 +753,15 @@ function renderAppStructure() {
 function switchTab(tabName) {
   state.activeTab = tabName;
   
+  // Mapa de nomes de exibição por aba
+  const tabLabels = {
+    dashboard:     'Health Nexus',
+    pacientes:     'Pacientes',
+    atendimento:   'Atendimentos',
+    relatorios:    'Relatórios',
+    configuracoes: 'Configurações'
+  };
+
   // Atualiza classes ativas na barra lateral
   document.querySelectorAll('.nav-item').forEach(item => {
     if (item.getAttribute('data-tab') === tabName) {
@@ -762,9 +771,11 @@ function switchTab(tabName) {
     }
   });
 
-  // Atualiza o título do cabeçalho
+  // Atualiza o título do cabeçalho e da aba do navegador
+  const label = tabLabels[tabName] || (tabName.charAt(0).toUpperCase() + tabName.slice(1));
   const pageTitle = document.getElementById('page-title-label');
-  pageTitle.textContent = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+  if (pageTitle) pageTitle.textContent = label;
+  document.title = `${label} — Health Nexus`;
 
   // Re-renderiza a área de conteúdo
   renderTabContent();
