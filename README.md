@@ -1,53 +1,137 @@
-# Health Nexus
+# Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão atual:** 1.0.0 (BETA)
-**Status do Sistema:** Em desenvolvimento ativo.
-
-## Sincronização & Infraestrutura
-O Health Nexus está 100% configurado e sincronizado com os seguintes serviços:
-- 🐙 **GitHub:** Controle de versão ativo (branch `main`). Todos os commits acionam deploys automáticos.
-- ⏏️ **Vercel:** Plataforma Serverless responsável pela hospedagem do Frontend (Vite) e Backend (Node.js API).
-- 🗄️ **Turso (LibSQL):** Banco de dados distribuído edge ativo, responsável por toda a persistência de dados do sistema (Pacientes, Atendimentos, PEP).
-
-## Módulos Implementados (Estado Atual)
-
-### 1. Autenticação e Layout
-- Tela de login com design Glassmorphism (Vidro).
-- Menu lateral (Sidebar) retrátil e responsivo.
-- Identificação de desenvolvedores.
-
-### 2. Dashboard
-- Resumo de métricas em tempo real (Total de Pacientes, Atendimentos no Dia, Tempo Médio de Espera).
-- Fallback visual em caso de desconexão com o banco (exibe dados zerados com layout contínuo).
-
-### 3. Gestão de Pacientes
-- Listagem completa e interativa.
-- Formulário de cadastro com validações visuais em tempo real (Mascara inteligente para CPF, sem conflitos com dispositivos móveis - `inputmode="numeric"`).
-- Integração ponta-a-ponta com banco Turso.
-
-### 4. Triagem e Fila de Atendimento (Manchester)
-- Classificação de risco em 5 cores baseada no Protocolo de Manchester (Emergência a Não Urgente).
-- Sistema de admissão do paciente na fila.
-- Acompanhamento do status ("Aguardando Triagem", "Aguardando Médico", "Em Atendimento", "Finalizado").
-
-### 5. PEP (Prontuário Eletrônico do Paciente)
-- Editor Rich-Text (Estilo Notion) intuitivo.
-- Abas de Evolução, Prescrição, Solicitação de Exames e Atestados.
-- Autosave implementado.
-
-### 6. Relatórios e Exportação
-- Aba dedicada à extração de dados da clínica.
-- Exportação nativa da fila e dos pacientes nos seguintes formatos:
-  - 📄 **PDF**: Layout zebrado e elegante para impressão (jsPDF + autoTable).
-  - 📊 **XLSX**: Exportação crua e rica para o Excel (SheetJS).
-  - 📝 **CSV**: Exportação universal delimitada (com cabeçalhos UTF-8 BOM suportando acentos).
-
-### 7. Configurações (Preferências Pessoais)
-- Seção com acordeões retráteis (Expandir/Recolher) agrupando lógicas de sistema.
-- Controle de Tema (Dark/Light).
-
-## Próximos Passos
-Conforme especificado em `docs/`, ainda há áreas a serem implementadas, como Laboratório (`09-laboratorio.md`), Integração de Imagens e Faturamento (TISS).
+**Versão:** `1.0.0 (BETA)`  
+**Status:** Em desenvolvimento ativo  
+**Última atualização:** Julho 2026
 
 ---
+
+## 🏗️ Infraestrutura & Integrações
+
+| Serviço | Status | Descrição |
+|---|---|---|
+| 🐙 **GitHub** | ✅ Ativo | Branch `main` · Commits disparam deploys automáticos |
+| ▲ **Vercel** | ✅ Ativo | Hospeda Frontend (Vite) + Backend (Express API serverless) |
+| 🗄️ **Turso (LibSQL)** | ✅ Ativo | Banco de dados edge distribuído — Pacientes, Atendimentos, PEP |
+
+---
+
+## 📦 Stack Tecnológica
+
+- **Frontend:** HTML5 + JavaScript (Vanilla SPA) · Vite 5 · Chart.js · jsPDF · SheetJS
+- **Backend:** Node.js + Express.js (API REST) · JWT · Bcrypt
+- **Banco de dados:** SQLite local (`local.db`) + Turso cloud (LibSQL) via `@libsql/client`
+- **CSS:** Design System próprio — Glassmorphism dark + Light mode completo
+- **Tipografia:** Outfit (títulos) + Inter (corpo) via Google Fonts
+- **Ícones:** Font Awesome 6
+
+---
+
+## 🧩 Módulos Implementados
+
+### 1. Autenticação & Controle de Acesso
+- Tela de login/cadastro com design Glassmorphism
+- Autenticação via **JWT** (token salvo em `sessionStorage`, expira em 24h)
+- Controle de roles: `Administrador`, `Médico`
+- Módulo de Gerenciamento de Usuários visível apenas para o usuário master (`mazzarowysk`)
+- Feedback de erros específicos por caso (usuário não encontrado, senha incorreta)
+
+### 2. Dashboard
+- KPIs em tempo real: Total de Pacientes, Atendimentos no Dia, Tempo Médio de Espera, Taxa de Ocupação
+- Gráficos interativos (Chart.js): Ocupação por ala, Histórico semanal de atendimentos
+- Dados integrados ao banco via API REST
+
+### 3. Gestão de Pacientes (CRUD Completo)
+- Listagem com busca em tempo real (filtragem client-side)
+- Formulário de cadastro com validações: máscara de CPF, campos obrigatórios
+- Campos completos: Nome, CPF, Data Nascimento, Endereço, Cidade, Telefone, Celular, Valor de Cobrança
+- Edição e exclusão com confirmação
+- IDs sequenciais e únicos por entidade
+
+### 4. Triagem & Fila de Atendimento (Protocolo Manchester)
+- Classificação de risco em **5 cores**: Vermelho (Emergência), Laranja, Amarelo, Verde, Azul (Não Urgente)
+- Fluxo completo: Admissão → Triagem → Atendimento → Finalização
+- Status rastreados: `Aguardando_Triagem`, `Aguardando_Médico`, `Em_Atendimento`, `Finalizado`
+- Campos clínicos: Peso, Pressão Arterial, Temperatura, FC, Queixas
+
+### 5. PEP — Prontuário Eletrônico do Paciente
+- Estrutura **SOAP**: Subjetivo, Objetivo, Avaliação, Plano
+- Abas: Evolução, Prescrição, Solicitação de Exames, Atestados
+- Autosave de rascunho + Assinatura digital (hash SHA)
+- Prontuário bloqueado após assinatura (read-only)
+
+### 6. Relatórios & Exportação
+- Exportação de Pacientes e Fila nos formatos:
+  - 📄 **PDF** — Layout elegante com autoTable (jsPDF)
+  - 📊 **XLSX** — Exportação rica para Excel (SheetJS)
+  - 📝 **CSV** — Universal com cabeçalhos UTF-8 BOM (suporte a acentos)
+- Filtros por período, status e cor de triagem
+
+### 7. Configurações do Sistema
+- Toggle **Tema Claro / Escuro** (modo claro totalmente implementado com design system próprio)
+- Gerenciamento de dados: Exportar backup JSON, Importar, Limpar banco
+- Seções em acordeões expansíveis
+
+### 8. Sincronização Local ↔ Nuvem (Turso)
+- **Modal após cada operação de escrita** (cadastro, edição, exclusão): pergunta se deseja enviar para a nuvem
+- **Modal de comparativo ao logar**: sempre exibido quando a nuvem estiver configurada, mostrando:
+  - Quantidade de registros por tabela (Profissionais, Pacientes, Atendimentos, Triagens, Prontuários)
+  - **Data e hora** do registro mais recente em cada tabela (local vs. nuvem)
+  - Badge **"DIFF"** destacado em tabelas com quantidades divergentes
+  - Ações: Baixar da Nuvem ou Enviar para Nuvem
+- Sincronização automática ao iniciar (baixa da nuvem se ela tiver mais registros)
+- Dual-mode: banco local SQLite (desenvolvimento) + Turso cloud (produção/Vercel)
+
+---
+
+## 🎨 Design System
+
+O Health Nexus implementa um design system completo com tokens CSS (`--variáveis`) para dois temas:
+
+- **Modo Escuro (padrão):** Glassmorphism com fundo roxo profundo, acentos neon magenta/ciano
+- **Modo Claro:** Branco clínico profissional (azul médico `#2563eb` + verde teal `#0d9488`), totalmente polido com overrides para todos os componentes: sidebar, header, cards, tabelas, modais, inputs, badges, etc.
+
+---
+
+## 🔧 Automações Especiais
+
+- **Auto-shutdown do servidor:** O processo Node se encerra automaticamente quando a aba do navegador é fechada (heartbeat + `process.exit`)
+- **Criação automática do banco:** Todas as tabelas são criadas via `CREATE TABLE IF NOT EXISTS` ao iniciar
+- **Usuário admin padrão:** Criado automaticamente (`admin` / senha `admin`) se não existir nenhum usuário
+
+---
+
+## 🗺️ Próximos Passos
+
+Conforme especificado em `docs/`, módulos ainda a implementar:
+- Laboratório e Resultados de Exames (`09-laboratorio.md`)
+- Integração de Imagens (DICOM/PACS)
+- Faturamento e TISS (ANS)
+- Notificações e Alertas em tempo real (WebSocket)
+
+---
+
+## 🚀 Execução Local
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/Mazzarowysk/Health-Nexus.git "C:\Health Nexus"
+cd "C:\Health Nexus"
+
+# 2. Instalar dependências
+npm install
+
+# 3. Configurar variáveis de ambiente
+cp .env.example .env
+# Editar .env com TURSO_DATABASE_URL e TURSO_AUTH_TOKEN (opcional para uso local)
+
+# 4. Iniciar em modo desenvolvimento (frontend + backend simultâneos)
+npm run dev
+```
+
+Acesse: `http://localhost:5173` · Backend: `http://localhost:3001`  
+Login padrão: **usuário** `admin` · **senha** `admin`
+
+---
+
 *Desenvolvido por @mazzarowysk & @_coltri_*

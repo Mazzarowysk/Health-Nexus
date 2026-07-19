@@ -17,7 +17,319 @@ let state = {
   loading: true
 };
 
+// --- CONTROLE DE TEMA (CLARO/ESCURO) ---
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('hn_theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-theme');
+  } else {
+    document.body.classList.remove('light-theme');
+  }
+};
+
+const toggleTheme = () => {
+  const isLight = document.body.classList.toggle('light-theme');
+  localStorage.setItem('hn_theme', isLight ? 'light' : 'dark');
+  updateThemeIcon();
+};
+
+const updateThemeIcon = () => {
+  const icon = document.getElementById('theme-icon');
+  if (!icon) return;
+  if (document.body.classList.contains('light-theme')) {
+    icon.className = 'fa-solid fa-moon';
+  } else {
+    icon.className = 'fa-solid fa-sun';
+  }
+};
+
+// --- SISTEMA DE SINCRONIZAÇÃO LOCAL-NUVEM ---
+const showSyncPromptModal = () => {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('sync-prompt-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'sync-prompt-modal';
+    overlay.className = 'modal-overlay';
+    overlay.style.zIndex = '99999';
+    overlay.style.display = 'flex';
+    
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width: 420px; text-align: center; padding: 24px; animation: modalFadeIn 0.3s ease-out;">
+        <div style="font-size: 3rem; color: var(--color-primary); margin-bottom: 16px;">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <h3 style="font-family: 'Outfit'; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Enviar para a Nuvem?</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px;">
+          Uma alteração foi feita no sistema. Deseja enviar os dados atualizados para o banco de dados Turso na nuvem agora?
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button id="btn-sync-cancel" class="btn btn-secondary" style="flex: 1;">Manter Apenas Local</button>
+          <button id="btn-sync-confirm" class="btn btn-primary" style="flex: 1;">
+            <i class="fa-solid fa-cloud"></i> Sim, Enviar
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    const cleanUp = () => {
+      overlay.remove();
+    };
+    
+    document.getElementById('btn-sync-cancel').addEventListener('click', () => {
+      cleanUp();
+      resolve(false);
+    });
+    
+    document.getElementById('btn-sync-confirm').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-sync-confirm');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+      
+      try {
+        const res = await fetch('/api/sync/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${state.token}`
+          }
+        });
+        if (res.ok) {
+          showToast('Dados sincronizados com a nuvem com sucesso!');
+        } else {
+          showToast('Erro ao sincronizar com a nuvem.');
+        }
+      } catch (err) {
+        showToast('Erro de conexão ao sincronizar.');
+      } finally {
+        cleanUp();
+        resolve(true);
+      }
+    });
+  });
+};
+
+const showSyncComparisonModal = (syncData) => {
+  const existing = document.getElementById('sync-comparison-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'sync-comparison-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.zIndex = '99998';
+  overlay.style.display = 'flex';
+
+  const local = syncData.local;
+  const cloud = syncData.cloud;
+  const localTs = syncData.localTimestamps || {};
+  const cloudTs = syncData.cloudTimestamps || {};
+
+  // Formatar data/hora no padrão pt-BR
+  const fmtDate = (isoStr) => {
+    if (!isoStr) return '<span style="color: var(--text-muted); font-style: italic; font-size:0.75rem;">Sem dados</span>';
+    try {
+      const d = new Date(isoStr);
+      return d.toLocaleString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    } catch (e) { return '—'; }
+  };
+
+  const syncIcon = syncData.synchronized
+    ? '<i class="fa-solid fa-circle-check" style="color: var(--color-accent); font-size: 1.4rem;"></i>'
+    : '<i class="fa-solid fa-triangle-exclamation" style="color: var(--color-warning); font-size: 1.4rem;"></i>';
+  const syncStatusText = syncData.synchronized
+    ? '<span style="color: var(--color-accent); font-weight: 600;">Sincronizado</span>'
+    : '<span style="color: var(--color-warning); font-weight: 600;">Diferenças detectadas</span>';
+
+  const tableItems = [
+    { label: 'Profissionais', key: 'users' },
+    { label: 'Pacientes', key: 'patients' },
+    { label: 'Atendimentos', key: 'encounters' },
+    { label: 'Triagens', key: 'triages' },
+    { label: 'Prontuários', key: 'clinical_notes' }
+  ];
+
+  const tableRows = tableItems.map(({ label, key }) => {
+    const localQtd = Number(local[key] || 0);
+    const cloudQtd = Number(cloud[key] || 0);
+    const isDiff = localQtd !== cloudQtd;
+    const rowBg = isDiff ? 'background: rgba(245, 158, 11, 0.06);' : '';
+    const diffBadge = isDiff
+      ? '<span style="display:inline-block; background: rgba(245,158,11,0.18); color: #d97706; font-size:0.68rem; font-weight:700; padding:1px 7px; border-radius:10px; margin-left:6px; letter-spacing:0.3px;">DIFF</span>'
+      : '';
+    const localQtdColor = isDiff ? 'color: #d97706; font-weight: 700;' : 'color: var(--text-primary); font-weight: 600;';
+    const cloudQtdColor = isDiff ? 'color: #d97706; font-weight: 700;' : 'color: var(--text-primary); font-weight: 600;';
+    return `
+      <tr style="${rowBg} border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+        <td style="padding: 9px 14px; font-weight: 600; font-size: 0.87rem; white-space:nowrap;">${label}${diffBadge}</td>
+        <td style="padding: 9px 14px; text-align: center; font-family: monospace; font-size: 1rem; ${localQtdColor}">${localQtd}</td>
+        <td style="padding: 9px 14px; font-size: 0.78rem; color: var(--text-secondary); white-space:nowrap;">${fmtDate(localTs[key])}</td>
+        <td style="padding: 9px 14px; text-align: center; font-family: monospace; font-size: 1rem; ${cloudQtdColor}">${cloudQtd}</td>
+        <td style="padding: 9px 14px; font-size: 0.78rem; color: var(--text-secondary); white-space:nowrap;">${fmtDate(cloudTs[key])}</td>
+      </tr>`;
+  }).join('');
+
+  const originLabel = syncData.isVercel ? 'Vercel' : 'Computador';
+  const originIcon = syncData.isVercel ? 'fa-globe' : 'fa-computer';
+
+  overlay.innerHTML = `
+    <div class="modal-content" style="max-width: 700px; padding: 0; animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden;">
+      
+      <!-- Header -->
+      <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          ${syncIcon}
+          <div>
+            <h3 style="font-family: 'Outfit'; font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin: 0; line-height: 1.2;">
+              Sincronização com a Nuvem
+            </h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 4px 0 0; line-height: 1.4;">
+              Status atual: ${syncStatusText}
+            </p>
+          </div>
+        </div>
+        <button id="btn-sync-comp-x" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 6px 8px; border-radius: var(--radius-sm); transition: all 0.15s; line-height:1;" title="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 20px 24px;">
+        <p style="font-size: 0.83rem; color: var(--text-secondary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-circle-info" style="color: var(--color-primary);"></i>
+          Comparativo de registros entre <strong style="color: var(--text-primary); margin: 0 2px;"><i class="fa-solid ${originIcon}" style="margin-right:4px;"></i>${originLabel}</strong> e o banco Turso na nuvem:
+        </p>
+
+        <!-- Tabela de comparação -->
+        <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 18px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 560px;">
+            <thead>
+              <tr style="background: var(--bg-tertiary);">
+                <th style="padding: 10px 14px; text-align: left; font-family: 'Outfit'; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color);" rowspan="2">Tabela</th>
+                <th style="padding: 10px 14px; text-align: center; font-family: 'Outfit'; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-primary); border-bottom: 1px solid var(--border-color); border-left: 2px solid rgba(37,99,235,0.2);" colspan="2">
+                  <i class="fa-solid ${originIcon}" style="margin-right: 5px;"></i>${originLabel}
+                </th>
+                <th style="padding: 10px 14px; text-align: center; font-family: 'Outfit'; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-accent); border-bottom: 1px solid var(--border-color); border-left: 2px solid rgba(13,148,136,0.2);" colspan="2">
+                  <i class="fa-solid fa-cloud" style="margin-right: 5px;"></i>Turso (Nuvem)
+                </th>
+              </tr>
+              <tr style="background: var(--bg-tertiary);">
+                <th style="padding: 6px 14px; text-align: center; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid var(--border-color); border-left: 2px solid rgba(37,99,235,0.2);">Qtd.</th>
+                <th style="padding: 6px 14px; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid var(--border-color);">Data/Hora Mais Recente</th>
+                <th style="padding: 6px 14px; text-align: center; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid var(--border-color); border-left: 2px solid rgba(13,148,136,0.2);">Qtd.</th>
+                <th style="padding: 6px 14px; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid var(--border-color);">Data/Hora Mais Recente</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Legenda -->
+        <div style="padding: 12px 16px; background: rgba(37, 99, 235, 0.05); border-left: 3px solid var(--color-primary); border-radius: 0 6px 6px 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 4px;">
+          <i class="fa-solid fa-cloud-arrow-down" style="color: var(--color-primary); margin-right: 4px;"></i>
+          <strong style="color: var(--text-primary);">Baixar da Nuvem:</strong> Atualiza o banco local com os dados do Turso. <em>Os dados locais serão substituídos.</em><br>
+          <i class="fa-solid fa-cloud-arrow-up" style="color: var(--color-accent); margin-right: 4px;"></i>
+          <strong style="color: var(--text-primary);">Enviar para Nuvem:</strong> Envia todos os dados locais para o Turso. <em>Os dados na nuvem serão substituídos.</em>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--border-color); padding: 16px 24px; background: rgba(255,255,255,0.01);">
+        <button id="btn-sync-comp-skip" class="btn btn-secondary">Fechar</button>
+        <button id="btn-sync-comp-upload" class="btn btn-secondary" style="border-color: var(--color-accent); color: var(--color-accent);">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Enviar para Nuvem
+        </button>
+        <button id="btn-sync-comp-download" class="btn btn-primary">
+          <i class="fa-solid fa-cloud-arrow-down"></i> Baixar da Nuvem
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const xBtn    = document.getElementById('btn-sync-comp-x');
+  const closeBtn = document.getElementById('btn-sync-comp-skip');
+  const uploadBtn = document.getElementById('btn-sync-comp-upload');
+  const downloadBtn = document.getElementById('btn-sync-comp-download');
+
+  const closeModal = () => overlay.remove();
+  xBtn.addEventListener('click', closeModal);
+  closeBtn.addEventListener('click', closeModal);
+
+  const performAction = async (actionUrl, successMessage) => {
+    const origUpload = uploadBtn.innerHTML;
+    const origDownload = downloadBtn.innerHTML;
+    uploadBtn.disabled = true;
+    downloadBtn.disabled = true;
+    closeBtn.disabled = true;
+    xBtn.disabled = true;
+
+    if (actionUrl.includes('upload')) {
+      uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+    } else {
+      downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
+    }
+
+    try {
+      const res = await apiFetch(actionUrl, { method: 'POST' });
+      if (res.ok) {
+        showToast(successMessage);
+        overlay.remove();
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        showToast('Erro ao realizar a sincronização. Tente novamente.');
+        uploadBtn.disabled = false;
+        downloadBtn.disabled = false;
+        closeBtn.disabled = false;
+        xBtn.disabled = false;
+        uploadBtn.innerHTML = origUpload;
+        downloadBtn.innerHTML = origDownload;
+      }
+    } catch (err) {
+      showToast('Erro de conexão ao sincronizar.');
+      uploadBtn.disabled = false;
+      downloadBtn.disabled = false;
+      closeBtn.disabled = false;
+      xBtn.disabled = false;
+      uploadBtn.innerHTML = origUpload;
+      downloadBtn.innerHTML = origDownload;
+    }
+  };
+
+  uploadBtn.addEventListener('click', () => {
+    performAction('/api/sync/upload', 'Dados locais enviados para a nuvem com sucesso!');
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    performAction('/api/sync/download', 'Banco de dados local atualizado com os dados da nuvem!');
+  });
+};
+
+// Sempre exibir comparativo ao logar (se nuvem configurada)
+const checkInitialSync = async () => {
+  try {
+    const res = await apiFetch('/api/sync/status');
+    if (!res.ok) return;
+    const data = await res.json();
+    // Exibir comparativo sempre que a nuvem estiver configurada
+    if (data.cloudConfigured) {
+      showSyncComparisonModal(data);
+    }
+  } catch (err) {
+    console.error('Erro ao verificar sincronização inicial:', err);
+  }
+};
+
 const initializeApp = () => {
+  initTheme();
   if (state.isAuthenticated) {
     renderAppStructure();
     const logoutBtn = document.getElementById('btn-logout');
@@ -27,6 +339,8 @@ const initializeApp = () => {
         logout();
       });
     }
+    // Verificar sincronização inicial do banco de dados local-nuvem
+    checkInitialSync();
   } else {
     renderAuthScreen();
   }
@@ -50,6 +364,30 @@ const apiFetch = async (url, options = {}) => {
   if (res.status === 401 || res.status === 403) {
     logout();
   }
+
+  // Interceptar requisições de escrita para solicitar sincronização com o banco Turso
+  const isWrite = ['POST', 'PUT', 'DELETE'].includes((options.method || 'GET').toUpperCase());
+  const isBusinessRoute = url.includes('/api/patients') || url.includes('/api/encounters') || url.includes('/api/triages') || url.includes('/api/clinical_notes');
+
+  if (res.ok && isWrite && isBusinessRoute) {
+    setTimeout(async () => {
+      try {
+        const syncCheck = await fetch('/api/sync/status', {
+          headers: { 'Authorization': `Bearer ${state.token}` }
+        });
+        if (syncCheck.ok) {
+          const syncData = await syncCheck.json();
+          // Só solicita upload se o banco em nuvem estiver ativo e não estiver no Vercel (já que no Vercel já salva direto na nuvem)
+          if (syncData.cloudConfigured && !syncData.isVercel) {
+            await showSyncPromptModal();
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao verificar status de sincronização:', e);
+      }
+    }, 100);
+  }
+
   return res;
 };
 
@@ -270,12 +608,17 @@ function renderAppStructure() {
       </aside>
 
       <!-- Cabeçalho Superior -->
-      <header class="app-header">
-        <h1 class="page-title" id="page-title-label">Dashboard</h1>
-        <div class="header-brand-text">
-          <i class="fa-solid fa-circle-nodes"></i>
-          <span>Sistema de Gestão Hospitalar Health Nexus</span>
+      <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 24px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <h1 class="page-title" id="page-title-label" style="margin: 0;">Dashboard</h1>
+          <div class="header-brand-text" style="margin: 0;">
+            <i class="fa-solid fa-circle-nodes"></i>
+            <span>Sistema de Gestão Hospitalar Health Nexus</span>
+          </div>
         </div>
+        <button id="btn-theme-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; padding: 0; font-size: 1.15rem; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Tema Claro/Escuro">
+          <i class="fa-solid fa-sun" id="theme-icon"></i>
+        </button>
       </header>
 
       <!-- Área de Conteúdo Principal -->
@@ -353,7 +696,7 @@ function renderAppStructure() {
     </div>
 
     <!-- Modal de Assinatura -->
-    <div id="sign-modal" class="modal-overlay" style="z-index: 3000;">
+    <div id="sign-modal" class="modal-overlay" style="z-index: 3000; display: none;">
       <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
           <h3>Assinatura Eletrônica</h3>
@@ -384,6 +727,13 @@ function renderAppStructure() {
       switchTab(targetTab);
     });
   });
+
+  // Botão de alternar tema
+  const themeToggle = document.getElementById('btn-theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+    updateThemeIcon();
+  }
 
   // Renderizar o conteúdo da aba ativa
   renderTabContent();
@@ -1871,117 +2221,687 @@ function renderReportsTab(contentArea) {
     <div class="tab-section active">
       <div class="section-header">
         <h2><i class="fa-solid fa-file-contract"></i> Relatórios e Exportação</h2>
-        <p>Exporte dados do sistema em PDF, Excel (XLSX) ou CSV.</p>
+        <p>Gere e exporte relatórios filtrados por período, status, departamento ou classificação.</p>
       </div>
 
-      <div class="reports-grid">
-        <!-- Relatório de Pacientes -->
-        <div class="report-card glass-card">
-          <div class="report-icon"><i class="fa-solid fa-users"></i></div>
-          <h3>Pacientes</h3>
-          <p>Exportar lista completa de pacientes cadastrados no sistema.</p>
-          <div class="report-actions">
-            <button onclick="exportData('patients', 'pdf')" class="btn-primary" style="background: var(--danger-color)"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-            <button onclick="exportData('patients', 'xls')" class="btn-primary" style="background: var(--success-color)"><i class="fa-solid fa-file-excel"></i> XLS</button>
-            <button onclick="exportData('patients', 'csv')" class="btn-outline"><i class="fa-solid fa-file-csv"></i> CSV</button>
-          </div>
+      <!-- Seletor de Tipo de Relatório -->
+      <div class="report-tabs-selector">
+        <button id="tab-btn-patients" class="report-tab-btn active">
+          <i class="fa-solid fa-users"></i> Relatório de Pacientes
+        </button>
+        <button id="tab-btn-encounters" class="report-tab-btn">
+          <i class="fa-solid fa-notes-medical"></i> Relatório de Atendimentos
+        </button>
+      </div>
+
+      <!-- Card de Filtros Dinâmicos -->
+      <div class="filter-panel-card glass-card">
+        <h3 style="margin-bottom: 16px; font-family: 'Outfit'; font-size: 1.1rem; color: var(--text-primary);">
+          <i class="fa-solid fa-filter"></i> Filtros de Pesquisa
+        </h3>
+        <div id="filters-container">
+          <!-- Os filtros serão inseridos aqui dinamicamente -->
+        </div>
+      </div>
+
+      <!-- Card de Pré-visualização e Exportação -->
+      <div class="preview-card glass-card">
+        <div class="preview-header">
+          <h3><i class="fa-solid fa-list-check"></i> Registros Correspondentes</h3>
+          <span id="preview-status" class="preview-status">Carregando dados...</span>
         </div>
 
-        <!-- Relatório de Atendimentos -->
-        <div class="report-card glass-card">
-          <div class="report-icon"><i class="fa-solid fa-notes-medical"></i></div>
-          <h3>Atendimentos</h3>
-          <p>Exportar histórico de todos os atendimentos realizados.</p>
-          <div class="report-actions">
-            <button onclick="exportData('encounters', 'pdf')" class="btn-primary" style="background: var(--danger-color)"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-            <button onclick="exportData('encounters', 'xls')" class="btn-primary" style="background: var(--success-color)"><i class="fa-solid fa-file-excel"></i> XLS</button>
-            <button onclick="exportData('encounters', 'csv')" class="btn-outline"><i class="fa-solid fa-file-csv"></i> CSV</button>
-          </div>
+        <div class="preview-table-wrapper">
+          <table class="preview-table">
+            <thead id="preview-table-head">
+              <!-- Cabeçalhos dinâmicos -->
+            </thead>
+            <tbody id="preview-table-body">
+              <!-- Registros da pré-visualização -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Botões de Exportação -->
+        <div class="report-actions" style="margin-top: 20px;">
+          <button id="btn-export-pdf" class="btn btn-primary" style="background: var(--danger-color)">
+            <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+          </button>
+          <button id="btn-export-xls" class="btn btn-primary" style="background: var(--success-color)">
+            <i class="fa-solid fa-file-excel"></i> Exportar Excel (XLSX)
+          </button>
+          <button id="btn-export-csv" class="btn btn-outline">
+            <i class="fa-solid fa-file-csv"></i> Exportar CSV
+          </button>
         </div>
       </div>
     </div>
   `;
-}
 
-async function exportData(type, format) {
-  try {
-    const endpoint = type === 'patients' ? '/api/patients' : '/api/encounters';
-    const response = await apiFetch(endpoint);
-    const data = await response.json();
-    
-    if (!data || data.length === 0) {
-      alert('Nenhum dado encontrado para exportação.');
+  // Inicialização de variáveis locais
+  let activeTab = 'patients';
+  let patientsList = [];
+  let encountersList = [];
+  let currentFilteredList = [];
+
+  // Elementos da interface
+  const btnPatientsTab = document.getElementById('tab-btn-patients');
+  const btnEncountersTab = document.getElementById('tab-btn-encounters');
+  const filtersContainer = document.getElementById('filters-container');
+  const previewStatus = document.getElementById('preview-status');
+  const tableHead = document.getElementById('preview-table-head');
+  const tableBody = document.getElementById('preview-table-body');
+  const btnPdf = document.getElementById('btn-export-pdf');
+  const btnXls = document.getElementById('btn-export-xls');
+  const btnCsv = document.getElementById('btn-export-csv');
+  // Alternar abas
+  btnPatientsTab.addEventListener('click', () => {
+    activeTab = 'patients';
+    btnPatientsTab.classList.add('active');
+    btnEncountersTab.classList.remove('active');
+    renderFilters();
+  });
+
+  btnEncountersTab.addEventListener('click', () => {
+    activeTab = 'encounters';
+    btnEncountersTab.classList.add('active');
+    btnPatientsTab.classList.remove('active');
+    renderFilters();
+  });
+
+  window.toggleFilterDropdown = function(id, event) {
+    if (event) event.stopPropagation();
+    const target = document.getElementById(id);
+    if (!target) return;
+    const isVisible = target.classList.contains('visible');
+    document.querySelectorAll('.dropdown-check-list').forEach(d => d.classList.remove('visible'));
+    if (!isVisible) {
+      target.classList.add('visible');
+    }
+  };
+
+  window.updateDropdownAnchorText = function(dropdownId, countChecked, totalCount, defaultLabel) {
+    const dropdown = document.getElementById(dropdownId);
+    if (!dropdown) return;
+    const anchor = dropdown.querySelector('.anchor');
+    if (!anchor) return;
+    if (countChecked === totalCount) {
+      anchor.textContent = `${defaultLabel}: Todos`;
+    } else if (countChecked === 0) {
+      anchor.textContent = `${defaultLabel}: Nenhum`;
+    } else {
+      anchor.textContent = `${defaultLabel}: ${countChecked} de ${totalCount}`;
+    }
+  };
+
+  // Fechar dropdowns de filtro ao clicar fora
+  document.addEventListener('click', (e) => {
+    const dropdowns = document.querySelectorAll('.dropdown-check-list');
+    dropdowns.forEach(dropdown => {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('visible');
+      }
+    });
+  });
+
+  const getUniqueCitiesCheckboxes = () => {
+    const cities = [...new Set(patientsList.map(p => p.city).filter(Boolean))].sort();
+    return `
+      <li>
+        <input type="checkbox" id="filter-city-all" checked>
+        <label for="filter-city-all"><strong>Selecionar Todas</strong></label>
+      </li>
+      ${cities.map((c, i) => `
+        <li>
+          <input type="checkbox" class="filter-city-item" value="${c}" id="filter-city-${i}" checked>
+          <label for="filter-city-${i}">${c}</label>
+        </li>
+      `).join('')}
+    `;
+  };
+
+  const setupFilterGroupSelectAll = (allId, itemClass, dropdownId, defaultLabel) => {
+    const allCb = document.getElementById(allId);
+    if (!allCb) return;
+
+    const updateText = () => {
+      const itemCbs = document.querySelectorAll(`.${itemClass}`);
+      const checkedCount = Array.from(itemCbs).filter(cb => cb.checked).length;
+      updateDropdownAnchorText(dropdownId, checkedCount, itemCbs.length, defaultLabel);
+    };
+
+    // Configurar listener para o checkbox de marcar/desmarcar todos
+    allCb.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      const itemCbs = document.querySelectorAll(`.${itemClass}`);
+      itemCbs.forEach(cb => {
+        cb.checked = checked;
+      });
+      updateText();
+      filterAndRender();
+    });
+
+    // Configurar listener para cada item individual
+    const itemCbs = document.querySelectorAll(`.${itemClass}`);
+    itemCbs.forEach(cb => {
+      cb.addEventListener('change', () => {
+        const currentItemCbs = document.querySelectorAll(`.${itemClass}`);
+        if (!cb.checked) {
+          allCb.checked = false;
+        } else if (Array.from(currentItemCbs).every(c => c.checked)) {
+          allCb.checked = true;
+        }
+        updateText();
+        filterAndRender();
+      });
+    });
+
+    // Inicializar o texto
+    updateText();
+  };
+
+  const renderFilters = () => {
+    if (activeTab === 'patients') {
+      filtersContainer.innerHTML = `
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label>Data de Cadastro Inicial</label>
+            <input type="date" id="filter-date-start">
+          </div>
+          <div class="filter-group">
+            <label>Data de Cadastro Final</label>
+            <input type="date" id="filter-date-end">
+          </div>
+          <div class="filter-group">
+            <label>Cidades</label>
+            <div class="dropdown-check-list" id="dropdown-city">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-city', event)">Cidades: Todas</div>
+              <ul class="items">
+                ${getUniqueCitiesCheckboxes()}
+              </ul>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Faturamento Mínimo (R$)</label>
+            <input type="number" id="filter-billing-min" placeholder="Ex: 500" min="0">
+          </div>
+        </div>
+      `;
+    } else {
+      filtersContainer.innerHTML = `
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label>Período Inicial (Admissão)</label>
+            <input type="date" id="filter-date-start">
+          </div>
+          <div class="filter-group">
+            <label>Período Final (Admissão)</label>
+            <input type="date" id="filter-date-end">
+          </div>
+          <div class="filter-group">
+            <label>Situação / Status</label>
+            <div class="dropdown-check-list" id="dropdown-status">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-status', event)">Status: Todos</div>
+              <ul class="items">
+                <li>
+                  <input type="checkbox" id="filter-status-all" checked>
+                  <label for="filter-status-all"><strong>Selecionar Todos</strong></label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-status-item" value="Aguardando_Triagem" id="filter-status-1" checked>
+                  <label for="filter-status-1">Aguardando Triagem</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-status-item" value="Aguardando_Atendimento" id="filter-status-2" checked>
+                  <label for="filter-status-2">Aguardando Consulta</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-status-item" value="Em_Atendimento" id="filter-status-3" checked>
+                  <label for="filter-status-3">Em Consulta</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-status-item" value="Finalizado" id="filter-status-4" checked>
+                  <label for="filter-status-4">Finalizado</label>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Classificação de Risco</label>
+            <div class="dropdown-check-list" id="dropdown-manchester">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-manchester', event)">Classificação: Todas</div>
+              <ul class="items">
+                <li>
+                  <input type="checkbox" id="filter-manchester-all" checked>
+                  <label for="filter-manchester-all"><strong>Selecionar Todas</strong></label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-manchester-item" value="Vermelho" id="filter-risk-1" checked>
+                  <label for="filter-risk-1">Vermelho (Emergência)</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-manchester-item" value="Laranja" id="filter-risk-2" checked>
+                  <label for="filter-risk-2">Laranja (Muito Urgente)</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-manchester-item" value="Amarelo" id="filter-risk-3" checked>
+                  <label for="filter-risk-3">Amarelo (Urgente)</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-manchester-item" value="Verde" id="filter-risk-4" checked>
+                  <label for="filter-risk-4">Verde (Pouco Urgente)</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-manchester-item" value="Azul" id="filter-risk-5" checked>
+                  <label for="filter-risk-5">Azul (Não Urgente)</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-manchester-item" value="null" id="filter-risk-6" checked>
+                  <label for="filter-risk-6">Sem Classificação</label>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Tipo de Atendimento</label>
+            <div class="dropdown-check-list" id="dropdown-type">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-type', event)">Tipos: Todos</div>
+              <ul class="items">
+                <li>
+                  <input type="checkbox" id="filter-type-all" checked>
+                  <label for="filter-type-all"><strong>Selecionar Todos</strong></label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-type-item" value="Urgencia" id="filter-type-1" checked>
+                  <label for="filter-type-1">Urgência</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-type-item" value="Ambulatorio" id="filter-type-2" checked>
+                  <label for="filter-type-2">Ambulatório</label>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Registrar event listeners nos campos de texto/data
+    const textInputs = filtersContainer.querySelectorAll('input[type="date"], input[type="number"]');
+    textInputs.forEach(input => {
+      input.addEventListener('change', filterAndRender);
+      input.addEventListener('input', filterAndRender);
+    });
+
+    // Inicializar os seletores Select All para os grupos de checkboxes
+    if (activeTab === 'patients') {
+      setupFilterGroupSelectAll('filter-city-all', 'filter-city-item', 'dropdown-city', 'Cidades');
+    } else {
+      setupFilterGroupSelectAll('filter-status-all', 'filter-status-item', 'dropdown-status', 'Status');
+      setupFilterGroupSelectAll('filter-manchester-all', 'filter-manchester-item', 'dropdown-manchester', 'Classificação');
+      setupFilterGroupSelectAll('filter-type-all', 'filter-type-item', 'dropdown-type', 'Tipos');
+    }
+
+    filterAndRender();
+  };
+
+  const updatePreviewStatusText = () => {
+    const total = currentFilteredList.length;
+    const selected = document.querySelectorAll('.record-checkbox:checked').length;
+    previewStatus.textContent = `${selected} de ${total} selecionados para exportação`;
+  };
+
+  const setupCheckboxEvents = () => {
+    const selectAllCheckbox = document.getElementById('select-all-records');
+    const recordCheckboxes = document.querySelectorAll('.record-checkbox');
+
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener('change', (e) => {
+        const checked = e.target.checked;
+        recordCheckboxes.forEach(cb => {
+          cb.checked = checked;
+        });
+        updatePreviewStatusText();
+      });
+    }
+
+    recordCheckboxes.forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (!cb.checked && selectAllCheckbox) {
+          selectAllCheckbox.checked = false;
+        } else if (selectAllCheckbox && Array.from(recordCheckboxes).every(c => c.checked)) {
+          selectAllCheckbox.checked = true;
+        }
+        updatePreviewStatusText();
+      });
+    });
+  };
+
+  const filterAndRender = () => {
+    if (activeTab === 'patients') {
+      const dateStart = document.getElementById('filter-date-start').value;
+      const dateEnd = document.getElementById('filter-date-end').value;
+      const billingMin = document.getElementById('filter-billing-min').value;
+      
+      const checkedCities = Array.from(document.querySelectorAll('.filter-city-item:checked')).map(cb => cb.value);
+
+      currentFilteredList = patientsList.filter(p => {
+        if (dateStart) {
+          const start = new Date(dateStart + 'T00:00:00');
+          const regDate = new Date(p.created_at || p.birthDate);
+          if (regDate < start) return false;
+        }
+        if (dateEnd) {
+          const end = new Date(dateEnd + 'T23:59:59');
+          const regDate = new Date(p.created_at || p.birthDate);
+          if (regDate > end) return false;
+        }
+        
+        // Filtrar pelas cidades marcadas nos checkboxes
+        if (!checkedCities.includes(p.city)) return false;
+
+        if (billingMin) {
+          const min = parseFloat(billingMin);
+          const val = parseFloat((p.billingValue || '').replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+          if (val < min) return false;
+        }
+        return true;
+      });
+
+      tableHead.innerHTML = `
+        <tr>
+          <th class="col-checkbox"><input type="checkbox" id="select-all-records" checked></th>
+          <th>ID</th>
+          <th>Nome Completo</th>
+          <th>CPF</th>
+          <th>Data Nasc.</th>
+          <th>Cidade</th>
+          <th>Faturamento</th>
+        </tr>
+      `;
+
+      if (currentFilteredList.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhum paciente encontrado com os filtros atuais.</td></tr>`;
+      } else {
+        const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
+        tableBody.innerHTML = currentFilteredList.map(p => {
+          let formattedDate = p.birthDate || '-';
+          if (p.birthDate && p.birthDate.includes('-')) {
+            const [y, m, d] = p.birthDate.split('-');
+            formattedDate = `${d}/${m}/${y}`;
+          }
+          const name = hasPEP ? p.fullName : abbreviateName(p.fullName);
+          const cpf = hasPEP ? p.cpf : anonymizeCPF(p.cpf);
+          return `
+            <tr>
+              <td class="col-checkbox"><input type="checkbox" class="record-checkbox" data-id="${p.id}" checked></td>
+              <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${p.id}</td>
+              <td style="font-weight: 500;">${name}</td>
+              <td style="font-family: monospace;">${cpf}</td>
+              <td>${formattedDate}</td>
+              <td>${p.city || '-'}</td>
+              <td style="font-family: monospace;">${p.billingValue || 'R$ 0,00'}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+    } else {
+      const dateStart = document.getElementById('filter-date-start').value;
+      const dateEnd = document.getElementById('filter-date-end').value;
+
+      const checkedStatuses = Array.from(document.querySelectorAll('.filter-status-item:checked')).map(cb => cb.value);
+      const checkedManchester = Array.from(document.querySelectorAll('.filter-manchester-item:checked')).map(cb => cb.value);
+      const checkedTypes = Array.from(document.querySelectorAll('.filter-type-item:checked')).map(cb => cb.value);
+
+      currentFilteredList = encountersList.filter(e => {
+        if (dateStart) {
+          const start = new Date(dateStart + 'T00:00:00');
+          const admDate = new Date(e.admitted_at);
+          if (admDate < start) return false;
+        }
+        if (dateEnd) {
+          const end = new Date(dateEnd + 'T23:59:59');
+          const admDate = new Date(e.admitted_at);
+          if (admDate > end) return false;
+        }
+        
+        // Filtrar pelos status marcados nos checkboxes
+        if (!checkedStatuses.includes(e.status)) return false;
+
+        // Filtrar pelas classificações Manchester (tratando null/vazio como "null")
+        const mColor = e.manchesterColor || 'null';
+        if (!checkedManchester.includes(mColor)) return false;
+
+        // Filtrar pelos tipos de atendimento
+        if (!checkedTypes.includes(e.type)) return false;
+
+        return true;
+      });
+
+      tableHead.innerHTML = `
+        <tr>
+          <th class="col-checkbox"><input type="checkbox" id="select-all-records" checked></th>
+          <th>ID</th>
+          <th>Paciente</th>
+          <th>Classificação</th>
+          <th>Tipo</th>
+          <th>Situação</th>
+          <th>Data/Hora</th>
+        </tr>
+      `;
+
+      if (currentFilteredList.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhum atendimento encontrado com os filtros atuais.</td></tr>`;
+      } else {
+        const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
+        const statusMap = {
+          'Aguardando_Triagem': 'Aguardando Triagem',
+          'Aguardando_Atendimento': 'Aguardando Consulta',
+          'Em_Atendimento': 'Em Consulta',
+          'Finalizado': 'Finalizado'
+        };
+        tableBody.innerHTML = currentFilteredList.map(e => {
+          const name = hasPEP ? (e.patientName || 'Desconhecido') : abbreviateName(e.patientName || 'Desconhecido');
+          const dateStr = e.admitted_at ? new Date(e.admitted_at).toLocaleString() : '-';
+          const badgeClass = e.manchesterColor ? `badge-${e.manchesterColor.toLowerCase()}` : '';
+          const displayColor = e.manchesterColor ? `<span class="badge-manchester ${badgeClass}">${e.manchesterColor}</span>` : '-';
+          return `
+            <tr>
+              <td class="col-checkbox"><input type="checkbox" class="record-checkbox" data-id="${e.id}" checked></td>
+              <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${e.id.substring(0, 8)}...</td>
+              <td style="font-weight: 500;">${name}</td>
+              <td>${displayColor}</td>
+              <td>${e.type === 'Urgencia' ? 'Urgência' : 'Ambulatório'}</td>
+              <td>${statusMap[e.status] || e.status}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    setupCheckboxEvents();
+    updatePreviewStatusText();
+  };
+
+  const processExport = async (format) => {
+    const checkedIds = Array.from(document.querySelectorAll('.record-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
+    if (checkedIds.length === 0) {
+      alert('Por favor, selecione ao menos um registro para exportar.');
       return;
     }
 
+    const recordsToExport = currentFilteredList.filter(item => checkedIds.includes(item.id));
+    
+    const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
     let columns = [];
     let rows = [];
     let title = '';
     let filename = '';
 
-    if (type === 'patients') {
+    if (activeTab === 'patients') {
       title = 'Relatório de Pacientes';
       filename = 'pacientes';
-      columns = ['ID', 'Nome', 'CPF', 'Data de Nascimento', 'Gênero'];
-      rows = data.map(p => [
-        p.id, 
-        p.name, 
-        p.cpf, 
-        p.birth_date ? new Date(p.birth_date).toLocaleDateString() : '-', 
-        p.gender || '-'
-      ]);
+      columns = ['ID', 'Nome Completo', 'CPF', 'Data de Nascimento', 'Cidade', 'Telefones', 'Faturamento'];
+      rows = recordsToExport.map(p => {
+        let formattedDate = p.birthDate || '-';
+        if (p.birthDate && p.birthDate.includes('-')) {
+          const [y, m, d] = p.birthDate.split('-');
+          formattedDate = `${d}/${m}/${y}`;
+        }
+        const phones = [p.phone, p.cellphone].filter(Boolean).join(' / ') || '-';
+        const name = hasPEP ? p.fullName : abbreviateName(p.fullName);
+        const cpf = hasPEP ? p.cpf : anonymizeCPF(p.cpf);
+        return [
+          p.id, 
+          name, 
+          cpf, 
+          formattedDate, 
+          p.city || '-',
+          phones,
+          p.billingValue || 'R$ 0,00'
+        ];
+      });
     } else {
       title = 'Relatório de Atendimentos';
       filename = 'atendimentos';
-      columns = ['ID', 'Paciente', 'Motivo', 'Classificação', 'Status', 'Data'];
-      rows = data.map(e => [
-        e.id, 
-        e.patient_name || 'Desconhecido', 
-        e.reason || '-', 
-        e.triage_color || '-', 
-        e.status, 
-        new Date(e.created_at).toLocaleString()
-      ]);
+      columns = ['ID', 'Paciente', 'CPF Paciente', 'Motivo', 'Classificação', 'Status', 'Data'];
+      rows = recordsToExport.map(e => {
+        const name = hasPEP ? (e.patientName || 'Desconhecido') : abbreviateName(e.patientName || 'Desconhecido');
+        const cpf = hasPEP ? (e.patientCpf || '-') : anonymizeCPF(e.patientCpf || '-');
+        const dateStr = e.admitted_at ? new Date(e.admitted_at).toLocaleString() : '-';
+        const statusMap = {
+          'Aguardando_Triagem': 'Aguardando Triagem',
+          'Aguardando_Atendimento': 'Aguardando Atendimento',
+          'Em_Atendimento': 'Em Consulta',
+          'Finalizado': 'Finalizado'
+        };
+        const formattedStatus = statusMap[e.status] || e.status;
+        return [
+          e.id, 
+          name, 
+          cpf, 
+          (e.type === 'Urgencia' ? 'Urgência' : 'Ambulatório') + (e.complaints ? ` - ${e.complaints}` : ''), 
+          e.manchesterColor || '-', 
+          formattedStatus, 
+          dateStr
+        ];
+      });
     }
 
     const timestamp = new Date().toISOString().slice(0,10);
     filename = `${filename}_${timestamp}`;
 
     if (format === 'pdf') {
-      exportToPDF(columns, rows, title, filename);
+      await exportToPDF(columns, rows, title, filename);
     } else if (format === 'xls') {
       exportToXLS(columns, rows, filename);
     } else if (format === 'csv') {
       exportToCSV(columns, rows, filename);
     }
-  } catch (error) {
-    console.error('Erro na exportação:', error);
-    alert('Erro ao exportar dados.');
-  }
+  };
+
+  btnPdf.addEventListener('click', () => processExport('pdf'));
+  btnXls.addEventListener('click', () => processExport('xls'));
+  btnCsv.addEventListener('click', () => processExport('csv'));
+
+  const loadData = async () => {
+    try {
+      previewStatus.textContent = 'Buscando dados...';
+      const [resPatients, resEncounters] = await Promise.all([
+        apiFetch(`${API_URL}/patients`),
+        apiFetch(`${API_URL}/encounters`)
+      ]);
+
+      if (resPatients.ok) patientsList = await resPatients.json();
+      if (resEncounters.ok) encountersList = await resEncounters.json();
+
+      renderFilters();
+    } catch (err) {
+      console.error(err);
+      previewStatus.textContent = 'Erro ao carregar dados.';
+    }
+  };
+
+  loadData();
 }
 
-function exportToPDF(columns, rows, title, filename) {
+function abbreviateName(fullName) {
+  if (!fullName) return '-';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length <= 1) return fullName;
+  return parts.map((part, index) => {
+    if (index === 0 || index === parts.length - 1) return part;
+    if (part.length <= 2) return part; // Keep small words like "de", "da"
+    return part[0] + '.';
+  }).join(' ');
+}
+
+function anonymizeCPF(cpf) {
+  if (!cpf) return '-';
+  const clean = cpf.replace(/\D/g, '');
+  if (clean.length === 11) {
+    return `${clean.substring(0, 3)}.***.***-${clean.substring(9)}`;
+  }
+  return '***.***.***-**';
+}
+
+async function exportToPDF(columns, rows, title, filename) {
   if (!window.jspdf) {
     alert('Biblioteca PDF não carregada.');
     return;
   }
+  
+  const loadLogo = () => new Promise((resolve) => {
+    const img = new Image();
+    img.src = '/assets/logo.png';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+  });
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   
-  doc.setFontSize(18);
-  doc.text(title, 14, 22);
-  doc.setFontSize(11);
-  doc.setTextColor(100);
-  doc.text(`Gerado pelo sistema Health Nexus em: ${new Date().toLocaleString()}`, 14, 30);
+  const logoImg = await loadLogo();
+  if (logoImg) {
+    // Adiciona o logotipo da Health Nexus
+    doc.addImage(logoImg, 'PNG', 14, 10, 16, 16);
+    
+    // Título e metadados ao lado do logotipo
+    doc.setFontSize(18);
+    doc.text(title, 34, 20);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(`Gerado pelo sistema Health Nexus em: ${new Date().toLocaleString()}`, 34, 26);
+  } else {
+    // Fallback sem logo
+    doc.setFontSize(18);
+    doc.text(title, 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Gerado pelo sistema Health Nexus em: ${new Date().toLocaleString()}`, 14, 30);
+  }
 
   doc.autoTable({
-    startY: 40,
+    startY: 32,
     head: [columns],
     body: rows,
     theme: 'grid',
     headStyles: { fillColor: [44, 45, 52] },
     alternateRowStyles: { fillColor: [245, 245, 245] }
   });
+
+  // Marca d'água / Rodapé de Confidencialidade
+  const pageCount = doc.internal.getNumberOfPages();
+  const userId = state.user ? state.user.id : 'desconhecido';
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    // Posicionar no rodapé do A4 (297mm de altura)
+    doc.text(`CONFIDENCIAL - DADOS DE SAÚDE | Operador: ${userId}`, 14, 287);
+  }
 
   doc.save(`${filename}.pdf`);
 }
@@ -2002,10 +2922,10 @@ function exportToCSV(columns, rows, filename) {
   const csvContent = [
     columns.join(','),
     ...rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-  ].join('\\n');
+  ].join('\n');
 
   // Adiciona BOM para UTF-8 (corrige acentuação no Excel)
-  const blob = new Blob(['\\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   link.setAttribute("href", url);

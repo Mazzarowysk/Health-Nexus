@@ -1,78 +1,193 @@
 # Health Nexus — Guia do Desenvolvedor
 
-Este manual orienta novos engenheiros de software na configuração rápida do ambiente de desenvolvimento local, execução do sistema e padrões de versionamento do **Health Nexus**.
+Este manual orienta novos engenheiros na configuração do ambiente de desenvolvimento local, padrões de código, versionamento e implantação do **Health Nexus**.
 
 ---
 
-## 1. Instalação e Configuração Rápida (Quick Start)
+## 1. Quick Start (Configuração Rápida)
 
 ### Pré-requisitos
-Certifique-se de possuir instalado na máquina de desenvolvimento:
-*   **Node.js** (Versão 18.x LTS ou superior).
-*   **Git** instalado.
+- **Node.js** 18.x LTS ou superior
+- **Git** instalado
+- (Opcional) Conta no **Turso** para sincronização cloud
 
----
+### Passo a Passo
 
-## 2. Passo a Passo de Configuração
-
-### 1. Clonar o Repositório e Criar o Workspace
 ```bash
+# 1. Clonar o repositório
 git clone https://github.com/Mazzarowysk/Health-Nexus.git "C:\Health Nexus"
 cd "C:\Health Nexus"
-```
 
-### 2. Configurar o Ambiente de Variáveis (.env)
-Copie o arquivo de exemplo de variáveis de ambiente:
-```bash
-cp .env.example .env
-```
-*(Por padrão, o arquivo já vem configurado para usar o banco local SQLite em `file:local.db`, o que dispensa qualquer instalação local de banco de dados).*
-
-### 3. Instalar Dependências do Projeto
-Execute o comando na raiz para instalar as dependências do frontend e backend:
-```bash
+# 2. Instalar dependências (frontend + backend)
 npm install
-```
 
-### 4. Iniciar a Aplicação em Modo de Desenvolvimento
-Rode o comando na raiz para rodar simultaneamente o frontend (Vite) e o backend (Express):
-```bash
+# 3. Configurar variáveis de ambiente
+cp .env.example .env
+# Edite o .env se quiser ativar a sincronização com Turso
+
+# 4. Iniciar em modo desenvolvimento
 npm run dev
 ```
-*   O frontend iniciará na porta `5173` (ex: `http://localhost:5173`).
-*   O backend iniciará na porta `3001` (ex: `http://localhost:3001`).
-*   O banco de dados local será criado automaticamente na raiz como `local.db`.
+
+| Serviço | URL |
+|---|---|
+| Frontend (Vite) | http://localhost:5173 |
+| Backend (Express) | http://localhost:3001 |
+
+**Login padrão criado automaticamente:** usuário `admin` · senha `admin`
 
 ---
 
-## 3. Modelo de Versionamento de Código (Git Branch & Commits)
+## 2. Variáveis de Ambiente (.env)
 
-O projeto adota o fluxo de trabalho **GitFlow** adaptado para entregas contínuas rápidas.
+```env
+# Banco de dados Turso (deixe vazio para usar apenas o banco local SQLite)
+TURSO_DATABASE_URL=libsql://seu-banco.turso.io
+TURSO_AUTH_TOKEN=seu-token-aqui
 
-### Branches Padronizadas
-*   `main`: Contém exclusivamente o código em produção atualizado. Qualquer alteração aqui reflete no ambiente hospitalar ativo.
-*   `develop`: Branch principal de integração de desenvolvimento. Todo código testado e pronto para homologação converge aqui.
-*   `release`: Branches temporárias criadas a partir de `develop` para homologação de novas versões estáveis.
-*   `hotfix`: Criadas direto da `main` para correção imediata de bugs críticos em produção.
-*   `feature/*`: Criadas a partir de `develop` para desenvolvimento de novos requisitos ou módulos (ex: `feature/atendimento-triagem`).
+# JWT (substitua em produção)
+JWT_SECRET=health-nexus-super-secret-key
 
-### Padrão de Commits (Conventional Commits)
-Todas as mensagens de commit devem seguir a sintaxe com escopo opcional, descrevendo de forma imperativa e curta a alteração:
-*   `feat`: Nova funcionalidade (ex: `feat: add WhatsApp triage notification event`).
-*   `fix`: Correção de bug (ex: `fix: solve race condition on bed allocation`).
-*   `docs`: Documentação técnica (ex: `docs: update developer guide setup steps`).
-*   `style`: Alterações de formatação visual ou espaçamento, sem alterar lógica de código.
-*   `refactor`: Refatoração interna que não altera o comportamento externo do sistema.
-*   `test`: Inclusão ou correção de testes unitários ou de integração.
+# Porta do backend (padrão: 3001)
+PORT=3001
+```
+
+> Sem as variáveis Turso, o sistema opera **100% offline** usando `local.db` (SQLite).
 
 ---
 
-## 5. Status Atual de Desenvolvimento (BETA 1.0.0)
+## 3. Arquitetura do Projeto
 
-O sistema encontra-se na fase Beta, com os seguintes módulos operacionais e funcionais:
-- **Autenticação & Controle de Acesso**: Suporte a login (JWT), persistência em sessionStorage e módulo de Gerenciamento de Usuários visível apenas para o usuário master (`mazzarowysk`).
-- **Dashboard e Listagens**: Painel de visão geral com integração ao backend, gráficos e atalhos rápidos.
-- **Atendimento e Triagem**: Sistema de Fila (Recepção -> Triagem Médica), suportando o Protocolo de Manchester (cores e gravidade).
-- **Relatórios & Exportação**: Nova aba que permite aos gestores e usuários extraírem dados de pacientes e atendimentos nativamente nos formatos **PDF**, **XLSX** (Excel) e **CSV**.
-- **Infraestrutura**: Frontend rodando com Vite.js, Backend via Express.js, e Banco de Dados 100% online rodando via **Turso DB** na nuvem da AWS, integrado em tempo real com deployments no **Vercel** e repositório oficial no **GitHub**.
-- **Automação de Fechamento**: O terminal de servidor Node se encerra de maneira limpa automaticamente (`process.exit`) alguns segundos após o usuário fechar a aba principal no navegador web, evitando acúmulo de processos zumbis.
+```
+Health Nexus/
+├── backend/
+│   ├── app.js           # Toda a API REST (Express) — rotas, middlewares, lógica
+│   ├── server.js        # Ponto de entrada do servidor Node
+│   └── database/
+│       └── client.js    # Configuração dos clientes DB (local + Turso cloud)
+├── src/
+│   ├── main.js          # SPA completa — toda a UI, roteamento, estado, chamadas API
+│   └── styles.css       # Design system completo (dark + light theme tokens)
+├── assets/
+│   └── logo.png         # Logomarca do sistema
+├── index.html           # Entry point HTML
+├── vite.config.js       # Configuração do bundler Vite
+├── vercel.json          # Configuração de deploy serverless no Vercel
+└── docs/                # Documentação técnica por módulo
+```
+
+### Banco de Dados — Tabelas
+
+| Tabela | Campos principais |
+|---|---|
+| `users` | id, name, username, password_hash, role, created_at |
+| `patients` | id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at |
+| `encounters` | id, patientId, type, status, admitted_at, completed_at |
+| `triages` | id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at |
+| `clinical_notes` | id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at |
+
+---
+
+## 4. Sincronização Local ↔ Turso (Cloud)
+
+O sistema opera em **dual-database mode**:
+
+- **Localmente:** banco principal é `local.db` (SQLite)
+- **Vercel (produção):** banco principal é o Turso cloud
+
+### Comportamento de Sync
+
+1. **Ao iniciar o servidor:** o sistema compara contagens e, se o Turso tiver mais registros, baixa automaticamente (`autoSyncFromCloud`)
+2. **Ao logar:** exibe modal de comparativo com quantidade e **data/hora** do último registro por tabela
+3. **Após cada escrita** (POST/PUT/DELETE): modal pergunta se deseja enviar os dados para a nuvem
+4. **Manual:** botões na aba Configurações para Enviar / Baixar a qualquer momento
+
+### Endpoint `/api/sync/status`
+
+Retorna:
+```json
+{
+  "cloudConfigured": true,
+  "isVercel": false,
+  "synchronized": false,
+  "local": { "users": 2, "patients": 5, ... },
+  "cloud": { "users": 2, "patients": 3, ... },
+  "localTimestamps": { "patients": "2026-07-19T13:10:00Z", ... },
+  "cloudTimestamps": { "patients": "2026-07-18T22:00:00Z", ... }
+}
+```
+
+---
+
+## 5. Padrões de Código
+
+### Convenção de Commits (Conventional Commits)
+
+```
+feat:     Nova funcionalidade
+fix:      Correção de bug
+docs:     Documentação técnica
+style:    Ajustes visuais / CSS (sem lógica)
+refactor: Refatoração sem mudança de comportamento
+perf:     Otimização de performance
+chore:    Tarefas de manutenção (deps, scripts, config)
+```
+
+**Exemplos:**
+```
+feat: modal de sync com data/hora por tabela ao logar
+fix: light mode — select com fundo escuro no modo claro
+docs: atualizar README com módulos implementados
+style: melhorar contraste de botões no tema claro
+```
+
+### Branches
+
+| Branch | Uso |
+|---|---|
+| `main` | Produção — qualquer push dispara deploy no Vercel |
+| `develop` | Integração de features em desenvolvimento |
+| `feature/*` | Nova funcionalidade ou módulo |
+| `hotfix/*` | Correção urgente direto da `main` |
+
+---
+
+## 6. Deploy (Vercel)
+
+O deploy é **automático** via GitHub Actions / Vercel integration:
+
+```bash
+# Qualquer push para main → build + deploy automático no Vercel
+git add .
+git commit -m "feat: descrição da mudança"
+git push origin main
+```
+
+O arquivo `vercel.json` configura:
+- Rewrite de todas as rotas `/api/*` para o backend Express
+- Build com Vite para o frontend SPA
+
+---
+
+## 7. Status Atual de Desenvolvimento — BETA 1.0.0
+
+### ✅ Implementado e Funcional
+- Autenticação JWT + roles (Administrador / Médico)
+- Dashboard com KPIs reais e gráficos (Chart.js)
+- CRUD completo de Pacientes
+- Triagem Manchester (5 cores) + Fila de Atendimento
+- PEP — Prontuário Eletrônico com SOAP + Assinatura digital
+- Relatórios e exportação PDF / XLSX / CSV
+- Tema Claro / Escuro (design system completo com tokens CSS)
+- Sincronização Local ↔ Turso com modal comparativo (qtd + data/hora)
+- Modal de confirmação após cada operação de escrita
+
+### 🔜 Próximos Módulos
+- Laboratório e resultados de exames
+- Integração DICOM/PACS (imagens médicas)
+- Faturamento e TISS (ANS)
+- Notificações em tempo real (WebSocket)
+
+---
+
+*Desenvolvido por @mazzarowysk & @_coltri_*

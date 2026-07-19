@@ -6,6 +6,10 @@
   --bg-primary-l: 5%;
   --bg-primary: HSL(var(--bg-primary-h), var(--bg-primary-s), var(--bg-primary-l));
 
+  --bg-secondary: #120e22;
+  --bg-tertiary: #19142c;
+  --bg-solid: #0b0816;
+
   /* Efeito Vidro Escuro */
   --glass-bg: rgba(20, 15, 35, 0.45);
   --glass-border: rgba(255, 255, 255, 0.08);
@@ -1604,4 +1608,741 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+/* --- SEGMENT SELECTOR (TABS DE RELATÓRIOS) --- */
+.report-tabs-selector {
+  display: flex;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  width: max-content;
+}
+
+.report-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-tab-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.2);
+}
+
+/* --- PAINEL DE FILTROS --- */
+.filter-panel-card {
+  padding: 24px;
+  margin-bottom: 24px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  border-color: var(--color-primary);
+}
+
+/* --- SEÇÃO DE PRÉ-VISUALIZAÇÃO --- */
+.preview-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.preview-header h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.preview-status {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.preview-table-wrapper {
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.preview-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  letter-spacing: 0.5px;
+}
+
+.preview-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.preview-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.preview-table .col-checkbox {
+  width: 40px;
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.preview-table input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+/* --- CUSTOM MULTI-SELECT DROPDOWN FILTER --- */
+.dropdown-check-list {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-check-list .anchor {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+  font-weight: 500;
+}
+
+.dropdown-check-list .anchor:hover {
+  border-color: var(--color-primary);
+}
+
+.dropdown-check-list .anchor::after {
+  content: "";
+  border: solid var(--text-secondary);
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 3px;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.dropdown-check-list.visible .anchor::after {
+  transform: rotate(-135deg);
+}
+
+.dropdown-check-list .items {
+  padding: 8px 0;
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 4px;
+  list-style: none;
+}
+
+.dropdown-check-list.visible .items {
+  display: block;
+}
+
+.dropdown-check-list .items li {
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s ease;
+}
+
+.dropdown-check-list .items li:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dropdown-check-list .items li input[type="checkbox"] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--color-primary);
+}
+
+.dropdown-check-list .items li label {
+  cursor: pointer;
+  margin: 0;
+  text-transform: none;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  letter-spacing: normal;
+  font-weight: normal;
+  display: inline-block;
+}
+
+/* --- SYSTEM THEME: LIGHT THEME --- */
+.light-theme {
+  /* Core color palette - Medical Professional */
+  --primary-h: 221;
+  --primary-s: 83%;
+  --primary-l: 53%;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --accent-h: 173;
+  --accent-s: 80%;
+  --accent-l: 40%;
+  --color-accent: #0d9488;
+
+  /* Background system */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --bg-solid: #ffffff;
+
+  /* Glass effect - light version */
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(148, 163, 184, 0.3);
+  --glass-highlight: rgba(255, 255, 255, 0.7);
+  --glass-blur: blur(16px);
+
+  /* Text - high contrast for accessibility */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* Borders & shadows */
+  --border-color: rgba(148, 163, 184, 0.35);
+  --border-focus: #2563eb;
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.07), 0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Body */
+body.light-theme {
+  background: #f1f5f9;
+  background-image:
+    radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(13, 148, 136, 0.04) 0%, transparent 40%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+}
+
+/* Sidebar */
+.light-theme .app-sidebar {
+  background: rgba(255, 255, 255, 0.85);
+  border-right: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Brand logo */
+.light-theme .brand-logo span {
+  background: linear-gradient(135deg, #0f172a, #475569);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Nav items */
+.light-theme .nav-item {
+  color: #475569;
+}
+.light-theme .nav-item:hover {
+  background-color: rgba(37, 99, 235, 0.07);
+  color: #2563eb;
+}
+.light-theme .nav-item.active {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(37, 99, 235, 0.03));
+  color: #2563eb;
+  border-left: 3px solid #2563eb;
+}
+
+/* Header */
+.light-theme .app-header {
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Content area */
+.light-theme .app-content {
+  background: #f1f5f9;
+}
+
+/* Forms */
+.light-theme .form-input {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+}
+.light-theme .form-input:focus {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.light-theme .form-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Search */
+.light-theme .search-input {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+.light-theme .search-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background: #ffffff;
+}
+
+/* Secondary button */
+.light-theme .btn-secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+}
+.light-theme .btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+/* Icon buttons */
+.light-theme .btn-icon {
+  background-color: #f1f5f9;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #475569;
+}
+.light-theme .btn-icon:hover {
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
+/* Panels & Cards */
+.light-theme .patients-form-container,
+.light-theme .patients-list-container,
+.light-theme .atendimentos-panel,
+.light-theme .chart-card,
+.light-theme .kpi-card,
+.light-theme .filter-panel-card,
+.light-theme .preview-card,
+.light-theme .report-card,
+.light-theme .settings-card {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.light-theme .kpi-card:hover {
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.2);
+  transform: translateY(-4px);
+}
+
+/* Tables */
+.light-theme .patients-table th,
+.light-theme .preview-table th {
+  background: #f8fafc;
+  color: #475569;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+}
+.light-theme .patients-table td,
+.light-theme .preview-table td {
+  color: #0f172a;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+.light-theme .patients-table tr:hover td,
+.light-theme .preview-table tr:hover {
+  background: rgba(37, 99, 235, 0.03);
+}
+
+/* PEP Modal */
+.light-theme .pep-modal {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.light-theme .pep-content {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.12);
+}
+.light-theme .pep-header {
+  background: #f8fafc;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+.light-theme .pep-sidebar {
+  background: #f8fafc;
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+}
+.light-theme .pep-footer {
+  background: #f8fafc;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+.light-theme .pep-textarea {
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #0f172a;
+}
+.light-theme .pep-textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background: #ffffff;
+}
+
+/* Modals */
+.light-theme .modal-content {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+}
+
+/* Patient select list */
+.light-theme .patient-select-list {
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+.light-theme .patient-select-item:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+.light-theme .patient-select-item.selected {
+  background-color: rgba(37, 99, 235, 0.09);
+  border-left: 3px solid #2563eb;
+}
+
+/* Queue cards */
+.light-theme .queue-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+.light-theme .queue-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+/* Dropdown check list */
+.light-theme .dropdown-check-list .anchor {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #0f172a;
+}
+.light-theme .dropdown-check-list .items {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.09);
+}
+.light-theme .dropdown-check-list .items li:hover {
+  background: rgba(37, 99, 235, 0.05);
+}
+
+/* Settings accordion */
+.light-theme .settings-accordion {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+.light-theme .settings-accordion-header {
+  background: #f8fafc;
+  color: #0f172a;
+}
+.light-theme .settings-accordion-header:hover {
+  background: #f1f5f9;
+}
+.light-theme .settings-accordion-body {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* Filter inputs */
+.light-theme .filter-group select,
+.light-theme .filter-group input {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #0f172a;
+}
+.light-theme .filter-group select:focus,
+.light-theme .filter-group input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Report tabs */
+.light-theme .report-tabs-selector {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Report card hover */
+.light-theme .report-card:hover {
+  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.1);
+}
+
+/* Autocomplete */
+.light-theme .autocomplete-dropdown {
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* Preview table wrapper */
+.light-theme .preview-table-wrapper {
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Preview status */
+.light-theme .preview-status {
+  background: #f1f5f9;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #475569;
+}
+
+/* Skeleton */
+.light-theme .skeleton-container {
+  background-color: #f8fafc;
+}
+.light-theme .skeleton-sidebar,
+.light-theme .skeleton-header {
+  background-color: #ffffff;
+}
+.light-theme .skeleton-card {
+  background-color: #e2e8f0;
+}
+
+/* Manchester yellow - better light mode contrast */
+.light-theme .badge-amarelo {
+  background-color: rgba(202, 138, 4, 0.15);
+  color: #92400e;
+  border: 1px solid rgba(202, 138, 4, 0.4);
+}
+
+/* ========================================================== */
+/* LIGHT MODE — MELHORIAS ADICIONAIS (v2)                      */
+/* ========================================================== */
+
+/* Brand logo: remove neon glow e corrige cor do ícone */
+.light-theme .brand-logo i {
+  text-shadow: none;
+  color: #2563eb;
+}
+
+/* Loader inicial — fundo branco no modo claro */
+.light-theme .initial-loader {
+  background-color: #f8fafc;
+}
+.light-theme .skeleton-main {
+  background-color: #f1f5f9;
+}
+
+/* Todos os <select> do sistema no modo claro */
+.light-theme select {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+.light-theme select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* Modal overlay — menos escuro no modo claro */
+.light-theme .modal-overlay {
+  background-color: rgba(15, 23, 42, 0.42);
+}
+
+/* PEP modal backdrop */
+.light-theme .pep-modal {
+  background-color: rgba(15, 23, 42, 0.52);
+}
+
+/* Títulos de painéis e cards */
+.light-theme .panel-title,
+.light-theme .settings-title,
+.light-theme .chart-card-title,
+.light-theme .page-title {
+  color: #0f172a;
+}
+
+/* User info no header */
+.light-theme .user-name {
+  color: #0f172a;
+}
+.light-theme .user-role {
+  color: #475569;
+}
+
+/* Cards de fila de atendimentos */
+.light-theme .queue-patient-name {
+  color: #0f172a;
+}
+.light-theme .queue-card-body,
+.light-theme .queue-time,
+.light-theme .patient-select-meta {
+  color: #475569;
+}
+
+/* Botão secundário — melhor contraste no hover */
+.light-theme .btn-secondary:hover {
+  background: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.6);
+}
+
+/* Status indicator no modo claro */
+.light-theme .status-indicator.success {
+  background-color: #0d9488;
+  box-shadow: 0 0 6px rgba(13, 148, 136, 0.35);
+}
+
+/* Search input placeholder */
+.light-theme .search-input::placeholder,
+.light-theme .form-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Autocomplete items no modo claro */
+.light-theme .autocomplete-item {
+  color: #0f172a;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+.light-theme .autocomplete-item:hover {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+/* Tabelas gerais no modo claro */
+.light-theme .patients-table tr:hover td {
+  background-color: rgba(37, 99, 235, 0.04);
+}
+
+/* Btn-icon delete no modo claro */
+.light-theme .btn-icon-delete:hover {
+  background-color: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #dc2626;
+}
+
+/* Btn-icon edit no modo claro */
+.light-theme .btn-icon-edit:hover {
+  background-color: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.3);
+  color: #2563eb;
+}
+
+/* Form inputs — texto mais escuro no select dos atendimentos */
+.light-theme .form-input,
+.light-theme select.form-input {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+/* KPI icon colors no modo claro */
+.light-theme .kpi-icon.primary {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+.light-theme .kpi-icon.accent {
+  background-color: rgba(13, 148, 136, 0.1);
+}
+.light-theme .kpi-icon.warning {
+  background-color: rgba(202, 138, 4, 0.1);
+}
+
+/* Header brand text */
+.light-theme .header-brand-text {
+  background: linear-gradient(135deg, #2563eb, #0d9488);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Preview status badge */
+.light-theme .preview-status {
+  background: #f1f5f9;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #475569;
+}
+
+/* Dropdown items no modo claro */
+.light-theme .dropdown-check-list .items li label {
+  color: #0f172a;
 }
