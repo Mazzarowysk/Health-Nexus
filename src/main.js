@@ -518,7 +518,7 @@ const checkInitialSync = async () => {
     // If the user has recently dismissed a sync modal (e.g. performed an explicit
     // upload/download), avoid re-opening it on reload. The UI sets
     // `sessionStorage.syncDismissed = 'true'` before performing user-driven syncs.
-    const syncDismissed = sessionStorage.getItem('syncDismissed') === 'true';
+    let syncDismissed = sessionStorage.getItem('syncDismissed') === 'true';
 
     if (data.isVercel && data.cloudConfigured) {
       // ── MODO VERCEL ──────────────────────────────────────────────────────
@@ -569,9 +569,14 @@ const checkInitialSync = async () => {
       localStorage.setItem(VERCEL_LAST_SEEN_KEY, JSON.stringify(stateToSave));
 
     } else if (data.cloudConfigured) {
-      // ── MODO LOCAL ou VERCEL ─────────────────────────────────────────────
-      // Apresentar comparação entre o estado local e o Turso quando houver nuvem configurada,
-      // salvo se o usuário acabou de realizar uma ação de sincronização (dismissed).
+      // ── MODO LOCAL OU VERCEL NO COMPUTADOR ────────────────────────────────
+      // Se houver diferença local vs Turso, devemos permitir o modal mesmo que o
+      // usuário tenha dispensado um prompt anterior anteriormente.
+      if (!data.synchronized) {
+        sessionStorage.removeItem('syncDismissed');
+        syncDismissed = false;
+      }
+
       if (!syncDismissed) showSyncComparisonModal(data);
     }
   } catch (err) {
