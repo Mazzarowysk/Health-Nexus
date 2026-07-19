@@ -186,10 +186,10 @@ const showSyncComparisonModal = (syncData) => {
           ${syncIcon}
           <div>
             <h3 style="font-family: 'Outfit'; font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin: 0; line-height: 1.2;">
-              Sincronização com a Nuvem
+              ${syncData.isVercel ? 'Banco de Dados na Nuvem (Vercel)' : 'Sincronização com a Nuvem'}
             </h3>
             <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 4px 0 0; line-height: 1.4;">
-              Status atual: ${syncStatusText}
+              ${syncData.isVercel ? '<span style="color: var(--color-accent); font-weight: 600;"><i class="fa-solid fa-globe" style="margin-right:4px;"></i>Conectado direto ao Turso</span>' : 'Status atual: ' + syncStatusText}
             </p>
           </div>
         </div>
@@ -232,23 +232,30 @@ const showSyncComparisonModal = (syncData) => {
         </div>
 
         <!-- Legenda -->
-        <div style="padding: 12px 16px; background: rgba(37, 99, 235, 0.05); border-left: 3px solid var(--color-primary); border-radius: 0 6px 6px 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 4px;">
-          <i class="fa-solid fa-cloud-arrow-down" style="color: var(--color-primary); margin-right: 4px;"></i>
-          <strong style="color: var(--text-primary);">Baixar da Nuvem:</strong> Atualiza o banco local com os dados do Turso. <em>Os dados locais serão substituídos.</em><br>
-          <i class="fa-solid fa-cloud-arrow-up" style="color: var(--color-accent); margin-right: 4px;"></i>
-          <strong style="color: var(--text-primary);">Enviar para Nuvem:</strong> Envia todos os dados locais para o Turso. <em>Os dados na nuvem serão substituídos.</em>
-        </div>
+        ${syncData.isVercel
+          ? `<div style="padding: 12px 16px; background: rgba(13,148,136,0.07); border-left: 3px solid var(--color-accent); border-radius: 0 6px 6px 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 4px;">
+               <i class="fa-solid fa-globe" style="color: var(--color-accent); margin-right: 4px;"></i>
+               <strong style="color: var(--text-primary);">Modo Vercel:</strong> Este acesso está conectado <em>diretamente</em> ao banco Turso. Alterações feitas aqui são salvas imediatamente na nuvem. Para sincronizar com o banco local do computador, acesse pelo app instalado.
+             </div>`
+          : `<div style="padding: 12px 16px; background: rgba(37, 99, 235, 0.05); border-left: 3px solid var(--color-primary); border-radius: 0 6px 6px 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 4px;">
+               <i class="fa-solid fa-cloud-arrow-down" style="color: var(--color-primary); margin-right: 4px;"></i>
+               <strong style="color: var(--text-primary);">Baixar da Nuvem:</strong> Atualiza o banco local com os dados do Turso. <em>Os dados locais serão substituídos.</em><br>
+               <i class="fa-solid fa-cloud-arrow-up" style="color: var(--color-accent); margin-right: 4px;"></i>
+               <strong style="color: var(--text-primary);">Enviar para Nuvem:</strong> Envia todos os dados locais para o Turso. <em>Os dados na nuvem serão substituídos.</em>
+             </div>`
+        }
       </div>
 
       <!-- Footer -->
       <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--border-color); padding: 16px 24px; background: rgba(255,255,255,0.01);">
         <button id="btn-sync-comp-skip" class="btn btn-secondary">Fechar</button>
+        ${!syncData.isVercel ? `
         <button id="btn-sync-comp-upload" class="btn btn-secondary" style="border-color: var(--color-accent); color: var(--color-accent);">
           <i class="fa-solid fa-cloud-arrow-up"></i> Enviar para Nuvem
         </button>
         <button id="btn-sync-comp-download" class="btn btn-primary">
           <i class="fa-solid fa-cloud-arrow-down"></i> Baixar da Nuvem
-        </button>
+        </button>` : ''}
       </div>
     </div>
   `;
@@ -317,17 +324,23 @@ const showSyncComparisonModal = (syncData) => {
   });
 };
 
-// Exibe o comparativo somente quando há diferenças entre local e nuvem
+// Exibe o comparativo ao logar:
+// - Local: apenas quando há diferenças entre local e nuvem
+// - Vercel: sempre (uma vez por sessão), pois local = cloud (mesmo banco Turso)
 const checkInitialSync = async () => {
-  // Já foi sincronizado nesta sessão → não mostrar novamente
+  // Já visualizado nesta sessão → não mostrar novamente
   if (sessionStorage.getItem('syncDismissed') === 'true') return;
 
   try {
     const res = await apiFetch('/api/sync/status');
     if (!res.ok) return;
     const data = await res.json();
-    // Mostrar apenas quando a nuvem está configurada E há diferenças nos dados
-    if (data.cloudConfigured && !data.synchronized) {
+
+    if (data.isVercel && data.cloudConfigured) {
+      // No Vercel: mostra visão geral do banco cloud (sempre sincronizado, db = cloud)
+      showSyncComparisonModal(data);
+    } else if (data.cloudConfigured && !data.synchronized) {
+      // Local: mostra apenas quando há diferenças
       showSyncComparisonModal(data);
     }
   } catch (err) {
