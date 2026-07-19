@@ -305,22 +305,29 @@ const showSyncComparisonModal = (syncData) => {
   };
 
   uploadBtn.addEventListener('click', () => {
+    // Marcar como sincronizado na sessão para não abrir o modal novamente
+    sessionStorage.setItem('syncDismissed', 'true');
     performAction('/api/sync/upload', 'Dados locais enviados para a nuvem com sucesso!');
   });
 
   downloadBtn.addEventListener('click', () => {
+    // Marcar como sincronizado na sessão para não abrir o modal novamente
+    sessionStorage.setItem('syncDismissed', 'true');
     performAction('/api/sync/download', 'Banco de dados local atualizado com os dados da nuvem!');
   });
 };
 
-// Sempre exibir comparativo ao logar (se nuvem configurada)
+// Exibe o comparativo somente quando há diferenças entre local e nuvem
 const checkInitialSync = async () => {
+  // Já foi sincronizado nesta sessão → não mostrar novamente
+  if (sessionStorage.getItem('syncDismissed') === 'true') return;
+
   try {
     const res = await apiFetch('/api/sync/status');
     if (!res.ok) return;
     const data = await res.json();
-    // Exibir comparativo sempre que a nuvem estiver configurada
-    if (data.cloudConfigured) {
+    // Mostrar apenas quando a nuvem está configurada E há diferenças nos dados
+    if (data.cloudConfigured && !data.synchronized) {
       showSyncComparisonModal(data);
     }
   } catch (err) {
@@ -370,6 +377,9 @@ const apiFetch = async (url, options = {}) => {
   const isBusinessRoute = url.includes('/api/patients') || url.includes('/api/encounters') || url.includes('/api/triages') || url.includes('/api/clinical_notes');
 
   if (res.ok && isWrite && isBusinessRoute) {
+    // Limpar flag de "já sincronizado" — dados mudaram, modal deve aparecer novamente se necessário
+    sessionStorage.removeItem('syncDismissed');
+
     setTimeout(async () => {
       try {
         const syncCheck = await fetch('/api/sync/status', {
