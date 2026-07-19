@@ -1337,7 +1337,8 @@ async function renderTabContent() {
           resetForm();
           await loadAndRenderTable();
           state.loading = true;
-          await requestSyncPromptIfConfigured();
+          // `apiFetch` já intercepta requests de escrita e chama `requestSyncPromptIfConfigured()`
+          // para evitar mostrar o modal duas vezes, não chamamos aqui explicitamente.
         } else {
           alert(`Erro: ${data.message || 'Falha ao salvar paciente.'}`);
         }
