@@ -64,3 +64,15 @@ Todas as mensagens de commit devem seguir a sintaxe com escopo opcional, descrev
 *   `style`: Alterações de formatação visual ou espaçamento, sem alterar lógica de código.
 *   `refactor`: Refatoração interna que não altera o comportamento externo do sistema.
 *   `test`: Inclusão ou correção de testes unitários ou de integração.
+
+---
+
+## 5. Status Atual de Desenvolvimento (BETA 1.0.0)
+
+O sistema encontra-se na fase Beta, com os seguintes módulos operacionais e funcionais:
+- **Autenticação & Controle de Acesso**: Suporte a login (JWT), persistência em sessionStorage e módulo de Gerenciamento de Usuários visível apenas para o usuário master (`mazzarowysk`).
+- **Dashboard e Listagens**: Painel de visão geral com integração ao backend, gráficos e atalhos rápidos.
+- **Atendimento e Triagem**: Sistema de Fila (Recepção -> Triagem Médica), suportando o Protocolo de Manchester (cores e gravidade).
+- **Relatórios & Exportação**: Nova aba que permite aos gestores e usuários extraírem dados de pacientes e atendimentos nativamente nos formatos **PDF**, **XLSX** (Excel) e **CSV**.
+- **Infraestrutura**: Frontend rodando com Vite.js, Backend via Express.js, e Banco de Dados 100% online rodando via **Turso DB** na nuvem da AWS, integrado em tempo real com deployments no **Vercel** e repositório oficial no **GitHub**.
+- **Automação de Fechamento**: O terminal de servidor Node se encerra de maneira limpa automaticamente (`process.exit`) alguns segundos após o usuário fechar a aba principal no navegador web, evitando acúmulo de processos zumbis.
