@@ -139,12 +139,21 @@ const showSyncComparisonModal = (syncData) => {
     } catch (e) { return '—'; }
   };
 
-  const syncIcon = syncData.synchronized
-    ? '<i class="fa-solid fa-circle-check" style="color: var(--color-accent); font-size: 1.4rem;"></i>'
-    : '<i class="fa-solid fa-triangle-exclamation" style="color: var(--color-warning); font-size: 1.4rem;"></i>';
-  const syncStatusText = syncData.synchronized
-    ? '<span style="color: var(--color-accent); font-weight: 600;">Sincronizado</span>'
-    : '<span style="color: var(--color-warning); font-weight: 600;">Diferenças detectadas</span>';
+  // Ícone e texto de status adaptados ao contexto
+  let syncIcon, syncStatusText;
+  if (syncData.vercelHasUpdates) {
+    syncIcon = '<i class="fa-solid fa-cloud-arrow-down" style="color: var(--color-warning); font-size: 1.4rem;"></i>';
+    syncStatusText = '<span style="color: var(--color-warning); font-weight: 600;">Dados novos desde o último acesso</span>';
+  } else if (syncData.isVercel) {
+    syncIcon = '<i class="fa-solid fa-circle-check" style="color: var(--color-accent); font-size: 1.4rem;"></i>';
+    syncStatusText = '<span style="color: var(--color-accent); font-weight: 600;">Banco atualizado</span>';
+  } else if (syncData.synchronized) {
+    syncIcon = '<i class="fa-solid fa-circle-check" style="color: var(--color-accent); font-size: 1.4rem;"></i>';
+    syncStatusText = '<span style="color: var(--color-accent); font-weight: 600;">Sincronizado</span>';
+  } else {
+    syncIcon = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--color-warning); font-size: 1.4rem;"></i>';
+    syncStatusText = '<span style="color: var(--color-warning); font-weight: 600;">Diferenças detectadas</span>';
+  }
 
   const tableItems = [
     { label: 'Profissionais', key: 'users' },
@@ -186,10 +195,16 @@ const showSyncComparisonModal = (syncData) => {
           ${syncIcon}
           <div>
             <h3 style="font-family: 'Outfit'; font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin: 0; line-height: 1.2;">
-              ${syncData.isVercel ? 'Banco de Dados na Nuvem (Vercel)' : 'Sincronização com a Nuvem'}
+              ${syncData.vercelHasUpdates ? '⚠️ Dados Atualizados na Nuvem' : syncData.isVercel ? 'Banco de Dados na Nuvem (Vercel)' : 'Sincronização com a Nuvem'}
             </h3>
             <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 4px 0 0; line-height: 1.4;">
-              ${syncData.isVercel ? '<span style="color: var(--color-accent); font-weight: 600;"><i class="fa-solid fa-globe" style="margin-right:4px;"></i>Conectado direto ao Turso</span>' : 'Status atual: ' + syncStatusText}
+              ${syncData.isVercel
+                ? (syncData.vercelHasUpdates
+                    ? 'Dados foram adicionados/alterados desde o último acesso a este sistema'
+                    : syncData.vercelFirstAccess
+                      ? '<span style="color: var(--color-accent); font-weight:600;">Primeiro acesso — estado atual do banco Turso</span>'
+                      : '<span style="color: var(--color-accent); font-weight: 600;"><i class="fa-solid fa-globe" style="margin-right:4px;"></i>Conectado direto ao Turso — sem alterações recentes</span>')
+                : 'Status atual: ' + syncStatusText}
             </p>
           </div>
         </div>
@@ -202,7 +217,10 @@ const showSyncComparisonModal = (syncData) => {
       <div style="padding: 20px 24px;">
         <p style="font-size: 0.83rem; color: var(--text-secondary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-circle-info" style="color: var(--color-primary);"></i>
-          Comparativo de registros entre <strong style="color: var(--text-primary); margin: 0 2px;"><i class="fa-solid ${originIcon}" style="margin-right:4px;"></i>${originLabel}</strong> e o banco Turso na nuvem:
+          ${syncData.vercelHasUpdates
+            ? `Diferenças entre o <strong style="color: var(--text-primary); margin: 0 2px;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:4px;"></i>Último Acesso</strong> e o estado <strong style="color: var(--text-primary); margin: 0 2px;"><i class="fa-solid fa-cloud" style="margin-right:4px;"></i>Turso Atual</strong>:`
+            : `Comparativo de registros entre <strong style="color: var(--text-primary); margin: 0 2px;"><i class="fa-solid ${originIcon}" style="margin-right:4px;"></i>${originLabel}</strong> e o banco Turso na nuvem:`
+          }
         </p>
 
         <!-- Tabela de comparação -->
@@ -212,7 +230,10 @@ const showSyncComparisonModal = (syncData) => {
               <tr style="background: var(--bg-tertiary);">
                 <th style="padding: 10px 14px; text-align: left; font-family: 'Outfit'; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color);" rowspan="2">Tabela</th>
                 <th style="padding: 10px 14px; text-align: center; font-family: 'Outfit'; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-primary); border-bottom: 1px solid var(--border-color); border-left: 2px solid rgba(37,99,235,0.2);" colspan="2">
-                  <i class="fa-solid ${originIcon}" style="margin-right: 5px;"></i>${originLabel}
+                  ${syncData.vercelHasUpdates
+                    ? '<i class="fa-solid fa-clock-rotate-left" style="margin-right: 5px;"></i>Último Acesso'
+                    : `<i class="fa-solid ${originIcon}" style="margin-right: 5px;"></i>${originLabel}`
+                  }
                 </th>
                 <th style="padding: 10px 14px; text-align: center; font-family: 'Outfit'; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-accent); border-bottom: 1px solid var(--border-color); border-left: 2px solid rgba(13,148,136,0.2);" colspan="2">
                   <i class="fa-solid fa-cloud" style="margin-right: 5px;"></i>Turso (Nuvem)
@@ -311,24 +332,33 @@ const showSyncComparisonModal = (syncData) => {
     }
   };
 
-  uploadBtn.addEventListener('click', () => {
-    // Marcar como sincronizado na sessão para não abrir o modal novamente
+  if (uploadBtn) uploadBtn.addEventListener('click', () => {
     sessionStorage.setItem('syncDismissed', 'true');
     performAction('/api/sync/upload', 'Dados locais enviados para a nuvem com sucesso!');
   });
 
-  downloadBtn.addEventListener('click', () => {
-    // Marcar como sincronizado na sessão para não abrir o modal novamente
+  if (downloadBtn) downloadBtn.addEventListener('click', () => {
     sessionStorage.setItem('syncDismissed', 'true');
     performAction('/api/sync/download', 'Banco de dados local atualizado com os dados da nuvem!');
   });
 };
 
-// Exibe o comparativo ao logar:
-// - Local: apenas quando há diferenças entre local e nuvem
-// - Vercel: sempre (uma vez por sessão), pois local = cloud (mesmo banco Turso)
+// ─── CONTROLE DE SINCRONIZAÇÃO BIDIRECIONAL ──────────────────────────────────
+//
+// Fluxo LOCAL → VERCEL:
+//   1. Usuário trabalha localmente e envia ao Turso
+//   2. Ao logar no Vercel, o sistema compara o estado atual do Turso
+//      com o último estado salvo no localStorage do Vercel
+//   3. Se houver diferença → modal aparece indicando dados novos da nuvem
+//
+// Fluxo VERCEL → LOCAL:
+//   1. Usuário trabalha no Vercel (dados vão direto ao Turso)
+//   2. Ao abrir o app local, compara local.db vs Turso
+//   3. Se houver diferença → modal aparece recomendando "Baixar da Nuvem"
+// ─────────────────────────────────────────────────────────────────────────────
+const VERCEL_LAST_SEEN_KEY = 'healthNexus_vercelLastSeen';
+
 const checkInitialSync = async () => {
-  // Já visualizado nesta sessão → não mostrar novamente
   if (sessionStorage.getItem('syncDismissed') === 'true') return;
 
   try {
@@ -337,10 +367,47 @@ const checkInitialSync = async () => {
     const data = await res.json();
 
     if (data.isVercel && data.cloudConfigured) {
-      // No Vercel: mostra visão geral do banco cloud (sempre sincronizado, db = cloud)
-      showSyncComparisonModal(data);
+      // ── MODO VERCEL ──────────────────────────────────────────────────────
+      // Recuperar último estado visto no Vercel
+      let lastSeen = null;
+      try { lastSeen = JSON.parse(localStorage.getItem(VERCEL_LAST_SEEN_KEY)); } catch (e) {}
+
+      if (lastSeen) {
+        // Comparar último estado salvo vs estado atual do Turso
+        const tables = ['users', 'patients', 'encounters', 'triages', 'clinical_notes'];
+        const hasChanges = tables.some(
+          t => Number(data.cloud[t] || 0) !== Number(lastSeen[t] || 0)
+        );
+
+        if (hasChanges) {
+          // Há dados novos no Turso desde o último acesso ao Vercel
+          // Mostrar modal com comparativo: último acesso vs agora
+          const vercelCompData = {
+            ...data,
+            local: lastSeen,           // "local" = último acesso salvo
+            localTimestamps: lastSeen.timestamps || {},
+            cloud: data.cloud,
+            cloudTimestamps: data.cloudTimestamps || {},
+            synchronized: false,       // forçar ícone de atenção
+            vercelHasUpdates: true     // flag para personalizar texto
+          };
+          showSyncComparisonModal(vercelCompData);
+        } else {
+          // Nenhuma mudança desde o último acesso — mostrar modal informativo simples
+          showSyncComparisonModal({ ...data, vercelNoChanges: true });
+        }
+      } else {
+        // Primeiro acesso ao Vercel — salvar estado e mostrar modal informativo
+        showSyncComparisonModal({ ...data, vercelFirstAccess: true });
+      }
+
+      // Salvar estado atual do Turso para próxima comparação
+      const stateToSave = { ...data.cloud, timestamps: data.cloudTimestamps || {}, savedAt: new Date().toISOString() };
+      localStorage.setItem(VERCEL_LAST_SEEN_KEY, JSON.stringify(stateToSave));
+
     } else if (data.cloudConfigured && !data.synchronized) {
-      // Local: mostra apenas quando há diferenças
+      // ── MODO LOCAL ───────────────────────────────────────────────────────
+      // Mostra modal apenas quando há diferenças entre local.db e Turso
       showSyncComparisonModal(data);
     }
   } catch (err) {
