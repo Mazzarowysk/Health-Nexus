@@ -484,6 +484,11 @@ const checkInitialSync = async () => {
     state.syncInfo = data;
     updateSyncBadge();
 
+    // If the user has recently dismissed a sync modal (e.g. performed an explicit
+    // upload/download), avoid re-opening it on reload. The UI sets
+    // `sessionStorage.syncDismissed = 'true'` before performing user-driven syncs.
+    const syncDismissed = sessionStorage.getItem('syncDismissed') === 'true';
+
     if (data.isVercel && data.cloudConfigured) {
       // ── MODO VERCEL ──────────────────────────────────────────────────────
       // Recuperar último estado visto no Vercel
@@ -512,14 +517,14 @@ const checkInitialSync = async () => {
             synchronized: false,       // forçar ícone de atenção
             vercelHasUpdates: true     // flag para personalizar texto
           };
-          showSyncComparisonModal(vercelCompData);
+          if (!syncDismissed) showSyncComparisonModal(vercelCompData);
         } else {
           // Nenhuma mudança desde o último acesso — mostrar modal informativo simples
-          showSyncComparisonModal({ ...data, vercelNoChanges: true });
+          if (!syncDismissed) showSyncComparisonModal({ ...data, vercelNoChanges: true });
         }
       } else {
         // Primeiro acesso ao Vercel — salvar estado e mostrar modal informativo
-        showSyncComparisonModal({ ...data, vercelFirstAccess: true });
+        if (!syncDismissed) showSyncComparisonModal({ ...data, vercelFirstAccess: true });
       }
 
       // Salvar estado atual do Turso para próxima comparação
@@ -528,9 +533,9 @@ const checkInitialSync = async () => {
 
     } else if (data.cloudConfigured) {
       // ── MODO LOCAL ou VERCEL ─────────────────────────────────────────────
-      // Sempre apresentar comparação entre o estado local e o Turso quando houver nuvem configurada
-      sessionStorage.removeItem('syncDismissed');
-      showSyncComparisonModal(data);
+      // Apresentar comparação entre o estado local e o Turso quando houver nuvem configurada,
+      // salvo se o usuário acabou de realizar uma ação de sincronização (dismissed).
+      if (!syncDismissed) showSyncComparisonModal(data);
     }
   } catch (err) {
     console.error('Erro ao verificar sincronização inicial:', err);
