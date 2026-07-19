@@ -22,7 +22,7 @@ const initLocalDb = async () => {
   await db.execute(SQL_USERS);
   try { await db.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
   await db.execute(SQL_PATIENTS);
-  for (const col of ['address','city','phone','cellphone','billingValue']) {
+  for (const col of ['address','city','phone','cellphone','billingValue','updated_at']) {
     try { await db.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
   }
   await db.execute(SQL_ENCOUNTERS);
@@ -794,9 +794,10 @@ app.put('/api/patients/:id', async (req, res) => {
       });
     }
 
+    const updatedAt = new Date().toISOString();
     await db.execute({
-      sql: 'UPDATE patients SET fullName = ?, cpf = ?, birthDate = ?, address = ?, city = ?, phone = ?, cellphone = ?, billingValue = ? WHERE id = ?',
-      args: [fullName, cpf, birthDate, address || '', city || '', phone || '', cellphone || '', billingValue || '', id]
+      sql: 'UPDATE patients SET fullName = ?, cpf = ?, birthDate = ?, address = ?, city = ?, phone = ?, cellphone = ?, billingValue = ?, updated_at = ? WHERE id = ?',
+      args: [fullName, cpf, birthDate, address || '', city || '', phone || '', cellphone || '', billingValue || '', updatedAt, id]
     });
 
     res.status(200).json({
@@ -1124,7 +1125,7 @@ app.get('/api/sync/status', async (req, res) => {
 
     const localTimestamps = {
       users: (await db.execute("SELECT MAX(created_at) as t FROM users")).rows[0].t || null,
-      patients: (await db.execute("SELECT MAX(created_at) as t FROM patients")).rows[0].t || null,
+      patients: (await db.execute("SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).rows[0].t || null,
       encounters: (await db.execute("SELECT MAX(admitted_at) as t FROM encounters")).rows[0].t || null,
       triages: (await db.execute("SELECT MAX(triaged_at) as t FROM triages")).rows[0].t || null,
       clinical_notes: (await db.execute("SELECT MAX(created_at) as t FROM clinical_notes")).rows[0].t || null
@@ -1141,13 +1142,18 @@ app.get('/api/sync/status', async (req, res) => {
 
       const cloudTimestamps = {
         users: (await cloudDb.execute("SELECT MAX(created_at) as t FROM users")).rows[0].t || null,
-        patients: (await cloudDb.execute("SELECT MAX(created_at) as t FROM patients")).rows[0].t || null,
+        patients: (await cloudDb.execute("SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).rows[0].t || null,
         encounters: (await cloudDb.execute("SELECT MAX(admitted_at) as t FROM encounters")).rows[0].t || null,
         triages: (await cloudDb.execute("SELECT MAX(triaged_at) as t FROM triages")).rows[0].t || null,
         clinical_notes: (await cloudDb.execute("SELECT MAX(created_at) as t FROM clinical_notes")).rows[0].t || null
       };
 
-      const hasDifferences = Object.keys(localCounts).some(key => localCounts[key] !== cloudCounts[key]);
+      // Detecta diferenças tanto na contagem quanto nos timestamps (cobre INSERT, UPDATE e DELETE)
+      const tables = Object.keys(localCounts);
+      const hasDifferences = tables.some(key =>
+        localCounts[key] !== cloudCounts[key] ||
+        (localTimestamps[key] || '') !== (cloudTimestamps[key] || '')
+      );
 
       res.status(200).json({
         status: 'success',

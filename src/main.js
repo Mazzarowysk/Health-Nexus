@@ -44,7 +44,14 @@ const updateThemeIcon = () => {
 };
 
 // --- SISTEMA DE SINCRONIZAÇÃO LOCAL-NUVEM ---
-const showSyncPromptModal = () => {
+const showSyncPromptModal = (syncData = {}) => {
+  const isVercel = !!syncData.isVercel;
+  const title = isVercel ? 'Confirmar sincronização com Turso' : 'Enviar para a Nuvem?';
+  const description = isVercel
+    ? 'As alterações foram gravadas no banco Turso. Deseja confirmar o envio/sincronização com a nuvem agora?'
+    : 'Uma alteração foi feita no sistema. Deseja enviar os dados atualizados para o banco de dados Turso na nuvem agora?';
+  const confirmLabel = isVercel ? 'Confirmar Sincronização' : 'Sim, Enviar';
+
   return new Promise((resolve) => {
     const existing = document.getElementById('sync-prompt-modal');
     if (existing) existing.remove();
@@ -54,42 +61,42 @@ const showSyncPromptModal = () => {
     overlay.className = 'modal-overlay';
     overlay.style.zIndex = '99999';
     overlay.style.display = 'flex';
-    
+
     overlay.innerHTML = `
       <div class="modal-content" style="max-width: 420px; text-align: center; padding: 24px; animation: modalFadeIn 0.3s ease-out;">
         <div style="font-size: 3rem; color: var(--color-primary); margin-bottom: 16px;">
-          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <i class="fa-solid ${isVercel ? 'fa-cloud-check' : 'fa-cloud-arrow-up'}"></i>
         </div>
-        <h3 style="font-family: 'Outfit'; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Enviar para a Nuvem?</h3>
+        <h3 style="font-family: 'Outfit'; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">${title}</h3>
         <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px;">
-          Uma alteração foi feita no sistema. Deseja enviar os dados atualizados para o banco de dados Turso na nuvem agora?
+          ${description}
         </p>
         <div style="display: flex; gap: 12px; justify-content: center;">
-          <button id="btn-sync-cancel" class="btn btn-secondary" style="flex: 1;">Manter Apenas Local</button>
+          <button id="btn-sync-cancel" class="btn btn-secondary" style="flex: 1;">Fechar</button>
           <button id="btn-sync-confirm" class="btn btn-primary" style="flex: 1;">
-            <i class="fa-solid fa-cloud"></i> Sim, Enviar
+            <i class="fa-solid fa-cloud"></i> ${confirmLabel}
           </button>
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(overlay);
-    
+
     const cleanUp = () => {
       overlay.remove();
     };
-    
+
     document.getElementById('btn-sync-cancel').addEventListener('click', () => {
       cleanUp();
       resolve(false);
     });
-    
+
     document.getElementById('btn-sync-confirm').addEventListener('click', async () => {
       const btn = document.getElementById('btn-sync-confirm');
       const originalText = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
-      
+
       try {
         const res = await fetch('/api/sync/upload', {
           method: 'POST',
@@ -99,6 +106,13 @@ const showSyncPromptModal = () => {
         });
         if (res.ok) {
           showToast('Dados sincronizados com a nuvem com sucesso!');
+          try {
+            const st = await apiFetch('/api/sync/status');
+            if (st.ok) {
+              state.syncInfo = await st.json();
+              updateSyncBadge();
+            }
+          } catch (e) {}
         } else {
           showToast('Erro ao sincronizar com a nuvem.');
         }
@@ -310,6 +324,13 @@ const showSyncComparisonModal = (syncData) => {
       const res = await apiFetch(actionUrl, { method: 'POST' });
       if (res.ok) {
         showToast(successMessage);
+        try {
+          const st = await apiFetch('/api/sync/status');
+          if (st.ok) {
+            state.syncInfo = await st.json();
+            updateSyncBadge();
+          }
+        } catch (e) {}
         overlay.remove();
         setTimeout(() => window.location.reload(), 1500);
       } else {
@@ -346,25 +367,122 @@ const showSyncComparisonModal = (syncData) => {
 // ─── CONTROLE DE SINCRONIZAÇÃO BIDIRECIONAL ──────────────────────────────────
 //
 // Fluxo LOCAL → VERCEL:
-//   1. Usuário trabalha localmente e envia ao Turso
-//   2. Ao logar no Vercel, o sistema compara o estado atual do Turso
-//      com o último estado salvo no localStorage do Vercel
-//   3. Se houver diferença → modal aparece indicando dados novos da nuvem
+//   1. Usuário trabalha localmente em seu computador.
+//   2. Após cada inserção, alteração ou exclusão, o sistema envia automaticamente os dados ao Turso.
+//   3. Quando o app é aberto, ele compara o banco local com o Turso e recomenda "Baixar da Nuvem" se houver diferença.
 //
 // Fluxo VERCEL → LOCAL:
-//   1. Usuário trabalha no Vercel (dados vão direto ao Turso)
-//   2. Ao abrir o app local, compara local.db vs Turso
-//   3. Se houver diferença → modal aparece recomendando "Baixar da Nuvem"
+//   1. Usuário trabalha no Vercel (dados vão direto ao Turso).
+//   2. Ao abrir o app local, compara local.db vs Turso.
+//   3. Se houver diferença → modal aparece recomendando "Baixar da Nuvem".
 // ─────────────────────────────────────────────────────────────────────────────
 const VERCEL_LAST_SEEN_KEY = 'healthNexus_vercelLastSeen';
+let syncInProgress = false;
+
+const syncLocalChangesToCloud = async () => {
+  if (syncInProgress) return true;
+  syncInProgress = true;
+
+  try {
+    const statusRes = await fetch('/api/sync/status', {
+      headers: {
+        'Authorization': `Bearer ${state.token}`
+      }
+    });
+    if (!statusRes.ok) return false;
+    const statusData = await statusRes.json();
+    if (!statusData.cloudConfigured || statusData.isVercel) return false;
+
+    const uploadRes = await fetch('/api/sync/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.token}`
+      }
+    });
+
+    if (!uploadRes.ok) {
+      showToast('Falha ao enviar alterações para a nuvem. Os dados locais foram salvos.');
+      return false;
+    }
+
+    showToast('Alterações sincronizadas com o Turso com sucesso!');
+    return true;
+  } catch (err) {
+    console.error('Erro na sincronização automática com Turso:', err);
+    showToast('Erro ao sincronizar com a nuvem. Tente novamente mais tarde.');
+    return false;
+  } finally {
+    syncInProgress = false;
+  }
+};
+
+const shouldPromptCloudSync = (statusData) => {
+  return statusData && statusData.cloudConfigured;
+};
+
+const requestSyncPromptIfConfigured = async () => {
+  try {
+    const statusRes = await fetch('/api/sync/status', {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    if (!statusRes.ok) return false;
+
+    const statusData = await statusRes.json();
+    state.syncInfo = statusData;
+    updateSyncBadge();
+
+    if (!shouldPromptCloudSync(statusData)) return false;
+
+    await showSyncPromptModal(statusData);
+    return true;
+  } catch (err) {
+    console.error('Erro ao verificar configuração de nuvem para prompt:', err);
+    return false;
+  }
+};
+
+const updateSyncBadge = () => {
+  const badge = document.getElementById('sync-status-badge');
+  if (!badge) return;
+  const data = state.syncInfo;
+
+  if (!data) {
+    badge.textContent = 'Verificando Turso...';
+    badge.style.background = 'rgba(59,130,246,0.08)';
+    badge.style.borderColor = 'var(--border-color)';
+    badge.style.color = 'var(--text-primary)';
+    return;
+  }
+
+  if (!data.cloudConfigured) {
+    badge.textContent = 'Modo Local (Turso não configurado)';
+    badge.style.background = 'rgba(229,62,62,0.1)';
+    badge.style.borderColor = 'rgba(229,62,62,0.3)';
+    badge.style.color = '#b91c1c';
+    return;
+  }
+
+  if (data.isVercel) {
+    badge.textContent = 'Conectado ao Turso (Vercel)';
+    badge.style.background = 'rgba(13,148,136,0.12)';
+    badge.style.borderColor = 'rgba(14,165,233,0.3)';
+    badge.style.color = 'var(--color-accent)';
+    return;
+  }
+
+  badge.textContent = data.synchronized ? 'Local sincronizado com Turso' : 'Dados fora de sincronia com Turso';
+  badge.style.background = data.synchronized ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)';
+  badge.style.borderColor = data.synchronized ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)';
+  badge.style.color = data.synchronized ? '#15803d' : '#b45309';
+};
 
 const checkInitialSync = async () => {
-  if (sessionStorage.getItem('syncDismissed') === 'true') return;
-
   try {
     const res = await apiFetch('/api/sync/status');
     if (!res.ok) return;
     const data = await res.json();
+    state.syncInfo = data;
+    updateSyncBadge();
 
     if (data.isVercel && data.cloudConfigured) {
       // ── MODO VERCEL ──────────────────────────────────────────────────────
@@ -380,6 +498,9 @@ const checkInitialSync = async () => {
         );
 
         if (hasChanges) {
+          // Se houver diferenças no Turso, liberar o aviso de sync local
+          sessionStorage.removeItem('syncDismissed');
+
           // Há dados novos no Turso desde o último acesso ao Vercel
           // Mostrar modal com comparativo: último acesso vs agora
           const vercelCompData = {
@@ -405,9 +526,10 @@ const checkInitialSync = async () => {
       const stateToSave = { ...data.cloud, timestamps: data.cloudTimestamps || {}, savedAt: new Date().toISOString() };
       localStorage.setItem(VERCEL_LAST_SEEN_KEY, JSON.stringify(stateToSave));
 
-    } else if (data.cloudConfigured && !data.synchronized) {
-      // ── MODO LOCAL ───────────────────────────────────────────────────────
-      // Mostra modal apenas quando há diferenças entre local.db e Turso
+    } else if (data.cloudConfigured) {
+      // ── MODO LOCAL ou VERCEL ─────────────────────────────────────────────
+      // Sempre apresentar comparação entre o estado local e o Turso quando houver nuvem configurada
+      sessionStorage.removeItem('syncDismissed');
       showSyncComparisonModal(data);
     }
   } catch (err) {
@@ -426,6 +548,21 @@ const initializeApp = () => {
         logout();
       });
     }
+    // Registrar clique na badge de status para abrir modal de comparação
+    setTimeout(() => {
+      const badge = document.getElementById('sync-status-badge');
+      if (badge) {
+        badge.style.cursor = 'pointer';
+        badge.addEventListener('click', () => {
+          if (state.syncInfo && state.syncInfo.cloudConfigured) {
+            showSyncComparisonModal(state.syncInfo);
+          } else {
+            showToast('Turso não configurado ou sem dados para comparar.');
+          }
+        });
+      }
+      updateSyncBadge();
+    }, 120);
     // Verificar sincronização inicial do banco de dados local-nuvem
     checkInitialSync();
   } else {
@@ -452,30 +589,16 @@ const apiFetch = async (url, options = {}) => {
     logout();
   }
 
-  // Interceptar requisições de escrita para solicitar sincronização com o banco Turso
-  const isWrite = ['POST', 'PUT', 'DELETE'].includes((options.method || 'GET').toUpperCase());
-  const isBusinessRoute = url.includes('/api/patients') || url.includes('/api/encounters') || url.includes('/api/triages') || url.includes('/api/clinical_notes');
+  // Interceptar requisições de escrita para mostrar prompt de envio ao Turso
+  const method = (options.method || 'GET').toUpperCase();
+  const isWrite = ['POST', 'PUT', 'DELETE'].includes(method);
+  const isApiRoute = url.startsWith(API_URL);
+  const isAuthRoute = url.includes('/api/auth');
+  const isSyncRoute = url.includes('/api/sync');
 
-  if (res.ok && isWrite && isBusinessRoute) {
-    // Limpar flag de "já sincronizado" — dados mudaram, modal deve aparecer novamente se necessário
+  if (res.ok && isWrite && isApiRoute && !isAuthRoute && !isSyncRoute) {
     sessionStorage.removeItem('syncDismissed');
-
-    setTimeout(async () => {
-      try {
-        const syncCheck = await fetch('/api/sync/status', {
-          headers: { 'Authorization': `Bearer ${state.token}` }
-        });
-        if (syncCheck.ok) {
-          const syncData = await syncCheck.json();
-          // Só solicita upload se o banco em nuvem estiver ativo e não estiver no Vercel (já que no Vercel já salva direto na nuvem)
-          if (syncData.cloudConfigured && !syncData.isVercel) {
-            await showSyncPromptModal();
-          }
-        }
-      } catch (e) {
-        console.error('Erro ao verificar status de sincronização:', e);
-      }
-    }, 100);
+    await requestSyncPromptIfConfigured();
   }
 
   return res;
@@ -698,7 +821,7 @@ function renderAppStructure() {
       </aside>
 
       <!-- Cabeçalho Superior -->
-      <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 24px;">
+      <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 24px; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px;">
           <h1 class="page-title" id="page-title-label" style="margin: 0;">Health Nexus</h1>
           <div class="header-brand-text" style="margin: 0;">
@@ -706,9 +829,14 @@ function renderAppStructure() {
             <span>Sistema de Gestão Hospitalar Health Nexus</span>
           </div>
         </div>
-        <button id="btn-theme-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; padding: 0; font-size: 1.15rem; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Tema Claro/Escuro">
-          <i class="fa-solid fa-sun" id="theme-icon"></i>
-        </button>
+        <div id="sync-status-container" style="display: flex; align-items: center; gap: 10px;">
+          <span id="sync-status-badge" style="font-size: 0.82rem; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border-color); background: rgba(59,130,246,0.08); color: var(--text-primary);">
+            Verificando Turso...
+          </span>
+          <button id="btn-theme-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; padding: 0; font-size: 1.15rem; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Tema Claro/Escuro">
+            <i class="fa-solid fa-sun" id="theme-icon"></i>
+          </button>
+        </div>
       </header>
 
       <!-- Área de Conteúdo Principal -->
@@ -1207,8 +1335,9 @@ async function renderTabContent() {
         const data = await res.json();
         if (res.ok) {
           resetForm();
-          loadAndRenderTable();
+          await loadAndRenderTable();
           state.loading = true;
+          await requestSyncPromptIfConfigured();
         } else {
           alert(`Erro: ${data.message || 'Falha ao salvar paciente.'}`);
         }

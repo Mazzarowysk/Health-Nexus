@@ -82,6 +82,17 @@
 - Sincronização automática ao iniciar (baixa da nuvem se ela tiver mais registros)
 - Dual-mode: banco local SQLite (desenvolvimento) + Turso cloud (produção/Vercel)
 
+### Atualizações (Julho 2026)
+
+- Unificação do fluxo de sincronização: o sistema agora apresenta um único comportamento consistente entre ambientes local e Vercel.
+  - Após qualquer `POST` / `PUT` / `DELETE` em rotas de negócio, o frontend solicita explicitamente ao usuário se deseja enviar as alterações para o Turso (modal de confirmação).
+  - Ao efetuar login, o sistema compara automaticamente o estado local (ou o último snapshot no caso do Vercel) com o estado atual do Turso e mostra o modal comparativo quando a nuvem estiver configurada.
+  - A aplicação exibe uma **badge** no cabeçalho (`sync-status-badge`) com o estado atual da sincronização: "Verificando Turso...", "Conectado ao Turso (Vercel)", "Local sincronizado com Turso", "Dados fora de sincronia com Turso" ou "Modo Local (Turso não configurado)".
+  - A badge é clicável e abre manualmente o modal comparativo.
+  - Depois de enviar/baixar dados (upload/download), o sistema atualiza automaticamente a badge e sugere recarregar a interface para refletir o novo estado.
+
+Essas mudanças alinham o comportamento do app em ambos os ambientes e tornam as decisões de sincronização explícitas ao usuário.
+
 ---
 
 ## 🎨 Design System
