@@ -150,6 +150,12 @@ app.post('/api/heartbeat', (req, res) => {
   res.sendStatus(200);
 });
 
+app.post('/api/shutdown', (req, res) => {
+  console.log('Navegador fechado. Encerrando o servidor imediatamente...');
+  res.sendStatus(200);
+  setTimeout(() => process.exit(0), 100);
+});
+
 setInterval(() => {
   if (Date.now() - lastHeartbeat > 8000) {
     console.log('Nenhum navegador conectado. Encerrando o servidor...');

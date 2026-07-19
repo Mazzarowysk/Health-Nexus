@@ -1617,6 +1617,11 @@ setInterval(() => {
   fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
 }, 3000);
 
+// Encerramento instantâneo do servidor quando o navegador/aba é fechado
+window.addEventListener('beforeunload', () => {
+  navigator.sendBeacon('/api/shutdown');
+});
+
 // --- MÓDULO PEP (PRONTUÁRIO ELETRÔNICO DO PACIENTE) ---
 
 let currentPEPEncounterId = null;
