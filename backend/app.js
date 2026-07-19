@@ -73,10 +73,37 @@ const autoSyncFromCloud = async () => {
   }
 };
 
+// --- INICIALIZACAO DO BANCO CLOUD (para garantir tabelas no Turso) ---
+const initCloudDb = async () => {
+  if (!cloudDb) return;
+  const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
+  const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
+  const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  await cloudDb.execute(SQL_USERS);
+  try { await cloudDb.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
+  await cloudDb.execute(SQL_PATIENTS);
+  for (const col of ['address','city','phone','cellphone','billingValue']) {
+    try { await cloudDb.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
+  }
+  await cloudDb.execute(SQL_ENCOUNTERS);
+  await cloudDb.execute(SQL_TRIAGES);
+  await cloudDb.execute(SQL_NOTES);
+  console.log('[DB] Banco Turso (cloud) OK.');
+};
+
 // --- INICIALIZACAO PRINCIPAL ---
+const isVercel = !!process.env.VERCEL;
 (async () => {
   try {
-    await initLocalDb();
+    if (isVercel) {
+      // No Vercel: inicializa tabelas no Turso e usa cloud como banco principal
+      await initCloudDb();
+    } else {
+      // Local: inicializa banco local SQLite
+      await initLocalDb();
+    }
     const {rows} = await db.execute({sql:'SELECT id FROM users WHERE username=?', args:['admin']});
     if (rows.length === 0) {
       const hash = await bcrypt.hash('admin', 10);
@@ -84,13 +111,16 @@ const autoSyncFromCloud = async () => {
       await db.execute({sql:'INSERT INTO users (id,name,username,password_hash,role) VALUES (?,?,?,?,?)', args:[aid,'Administrador','admin',hash,'Administrador']});
       console.log('[DB] Usuario admin criado (senha: admin).');
     }
-    // Cloud sync em background com timeout de 15s
-    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout 15s')), 15000));
-    Promise.race([autoSyncFromCloud(), timeout]).catch(e => console.warn('[SYNC] Sync inicial ignorado:', e.message));
+    // Sync automático apenas localmente (no Vercel o db já É o cloud)
+    if (!isVercel) {
+      const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout 15s')), 15000));
+      Promise.race([autoSyncFromCloud(), timeout]).catch(e => console.warn('[SYNC] Sync inicial ignorado:', e.message));
+    }
   } catch(err) {
     console.error('[DB] Erro critico:', err);
   }
 })();
+
 
 
 
