@@ -496,11 +496,17 @@ const checkInitialSync = async () => {
       try { lastSeen = JSON.parse(localStorage.getItem(VERCEL_LAST_SEEN_KEY)); } catch (e) {}
 
       if (lastSeen) {
-        // Comparar último estado salvo vs estado atual do Turso
+        // Comparar último estado salvo vs estado atual do Turso.
+        // Usamos tanto contagem quanto timestamp de última modificação para
+        // detectar alterações de dados mesmo quando o número de registros não muda.
         const tables = ['users', 'patients', 'encounters', 'triages', 'clinical_notes'];
-        const hasChanges = tables.some(
-          t => Number(data.cloud[t] || 0) !== Number(lastSeen[t] || 0)
-        );
+        const hasChanges = tables.some((t) => {
+          const cloudCount = Number(data.cloud[t] || 0);
+          const lastCount = Number(lastSeen[t] || 0);
+          const cloudTimestamp = String(data.cloudTimestamps?.[t] || '');
+          const lastTimestamp = String(lastSeen.timestamps?.[t] || '');
+          return cloudCount !== lastCount || cloudTimestamp !== lastTimestamp;
+        });
 
         if (hasChanges) {
           // Se houver diferenças no Turso, liberar o aviso de sync local
@@ -600,8 +606,9 @@ const apiFetch = async (url, options = {}) => {
   const isApiRoute = url.startsWith(API_URL);
   const isAuthRoute = url.includes('/api/auth');
   const isSyncRoute = url.includes('/api/sync');
+  const skipSyncPrompt = options.skipSyncPrompt === true;
 
-  if (res.ok && isWrite && isApiRoute && !isAuthRoute && !isSyncRoute) {
+  if (res.ok && isWrite && isApiRoute && !isAuthRoute && !isSyncRoute && !skipSyncPrompt) {
     sessionStorage.removeItem('syncDismissed');
     await requestSyncPromptIfConfigured();
   }
@@ -1331,24 +1338,36 @@ async function renderTabContent() {
       const url = isEdit ? `${API_URL}/patients/${editId}` : `${API_URL}/patients`;
       const method = isEdit ? 'PUT' : 'POST';
 
+      const submitButton = document.getElementById('submit-btn');
+      const originalSubmitText = submitButton?.textContent || '';
       try {
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Salvando...';
+        }
+
         const res = await apiFetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, cpf, birthDate, address, city, phone, cellphone, billingValue })
+          body: JSON.stringify({ fullName, cpf, birthDate, address, city, phone, cellphone, billingValue }),
+          skipSyncPrompt: true
         });
         const data = await res.json();
         if (res.ok) {
           resetForm();
           await loadAndRenderTable();
           state.loading = true;
-          // `apiFetch` já intercepta requests de escrita e chama `requestSyncPromptIfConfigured()`
-          // para evitar mostrar o modal duas vezes, não chamamos aqui explicitamente.
+          await requestSyncPromptIfConfigured();
         } else {
           alert(`Erro: ${data.message || 'Falha ao salvar paciente.'}`);
         }
       } catch (err) {
         alert('Erro ao conectar-se à API.');
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = originalSubmitText;
+        }
       }
     });
 
