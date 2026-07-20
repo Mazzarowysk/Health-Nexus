@@ -1169,12 +1169,21 @@ app.get('/api/sync/status', async (req, res) => {
         last_sync: lastCloudSync
       };
 
-      // Detecta diferenças tanto na contagem quanto nos timestamps (cobre INSERT, UPDATE e DELETE)
+      // Detecta diferenças por contagem de registros ou diferença de data/hora (> 1 segundo)
+      const parseTs = (ts) => {
+        if (!ts) return 0;
+        let s = String(ts).trim();
+        if (s.includes(' ') && !s.includes('T')) s = s.replace(' ', 'T') + 'Z';
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
+      };
+
       const tables = Object.keys(localCounts);
-      const hasDifferences = tables.some(key =>
-        localCounts[key] !== cloudCounts[key] ||
-        (localTimestamps[key] || '') !== (cloudTimestamps[key] || '')
-      );
+      const hasDifferences = tables.some(key => {
+        const countDiff = localCounts[key] !== cloudCounts[key];
+        const timeDiff = Math.abs(parseTs(localTimestamps[key]) - parseTs(cloudTimestamps[key])) > 1000;
+        return countDiff || timeDiff;
+      });
 
       res.status(200).json({
         status: 'success',
