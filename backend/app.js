@@ -100,9 +100,11 @@ const isVercel = !!process.env.VERCEL;
     if (isVercel) {
       // No Vercel: inicializa tabelas no Turso e usa cloud como banco principal
       await initCloudDb();
-    } else {
-      // Local: inicializa banco local SQLite
       await initLocalDb();
+    } else {
+      // Local: inicializa banco local SQLite e garante esquema na nuvem se configurado
+      await initLocalDb();
+      if (cloudDb) await initCloudDb();
     }
     const {rows} = await db.execute({sql:'SELECT id FROM users WHERE username=?', args:['admin']});
     if (rows.length === 0) {

@@ -33,6 +33,7 @@ lerna-debug.log*
 
 # Temporários
 scratch/
-
+local.db
+*.db
 
 .vercel

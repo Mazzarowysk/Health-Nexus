@@ -2346,3 +2346,279 @@ body.light-theme {
 .light-theme .dropdown-check-list .items li label {
   color: #0f172a;
 }
+
+/* Estilos para o Relatório Financeiro */
+.financial-kpi-bar {
+  transition: all 0.2s ease;
+}
+
+.fin-kpi-badge {
+  font-family: 'Inter', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.light-theme .financial-kpi-bar {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light-theme .fin-kpi-badge {
+  color: #1e293b;
+}
+
+/* --- MODAIS DE SINCRONIZAÇÃO (DESIGN PREMIUM / REFERÊNCIA USUÁRIO) --- */
+.sync-modal-card {
+  width: 100%;
+  max-width: 440px;
+  background: #151922;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 40px rgba(0, 0, 0, 0.4);
+  animation: modalScaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #ffffff;
+}
+
+@keyframes modalScaleUp {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.sync-header-banner {
+  padding: 24px 20px 18px;
+  text-align: center;
+  position: relative;
+}
+
+.sync-header-banner.orange {
+  background: linear-gradient(135deg, #ff6b00 0%, #ff3b30 100%);
+  box-shadow: 0 4px 20px rgba(255, 107, 0, 0.3);
+}
+
+.sync-header-banner.purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.sync-header-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sync-header-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.7rem;
+  margin-top: 8px;
+}
+
+.sync-modal-body {
+  padding: 28px 24px 24px;
+}
+
+/* Gráfico de Dispositivos Conectados */
+.sync-devices-graphic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.sync-device-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sync-device-circle.pc {
+  border: 2px solid #818cf8;
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+}
+
+.sync-device-circle.cloud {
+  border: 2px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+}
+
+.sync-device-line {
+  width: 44px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 -4px;
+  z-index: 1;
+}
+
+.sync-main-msg {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.93rem;
+  color: #e2e8f0;
+  text-align: center;
+  line-height: 1.55;
+  margin-bottom: 22px;
+  font-weight: 500;
+}
+
+.sync-main-msg strong {
+  display: block;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 6px;
+}
+
+/* Caixa de Detalhes com Borda */
+.sync-info-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+
+.sync-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.sync-info-item i {
+  margin-right: 6px;
+}
+
+.sync-info-item val {
+  font-family: monospace;
+  font-weight: 600;
+  color: #ffffff;
+  font-style: normal;
+}
+
+.sync-info-divider {
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  margin: 10px 0;
+}
+
+/* Botões do Modal */
+.btn-sync-action {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.98rem;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.btn-sync-action.orange {
+  background: linear-gradient(135deg, #ff6b00 0%, #ff3b30 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(255, 107, 0, 0.35);
+}
+
+.btn-sync-action.orange:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 107, 0, 0.45);
+}
+
+.btn-sync-action.purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
+}
+
+.btn-sync-action.purple:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45);
+}
+
+.btn-sync-secondary {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.88rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sync-secondary:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #ffffff;
+}
+
+/* Adaptativo no modo claro */
+.light-theme .sync-modal-card {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.light-theme .sync-main-msg {
+  color: #475569;
+}
+
+.light-theme .sync-main-msg strong {
+  color: #0f172a;
+}
+
+.light-theme .sync-info-box {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.light-theme .sync-info-item {
+  color: #64748b;
+}
+
+.light-theme .sync-info-item val {
+  color: #0f172a;
+}
+
+.light-theme .sync-info-divider {
+  border-top-color: #e2e8f0;
+}
+
+.light-theme .btn-sync-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.light-theme .btn-sync-secondary:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
