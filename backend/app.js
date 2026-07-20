@@ -735,11 +735,15 @@ app.post('/api/patients', async (req, res) => {
   try {
     const patientId = await generatePatientId(fullName);
     
-    // Inserção no banco de dados Turso (LibSQL)
+    const nowIso = new Date().toISOString();
     await db.execute({
-      sql: 'INSERT INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      args: [patientId, fullName, cpf, birthDate, address || '', city || '', phone || '', cellphone || '', billingValue || '']
+      sql: 'INSERT INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [patientId, fullName, cpf, birthDate, address || '', city || '', phone || '', cellphone || '', billingValue || '', nowIso, nowIso]
     });
+
+    try {
+      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+    } catch (e) {}
 
     res.status(201).json({
       status: 'success',
@@ -807,6 +811,10 @@ app.put('/api/patients/:id', async (req, res) => {
       args: [fullName, cpf, birthDate, address || '', city || '', phone || '', cellphone || '', billingValue || '', updatedAt, id]
     });
 
+    try {
+      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [updatedAt] });
+    } catch (e) {}
+
     res.status(200).json({
       status: 'success',
       message: 'Paciente atualizado com sucesso.'
@@ -829,6 +837,11 @@ app.delete('/api/patients/:id', async (req, res) => {
       sql: 'DELETE FROM patients WHERE id = ?',
       args: [id]
     });
+
+    const nowIso = new Date().toISOString();
+    try {
+      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+    } catch (e) {}
 
     res.status(200).json({
       status: 'success',
