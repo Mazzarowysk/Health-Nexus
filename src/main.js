@@ -326,7 +326,9 @@ const syncLocalChangesToCloud = async () => {
 };
 
 const shouldPromptCloudSync = (statusData) => {
-  return statusData && statusData.cloudConfigured;
+  // No Vercel o banco ativo é diretamente o Turso (não existe local.db).
+  // No Computador, só dispara o modal se houver divergência real de dados/horários (!statusData.synchronized).
+  return statusData && statusData.cloudConfigured && !statusData.isVercel && !statusData.synchronized;
 };
 
 const requestSyncPromptIfConfigured = async () => {
