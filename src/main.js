@@ -3587,12 +3587,14 @@ async function renderAgendaTab() {
       const pList = Array.isArray(pData) ? pData : (pData.data || []);
       const pSelect = document.getElementById('apt-patient-id');
       if (pSelect && pList.length > 0) {
-        pSelect.innerHTML = '<option value="">Selecione o paciente...</option>';
+        pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>';
         pList.forEach(p => {
           const opt = document.createElement('option');
           opt.value = p.id;
           opt.textContent = `${p.fullName} (CPF: ${p.cpf})`;
           opt.dataset.name = p.fullName;
+          opt.style.backgroundColor = '#19142c';
+          opt.style.color = '#ffffff';
           pSelect.appendChild(opt);
         });
       }
@@ -3936,8 +3938,8 @@ async function renderLeitosTab() {
       const pList = Array.isArray(pData) ? pData : (pData.data || []);
       const pSelect = document.getElementById('admit-patient-id');
       if (pSelect && pList.length > 0) {
-        pSelect.innerHTML = '<option value="">Selecione o paciente...</option>' + 
-          pList.map(p => `<option value="${p.id}" data-name="${p.fullName}">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+        pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
+          pList.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
       }
     }
   } catch (e) {}

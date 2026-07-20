@@ -59,6 +59,34 @@
   --transition-normal: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+/* --- CORREÇÃO DE CONTRASTE EM SELECT & OPTIONS (MODAIS E FORMULÁRIOS) --- */
+select, .form-input, .pep-textarea {
+  background-color: var(--bg-tertiary, #19142c);
+  color: var(--text-primary, #ffffff);
+}
+
+select option {
+  background-color: #19142c !important;
+  color: #ffffff !important;
+  font-size: 0.95rem;
+  padding: 10px;
+}
+
+select option:hover, select option:focus, select option:active, select option:checked {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+body.light-theme select {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+body.light-theme select option {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
 /* --- RESET & LAYOUT BASE --- */
 * {
   margin: 0;
