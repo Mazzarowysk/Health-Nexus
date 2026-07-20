@@ -19,6 +19,7 @@ const initLocalDb = async () => {
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
   await db.execute(SQL_USERS);
   try { await db.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
   await db.execute(SQL_PATIENTS);
@@ -28,6 +29,7 @@ const initLocalDb = async () => {
   await db.execute(SQL_ENCOUNTERS);
   await db.execute(SQL_TRIAGES);
   await db.execute(SQL_NOTES);
+  await db.execute(SQL_SYNC_LOGS);
   console.log('[DB] Banco local OK.');
 };
 
@@ -81,6 +83,7 @@ const initCloudDb = async () => {
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
   await cloudDb.execute(SQL_USERS);
   try { await cloudDb.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
   await cloudDb.execute(SQL_PATIENTS);
@@ -90,6 +93,7 @@ const initCloudDb = async () => {
   await cloudDb.execute(SQL_ENCOUNTERS);
   await cloudDb.execute(SQL_TRIAGES);
   await cloudDb.execute(SQL_NOTES);
+  await cloudDb.execute(SQL_SYNC_LOGS);
   console.log('[DB] Banco Turso (cloud) OK.');
 };
 
@@ -1125,12 +1129,19 @@ app.get('/api/sync/status', async (req, res) => {
       clinical_notes: (await db.execute('SELECT COUNT(*) as count FROM clinical_notes')).rows[0].count
     };
 
+    let lastLocalSync = null;
+    try {
+      const r = await db.execute("SELECT timestamp FROM sync_logs WHERE key IN ('last_upload', 'last_download') ORDER BY timestamp DESC LIMIT 1");
+      if (r.rows.length > 0) lastLocalSync = r.rows[0].timestamp;
+    } catch (e) {}
+
     const localTimestamps = {
       users: (await db.execute("SELECT MAX(created_at) as t FROM users")).rows[0].t || null,
       patients: (await db.execute("SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).rows[0].t || null,
       encounters: (await db.execute("SELECT MAX(admitted_at) as t FROM encounters")).rows[0].t || null,
       triages: (await db.execute("SELECT MAX(triaged_at) as t FROM triages")).rows[0].t || null,
-      clinical_notes: (await db.execute("SELECT MAX(created_at) as t FROM clinical_notes")).rows[0].t || null
+      clinical_notes: (await db.execute("SELECT MAX(created_at) as t FROM clinical_notes")).rows[0].t || null,
+      last_sync: lastLocalSync
     };
 
     if (cloudDb) {
@@ -1142,12 +1153,19 @@ app.get('/api/sync/status', async (req, res) => {
         clinical_notes: (await cloudDb.execute('SELECT COUNT(*) as count FROM clinical_notes')).rows[0].count
       };
 
+      let lastCloudSync = null;
+      try {
+        const r = await cloudDb.execute("SELECT timestamp FROM sync_logs WHERE key IN ('last_upload', 'last_download') ORDER BY timestamp DESC LIMIT 1");
+        if (r.rows.length > 0) lastCloudSync = r.rows[0].timestamp;
+      } catch (e) {}
+
       const cloudTimestamps = {
         users: (await cloudDb.execute("SELECT MAX(created_at) as t FROM users")).rows[0].t || null,
         patients: (await cloudDb.execute("SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).rows[0].t || null,
         encounters: (await cloudDb.execute("SELECT MAX(admitted_at) as t FROM encounters")).rows[0].t || null,
         triages: (await cloudDb.execute("SELECT MAX(triaged_at) as t FROM triages")).rows[0].t || null,
-        clinical_notes: (await cloudDb.execute("SELECT MAX(created_at) as t FROM clinical_notes")).rows[0].t || null
+        clinical_notes: (await cloudDb.execute("SELECT MAX(created_at) as t FROM clinical_notes")).rows[0].t || null,
+        last_sync: lastCloudSync
       };
 
       // Detecta diferenças tanto na contagem quanto nos timestamps (cobre INSERT, UPDATE e DELETE)
@@ -1229,6 +1247,12 @@ app.post('/api/sync/upload', async (req, res) => {
       });
     }
 
+    const nowIso = new Date().toISOString();
+    try {
+      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+      await cloudDb.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+    } catch (e) {}
+
     res.status(200).json({ status: 'success', message: 'Dados enviados para a nuvem com sucesso!' });
   } catch (err) {
     console.error('Erro ao enviar dados para a nuvem:', err);
@@ -1279,6 +1303,11 @@ app.post('/api/sync/download', async (req, res) => {
         args: [cn.id, cn.encounterId, cn.noteType, cn.subjectiveContent, cn.objectiveContent, cn.assessmentContent, cn.planContent, cn.signatureHash, cn.isClosed, cn.created_at]
       });
     }
+
+    const nowIso = new Date().toISOString();
+    try {
+      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_download', ?)", args: [nowIso] });
+    } catch (e) {}
 
     res.status(200).json({ status: 'success', message: 'Dados baixados da nuvem com sucesso!' });
   } catch (err) {
