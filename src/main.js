@@ -71,11 +71,12 @@ const showSyncPromptModal = (syncData = {}) => {
     overlay.style.display = 'flex';
 
     // Determinar últimas datas de modificação
-    const localTs = syncData.lastLocalBackup || syncData.localTimestamps?.patients || null;
-    const cloudTs = syncData.lastCloudBackup || syncData.cloudTimestamps?.patients || new Date().toISOString();
+    const localTs = syncData.lastLocalBackup || syncData.localTimestamps?.last_sync || syncData.localTimestamps?.patients || null;
+    const cloudTs = syncData.lastCloudBackup || syncData.cloudTimestamps?.last_sync || syncData.cloudTimestamps?.patients || new Date().toISOString();
 
     const localDateText = formatSyncDate(localTs);
     const cloudDateText = formatSyncDate(cloudTs);
+    const isVercel = !!syncData.isVercel;
 
     overlay.innerHTML = `
       <div class="sync-modal-card">
@@ -88,22 +89,22 @@ const showSyncPromptModal = (syncData = {}) => {
         <div class="sync-modal-body">
           <!-- Círculos de Conexão -->
           <div class="sync-devices-graphic">
-            <div class="sync-device-circle pc"><i class="fa-solid fa-desktop"></i></div>
+            <div class="sync-device-circle pc"><i class="fa-solid ${isVercel ? 'fa-globe' : 'fa-desktop'}"></i></div>
             <div class="sync-device-line"></div>
             <div class="sync-device-circle cloud"><i class="fa-solid fa-cloud"></i></div>
           </div>
 
           <!-- Mensagem Principal -->
           <div class="sync-main-msg">
-            Você fez alterações que ainda não foram enviadas para a nuvem.
-            <strong>Deseja salvar tudo no Turso agora?</strong>
+            Você fez alterações no sistema${isVercel ? ' pelo Vercel' : ''}.
+            <strong>Deseja confirmar o envio/sincronização no Turso agora?</strong>
           </div>
 
           <!-- Caixa de Detalhes de Versões -->
           <div class="sync-info-box">
             <div class="sync-info-item">
-              <span><i class="fa-solid fa-desktop" style="color: #818cf8;"></i> Último Backup Local:</span>
-              <val>${localDateText}</val>
+              <span><i class="fa-solid ${isVercel ? 'fa-globe' : 'fa-desktop'}" style="color: #818cf8;"></i> ${isVercel ? 'Sessão Atual Vercel' : 'Último Backup Local'}:</span>
+              <val>${localDateText !== 'Sem dados' ? localDateText : formatSyncDate(new Date())}</val>
             </div>
             <div class="sync-info-divider"></div>
             <div class="sync-info-item">
@@ -114,7 +115,7 @@ const showSyncPromptModal = (syncData = {}) => {
 
           <!-- Ações -->
           <button id="btn-sync-confirm" class="btn-sync-action orange">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Sim, Enviar para Nuvem
+            <i class="fa-solid fa-cloud-arrow-up"></i> ${isVercel ? 'Sim, Confirmar Sincronização' : 'Sim, Enviar para Nuvem'}
           </button>
           <button id="btn-sync-cancel" class="btn-sync-secondary">
             Lembrar mais tarde
@@ -325,7 +326,7 @@ const syncLocalChangesToCloud = async () => {
 };
 
 const shouldPromptCloudSync = (statusData) => {
-  return statusData && statusData.cloudConfigured && !statusData.isVercel;
+  return statusData && statusData.cloudConfigured;
 };
 
 const requestSyncPromptIfConfigured = async () => {
