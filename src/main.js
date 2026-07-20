@@ -3584,9 +3584,11 @@ async function renderAgendaTab() {
     const pRes = await apiFetch('/api/patients');
     if (pRes.ok) {
       const pData = await pRes.json();
+      const pList = Array.isArray(pData) ? pData : (pData.data || []);
       const pSelect = document.getElementById('apt-patient-id');
-      if (pSelect && pData.data) {
-        pData.data.forEach(p => {
+      if (pSelect && pList.length > 0) {
+        pSelect.innerHTML = '<option value="">Selecione o paciente...</option>';
+        pList.forEach(p => {
           const opt = document.createElement('option');
           opt.value = p.id;
           opt.textContent = `${p.fullName} (CPF: ${p.cpf})`;
@@ -3729,7 +3731,13 @@ window.updateAppointmentStatus = async (id, status) => {
 window.startAppointmentEncounter = async (patientId, aptId) => {
   try {
     await updateAppointmentStatus(aptId, 'Em Atendimento');
+    await apiFetch('/api/encounters', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patientId, type: 'Ambulatorio' })
+    });
     switchTab('atendimento');
+    showToast('Atendimento iniciado e encaminhado para o painel de Atendimentos!');
   } catch (e) {}
 };
 
@@ -3925,10 +3933,11 @@ async function renderLeitosTab() {
     const pRes = await apiFetch('/api/patients');
     if (pRes.ok) {
       const pData = await pRes.json();
+      const pList = Array.isArray(pData) ? pData : (pData.data || []);
       const pSelect = document.getElementById('admit-patient-id');
-      if (pSelect && pData.data) {
+      if (pSelect && pList.length > 0) {
         pSelect.innerHTML = '<option value="">Selecione o paciente...</option>' + 
-          pData.data.map(p => `<option value="${p.id}" data-name="${p.fullName}">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+          pList.map(p => `<option value="${p.id}" data-name="${p.fullName}">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
       }
     }
   } catch (e) {}
