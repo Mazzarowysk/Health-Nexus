@@ -1178,10 +1178,12 @@ app.post('/api/settings/import', async (req, res) => {
         sql: 'INSERT OR REPLACE INTO clinical_notes (id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [c.id, c.encounterId, c.noteType, c.subjectiveContent, c.objectiveContent, c.assessmentContent, c.planContent, c.signatureHash, c.isClosed, c.created_at]
       });
-    res.status(500).json({
-      status: 'error',
-      message: 'Falha ao exportar dados.'
-    });
+    }
+
+    res.status(200).json({ status: 'success', message: 'Dados importados com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao importar dados:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao importar dados.' });
   }
 });
 
