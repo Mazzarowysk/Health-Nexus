@@ -35,43 +35,44 @@ const initLocalDb = async () => {
 
 // --- SYNC CLOUD -> LOCAL ao iniciar ---
 const autoSyncFromCloud = async () => {
-  if (!cloudDb) return;
-  console.log('[SYNC] Conectando ao Turso...');
+  if (!cloudDb || process.env.VERCEL) return;
+  console.log('[SYNC] Conectando e verificando dados no Turso...');
   const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
-  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
+  
   await cloudDb.execute(SQL_USERS);
   try { await cloudDb.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
   await cloudDb.execute(SQL_PATIENTS);
-  for (const col of ['address','city','phone','cellphone','billingValue']) {
+  for (const col of ['address','city','phone','cellphone','billingValue','updated_at']) {
     try { await cloudDb.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
   }
   await cloudDb.execute(SQL_ENCOUNTERS);
   await cloudDb.execute(SQL_TRIAGES);
   await cloudDb.execute(SQL_NOTES);
+  await cloudDb.execute(SQL_SYNC_LOGS);
 
-  const localU = Number((await db.execute('SELECT COUNT(*) as c FROM users')).rows[0].c);
-  const cloudU = Number((await cloudDb.execute('SELECT COUNT(*) as c FROM users')).rows[0].c);
-  if (cloudU > localU) {
-    console.log(`[SYNC] Nuvem (${cloudU}) > Local (${localU}). Baixando...`);
-    const tbls = [
-      {t:'users',sql:'INSERT OR REPLACE INTO users (id,name,username,password_hash,role,created_at) VALUES (?,?,?,?,?,?)',f:['id','name','username','password_hash','role','created_at']},
-      {t:'patients',sql:'INSERT OR REPLACE INTO patients (id,fullName,cpf,birthDate,address,city,phone,cellphone,billingValue,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)',f:['id','fullName','cpf','birthDate','address','city','phone','cellphone','billingValue','created_at']},
-      {t:'encounters',sql:'INSERT OR REPLACE INTO encounters (id,patientId,type,status,admitted_at,completed_at) VALUES (?,?,?,?,?,?)',f:['id','patientId','type','status','admitted_at','completed_at']},
-      {t:'triages',sql:'INSERT OR REPLACE INTO triages (id,encounterId,manchesterColor,weightKg,bloodPressure,temperatureCelsius,heartRateBpm,complaints,triaged_at) VALUES (?,?,?,?,?,?,?,?,?)',f:['id','encounterId','manchesterColor','weightKg','bloodPressure','temperatureCelsius','heartRateBpm','complaints','triaged_at']},
-      {t:'clinical_notes',sql:'INSERT OR REPLACE INTO clinical_notes (id,encounterId,noteType,subjectiveContent,objectiveContent,assessmentContent,planContent,signatureHash,isClosed,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)',f:['id','encounterId','noteType','subjectiveContent','objectiveContent','assessmentContent','planContent','signatureHash','isClosed','created_at']}
-    ];
+  const tbls = [
+    {t:'users',sql:'INSERT OR REPLACE INTO users (id,name,username,password_hash,role,created_at) VALUES (?,?,?,?,?,?)',f:['id','name','username','password_hash','role','created_at']},
+    {t:'patients',sql:'INSERT OR REPLACE INTO patients (id,fullName,cpf,birthDate,address,city,phone,cellphone,billingValue,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',f:['id','fullName','cpf','birthDate','address','city','phone','cellphone','billingValue','created_at','updated_at']},
+    {t:'encounters',sql:'INSERT OR REPLACE INTO encounters (id,patientId,type,status,admitted_at,completed_at) VALUES (?,?,?,?,?,?)',f:['id','patientId','type','status','admitted_at','completed_at']},
+    {t:'triages',sql:'INSERT OR REPLACE INTO triages (id,encounterId,manchesterColor,weightKg,bloodPressure,temperatureCelsius,heartRateBpm,complaints,triaged_at) VALUES (?,?,?,?,?,?,?,?,?)',f:['id','encounterId','manchesterColor','weightKg','bloodPressure','temperatureCelsius','heartRateBpm','complaints','triaged_at']},
+    {t:'clinical_notes',sql:'INSERT OR REPLACE INTO clinical_notes (id,encounterId,noteType,subjectiveContent,objectiveContent,assessmentContent,planContent,signatureHash,isClosed,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)',f:['id','encounterId','noteType','subjectiveContent','objectiveContent','assessmentContent','planContent','signatureHash','isClosed','created_at']}
+  ];
+
+  try {
     for (const tbl of tbls) {
       const rows = (await cloudDb.execute(`SELECT * FROM ${tbl.t}`)).rows;
       for (const row of rows) {
         try { await db.execute({sql:tbl.sql, args:tbl.f.map(fi => row[fi] ?? null)}); } catch(e) {}
       }
     }
-    console.log('[SYNC] Download concluido!');
-  } else {
-    console.log(`[SYNC] Local (${localU}) / Nuvem (${cloudU}) - OK.`);
+    console.log('[SYNC] Dados do Turso sincronizados com o banco local!');
+  } catch (err) {
+    console.error('[SYNC] Erro na sincronização inicial:', err);
   }
 };
 

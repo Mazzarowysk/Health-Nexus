@@ -385,13 +385,23 @@ const updateSyncBadge = () => {
   badge.style.color = data.synchronized ? '#15803d' : '#b45309';
 };
 
+const parseIsoOrSpaceTimestamp = (ts) => {
+  if (!ts) return 0;
+  let s = String(ts).trim();
+  if (s.includes(' ') && !s.includes('T')) {
+    s = s.replace(' ', 'T') + 'Z';
+  }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? 0 : d.getTime();
+};
+
 const getMaxTimestamp = (timestampsObj = {}) => {
   let maxTime = 0;
   let maxStr = null;
   Object.values(timestampsObj).forEach(ts => {
     if (ts) {
-      const t = new Date(ts).getTime();
-      if (!isNaN(t) && t > maxTime) {
+      const t = parseIsoOrSpaceTimestamp(ts);
+      if (t > maxTime) {
         maxTime = t;
         maxStr = ts;
       }
