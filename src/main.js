@@ -1309,6 +1309,8 @@ async function renderTabContent() {
     // Carregar tabela inicialmente
     loadAndRenderTable();
 
+  } else if (state.activeTab === 'agenda') {
+    renderAgendaTab();
   } else if (state.activeTab === 'atendimento') {
     contentArea.innerHTML = `
       <div class="tab-section active">
@@ -1789,6 +1791,8 @@ async function renderTabContent() {
 
     loadPatientsForAdmission();
     loadAndRenderQueue();
+    } else if (state.activeTab === 'leitos') {
+      renderLeitosTab();
     } else if (state.activeTab === 'relatorios') {
       renderReportsTab(contentArea);
     } else if (state.activeTab === 'configuracoes') {
