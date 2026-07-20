@@ -721,9 +721,21 @@ function renderAppStructure() {
               </a>
             </li>
             <li>
+              <a class="nav-item ${state.activeTab === 'agenda' ? 'active' : ''}" data-tab="agenda">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>Agenda</span>
+              </a>
+            </li>
+            <li>
               <a class="nav-item ${state.activeTab === 'atendimento' ? 'active' : ''}" data-tab="atendimento">
                 <i class="fa-solid fa-stethoscope"></i>
                 <span>Atendimentos</span>
+              </a>
+            </li>
+            <li>
+              <a class="nav-item ${state.activeTab === 'leitos' ? 'active' : ''}" data-tab="leitos">
+                <i class="fa-solid fa-bed-pulse"></i>
+                <span>Leitos</span>
               </a>
             </li>
             <li>
@@ -898,7 +910,9 @@ function switchTab(tabName) {
   const tabLabels = {
     dashboard:     'Health Nexus',
     pacientes:     'Pacientes',
+    agenda:        'Agenda Médica',
     atendimento:   'Atendimentos',
+    leitos:        'Gestão de Leitos',
     relatorios:    'Relatórios',
     configuracoes: 'Configurações'
   };
@@ -3452,3 +3466,556 @@ function exportToCSV(columns, rows, filename) {
   link.click();
   document.body.removeChild(link);
 }
+
+// --- ABA AGENDA MÉDICA ---
+async function renderAgendaTab() {
+  const contentArea = document.getElementById('main-content');
+  const todayIso = new Date().toISOString().split('T')[0];
+
+  contentArea.innerHTML = `
+    <div class="tab-pane active" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;"><i class="fa-solid fa-calendar-check" style="color: var(--color-primary);"></i> Agenda Médica</h2>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Gerenciamento de consultas agendadas, horários e atendimento ambulatorial.</p>
+        </div>
+        <button id="btn-open-new-appointment" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> Agendar Nova Consulta
+        </button>
+      </div>
+
+      <!-- Barra de Filtros -->
+      <div class="card" style="padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+          <div class="form-group" style="margin: 0; min-width: 200px;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Data da Consulta</label>
+            <input type="date" id="filter-agenda-date" class="form-input" value="${todayIso}">
+          </div>
+          <div class="form-group" style="margin: 0; min-width: 200px;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Médico / Especialidade</label>
+            <select id="filter-agenda-doctor" class="form-input">
+              <option value="">Todos os Médicos</option>
+              <option value="Dr. João Silva">Dr. João Silva (Cardiologia)</option>
+              <option value="Dra. Maria Santos">Dra. Maria Santos (Pediatria)</option>
+              <option value="Dr. Carlos Oliveira">Dr. Carlos Oliveira (Clínica Geral)</option>
+              <option value="Dra. Ana Costa">Dra. Ana Costa (Ortopedia)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela / Grade de Consultas -->
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <table class="table" style="width: 100%; margin: 0;">
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Paciente</th>
+              <th>Médico / Especialidade</th>
+              <th>Status</th>
+              <th>Observações</th>
+              <th style="text-align: right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="agenda-table-body">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-secondary);">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                <p style="margin-top: 8px;">Carregando agenda...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal Novo Agendamento -->
+    <div id="modal-appointment" class="modal-overlay" style="display: none;">
+      <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-calendar-plus" style="color: var(--color-primary);"></i> Agendar Nova Consulta</h3>
+          <button class="btn-close" id="btn-close-appointment-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-new-appointment" class="modal-body">
+          <div class="form-group">
+            <label for="apt-patient-id">Paciente *</label>
+            <select id="apt-patient-id" class="form-input" required>
+              <option value="">Selecione o paciente...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="apt-doctor">Médico Responsável *</label>
+            <select id="apt-doctor" class="form-input" required>
+              <option value="Dr. João Silva">Dr. João Silva — Cardiologia</option>
+              <option value="Dra. Maria Santos">Dra. Maria Santos — Pediatria</option>
+              <option value="Dr. Carlos Oliveira">Dr. Carlos Oliveira — Clínica Geral</option>
+              <option value="Dra. Ana Costa">Dra. Ana Costa — Ortopedia</option>
+            </select>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label for="apt-date">Data *</label>
+              <input type="date" id="apt-date" class="form-input" value="${todayIso}" required>
+            </div>
+            <div class="form-group">
+              <label for="apt-time">Horário *</label>
+              <input type="time" id="apt-time" class="form-input" value="09:00" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="apt-notes">Observações</label>
+            <textarea id="apt-notes" class="form-input" placeholder="Motivo da consulta, sintomas ou histórico..." rows="2"></textarea>
+          </div>
+          <div class="modal-footer" style="padding-top: 16px;">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-appointment-modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Agendar Consulta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  // Carregar pacientes para o select do modal
+  try {
+    const pRes = await apiFetch('/api/patients');
+    if (pRes.ok) {
+      const pData = await pRes.json();
+      const pSelect = document.getElementById('apt-patient-id');
+      if (pSelect && pData.data) {
+        pData.data.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = `${p.fullName} (CPF: ${p.cpf})`;
+          opt.dataset.name = p.fullName;
+          pSelect.appendChild(opt);
+        });
+      }
+    }
+  } catch (e) {}
+
+  const loadAgenda = async () => {
+    const selectedDate = document.getElementById('filter-agenda-date').value;
+    const selectedDoctor = document.getElementById('filter-agenda-doctor').value;
+    const tbody = document.getElementById('agenda-table-body');
+
+    try {
+      let url = `/api/appointments?date=${selectedDate}`;
+      if (selectedDoctor) url += `&doctor=${encodeURIComponent(selectedDoctor)}`;
+      const res = await apiFetch(url);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const appointments = data.data || [];
+
+      if (appointments.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              <i class="fa-regular fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.6;"></i>
+              <p>Nenhuma consulta agendada para esta data.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = appointments.map(apt => {
+        let statusBadge = '<span class="badge" style="background: rgba(99,102,241,0.2); color: #818cf8;">Agendado</span>';
+        if (apt.status === 'Confirmado') statusBadge = '<span class="badge" style="background: rgba(34,197,94,0.2); color: #4ade80;">Confirmado</span>';
+        if (apt.status === 'Em Atendimento') statusBadge = '<span class="badge" style="background: rgba(234,179,8,0.2); color: #facc15;">Em Atendimento</span>';
+        if (apt.status === 'Concluído') statusBadge = '<span class="badge" style="background: rgba(148,163,184,0.2); color: #cbd5e1;">Concluído</span>';
+        if (apt.status === 'Cancelado') statusBadge = '<span class="badge" style="background: rgba(239,68,68,0.2); color: #f87171;">Cancelado</span>';
+
+        return `
+          <tr>
+            <td style="font-weight: 700; color: var(--color-primary);">${apt.appointmentTime}</td>
+            <td style="font-weight: 600;">${apt.patientName}</td>
+            <td>${apt.doctorName} <br><small style="color: var(--text-secondary);">${apt.specialty}</small></td>
+            <td>${statusBadge}</td>
+            <td style="font-size: 0.85rem; color: var(--text-secondary);">${apt.notes || '-'}</td>
+            <td style="text-align: right;">
+              <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                ${apt.status === 'Agendado' ? `
+                  <button class="btn btn-sm btn-outline" onclick="updateAppointmentStatus('${apt.id}', 'Confirmado')" title="Confirmar">
+                    <i class="fa-solid fa-check" style="color: #4ade80;"></i>
+                  </button>
+                ` : ''}
+                ${(apt.status === 'Agendado' || apt.status === 'Confirmado') ? `
+                  <button class="btn btn-sm btn-primary" onclick="startAppointmentEncounter('${apt.patientId}', '${apt.id}')" title="Iniciar Atendimento">
+                    <i class="fa-solid fa-stethoscope"></i> Atender
+                  </button>
+                  <button class="btn btn-sm btn-outline" onclick="updateAppointmentStatus('${apt.id}', 'Cancelado')" title="Cancelar">
+                    <i class="fa-solid fa-xmark" style="color: #f87171;"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-danger); padding: 20px;">Erro ao carregar consultas.</td></tr>`;
+    }
+  };
+
+  document.getElementById('filter-agenda-date').addEventListener('change', loadAgenda);
+  document.getElementById('filter-agenda-doctor').addEventListener('change', loadAgenda);
+
+  // Abrir Modal
+  const modal = document.getElementById('modal-appointment');
+  document.getElementById('btn-open-new-appointment').addEventListener('click', () => {
+    modal.style.display = 'flex';
+  });
+  document.getElementById('btn-close-appointment-modal').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  document.getElementById('btn-cancel-appointment-modal').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  // Salvar Agendamento
+  document.getElementById('form-new-appointment').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pSelect = document.getElementById('apt-patient-id');
+    const selectedOption = pSelect.options[pSelect.selectedIndex];
+    const patientId = pSelect.value;
+    const patientName = selectedOption ? selectedOption.dataset.name : '';
+    const doctorName = document.getElementById('apt-doctor').value;
+    const appointmentDate = document.getElementById('apt-date').value;
+    const appointmentTime = document.getElementById('apt-time').value;
+    const notes = document.getElementById('apt-notes').value;
+
+    try {
+      const res = await apiFetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId, patientName, doctorName, specialty: 'Clínica Geral', appointmentDate, appointmentTime, notes })
+      });
+      if (res.ok) {
+        showToast('Consulta agendada com sucesso!');
+        modal.style.display = 'none';
+        requestSyncPromptIfConfigured();
+        loadAgenda();
+      } else {
+        const d = await res.json();
+        alert(d.message || 'Erro ao agendar consulta.');
+      }
+    } catch (err) {
+      alert('Erro de conexão ao agendar consulta.');
+    }
+  });
+
+  loadAgenda();
+}
+
+window.updateAppointmentStatus = async (id, status) => {
+  try {
+    const res = await apiFetch(`/api/appointments/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    if (res.ok) {
+      showToast(`Status da consulta atualizado para ${status}!`);
+      requestSyncPromptIfConfigured();
+      renderAgendaTab();
+    }
+  } catch (e) {}
+};
+
+window.startAppointmentEncounter = async (patientId, aptId) => {
+  try {
+    await updateAppointmentStatus(aptId, 'Em Atendimento');
+    switchTab('atendimento');
+  } catch (e) {}
+};
+
+// --- ABA GESTÃO DE LEITOS E INTERNAÇÕES ---
+async function renderLeitosTab() {
+  const contentArea = document.getElementById('main-content');
+
+  contentArea.innerHTML = `
+    <div class="tab-pane active" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;"><i class="fa-solid fa-bed-pulse" style="color: var(--color-primary);"></i> Gestão de Leitos & Internações</h2>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Mapa em tempo real da ocupação de leitos por setor hospitalar.</p>
+        </div>
+        <button id="btn-open-admit-modal" class="btn btn-primary">
+          <i class="fa-solid fa-user-plus"></i> Internar Paciente
+        </button>
+      </div>
+
+      <!-- Cards de Métricas de Leitos -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="card" style="padding: 20px;">
+          <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Leitos Vagos</div>
+          <div id="kpi-beds-vago" style="font-size: 1.8rem; font-weight: 700; color: #4ade80; margin-top: 4px;">-</div>
+        </div>
+        <div class="card" style="padding: 20px;">
+          <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Leitos Ocupados</div>
+          <div id="kpi-beds-ocupado" style="font-size: 1.8rem; font-weight: 700; color: #f87171; margin-top: 4px;">-</div>
+        </div>
+        <div class="card" style="padding: 20px;">
+          <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Em Higienização</div>
+          <div id="kpi-beds-clean" style="font-size: 1.8rem; font-weight: 700; color: #facc15; margin-top: 4px;">-</div>
+        </div>
+        <div class="card" style="padding: 20px;">
+          <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Taxa de Ocupação</div>
+          <div id="kpi-beds-occupancy" style="font-size: 1.8rem; font-weight: 700; color: var(--color-primary); margin-top: 4px;">-%</div>
+        </div>
+      </div>
+
+      <!-- Filtro por Setor -->
+      <div class="card" style="padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Filtrar Setor:</span>
+          <button class="btn btn-sm btn-primary bed-sector-filter active" data-sector="Todos">Todos os Setores</button>
+          <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="UTI Adulto">UTI Adulto</button>
+          <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Enfermaria">Enfermaria</button>
+          <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Pediatria">Pediatria</button>
+          <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Maternidade">Maternidade</button>
+        </div>
+      </div>
+
+      <!-- Grid Visual de Leitos -->
+      <div id="beds-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary);">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+          <p style="margin-top: 8px;">Carregando mapa de leitos...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Internação -->
+    <div id="modal-admit-bed" class="modal-overlay" style="display: none;">
+      <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-bed" style="color: var(--color-primary);"></i> Internar Paciente em Leito</h3>
+          <button class="btn-close" id="btn-close-admit-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-admit-bed" class="modal-body">
+          <div class="form-group">
+            <label for="admit-bed-id">Selecione o Leito Vago *</label>
+            <select id="admit-bed-id" class="form-input" required>
+              <option value="">Carregando leitos disponíveis...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="admit-patient-id">Selecione o Paciente *</label>
+            <select id="admit-patient-id" class="form-input" required>
+              <option value="">Carregando pacientes...</option>
+            </select>
+          </div>
+          <div class="modal-footer" style="padding-top: 16px;">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-admit-modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Confirmar Internação</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  let currentSector = 'Todos';
+
+  const loadBeds = async () => {
+    try {
+      const res = await apiFetch('/api/beds');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const beds = data.data || [];
+
+      // Atualizar KPIs
+      const vagos = beds.filter(b => b.status === 'Vago').length;
+      const ocupados = beds.filter(b => b.status === 'Ocupado').length;
+      const higienizacao = beds.filter(b => b.status === 'Higienizacao').length;
+      const total = beds.length || 1;
+      const rate = Math.round((ocupados / total) * 100);
+
+      document.getElementById('kpi-beds-vago').textContent = vagos;
+      document.getElementById('kpi-beds-ocupado').textContent = ocupados;
+      document.getElementById('kpi-beds-clean').textContent = higienizacao;
+      document.getElementById('kpi-beds-occupancy').textContent = `${rate}%`;
+
+      // Preencher Select de Leitos Vagos no Modal
+      const bedSelect = document.getElementById('admit-bed-id');
+      if (bedSelect) {
+        const vagosList = beds.filter(b => b.status === 'Vago');
+        if (vagosList.length === 0) {
+          bedSelect.innerHTML = '<option value="">Sem leitos vagos no momento</option>';
+        } else {
+          bedSelect.innerHTML = '<option value="">Selecione o leito...</option>' + 
+            vagosList.map(b => `<option value="${b.id}">${b.bedNumber} — ${b.sector}</option>`).join('');
+        }
+      }
+
+      // Filtrar por Setor
+      const filtered = currentSector === 'Todos' ? beds : beds.filter(b => b.sector === currentSector);
+      const grid = document.getElementById('beds-grid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary);">Nenhum leito encontrado neste setor.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(b => {
+        let statusColor = '#4ade80';
+        let statusBg = 'rgba(74,222,128,0.1)';
+        let borderLeft = '4px solid #4ade80';
+        if (b.status === 'Ocupado') {
+          statusColor = '#f87171';
+          statusBg = 'rgba(248,113,113,0.1)';
+          borderLeft = '4px solid #f87171';
+        } else if (b.status === 'Higienizacao') {
+          statusColor = '#facc15';
+          statusBg = 'rgba(250,204,21,0.1)';
+          borderLeft = '4px solid #facc15';
+        }
+
+        return `
+          <div class="card" style="padding: 16px; border-left: ${borderLeft}; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);"><i class="fa-solid fa-bed"></i> ${b.bedNumber}</span>
+                <span class="badge" style="background: ${statusBg}; color: ${statusColor};">${b.status}</span>
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+                <i class="fa-solid fa-building-user"></i> ${b.sector}
+              </div>
+              ${b.status === 'Ocupado' ? `
+                <div style="background: var(--bg-tertiary); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 12px;">
+                  <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${b.patientName || 'Paciente Inominado'}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
+                    Internado em: ${b.admittedAt ? new Date(b.admittedAt).toLocaleDateString() : '-'}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end;">
+              ${b.status === 'Vago' ? `
+                <button class="btn btn-sm btn-primary" onclick="quickAdmitBed('${b.id}')" style="width: 100%;">
+                  <i class="fa-solid fa-user-plus"></i> Internar
+                </button>
+              ` : ''}
+              ${b.status === 'Ocupado' ? `
+                <button class="btn btn-sm btn-danger" onclick="dischargeBed('${b.id}')" style="width: 100%;">
+                  <i class="fa-solid fa-door-open"></i> Alta Hospitalar
+                </button>
+              ` : ''}
+              ${b.status === 'Higienizacao' ? `
+                <button class="btn btn-sm btn-success" onclick="updateBedStatus('${b.id}', 'Vago')" style="width: 100%; background: #22c55e; color: #fff;">
+                  <i class="fa-solid fa-sparkles"></i> Liberar Leito
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      document.getElementById('beds-grid').innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--color-danger); padding: 20px;">Erro ao carregar mapa de leitos.</div>`;
+    }
+  };
+
+  // Carregar Pacientes no Modal
+  try {
+    const pRes = await apiFetch('/api/patients');
+    if (pRes.ok) {
+      const pData = await pRes.json();
+      const pSelect = document.getElementById('admit-patient-id');
+      if (pSelect && pData.data) {
+        pSelect.innerHTML = '<option value="">Selecione o paciente...</option>' + 
+          pData.data.map(p => `<option value="${p.id}" data-name="${p.fullName}">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+      }
+    }
+  } catch (e) {}
+
+  // Eventos de Filtro por Setor
+  document.querySelectorAll('.bed-sector-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.bed-sector-filter').forEach(b => {
+        b.classList.remove('active', 'btn-primary');
+        b.classList.add('btn-outline');
+      });
+      btn.classList.add('active', 'btn-primary');
+      btn.classList.remove('btn-outline');
+      currentSector = btn.getAttribute('data-sector');
+      loadBeds();
+    });
+  });
+
+  // Modal Handlers
+  const modal = document.getElementById('modal-admit-bed');
+  document.getElementById('btn-open-admit-modal').addEventListener('click', () => { modal.style.display = 'flex'; });
+  document.getElementById('btn-close-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-cancel-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
+
+  document.getElementById('form-admit-bed').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const bedId = document.getElementById('admit-bed-id').value;
+    const pSelect = document.getElementById('admit-patient-id');
+    const selectedOption = pSelect.options[pSelect.selectedIndex];
+    const patientId = pSelect.value;
+    const patientName = selectedOption ? selectedOption.dataset.name : '';
+
+    try {
+      const res = await apiFetch('/api/beds/admit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bedId, patientId, patientName })
+      });
+      if (res.ok) {
+        showToast('Paciente internado com sucesso!');
+        modal.style.display = 'none';
+        requestSyncPromptIfConfigured();
+        loadBeds();
+      } else {
+        const d = await res.json();
+        alert(d.message || 'Erro ao internar paciente.');
+      }
+    } catch (err) {
+      alert('Erro de conexão ao internar paciente.');
+    }
+  });
+
+  loadBeds();
+}
+
+window.quickAdmitBed = (bedId) => {
+  const modal = document.getElementById('modal-admit-bed');
+  if (modal) {
+    modal.style.display = 'flex';
+    const bedSelect = document.getElementById('admit-bed-id');
+    if (bedSelect) bedSelect.value = bedId;
+  }
+};
+
+window.dischargeBed = async (bedId) => {
+  if (!confirm('Confirma a alta do paciente e envio do leito para higienização?')) return;
+  try {
+    const res = await apiFetch('/api/beds/discharge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bedId })
+    });
+    if (res.ok) {
+      showToast('Alta concedida com sucesso! Leito encaminhado para limpeza.');
+      requestSyncPromptIfConfigured();
+      renderLeitosTab();
+    }
+  } catch (e) {}
+};
+
+window.updateBedStatus = async (bedId, status) => {
+  try {
+    const res = await apiFetch(`/api/beds/${bedId}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    if (res.ok) {
+      showToast('Status do leito atualizado!');
+      requestSyncPromptIfConfigured();
+      renderLeitosTab();
+    }
+  } catch (e) {}
+};

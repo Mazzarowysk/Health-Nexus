@@ -20,6 +20,10 @@ const initLocalDb = async () => {
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
+  const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
+  const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+
   await db.execute(SQL_USERS);
   try { await db.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
   await db.execute(SQL_PATIENTS);
@@ -30,6 +34,35 @@ const initLocalDb = async () => {
   await db.execute(SQL_TRIAGES);
   await db.execute(SQL_NOTES);
   await db.execute(SQL_SYNC_LOGS);
+  await db.execute(SQL_APPOINTMENTS);
+  await db.execute(SQL_BEDS);
+  await db.execute(SQL_PRESCRIPTIONS);
+
+  // Seed de leitos se a tabela estiver vazia
+  try {
+    const bedCount = Number((await db.execute('SELECT COUNT(*) as c FROM beds')).rows[0].c);
+    if (bedCount === 0) {
+      const initialBeds = [
+        { id: 'BED-UTI-01', bedNumber: 'UTI-01', sector: 'UTI Adulto', status: 'Vago' },
+        { id: 'BED-UTI-02', bedNumber: 'UTI-02', sector: 'UTI Adulto', status: 'Vago' },
+        { id: 'BED-UTI-03', bedNumber: 'UTI-03', sector: 'UTI Adulto', status: 'Vago' },
+        { id: 'BED-ENF-01', bedNumber: 'ENF-01', sector: 'Enfermaria', status: 'Vago' },
+        { id: 'BED-ENF-02', bedNumber: 'ENF-02', sector: 'Enfermaria', status: 'Vago' },
+        { id: 'BED-ENF-03', bedNumber: 'ENF-03', sector: 'Enfermaria', status: 'Vago' },
+        { id: 'BED-PED-01', bedNumber: 'PED-01', sector: 'Pediatria', status: 'Vago' },
+        { id: 'BED-PED-02', bedNumber: 'PED-02', sector: 'Pediatria', status: 'Vago' },
+        { id: 'BED-MAT-01', bedNumber: 'MAT-01', sector: 'Maternidade', status: 'Vago' },
+        { id: 'BED-MAT-02', bedNumber: 'MAT-02', sector: 'Maternidade', status: 'Vago' }
+      ];
+      for (const b of initialBeds) {
+        await db.execute({
+          sql: 'INSERT INTO beds (id, bedNumber, sector, status, updated_at) VALUES (?, ?, ?, ?, ?)',
+          args: [b.id, b.bedNumber, b.sector, b.status, new Date().toISOString()]
+        });
+      }
+    }
+  } catch (e) {}
+
   console.log('[DB] Banco local OK.');
 };
 
@@ -43,6 +76,9 @@ const autoSyncFromCloud = async () => {
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
+  const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
+  const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   
   try {
     await cloudDb.execute(SQL_USERS);
@@ -55,6 +91,9 @@ const autoSyncFromCloud = async () => {
     await cloudDb.execute(SQL_TRIAGES);
     await cloudDb.execute(SQL_NOTES);
     await cloudDb.execute(SQL_SYNC_LOGS);
+    await cloudDb.execute(SQL_APPOINTMENTS);
+    await cloudDb.execute(SQL_BEDS);
+    await cloudDb.execute(SQL_PRESCRIPTIONS);
     console.log('[SYNC] Estrutura do Turso pronta para sincronização.');
   } catch (err) {
     console.error('[SYNC] Erro ao verificar estrutura do Turso:', err);
@@ -70,6 +109,10 @@ const initCloudDb = async () => {
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
+  const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
+  const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  
   await cloudDb.execute(SQL_USERS);
   try { await cloudDb.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
   await cloudDb.execute(SQL_PATIENTS);
@@ -80,6 +123,35 @@ const initCloudDb = async () => {
   await cloudDb.execute(SQL_TRIAGES);
   await cloudDb.execute(SQL_NOTES);
   await cloudDb.execute(SQL_SYNC_LOGS);
+  await cloudDb.execute(SQL_APPOINTMENTS);
+  await cloudDb.execute(SQL_BEDS);
+  await cloudDb.execute(SQL_PRESCRIPTIONS);
+
+  // Seed de leitos se a tabela estiver vazia na nuvem
+  try {
+    const bedCount = Number((await cloudDb.execute('SELECT COUNT(*) as c FROM beds')).rows[0].c);
+    if (bedCount === 0) {
+      const initialBeds = [
+        { id: 'BED-UTI-01', bedNumber: 'UTI-01', sector: 'UTI Adulto', status: 'Vago' },
+        { id: 'BED-UTI-02', bedNumber: 'UTI-02', sector: 'UTI Adulto', status: 'Vago' },
+        { id: 'BED-UTI-03', bedNumber: 'UTI-03', sector: 'UTI Adulto', status: 'Vago' },
+        { id: 'BED-ENF-01', bedNumber: 'ENF-01', sector: 'Enfermaria', status: 'Vago' },
+        { id: 'BED-ENF-02', bedNumber: 'ENF-02', sector: 'Enfermaria', status: 'Vago' },
+        { id: 'BED-ENF-03', bedNumber: 'ENF-03', sector: 'Enfermaria', status: 'Vago' },
+        { id: 'BED-PED-01', bedNumber: 'PED-01', sector: 'Pediatria', status: 'Vago' },
+        { id: 'BED-PED-02', bedNumber: 'PED-02', sector: 'Pediatria', status: 'Vago' },
+        { id: 'BED-MAT-01', bedNumber: 'MAT-01', sector: 'Maternidade', status: 'Vago' },
+        { id: 'BED-MAT-02', bedNumber: 'MAT-02', sector: 'Maternidade', status: 'Vago' }
+      ];
+      for (const b of initialBeds) {
+        await cloudDb.execute({
+          sql: 'INSERT INTO beds (id, bedNumber, sector, status, updated_at) VALUES (?, ?, ?, ?, ?)',
+          args: [b.id, b.bedNumber, b.sector, b.status, new Date().toISOString()]
+        });
+      }
+    }
+  } catch (e) {}
+
   console.log('[DB] Banco Turso (cloud) OK.');
 };
 
@@ -1106,12 +1178,202 @@ app.post('/api/settings/import', async (req, res) => {
         sql: 'INSERT OR REPLACE INTO clinical_notes (id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [c.id, c.encounterId, c.noteType, c.subjectiveContent, c.objectiveContent, c.assessmentContent, c.planContent, c.signatureHash, c.isClosed, c.created_at]
       });
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao exportar dados.'
+    });
+  }
+});
+
+// --- AGENDA MÉDICA (APPOINTMENTS) ---
+app.get('/api/appointments', async (req, res) => {
+  try {
+    const { date, doctor } = req.query;
+    let sql = 'SELECT * FROM appointments';
+    let args = [];
+    let conditions = [];
+
+    if (date) {
+      conditions.push('appointmentDate = ?');
+      args.push(date);
+    }
+    if (doctor) {
+      conditions.push('doctorName = ?');
+      args.push(doctor);
     }
 
-    res.status(200).json({ status: 'success', message: 'Dados importados e sincronizados com o Turso com sucesso!' });
+    if (conditions.length > 0) {
+      sql += ' WHERE ' + conditions.join(' AND ');
+    }
+    sql += ' ORDER BY appointmentTime ASC';
+
+    const result = await db.execute({ sql, args });
+    res.status(200).json({ status: 'success', data: result.rows });
   } catch (err) {
-    console.error('Erro ao importar dados:', err);
-    res.status(500).json({ status: 'error', message: 'Falha ao importar e sincronizar dados.' });
+    res.status(500).json({ status: 'error', message: 'Erro ao listar consultas.' });
+  }
+});
+
+app.post('/api/appointments', async (req, res) => {
+  try {
+    const { patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, notes } = req.body;
+    if (!patientId || !patientName || !doctorName || !appointmentDate || !appointmentTime) {
+      return res.status(400).json({ status: 'error', message: 'Preencha todos os campos obrigatórios da consulta.' });
+    }
+    const id = 'APT-' + crypto.randomBytes(4).toString('hex');
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: `INSERT INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Agendado', ?, ?, ?)`,
+      args: [id, patientId, patientName, doctorName, specialty || 'Clínica Geral', appointmentDate, appointmentTime, notes || '', nowIso, nowIso]
+    });
+
+    if (!process.env.VERCEL) {
+      await updatePreviousAndLastUpload(nowIso);
+    }
+
+    res.status(201).json({ status: 'success', message: 'Consulta agendada com sucesso.', data: { id } });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao agendar consulta.' });
+  }
+});
+
+app.put('/api/appointments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body;
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'UPDATE appointments SET status = COALESCE(?, status), notes = COALESCE(?, notes), updated_at = ? WHERE id = ?',
+      args: [status, notes, nowIso, id]
+    });
+
+    if (!process.env.VERCEL) {
+      await updatePreviousAndLastUpload(nowIso);
+    }
+
+    res.status(200).json({ status: 'success', message: 'Consulta atualizada com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao atualizar consulta.' });
+  }
+});
+
+// --- GESTÃO DE LEITOS (BEDS) ---
+app.get('/api/beds', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM beds ORDER BY sector ASC, bedNumber ASC');
+    res.status(200).json({ status: 'success', data: result.rows });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao listar leitos.' });
+  }
+});
+
+app.post('/api/beds/admit', async (req, res) => {
+  try {
+    const { bedId, patientId, patientName } = req.body;
+    if (!bedId || !patientId || !patientName) {
+      return res.status(400).json({ status: 'error', message: 'Leito e paciente são obrigatórios.' });
+    }
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'UPDATE beds SET status = "Ocupado", patientId = ?, patientName = ?, admittedAt = ?, updated_at = ? WHERE id = ?',
+      args: [patientId, patientName, nowIso, nowIso, bedId]
+    });
+
+    if (!process.env.VERCEL) {
+      await updatePreviousAndLastUpload(nowIso);
+    }
+
+    res.status(200).json({ status: 'success', message: 'Paciente internado no leito com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao internar paciente no leito.' });
+  }
+});
+
+app.post('/api/beds/discharge', async (req, res) => {
+  try {
+    const { bedId } = req.body;
+    if (!bedId) {
+      return res.status(400).json({ status: 'error', message: 'ID do leito é obrigatório.' });
+    }
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'UPDATE beds SET status = "Higienizacao", patientId = NULL, patientName = NULL, admittedAt = NULL, updated_at = ? WHERE id = ?',
+      args: [nowIso, bedId]
+    });
+
+    if (!process.env.VERCEL) {
+      await updatePreviousAndLastUpload(nowIso);
+    }
+
+    res.status(200).json({ status: 'success', message: 'Alta concedida. Leito encaminhado para higienização.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao dar alta do leito.' });
+  }
+});
+
+app.put('/api/beds/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // 'Vago', 'Higienizacao', 'Manutencao'
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'UPDATE beds SET status = ?, updated_at = ? WHERE id = ?',
+      args: [status, nowIso, id]
+    });
+
+    if (!process.env.VERCEL) {
+      await updatePreviousAndLastUpload(nowIso);
+    }
+
+    res.status(200).json({ status: 'success', message: 'Status do leito atualizado com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao atualizar status do leito.' });
+  }
+});
+
+// --- PRESCRIÇÃO MÉDICA (PRESCRIPTIONS) ---
+app.get('/api/prescriptions', async (req, res) => {
+  try {
+    const { encounterId, patientId } = req.query;
+    let sql = 'SELECT * FROM prescriptions';
+    let args = [];
+    if (encounterId) {
+      sql += ' WHERE encounterId = ?';
+      args.push(encounterId);
+    } else if (patientId) {
+      sql += ' WHERE patientId = ?';
+      args.push(patientId);
+    }
+    sql += ' ORDER BY created_at DESC';
+    const result = await db.execute({ sql, args });
+    res.status(200).json({ status: 'success', data: result.rows });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao carregar prescrições.' });
+  }
+});
+
+app.post('/api/prescriptions', async (req, res) => {
+  try {
+    const { encounterId, patientId, patientName, doctorName, medicationsJson } = req.body;
+    if (!encounterId || !patientId || !patientName || !medicationsJson) {
+      return res.status(400).json({ status: 'error', message: 'Dados insuficientes para gerar a prescrição.' });
+    }
+    const id = 'RX-' + crypto.randomBytes(4).toString('hex');
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: `INSERT INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'Ativa', ?)`,
+      args: [id, encounterId, patientId, patientName, doctorName || 'Médico Responsável', JSON.stringify(medicationsJson), nowIso]
+    });
+
+    if (!process.env.VERCEL) {
+      await updatePreviousAndLastUpload(nowIso);
+    }
+
+    res.status(201).json({ status: 'success', message: 'Prescrição emitida com sucesso.', data: { id } });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao criar prescrição.' });
   }
 });
 
@@ -1134,7 +1396,10 @@ app.get('/api/sync/status', async (req, res) => {
       patients: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM patients')).count || 0),
       encounters: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM encounters')).count || 0),
       triages: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM triages')).count || 0),
-      clinical_notes: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM clinical_notes')).count || 0)
+      clinical_notes: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM clinical_notes')).count || 0),
+      appointments: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM appointments')).count || 0),
+      beds: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM beds')).count || 0),
+      prescriptions: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM prescriptions')).count || 0)
     };
 
     let lastLocalSync = (await safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'")).timestamp || null;
@@ -1146,6 +1411,9 @@ app.get('/api/sync/status', async (req, res) => {
       encounters: (await safeExecute(db, "SELECT MAX(admitted_at) as t FROM encounters")).t || null,
       triages: (await safeExecute(db, "SELECT MAX(triaged_at) as t FROM triages")).t || null,
       clinical_notes: (await safeExecute(db, "SELECT MAX(created_at) as t FROM clinical_notes")).t || null,
+      appointments: (await safeExecute(db, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM appointments")).t || null,
+      beds: (await safeExecute(db, "SELECT MAX(COALESCE(updated_at, admittedAt)) as t FROM beds")).t || null,
+      prescriptions: (await safeExecute(db, "SELECT MAX(created_at) as t FROM prescriptions")).t || null,
       last_sync: lastLocalSync
     };
 
@@ -1161,7 +1429,10 @@ app.get('/api/sync/status', async (req, res) => {
           patients: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM patients')).count || 0),
           encounters: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM encounters')).count || 0),
           triages: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM triages')).count || 0),
-          clinical_notes: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM clinical_notes')).count || 0)
+          clinical_notes: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM clinical_notes')).count || 0),
+          appointments: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM appointments')).count || 0),
+          beds: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM beds')).count || 0),
+          prescriptions: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM prescriptions')).count || 0)
         };
 
         lastCloudSync = (await safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'")).timestamp || null;
@@ -1173,6 +1444,9 @@ app.get('/api/sync/status', async (req, res) => {
           encounters: (await safeExecute(cloudDb, "SELECT MAX(admitted_at) as t FROM encounters")).t || null,
           triages: (await safeExecute(cloudDb, "SELECT MAX(triaged_at) as t FROM triages")).t || null,
           clinical_notes: (await safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM clinical_notes")).t || null,
+          appointments: (await safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM appointments")).t || null,
+          beds: (await safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, admittedAt)) as t FROM beds")).t || null,
+          prescriptions: (await safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM prescriptions")).t || null,
           last_sync: lastCloudSync
         };
       } catch (cloudErr) {
@@ -1236,6 +1510,9 @@ app.post('/api/sync/upload', async (req, res) => {
     const encounters = (await db.execute('SELECT * FROM encounters')).rows;
     const triages = (await db.execute('SELECT * FROM triages')).rows;
     const clinical_notes = (await db.execute('SELECT * FROM clinical_notes')).rows;
+    const appointments = (await db.execute('SELECT * FROM appointments')).rows;
+    const beds = (await db.execute('SELECT * FROM beds')).rows;
+    const prescriptions = (await db.execute('SELECT * FROM prescriptions')).rows;
 
     for (const u of users) {
       await cloudDb.execute({
@@ -1265,6 +1542,24 @@ app.post('/api/sync/upload', async (req, res) => {
       await cloudDb.execute({
         sql: 'INSERT OR REPLACE INTO clinical_notes (id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [cn.id, cn.encounterId, cn.noteType, cn.subjectiveContent, cn.objectiveContent, cn.assessmentContent, cn.planContent, cn.signatureHash, cn.isClosed, cn.created_at]
+      });
+    }
+    for (const apt of appointments) {
+      await cloudDb.execute({
+        sql: 'INSERT OR REPLACE INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [apt.id, apt.patientId, apt.patientName, apt.doctorName, apt.specialty, apt.appointmentDate, apt.appointmentTime, apt.status, apt.notes, apt.created_at, apt.updated_at]
+      });
+    }
+    for (const bed of beds) {
+      await cloudDb.execute({
+        sql: 'INSERT OR REPLACE INTO beds (id, bedNumber, sector, status, patientId, patientName, admittedAt, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [bed.id, bed.bedNumber, bed.sector, bed.status, bed.patientId, bed.patientName, bed.admittedAt, bed.updated_at]
+      });
+    }
+    for (const rx of prescriptions) {
+      await cloudDb.execute({
+        sql: 'INSERT OR REPLACE INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [rx.id, rx.encounterId, rx.patientId, rx.patientName, rx.doctorName, rx.medicationsJson, rx.status, rx.created_at]
       });
     }
 
@@ -1293,6 +1588,9 @@ app.post('/api/sync/download', async (req, res) => {
     const encounters = (await cloudDb.execute('SELECT * FROM encounters')).rows;
     const triages = (await cloudDb.execute('SELECT * FROM triages')).rows;
     const clinical_notes = (await cloudDb.execute('SELECT * FROM clinical_notes')).rows;
+    const appointments = (await cloudDb.execute('SELECT * FROM appointments')).rows;
+    const beds = (await cloudDb.execute('SELECT * FROM beds')).rows;
+    const prescriptions = (await cloudDb.execute('SELECT * FROM prescriptions')).rows;
 
     for (const u of users) {
       await db.execute({
@@ -1322,6 +1620,24 @@ app.post('/api/sync/download', async (req, res) => {
       await db.execute({
         sql: 'INSERT OR REPLACE INTO clinical_notes (id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [cn.id, cn.encounterId, cn.noteType, cn.subjectiveContent, cn.objectiveContent, cn.assessmentContent, cn.planContent, cn.signatureHash, cn.isClosed, cn.created_at]
+      });
+    }
+    for (const apt of appointments) {
+      await db.execute({
+        sql: 'INSERT OR REPLACE INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [apt.id, apt.patientId, apt.patientName, apt.doctorName, apt.specialty, apt.appointmentDate, apt.appointmentTime, apt.status, apt.notes, apt.created_at, apt.updated_at]
+      });
+    }
+    for (const bed of beds) {
+      await db.execute({
+        sql: 'INSERT OR REPLACE INTO beds (id, bedNumber, sector, status, patientId, patientName, admittedAt, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [bed.id, bed.bedNumber, bed.sector, bed.status, bed.patientId, bed.patientName, bed.admittedAt, bed.updated_at]
+      });
+    }
+    for (const rx of prescriptions) {
+      await db.execute({
+        sql: 'INSERT OR REPLACE INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [rx.id, rx.encounterId, rx.patientId, rx.patientName, rx.doctorName, rx.medicationsJson, rx.status, rx.created_at]
       });
     }
 
