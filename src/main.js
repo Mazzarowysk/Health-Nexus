@@ -325,12 +325,6 @@ const syncLocalChangesToCloud = async () => {
   }
 };
 
-const shouldPromptCloudSync = (statusData) => {
-  // No Vercel o banco ativo é diretamente o Turso (não existe local.db).
-  // No Computador, só dispara o modal se houver divergência real de dados/horários (!statusData.synchronized).
-  return statusData && statusData.cloudConfigured && !statusData.isVercel && !statusData.synchronized;
-};
-
 const requestSyncPromptIfConfigured = async () => {
   try {
     const statusRes = await fetch('/api/sync/status', {
@@ -342,9 +336,19 @@ const requestSyncPromptIfConfigured = async () => {
     state.syncInfo = statusData;
     updateSyncBadge();
 
-    if (!shouldPromptCloudSync(statusData)) return false;
+    if (!statusData.cloudConfigured) return false;
 
-    await showSyncPromptModal(statusData);
+    const localMax = getMaxTimestamp(statusData.localTimestamps);
+    const cloudMax = getMaxTimestamp(statusData.cloudTimestamps);
+    statusData.lastLocalBackup = localMax.str || new Date().toISOString();
+    statusData.lastCloudBackup = cloudMax.str || new Date().toISOString();
+
+    // DISPARO IMEDIATO LOGO APÓS SALVAR / EDITAR / EXCLUIR
+    if (localMax.time >= cloudMax.time || statusData.isVercel) {
+      await showSyncPromptModal(statusData);
+    } else {
+      await showSyncComparisonModal(statusData);
+    }
     return true;
   } catch (err) {
     console.error('Erro ao verificar configuração de nuvem para prompt:', err);
