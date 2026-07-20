@@ -71,12 +71,20 @@ const showSyncPromptModal = (syncData = {}) => {
     overlay.style.display = 'flex';
 
     // Determinar últimas datas de modificação
-    const localTs = syncData.lastLocalBackup || syncData.localTimestamps?.last_sync || syncData.localTimestamps?.patients || null;
-    const cloudTs = syncData.lastCloudBackup || syncData.cloudTimestamps?.last_sync || syncData.cloudTimestamps?.patients || new Date().toISOString();
+    let localTs = syncData.lastLocalBackup || syncData.localTimestamps?.last_sync || syncData.localTimestamps?.patients || null;
+    let cloudTs = syncData.lastCloudBackup || syncData.cloudTimestamps?.last_sync || syncData.cloudTimestamps?.patients || new Date().toISOString();
+    const isVercel = !!syncData.isVercel;
+
+    // Se estiver no Vercel ou se as duas datas forem idênticas, exibir o backup anterior para mostrar a evolução clara de data/hora
+    if (isVercel || localTs === cloudTs) {
+      const prev = syncData.previousCloudBackup || syncData.previousLocalBackup;
+      if (prev) {
+        localTs = prev;
+      }
+    }
 
     const localDateText = formatSyncDate(localTs);
     const cloudDateText = formatSyncDate(cloudTs);
-    const isVercel = !!syncData.isVercel;
 
     overlay.innerHTML = `
       <div class="sync-modal-card">
@@ -97,18 +105,18 @@ const showSyncPromptModal = (syncData = {}) => {
           <!-- Mensagem Principal -->
           <div class="sync-main-msg">
             Você fez alterações no sistema${isVercel ? ' pelo Vercel' : ''}.
-            <strong>Deseja confirmar o envio/sincronização no Turso agora?</strong>
+            <strong>Deseja confirmar a atualização de versão no Turso agora?</strong>
           </div>
 
           <!-- Caixa de Detalhes de Versões -->
           <div class="sync-info-box">
             <div class="sync-info-item">
-              <span><i class="fa-solid ${isVercel ? 'fa-globe' : 'fa-desktop'}" style="color: #818cf8;"></i> ${isVercel ? 'Sessão Atual Vercel' : 'Último Backup Local'}:</span>
-              <val>${localDateText !== 'Sem dados' ? localDateText : formatSyncDate(new Date())}</val>
+              <span><i class="fa-solid ${isVercel ? 'fa-history' : 'fa-desktop'}" style="color: #818cf8;"></i> ${isVercel ? 'Versão Anterior' : 'Último Backup Local'}:</span>
+              <val>${localDateText}</val>
             </div>
             <div class="sync-info-divider"></div>
             <div class="sync-info-item">
-              <span><i class="fa-solid fa-cloud" style="color: #38bdf8;"></i> Versão na Nuvem:</span>
+              <span><i class="fa-solid fa-cloud" style="color: #38bdf8;"></i> Nova Versão no Turso:</span>
               <val>${cloudDateText}</val>
             </div>
           </div>

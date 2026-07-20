@@ -1144,9 +1144,12 @@ app.get('/api/sync/status', async (req, res) => {
     };
 
     let lastLocalSync = null;
+    let previousLocalSync = null;
     try {
-      const r = await db.execute("SELECT timestamp FROM sync_logs WHERE key IN ('last_upload', 'last_download') ORDER BY timestamp DESC LIMIT 1");
-      if (r.rows.length > 0) lastLocalSync = r.rows[0].timestamp;
+      const r1 = await db.execute("SELECT timestamp FROM sync_logs WHERE key = 'last_upload'");
+      if (r1.rows.length > 0) lastLocalSync = r1.rows[0].timestamp;
+      const r2 = await db.execute("SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'");
+      if (r2.rows.length > 0) previousLocalSync = r2.rows[0].timestamp;
     } catch (e) {}
 
     const localTimestamps = {
@@ -1168,9 +1171,12 @@ app.get('/api/sync/status', async (req, res) => {
       };
 
       let lastCloudSync = null;
+      let previousCloudSync = null;
       try {
-        const r = await cloudDb.execute("SELECT timestamp FROM sync_logs WHERE key IN ('last_upload', 'last_download') ORDER BY timestamp DESC LIMIT 1");
-        if (r.rows.length > 0) lastCloudSync = r.rows[0].timestamp;
+        const r1 = await cloudDb.execute("SELECT timestamp FROM sync_logs WHERE key = 'last_upload'");
+        if (r1.rows.length > 0) lastCloudSync = r1.rows[0].timestamp;
+        const r2 = await cloudDb.execute("SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'");
+        if (r2.rows.length > 0) previousCloudSync = r2.rows[0].timestamp;
       } catch (e) {}
 
       const cloudTimestamps = {
@@ -1206,7 +1212,9 @@ app.get('/api/sync/status', async (req, res) => {
         local: localCounts,
         cloud: cloudCounts,
         localTimestamps,
-        cloudTimestamps
+        cloudTimestamps,
+        previousLocalBackup: previousLocalSync,
+        previousCloudBackup: previousCloudSync
       });
     } else {
       res.status(200).json({
