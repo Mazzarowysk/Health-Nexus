@@ -1120,60 +1120,65 @@ app.post('/api/settings/import', async (req, res) => {
 // Obter o status de sincronização (com timestamps de última modificação)
 app.get('/api/sync/status', async (req, res) => {
   try {
-    const localCounts = {
-      users: (await db.execute('SELECT COUNT(*) as count FROM users')).rows[0].count,
-      patients: (await db.execute('SELECT COUNT(*) as count FROM patients')).rows[0].count,
-      encounters: (await db.execute('SELECT COUNT(*) as count FROM encounters')).rows[0].count,
-      triages: (await db.execute('SELECT COUNT(*) as count FROM triages')).rows[0].count,
-      clinical_notes: (await db.execute('SELECT COUNT(*) as count FROM clinical_notes')).rows[0].count
+    const safeExecute = async (client, sql) => {
+      try {
+        const r = await client.execute(sql);
+        return r && r.rows && r.rows[0] ? r.rows[0] : {};
+      } catch (e) {
+        return {};
+      }
     };
 
-    let lastLocalSync = null;
-    let previousLocalSync = null;
-    try {
-      const r1 = await db.execute("SELECT timestamp FROM sync_logs WHERE key = 'last_upload'");
-      if (r1.rows.length > 0) lastLocalSync = r1.rows[0].timestamp;
-      const r2 = await db.execute("SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'");
-      if (r2.rows.length > 0) previousLocalSync = r2.rows[0].timestamp;
-    } catch (e) {}
+    const localCounts = {
+      users: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM users')).count || 0),
+      patients: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM patients')).count || 0),
+      encounters: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM encounters')).count || 0),
+      triages: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM triages')).count || 0),
+      clinical_notes: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM clinical_notes')).count || 0)
+    };
+
+    let lastLocalSync = (await safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'")).timestamp || null;
+    let previousLocalSync = (await safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'")).timestamp || null;
 
     const localTimestamps = {
-      users: (await db.execute("SELECT MAX(created_at) as t FROM users")).rows[0].t || null,
-      patients: (await db.execute("SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).rows[0].t || null,
-      encounters: (await db.execute("SELECT MAX(admitted_at) as t FROM encounters")).rows[0].t || null,
-      triages: (await db.execute("SELECT MAX(triaged_at) as t FROM triages")).rows[0].t || null,
-      clinical_notes: (await db.execute("SELECT MAX(created_at) as t FROM clinical_notes")).rows[0].t || null,
+      users: (await safeExecute(db, "SELECT MAX(created_at) as t FROM users")).t || null,
+      patients: (await safeExecute(db, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).t || null,
+      encounters: (await safeExecute(db, "SELECT MAX(admitted_at) as t FROM encounters")).t || null,
+      triages: (await safeExecute(db, "SELECT MAX(triaged_at) as t FROM triages")).t || null,
+      clinical_notes: (await safeExecute(db, "SELECT MAX(created_at) as t FROM clinical_notes")).t || null,
       last_sync: lastLocalSync
     };
 
     if (cloudDb) {
-      const cloudCounts = {
-        users: (await cloudDb.execute('SELECT COUNT(*) as count FROM users')).rows[0].count,
-        patients: (await cloudDb.execute('SELECT COUNT(*) as count FROM patients')).rows[0].count,
-        encounters: (await cloudDb.execute('SELECT COUNT(*) as count FROM encounters')).rows[0].count,
-        triages: (await cloudDb.execute('SELECT COUNT(*) as count FROM triages')).rows[0].count,
-        clinical_notes: (await cloudDb.execute('SELECT COUNT(*) as count FROM clinical_notes')).rows[0].count
-      };
-
+      let cloudCounts = {};
+      let cloudTimestamps = {};
       let lastCloudSync = null;
       let previousCloudSync = null;
+
       try {
-        const r1 = await cloudDb.execute("SELECT timestamp FROM sync_logs WHERE key = 'last_upload'");
-        if (r1.rows.length > 0) lastCloudSync = r1.rows[0].timestamp;
-        const r2 = await cloudDb.execute("SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'");
-        if (r2.rows.length > 0) previousCloudSync = r2.rows[0].timestamp;
-      } catch (e) {}
+        cloudCounts = {
+          users: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM users')).count || 0),
+          patients: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM patients')).count || 0),
+          encounters: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM encounters')).count || 0),
+          triages: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM triages')).count || 0),
+          clinical_notes: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM clinical_notes')).count || 0)
+        };
 
-      const cloudTimestamps = {
-        users: (await cloudDb.execute("SELECT MAX(created_at) as t FROM users")).rows[0].t || null,
-        patients: (await cloudDb.execute("SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).rows[0].t || null,
-        encounters: (await cloudDb.execute("SELECT MAX(admitted_at) as t FROM encounters")).rows[0].t || null,
-        triages: (await cloudDb.execute("SELECT MAX(triaged_at) as t FROM triages")).rows[0].t || null,
-        clinical_notes: (await cloudDb.execute("SELECT MAX(created_at) as t FROM clinical_notes")).rows[0].t || null,
-        last_sync: lastCloudSync
-      };
+        lastCloudSync = (await safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'")).timestamp || null;
+        previousCloudSync = (await safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'")).timestamp || null;
 
-      // Detecta diferenças por contagem de registros ou diferença de data/hora (> 1 segundo)
+        cloudTimestamps = {
+          users: (await safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM users")).t || null,
+          patients: (await safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).t || null,
+          encounters: (await safeExecute(cloudDb, "SELECT MAX(admitted_at) as t FROM encounters")).t || null,
+          triages: (await safeExecute(cloudDb, "SELECT MAX(triaged_at) as t FROM triages")).t || null,
+          clinical_notes: (await safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM clinical_notes")).t || null,
+          last_sync: lastCloudSync
+        };
+      } catch (cloudErr) {
+        console.error('Erro ao consultar Turso cloudDb:', cloudErr);
+      }
+
       const parseTs = (ts) => {
         if (!ts) return 0;
         let s = String(ts).trim();
@@ -1184,7 +1189,7 @@ app.get('/api/sync/status', async (req, res) => {
 
       const tables = Object.keys(localCounts);
       const hasDifferences = tables.some(key => {
-        const countDiff = localCounts[key] !== cloudCounts[key];
+        const countDiff = localCounts[key] !== (cloudCounts[key] || 0);
         const timeDiff = Math.abs(parseTs(localTimestamps[key]) - parseTs(cloudTimestamps[key])) > 1000;
         return countDiff || timeDiff;
       });
