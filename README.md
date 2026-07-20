@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `1.0.0 (BETA)`  
+**Versão:** `1.0.1`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Julho 2026
 

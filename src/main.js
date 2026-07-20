@@ -17,6 +17,11 @@ let state = {
   loading: true
 };
 
+const CACHE_TTL_MS = 30_000;
+const dataCache = new Map();
+const dataCacheTimestamps = new Map();
+let syncUploadTimeout = null;
+
 // --- CONTROLE DE TEMA (CLARO/ESCURO) ---
 const initTheme = () => {
   const savedTheme = localStorage.getItem('hn_theme') || 'dark';
@@ -296,6 +301,30 @@ const showSyncComparisonModal = (syncData = {}) => {
 const VERCEL_LAST_SEEN_KEY = 'healthNexus_vercelLastSeen';
 let syncInProgress = false;
 
+const scheduleSyncUpload = () => {
+  if (!state.syncInfo?.cloudConfigured) return;
+  if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
+  syncUploadTimeout = setTimeout(async () => {
+    await syncLocalChangesToCloud();
+  }, 500);
+};
+
+const getSyncStatus = async () => {
+  try {
+    const res = await fetch('/api/sync/status', {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    state.syncInfo = data;
+    updateSyncBadge();
+    return data;
+  } catch (err) {
+    console.error('Erro ao obter status de sincronização:', err);
+    return null;
+  }
+};
+
 const syncLocalChangesToCloud = async () => {
   if (syncInProgress) return true;
   syncInProgress = true;
@@ -335,14 +364,10 @@ const syncLocalChangesToCloud = async () => {
 
 const requestSyncPromptIfConfigured = async () => {
   try {
-    const statusRes = await fetch('/api/sync/status', {
-      headers: { 'Authorization': `Bearer ${state.token}` }
-    });
-    if (!statusRes.ok) return false;
+    const statusData = await getSyncStatus();
+    if (!statusData) return false;
 
-    const statusData = await statusRes.json();
-    state.syncInfo = statusData;
-    updateSyncBadge();
+    if (!statusData.cloudConfigured) return false;
 
     if (!statusData.cloudConfigured) return false;
 
@@ -426,11 +451,8 @@ const getMaxTimestamp = (timestampsObj = {}) => {
 
 const checkInitialSync = async () => {
   try {
-    const res = await apiFetch('/api/sync/status');
-    if (!res.ok) return;
-    const data = await res.json();
-    state.syncInfo = data;
-    updateSyncBadge();
+    const data = await getSyncStatus();
+    if (!data) return;
 
     if (!data.cloudConfigured) return;
 
@@ -511,6 +533,54 @@ const logout = () => {
   initializeApp();
 };
 
+const invalidateCacheForUrl = (url) => {
+  if (url.startsWith(`${API_URL}/patients`)) {
+    dataCache.delete('patients');
+    dataCacheTimestamps.delete('patients');
+  }
+
+  if (url.startsWith(`${API_URL}/appointments`) || url.startsWith(`${API_URL}/encounters`)) {
+    for (const key of dataCache.keys()) {
+      if (typeof key === 'string' && (key.startsWith(`${API_URL}/appointments`) || key.startsWith(`${API_URL}/encounters`))) {
+        dataCache.delete(key);
+        dataCacheTimestamps.delete(key);
+      }
+    }
+  }
+
+  if (url.startsWith(`${API_URL}/beds`)) {
+    dataCache.delete('beds');
+    dataCacheTimestamps.delete('beds');
+  }
+
+  if (url === `${API_URL}/dashboard/summary`) {
+    dataCache.delete('dashboard');
+    dataCacheTimestamps.delete('dashboard');
+  }
+};
+
+const cachedApiGet = async (url, cacheKey = null) => {
+  const cacheId = cacheKey || url;
+  const cachedValue = dataCache.get(cacheId);
+  const cachedAt = dataCacheTimestamps.get(cacheId) || 0;
+
+  if (cachedValue !== undefined && (Date.now() - cachedAt < CACHE_TTL_MS)) {
+    return cachedValue;
+  }
+
+  const response = await apiFetch(url);
+  if (!response.ok) {
+    throw new Error(`Falha ao buscar ${url}`);
+  }
+
+  const payload = await response.json();
+  const result = payload.data !== undefined ? payload.data : payload;
+
+  dataCache.set(cacheId, result);
+  dataCacheTimestamps.set(cacheId, Date.now());
+  return result;
+};
+
 const apiFetch = async (url, options = {}) => {
   if (state.token) {
     if (!options.headers) options.headers = {};
@@ -529,9 +599,10 @@ const apiFetch = async (url, options = {}) => {
   const isSyncRoute = url.includes('/api/sync');
   const skipSyncPrompt = options.skipSyncPrompt === true;
 
-  if (res.ok && isWrite && isApiRoute && !isAuthRoute && !isSyncRoute && !skipSyncPrompt) {
+  if (res.ok && isWrite && isApiRoute && !isAuthRoute && !isSyncRoute) {
+    invalidateCacheForUrl(url);
     sessionStorage.removeItem('syncDismissed');
-    await requestSyncPromptIfConfigured();
+    if (!skipSyncPrompt) scheduleSyncUpload();
   }
 
   return res;
@@ -633,7 +704,7 @@ function renderAuthScreen() {
           </div>
           <div style="text-align: center; font-size: 0.65rem; color: var(--text-secondary); opacity: 0.6; margin-top: 12px;">
             <i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i> Desenvolvido por @mazzarowysk & @_coltri_<br>
-            <span style="font-weight: bold; opacity: 0.8; margin-top: 4px; display: inline-block;">Versão 1.0.0 (BETA)</span>
+            <span style="font-weight: bold; opacity: 0.8; margin-top: 4px; display: inline-block;">Versão 1.0.1</span>
           </div>
         </div>
       </div>
@@ -1223,11 +1294,8 @@ async function renderTabContent() {
 
     const loadAndRenderTable = async () => {
       try {
-        const res = await apiFetch(`${API_URL}/patients`);
-        if (!res.ok) throw new Error();
-        allPatients = await res.json();
-        renderTableRows(allPatients);
-      } catch (err) {
+          const result = await cachedApiGet(`${API_URL}/patients`, 'patients');
+          allPatients = Array.isArray(result) ? result : (result.data || []);
         document.getElementById('patients-table-wrapper').innerHTML = 
           `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Erro ao carregar dados do banco de dados.</div>`;
       }
@@ -1984,12 +2052,7 @@ async function renderTabContent() {
 // --- CONSUMO DE APIs DO BACKEND ---
 async function fetchDashboardData() {
   try {
-    const response = await apiFetch(`${API_URL}/dashboard/summary`);
-    if (response.ok) {
-      state.dashboardData = await response.json();
-    } else {
-      throw new Error(`Erro da API: ${response.status}`);
-    }
+    state.dashboardData = await cachedApiGet(`${API_URL}/dashboard/summary`, 'dashboard');
   } catch (error) {
     console.warn('Backend offline, utilizando dados locais para demonstração de interface.');
     state.dashboardData = {
@@ -3579,16 +3642,18 @@ async function renderAgendaTab() {
     </div>
   `;
 
-  // Carregar pacientes para o select do modal
-  try {
-    const pRes = await apiFetch('/api/patients');
-    if (pRes.ok) {
-      const pData = await pRes.json();
-      const pList = Array.isArray(pData) ? pData : (pData.data || []);
+  const loadPatients = async () => {
+    try {
+      const pList = await cachedApiGet('/api/patients', 'patients');
+      const patients = Array.isArray(pList) ? pList : (pList.data || []);
       const pSelect = document.getElementById('apt-patient-id');
-      if (pSelect && pList.length > 0) {
+      if (pSelect) {
+        if (patients.length === 0) {
+          pSelect.innerHTML = '<option value="">Nenhum paciente disponível</option>';
+          return;
+        }
         pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>';
-        pList.forEach(p => {
+        patients.forEach(p => {
           const opt = document.createElement('option');
           opt.value = p.id;
           opt.textContent = `${p.fullName} (CPF: ${p.cpf})`;
@@ -3598,8 +3663,8 @@ async function renderAgendaTab() {
           pSelect.appendChild(opt);
         });
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
+  };
 
   const loadAgenda = async () => {
     const selectedDate = document.getElementById('filter-agenda-date').value;
@@ -3712,7 +3777,7 @@ async function renderAgendaTab() {
     }
   });
 
-  loadAgenda();
+  Promise.all([ loadAgenda(), loadPatients() ]);
 }
 
 window.updateAppointmentStatus = async (id, status) => {
@@ -3833,10 +3898,7 @@ async function renderLeitosTab() {
 
   const loadBeds = async () => {
     try {
-      const res = await apiFetch('/api/beds');
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      const beds = data.data || [];
+      const beds = await cachedApiGet('/api/beds', 'beds');
 
       // Atualizar KPIs
       const vagos = beds.filter(b => b.status === 'Vago').length;
@@ -3931,18 +3993,21 @@ async function renderLeitosTab() {
   };
 
   // Carregar Pacientes no Modal
-  try {
-    const pRes = await apiFetch('/api/patients');
-    if (pRes.ok) {
-      const pData = await pRes.json();
-      const pList = Array.isArray(pData) ? pData : (pData.data || []);
+  const loadPatientsModal = async () => {
+    try {
+      const patients = await cachedApiGet('/api/patients', 'patients');
+      const patientList = Array.isArray(patients) ? patients : (patients.data || []);
       const pSelect = document.getElementById('admit-patient-id');
-      if (pSelect && pList.length > 0) {
+      if (pSelect) {
+        if (patientList.length === 0) {
+          pSelect.innerHTML = '<option value="">Nenhum paciente disponível</option>';
+          return;
+        }
         pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
-          pList.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+          patientList.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
+  };
 
   // Eventos de Filtro por Setor
   document.querySelectorAll('.bed-sector-filter').forEach(btn => {
@@ -3971,6 +4036,11 @@ async function renderLeitosTab() {
     const selectedOption = pSelect.options[pSelect.selectedIndex];
     const patientId = pSelect.value;
     const patientName = selectedOption ? selectedOption.dataset.name : '';
+
+    if (!bedId || !patientId) {
+      alert('Selecione um leito e um paciente.');
+      return;
+    }
 
     try {
       const res = await apiFetch('/api/beds/admit', {
