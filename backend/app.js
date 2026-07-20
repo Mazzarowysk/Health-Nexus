@@ -1206,8 +1206,8 @@ app.post('/api/sync/upload', async (req, res) => {
     }
     for (const p of patients) {
       await cloudDb.execute({
-        sql: 'INSERT OR REPLACE INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        args: [p.id, p.fullName, p.cpf, p.birthDate, p.address, p.city, p.phone, p.cellphone, p.billingValue, p.created_at]
+        sql: 'INSERT OR REPLACE INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [p.id, p.fullName, p.cpf, p.birthDate, p.address, p.city, p.phone, p.cellphone, p.billingValue, p.created_at, p.updated_at || p.created_at]
       });
     }
     for (const e of encounters) {
@@ -1257,8 +1257,8 @@ app.post('/api/sync/download', async (req, res) => {
     }
     for (const p of patients) {
       await db.execute({
-        sql: 'INSERT OR REPLACE INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        args: [p.id, p.fullName, p.cpf, p.birthDate, p.address, p.city, p.phone, p.cellphone, p.billingValue, p.created_at]
+        sql: 'INSERT OR REPLACE INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [p.id, p.fullName, p.cpf, p.birthDate, p.address, p.city, p.phone, p.cellphone, p.billingValue, p.created_at, p.updated_at || p.created_at]
       });
     }
     for (const e of encounters) {

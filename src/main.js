@@ -384,6 +384,21 @@ const updateSyncBadge = () => {
   badge.style.color = data.synchronized ? '#15803d' : '#b45309';
 };
 
+const getMaxTimestamp = (timestampsObj = {}) => {
+  let maxTime = 0;
+  let maxStr = null;
+  Object.values(timestampsObj).forEach(ts => {
+    if (ts) {
+      const t = new Date(ts).getTime();
+      if (!isNaN(t) && t > maxTime) {
+        maxTime = t;
+        maxStr = ts;
+      }
+    }
+  });
+  return { time: maxTime, str: maxStr };
+};
+
 const checkInitialSync = async () => {
   try {
     const res = await apiFetch('/api/sync/status');
@@ -392,69 +407,29 @@ const checkInitialSync = async () => {
     state.syncInfo = data;
     updateSyncBadge();
 
-    // If the user has recently dismissed a sync modal (e.g. performed an explicit
-    // upload/download), avoid re-opening it on reload. The UI sets
-    // `sessionStorage.syncDismissed = 'true'` before performing user-driven syncs.
+    if (!data.cloudConfigured) return;
+
     let syncDismissed = sessionStorage.getItem('syncDismissed') === 'true';
 
-    if (data.isVercel && data.cloudConfigured) {
-      // ── MODO VERCEL ──────────────────────────────────────────────────────
-      // Recuperar último estado visto no Vercel
-      let lastSeen = null;
-      try { lastSeen = JSON.parse(localStorage.getItem(VERCEL_LAST_SEEN_KEY)); } catch (e) {}
+    // Obter os timestamps máximos para comparar quem é mais recente
+    const localMax = getMaxTimestamp(data.localTimestamps);
+    const cloudMax = getMaxTimestamp(data.cloudTimestamps);
 
-      if (lastSeen) {
-        // Comparar último estado salvo vs estado atual do Turso.
-        // Usamos tanto contagem quanto timestamp de última modificação para
-        // detectar alterações de dados mesmo quando o número de registros não muda.
-        const tables = ['users', 'patients', 'encounters', 'triages', 'clinical_notes'];
-        const hasChanges = tables.some((t) => {
-          const cloudCount = Number(data.cloud[t] || 0);
-          const lastCount = Number(lastSeen[t] || 0);
-          const cloudTimestamp = String(data.cloudTimestamps?.[t] || '');
-          const lastTimestamp = String(lastSeen.timestamps?.[t] || '');
-          return cloudCount !== lastCount || cloudTimestamp !== lastTimestamp;
-        });
+    data.lastLocalBackup = localMax.str;
+    data.lastCloudBackup = cloudMax.str;
 
-        if (hasChanges) {
-          // Se houver diferenças no Turso, liberar o aviso de sync local
-          sessionStorage.removeItem('syncDismissed');
+    if (!data.synchronized) {
+      sessionStorage.removeItem('syncDismissed');
+      syncDismissed = false;
 
-          // Há dados novos no Turso desde o último acesso ao Vercel
-          // Mostrar modal com comparativo: último acesso vs agora
-          const vercelCompData = {
-            ...data,
-            local: lastSeen,           // "local" = último acesso salvo
-            localTimestamps: lastSeen.timestamps || {},
-            cloud: data.cloud,
-            cloudTimestamps: data.cloudTimestamps || {},
-            synchronized: false,       // forçar ícone de atenção
-            vercelHasUpdates: true     // flag para personalizar texto
-          };
-          if (!syncDismissed) showSyncComparisonModal(vercelCompData);
-        } else {
-          // Nenhuma mudança desde o último acesso — mostrar modal informativo simples
-          if (!syncDismissed) showSyncComparisonModal({ ...data, vercelNoChanges: true });
-        }
+      // COMPARAÇÃO DIRETA DE DIREÇÃO DE SINCRONIZAÇÃO:
+      // Se a data local do computador for MAIS RECENTE que a nuvem -> Mostrar Modal Laranja ("Sincronização Pendente! - Enviar para Nuvem")
+      // Se a data da nuvem for MAIS RECENTE que a local do computador -> Mostrar Modal Roxo ("Dados Novos na Nuvem! - Baixar da Nuvem")
+      if (localMax.time > cloudMax.time) {
+        if (!syncDismissed) showSyncPromptModal(data);
       } else {
-        // Primeiro acesso ao Vercel — salvar estado e mostrar modal informativo
-        if (!syncDismissed) showSyncComparisonModal({ ...data, vercelFirstAccess: true });
+        if (!syncDismissed) showSyncComparisonModal(data);
       }
-
-      // Salvar estado atual do Turso para próxima comparação
-      const stateToSave = { ...data.cloud, timestamps: data.cloudTimestamps || {}, savedAt: new Date().toISOString() };
-      localStorage.setItem(VERCEL_LAST_SEEN_KEY, JSON.stringify(stateToSave));
-
-    } else if (data.cloudConfigured) {
-      // ── MODO LOCAL OU VERCEL NO COMPUTADOR ────────────────────────────────
-      // Se houver diferença local vs Turso, devemos permitir o modal mesmo que o
-      // usuário tenha dispensado um prompt anterior anteriormente.
-      if (!data.synchronized) {
-        sessionStorage.removeItem('syncDismissed');
-        syncDismissed = false;
-      }
-
-      if (!syncDismissed) showSyncComparisonModal(data);
     }
   } catch (err) {
     console.error('Erro ao verificar sincronização inicial:', err);
@@ -472,14 +447,22 @@ const initializeApp = () => {
         logout();
       });
     }
-    // Registrar clique na badge de status para abrir modal de comparação
+    // Registrar clique na badge de status para abrir o modal adequado
     setTimeout(() => {
       const badge = document.getElementById('sync-status-badge');
       if (badge) {
         badge.style.cursor = 'pointer';
         badge.addEventListener('click', () => {
           if (state.syncInfo && state.syncInfo.cloudConfigured) {
-            showSyncComparisonModal(state.syncInfo);
+            const localMax = getMaxTimestamp(state.syncInfo.localTimestamps);
+            const cloudMax = getMaxTimestamp(state.syncInfo.cloudTimestamps);
+            state.syncInfo.lastLocalBackup = localMax.str;
+            state.syncInfo.lastCloudBackup = cloudMax.str;
+            if (localMax.time > cloudMax.time) {
+              showSyncPromptModal(state.syncInfo);
+            } else {
+              showSyncComparisonModal(state.syncInfo);
+            }
           } else {
             showToast('Turso não configurado ou sem dados para comparar.');
           }
