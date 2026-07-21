@@ -1340,18 +1340,41 @@ app.put('/api/appointments/:id', async (req, res) => {
     const { id } = req.params;
     const { status, notes } = req.body;
     const nowIso = new Date().toISOString();
+    
+    const statusVal = status !== undefined ? status : null;
+    const notesVal = notes !== undefined ? notes : null;
+
     await db.execute({
       sql: 'UPDATE appointments SET status = COALESCE(?, status), notes = COALESCE(?, notes), updated_at = ? WHERE id = ?',
-      args: [status, notes, nowIso, id]
+      args: [statusVal, notesVal, nowIso, id]
     });
 
     if (!process.env.VERCEL) {
-      await updatePreviousAndLastUpload(nowIso);
+      try {
+        await updatePreviousAndLastUpload(nowIso);
+      } catch (e) {
+        console.warn('[SyncNotice] updatePreviousAndLastUpload notice:', e);
+      }
     }
 
     res.status(200).json({ status: 'success', message: 'Consulta atualizada com sucesso.' });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: 'Erro ao atualizar consulta.' });
+    console.error('Erro em PUT /api/appointments/:id:', err);
+    res.status(500).json({ status: 'error', message: 'Erro ao atualizar consulta: ' + err.message });
+  }
+});
+
+app.delete('/api/appointments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute({
+      sql: 'DELETE FROM appointments WHERE id = ?',
+      args: [id]
+    });
+    res.status(200).json({ status: 'success', message: 'Consulta excluída com sucesso.' });
+  } catch (err) {
+    console.error('Erro em DELETE /api/appointments/:id:', err);
+    res.status(500).json({ status: 'error', message: 'Erro ao excluir consulta.' });
   }
 });
 
