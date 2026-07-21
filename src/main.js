@@ -7,7 +7,7 @@ window.updateAppointmentStatus = async function(aptId, newStatus) {
       body: JSON.stringify({ status: newStatus })
     });
     if (res.ok) {
-      showToast('Consulta ' + newStatus.toLowerCase() + ' com sucesso!');
+      showToast('Consulta marcada como ' + newStatus.toLowerCase() + '!');
       for (const key of dataCache.keys()) {
         if (typeof key === 'string' && key.startsWith('appointments_')) {
           dataCache.delete(key);
@@ -29,18 +29,43 @@ window.updateAppointmentStatus = async function(aptId, newStatus) {
 
 window.startAppointmentEncounter = async function(patientId, aptId) {
   try {
-    await window.updateAppointmentStatus(aptId, 'Em Atendimento');
-    await apiFetch('/api/encounters', {
-      method: 'POST',
+    const statusRes = await apiFetch('/api/appointments/' + aptId, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ patientId, type: 'Ambulatorio' })
+      body: JSON.stringify({ status: 'Em Atendimento' })
     });
-    switchTab('atendimento');
-    showToast('⚡ Atendimento iniciado! Paciente encaminhado para a fila de Atendimentos.');
+
+    for (const key of dataCache.keys()) {
+      if (typeof key === 'string' && key.startsWith('appointments_')) {
+        dataCache.delete(key);
+        dataCacheTimestamps.delete(key);
+      }
+    }
+
+    if (patientId) {
+      await apiFetch('/api/encounters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId: patientId, type: 'Ambulatorio' })
+      }).catch(e => console.log('Encounter note:', e));
+    }
+
+    showToast('⚡ Atendimento iniciado! Paciente movido para Em Atendimento.');
+
+    if (state.activeTab === 'agenda') {
+      renderAgendaTab();
+    } else {
+      switchTab('atendimento');
+    }
   } catch (e) {
     console.error('Erro em startAppointmentEncounter:', e);
+    showToast('Erro ao iniciar atendimento.');
   }
 };
+
+
+
+
 
 window.handleCardClick = function(tabName, reportType, message) {
   const existingToast = document.querySelector('.interactive-toast');
@@ -2277,6 +2302,7 @@ function initDashboardCharts(data) {
     occupancyCtx.style.cursor = 'pointer';
     occupancyCtx.style.cursor = 'pointer';
     occupancyCtx.style.cursor = 'pointer';
+    occupancyCtx.style.cursor = 'pointer';
     new Chart(occupancyCtx, {
       type: 'doughnut',
       data: {
@@ -2309,6 +2335,7 @@ function initDashboardCharts(data) {
     // Combine both values, or just show total appointments
     const values = data.appointmentsHistory.map(item => item.urgencia + item.ambulatorial);
 
+    appointmentsCtx.style.cursor = 'pointer';
     appointmentsCtx.style.cursor = 'pointer';
     appointmentsCtx.style.cursor = 'pointer';
     appointmentsCtx.style.cursor = 'pointer';
@@ -4819,6 +4846,23 @@ async function renderDoctorsTab() {
 
   // Event Listeners
   document.getElementById('filter-doctor-search').addEventListener('input', () => renderTable(allDoctorsCache));
+
+  document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
+    const input = document.getElementById('filter-doctor-search');
+    if (input) { input.value = ''; renderTable(allDoctorsCache); }
+  });
+
+  document.getElementById('kpi-doc-active')?.addEventListener('click', () => {
+    const input = document.getElementById('filter-doctor-search');
+    if (input) { input.value = ''; renderTable(allDoctorsCache); }
+  });
+
+  document.getElementById('kpi-doc-specs')?.addEventListener('click', () => {
+    const specsMap = {};
+    allDoctorsCache.forEach(d => { specsMap[d.specialty] = (specsMap[d.specialty] || 0) + 1; });
+    const list = Object.entries(specsMap).map(([s, c]) => `• ${s}: ${c} médico(s)`).join('\n');
+    alert('Resumo de Especialidades no Corpo Clínico:\n\n' + (list || 'Nenhuma especialidade cadastrada.'));
+  });
 
   document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
     const input = document.getElementById('filter-doctor-search');
