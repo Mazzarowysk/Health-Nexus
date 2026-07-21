@@ -1482,16 +1482,34 @@ app.get('/api/sync/status', async (req, res) => {
         return isNaN(d.getTime()) ? 0 : d.getTime();
       };
 
-      const hasDifferences = tables.some(key => {
-        const cntL = localCounts[key] || 0;
-        const cntC = cloudCounts[key] || 0;
-        if (cntL !== cntC) return true;
+      // Determinar o último ponto de sincronização gravado em sync_logs
+      const lastLocalSyncTs = parseTs(localStats ? localStats.lastSync : null);
+      const lastCloudSyncTs = parseTs(cloudStats ? cloudStats.lastSync : null);
+      const effectiveSyncTs = Math.max(lastLocalSyncTs, lastCloudSyncTs);
 
-        const tL = parseTs(localTimestamps[key]);
-        const tC = parseTs(cloudTimestamps[key]);
-        if (tL === 0 && tC === 0) return false;
-        return Math.abs(tL - tC) > 5000;
-      });
+      let hasDifferences = false;
+
+      // 1. Checar se número de registros difere em alguma tabela
+      const countMismatch = tables.some(key => (localCounts[key] || 0) !== (cloudCounts[key] || 0));
+
+      if (countMismatch) {
+        hasDifferences = true;
+      } else if (effectiveSyncTs > 0) {
+        // 2. Se já houve sincronização prévia, verificar se algum banco possui alterações posteriores ao último sync
+        const BUFFER_MS = 5000;
+        const hasNewerLocalChanges = tables.some(key => parseTs(localTimestamps[key]) > (effectiveSyncTs + BUFFER_MS));
+        const hasNewerCloudChanges = tables.some(key => parseTs(cloudTimestamps[key]) > (effectiveSyncTs + BUFFER_MS));
+
+        hasDifferences = hasNewerLocalChanges || hasNewerCloudChanges;
+      } else {
+        // 3. Se ainda não há registro em sync_logs, comparar timestamps com margem de tolerância
+        hasDifferences = tables.some(key => {
+          const tL = parseTs(localTimestamps[key]);
+          const tC = parseTs(cloudTimestamps[key]);
+          if (tL === 0 && tC === 0) return false;
+          return Math.abs(tL - tC) > 5000;
+        });
+      }
 
       res.status(200).json({
         status: 'success',
