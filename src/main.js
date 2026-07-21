@@ -3673,12 +3673,18 @@ async function renderAgendaTab() {
       const cacheKey = `appointments_${selectedDate}_${selectedDoctor}`;
       const appointments = await cachedApiGet(url, cacheKey);
 
-      if (appointments.length === 0) {
+      if (!Array.isArray(appointments) || appointments.length === 0) {
+        const selectedDate = document.getElementById('filter-agenda-date')?.value || '';
+        const dateLabel = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : 'esta data';
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
-              <i class="fa-regular fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.6;"></i>
-              <p>Nenhuma consulta agendada para esta data.</p>
+            <td colspan="6" style="text-align: center; padding: 48px 20px; color: var(--text-secondary);">
+              <i class="fa-regular fa-calendar-xmark" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5; display: block;"></i>
+              <p style="font-size: 1rem; font-weight: 600; margin-bottom: 4px;">Nenhuma consulta agendada</p>
+              <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 16px;">Não há consultas para ${dateLabel}.</p>
+              <button class="btn btn-primary btn-sm" onclick="document.getElementById('btn-open-new-appointment').click()" style="font-size: 0.85rem;">
+                <i class="fa-solid fa-plus"></i> Agendar Nova Consulta
+              </button>
             </td>
           </tr>
         `;
@@ -3720,7 +3726,8 @@ async function renderAgendaTab() {
         `;
       }).join('');
     } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-danger); padding: 20px;">Erro ao carregar consultas.</td></tr>`;
+      console.error('[Agenda] Erro ao carregar consultas:', e);
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-danger); padding: 20px;"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao carregar consultas: ${e.message || 'Tente novamente.'}</td></tr>`;
     }
   };
 
