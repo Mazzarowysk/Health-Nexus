@@ -613,7 +613,7 @@ function showToast(message) {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      z-index: 9999;
+      z-index: 100000;
       pointer-events: none;
     `;
     document.body.appendChild(container);

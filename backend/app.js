@@ -1389,10 +1389,14 @@ app.post('/api/prescriptions', async (req, res) => {
 // Helper para execução em lote rápida no Turso/SQLite
 const batchExecute = async (client, statements) => {
   if (!statements || statements.length === 0) return;
+  const sanitized = statements.map(s => ({
+    sql: s.sql,
+    args: (s.args || []).map(v => (v === undefined ? null : v))
+  }));
   if (typeof client.batch === 'function') {
-    await client.batch(statements, 'write');
+    await client.batch(sanitized, 'write');
   } else {
-    for (const stmt of statements) {
+    for (const stmt of sanitized) {
       await client.execute(stmt);
     }
   }
