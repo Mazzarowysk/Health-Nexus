@@ -1246,7 +1246,7 @@ async function renderTabContent() {
         <!-- KPI Cards Grid -->
         <div class="kpi-grid">
           <!-- Card Ocupação -->
-          <div class="kpi-card">
+          <div class="kpi-card interactive-card" id="dash-card-patients" onclick="handleCardClick('pacientes', null, 'Atalho: Abrindo lista de Pacientes Ativos')" title="Clique para ver a lista de Pacientes">
             <div class="kpi-header">
               <span>Pacientes Ativos</span>
               <div class="kpi-icon primary"><i class="fa-solid fa-bed"></i></div>
@@ -1259,7 +1259,7 @@ async function renderTabContent() {
           </div>
 
           <!-- Card Atendimentos -->
-          <div class="kpi-card">
+          <div class="kpi-card interactive-card" id="dash-card-triage" onclick="handleCardClick('atendimento', null, 'Atalho: Acessando Fila de Triagem')" title="Clique para ir à Fila de Triagem">
             <div class="kpi-header">
               <span>Tempo de Espera Triagem</span>
               <div class="kpi-icon warning"><i class="fa-solid fa-clock"></i></div>
@@ -1272,7 +1272,7 @@ async function renderTabContent() {
           </div>
 
           <!-- Card Faturamento -->
-          <div class="kpi-card">
+          <div class="kpi-card interactive-card" id="dash-card-revenue" onclick="handleCardClick('relatorios', 'tab-btn-financial', 'Atalho: Gerando Relatório Financeiro')" title="Clique para ver o Relatório Financeiro">
             <div class="kpi-header">
               <span>Receita do Mês (Particulares)</span>
               <div class="kpi-icon accent"><i class="fa-solid fa-hand-holding-dollar"></i></div>
@@ -4958,3 +4958,99 @@ async function renderDoctorsTab() {
 
   loadDoctors();
 }
+
+
+// ==========================================
+// FUNÇÕES GLOBAIS DE INTERATIVIDADE E AGENDA
+// ==========================================
+window.handleCardClick = function(tabName, reportType, message) {
+  const existingToast = document.querySelector('.interactive-toast');
+  if (existingToast) existingToast.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'interactive-toast';
+  toast.innerHTML = `<i class="fa-solid fa-bolt" style="color:#a855f7;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
+  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:linear-gradient(135deg, #1e1b4b, #311b92);color:#ffffff;padding:14px 22px;border-radius:14px;border:1px solid #8b5cf6;box-shadow:0 12px 35px rgba(139,92,246,0.45);font-family:Outfit,sans-serif;font-weight:600;font-size:0.9rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:12px;';
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(12px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 2200);
+
+  switchTab(tabName);
+  if (tabName === 'relatorios' && reportType) {
+    setTimeout(() => {
+      const btn = document.getElementById(reportType);
+      if (btn) btn.click();
+    }, 150);
+  }
+};
+
+window.updateAppointmentStatus = async function(aptId, newStatus) {
+  try {
+    const res = await apiFetch('/api/appointments/' + aptId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (res.ok) {
+      showToast('Consulta marcada como ' + newStatus.toLowerCase() + '!');
+      if (typeof dataCache !== 'undefined') {
+        for (const key of Array.from(dataCache.keys())) {
+          if (typeof key === 'string' && key.startsWith('appointments_')) {
+            dataCache.delete(key);
+            dataCacheTimestamps?.delete(key);
+          }
+        }
+      }
+      if (state.activeTab === 'agenda') {
+        renderAgendaTab();
+      }
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert(err.message || 'Erro ao atualizar agendamento.');
+    }
+  } catch (e) {
+    console.error('Erro em updateAppointmentStatus:', e);
+    alert('Erro de conexão ao atualizar agendamento.');
+  }
+};
+
+window.startAppointmentEncounter = async function(patientId, aptId) {
+  try {
+    const statusRes = await apiFetch('/api/appointments/' + aptId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'Em Atendimento' })
+    });
+
+    if (typeof dataCache !== 'undefined') {
+      for (const key of Array.from(dataCache.keys())) {
+        if (typeof key === 'string' && key.startsWith('appointments_')) {
+          dataCache.delete(key);
+          dataCacheTimestamps?.delete(key);
+        }
+      }
+    }
+
+    if (patientId) {
+      await apiFetch('/api/encounters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId: patientId, type: 'Ambulatorio' })
+      }).catch(e => console.log('Notice:', e));
+    }
+
+    showToast('⚡ Atendimento iniciado! Paciente movido para Em Atendimento.');
+
+    if (state.activeTab === 'agenda') {
+      renderAgendaTab();
+    } else {
+      switchTab('atendimento');
+    }
+  } catch (e) {
+    console.error('Erro em startAppointmentEncounter:', e);
+    showToast('Erro ao iniciar atendimento.');
+  }
+};
