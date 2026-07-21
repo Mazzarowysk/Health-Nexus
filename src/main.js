@@ -3677,10 +3677,8 @@ async function renderAgendaTab() {
     try {
       let url = `/api/appointments?date=${selectedDate}`;
       if (selectedDoctor) url += `&doctor=${encodeURIComponent(selectedDoctor)}`;
-      const res = await apiFetch(url);
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      const appointments = data.data || [];
+      const cacheKey = `appointments_${selectedDate}_${selectedDoctor}`;
+      const appointments = await cachedApiGet(url, cacheKey);
 
       if (appointments.length === 0) {
         tbody.innerHTML = `
@@ -3770,6 +3768,13 @@ async function renderAgendaTab() {
         showToast('Consulta agendada com sucesso!');
         modal.style.display = 'none';
         requestSyncPromptIfConfigured();
+        // Invalida cache de appointments para forçar reload atualizado
+        for (const key of dataCache.keys()) {
+          if (typeof key === 'string' && key.startsWith('appointments_')) {
+            dataCache.delete(key);
+            dataCacheTimestamps.delete(key);
+          }
+        }
         loadAgenda();
       } else {
         const d = await res.json();
@@ -3780,7 +3785,12 @@ async function renderAgendaTab() {
     }
   });
 
-  Promise.all([ loadAgenda(), loadPatients() ]);
+  // Expõe loadAgenda globalmente para updateAppointmentStatus usar sem reconstruir a aba
+  window.reloadAgenda = loadAgenda;
+
+  // Carrega a tabela imediatamente; pacientes do modal carregam em background (só necessários ao abrir modal)
+  loadAgenda();
+  loadPatients();
 }
 
 window.updateAppointmentStatus = async (id, status) => {
@@ -3793,7 +3803,18 @@ window.updateAppointmentStatus = async (id, status) => {
     if (res.ok) {
       showToast(`Status da consulta atualizado para ${status}!`);
       requestSyncPromptIfConfigured();
-      renderAgendaTab();
+      // Invalida cache de appointments e recarrega só a tabela (sem reconstruir a aba inteira)
+      for (const key of dataCache.keys()) {
+        if (typeof key === 'string' && key.startsWith('appointments_')) {
+          dataCache.delete(key);
+          dataCacheTimestamps.delete(key);
+        }
+      }
+      if (typeof window.reloadAgenda === 'function') {
+        window.reloadAgenda();
+      } else {
+        renderAgendaTab();
+      }
     }
   } catch (e) {}
 };

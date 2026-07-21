@@ -38,6 +38,10 @@ const initLocalDb = async () => {
   await db.execute(SQL_BEDS);
   await db.execute(SQL_PRESCRIPTIONS);
 
+  // Índices para acelerar queries filtradas por data na agenda
+  await db.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
+  await db.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
+
   // Seed de leitos se a tabela estiver vazia
   try {
     const bedCount = Number((await db.execute('SELECT COUNT(*) as c FROM beds')).rows[0].c);
@@ -94,6 +98,8 @@ const autoSyncFromCloud = async () => {
     await cloudDb.execute(SQL_APPOINTMENTS);
     await cloudDb.execute(SQL_BEDS);
     await cloudDb.execute(SQL_PRESCRIPTIONS);
+    await cloudDb.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
+    await cloudDb.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
     console.log('[SYNC] Estrutura do Turso pronta para sincronização.');
   } catch (err) {
     console.error('[SYNC] Erro ao verificar estrutura do Turso:', err);
@@ -126,6 +132,8 @@ const initCloudDb = async () => {
   await cloudDb.execute(SQL_APPOINTMENTS);
   await cloudDb.execute(SQL_BEDS);
   await cloudDb.execute(SQL_PRESCRIPTIONS);
+  await cloudDb.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
+  await cloudDb.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
 
   // Seed de leitos se a tabela estiver vazia na nuvem
   try {
@@ -157,14 +165,13 @@ const initCloudDb = async () => {
 
 // --- INICIALIZACAO PRINCIPAL ---
 const isVercel = !!process.env.VERCEL;
-(async () => {
+
+export const init = async () => {
   try {
     if (isVercel) {
-      // No Vercel: inicializa tabelas no Turso e usa cloud como banco principal
       await initCloudDb();
       await initLocalDb();
     } else {
-      // Local: inicializa banco local SQLite e garante esquema na nuvem se configurado
       await initLocalDb();
       if (cloudDb) await initCloudDb();
     }
@@ -183,7 +190,7 @@ const isVercel = !!process.env.VERCEL;
   } catch(err) {
     console.error('[DB] Erro critico:', err);
   }
-})();
+};
 
 
 
@@ -1379,9 +1386,19 @@ app.post('/api/prescriptions', async (req, res) => {
   }
 });
 
-// --- ENDPOINTS DE SINCRONIZAÇÃO LOCAL-NUVEM (TURSO) ---
+// Helper para execução em lote rápida no Turso/SQLite
+const batchExecute = async (client, statements) => {
+  if (!statements || statements.length === 0) return;
+  if (typeof client.batch === 'function') {
+    await client.batch(statements, 'write');
+  } else {
+    for (const stmt of statements) {
+      await client.execute(stmt);
+    }
+  }
+};
 
-// Obter o status de sincronização (com timestamps de última modificação)
+// Obter o status de sincronização (com timestamps de última modificação de forma paralela ultra-rápida)
 app.get('/api/sync/status', async (req, res) => {
   try {
     const safeExecute = async (client, sql) => {
@@ -1393,29 +1410,43 @@ app.get('/api/sync/status', async (req, res) => {
       }
     };
 
-    const localCounts = {
-      users: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM users')).count || 0),
-      patients: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM patients')).count || 0),
-      encounters: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM encounters')).count || 0),
-      triages: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM triages')).count || 0),
-      clinical_notes: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM clinical_notes')).count || 0),
-      appointments: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM appointments')).count || 0),
-      beds: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM beds')).count || 0),
-      prescriptions: Number((await safeExecute(db, 'SELECT COUNT(*) as count FROM prescriptions')).count || 0)
-    };
+    const tables = ['users', 'patients', 'encounters', 'triages', 'clinical_notes', 'appointments', 'beds', 'prescriptions'];
+    
+    // Executar consultas locais em paralelo
+    const localCountPromises = tables.map(t => safeExecute(db, `SELECT COUNT(*) as count FROM ${t}`));
+    const localTimePromises = [
+      safeExecute(db, "SELECT MAX(created_at) as t FROM users"),
+      safeExecute(db, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients"),
+      safeExecute(db, "SELECT MAX(admitted_at) as t FROM encounters"),
+      safeExecute(db, "SELECT MAX(triaged_at) as t FROM triages"),
+      safeExecute(db, "SELECT MAX(created_at) as t FROM clinical_notes"),
+      safeExecute(db, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM appointments"),
+      safeExecute(db, "SELECT MAX(COALESCE(updated_at, admittedAt)) as t FROM beds"),
+      safeExecute(db, "SELECT MAX(created_at) as t FROM prescriptions"),
+      safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'"),
+      safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'")
+    ];
 
-    let lastLocalSync = (await safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'")).timestamp || null;
-    let previousLocalSync = (await safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'")).timestamp || null;
+    const localCountResults = await Promise.all(localCountPromises);
+    const localTimeResults = await Promise.all(localTimePromises);
+
+    const localCounts = {};
+    tables.forEach((t, idx) => {
+      localCounts[t] = Number(localCountResults[idx].count || 0);
+    });
+
+    const lastLocalSync = localTimeResults[8].timestamp || null;
+    const previousLocalSync = localTimeResults[9].timestamp || null;
 
     const localTimestamps = {
-      users: (await safeExecute(db, "SELECT MAX(created_at) as t FROM users")).t || null,
-      patients: (await safeExecute(db, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).t || null,
-      encounters: (await safeExecute(db, "SELECT MAX(admitted_at) as t FROM encounters")).t || null,
-      triages: (await safeExecute(db, "SELECT MAX(triaged_at) as t FROM triages")).t || null,
-      clinical_notes: (await safeExecute(db, "SELECT MAX(created_at) as t FROM clinical_notes")).t || null,
-      appointments: (await safeExecute(db, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM appointments")).t || null,
-      beds: (await safeExecute(db, "SELECT MAX(COALESCE(updated_at, admittedAt)) as t FROM beds")).t || null,
-      prescriptions: (await safeExecute(db, "SELECT MAX(created_at) as t FROM prescriptions")).t || null,
+      users: localTimeResults[0].t || null,
+      patients: localTimeResults[1].t || null,
+      encounters: localTimeResults[2].t || null,
+      triages: localTimeResults[3].t || null,
+      clinical_notes: localTimeResults[4].t || null,
+      appointments: localTimeResults[5].t || null,
+      beds: localTimeResults[6].t || null,
+      prescriptions: localTimeResults[7].t || null,
       last_sync: lastLocalSync
     };
 
@@ -1426,29 +1457,39 @@ app.get('/api/sync/status', async (req, res) => {
       let previousCloudSync = null;
 
       try {
-        cloudCounts = {
-          users: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM users')).count || 0),
-          patients: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM patients')).count || 0),
-          encounters: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM encounters')).count || 0),
-          triages: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM triages')).count || 0),
-          clinical_notes: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM clinical_notes')).count || 0),
-          appointments: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM appointments')).count || 0),
-          beds: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM beds')).count || 0),
-          prescriptions: Number((await safeExecute(cloudDb, 'SELECT COUNT(*) as count FROM prescriptions')).count || 0)
-        };
+        const cloudCountPromises = tables.map(t => safeExecute(cloudDb, `SELECT COUNT(*) as count FROM ${t}`));
+        const cloudTimePromises = [
+          safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM users"),
+          safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients"),
+          safeExecute(cloudDb, "SELECT MAX(admitted_at) as t FROM encounters"),
+          safeExecute(cloudDb, "SELECT MAX(triaged_at) as t FROM triages"),
+          safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM clinical_notes"),
+          safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM appointments"),
+          safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, admittedAt)) as t FROM beds"),
+          safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM prescriptions"),
+          safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'"),
+          safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'")
+        ];
 
-        lastCloudSync = (await safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'")).timestamp || null;
-        previousCloudSync = (await safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'")).timestamp || null;
+        const cloudCountResults = await Promise.all(cloudCountPromises);
+        const cloudTimeResults = await Promise.all(cloudTimePromises);
+
+        tables.forEach((t, idx) => {
+          cloudCounts[t] = Number(cloudCountResults[idx].count || 0);
+        });
+
+        lastCloudSync = cloudTimeResults[8].timestamp || null;
+        previousCloudSync = cloudTimeResults[9].timestamp || null;
 
         cloudTimestamps = {
-          users: (await safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM users")).t || null,
-          patients: (await safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients")).t || null,
-          encounters: (await safeExecute(cloudDb, "SELECT MAX(admitted_at) as t FROM encounters")).t || null,
-          triages: (await safeExecute(cloudDb, "SELECT MAX(triaged_at) as t FROM triages")).t || null,
-          clinical_notes: (await safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM clinical_notes")).t || null,
-          appointments: (await safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM appointments")).t || null,
-          beds: (await safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, admittedAt)) as t FROM beds")).t || null,
-          prescriptions: (await safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM prescriptions")).t || null,
+          users: cloudTimeResults[0].t || null,
+          patients: cloudTimeResults[1].t || null,
+          encounters: cloudTimeResults[2].t || null,
+          triages: cloudTimeResults[3].t || null,
+          clinical_notes: cloudTimeResults[4].t || null,
+          appointments: cloudTimeResults[5].t || null,
+          beds: cloudTimeResults[6].t || null,
+          prescriptions: cloudTimeResults[7].t || null,
           last_sync: lastCloudSync
         };
       } catch (cloudErr) {
@@ -1463,7 +1504,6 @@ app.get('/api/sync/status', async (req, res) => {
         return isNaN(d.getTime()) ? 0 : d.getTime();
       };
 
-      const tables = Object.keys(localCounts);
       const hasDifferences = tables.some(key => {
         const countDiff = localCounts[key] !== (cloudCounts[key] || 0);
         const timeDiff = Math.abs(parseTs(localTimestamps[key]) - parseTs(cloudTimestamps[key])) > 1000;
@@ -1500,70 +1540,60 @@ app.get('/api/sync/status', async (req, res) => {
   }
 });
 
-// Enviar banco ativo para a nuvem
+// Enviar banco ativo para a nuvem em Lote (Super Rápido)
 app.post('/api/sync/upload', async (req, res) => {
   if (!cloudDb) {
     return res.status(400).json({ status: 'error', message: 'Banco na nuvem não configurado.' });
   }
 
   try {
-    const users = (await db.execute('SELECT * FROM users')).rows;
-    const patients = (await db.execute('SELECT * FROM patients')).rows;
-    const encounters = (await db.execute('SELECT * FROM encounters')).rows;
-    const triages = (await db.execute('SELECT * FROM triages')).rows;
-    const clinical_notes = (await db.execute('SELECT * FROM clinical_notes')).rows;
-    const appointments = (await db.execute('SELECT * FROM appointments')).rows;
-    const beds = (await db.execute('SELECT * FROM beds')).rows;
-    const prescriptions = (await db.execute('SELECT * FROM prescriptions')).rows;
+    const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions] = await Promise.all([
+      db.execute('SELECT * FROM users').then(r => r.rows),
+      db.execute('SELECT * FROM patients').then(r => r.rows),
+      db.execute('SELECT * FROM encounters').then(r => r.rows),
+      db.execute('SELECT * FROM triages').then(r => r.rows),
+      db.execute('SELECT * FROM clinical_notes').then(r => r.rows),
+      db.execute('SELECT * FROM appointments').then(r => r.rows),
+      db.execute('SELECT * FROM beds').then(r => r.rows),
+      db.execute('SELECT * FROM prescriptions').then(r => r.rows)
+    ]);
 
-    for (const u of users) {
-      await cloudDb.execute({
+    const stmts = [
+      ...users.map(u => ({
         sql: 'INSERT OR REPLACE INTO users (id, name, username, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
         args: [u.id, u.name, u.username, u.password_hash, u.role, u.created_at]
-      });
-    }
-    for (const p of patients) {
-      await cloudDb.execute({
+      })),
+      ...patients.map(p => ({
         sql: 'INSERT OR REPLACE INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [p.id, p.fullName, p.cpf, p.birthDate, p.address, p.city, p.phone, p.cellphone, p.billingValue, p.created_at, p.updated_at || p.created_at]
-      });
-    }
-    for (const e of encounters) {
-      await cloudDb.execute({
+      })),
+      ...encounters.map(e => ({
         sql: 'INSERT OR REPLACE INTO encounters (id, patientId, type, status, admitted_at, completed_at) VALUES (?, ?, ?, ?, ?, ?)',
         args: [e.id, e.patientId, e.type, e.status, e.admitted_at, e.completed_at]
-      });
-    }
-    for (const t of triages) {
-      await cloudDb.execute({
+      })),
+      ...triages.map(t => ({
         sql: 'INSERT OR REPLACE INTO triages (id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [t.id, t.encounterId, t.manchesterColor, t.weightKg, t.bloodPressure, t.temperatureCelsius, t.heartRateBpm, t.complaints, t.triaged_at]
-      });
-    }
-    for (const cn of clinical_notes) {
-      await cloudDb.execute({
+      })),
+      ...clinical_notes.map(cn => ({
         sql: 'INSERT OR REPLACE INTO clinical_notes (id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [cn.id, cn.encounterId, cn.noteType, cn.subjectiveContent, cn.objectiveContent, cn.assessmentContent, cn.planContent, cn.signatureHash, cn.isClosed, cn.created_at]
-      });
-    }
-    for (const apt of appointments) {
-      await cloudDb.execute({
+      })),
+      ...appointments.map(apt => ({
         sql: 'INSERT OR REPLACE INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [apt.id, apt.patientId, apt.patientName, apt.doctorName, apt.specialty, apt.appointmentDate, apt.appointmentTime, apt.status, apt.notes, apt.created_at, apt.updated_at]
-      });
-    }
-    for (const bed of beds) {
-      await cloudDb.execute({
+      })),
+      ...beds.map(bed => ({
         sql: 'INSERT OR REPLACE INTO beds (id, bedNumber, sector, status, patientId, patientName, admittedAt, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         args: [bed.id, bed.bedNumber, bed.sector, bed.status, bed.patientId, bed.patientName, bed.admittedAt, bed.updated_at]
-      });
-    }
-    for (const rx of prescriptions) {
-      await cloudDb.execute({
+      })),
+      ...prescriptions.map(rx => ({
         sql: 'INSERT OR REPLACE INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         args: [rx.id, rx.encounterId, rx.patientId, rx.patientName, rx.doctorName, rx.medicationsJson, rx.status, rx.created_at]
-      });
-    }
+      }))
+    ];
+
+    await batchExecute(cloudDb, stmts);
 
     const nowIso = new Date().toISOString();
     try {
@@ -1578,70 +1608,60 @@ app.post('/api/sync/upload', async (req, res) => {
   }
 });
 
-// Baixar banco da nuvem para o ativo
+// Baixar banco da nuvem para o ativo em Lote (Super Rápido)
 app.post('/api/sync/download', async (req, res) => {
   if (!cloudDb) {
     return res.status(400).json({ status: 'error', message: 'Banco na nuvem não configurado.' });
   }
 
   try {
-    const users = (await cloudDb.execute('SELECT * FROM users')).rows;
-    const patients = (await cloudDb.execute('SELECT * FROM patients')).rows;
-    const encounters = (await cloudDb.execute('SELECT * FROM encounters')).rows;
-    const triages = (await cloudDb.execute('SELECT * FROM triages')).rows;
-    const clinical_notes = (await cloudDb.execute('SELECT * FROM clinical_notes')).rows;
-    const appointments = (await cloudDb.execute('SELECT * FROM appointments')).rows;
-    const beds = (await cloudDb.execute('SELECT * FROM beds')).rows;
-    const prescriptions = (await cloudDb.execute('SELECT * FROM prescriptions')).rows;
+    const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions] = await Promise.all([
+      cloudDb.execute('SELECT * FROM users').then(r => r.rows),
+      cloudDb.execute('SELECT * FROM patients').then(r => r.rows),
+      cloudDb.execute('SELECT * FROM encounters').then(r => r.rows),
+      cloudDb.execute('SELECT * FROM triages').then(r => r.rows),
+      cloudDb.execute('SELECT * FROM clinical_notes').then(r => r.rows),
+      cloudDb.execute('SELECT * FROM appointments').then(r => r.rows),
+      cloudDb.execute('SELECT * FROM beds').then(r => r.rows),
+      cloudDb.execute('SELECT * FROM prescriptions').then(r => r.rows)
+    ]);
 
-    for (const u of users) {
-      await db.execute({
+    const stmts = [
+      ...users.map(u => ({
         sql: 'INSERT OR REPLACE INTO users (id, name, username, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
         args: [u.id, u.name, u.username, u.password_hash, u.role, u.created_at]
-      });
-    }
-    for (const p of patients) {
-      await db.execute({
+      })),
+      ...patients.map(p => ({
         sql: 'INSERT OR REPLACE INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [p.id, p.fullName, p.cpf, p.birthDate, p.address, p.city, p.phone, p.cellphone, p.billingValue, p.created_at, p.updated_at || p.created_at]
-      });
-    }
-    for (const e of encounters) {
-      await db.execute({
+      })),
+      ...encounters.map(e => ({
         sql: 'INSERT OR REPLACE INTO encounters (id, patientId, type, status, admitted_at, completed_at) VALUES (?, ?, ?, ?, ?, ?)',
         args: [e.id, e.patientId, e.type, e.status, e.admitted_at, e.completed_at]
-      });
-    }
-    for (const t of triages) {
-      await db.execute({
+      })),
+      ...triages.map(t => ({
         sql: 'INSERT OR REPLACE INTO triages (id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [t.id, t.encounterId, t.manchesterColor, t.weightKg, t.bloodPressure, t.temperatureCelsius, t.heartRateBpm, t.complaints, t.triaged_at]
-      });
-    }
-    for (const cn of clinical_notes) {
-      await db.execute({
+      })),
+      ...clinical_notes.map(cn => ({
         sql: 'INSERT OR REPLACE INTO clinical_notes (id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [cn.id, cn.encounterId, cn.noteType, cn.subjectiveContent, cn.objectiveContent, cn.assessmentContent, cn.planContent, cn.signatureHash, cn.isClosed, cn.created_at]
-      });
-    }
-    for (const apt of appointments) {
-      await db.execute({
+      })),
+      ...appointments.map(apt => ({
         sql: 'INSERT OR REPLACE INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [apt.id, apt.patientId, apt.patientName, apt.doctorName, apt.specialty, apt.appointmentDate, apt.appointmentTime, apt.status, apt.notes, apt.created_at, apt.updated_at]
-      });
-    }
-    for (const bed of beds) {
-      await db.execute({
+      })),
+      ...beds.map(bed => ({
         sql: 'INSERT OR REPLACE INTO beds (id, bedNumber, sector, status, patientId, patientName, admittedAt, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         args: [bed.id, bed.bedNumber, bed.sector, bed.status, bed.patientId, bed.patientName, bed.admittedAt, bed.updated_at]
-      });
-    }
-    for (const rx of prescriptions) {
-      await db.execute({
+      })),
+      ...prescriptions.map(rx => ({
         sql: 'INSERT OR REPLACE INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         args: [rx.id, rx.encounterId, rx.patientId, rx.patientName, rx.doctorName, rx.medicationsJson, rx.status, rx.created_at]
-      });
-    }
+      }))
+    ];
+
+    await batchExecute(db, stmts);
 
     const nowIso = new Date().toISOString();
     try {
