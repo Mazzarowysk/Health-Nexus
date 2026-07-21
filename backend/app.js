@@ -11,6 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'health-nexus-super-secret-key';
 // --- MIDDLEWARES ---
 app.use(cors());
 app.use(express.json());
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // --- INICIALIZACAO DO BANCO LOCAL ---
 const initLocalDb = async () => {
@@ -1502,13 +1503,8 @@ app.get('/api/sync/status', async (req, res) => {
 
         hasDifferences = hasNewerLocalChanges || hasNewerCloudChanges;
       } else {
-        // 3. Se ainda não há registro em sync_logs, comparar timestamps com margem de tolerância
-        hasDifferences = tables.some(key => {
-          const tL = parseTs(localTimestamps[key]);
-          const tC = parseTs(cloudTimestamps[key]);
-          if (tL === 0 && tC === 0) return false;
-          return Math.abs(tL - tC) > 5000;
-        });
+        // 3. Se ainda não há registro em sync_logs e as contagens são 100% idênticas, considerar sincronizado
+        hasDifferences = false;
       }
 
       res.status(200).json({
