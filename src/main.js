@@ -1,3 +1,27 @@
+
+window.handleCardClick = function(tabName, reportType, message) {
+  const existingToast = document.querySelector('.interactive-toast');
+  if (existingToast) existingToast.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'interactive-toast';
+  toast.innerHTML = `<i class="fa-solid fa-bolt" style="color:#a855f7;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
+  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:linear-gradient(135deg, #1e1b4b, #311b92);color:#ffffff;padding:14px 22px;border-radius:14px;border:1px solid #8b5cf6;box-shadow:0 12px 35px rgba(139,92,246,0.45);font-family:Outfit,sans-serif;font-weight:600;font-size:0.9rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:12px;';
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(12px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 2200);
+
+  switchTab(tabName);
+  if (tabName === 'relatorios' && reportType) {
+    setTimeout(() => {
+      const btn = document.getElementById(reportType);
+      if (btn) btn.click();
+    }, 150);
+  }
+};
 // --- CONFIGURAÇÃO DA SPA E ROTAS ---
 const API_URL = '/api';
 
