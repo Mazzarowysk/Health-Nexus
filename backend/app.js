@@ -3,7 +3,11 @@ import cors from 'cors';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { db, cloudDb } from './database/client.js';
+import * as clientModule from './database/client.js';
+import { db, reconnectCloud } from './database/client.js';
+
+// Getter dinâmico: acessa cloudDb atual (pode ser recriado por reconnectCloud)
+const getCloudDb = () => clientModule.cloudDb;
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'health-nexus-super-secret-key';
@@ -73,7 +77,7 @@ const initLocalDb = async () => {
 
 // --- SYNC CLOUD -> LOCAL ao iniciar (garantir estrutura de tabelas) ---
 const autoSyncFromCloud = async () => {
-  if (!cloudDb || process.env.VERCEL) return;
+  if (!getCloudDb() || process.env.VERCEL) return;
   console.log('[SYNC] Verificando estrutura do banco Turso...');
   const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
@@ -85,83 +89,109 @@ const autoSyncFromCloud = async () => {
   const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   
+  const cloud = getCloudDb();
+  if (!cloud) return;
   try {
-    await cloudDb.execute(SQL_USERS);
-    try { await cloudDb.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
-    await cloudDb.execute(SQL_PATIENTS);
+    await cloud.execute(SQL_USERS);
+    try { await cloud.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
+    await cloud.execute(SQL_PATIENTS);
     for (const col of ['address','city','phone','cellphone','billingValue','updated_at']) {
-      try { await cloudDb.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
+      try { await cloud.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
     }
-    await cloudDb.execute(SQL_ENCOUNTERS);
-    await cloudDb.execute(SQL_TRIAGES);
-    await cloudDb.execute(SQL_NOTES);
-    await cloudDb.execute(SQL_SYNC_LOGS);
-    await cloudDb.execute(SQL_APPOINTMENTS);
-    await cloudDb.execute(SQL_BEDS);
-    await cloudDb.execute(SQL_PRESCRIPTIONS);
-    await cloudDb.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
-    await cloudDb.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
+    await cloud.execute(SQL_ENCOUNTERS);
+    await cloud.execute(SQL_TRIAGES);
+    await cloud.execute(SQL_NOTES);
+    await cloud.execute(SQL_SYNC_LOGS);
+    await cloud.execute(SQL_APPOINTMENTS);
+    await cloud.execute(SQL_BEDS);
+    await cloud.execute(SQL_PRESCRIPTIONS);
+    await cloud.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
+    await cloud.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
     console.log('[SYNC] Estrutura do Turso pronta para sincronização.');
   } catch (err) {
-    console.error('[SYNC] Erro ao verificar estrutura do Turso:', err);
+    const isNetErr = err.message?.includes('fetch failed') || err.message?.includes('timeout') || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT';
+    if (isNetErr) {
+      console.warn('[SYNC] Sem conexão com Turso durante sync inicial. Continuando sem nuvem...');
+    } else {
+      console.error('[SYNC] Erro ao verificar estrutura do Turso:', err.message);
+    }
   }
 };
 
 // --- INICIALIZACAO DO BANCO CLOUD (para garantir tabelas no Turso) ---
 const initCloudDb = async () => {
-  if (!cloudDb) return;
-  const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
-  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
-  const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
-  const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
-  const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
-  const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
-  const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
-  const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
-  const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const cloud = getCloudDb();
+  if (!cloud) return;
   
-  await cloudDb.execute(SQL_USERS);
-  try { await cloudDb.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
-  await cloudDb.execute(SQL_PATIENTS);
-  for (const col of ['address','city','phone','cellphone','billingValue','updated_at']) {
-    try { await cloudDb.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
-  }
-  await cloudDb.execute(SQL_ENCOUNTERS);
-  await cloudDb.execute(SQL_TRIAGES);
-  await cloudDb.execute(SQL_NOTES);
-  await cloudDb.execute(SQL_SYNC_LOGS);
-  await cloudDb.execute(SQL_APPOINTMENTS);
-  await cloudDb.execute(SQL_BEDS);
-  await cloudDb.execute(SQL_PRESCRIPTIONS);
-  await cloudDb.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
-  await cloudDb.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
+  const execWithTimeout = async (task) => {
+    return Promise.race([
+      task,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_12S')), 12000))
+    ]);
+  };
 
-  // Seed de leitos se a tabela estiver vazia na nuvem
-  try {
-    const bedCount = Number((await cloudDb.execute('SELECT COUNT(*) as c FROM beds')).rows[0].c);
-    if (bedCount === 0) {
-      const initialBeds = [
-        { id: 'BED-UTI-01', bedNumber: 'UTI-01', sector: 'UTI Adulto', status: 'Vago' },
-        { id: 'BED-UTI-02', bedNumber: 'UTI-02', sector: 'UTI Adulto', status: 'Vago' },
-        { id: 'BED-UTI-03', bedNumber: 'UTI-03', sector: 'UTI Adulto', status: 'Vago' },
-        { id: 'BED-ENF-01', bedNumber: 'ENF-01', sector: 'Enfermaria', status: 'Vago' },
-        { id: 'BED-ENF-02', bedNumber: 'ENF-02', sector: 'Enfermaria', status: 'Vago' },
-        { id: 'BED-ENF-03', bedNumber: 'ENF-03', sector: 'Enfermaria', status: 'Vago' },
-        { id: 'BED-PED-01', bedNumber: 'PED-01', sector: 'Pediatria', status: 'Vago' },
-        { id: 'BED-PED-02', bedNumber: 'PED-02', sector: 'Pediatria', status: 'Vago' },
-        { id: 'BED-MAT-01', bedNumber: 'MAT-01', sector: 'Maternidade', status: 'Vago' },
-        { id: 'BED-MAT-02', bedNumber: 'MAT-02', sector: 'Maternidade', status: 'Vago' }
-      ];
-      for (const b of initialBeds) {
-        await cloudDb.execute({
-          sql: 'INSERT INTO beds (id, bedNumber, sector, status, updated_at) VALUES (?, ?, ?, ?, ?)',
-          args: [b.id, b.bedNumber, b.sector, b.status, new Date().toISOString()]
-        });
-      }
+  const tasks = async () => {
+    const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+    const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+    const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
+    const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
+    const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+    const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
+    const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+    const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
+    const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+    
+    await cloud.execute(SQL_USERS);
+    try { await cloud.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
+    await cloud.execute(SQL_PATIENTS);
+    for (const col of ['address','city','phone','cellphone','billingValue','updated_at']) {
+      try { await cloud.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
     }
-  } catch (e) {}
+    await cloud.execute(SQL_ENCOUNTERS);
+    await cloud.execute(SQL_TRIAGES);
+    await cloud.execute(SQL_NOTES);
+    await cloud.execute(SQL_SYNC_LOGS);
+    await cloud.execute(SQL_APPOINTMENTS);
+    await cloud.execute(SQL_BEDS);
+    await cloud.execute(SQL_PRESCRIPTIONS);
+    await cloud.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
+    await cloud.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
 
-  console.log('[DB] Banco Turso (cloud) OK.');
+    try {
+      const bedCount = Number((await cloud.execute('SELECT COUNT(*) as c FROM beds')).rows[0].c);
+      if (bedCount === 0) {
+        const initialBeds = [
+          { id: 'BED-UTI-01', bedNumber: 'UTI-01', sector: 'UTI Adulto', status: 'Vago' },
+          { id: 'BED-UTI-02', bedNumber: 'UTI-02', sector: 'UTI Adulto', status: 'Vago' },
+          { id: 'BED-UTI-03', bedNumber: 'UTI-03', sector: 'UTI Adulto', status: 'Vago' },
+          { id: 'BED-ENF-01', bedNumber: 'ENF-01', sector: 'Enfermaria', status: 'Vago' },
+          { id: 'BED-ENF-02', bedNumber: 'ENF-02', sector: 'Enfermaria', status: 'Vago' },
+          { id: 'BED-ENF-03', bedNumber: 'ENF-03', sector: 'Enfermaria', status: 'Vago' },
+          { id: 'BED-PED-01', bedNumber: 'PED-01', sector: 'Pediatria', status: 'Vago' },
+          { id: 'BED-PED-02', bedNumber: 'PED-02', sector: 'Pediatria', status: 'Vago' },
+          { id: 'BED-MAT-01', bedNumber: 'MAT-01', sector: 'Maternidade', status: 'Vago' },
+          { id: 'BED-MAT-02', bedNumber: 'MAT-02', sector: 'Maternidade', status: 'Vago' }
+        ];
+        for (const b of initialBeds) {
+          await cloud.execute({
+            sql: 'INSERT INTO beds (id, bedNumber, sector, status, updated_at) VALUES (?, ?, ?, ?, ?)',
+            args: [b.id, b.bedNumber, b.sector, b.status, new Date().toISOString()]
+          });
+        }
+      }
+    } catch (e) {}
+  };
+
+  try {
+    await execWithTimeout(tasks());
+    console.log('[DB] Banco Turso (cloud) OK.');
+  } catch (err) {
+    if (err.message === 'TIMEOUT_12S') {
+      console.warn('[DB] Timeout ao inicializar Turso, continuando...');
+    } else {
+      console.warn('[DB] Erro de rede ou indisponibilidade Turso (silenciado):', err.message);
+    }
+  }
 };
 
 // --- INICIALIZACAO PRINCIPAL ---
@@ -174,7 +204,7 @@ export const init = async () => {
       await initLocalDb();
     } else {
       await initLocalDb();
-      if (cloudDb) await initCloudDb();
+      if (getCloudDb()) await initCloudDb();
     }
     const {rows} = await db.execute({sql:'SELECT id FROM users WHERE username=?', args:['admin']});
     if (rows.length === 0) {
@@ -1388,19 +1418,25 @@ app.post('/api/prescriptions', async (req, res) => {
 });
 
 // Helper para execução de queries individuais com auto-retry em conexões expiradas/ociosas
-const executeWithRetry = async (client, sql, args = [], maxRetries = 2) => {
+const executeWithRetry = async (originalClient, sql, args = [], maxRetries = 3) => {
   const sanitizedArgs = (args || []).map(v => (v === undefined ? null : v));
+  let currentClient = originalClient;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const res = await client.execute({ sql, args: sanitizedArgs });
+      const res = await currentClient.execute({ sql, args: sanitizedArgs });
       return res;
     } catch (err) {
       const isConnErr = err.message?.includes('fetch failed') || 
                         err.message?.includes('timeout') || 
-                        err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT';
+                        err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT' ||
+                        err.cause?.code === 'ECONNRESET';
       if (isConnErr && attempt < maxRetries) {
-        console.warn(`[DB] Tentativa ${attempt} falhou por socket ocioso/timeout. Reconectando ao Turso...`);
-        await new Promise(r => setTimeout(r, 600));
+        const waitMs = 800 * attempt; // backoff: 800ms, 1600ms
+        console.warn(`[DB] Tentativa ${attempt}/${maxRetries} falhou (${err.cause?.code || 'fetch failed'}). Recriando conexão em ${waitMs}ms...`);
+        await new Promise(r => setTimeout(r, waitMs));
+        // Recriar conexão Turso para descartar socket TCP morto
+        const fresh = reconnectCloud();
+        if (fresh) currentClient = fresh;
         continue;
       }
       throw err;
@@ -1525,8 +1561,8 @@ app.get('/api/sync/status', async (req, res) => {
     const localTimestamps = localStats ? localStats.timestamps : {};
     const previousLocalSync = localStats ? localStats.previousSync : null;
 
-    if (cloudDb) {
-      const cloudStats = await getDbStats(cloudDb);
+    if (getCloudDb()) {
+      const cloudStats = await getDbStats(getCloudDb());
       const cloudCounts = cloudStats ? cloudStats.counts : {};
       const cloudTimestamps = cloudStats ? cloudStats.timestamps : {};
       const previousCloudSync = cloudStats ? cloudStats.previousSync : null;
@@ -1595,11 +1631,12 @@ app.get('/api/sync/status', async (req, res) => {
 
 // Enviar banco ativo para a nuvem em Lote (Super Rápido)
 app.post('/api/sync/upload', async (req, res) => {
-  if (!cloudDb) {
+  if (!getCloudDb()) {
     return res.status(400).json({ status: 'error', message: 'Banco na nuvem não configurado.' });
   }
 
   try {
+    const cloudDb = getCloudDb();
     const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions] = await Promise.all([
       db.execute('SELECT * FROM users').then(r => r.rows),
       db.execute('SELECT * FROM patients').then(r => r.rows),
@@ -1681,11 +1718,12 @@ app.post('/api/sync/upload', async (req, res) => {
 
 // Baixar banco da nuvem para o ativo em Lote (Super Rápido)
 app.post('/api/sync/download', async (req, res) => {
-  if (!cloudDb) {
+  if (!getCloudDb()) {
     return res.status(400).json({ status: 'error', message: 'Banco na nuvem não configurado.' });
   }
 
   try {
+    const cloudDb = getCloudDb();
     const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions] = await Promise.all([
       executeWithRetry(cloudDb, 'SELECT * FROM users').then(r => r.rows),
       executeWithRetry(cloudDb, 'SELECT * FROM patients').then(r => r.rows),
@@ -1738,13 +1776,15 @@ app.post('/api/sync/download', async (req, res) => {
     try {
       await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_download', ?)", args: [nowIso] });
       await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
-      await cloudDb.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+      // Gravar no cloud também para manter sync_logs em sincronia
+      const cdb = getCloudDb();
+      if (cdb) await cdb.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
     } catch (e) {}
 
     res.status(200).json({ status: 'success', message: 'Dados baixados da nuvem com sucesso!' });
   } catch (err) {
     console.error('Erro ao baixar dados da nuvem:', err.message || err);
-    const isNetworkErr = err.message?.includes('fetch failed') || err.message?.includes('timeout') || err.code === 'UND_ERR_CONNECT_TIMEOUT';
+    const isNetworkErr = err.message?.includes('fetch failed') || err.message?.includes('timeout') || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT';
     const statusCode = isNetworkErr ? 503 : 500;
     const userMsg = isNetworkErr 
       ? 'Conexão com a nuvem (Turso) expirou. Os dados continuam salvos no banco local.' 
