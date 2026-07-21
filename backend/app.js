@@ -1480,7 +1480,7 @@ const getDbStats = async (client) => {
         (SELECT MAX(COALESCE(updated_at, created_at)) FROM appointments) as max_appointments,
         (SELECT MAX(COALESCE(updated_at, admittedAt)) FROM beds) as max_beds,
         (SELECT MAX(created_at) FROM prescriptions) as max_prescriptions,
-        (SELECT timestamp FROM sync_logs WHERE key = 'last_upload') as last_upload,
+        (SELECT MAX(timestamp) FROM sync_logs WHERE key IN ('last_upload', 'last_download')) as last_sync,
         (SELECT timestamp FROM sync_logs WHERE key = 'previous_upload') as previous_upload
     `);
     const r = await Promise.race([queryPromise, timeoutPromise]);
@@ -1505,9 +1505,9 @@ const getDbStats = async (client) => {
         appointments: row.max_appointments || null,
         beds: row.max_beds || null,
         prescriptions: row.max_prescriptions || null,
-        last_sync: row.last_upload || null
+        last_sync: row.last_sync || null
       },
-      lastSync: row.last_upload || null,
+      lastSync: row.last_sync || null,
       previousSync: row.previous_upload || null
     };
   } catch (e) {
