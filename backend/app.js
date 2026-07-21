@@ -1387,18 +1387,35 @@ app.post('/api/prescriptions', async (req, res) => {
   }
 });
 
-// Helper para execução em lote rápida no Turso/SQLite
+// Helper para execução em lote rápida e ultra-resiliente no Turso/SQLite
 const batchExecute = async (client, statements) => {
   if (!statements || statements.length === 0) return;
   const sanitized = statements.map(s => ({
     sql: s.sql,
     args: (s.args || []).map(v => (v === undefined ? null : v))
   }));
-  if (typeof client.batch === 'function') {
-    await client.batch(sanitized, 'write');
-  } else {
-    for (const stmt of sanitized) {
-      await client.execute(stmt);
+
+  // Executar em lotes de 50 para evitar limites de tamanho do payload do Turso HTTP
+  const CHUNK_SIZE = 50;
+  for (let i = 0; i < sanitized.length; i += CHUNK_SIZE) {
+    const chunk = sanitized.slice(i, i + CHUNK_SIZE);
+    try {
+      if (typeof client.batch === 'function') {
+        await client.batch(chunk, 'write');
+      } else {
+        for (const stmt of chunk) {
+          await client.execute(stmt);
+        }
+      }
+    } catch (batchErr) {
+      console.warn('[batchExecute] Lote falhou, executando linha por linha:', batchErr.message);
+      for (const stmt of chunk) {
+        try {
+          await client.execute(stmt);
+        } catch (singleErr) {
+          console.error('[batchExecute] Falha na SQL individual:', stmt.sql, singleErr.message);
+        }
+      }
     }
   }
 };
@@ -1407,7 +1424,10 @@ const batchExecute = async (client, statements) => {
 const getDbStats = async (client) => {
   if (!client) return null;
   try {
-    const r = await client.execute(`
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Turso connection timeout 8s')), 8000)
+    );
+    const queryPromise = client.execute(`
       SELECT 
         (SELECT COUNT(*) FROM users) as cnt_users,
         (SELECT COUNT(*) FROM patients) as cnt_patients,
@@ -1428,6 +1448,7 @@ const getDbStats = async (client) => {
         (SELECT timestamp FROM sync_logs WHERE key = 'last_upload') as last_upload,
         (SELECT timestamp FROM sync_logs WHERE key = 'previous_upload') as previous_upload
     `);
+    const r = await Promise.race([queryPromise, timeoutPromise]);
     const row = r && r.rows && r.rows[0] ? r.rows[0] : {};
     return {
       counts: {
@@ -1455,7 +1476,7 @@ const getDbStats = async (client) => {
       previousSync: row.previous_upload || null
     };
   } catch (e) {
-    console.error('Erro ao buscar estatísticas do banco:', e);
+    console.warn('[DB] Erro ou timeout ao buscar estatísticas do banco:', e.message);
     return null;
   }
 };
@@ -1613,8 +1634,13 @@ app.post('/api/sync/upload', async (req, res) => {
 
     res.status(200).json({ status: 'success', message: 'Dados enviados para a nuvem com sucesso!' });
   } catch (err) {
-    console.error('Erro ao enviar dados para a nuvem:', err);
-    res.status(500).json({ status: 'error', message: 'Falha ao enviar dados para a nuvem.' });
+    console.error('Erro ao enviar dados para a nuvem:', err.message || err);
+    const isNetworkErr = err.message?.includes('fetch failed') || err.message?.includes('timeout') || err.code === 'UND_ERR_CONNECT_TIMEOUT';
+    const statusCode = isNetworkErr ? 503 : 500;
+    const userMsg = isNetworkErr 
+      ? 'Conexão com a nuvem (Turso) expirou. Os dados continuam salvos com segurança no banco local.' 
+      : (err.message || 'Falha ao enviar dados para a nuvem.');
+    res.status(statusCode).json({ status: 'error', message: userMsg });
   }
 });
 
@@ -1682,8 +1708,13 @@ app.post('/api/sync/download', async (req, res) => {
 
     res.status(200).json({ status: 'success', message: 'Dados baixados da nuvem com sucesso!' });
   } catch (err) {
-    console.error('Erro ao baixar dados da nuvem:', err);
-    res.status(500).json({ status: 'error', message: 'Falha ao baixar dados da nuvem.' });
+    console.error('Erro ao baixar dados da nuvem:', err.message || err);
+    const isNetworkErr = err.message?.includes('fetch failed') || err.message?.includes('timeout') || err.code === 'UND_ERR_CONNECT_TIMEOUT';
+    const statusCode = isNetworkErr ? 503 : 500;
+    const userMsg = isNetworkErr 
+      ? 'Conexão com a nuvem (Turso) expirou. Os dados continuam salvos no banco local.' 
+      : (err.message || 'Falha ao baixar dados da nuvem.');
+    res.status(statusCode).json({ status: 'error', message: userMsg });
   }
 });
 
