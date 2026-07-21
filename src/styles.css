@@ -3033,3 +3033,36 @@ body.light-theme {
   background: #e2e8f0;
   color: #0f172a;
 }
+
+/* === BOTÕES DE AÇÃO ADICIONAIS NA TABELA DE PACIENTES === */
+.btn-icon-admit {
+  background: rgba(34, 211, 238, 0.12) !important;
+  color: #22d3ee !important;
+  border: 1px solid rgba(34, 211, 238, 0.3) !important;
+}
+.btn-icon-admit:hover {
+  background: rgba(34, 211, 238, 0.25) !important;
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.btn-icon-history {
+  background: rgba(168, 85, 247, 0.12) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+}
+.btn-icon-history:hover {
+  background: rgba(168, 85, 247, 0.25) !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.badge-alta {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}

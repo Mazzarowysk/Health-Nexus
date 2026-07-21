@@ -1982,4 +1982,57 @@ app.use((err, req, res, next) => {
   });
 });
 
+
+// Rota de Histórico Clínico & Prontuário Pós-Alta do Paciente
+app.get('/api/patients/:id/history', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const patientRes = await db.execute({
+      sql: 'SELECT * FROM patients WHERE id = ?',
+      args: [id]
+    });
+
+    const patient = patientRes.rows[0] || { id, fullName: 'Paciente Agendado' };
+
+    const encountersRes = await db.execute({
+      sql: `
+        SELECT 
+          e.id, e.patientId, e.type, e.status, e.admitted_at, e.completed_at,
+          t.manchesterColor, t.bloodPressure, t.temperatureCelsius, t.complaints,
+          cn.noteType, cn.subjectiveContent, cn.assessmentContent, cn.planContent
+        FROM encounters e
+        LEFT JOIN triages t ON e.id = t.encounterId
+        LEFT JOIN clinical_notes cn ON e.id = cn.encounterId
+        WHERE e.patientId = ?
+        ORDER BY e.admitted_at DESC
+      `,
+      args: [id]
+    });
+
+    const appointmentsRes = await db.execute({
+      sql: 'SELECT * FROM appointments WHERE patientId = ? ORDER BY appointmentDate DESC',
+      args: [id]
+    });
+
+    const prescriptionsRes = await db.execute({
+      sql: 'SELECT * FROM prescriptions WHERE patientId = ? ORDER BY created_at DESC',
+      args: [id]
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        patient,
+        encounters: encountersRes.rows || [],
+        appointments: appointmentsRes.rows || [],
+        prescriptions: prescriptionsRes.rows || []
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao buscar histórico do paciente:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao buscar histórico do paciente.' });
+  }
+});
+
 export default app;
