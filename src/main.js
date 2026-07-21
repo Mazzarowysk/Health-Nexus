@@ -1,4 +1,6 @@
 
+import './styles.css';
+
 window.updateAppointmentStatus = async function(aptId, newStatus) {
   try {
     const res = await apiFetch('/api/appointments/' + aptId, {
