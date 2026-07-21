@@ -1296,6 +1296,9 @@ async function renderTabContent() {
       try {
           const result = await cachedApiGet(`${API_URL}/patients`, 'patients');
           allPatients = Array.isArray(result) ? result : (result.data || []);
+          renderTableRows(allPatients);
+      } catch (err) {
+        console.error('Erro ao carregar pacientes:', err);
         document.getElementById('patients-table-wrapper').innerHTML = 
           `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Erro ao carregar dados do banco de dados.</div>`;
       }
