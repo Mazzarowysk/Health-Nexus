@@ -683,46 +683,111 @@ function renderAuthScreen() {
   const renderForm = () => {
     root.innerHTML = `
       <div class="auth-container">
-        <div class="auth-card">
-          <img src="/assets/logo.png" alt="Health Nexus" class="auth-logo">
-          <h2 class="auth-title">${isLogin ? 'Bem-vindo de volta' : 'Criar Conta'}</h2>
-          <p class="auth-subtitle">${isLogin ? 'Faça login para acessar o sistema' : 'Preencha os dados para se registrar'}</p>
+        <!-- Painel Esquerdo: Branding Imersivo -->
+        <div class="auth-brand-panel">
+          <div class="auth-brand-content">
+            <div class="auth-brand-logo-wrap">
+              <img src="/assets/logo.png" alt="Health Nexus" class="auth-brand-logo-img">
+              <div class="auth-brand-name">
+                Health Nexus
+                <span>Sistema de Gestão Hospitalar</span>
+              </div>
+            </div>
+
+            <h2 class="auth-brand-headline">
+              Cuidado Inteligente.<br>
+              <span class="highlight">Gestão Precisa.</span>
+            </h2>
+
+            <p class="auth-brand-desc">
+              Plataforma completa para hospitais e clínicas. Gerencie pacientes, agendamentos, leitos e prontuários em um único sistema seguro e integrado.
+            </p>
+
+            <ul class="auth-feature-list">
+              <li class="auth-feature-item">
+                <div class="auth-feature-icon"><i class="fa-solid fa-user-injured"></i></div>
+                <div class="auth-feature-text">
+                  <strong>Gestão de Pacientes</strong>
+                  Prontuário eletrônico completo com histórico e triagem Manchester
+                </div>
+              </li>
+              <li class="auth-feature-item">
+                <div class="auth-feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="auth-feature-text">
+                  <strong>Agenda Inteligente</strong>
+                  Agendamentos, controle de consultas e atendimentos em tempo real
+                </div>
+              </li>
+              <li class="auth-feature-item">
+                <div class="auth-feature-icon"><i class="fa-solid fa-bed-pulse"></i></div>
+                <div class="auth-feature-text">
+                  <strong>Controle de Leitos</strong>
+                  Mapa de ocupação hospitalar com status em tempo real
+                </div>
+              </li>
+              <li class="auth-feature-item">
+                <div class="auth-feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="auth-feature-text">
+                  <strong>Relatórios &amp; Dashboard</strong>
+                  Indicadores clínicos e financeiros com sincronização em nuvem
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="auth-brand-footer">
+            <i class="fa-solid fa-shield-halved" style="margin-right: 5px; color: var(--color-accent);"></i>
+            Dados protegidos com criptografia JWT &mdash; v1.0.1
+          </div>
+        </div>
+
+        <!-- Painel Direito: Formulário -->
+        <div class="auth-form-panel">
+          <div class="auth-form-header">
+            <div class="auth-form-eyebrow">${isLogin ? 'Acesso ao Sistema' : 'Criar Nova Conta'}</div>
+            <h1 class="auth-title">${isLogin ? 'Bem-vindo de volta' : 'Criar sua conta'}</h1>
+            <p class="auth-subtitle">${isLogin ? 'Entre com suas credenciais para acessar o painel' : 'Preencha os dados abaixo para criar sua conta'}</p>
+          </div>
 
           <div id="auth-error-container"></div>
-          
+
           <form id="auth-form" class="auth-form">
             ${!isLogin ? `
-              <div class="form-group" style="text-align: left;">
+              <div class="form-group">
                 <label class="form-label" for="auth-name">Nome Completo</label>
-                <input type="text" id="auth-name" class="form-input" required placeholder="Dr. João Silva">
+                <input type="text" id="auth-name" class="form-input" required placeholder="Dr. João Silva" autocomplete="name">
               </div>
             ` : ''}
-            <div class="form-group" style="text-align: left;">
+            <div class="form-group">
               <label class="form-label" for="auth-username">Usuário</label>
-              <input type="text" id="auth-username" class="form-input" required placeholder="Digite seu usuário (ex: drjoao)">
+              <input type="text" id="auth-username" class="form-input" required placeholder="ex: drjoao" autocomplete="username">
             </div>
-            <div class="form-group" style="text-align: left;">
+            <div class="form-group">
               <label class="form-label" for="auth-password">Senha</label>
               <div class="password-input-wrapper">
-                <input type="password" id="auth-password" class="form-input" required placeholder="••••••••">
+                <input type="password" id="auth-password" class="form-input" required placeholder="••••••••" autocomplete="${isLogin ? 'current-password' : 'new-password'}">
                 <button type="button" id="toggle-password-visibility" class="toggle-password-btn" title="Mostrar/ocultar senha">
                   <i class="fa-regular fa-eye" id="toggle-password-icon"></i>
                 </button>
               </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
-              ${isLogin ? 'Entrar' : 'Cadastrar'}
+            <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 6px; padding: 12px; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em;">
+              <i class="fa-solid fa-${isLogin ? 'right-to-bracket' : 'user-plus'}" style="margin-right: 8px;"></i>
+              ${isLogin ? 'Entrar no Sistema' : 'Criar Conta'}
             </button>
           </form>
 
+          <div class="auth-divider"></div>
+
           <div class="auth-toggle">
-            ${isLogin 
-              ? 'Não tem uma conta? <a id="toggle-auth">Cadastre-se</a>' 
-              : 'Já tem uma conta? <a id="toggle-auth">Faça login</a>'}
+            ${isLogin
+              ? 'Não tem uma conta? <a id="toggle-auth">Cadastre-se gratuitamente</a>'
+              : 'Já tem uma conta? <a id="toggle-auth">Fazer login</a>'}
           </div>
-          <div style="text-align: center; font-size: 0.65rem; color: var(--text-secondary); opacity: 0.6; margin-top: 16px;">
-            <i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i> Desenvolvido por @mazzarowysk & @_coltri_<br>
-            <span style="font-weight: bold; opacity: 0.8; margin-top: 4px; display: inline-block;">Versão 1.0.1</span>
+
+          <div class="auth-form-footer">
+            <i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i>
+            Desenvolvido por @mazzarowysk &amp; @_coltri_
           </div>
         </div>
       </div>
@@ -754,9 +819,9 @@ function renderAuthScreen() {
       const password = document.getElementById('auth-password').value.trim();
       const name = !isLogin ? document.getElementById('auth-name').value.trim() : null;
       
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      const originalText = submitBtn.textContent;
-      submitBtn.textContent = 'Aguarde...';
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const originalHTML = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i>Aguarde...';
       submitBtn.disabled = true;
 
       try {
@@ -809,7 +874,7 @@ function renderAuthScreen() {
           alert('Erro ao comunicar com o servidor');
         }
       } finally {
-        submitBtn.textContent = originalText;
+        submitBtn.innerHTML = originalHTML;
         submitBtn.disabled = false;
       }
     });
