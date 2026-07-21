@@ -908,6 +908,12 @@ function renderAppStructure() {
               </a>
             </li>
             <li>
+              <a class="nav-item ${state.activeTab === 'medicos' ? 'active' : ''}" data-tab="medicos">
+                <i class="fa-solid fa-user-doctor"></i>
+                <span>Corpo Clínico</span>
+              </a>
+            </li>
+            <li>
               <a class="nav-item ${state.activeTab === 'agenda' ? 'active' : ''}" data-tab="agenda">
                 <i class="fa-solid fa-calendar-check"></i>
                 <span>Agenda</span>
