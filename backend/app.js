@@ -29,6 +29,8 @@ const initLocalDb = async () => {
   const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
 
+  const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+
   await db.execute(SQL_USERS);
   try { await db.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
   await db.execute(SQL_PATIENTS);
@@ -42,6 +44,26 @@ const initLocalDb = async () => {
   await db.execute(SQL_APPOINTMENTS);
   await db.execute(SQL_BEDS);
   await db.execute(SQL_PRESCRIPTIONS);
+  await db.execute(SQL_DOCTORS);
+
+  // Seed de médicos se a tabela estiver vazia
+  try {
+    const docCount = Number((await db.execute('SELECT COUNT(*) as c FROM doctors')).rows[0].c);
+    if (docCount === 0) {
+      const initialDoctors = [
+        { id: 'DOC-001', name: 'Dr. João Silva', crm: '123456-SP', specialty: 'Cardiologia', phone: '(11) 98765-4321', email: 'joao.silva@healthnexus.med.br', status: 'Ativo' },
+        { id: 'DOC-002', name: 'Dra. Maria Santos', crm: '234567-SP', specialty: 'Pediatria', phone: '(11) 98765-4322', email: 'maria.santos@healthnexus.med.br', status: 'Ativo' },
+        { id: 'DOC-003', name: 'Dr. Carlos Oliveira', crm: '345678-SP', specialty: 'Clínica Geral', phone: '(11) 98765-4323', email: 'carlos.oliveira@healthnexus.med.br', status: 'Ativo' },
+        { id: 'DOC-004', name: 'Dra. Ana Costa', crm: '456789-SP', specialty: 'Ortopedia', phone: '(11) 98765-4324', email: 'ana.costa@healthnexus.med.br', status: 'Ativo' }
+      ];
+      for (const doc of initialDoctors) {
+        await db.execute({
+          sql: 'INSERT INTO doctors (id, name, crm, specialty, phone, email, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          args: [doc.id, doc.name, doc.crm, doc.specialty, doc.phone, doc.email, doc.status, new Date().toISOString()]
+        });
+      }
+    }
+  } catch (e) {}
 
   // Índices para acelerar queries filtradas por data na agenda
   await db.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
@@ -1825,6 +1847,66 @@ app.post('/api/sync/download', async (req, res) => {
       ? 'Conexão com a nuvem (Turso) expirou. Os dados continuam salvos no banco local.' 
       : (err.message || 'Falha ao baixar dados da nuvem.');
     res.status(statusCode).json({ status: 'error', message: userMsg });
+  }
+});
+
+// --- ROTAS DO CORPO CLÍNICO (MÉDICOS) ---
+app.get('/api/doctors', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM doctors ORDER BY name ASC');
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar médicos:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao buscar médicos.' });
+  }
+});
+
+app.post('/api/doctors', async (req, res) => {
+  const { name, crm, specialty, phone, email } = req.body;
+  if (!name || !crm || !specialty) {
+    return res.status(400).json({ status: 'error', message: 'Nome, CRM e Especialidade são obrigatórios.' });
+  }
+  const id = 'DOC-' + crypto.randomUUID().substring(0, 8).toUpperCase();
+  const createdAt = new Date().toISOString();
+  try {
+    await db.execute({
+      sql: 'INSERT INTO doctors (id, name, crm, specialty, phone, email, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [id, name.trim(), crm.trim(), specialty.trim(), phone?.trim() || '', email?.trim() || '', 'Ativo', createdAt, createdAt]
+    });
+    res.status(201).json({ status: 'success', id, message: 'Médico cadastrado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao cadastrar médico:', err);
+    if (err.message?.includes('UNIQUE constraint failed: doctors.crm')) {
+      return res.status(400).json({ status: 'error', message: 'Já existe um médico cadastrado com este CRM.' });
+    }
+    res.status(500).json({ status: 'error', message: 'Falha ao cadastrar médico.' });
+  }
+});
+
+app.put('/api/doctors/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, crm, specialty, phone, email, status } = req.body;
+  const updatedAt = new Date().toISOString();
+  try {
+    await db.execute({
+      sql: 'UPDATE doctors SET name = ?, crm = ?, specialty = ?, phone = ?, email = ?, status = ?, updated_at = ? WHERE id = ?',
+      args: [name.trim(), crm.trim(), specialty.trim(), phone?.trim() || '', email?.trim() || '', status || 'Ativo', updatedAt, id]
+    });
+    res.status(200).json({ status: 'success', message: 'Cadastro de médico atualizado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao atualizar médico:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao atualizar médico.' });
+  }
+});
+
+app.delete('/api/doctors/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.execute({ sql: "UPDATE doctors SET status = 'Inativo', updated_at = ? WHERE id = ?", args: [new Date().toISOString(), id] });
+    res.status(200).json({ status: 'success', message: 'Médico inativado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao inativar médico:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao inativar médico.' });
   }
 });
 
