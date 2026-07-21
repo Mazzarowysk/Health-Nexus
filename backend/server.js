@@ -1,4 +1,4 @@
-import app from './app.js';
+import app, { init } from './app.js';
 import dotenv from 'dotenv';
 
 // Carrega as variáveis do arquivo .env
@@ -6,10 +6,15 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  console.log(`=========================================`);
-  console.log(` Health Nexus API rodando no Localhost!`);
-  console.log(` Endpoint: http://localhost:${PORT}`);
-  console.log(` Modo: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`=========================================`);
-});
+const start = async () => {
+  await init();
+  app.listen(PORT, () => {
+    console.log(`=========================================`);
+    console.log(` Health Nexus API rodando no Localhost!`);
+    console.log(` Endpoint: http://localhost:${PORT}`);
+    console.log(` Modo: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`=========================================`);
+  });
+};
+
+start();

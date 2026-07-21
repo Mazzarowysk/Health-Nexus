@@ -262,6 +262,8 @@ const showSyncComparisonModal = (syncData = {}) => {
       if (res.ok) {
         showToast('Banco de dados local atualizado com os dados da nuvem!');
         sessionStorage.setItem('syncDismissed', 'true');
+        dataCache.clear();
+        dataCacheTimestamps.clear();
         try {
           const st = await apiFetch('/api/sync/status');
           if (st.ok) {
@@ -302,7 +304,7 @@ const VERCEL_LAST_SEEN_KEY = 'healthNexus_vercelLastSeen';
 let syncInProgress = false;
 
 const scheduleSyncUpload = () => {
-  if (!state.syncInfo?.cloudConfigured) return;
+  if (state.syncInfo && !state.syncInfo.cloudConfigured) return;
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
   syncUploadTimeout = setTimeout(async () => {
     await syncLocalChangesToCloud();
@@ -327,18 +329,11 @@ const getSyncStatus = async () => {
 
 const syncLocalChangesToCloud = async () => {
   if (syncInProgress) return true;
+  if (state.syncInfo && (!state.syncInfo.cloudConfigured || state.syncInfo.isVercel)) return false;
+
   syncInProgress = true;
 
   try {
-    const statusRes = await fetch('/api/sync/status', {
-      headers: {
-        'Authorization': `Bearer ${state.token}`
-      }
-    });
-    if (!statusRes.ok) return false;
-    const statusData = await statusRes.json();
-    if (!statusData.cloudConfigured || statusData.isVercel) return false;
-
     const uploadRes = await fetch('/api/sync/upload', {
       method: 'POST',
       headers: {
@@ -352,6 +347,7 @@ const syncLocalChangesToCloud = async () => {
     }
 
     showToast('Alterações sincronizadas com o Turso com sucesso!');
+    await getSyncStatus();
     return true;
   } catch (err) {
     console.error('Erro na sincronização automática com Turso:', err);
@@ -365,22 +361,18 @@ const syncLocalChangesToCloud = async () => {
 const requestSyncPromptIfConfigured = async () => {
   try {
     const statusData = await getSyncStatus();
-    if (!statusData) return false;
-
-    if (!statusData.cloudConfigured) return false;
-
-    if (!statusData.cloudConfigured) return false;
+    if (!statusData || !statusData.cloudConfigured) return false;
 
     const localMax = getMaxTimestamp(statusData.localTimestamps);
     const cloudMax = getMaxTimestamp(statusData.cloudTimestamps);
     statusData.lastLocalBackup = localMax.str || new Date().toISOString();
     statusData.lastCloudBackup = cloudMax.str || new Date().toISOString();
 
-    // DISPARO IMEDIATO LOGO APÓS SALVAR / EDITAR / EXCLUIR
-    if (localMax.time >= cloudMax.time || statusData.isVercel) {
-      await showSyncPromptModal(statusData);
-    } else {
-      await showSyncComparisonModal(statusData);
+    // Exibir modal correspondente apenas se houver diferença de timestamps
+    if (localMax.time > cloudMax.time || statusData.isVercel) {
+      showSyncPromptModal(statusData);
+    } else if (cloudMax.time > localMax.time) {
+      showSyncComparisonModal(statusData);
     }
     return true;
   } catch (err) {
@@ -470,11 +462,11 @@ const checkInitialSync = async () => {
       syncDismissed = false;
 
       // COMPARAÇÃO DIRETA DE DIREÇÃO DE SINCRONIZAÇÃO:
-      // Se a data local do computador for MAIS RECENTE que a nuvem -> Mostrar Modal Laranja ("Sincronização Pendente! - Enviar para Nuvem")
-      // Se a data da nuvem for MAIS RECENTE que a local do computador -> Mostrar Modal Roxo ("Dados Novos na Nuvem! - Baixar da Nuvem")
+      // Se a data local do computador for MAIS RECENTE que a nuvem -> Mostrar Modal Laranja ("Sincronização Pendente!")
+      // Se a data da nuvem for MAIS RECENTE que a local do computador -> Mostrar Modal Roxo ("Dados Novos na Nuvem!")
       if (localMax.time > cloudMax.time) {
         if (!syncDismissed) showSyncPromptModal(data);
-      } else {
+      } else if (cloudMax.time > localMax.time) {
         if (!syncDismissed) showSyncComparisonModal(data);
       }
     }

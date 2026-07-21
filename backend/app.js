@@ -1398,103 +1398,77 @@ const batchExecute = async (client, statements) => {
   }
 };
 
-// Obter o status de sincronização (com timestamps de última modificação de forma paralela ultra-rápida)
+// Função auxiliar para buscar contagens e timestamps de um DB em apenas 1 consulta
+const getDbStats = async (client) => {
+  if (!client) return null;
+  try {
+    const r = await client.execute(`
+      SELECT 
+        (SELECT COUNT(*) FROM users) as cnt_users,
+        (SELECT COUNT(*) FROM patients) as cnt_patients,
+        (SELECT COUNT(*) FROM encounters) as cnt_encounters,
+        (SELECT COUNT(*) FROM triages) as cnt_triages,
+        (SELECT COUNT(*) FROM clinical_notes) as cnt_clinical_notes,
+        (SELECT COUNT(*) FROM appointments) as cnt_appointments,
+        (SELECT COUNT(*) FROM beds) as cnt_beds,
+        (SELECT COUNT(*) FROM prescriptions) as cnt_prescriptions,
+        (SELECT MAX(created_at) FROM users) as max_users,
+        (SELECT MAX(COALESCE(updated_at, created_at)) FROM patients) as max_patients,
+        (SELECT MAX(admitted_at) FROM encounters) as max_encounters,
+        (SELECT MAX(triaged_at) FROM triages) as max_triages,
+        (SELECT MAX(created_at) FROM clinical_notes) as max_clinical_notes,
+        (SELECT MAX(COALESCE(updated_at, created_at)) FROM appointments) as max_appointments,
+        (SELECT MAX(COALESCE(updated_at, admittedAt)) FROM beds) as max_beds,
+        (SELECT MAX(created_at) FROM prescriptions) as max_prescriptions,
+        (SELECT timestamp FROM sync_logs WHERE key = 'last_upload') as last_upload,
+        (SELECT timestamp FROM sync_logs WHERE key = 'previous_upload') as previous_upload
+    `);
+    const row = r && r.rows && r.rows[0] ? r.rows[0] : {};
+    return {
+      counts: {
+        users: Number(row.cnt_users || 0),
+        patients: Number(row.cnt_patients || 0),
+        encounters: Number(row.cnt_encounters || 0),
+        triages: Number(row.cnt_triages || 0),
+        clinical_notes: Number(row.cnt_clinical_notes || 0),
+        appointments: Number(row.cnt_appointments || 0),
+        beds: Number(row.cnt_beds || 0),
+        prescriptions: Number(row.cnt_prescriptions || 0)
+      },
+      timestamps: {
+        users: row.max_users || null,
+        patients: row.max_patients || null,
+        encounters: row.max_encounters || null,
+        triages: row.max_triages || null,
+        clinical_notes: row.max_clinical_notes || null,
+        appointments: row.max_appointments || null,
+        beds: row.max_beds || null,
+        prescriptions: row.max_prescriptions || null,
+        last_sync: row.last_upload || null
+      },
+      lastSync: row.last_upload || null,
+      previousSync: row.previous_upload || null
+    };
+  } catch (e) {
+    console.error('Erro ao buscar estatísticas do banco:', e);
+    return null;
+  }
+};
+
+// Obter o status de sincronização (com timestamps de última modificação de forma ultra-rápida)
 app.get('/api/sync/status', async (req, res) => {
   try {
-    const safeExecute = async (client, sql) => {
-      try {
-        const r = await client.execute(sql);
-        return r && r.rows && r.rows[0] ? r.rows[0] : {};
-      } catch (e) {
-        return {};
-      }
-    };
-
     const tables = ['users', 'patients', 'encounters', 'triages', 'clinical_notes', 'appointments', 'beds', 'prescriptions'];
-    
-    // Executar consultas locais em paralelo
-    const localCountPromises = tables.map(t => safeExecute(db, `SELECT COUNT(*) as count FROM ${t}`));
-    const localTimePromises = [
-      safeExecute(db, "SELECT MAX(created_at) as t FROM users"),
-      safeExecute(db, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients"),
-      safeExecute(db, "SELECT MAX(admitted_at) as t FROM encounters"),
-      safeExecute(db, "SELECT MAX(triaged_at) as t FROM triages"),
-      safeExecute(db, "SELECT MAX(created_at) as t FROM clinical_notes"),
-      safeExecute(db, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM appointments"),
-      safeExecute(db, "SELECT MAX(COALESCE(updated_at, admittedAt)) as t FROM beds"),
-      safeExecute(db, "SELECT MAX(created_at) as t FROM prescriptions"),
-      safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'"),
-      safeExecute(db, "SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'")
-    ];
-
-    const localCountResults = await Promise.all(localCountPromises);
-    const localTimeResults = await Promise.all(localTimePromises);
-
-    const localCounts = {};
-    tables.forEach((t, idx) => {
-      localCounts[t] = Number(localCountResults[idx].count || 0);
-    });
-
-    const lastLocalSync = localTimeResults[8].timestamp || null;
-    const previousLocalSync = localTimeResults[9].timestamp || null;
-
-    const localTimestamps = {
-      users: localTimeResults[0].t || null,
-      patients: localTimeResults[1].t || null,
-      encounters: localTimeResults[2].t || null,
-      triages: localTimeResults[3].t || null,
-      clinical_notes: localTimeResults[4].t || null,
-      appointments: localTimeResults[5].t || null,
-      beds: localTimeResults[6].t || null,
-      prescriptions: localTimeResults[7].t || null,
-      last_sync: lastLocalSync
-    };
+    const localStats = await getDbStats(db);
+    const localCounts = localStats ? localStats.counts : {};
+    const localTimestamps = localStats ? localStats.timestamps : {};
+    const previousLocalSync = localStats ? localStats.previousSync : null;
 
     if (cloudDb) {
-      let cloudCounts = {};
-      let cloudTimestamps = {};
-      let lastCloudSync = null;
-      let previousCloudSync = null;
-
-      try {
-        const cloudCountPromises = tables.map(t => safeExecute(cloudDb, `SELECT COUNT(*) as count FROM ${t}`));
-        const cloudTimePromises = [
-          safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM users"),
-          safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM patients"),
-          safeExecute(cloudDb, "SELECT MAX(admitted_at) as t FROM encounters"),
-          safeExecute(cloudDb, "SELECT MAX(triaged_at) as t FROM triages"),
-          safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM clinical_notes"),
-          safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, created_at)) as t FROM appointments"),
-          safeExecute(cloudDb, "SELECT MAX(COALESCE(updated_at, admittedAt)) as t FROM beds"),
-          safeExecute(cloudDb, "SELECT MAX(created_at) as t FROM prescriptions"),
-          safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'"),
-          safeExecute(cloudDb, "SELECT timestamp FROM sync_logs WHERE key = 'previous_upload'")
-        ];
-
-        const cloudCountResults = await Promise.all(cloudCountPromises);
-        const cloudTimeResults = await Promise.all(cloudTimePromises);
-
-        tables.forEach((t, idx) => {
-          cloudCounts[t] = Number(cloudCountResults[idx].count || 0);
-        });
-
-        lastCloudSync = cloudTimeResults[8].timestamp || null;
-        previousCloudSync = cloudTimeResults[9].timestamp || null;
-
-        cloudTimestamps = {
-          users: cloudTimeResults[0].t || null,
-          patients: cloudTimeResults[1].t || null,
-          encounters: cloudTimeResults[2].t || null,
-          triages: cloudTimeResults[3].t || null,
-          clinical_notes: cloudTimeResults[4].t || null,
-          appointments: cloudTimeResults[5].t || null,
-          beds: cloudTimeResults[6].t || null,
-          prescriptions: cloudTimeResults[7].t || null,
-          last_sync: lastCloudSync
-        };
-      } catch (cloudErr) {
-        console.error('Erro ao consultar Turso cloudDb:', cloudErr);
-      }
+      const cloudStats = await getDbStats(cloudDb);
+      const cloudCounts = cloudStats ? cloudStats.counts : {};
+      const cloudTimestamps = cloudStats ? cloudStats.timestamps : {};
+      const previousCloudSync = cloudStats ? cloudStats.previousSync : null;
 
       const parseTs = (ts) => {
         if (!ts) return 0;
@@ -1505,9 +1479,14 @@ app.get('/api/sync/status', async (req, res) => {
       };
 
       const hasDifferences = tables.some(key => {
-        const countDiff = localCounts[key] !== (cloudCounts[key] || 0);
-        const timeDiff = Math.abs(parseTs(localTimestamps[key]) - parseTs(cloudTimestamps[key])) > 1000;
-        return countDiff || timeDiff;
+        const cntL = localCounts[key] || 0;
+        const cntC = cloudCounts[key] || 0;
+        if (cntL !== cntC) return true;
+
+        const tL = parseTs(localTimestamps[key]);
+        const tC = parseTs(cloudTimestamps[key]);
+        if (tL === 0 && tC === 0) return false;
+        return Math.abs(tL - tC) > 5000;
       });
 
       res.status(200).json({
@@ -1597,7 +1576,20 @@ app.post('/api/sync/upload', async (req, res) => {
 
     const nowIso = new Date().toISOString();
     try {
+      // Rotacionar em db local
+      const localLogRes = await db.execute({ sql: "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'", args: [] });
+      const prevLocal = localLogRes?.rows?.[0]?.timestamp;
+      if (prevLocal) {
+        await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('previous_upload', ?)", args: [prevLocal] });
+      }
       await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+
+      // Rotacionar no cloudDb
+      const cloudLogRes = await cloudDb.execute({ sql: "SELECT timestamp FROM sync_logs WHERE key = 'last_upload'", args: [] });
+      const prevCloud = cloudLogRes?.rows?.[0]?.timestamp;
+      if (prevCloud) {
+        await cloudDb.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('previous_upload', ?)", args: [prevCloud] });
+      }
       await cloudDb.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
     } catch (e) {}
 
@@ -1666,6 +1658,8 @@ app.post('/api/sync/download', async (req, res) => {
     const nowIso = new Date().toISOString();
     try {
       await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_download', ?)", args: [nowIso] });
+      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+      await cloudDb.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
     } catch (e) {}
 
     res.status(200).json({ status: 'success', message: 'Dados baixados da nuvem com sucesso!' });
