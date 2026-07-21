@@ -3534,69 +3534,64 @@ function exportToCSV(columns, rows, filename) {
 async function renderAgendaTab() {
   const contentArea = document.getElementById('main-content');
   const todayIso = new Date().toISOString().split('T')[0];
+  const todayLabel = new Date(todayIso + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+  const DOCTOR_COLORS = {
+    'Dr. João Silva':      { bg: 'rgba(139,92,246,0.15)',  border: '#8b5cf6', text: '#a78bfa', initials: 'JS' },
+    'Dra. Maria Santos':   { bg: 'rgba(236,72,153,0.15)',  border: '#ec4899', text: '#f472b6', initials: 'MS' },
+    'Dr. Carlos Oliveira': { bg: 'rgba(34,211,238,0.15)',  border: '#22d3ee', text: '#67e8f9', initials: 'CO' },
+    'Dra. Ana Costa':      { bg: 'rgba(251,146,60,0.15)',  border: '#fb923c', text: '#fdba74', initials: 'AC' },
+  };
+
+  const STATUS_CFG = {
+    'Agendado':       { color: '#818cf8', bg: 'rgba(99,102,241,0.12)',  dot: '#818cf8', icon: 'fa-clock' },
+    'Confirmado':     { color: '#4ade80', bg: 'rgba(34,197,94,0.12)',   dot: '#4ade80', icon: 'fa-circle-check' },
+    'Em Atendimento': { color: '#facc15', bg: 'rgba(234,179,8,0.12)',   dot: '#facc15', icon: 'fa-stethoscope' },
+    'Concluído':      { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)',  dot: '#94a3b8', icon: 'fa-check-double' },
+    'Cancelado':      { color: '#f87171', bg: 'rgba(239,68,68,0.1)',    dot: '#f87171', icon: 'fa-ban' },
+  };
 
   contentArea.innerHTML = `
-    <div class="tab-pane active" style="padding: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div class="tab-pane active" style="padding: 24px 28px; max-width: 1100px; margin: 0 auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 12px;">
         <div>
-          <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;"><i class="fa-solid fa-calendar-check" style="color: var(--color-primary);"></i> Agenda Médica</h2>
-          <p style="color: var(--text-secondary); font-size: 0.9rem;">Gerenciamento de consultas agendadas, horários e atendimento ambulatorial.</p>
+          <h2 style="font-size: 1.4rem; font-weight: 700; margin: 0 0 4px;">
+            <i class="fa-solid fa-calendar-check" style="color: var(--color-primary); margin-right: 8px;"></i>Agenda Médica
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0; text-transform: capitalize;">${todayLabel}</p>
         </div>
-        <button id="btn-open-new-appointment" class="btn btn-primary">
-          <i class="fa-solid fa-plus"></i> Agendar Nova Consulta
+        <button id="btn-open-new-appointment" class="btn btn-primary" style="gap: 6px; font-size: 0.85rem;">
+          <i class="fa-solid fa-plus"></i> Nova Consulta
         </button>
       </div>
-
-      <!-- Barra de Filtros -->
-      <div class="card" style="padding: 16px; margin-bottom: 24px;">
-        <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-          <div class="form-group" style="margin: 0; min-width: 200px;">
-            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Data da Consulta</label>
-            <input type="date" id="filter-agenda-date" class="form-input" value="${todayIso}">
-          </div>
-          <div class="form-group" style="margin: 0; min-width: 200px;">
-            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Médico / Especialidade</label>
-            <select id="filter-agenda-doctor" class="form-input">
-              <option value="">Todos os Médicos</option>
-              <option value="Dr. João Silva">Dr. João Silva (Cardiologia)</option>
-              <option value="Dra. Maria Santos">Dra. Maria Santos (Pediatria)</option>
-              <option value="Dr. Carlos Oliveira">Dr. Carlos Oliveira (Clínica Geral)</option>
-              <option value="Dra. Ana Costa">Dra. Ana Costa (Ortopedia)</option>
-            </select>
-          </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px;">
+          <i class="fa-solid fa-calendar" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+          <input type="date" id="filter-agenda-date" style="background: none; border: none; color: var(--text-primary); font-size: 0.85rem; outline: none; cursor: pointer;" value="${todayIso}">
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px; min-width: 220px;">
+          <i class="fa-solid fa-user-doctor" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+          <select id="filter-agenda-doctor" style="background: transparent; border: none; color: var(--text-primary); font-size: 0.85rem; outline: none; cursor: pointer; flex: 1; -webkit-appearance: none;">
+            <option value="" style="background:#1a1a2e;">Todos os Médicos</option>
+            <option value="Dr. João Silva" style="background:#1a1a2e;">Dr. João Silva</option>
+            <option value="Dra. Maria Santos" style="background:#1a1a2e;">Dra. Maria Santos</option>
+            <option value="Dr. Carlos Oliveira" style="background:#1a1a2e;">Dr. Carlos Oliveira</option>
+            <option value="Dra. Ana Costa" style="background:#1a1a2e;">Dra. Ana Costa</option>
+          </select>
+        </div>
+        <div id="agenda-stats" style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;"></div>
+      </div>
+      <div id="agenda-list-container">
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.6rem; margin-bottom: 12px; display: block;"></i>
+          <span style="font-size: 0.9rem;">Carregando agenda...</span>
         </div>
       </div>
-
-      <!-- Tabela / Grade de Consultas -->
-      <div class="card" style="padding: 0; overflow: hidden;">
-        <table class="table" style="width: 100%; margin: 0;">
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Paciente</th>
-              <th>Médico / Especialidade</th>
-              <th>Status</th>
-              <th>Observações</th>
-              <th style="text-align: right;">Ações</th>
-            </tr>
-          </thead>
-          <tbody id="agenda-table-body">
-            <tr>
-              <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-secondary);">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
-                <p style="margin-top: 8px;">Carregando agenda...</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
-
-    <!-- Modal Novo Agendamento -->
     <div id="modal-appointment" class="modal-overlay" style="display: none;">
-      <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-content" style="max-width: 480px;">
         <div class="modal-header">
-          <h3><i class="fa-solid fa-calendar-plus" style="color: var(--color-primary);"></i> Agendar Nova Consulta</h3>
+          <h3><i class="fa-solid fa-calendar-plus" style="color: var(--color-primary);"></i> Nova Consulta</h3>
           <button class="btn-close" id="btn-close-appointment-modal"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <form id="form-new-appointment" class="modal-body">
@@ -3627,11 +3622,11 @@ async function renderAgendaTab() {
           </div>
           <div class="form-group">
             <label for="apt-notes">Observações</label>
-            <textarea id="apt-notes" class="form-input" placeholder="Motivo da consulta, sintomas ou histórico..." rows="2"></textarea>
+            <textarea id="apt-notes" class="form-input" placeholder="Motivo da consulta, sintomas..." rows="2"></textarea>
           </div>
           <div class="modal-footer" style="padding-top: 16px;">
             <button type="button" class="btn btn-secondary" id="btn-cancel-appointment-modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Agendar Consulta</button>
+            <button type="submit" class="btn btn-primary">Agendar</button>
           </div>
         </form>
       </div>
@@ -3644,109 +3639,122 @@ async function renderAgendaTab() {
       const patients = Array.isArray(pList) ? pList : (pList.data || []);
       const pSelect = document.getElementById('apt-patient-id');
       if (pSelect) {
-        if (patients.length === 0) {
-          pSelect.innerHTML = '<option value="">Nenhum paciente disponível</option>';
-          return;
-        }
-        pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>';
+        pSelect.innerHTML = '<option value="">Selecione o paciente...</option>';
         patients.forEach(p => {
           const opt = document.createElement('option');
           opt.value = p.id;
-          opt.textContent = `${p.fullName} (CPF: ${p.cpf})`;
+          opt.textContent = p.fullName + ' (CPF: ' + p.cpf + ')';
           opt.dataset.name = p.fullName;
-          opt.style.backgroundColor = '#19142c';
-          opt.style.color = '#ffffff';
           pSelect.appendChild(opt);
         });
       }
     } catch (e) {}
   };
 
+  const renderAgendaCards = (appointments) => {
+    const container = document.getElementById('agenda-list-container');
+    const statsEl = document.getElementById('agenda-stats');
+
+    if (!Array.isArray(appointments) || appointments.length === 0) {
+      const selDate = document.getElementById('filter-agenda-date')?.value || '';
+      const dlabel = selDate ? new Date(selDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) : 'esta data';
+      if (statsEl) statsEl.innerHTML = '';
+      container.innerHTML = '<div style="text-align:center;padding:64px 20px;color:var(--text-muted);"><i class="fa-regular fa-calendar-xmark" style="font-size:2.8rem;margin-bottom:16px;display:block;opacity:0.4;"></i><p style="font-size:1rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Nenhuma consulta</p><p style="font-size:0.83rem;margin-bottom:20px;">Não há agendamentos para ' + dlabel + '.</p><button class="btn btn-primary" onclick="document.getElementById('btn-open-new-appointment').click()" style="font-size:0.85rem;"><i class="fa-solid fa-plus"></i> Agendar Nova Consulta</button></div>';
+      return;
+    }
+
+    const total = appointments.length;
+    const confirmados = appointments.filter(a => a.status === 'Confirmado').length;
+    const emAtendimento = appointments.filter(a => a.status === 'Em Atendimento').length;
+    const concluidos = appointments.filter(a => a.status === 'Concluído').length;
+
+    if (statsEl) {
+      let statsHtml = '<div style="display:flex;align-items:center;gap:6px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;padding:6px 12px;font-size:0.78rem;"><span style="color:var(--text-muted);">Total</span><span style="font-weight:700;color:var(--text-primary);">' + total + '</span></div>';
+      if (confirmados > 0) statsHtml += '<div style="display:flex;align-items:center;gap:5px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:6px 12px;font-size:0.78rem;"><i class="fa-solid fa-circle-check" style="color:#4ade80;font-size:0.7rem;"></i><span style="color:#4ade80;font-weight:600;">' + confirmados + ' Confirmados</span></div>';
+      if (emAtendimento > 0) statsHtml += '<div style="display:flex;align-items:center;gap:5px;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:8px;padding:6px 12px;font-size:0.78rem;"><i class="fa-solid fa-stethoscope" style="color:#facc15;font-size:0.7rem;"></i><span style="color:#facc15;font-weight:600;">' + emAtendimento + ' Em Atendimento</span></div>';
+      if (concluidos > 0) statsHtml += '<div style="display:flex;align-items:center;gap:5px;background:rgba(148,163,184,0.08);border:1px solid rgba(148,163,184,0.2);border-radius:8px;padding:6px 12px;font-size:0.78rem;"><i class="fa-solid fa-check-double" style="color:#94a3b8;font-size:0.7rem;"></i><span style="color:#94a3b8;font-weight:600;">' + concluidos + ' Concluídos</span></div>';
+      statsEl.innerHTML = statsHtml;
+    }
+
+    const manha = appointments.filter(a => parseInt(a.appointmentTime) < 12);
+    const tarde  = appointments.filter(a => parseInt(a.appointmentTime) >= 12);
+
+    const renderCard = (apt) => {
+      const dc = DOCTOR_COLORS[apt.doctorName] || { bg: 'rgba(99,102,241,0.15)', border: '#818cf8', text: '#818cf8', initials: (apt.doctorName || '?').charAt(0) };
+      const sc = STATUS_CFG[apt.status] || STATUS_CFG['Agendado'];
+      const isDone = apt.status === 'Concluído' || apt.status === 'Cancelado';
+      const canAct = apt.status === 'Agendado' || apt.status === 'Confirmado';
+      const notesHtml = apt.notes ? '<span style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;" title="' + apt.notes.replace(/"/g, '&quot;') + '"><i class="fa-regular fa-note-sticky" style="margin-right:3px;opacity:0.6;"></i>' + apt.notes + '</span>' : '';
+      const confirmBtn = apt.status === 'Agendado' ? '<button onclick="updateAppointmentStatus('' + apt.id + '', 'Confirmado')" title="Confirmar" style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:rgba(34,197,94,0.08);cursor:pointer;color:#4ade80;font-size:0.8rem;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseenter="this.style.background='rgba(34,197,94,0.2)'" onmouseleave="this.style.background='rgba(34,197,94,0.08)'"><i class="fa-solid fa-check"></i></button>' : '';
+      const atenderBtn = '<button onclick="startAppointmentEncounter('' + apt.patientId + '', '' + apt.id + '')" style="height:32px;padding:0 12px;border-radius:8px;border:none;background:var(--color-primary);cursor:pointer;color:#fff;font-size:0.78rem;font-weight:600;display:flex;align-items:center;gap:5px;transition:opacity .15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fa-solid fa-stethoscope"></i> Atender</button>';
+      const cancelBtn = '<button onclick="updateAppointmentStatus('' + apt.id + '', 'Cancelado')" title="Cancelar" style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);cursor:pointer;color:#f87171;font-size:0.8rem;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseenter="this.style.background='rgba(239,68,68,0.2)'" onmouseleave="this.style.background='rgba(239,68,68,0.08)'"><i class="fa-solid fa-xmark"></i></button>';
+
+      return '<div style="display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:16px;background:var(--bg-secondary);border:1px solid var(--border-color);border-left:3px solid ' + sc.dot + ';border-radius:10px;padding:14px 16px;transition:background .15s,box-shadow .15s;opacity:' + (isDone ? '0.6' : '1') + ';" onmouseenter="this.style.background='var(--bg-tertiary)';this.style.boxShadow='0 2px 12px rgba(0,0,0,0.15)'" onmouseleave="this.style.background='var(--bg-secondary)';this.style.boxShadow='none'">' +
+        '<div style="text-align:center;"><div style="font-size:1rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px;">' + apt.appointmentTime + '</div></div>' +
+        '<div style="min-width:0;">' +
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;flex-wrap:wrap;">' +
+            '<span style="font-weight:700;font-size:0.92rem;color:var(--text-primary);">' + apt.patientName + '</span>' +
+            '<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.72rem;font-weight:600;padding:2px 9px;border-radius:20px;background:' + sc.bg + ';color:' + sc.color + ';"><i class="fa-solid ' + sc.icon + '" style="font-size:0.65rem;"></i>' + apt.status + '</span>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+            '<div style="display:inline-flex;align-items:center;gap:6px;background:' + dc.bg + ';border-radius:6px;padding:3px 8px;">' +
+              '<div style="width:18px;height:18px;border-radius:50%;background:' + dc.border + ';display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:800;color:#fff;">' + dc.initials + '</div>' +
+              '<span style="font-size:0.78rem;color:' + dc.text + ';font-weight:600;">' + apt.doctorName + '</span>' +
+              '<span style="font-size:0.72rem;color:' + dc.text + ';opacity:0.7;">· ' + apt.specialty + '</span>' +
+            '</div>' +
+            notesHtml +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-shrink:0;">' + (canAct ? confirmBtn + atenderBtn + cancelBtn : '') + '</div>' +
+      '</div>';
+    };
+
+    const renderGroup = (list, label, icon) => {
+      if (list.length === 0) return '';
+      return '<div style="margin-bottom:28px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">' +
+          '<i class="fa-solid ' + icon + '" style="color:var(--text-muted);font-size:0.75rem;"></i>' +
+          '<span style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);">' + label + '</span>' +
+          '<div style="flex:1;height:1px;background:var(--border-color);opacity:0.5;"></div>' +
+          '<span style="font-size:0.72rem;color:var(--text-muted);">' + list.length + ' consulta' + (list.length > 1 ? 's' : '') + '</span>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:8px;">' + list.map(renderCard).join('') + '</div>' +
+      '</div>';
+    };
+
+    container.innerHTML = renderGroup(manha, 'Manhã', 'fa-sun') + renderGroup(tarde, 'Tarde', 'fa-cloud-sun');
+  };
+
   const loadAgenda = async () => {
     const selectedDate = document.getElementById('filter-agenda-date').value;
     const selectedDoctor = document.getElementById('filter-agenda-doctor').value;
-    const tbody = document.getElementById('agenda-table-body');
-
+    const container = document.getElementById('agenda-list-container');
+    container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.4rem;"></i></div>';
     try {
-      let url = `/api/appointments?date=${selectedDate}`;
-      if (selectedDoctor) url += `&doctor=${encodeURIComponent(selectedDoctor)}`;
-      const cacheKey = `appointments_${selectedDate}_${selectedDoctor}`;
+      let url = '/api/appointments?date=' + selectedDate;
+      if (selectedDoctor) url += '&doctor=' + encodeURIComponent(selectedDoctor);
+      const cacheKey = 'appointments_' + selectedDate + '_' + selectedDoctor;
       const appointments = await cachedApiGet(url, cacheKey);
-
-      if (!Array.isArray(appointments) || appointments.length === 0) {
-        const selectedDate = document.getElementById('filter-agenda-date')?.value || '';
-        const dateLabel = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : 'esta data';
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" style="text-align: center; padding: 48px 20px; color: var(--text-secondary);">
-              <i class="fa-regular fa-calendar-xmark" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5; display: block;"></i>
-              <p style="font-size: 1rem; font-weight: 600; margin-bottom: 4px;">Nenhuma consulta agendada</p>
-              <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 16px;">Não há consultas para ${dateLabel}.</p>
-              <button class="btn btn-primary btn-sm" onclick="document.getElementById('btn-open-new-appointment').click()" style="font-size: 0.85rem;">
-                <i class="fa-solid fa-plus"></i> Agendar Nova Consulta
-              </button>
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      tbody.innerHTML = appointments.map(apt => {
-        let statusBadge = '<span class="badge" style="background: rgba(99,102,241,0.2); color: #818cf8;">Agendado</span>';
-        if (apt.status === 'Confirmado') statusBadge = '<span class="badge" style="background: rgba(34,197,94,0.2); color: #4ade80;">Confirmado</span>';
-        if (apt.status === 'Em Atendimento') statusBadge = '<span class="badge" style="background: rgba(234,179,8,0.2); color: #facc15;">Em Atendimento</span>';
-        if (apt.status === 'Concluído') statusBadge = '<span class="badge" style="background: rgba(148,163,184,0.2); color: #cbd5e1;">Concluído</span>';
-        if (apt.status === 'Cancelado') statusBadge = '<span class="badge" style="background: rgba(239,68,68,0.2); color: #f87171;">Cancelado</span>';
-
-        return `
-          <tr>
-            <td style="font-weight: 700; color: var(--color-primary);">${apt.appointmentTime}</td>
-            <td style="font-weight: 600;">${apt.patientName}</td>
-            <td>${apt.doctorName} <br><small style="color: var(--text-secondary);">${apt.specialty}</small></td>
-            <td>${statusBadge}</td>
-            <td style="font-size: 0.85rem; color: var(--text-secondary);">${apt.notes || '-'}</td>
-            <td style="text-align: right;">
-              <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                ${apt.status === 'Agendado' ? `
-                  <button class="btn btn-sm btn-outline" onclick="updateAppointmentStatus('${apt.id}', 'Confirmado')" title="Confirmar">
-                    <i class="fa-solid fa-check" style="color: #4ade80;"></i>
-                  </button>
-                ` : ''}
-                ${(apt.status === 'Agendado' || apt.status === 'Confirmado') ? `
-                  <button class="btn btn-sm btn-primary" onclick="startAppointmentEncounter('${apt.patientId}', '${apt.id}')" title="Iniciar Atendimento">
-                    <i class="fa-solid fa-stethoscope"></i> Atender
-                  </button>
-                  <button class="btn btn-sm btn-outline" onclick="updateAppointmentStatus('${apt.id}', 'Cancelado')" title="Cancelar">
-                    <i class="fa-solid fa-xmark" style="color: #f87171;"></i>
-                  </button>
-                ` : ''}
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
+      renderAgendaCards(appointments);
     } catch (e) {
-      console.error('[Agenda] Erro ao carregar consultas:', e);
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-danger); padding: 20px;"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao carregar consultas: ${e.message || 'Tente novamente.'}</td></tr>`;
+      console.error('[Agenda] Erro:', e);
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--color-danger);"><i class="fa-solid fa-triangle-exclamation"></i> ' + (e.message || 'Erro ao carregar agenda.') + '</div>';
     }
   };
 
-  document.getElementById('filter-agenda-date').addEventListener('change', loadAgenda);
+  document.getElementById('filter-agenda-date').addEventListener('change', () => {
+    for (const key of dataCache.keys()) {
+      if (typeof key === 'string' && key.startsWith('appointments_')) { dataCache.delete(key); dataCacheTimestamps.delete(key); }
+    }
+    loadAgenda();
+  });
   document.getElementById('filter-agenda-doctor').addEventListener('change', loadAgenda);
 
-  // Abrir Modal
   const modal = document.getElementById('modal-appointment');
-  document.getElementById('btn-open-new-appointment').addEventListener('click', () => {
-    modal.style.display = 'flex';
-  });
-  document.getElementById('btn-close-appointment-modal').addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
-  document.getElementById('btn-cancel-appointment-modal').addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
+  document.getElementById('btn-open-new-appointment').addEventListener('click', () => { modal.style.display = 'flex'; });
+  document.getElementById('btn-close-appointment-modal').addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-cancel-appointment-modal').addEventListener('click', () => { modal.style.display = 'none'; });
 
-  // Salvar Agendamento
   document.getElementById('form-new-appointment').addEventListener('submit', async (e) => {
     e.preventDefault();
     const pSelect = document.getElementById('apt-patient-id');
@@ -3757,7 +3765,6 @@ async function renderAgendaTab() {
     const appointmentDate = document.getElementById('apt-date').value;
     const appointmentTime = document.getElementById('apt-time').value;
     const notes = document.getElementById('apt-notes').value;
-
     try {
       const res = await apiFetch('/api/appointments', {
         method: 'POST',
@@ -3768,31 +3775,21 @@ async function renderAgendaTab() {
         showToast('Consulta agendada com sucesso!');
         modal.style.display = 'none';
         requestSyncPromptIfConfigured();
-        // Invalida cache de appointments para forçar reload atualizado
         for (const key of dataCache.keys()) {
-          if (typeof key === 'string' && key.startsWith('appointments_')) {
-            dataCache.delete(key);
-            dataCacheTimestamps.delete(key);
-          }
+          if (typeof key === 'string' && key.startsWith('appointments_')) { dataCache.delete(key); dataCacheTimestamps.delete(key); }
         }
         loadAgenda();
       } else {
         const d = await res.json();
         alert(d.message || 'Erro ao agendar consulta.');
       }
-    } catch (err) {
-      alert('Erro de conexão ao agendar consulta.');
-    }
+    } catch (err) { alert('Erro de conexão ao agendar consulta.'); }
   });
 
-  // Expõe loadAgenda globalmente para updateAppointmentStatus usar sem reconstruir a aba
   window.reloadAgenda = loadAgenda;
-
-  // Carrega a tabela imediatamente; pacientes do modal carregam em background (só necessários ao abrir modal)
   loadAgenda();
   loadPatients();
 }
-
 window.updateAppointmentStatus = async (id, status) => {
   try {
     const res = await apiFetch(`/api/appointments/${id}`, {
