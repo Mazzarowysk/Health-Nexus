@@ -2207,6 +2207,8 @@ function initDashboardCharts(data) {
     const values = data.occupancyData.map(item => item.value);
     const colors = data.occupancyData.map(item => item.color);
 
+    occupancyCtx.style.cursor = 'pointer';
+    occupancyCtx.style.cursor = 'pointer';
     new Chart(occupancyCtx, {
       type: 'doughnut',
       data: {
@@ -2239,6 +2241,8 @@ function initDashboardCharts(data) {
     // Combine both values, or just show total appointments
     const values = data.appointmentsHistory.map(item => item.urgencia + item.ambulatorial);
 
+    appointmentsCtx.style.cursor = 'pointer';
+    appointmentsCtx.style.cursor = 'pointer';
     new Chart(appointmentsCtx, {
       type: 'line',
       data: {
@@ -3891,7 +3895,7 @@ async function renderAgendaTab() {
 
     if (statsEl) {
       statsEl.innerHTML = `
-        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-agenda-all" title="Clique para exibir todas as consultas" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25); display: flex; align-items: center; justify-content: center; color: #818cf8;">
             <i class="fa-solid fa-list-check" style="font-size: 1.2rem;"></i>
           </div>
@@ -3901,7 +3905,7 @@ async function renderAgendaTab() {
           </div>
         </div>
 
-        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-agenda-confirmed" title="Clique para filtrar apenas Confirmados" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; color: #34d399;">
             <i class="fa-solid fa-circle-check" style="font-size: 1.2rem;"></i>
           </div>
@@ -3911,7 +3915,7 @@ async function renderAgendaTab() {
           </div>
         </div>
 
-        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-agenda-progress" title="Clique para filtrar apenas Em Atendimento" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
             <i class="fa-solid fa-stethoscope" style="font-size: 1.2rem;"></i>
           </div>
@@ -3921,7 +3925,7 @@ async function renderAgendaTab() {
           </div>
         </div>
 
-        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-agenda-completed" title="Clique para filtrar apenas Concluídos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(148,163,184,0.12); border: 1px solid rgba(148,163,184,0.2); display: flex; align-items: center; justify-content: center; color: #94a3b8;">
             <i class="fa-solid fa-check-double" style="font-size: 1.2rem;"></i>
           </div>
@@ -4589,7 +4593,7 @@ async function renderDoctorsTab() {
 
     if (kpisEl) {
       kpisEl.innerHTML = `
-        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-doc-total" title="Clique para exibir todos os médicos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25); display: flex; align-items: center; justify-content: center; color: #a78bfa;">
             <i class="fa-solid fa-user-doctor" style="font-size: 1.2rem;"></i>
           </div>
@@ -4599,7 +4603,7 @@ async function renderDoctorsTab() {
           </div>
         </div>
 
-        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-doc-active" title="Clique para buscar médicos ativos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; color: #34d399;">
             <i class="fa-solid fa-user-check" style="font-size: 1.2rem;"></i>
           </div>
@@ -4609,7 +4613,7 @@ async function renderDoctorsTab() {
           </div>
         </div>
 
-        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-doc-specs" title="Clique para ver resumo por Especialidade" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.25); display: flex; align-items: center; justify-content: center; color: #67e8f9;">
             <i class="fa-solid fa-stethoscope" style="font-size: 1.2rem;"></i>
           </div>
@@ -4757,6 +4761,40 @@ async function renderDoctorsTab() {
 
   // Event Listeners
   document.getElementById('filter-doctor-search').addEventListener('input', () => renderTable(allDoctorsCache));
+
+  document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
+    const input = document.getElementById('filter-doctor-search');
+    if (input) { input.value = ''; renderTable(allDoctorsCache); }
+  });
+
+  document.getElementById('kpi-doc-active')?.addEventListener('click', () => {
+    const input = document.getElementById('filter-doctor-search');
+    if (input) { input.value = ''; renderTable(allDoctorsCache); }
+  });
+
+  document.getElementById('kpi-doc-specs')?.addEventListener('click', () => {
+    const specsMap = {};
+    allDoctorsCache.forEach(d => { specsMap[d.specialty] = (specsMap[d.specialty] || 0) + 1; });
+    const list = Object.entries(specsMap).map(([s, c]) => `• ${s}: ${c} médico(s)`).join('\n');
+    alert('Resumo de Especialidades no Corpo Clínico:\n\n' + (list || 'Nenhuma especialidade cadastrada.'));
+  });
+
+  document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
+    const input = document.getElementById('filter-doctor-search');
+    if (input) { input.value = ''; renderTable(allDoctorsCache); }
+  });
+
+  document.getElementById('kpi-doc-active')?.addEventListener('click', () => {
+    const input = document.getElementById('filter-doctor-search');
+    if (input) { input.value = ''; renderTable(allDoctorsCache); }
+  });
+
+  document.getElementById('kpi-doc-specs')?.addEventListener('click', () => {
+    const specsMap = {};
+    allDoctorsCache.forEach(d => { specsMap[d.specialty] = (specsMap[d.specialty] || 0) + 1; });
+    const list = Object.entries(specsMap).map(([s, c]) => `• ${s}: ${c} médico(s)`).join('\n');
+    alert('Resumo de Especialidades no Corpo Clínico:\n\n' + (list || 'Nenhuma especialidade cadastrada.'));
+  });
 
   const modal = document.getElementById('modal-doctor');
   document.getElementById('btn-open-doctor-modal').addEventListener('click', () => {
