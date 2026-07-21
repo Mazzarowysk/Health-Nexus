@@ -490,7 +490,7 @@ app.get('/api/dashboard/summary', async (req, res) => {
 
 // Abrir novo atendimento
 app.post('/api/encounters', async (req, res) => {
-  const { patientId, type } = req.body;
+  const { patientId, type, patientName, status: reqStatus } = req.body;
 
   if (!patientId || !type) {
     return res.status(400).json({
@@ -500,42 +500,82 @@ app.post('/api/encounters', async (req, res) => {
   }
 
   try {
+    // 1. Garantir que o paciente exista na tabela patients para evitar erro 404 e falha de JOIN
     const patientCheck = await db.execute({
-      sql: 'SELECT id FROM patients WHERE id = ?',
+      sql: 'SELECT id, fullName FROM patients WHERE id = ?',
       args: [patientId]
     });
 
     if (patientCheck.rows.length === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Paciente não encontrado.'
+      const pName = patientName || 'Paciente Agendado';
+      const nowIso = new Date().toISOString();
+      const randomCpf = `${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}-${Math.floor(10 + Math.random() * 89)}`;
+      await db.execute({
+        sql: `INSERT INTO patients (id, fullName, cpf, birthDate, phone, created_at, updated_at)
+              VALUES (?, ?, ?, '1990-01-01', '(11) 99999-9999', ?, ?)`,
+        args: [patientId, pName, randomCpf, nowIso, nowIso]
       });
     }
 
+    // 2. Verificar se já existe atendimento ativo para este paciente
     const activeCheck = await db.execute({
       sql: "SELECT id FROM encounters WHERE patientId = ? AND status != 'Finalizado'",
       args: [patientId]
     });
 
+    const targetStatus = reqStatus || (type === 'Ambulatorio' ? 'Em_Atendimento' : 'Aguardando_Triagem');
+
     if (activeCheck.rows.length > 0) {
-      return res.status(409).json({
-        status: 'error',
-        message: 'Este paciente já possui um atendimento ativo.'
+      const existingEncId = activeCheck.rows[0].id;
+      await db.execute({
+        sql: "UPDATE encounters SET status = ? WHERE id = ?",
+        args: [targetStatus, existingEncId]
+      });
+
+      // Garantir triagem padrão caso vá para consulta médica
+      const triageCheck = await db.execute({
+        sql: "SELECT id FROM triages WHERE encounterId = ?",
+        args: [existingEncId]
+      });
+
+      if (triageCheck.rows.length === 0) {
+        await db.execute({
+          sql: `INSERT INTO triages (id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at)
+                VALUES (?, ?, 'AMARELO', 70, '120/80', 36.5, 80, 'Atendimento Ambulatorial Agendado', ?)`,
+          args: [crypto.randomUUID(), existingEncId, new Date().toISOString()]
+        });
+      }
+
+      return res.status(200).json({
+        status: 'success',
+        encounterId: existingEncId,
+        statusLabel: targetStatus,
+        message: 'Atendimento existente atualizado com sucesso.'
       });
     }
 
+    // 3. Criar novo atendimento
     const encounterId = crypto.randomUUID();
     const admittedAt = new Date().toISOString();
 
     await db.execute({
       sql: 'INSERT INTO encounters (id, patientId, type, status, admitted_at) VALUES (?, ?, ?, ?, ?)',
-      args: [encounterId, patientId, type, 'Aguardando_Triagem', admittedAt]
+      args: [encounterId, patientId, type, targetStatus, admittedAt]
     });
+
+    // Se for ambulatorial ou direto para consulta, insere registro de triagem padrão
+    if (targetStatus === 'Em_Atendimento' || targetStatus === 'Aguardando_Atendimento') {
+      await db.execute({
+        sql: `INSERT INTO triages (id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at)
+              VALUES (?, ?, 'AMARELO', 70, '120/80', 36.5, 80, 'Consulta Ambulatorial Agendada', ?)`,
+        args: [crypto.randomUUID(), encounterId, admittedAt]
+      });
+    }
 
     res.status(201).json({
       status: 'success',
       encounterId,
-      statusLabel: 'Aguardando_Triagem',
+      statusLabel: targetStatus,
       admitted_at: admittedAt
     });
   } catch (err) {

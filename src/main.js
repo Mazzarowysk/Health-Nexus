@@ -4962,6 +4962,8 @@ async function renderDoctorsTab() {
 
 
 
+
+
 // ==========================================
 // FUNÇÕES GLOBAIS DE INTERATIVIDADE E AGENDA
 // ==========================================
