@@ -1,5 +1,8 @@
+import dns from 'dns';
 import app, { init } from './app.js';
 import dotenv from 'dotenv';
+
+dns.setDefaultResultOrder('ipv4first');
 
 // Carrega as variáveis do arquivo .env
 dotenv.config();

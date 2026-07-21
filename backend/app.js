@@ -206,7 +206,7 @@ export const init = async () => {
       await initLocalDb();
       if (getCloudDb()) await initCloudDb();
     }
-    const {rows} = await db.execute({sql:'SELECT id FROM users WHERE username=?', args:['admin']});
+    const {rows} = await db.execute({sql:"SELECT id FROM users WHERE LOWER(username) = 'admin'", args:[]});
     if (rows.length === 0) {
       const hash = await bcrypt.hash('admin', 10);
       const aid = 'US-' + crypto.randomBytes(4).toString('hex');
@@ -268,20 +268,53 @@ setInterval(() => {
 
 // --- ROTAS DE AUTENTICAÇÃO ---
 
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.execute({
+      sql: 'SELECT id, name, username, role, created_at FROM users WHERE id = ?',
+      args: [req.user.id]
+    });
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ message: 'Usuário não encontrado ou inativo.' });
+    }
+
+    const u = result.rows[0];
+    res.json({
+      user: { id: u.id, name: u.name, role: u.role, username: u.username }
+    });
+  } catch (err) {
+    console.error('Erro ao verificar sessão do usuário:', err);
+    res.status(500).json({ message: 'Erro ao verificar token de autenticação.' });
+  }
+});
+
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { name, username, password, role } = req.body;
+    const name = (req.body.name || '').trim();
+    const username = (req.body.username || '').trim();
+    const password = (req.body.password || '').trim();
+    const role = (req.body.role || 'Médico').trim();
+
     if (!name || !username || !password) {
       return res.status(400).json({ message: 'Nome, usuário e senha são obrigatórios.' });
     }
 
-    // Verificar se o usuário já existe
+    if (username.length < 3) {
+      return res.status(400).json({ message: 'O nome de usuário deve ter pelo menos 3 caracteres.' });
+    }
+
+    if (password.length < 4) {
+      return res.status(400).json({ message: 'A senha deve ter pelo menos 4 caracteres.' });
+    }
+
+    // Verificar se o usuário já existe (case-insensitive)
     const existing = await db.execute({
-      sql: 'SELECT * FROM users WHERE username = ?',
+      sql: 'SELECT * FROM users WHERE LOWER(username) = LOWER(?)',
       args: [username]
     });
     if (existing.rows.length > 0) {
-      return res.status(409).json({ message: 'Usuário já cadastrado.' });
+      return res.status(409).json({ message: 'Usuário já cadastrado com este nome de usuário.' });
     }
 
     // Hash da senha
@@ -304,25 +337,27 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const username = (req.body.username || '').trim();
+    const password = (req.body.password || '').trim();
+
     if (!username || !password) {
       return res.status(400).json({ message: 'Usuário e senha são obrigatórios.' });
     }
 
     const result = await db.execute({
-      sql: 'SELECT * FROM users WHERE username = ?',
+      sql: 'SELECT * FROM users WHERE LOWER(username) = LOWER(?)',
       args: [username]
     });
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ message: 'Usuário não encontrado.' });
+      return res.status(401).json({ message: 'Usuário ou senha incorretos.' });
     }
 
     const user = result.rows[0];
     const match = await bcrypt.compare(password, user.password_hash);
 
     if (!match) {
-      return res.status(401).json({ message: 'Senha incorreta.' });
+      return res.status(401).json({ message: 'Usuário ou senha incorretos.' });
     }
 
     // Gerar token JWT (expira em 24h)

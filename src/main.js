@@ -476,9 +476,27 @@ const checkInitialSync = async () => {
   }
 };
 
-const initializeApp = () => {
+const initializeApp = async () => {
   initTheme();
-  if (state.isAuthenticated) {
+  if (state.isAuthenticated && state.token) {
+    try {
+      const res = await fetch(`${API_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${state.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user) {
+          state.user = data.user;
+          sessionStorage.setItem('hn_user', JSON.stringify(data.user));
+        }
+      } else {
+        logout();
+        return;
+      }
+    } catch (e) {
+      console.warn('Servidor inacessível durante verificação inicial de sessão, usando credenciais em cache.');
+    }
+
     renderAppStructure();
     const logoutBtn = document.getElementById('btn-logout');
     if (logoutBtn) {
@@ -669,6 +687,8 @@ function renderAuthScreen() {
           <img src="/assets/logo.png" alt="Health Nexus" class="auth-logo">
           <h2 class="auth-title">${isLogin ? 'Bem-vindo de volta' : 'Criar Conta'}</h2>
           <p class="auth-subtitle">${isLogin ? 'Faça login para acessar o sistema' : 'Preencha os dados para se registrar'}</p>
+
+          <div id="auth-error-container"></div>
           
           <form id="auth-form" class="auth-form">
             ${!isLogin ? `
@@ -683,7 +703,12 @@ function renderAuthScreen() {
             </div>
             <div class="form-group" style="text-align: left;">
               <label class="form-label" for="auth-password">Senha</label>
-              <input type="password" id="auth-password" class="form-input" required placeholder="••••••••">
+              <div class="password-input-wrapper">
+                <input type="password" id="auth-password" class="form-input" required placeholder="••••••••">
+                <button type="button" id="toggle-password-visibility" class="toggle-password-btn" title="Mostrar/ocultar senha">
+                  <i class="fa-regular fa-eye" id="toggle-password-icon"></i>
+                </button>
+              </div>
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
               ${isLogin ? 'Entrar' : 'Cadastrar'}
@@ -695,7 +720,7 @@ function renderAuthScreen() {
               ? 'Não tem uma conta? <a id="toggle-auth">Cadastre-se</a>' 
               : 'Já tem uma conta? <a id="toggle-auth">Faça login</a>'}
           </div>
-          <div style="text-align: center; font-size: 0.65rem; color: var(--text-secondary); opacity: 0.6; margin-top: 12px;">
+          <div style="text-align: center; font-size: 0.65rem; color: var(--text-secondary); opacity: 0.6; margin-top: 16px;">
             <i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i> Desenvolvido por @mazzarowysk & @_coltri_<br>
             <span style="font-weight: bold; opacity: 0.8; margin-top: 4px; display: inline-block;">Versão 1.0.1</span>
           </div>
@@ -708,11 +733,26 @@ function renderAuthScreen() {
       renderForm();
     });
 
+    const passInput = document.getElementById('auth-password');
+    const togglePassBtn = document.getElementById('toggle-password-visibility');
+    const togglePassIcon = document.getElementById('toggle-password-icon');
+
+    if (togglePassBtn && passInput) {
+      togglePassBtn.addEventListener('click', () => {
+        const isPassword = passInput.type === 'password';
+        passInput.type = isPassword ? 'text' : 'password';
+        togglePassIcon.className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+      });
+    }
+
     document.getElementById('auth-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById('auth-username').value;
-      const password = document.getElementById('auth-password').value;
-      const name = !isLogin ? document.getElementById('auth-name').value : null;
+      const errorContainer = document.getElementById('auth-error-container');
+      if (errorContainer) errorContainer.innerHTML = '';
+
+      const username = document.getElementById('auth-username').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+      const name = !isLogin ? document.getElementById('auth-name').value.trim() : null;
       
       const submitBtn = e.target.querySelector('button[type="submit"]');
       const originalText = submitBtn.textContent;
@@ -746,10 +786,28 @@ function renderAuthScreen() {
             renderForm();
           }
         } else {
-          alert(data.message || 'Erro na autenticação');
+          if (errorContainer) {
+            errorContainer.innerHTML = `
+              <div class="auth-error-alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>${data.message || 'Erro na autenticação'}</span>
+              </div>
+            `;
+          } else {
+            alert(data.message || 'Erro na autenticação');
+          }
         }
       } catch (err) {
-        alert('Erro ao comunicar com o servidor');
+        if (errorContainer) {
+          errorContainer.innerHTML = `
+            <div class="auth-error-alert">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>Erro ao comunicar com o servidor. Verifique sua conexão.</span>
+            </div>
+          `;
+        } else {
+          alert('Erro ao comunicar com o servidor');
+        }
       } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
@@ -817,8 +875,10 @@ function renderAppStructure() {
           </ul>
         </nav>
         <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 16px;">
-          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
-            Logado como: <br><strong style="color: var(--text-primary);">${state.user ? state.user.name : ''}</strong>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px;">
+            Logado como: <br>
+            <strong style="color: var(--text-primary); display: block; margin-top: 2px;">${state.user ? state.user.name : 'Usuário'}</strong>
+            <span class="user-role-badge"><i class="fa-solid fa-user-shield" style="font-size:0.65rem;margin-right:4px;"></i>${state.user ? state.user.role : 'Médico'}</span>
           </div>
           <button id="btn-logout" class="btn" style="width: 100%; background: var(--bg-tertiary); color: var(--color-danger); border: 1px solid var(--border-color); margin-bottom: 12px;">
             <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
@@ -3659,7 +3719,7 @@ async function renderAgendaTab() {
       const selDate = document.getElementById('filter-agenda-date')?.value || '';
       const dlabel = selDate ? new Date(selDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) : 'esta data';
       if (statsEl) statsEl.innerHTML = '';
-      container.innerHTML = '<div style="text-align:center;padding:64px 20px;color:var(--text-muted);"><i class="fa-regular fa-calendar-xmark" style="font-size:2.8rem;margin-bottom:16px;display:block;opacity:0.4;"></i><p style="font-size:1rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Nenhuma consulta</p><p style="font-size:0.83rem;margin-bottom:20px;">Não há agendamentos para ' + dlabel + '.</p><button class="btn btn-primary" onclick="document.getElementById('btn-open-new-appointment').click()" style="font-size:0.85rem;"><i class="fa-solid fa-plus"></i> Agendar Nova Consulta</button></div>';
+      container.innerHTML = '<div style="text-align:center;padding:64px 20px;color:var(--text-muted);"><i class="fa-regular fa-calendar-xmark" style="font-size:2.8rem;margin-bottom:16px;display:block;opacity:0.4;"></i><p style="font-size:1rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Nenhuma consulta</p><p style="font-size:0.83rem;margin-bottom:20px;">Não há agendamentos para ' + dlabel + '.</p><button class="btn btn-primary" onclick="document.getElementById(&quot;btn-open-new-appointment&quot;).click()" style="font-size:0.85rem;"><i class="fa-solid fa-plus"></i> Agendar Nova Consulta</button></div>';
       return;
     }
 
