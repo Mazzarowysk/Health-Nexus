@@ -2271,9 +2271,13 @@ function applyInputMasks() {
 }
 
 // Inicializar aplicativo
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+  });
+} else {
   initializeApp();
-});
+}
 
 // Heartbeat para manter o servidor rodando apenas enquanto a aba estiver aberta
 setInterval(() => {
