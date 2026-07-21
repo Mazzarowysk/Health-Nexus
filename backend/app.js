@@ -1387,6 +1387,27 @@ app.post('/api/prescriptions', async (req, res) => {
   }
 });
 
+// Helper para execução de queries individuais com auto-retry em conexões expiradas/ociosas
+const executeWithRetry = async (client, sql, args = [], maxRetries = 2) => {
+  const sanitizedArgs = (args || []).map(v => (v === undefined ? null : v));
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await client.execute({ sql, args: sanitizedArgs });
+      return res;
+    } catch (err) {
+      const isConnErr = err.message?.includes('fetch failed') || 
+                        err.message?.includes('timeout') || 
+                        err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT';
+      if (isConnErr && attempt < maxRetries) {
+        console.warn(`[DB] Tentativa ${attempt} falhou por socket ocioso/timeout. Reconectando ao Turso...`);
+        await new Promise(r => setTimeout(r, 600));
+        continue;
+      }
+      throw err;
+    }
+  }
+};
+
 // Helper para execução em lote rápida e ultra-resiliente no Turso/SQLite
 const batchExecute = async (client, statements) => {
   if (!statements || statements.length === 0) return;
@@ -1399,16 +1420,30 @@ const batchExecute = async (client, statements) => {
   const CHUNK_SIZE = 50;
   for (let i = 0; i < sanitized.length; i += CHUNK_SIZE) {
     const chunk = sanitized.slice(i, i + CHUNK_SIZE);
-    try {
-      if (typeof client.batch === 'function') {
-        await client.batch(chunk, 'write');
-      } else {
-        for (const stmt of chunk) {
-          await client.execute(stmt);
+    let success = false;
+
+    // Tentativa em lote com retry de reconexão
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        if (typeof client.batch === 'function') {
+          await client.batch(chunk, 'write');
+        } else {
+          for (const stmt of chunk) {
+            await client.execute(stmt);
+          }
+        }
+        success = true;
+        break;
+      } catch (batchErr) {
+        console.warn(`[batchExecute] Tentativa ${attempt} em lote falhou: ${batchErr.message}`);
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 600));
         }
       }
-    } catch (batchErr) {
-      console.warn('[batchExecute] Lote falhou, executando linha por linha:', batchErr.message);
+    }
+
+    // Se as 2 tentativas em lote falharem, executa linha por linha individualmente
+    if (!success) {
       for (const stmt of chunk) {
         try {
           await client.execute(stmt);
@@ -1652,14 +1687,14 @@ app.post('/api/sync/download', async (req, res) => {
 
   try {
     const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions] = await Promise.all([
-      cloudDb.execute('SELECT * FROM users').then(r => r.rows),
-      cloudDb.execute('SELECT * FROM patients').then(r => r.rows),
-      cloudDb.execute('SELECT * FROM encounters').then(r => r.rows),
-      cloudDb.execute('SELECT * FROM triages').then(r => r.rows),
-      cloudDb.execute('SELECT * FROM clinical_notes').then(r => r.rows),
-      cloudDb.execute('SELECT * FROM appointments').then(r => r.rows),
-      cloudDb.execute('SELECT * FROM beds').then(r => r.rows),
-      cloudDb.execute('SELECT * FROM prescriptions').then(r => r.rows)
+      executeWithRetry(cloudDb, 'SELECT * FROM users').then(r => r.rows),
+      executeWithRetry(cloudDb, 'SELECT * FROM patients').then(r => r.rows),
+      executeWithRetry(cloudDb, 'SELECT * FROM encounters').then(r => r.rows),
+      executeWithRetry(cloudDb, 'SELECT * FROM triages').then(r => r.rows),
+      executeWithRetry(cloudDb, 'SELECT * FROM clinical_notes').then(r => r.rows),
+      executeWithRetry(cloudDb, 'SELECT * FROM appointments').then(r => r.rows),
+      executeWithRetry(cloudDb, 'SELECT * FROM beds').then(r => r.rows),
+      executeWithRetry(cloudDb, 'SELECT * FROM prescriptions').then(r => r.rows)
     ]);
 
     const stmts = [

@@ -274,7 +274,8 @@ const showSyncComparisonModal = (syncData = {}) => {
         overlay.remove();
         setTimeout(() => window.location.reload(), 1200);
       } else {
-        showToast('Erro ao baixar dados da nuvem.');
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.message || 'Erro ao baixar dados da nuvem.');
         downloadBtn.disabled = false;
         closeBtn.disabled = false;
         downloadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Sim, Baixar da Nuvem';
