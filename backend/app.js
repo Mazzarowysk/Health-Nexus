@@ -11,6 +11,7 @@ const getCloudDb = () => clientModule.cloudDb;
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'health-nexus-super-secret-key';
+const MASTER_KEY_SECRET = process.env.MASTER_KEY || 'MASTER-HN-2026';
 
 // --- MIDDLEWARES ---
 app.use(cors());
@@ -445,7 +446,7 @@ app.post('/api/auth/register', async (req, res) => {
     let masterApproved = 1;
     let masterKeyRequested = 0;
 
-    if (userRole === 'Master' || userRole === 'Administrador') {
+    if (userRole === 'Master' || userRole === 'Administrador' || userRole === 'Desenvolvedor' || userRole === 'Dev') {
       const isValidKey = masterKey && masterKey.trim() === MASTER_KEY_SECRET;
       if (!isValidKey) {
         userStatus = 'Pendente';
@@ -2650,7 +2651,7 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-const MASTER_KEY_SECRET = process.env.MASTER_KEY || 'MASTER-HN-2026';
+// MASTER_KEY_SECRET definida no topo do arquivo
 
 // Endpoint para consultar a Chave Master (Apenas Master mazzarowysk)
 app.get('/api/users/master-key', async (req, res) => {
