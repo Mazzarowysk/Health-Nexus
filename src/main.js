@@ -7327,16 +7327,19 @@ async function renderStagnationTab(container) {
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
         <div>
           <h2 style="font-family: Outfit, sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Painel de Estagnação & SLA Hospitalar
+            <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Painel de Alertas & Estagnação
           </h2>
           <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-            Monitoramento proativo de permanência por departamento para direcionamento de condutas.
+            Monitoramento proativo de permissões, permanência e gargalos hospitalares.
           </div>
         </div>
         <button id="btn-refresh-stagnation" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 16px;">
           <i class="fa-solid fa-arrows-rotate" style="margin-right: 6px;"></i> Atualizar Alertas
         </button>
       </div>
+
+      <!-- Área de Aprovações de Acesso Master (Exclusivo para Master) -->
+      <div id="stagnation-master-approval-area"></div>
 
       <div id="stagnation-kpi-area" class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 24px;">
         <div class="kpi-card" style="border-left: 4px solid #ef4444;">
@@ -7373,6 +7376,124 @@ async function renderStagnationTab(container) {
 
 async function loadAndRenderStagnationData() {
   try {
+    const isMaster = state.user && (state.user.role === 'Master' || state.user.role === 'Administrador' || state.user.username === 'mazzarowysk');
+    let pendingUsers = [];
+
+    if (isMaster) {
+      try {
+        const resUsers = await apiFetch('/api/users');
+        if (resUsers.ok) {
+          const payloadUsers = await resUsers.json();
+          const uList = payloadUsers.data || [];
+          pendingUsers = uList.filter(u => u.status === 'Pendente' || u.master_key_requested == 1);
+        }
+      } catch (e) {
+        console.error('Erro ao buscar usuários pendentes:', e);
+      }
+    }
+
+    const masterArea = document.getElementById('stagnation-master-approval-area');
+    if (masterArea) {
+      if (isMaster && pendingUsers.length > 0) {
+        masterArea.innerHTML = `
+          <div style="background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.08)); border: 1px solid rgba(245,158,11,0.4); border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(245,158,11,0.1);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245,158,11,0.25); border: 1px solid rgba(245,158,11,0.4); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
+                  <i class="fa-solid fa-user-shield" style="font-size: 1.3rem;"></i>
+                </div>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+                    Solicitações de Acesso Total (Master) Pendentes
+                  </h3>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">
+                    Somente você como Administrador Master pode aprovar ou recusar estas solicitações de acesso.
+                  </div>
+                </div>
+              </div>
+              <span style="background: #f59e0b; color: #000; font-weight: 800; font-size: 0.8rem; padding: 4px 14px; border-radius: 20px; box-shadow: 0 0 10px rgba(245,158,11,0.4);">
+                ${pendingUsers.length} Solicitação(ões)
+              </span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              ${pendingUsers.map(u => `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 20px; flex-wrap: wrap; gap: 12px;">
+                  <div>
+                    <div style="font-weight: 700; color: var(--text-primary); font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                      ${u.name} <span style="font-size: 0.82rem; color: #818cf8; font-weight: 600;">(@${u.username})</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+                      Função Solicitada: <strong style="color: #fbbf24;">${u.role || 'Master'}</strong> · Status: <span style="color: #f59e0b; font-weight: 600;">Pendente de Liberação</span>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-stag-approve" data-id="${u.id}" data-name="${u.name}" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; font-size: 0.82rem; font-weight: 700; padding: 9px 18px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+                      <i class="fa-solid fa-shield-check"></i> Aprovar Acesso Total
+                    </button>
+                    <button class="btn btn-stag-reject" data-id="${u.id}" data-name="${u.name}" style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); font-size: 0.82rem; font-weight: 600; padding: 9px 16px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-xmark"></i> Recusar
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        masterArea.querySelectorAll('.btn-stag-approve').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.dataset.id;
+            const uname = btn.dataset.name;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Aprovando...';
+            try {
+              const r = await apiFetch(`/api/users/${uid}/approve-master`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'approve', role: 'Master' })
+              });
+              if (r.ok) {
+                showToast(`✅ Acesso Total aprovado para ${uname}!`);
+                loadAndRenderStagnationData();
+              } else {
+                showCustomAlert({ title: 'Atenção', message: 'Erro ao aprovar usuário.', type: 'warning' });
+              }
+            } catch (e) {
+              showCustomAlert({ title: 'Erro', message: 'Falha de conexão com o servidor.', type: 'danger' });
+            }
+          });
+        });
+
+        masterArea.querySelectorAll('.btn-stag-reject').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.dataset.id;
+            const uname = btn.dataset.name;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Recusando...';
+            try {
+              const r = await apiFetch(`/api/users/${uid}/approve-master`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'reject', role: 'Médico' })
+              });
+              if (r.ok) {
+                showToast(`Solicitação de ${uname} recusada.`);
+                loadAndRenderStagnationData();
+              } else {
+                showCustomAlert({ title: 'Atenção', message: 'Erro ao recusar usuário.', type: 'warning' });
+              }
+            } catch (e) {
+              showCustomAlert({ title: 'Erro', message: 'Falha de conexão com o servidor.', type: 'danger' });
+            }
+          });
+        });
+
+      } else {
+        masterArea.innerHTML = '';
+      }
+    }
+
     const res = await apiFetch('/api/stagnation/alerts');
     const result = await res.json();
 
@@ -7388,12 +7509,14 @@ async function loadAndRenderStagnationData() {
     if (warnEl) warnEl.textContent = warningCount;
     if (totEl) totEl.textContent = alerts.length;
 
-    // Atualizar badge do menu lateral
+    // Atualizar badge do menu lateral acumulando alertas + aprovações pendentes
+    const totalNavBadge = alerts.length + (isMaster ? pendingUsers.length : 0);
     const navBadge = document.getElementById('stagnation-nav-badge');
     if (navBadge) {
-      if (alerts.length > 0) {
-        navBadge.textContent = alerts.length;
+      if (totalNavBadge > 0) {
+        navBadge.textContent = totalNavBadge;
         navBadge.style.display = 'inline-block';
+        navBadge.style.background = (isMaster && pendingUsers.length > 0) ? '#f59e0b' : '#ef4444';
       } else {
         navBadge.style.display = 'none';
       }
