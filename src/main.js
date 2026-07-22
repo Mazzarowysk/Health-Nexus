@@ -1444,6 +1444,12 @@ async function renderTabContent() {
             <td style="font-family: monospace; font-weight: 500;">${p.billingValue || 'R$ 0,00'}</td>
             <td>
               <div class="actions-cell">
+                <button class="btn-icon btn-icon-admit" onclick="admitPatientFromPatientsTab('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}', '${p.cpf||''}')" title="Admitir / Atender este Paciente">
+                  <i class="fa-solid fa-hospital-user"></i>
+                </button>
+                <button class="btn-icon btn-icon-history" onclick="openPatientHistoryModal('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" title="Ver Prontuário & Histórico Pós-Alta">
+                  <i class="fa-solid fa-file-medical"></i>
+                </button>
                 <button class="btn-icon btn-icon-edit" 
                   data-edit-id="${p.id}" 
                   data-full-name="${p.fullName}" 
