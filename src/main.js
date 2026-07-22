@@ -688,10 +688,14 @@ const showUserFormModal = (userToEdit = null, onSaved = null) => {
           <label class="form-label" for="uf-role">* Função / Permissão:</label>
           <select id="uf-role" class="form-input" style="background: var(--bg-card, #1e293b); color: var(--text-primary);">
             <option value="Master" ${userToEdit?.role === 'Master' ? 'selected' : ''}>👑 Master (Acesso Total)</option>
-            <option value="Administrador" ${userToEdit?.role === 'Administrador' ? 'selected' : ''}>🛠️ Administrador</option>
-            <option value="Médico" ${userToEdit?.role === 'Médico' || !userToEdit ? 'selected' : ''}>🩺 Médico</option>
-            <option value="Enfermeiro" ${userToEdit?.role === 'Enfermeiro' ? 'selected' : ''}>🩺 Enfermeiro</option>
-            <option value="Recepcionista" ${userToEdit?.role === 'Recepcionista' ? 'selected' : ''}>📋 Recepcionista</option>
+            <option value="Administrador" ${userToEdit?.role === 'Administrador' ? 'selected' : ''}>🛠️ Administrador Hospitalar</option>
+            <option value="Médico" ${userToEdit?.role === 'Médico' || !userToEdit ? 'selected' : ''}>🩺 Médico (Corpo Clínico / Especialista)</option>
+            <option value="Enfermeiro" ${userToEdit?.role === 'Enfermeiro' ? 'selected' : ''}>🩺 Enfermeiro(a) / Triagem Manchester</option>
+            <option value="Recepcionista" ${userToEdit?.role === 'Recepcionista' ? 'selected' : ''}>📋 Recepcionista / Atendimento</option>
+            <option value="Farmacêutico" ${userToEdit?.role === 'Farmacêutico' ? 'selected' : ''}>💊 Farmacêutico(a) / Dispensário</option>
+            <option value="Biomédico" ${userToEdit?.role === 'Biomédico' ? 'selected' : ''}>🧪 Biomédico(a) / Laboratório</option>
+            <option value="Gestor Financeiro" ${userToEdit?.role === 'Gestor Financeiro' ? 'selected' : ''}>📊 Gestor Financeiro / Faturamento</option>
+            <option value="Auxiliar de Enfermagem" ${userToEdit?.role === 'Auxiliar de Enfermagem' ? 'selected' : ''}>🏥 Auxiliar de Enfermagem</option>
           </select>
         </div>
 
@@ -1606,9 +1610,13 @@ function renderAuthScreen() {
               <div class="form-group">
                 <label class="form-label" for="auth-role">Perfil / Função Desejada</label>
                 <select id="auth-role" class="form-input" style="background: var(--bg-card, #1e293b); color: var(--text-primary);">
-                  <option value="Médico" selected>🩺 Médico (Clínico / Especialista)</option>
-                  <option value="Enfermeiro">🩺 Enfermeiro / Assistencial</option>
+                  <option value="Médico" selected>🩺 Médico (Corpo Clínico / Especialista)</option>
+                  <option value="Enfermeiro">🩺 Enfermeiro(a) / Triagem Manchester</option>
                   <option value="Recepcionista">📋 Recepcionista / Atendimento</option>
+                  <option value="Farmacêutico">💊 Farmacêutico(a) / Dispensário</option>
+                  <option value="Biomédico">🧪 Biomédico(a) / Laboratório</option>
+                  <option value="Gestor Financeiro">📊 Gestor Financeiro / Faturamento</option>
+                  <option value="Auxiliar de Enfermagem">🏥 Auxiliar de Enfermagem</option>
                   <option value="Master">👑 Solicitar Acesso Total (Master / Admin)</option>
                 </select>
               </div>
@@ -1766,9 +1774,172 @@ function renderAuthScreen() {
   renderForm();
 }
 
-// --- ESTRUTURA GERAL DA INTERFACE (TEMPLATE) ---
+// --- SISTEMA DE NÍVEIS DE ACESSO COMPLETO (RBAC 9 PERFIS HOSPITALARES) ---
+function getRolePermissions(user) {
+  const username = (user?.username || '').toLowerCase();
+  const role = (user?.role || '').trim();
+
+  // Garantia: mazzarowysk e admin possuem acesso Master supremo permanente
+  if (username === 'mazzarowysk' || username === 'admin' || role === 'Master') {
+    return {
+      role: 'Master',
+      label: '👑 Master (Acesso Total)',
+      badgeColor: 'linear-gradient(135deg, #f59e0b, #d97706)',
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      canApproveUsers: true,
+      canManageUsers: true,
+      canDeleteRecords: true,
+      canSignPEP: true,
+      canDoTriage: true
+    };
+  }
+
+  if (role === 'Administrador') {
+    return {
+      role: 'Administrador',
+      label: '🛠️ Administrador',
+      badgeColor: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      canApproveUsers: true,
+      canManageUsers: true,
+      canDeleteRecords: true,
+      canSignPEP: true,
+      canDoTriage: true
+    };
+  }
+
+  if (role === 'Enfermeiro' || role === 'Enfermeira') {
+    return {
+      role: 'Enfermeiro',
+      label: '🩺 Enfermeiro(a)',
+      badgeColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'estagnacao', 'leitos'],
+      canApproveUsers: false,
+      canManageUsers: false,
+      canDeleteRecords: false,
+      canSignPEP: false,
+      canDoTriage: true
+    };
+  }
+
+  if (role === 'Recepcionista') {
+    return {
+      role: 'Recepcionista',
+      label: '📋 Recepcionista',
+      badgeColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+      allowedTabs: ['dashboard', 'pacientes', 'agenda', 'atendimento'],
+      canApproveUsers: false,
+      canManageUsers: false,
+      canDeleteRecords: false,
+      canSignPEP: false,
+      canDoTriage: false
+    };
+  }
+
+  if (role === 'Farmacêutico' || role === 'Farmacêutica') {
+    return {
+      role: 'Farmacêutico',
+      label: '💊 Farmacêutico(a)',
+      badgeColor: 'linear-gradient(135deg, #ec4899, #db2777)',
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'relatorios'],
+      canApproveUsers: false,
+      canManageUsers: false,
+      canDeleteRecords: false,
+      canSignPEP: false,
+      canDoTriage: false
+    };
+  }
+
+  if (role === 'Biomédico' || role === 'Biomédica') {
+    return {
+      role: 'Biomédico',
+      label: '🧪 Biomédico(a)',
+      badgeColor: 'linear-gradient(135deg, #14b8a6, #0d9488)',
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'relatorios'],
+      canApproveUsers: false,
+      canManageUsers: false,
+      canDeleteRecords: false,
+      canSignPEP: false,
+      canDoTriage: false
+    };
+  }
+
+  if (role === 'Gestor Financeiro' || role === 'Faturamento') {
+    return {
+      role: 'Gestor Financeiro',
+      label: '📊 Gestor Financeiro',
+      badgeColor: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+      allowedTabs: ['dashboard', 'pacientes', 'relatorios'],
+      canApproveUsers: false,
+      canManageUsers: false,
+      canDeleteRecords: false,
+      canSignPEP: false,
+      canDoTriage: false
+    };
+  }
+
+  if (role === 'Auxiliar de Enfermagem') {
+    return {
+      role: 'Auxiliar de Enfermagem',
+      label: '🏥 Aux. de Enfermagem',
+      badgeColor: 'linear-gradient(135deg, #64748b, #475569)',
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'leitos'],
+      canApproveUsers: false,
+      canManageUsers: false,
+      canDeleteRecords: false,
+      canSignPEP: false,
+      canDoTriage: true
+    };
+  }
+
+  // Padrão: Médico
+  return {
+    role: 'Médico',
+    label: '🩺 Médico',
+    badgeColor: 'linear-gradient(135deg, #10b981, #059669)',
+    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'estagnacao', 'leitos', 'relatorios'],
+    canApproveUsers: false,
+    canManageUsers: false,
+    canDeleteRecords: false,
+    canSignPEP: true,
+    canDoTriage: true
+  };
+}
+
+// --- ESTRUTURA GERAL DA INTERFACE (TEMPLATE DINÂMICO POR PERFIL) ---
 function renderAppStructure() {
   const root = document.getElementById('app');
+  const perms = getRolePermissions(state.user);
+
+  const allNavItems = [
+    { id: 'dashboard', label: 'Health Nexus', icon: 'fa-house-medical' },
+    { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
+    { id: 'medicos', label: 'Corpo Clínico', icon: 'fa-user-doctor' },
+    { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-check' },
+    { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
+    { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
+    { id: 'leitos', label: 'Leitos', icon: 'fa-bed-pulse' },
+    { id: 'relatorios', label: 'Relatórios', icon: 'fa-file-contract' },
+    { id: 'configuracoes', label: 'Configurações', icon: 'fa-gear' }
+  ];
+
+  const visibleNavItems = allNavItems.filter(item => perms.allowedTabs.includes(item.id));
+
+  // Ajusta aba ativa caso a atual não seja permitida para o perfil
+  if (!perms.allowedTabs.includes(state.activeTab)) {
+    state.activeTab = perms.allowedTabs[0] || 'dashboard';
+  }
+
+  const navHtml = visibleNavItems.map(item => `
+    <li>
+      <a class="nav-item ${state.activeTab === item.id ? 'active' : ''}" data-tab="${item.id}" style="${item.hasBadge ? 'position: relative;' : ''}">
+        <i class="fa-solid ${item.icon}" style="${item.id === 'estagnacao' ? 'color: #f59e0b;' : ''}"></i>
+        <span>${item.label}</span>
+        ${item.hasBadge ? `<span id="stagnation-nav-badge" class="badge-count" style="display:none; margin-left: auto; background: #ef4444; color: #fff; border-radius: 10px; font-size: 0.7rem; padding: 2px 7px; font-weight: 700;">0</span>` : ''}
+      </a>
+    </li>
+  `).join('');
+
   root.innerHTML = `
     <div class="app-container">
       <!-- Sidebar de Navegação -->
@@ -1778,74 +1949,22 @@ function renderAppStructure() {
         </div>
         <nav>
           <ul class="nav-menu">
-            <li>
-              <a class="nav-item ${state.activeTab === 'dashboard' ? 'active' : ''}" data-tab="dashboard">
-                <i class="fa-solid fa-house-medical"></i>
-                <span>Health Nexus</span>
-              </a>
-            </li>
-            <li>
-              <a class="nav-item ${state.activeTab === 'pacientes' ? 'active' : ''}" data-tab="pacientes">
-                <i class="fa-solid fa-user-injured"></i>
-                <span>Pacientes</span>
-              </a>
-            </li>
-            <li>
-              <a class="nav-item ${state.activeTab === 'medicos' ? 'active' : ''}" data-tab="medicos">
-                <i class="fa-solid fa-user-doctor"></i>
-                <span>Corpo Clínico</span>
-              </a>
-            </li>
-            <li>
-              <a class="nav-item ${state.activeTab === 'agenda' ? 'active' : ''}" data-tab="agenda">
-                <i class="fa-solid fa-calendar-check"></i>
-                <span>Agenda</span>
-              </a>
-            </li>
-            <li>
-              <a class="nav-item ${state.activeTab === 'atendimento' ? 'active' : ''}" data-tab="atendimento">
-                <i class="fa-solid fa-stethoscope"></i>
-                <span>Atendimentos</span>
-              </a>
-            </li>
-            <li>
-              <a class="nav-item ${state.activeTab === 'estagnacao' ? 'active' : ''}" data-tab="estagnacao" style="position: relative;">
-                <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i>
-                <span>Alertas & Estagnação</span>
-                <span id="stagnation-nav-badge" class="badge-count" style="display:none; margin-left: auto; background: #ef4444; color: #fff; border-radius: 10px; font-size: 0.7rem; padding: 2px 7px; font-weight: 700;">0</span>
-              </a>
-            </li>
-            <li>
-              <a class="nav-item ${state.activeTab === 'leitos' ? 'active' : ''}" data-tab="leitos">
-                <i class="fa-solid fa-bed-pulse"></i>
-                <span>Leitos</span>
-              </a>
-            </li>
-            <li>
-              <a class="nav-item ${state.activeTab === 'relatorios' ? 'active' : ''}" data-tab="relatorios">
-                <i class="fa-solid fa-file-contract"></i>
-                <span>Relatórios</span>
-              </a>
-            </li>
-            <li>
-              <a class="nav-item ${state.activeTab === 'configuracoes' ? 'active' : ''}" data-tab="configuracoes">
-                <i class="fa-solid fa-gear"></i>
-                <span>Configurações</span>
-              </a>
-            </li>
+            ${navHtml}
           </ul>
         </nav>
         <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 16px;">
           <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px;">
             Logado como: <br>
             <strong style="color: var(--text-primary); display: block; margin-top: 2px;">${state.user ? state.user.name : 'Usuário'}</strong>
-            <span class="user-role-badge"><i class="fa-solid fa-user-shield" style="font-size:0.65rem;margin-right:4px;"></i>${state.user ? state.user.role : 'Médico'}</span>
+            <span style="display: inline-block; margin-top: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; color: #fff; background: ${perms.badgeColor}; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+              ${perms.label}
+            </span>
           </div>
           <button id="btn-logout" class="btn" style="width: 100%; background: var(--bg-tertiary); color: var(--color-danger); border: 1px solid var(--border-color); margin-bottom: 12px;">
             <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
           </button>
           <div style="text-align: center; font-size: 0.65rem; color: var(--text-secondary); opacity: 0.6;">
-            <i class="fa-solid fa-code" style="margin-right: 4px;"></i> Desenvolvido por @mazzarowysk & @_coltri_
+            <i class="fa-solid fa-code" style="margin-right: 4px;"></i> Desenvolvido por @mazzarowysk &amp; @_coltri_
           </div>
         </div>
       </aside>
@@ -1987,8 +2106,18 @@ function renderAppStructure() {
   renderTabContent();
 }
 
-// --- CONTROLE DE MUDANÇA DE ABA ---
+// --- CONTROLE DE MUDANÇA DE ABA COM PERMISSÃO (RBAC) ---
 function switchTab(tabName) {
+  const perms = getRolePermissions(state.user);
+  if (!perms.allowedTabs.includes(tabName)) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização para acessar esta funcionalidade.`,
+      type: 'warning'
+    });
+    return;
+  }
+
   state.activeTab = tabName;
   
   // Mapa de nomes de exibição por aba
