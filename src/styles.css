@@ -3034,27 +3034,122 @@ body.light-theme {
   color: #0f172a;
 }
 
-/* === BOTÕES DE AÇÃO ADICIONAIS NA TABELA DE PACIENTES === */
+/* === LAYOUT DE PACIENTES COM FORMULÁRIO FIXO (STICKY) === */
+.patients-grid {
+  display: grid;
+  grid-template-columns: 370px 1fr;
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+}
+
+.patients-form-container {
+  position: sticky;
+  top: 0px;
+  background: var(--card-bg, rgba(26, 21, 50, 0.85));
+  backdrop-filter: var(--glass-blur, blur(16px));
+  -webkit-backdrop-filter: var(--glass-blur, blur(16px));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.patients-list-container {
+  background: var(--card-bg, rgba(26, 21, 50, 0.6));
+  backdrop-filter: var(--glass-blur, blur(16px));
+  -webkit-backdrop-filter: var(--glass-blur, blur(16px));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .patients-grid {
+    grid-template-columns: 1fr;
+  }
+  .patients-form-container {
+    position: static;
+  }
+}
+
+/* === CELULAS DE AÇÃO E BOTÕES NA TABELA DE PACIENTES === */
+.actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.actions-cell .btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.actions-cell .btn-icon:hover {
+  transform: translateY(-2px);
+}
+
 .btn-icon-admit {
   background: rgba(34, 211, 238, 0.12) !important;
   color: #22d3ee !important;
-  border: 1px solid rgba(34, 211, 238, 0.3) !important;
+  border: 1px solid rgba(34, 211, 238, 0.35) !important;
 }
 .btn-icon-admit:hover {
-  background: rgba(34, 211, 238, 0.25) !important;
+  background: rgba(34, 211, 238, 0.28) !important;
   box-shadow: 0 0 12px rgba(34, 211, 238, 0.4) !important;
-  transform: translateY(-1px);
 }
 
 .btn-icon-history {
   background: rgba(168, 85, 247, 0.12) !important;
   color: #c084fc !important;
-  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
 }
 .btn-icon-history:hover {
-  background: rgba(168, 85, 247, 0.25) !important;
+  background: rgba(168, 85, 247, 0.28) !important;
   box-shadow: 0 0 12px rgba(168, 85, 247, 0.4) !important;
-  transform: translateY(-1px);
+}
+
+.btn-icon-pdf {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+.btn-icon-pdf:hover {
+  background: rgba(239, 68, 68, 0.28) !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+.btn-icon-edit {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+.btn-icon-edit:hover {
+  background: rgba(245, 158, 11, 0.28) !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4) !important;
+}
+
+.btn-icon-delete {
+  background: rgba(244, 63, 94, 0.12) !important;
+  color: #f43f5e !important;
+  border: 1px solid rgba(244, 63, 94, 0.35) !important;
+}
+.btn-icon-delete:hover {
+  background: rgba(244, 63, 94, 0.28) !important;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.4) !important;
 }
 
 .badge-alta {
@@ -3066,3 +3161,4 @@ body.light-theme {
   font-size: 0.75rem;
   font-weight: 700;
 }
+

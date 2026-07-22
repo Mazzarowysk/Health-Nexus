@@ -1457,7 +1457,7 @@ async function renderTabContent() {
                 <button class="btn-icon btn-icon-history" onclick="openPatientHistoryModal('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" title="Ver Prontuário & Histórico Pós-Alta">
                   <i class="fa-solid fa-file-medical"></i>
                 </button>
-                <button class="btn-icon" onclick="window.generatePatientPDF('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" title="Gerar Prontuário PDF" style="color:#ef4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);" onmouseenter="this.style.background='rgba(239,68,68,0.2)'" onmouseleave="this.style.background='rgba(239,68,68,0.08)'">
+                <button class="btn-icon btn-icon-pdf" onclick="window.generatePatientPDF('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" title="Gerar Prontuário PDF">
                   <i class="fa-solid fa-file-pdf"></i>
                 </button>
                 <button class="btn-icon btn-icon-edit" 
@@ -1470,10 +1470,10 @@ async function renderTabContent() {
                   data-phone="${p.phone || ''}"
                   data-cellphone="${p.cellphone || ''}"
                   data-billing-value="${p.billingValue || ''}"
-                  title="Editar">
-                  <i class="fa-solid fa-pen"></i>
+                  title="Alterar / Editar Paciente">
+                  <i class="fa-solid fa-pen-to-square"></i>
                 </button>
-                <button class="btn-icon btn-icon-delete" data-delete-id="${p.id}" title="Excluir">
+                <button class="btn-icon btn-icon-delete" data-delete-id="${p.id}" title="Excluir Paciente">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
               </div>
@@ -1501,6 +1501,11 @@ async function renderTabContent() {
           document.getElementById('form-title').textContent = "Editar Paciente";
           document.getElementById('submit-btn').textContent = "Salvar Alterações";
           document.getElementById('cancel-edit-btn').style.display = "inline-flex";
+
+          const formContainer = document.querySelector('.patients-form-container');
+          if (formContainer) {
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
         });
       });
 
