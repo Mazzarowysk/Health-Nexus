@@ -25,6 +25,7 @@ const initLocalDb = async () => {
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
+  const SQL_HEALTH_SYNC = `CREATE TABLE IF NOT EXISTS health_sync (sync_key TEXT PRIMARY KEY, sync_value TEXT, updated_at INTEGER)`;
   const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -41,6 +42,7 @@ const initLocalDb = async () => {
   await db.execute(SQL_TRIAGES);
   await db.execute(SQL_NOTES);
   await db.execute(SQL_SYNC_LOGS);
+  await db.execute(SQL_HEALTH_SYNC);
   await db.execute(SQL_APPOINTMENTS);
   await db.execute(SQL_BEDS);
   await db.execute(SQL_PRESCRIPTIONS);
@@ -191,6 +193,7 @@ const autoSyncFromCloud = async () => {
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
+  const SQL_HEALTH_SYNC = `CREATE TABLE IF NOT EXISTS health_sync (sync_key TEXT PRIMARY KEY, sync_value TEXT, updated_at INTEGER)`;
   const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -212,6 +215,7 @@ const autoSyncFromCloud = async () => {
     await cloud.execute(SQL_TRIAGES);
     await cloud.execute(SQL_NOTES);
     await cloud.execute(SQL_SYNC_LOGS);
+    await cloud.execute(SQL_HEALTH_SYNC);
     await cloud.execute(SQL_APPOINTMENTS);
     await cloud.execute(SQL_BEDS);
     await cloud.execute(SQL_PRESCRIPTIONS);
@@ -247,6 +251,7 @@ const initCloudDb = async () => {
     const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
     const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
     const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
+    const SQL_HEALTH_SYNC = `CREATE TABLE IF NOT EXISTS health_sync (sync_key TEXT PRIMARY KEY, sync_value TEXT, updated_at INTEGER)`;
     const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
     const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
     const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -261,6 +266,7 @@ const initCloudDb = async () => {
     await cloud.execute(SQL_TRIAGES);
     await cloud.execute(SQL_NOTES);
     await cloud.execute(SQL_SYNC_LOGS);
+    await cloud.execute(SQL_HEALTH_SYNC);
     await cloud.execute(SQL_APPOINTMENTS);
     await cloud.execute(SQL_BEDS);
     await cloud.execute(SQL_PRESCRIPTIONS);
@@ -352,26 +358,33 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- ROTAS E LÓGICA DE HEARTBEAT (Auto-shutdown) ---
+// --- ROTAS E LÓGICA DE HEARTBEAT (Auto-shutdown ao fechar o navegador) ---
 // Dá 60 segundos iniciais para o Vite compilar e o navegador abrir
 let lastHeartbeat = Date.now() + 60000; 
+let shutdownTimer = null;
 
 app.post('/api/heartbeat', (req, res) => {
   lastHeartbeat = Date.now();
+  if (shutdownTimer) {
+    clearTimeout(shutdownTimer);
+    shutdownTimer = null;
+  }
   res.sendStatus(200);
 });
 
 app.post('/api/shutdown', (req, res) => {
-  console.log('Navegador fechado. Encerrando o servidor (ignorado em modo desenvolvimento)...');
+  console.log('Navegador fechado. Encerrando o servidor...');
   res.sendStatus(200);
-  if (process.env.NODE_ENV !== 'development') {
-    setTimeout(() => process.exit(0), 100);
-  }
+  if (shutdownTimer) clearTimeout(shutdownTimer);
+  shutdownTimer = setTimeout(() => {
+    console.log('Nenhum navegador ativo detectado. Encerrando o servidor Node...');
+    process.exit(0);
+  }, 1500);
 });
 
 setInterval(() => {
-  if (process.env.NODE_ENV !== 'development' && Date.now() - lastHeartbeat > 8000) {
-    console.log('Nenhum navegador conectado. Encerrando o servidor...');
+  if (Date.now() - lastHeartbeat > 8000) {
+    console.log('Nenhum navegador conectado por mais de 8s. Encerrando o servidor...');
     process.exit(0);
   }
 }, 2000);
@@ -2286,6 +2299,458 @@ app.post('/api/stagnation/reassign', async (req, res) => {
   } catch (err) {
     console.error('Erro ao reatribuir atendimento:', err);
     res.status(500).json({ status: 'error', message: 'Falha ao atualizar atendimento.' });
+  }
+});
+
+// ==========================================
+// ROTAS DE SINCRONIZAÇÃO (LOCAL <-> TURSO CLOUD)
+// ==========================================
+
+// Fast-Path Check: Retorna timestamp máximo no banco Turso
+app.get('/api/sync/check-version', async (req, res) => {
+  try {
+    const cloud = getCloudDb();
+    if (!cloud) {
+      return res.status(200).json({ cloudConfigured: false, hasNewData: false, cloudTimestamp: 0 });
+    }
+    const result = await cloud.execute('SELECT MAX(updated_at) as maxTs FROM health_sync');
+    const cloudTimestamp = Number(result.rows[0]?.maxTs || 0);
+
+    const localRes = await db.execute('SELECT MAX(updated_at) as maxTs FROM health_sync');
+    const localTimestamp = Number(localRes.rows[0]?.maxTs || 0);
+
+    const hasNewData = cloudTimestamp > (localTimestamp + 5000);
+
+    res.status(200).json({
+      cloudConfigured: true,
+      hasNewData,
+      cloudTimestamp,
+      localTimestamp
+    });
+  } catch (err) {
+    console.error('Erro em /api/sync/check-version:', err.message);
+    res.status(200).json({ cloudConfigured: false, hasNewData: false, cloudTimestamp: 0 });
+  }
+});
+
+// Status detalhado da sincronização
+app.get('/api/sync/status', async (req, res) => {
+  try {
+    const cloud = getCloudDb();
+    const isVercel = !!process.env.VERCEL;
+
+    let localMaxTime = 0;
+    let localMaxStr = null;
+    let cloudMaxTime = 0;
+    let cloudMaxStr = null;
+
+    try {
+      const localRes = await db.execute('SELECT sync_key, updated_at FROM health_sync');
+      (localRes.rows || []).forEach(r => {
+        const ts = Number(r.updated_at || 0);
+        if (ts > localMaxTime) {
+          localMaxTime = ts;
+          localMaxStr = new Date(ts).toISOString();
+        }
+      });
+    } catch (e) {}
+
+    if (cloud) {
+      try {
+        const cloudRes = await cloud.execute('SELECT sync_key, updated_at FROM health_sync');
+        (cloudRes.rows || []).forEach(r => {
+          const ts = Number(r.updated_at || 0);
+          if (ts > cloudMaxTime) {
+            cloudMaxTime = ts;
+            cloudMaxStr = new Date(ts).toISOString();
+          }
+        });
+      } catch (e) {}
+    }
+
+    const synchronized = localMaxTime > 0 && localMaxTime === cloudMaxTime;
+
+    res.status(200).json({
+      cloudConfigured: !!cloud,
+      isVercel,
+      synchronized,
+      localTimestamps: { main_data: localMaxStr, config: localMaxStr },
+      cloudTimestamps: { main_data: cloudMaxStr, config: cloudMaxStr },
+      lastLocalBackup: localMaxStr,
+      lastCloudBackup: cloudMaxStr
+    });
+  } catch (err) {
+    console.error('Erro em /api/sync/status:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao consultar status de sincronização.' });
+  }
+});
+
+// Upload: Envia snapshot serializado para o Turso Cloud (PUSH)
+app.post('/api/sync/upload', async (req, res) => {
+  try {
+    const now = Date.now();
+
+    const usersRes = await db.execute('SELECT * FROM users');
+    const patientsRes = await db.execute('SELECT * FROM patients');
+    const encountersRes = await db.execute('SELECT * FROM encounters');
+    const triagesRes = await db.execute('SELECT * FROM triages');
+    const notesRes = await db.execute('SELECT * FROM clinical_notes');
+    const appointmentsRes = await db.execute('SELECT * FROM appointments');
+    const bedsRes = await db.execute('SELECT * FROM beds');
+    const prescriptionsRes = await db.execute('SELECT * FROM prescriptions');
+    const doctorsRes = await db.execute('SELECT * FROM doctors');
+
+    const mainData = {
+      users: usersRes.rows || [],
+      patients: patientsRes.rows || [],
+      encounters: encountersRes.rows || [],
+      triages: triagesRes.rows || [],
+      clinical_notes: notesRes.rows || [],
+      appointments: appointmentsRes.rows || [],
+      beds: bedsRes.rows || [],
+      prescriptions: prescriptionsRes.rows || [],
+      doctors: doctorsRes.rows || []
+    };
+
+    const configData = {
+      system: 'Health Nexus',
+      version: '1.0.1',
+      updatedAt: new Date(now).toISOString()
+    };
+
+    const mainDataStr = JSON.stringify(mainData);
+    const configDataStr = JSON.stringify(configData);
+
+    await db.execute({
+      sql: `INSERT INTO health_sync (sync_key, sync_value, updated_at) VALUES ('main_data', ?, ?)
+            ON CONFLICT(sync_key) DO UPDATE SET sync_value = excluded.sync_value, updated_at = excluded.updated_at`,
+      args: [mainDataStr, now]
+    });
+    await db.execute({
+      sql: `INSERT INTO health_sync (sync_key, sync_value, updated_at) VALUES ('config', ?, ?)
+            ON CONFLICT(sync_key) DO UPDATE SET sync_value = excluded.sync_value, updated_at = excluded.updated_at`,
+      args: [configDataStr, now]
+    });
+
+    const cloud = getCloudDb();
+    if (cloud) {
+      await cloud.execute({
+        sql: `INSERT INTO health_sync (sync_key, sync_value, updated_at) VALUES ('main_data', ?, ?)
+              ON CONFLICT(sync_key) DO UPDATE SET sync_value = excluded.sync_value, updated_at = excluded.updated_at`,
+        args: [mainDataStr, now]
+      });
+      await cloud.execute({
+        sql: `INSERT INTO health_sync (sync_key, sync_value, updated_at) VALUES ('config', ?, ?)
+              ON CONFLICT(sync_key) DO UPDATE SET sync_value = excluded.sync_value, updated_at = excluded.updated_at`,
+        args: [configDataStr, now]
+      });
+
+      // Sincroniza entidades principais individualmente no Turso
+      for (const p of mainData.patients) {
+        await cloud.execute({
+          sql: `INSERT OR REPLACE INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [p.id, p.fullName, p.cpf, p.birthDate, p.address || null, p.city || null, p.phone || null, p.cellphone || null, p.billingValue || null, p.created_at || new Date().toISOString(), p.updated_at || new Date().toISOString()]
+        });
+      }
+      for (const a of mainData.appointments) {
+        await cloud.execute({
+          sql: `INSERT OR REPLACE INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [a.id, a.patientId, a.patientName, a.doctorName, a.specialty, a.appointmentDate, a.appointmentTime, a.status, a.notes || null, a.created_at || new Date().toISOString(), a.updated_at || new Date().toISOString()]
+        });
+      }
+      for (const d of mainData.doctors) {
+        await cloud.execute({
+          sql: `INSERT OR REPLACE INTO doctors (id, name, crm, specialty, phone, email, status, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [d.id, d.name, d.crm, d.specialty, d.phone || null, d.email || null, d.status || 'Ativo', d.created_at || new Date().toISOString(), d.updated_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Upload concluído com sucesso!',
+      updatedAt: now,
+      isoDate: new Date(now).toISOString()
+    });
+  } catch (err) {
+    console.error('Erro em /api/sync/upload:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao realizar upload para a nuvem.' });
+  }
+});
+
+// Download: Baixa snapshot do Turso Cloud e aplica localmente (PULL)
+app.post('/api/sync/download', async (req, res) => {
+  try {
+    const cloud = getCloudDb();
+    if (!cloud) {
+      return res.status(400).json({ status: 'error', message: 'Banco Turso Cloud não está configurado.' });
+    }
+
+    const cloudRes = await cloud.execute("SELECT sync_key, sync_value, updated_at FROM health_sync WHERE sync_key = 'main_data'");
+    if (!cloudRes.rows || cloudRes.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Nenhum dado encontrado no Turso Cloud para restaurar.' });
+    }
+
+    const row = cloudRes.rows[0];
+    const cloudUpdatedAt = Number(row.updated_at || Date.now());
+    const mainData = JSON.parse(row.sync_value || '{}');
+
+    if (Array.isArray(mainData.users)) {
+      for (const u of mainData.users) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO users (id, name, username, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+          args: [u.id, u.name, u.username, u.password_hash, u.role || 'Medico', u.created_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.patients)) {
+      for (const p of mainData.patients) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO patients (id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [p.id, p.fullName, p.cpf, p.birthDate, p.address || null, p.city || null, p.phone || null, p.cellphone || null, p.billingValue || null, p.created_at || new Date().toISOString(), p.updated_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.doctors)) {
+      for (const d of mainData.doctors) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO doctors (id, name, crm, specialty, phone, email, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [d.id, d.name, d.crm, d.specialty, d.phone || null, d.email || null, d.status || 'Ativo', d.created_at || new Date().toISOString(), d.updated_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.appointments)) {
+      for (const a of mainData.appointments) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [a.id, a.patientId, a.patientName, a.doctorName, a.specialty, a.appointmentDate, a.appointmentTime, a.status || 'Agendado', a.notes || null, a.created_at || new Date().toISOString(), a.updated_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.beds)) {
+      for (const b of mainData.beds) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO beds (id, bedNumber, sector, status, patientId, patientName, admittedAt, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [b.id, b.bedNumber, b.sector, b.status || 'Vago', b.patientId || null, b.patientName || null, b.admittedAt || null, b.updated_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.encounters)) {
+      for (const e of mainData.encounters) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO encounters (id, patientId, type, status, room, admitted_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          args: [e.id, e.patientId, e.type, e.status, e.room || null, e.admitted_at || new Date().toISOString(), e.completed_at || null]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.triages)) {
+      for (const t of mainData.triages) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO triages (id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [t.id, t.encounterId, t.manchesterColor, t.weightKg || null, t.bloodPressure, t.temperatureCelsius, t.heartRateBpm || null, t.complaints, t.triaged_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.clinical_notes)) {
+      for (const n of mainData.clinical_notes) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO clinical_notes (id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [n.id, n.encounterId, n.noteType, n.subjectiveContent || null, n.objectiveContent || null, n.assessmentContent || null, n.planContent || null, n.signatureHash || null, n.isClosed || 0, n.created_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.prescriptions)) {
+      for (const p of mainData.prescriptions) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [p.id, p.encounterId, p.patientId, p.patientName, p.doctorName, p.medicationsJson, p.status || 'Ativa', p.created_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    await db.execute({
+      sql: `INSERT INTO health_sync (sync_key, sync_value, updated_at) VALUES ('main_data', ?, ?)
+            ON CONFLICT(sync_key) DO UPDATE SET sync_value = excluded.sync_value, updated_at = excluded.updated_at`,
+      args: [row.sync_value, cloudUpdatedAt]
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Dados baixados e aplicados com sucesso no banco local!',
+      updatedAt: cloudUpdatedAt,
+      isoDate: new Date(cloudUpdatedAt).toISOString()
+    });
+  } catch (err) {
+    console.error('Erro em /api/sync/download:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao baixar e aplicar dados da nuvem.' });
+  }
+});
+
+// Dual-Path Proxy Endpoint para Turso (/api/turso ou /turso-proxy)
+app.all(['/api/turso', '/turso-proxy'], async (req, res) => {
+  try {
+    const cloud = getCloudDb();
+    if (!cloud) {
+      return res.status(400).json({ status: 'error', message: 'Conexão Turso Cloud indisponível.' });
+    }
+    const { statements } = req.body || {};
+    if (!statements || !Array.isArray(statements)) {
+      return res.status(400).json({ status: 'error', message: 'Formato inválido. Esperado { statements: [...] }' });
+    }
+    const results = await cloud.batch(statements);
+    res.status(200).json({ status: 'success', results });
+  } catch (err) {
+    console.error('Erro no proxy Turso:', err.message);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// ==========================================
+// ROTAS DE GERENCIAMENTO DE USUÁRIOS & PERMISSÕES
+// ==========================================
+
+// Listar todos os usuários
+app.get('/api/users', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT id, name, username, role, created_at FROM users ORDER BY name ASC');
+    res.status(200).json({
+      status: 'success',
+      data: result.rows || []
+    });
+  } catch (err) {
+    console.error('Erro ao listar usuários:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao buscar usuários.' });
+  }
+});
+
+// Criar novo usuário
+app.post('/api/users', async (req, res) => {
+  try {
+    const { name, username, password, role } = req.body;
+    if (!name || !username || !password) {
+      return res.status(400).json({ status: 'error', message: 'Nome, usuário e senha são obrigatórios.' });
+    }
+
+    const cleanUsername = username.trim().toLowerCase();
+    const existing = await db.execute({
+      sql: 'SELECT id FROM users WHERE LOWER(username) = ?',
+      args: [cleanUsername]
+    });
+
+    if (existing.rows && existing.rows.length > 0) {
+      return res.status(400).json({ status: 'error', message: 'Este nome de usuário já está em uso.' });
+    }
+
+    const id = 'USR-' + crypto.randomUUID().substring(0, 8);
+    const hash = await bcrypt.hash(password, 10);
+    const userRole = role || 'Medico';
+    const createdAt = new Date().toISOString();
+
+    await db.execute({
+      sql: 'INSERT INTO users (id, name, username, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      args: [id, name, cleanUsername, hash, userRole, createdAt]
+    });
+
+    const cloud = getCloudDb();
+    if (cloud) {
+      try {
+        await cloud.execute({
+          sql: 'INSERT OR REPLACE INTO users (id, name, username, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+          args: [id, name, cleanUsername, hash, userRole, createdAt]
+        });
+      } catch (e) {}
+    }
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Usuário cadastrado com sucesso!',
+      data: { id, name, username: cleanUsername, role: userRole, created_at: createdAt }
+    });
+  } catch (err) {
+    console.error('Erro ao criar usuário:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao criar usuário.' });
+  }
+});
+
+// Atualizar usuário
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, username, password, role } = req.body;
+
+    if (!name || !username) {
+      return res.status(400).json({ status: 'error', message: 'Nome e nome de usuário são obrigatórios.' });
+    }
+
+    const cleanUsername = username.trim().toLowerCase();
+    const userRole = role || 'Medico';
+
+    let updateSql = 'UPDATE users SET name = ?, username = ?, role = ? WHERE id = ?';
+    let updateArgs = [name, cleanUsername, userRole, id];
+
+    if (password && password.trim().length > 0) {
+      const hash = await bcrypt.hash(password.trim(), 10);
+      updateSql = 'UPDATE users SET name = ?, username = ?, password_hash = ?, role = ? WHERE id = ?';
+      updateArgs = [name, cleanUsername, hash, userRole, id];
+    }
+
+    await db.execute({ sql: updateSql, args: updateArgs });
+
+    const cloud = getCloudDb();
+    if (cloud) {
+      try {
+        await cloud.execute({ sql: updateSql, args: updateArgs });
+      } catch (e) {}
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Usuário atualizado com sucesso!'
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar usuário:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao atualizar usuário.' });
+  }
+});
+
+// Deletar usuário
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const userRes = await db.execute({ sql: 'SELECT username FROM users WHERE id = ?', args: [id] });
+    const userObj = userRes.rows[0];
+    if (userObj && (userObj.username === 'mazzarowysk' || userObj.username === 'admin')) {
+      return res.status(400).json({ status: 'error', message: 'Usuários administradores principais não podem ser excluídos.' });
+    }
+
+    await db.execute({ sql: 'DELETE FROM users WHERE id = ?', args: [id] });
+
+    const cloud = getCloudDb();
+    if (cloud) {
+      try {
+        await cloud.execute({ sql: 'DELETE FROM users WHERE id = ?', args: [id] });
+      } catch (e) {}
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Usuário excluído com sucesso!'
+    });
+  } catch (err) {
+    console.error('Erro ao excluir usuário:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao excluir usuário.' });
   }
 });
 

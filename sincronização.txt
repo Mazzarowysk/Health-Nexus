@@ -1,0 +1,186 @@
+Aqui está a explicação detalhada de todo o processo de sincronização do sistema OCZ Online, tanto da parte de deploy de código (computador vs. Vercel) quanto da sincronização de dados do banco (Turso / LocalStorage).
+
+Você pode usar este documento como especificação/script para implementar em seu novo sistema.
+
+📐 Arquitetura Geral de Sincronização
+O sistema opera com dois pilares independentes de sincronização:
+
+Sincronização de Código e Deploy (Computador Local $\rightarrow$ GitHub $\rightarrow$ Vercel CDN)
+Sincronização de Dados e Estado (Navegador/LocalStorage $\leftrightarrow$ Server Proxy / Serverless API $\leftrightarrow$ Turso Cloud DB)
+1. Sincronização de Código e Deploy (PC vs. Vercel)
+Esta etapa cuida de manter o código atualizado no ambiente do desenvolvedor e publicar as alterações na web.
+
+┌────────────────────────────────┐
+│   Desenvolvimento Local (PC)   │
+│   (HTML, JS, CSS, server.py)   │
+└───────────────┬────────────────┘
+                │
+                │ git push origin master:main
+                ▼
+┌────────────────────────────────┐
+│    Repositório GitHub (main)   │
+└───────────────┬────────────────┘
+                │
+                │ Webhook Automático (HTTP POST)
+                ▼
+┌────────────────────────────────┐
+│    Plataforma Vercel (Cloud)   │
+│ 1. Build estático (CDN)        │
+│ 2. Serverless API (/api/turso) │
+└────────────────────────────────┘
+Como funciona no Computador (Localhost):
+Servidor Local: O arquivo Iniciar Sistema OCZ.bat executa o script embutido 
+
+server.py
+ em Python na porta local 8086.
+Módulos do Servidor Local:
+Servidor de arquivos estáticos (HTML/CSS/JS).
+Proxy HTTP local (/turso-proxy) para ponte com a nuvem sem restrição de CORS.
+Verificador de presença (/heartbeat) para checar se a aplicação desktop ainda está rodando.
+Como funciona no Vercel (Produção Online):
+Git Webhook: Quando você faz git push origin main para o GitHub, o GitHub avisa a Vercel instantaneamente.
+Build Serverless: A Vercel compila o frontend estático e disponibiliza a Serverless Function em Node.js localizada em 
+
+api/turso.js
+, eliminando a necessidade do script Python server.py quando os usuários acessam pela URL da nuvem (.vercel.app).
+2. Sincronização de Dados (Turso Cloud Database $\leftrightarrow$ LocalStorage)
+O banco de dados de alta disponibilidade utilizado é o Turso (LibSQL / SQLite distribuído via HTTP REST Pipeline API).
+
+Schema do Banco na Nuvem
+O Turso armazena os dados do sistema em uma tabela leve e otimizada chamada ocz_sync:
+
+sql
+CREATE TABLE IF NOT EXISTS ocz_sync (
+    sync_key TEXT PRIMARY KEY,
+    sync_value TEXT,
+    updated_at INTEGER
+);
+As chaves principais mantidas nessa tabela são:
+
+main_data: Objeto JSON com as tabelas comprimidas (clientes, parcelas, historico, ramos, servicos, despesas, snapshots, categoriasDespesa).
+config: Objeto JSON com as configurações do sistema.
+Mapeamento das Rotas de Conexão (Dual-Path Fallback)
+O módulo 
+
+js/turso.js
+ utiliza uma rota adaptativa dependendo do ambiente em que o sistema está rodando:
+
+┌─────────────────────────────┐
+                          │  Cliente Frontend (Browser) │
+                          └──────────────┬──────────────┘
+                                         │
+                   ┌─────────────────────┴─────────────────────┐
+                   │                                           │
+         [No Computador Local]                          [No Vercel Online]
+                   │                                           │
+                   ▼                                           ▼
+┌──────────────────────────────────────┐    ┌──────────────────────────────────────┐
+│  Proxy Python Local (server.py:8086) │    │  Serverless Function (/api/turso.js) │
+│       Endpoint: /turso-proxy         │    │        Endpoint: /api/turso          │
+└──────────────────┬───────────────────┘    └──────────────────┬───────────────────┘
+                   │                                           │
+                   └─────────────────────┬─────────────────────┘
+                                         │
+                                         ▼ (HTTPS /v2/pipeline com Bearer Token)
+                            ┌─────────────────────────┐
+                            │   Turso Cloud Database  │
+                            └─────────────────────────┘
+Regras do Dual-Path:
+No Computador (server.py ativo): O frontend envia as requisições para http://localhost:8086/turso-proxy. O Python executa a requisição HTTP com timeout estendido de até 300 segundos (suportando bases grandes sem estourar limite do navegador).
+No Vercel ou quando o servidor Python não responde: O sistema alterna para requisição direta à API REST da Turso (https://[db-url]/v2/pipeline) ou pela API serverless /api/turso.js.
+3. Lógica do Ciclo de Sincronização de Dados
+A. Checagem de Atualização ao Iniciar/Logar (Metadata Fast-Path)
+Consulta Leve (5s max): O sistema executa no Turso:
+sql
+SELECT MAX(updated_at) FROM ocz_sync;
+Comparação de Timestamp: Compara o resultado remoteTs com o timestamp local gravado no navegador (ocz_last_local_update).
+Decisão:
+Se remoteTs > (lastSyncTs + 5000ms) $\rightarrow$ O sistema detecta dados mais novos na nuvem e abre o modal "Dados Novos na Nuvem!" convidando o usuário a atualizar.
+Se o local for mais novo ou igual $\rightarrow$ Mantém a interface sem incomodar o usuário.
+B. Processo de Envio para a Nuvem (PUSH / Upload)
+Verificação Preventiva de Conflitos: Antes de enviar, faz um teste no Turso para garantir que outro dispositivo não salvou dados mais novos enquanto este computador estava aberto.
+Empacotamento: O frontend serializa o objeto de estado (this.dados) e a configuração (this.config) em JSON.
+Upsert no Banco: Executa a instrução SQL parametrizada via Pipeline REST:
+sql
+INSERT INTO ocz_sync (sync_key, sync_value, updated_at) 
+VALUES (?, ?, ?) 
+ON CONFLICT(sync_key) DO UPDATE SET 
+    sync_value = excluded.sync_value, 
+    updated_at = excluded.updated_at;
+Persistência Local: Atualiza a data e hora do último sync em localStorage.setItem('ocz_last_local_update', timestamp) e localStorage.setItem('ultimoSync', dateString).
+C. Processo de Baixar da Nuvem (PULL / Restauração)
+Busca dos Dados: Baixa os registros da tabela ocz_sync.
+Modal Comparativo: Exibe a quantidade de clientes e a data de atualização no banco local vs. no banco da nuvem para confirmação do usuário.
+Substituição Segura:
+Grava os dados na chave padrão do LocalStorage (oczOnlineDados).
+Mantém as credenciais locais salvas no navegador para que a conexão não seja perdida.
+Flag de Recarregamento: Define sessionStorage.setItem('ocz_reloading_after_sync', 'true') e executa window.location.reload(). A flag impede que a tela recarregada interprete a sincronização recente como um novo conflito.
+4. Mecanismos de Proteção e Performance
+Vault de Credenciais Protegidas: Caso as credenciais do Turso fiquem vazias no LocalStorage, o sistema lê um hash Base64 gravado no código JS como mecanismo de autorrecuperação.
+Lock de Frequência (Cooldown de 1 minuto): Verificações automáticas em segundo plano respeitam um intervalo mínimo de 60 segundos para evitar sobrecarregar a rede ou exceder cotas.
+Timer Regressivo (Auto-Sync de 15 minutos): Um contador regressivo executa e atualiza a UI (15:00 ... 00:00). Ao zerar, dispara o ciclo de sincronização automática.
+Prevenção de Loop de Reload: Ao finalizar a restauração, o sistema ajusta as chaves sessionStorage e localStorage antes de atualizar a página, garantindo que o reload não re-dispare o alerta de sincronização.
+🚀 Script / Roteiro de Especificação para o Novo Sistema
+Ao criar o seu novo sistema, você pode replicar essa arquitetura seguindo estes módulos:
+
+typescript
+// ESPECIFICAÇÃO DE MODELO PARA NOVO SISTEMA
+interface SyncPayload {
+  sync_key: 'main_data' | 'config';
+  sync_value: string; // JSON Stringified
+  updated_at: number; // Date.now() timestamp
+}
+// 1. Métodos da API Client
+class SyncManager {
+  private lastLocalUpdate: number = 0;
+  private syncIntervalMs: number = 15 * 60 * 1000; // 15 minutos
+  async checkCloudVersion(): Promise<{ hasNewData: boolean; cloudTimestamp: number }> {
+    const cloudTs = await this.fetchMaxTimestampFromDB();
+    const localTs = Number(localStorage.getItem('last_local_update') || 0);
+    return {
+      hasNewData: cloudTs > localTs + 5000,
+      cloudTimestamp: cloudTs
+    };
+  }
+  async pushToCloud(data: any, config: any): Promise<boolean> {
+    const now = Date.now();
+    const payload = [
+      { key: 'main_data', value: JSON.stringify(data), timestamp: now },
+      { key: 'config', value: JSON.stringify(config), timestamp: now }
+    ];
+    
+    const success = await this.executeUpsertPipeline(payload);
+    if (success) {
+      localStorage.setItem('last_local_update', now.toString());
+    }
+    return success;
+  }
+  async pullFromCloud(): Promise<any> {
+    const remoteRecords = await this.fetchAllFromDB();
+    if (!remoteRecords) return null;
+    
+    // Atualiza localstorage e recarrega
+    localStorage.setItem('local_db_data', remoteRecords.main_data);
+    localStorage.setItem('last_local_update', remoteRecords.timestamp.toString());
+    sessionStorage.setItem('just_synced', 'true');
+    window.location.reload();
+  }
+}
+Arquivos de referência no repositório atual:
+
+
+server.py
+ – Proxy HTTP local em Python.
+
+
+js/turso.js
+ – Módulo completo de controle da base Turso e interface.
+
+
+api/turso.js
+ – Proxy serverless para Vercel Node.js.
+
+
+CHECKLIST_SINCRONIZACAO.md
+ – Guia e checklist do ciclo de vida da sincronização.
+

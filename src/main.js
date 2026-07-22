@@ -309,6 +309,381 @@ const setupCustomSelect = (container, hiddenInput, items, placeholder, onSelect)
   };
 };
 
+// --- MODAL FLUTUANTE DE ALERTA DO SISTEMA (Substitui alert nativo) ---
+const showCustomAlert = ({ title = 'Aviso do Sistema', message = '', type = 'info' }) => {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('hn-custom-alert-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'hn-custom-alert-modal';
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);';
+
+    let headerBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+    let iconClass = 'fa-circle-info';
+
+    if (type === 'success') {
+      headerBg = 'linear-gradient(135deg, #10b981, #059669)';
+      iconClass = 'fa-circle-check';
+    } else if (type === 'warning') {
+      headerBg = 'linear-gradient(135deg, #f59e0b, #d97706)';
+      iconClass = 'fa-triangle-exclamation';
+    } else if (type === 'danger' || type === 'error') {
+      headerBg = 'linear-gradient(135deg, #ef4444, #dc2626)';
+      iconClass = 'fa-circle-xmark';
+    }
+
+    overlay.innerHTML = `
+      <div class="sync-modal-card" style="max-width: 440px;">
+        <div class="sync-header-banner" style="background: ${headerBg}; padding: 16px 20px;">
+          <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid ${iconClass}"></i> ${title}
+          </h3>
+          <button id="btn-hn-alert-x" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; opacity: 0.8;">&times;</button>
+        </div>
+
+        <div class="sync-modal-body" style="padding: 22px 24px; gap: 16px;">
+          <div style="font-size: 0.95rem; color: var(--text-primary, #f8fafc); line-height: 1.6; text-align: center;">
+            ${message}
+          </div>
+
+          <button id="btn-hn-alert-ok" class="btn-sync-action" style="background: ${headerBg}; margin-top: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            <i class="fa-solid fa-check"></i> Entendido (OK)
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const close = () => {
+      overlay.remove();
+      resolve(true);
+    };
+
+    document.getElementById('btn-hn-alert-ok').addEventListener('click', close);
+    document.getElementById('btn-hn-alert-x').addEventListener('click', close);
+  });
+};
+
+// --- MODAL FLUTUANTE DE CONFIRMAÇÃO DO SISTEMA (Substitui confirm nativo) ---
+const showCustomConfirm = ({ title = 'Confirmação Necessária', message = '', confirmText = 'Sim, Confirmar', cancelText = 'Cancelar', type = 'warning' }) => {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('hn-custom-confirm-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'hn-custom-confirm-modal';
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);';
+
+    let headerBg = type === 'danger' ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #f59e0b, #ea580c)';
+    let btnBg = type === 'danger' ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #f59e0b, #ea580c)';
+
+    overlay.innerHTML = `
+      <div class="sync-modal-card" style="max-width: 450px;">
+        <div class="sync-header-banner" style="background: ${headerBg}; padding: 16px 20px;">
+          <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> ${title}
+          </h3>
+        </div>
+
+        <div class="sync-modal-body" style="padding: 22px 24px; gap: 16px;">
+          <div style="font-size: 0.95rem; color: var(--text-primary, #f8fafc); line-height: 1.6; text-align: center;">
+            ${message}
+          </div>
+
+          <div style="display: flex; gap: 10px; width: 100%; margin-top: 6px;">
+            <button id="btn-hn-confirm-yes" class="btn-sync-action" style="background: ${btnBg}; flex: 1;">
+              <i class="fa-solid fa-check"></i> ${confirmText}
+            </button>
+            <button id="btn-hn-confirm-no" class="btn-sync-secondary" style="flex: 1; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px;">
+              ${cancelText}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('btn-hn-confirm-yes').addEventListener('click', () => {
+      overlay.remove();
+      resolve(true);
+    });
+
+    document.getElementById('btn-hn-confirm-no').addEventListener('click', () => {
+      overlay.remove();
+      resolve(false);
+    });
+  });
+};
+
+// --- MODAL FLUTUANTE DE GERENCIAMENTO DE USUÁRIOS E PERMISSÕES ---
+const showUserManagementModal = async () => {
+  const existing = document.getElementById('hn-users-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hn-users-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);';
+
+  overlay.innerHTML = `
+    <div class="sync-modal-card" style="max-width: 720px; width: 92%; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="sync-header-banner purple" style="padding: 18px 24px; flex-shrink: 0;">
+        <h3 class="sync-header-title" style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-users-gear"></i> Gerenciamento de Usuários & Permissões
+        </h3>
+        <button id="btn-users-modal-close" style="background: transparent; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; opacity: 0.8;">&times;</button>
+      </div>
+
+      <div class="sync-modal-body" style="padding: 24px; gap: 16px; overflow-y: auto; text-align: left; align-items: stretch;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">
+            Cadastre novos usuários, altere senhas e defina funções do corpo clínico.
+          </p>
+          <button id="btn-add-new-user" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 9px 16px; font-size: 0.88rem;">
+            <i class="fa-solid fa-user-plus"></i> Novo Usuário
+          </button>
+        </div>
+
+        <div id="users-table-container" style="margin-top: 10px;">
+          <div style="text-align: center; padding: 30px 0; color: var(--text-secondary);">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 8px;"></i>
+            <p>Carregando usuários...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const closeBtn = document.getElementById('btn-users-modal-close');
+  closeBtn.addEventListener('click', () => overlay.remove());
+
+  const loadUsersList = async () => {
+    const container = document.getElementById('users-table-container');
+    if (!container) return;
+
+    try {
+      const res = await apiFetch('/api/users');
+      if (!res.ok) throw new Error('Falha ao buscar usuários');
+      const payload = await res.json();
+      const usersList = payload.data || [];
+
+      if (usersList.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhum usuário cadastrado.</div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <table class="patients-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-secondary);">
+              <th style="padding: 10px;">Nome</th>
+              <th style="padding: 10px;">Usuário</th>
+              <th style="padding: 10px;">Função / Cargo</th>
+              <th style="padding: 10px; text-align: right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${usersList.map(u => {
+              let roleBadgeColor = 'rgba(99, 102, 241, 0.2)';
+              let roleTextColor = '#818cf8';
+              if (u.role === 'Administrador' || u.username === 'mazzarowysk') {
+                roleBadgeColor = 'rgba(16, 185, 129, 0.2)';
+                roleTextColor = '#34d399';
+              } else if (u.role === 'Enfermeiro') {
+                roleBadgeColor = 'rgba(14, 165, 233, 0.2)';
+                roleTextColor = '#38bdf8';
+              } else if (u.role === 'Recepcionista') {
+                roleBadgeColor = 'rgba(245, 158, 11, 0.2)';
+                roleTextColor = '#fbbf24';
+              }
+
+              const isMasterOrAdmin = u.username === 'mazzarowysk' || u.username === 'admin';
+
+              return `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                  <td style="padding: 12px 10px; font-weight: 600; color: var(--text-primary);">${u.name}</td>
+                  <td style="padding: 12px 10px; font-family: monospace; color: var(--text-secondary);">@${u.username}</td>
+                  <td style="padding: 12px 10px;">
+                    <span style="font-size: 0.76rem; font-weight: 700; background: ${roleBadgeColor}; color: ${roleTextColor}; padding: 3px 10px; border-radius: 10px;">
+                      ${u.username === 'mazzarowysk' ? 'MASTER' : u.role}
+                    </span>
+                  </td>
+                  <td style="padding: 12px 10px; text-align: right;">
+                    <button class="btn-icon btn-edit-user" data-user='${JSON.stringify(u)}' title="Editar Usuário" style="margin-right: 6px;">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    ${!isMasterOrAdmin ? `
+                      <button class="btn-icon btn-del-user" data-id="${u.id}" data-name="${u.name}" title="Excluir Usuário" style="color: var(--color-danger);">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    ` : ''}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.querySelectorAll('.btn-edit-user').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const userObj = JSON.parse(btn.dataset.user);
+          showUserFormModal(userObj, loadUsersList);
+        });
+      });
+
+      container.querySelectorAll('.btn-del-user').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const uid = btn.dataset.id;
+          const uname = btn.dataset.name;
+          const confirmed = await showCustomConfirm({
+            title: 'Excluir Usuário',
+            message: `Tem certeza que deseja excluir o usuário <strong>${uname}</strong>?`,
+            confirmText: 'Sim, Excluir',
+            cancelText: 'Cancelar',
+            type: 'danger'
+          });
+
+          if (confirmed) {
+            try {
+              const delRes = await apiFetch(`/api/users/${uid}`, { method: 'DELETE' });
+              if (delRes.ok) {
+                showToast('Usuário removido com sucesso!');
+                loadUsersList();
+              } else {
+                const errData = await delRes.json().catch(() => ({}));
+                showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao excluir usuário.', type: 'danger' });
+              }
+            } catch (e) {
+              showCustomAlert({ title: 'Erro', message: 'Erro de conexão ao excluir usuário.', type: 'danger' });
+            }
+          }
+        });
+      });
+
+    } catch (e) {
+      container.innerHTML = `<div style="text-align: center; color: var(--color-danger); padding: 20px;">Erro ao carregar lista de usuários.</div>`;
+    }
+  };
+
+  document.getElementById('btn-add-new-user').addEventListener('click', () => {
+    showUserFormModal(null, loadUsersList);
+  });
+
+  loadUsersList();
+};
+
+// Sub-modal Formulário para Criar/Editar Usuário
+const showUserFormModal = (userToEdit = null, onSaved = null) => {
+  const existing = document.getElementById('hn-user-form-modal');
+  if (existing) existing.remove();
+
+  const isEdit = !!userToEdit;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hn-user-form-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'z-index: 100000; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);';
+
+  overlay.innerHTML = `
+    <div class="sync-modal-card" style="max-width: 480px; width: 90%;">
+      <div class="sync-header-banner ${isEdit ? 'purple' : 'orange'}" style="padding: 16px 20px;">
+        <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid ${isEdit ? 'fa-user-pen' : 'fa-user-plus'}"></i> ${isEdit ? 'Editar Usuário' : 'Novo Usuário'}
+        </h3>
+        <button id="btn-uform-close" style="background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; opacity: 0.8;">&times;</button>
+      </div>
+
+      <form id="user-editor-form" class="sync-modal-body" style="padding: 20px 24px; gap: 14px; text-align: left; align-items: stretch;">
+        <div class="form-group">
+          <label class="form-label" for="uf-name">* Nome Completo:</label>
+          <input type="text" id="uf-name" class="form-input" required value="${userToEdit ? userToEdit.name : ''}" placeholder="Ex: Dr. Marcelo Mazarowysk">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="uf-username">* Nome de Usuário (Login):</label>
+          <input type="text" id="uf-username" class="form-input" required value="${userToEdit ? userToEdit.username : ''}" placeholder="Ex: mazzarowysk" ${userToEdit && userToEdit.username === 'mazzarowysk' ? 'disabled' : ''}>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="uf-role">* Função / Permissão:</label>
+          <select id="uf-role" class="form-input" style="background: var(--bg-card, #1e293b); color: var(--text-primary);">
+            <option value="Administrador" ${userToEdit?.role === 'Administrador' ? 'selected' : ''}>Administrador</option>
+            <option value="Médico" ${userToEdit?.role === 'Médico' || !userToEdit ? 'selected' : ''}>Médico</option>
+            <option value="Enfermeiro" ${userToEdit?.role === 'Enfermeiro' ? 'selected' : ''}>Enfermeiro</option>
+            <option value="Recepcionista" ${userToEdit?.role === 'Recepcionista' ? 'selected' : ''}>Recepcionista</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="uf-password">${isEdit ? 'Nova Senha (deixe em branco para manter a atual):' : '* Senha:'}</label>
+          <input type="password" id="uf-password" class="form-input" ${!isEdit ? 'required' : ''} placeholder="••••••••">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button type="submit" id="btn-uform-save" class="btn-sync-action ${isEdit ? 'purple' : 'orange'}" style="flex: 1;">
+            <i class="fa-solid fa-floppy-disk"></i> ${isEdit ? 'Salvar Alterações' : 'Cadastrar Usuário'}
+          </button>
+          <button type="button" id="btn-uform-cancel" class="btn-sync-secondary" style="flex: 1; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px;">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  document.getElementById('btn-uform-close').addEventListener('click', close);
+  document.getElementById('btn-uform-cancel').addEventListener('click', close);
+
+  document.getElementById('user-editor-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btnSave = document.getElementById('btn-uform-save');
+    btnSave.disabled = true;
+    btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+
+    const name = document.getElementById('uf-name').value.trim();
+    const username = document.getElementById('uf-username').value.trim();
+    const role = document.getElementById('uf-role').value;
+    const password = document.getElementById('uf-password').value;
+
+    try {
+      const url = isEdit ? `/api/users/${userToEdit.id}` : '/api/users';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await apiFetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, username, role, password })
+      });
+
+      const payload = await res.json();
+      if (res.ok) {
+        showToast(isEdit ? 'Usuário atualizado com sucesso!' : 'Usuário cadastrado com sucesso!');
+        close();
+        if (onSaved) onSaved();
+      } else {
+        showCustomAlert({ title: 'Atenção', message: payload.message || 'Erro ao salvar usuário.', type: 'warning' });
+        btnSave.disabled = false;
+        btnSave.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${isEdit ? 'Salvar Alterações' : 'Cadastrar Usuário'}`;
+      }
+    } catch (err) {
+      showCustomAlert({ title: 'Erro de Conexão', message: 'Falha ao comunicar com o servidor.', type: 'danger' });
+      btnSave.disabled = false;
+      btnSave.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${isEdit ? 'Salvar Alterações' : 'Cadastrar Usuário'}`;
+    }
+  });
+};
+
 // --- MODAL LARANJA: "Sincronização Pendente!" (Disparado em CRUD) ---
 const showSyncPromptModal = (syncData = {}) => {
   return new Promise((resolve) => {
@@ -393,31 +768,11 @@ const showSyncPromptModal = (syncData = {}) => {
 
     document.getElementById('btn-sync-confirm').addEventListener('click', async () => {
       const btn = document.getElementById('btn-sync-confirm');
-      const originalHtml = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
 
       try {
-        const res = await fetch('/api/sync/upload', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${state.token}`
-          }
-        });
-        if (res.ok) {
-          showToast('Dados sincronizados com o Turso na nuvem!');
-          try {
-            const st = await apiFetch('/api/sync/status');
-            if (st.ok) {
-              state.syncInfo = await st.json();
-              updateSyncBadge();
-            }
-          } catch (e) {}
-        } else {
-          showToast('Erro ao sincronizar com a nuvem.');
-        }
-      } catch (err) {
-        showToast('Erro de conexão ao sincronizar.');
+        await syncManager.pushToCloud(true);
       } finally {
         cleanUp();
         resolve(true);
@@ -437,8 +792,8 @@ const showSyncComparisonModal = (syncData = {}) => {
   overlay.style.zIndex = '99998';
   overlay.style.display = 'flex';
 
-  const localTs = syncData.lastLocalBackup || syncData.localTimestamps?.patients || null;
-  const cloudTs = syncData.lastCloudBackup || syncData.cloudTimestamps?.patients || new Date().toISOString();
+  const localTs = syncData.lastLocalBackup || syncData.localTimestamps?.main_data || null;
+  const cloudTs = syncData.lastCloudBackup || syncData.cloudTimestamps?.main_data || new Date().toISOString();
 
   const localDateText = formatSyncDate(localTs);
   const cloudDateText = formatSyncDate(cloudTs);
@@ -461,7 +816,7 @@ const showSyncComparisonModal = (syncData = {}) => {
 
         <!-- Mensagem Principal -->
         <div class="sync-main-msg">
-          Detectamos que existem alterações feitas em outro dispositivo.
+          Detectamos que existem alterações feitas em outro dispositivo ou na nuvem.
           <strong>Deseja atualizar seu banco local agora?</strong>
         </div>
 
@@ -503,57 +858,155 @@ const showSyncComparisonModal = (syncData = {}) => {
     downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
 
     try {
-      const res = await apiFetch('/api/sync/download', { method: 'POST' });
-      if (res.ok) {
-        showToast('Banco de dados local atualizado com os dados da nuvem!');
-        sessionStorage.setItem('syncDismissed', 'true');
-        dataCache.clear();
-        dataCacheTimestamps.clear();
-        try {
-          const st = await apiFetch('/api/sync/status');
-          if (st.ok) {
-            state.syncInfo = await st.json();
-            updateSyncBadge();
-          }
-        } catch (e) {}
-        overlay.remove();
-        setTimeout(() => window.location.reload(), 1200);
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        showToast(errData.message || 'Erro ao baixar dados da nuvem.');
-        downloadBtn.disabled = false;
-        closeBtn.disabled = false;
-        downloadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Sim, Baixar da Nuvem';
-      }
-    } catch (err) {
-      showToast('Erro de conexão ao sincronizar com a nuvem.');
-      downloadBtn.disabled = false;
-      closeBtn.disabled = false;
-      downloadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Sim, Baixar da Nuvem';
+      await syncManager.pullFromCloud();
+    } finally {
+      overlay.remove();
     }
   });
 };
 
-// ─── CONTROLE DE SINCRONIZAÇÃO BIDIRECIONAL ──────────────────────────────────
-//
-// Fluxo LOCAL → VERCEL:
-//   1. Usuário trabalha localmente em seu computador.
-//   2. Após cada inserção, alteração ou exclusão, o sistema envia automaticamente os dados ao Turso.
-//   3. Quando o app é aberto, ele compara o banco local com o Turso e recomenda "Baixar da Nuvem" se houver diferença.
-//
-// Fluxo VERCEL → LOCAL:
-//   1. Usuário trabalha no Vercel (dados vão direto ao Turso).
-//   2. Ao abrir o app local, compara local.db vs Turso.
-//   3. Se houver diferença → modal aparece recomendando "Baixar da Nuvem".
-// ─────────────────────────────────────────────────────────────────────────────
-const VERCEL_LAST_SEEN_KEY = 'healthNexus_vercelLastSeen';
-let syncInProgress = false;
+// ─── CLASSE SYNCMANAGER (ESPECIFICAÇÃO DE SINCRONIZAÇÃO) ────────────────────
+class SyncManager {
+  constructor() {
+    this.lastLocalUpdate = Number(localStorage.getItem('hn_last_local_update') || 0);
+    this.lastCheckTime = 0;
+    this.cooldownMs = 60 * 1000; // 60s cooldown
+    this.syncIntervalMs = 15 * 60 * 1000; // 15 minutos auto-sync
+    this.timerCountdownSeconds = 15 * 60; // 900s
+    this.timerInterval = null;
+    this.syncInProgress = false;
+  }
+
+  startAutoSyncTimer() {
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    this.timerCountdownSeconds = 15 * 60;
+
+    this.timerInterval = setInterval(() => {
+      if (this.timerCountdownSeconds > 0) {
+        this.timerCountdownSeconds--;
+        this.updateTimerUI();
+      } else {
+        this.timerCountdownSeconds = 15 * 60;
+        this.checkCloudVersion(false);
+      }
+    }, 1000);
+  }
+
+  updateTimerUI() {
+    const mins = Math.floor(this.timerCountdownSeconds / 60);
+    const secs = this.timerCountdownSeconds % 60;
+    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    const badge = document.getElementById('sync-status-badge');
+    if (badge && state.syncInfo && state.syncInfo.cloudConfigured) {
+      const baseText = state.syncInfo.synchronized ? 'Local sincronizado com Turso' : 'Fora de Sincronia';
+      badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> ${baseText} <span style="opacity:0.8; font-size:0.78rem; margin-left:6px;">(${timeStr})</span>`;
+    }
+  }
+
+  async checkCloudVersion(force = false) {
+    const now = Date.now();
+    if (!force && (now - this.lastCheckTime < this.cooldownMs)) {
+      return { hasNewData: false, cloudTimestamp: 0 };
+    }
+    this.lastCheckTime = now;
+
+    if (sessionStorage.getItem('hn_reloading_after_sync') === 'true') {
+      sessionStorage.removeItem('hn_reloading_after_sync');
+      await getSyncStatus();
+      return { hasNewData: false, cloudTimestamp: 0 };
+    }
+
+    try {
+      const res = await fetch('/api/sync/check-version');
+      if (!res.ok) return { hasNewData: false, cloudTimestamp: 0 };
+      const data = await res.json();
+
+      if (data.cloudConfigured) {
+        const localTs = Number(localStorage.getItem('hn_last_local_update') || data.localTimestamp || 0);
+        const hasNewData = data.cloudTimestamp > (localTs + 5000);
+
+        if (hasNewData) {
+          const statusData = await getSyncStatus();
+          if (statusData) {
+            showSyncComparisonModal(statusData);
+          }
+        } else {
+          await getSyncStatus();
+        }
+        return { hasNewData, cloudTimestamp: data.cloudTimestamp };
+      }
+      return { hasNewData: false, cloudTimestamp: 0 };
+    } catch (e) {
+      console.warn('[SyncManager] Erro ao checar versão da nuvem:', e);
+      return { hasNewData: false, cloudTimestamp: 0 };
+    }
+  }
+
+  async pushToCloud(showToastMessage = true) {
+    if (this.syncInProgress) return false;
+    this.syncInProgress = true;
+
+    try {
+      const res = await fetch('/api/sync/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${state.token}` }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const now = data.updatedAt || Date.now();
+        localStorage.setItem('hn_last_local_update', now.toString());
+        localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
+        this.lastLocalUpdate = now;
+        if (showToastMessage) showToast('Dados sincronizados com o Turso na nuvem!');
+        await getSyncStatus();
+        this.startAutoSyncTimer();
+        return true;
+      } else {
+        if (showToastMessage) showToast('Erro ao sincronizar com a nuvem.');
+        return false;
+      }
+    } catch (err) {
+      console.error('[SyncManager] Erro no pushToCloud:', err);
+      if (showToastMessage) showToast('Erro de conexão ao enviar para a nuvem.');
+      return false;
+    } finally {
+      this.syncInProgress = false;
+    }
+  }
+
+  async pullFromCloud() {
+    try {
+      const res = await apiFetch('/api/sync/download', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        const now = data.updatedAt || Date.now();
+        localStorage.setItem('hn_last_local_update', now.toString());
+        localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
+        sessionStorage.setItem('hn_reloading_after_sync', 'true');
+        showToast('Banco local atualizado com os dados da nuvem!');
+        setTimeout(() => window.location.reload(), 800);
+        return true;
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.message || 'Erro ao baixar dados da nuvem.');
+        return false;
+      }
+    } catch (e) {
+      console.error('[SyncManager] Erro no pullFromCloud:', e);
+      showToast('Erro ao sincronizar com a nuvem.');
+      return false;
+    }
+  }
+}
+
+const syncManager = new SyncManager();
 
 const scheduleSyncUpload = () => {
   if (state.syncInfo && !state.syncInfo.cloudConfigured) return;
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
   syncUploadTimeout = setTimeout(async () => {
-    await syncLocalChangesToCloud();
+    await syncManager.pushToCloud(false);
   }, 500);
 };
 
@@ -573,37 +1026,6 @@ const getSyncStatus = async () => {
   }
 };
 
-const syncLocalChangesToCloud = async () => {
-  if (syncInProgress) return true;
-  if (state.syncInfo && (!state.syncInfo.cloudConfigured || state.syncInfo.isVercel)) return false;
-
-  syncInProgress = true;
-
-  try {
-    const uploadRes = await fetch('/api/sync/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${state.token}`
-      }
-    });
-
-    if (!uploadRes.ok) {
-      showToast('Falha ao enviar alterações para a nuvem. Os dados locais foram salvos.');
-      return false;
-    }
-
-    showToast('Alterações sincronizadas com o Turso com sucesso!');
-    await getSyncStatus();
-    return true;
-  } catch (err) {
-    console.error('Erro na sincronização automática com Turso:', err);
-    showToast('Erro ao sincronizar com a nuvem. Tente novamente mais tarde.');
-    return false;
-  } finally {
-    syncInProgress = false;
-  }
-};
-
 const requestSyncPromptIfConfigured = async () => {
   try {
     const statusData = await getSyncStatus();
@@ -614,7 +1036,6 @@ const requestSyncPromptIfConfigured = async () => {
     statusData.lastLocalBackup = localMax.str || new Date().toISOString();
     statusData.lastCloudBackup = cloudMax.str || new Date().toISOString();
 
-    // Exibir modal correspondente apenas se houver diferença de timestamps
     if (localMax.time > cloudMax.time || statusData.isVercel) {
       showSyncPromptModal(statusData);
     } else if (cloudMax.time > localMax.time) {
@@ -631,6 +1052,13 @@ const updateSyncBadge = () => {
   const badge = document.getElementById('sync-status-badge');
   if (!badge) return;
   const data = state.syncInfo;
+
+  if (!badge.dataset.listenerAdded) {
+    badge.dataset.listenerAdded = 'true';
+    badge.addEventListener('click', () => {
+      requestSyncPromptIfConfigured();
+    });
+  }
 
   if (!data) {
     badge.textContent = 'Verificando Turso...';
@@ -656,7 +1084,7 @@ const updateSyncBadge = () => {
     return;
   }
 
-  badge.textContent = data.synchronized ? 'Local sincronizado com Turso' : 'Dados fora de sincronia com Turso';
+  syncManager.updateTimerUI();
   badge.style.background = data.synchronized ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)';
   badge.style.borderColor = data.synchronized ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)';
   badge.style.color = data.synchronized ? '#15803d' : '#b45309';
@@ -689,33 +1117,8 @@ const getMaxTimestamp = (timestampsObj = {}) => {
 
 const checkInitialSync = async () => {
   try {
-    const data = await getSyncStatus();
-    if (!data) return;
-
-    if (!data.cloudConfigured) return;
-
-    let syncDismissed = sessionStorage.getItem('syncDismissed') === 'true';
-
-    // Obter os timestamps máximos para comparar quem é mais recente
-    const localMax = getMaxTimestamp(data.localTimestamps);
-    const cloudMax = getMaxTimestamp(data.cloudTimestamps);
-
-    data.lastLocalBackup = localMax.str;
-    data.lastCloudBackup = cloudMax.str;
-
-    if (!data.synchronized) {
-      sessionStorage.removeItem('syncDismissed');
-      syncDismissed = false;
-
-      // COMPARAÇÃO DIRETA DE DIREÇÃO DE SINCRONIZAÇÃO:
-      // Se a data local do computador for MAIS RECENTE que a nuvem -> Mostrar Modal Laranja ("Sincronização Pendente!")
-      // Se a data da nuvem for MAIS RECENTE que a local do computador -> Mostrar Modal Roxo ("Dados Novos na Nuvem!")
-      if (localMax.time > cloudMax.time) {
-        if (!syncDismissed) showSyncPromptModal(data);
-      } else if (cloudMax.time > localMax.time) {
-        if (!syncDismissed) showSyncComparisonModal(data);
-      }
-    }
+    syncManager.startAutoSyncTimer();
+    await syncManager.checkCloudVersion(true);
   } catch (err) {
     console.error('Erro ao verificar sincronização inicial:', err);
   }
@@ -2465,6 +2868,39 @@ async function renderTabContent() {
             </div>
           </details>
 
+          <!-- Accordion de Sincronização Cloud Turso -->
+          <details class="settings-accordion" open>
+            <summary class="settings-accordion-header">
+              <i class="fa-solid fa-cloud-arrow-up" style="color: #38bdf8;"></i> Sincronização com Banco Turso Cloud
+            </summary>
+            <div class="settings-accordion-body">
+              <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
+                Gerencie a sincronização bidirecional entre o computador local e a nuvem <strong>Turso Cloud DB</strong>.
+              </p>
+              
+              <div class="sync-info-box" style="margin-bottom: 18px;">
+                <div class="sync-info-item">
+                  <span><i class="fa-solid fa-desktop" style="color: #818cf8;"></i> Último Backup Local:</span>
+                  <val id="cfg-sync-local-time">Carregando...</val>
+                </div>
+                <div class="sync-info-divider"></div>
+                <div class="sync-info-item">
+                  <span><i class="fa-solid fa-cloud" style="color: #38bdf8;"></i> Versão no Turso Cloud:</span>
+                  <val id="cfg-sync-cloud-time">Carregando...</val>
+                </div>
+              </div>
+
+              <div class="settings-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button id="btn-sync-turso-now" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar Agora com Turso (Upload)
+                </button>
+                <button id="btn-sync-turso-download" class="btn btn-secondary" style="border-color: #8b5cf6; color: #a78bfa;">
+                  <i class="fa-solid fa-cloud-arrow-down"></i> Baixar Dados do Turso (Restore)
+                </button>
+              </div>
+            </div>
+          </details>
+
           <!-- Accordion de Manutenção -->
           <details class="settings-accordion">
             <summary class="settings-accordion-header">
@@ -2518,8 +2954,8 @@ async function renderTabContent() {
                   <strong>Bem-vindo, Master.</strong> Aqui você poderá editar perfis, resetar senhas e alterar permissões de outros usuários da clínica.
                 </p>
                 <div class="settings-actions">
-                  <button class="btn btn-primary" onclick="alert('Funcionalidade de edição de usuários será implementada na próxima fase.')">
-                    <i class="fa-solid fa-user-pen"></i> Editar Permissões
+                  <button id="btn-edit-permissions" class="btn btn-primary">
+                    <i class="fa-solid fa-users-gear"></i> Gerenciar Usuários & Permissões
                   </button>
                 </div>
               ` : `
@@ -2535,34 +2971,108 @@ async function renderTabContent() {
       </div>
     `;
 
+    // Botão de Gerenciamento de Usuários
+    const btnEditPerms = document.getElementById('btn-edit-permissions');
+    if (btnEditPerms) {
+      btnEditPerms.addEventListener('click', () => {
+        showUserManagementModal();
+      });
+    }
+
+    // Atualiza datas da seção de sincronização na aba Configurações
+    (async () => {
+      const statusData = await getSyncStatus();
+      if (statusData) {
+        const localEl = document.getElementById('cfg-sync-local-time');
+        const cloudEl = document.getElementById('cfg-sync-cloud-time');
+        if (localEl) localEl.textContent = formatSyncDate(statusData.lastLocalBackup);
+        if (cloudEl) cloudEl.textContent = formatSyncDate(statusData.lastCloudBackup);
+      }
+    })();
+
+    const btnSyncNow = document.getElementById('btn-sync-turso-now');
+    if (btnSyncNow) {
+      btnSyncNow.addEventListener('click', async () => {
+        btnSyncNow.disabled = true;
+        const originalHtml = btnSyncNow.innerHTML;
+        btnSyncNow.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...';
+        try {
+          await syncManager.pushToCloud(true);
+          const statusData = await getSyncStatus();
+          if (statusData) {
+            const localEl = document.getElementById('cfg-sync-local-time');
+            const cloudEl = document.getElementById('cfg-sync-cloud-time');
+            if (localEl) localEl.textContent = formatSyncDate(statusData.lastLocalBackup);
+            if (cloudEl) cloudEl.textContent = formatSyncDate(statusData.lastCloudBackup);
+          }
+        } finally {
+          btnSyncNow.disabled = false;
+          btnSyncNow.innerHTML = originalHtml;
+        }
+      });
+    }
+
+    const btnSyncDownload = document.getElementById('btn-sync-turso-download');
+    if (btnSyncDownload) {
+      btnSyncDownload.addEventListener('click', async () => {
+        const confirmed = await showCustomConfirm({
+          title: 'Baixar Dados do Turso Cloud',
+          message: 'Deseja baixar e substituir os dados locais pelos dados armazenados no Turso Cloud?',
+          confirmText: 'Sim, Baixar Dados',
+          cancelText: 'Cancelar',
+          type: 'warning'
+        });
+
+        if (confirmed) {
+          btnSyncDownload.disabled = true;
+          const originalHtml = btnSyncDownload.innerHTML;
+          btnSyncDownload.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
+          try {
+            await syncManager.pullFromCloud();
+          } finally {
+            btnSyncDownload.disabled = false;
+            btnSyncDownload.innerHTML = originalHtml;
+          }
+        }
+      });
+    }
+
     document.getElementById('btn-seed').addEventListener('click', async () => {
       try {
         const res = await apiFetch(`${API_URL}/settings/seed`, { method: 'POST' });
         const data = await res.json();
         if (res.ok) {
-          alert('Sucesso: 5 pacientes fictícios foram inseridos no banco Turso.');
+          showCustomAlert({ title: 'Sucesso', message: '5 pacientes fictícios foram inseridos no banco Turso.', type: 'success' });
           state.loading = true;
         } else {
-          alert(`Erro: ${data.message || 'Falha ao popular banco.'}`);
+          showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao popular banco.', type: 'danger' });
         }
       } catch (err) {
-        alert('Erro ao conectar-se à API.');
+        showCustomAlert({ title: 'Erro de Conexão', message: 'Erro ao conectar-se à API.', type: 'danger' });
       }
     });
 
     document.getElementById('btn-reset').addEventListener('click', async () => {
-      if (confirm('Tem certeza de que deseja APAGAR TODOS os pacientes do banco Turso? Esta ação não pode ser desfeita.')) {
+      const confirmed = await showCustomConfirm({
+        title: 'Limpar Banco de Dados',
+        message: 'Tem certeza de que deseja APAGAR TODOS os pacientes do banco Turso? Esta ação não pode ser desfeita.',
+        confirmText: 'Sim, Apagar Tudo',
+        cancelText: 'Cancelar',
+        type: 'danger'
+      });
+
+      if (confirmed) {
         try {
           const res = await apiFetch(`${API_URL}/settings/reset`, { method: 'POST' });
           const data = await res.json();
           if (res.ok) {
-            alert('Sucesso: Todos os dados de pacientes foram removidos.');
+            showCustomAlert({ title: 'Sucesso', message: 'Todos os dados de pacientes foram removidos.', type: 'success' });
             state.loading = true;
           } else {
-            alert(`Erro: ${data.message || 'Falha ao resetar banco.'}`);
+            showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao resetar banco.', type: 'danger' });
           }
         } catch (err) {
-          alert('Erro ao conectar-se à API.');
+          showCustomAlert({ title: 'Erro de Conexão', message: 'Erro ao conectar-se à API.', type: 'danger' });
         }
       }
     });
