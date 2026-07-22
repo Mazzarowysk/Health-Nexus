@@ -1774,13 +1774,28 @@ function renderAuthScreen() {
   renderForm();
 }
 
-// --- SISTEMA DE NÍVEIS DE ACESSO COMPLETO (RBAC 9 PERFIS HOSPITALARES) ---
+// --- SISTEMA DE NÍVEIS DE ACESSO COMPLETO (RBAC PERFIS HOSPITALARES + DEV) ---
 function getRolePermissions(user) {
   const username = (user?.username || '').toLowerCase();
   const role = (user?.role || '').trim();
 
-  // Garantia: mazzarowysk e admin possuem acesso Master supremo permanente
-  if (username === 'mazzarowysk' || username === 'admin' || role === 'Master') {
+  // Função Suprema: Desenvolvedor / Criador do Sistema (mazzarowysk e bcoltri)
+  if (username === 'mazzarowysk' || username === 'bcoltri' || role === 'Desenvolvedor' || role === 'Dev') {
+    return {
+      role: 'Desenvolvedor',
+      label: '💻 Desenvolvedor (Master)',
+      badgeColor: 'linear-gradient(135deg, #a855f7, #7e22ce)',
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      canApproveUsers: true,
+      canManageUsers: true,
+      canDeleteRecords: true,
+      canSignPEP: true,
+      canDoTriage: true
+    };
+  }
+
+  // Garantia: admin e perfil Master possuem acesso Master
+  if (username === 'admin' || role === 'Master') {
     return {
       role: 'Master',
       label: '👑 Master (Acesso Total)',
@@ -7505,7 +7520,8 @@ async function renderStagnationTab(container) {
 
 async function loadAndRenderStagnationData() {
   try {
-    const isMaster = state.user && (state.user.role === 'Master' || state.user.role === 'Administrador' || state.user.username === 'mazzarowysk');
+    const perms = getRolePermissions(state.user);
+    const isMaster = perms.canApproveUsers;
     let pendingUsers = [];
 
     if (isMaster) {
