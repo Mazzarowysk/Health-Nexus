@@ -5117,9 +5117,15 @@ async function renderLeitosTab() {
           </div>
           <div class="form-group">
             <label for="admit-patient-id">Selecione o Paciente *</label>
-            <select id="admit-patient-id" class="form-input" required>
-              <option value="">Carregando pacientes...</option>
-            </select>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="position: relative;">
+                <input type="text" id="admit-patient-search" class="form-input" placeholder="🔍 Pesquisar por nome ou CPF..." autocomplete="off" style="font-size: 0.85rem; padding-left: 30px;">
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted, #818cf8); font-size: 0.8rem; pointer-events: none;"></i>
+              </div>
+              <select id="admit-patient-id" class="form-input" required style="max-height: 160px; overflow-y: auto;">
+                <option value="">Carregando pacientes...</option>
+              </select>
+            </div>
           </div>
           <div class="modal-footer" style="padding-top: 16px;">
             <button type="button" class="btn btn-secondary" id="btn-cancel-admit-modal">Cancelar</button>
@@ -5232,6 +5238,7 @@ async function renderLeitosTab() {
   const loadPatientsModal = async () => {
     try {
       const pSelect = document.getElementById('admit-patient-id');
+      const pSearch = document.getElementById('admit-patient-search');
       if (pSelect && pSelect.options.length <= 1) {
         pSelect.innerHTML = '<option value="">Carregando lista de pacientes...</option>';
       }
@@ -5239,13 +5246,41 @@ async function renderLeitosTab() {
       if (!res.ok) throw new Error();
       const patients = await res.json();
       const patientList = Array.isArray(patients) ? patients : (patients.data || []);
-      if (pSelect) {
-        if (patientList.length === 0) {
+      
+      // Ordenação Alfabética A-Z por nome completo
+      patientList.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'pt-BR', { sensitivity: 'base' }));
+
+      const renderOptions = (items) => {
+        if (!pSelect) return;
+        const currentSelected = pSelect.value;
+        if (items.length === 0) {
           pSelect.innerHTML = '<option value="">Nenhum paciente disponível</option>';
           return;
         }
         pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
-          patientList.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+          items.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+        if (currentSelected) pSelect.value = currentSelected;
+      };
+
+      renderOptions(patientList);
+
+      if (pSearch && !pSearch.dataset.bound) {
+        pSearch.dataset.bound = 'true';
+        pSearch.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+          if (!query) {
+            renderOptions(patientList);
+          } else {
+            const filtered = patientList.filter(p => {
+              const nameMatch = (p.fullName || '').toLowerCase().includes(query);
+              const cpfDigits = (p.cpf || '').replace(/\D/g, '');
+              const queryDigits = query.replace(/\D/g, '');
+              const cpfMatch = queryDigits ? cpfDigits.includes(queryDigits) : (p.cpf || '').toLowerCase().includes(query);
+              return nameMatch || cpfMatch;
+            });
+            renderOptions(filtered);
+          }
+        });
       }
     } catch (e) {
       const pSelect = document.getElementById('admit-patient-id');
@@ -5317,11 +5352,40 @@ window.quickAdmitBed = (bedId) => {
     const bedSelect = document.getElementById('admit-bed-id');
     if (bedSelect) bedSelect.value = bedId;
     const pSelect = document.getElementById('admit-patient-id');
+    const pSearch = document.getElementById('admit-patient-search');
+    if (pSearch) pSearch.value = ''; // limpar campo de busca ao abrir
     if (pSelect) {
       apiFetch(`${API_URL}/patients`).then(r => r.json()).then(patients => {
         const list = Array.isArray(patients) ? patients : (patients.data || []);
-        pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
-          list.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+        
+        // Ordenação Alfabética A-Z por nome completo
+        list.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'pt-BR', { sensitivity: 'base' }));
+
+        const renderOptions = (items) => {
+          pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
+            items.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+        };
+
+        renderOptions(list);
+
+        if (pSearch && !pSearch.dataset.bound) {
+          pSearch.dataset.bound = 'true';
+          pSearch.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            if (!query) {
+              renderOptions(list);
+            } else {
+              const filtered = list.filter(p => {
+                const nameMatch = (p.fullName || '').toLowerCase().includes(query);
+                const cpfDigits = (p.cpf || '').replace(/\D/g, '');
+                const queryDigits = query.replace(/\D/g, '');
+                const cpfMatch = queryDigits ? cpfDigits.includes(queryDigits) : (p.cpf || '').toLowerCase().includes(query);
+                return nameMatch || cpfMatch;
+              });
+              renderOptions(filtered);
+            }
+          });
+        }
       }).catch(() => {});
     }
   }
