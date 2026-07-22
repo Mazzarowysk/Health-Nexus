@@ -111,10 +111,10 @@ const initLocalDb = async () => {
     }
   } catch (e) {}
 
-  // Seed de pacientes A-Z se houver poucos ou nenhum paciente
+  // Seed de pacientes A-Z para permitir teste de busca e rolagem de mouse
   try {
     const pCount = Number((await db.execute('SELECT COUNT(*) as c FROM patients')).rows[0].c);
-    if (pCount < 15) {
+    if (pCount < 30) {
       const demoPatients = [
         { id: 'PAT-DEMO-01', fullName: 'Amanda Alvarenga', cpf: '111.222.333-01', birthDate: '1995-04-12', phone: '(11) 91111-0001' },
         { id: 'PAT-DEMO-02', fullName: 'Ana Beatriz Oliveira', cpf: '111.222.333-02', birthDate: '1992-08-25', phone: '(11) 91111-0002' },

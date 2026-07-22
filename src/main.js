@@ -157,6 +157,158 @@ const formatSyncDate = (isoOrDate) => {
   }
 };
 
+// --- HELPER COMPONENTE DE SELEÇÃO CUSTOMIZADA E PESQUISÁVEL ---
+const setupCustomSelect = (container, hiddenInput, items, placeholder, onSelect) => {
+  if (!container || !hiddenInput) return null;
+  
+  // Ordena os itens em ordem alfabética A-Z por nome completo
+  const sortedItems = [...(items || [])].sort((a, b) => 
+    (a.fullName || '').localeCompare(b.fullName || '', 'pt-BR', { sensitivity: 'base' })
+  );
+
+  const getLabelHtml = (item) => {
+    if (!item) {
+      return `<i class="fa-solid fa-user" style="color: var(--color-primary, #6366f1); margin-right: 8px;"></i> <span>${placeholder || 'Selecione...'}</span>`;
+    }
+    return `<i class="fa-solid fa-user" style="color: var(--color-primary, #6366f1); margin-right: 8px;"></i> <span style="font-weight:600;">${item.fullName}</span> <span style="opacity:0.75; font-size:0.82rem; margin-left:4px;">(CPF: ${item.cpf || 'N/I'})</span>`;
+  };
+
+  let selectedItem = sortedItems.find(i => String(i.id) === String(hiddenInput.value)) || null;
+
+  // Limpar e reconstruir estrutura interna
+  container.innerHTML = `
+    <div class="custom-select-trigger" tabindex="0">${getLabelHtml(selectedItem)}</div>
+    <div class="custom-select-options-panel">
+      <div class="custom-select-search-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" class="custom-select-search-input" placeholder="🔍 Digite para filtrar por nome ou CPF..." autocomplete="off">
+      </div>
+      <div class="custom-select-options-list"></div>
+    </div>
+  `;
+
+  const trigger = container.querySelector('.custom-select-trigger');
+  const panel = container.querySelector('.custom-select-options-panel');
+  const searchInput = container.querySelector('.custom-select-search-input');
+  const listContainer = container.querySelector('.custom-select-options-list');
+
+  // Toggle dropdown
+  const toggleHandler = (e) => {
+    e.stopPropagation();
+    const isOpen = container.classList.contains('open');
+    // Fechar outros dropdowns abertos antes
+    document.querySelectorAll('.custom-select-container').forEach(el => {
+      if (el !== container) el.classList.remove('open');
+    });
+    if (isOpen) {
+      container.classList.remove('open');
+    } else {
+      container.classList.add('open');
+      searchInput.value = '';
+      renderList(sortedItems);
+      setTimeout(() => searchInput.focus(), 50);
+    }
+  };
+
+  trigger.removeEventListener('click', toggleHandler);
+  trigger.addEventListener('click', toggleHandler);
+
+  // Fechar ao clicar fora
+  const clickOutsideHandler = (e) => {
+    if (!container.contains(e.target)) {
+      container.classList.remove('open');
+    }
+  };
+  document.removeEventListener('click', clickOutsideHandler);
+  document.addEventListener('click', clickOutsideHandler);
+
+  // Renderizar listagem de opções
+  const renderList = (filteredItems) => {
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+    
+    if (filteredItems.length === 0) {
+      listContainer.innerHTML = `<div class="custom-select-no-results"><i class="fa-solid fa-user-slash" style="margin-right: 6px;"></i> Nenhum paciente encontrado.</div>`;
+      return;
+    }
+
+    filteredItems.forEach(item => {
+      const opt = document.createElement('div');
+      opt.className = 'custom-select-option';
+      if (hiddenInput.value === item.id) {
+        opt.classList.add('selected');
+      }
+      opt.innerHTML = `
+        <i class="fa-solid ${hiddenInput.value === item.id ? 'fa-circle-check' : 'fa-user'}" style="flex-shrink: 0;"></i>
+        <div style="display: flex; flex-direction: column; overflow: hidden;">
+          <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.fullName}</span>
+          <span style="font-size: 0.76rem; opacity: 0.75;">CPF: ${item.cpf || 'N/I'}${item.birthDate ? ' | Nasc: ' + item.birthDate.split('-').reverse().join('/') : ''}</span>
+        </div>
+      `;
+      
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hiddenInput.value = item.id;
+        hiddenInput.dataset.name = item.fullName;
+        trigger.innerHTML = getLabelHtml(item);
+        container.classList.remove('open');
+        
+        container.querySelectorAll('.custom-select-option').forEach(el => el.classList.remove('selected'));
+        opt.classList.add('selected');
+
+        if (onSelect) onSelect(item);
+        
+        // Disparar eventos nativos para validação HTML5
+        hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+
+      listContainer.appendChild(opt);
+    });
+  };
+
+  renderList(sortedItems);
+
+  // Filtro na digitação
+  searchInput.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    if (!q) {
+      renderList(sortedItems);
+    } else {
+      const queryDigits = q.replace(/\D/g, '');
+      const filtered = sortedItems.filter(p => {
+        const nameMatch = (p.fullName || '').toLowerCase().includes(q);
+        const cpfDigits = (p.cpf || '').replace(/\D/g, '');
+        const cpfMatch = queryDigits ? cpfDigits.includes(queryDigits) : (p.cpf || '').toLowerCase().includes(q);
+        return nameMatch || cpfMatch;
+      });
+      renderList(filtered);
+    }
+  });
+
+  return {
+    setValue: (val) => {
+      hiddenInput.value = val;
+      const matching = sortedItems.find(i => i.id === val);
+      if (matching) {
+        trigger.innerHTML = getLabelHtml(matching);
+        hiddenInput.dataset.name = matching.fullName;
+      } else {
+        trigger.innerHTML = getLabelHtml(null);
+        hiddenInput.dataset.name = '';
+      }
+      renderList(sortedItems);
+    },
+    clear: () => {
+      hiddenInput.value = '';
+      hiddenInput.dataset.name = '';
+      trigger.innerHTML = getLabelHtml(null);
+      searchInput.value = '';
+      renderList(sortedItems);
+    }
+  };
+};
+
 // --- MODAL LARANJA: "Sincronização Pendente!" (Disparado em CRUD) ---
 const showSyncPromptModal = (syncData = {}) => {
   return new Promise((resolve) => {
@@ -4614,16 +4766,9 @@ async function renderAgendaTab() {
         </div>
         <form id="form-new-appointment" class="modal-body">
           <div class="form-group">
-            <label for="apt-patient-id">Paciente *</label>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-              <div style="position: relative;">
-                <input type="text" id="apt-patient-search" class="form-input" placeholder="🔍 Pesquisar por nome ou CPF..." autocomplete="off" style="font-size: 0.85rem; padding-left: 30px;">
-                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted, #818cf8); font-size: 0.8rem; pointer-events: none;"></i>
-              </div>
-              <select id="apt-patient-id" class="form-input" required style="max-height: 160px; overflow-y: auto;">
-                <option value="">Selecione o paciente...</option>
-              </select>
-            </div>
+            <label>Paciente *</label>
+            <div class="custom-select-container" id="apt-patient-combo"></div>
+            <input type="hidden" id="apt-patient-id" required>
           </div>
           <div class="form-group">
             <label for="apt-doctor">Médico Responsável *</label>
@@ -4667,43 +4812,11 @@ async function renderAgendaTab() {
       // Ordenação Alfabética A-Z por nome completo
       patients.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'pt-BR', { sensitivity: 'base' }));
 
-      const pSelect = document.getElementById('apt-patient-id');
-      const pSearch = document.getElementById('apt-patient-search');
+      const pComboContainer = document.getElementById('apt-patient-combo');
+      const pHiddenInput = document.getElementById('apt-patient-id');
 
-      const renderOptions = (items) => {
-        if (!pSelect) return;
-        const currentSelected = pSelect.value;
-        pSelect.innerHTML = '<option value="">Selecione o paciente...</option>';
-        items.forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.id;
-          opt.textContent = p.fullName + ' (CPF: ' + (p.cpf || 'N/A') + ')';
-          opt.dataset.name = p.fullName;
-          opt.dataset.cpf = p.cpf || '';
-          if (p.id === currentSelected) opt.selected = true;
-          pSelect.appendChild(opt);
-        });
-      };
-
-      renderOptions(patients);
-
-      if (pSearch && !pSearch.dataset.bound) {
-        pSearch.dataset.bound = 'true';
-        pSearch.addEventListener('input', (e) => {
-          const query = e.target.value.toLowerCase().trim();
-          if (!query) {
-            renderOptions(patients);
-          } else {
-            const filtered = patients.filter(p => {
-              const nameMatch = (p.fullName || '').toLowerCase().includes(query);
-              const cpfDigits = (p.cpf || '').replace(/\D/g, '');
-              const queryDigits = query.replace(/\D/g, '');
-              const cpfMatch = queryDigits ? cpfDigits.includes(queryDigits) : (p.cpf || '').toLowerCase().includes(query);
-              return nameMatch || cpfMatch;
-            });
-            renderOptions(filtered);
-          }
-        });
+      if (pComboContainer && pHiddenInput) {
+        setupCustomSelect(pComboContainer, pHiddenInput, patients, 'Selecione o paciente...');
       }
     } catch (e) {}
   };
@@ -4978,9 +5091,9 @@ async function renderAgendaTab() {
   document.getElementById('form-new-appointment').addEventListener('submit', async (e) => {
     e.preventDefault();
     const pSelect = document.getElementById('apt-patient-id');
-    const selectedOption = pSelect.options[pSelect.selectedIndex];
+    const selectedOption = pSelect.options ? pSelect.options[pSelect.selectedIndex] : null;
     const patientId = pSelect.value;
-    const patientName = selectedOption ? selectedOption.dataset.name : '';
+    const patientName = selectedOption ? selectedOption.dataset.name : (pSelect.dataset.name || '');
 
     const dSelect = document.getElementById('apt-doctor');
     const selectedDocOption = dSelect.options[dSelect.selectedIndex];
@@ -5116,16 +5229,9 @@ async function renderLeitosTab() {
             </select>
           </div>
           <div class="form-group">
-            <label for="admit-patient-id">Selecione o Paciente *</label>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-              <div style="position: relative;">
-                <input type="text" id="admit-patient-search" class="form-input" placeholder="🔍 Pesquisar por nome ou CPF..." autocomplete="off" style="font-size: 0.85rem; padding-left: 30px;">
-                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted, #818cf8); font-size: 0.8rem; pointer-events: none;"></i>
-              </div>
-              <select id="admit-patient-id" class="form-input" required style="max-height: 160px; overflow-y: auto;">
-                <option value="">Carregando pacientes...</option>
-              </select>
-            </div>
+            <label>Selecione o Paciente *</label>
+            <div class="custom-select-container" id="admit-patient-combo"></div>
+            <input type="hidden" id="admit-patient-id" required>
           </div>
           <div class="modal-footer" style="padding-top: 16px;">
             <button type="button" class="btn btn-secondary" id="btn-cancel-admit-modal">Cancelar</button>
@@ -5237,11 +5343,6 @@ async function renderLeitosTab() {
   // Carregar Pacientes no Modal (Busca Direta & Rápida)
   const loadPatientsModal = async () => {
     try {
-      const pSelect = document.getElementById('admit-patient-id');
-      const pSearch = document.getElementById('admit-patient-search');
-      if (pSelect && pSelect.options.length <= 1) {
-        pSelect.innerHTML = '<option value="">Carregando lista de pacientes...</option>';
-      }
       const res = await apiFetch(`${API_URL}/patients`);
       if (!res.ok) throw new Error();
       const patients = await res.json();
@@ -5250,41 +5351,15 @@ async function renderLeitosTab() {
       // Ordenação Alfabética A-Z por nome completo
       patientList.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'pt-BR', { sensitivity: 'base' }));
 
-      const renderOptions = (items) => {
-        if (!pSelect) return;
-        const currentSelected = pSelect.value;
-        if (items.length === 0) {
-          pSelect.innerHTML = '<option value="">Nenhum paciente disponível</option>';
-          return;
-        }
-        pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
-          items.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
-        if (currentSelected) pSelect.value = currentSelected;
-      };
+      const pComboContainer = document.getElementById('admit-patient-combo');
+      const pHiddenInput = document.getElementById('admit-patient-id');
 
-      renderOptions(patientList);
-
-      if (pSearch && !pSearch.dataset.bound) {
-        pSearch.dataset.bound = 'true';
-        pSearch.addEventListener('input', (e) => {
-          const query = e.target.value.toLowerCase().trim();
-          if (!query) {
-            renderOptions(patientList);
-          } else {
-            const filtered = patientList.filter(p => {
-              const nameMatch = (p.fullName || '').toLowerCase().includes(query);
-              const cpfDigits = (p.cpf || '').replace(/\D/g, '');
-              const queryDigits = query.replace(/\D/g, '');
-              const cpfMatch = queryDigits ? cpfDigits.includes(queryDigits) : (p.cpf || '').toLowerCase().includes(query);
-              return nameMatch || cpfMatch;
-            });
-            renderOptions(filtered);
-          }
-        });
+      if (pComboContainer && pHiddenInput) {
+        setupCustomSelect(pComboContainer, pHiddenInput, patientList, 'Selecione o paciente...');
       }
     } catch (e) {
-      const pSelect = document.getElementById('admit-patient-id');
-      if (pSelect) pSelect.innerHTML = '<option value="">Erro ao carregar pacientes</option>';
+      const pComboContainer = document.getElementById('admit-patient-combo');
+      if (pComboContainer) pComboContainer.innerHTML = '<div class="form-input">Erro ao carregar pacientes</div>';
     }
   };
 
@@ -5312,9 +5387,9 @@ async function renderLeitosTab() {
     e.preventDefault();
     const bedId = document.getElementById('admit-bed-id').value;
     const pSelect = document.getElementById('admit-patient-id');
-    const selectedOption = pSelect.options[pSelect.selectedIndex];
+    const selectedOption = pSelect.options ? pSelect.options[pSelect.selectedIndex] : null;
     const patientId = pSelect.value;
-    const patientName = selectedOption ? selectedOption.dataset.name : '';
+    const patientName = selectedOption ? selectedOption.dataset.name : (pSelect.dataset.name || '');
 
     if (!bedId || !patientId) {
       alert('Selecione um leito e um paciente.');
