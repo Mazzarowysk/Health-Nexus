@@ -5061,6 +5061,311 @@ async function renderDoctorsTab() {
   loadDoctors();
 }
 
+// =========================================================
+// MODAL DE ATIVIDADES DO MÉDICO (Corpo Clínico)
+// =========================================================
+window.openDoctorActivityModal = async function(doctorName, specialty, crm) {
+  // Remove modal anterior se existir
+  const old = document.getElementById('modal-doctor-activity');
+  if (old) old.remove();
+
+  const encodedName = encodeURIComponent(doctorName);
+
+  // Cria estrutura do modal com spinner
+  const modal = document.createElement('div');
+  modal.id = 'modal-doctor-activity';
+  modal.style.cssText = `
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+    padding: 16px;
+  `;
+  modal.innerHTML = `
+    <div style="
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      width: 100%; max-width: 860px; max-height: 90vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+    ">
+      <!-- Header -->
+      <div style="
+        padding: 22px 28px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex; align-items: center; gap: 16px;
+        background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+      ">
+        <div style="
+          width: 52px; height: 52px; border-radius: 14px;
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        ">
+          <i class="fa-solid fa-user-doctor" style="color: #fff; font-size: 1.3rem;"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">${doctorName}</div>
+          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">
+            <span style="color: #818cf8; font-weight: 600;">${specialty || '—'}</span>
+            ${crm ? `<span style="color: var(--text-muted); margin-left: 10px;">CRM: ${crm}</span>` : ''}
+          </div>
+        </div>
+        <button id="btn-close-activity-modal" style="
+          width: 36px; height: 36px; border-radius: 10px;
+          border: 1px solid var(--border-color); background: var(--bg-tertiary);
+          color: var(--text-secondary); cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1rem; transition: all 0.15s;
+        " title="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- KPI Strip -->
+      <div id="activity-kpi-strip" style="
+        display: flex; gap: 0;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-tertiary);
+      ">
+        <div style="flex: 1; text-align: center; padding: 14px 8px; border-right: 1px solid var(--border-color);">
+          <div id="kpi-act-total" style="font-size: 1.5rem; font-weight: 800; color: #818cf8;">—</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Agendamentos</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: 14px 8px; border-right: 1px solid var(--border-color);">
+          <div id="kpi-act-today" style="font-size: 1.5rem; font-weight: 800; color: #34d399;">—</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Hoje</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: 14px 8px; border-right: 1px solid var(--border-color);">
+          <div id="kpi-act-inprogress" style="font-size: 1.5rem; font-weight: 800; color: #fbbf24;">—</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Em Atendimento</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: 14px 8px; border-right: 1px solid var(--border-color);">
+          <div id="kpi-act-done" style="font-size: 1.5rem; font-weight: 800; color: #38bdf8;">—</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Concluídos</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: 14px 8px;">
+          <div id="kpi-act-procedures" style="font-size: 1.5rem; font-weight: 800; color: #a78bfa;">—</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Procedimentos</div>
+        </div>
+      </div>
+
+      <!-- Tab Nav -->
+      <div style="display: flex; gap: 4px; padding: 12px 20px 0; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
+        <button class="act-tab-btn active" data-tab="appointments" style="
+          padding: 8px 16px; border-radius: 8px 8px 0 0;
+          border: 1px solid var(--border-color); border-bottom: none;
+          background: var(--bg-tertiary); color: var(--text-primary);
+          font-size: 0.82rem; font-weight: 600; cursor: pointer;
+          transition: all 0.15s;
+        ">
+          <i class="fa-solid fa-calendar-check" style="margin-right: 6px; color: #818cf8;"></i>Agendamentos
+        </button>
+        <button class="act-tab-btn" data-tab="procedures" style="
+          padding: 8px 16px; border-radius: 8px 8px 0 0;
+          border: 1px solid transparent; border-bottom: none;
+          background: transparent; color: var(--text-secondary);
+          font-size: 0.82rem; font-weight: 600; cursor: pointer;
+          transition: all 0.15s;
+        ">
+          <i class="fa-solid fa-notes-medical" style="margin-right: 6px; color: #a78bfa;"></i>Prontuários / SOAP
+        </button>
+      </div>
+
+      <!-- Content Area -->
+      <div id="activity-content" style="flex: 1; overflow-y: auto; padding: 20px;">
+        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 12px; color: #818cf8;"></i>
+          <div>Carregando atividades...</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Close listeners
+  document.getElementById('btn-close-activity-modal').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+  // Tab switching
+  let actData = null;
+  const renderActTab = (tab) => {
+    if (!actData) return;
+    const content = document.getElementById('activity-content');
+    document.querySelectorAll('.act-tab-btn').forEach(b => {
+      const isActive = b.dataset.tab === tab;
+      b.style.background = isActive ? 'var(--bg-tertiary)' : 'transparent';
+      b.style.color = isActive ? 'var(--text-primary)' : 'var(--text-secondary)';
+      b.style.borderColor = isActive ? 'var(--border-color)' : 'transparent';
+    });
+
+    if (tab === 'appointments') {
+      const appts = actData.appointments || [];
+      if (!appts.length) {
+        content.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text-muted);">
+          <i class="fa-solid fa-calendar-xmark" style="font-size:2.5rem;margin-bottom:12px;color:var(--text-muted);"></i>
+          <div style="font-size:0.95rem;">Nenhum agendamento encontrado para este médico.</div>
+        </div>`;
+        return;
+      }
+      const statusColors = {
+        'Agendado': { bg: 'rgba(99,102,241,0.15)', text: '#818cf8' },
+        'Confirmado': { bg: 'rgba(52,211,153,0.15)', text: '#34d399' },
+        'Em Atendimento': { bg: 'rgba(251,191,36,0.15)', text: '#fbbf24' },
+        'Concluído': { bg: 'rgba(56,189,248,0.15)', text: '#38bdf8' },
+        'Cancelado': { bg: 'rgba(248,113,113,0.15)', text: '#f87171' },
+      };
+      const rows = appts.map(a => {
+        const sc = statusColors[a.status] || { bg: 'rgba(148,163,184,0.15)', text: '#94a3b8' };
+        const dateStr = a.appointmentDate ? new Date(a.appointmentDate + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+        return `
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 12px 16px; font-size: 0.85rem;">
+              <div style="font-weight: 600; color: var(--text-primary);">${a.patientName || '—'}</div>
+              <div style="font-size: 0.77rem; color: var(--text-muted); margin-top: 2px;">${a.patientCpf ? 'CPF: ' + a.patientCpf : ''}</div>
+            </td>
+            <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-secondary);">
+              <div>${dateStr}</div>
+              <div style="font-size:0.77rem;color:var(--text-muted);">${a.appointmentTime || ''}</div>
+            </td>
+            <td style="padding: 12px 16px;">
+              <span style="
+                display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+                background: ${sc.bg}; color: ${sc.text};
+              ">${a.status || '—'}</span>
+            </td>
+            <td style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-secondary);">
+              ${a.type || '—'}
+            </td>
+            <td style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-secondary);">
+              ${a.room || a.location || '—'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+      content.innerHTML = `
+        <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+                <th style="padding: 11px 16px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; text-align: left;">Paciente</th>
+                <th style="padding: 11px 16px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; text-align: left;">Data / Hora</th>
+                <th style="padding: 11px 16px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; text-align: left;">Status</th>
+                <th style="padding: 11px 16px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; text-align: left;">Tipo</th>
+                <th style="padding: 11px 16px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; text-align: left;">Sala</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.77rem; color: var(--text-muted); text-align: right;">
+          ${appts.length} agendamento(s) encontrado(s)
+        </div>
+      `;
+    } else if (tab === 'procedures') {
+      const notes = actData.clinicalNotes || [];
+      if (!notes.length) {
+        content.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text-muted);">
+          <i class="fa-solid fa-file-medical" style="font-size:2.5rem;margin-bottom:12px;color:var(--text-muted);"></i>
+          <div style="font-size:0.95rem;">Nenhum prontuário / registro clínico encontrado.</div>
+        </div>`;
+        return;
+      }
+      const cards = notes.map(n => {
+        const dateStr = n.created_at ? new Date(n.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+        return `
+          <div style="
+            background: var(--bg-tertiary); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 16px; margin-bottom: 10px;
+          ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+              <div>
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem;">
+                  <i class="fa-solid fa-user" style="color: #818cf8; margin-right: 6px; font-size: 0.8rem;"></i>
+                  ${n.patientName || 'Paciente não identificado'}
+                </div>
+                ${n.patientCpf ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">CPF: ${n.patientCpf}</div>` : ''}
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">${dateStr}</div>
+                ${n.encounterStatus ? `<span style="
+                  display:inline-block;margin-top:4px;padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:600;
+                  background: rgba(99,102,241,0.15); color: #818cf8;
+                ">${n.encounterStatus}</span>` : ''}
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.82rem;">
+              ${n.subjective ? `
+                <div style="background:var(--bg-secondary);border-radius:8px;padding:10px;">
+                  <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">S — Subjetivo</div>
+                  <div style="color:var(--text-secondary);">${n.subjective}</div>
+                </div>` : ''}
+              ${n.objective ? `
+                <div style="background:var(--bg-secondary);border-radius:8px;padding:10px;">
+                  <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">O — Objetivo</div>
+                  <div style="color:var(--text-secondary);">${n.objective}</div>
+                </div>` : ''}
+              ${n.assessment ? `
+                <div style="background:var(--bg-secondary);border-radius:8px;padding:10px;">
+                  <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">A — Avaliação</div>
+                  <div style="color:var(--text-secondary);">${n.assessment}</div>
+                </div>` : ''}
+              ${n.plan ? `
+                <div style="background:var(--bg-secondary);border-radius:8px;padding:10px;">
+                  <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">P — Plano</div>
+                  <div style="color:var(--text-secondary);">${n.plan}</div>
+                </div>` : ''}
+            </div>
+            ${n.room ? `<div style="margin-top:8px;font-size:0.77rem;color:var(--text-muted);">
+              <i class="fa-solid fa-door-open" style="margin-right:4px;"></i>Sala: ${n.room}
+            </div>` : ''}
+          </div>
+        `;
+      }).join('');
+      content.innerHTML = `
+        ${cards}
+        <div style="font-size:0.77rem;color:var(--text-muted);text-align:right;margin-top:4px;">
+          ${notes.length} registro(s) clínico(s)
+        </div>
+      `;
+    }
+  };
+
+  modal.addEventListener('click', (e) => {
+    const tabBtn = e.target.closest('.act-tab-btn');
+    if (tabBtn) renderActTab(tabBtn.dataset.tab);
+  });
+
+  // Buscar dados
+  try {
+    const res = await apiFetch(`/api/doctors/${encodedName}/activity`);
+    if (!res.ok) throw new Error('Falha ao buscar atividades');
+    actData = await res.json();
+
+    // Preenche KPIs
+    const s = actData.summary || {};
+    document.getElementById('kpi-act-total').textContent = s.totalAppointments ?? 0;
+    document.getElementById('kpi-act-today').textContent = s.todayAppointments ?? 0;
+    document.getElementById('kpi-act-inprogress').textContent = s.inProgress ?? 0;
+    document.getElementById('kpi-act-done').textContent = s.completed ?? 0;
+    document.getElementById('kpi-act-procedures').textContent = s.totalProcedures ?? 0;
+
+    // Renderiza aba padrão
+    renderActTab('appointments');
+  } catch (err) {
+    document.getElementById('activity-content').innerHTML = `
+      <div style="text-align:center;padding:60px;color:var(--color-danger);">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:2rem;margin-bottom:12px;"></i>
+        <div style="font-size:0.95rem;">Erro ao carregar atividades do médico.</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:6px;">${err.message}</div>
+      </div>
+    `;
+    console.error('[DoctorActivity]', err);
+  }
+};
+
 
 
 
