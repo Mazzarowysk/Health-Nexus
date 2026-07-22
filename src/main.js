@@ -5634,11 +5634,39 @@ window.handleAgendaCardClick = function(actionType) {
     showToast('⚡ Direcionando para a Fila de Consulta Médica (PEP / Prontuário)!');
     switchTab('atendimento');
     setTimeout(() => {
-      const q = document.getElementById('medical-queue');
-      if (q) q.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 150);
+      const q = document.getElementById('medical-queue') || document.querySelector('.kanban-board');
+      if (q) q.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   } else if (actionType === 'completed') {
     showToast('⚡ Acessando Histórico de Atendimentos Pós-Alta e Relatórios!');
     switchTab('relatorios');
   }
 };
+
+// Event Delegation global para garantir resposta ao clique nos cards da Agenda
+document.addEventListener('click', (e) => {
+  const cardAll = e.target.closest('#kpi-agenda-all');
+  if (cardAll) {
+    e.preventDefault();
+    window.handleAgendaCardClick('all');
+    return;
+  }
+  const cardConfirmed = e.target.closest('#kpi-agenda-confirmed');
+  if (cardConfirmed) {
+    e.preventDefault();
+    window.handleAgendaCardClick('confirmed');
+    return;
+  }
+  const cardProgress = e.target.closest('#kpi-agenda-progress');
+  if (cardProgress) {
+    e.preventDefault();
+    window.handleAgendaCardClick('progress');
+    return;
+  }
+  const cardCompleted = e.target.closest('#kpi-agenda-completed');
+  if (cardCompleted) {
+    e.preventDefault();
+    window.handleAgendaCardClick('completed');
+    return;
+  }
+});
