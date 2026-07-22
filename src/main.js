@@ -768,6 +768,101 @@ function showToast(message) {
   }, 3500);
 }
 
+// --- MODAL DE INSTRUÇÕES DE LOGIN E SENHA ("Pequena Janela") ---
+function openLoginInstructionsModal() {
+  const existing = document.getElementById('login-instructions-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'login-instructions-modal';
+  modal.className = 'modal-overlay';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,8,22,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:99999;animation:fadeIn 0.25s ease-out;';
+
+  modal.innerHTML = `
+    <div style="background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 20px; width: 90%; max-width: 440px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
+      <!-- Botão Fechar -->
+      <button id="close-instructions-modal" type="button" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; padding: 4px; transition: color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='#94a3b8'">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Cabeçalho da Janela -->
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(129, 140, 248, 0.4); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.25rem;">
+          <i class="fa-solid fa-key"></i>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; color: #ffffff;">Instruções de Acesso</h3>
+          <span style="font-size: 0.8rem; color: #94a3b8;">Orientações para login no Health Nexus</span>
+        </div>
+      </div>
+
+      <!-- Texto de Orientação -->
+      <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 18px; background: rgba(255,255,255,0.03); padding: 12px 14px; border-radius: 10px; border-left: 3px solid #818cf8;">
+        Para acessar o sistema de demonstração, utilize uma das contas pré-configuradas abaixo ou selecione <strong>"Preencher"</strong> para aplicar automaticamente.
+      </p>
+
+      <!-- Cartões de Credenciais -->
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px;">
+        <!-- Perfil Médico -->
+        <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+              <i class="fa-solid fa-user-doctor"></i> Perfil Médico
+            </div>
+            <div style="font-size: 0.82rem; color: #94a3b8; font-family: monospace;">
+              Usuário: <strong style="color: #fff;">medico123</strong> &nbsp;|&nbsp; Senha: <strong style="color: #fff;">medico123</strong>
+            </div>
+          </div>
+          <button type="button" class="btn-fill-cred" data-user="medico123" data-pass="medico123" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='rgba(56, 189, 248, 0.3)'" onmouseleave="this.style.background='rgba(56, 189, 248, 0.15)'">
+            Preencher
+          </button>
+        </div>
+
+        <!-- Perfil Admin -->
+        <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(192, 132, 252, 0.3); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #c084fc; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+              <i class="fa-solid fa-user-shield"></i> Perfil Administrador
+            </div>
+            <div style="font-size: 0.82rem; color: #94a3b8; font-family: monospace;">
+              Usuário: <strong style="color: #fff;">admin</strong> &nbsp;|&nbsp; Senha: <strong style="color: #fff;">admin123</strong>
+            </div>
+          </div>
+          <button type="button" class="btn-fill-cred" data-user="admin" data-pass="admin123" style="background: rgba(192, 132, 252, 0.15); border: 1px solid rgba(192, 132, 252, 0.4); color: #c084fc; padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='rgba(192, 132, 252, 0.3)'" onmouseleave="this.style.background='rgba(192, 132, 252, 0.15)'">
+            Preencher
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer da Janela -->
+      <div style="display: flex; justify-content: flex-end;">
+        <button id="btn-close-instructions-modal" type="button" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; border: none; padding: 10px 22px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4); transition: transform 0.2s;" onmouseenter="this.style.transform='scale(1.02)'" onmouseleave="this.style.transform='scale(1)'">
+          Entendi, Fechar
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const closeModal = () => modal.remove();
+  document.getElementById('close-instructions-modal').addEventListener('click', closeModal);
+  document.getElementById('btn-close-instructions-modal').addEventListener('click', closeModal);
+
+  modal.querySelectorAll('.btn-fill-cred').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const u = btn.getAttribute('data-user');
+      const p = btn.getAttribute('data-pass');
+      const userInput = document.getElementById('auth-username');
+      const passInput = document.getElementById('auth-password');
+      if (userInput) userInput.value = u;
+      if (passInput) passInput.value = p;
+      showToast(`✨ Credenciais de ${u} preenchidas!`);
+      closeModal();
+    });
+  });
+}
+
 // --- ESTRUTURA DE AUTENTICAÇÃO ---
 function renderAuthScreen() {
   const root = document.getElementById('app');
@@ -837,33 +932,17 @@ function renderAuthScreen() {
         <!-- Painel Direito: Formulário -->
         <div class="auth-form-panel">
           <div class="auth-form-header">
-            <div class="auth-form-eyebrow">${isLogin ? 'Acesso ao Sistema' : 'Criar Nova Conta'}</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 4px;">
+              <div class="auth-form-eyebrow" style="margin-bottom: 0;">${isLogin ? 'Acesso ao Sistema' : 'Criar Nova Conta'}</div>
+              ${isLogin ? `
+                <button type="button" id="btn-show-instructions" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(129, 140, 248, 0.35); color: #818cf8; padding: 4px 11px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='rgba(99, 102, 241, 0.3)'; this.style.borderColor='#818cf8'" onmouseleave="this.style.background='rgba(99, 102, 241, 0.15)'; this.style.borderColor='rgba(129, 140, 248, 0.35)'">
+                  <i class="fa-solid fa-circle-question" style="color: #fbbf24;"></i> Instruções de Acesso
+                </button>
+              ` : ''}
+            </div>
             <h1 class="auth-title">${isLogin ? 'Bem-vindo de volta' : 'Criar sua conta'}</h1>
             <p class="auth-subtitle">${isLogin ? 'Entre com suas credenciais para acessar o painel' : 'Preencha os dados abaixo para criar sua conta'}</p>
           </div>
-
-          ${isLogin ? `
-            <!-- Card de Orientação & Credenciais Demo -->
-            <div class="demo-credentials-card" style="margin-bottom: 20px; padding: 14px 16px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(129, 140, 248, 0.3); border-radius: 14px; font-size: 0.85rem;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-weight: 600; color: #818cf8; display: flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
-                  <i class="fa-solid fa-lightbulb" style="color: #fbbf24;"></i> Orientação / Acesso Rápido Demo
-                </span>
-                <span style="font-size: 0.72rem; background: rgba(129, 140, 248, 0.2); color: #a5b4fc; padding: 2px 8px; border-radius: 10px; font-weight: 600;">Preenchimento Rápido</span>
-              </div>
-              <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
-                Clique no perfil abaixo para preencher os dados de usuário e senha:
-              </p>
-              <div style="display: flex; gap: 8px;">
-                <button type="button" id="fill-demo-medico" style="flex: 1; padding: 8px 10px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; color: #e2e8f0; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.borderColor='#818cf8'; this.style.background='rgba(99, 102, 241, 0.25)'" onmouseleave="this.style.borderColor='rgba(148, 163, 184, 0.25)'; this.style.background='rgba(30, 41, 59, 0.85)'">
-                  <i class="fa-solid fa-user-doctor" style="color: #38bdf8;"></i> Médico (medico123)
-                </button>
-                <button type="button" id="fill-demo-admin" style="flex: 1; padding: 8px 10px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; color: #e2e8f0; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.borderColor='#818cf8'; this.style.background='rgba(99, 102, 241, 0.25)'" onmouseleave="this.style.borderColor='rgba(148, 163, 184, 0.25)'; this.style.background='rgba(30, 41, 59, 0.85)'">
-                  <i class="fa-solid fa-user-shield" style="color: #c084fc;"></i> Admin (admin)
-                </button>
-              </div>
-            </div>
-          ` : ''}
 
           <div id="auth-error-container"></div>
 
@@ -926,23 +1005,9 @@ function renderAuthScreen() {
       });
     }
 
-    // Botões de preenchimento rápido para demonstração
-    const fillMedicoBtn = document.getElementById('fill-demo-medico');
-    if (fillMedicoBtn) {
-      fillMedicoBtn.addEventListener('click', () => {
-        document.getElementById('auth-username').value = 'medico123';
-        document.getElementById('auth-password').value = 'medico123';
-        showToast('⚡ Credenciais de Médico preenchidas (medico123)!');
-      });
-    }
-
-    const fillAdminBtn = document.getElementById('fill-demo-admin');
-    if (fillAdminBtn) {
-      fillAdminBtn.addEventListener('click', () => {
-        document.getElementById('auth-username').value = 'admin';
-        document.getElementById('auth-password').value = 'admin123';
-        showToast('⚡ Credenciais de Administrador preenchidas (admin)!');
-      });
+    const btnShowInst = document.getElementById('btn-show-instructions');
+    if (btnShowInst) {
+      btnShowInst.addEventListener('click', openLoginInstructionsModal);
     }
 
     document.getElementById('auth-form').addEventListener('submit', async (e) => {
