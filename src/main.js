@@ -5617,3 +5617,28 @@ window.openReassignModal = function(encounterId, patientName, currentRoom, curre
     }
   });
 };
+
+// ==========================================
+// REDIRECIONAMENTO INTELIGENTE DOS CARDS DA AGENDA
+// ==========================================
+window.handleAgendaCardClick = function(actionType) {
+  if (actionType === 'all') {
+    showToast('⚡ Exibindo todas as consultas agendadas!');
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.filter-chip[data-status="all"]')?.classList.add('active');
+    if (typeof loadAgenda === 'function') loadAgenda();
+  } else if (actionType === 'confirmed') {
+    showToast('⚡ Direcionando consultas Confirmadas para a Fila de Atendimento!');
+    switchTab('atendimento');
+  } else if (actionType === 'progress') {
+    showToast('⚡ Direcionando para a Fila de Consulta Médica (PEP / Prontuário)!');
+    switchTab('atendimento');
+    setTimeout(() => {
+      const q = document.getElementById('medical-queue');
+      if (q) q.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 150);
+  } else if (actionType === 'completed') {
+    showToast('⚡ Acessando Histórico de Atendimentos Pós-Alta e Relatórios!');
+    switchTab('relatorios');
+  }
+};
