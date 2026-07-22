@@ -2012,11 +2012,12 @@ async function renderTabContent() {
               <div class="form-row">
                 <div class="form-group" style="flex: 1;">
                   <label class="form-label" for="cep">CEP (Busca Auto):</label>
-                  <div style="position: relative;">
-                    <input type="text" id="cep" class="form-input" placeholder="00000-000" inputmode="numeric" maxlength="9">
-                    <span id="cep-loading-icon" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: none; color: var(--color-primary);">
-                      <i class="fa-solid fa-spinner fa-spin"></i>
-                    </span>
+                  <div style="position: relative; display: flex; align-items: center;">
+                    <input type="text" id="cep" class="form-input" placeholder="00000-000" inputmode="numeric" maxlength="9" style="padding-right: 36px;">
+                    <button type="button" id="btn-search-cep" title="Buscar Endereço pelo CEP" style="position: absolute; right: 8px; background: transparent; border: none; color: #818cf8; cursor: pointer; font-size: 1rem; padding: 4px;">
+                      <i class="fa-solid fa-magnifying-glass" id="cep-search-icon"></i>
+                      <i class="fa-solid fa-spinner fa-spin" id="cep-loading-icon" style="display: none;"></i>
+                    </button>
                   </div>
                 </div>
                 <div class="form-group" style="flex: 2;">
@@ -2216,39 +2217,111 @@ async function renderTabContent() {
       });
     };
 
-    // Máscara e Busca Automática de CEP via ViaCEP + BrasilAPI
+    // Máscara e Busca Automática de CEP via ViaCEP + BrasilAPI + Backend
     const cepInput = document.getElementById('cep');
-    if (cepInput) {
-      cepInput.addEventListener('input', async (e) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 8) value = value.substring(0, 8);
-        if (value.length > 5) {
-          e.target.value = value.substring(0, 5) + '-' + value.substring(5);
-        } else {
-          e.target.value = value;
-        }
+    const btnSearchCep = document.getElementById('btn-search-cep');
+    let lastSearchedCep = '';
 
-        if (value.length === 8) {
-          const loadingIcon = document.getElementById('cep-loading-icon');
-          if (loadingIcon) loadingIcon.style.display = 'block';
+    const executeCepLookup = async () => {
+      if (!cepInput) return;
+      let rawVal = cepInput.value || '';
+      let cleanVal = rawVal.replace(/\D/g, '');
+      if (cleanVal.length > 8) cleanVal = cleanVal.substring(0, 8);
+
+      if (cleanVal.length > 5) {
+        cepInput.value = cleanVal.substring(0, 5) + '-' + cleanVal.substring(5);
+      } else {
+        cepInput.value = cleanVal;
+      }
+
+      if (cleanVal.length !== 8) return;
+      if (cleanVal === lastSearchedCep) return;
+      lastSearchedCep = cleanVal;
+
+      const searchIcon = document.getElementById('cep-search-icon');
+      const loadingIcon = document.getElementById('cep-loading-icon');
+      if (searchIcon) searchIcon.style.display = 'none';
+      if (loadingIcon) loadingIcon.style.display = 'inline-block';
+
+      try {
+        let foundData = null;
+
+        // 1. Tentativa via ViaCEP (Direto com CORS)
+        try {
+          const r1 = await fetch(`https://viacep.com.br/ws/${cleanVal}/json/`);
+          if (r1.ok) {
+            const d1 = await r1.json();
+            if (!d1.erro && d1.localidade) {
+              foundData = {
+                address: d1.logradouro + (d1.bairro ? ` - ${d1.bairro}` : ''),
+                city: `${d1.localidade} - ${d1.uf}`
+              };
+            }
+          }
+        } catch (e) {}
+
+        // 2. Fallback via BrasilAPI
+        if (!foundData) {
           try {
-            const res = await fetch(`/api/cep/${value}`);
-            if (res.ok) {
-              const payload = await res.json();
-              if (payload.status === 'success' && payload.data) {
-                const addressInput = document.getElementById('address');
-                const cityInput = document.getElementById('city');
-                if (addressInput && payload.data.address) addressInput.value = payload.data.address;
-                if (cityInput && payload.data.city) cityInput.value = payload.data.city;
-                showToast('Endereço localizado via CEP!');
+            const r2 = await fetch(`https://brasilapi.com.br/api/cep/v1/${cleanVal}`);
+            if (r2.ok) {
+              const d2 = await r2.json();
+              if (d2.city) {
+                foundData = {
+                  address: (d2.street || '') + (d2.neighborhood ? ` - ${d2.neighborhood}` : ''),
+                  city: `${d2.city} - ${d2.state}`
+                };
               }
             }
-          } catch (err) {
-            console.error('Erro na consulta de CEP:', err);
-          } finally {
-            if (loadingIcon) loadingIcon.style.display = 'none';
-          }
+          } catch (e) {}
         }
+
+        // 3. Fallback via Backend API
+        if (!foundData) {
+          try {
+            const r3 = await apiFetch(`/api/cep/${cleanVal}`);
+            if (r3.ok) {
+              const p3 = await r3.json();
+              if (p3.status === 'success' && p3.data) {
+                foundData = {
+                  address: p3.data.address,
+                  city: p3.data.city
+                };
+              }
+            }
+          } catch (e) {}
+        }
+
+        if (foundData) {
+          const addressInput = document.getElementById('address');
+          const cityInput = document.getElementById('city');
+          if (addressInput && foundData.address) addressInput.value = foundData.address;
+          if (cityInput && foundData.city) cityInput.value = foundData.city;
+          showToast(`Endereço localizado: ${foundData.city}`);
+        } else {
+          showCustomAlert({
+            title: 'CEP Não Encontrado',
+            message: `Não foi possível localizar o endereço para o CEP <strong>${cepInput.value}</strong>. Por favor, digite o endereço manualmente.`,
+            type: 'warning'
+          });
+        }
+      } catch (err) {
+        console.error('Erro na busca de CEP:', err);
+      } finally {
+        if (searchIcon) searchIcon.style.display = 'inline-block';
+        if (loadingIcon) loadingIcon.style.display = 'none';
+      }
+    };
+
+    if (cepInput) {
+      cepInput.addEventListener('input', executeCepLookup);
+      cepInput.addEventListener('change', executeCepLookup);
+      cepInput.addEventListener('blur', executeCepLookup);
+    }
+    if (btnSearchCep) {
+      btnSearchCep.addEventListener('click', () => {
+        lastSearchedCep = '';
+        executeCepLookup();
       });
     }
 
