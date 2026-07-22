@@ -20,7 +20,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 // --- INICIALIZACAO DO BANCO LOCAL ---
 const initLocalDb = async () => {
   const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
-  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, cep TEXT, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, cep TEXT, address TEXT, number TEXT, neighborhood TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -35,7 +35,7 @@ const initLocalDb = async () => {
   await db.execute(SQL_USERS);
   try { await db.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
   await db.execute(SQL_PATIENTS);
-  for (const col of ['cep','address','city','phone','cellphone','billingValue','updated_at']) {
+  for (const col of ['cep','address','number','neighborhood','city','phone','cellphone','billingValue','updated_at']) {
     try { await db.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
   }
   await db.execute(SQL_ENCOUNTERS);
@@ -1016,7 +1016,7 @@ async function generatePatientId(fullName) {
 
 // Endpoint para criação de pacientes
 app.post('/api/patients', async (req, res) => {
-  const { fullName, cpf, birthDate, cep, address, city, phone, cellphone, billingValue } = req.body;
+  const { fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue } = req.body;
 
   if (!fullName || !cpf || !birthDate) {
     return res.status(400).json({
@@ -1030,8 +1030,8 @@ app.post('/api/patients', async (req, res) => {
     
     const nowIso = new Date().toISOString();
     await db.execute({
-      sql: 'INSERT INTO patients (id, fullName, cpf, birthDate, cep, address, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      args: [patientId, fullName, cpf, birthDate, cep || '', address || '', city || '', phone || '', cellphone || '', billingValue || '', nowIso, nowIso]
+      sql: 'INSERT INTO patients (id, fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [patientId, fullName, cpf, birthDate, cep || '', address || '', number || '', neighborhood || '', city || '', phone || '', cellphone || '', billingValue || '', nowIso, nowIso]
     });
 
     try {
@@ -1076,7 +1076,7 @@ app.get('/api/patients', async (req, res) => {
 // Endpoint para atualizar um paciente
 app.put('/api/patients/:id', async (req, res) => {
   const { id } = req.params;
-  const { fullName, cpf, birthDate, cep, address, city, phone, cellphone, billingValue } = req.body;
+  const { fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue } = req.body;
 
   if (!fullName || !cpf || !birthDate) {
     return res.status(400).json({
@@ -1100,8 +1100,8 @@ app.put('/api/patients/:id', async (req, res) => {
 
     const updatedAt = new Date().toISOString();
     await db.execute({
-      sql: 'UPDATE patients SET fullName = ?, cpf = ?, birthDate = ?, cep = ?, address = ?, city = ?, phone = ?, cellphone = ?, billingValue = ?, updated_at = ? WHERE id = ?',
-      args: [fullName, cpf, birthDate, cep || '', address || '', city || '', phone || '', cellphone || '', billingValue || '', updatedAt, id]
+      sql: 'UPDATE patients SET fullName = ?, cpf = ?, birthDate = ?, cep = ?, address = ?, number = ?, neighborhood = ?, city = ?, phone = ?, cellphone = ?, billingValue = ?, updated_at = ? WHERE id = ?',
+      args: [fullName, cpf, birthDate, cep || '', address || '', number || '', neighborhood || '', city || '', phone || '', cellphone || '', billingValue || '', updatedAt, id]
     });
 
     try {
@@ -2772,9 +2772,10 @@ app.get('/api/cep/:cep', async (req, res) => {
             status: 'success',
             data: {
               cep: data.cep,
-              address: data.logradouro + (data.bairro ? ` - ${data.bairro}` : ''),
+              street: data.logradouro || '',
+              address: data.logradouro || '',
+              neighborhood: data.bairro || '',
               city: `${data.localidade} - ${data.uf}`,
-              neighborhood: data.bairro,
               state: data.uf
             }
           });
@@ -2791,9 +2792,10 @@ app.get('/api/cep/:cep', async (req, res) => {
           status: 'success',
           data: {
             cep: data2.cep,
-            address: data2.street + (data2.neighborhood ? ` - ${data2.neighborhood}` : ''),
+            street: data2.street || '',
+            address: data2.street || '',
+            neighborhood: data2.neighborhood || '',
             city: `${data2.city} - ${data2.state}`,
-            neighborhood: data2.neighborhood,
             state: data2.state
           }
         });

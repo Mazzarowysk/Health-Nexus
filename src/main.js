@@ -2021,31 +2021,40 @@ async function renderTabContent() {
                   </div>
                 </div>
                 <div class="form-group" style="flex: 2;">
-                  <label class="form-label" for="address">Endereço:</label>
-                  <input type="text" id="address" class="form-input" placeholder="Av. Paulista, 1000 - Bela Vista">
+                  <label class="form-label" for="address">Endereço (Rua/Av):</label>
+                  <input type="text" id="address" class="form-input" placeholder="Ex: Rua Santa Anita">
                 </div>
               </div>
               
               <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="city">Cidade / UF:</label>
-                  <input type="text" id="city" class="form-input" placeholder="Ex: São Paulo - SP">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="number">Número / Compl.:</label>
+                  <input type="text" id="number" class="form-input" placeholder="Ex: 120 / Ap 42">
                 </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="neighborhood">Bairro:</label>
+                  <input type="text" id="neighborhood" class="form-input" placeholder="Ex: Vila Promissão">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="city">Cidade / UF:</label>
+                  <input type="text" id="city" class="form-input" placeholder="Ex: Osvaldo Cruz - SP">
+                </div>
+              </div>
+              
+              <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="phone">Telefone Fixo:</label>
                   <input type="text" id="phone" class="form-input" placeholder="(18) 3528-5022">
                 </div>
-              </div>
-              
-              <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="cellphone">Celular:</label>
                   <input type="text" id="cellphone" class="form-input" placeholder="(18) 98817-5809">
                 </div>
-                <div class="form-group">
-                  <label class="form-label" for="billingValue">Valor da Consulta/Mensalidade:</label>
-                  <input type="text" id="billingValue" class="form-input" placeholder="R$ 0,00">
-                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="billingValue">Valor da Consulta/Mensalidade:</label>
+                <input type="text" id="billingValue" class="form-input" placeholder="R$ 0,00">
               </div>
 
               <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -2141,6 +2150,8 @@ async function renderTabContent() {
                   data-birth-date="${p.birthDate}"
                   data-cep="${p.cep || ''}"
                   data-address="${p.address || ''}"
+                  data-number="${p.number || ''}"
+                  data-neighborhood="${p.neighborhood || ''}"
                   data-city="${p.city || ''}"
                   data-phone="${p.phone || ''}"
                   data-cellphone="${p.cellphone || ''}"
@@ -2170,6 +2181,10 @@ async function renderTabContent() {
           const cepEl = document.getElementById('cep');
           if (cepEl) cepEl.value = btn.getAttribute('data-cep') || '';
           document.getElementById('address').value = btn.getAttribute('data-address');
+          const numEl = document.getElementById('number');
+          if (numEl) numEl.value = btn.getAttribute('data-number') || '';
+          const neighEl = document.getElementById('neighborhood');
+          if (neighEl) neighEl.value = btn.getAttribute('data-neighborhood') || '';
           document.getElementById('city').value = btn.getAttribute('data-city');
           document.getElementById('phone').value = btn.getAttribute('data-phone');
           document.getElementById('cellphone').value = btn.getAttribute('data-cellphone');
@@ -2253,7 +2268,8 @@ async function renderTabContent() {
             const d1 = await r1.json();
             if (!d1.erro && d1.localidade) {
               foundData = {
-                address: d1.logradouro + (d1.bairro ? ` - ${d1.bairro}` : ''),
+                street: d1.logradouro || '',
+                neighborhood: d1.bairro || '',
                 city: `${d1.localidade} - ${d1.uf}`
               };
             }
@@ -2268,7 +2284,8 @@ async function renderTabContent() {
               const d2 = await r2.json();
               if (d2.city) {
                 foundData = {
-                  address: (d2.street || '') + (d2.neighborhood ? ` - ${d2.neighborhood}` : ''),
+                  street: d2.street || '',
+                  neighborhood: d2.neighborhood || '',
                   city: `${d2.city} - ${d2.state}`
                 };
               }
@@ -2284,7 +2301,8 @@ async function renderTabContent() {
               const p3 = await r3.json();
               if (p3.status === 'success' && p3.data) {
                 foundData = {
-                  address: p3.data.address,
+                  street: p3.data.street || p3.data.address || '',
+                  neighborhood: p3.data.neighborhood || '',
                   city: p3.data.city
                 };
               }
@@ -2294,10 +2312,19 @@ async function renderTabContent() {
 
         if (foundData) {
           const addressInput = document.getElementById('address');
+          const neighborhoodInput = document.getElementById('neighborhood');
           const cityInput = document.getElementById('city');
-          if (addressInput && foundData.address) addressInput.value = foundData.address;
+          const numberInput = document.getElementById('number');
+
+          if (addressInput && foundData.street) addressInput.value = foundData.street;
+          if (neighborhoodInput && foundData.neighborhood) neighborhoodInput.value = foundData.neighborhood;
           if (cityInput && foundData.city) cityInput.value = foundData.city;
+
           showToast(`Endereço localizado: ${foundData.city}`);
+
+          if (numberInput) {
+            numberInput.focus();
+          }
         } else {
           showCustomAlert({
             title: 'CEP Não Encontrado',
@@ -2369,6 +2396,8 @@ async function renderTabContent() {
       const birthDate = document.getElementById('birthDate').value;
       const cep = document.getElementById('cep')?.value || '';
       const address = document.getElementById('address').value;
+      const number = document.getElementById('number')?.value || '';
+      const neighborhood = document.getElementById('neighborhood')?.value || '';
       const city = document.getElementById('city').value;
       const phone = document.getElementById('phone').value;
       const cellphone = document.getElementById('cellphone').value;
@@ -2389,7 +2418,7 @@ async function renderTabContent() {
         const res = await apiFetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, cpf, birthDate, cep, address, city, phone, cellphone, billingValue }),
+          body: JSON.stringify({ fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue }),
           skipSyncPrompt: true
         });
         const data = await res.json();
