@@ -687,6 +687,7 @@ const showUserFormModal = (userToEdit = null, onSaved = null) => {
         <div class="form-group">
           <label class="form-label" for="uf-role">* Função / Permissão:</label>
           <select id="uf-role" class="form-input" style="background: var(--bg-card, #1e293b); color: var(--text-primary);">
+            <option value="Desenvolvedor" ${userToEdit?.role === 'Desenvolvedor' ? 'selected' : ''}>💻 Desenvolvedor (Criador do Sistema)</option>
             <option value="Master" ${userToEdit?.role === 'Master' ? 'selected' : ''}>👑 Master (Acesso Total)</option>
             <option value="Administrador" ${userToEdit?.role === 'Administrador' ? 'selected' : ''}>🛠️ Administrador Hospitalar</option>
             <option value="Médico" ${userToEdit?.role === 'Médico' || !userToEdit ? 'selected' : ''}>🩺 Médico (Corpo Clínico / Especialista)</option>
@@ -1618,6 +1619,7 @@ function renderAuthScreen() {
                   <option value="Gestor Financeiro">📊 Gestor Financeiro / Faturamento</option>
                   <option value="Auxiliar de Enfermagem">🏥 Auxiliar de Enfermagem</option>
                   <option value="Master">👑 Solicitar Acesso Total (Master / Admin)</option>
+                  <option value="Desenvolvedor">💻 Solicitar Acesso Desenvolvedor</option>
                 </select>
               </div>
               <div id="auth-master-key-box" class="form-group" style="display: none; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
@@ -1675,7 +1677,7 @@ function renderAuthScreen() {
       const authMasterBox = document.getElementById('auth-master-key-box');
       if (authRoleSelect && authMasterBox) {
         authRoleSelect.addEventListener('change', () => {
-          if (authRoleSelect.value === 'Master') {
+          if (authRoleSelect.value === 'Master' || authRoleSelect.value === 'Desenvolvedor') {
             authMasterBox.style.display = 'block';
           } else {
             authMasterBox.style.display = 'none';
