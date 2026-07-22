@@ -1019,6 +1019,13 @@ function renderAppStructure() {
               </a>
             </li>
             <li>
+              <a class="nav-item ${state.activeTab === 'estagnacao' ? 'active' : ''}" data-tab="estagnacao" style="position: relative;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i>
+                <span>Alertas & Estagnação</span>
+                <span id="stagnation-nav-badge" class="badge-count" style="display:none; margin-left: auto; background: #ef4444; color: #fff; border-radius: 10px; font-size: 0.7rem; padding: 2px 7px; font-weight: 700;">0</span>
+              </a>
+            </li>
+            <li>
               <a class="nav-item ${state.activeTab === 'leitos' ? 'active' : ''}" data-tab="leitos">
                 <i class="fa-solid fa-bed-pulse"></i>
                 <span>Leitos</span>
