@@ -2800,20 +2800,65 @@ function renderReportsTab(contentArea) {
         <p>Gere e exporte relatórios filtrados por período, status, departamento ou classificação.</p>
       </div>
 
-      <!-- Seletor de Tipo de Relatório -->
-      <div class="report-tabs-selector">
-        <button id="tab-btn-patients" class="report-tab-btn active">
-          <i class="fa-solid fa-users"></i> Relatório de Pacientes
-        </button>
-        <button id="tab-btn-encounters" class="report-tab-btn">
-          <i class="fa-solid fa-notes-medical"></i> Relatório de Atendimentos
-        </button>
-        <button id="tab-btn-financial" class="report-tab-btn">
-          <i class="fa-solid fa-chart-pie"></i> Relatório Financeiro
-        </button>
-        <button id="tab-btn-doctors" class="report-tab-btn">
-          <i class="fa-solid fa-user-doctor"></i> Por Médico
-        </button>
+      <!-- Seletor em formato de Cards Interativos -->
+      <div class="report-tabs-selector" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        
+        <!-- CARD 1: PACIENTES -->
+        <div id="tab-btn-patients" class="report-tab-card active" style="background: rgba(99,102,241,0.08); border: 1.5px solid rgba(99,102,241,0.5); border-radius: 14px; padding: 18px; cursor: pointer; transition: all 0.2s ease; position: relative; box-shadow: 0 4px 20px rgba(99,102,241,0.15);" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(99,102,241,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.25rem;">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <span class="card-status-badge" style="font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(99,102,241,0.2); color: #c4b5fd; border: 1px solid rgba(99,102,241,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
+          </div>
+          <div>
+            <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Pacientes</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Cadastro completo, demografia e faturamento acumulado.</p>
+          </div>
+        </div>
+
+        <!-- CARD 2: ATENDIMENTOS -->
+        <div id="tab-btn-encounters" class="report-tab-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; cursor: pointer; transition: all 0.2s ease; position: relative;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(236,72,153,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.3); display: flex; align-items: center; justify-content: center; color: #f472b6; font-size: 1.25rem;">
+              <i class="fa-solid fa-notes-medical"></i>
+            </div>
+            <span class="card-status-badge" style="display: none; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(236,72,153,0.2); color: #f472b6; border: 1px solid rgba(236,72,153,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
+          </div>
+          <div>
+            <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Atendimentos & PEP</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Triagem Manchester, situação clínica e médico responsável.</p>
+          </div>
+        </div>
+
+        <!-- CARD 3: FINANCEIRO -->
+        <div id="tab-btn-financial" class="report-tab-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; cursor: pointer; transition: all 0.2s ease; position: relative;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(34,211,238,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.25rem;">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <span class="card-status-badge" style="display: none; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(34,211,238,0.2); color: #38bdf8; border: 1px solid rgba(34,211,238,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
+          </div>
+          <div>
+            <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Financeiro</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Títulos a vencer, parcelas pagas e balanço de faturamento.</p>
+          </div>
+        </div>
+
+        <!-- CARD 4: POR MÉDICO -->
+        <div id="tab-btn-doctors" class="report-tab-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; cursor: pointer; transition: all 0.2s ease; position: relative;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(52,211,153,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 1.25rem;">
+              <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <span class="card-status-badge" style="display: none; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(52,211,153,0.2); color: #34d399; border: 1px solid rgba(52,211,153,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
+          </div>
+          <div>
+            <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Por Médico</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Produtividade do corpo clínico e gráficos analíticos.</p>
+          </div>
+        </div>
+
       </div>
 
       <!-- Card de Filtros Dinâmicos -->
@@ -2882,42 +2927,61 @@ function renderReportsTab(contentArea) {
   let finPieChartInstance = null;
   let finBarChartInstance = null;
 
-  // Alternar abas
-  btnPatientsTab.addEventListener('click', () => {
-    activeTab = 'patients';
-    btnPatientsTab.classList.add('active');
-    btnEncountersTab.classList.remove('active');
-    btnFinancialTab.classList.remove('active');
-    renderFilters();
-  });
+  // Função para atualizar o destaque visual dos cards
+  const updateReportCardSelection = (selectedTab) => {
+    const cards = [
+      { id: 'tab-btn-patients', tab: 'patients', border: 'rgba(99,102,241,0.5)', bg: 'rgba(99,102,241,0.08)', shadow: 'rgba(99,102,241,0.15)' },
+      { id: 'tab-btn-encounters', tab: 'encounters', border: 'rgba(236,72,153,0.5)', bg: 'rgba(236,72,153,0.08)', shadow: 'rgba(236,72,153,0.15)' },
+      { id: 'tab-btn-financial', tab: 'financial', border: 'rgba(34,211,238,0.5)', bg: 'rgba(34,211,238,0.08)', shadow: 'rgba(34,211,238,0.15)' },
+      { id: 'tab-btn-doctors', tab: 'doctors', border: 'rgba(52,211,153,0.5)', bg: 'rgba(52,211,153,0.08)', shadow: 'rgba(52,211,153,0.15)' }
+    ];
 
-  btnEncountersTab.addEventListener('click', () => {
-    activeTab = 'encounters';
-    btnEncountersTab.classList.add('active');
-    btnPatientsTab.classList.remove('active');
-    btnFinancialTab.classList.remove('active');
-    renderFilters();
-  });
-
-  btnFinancialTab.addEventListener('click', () => {
-    activeTab = 'financial';
-    btnFinancialTab.classList.add('active');
-    btnPatientsTab.classList.remove('active');
-    btnEncountersTab.classList.remove('active');
-    if (btnDoctorsTab) btnDoctorsTab.classList.remove('active');
-    renderFilters();
-  });
-
-  if (btnDoctorsTab) {
-    btnDoctorsTab.addEventListener('click', () => {
-      activeTab = 'doctors';
-      btnDoctorsTab.classList.add('active');
-      btnPatientsTab.classList.remove('active');
-      btnEncountersTab.classList.remove('active');
-      btnFinancialTab.classList.remove('active');
-      renderDoctorReport();
+    cards.forEach(item => {
+      const el = document.getElementById(item.id);
+      if (!el) return;
+      const badge = el.querySelector('.card-status-badge');
+      if (item.tab === selectedTab) {
+        el.classList.add('active');
+        el.style.background = item.bg;
+        el.style.borderColor = item.border;
+        el.style.borderWidth = '1.5px';
+        el.style.boxShadow = `0 6px 20px ${item.shadow}`;
+        if (badge) badge.style.display = 'inline-block';
+      } else {
+        el.classList.remove('active');
+        el.style.background = 'var(--bg-secondary)';
+        el.style.borderColor = 'var(--border-color)';
+        el.style.borderWidth = '1px';
+        el.style.boxShadow = 'none';
+        if (badge) badge.style.display = 'none';
+      }
     });
-  }
+  };
+
+  // Alternar abas com Cards
+  btnPatientsTab?.addEventListener('click', () => {
+    activeTab = 'patients';
+    updateReportCardSelection('patients');
+    renderFilters();
+  });
+
+  btnEncountersTab?.addEventListener('click', () => {
+    activeTab = 'encounters';
+    updateReportCardSelection('encounters');
+    renderFilters();
+  });
+
+  btnFinancialTab?.addEventListener('click', () => {
+    activeTab = 'financial';
+    updateReportCardSelection('financial');
+    renderFilters();
+  });
+
+  btnDoctorsTab?.addEventListener('click', () => {
+    activeTab = 'doctors';
+    updateReportCardSelection('doctors');
+    renderDoctorReport();
+  });
 
   window.toggleFilterDropdown = function(id, event) {
     if (event) event.stopPropagation();
