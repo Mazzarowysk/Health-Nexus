@@ -2039,4 +2039,122 @@ app.get('/api/patients/:id/history', async (req, res) => {
   }
 });
 
+
+// ==========================================
+// ROTAS DE ALERTAS & ESTAGNAÇÃO (GESTÃO DE GARGALOS E SLA)
+// ==========================================
+app.get('/api/stagnation/alerts', async (req, res) => {
+  try {
+    const result = await db.execute(`
+      SELECT 
+        e.id, e.patientId, e.type, e.status, e.room, e.admitted_at, e.completed_at,
+        p.fullName as patientName, p.cpf as patientCpf, p.phone as patientPhone,
+        t.manchesterColor, t.bloodPressure, t.temperatureCelsius, t.complaints, t.triaged_at
+      FROM encounters e
+      JOIN patients p ON e.patientId = p.id
+      LEFT JOIN triages t ON e.id = t.encounterId
+      WHERE e.status != 'Finalizado'
+      ORDER BY e.admitted_at ASC
+    `);
+
+    const now = new Date();
+    const alerts = [];
+
+    (result.rows || []).forEach(e => {
+      const startTime = new Date(e.triaged_at || e.admitted_at || now);
+      const elapsedMin = Math.max(0, Math.floor((now - startTime) / (60 * 1000)));
+
+      let isAlert = false;
+      let severity = 'INFO'; // CRITICAL, WARNING, INFO
+      let reason = '';
+      let recommendedAction = '';
+
+      if (e.status === 'Aguardando_Triagem' && elapsedMin >= 15) {
+        isAlert = true;
+        severity = 'WARNING';
+        reason = `Aguardando Triagem há ${elapsedMin} min (SLA: 15 min)`;
+        recommendedAction = 'Realizar Triagem Manchester imediatamente';
+      } else if (e.status === 'Aguardando_Atendimento') {
+        const color = (e.manchesterColor || '').toUpperCase();
+        if ((color === 'VERMELHO' || color === 'LARANJA') && elapsedMin >= 10) {
+          isAlert = true;
+          severity = 'CRITICAL';
+          reason = `Paciente Emergencial (${color}) retido há ${elapsedMin} min!`;
+          recommendedAction = 'Encaminhar ao Consultório Médico Prioritário';
+        } else if (elapsedMin >= 30) {
+          isAlert = true;
+          severity = 'WARNING';
+          reason = `Aguardando Consulta Médica há ${elapsedMin} min (SLA: 30 min)`;
+          recommendedAction = 'Chamar para atendimento no Consultório disponível';
+        }
+      } else if (e.status === 'Em_Atendimento' && elapsedMin >= 45) {
+        isAlert = true;
+        severity = 'INFO';
+        reason = `Em consulta no ${e.room || 'Consultório 01'} há ${elapsedMin} min`;
+        recommendedAction = 'Verificar andamento do PEP ou lançar conduta/alta';
+      }
+
+      if (isAlert) {
+        alerts.push({
+          ...e,
+          elapsedMin,
+          severity,
+          reason,
+          recommendedAction
+        });
+      }
+    });
+
+    // Ordenar alertas: CRITICAL primeiro, depois por tempo estagnado
+    alerts.sort((a, b) => {
+      if (a.severity === 'CRITICAL' && b.severity !== 'CRITICAL') return -1;
+      if (b.severity === 'CRITICAL' && a.severity !== 'CRITICAL') return 1;
+      return b.elapsedMin - a.elapsedMin;
+    });
+
+    res.status(200).json({
+      status: 'success',
+      totalAlerts: alerts.length,
+      criticalCount: alerts.filter(a => a.severity === 'CRITICAL').length,
+      warningCount: alerts.filter(a => a.severity === 'WARNING').length,
+      alerts
+    });
+  } catch (err) {
+    console.error('Erro ao buscar alertas de estagnação:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao buscar alertas de estagnação.' });
+  }
+});
+
+// Reatribuir Consultório / Sala ou Atualizar Status direto do Painel de Estagnação
+app.post('/api/stagnation/reassign', async (req, res) => {
+  try {
+    const { encounterId, room, status } = req.body;
+    if (!encounterId) {
+      return res.status(400).json({ status: 'error', message: 'ID do atendimento é obrigatório.' });
+    }
+
+    if (room && status) {
+      await db.execute({
+        sql: 'UPDATE encounters SET room = ?, status = ? WHERE id = ?',
+        args: [room, status, encounterId]
+      });
+    } else if (room) {
+      await db.execute({
+        sql: 'UPDATE encounters SET room = ? WHERE id = ?',
+        args: [room, encounterId]
+      });
+    } else if (status) {
+      await db.execute({
+        sql: 'UPDATE encounters SET status = ? WHERE id = ?',
+        args: [status, encounterId]
+      });
+    }
+
+    res.status(200).json({ status: 'success', message: 'Atendimento atualizado com sucesso no painel de estagnação!' });
+  } catch (err) {
+    console.error('Erro ao reatribuir atendimento:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao atualizar atendimento.' });
+  }
+});
+
 export default app;
