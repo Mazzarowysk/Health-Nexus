@@ -9,8 +9,9 @@ dotenv.config();
 const cloudUrl = process.env.TURSO_DATABASE_URL || '';
 const cloudToken = process.env.TURSO_AUTH_TOKEN || '';
 const isVercel = !!process.env.VERCEL;
+const hasTurso = !!cloudUrl;
 
-// Factory: sempre cria um novo cliente Turso (necessário para reconectar sockets expirados)
+// Factory: sempre cria um novo cliente Turso
 export const createCloudClient = () => {
   if (!cloudUrl) return null;
   return createClient({ url: cloudUrl, authToken: cloudToken });
@@ -27,16 +28,19 @@ export const reconnectCloud = () => {
   return cloudDb;
 };
 
-// Local DB — criado apenas fora do Vercel
-export const localDb = isVercel ? null : createClient({ url: 'file:local.db' });
+// Local DB — criado apenas quando Turso NÃO está disponível
+export const localDb = hasTurso ? null : createClient({ url: 'file:local.db' });
 
-// Banco ativo: no Vercel usa cloudDb; localmente usa localDb
-export const db = (isVercel && cloudDb) ? cloudDb : localDb;
+// Banco ativo: usa Turso SEMPRE que disponível (mesmo em ambiente local)
+// Isso garante que cadastros e aprovacoes sejam persistidos na nuvem
+export const db = hasTurso ? cloudDb : localDb;
 
-if (isVercel && !cloudDb) {
-  console.error('[FATAL] Vercel detectado mas TURSO_DATABASE_URL não está configurado!');
+if (!hasTurso) {
+  console.warn('[AVISO] TURSO_DATABASE_URL nao configurado. Usando banco LOCAL (dados nao persistidos na nuvem!)');
+} else if (!cloudDb) {
+  console.error('[FATAL] Turso configurado mas falhou ao conectar!');
 }
 
 console.log('[DEBUG] Ambiente Vercel:', isVercel);
-console.log('[DEBUG] Banco ativo:', isVercel ? 'Cloud Turso' : 'Local SQLite (local.db)');
-console.log('[DEBUG] TURSO_DATABASE_URL:', cloudUrl ? cloudUrl.substring(0, 40) + '...' : 'NÃO CONFIGURADO');
+console.log('[DEBUG] Banco ativo:', hasTurso ? 'Cloud Turso (persistencia garantida)' : 'Local SQLite (local.db)');
+console.log('[DEBUG] TURSO_DATABASE_URL:', cloudUrl ? cloudUrl.substring(0, 40) + '...' : 'NAO CONFIGURADO');
