@@ -386,12 +386,15 @@ app.post('/api/shutdown', (req, res) => {
   }, 1500);
 });
 
-setInterval(() => {
-  if (Date.now() - lastHeartbeat > 8000) {
-    console.log('Nenhum navegador conectado por mais de 8s. Encerrando o servidor...');
-    process.exit(0);
-  }
-}, 2000);
+// Auto-shutdown por heartbeat: DESATIVADO no Vercel (serverless nao suporta process.exit)
+if (!process.env.VERCEL) {
+  setInterval(() => {
+    if (Date.now() - lastHeartbeat > 8000) {
+      console.log('Nenhum navegador conectado por mais de 8s. Encerrando o servidor...');
+      process.exit(0);
+    }
+  }, 2000);
+}
 
 // --- ROTAS DE AUTENTICAÇÃO ---
 
@@ -2640,7 +2643,7 @@ app.all(['/api/turso', '/turso-proxy'], async (req, res) => {
 // Listar todos os usuários
 app.get('/api/users', async (req, res) => {
   try {
-    const result = await db.execute('SELECT id, name, username, role, created_at FROM users ORDER BY name ASC');
+    const result = await db.execute('SELECT id, name, username, role, status, master_approved, master_key_requested, created_at FROM users ORDER BY name ASC');
     res.status(200).json({
       status: 'success',
       data: result.rows || []
