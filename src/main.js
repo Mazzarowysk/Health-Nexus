@@ -1747,7 +1747,19 @@ function renderAuthScreen() {
           }
         } else {
           if (errorContainer) {
-            errorContainer.innerHTML = `
+            const isPending = res.status === 403;
+            errorContainer.innerHTML = isPending ? `
+              <div style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1)); border: 1px solid rgba(245,158,11,0.4); border-radius: 12px; padding: 16px 18px; display: flex; align-items: flex-start; gap: 14px; margin-top: 4px;">
+                <i class="fa-solid fa-clock" style="color: #fbbf24; font-size: 1.4rem; margin-top: 2px; flex-shrink: 0;"></i>
+                <div>
+                  <div style="font-weight: 700; color: #fbbf24; font-size: 0.95rem; margin-bottom: 4px;">Acesso Aguardando Aprovação</div>
+                  <div style="color: #fde68a; font-size: 0.85rem; line-height: 1.5;">
+                    Sua solicitação de acesso está <strong>Pendente</strong>.<br>
+                    Aguarde o Desenvolvedor Master aprovar seu cadastro na aba <strong>Alertas & Estagnação</strong>.
+                  </div>
+                </div>
+              </div>
+            ` : `
               <div class="auth-error-alert">
                 <i class="fa-solid fa-circle-exclamation"></i>
                 <span>${data.message || 'Erro na autenticação'}</span>
