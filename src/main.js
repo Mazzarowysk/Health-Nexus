@@ -169,21 +169,19 @@ const showSyncPromptModal = (syncData = {}) => {
     overlay.style.zIndex = '99999';
     overlay.style.display = 'flex';
 
-    // Determinar últimas datas de modificação
-    let localTs = syncData.lastLocalBackup || syncData.localTimestamps?.last_sync || syncData.localTimestamps?.patients || null;
-    let cloudTs = syncData.lastCloudBackup || syncData.cloudTimestamps?.last_sync || syncData.cloudTimestamps?.patients || new Date().toISOString();
     const isVercel = !!syncData.isVercel;
+    
+    // Data e horário do momento em que a ação de sincronização será realizada (Envio atual)
+    const nowIso = new Date().toISOString();
 
-    // Se estiver no Vercel ou se as duas datas forem idênticas, exibir o backup anterior para mostrar a evolução clara de data/hora
-    if (isVercel || localTs === cloudTs) {
-      const prev = syncData.previousCloudBackup || syncData.previousLocalBackup;
-      if (prev) {
-        localTs = prev;
-      }
-    }
+    // Data do último banco de dados existente na nuvem de quando foi feito o upload anteriormente
+    const previousCloudUploadDate = syncData.previousCloudBackup || syncData.lastCloudBackup || syncData.cloudTimestamps?.last_sync || syncData.lastLocalBackup;
 
-    const localDateText = formatSyncDate(localTs);
-    const cloudDateText = formatSyncDate(cloudTs);
+    let localLabel = isVercel ? 'Horário Atual no Vercel' : 'Horário de Envio (Momento Atual)';
+    let localDateText = formatSyncDate(nowIso);
+
+    let cloudLabel = isVercel ? 'Último Upload na Nuvem (Anterior)' : 'Último Upload Existente na Nuvem';
+    let cloudDateText = formatSyncDate(previousCloudUploadDate);
 
     overlay.innerHTML = `
       <div class="sync-modal-card">
@@ -203,19 +201,20 @@ const showSyncPromptModal = (syncData = {}) => {
 
           <!-- Mensagem Principal -->
           <div class="sync-main-msg">
-            Você fez alterações no sistema${isVercel ? ' pelo Vercel' : ''}.
-            <strong>Deseja confirmar a atualização de versão no Turso agora?</strong>
+            ${isVercel 
+              ? 'Você está operando no <strong>Vercel</strong>. Deseja registrar a versão com a data e horário atual na nuvem?' 
+              : 'Novas alterações realizadas. <strong>Deseja enviar a nova versão para a nuvem com o horário atual?</strong>'}
           </div>
 
           <!-- Caixa de Detalhes de Versões -->
           <div class="sync-info-box">
             <div class="sync-info-item">
-              <span><i class="fa-solid ${isVercel ? 'fa-history' : 'fa-desktop'}" style="color: #818cf8;"></i> ${isVercel ? 'Versão Anterior' : 'Último Backup Local'}:</span>
+              <span><i class="fa-solid ${isVercel ? 'fa-globe' : 'fa-clock'}" style="color: #818cf8;"></i> ${localLabel}:</span>
               <val>${localDateText}</val>
             </div>
             <div class="sync-info-divider"></div>
             <div class="sync-info-item">
-              <span><i class="fa-solid fa-cloud" style="color: #38bdf8;"></i> Nova Versão no Turso:</span>
+              <span><i class="fa-solid fa-cloud-arrow-up" style="color: #38bdf8;"></i> ${cloudLabel}:</span>
               <val>${cloudDateText}</val>
             </div>
           </div>
