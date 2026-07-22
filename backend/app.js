@@ -121,6 +121,10 @@ const autoSyncFromCloud = async () => {
       try { await cloud.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
     }
     await cloud.execute(SQL_ENCOUNTERS);
+
+    try { await cloud.execute("ALTER TABLE encounters ADD COLUMN room TEXT"); } catch(e){}
+    try { await db.execute("ALTER TABLE encounters ADD COLUMN room TEXT"); } catch(e){}
+  
     await cloud.execute(SQL_TRIAGES);
     await cloud.execute(SQL_NOTES);
     await cloud.execute(SQL_SYNC_LOGS);
@@ -592,7 +596,7 @@ app.get('/api/encounters', async (req, res) => {
   try {
     const result = await db.execute(`
       SELECT 
-        e.id, e.patientId, e.type, e.status, e.admitted_at, e.completed_at,
+        e.id, e.patientId, e.type, e.status, e.room, e.admitted_at, e.completed_at,
         p.fullName as patientName, p.cpf as patientCpf, p.birthDate as patientBirthDate,
         t.manchesterColor, t.weightKg, t.bloodPressure, t.temperatureCelsius, t.heartRateBpm, t.complaints, t.triaged_at
       FROM encounters e
