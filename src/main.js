@@ -4530,12 +4530,17 @@ async function renderLeitosTab() {
     }
   };
 
-  // Carregar Pacientes no Modal
+  // Carregar Pacientes no Modal (Busca Direta & Rápida)
   const loadPatientsModal = async () => {
     try {
-      const patients = await cachedApiGet('/api/patients', 'patients');
-      const patientList = Array.isArray(patients) ? patients : (patients.data || []);
       const pSelect = document.getElementById('admit-patient-id');
+      if (pSelect && pSelect.options.length <= 1) {
+        pSelect.innerHTML = '<option value="">Carregando lista de pacientes...</option>';
+      }
+      const res = await apiFetch(`${API_URL}/patients`);
+      if (!res.ok) throw new Error();
+      const patients = await res.json();
+      const patientList = Array.isArray(patients) ? patients : (patients.data || []);
       if (pSelect) {
         if (patientList.length === 0) {
           pSelect.innerHTML = '<option value="">Nenhum paciente disponível</option>';
@@ -4544,7 +4549,10 @@ async function renderLeitosTab() {
         pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
           patientList.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
       }
-    } catch (e) {}
+    } catch (e) {
+      const pSelect = document.getElementById('admit-patient-id');
+      if (pSelect) pSelect.innerHTML = '<option value="">Erro ao carregar pacientes</option>';
+    }
   };
 
   // Eventos de Filtro por Setor
@@ -4563,7 +4571,7 @@ async function renderLeitosTab() {
 
   // Modal Handlers
   const modal = document.getElementById('modal-admit-bed');
-  document.getElementById('btn-open-admit-modal').addEventListener('click', () => { modal.style.display = 'flex'; });
+  document.getElementById('btn-open-admit-modal')?.addEventListener('click', () => { modal.style.display = 'flex'; loadPatientsModal(); });
   document.getElementById('btn-close-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
   document.getElementById('btn-cancel-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
 
@@ -4601,6 +4609,7 @@ async function renderLeitosTab() {
   });
 
   loadBeds();
+  loadPatientsModal();
 }
 
 window.quickAdmitBed = (bedId) => {
@@ -4609,6 +4618,14 @@ window.quickAdmitBed = (bedId) => {
     modal.style.display = 'flex';
     const bedSelect = document.getElementById('admit-bed-id');
     if (bedSelect) bedSelect.value = bedId;
+    const pSelect = document.getElementById('admit-patient-id');
+    if (pSelect) {
+      apiFetch(`${API_URL}/patients`).then(r => r.json()).then(patients => {
+        const list = Array.isArray(patients) ? patients : (patients.data || []);
+        pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
+          list.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+      }).catch(() => {});
+    }
   }
 };
 
