@@ -842,6 +842,29 @@ function renderAuthScreen() {
             <p class="auth-subtitle">${isLogin ? 'Entre com suas credenciais para acessar o painel' : 'Preencha os dados abaixo para criar sua conta'}</p>
           </div>
 
+          ${isLogin ? `
+            <!-- Card de Orientação & Credenciais Demo -->
+            <div class="demo-credentials-card" style="margin-bottom: 20px; padding: 14px 16px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(129, 140, 248, 0.3); border-radius: 14px; font-size: 0.85rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: 600; color: #818cf8; display: flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
+                  <i class="fa-solid fa-lightbulb" style="color: #fbbf24;"></i> Orientação / Acesso Rápido Demo
+                </span>
+                <span style="font-size: 0.72rem; background: rgba(129, 140, 248, 0.2); color: #a5b4fc; padding: 2px 8px; border-radius: 10px; font-weight: 600;">Preenchimento Rápido</span>
+              </div>
+              <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+                Clique no perfil abaixo para preencher os dados de usuário e senha:
+              </p>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" id="fill-demo-medico" style="flex: 1; padding: 8px 10px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; color: #e2e8f0; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.borderColor='#818cf8'; this.style.background='rgba(99, 102, 241, 0.25)'" onmouseleave="this.style.borderColor='rgba(148, 163, 184, 0.25)'; this.style.background='rgba(30, 41, 59, 0.85)'">
+                  <i class="fa-solid fa-user-doctor" style="color: #38bdf8;"></i> Médico (medico123)
+                </button>
+                <button type="button" id="fill-demo-admin" style="flex: 1; padding: 8px 10px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; color: #e2e8f0; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.borderColor='#818cf8'; this.style.background='rgba(99, 102, 241, 0.25)'" onmouseleave="this.style.borderColor='rgba(148, 163, 184, 0.25)'; this.style.background='rgba(30, 41, 59, 0.85)'">
+                  <i class="fa-solid fa-user-shield" style="color: #c084fc;"></i> Admin (admin)
+                </button>
+              </div>
+            </div>
+          ` : ''}
+
           <div id="auth-error-container"></div>
 
           <form id="auth-form" class="auth-form">
@@ -900,6 +923,25 @@ function renderAuthScreen() {
         const isPassword = passInput.type === 'password';
         passInput.type = isPassword ? 'text' : 'password';
         togglePassIcon.className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+      });
+    }
+
+    // Botões de preenchimento rápido para demonstração
+    const fillMedicoBtn = document.getElementById('fill-demo-medico');
+    if (fillMedicoBtn) {
+      fillMedicoBtn.addEventListener('click', () => {
+        document.getElementById('auth-username').value = 'medico123';
+        document.getElementById('auth-password').value = 'medico123';
+        showToast('⚡ Credenciais de Médico preenchidas (medico123)!');
+      });
+    }
+
+    const fillAdminBtn = document.getElementById('fill-demo-admin');
+    if (fillAdminBtn) {
+      fillAdminBtn.addEventListener('click', () => {
+        document.getElementById('auth-username').value = 'admin';
+        document.getElementById('auth-password').value = 'admin123';
+        showToast('⚡ Credenciais de Administrador preenchidas (admin)!');
       });
     }
 

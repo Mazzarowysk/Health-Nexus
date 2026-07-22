@@ -46,6 +46,23 @@ const initLocalDb = async () => {
   await db.execute(SQL_PRESCRIPTIONS);
   await db.execute(SQL_DOCTORS);
 
+  // Seed de usuários padrão de demonstração se a tabela estiver vazia
+  try {
+    const uCount = Number((await db.execute('SELECT COUNT(*) as c FROM users')).rows[0].c);
+    if (uCount === 0) {
+      const hashAdmin = await bcrypt.hash('admin123', 10);
+      const hashMedico = await bcrypt.hash('medico123', 10);
+      await db.execute({
+        sql: 'INSERT INTO users (id, name, username, password_hash, role) VALUES (?, ?, ?, ?, ?)',
+        args: ['USR-ADMIN', 'Administrador Hospitalar', 'admin', hashAdmin, 'Administrador']
+      });
+      await db.execute({
+        sql: 'INSERT INTO users (id, name, username, password_hash, role) VALUES (?, ?, ?, ?, ?)',
+        args: ['USR-MEDICO', 'Dr. João Silva', 'medico123', hashMedico, 'Médico']
+      });
+    }
+  } catch (e) {}
+
   // Seed de médicos se a tabela estiver vazia
   try {
     const docCount = Number((await db.execute('SELECT COUNT(*) as c FROM doctors')).rows[0].c);
