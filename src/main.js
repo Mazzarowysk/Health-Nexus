@@ -2010,30 +2010,41 @@ async function renderTabContent() {
               </div>
               
               <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="address">Endereço:</label>
-                  <input type="text" id="address" class="form-input" placeholder="Av. Paulista, 1000">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="cep">CEP (Busca Auto):</label>
+                  <div style="position: relative;">
+                    <input type="text" id="cep" class="form-input" placeholder="00000-000" inputmode="numeric" maxlength="9">
+                    <span id="cep-loading-icon" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: none; color: var(--color-primary);">
+                      <i class="fa-solid fa-spinner fa-spin"></i>
+                    </span>
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label class="form-label" for="city">Cidade:</label>
-                  <input type="text" id="city" class="form-input" placeholder="Ex: Campinas">
+                <div class="form-group" style="flex: 2;">
+                  <label class="form-label" for="address">Endereço:</label>
+                  <input type="text" id="address" class="form-input" placeholder="Av. Paulista, 1000 - Bela Vista">
                 </div>
               </div>
               
               <div class="form-row">
                 <div class="form-group">
+                  <label class="form-label" for="city">Cidade / UF:</label>
+                  <input type="text" id="city" class="form-input" placeholder="Ex: São Paulo - SP">
+                </div>
+                <div class="form-group">
                   <label class="form-label" for="phone">Telefone Fixo:</label>
                   <input type="text" id="phone" class="form-input" placeholder="(18) 3528-5022">
                 </div>
+              </div>
+              
+              <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="cellphone">Celular:</label>
                   <input type="text" id="cellphone" class="form-input" placeholder="(18) 98817-5809">
                 </div>
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label" for="billingValue">Valor da Consulta/Mensalidade:</label>
-                <input type="text" id="billingValue" class="form-input" placeholder="R$ 0,00">
+                <div class="form-group">
+                  <label class="form-label" for="billingValue">Valor da Consulta/Mensalidade:</label>
+                  <input type="text" id="billingValue" class="form-input" placeholder="R$ 0,00">
+                </div>
               </div>
 
               <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -2127,6 +2138,7 @@ async function renderTabContent() {
                   data-full-name="${p.fullName}" 
                   data-cpf="${p.cpf}" 
                   data-birth-date="${p.birthDate}"
+                  data-cep="${p.cep || ''}"
                   data-address="${p.address || ''}"
                   data-city="${p.city || ''}"
                   data-phone="${p.phone || ''}"
@@ -2154,6 +2166,8 @@ async function renderTabContent() {
           document.getElementById('fullName').value = btn.getAttribute('data-full-name');
           document.getElementById('cpf').value = btn.getAttribute('data-cpf');
           document.getElementById('birthDate').value = btn.getAttribute('data-birth-date');
+          const cepEl = document.getElementById('cep');
+          if (cepEl) cepEl.value = btn.getAttribute('data-cep') || '';
           document.getElementById('address').value = btn.getAttribute('data-address');
           document.getElementById('city').value = btn.getAttribute('data-city');
           document.getElementById('phone').value = btn.getAttribute('data-phone');
@@ -2174,7 +2188,15 @@ async function renderTabContent() {
       document.querySelectorAll('.btn-icon-delete').forEach(btn => {
         btn.addEventListener('click', async () => {
           const id = btn.getAttribute('data-delete-id');
-          if (confirm('Tem certeza de que deseja excluir este paciente?')) {
+          const confirmed = await showCustomConfirm({
+            title: 'Excluir Paciente',
+            message: 'Tem certeza de que deseja excluir este paciente do sistema?',
+            confirmText: 'Sim, Excluir',
+            cancelText: 'Cancelar',
+            type: 'danger'
+          });
+
+          if (confirmed) {
             try {
               const deleteRes = await apiFetch(`${API_URL}/patients/${id}`, { method: 'DELETE' });
               if (deleteRes.ok) {
@@ -2184,15 +2206,51 @@ async function renderTabContent() {
                 }
                 state.loading = true;
               } else {
-                alert('Erro ao excluir paciente.');
+                showCustomAlert({ title: 'Erro', message: 'Erro ao excluir paciente.', type: 'danger' });
               }
             } catch (err) {
-              alert('Erro ao conectar-se à API.');
+              showCustomAlert({ title: 'Erro', message: 'Erro ao conectar-se à API.', type: 'danger' });
             }
           }
         });
       });
     };
+
+    // Máscara e Busca Automática de CEP via ViaCEP + BrasilAPI
+    const cepInput = document.getElementById('cep');
+    if (cepInput) {
+      cepInput.addEventListener('input', async (e) => {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 8) value = value.substring(0, 8);
+        if (value.length > 5) {
+          e.target.value = value.substring(0, 5) + '-' + value.substring(5);
+        } else {
+          e.target.value = value;
+        }
+
+        if (value.length === 8) {
+          const loadingIcon = document.getElementById('cep-loading-icon');
+          if (loadingIcon) loadingIcon.style.display = 'block';
+          try {
+            const res = await fetch(`/api/cep/${value}`);
+            if (res.ok) {
+              const payload = await res.json();
+              if (payload.status === 'success' && payload.data) {
+                const addressInput = document.getElementById('address');
+                const cityInput = document.getElementById('city');
+                if (addressInput && payload.data.address) addressInput.value = payload.data.address;
+                if (cityInput && payload.data.city) cityInput.value = payload.data.city;
+                showToast('Endereço localizado via CEP!');
+              }
+            }
+          } catch (err) {
+            console.error('Erro na consulta de CEP:', err);
+          } finally {
+            if (loadingIcon) loadingIcon.style.display = 'none';
+          }
+        }
+      });
+    }
 
     const loadAndRenderTable = async () => {
       try {
@@ -2236,6 +2294,7 @@ async function renderTabContent() {
       const fullName = document.getElementById('fullName').value;
       const cpf = document.getElementById('cpf').value;
       const birthDate = document.getElementById('birthDate').value;
+      const cep = document.getElementById('cep')?.value || '';
       const address = document.getElementById('address').value;
       const city = document.getElementById('city').value;
       const phone = document.getElementById('phone').value;
@@ -2257,7 +2316,7 @@ async function renderTabContent() {
         const res = await apiFetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, cpf, birthDate, address, city, phone, cellphone, billingValue }),
+          body: JSON.stringify({ fullName, cpf, birthDate, cep, address, city, phone, cellphone, billingValue }),
           skipSyncPrompt: true
         });
         const data = await res.json();
