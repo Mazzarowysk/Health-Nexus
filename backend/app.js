@@ -111,6 +111,50 @@ const initLocalDb = async () => {
     }
   } catch (e) {}
 
+  // Seed de pacientes A-Z se houver poucos ou nenhum paciente
+  try {
+    const pCount = Number((await db.execute('SELECT COUNT(*) as c FROM patients')).rows[0].c);
+    if (pCount < 15) {
+      const demoPatients = [
+        { id: 'PAT-DEMO-01', fullName: 'Amanda Alvarenga', cpf: '111.222.333-01', birthDate: '1995-04-12', phone: '(11) 91111-0001' },
+        { id: 'PAT-DEMO-02', fullName: 'Ana Beatriz Oliveira', cpf: '111.222.333-02', birthDate: '1992-08-25', phone: '(11) 91111-0002' },
+        { id: 'PAT-DEMO-03', fullName: 'Bernardo Lima Fernandes', cpf: '111.222.333-03', birthDate: '1988-11-03', phone: '(11) 91111-0003' },
+        { id: 'PAT-DEMO-04', fullName: 'Bruno Silva Souza', cpf: '111.222.333-04', birthDate: '1990-02-14', phone: '(11) 91111-0004' },
+        { id: 'PAT-DEMO-05', fullName: 'Camila Teixeira Silva', cpf: '111.222.333-05', birthDate: '1997-06-30', phone: '(11) 91111-0005' },
+        { id: 'PAT-DEMO-06', fullName: 'Carlos Henrique Santos', cpf: '111.222.333-06', birthDate: '1983-09-18', phone: '(11) 91111-0006' },
+        { id: 'PAT-DEMO-07', fullName: 'Daniel Fonseca Ramos', cpf: '111.222.333-07', birthDate: '1986-12-05', phone: '(11) 91111-0007' },
+        { id: 'PAT-DEMO-08', fullName: 'Eduardo Rocha Pinto', cpf: '111.222.333-08', birthDate: '1991-01-22', phone: '(11) 91111-0008' },
+        { id: 'PAT-DEMO-09', fullName: 'Fernanda Souza Lima', cpf: '111.222.333-09', birthDate: '1994-05-16', phone: '(11) 91111-0009' },
+        { id: 'PAT-DEMO-10', fullName: 'Gabriel Castro Neves', cpf: '111.222.333-10', birthDate: '1989-10-08', phone: '(11) 91111-0010' },
+        { id: 'PAT-DEMO-11', fullName: 'Helena Martins Duarte', cpf: '111.222.333-11', birthDate: '1996-03-27', phone: '(11) 91111-0011' },
+        { id: 'PAT-DEMO-12', fullName: 'Igor Ferreira Mello', cpf: '111.222.333-12', birthDate: '1987-07-19', phone: '(11) 91111-0012' },
+        { id: 'PAT-DEMO-13', fullName: 'Juliana Mendes Rocha', cpf: '111.222.333-13', birthDate: '1993-09-02', phone: '(11) 91111-0013' },
+        { id: 'PAT-DEMO-14', fullName: 'Lucas Martins Costa', cpf: '111.222.333-14', birthDate: '1998-11-11', phone: '(11) 91111-0014' },
+        { id: 'PAT-DEMO-15', fullName: 'Mariana Costa Lima', cpf: '111.222.333-15', birthDate: '1995-02-28', phone: '(11) 91111-0015' },
+        { id: 'PAT-DEMO-16', fullName: 'Nelson Piquet Farias', cpf: '111.222.333-16', birthDate: '1984-06-15', phone: '(11) 91111-0016' },
+        { id: 'PAT-DEMO-17', fullName: 'Olivia Palermo Silveira', cpf: '111.222.333-17', birthDate: '1999-04-09', phone: '(11) 91111-0017' },
+        { id: 'PAT-DEMO-18', fullName: 'Patricia Barbosa Dias', cpf: '111.222.333-18', birthDate: '1991-08-17', phone: '(11) 91111-0018' },
+        { id: 'PAT-DEMO-19', fullName: 'Quênia Alves Rezende', cpf: '111.222.333-19', birthDate: '1996-12-01', phone: '(11) 91111-0019' },
+        { id: 'PAT-DEMO-20', fullName: 'Rodrigo Gomes Pires', cpf: '111.222.333-20', birthDate: '1985-05-20', phone: '(11) 91111-0020' },
+        { id: 'PAT-DEMO-21', fullName: 'Sophia Alcantara', cpf: '111.222.333-21', birthDate: '1997-10-14', phone: '(11) 91111-0021' },
+        { id: 'PAT-DEMO-22', fullName: 'Thiago Rodrigues Nunes', cpf: '111.222.333-22', birthDate: '1990-03-31', phone: '(11) 91111-0022' },
+        { id: 'PAT-DEMO-23', fullName: 'Vanessa Lins Cardoso', cpf: '111.222.333-23', birthDate: '1992-07-07', phone: '(11) 91111-0023' },
+        { id: 'PAT-DEMO-24', fullName: 'William Bonner Viana', cpf: '111.222.333-24', birthDate: '1982-01-19', phone: '(11) 91111-0024' },
+        { id: 'PAT-DEMO-25', fullName: 'Xavier Camargo', cpf: '111.222.333-25', birthDate: '1994-09-24', phone: '(11) 91111-0025' },
+        { id: 'PAT-DEMO-26', fullName: 'Yasmin Brunet Faria', cpf: '111.222.333-26', birthDate: '1998-05-04', phone: '(11) 91111-0026' },
+        { id: 'PAT-DEMO-27', fullName: 'Zilda Arns Neumann', cpf: '111.222.333-27', birthDate: '1980-11-29', phone: '(11) 91111-0027' }
+      ];
+      const nowIso = new Date().toISOString();
+      for (const p of demoPatients) {
+        await db.execute({
+          sql: `INSERT OR IGNORE INTO patients (id, fullName, cpf, birthDate, phone, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          args: [p.id, p.fullName, p.cpf, p.birthDate, p.phone, nowIso, nowIso]
+        });
+      }
+    }
+  } catch (e) {}
+
   console.log('[DB] Banco local OK.');
 };
 
@@ -982,7 +1026,7 @@ app.post('/api/patients', async (req, res) => {
 // Endpoint para obter todos os pacientes
 app.get('/api/patients', async (req, res) => {
   try {
-    const result = await db.execute('SELECT * FROM patients ORDER BY created_at DESC');
+    const result = await db.execute('SELECT * FROM patients ORDER BY fullName ASC');
     res.status(200).json(result.rows);
   } catch (err) {
     console.error('Erro ao buscar pacientes:', err);

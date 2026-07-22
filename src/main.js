@@ -4615,9 +4615,15 @@ async function renderAgendaTab() {
         <form id="form-new-appointment" class="modal-body">
           <div class="form-group">
             <label for="apt-patient-id">Paciente *</label>
-            <select id="apt-patient-id" class="form-input" required>
-              <option value="">Selecione o paciente...</option>
-            </select>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="position: relative;">
+                <input type="text" id="apt-patient-search" class="form-input" placeholder="🔍 Pesquisar por nome ou CPF..." autocomplete="off" style="font-size: 0.85rem; padding-left: 30px;">
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted, #818cf8); font-size: 0.8rem; pointer-events: none;"></i>
+              </div>
+              <select id="apt-patient-id" class="form-input" required style="max-height: 160px; overflow-y: auto;">
+                <option value="">Selecione o paciente...</option>
+              </select>
+            </div>
           </div>
           <div class="form-group">
             <label for="apt-doctor">Médico Responsável *</label>
@@ -4656,16 +4662,47 @@ async function renderAgendaTab() {
   const loadPatients = async () => {
     try {
       const pList = await cachedApiGet('/api/patients', 'patients');
-      const patients = Array.isArray(pList) ? pList : (pList.data || []);
+      let patients = Array.isArray(pList) ? pList : (pList.data || []);
+      
+      // Ordenação Alfabética A-Z por nome completo
+      patients.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'pt-BR', { sensitivity: 'base' }));
+
       const pSelect = document.getElementById('apt-patient-id');
-      if (pSelect) {
+      const pSearch = document.getElementById('apt-patient-search');
+
+      const renderOptions = (items) => {
+        if (!pSelect) return;
+        const currentSelected = pSelect.value;
         pSelect.innerHTML = '<option value="">Selecione o paciente...</option>';
-        patients.forEach(p => {
+        items.forEach(p => {
           const opt = document.createElement('option');
           opt.value = p.id;
           opt.textContent = p.fullName + ' (CPF: ' + (p.cpf || 'N/A') + ')';
           opt.dataset.name = p.fullName;
+          opt.dataset.cpf = p.cpf || '';
+          if (p.id === currentSelected) opt.selected = true;
           pSelect.appendChild(opt);
+        });
+      };
+
+      renderOptions(patients);
+
+      if (pSearch && !pSearch.dataset.bound) {
+        pSearch.dataset.bound = 'true';
+        pSearch.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+          if (!query) {
+            renderOptions(patients);
+          } else {
+            const filtered = patients.filter(p => {
+              const nameMatch = (p.fullName || '').toLowerCase().includes(query);
+              const cpfDigits = (p.cpf || '').replace(/\D/g, '');
+              const queryDigits = query.replace(/\D/g, '');
+              const cpfMatch = queryDigits ? cpfDigits.includes(queryDigits) : (p.cpf || '').toLowerCase().includes(query);
+              return nameMatch || cpfMatch;
+            });
+            renderOptions(filtered);
+          }
         });
       }
     } catch (e) {}
