@@ -5154,18 +5154,30 @@ window.openPEPModal = async function(encounterId) {
   document.getElementById('close-pep-modal').addEventListener('click', () => modal.remove());
 
   try {
-    const res = await apiFetch('/api/encounters');
-    const encounters = await res.json();
-    const enc = encounters.find(e => e.id === encounterId) || {};
+    let encounters = [];
+    try {
+      const res = await apiFetch('/api/encounters');
+      if (res.ok) {
+        const rawData = await res.json();
+        encounters = Array.isArray(rawData) ? rawData : (rawData?.data || []);
+      }
+    } catch(e) {}
+
+    const enc = encounters.find(e => String(e.id) === String(encounterId)) || {};
 
     const subtitleEl = document.getElementById('pep-modal-subtitle');
     if (subtitleEl) {
       subtitleEl.innerHTML = `Paciente: <strong style="color:#fff;">${enc.patientName || 'Paciente'}</strong> · Sala: <span style="color:#34d399;">${enc.room || 'Consultório 01'}</span>`;
     }
 
-    const notesRes = await apiFetch('/api/encounters/' + encounterId + '/notes');
-    const notesData = notesRes.ok ? await notesRes.json() : {};
-    const notes = notesData.data || notesData || {};
+    let notes = {};
+    try {
+      const notesRes = await apiFetch('/api/encounters/' + encounterId + '/notes');
+      if (notesRes && notesRes.ok) {
+        const notesData = await notesRes.json();
+        notes = (notesData && typeof notesData === 'object') ? (notesData.data || notesData) : {};
+      }
+    } catch (e) {}
 
     const bodyEl = document.getElementById('pep-modal-body');
     if (!bodyEl) return;
