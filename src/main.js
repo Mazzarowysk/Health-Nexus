@@ -1603,6 +1603,24 @@ function renderAuthScreen() {
                 <label class="form-label" for="auth-name">Nome Completo</label>
                 <input type="text" id="auth-name" class="form-input" required placeholder="Dr. João Silva" autocomplete="name">
               </div>
+              <div class="form-group">
+                <label class="form-label" for="auth-role">Perfil / Função Desejada</label>
+                <select id="auth-role" class="form-input" style="background: var(--bg-card, #1e293b); color: var(--text-primary);">
+                  <option value="Médico" selected>🩺 Médico (Clínico / Especialista)</option>
+                  <option value="Enfermeiro">🩺 Enfermeiro / Assistencial</option>
+                  <option value="Recepcionista">📋 Recepcionista / Atendimento</option>
+                  <option value="Master">👑 Solicitar Acesso Total (Master / Admin)</option>
+                </select>
+              </div>
+              <div id="auth-master-key-box" class="form-group" style="display: none; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                <label class="form-label" for="auth-master-key" style="color: #a5b4fc; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Chave Master (Opcional se pendente):
+                </label>
+                <input type="password" id="auth-master-key" class="form-input" placeholder="Digite a chave master se possuir">
+                <small style="color: var(--text-secondary); display: block; margin-top: 4px; font-size: 0.75rem; line-height: 1.3;">
+                  * Se você não possuir a Chave Master, sua solicitação de Acesso Total ficará <strong>Pendente de Aprovação</strong> pelo Usuário Master principal.
+                </small>
+              </div>
             ` : ''}
             <div class="form-group">
               <label class="form-label" for="auth-username">Usuário</label>
@@ -1644,6 +1662,20 @@ function renderAuthScreen() {
       renderForm();
     });
 
+    if (!isLogin) {
+      const authRoleSelect = document.getElementById('auth-role');
+      const authMasterBox = document.getElementById('auth-master-key-box');
+      if (authRoleSelect && authMasterBox) {
+        authRoleSelect.addEventListener('change', () => {
+          if (authRoleSelect.value === 'Master') {
+            authMasterBox.style.display = 'block';
+          } else {
+            authMasterBox.style.display = 'none';
+          }
+        });
+      }
+    }
+
     const passInput = document.getElementById('auth-password');
     const togglePassBtn = document.getElementById('toggle-password-visibility');
     const togglePassIcon = document.getElementById('toggle-password-icon');
@@ -1669,6 +1701,8 @@ function renderAuthScreen() {
       const username = document.getElementById('auth-username').value.trim();
       const password = document.getElementById('auth-password').value.trim();
       const name = !isLogin ? document.getElementById('auth-name').value.trim() : null;
+      const role = !isLogin ? (document.getElementById('auth-role')?.value || 'Médico') : null;
+      const masterKey = !isLogin ? (document.getElementById('auth-master-key')?.value || '') : null;
       
       const submitBtn = document.getElementById('auth-submit-btn');
       const originalHTML = submitBtn.innerHTML;
@@ -1677,7 +1711,7 @@ function renderAuthScreen() {
 
       try {
         const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-        const body = isLogin ? { username, password } : { name, username, password, role: 'Médico' };
+        const body = isLogin ? { username, password } : { name, username, password, role, masterKey };
         
         const res = await fetch(endpoint, {
           method: 'POST',
@@ -1697,7 +1731,7 @@ function renderAuthScreen() {
             showToast('Login realizado com sucesso!');
             initializeApp();
           } else {
-            showToast('Cadastro realizado! Faça login agora.');
+            showToast(data.message || 'Cadastro realizado com sucesso!');
             isLogin = true;
             renderForm();
           }
@@ -1709,16 +1743,14 @@ function renderAuthScreen() {
                 <span>${data.message || 'Erro na autenticação'}</span>
               </div>
             `;
-          } else {
-            alert(data.message || 'Erro na autenticação');
           }
         }
       } catch (err) {
         if (errorContainer) {
           errorContainer.innerHTML = `
             <div class="auth-error-alert">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>Erro ao comunicar com o servidor. Verifique sua conexão.</span>
+              <i class="fa-solid fa-wifi"></i>
+              <span>Erro de conexão com o servidor.</span>
             </div>
           `;
         } else {

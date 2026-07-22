@@ -421,22 +421,14 @@ app.post('/api/auth/register', async (req, res) => {
     const username = (req.body.username || '').trim();
     const password = (req.body.password || '').trim();
     const role = (req.body.role || 'Médico').trim();
+    const masterKey = (req.body.masterKey || '').trim();
 
     if (!name || !username || !password) {
       return res.status(400).json({ message: 'Nome, usuário e senha são obrigatórios.' });
     }
 
-    if (username.length < 3) {
-      return res.status(400).json({ message: 'O nome de usuário deve ter pelo menos 3 caracteres.' });
-    }
-
-    if (password.length < 4) {
-      return res.status(400).json({ message: 'A senha deve ter pelo menos 4 caracteres.' });
-    }
-
-    // Verificar se o usuário já existe (case-insensitive)
     const existing = await db.execute({
-      sql: 'SELECT * FROM users WHERE LOWER(username) = LOWER(?)',
+      sql: 'SELECT id FROM users WHERE LOWER(username) = LOWER(?)',
       args: [username]
     });
     if (existing.rows.length > 0) {
@@ -449,12 +441,29 @@ app.post('/api/auth/register', async (req, res) => {
     const userId = crypto.randomUUID();
     const userRole = role || 'Médico';
 
+    let userStatus = 'Ativo';
+    let masterApproved = 1;
+    let masterKeyRequested = 0;
+
+    if (userRole === 'Master' || userRole === 'Administrador') {
+      const isValidKey = masterKey && masterKey.trim() === MASTER_KEY_SECRET;
+      if (!isValidKey) {
+        userStatus = 'Pendente';
+        masterApproved = 0;
+        masterKeyRequested = 1;
+      }
+    }
+
     await db.execute({
-      sql: 'INSERT INTO users (id, name, username, password_hash, role) VALUES (?, ?, ?, ?, ?)',
-      args: [userId, name, username, passwordHash, userRole]
+      sql: 'INSERT INTO users (id, name, username, password_hash, role, status, master_approved, master_key_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [userId, name, username, passwordHash, userRole, userStatus, masterApproved, masterKeyRequested]
     });
 
-    res.status(201).json({ message: 'Usuário cadastrado com sucesso!', userId });
+    const msg = masterApproved === 0
+      ? 'Cadastro realizado! Como você solicitou Acesso Total (Master), seu perfil está PENDENTE de aprovação pelo Administrador Principal.'
+      : 'Usuário cadastrado com sucesso! Faça login agora.';
+
+    res.status(201).json({ message: msg, userId, status: userStatus });
   } catch (err) {
     console.error('Erro ao cadastrar usuário:', err);
     res.status(500).json({ message: 'Erro interno ao cadastrar usuário.' });
@@ -484,6 +493,10 @@ app.post('/api/auth/login', async (req, res) => {
 
     if (!match) {
       return res.status(401).json({ message: 'Usuário ou senha incorretos.' });
+    }
+
+    if (user.status === 'Pendente' || user.master_approved == 0) {
+      return res.status(403).json({ message: 'Sua solicitação de Acesso Total (Master) está PENDENTE de aprovação pelo Administrador Principal.' });
     }
 
     // Gerar token JWT (expira em 24h)
