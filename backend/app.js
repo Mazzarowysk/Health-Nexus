@@ -1454,6 +1454,54 @@ app.post('/api/beds/admit', async (req, res) => {
   }
 });
 
+
+// --- PAINEL DE ATIVIDADES E PROCEDIMENTOS DO MÉDICO ---
+app.get('/api/doctors/:name/activity', async (req, res) => {
+  try {
+    const rawName = decodeURIComponent(req.params.name);
+    // Limpar prefixos comuns para busca robusta no banco
+    const cleanSearchName = rawName.replace(/^(Dr\.|Dra\.)\s*/i, '').trim();
+
+    // 1. Consultas e Agendamentos do médico
+    const apptsRes = await db.execute({
+      sql: 'SELECT * FROM appointments WHERE doctorName LIKE ? OR doctorName LIKE ? ORDER BY appointmentDate DESC, appointmentTime ASC LIMIT 50',
+      args: [`%${rawName}%`, `%${cleanSearchName}%`]
+    });
+
+    // 2. Anotações clínicas / Prontuários (SOAP)
+    const notesRes = await db.execute({
+      sql: `SELECT cn.*, p.fullName as patientName, p.cpf as patientCpf, e.status as encounterStatus, e.room
+            FROM clinical_notes cn
+            LEFT JOIN encounters e ON cn.encounterId = e.id
+            LEFT JOIN patients p ON e.patientId = p.id
+            ORDER BY cn.created_at DESC LIMIT 50`
+    });
+
+    const appointments = apptsRes.rows || [];
+    const clinicalNotes = notesRes.rows || [];
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const summary = {
+      totalAppointments: appointments.length,
+      todayAppointments: appointments.filter(a => a.appointmentDate === todayStr).length,
+      inProgress: appointments.filter(a => a.status === 'Em Atendimento').length,
+      completed: appointments.filter(a => a.status === 'Concluído').length,
+      totalProcedures: clinicalNotes.length
+    };
+
+    res.status(200).json({
+      status: 'success',
+      doctorName: rawName,
+      summary,
+      appointments,
+      clinicalNotes
+    });
+  } catch (err) {
+    console.error('Erro em GET /api/doctors/:name/activity:', err);
+    res.status(500).json({ status: 'error', message: 'Erro ao carregar histórico de atividades do médico: ' + err.message });
+  }
+});
+
 app.post('/api/beds/discharge', async (req, res) => {
   try {
     const { bedId } = req.body;

@@ -4857,6 +4857,9 @@ async function renderDoctorsTab() {
           </td>
           <td style="padding: 16px 20px; text-align: right;">
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button class="btn-doctor-activity" onclick="openDoctorActivityModal('${d.name}', '${d.specialty}', '${d.crm}')" title="Ver Atendimentos, Procedimentos e Solicitações do Médico" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.3); background: rgba(99,102,241,0.12); color: #818cf8; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;" onmouseenter="this.style.background='rgba(99,102,241,0.22)'" onmouseleave="this.style.background='rgba(99,102,241,0.12)'">
+                <i class="fa-solid fa-clipboard-user"></i> Atividades
+              </button>
               <button class="btn-edit-doctor" data-id="${d.id}" title="Editar" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <i class="fa-solid fa-pen" style="font-size: 0.8rem;"></i>
               </button>
