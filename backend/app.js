@@ -362,39 +362,14 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- ROTAS E LÓGICA DE HEARTBEAT (Auto-shutdown ao fechar o navegador) ---
-// Dá 60 segundos iniciais para o Vite compilar e o navegador abrir
-let lastHeartbeat = Date.now() + 60000; 
-let shutdownTimer = null;
-
-app.post('/api/heartbeat', (req, res) => {
-  lastHeartbeat = Date.now();
-  if (shutdownTimer) {
-    clearTimeout(shutdownTimer);
-    shutdownTimer = null;
-  }
-  res.sendStatus(200);
-});
-
+// --- ROTAS DE HEARTBEAT E SHUTDOWN ---
+// No Vercel (serverless) e localmente, o servidor roda sem auto-shutdown
+// O /api/heartbeat e /api/shutdown existem apenas para compatibilidade com o frontend
+app.post('/api/heartbeat', (req, res) => res.sendStatus(200));
 app.post('/api/shutdown', (req, res) => {
-  console.log('Navegador fechado. Encerrando o servidor...');
-  res.sendStatus(200);
-  if (shutdownTimer) clearTimeout(shutdownTimer);
-  shutdownTimer = setTimeout(() => {
-    console.log('Nenhum navegador ativo detectado. Encerrando o servidor Node...');
-    process.exit(0);
-  }, 1500);
+  res.sendStatus(200); // aceita o pedido mas NAO encerra o processo
 });
 
-// Auto-shutdown por heartbeat: DESATIVADO no Vercel (serverless nao suporta process.exit)
-if (!process.env.VERCEL) {
-  setInterval(() => {
-    if (Date.now() - lastHeartbeat > 8000) {
-      console.log('Nenhum navegador conectado por mais de 8s. Encerrando o servidor...');
-      process.exit(0);
-    }
-  }, 2000);
-}
 
 // --- ROTAS DE AUTENTICAÇÃO ---
 
