@@ -479,7 +479,37 @@ const showUserManagementModal = async () => {
         return;
       }
 
+      const pendingUsers = usersList.filter(u => u.status === 'Pendente' || u.master_key_requested == 1);
+
+      let pendingHtml = '';
+      if (pendingUsers.length > 0) {
+        pendingHtml = `
+          <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fde047; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: #fbbf24;">
+              <i class="fa-solid fa-user-clock" style="font-size: 1.1rem;"></i>
+              Solicitações de Acesso Total Pendentes (${pendingUsers.length}):
+            </div>
+            ${pendingUsers.map(pu => `
+              <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; margin-top: 8px; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <strong style="color: #fff;">${pu.name}</strong> (@${pu.username}) — <span style="color: #a5b4fc;">Solicitou Acesso ${pu.role}</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn-approve-master" data-id="${pu.id}" style="background: #10b981; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-shield-halved"></i> Aprovar Acesso Total
+                  </button>
+                  <button class="btn-reject-master" data-id="${pu.id}" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
+                    <i class="fa-solid fa-xmark"></i> Recusar
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
       container.innerHTML = `
+        ${pendingHtml}
         <table class="patients-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
           <thead>
             <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-secondary);">
@@ -493,7 +523,10 @@ const showUserManagementModal = async () => {
             ${usersList.map(u => {
               let roleBadgeColor = 'rgba(99, 102, 241, 0.2)';
               let roleTextColor = '#818cf8';
-              if (u.role === 'Administrador' || u.username === 'mazzarowysk') {
+              if (u.status === 'Pendente') {
+                roleBadgeColor = 'rgba(245, 158, 11, 0.25)';
+                roleTextColor = '#fbbf24';
+              } else if (u.role === 'Master' || u.role === 'Administrador' || u.username === 'mazzarowysk') {
                 roleBadgeColor = 'rgba(16, 185, 129, 0.2)';
                 roleTextColor = '#34d399';
               } else if (u.role === 'Enfermeiro') {
@@ -512,7 +545,7 @@ const showUserManagementModal = async () => {
                   <td style="padding: 12px 10px; font-family: monospace; color: var(--text-secondary);">@${u.username}</td>
                   <td style="padding: 12px 10px;">
                     <span style="font-size: 0.76rem; font-weight: 700; background: ${roleBadgeColor}; color: ${roleTextColor}; padding: 3px 10px; border-radius: 10px;">
-                      ${u.username === 'mazzarowysk' ? 'MASTER' : u.role}
+                      ${u.status === 'Pendente' ? '⚠️ PENDENTE DE APROVAÇÃO' : (u.username === 'mazzarowysk' ? 'MASTER' : u.role)}
                     </span>
                   </td>
                   <td style="padding: 12px 10px; text-align: right;">
@@ -531,6 +564,45 @@ const showUserManagementModal = async () => {
           </tbody>
         </table>
       `;
+
+      // Eventos dos botões de aprovação master
+      container.querySelectorAll('.btn-approve-master').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const uid = btn.dataset.id;
+          try {
+            const aprRes = await apiFetch(`/api/users/${uid}/approve-master`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'approve' })
+            });
+            if (aprRes.ok) {
+              showToast('Acesso Total (Master) APROVADO!');
+              loadUsersList();
+            } else {
+              showCustomAlert({ title: 'Erro', message: 'Falha ao aprovar usuário.', type: 'danger' });
+            }
+          } catch (e) {
+            showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'danger' });
+          }
+        });
+      });
+
+      container.querySelectorAll('.btn-reject-master').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const uid = btn.dataset.id;
+          try {
+            const rejRes = await apiFetch(`/api/users/${uid}/approve-master`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'reject' })
+            });
+            if (rejRes.ok) {
+              showToast('Solicitação recusada. Definido perfil básico.');
+              loadUsersList();
+            }
+          } catch (e) {}
+        });
+      });
 
       container.querySelectorAll('.btn-edit-user').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -580,7 +652,7 @@ const showUserManagementModal = async () => {
   loadUsersList();
 };
 
-// Sub-modal Formulário para Criar/Editar Usuário
+// Sub-modal Formulário para Criar/Editar Usuário com Chave Master
 const showUserFormModal = (userToEdit = null, onSaved = null) => {
   const existing = document.getElementById('hn-user-form-modal');
   if (existing) existing.remove();
@@ -615,11 +687,22 @@ const showUserFormModal = (userToEdit = null, onSaved = null) => {
         <div class="form-group">
           <label class="form-label" for="uf-role">* Função / Permissão:</label>
           <select id="uf-role" class="form-input" style="background: var(--bg-card, #1e293b); color: var(--text-primary);">
-            <option value="Administrador" ${userToEdit?.role === 'Administrador' ? 'selected' : ''}>Administrador</option>
-            <option value="Médico" ${userToEdit?.role === 'Médico' || !userToEdit ? 'selected' : ''}>Médico</option>
-            <option value="Enfermeiro" ${userToEdit?.role === 'Enfermeiro' ? 'selected' : ''}>Enfermeiro</option>
-            <option value="Recepcionista" ${userToEdit?.role === 'Recepcionista' ? 'selected' : ''}>Recepcionista</option>
+            <option value="Master" ${userToEdit?.role === 'Master' ? 'selected' : ''}>👑 Master (Acesso Total)</option>
+            <option value="Administrador" ${userToEdit?.role === 'Administrador' ? 'selected' : ''}>🛠️ Administrador</option>
+            <option value="Médico" ${userToEdit?.role === 'Médico' || !userToEdit ? 'selected' : ''}>🩺 Médico</option>
+            <option value="Enfermeiro" ${userToEdit?.role === 'Enfermeiro' ? 'selected' : ''}>🩺 Enfermeiro</option>
+            <option value="Recepcionista" ${userToEdit?.role === 'Recepcionista' ? 'selected' : ''}>📋 Recepcionista</option>
           </select>
+        </div>
+
+        <div id="uf-master-key-box" class="form-group" style="display: none; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 12px;">
+          <label class="form-label" for="uf-master-key" style="color: #a5b4fc; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Chave de Aprovação Master:
+          </label>
+          <input type="password" id="uf-master-key" class="form-input" placeholder="Digite a Chave Master (Ex: MASTER-HN-2026)">
+          <small style="color: var(--text-secondary); display: block; margin-top: 6px; font-size: 0.78rem; line-height: 1.4;">
+            * Se a Chave Master for válida ou se você for o Master principal, o acesso será liberado imediatamente. Caso contrário, a solicitação ficará pendente de aprovação.
+          </small>
         </div>
 
         <div class="form-group">
@@ -645,6 +728,19 @@ const showUserFormModal = (userToEdit = null, onSaved = null) => {
   document.getElementById('btn-uform-close').addEventListener('click', close);
   document.getElementById('btn-uform-cancel').addEventListener('click', close);
 
+  const roleSelect = document.getElementById('uf-role');
+  const masterKeyBox = document.getElementById('uf-master-key-box');
+
+  const checkMasterRole = () => {
+    if (roleSelect.value === 'Master' || roleSelect.value === 'Administrador') {
+      masterKeyBox.style.display = 'block';
+    } else {
+      masterKeyBox.style.display = 'none';
+    }
+  };
+  roleSelect.addEventListener('change', checkMasterRole);
+  checkMasterRole();
+
   document.getElementById('user-editor-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btnSave = document.getElementById('btn-uform-save');
@@ -653,7 +749,8 @@ const showUserFormModal = (userToEdit = null, onSaved = null) => {
 
     const name = document.getElementById('uf-name').value.trim();
     const username = document.getElementById('uf-username').value.trim();
-    const role = document.getElementById('uf-role').value;
+    const role = roleSelect.value;
+    const masterKey = document.getElementById('uf-master-key')?.value || '';
     const password = document.getElementById('uf-password').value;
 
     try {
@@ -663,23 +760,22 @@ const showUserFormModal = (userToEdit = null, onSaved = null) => {
       const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, username, role, password })
+        body: JSON.stringify({ name, username, role, password, masterKey })
       });
 
       const payload = await res.json();
       if (res.ok) {
-        showToast(isEdit ? 'Usuário atualizado com sucesso!' : 'Usuário cadastrado com sucesso!');
+        showToast(payload.message || 'Operação realizada com sucesso!');
         close();
         if (onSaved) onSaved();
       } else {
         showCustomAlert({ title: 'Atenção', message: payload.message || 'Erro ao salvar usuário.', type: 'warning' });
-        btnSave.disabled = false;
-        btnSave.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${isEdit ? 'Salvar Alterações' : 'Cadastrar Usuário'}`;
       }
     } catch (err) {
-      showCustomAlert({ title: 'Erro de Conexão', message: 'Falha ao comunicar com o servidor.', type: 'danger' });
+      showCustomAlert({ title: 'Erro', message: 'Falha de conexão com o servidor.', type: 'danger' });
+    } finally {
       btnSave.disabled = false;
-      btnSave.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${isEdit ? 'Salvar Alterações' : 'Cadastrar Usuário'}`;
+      btnSave.innerHTML = isEdit ? '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações' : '<i class="fa-solid fa-floppy-disk"></i> Cadastrar Usuário';
     }
   });
 };

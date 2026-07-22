@@ -19,7 +19,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // --- INICIALIZACAO DO BANCO LOCAL ---
 const initLocalDb = async () => {
-  const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', status TEXT DEFAULT 'Ativo', master_approved INTEGER DEFAULT 1, master_key_requested INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, cep TEXT, address TEXT, number TEXT, neighborhood TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
@@ -34,6 +34,9 @@ const initLocalDb = async () => {
 
   await db.execute(SQL_USERS);
   try { await db.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
+  for (const ucol of ['status', 'master_approved', 'master_key_requested']) {
+    try { await db.execute(`ALTER TABLE users ADD COLUMN ${ucol} TEXT`); } catch (e) {}
+  }
   await db.execute(SQL_PATIENTS);
   for (const col of ['cep','address','number','neighborhood','city','phone','cellphone','billingValue','updated_at']) {
     try { await db.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
@@ -2634,10 +2637,17 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-// Criar novo usuário
+const MASTER_KEY_SECRET = process.env.MASTER_KEY || 'MASTER-HN-2026';
+
+// Endpoint para consultar a Chave Master (Apenas Master mazzarowysk)
+app.get('/api/users/master-key', async (req, res) => {
+  res.status(200).json({ masterKey: MASTER_KEY_SECRET });
+});
+
+// Criar novo usuário com validação de Chave Master
 app.post('/api/users', async (req, res) => {
   try {
-    const { name, username, password, role } = req.body;
+    const { name, username, password, role, masterKey } = req.body;
     if (!name || !username || !password) {
       return res.status(400).json({ status: 'error', message: 'Nome, usuário e senha são obrigatórios.' });
     }
@@ -2657,29 +2667,90 @@ app.post('/api/users', async (req, res) => {
     const userRole = role || 'Medico';
     const createdAt = new Date().toISOString();
 
+    let userStatus = 'Ativo';
+    let masterApproved = 1;
+    let masterKeyRequested = 0;
+
+    // Se o usuário solicitou perfil Master ou Administrador de Acesso Total
+    if (userRole === 'Master' || userRole === 'Administrador') {
+      const isValidKey = masterKey && masterKey.trim() === MASTER_KEY_SECRET;
+      const isLoggedMaster = req.user && (req.user.username === 'mazzarowysk' || req.user.role === 'Master');
+
+      if (!isValidKey && !isLoggedMaster) {
+        userStatus = 'Pendente';
+        masterApproved = 0;
+        masterKeyRequested = 1;
+      }
+    }
+
     await db.execute({
-      sql: 'INSERT INTO users (id, name, username, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-      args: [id, name, cleanUsername, hash, userRole, createdAt]
+      sql: 'INSERT INTO users (id, name, username, password_hash, role, status, master_approved, master_key_requested, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [id, name, cleanUsername, hash, userRole, userStatus, masterApproved, masterKeyRequested, createdAt]
     });
 
     const cloud = getCloudDb();
     if (cloud) {
       try {
         await cloud.execute({
-          sql: 'INSERT OR REPLACE INTO users (id, name, username, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-          args: [id, name, cleanUsername, hash, userRole, createdAt]
+          sql: 'INSERT OR REPLACE INTO users (id, name, username, password_hash, role, status, master_approved, master_key_requested, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          args: [id, name, cleanUsername, hash, userRole, userStatus, masterApproved, masterKeyRequested, createdAt]
         });
       } catch (e) {}
     }
 
+    const msg = masterApproved === 0
+      ? 'Usuário cadastrado! Por ter solicitado Acesso Total (Master), o perfil ficou PENDENTE de aprovação pelo Administrador Principal.'
+      : 'Usuário cadastrado com sucesso!';
+
     res.status(201).json({
       status: 'success',
-      message: 'Usuário cadastrado com sucesso!',
-      data: { id, name, username: cleanUsername, role: userRole, created_at: createdAt }
+      message: msg,
+      data: { id, name, username: cleanUsername, role: userRole, status: userStatus, master_approved: masterApproved, created_at: createdAt }
     });
   } catch (err) {
     console.error('Erro ao criar usuário:', err);
     res.status(500).json({ status: 'error', message: 'Falha ao criar usuário.' });
+  }
+});
+
+// Endpoint de Aprovação / Rejeição de Acesso Master pelo Administrador Principal
+app.put('/api/users/:id/approve-master', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body; // 'approve' ou 'reject'
+
+    const targetUser = await db.execute({ sql: 'SELECT * FROM users WHERE id = ?', args: [id] });
+    if (targetUser.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Usuário não encontrado.' });
+    }
+
+    let newRole = 'Master';
+    let newStatus = 'Ativo';
+    let newApproved = 1;
+
+    if (action === 'reject') {
+      newRole = 'Médico';
+      newStatus = 'Ativo';
+      newApproved = 0;
+    }
+
+    const sql = 'UPDATE users SET role = ?, status = ?, master_approved = ?, master_key_requested = 0 WHERE id = ?';
+    const args = [newRole, newStatus, newApproved, id];
+
+    await db.execute({ sql, args });
+
+    const cloud = getCloudDb();
+    if (cloud) {
+      try { await cloud.execute({ sql, args }); } catch (e) {}
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: action === 'approve' ? 'Acesso Total (Master) aprovado com sucesso!' : 'Solicitação de Acesso Total recusada. Usuário definido como perfil padrão.'
+    });
+  } catch (err) {
+    console.error('Erro ao aprovar acesso master:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao processar aprovação.' });
   }
 });
 
