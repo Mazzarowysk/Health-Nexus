@@ -3132,6 +3132,13 @@ function renderReportsTab(contentArea) {
               </ul>
             </div>
           </div>
+          <div class="filter-group" style="min-width: 180px;">
+            <label>Médico Responsável</label>
+            <select id="filter-doctor-name" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;">
+              <option value="">— Todos os Médicos —</option>
+              ${[...new Set(encountersList.map(e => e.doctorName).filter(Boolean))].sort().map(d => `<option value="${d}">${d}</option>`).join('')}
+            </select>
+          </div>
         </div>
       `;
     } else if (activeTab === 'financial') {
@@ -3191,6 +3198,7 @@ function renderReportsTab(contentArea) {
       setupFilterGroupSelectAll('filter-status-all', 'filter-status-item', 'dropdown-status', 'Status');
       setupFilterGroupSelectAll('filter-manchester-all', 'filter-manchester-item', 'dropdown-manchester', 'Classificação');
       setupFilterGroupSelectAll('filter-type-all', 'filter-type-item', 'dropdown-type', 'Tipos');
+      document.getElementById('filter-doctor-name')?.addEventListener('change', filterAndRender);
     } else if (activeTab === 'financial') {
       setupFilterGroupSelectAll('filter-fin-all', 'filter-fin-item', 'dropdown-fin-status', 'Status');
     }
@@ -3572,6 +3580,7 @@ function renderReportsTab(contentArea) {
       const checkedStatuses = Array.from(document.querySelectorAll('.filter-status-item:checked')).map(cb => cb.value);
       const checkedManchester = Array.from(document.querySelectorAll('.filter-manchester-item:checked')).map(cb => cb.value);
       const checkedTypes = Array.from(document.querySelectorAll('.filter-type-item:checked')).map(cb => cb.value);
+      const filterDoctor = (document.getElementById('filter-doctor-name') || {}).value || '';
 
       currentFilteredList = encountersList.filter(e => {
         if (dateStart) {
@@ -3594,6 +3603,9 @@ function renderReportsTab(contentArea) {
 
         // Filtrar pelos tipos de atendimento
         if (!checkedTypes.includes(e.type)) return false;
+
+        // Filtrar por médico responsável
+        if (filterDoctor && (e.doctorName || '') !== filterDoctor) return false;
 
         return true;
       });
@@ -3794,6 +3806,15 @@ function renderReportsTab(contentArea) {
           ${[{val:ativos,label:'Médicos Ativos',color:'#818cf8'},{val:totalAppts,label:'Total Agendamentos',color:'#38bdf8'},{val:totalInProgress,label:'Em Atendimento',color:'#fbbf24'},{val:totalDone,label:'Concluídos',color:'#34d399'}].map(k=>`<div style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div style="font-size:1.6rem;font-weight:800;color:${k.color};">${k.val}</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${k.label}</div></div>`).join('')}
         </div>
 
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+          <div style="background:var(--bg-tertiary);border-radius:12px;padding:16px;border:1px solid var(--border-color);height:220px;position:relative;">
+            <canvas id="chart-doc-productivity"></canvas>
+          </div>
+          <div style="background:var(--bg-tertiary);border-radius:12px;padding:16px;border:1px solid var(--border-color);height:220px;position:relative;">
+            <canvas id="chart-doc-completion"></canvas>
+          </div>
+        </div>
+
         <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border-color);">
           <table style="width:100%;border-collapse:collapse;">
             <thead>
@@ -3818,6 +3839,50 @@ function renderReportsTab(contentArea) {
         </div>
         <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted);text-align:right;">${docList.length} médico(s) • Gerado em ${new Date().toLocaleString('pt-BR')}</div>
       `;
+
+      setTimeout(() => {
+        const ctxBar = document.getElementById('chart-doc-productivity');
+        if (ctxBar && window.Chart) {
+          if (ctxBar._chartInstance) ctxBar._chartInstance.destroy();
+          const labels = docStats.map(d => d.name.replace(/^(Dr\.|Dra\.)\s*/i, '').split(' ')[0]);
+          const inst = new window.Chart(ctxBar.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [
+                { label: 'Concluídos', data: docStats.map(d => d.done), backgroundColor: 'rgba(52,211,153,0.7)', borderRadius: 6 },
+                { label: 'Em Atend.', data: docStats.map(d => d.inProgress), backgroundColor: 'rgba(251,191,36,0.7)', borderRadius: 6 },
+                { label: 'Pendentes', data: docStats.map(d => Math.max(0, d.total - d.done - d.inProgress)), backgroundColor: 'rgba(129,140,248,0.7)', borderRadius: 6 }
+              ]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } }, title: { display: true, text: 'Agendamentos por Médico', color: '#e2e8f0', font: { size: 13, weight: '600' } } },
+              scales: {
+                x: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+              }
+            }
+          });
+          ctxBar._chartInstance = inst;
+        }
+        const ctxDoughnut = document.getElementById('chart-doc-completion');
+        if (ctxDoughnut && window.Chart) {
+          if (ctxDoughnut._chartInstance) ctxDoughnut._chartInstance.destroy();
+          const inst2 = new window.Chart(ctxDoughnut.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+              labels: ['Concluídos', 'Em Atendimento', 'Pendentes'],
+              datasets: [{ data: [totalDone, totalInProgress, Math.max(0, totalAppts - totalDone - totalInProgress)], backgroundColor: ['rgba(52,211,153,0.85)', 'rgba(251,191,36,0.85)', 'rgba(129,140,248,0.85)'], borderWidth: 0, hoverOffset: 8 }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false, cutout: '68%',
+              plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 }, padding: 14 } }, title: { display: true, text: 'Distribuição Geral', color: '#e2e8f0', font: { size: 13, weight: '600' } } }
+            }
+          });
+          ctxDoughnut._chartInstance = inst2;
+        }
+      }, 50);
 
       document.getElementById('btn-doc-export-pdf')?.addEventListener('click', async () => {
         const ts = new Date().toISOString().slice(0,10);
@@ -4115,6 +4180,92 @@ window.generatePatientPDF = async function(patientId, patientName) {
     console.error('[generatePatientPDF]', err);
     alert('❌ Erro ao gerar o prontuário PDF. Verifique o console.');
   }
+};
+
+// =========================================================
+// GERAR PDF DE COMPROVANTE DE AGENDAMENTO
+// =========================================================
+window.generateAppointmentPDF = function(id, patientName, doctorName, date, time, specialty, status, notes) {
+  if (!window.jspdf) { alert('⚠️ Biblioteca PDF não carregada.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const loadLogo = () => new Promise(resolve => {
+    const img = new Image(); img.src = '/assets/logo.png';
+    img.onload = () => resolve(img); img.onerror = () => resolve(null);
+  });
+
+  loadLogo().then(logoImg => {
+    // Header
+    doc.setFillColor(99, 102, 241);
+    doc.rect(0, 0, 210, 28, 'F');
+    if (logoImg) doc.addImage(logoImg, 'PNG', 8, 5, 18, 18);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    doc.text('HEALTH NEXUS', 30, 13);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Sistema de Gestão Hospitalar', 30, 19);
+    doc.text('COMPROVANTE DE AGENDAMENTO', 135, 13);
+    doc.text(`Emitido em: ${new Date().toLocaleString('pt-BR')}`, 135, 19);
+
+    // Título central
+    doc.setTextColor(30, 30, 50);
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+    doc.text('COMPROVANTE DE CONSULTA', 105, 44, { align: 'center' });
+    doc.setDrawColor(99, 102, 241); doc.setLineWidth(0.5);
+    doc.line(20, 47, 190, 47);
+
+    // Número do comprovante
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 120);
+    doc.text(`Nº: #${id.substring(0,8).toUpperCase()}`, 105, 54, { align: 'center' });
+
+    // Box de dados
+    let y = 64;
+    doc.setFillColor(248, 250, 252); doc.roundedRect(15, y - 4, 180, 114, 3, 3, 'F');
+    doc.setDrawColor(200, 210, 230); doc.roundedRect(15, y - 4, 180, 114, 3, 3, 'S');
+
+    const addRow = (label, value, isBold = false) => {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(99, 102, 241);
+      doc.text(label, 22, y + 2);
+      doc.setFont('helvetica', isBold ? 'bold' : 'normal'); doc.setTextColor(30, 30, 50);
+      doc.setFontSize(10.5);
+      doc.text(String(value || '—'), 22, y + 8);
+      y += 16;
+    };
+
+    addRow('PACIENTE', patientName, true);
+    addRow('MÉDICO RESPONSÁVEL', doctorName);
+    addRow('ESPECIALIDADE', specialty);
+    const fmtDate = date ? new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—';
+    addRow('DATA DA CONSULTA', fmtDate);
+    addRow('HORÁRIO', time || '—');
+    addRow('STATUS DA CONSULTA', status || 'Agendado');
+
+    if (notes) {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(99, 102, 241);
+      doc.text('OBSERVAÇÕES', 22, y + 2);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 80);
+      const splitNotes = doc.splitTextToSize(notes, 160);
+      doc.text(splitNotes, 22, y + 8);
+    }
+
+    // Informações de instrução
+    y = 190;
+    doc.setFillColor(241, 245, 249); doc.roundedRect(15, y, 180, 28, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(99, 102, 241);
+    doc.text('Instruções para o Paciente', 105, y + 7, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(80, 80, 100);
+    doc.text('• Por favor, chegue com 15 minutos de antecedência.', 105, y + 14, { align: 'center' });
+    doc.text('• Apresente este comprovante e um documento oficial com foto na recepção.', 105, y + 21, { align: 'center' });
+
+    // Footer
+    doc.setFontSize(8); doc.setTextColor(160, 160, 160);
+    doc.line(10, 283, 200, 283);
+    doc.text('Health Nexus — Sistema de Gestão Hospitalar | Documento gerado eletronicamente', 105, 288, { align: 'center' });
+
+    const safeName = (patientName || 'paciente').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 25);
+    doc.save(`comprovante_${safeName}_${date || 'data'}.pdf`);
+  });
 };
 
 // --- ABA AGENDA MÉDICA ---
@@ -4464,8 +4615,11 @@ async function renderAgendaTab() {
           </div>
 
           <!-- AÇÕES DA CONSULTA -->
-          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
             ${canAct ? confirmBtn + atenderBtn + cancelBtn : ''}
+            <button onclick="window.generateAppointmentPDF('${apt.id}', '${(apt.patientName||'').replace(/'/g, "\\'")}', '${(apt.doctorName||'').replace(/'/g, "\\'")}', '${apt.appointmentDate||''}', '${apt.appointmentTime||''}', '${(apt.specialty||'').replace(/'/g, "\\'")}', '${apt.status||''}', '${(apt.notes||'').replace(/'/g, "\\'")}')" title="Gerar Comprovante PDF" style="display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#f87171;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseenter="this.style.background='rgba(239,68,68,0.2)'" onmouseleave="this.style.background='rgba(239,68,68,0.08)'">
+              <i class="fa-solid fa-file-pdf"></i> Comprovante
+            </button>
           </div>
         </div>
       `;
