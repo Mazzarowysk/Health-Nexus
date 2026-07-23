@@ -2772,548 +2772,496 @@ async function renderTabContent() {
     renderAgendaTab();
   } else if (state.activeTab === 'atendimento') {
     contentArea.innerHTML = `
-      <div class="tab-section active">
-        <div class="atendimentos-grid">
-          <!-- Coluna 1: Admissão -->
-          <div class="atendimentos-panel">
-            <h3 class="panel-title"><i class="fa-solid fa-hospital-user" style="color: var(--color-primary);"></i> Admissão</h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">Selecione um paciente cadastrado:</p>
-            
-            <div class="search-container" style="margin-bottom: 12px;">
-              <div class="search-wrapper">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="adm-search-input" class="search-input" placeholder="Buscar por nome ou CPF...">
-              </div>
+      <div class="tab-section active" id="atendimento-root">
+        <!-- Header do Módulo -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h2 style="font-family:'Outfit'; font-weight:700; font-size:1.4rem; margin:0; color:var(--text-primary);">
+              <i class="fa-solid fa-hospital-user" style="color:var(--color-primary);"></i> Central de Atendimentos
+            </h2>
+            <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">Gestão do fluxo clínico em tempo real</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <div id="atd-kpi-bar" style="display:flex; gap:8px;">
+              <span class="atd-kpi-chip" style="background:rgba(245,158,11,0.12); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); font-size:0.78rem; padding:5px 10px; border-radius:20px; font-weight:600;">
+                <i class="fa-solid fa-hourglass-half"></i> <span id="kpi-aguardando-num">0</span> Aguardando
+              </span>
+              <span class="atd-kpi-chip" style="background:rgba(139,92,246,0.12); color:#8b5cf6; border:1px solid rgba(139,92,246,0.3); font-size:0.78rem; padding:5px 10px; border-radius:20px; font-weight:600;">
+                <i class="fa-solid fa-stethoscope"></i> <span id="kpi-triagem-num">0</span> Triagem
+              </span>
+              <span class="atd-kpi-chip" style="background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.3); font-size:0.78rem; padding:5px 10px; border-radius:20px; font-weight:600;">
+                <i class="fa-solid fa-user-doctor"></i> <span id="kpi-consulta-num">0</span> Em Consulta
+              </span>
             </div>
-            
-            <div id="adm-patient-list" class="patient-select-list">
-              <div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.85rem;">Carregando pacientes...</div>
+            <button id="btn-open-admission-panel" class="btn btn-primary" style="font-size:0.85rem; padding:8px 14px;">
+              <i class="fa-solid fa-plus"></i> Nova Admissão
+            </button>
+            <button id="btn-show-history" class="btn" style="font-size:0.85rem; padding:8px 14px; background:var(--bg-tertiary); border-color:var(--border-color); color:var(--text-secondary);">
+              <i class="fa-solid fa-clock-rotate-left"></i> Histórico
+            </button>
+          </div>
+        </div>
+
+        <!-- Painel Kanban -->
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start;">
+          <!-- Coluna Triagem -->
+          <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #8b5cf6;">
+              <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-nurse" style="color:#8b5cf6;"></i> Aguardando Triagem</span>
+              <span id="count-triage" style="background:rgba(139,92,246,0.2); color:#8b5cf6; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
             </div>
-            
-            <div id="adm-actions-container" style="display: none; margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Paciente Selecionado:</span>
-              <div id="selected-patient-preview" style="background-color: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-weight: 500; font-size: 0.9rem;"></div>
-              
-              <input type="hidden" id="selected-patient-id">
-              
-              <div style="display: flex; gap: 10px; margin-top: 5px;">
-                <button id="btn-admit-urgencia" class="btn btn-primary" style="flex: 1; font-size: 0.85rem; padding: 10px 8px;">
-                  <i class="fa-solid fa-truck-medical"></i> Urgência (PS)
-                </button>
-                <button id="btn-admit-ambulatorio" class="btn" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; background-color: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-primary);">
-                  <i class="fa-solid fa-user-doctor"></i> Ambulatório
-                </button>
-              </div>
+            <div id="col-triage" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
+              <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#8b5cf6; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Fila vazia</div>
             </div>
           </div>
-          
-          <!-- Coluna 2: Fila de Triagem -->
-          <div class="atendimentos-panel">
-            <h3 class="panel-title"><i class="fa-solid fa-stethoscope" style="color: var(--color-warning);"></i> Fila de Triagem</h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">Aguardando classificação de risco:</p>
-            <div id="triage-queue" class="queue-list">
-              <div style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 0.85rem;">Fila vazia.</div>
+
+          <!-- Coluna Aguardando Médico -->
+          <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #f59e0b;">
+              <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-stethoscope" style="color:#f59e0b;"></i> Aguardando Médico</span>
+              <span id="count-waiting" style="background:rgba(245,158,11,0.2); color:#f59e0b; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
+            </div>
+            <div id="col-waiting" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
+              <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#f59e0b; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Nenhum aguardando</div>
             </div>
           </div>
-          
-          <!-- Coluna 3: Fila de Consulta Médica -->
-          <div class="atendimentos-panel">
-            <h3 class="panel-title"><i class="fa-solid fa-user-md" style="color: var(--color-accent);"></i> Fila de Consulta Médica</h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">Prioridade clínica (Manchester):</p>
-            <div id="medical-queue" class="queue-list">
-              <div style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 0.85rem;">Fila vazia.</div>
+
+          <!-- Coluna Em Atendimento -->
+          <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #10b981;">
+              <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-doctor" style="color:#10b981;"></i> Em Atendimento</span>
+              <span id="count-active" style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
+            </div>
+            <div id="col-active" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
+              <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#10b981; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Nenhum em atendimento</div>
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- Modal de Triagem -->
-      <div id="triage-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>Realizar Triagem Manchester</h3>
-            <button type="button" class="modal-close" id="close-triage-modal"><i class="fa-solid fa-xmark"></i></button>
+
+        <!-- Painel de Admissão (slide-in drawer) -->
+        <div id="admission-panel" style="display:none; position:fixed; top:0; right:0; width:420px; max-width:100vw; height:100vh; background:var(--bg-secondary); border-left:1px solid var(--border-color); z-index:1050; box-shadow:-6px 0 24px rgba(0,0,0,0.3); flex-direction:column; transform:translateX(100%); transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 20px; border-bottom:1px solid var(--border-color); background:var(--bg-tertiary);">
+            <h3 style="margin:0; font-family:'Outfit'; font-weight:700; font-size:1.05rem;"><i class="fa-solid fa-hospital-user" style="color:var(--color-primary);"></i> Nova Admissão</h3>
+            <button id="btn-close-admission-panel" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.2rem; padding:4px;"><i class="fa-solid fa-xmark"></i></button>
           </div>
-          <div class="modal-body">
-            <form id="triage-form">
-              <input type="hidden" id="triage-encounter-id">
-              
-              <div style="background-color: rgba(0, 100, 255, 0.08); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(0, 100, 255, 0.15); margin-bottom: 20px;">
-                <span style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 2px;">Paciente:</span>
-                <strong id="triage-patient-name" style="font-size: 1.05rem; color: var(--text-primary);">Maria de Souza</strong>
+          <div style="padding:18px 20px; flex:1; overflow-y:auto;">
+            <div class="search-wrapper" style="margin-bottom:12px;">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input type="text" id="adm-search-input" class="search-input" placeholder="Buscar por nome ou CPF...">
+            </div>
+            <div id="adm-patient-list" style="max-height:260px; overflow-y:auto; border:1px solid var(--border-color); border-radius:var(--radius-md); margin-bottom:16px;">
+              <div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">Carregando...</div>
+            </div>
+            <div id="adm-selected-info" style="display:none; background:rgba(0,100,255,0.07); border:1px solid rgba(0,100,255,0.2); border-radius:var(--radius-md); padding:14px; margin-bottom:16px;">
+              <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:4px;">Paciente selecionado:</div>
+              <div id="adm-selected-name" style="font-weight:700; color:var(--color-primary); font-size:1rem;"></div>
+              <div id="adm-selected-cpf" style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;"></div>
+            </div>
+            <input type="hidden" id="selected-patient-id">
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+              <button id="btn-admit-urgencia" class="btn btn-primary" style="flex:1; font-size:0.85rem;" disabled>
+                <i class="fa-solid fa-truck-medical"></i> Urgência (PS)
+              </button>
+              <button id="btn-admit-ambulatorio" class="btn" style="flex:1; font-size:0.85rem; background:var(--bg-tertiary); border-color:var(--border-color); color:var(--text-primary);" disabled>
+                <i class="fa-solid fa-user-doctor"></i> Ambulatório
+              </button>
+            </div>
+            <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.5; border-top:1px solid var(--border-color); padding-top:12px; margin-top:4px;">
+              <i class="fa-solid fa-circle-info"></i> Urgência vai para triagem Manchester. Ambulatório vai direto para fila médica.
+            </p>
+          </div>
+        </div>
+        <div id="admission-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1049;"></div>
+
+        <!-- Modal de Triagem -->
+        <div id="triage-modal" class="modal-overlay" style="display:none;">
+          <div class="modal-content" style="max-width:580px; width:95vw; max-height:92vh; overflow-y:auto;">
+            <div class="modal-header">
+              <h3><i class="fa-solid fa-user-nurse" style="color:#8b5cf6;"></i> Triagem Manchester</h3>
+              <button type="button" class="modal-close" id="close-triage-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+              <form id="triage-form">
+                <input type="hidden" id="triage-encounter-id">
+                <div style="background:rgba(139,92,246,0.08); padding:12px; border-radius:var(--radius-md); border:1px solid rgba(139,92,246,0.2); margin-bottom:20px;">
+                  <span style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:2px;">Paciente:</span>
+                  <strong id="triage-patient-name" style="font-size:1.05rem; color:var(--text-primary);"></strong>
+                </div>
+                <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin-bottom:12px; color:var(--text-primary); border-left:3px solid #8b5cf6; padding-left:8px;">Sinais Vitais</h4>
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">* Pressão Arterial (mmHg):</label><input type="text" id="triage-pa" class="form-input" required placeholder="120/80"></div>
+                  <div class="form-group"><label class="form-label">* Temperatura (°C):</label><input type="text" id="triage-temp" class="form-input" required placeholder="36.8" inputmode="decimal"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">Freq. Cardíaca (bpm):</label><input type="number" id="triage-fc" class="form-input" min="30" max="220" placeholder="80"></div>
+                  <div class="form-group"><label class="form-label">Saturação O₂ (%):</label><input type="number" id="triage-spo2" class="form-input" min="50" max="100" placeholder="98"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">Peso (kg):</label><input type="text" id="triage-peso" class="form-input" placeholder="70.0" inputmode="decimal"></div>
+                  <div class="form-group"><label class="form-label">Glicemia (mg/dL):</label><input type="number" id="triage-glicemia" class="form-input" min="30" max="700" placeholder="100"></div>
+                </div>
+                <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin:16px 0 12px; color:var(--text-primary); border-left:3px solid #8b5cf6; padding-left:8px;">* Classificação de Risco</h4>
+                <div class="manchester-selector">
+                  <div class="manchester-option vermelho"><input type="radio" id="color-vermelho" name="manchesterColor" value="Vermelho" required><label for="color-vermelho" class="manchester-label"><i class="fa-solid fa-triangle-exclamation"></i><span>Emergência</span></label></div>
+                  <div class="manchester-option laranja"><input type="radio" id="color-laranja" name="manchesterColor" value="Laranja"><label for="color-laranja" class="manchester-label"><i class="fa-solid fa-circle-exclamation"></i><span>Muito Urgente</span></label></div>
+                  <div class="manchester-option amarelo"><input type="radio" id="color-amarelo" name="manchesterColor" value="Amarelo"><label for="color-amarelo" class="manchester-label"><i class="fa-solid fa-circle-info"></i><span>Urgente</span></label></div>
+                  <div class="manchester-option verde"><input type="radio" id="color-verde" name="manchesterColor" value="Verde"><label for="color-verde" class="manchester-label"><i class="fa-solid fa-circle-check"></i><span>Pouco Urgente</span></label></div>
+                  <div class="manchester-option azul"><input type="radio" id="color-azul" name="manchesterColor" value="Azul"><label for="color-azul" class="manchester-label"><i class="fa-solid fa-circle"></i><span>Não Urgente</span></label></div>
+                </div>
+                <div class="form-group" style="margin-top:18px;">
+                  <label class="form-label">* Queixa Principal / Sintomatologia:</label>
+                  <textarea id="triage-complaints" class="form-input" required rows="3" placeholder="Descreva a queixa principal do paciente..."></textarea>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+                  <button type="button" id="btn-cancel-triage" class="btn" style="background:var(--bg-tertiary); color:var(--text-primary); border-color:var(--border-color);">Cancelar</button>
+                  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Salvar Triagem</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Histórico -->
+        <div id="history-panel" class="modal-overlay" style="display:none;">
+          <div class="modal-content" style="max-width:760px; width:95vw; max-height:88vh; display:flex; flex-direction:column;">
+            <div class="modal-header">
+              <h3><i class="fa-solid fa-clock-rotate-left" style="color:var(--color-primary);"></i> Histórico de Atendimentos</h3>
+              <button type="button" class="modal-close" id="close-history-panel"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border-color);">
+              <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="history-search" class="search-input" placeholder="Buscar por nome do paciente...">
               </div>
-              
-              <!-- Sinais Vitais -->
-              <h4 style="font-family: 'Outfit'; font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; color: var(--text-primary); border-left: 3px solid var(--color-primary); padding-left: 8px;">Sinais Vitais</h4>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="triage-pa">* Pressão Arterial (mmHg):</label>
-                  <input type="text" id="triage-pa" class="form-input" required placeholder="Ex: 120/80">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="triage-temp">* Temp. Corporal (°C):</label>
-                  <input type="number" id="triage-temp" class="form-input" required step="0.1" min="30" max="45" placeholder="Ex: 36.8">
-                </div>
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="triage-fc">Freq. Cardíaca (bpm):</label>
-                  <input type="number" id="triage-fc" class="form-input" min="30" max="220" placeholder="Ex: 80">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="triage-peso">Peso Corporal (kg):</label>
-                  <input type="number" id="triage-peso" class="form-input" step="0.1" placeholder="Ex: 75.0">
-                </div>
-              </div>
-              
-              <!-- Manchester Classificação -->
-              <h4 style="font-family: 'Outfit'; font-weight: 600; font-size: 0.95rem; margin-top: 10px; margin-bottom: 12px; color: var(--text-primary); border-left: 3px solid var(--color-primary); padding-left: 8px;">* Classificação Manchester (Prioridade)</h4>
-              
-              <div class="manchester-selector">
-                <div class="manchester-option vermelho">
-                  <input type="radio" id="color-vermelho" name="manchesterColor" value="Vermelho" required>
-                  <label for="color-vermelho" class="manchester-label">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>Emergência</span>
-                  </label>
-                </div>
-                <div class="manchester-option laranja">
-                  <input type="radio" id="color-laranja" name="manchesterColor" value="Laranja">
-                  <label for="color-laranja" class="manchester-label">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    <span>Muito Urgente</span>
-                  </label>
-                </div>
-                <div class="manchester-option amarelo">
-                  <input type="radio" id="color-amarelo" name="manchesterColor" value="Amarelo">
-                  <label for="color-amarelo" class="manchester-label">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <span>Urgente</span>
-                  </label>
-                </div>
-                <div class="manchester-option verde">
-                  <input type="radio" id="color-verde" name="manchesterColor" value="Verde">
-                  <label for="color-verde" class="manchester-label">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <span>Pouco Urgente</span>
-                  </label>
-                </div>
-                <div class="manchester-option azul">
-                  <input type="radio" id="color-azul" name="manchesterColor" value="Azul">
-                  <label for="color-azul" class="manchester-label">
-                    <i class="fa-solid fa-circle"></i>
-                    <span>Não Urgente</span>
-                  </label>
-                </div>
-              </div>
-              
-              <!-- Queixa Principal -->
-              <div class="form-group" style="margin-top: 20px;">
-                <label class="form-label" for="triage-complaints">* Queixa Principal / Sintomatologia:</label>
-                <textarea id="triage-complaints" class="form-input" required rows="3" placeholder="Paciente relata dor torácica..."></textarea>
-              </div>
-              
-              <div style="display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end;">
-                <button type="button" id="btn-cancel-triage" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-color);">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Salvar Classificação</button>
-              </div>
-            </form>
+            </div>
+            <div id="history-list" style="overflow-y:auto; flex:1; padding:16px 20px;">
+              <div style="text-align:center; color:var(--text-muted); padding:40px; font-size:0.9rem;">Carregando histórico...</div>
+            </div>
           </div>
         </div>
       </div>
     `;
 
+    // === KANBAN DE ATENDIMENTOS — NOVA IMPLEMENTAÇÃO ===
     let admissionPatients = [];
     let selectedPatient = null;
+    let allEncounters = [];
+    let allHistory = [];
+    let activeKanbanTimers = [];
 
-    const triagePaInput = document.getElementById('triage-pa');
-    if (triagePaInput) {
-      triagePaInput.addEventListener('input', (e) => {
-        let val = e.target.value.replace(/\D/g, "");
-        if (val.length > 6) val = val.substring(0, 6);
-        if (val.length <= 3) {
-          e.target.value = val;
-        } else {
-          e.target.value = `${val.slice(0, 3)}/${val.slice(3)}`;
-        }
-      });
-    }
+    // Utilitário de tempo de espera
+    const getWaitTimeText = (since) => {
+      const s = Math.max(0, Math.floor((Date.now() - new Date(since).getTime()) / 1000));
+      if (s < 60) return `${s}s`;
+      const m = Math.floor(s / 60);
+      if (m < 60) return `${m}min`;
+      return `${Math.floor(m/60)}h ${m%60}m`;
+    };
 
-    const loadPatientsForAdmission = async () => {
+    // Mapa de cores Manchester
+    const getMC = (color) => ({
+      'Vermelho': { bg:'#7f1d1d', border:'#dc2626', text:'#fca5a5', label:'Emergência' },
+      'Laranja':  { bg:'#431407', border:'#ea580c', text:'#fb923c', label:'Muito Urgente' },
+      'Amarelo':  { bg:'#422006', border:'#ca8a04', text:'#fde047', label:'Urgente' },
+      'Verde':    { bg:'#052e16', border:'#16a34a', text:'#86efac', label:'Pouco Urgente' },
+      'Azul':     { bg:'#0c1a4e', border:'#2563eb', text:'#93c5fd', label:'Não Urgente' },
+    }[color] || { bg:'var(--bg-tertiary)', border:'var(--border-color)', text:'var(--text-secondary)', label: color || '—' });
+
+    // === PAINEL DE ADMISSÃO (slide-in drawer) ===
+    const openAdmissionPanel = () => {
+      const p = document.getElementById('admission-panel');
+      const o = document.getElementById('admission-overlay');
+      p.style.display = 'flex';
+      o.style.display = 'block';
+      setTimeout(() => { p.style.transform = 'translateX(0)'; }, 10);
+      loadAdmissionPatients();
+    };
+    const closeAdmissionPanel = () => {
+      const p = document.getElementById('admission-panel');
+      const o = document.getElementById('admission-overlay');
+      p.style.transform = 'translateX(100%)';
+      setTimeout(() => { p.style.display = 'none'; o.style.display = 'none'; }, 350);
+      selectedPatient = null;
+      document.getElementById('selected-patient-id').value = '';
+      document.getElementById('adm-selected-info').style.display = 'none';
+      document.getElementById('btn-admit-urgencia').disabled = true;
+      document.getElementById('btn-admit-ambulatorio').disabled = true;
+    };
+
+    const loadAdmissionPatients = async () => {
       try {
         const res = await apiFetch(`${API_URL}/patients`);
-        if (!res.ok) throw new Error();
         admissionPatients = await res.json();
-        renderAdmissionPatientList(admissionPatients);
-      } catch (err) {
-        document.getElementById('adm-patient-list').innerHTML = 
-          `<div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 0.85rem;">Erro ao carregar lista de pacientes.</div>`;
+        renderAdmList(admissionPatients);
+      } catch {
+        document.getElementById('adm-patient-list').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.83rem;">Erro ao carregar.</div>';
       }
     };
-
-    const renderAdmissionPatientList = (patientsToRender) => {
-      const listContainer = document.getElementById('adm-patient-list');
-      if (patientsToRender.length === 0) {
-        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.85rem;">Nenhum paciente encontrado.</div>`;
-        return;
-      }
-
-      listContainer.innerHTML = '';
-      patientsToRender.forEach(p => {
-        const item = document.createElement('div');
-        item.className = 'patient-select-item';
-        if (selectedPatient && selectedPatient.id === p.id) {
-          item.classList.add('selected');
-        }
-        item.innerHTML = `
-          <div class="patient-select-name">${p.fullName}</div>
-          <div class="patient-select-meta">CPF: ${p.cpf} | Cidade: ${p.city || '-'}</div>
-        `;
-        item.addEventListener('click', () => {
-          document.querySelectorAll('.patient-select-item').forEach(i => i.classList.remove('selected'));
-          item.classList.add('selected');
-          selectPatientForAdmission(p);
+    const renderAdmList = (list) => {
+      const c = document.getElementById('adm-patient-list');
+      if (!list.length) { c.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.83rem;">Nenhum paciente encontrado.</div>'; return; }
+      c.innerHTML = list.slice(0,50).map(p => `<div class="patient-select-item adm-list-item" data-id="${p.id}" data-name="${p.fullName}" data-cpf="${p.cpf}" style="padding:10px 12px;border-bottom:1px solid var(--border-color);cursor:pointer;transition:background 0.15s;"><div style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">${p.fullName}</div><div style="font-size:0.73rem;color:var(--text-muted);">CPF: ${p.cpf}</div></div>`).join('');
+      c.querySelectorAll('.adm-list-item').forEach(el => {
+        el.addEventListener('click', () => {
+          c.querySelectorAll('.adm-list-item').forEach(i => { i.classList.remove('selected'); i.style.background = ''; });
+          el.classList.add('selected'); el.style.background = 'rgba(0,100,255,0.08)';
+          selectedPatient = { id: el.dataset.id, fullName: el.dataset.name, cpf: el.dataset.cpf };
+          document.getElementById('selected-patient-id').value = el.dataset.id;
+          document.getElementById('adm-selected-name').textContent = el.dataset.name;
+          document.getElementById('adm-selected-cpf').textContent = 'CPF: ' + el.dataset.cpf;
+          document.getElementById('adm-selected-info').style.display = 'block';
+          document.getElementById('btn-admit-urgencia').disabled = false;
+          document.getElementById('btn-admit-ambulatorio').disabled = false;
         });
-        listContainer.appendChild(item);
       });
     };
 
-    const selectPatientForAdmission = (p) => {
-      selectedPatient = p;
-      const preview = document.getElementById('selected-patient-preview');
-      const actionsContainer = document.getElementById('adm-actions-container');
-      const selectedIdInput = document.getElementById('selected-patient-id');
-      
-      selectedIdInput.value = p.id;
-      preview.innerHTML = `
-        <div style="font-weight:600; color: var(--color-primary);">${p.fullName}</div>
-        <div style="font-size:0.75rem; color: var(--text-secondary); margin-top:4px;">CPF: ${p.cpf}</div>
-      `;
-      actionsContainer.style.display = 'flex';
-    };
-
-    document.getElementById('adm-search-input').addEventListener('input', (e) => {
-      const query = removeAccents(e.target.value.trim());
-      const filtered = admissionPatients.filter(p => {
-        return removeAccents(p.fullName).includes(query) ||
-               removeAccents(p.cpf).includes(query);
-      });
-      renderAdmissionPatientList(filtered);
+    document.getElementById('adm-search-input').addEventListener('input', e => {
+      const q = removeAccents(e.target.value.toLowerCase());
+      renderAdmList(admissionPatients.filter(p => removeAccents(p.fullName).toLowerCase().includes(q) || p.cpf.includes(q)));
     });
+    document.getElementById('btn-open-admission-panel').addEventListener('click', openAdmissionPanel);
+    document.getElementById('btn-close-admission-panel').addEventListener('click', closeAdmissionPanel);
+    document.getElementById('admission-overlay').addEventListener('click', closeAdmissionPanel);
 
     const createEncounter = async (type) => {
       const patientId = document.getElementById('selected-patient-id').value;
       if (!patientId) return;
-
+      const btn = document.getElementById(type === 'Urgencia' ? 'btn-admit-urgencia' : 'btn-admit-ambulatorio');
+      btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Admitindo...';
       try {
-        const res = await apiFetch(`${API_URL}/encounters`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ patientId, type })
-        });
-        const data = await res.json();
+        const res = await apiFetch(`${API_URL}/encounters`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ patientId, type }) });
+        const d = await res.json();
         if (res.ok) {
-          selectedPatient = null;
-          document.getElementById('adm-search-input').value = '';
-          document.getElementById('adm-actions-container').style.display = 'none';
-          loadPatientsForAdmission();
-          loadAndRenderQueue();
-          
-          document.getElementById('btn-admit-urgencia').addEventListener('click', () => createEncounter('Urgencia'));
-          document.getElementById('btn-admit-ambulatorio').addEventListener('click', () => createEncounter('Ambulatorial'));
-
-          const triageTempInput = document.getElementById('triage-temp');
-          if (triageTempInput) {
-            triageTempInput.type = 'text';
-            triageTempInput.setAttribute('inputmode', 'decimal');
-            
-            triageTempInput.addEventListener('input', (e) => {
-              let val = e.target.value;
-              if (val.includes('.') || val.includes(',')) return;
-              const digits = val.replace(/\D/g, '');
-              if (digits.length === 3) {
-                e.target.value = (parseFloat(digits) / 10).toFixed(1);
-              }
-            });
-
-            triageTempInput.addEventListener('blur', (e) => {
-              let val = e.target.value.replace(',', '.');
-              if (!val) return;
-              let digits = val.replace(/\D/g, '');
-              if (!val.includes('.')) {
-                if (digits.length === 3 || (parseFloat(digits) >= 300 && parseFloat(digits) <= 450)) {
-                  val = (parseFloat(digits) / 10).toFixed(1);
-                }
-              }
-              e.target.value = val;
-            });
-          }
-
-          const triagePesoInput = document.getElementById('triage-peso');
-          if (triagePesoInput) {
-            triagePesoInput.type = 'text';
-            triagePesoInput.setAttribute('inputmode', 'decimal');
-
-            triagePesoInput.addEventListener('input', (e) => {
-              let val = e.target.value;
-              if (val.includes('.') || val.includes(',')) return;
-              const digits = val.replace(/\D/g, '');
-              if (digits.length === 3) {
-                e.target.value = (parseFloat(digits) / 10).toFixed(1);
-              } else if (digits.length === 5) {
-                e.target.value = (parseFloat(digits) / 100).toFixed(2);
-              }
-            });
-
-            triagePesoInput.addEventListener('blur', (e) => {
-              let val = e.target.value.replace(',', '.');
-              if (!val) return;
-              let digits = val.replace(/\D/g, '');
-              if (!val.includes('.')) {
-                if (digits.length === 3) {
-                  val = (parseFloat(digits) / 10).toFixed(1);
-                } else if (digits.length === 4) {
-                  val = (parseFloat(digits) / 10).toFixed(1);
-                } else if (digits.length >= 5) {
-                  val = (parseFloat(digits) / 100).toFixed(2);
-                }
-              }
-              e.target.value = val;
-            });
-          }
-          
-          showToast(`Atendimento de ${type} aberto com sucesso!`);
+          showToast(`✅ ${selectedPatient?.fullName || 'Paciente'} admitido(a)!`);
+          closeAdmissionPanel();
+          await loadAndRenderKanban();
         } else {
-          alert(`Erro: ${data.message || 'Falha ao abrir atendimento.'}`);
+          showToast(`❌ ${d.message || 'Erro ao admitir.'}`, true);
+          btn.disabled = false;
+          btn.innerHTML = type === 'Urgencia' ? '<i class="fa-solid fa-truck-medical"></i> Urgência (PS)' : '<i class="fa-solid fa-user-doctor"></i> Ambulatório';
         }
-      } catch (err) {
-        alert('Erro ao conectar-se à API.');
-      }
+      } catch { showToast('❌ Erro de conexão.', true); btn.disabled = false; }
     };
-
     document.getElementById('btn-admit-urgencia').addEventListener('click', () => createEncounter('Urgencia'));
     document.getElementById('btn-admit-ambulatorio').addEventListener('click', () => createEncounter('Ambulatorial'));
 
-    const closeTriageModal = () => {
-      document.getElementById('triage-modal').style.display = 'none';
-      document.getElementById('triage-form').reset();
-    };
-    document.getElementById('close-triage-modal').addEventListener('click', closeTriageModal);
-    document.getElementById('btn-cancel-triage').addEventListener('click', closeTriageModal);
+    // === KANBAN ===
+    const colorPri = { Vermelho:5, Laranja:4, Amarelo:3, Verde:2, Azul:1 };
 
-    document.getElementById('triage-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const encounterId = document.getElementById('triage-encounter-id').value;
-      const manchesterColor = document.querySelector('input[name="manchesterColor"]:checked').value;
-      const bloodPressure = document.getElementById('triage-pa').value;
-      const temperatureCelsius = document.getElementById('triage-temp').value;
-      const heartRateBpm = document.getElementById('triage-fc').value;
-      const weightKg = document.getElementById('triage-peso').value;
-      const complaints = document.getElementById('triage-complaints').value;
-
-      try {
-        const res = await apiFetch(`${API_URL}/encounters/${encounterId}/triage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints })
-        });
-        
-        if (res.ok) {
-          closeTriageModal();
-          loadAndRenderQueue();
-          showToast('Triagem Manchester salva e paciente enviado à fila médica!');
-        } else {
-          const data = await res.json();
-          alert(`Erro: ${data.message || 'Falha ao salvar triagem.'}`);
-        }
-      } catch (err) {
-        alert('Erro ao conectar-se à API.');
-      }
-    });
-
-    const loadAndRenderQueue = async () => {
+    const loadAndRenderKanban = async () => {
       try {
         const res = await apiFetch(`${API_URL}/encounters`);
         if (!res.ok) throw new Error();
-        const encounters = await res.json();
-        renderQueues(encounters);
-      } catch (err) {
-        document.getElementById('triage-queue').innerHTML = 
-          `<div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 0.85rem;">Erro ao carregar fila.</div>`;
-        document.getElementById('medical-queue').innerHTML = 
-          `<div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 0.85rem;">Erro ao carregar fila.</div>`;
+        allEncounters = await res.json();
+        renderKanban(allEncounters);
+      } catch {
+        ['col-triage','col-waiting','col-active'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = '<div style="text-align:center;color:var(--color-danger);padding:20px;font-size:0.82rem;"><i class="fa-solid fa-circle-xmark"></i><br>Erro ao carregar.</div>';
+        });
       }
     };
 
-    const renderQueues = (encounters) => {
-      const triageQueueContainer = document.getElementById('triage-queue');
-      const medicalQueueContainer = document.getElementById('medical-queue');
+    const renderKanban = (encounters) => {
+      activeKanbanTimers.forEach(t => clearInterval(t));
+      activeKanbanTimers = [];
 
-      const triageEncounters = encounters.filter(e => e.status === 'Aguardando_Triagem');
-      const medicalEncounters = encounters.filter(e => e.status === 'Aguardando_Atendimento' || e.status === 'Em_Atendimento');
+      const triage  = encounters.filter(e => e.status === 'Aguardando_Triagem');
+      const waiting = [...encounters.filter(e => e.status === 'Aguardando_Atendimento')].sort((a,b) => (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at));
+      const active  = encounters.filter(e => e.status === 'Em_Atendimento');
 
-      if (triageEncounters.length === 0) {
-        triageQueueContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 0.85rem;">Nenhum paciente aguardando triagem.</div>`;
-      } else {
-        triageQueueContainer.innerHTML = '';
-        triageEncounters.forEach(e => {
-          const waitTimeText = getWaitTimeText(e.admitted_at);
-          const card = document.createElement('div');
-          card.className = 'queue-card';
-          card.innerHTML = `
-            <div class="queue-card-header">
-              <span class="queue-patient-name">${e.patientName}</span>
-              <span class="queue-time"><i class="fa-solid fa-clock"></i> ${waitTimeText}</span>
-            </div>
-            <div class="queue-card-body">
-              <div>Tipo: <strong>${e.type === 'Urgencia' ? 'Urgência' : 'Ambulatório'}</strong></div>
-              <div style="font-size: 0.75rem; margin-top: 4px; color: var(--text-muted);">CPF: ${e.patientCpf}</div>
-            </div>
-            <div class="queue-card-actions">
-              <button class="btn btn-primary btn-triar" style="font-size: 0.8rem; padding: 6px 12px;" data-enc-id="${e.id}" data-patient-name="${e.patientName}">
-                <i class="fa-solid fa-user-nurse"></i> Triar
-              </button>
-            </div>
-          `;
-          
-          card.querySelector('.btn-triar').addEventListener('click', () => {
-            openTriageModalForm(e.id, e.patientName);
-          });
-          
-          triageQueueContainer.appendChild(card);
-        });
-      }
+      // Update KPI chips
+      document.getElementById('kpi-triagem-num').textContent = triage.length;
+      document.getElementById('kpi-aguardando-num').textContent = waiting.length;
+      document.getElementById('kpi-consulta-num').textContent = active.length;
+      document.getElementById('count-triage').textContent = triage.length;
+      document.getElementById('count-waiting').textContent = waiting.length;
+      document.getElementById('count-active').textContent = active.length;
 
-      const colorPriority = {
-        'Vermelho': 5,
-        'Laranja': 4,
-        'Amarelo': 3,
-        'Verde': 2,
-        'Azul': 1
+      // Render columns
+      const setCol = (id, items, emptyColor, emptyMsg, buildFn, bindFn) => {
+        const col = document.getElementById(id);
+        if (!col) return;
+        if (!items.length) { col.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px 16px;font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:${emptyColor};font-size:1.5rem;display:block;margin-bottom:8px;"></i>${emptyMsg}</div>`; return; }
+        col.innerHTML = items.map(buildFn).join('');
+        items.forEach(e => { bindFn(e); startLiveTimer(e.id, e.admitted_at); });
       };
 
-      const sortedMedical = medicalEncounters.sort((a, b) => {
-        if (a.status === 'Em_Atendimento' && b.status !== 'Em_Atendimento') return -1;
-        if (a.status !== 'Em_Atendimento' && b.status === 'Em_Atendimento') return 1;
-
-        const pA = colorPriority[a.manchesterColor] || 0;
-        const pB = colorPriority[b.manchesterColor] || 0;
-        if (pA !== pB) {
-          return pB - pA;
-        }
-        return new Date(a.admitted_at) - new Date(b.admitted_at);
+      setCol('col-triage', triage, '#8b5cf6', 'Fila vazia', buildTriageCard, (e) => {
+        const b = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-triar`);
+        if (b) b.addEventListener('click', () => openTriageModal(e.id, e.patientName));
       });
-
-      if (sortedMedical.length === 0) {
-        medicalQueueContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 0.85rem;">Nenhum paciente na fila de consulta.</div>`;
-      } else {
-        medicalQueueContainer.innerHTML = '';
-        sortedMedical.forEach(e => {
-          const waitTimeText = getWaitTimeText(e.admitted_at);
-          const badgeClass = `badge-${(e.manchesterColor || '').toLowerCase()}`;
-          const isCalling = e.status === 'Em_Atendimento';
-          
-          const card = document.createElement('div');
-          card.className = 'queue-card';
-          if (isCalling) {
-            card.style.borderColor = 'var(--color-primary)';
-            card.style.backgroundColor = 'rgba(0, 100, 255, 0.05)';
-          }
-          
-          card.innerHTML = `
-            <div class="queue-card-header">
-              <span class="queue-patient-name" style="${isCalling ? 'color: var(--color-primary); font-weight:700;' : ''}">
-                ${e.patientName} ${isCalling ? ' (Em Consulta)' : ''}
-              </span>
-              <span class="queue-time"><i class="fa-solid fa-clock"></i> ${waitTimeText}</span>
-            </div>
-            <div class="queue-card-body">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="badge-manchester ${badgeClass}">${e.manchesterColor}</span>
-                <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">PA: ${e.bloodPressure} | Temp: ${e.temperatureCelsius}°C</span>
-              </div>
-              <p style="margin-top: 8px; font-style: italic; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                "${e.complaints}"
-              </p>
-            </div>
-            <div class="queue-card-actions">
-              ${!isCalling ? `
-                <button class="btn btn-primary btn-call-consult" style="font-size: 0.8rem; padding: 6px 12px; background: var(--color-accent);" data-enc-id="${e.id}">
-                  <i class="fa-solid fa-bullhorn"></i> Chamar
-                </button>
-              ` : `
-                <button class="btn btn-secondary btn-open-pep" style="font-size: 0.8rem; padding: 6px 12px;" data-enc-id="${e.id}">
-                  <i class="fa-solid fa-file-medical"></i> PEP
-                </button>
-                <button class="btn btn-primary btn-finish-consult" style="font-size: 0.8rem; padding: 6px 12px; background: var(--color-danger);" data-enc-id="${e.id}">
-                  <i class="fa-solid fa-circle-check"></i> Finalizar
-                </button>
-              `}
-            </div>
-          `;
-
-          const callBtn = card.querySelector('.btn-call-consult');
-          const finishBtn = card.querySelector('.btn-finish-consult');
-          const pepBtn = card.querySelector('.btn-open-pep');
-
-          if (callBtn) {
-            callBtn.addEventListener('click', () => updateEncounterStatus(e.id, 'Em_Atendimento', e.patientName));
-          }
-          if (finishBtn) {
-            finishBtn.addEventListener('click', () => updateEncounterStatus(e.id, 'Finalizado', e.patientName));
-          }
-          if (pepBtn) {
-            pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
-          }
-
-          medicalQueueContainer.appendChild(card);
-        });
-      }
+      setCol('col-waiting', waiting, '#f59e0b', 'Nenhum aguardando', buildWaitCard, (e) => {
+        const b = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-call-consult`);
+        if (b) b.addEventListener('click', () => updateStatus(e.id, 'Em_Atendimento', e.patientName));
+      });
+      setCol('col-active', active, '#10b981', 'Nenhum em atendimento', buildActiveCard, (e) => {
+        const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
+        const fin = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-finish-consult`);
+        if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
+        if (fin) fin.addEventListener('click', () => updateStatus(e.id, 'Finalizado', e.patientName));
+      });
     };
 
-    const openTriageModalForm = (encounterId, patientName) => {
-      document.getElementById('triage-encounter-id').value = encounterId;
-      document.getElementById('triage-patient-name').textContent = patientName;
+    const startLiveTimer = (id, since) => {
+      const tick = () => { const el = document.getElementById(`timer-${id}`); if (el) el.textContent = getWaitTimeText(since); else clearInterval(t); };
+      tick();
+      const t = setInterval(tick, 10000);
+      activeKanbanTimers.push(t);
+    };
+
+    const buildTriageCard = (e) => `
+      <div style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-left:4px solid #8b5cf6;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
+          <span id="timer-${e.id}" style="font-size:0.7rem;color:#8b5cf6;font-family:monospace;background:rgba(139,92,246,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;"><i class="fa-solid fa-tag" style="color:#8b5cf6;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}</div>
+        <button class="btn btn-primary btn-triar" data-enc-id="${e.id}" style="width:100%;font-size:0.8rem;padding:7px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;cursor:pointer;">
+          <i class="fa-solid fa-user-nurse"></i> Realizar Triagem
+        </button>
+      </div>`;
+
+    const buildWaitCard = (e) => {
+      const mc = getMC(e.manchesterColor);
+      return `
+        <div style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+            <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
+            <span id="timer-${e.id}" style="font-size:0.7rem;color:${mc.text};font-family:monospace;background:${mc.bg};padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${e.bloodPressure||e.temperatureCelsius?'10px':'12px'};">
+            <span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:2px 8px;font-weight:600;">● ${mc.label}</span>
+            <span style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-secondary);border-radius:10px;padding:2px 8px;">${e.type==='Urgencia'?'Urgência':'Ambulatório'}</span>
+          </div>
+          ${e.bloodPressure||e.temperatureCelsius?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">${e.bloodPressure?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">PA</span><br><strong style="color:var(--text-primary);">${e.bloodPressure}</strong></div>`:''} ${e.temperatureCelsius?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">Temp.</span><br><strong style="color:var(--text-primary);">${e.temperatureCelsius}°C</strong></div>`:''}</div>`:''}
+          ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
+          <button class="btn btn-primary btn-call-consult" data-enc-id="${e.id}" style="width:100%;font-size:0.8rem;padding:7px;cursor:pointer;">
+            <i class="fa-solid fa-bullhorn"></i> Chamar para Consulta
+          </button>
+        </div>`;
+    };
+
+    const buildActiveCard = (e) => {
+      const mc = getMC(e.manchesterColor);
+      return `
+        <div style="background:var(--bg-tertiary);border:1px solid rgba(16,185,129,0.3);border-left:4px solid #10b981;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+            <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
+            <span id="timer-${e.id}" style="font-size:0.7rem;color:#10b981;font-family:monospace;background:rgba(16,185,129,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:${e.complaints?'8px':'12px'};">
+            <span style="width:7px;height:7px;background:#10b981;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
+            <span style="font-size:0.75rem;color:#10b981;font-weight:600;">Em Consulta</span>
+            ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;margin-left:auto;">${mc.label}</span>`:''}
+          </div>
+          ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-open-pep" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary);border-radius:var(--radius-md);cursor:pointer;">
+              <i class="fa-solid fa-file-medical"></i> PEP
+            </button>
+            <button class="btn btn-primary btn-finish-consult" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:linear-gradient(135deg,#10b981,#059669);border:none;cursor:pointer;">
+              <i class="fa-solid fa-circle-check"></i> Finalizar
+            </button>
+          </div>
+        </div>`;
+    };
+
+    const updateStatus = async (id, status, patientName) => {
+      try {
+        const res = await apiFetch(`${API_URL}/encounters/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status }) });
+        if (res.ok) {
+          const msgs = { 'Em_Atendimento': `📣 ${patientName} chamado(a) para consulta!`, 'Finalizado': `✅ Atendimento de ${patientName} finalizado.` };
+          showToast(msgs[status] || 'Status atualizado.');
+          await loadAndRenderKanban();
+        } else { showToast('❌ Erro ao atualizar status.', true); }
+      } catch { showToast('❌ Erro de conexão.', true); }
+    };
+
+    // === MODAL DE TRIAGEM ===
+    const openTriageModal = (id, name) => {
+      document.getElementById('triage-encounter-id').value = id;
+      document.getElementById('triage-patient-name').textContent = name;
       document.getElementById('triage-modal').style.display = 'flex';
     };
+    const closeTriageModal = () => { document.getElementById('triage-modal').style.display = 'none'; document.getElementById('triage-form').reset(); };
+    document.getElementById('close-triage-modal').addEventListener('click', closeTriageModal);
+    document.getElementById('btn-cancel-triage').addEventListener('click', closeTriageModal);
+    document.getElementById('triage-modal').addEventListener('click', e => { if (e.target === document.getElementById('triage-modal')) closeTriageModal(); });
 
-    const updateEncounterStatus = async (id, status, patientName) => {
+    document.getElementById('triage-pa').addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g,'').substring(0,6);
+      e.target.value = v.length <= 3 ? v : v.slice(0,3)+'/'+v.slice(3);
+    });
+
+    document.getElementById('triage-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const radio = document.querySelector('input[name="manchesterColor"]:checked');
+      if (!radio) { showToast('❌ Selecione a classificação de risco.', true); return; }
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
       try {
-        const res = await apiFetch(`${API_URL}/encounters/${id}/status`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status })
+        const res = await apiFetch(`${API_URL}/encounters/${document.getElementById('triage-encounter-id').value}/triage`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            manchesterColor: radio.value,
+            bloodPressure: document.getElementById('triage-pa').value,
+            temperatureCelsius: document.getElementById('triage-temp').value,
+            heartRateBpm: document.getElementById('triage-fc').value,
+            weightKg: document.getElementById('triage-peso').value,
+            complaints: document.getElementById('triage-complaints').value
+          })
         });
-        if (res.ok) {
-          loadAndRenderQueue();
-          if (status === 'Em_Atendimento') {
-            showToast(`Paciente ${patientName} chamado para o consultório!`);
-          } else if (status === 'Finalizado') {
-            showToast(`Atendimento de ${patientName} finalizado.`);
-          }
-          state.loading = true;
-        } else {
-          alert('Erro ao atualizar status do atendimento.');
-        }
-      } catch (err) {
-        alert('Erro ao conectar-se à API.');
-      }
+        if (res.ok) { closeTriageModal(); showToast('✅ Triagem salva! Paciente na fila médica.'); await loadAndRenderKanban(); }
+        else { const d=await res.json(); showToast(`❌ ${d.message||'Erro ao salvar triagem.'}`,true); }
+      } catch { showToast('❌ Erro de conexão.',true); }
+      finally { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Salvar Triagem'; }
+    });
+
+    // === HISTÓRICO ===
+    const renderHistory = (list) => {
+      const el = document.getElementById('history-list');
+      if (!list.length) { el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:0.9rem;"><i class="fa-solid fa-inbox"></i><br>Nenhum atendimento finalizado.</div>'; return; }
+      el.innerHTML = list.map(e => {
+        const mc = getMC(e.manchesterColor);
+        return `<div style="border:1px solid var(--border-color);border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;background:var(--bg-tertiary);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;color:var(--text-primary);font-size:0.9rem;">${e.patientName}</span>
+            ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;">${mc.label}</span>`:''}
+          </div>
+          <div style="font-size:0.74rem;color:var(--text-muted);display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+            <span><i class="fa-solid fa-tag"></i> ${e.type==='Urgencia'?'Urgência':'Ambulatório'}</span>
+            <span><i class="fa-solid fa-calendar-plus"></i> ${e.admitted_at?new Date(e.admitted_at).toLocaleString('pt-BR'):'—'}</span>
+            ${e.bloodPressure?`<span><i class="fa-solid fa-heart-pulse"></i> PA: ${e.bloodPressure}</span>`:'<span></span>'}
+            <span><i class="fa-solid fa-flag-checkered"></i> ${e.completed_at?new Date(e.completed_at).toLocaleString('pt-BR'):'—'}</span>
+          </div>
+          ${e.complaints?`<p style="font-size:0.77rem;color:var(--text-secondary);font-style:italic;margin:8px 0 0;">"${e.complaints}"</p>`:''}
+        </div>`;
+      }).join('');
     };
 
-    const getWaitTimeText = (admittedAt) => {
-      const diffMs = new Date() - new Date(admittedAt);
-      const diffMin = Math.floor(diffMs / (60 * 1000));
-      if (diffMin < 1) return 'Agora mesmo';
-      if (diffMin < 60) return `${diffMin} min atrás`;
-      const hrs = Math.floor(diffMin / 60);
-      const mins = diffMin % 60;
-      return `${hrs}h ${mins}m atrás`;
-    };
+    document.getElementById('btn-show-history').addEventListener('click', async () => {
+      document.getElementById('history-panel').style.display = 'flex';
+      try {
+        const res = await apiFetch(`${API_URL}/encounters`);
+        allHistory = (await res.json()).filter(e => e.status === 'Finalizado').reverse();
+        renderHistory(allHistory);
+      } catch { document.getElementById('history-list').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">Erro ao carregar histórico.</div>'; }
+    });
+    document.getElementById('close-history-panel').addEventListener('click', () => document.getElementById('history-panel').style.display = 'none');
+    document.getElementById('history-panel').addEventListener('click', e => { if (e.target === document.getElementById('history-panel')) document.getElementById('history-panel').style.display = 'none'; });
+    document.getElementById('history-search').addEventListener('input', e => {
+      const q = removeAccents(e.target.value.toLowerCase());
+      renderHistory(allHistory.filter(enc => removeAccents(enc.patientName||'').toLowerCase().includes(q)));
+    });
 
-    loadPatientsForAdmission();
-    loadAndRenderQueue();
+    // Carregar Kanban e auto-refresh a cada 30s
+    loadAndRenderKanban();
+    const _atdAutoRefresh = setInterval(() => {
+      if (state.activeTab === 'atendimento') loadAndRenderKanban();
+      else clearInterval(_atdAutoRefresh);
+    }, 30000);
     
   } else if (state.activeTab === 'estagnacao') {
     renderStagnationTab(contentArea);
