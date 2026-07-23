@@ -428,7 +428,11 @@ const authenticateToken = (req, res, next) => {
 // O /api/heartbeat e /api/shutdown existem apenas para compatibilidade com o frontend
 app.post('/api/heartbeat', (req, res) => res.sendStatus(200));
 app.post('/api/shutdown', (req, res) => {
-  res.sendStatus(200); // aceita o pedido mas NAO encerra o processo
+  res.status(200).json({ status: 'ok', message: 'Servidor encerrado.' });
+  if (!process.env.VERCEL) {
+    console.log('[SYSTEM] Encerrando servidor local por encerramento da aplicação...');
+    setTimeout(() => process.exit(0), 400);
+  }
 });
 
 
