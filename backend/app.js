@@ -595,68 +595,6 @@ app.get('/api/sync/check-version', async (req, res) => {
   }
 });
 
-// Status detalhado da sincronização
-app.get('/api/sync/status', async (req, res) => {
-  try {
-    const cloud = getCloudDb();
-    const isVercel = !!process.env.VERCEL;
-
-    let localMaxTime = 0;
-    let localMaxStr = null;
-    let cloudMaxTime = 0;
-    let cloudMaxStr = null;
-
-    const execWithTimeout = (promise, ms) => Promise.race([
-      promise,
-      new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT_SYNC_STATUS')), ms))
-    ]);
-
-    try {
-      const localRes = await db.execute('SELECT sync_key, updated_at FROM health_sync');
-      (localRes.rows || []).forEach(r => {
-        const ts = Number(r.updated_at || 0);
-        if (ts > localMaxTime) {
-          localMaxTime = ts;
-          localMaxStr = new Date(ts).toISOString();
-        }
-      });
-    } catch (e) {}
-
-    if (cloud) {
-      try {
-        const cloudRes = await execWithTimeout(cloud.execute('SELECT sync_key, updated_at FROM health_sync'), 5000);
-        (cloudRes.rows || []).forEach(r => {
-          const ts = Number(r.updated_at || 0);
-          if (ts > cloudMaxTime) {
-            cloudMaxTime = ts;
-            cloudMaxStr = new Date(ts).toISOString();
-          }
-        });
-      } catch (e) {
-        if (e.message === 'TIMEOUT_SYNC_STATUS') {
-          console.warn('Timeout ao verificar status na nuvem (status sync).');
-        } else {
-          console.error('Erro na query de status da nuvem:', e.message);
-        }
-      }
-    }
-
-    const synchronized = (localMaxTime > 0 && cloudMaxTime > 0 && Math.abs(localMaxTime - cloudMaxTime) < 5000) || (localMaxTime === cloudMaxTime);
-
-    res.status(200).json({
-      cloudConfigured: !!cloud,
-      isVercel,
-      synchronized,
-      localTimestamps: { main_data: localMaxStr, config: localMaxStr },
-      cloudTimestamps: { main_data: cloudMaxStr, config: cloudMaxStr },
-      lastLocalBackup: localMaxStr,
-      lastCloudBackup: cloudMaxStr
-    });
-  } catch (err) {
-    console.error('Erro em /api/sync/status:', err);
-    res.status(500).json({ status: 'error', message: 'Falha ao consultar status de sincronização.' });
-  }
-});
 
 // Proteger todas as requisições para a API a partir daqui
 app.use('/api', authenticateToken);
