@@ -269,7 +269,7 @@ const initCloudDb = async () => {
   const execWithTimeout = async (task) => {
     return Promise.race([
       task,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_3S')), 3000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_8S')), 8000))
     ]);
   };
 
@@ -353,7 +353,7 @@ const initCloudDb = async () => {
     await execWithTimeout(tasks());
     console.log('[DB] Banco Turso (cloud) OK.');
   } catch (err) {
-    if (err.message === 'TIMEOUT_3S') {
+    if (err.message === 'TIMEOUT_8S') {
       console.warn('[DB] Timeout ao inicializar Turso, continuando...');
     } else {
       console.warn('[DB] Erro de rede ou indisponibilidade Turso (silenciado):', err.message);

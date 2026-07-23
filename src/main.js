@@ -5681,10 +5681,12 @@ async function loadConsultingRooms() {
       
       // Salva no state para uso no modal de edição
       state.consultingRooms = rooms;
+    } else {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">${result.message || 'Erro ao carregar consultórios.'}</td></tr>`;
     }
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro ao carregar consultórios.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro de conexão ao carregar consultórios.</td></tr>';
   }
 }
 
