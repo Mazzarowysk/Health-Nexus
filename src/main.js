@@ -420,6 +420,16 @@ const showCustomConfirm = ({ title = 'Confirmação Necessária', message = '', 
   });
 };
 
+// --- SOBRESCREVER ALERT NATIVO DO NAVEGADOR PARA USAR DESIGN DO SISTEMA ---
+window.alert = function(msg) {
+  if (!msg) return;
+  const isError = String(msg).toLowerCase().includes('erro') || String(msg).includes('❌');
+  const isSuccess = String(msg).toLowerCase().includes('sucesso') || String(msg).includes('✅');
+  const type = isError ? 'danger' : (isSuccess ? 'success' : 'info');
+  const title = isError ? 'Aviso do Sistema' : (isSuccess ? 'Sucesso' : 'Informação');
+  showCustomAlert({ title, message: String(msg), type });
+};
+
 // --- MODAL FLUTUANTE DE GERENCIAMENTO DE USUÁRIOS E PERMISSÕES ---
 const showUserManagementModal = async () => {
   const existing = document.getElementById('hn-users-modal');

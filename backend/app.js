@@ -1631,8 +1631,8 @@ app.post('/api/beds/admit', async (req, res) => {
 
     if (encounterId) {
       await db.execute({
-        sql: 'UPDATE encounters SET status = "Internado", updated_at = ? WHERE id = ?',
-        args: [nowIso, encounterId]
+        sql: 'UPDATE encounters SET status = "Internado" WHERE id = ?',
+        args: [encounterId]
       });
     }
 
