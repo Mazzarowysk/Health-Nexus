@@ -5657,7 +5657,7 @@ async function loadConsultingRooms() {
   if (!tbody) return;
 
   try {
-    const res = await fetch('/api/consulting-rooms');
+    const res = await apiFetch('/api/consulting-rooms');
     const result = await res.json();
     if (result.status === 'success') {
       const rooms = result.data;
@@ -5757,7 +5757,7 @@ async function saveRoom(roomId) {
   }
 
   try {
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -5778,7 +5778,7 @@ async function saveRoom(roomId) {
 async function deleteRoom(roomId) {
   if (!confirm('Tem certeza que deseja excluir este consultório?')) return;
   try {
-    const res = await fetch(`/api/consulting-rooms/${roomId}`, { method: 'DELETE' });
+    const res = await apiFetch(`/api/consulting-rooms/${roomId}`, { method: 'DELETE' });
     if (res.ok) {
       showCustomAlert({ title: 'Sucesso', message: 'Consultório removido.', type: 'success' });
       loadConsultingRooms();
@@ -8002,16 +8002,16 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
   modal.style.zIndex = '99999';
 
   // Fetch consulting rooms dynamically
-  let roomOptionsHtml = '<option value="Ala de Emergência - PS">Ala de Emergência - PS</option>';
+  let roomOptionsHtml = '<option value="">Carregando...</option>';
   try {
-    const res = await fetch('/api/consulting-rooms');
+    const res = await apiFetch('/api/consulting-rooms');
     const result = await res.json();
     if (result.status === 'success' && result.data.length > 0) {
       roomOptionsHtml = result.data.map(r => {
         const roomValue = `${r.name} ${r.currentDoctor ? `(${r.currentDoctor})` : ''}`.trim();
         const selected = currentRoom && currentRoom.includes(r.name) ? 'selected' : '';
         return `<option value="${roomValue}" ${selected}>${r.name} ${r.specialty ? ` - ${r.specialty}` : ''}</option>`;
-      }).join('') + '<option value="Ala de Emergência - PS">Ala de Emergência - PS</option><option value="Sala de Sutura / Curativos">Sala de Sutura / Curativos</option><option value="UTI/Internação">UTI/Internação (Leitos)</option>';
+      }).join('');
     }
   } catch (err) {
     console.error('Erro ao carregar consultórios no modal:', err);
