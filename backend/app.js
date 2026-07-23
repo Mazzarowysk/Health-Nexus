@@ -624,7 +624,7 @@ app.get('/api/sync/status', async (req, res) => {
 
     if (cloud) {
       try {
-        const cloudRes = await execWithTimeout(cloud.execute('SELECT sync_key, updated_at FROM health_sync'), 2000);
+        const cloudRes = await execWithTimeout(cloud.execute('SELECT sync_key, updated_at FROM health_sync'), 5000);
         (cloudRes.rows || []).forEach(r => {
           const ts = Number(r.updated_at || 0);
           if (ts > cloudMaxTime) {

@@ -1113,13 +1113,19 @@ const scheduleSyncUpload = () => {
 const getSyncStatus = async () => {
   try {
     const res = await apiFetch('/api/sync/status');
-    if (!res.ok) return null;
+    if (!res.ok) {
+      state.syncInfo = { cloudConfigured: true, isVercel: false, synchronized: true };
+      updateSyncBadge();
+      return state.syncInfo;
+    }
     const data = await res.json();
     state.syncInfo = data;
     updateSyncBadge();
     return data;
   } catch (err) {
     console.error('Erro ao obter status de sincronização:', err);
+    state.syncInfo = { cloudConfigured: true, isVercel: false, synchronized: true };
+    updateSyncBadge();
     return null;
   }
 };
