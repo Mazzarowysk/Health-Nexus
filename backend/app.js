@@ -498,13 +498,83 @@ app.post('/api/auth/login', async (req, res) => {
 
 // --- ROTAS DA API ---
 
-// Endpoint de verificação de integridade (Health Check)
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'up',
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development'
-  });
+// Fast-Path Check: Retorna timestamp máximo no banco Turso
+app.get('/api/sync/check-version', async (req, res) => {
+  try {
+    const cloud = getCloudDb();
+    if (!cloud) {
+      return res.status(200).json({ cloudConfigured: false, hasNewData: false, cloudTimestamp: 0 });
+    }
+    const result = await cloud.execute('SELECT MAX(updated_at) as maxTs FROM health_sync');
+    const cloudTimestamp = Number(result.rows[0]?.maxTs || 0);
+
+    const localRes = await db.execute('SELECT MAX(updated_at) as maxTs FROM health_sync');
+    const localTimestamp = Number(localRes.rows[0]?.maxTs || 0);
+
+    const hasNewData = cloudTimestamp > (localTimestamp + 5000);
+
+    res.status(200).json({
+      cloudConfigured: true,
+      hasNewData,
+      cloudTimestamp,
+      localTimestamp
+    });
+  } catch (err) {
+    console.error('Erro em /api/sync/check-version:', err.message);
+    res.status(200).json({ cloudConfigured: false, hasNewData: false, cloudTimestamp: 0 });
+  }
+});
+
+// Status detalhado da sincronização
+app.get('/api/sync/status', async (req, res) => {
+  try {
+    const cloud = getCloudDb();
+    const isVercel = !!process.env.VERCEL;
+
+    let localMaxTime = 0;
+    let localMaxStr = null;
+    let cloudMaxTime = 0;
+    let cloudMaxStr = null;
+
+    try {
+      const localRes = await db.execute('SELECT sync_key, updated_at FROM health_sync');
+      (localRes.rows || []).forEach(r => {
+        const ts = Number(r.updated_at || 0);
+        if (ts > localMaxTime) {
+          localMaxTime = ts;
+          localMaxStr = new Date(ts).toISOString();
+        }
+      });
+    } catch (e) {}
+
+    if (cloud) {
+      try {
+        const cloudRes = await cloud.execute('SELECT sync_key, updated_at FROM health_sync');
+        (cloudRes.rows || []).forEach(r => {
+          const ts = Number(r.updated_at || 0);
+          if (ts > cloudMaxTime) {
+            cloudMaxTime = ts;
+            cloudMaxStr = new Date(ts).toISOString();
+          }
+        });
+      } catch (e) {}
+    }
+
+    const synchronized = localMaxTime > 0 && localMaxTime === cloudMaxTime;
+
+    res.status(200).json({
+      cloudConfigured: !!cloud,
+      isVercel,
+      synchronized,
+      localTimestamps: { main_data: localMaxStr, config: localMaxStr },
+      cloudTimestamps: { main_data: cloudMaxStr, config: cloudMaxStr },
+      lastLocalBackup: localMaxStr,
+      lastCloudBackup: cloudMaxStr
+    });
+  } catch (err) {
+    console.error('Erro em /api/sync/status:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao consultar status de sincronização.' });
+  }
 });
 
 // Proteger todas as requisições para a API a partir daqui
@@ -2298,87 +2368,8 @@ app.post('/api/stagnation/reassign', async (req, res) => {
 });
 
 // ==========================================
-// ROTAS DE SINCRONIZAÇÃO (LOCAL <-> TURSO CLOUD)
+// ROTAS DE SINCRONIZAÇÃO (UPLOAD / DOWNLOAD)
 // ==========================================
-
-// Fast-Path Check: Retorna timestamp máximo no banco Turso
-app.get('/api/sync/check-version', async (req, res) => {
-  try {
-    const cloud = getCloudDb();
-    if (!cloud) {
-      return res.status(200).json({ cloudConfigured: false, hasNewData: false, cloudTimestamp: 0 });
-    }
-    const result = await cloud.execute('SELECT MAX(updated_at) as maxTs FROM health_sync');
-    const cloudTimestamp = Number(result.rows[0]?.maxTs || 0);
-
-    const localRes = await db.execute('SELECT MAX(updated_at) as maxTs FROM health_sync');
-    const localTimestamp = Number(localRes.rows[0]?.maxTs || 0);
-
-    const hasNewData = cloudTimestamp > (localTimestamp + 5000);
-
-    res.status(200).json({
-      cloudConfigured: true,
-      hasNewData,
-      cloudTimestamp,
-      localTimestamp
-    });
-  } catch (err) {
-    console.error('Erro em /api/sync/check-version:', err.message);
-    res.status(200).json({ cloudConfigured: false, hasNewData: false, cloudTimestamp: 0 });
-  }
-});
-
-// Status detalhado da sincronização
-app.get('/api/sync/status', async (req, res) => {
-  try {
-    const cloud = getCloudDb();
-    const isVercel = !!process.env.VERCEL;
-
-    let localMaxTime = 0;
-    let localMaxStr = null;
-    let cloudMaxTime = 0;
-    let cloudMaxStr = null;
-
-    try {
-      const localRes = await db.execute('SELECT sync_key, updated_at FROM health_sync');
-      (localRes.rows || []).forEach(r => {
-        const ts = Number(r.updated_at || 0);
-        if (ts > localMaxTime) {
-          localMaxTime = ts;
-          localMaxStr = new Date(ts).toISOString();
-        }
-      });
-    } catch (e) {}
-
-    if (cloud) {
-      try {
-        const cloudRes = await cloud.execute('SELECT sync_key, updated_at FROM health_sync');
-        (cloudRes.rows || []).forEach(r => {
-          const ts = Number(r.updated_at || 0);
-          if (ts > cloudMaxTime) {
-            cloudMaxTime = ts;
-            cloudMaxStr = new Date(ts).toISOString();
-          }
-        });
-      } catch (e) {}
-    }
-
-    const synchronized = localMaxTime > 0 && localMaxTime === cloudMaxTime;
-
-    res.status(200).json({
-      cloudConfigured: !!cloud,
-      isVercel,
-      synchronized,
-      localTimestamps: { main_data: localMaxStr, config: localMaxStr },
-      cloudTimestamps: { main_data: cloudMaxStr, config: cloudMaxStr },
-      lastLocalBackup: localMaxStr,
-      lastCloudBackup: cloudMaxStr
-    });
-  } catch (err) {
-    console.error('Erro em /api/sync/status:', err);
-    res.status(500).json({ status: 'error', message: 'Falha ao consultar status de sincronização.' });
-  }
-});
 
 // Upload: Envia snapshot serializado para o Turso Cloud (PUSH)
 app.post('/api/sync/upload', async (req, res) => {

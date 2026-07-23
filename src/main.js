@@ -1018,7 +1018,7 @@ class SyncManager {
     }
 
     try {
-      const res = await fetch('/api/sync/check-version');
+      const res = await apiFetch('/api/sync/check-version');
       if (!res.ok) return { hasNewData: false, cloudTimestamp: 0 };
       const data = await res.json();
 
@@ -1048,9 +1048,8 @@ class SyncManager {
     this.syncInProgress = true;
 
     try {
-      const res = await fetch('/api/sync/upload', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${state.token}` }
+      const res = await apiFetch('/api/sync/upload', {
+        method: 'POST'
       });
 
       if (res.ok) {
@@ -1113,9 +1112,7 @@ const scheduleSyncUpload = () => {
 
 const getSyncStatus = async () => {
   try {
-    const res = await fetch('/api/sync/status', {
-      headers: { 'Authorization': `Bearer ${state.token}` }
-    });
+    const res = await apiFetch('/api/sync/status');
     if (!res.ok) return null;
     const data = await res.json();
     state.syncInfo = data;
