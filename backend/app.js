@@ -375,6 +375,18 @@ const initCloudDb = async () => {
   }
 };
 
+// --- HELPER DE REGISTRO DE MODIFICAÇÕES (SYNC) ---
+const updatePreviousAndLastUpload = async (ts) => {
+  try {
+    const nowIso = ts || new Date().toISOString();
+    const nowMs = Date.now();
+    await db.execute({
+      sql: 'INSERT OR REPLACE INTO health_sync (sync_key, sync_value, updated_at) VALUES (?, ?, ?)',
+      args: ['last_update', nowIso, nowMs]
+    });
+  } catch (e) {}
+};
+
 // --- INICIALIZACAO PRINCIPAL ---
 const isVercel = !!process.env.VERCEL;
 
