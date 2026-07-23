@@ -2183,6 +2183,8 @@ function switchTab(tabName) {
     pacientes:     'Pacientes',
     medicos:        'Corpo Clínico',
     consultorios:  'Consultórios',
+    farmacia:      'Farmácia & Estoque',
+    tv_panel:      'Painel TV (Chamador)',
     agenda:        'Agenda Médica',
     atendimento:   'Atendimentos',
     estagnacao:    'Alertas & Estagnação',
@@ -8198,7 +8200,7 @@ document.addEventListener('click', (e) => {
 // --- 💊 MÓDULO DE FARMÁCIA HOSPITALAR & CONTROLE DE ESTOQUE ---
 // ============================================================================
 async function renderPharmacyTab() {
-  const contentArea = document.getElementById('content-area');
+  const contentArea = document.getElementById('main-content') || document.getElementById('content-area');
   if (!contentArea) return;
 
   contentArea.innerHTML = `
@@ -8383,7 +8385,7 @@ function openDispenseMedModal() {
 // --- 📺 MÓDULO PAINEL DE CHAMADA PARA TV (TV SIGNAGE COM VOZ E MANCHESTER) ---
 // ============================================================================
 async function renderTVPanelTab() {
-  const contentArea = document.getElementById('content-area');
+  const contentArea = document.getElementById('main-content') || document.getElementById('content-area');
   if (!contentArea) return;
 
   contentArea.innerHTML = `
