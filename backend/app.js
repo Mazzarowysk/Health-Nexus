@@ -34,25 +34,39 @@ const initLocalDb = async () => {
   const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
 
-  await db.execute(SQL_USERS);
-  try { await db.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
-  for (const ucol of ['status', 'master_approved', 'master_key_requested']) {
-    try { await db.execute(`ALTER TABLE users ADD COLUMN ${ucol} TEXT`); } catch (e) {}
-  }
-  await db.execute(SQL_PATIENTS);
-  for (const col of ['cep','address','number','neighborhood','city','phone','cellphone','billingValue','updated_at']) {
-    try { await db.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
-  }
-  await db.execute(SQL_ENCOUNTERS);
-  await db.execute(SQL_TRIAGES);
-  await db.execute(SQL_NOTES);
-  await db.execute(SQL_SYNC_LOGS);
-  await db.execute(SQL_HEALTH_SYNC);
-  await db.execute(SQL_APPOINTMENTS);
-  await db.execute(SQL_BEDS);
-  await db.execute(SQL_PRESCRIPTIONS);
-  await db.execute(SQL_DOCTORS);
-  await db.execute(SQL_CONSULTING_ROOMS);
+  await Promise.all([
+    db.execute(SQL_USERS),
+    db.execute(SQL_PATIENTS),
+    db.execute(SQL_ENCOUNTERS),
+    db.execute(SQL_TRIAGES),
+    db.execute(SQL_NOTES),
+    db.execute(SQL_SYNC_LOGS),
+    db.execute(SQL_HEALTH_SYNC),
+    db.execute(SQL_APPOINTMENTS),
+    db.execute(SQL_BEDS),
+    db.execute(SQL_PRESCRIPTIONS),
+    db.execute(SQL_DOCTORS),
+    db.execute(SQL_CONSULTING_ROOMS)
+  ]);
+
+  const alterQueries = [
+    'ALTER TABLE users RENAME COLUMN email TO username',
+    'ALTER TABLE users ADD COLUMN status TEXT',
+    'ALTER TABLE users ADD COLUMN master_approved TEXT',
+    'ALTER TABLE users ADD COLUMN master_key_requested TEXT',
+    'ALTER TABLE patients ADD COLUMN cep TEXT',
+    'ALTER TABLE patients ADD COLUMN address TEXT',
+    'ALTER TABLE patients ADD COLUMN number TEXT',
+    'ALTER TABLE patients ADD COLUMN neighborhood TEXT',
+    'ALTER TABLE patients ADD COLUMN city TEXT',
+    'ALTER TABLE patients ADD COLUMN phone TEXT',
+    'ALTER TABLE patients ADD COLUMN cellphone TEXT',
+    'ALTER TABLE patients ADD COLUMN billingValue TEXT',
+    'ALTER TABLE patients ADD COLUMN updated_at TEXT',
+    'ALTER TABLE encounters ADD COLUMN room TEXT'
+  ];
+
+  await Promise.all(alterQueries.map(q => db.execute(q).catch(() => {})));
 
   // Seed de usuários padrão de demonstração se a tabela estiver vazia
   try {
@@ -143,7 +157,7 @@ const initLocalDb = async () => {
   // Seed de pacientes A-Z com dados completos e agendamentos/procedimentos
   try {
     const pCount = Number((await db.execute('SELECT COUNT(*) as c FROM patients')).rows[0].c);
-    if (pCount < 30) {
+    if (pCount === 0) {
       const demoPatients = [
         { id: 'PAT-DEMO-01', fullName: 'Amanda Alvarenga', cpf: '111.222.333-01', birthDate: '1995-04-12', phone: '(11) 3111-0001', cellphone: '(11) 91111-0001', address: 'Av. Paulista, 1200 - Bela Vista', city: 'São Paulo - SP', billingValue: 'Unimed Pleno' },
         { id: 'PAT-DEMO-02', fullName: 'Ana Beatriz Oliveira', cpf: '111.222.333-02', birthDate: '1992-08-25', phone: '(11) 3111-0002', cellphone: '(11) 91111-0002', address: 'Rua Augusta, 450 - Consolação', city: 'São Paulo - SP', billingValue: 'Bradesco Saúde Especial' },

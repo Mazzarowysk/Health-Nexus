@@ -1362,6 +1362,18 @@ const apiFetch = async (url, options = {}) => {
     if (!skipSyncPrompt) scheduleSyncUpload();
   }
 
+  // Fix JSON parsing crash by attaching a safe json parser
+  const originalJson = res.json.bind(res);
+  res.json = async () => {
+    try {
+      const text = await res.text();
+      return JSON.parse(text);
+    } catch (e) {
+      console.warn('apiFetch JSON parse error:', e);
+      return { status: 'error', message: 'Erro de comunicação com o servidor.' };
+    }
+  };
+
   return res;
 };
 
