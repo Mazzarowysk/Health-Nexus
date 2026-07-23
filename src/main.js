@@ -5748,7 +5748,7 @@ async function saveRoom(roomId) {
   let method = 'POST';
 
   if (roomId) {
-    url = \`/api/consulting-rooms/\${roomId}\`;
+    url = `/api/consulting-rooms/${roomId}`;
     method = 'PUT';
     payload.currentDoctor = document.getElementById('room-doctor').value.trim();
     payload.status = document.getElementById('room-status').value;
@@ -5776,7 +5776,7 @@ async function saveRoom(roomId) {
 async function deleteRoom(roomId) {
   if (!confirm('Tem certeza que deseja excluir este consultório?')) return;
   try {
-    const res = await fetch(\`/api/consulting-rooms/\${roomId}\`, { method: 'DELETE' });
+    const res = await fetch(`/api/consulting-rooms/${roomId}`, { method: 'DELETE' });
     if (res.ok) {
       showCustomAlert({ title: 'Sucesso', message: 'Consultório removido.', type: 'success' });
       loadConsultingRooms();
