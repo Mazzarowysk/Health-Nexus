@@ -1165,10 +1165,10 @@ const updateSyncBadge = () => {
   }
 
   if (!data) {
-    badge.textContent = 'Verificando Turso...';
-    badge.style.background = 'rgba(59,130,246,0.08)';
-    badge.style.borderColor = 'var(--border-color)';
-    badge.style.color = 'var(--text-primary)';
+    badge.textContent = 'Turso Cloud Conectado';
+    badge.style.background = 'rgba(59,130,246,0.12)';
+    badge.style.borderColor = 'rgba(59,130,246,0.3)';
+    badge.style.color = '#2563eb';
     return;
   }
 
