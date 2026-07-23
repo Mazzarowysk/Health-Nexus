@@ -33,6 +33,8 @@ const initLocalDb = async () => {
 
   const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_PHARMACY = `CREATE TABLE IF NOT EXISTS pharmacy_items (id TEXT PRIMARY KEY, name TEXT NOT NULL, dosage TEXT, form TEXT, stockQuantity INTEGER DEFAULT 0, minStock INTEGER DEFAULT 10, lotNumber TEXT, expirationDate TEXT, unitPrice REAL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_TV_CALLS = `CREATE TABLE IF NOT EXISTS tv_calls (id TEXT PRIMARY KEY, patientName TEXT NOT NULL, roomName TEXT NOT NULL, manchesterColor TEXT DEFAULT 'Verde', doctorName TEXT, calledAt TEXT DEFAULT CURRENT_TIMESTAMP)`;
 
   await Promise.all([
     db.execute(SQL_USERS),
@@ -46,7 +48,9 @@ const initLocalDb = async () => {
     db.execute(SQL_BEDS),
     db.execute(SQL_PRESCRIPTIONS),
     db.execute(SQL_DOCTORS),
-    db.execute(SQL_CONSULTING_ROOMS)
+    db.execute(SQL_CONSULTING_ROOMS),
+    db.execute(SQL_PHARMACY),
+    db.execute(SQL_TV_CALLS)
   ]);
 
   const alterQueries = [
@@ -216,6 +220,30 @@ const initLocalDb = async () => {
           sql: `INSERT OR IGNORE INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [aptId, apt.patientId, apt.patientName, apt.doctorName, apt.specialty, todayIso, apt.time, apt.status, apt.notes, nowIso, nowIso]
+        });
+      }
+    }
+  } catch (e) {}
+
+  // Seed de itens de farmácia se tabela estiver vazia
+  try {
+    const pharmCount = Number((await db.execute('SELECT COUNT(*) as c FROM pharmacy_items')).rows[0].c);
+    if (pharmCount === 0) {
+      const nowIso = new Date().toISOString();
+      const demoPharmacy = [
+        { id: 'FAR-001', name: 'Dipirona Sódica', dosage: '500mg/ml', form: 'Ampola (2ml)', stockQuantity: 250, minStock: 30, lotNumber: 'L2026A01', expirationDate: '2027-12-31', unitPrice: 4.50 },
+        { id: 'FAR-002', name: 'Paracetamol', dosage: '750mg', form: 'Comprimido', stockQuantity: 500, minStock: 50, lotNumber: 'L2026B12', expirationDate: '2028-05-15', unitPrice: 1.20 },
+        { id: 'FAR-003', name: 'Amoxicilina + Clavulanato', dosage: '500mg + 125mg', form: 'Comprimido', stockQuantity: 180, minStock: 25, lotNumber: 'L2026C08', expirationDate: '2027-08-20', unitPrice: 18.90 },
+        { id: 'FAR-004', name: 'Cloreto de Sódio (Soro Fisiológico)', dosage: '0,9%', form: 'Frasco 500ml', stockQuantity: 120, minStock: 40, lotNumber: 'L2026D04', expirationDate: '2028-01-10', unitPrice: 12.00 },
+        { id: 'FAR-005', name: 'Insulina NPH Humana', dosage: '100 UI/ml', form: 'Frasco 10ml', stockQuantity: 45, minStock: 15, lotNumber: 'L2026E99', expirationDate: '2026-11-30', unitPrice: 45.00 },
+        { id: 'FAR-006', name: 'Cloridrato de Tramadol', dosage: '50mg/ml', form: 'Ampola (2ml)', stockQuantity: 90, minStock: 20, lotNumber: 'L2026F14', expirationDate: '2027-09-05', unitPrice: 8.75 },
+        { id: 'FAR-007', name: 'Omerprazol', dosage: '40mg', form: 'Frasco-Ampola Injetável', stockQuantity: 110, minStock: 30, lotNumber: 'L2026G03', expirationDate: '2027-10-18', unitPrice: 14.30 },
+        { id: 'FAR-008', name: 'Oxitocina', dosage: '5 UI/ml', form: 'Ampola (1ml)', stockQuantity: 60, minStock: 15, lotNumber: 'L2026H22', expirationDate: '2027-04-12', unitPrice: 9.80 }
+      ];
+      for (const item of demoPharmacy) {
+        await db.execute({
+          sql: 'INSERT INTO pharmacy_items (id, name, dosage, form, stockQuantity, minStock, lotNumber, expirationDate, unitPrice, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          args: [item.id, item.name, item.dosage, item.form, item.stockQuantity, item.minStock, item.lotNumber, item.expirationDate, item.unitPrice, nowIso, nowIso]
         });
       }
     }
@@ -1793,6 +1821,83 @@ app.delete('/api/consulting-rooms/:id', async (req, res) => {
     res.status(200).json({ status: 'success', message: 'Consultório removido com sucesso.' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Erro ao deletar consultório.' });
+  }
+});
+
+// --- FARMÁCIA HOSPITALAR & CONTROLE DE ESTOQUE ---
+app.get('/api/pharmacy', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM pharmacy_items ORDER BY name ASC');
+    res.status(200).json({ status: 'success', data: result.rows || [] });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao listar estoque da farmácia.' });
+  }
+});
+
+app.post('/api/pharmacy', async (req, res) => {
+  try {
+    const { name, dosage, form, stockQuantity, minStock, lotNumber, expirationDate, unitPrice } = req.body;
+    if (!name) return res.status(400).json({ status: 'error', message: 'Nome do medicamento é obrigatório.' });
+    const id = 'FAR-' + Date.now().toString().slice(-6);
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'INSERT INTO pharmacy_items (id, name, dosage, form, stockQuantity, minStock, lotNumber, expirationDate, unitPrice, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [id, name, dosage || '', form || '', Number(stockQuantity || 0), Number(minStock || 10), lotNumber || 'L2026', expirationDate || '', Number(unitPrice || 0), nowIso, nowIso]
+    });
+    res.status(201).json({ status: 'success', message: 'Medicamento cadastrado com sucesso.', data: { id, name } });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao cadastrar medicamento.' });
+  }
+});
+
+app.post('/api/pharmacy/dispense', async (req, res) => {
+  try {
+    const { itemId, quantity } = req.body;
+    if (!itemId || !quantity) return res.status(400).json({ status: 'error', message: 'Item e quantidade são obrigatórios.' });
+    const qty = Number(quantity);
+    const itemRes = await db.execute({ sql: 'SELECT * FROM pharmacy_items WHERE id = ?', args: [itemId] });
+    if (itemRes.rows.length === 0) return res.status(404).json({ status: 'error', message: 'Item de farmácia não encontrado.' });
+    const item = itemRes.rows[0];
+    const currentStock = Number(item.stockQuantity || 0);
+    if (currentStock < qty) {
+      return res.status(400).json({ status: 'error', message: `Estoque insuficiente. Disponível: ${currentStock}` });
+    }
+    const newStock = currentStock - qty;
+    await db.execute({
+      sql: 'UPDATE pharmacy_items SET stockQuantity = ?, updated_at = ? WHERE id = ?',
+      args: [newStock, new Date().toISOString(), itemId]
+    });
+    res.status(200).json({ status: 'success', message: 'Medicação dispensada com sucesso.', newStock });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao dispensar medicação.' });
+  }
+});
+
+// --- PAINEL DE CHAMADA PARA TV (TV SIGNAGE) ---
+app.get('/api/tv/calls', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM tv_calls ORDER BY calledAt DESC LIMIT 15');
+    res.status(200).json({ status: 'success', data: result.rows || [] });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao buscar chamadas de TV.' });
+  }
+});
+
+app.post('/api/tv/call', async (req, res) => {
+  try {
+    const { patientName, roomName, manchesterColor, doctorName } = req.body;
+    if (!patientName || !roomName) {
+      return res.status(400).json({ status: 'error', message: 'Paciente e sala/consultório são obrigatórios.' });
+    }
+    const id = 'CALL-' + Date.now().toString().slice(-6);
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'INSERT INTO tv_calls (id, patientName, roomName, manchesterColor, doctorName, calledAt) VALUES (?, ?, ?, ?, ?, ?)',
+      args: [id, patientName, roomName, manchesterColor || 'Verde', doctorName || '', nowIso]
+    });
+    res.status(201).json({ status: 'success', message: 'Chamada enviada para o Painel de TV.', data: { id, patientName, roomName } });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao realizar chamada de TV.' });
   }
 });
 

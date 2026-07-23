@@ -1824,7 +1824,7 @@ function getRolePermissions(user) {
       role: 'Desenvolvedor',
       label: '💻 Desenvolvedor (Master)',
       badgeColor: 'linear-gradient(135deg, #a855f7, #7e22ce)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -1836,10 +1836,10 @@ function getRolePermissions(user) {
   // Garantia: admin e perfil Master possuem acesso Master
   if (username === 'admin' || role === 'Master') {
     return {
-      role: 'Master',
+      role: role || 'Master',
       label: '👑 Master (Acesso Total)',
       badgeColor: 'linear-gradient(135deg, #f59e0b, #d97706)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -1853,7 +1853,7 @@ function getRolePermissions(user) {
       role: 'Administrador',
       label: '🛠️ Administrador',
       badgeColor: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -1867,7 +1867,7 @@ function getRolePermissions(user) {
       role: 'Enfermeiro',
       label: '🩺 Enfermeiro(a)',
       badgeColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'estagnacao', 'leitos'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -1881,7 +1881,7 @@ function getRolePermissions(user) {
       role: 'Recepcionista',
       label: '📋 Recepcionista',
       badgeColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-      allowedTabs: ['dashboard', 'pacientes', 'agenda', 'atendimento', 'consultorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'agenda', 'atendimento', 'consultorios', 'tv_panel'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -1895,7 +1895,7 @@ function getRolePermissions(user) {
       role: 'Farmacêutico',
       label: '💊 Farmacêutico(a)',
       badgeColor: 'linear-gradient(135deg, #ec4899, #db2777)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'farmacia', 'atendimento', 'relatorios'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -1951,7 +1951,7 @@ function getRolePermissions(user) {
     role: 'Médico',
     label: '🩺 Médico',
     badgeColor: 'linear-gradient(135deg, #10b981, #059669)',
-    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'estagnacao', 'leitos', 'relatorios'],
+    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'relatorios'],
     canApproveUsers: false,
     canManageUsers: false,
     canDeleteRecords: false,
@@ -1966,10 +1966,12 @@ function renderAppStructure() {
   const perms = getRolePermissions(state.user);
 
   const allNavItems = [
-    { id: 'dashboard', label: 'Health Nexus', icon: 'fa-house-medical' },
+    { id: 'dashboard', label: 'Health Nexus', icon: 'fa-chart-line' },
     { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
     { id: 'medicos', label: 'Corpo Clínico', icon: 'fa-user-doctor' },
     { id: 'consultorios', label: 'Consultórios', icon: 'fa-door-open' },
+    { id: 'farmacia', label: 'Farmácia & Estoque', icon: 'fa-pills' },
+    { id: 'tv_panel', label: 'Painel TV (Chamador)', icon: 'fa-tv' },
     { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-check' },
     { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
     { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
@@ -2760,6 +2762,10 @@ async function renderTabContent() {
     renderDoctorsTab();
   } else if (state.activeTab === 'consultorios') {
     renderConsultingRoomsTab();
+  } else if (state.activeTab === 'farmacia') {
+    renderPharmacyTab();
+  } else if (state.activeTab === 'tv_panel') {
+    renderTVPanelTab();
   } else if (state.activeTab === 'agenda') {
     renderAgendaTab();
   } else if (state.activeTab === 'atendimento') {
@@ -8187,3 +8193,368 @@ document.addEventListener('click', (e) => {
     return;
   }
 });
+
+// ============================================================================
+// --- 💊 MÓDULO DE FARMÁCIA HOSPITALAR & CONTROLE DE ESTOQUE ---
+// ============================================================================
+async function renderPharmacyTab() {
+  const contentArea = document.getElementById('content-area');
+  if (!contentArea) return;
+
+  contentArea.innerHTML = `
+    <div class="tab-section active">
+      <div class="tab-header-banner" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <h2 style="font-size: 1.5rem; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-pills" style="color: #ec4899;"></i> Farmácia Hospitalar &amp; Controle de Estoque
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
+            Gerenciamento de medicamentos, dispensação para leitos e alertas de estoque crítico.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-dispense-med" class="btn btn-secondary" style="border-color: #ec4899; color: #f472b6;">
+            <i class="fa-solid fa-hand-holding-medical"></i> Dispensar Medicação
+          </button>
+          <button id="btn-add-pharm-item" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none;">
+            <i class="fa-solid fa-plus"></i> Novo Medicamento
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI CARDS FARMÁCIA -->
+      <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+            <span>TOTAL DE ITENS</span>
+            <i class="fa-solid fa-boxes-stacked" style="color: var(--color-primary);"></i>
+          </div>
+          <div id="kpi-pharm-total" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 8px;">--</div>
+        </div>
+
+        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+            <span>ESTOQUE CRÍTICO</span>
+            <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
+          </div>
+          <div id="kpi-pharm-critical" style="font-size: 1.8rem; font-weight: 700; color: #ef4444; margin-top: 8px;">--</div>
+        </div>
+
+        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+            <span>UNIDADES EM ESTOQUE</span>
+            <i class="fa-solid fa-capsules" style="color: #10b981;"></i>
+          </div>
+          <div id="kpi-pharm-units" style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 8px;">--</div>
+        </div>
+
+        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+            <span>VALOR EM ESTOQUE</span>
+            <i class="fa-solid fa-brazilian-real-sign" style="color: #3b82f6;"></i>
+          </div>
+          <div id="kpi-pharm-value" style="font-size: 1.8rem; font-weight: 700; color: #3b82f6; margin-top: 8px;">R$ --</div>
+        </div>
+      </div>
+
+      <!-- TABELA DE ESTOQUE DA FARMÁCIA -->
+      <div class="card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Estoque Central de Medicamentos &amp; Insumos</h3>
+          <input type="text" id="pharm-search-input" class="form-input" placeholder="Buscar medicamento ou lote..." style="max-width: 280px;">
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-color); text-align: left; font-size: 0.82rem; color: var(--text-secondary);">
+                <th style="padding: 12px;">ID / CÓDIGO</th>
+                <th style="padding: 12px;">MEDICAMENTO</th>
+                <th style="padding: 12px;">DOSAGEM / APRESENTAÇÃO</th>
+                <th style="padding: 12px;">LOTE / VALIDADE</th>
+                <th style="padding: 12px;">QTD ESTOQUE</th>
+                <th style="padding: 12px;">STATUS</th>
+                <th style="padding: 12px;">PREÇO UNIT.</th>
+              </tr>
+            </thead>
+            <tbody id="pharmacy-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+                  <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Carregando estoque da farmácia...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Carregar dados da API
+  try {
+    const res = await apiFetch('/api/pharmacy');
+    if (res.ok) {
+      const data = await res.json();
+      const items = data.data || [];
+      renderPharmacyTable(items);
+    }
+  } catch (err) {
+    showCustomAlert({ title: 'Erro', message: 'Falha ao buscar estoque da farmácia.', type: 'danger' });
+  }
+
+  // Event Listeners
+  document.getElementById('btn-add-pharm-item')?.addEventListener('click', openAddPharmModal);
+  document.getElementById('btn-dispense-med')?.addEventListener('click', openDispenseMedModal);
+  document.getElementById('pharm-search-input')?.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#pharmacy-table-body tr[data-search]');
+    rows.forEach(r => {
+      const txt = r.getAttribute('data-search') || '';
+      r.style.display = txt.includes(term) ? '' : 'none';
+    });
+  });
+}
+
+function renderPharmacyTable(items) {
+  const tbody = document.getElementById('pharmacy-table-body');
+  if (!tbody) return;
+
+  if (items.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+          Nenhum medicamento cadastrado no estoque.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let totalItems = items.length;
+  let criticalCount = 0;
+  let totalUnits = 0;
+  let totalValue = 0;
+
+  tbody.innerHTML = items.map(item => {
+    const qty = Number(item.stockQuantity || 0);
+    const min = Number(item.minStock || 10);
+    const price = Number(item.unitPrice || 0);
+    const isCritical = qty <= min;
+
+    totalUnits += qty;
+    totalValue += (qty * price);
+    if (isCritical) criticalCount++;
+
+    const statusBadge = isCritical
+      ? `<span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Estoque Baixo</span>`
+      : `<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight:700;"><i class="fa-solid fa-check"></i> Normal</span>`;
+
+    const searchTxt = `${item.id} ${item.name} ${item.lotNumber} ${item.dosage}`.toLowerCase();
+
+    return `
+      <tr data-search="${searchTxt}" style="border-bottom: 1px solid var(--border-color); font-size: 0.88rem;">
+        <td style="padding: 12px; font-family: monospace; font-weight: 700; color: #ec4899;">${item.id}</td>
+        <td style="padding: 12px; font-weight: 600; color: var(--text-primary);">${item.name}</td>
+        <td style="padding: 12px; color: var(--text-secondary);">${item.dosage || '-'} (${item.form || 'Und'})</td>
+        <td style="padding: 12px; color: var(--text-secondary);">${item.lotNumber || '-'} / <span style="color: var(--text-primary);">${item.expirationDate || '-'}</span></td>
+        <td style="padding: 12px; font-weight: 700; color: ${isCritical ? '#ef4444' : 'var(--text-primary)'};">${qty} unds</td>
+        <td style="padding: 12px;">${statusBadge}</td>
+        <td style="padding: 12px; color: var(--text-primary); font-weight: 600;">R$ ${price.toFixed(2)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('kpi-pharm-total').textContent = totalItems;
+  document.getElementById('kpi-pharm-critical').textContent = criticalCount;
+  document.getElementById('kpi-pharm-units').textContent = totalUnits;
+  document.getElementById('kpi-pharm-value').textContent = `R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+}
+
+function openAddPharmModal() {
+  showCustomAlert({ title: 'Novo Medicamento', message: 'Preencha o formulário para adicionar ao Estoque Central.', type: 'info' });
+}
+
+function openDispenseMedModal() {
+  showCustomAlert({ title: 'Dispensação de Medicação', message: 'Selecione a prescrição ou leito para baixa de estoque.', type: 'info' });
+}
+
+
+// ============================================================================
+// --- 📺 MÓDULO PAINEL DE CHAMADA PARA TV (TV SIGNAGE COM VOZ E MANCHESTER) ---
+// ============================================================================
+async function renderTVPanelTab() {
+  const contentArea = document.getElementById('content-area');
+  if (!contentArea) return;
+
+  contentArea.innerHTML = `
+    <div class="tab-section active">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <h2 style="font-size: 1.5rem; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-tv" style="color: #0284c7;"></i> Painel de Chamada para TV (Sala de Espera)
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
+            Exibição em tela cheia para TV com chamada sonora e classificação por Manchester.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
+            <i class="fa-solid fa-bullhorn"></i> Chamar Paciente no Painel
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTAINER PRINCIPAL DO PAINEL TV -->
+      <div style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 2px solid #0284c7; border-radius: 16px; padding: 24px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
+        <!-- HEADER TV -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-hospital-user" style="font-size: 2rem; color: #38bdf8;"></i>
+            <div>
+              <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; letter-spacing: 0.5px;">HEALTH NEXUS | PAINEL DE ATENDIMENTO</h3>
+              <span style="font-size: 0.8rem; color: #94a3b8;">SISTEMA DE CHAMADA AUDÍVEL &amp; TRIAGEM VISUAL</span>
+            </div>
+          </div>
+          <div id="tv-clock" style="font-size: 1.8rem; font-weight: 800; font-family: monospace; color: #38bdf8;">--:--:--</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+          
+          <!-- CARD CENTRAL: ÚLTIMO PACIENTE CHAMADO -->
+          <div style="background: rgba(15, 23, 42, 0.8); border: 2px solid #38bdf8; border-radius: 16px; padding: 32px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 300px; box-shadow: 0 0 25px rgba(2, 132, 199, 0.3);">
+            <span style="font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 12px;">ÚLTIMO PACIENTE CHAMADO</span>
+            <div id="tv-last-patient" style="font-size: 2.6rem; font-weight: 900; color: #fff; margin-bottom: 16px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Aguardando chamada...</div>
+            
+            <div style="display: flex; align-items: center; gap: 16px; margin-top: 10px;">
+              <div id="tv-last-room" style="font-size: 1.6rem; font-weight: 800; background: #0284c7; padding: 8px 24px; border-radius: 30px; color: #fff;">--</div>
+              <div id="tv-last-badge" style="font-size: 1.1rem; font-weight: 800; padding: 8px 20px; border-radius: 30px; background: rgba(255,255,255,0.1); color: #cbd5e1;">--</div>
+            </div>
+          </div>
+
+          <!-- HISTÓRICO DAS ÚLTIMAS CHAMADAS -->
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px;">
+            <h4 style="margin-top: 0; margin-bottom: 16px; font-size: 1rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-history"></i> ÚLTIMAS CHAMADAS
+            </h4>
+            <div id="tv-history-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 260px; overflow-y: auto;">
+              <div style="text-align: center; color: #64748b; padding: 20px; font-size: 0.85rem;">Nenhuma chamada registrada hoje.</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  // Iniciar relógio digital da TV
+  const updateClock = () => {
+    const el = document.getElementById('tv-clock');
+    if (el) el.textContent = new Date().toLocaleTimeString('pt-BR');
+  };
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Carregar dados de chamadas
+  loadTVCalls();
+
+  // Listener para botão de chamar paciente
+  document.getElementById('btn-tv-call-modal')?.addEventListener('click', openTVCallModal);
+}
+
+async function loadTVCalls() {
+  try {
+    const res = await apiFetch('/api/tv/calls');
+    if (res.ok) {
+      const data = await res.json();
+      const calls = data.data || [];
+      renderTVCallsUI(calls);
+    }
+  } catch (e) {}
+}
+
+function renderTVCallsUI(calls) {
+  const lastEl = document.getElementById('tv-last-patient');
+  const roomEl = document.getElementById('tv-last-room');
+  const badgeEl = document.getElementById('tv-last-badge');
+  const historyEl = document.getElementById('tv-history-list');
+
+  if (!lastEl) return;
+
+  if (calls.length === 0) {
+    lastEl.textContent = 'Aguardando próxima chamada...';
+    roomEl.textContent = '--';
+    badgeEl.textContent = '--';
+    return;
+  }
+
+  const latest = calls[0];
+  lastEl.textContent = latest.patientName;
+  roomEl.textContent = latest.roomName;
+  badgeEl.textContent = `Triagem ${latest.manchesterColor || 'Verde'}`;
+
+  // Cores da Triagem Manchester no badge
+  const mColor = (latest.manchesterColor || '').toLowerCase();
+  if (mColor.includes('vermelho')) {
+    badgeEl.style.background = '#dc2626'; badgeEl.style.color = '#fff';
+  } else if (mColor.includes('laranja')) {
+    badgeEl.style.background = '#ea580c'; badgeEl.style.color = '#fff';
+  } else if (mColor.includes('amarelo')) {
+    badgeEl.style.background = '#d97706'; badgeEl.style.color = '#fff';
+  } else if (mColor.includes('verde')) {
+    badgeEl.style.background = '#16a34a'; badgeEl.style.color = '#fff';
+  } else {
+    badgeEl.style.background = '#0284c7'; badgeEl.style.color = '#fff';
+  }
+
+  // Render histórico
+  if (historyEl) {
+    historyEl.innerHTML = calls.slice(1, 6).map(c => `
+      <div style="background: rgba(255,255,255,0.05); border-left: 4px solid #38bdf8; padding: 10px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong style="display: block; font-size: 0.95rem; color: #fff;">${c.patientName}</strong>
+          <span style="font-size: 0.78rem; color: #94a3b8;">${c.roomName}</span>
+        </div>
+        <span style="font-size: 0.75rem; font-family: monospace; color: #38bdf8;">${new Date(c.calledAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function openTVCallModal() {
+  // Dispara chamada sonora com síntese de voz e registra no banco
+  showCustomConfirm({
+    title: 'Chamar Paciente no Painel de TV',
+    message: 'Selecione o paciente e a sala para anúncio sonoro com síntese de voz na sala de espera.',
+    confirmText: 'Chamar Agora',
+    cancelText: 'Cancelar',
+    type: 'info'
+  }).then(async (confirmed) => {
+    if (confirmed) {
+      const patientName = 'Amanda Alvarenga';
+      const roomName = 'Consultório 01';
+      try {
+        await apiFetch('/api/tv/call', {
+          method: 'POST',
+          body: JSON.stringify({ patientName, roomName, manchesterColor: 'Amarelo' })
+        });
+        
+        // Chamada por Síntese de Voz (Web Speech API)
+        if ('speechSynthesis' in window) {
+          const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao ${roomName}.`;
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'pt-BR';
+          utterance.rate = 0.9;
+          window.speechSynthesis.speak(utterance);
+        }
+
+        showCustomAlert({ title: 'Chamada Emitida', message: `Chamada para ${patientName} no ${roomName} emitida com voz!`, type: 'success' });
+        loadTVCalls();
+      } catch (e) {
+        showCustomAlert({ title: 'Erro', message: 'Falha ao emitir chamada na TV.', type: 'danger' });
+      }
+    }
+  });
+}
+
