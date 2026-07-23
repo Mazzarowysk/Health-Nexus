@@ -8048,9 +8048,14 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
           </select>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-          <button type="button" id="btn-cancel-reassign" class="btn btn-secondary">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Confirmar Direcionamento</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <div>
+            <button type="button" id="btn-internacao" class="btn" style="background: var(--danger); color: white; border: none;"><i class="fa-solid fa-bed-pulse"></i> Solicitar Internação (UTI / Enf)</button>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" id="btn-cancel-reassign" class="btn btn-secondary">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Confirmar Direcionamento</button>
+          </div>
         </div>
       </form>
     </div>
