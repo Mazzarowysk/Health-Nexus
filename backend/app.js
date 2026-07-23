@@ -641,7 +641,7 @@ app.get('/api/sync/status', async (req, res) => {
       }
     }
 
-    const synchronized = localMaxTime > 0 && localMaxTime === cloudMaxTime;
+    const synchronized = (localMaxTime > 0 && cloudMaxTime > 0 && Math.abs(localMaxTime - cloudMaxTime) < 5000) || (localMaxTime === cloudMaxTime);
 
     res.status(200).json({
       cloudConfigured: !!cloud,
