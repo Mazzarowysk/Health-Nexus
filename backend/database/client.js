@@ -31,9 +31,25 @@ export const reconnectCloud = () => {
 // Local DB — criado apenas quando Turso NÃO está disponível
 export const localDb = hasTurso ? null : createClient({ url: 'file:local.db' });
 
-// Banco ativo: usa Turso SEMPRE que disponível (mesmo em ambiente local)
-// Isso garante que cadastros e aprovacoes sejam persistidos na nuvem
-export const db = hasTurso ? cloudDb : localDb;
+// Objeto DB dinâmico: aponta dinamicamente para o cliente ativo (cloudDb ou localDb)
+// Permite que reconexões (reconnectCloud) atualizem o cliente sem quebrar as referências existentes
+export const db = {
+  execute: (...args) => {
+    const active = hasTurso ? cloudDb : localDb;
+    if (!active) throw new Error('[DB Error] Nenhum cliente de banco de dados disponível.');
+    return active.execute(...args);
+  },
+  batch: (...args) => {
+    const active = hasTurso ? cloudDb : localDb;
+    if (!active) throw new Error('[DB Error] Nenhum cliente de banco de dados disponível.');
+    return active.batch(...args);
+  },
+  transaction: (...args) => {
+    const active = hasTurso ? cloudDb : localDb;
+    if (!active) throw new Error('[DB Error] Nenhum cliente de banco de dados disponível.');
+    return active.transaction(...args);
+  }
+};
 
 if (!hasTurso) {
   console.warn('[AVISO] TURSO_DATABASE_URL nao configurado. Usando banco LOCAL (dados nao persistidos na nuvem!)');
@@ -42,5 +58,5 @@ if (!hasTurso) {
 }
 
 console.log('[DEBUG] Ambiente Vercel:', isVercel);
-console.log('[DEBUG] Banco ativo:', hasTurso ? 'Cloud Turso (persistencia garantida)' : 'Local SQLite (local.db)');
+console.log('[DEBUG] Banco ativo:', hasTurso ? 'Cloud Turso (persistencia garantida com reconexão dinâmica)' : 'Local SQLite (local.db)');
 console.log('[DEBUG] TURSO_DATABASE_URL:', cloudUrl ? cloudUrl.substring(0, 40) + '...' : 'NAO CONFIGURADO');
