@@ -244,7 +244,7 @@ const initCloudDb = async () => {
   const execWithTimeout = async (task) => {
     return Promise.race([
       task,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_12S')), 12000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_3S')), 3000))
     ]);
   };
 
@@ -306,7 +306,7 @@ const initCloudDb = async () => {
     await execWithTimeout(tasks());
     console.log('[DB] Banco Turso (cloud) OK.');
   } catch (err) {
-    if (err.message === 'TIMEOUT_12S') {
+    if (err.message === 'TIMEOUT_3S') {
       console.warn('[DB] Timeout ao inicializar Turso, continuando...');
     } else {
       console.warn('[DB] Erro de rede ou indisponibilidade Turso (silenciado):', err.message);
@@ -505,7 +505,12 @@ app.get('/api/sync/check-version', async (req, res) => {
     if (!cloud) {
       return res.status(200).json({ cloudConfigured: false, hasNewData: false, cloudTimestamp: 0 });
     }
-    const result = await cloud.execute('SELECT MAX(updated_at) as maxTs FROM health_sync');
+    const execWithTimeout = (promise, ms) => Promise.race([
+      promise,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT_SYNC_CHECK')), ms))
+    ]);
+
+    const result = await execWithTimeout(cloud.execute('SELECT MAX(updated_at) as maxTs FROM health_sync'), 2000);
     const cloudTimestamp = Number(result.rows[0]?.maxTs || 0);
 
     const localRes = await db.execute('SELECT MAX(updated_at) as maxTs FROM health_sync');
@@ -520,7 +525,11 @@ app.get('/api/sync/check-version', async (req, res) => {
       localTimestamp
     });
   } catch (err) {
-    console.error('Erro em /api/sync/check-version:', err.message);
+    if (err.message === 'TIMEOUT_SYNC_CHECK') {
+      console.warn('Timeout ao verificar versão na nuvem. Retornando false.');
+    } else {
+      console.error('Erro em /api/sync/check-version:', err.message);
+    }
     res.status(200).json({ cloudConfigured: false, hasNewData: false, cloudTimestamp: 0 });
   }
 });
@@ -536,6 +545,11 @@ app.get('/api/sync/status', async (req, res) => {
     let cloudMaxTime = 0;
     let cloudMaxStr = null;
 
+    const execWithTimeout = (promise, ms) => Promise.race([
+      promise,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT_SYNC_STATUS')), ms))
+    ]);
+
     try {
       const localRes = await db.execute('SELECT sync_key, updated_at FROM health_sync');
       (localRes.rows || []).forEach(r => {
@@ -549,7 +563,7 @@ app.get('/api/sync/status', async (req, res) => {
 
     if (cloud) {
       try {
-        const cloudRes = await cloud.execute('SELECT sync_key, updated_at FROM health_sync');
+        const cloudRes = await execWithTimeout(cloud.execute('SELECT sync_key, updated_at FROM health_sync'), 2000);
         (cloudRes.rows || []).forEach(r => {
           const ts = Number(r.updated_at || 0);
           if (ts > cloudMaxTime) {
@@ -557,7 +571,13 @@ app.get('/api/sync/status', async (req, res) => {
             cloudMaxStr = new Date(ts).toISOString();
           }
         });
-      } catch (e) {}
+      } catch (e) {
+        if (e.message === 'TIMEOUT_SYNC_STATUS') {
+          console.warn('Timeout ao verificar status na nuvem (status sync).');
+        } else {
+          console.error('Erro na query de status da nuvem:', e.message);
+        }
+      }
     }
 
     const synchronized = localMaxTime > 0 && localMaxTime === cloudMaxTime;
@@ -1971,7 +1991,7 @@ app.post('/api/sync/upload', async (req, res) => {
 
   try {
     const cloudDb = getCloudDb();
-    const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions] = await Promise.all([
+    const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions, health_sync] = await Promise.all([
       db.execute('SELECT * FROM users').then(r => r.rows),
       db.execute('SELECT * FROM patients').then(r => r.rows),
       db.execute('SELECT * FROM encounters').then(r => r.rows),
@@ -1979,7 +1999,8 @@ app.post('/api/sync/upload', async (req, res) => {
       db.execute('SELECT * FROM clinical_notes').then(r => r.rows),
       db.execute('SELECT * FROM appointments').then(r => r.rows),
       db.execute('SELECT * FROM beds').then(r => r.rows),
-      db.execute('SELECT * FROM prescriptions').then(r => r.rows)
+      db.execute('SELECT * FROM prescriptions').then(r => r.rows),
+      db.execute('SELECT * FROM health_sync').then(r => r.rows)
     ]);
 
     const stmts = [
@@ -2014,6 +2035,10 @@ app.post('/api/sync/upload', async (req, res) => {
       ...prescriptions.map(rx => ({
         sql: 'INSERT OR REPLACE INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         args: [rx.id, rx.encounterId, rx.patientId, rx.patientName, rx.doctorName, rx.medicationsJson, rx.status, rx.created_at]
+      })),
+      ...health_sync.map(hs => ({
+        sql: 'INSERT OR REPLACE INTO health_sync (sync_key, sync_value, updated_at) VALUES (?, ?, ?)',
+        args: [hs.sync_key, hs.sync_value, hs.updated_at]
       }))
     ];
 
@@ -2058,7 +2083,7 @@ app.post('/api/sync/download', async (req, res) => {
 
   try {
     const cloudDb = getCloudDb();
-    const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions] = await Promise.all([
+    const [users, patients, encounters, triages, clinical_notes, appointments, beds, prescriptions, health_sync] = await Promise.all([
       executeWithRetry(cloudDb, 'SELECT * FROM users').then(r => r.rows),
       executeWithRetry(cloudDb, 'SELECT * FROM patients').then(r => r.rows),
       executeWithRetry(cloudDb, 'SELECT * FROM encounters').then(r => r.rows),
@@ -2066,7 +2091,8 @@ app.post('/api/sync/download', async (req, res) => {
       executeWithRetry(cloudDb, 'SELECT * FROM clinical_notes').then(r => r.rows),
       executeWithRetry(cloudDb, 'SELECT * FROM appointments').then(r => r.rows),
       executeWithRetry(cloudDb, 'SELECT * FROM beds').then(r => r.rows),
-      executeWithRetry(cloudDb, 'SELECT * FROM prescriptions').then(r => r.rows)
+      executeWithRetry(cloudDb, 'SELECT * FROM prescriptions').then(r => r.rows),
+      executeWithRetry(cloudDb, 'SELECT * FROM health_sync').then(r => r.rows)
     ]);
 
     const stmts = [
@@ -2101,6 +2127,10 @@ app.post('/api/sync/download', async (req, res) => {
       ...prescriptions.map(rx => ({
         sql: 'INSERT OR REPLACE INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         args: [rx.id, rx.encounterId, rx.patientId, rx.patientName, rx.doctorName, rx.medicationsJson, rx.status, rx.created_at]
+      })),
+      ...health_sync.map(hs => ({
+        sql: 'INSERT OR REPLACE INTO health_sync (sync_key, sync_value, updated_at) VALUES (?, ?, ?)',
+        args: [hs.sync_key, hs.sync_value, hs.updated_at]
       }))
     ];
 

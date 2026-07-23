@@ -28,26 +28,58 @@ export const reconnectCloud = () => {
   return cloudDb;
 };
 
-// Local DB — criado apenas quando Turso NÃO está disponível
-export const localDb = hasTurso ? null : createClient({ url: 'file:local.db' });
+// Local DB — criado sempre no ambiente local para garantir fallback
+export const localDb = isVercel ? null : createClient({ url: 'file:local.db' });
 
-// Objeto DB dinâmico: aponta dinamicamente para o cliente ativo (cloudDb ou localDb)
-// Permite que reconexões (reconnectCloud) atualizem o cliente sem quebrar as referências existentes
+let tursoOffline = false;
+
+// Objeto DB dinâmico com fallback automático (Graceful Degradation)
 export const db = {
-  execute: (...args) => {
-    const active = hasTurso ? cloudDb : localDb;
-    if (!active) throw new Error('[DB Error] Nenhum cliente de banco de dados disponível.');
-    return active.execute(...args);
+  execute: async (...args) => {
+    if (hasTurso && !tursoOffline) {
+      try {
+        return await cloudDb.execute(...args);
+      } catch (err) {
+        if (err.message?.includes('fetch failed') || err.message?.includes('timeout') || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+          console.warn('[DB Fallback] Turso indisponível (timeout). Alternando para banco local temporariamente...');
+          tursoOffline = true; // Desativa Turso para as próximas chamadas rápidas
+          if (localDb) return await localDb.execute(...args);
+        }
+        throw err;
+      }
+    }
+    if (!localDb) throw new Error('[DB Error] Nenhum cliente de banco de dados disponível.');
+    return await localDb.execute(...args);
   },
-  batch: (...args) => {
-    const active = hasTurso ? cloudDb : localDb;
-    if (!active) throw new Error('[DB Error] Nenhum cliente de banco de dados disponível.');
-    return active.batch(...args);
+  batch: async (...args) => {
+    if (hasTurso && !tursoOffline) {
+      try {
+        return await cloudDb.batch(...args);
+      } catch (err) {
+        if (err.message?.includes('fetch failed') || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+          tursoOffline = true;
+          if (localDb) return await localDb.batch(...args);
+        }
+        throw err;
+      }
+    }
+    if (!localDb) throw new Error('[DB Error] Nenhum banco disponível.');
+    return await localDb.batch(...args);
   },
-  transaction: (...args) => {
-    const active = hasTurso ? cloudDb : localDb;
-    if (!active) throw new Error('[DB Error] Nenhum cliente de banco de dados disponível.');
-    return active.transaction(...args);
+  transaction: async (...args) => {
+    if (hasTurso && !tursoOffline) {
+      try {
+        return await cloudDb.transaction(...args);
+      } catch (err) {
+        if (err.message?.includes('fetch failed') || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+          tursoOffline = true;
+          if (localDb) return await localDb.transaction(...args);
+        }
+        throw err;
+      }
+    }
+    if (!localDb) throw new Error('[DB Error] Nenhum banco disponível.');
+    return await localDb.transaction(...args);
   }
 };
 

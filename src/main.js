@@ -7645,6 +7645,14 @@ async function loadAndRenderStagnationData() {
           });
         });
 
+      } else if (isMaster) {
+        masterArea.innerHTML = `
+          <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center;">
+            <i class="fa-solid fa-user-check" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 10px;"></i>
+            <h3 style="margin: 0; font-size: 1rem; color: var(--text-secondary);">Nenhuma solicitação pendente</h3>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Não há novos usuários aguardando aprovação no momento.</div>
+          </div>
+        `;
       } else {
         masterArea.innerHTML = '';
       }
