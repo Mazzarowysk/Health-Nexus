@@ -32,6 +32,7 @@ const initLocalDb = async () => {
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
 
   const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
 
   await db.execute(SQL_USERS);
   try { await db.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
@@ -51,6 +52,7 @@ const initLocalDb = async () => {
   await db.execute(SQL_BEDS);
   await db.execute(SQL_PRESCRIPTIONS);
   await db.execute(SQL_DOCTORS);
+  await db.execute(SQL_CONSULTING_ROOMS);
 
   // Seed de usuários padrão de demonstração se a tabela estiver vazia
   try {
@@ -112,6 +114,27 @@ const initLocalDb = async () => {
         await db.execute({
           sql: 'INSERT INTO beds (id, bedNumber, sector, status, updated_at) VALUES (?, ?, ?, ?, ?)',
           args: [b.id, b.bedNumber, b.sector, b.status, new Date().toISOString()]
+        });
+      }
+    }
+  } catch (e) {}
+
+  // Seed de consultórios se a tabela estiver vazia
+  try {
+    const roomCount = Number((await db.execute('SELECT COUNT(*) as c FROM consulting_rooms')).rows[0].c);
+    if (roomCount === 0) {
+      const initialRooms = [
+        { id: 'ROOM-01', name: 'Consultório 01', specialty: 'Clínica Geral' },
+        { id: 'ROOM-02', name: 'Consultório 02', specialty: 'Clínica Médica' },
+        { id: 'ROOM-03', name: 'Consultório 03', specialty: 'Pediatria' },
+        { id: 'ROOM-04', name: 'Consultório 04', specialty: 'Ortopedia' },
+        { id: 'ROOM-05', name: 'Sala de Sutura', specialty: 'Enfermagem/Procedimentos' },
+        { id: 'ROOM-06', name: 'Sala de Medicação', specialty: 'Enfermagem/Procedimentos' }
+      ];
+      for (const r of initialRooms) {
+        await db.execute({
+          sql: 'INSERT INTO consulting_rooms (id, name, specialty, updated_at) VALUES (?, ?, ?, ?)',
+          args: [r.id, r.name, r.specialty, new Date().toISOString()]
         });
       }
     }
@@ -201,6 +224,7 @@ const autoSyncFromCloud = async () => {
   const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   
   const cloud = getCloudDb();
   if (!cloud) return;
@@ -223,6 +247,7 @@ const autoSyncFromCloud = async () => {
     await cloud.execute(SQL_APPOINTMENTS);
     await cloud.execute(SQL_BEDS);
     await cloud.execute(SQL_PRESCRIPTIONS);
+    await cloud.execute(SQL_CONSULTING_ROOMS);
     await cloud.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
     await cloud.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
     console.log('[SYNC] Estrutura do Turso pronta para sincronização.');
@@ -259,6 +284,7 @@ const initCloudDb = async () => {
     const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
     const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
     const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+    const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
     
     await cloud.execute(SQL_USERS);
     try { await cloud.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
@@ -274,6 +300,7 @@ const initCloudDb = async () => {
     await cloud.execute(SQL_APPOINTMENTS);
     await cloud.execute(SQL_BEDS);
     await cloud.execute(SQL_PRESCRIPTIONS);
+    await cloud.execute(SQL_CONSULTING_ROOMS);
     await cloud.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments (appointmentDate)');
     await cloud.execute('CREATE INDEX IF NOT EXISTS idx_appointments_date_doctor ON appointments (appointmentDate, doctorName)');
 
@@ -296,6 +323,26 @@ const initCloudDb = async () => {
           await cloud.execute({
             sql: 'INSERT INTO beds (id, bedNumber, sector, status, updated_at) VALUES (?, ?, ?, ?, ?)',
             args: [b.id, b.bedNumber, b.sector, b.status, new Date().toISOString()]
+          });
+        }
+      }
+    } catch (e) {}
+
+    try {
+      const roomCount = Number((await cloud.execute('SELECT COUNT(*) as c FROM consulting_rooms')).rows[0].c);
+      if (roomCount === 0) {
+        const initialRooms = [
+          { id: 'ROOM-01', name: 'Consultório 01', specialty: 'Clínica Geral' },
+          { id: 'ROOM-02', name: 'Consultório 02', specialty: 'Clínica Médica' },
+          { id: 'ROOM-03', name: 'Consultório 03', specialty: 'Pediatria' },
+          { id: 'ROOM-04', name: 'Consultório 04', specialty: 'Ortopedia' },
+          { id: 'ROOM-05', name: 'Sala de Sutura', specialty: 'Enfermagem/Procedimentos' },
+          { id: 'ROOM-06', name: 'Sala de Medicação', specialty: 'Enfermagem/Procedimentos' }
+        ];
+        for (const r of initialRooms) {
+          await cloud.execute({
+            sql: 'INSERT INTO consulting_rooms (id, name, specialty, updated_at) VALUES (?, ?, ?, ?)',
+            args: [r.id, r.name, r.specialty, new Date().toISOString()]
           });
         }
       }
@@ -1616,7 +1663,7 @@ app.get('/api/beds', async (req, res) => {
 
 app.post('/api/beds/admit', async (req, res) => {
   try {
-    const { bedId, patientId, patientName } = req.body;
+    const { bedId, patientId, patientName, encounterId } = req.body;
     if (!bedId || !patientId || !patientName) {
       return res.status(400).json({ status: 'error', message: 'Leito e paciente são obrigatórios.' });
     }
@@ -1625,6 +1672,13 @@ app.post('/api/beds/admit', async (req, res) => {
       sql: 'UPDATE beds SET status = "Ocupado", patientId = ?, patientName = ?, admittedAt = ?, updated_at = ? WHERE id = ?',
       args: [patientId, patientName, nowIso, nowIso, bedId]
     });
+
+    if (encounterId) {
+      await db.execute({
+        sql: 'UPDATE encounters SET status = "Internado", updated_at = ? WHERE id = ?',
+        args: [nowIso, encounterId]
+      });
+    }
 
     if (!process.env.VERCEL) {
       await updatePreviousAndLastUpload(nowIso);
@@ -1723,6 +1777,54 @@ app.put('/api/beds/:id/status', async (req, res) => {
     res.status(200).json({ status: 'success', message: 'Status do leito atualizado com sucesso.' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Erro ao atualizar status do leito.' });
+  }
+});
+
+// --- CONSULTÓRIOS (CONSULTING ROOMS) ---
+app.get('/api/consulting-rooms', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM consulting_rooms ORDER BY name ASC');
+    res.status(200).json({ status: 'success', data: result.rows });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao listar consultórios.' });
+  }
+});
+
+app.post('/api/consulting-rooms', async (req, res) => {
+  try {
+    const { name, specialty } = req.body;
+    if (!name) return res.status(400).json({ status: 'error', message: 'Nome é obrigatório.' });
+    const id = 'ROOM-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    const sql = 'INSERT INTO consulting_rooms (id, name, specialty, updated_at) VALUES (?, ?, ?, ?)';
+    await db.execute({ sql, args: [id, name, specialty, new Date().toISOString()] });
+    await logSyncActivity('consulting_rooms_created');
+    res.status(201).json({ status: 'success', data: { id, name, specialty } });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao criar consultório.' });
+  }
+});
+
+app.put('/api/consulting-rooms/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, specialty, currentDoctor, status } = req.body;
+    const sql = 'UPDATE consulting_rooms SET name=?, specialty=?, currentDoctor=?, status=?, updated_at=? WHERE id=?';
+    await db.execute({ sql, args: [name, specialty, currentDoctor, status, new Date().toISOString(), id] });
+    await logSyncActivity('consulting_rooms_updated');
+    res.status(200).json({ status: 'success', message: 'Consultório atualizado com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao atualizar consultório.' });
+  }
+});
+
+app.delete('/api/consulting-rooms/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute({ sql: 'DELETE FROM consulting_rooms WHERE id = ?', args: [id] });
+    await logSyncActivity('consulting_rooms_deleted');
+    res.status(200).json({ status: 'success', message: 'Consultório removido com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao deletar consultório.' });
   }
 });
 
@@ -2415,6 +2517,7 @@ app.post('/api/sync/upload', async (req, res) => {
     const bedsRes = await db.execute('SELECT * FROM beds');
     const prescriptionsRes = await db.execute('SELECT * FROM prescriptions');
     const doctorsRes = await db.execute('SELECT * FROM doctors');
+    const consultingRoomsRes = await db.execute('SELECT * FROM consulting_rooms');
 
     const mainData = {
       users: usersRes.rows || [],
@@ -2425,7 +2528,8 @@ app.post('/api/sync/upload', async (req, res) => {
       appointments: appointmentsRes.rows || [],
       beds: bedsRes.rows || [],
       prescriptions: prescriptionsRes.rows || [],
-      doctors: doctorsRes.rows || []
+      doctors: doctorsRes.rows || [],
+      consulting_rooms: consultingRoomsRes.rows || []
     };
 
     const configData = {
@@ -2482,6 +2586,15 @@ app.post('/api/sync/upload', async (req, res) => {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [d.id, d.name, d.crm, d.specialty, d.phone || null, d.email || null, d.status || 'Ativo', d.created_at || new Date().toISOString(), d.updated_at || new Date().toISOString()]
         });
+      }
+      if (mainData.consulting_rooms) {
+        for (const cr of mainData.consulting_rooms) {
+          await cloud.execute({
+            sql: `INSERT OR REPLACE INTO consulting_rooms (id, name, specialty, currentDoctor, status, created_at, updated_at)
+                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            args: [cr.id, cr.name, cr.specialty || null, cr.currentDoctor || null, cr.status || 'Disponível', cr.created_at || new Date().toISOString(), cr.updated_at || new Date().toISOString()]
+          });
+        }
       }
     }
 
@@ -2555,6 +2668,15 @@ app.post('/api/sync/download', async (req, res) => {
         await db.execute({
           sql: `INSERT OR REPLACE INTO beds (id, bedNumber, sector, status, patientId, patientName, admittedAt, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [b.id, b.bedNumber, b.sector, b.status || 'Vago', b.patientId || null, b.patientName || null, b.admittedAt || null, b.updated_at || new Date().toISOString()]
+        });
+      }
+    }
+
+    if (Array.isArray(mainData.consulting_rooms)) {
+      for (const cr of mainData.consulting_rooms) {
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO consulting_rooms (id, name, specialty, currentDoctor, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          args: [cr.id, cr.name, cr.specialty || null, cr.currentDoctor || null, cr.status || 'Disponível', cr.created_at || new Date().toISOString(), cr.updated_at || new Date().toISOString()]
         });
       }
     }

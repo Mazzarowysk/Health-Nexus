@@ -1941,6 +1941,7 @@ function renderAppStructure() {
     { id: 'dashboard', label: 'Health Nexus', icon: 'fa-house-medical' },
     { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
     { id: 'medicos', label: 'Corpo Clínico', icon: 'fa-user-doctor' },
+    { id: 'consultorios', label: 'Consultórios', icon: 'fa-door-open' },
     { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-check' },
     { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
     { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
@@ -2151,6 +2152,7 @@ function switchTab(tabName) {
     dashboard:     'Health Nexus',
     pacientes:     'Pacientes',
     medicos:        'Corpo Clínico',
+    consultorios:  'Consultórios',
     agenda:        'Agenda Médica',
     atendimento:   'Atendimentos',
     estagnacao:    'Alertas & Estagnação',
@@ -2728,6 +2730,8 @@ async function renderTabContent() {
 
   } else if (state.activeTab === 'medicos') {
     renderDoctorsTab();
+  } else if (state.activeTab === 'consultorios') {
+    renderConsultingRoomsTab();
   } else if (state.activeTab === 'agenda') {
     renderAgendaTab();
   } else if (state.activeTab === 'atendimento') {
@@ -5615,6 +5619,175 @@ window.generateAppointmentPDF = function(id, patientName, doctorName, date, time
 };
 
 // --- ABA AGENDA MÉDICA ---
+// --- ABA CONSULTÓRIOS ---
+async function renderConsultingRoomsTab() {
+  const contentArea = document.getElementById('main-content');
+  contentArea.innerHTML = `
+    <div class="tab-section active">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;"><i class="fa-solid fa-door-open" style="color: var(--primary);"></i> Gestão de Consultórios</h2>
+        <button id="btn-new-room" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Novo Consultório</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>ID / Nome</th>
+              <th>Especialidade/Uso</th>
+              <th>Médico Atual</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="rooms-table-body">
+            <tr><td colspan="5" style="text-align: center;">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-new-room').addEventListener('click', () => openRoomModal());
+  await loadConsultingRooms();
+}
+
+async function loadConsultingRooms() {
+  const tbody = document.getElementById('rooms-table-body');
+  if (!tbody) return;
+
+  try {
+    const res = await fetch('/api/consulting-rooms');
+    const result = await res.json();
+    if (result.status === 'success') {
+      const rooms = result.data;
+      if (rooms.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum consultório cadastrado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rooms.map(r => `
+        <tr>
+          <td><strong>${r.name}</strong><br><small style="color: var(--text-muted);">${r.id}</small></td>
+          <td>${r.specialty || '-'}</td>
+          <td>${r.currentDoctor ? `<span class="badge" style="background: var(--info); color: white;">${r.currentDoctor}</span>` : '-'}</td>
+          <td><span class="badge" style="background: ${r.status === 'Disponível' ? 'var(--success)' : 'var(--warning)'}; color: white;">${r.status}</span></td>
+          <td>
+            <button class="btn btn-icon btn-outline" onclick="openRoomModal('${r.id}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-icon btn-danger" onclick="deleteRoom('${r.id}')" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+      
+      // Salva no state para uso no modal de edição
+      state.consultingRooms = rooms;
+    }
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro ao carregar consultórios.</td></tr>';
+  }
+}
+
+function openRoomModal(roomId = null) {
+  let room = { id: '', name: '', specialty: '', currentDoctor: '', status: 'Disponível' };
+  if (roomId && state.consultingRooms) {
+    room = state.consultingRooms.find(r => r.id === roomId) || room;
+  }
+
+  const isEdit = !!roomId;
+  const modalHtml = `
+    <div id="room-modal" class="modal">
+      <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+          <h3>${isEdit ? 'Editar Consultório' : 'Novo Consultório'}</h3>
+          <span class="close-modal" onclick="document.getElementById('room-modal').remove()"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nome / Número do Consultório *</label>
+            <input type="text" id="room-name" class="form-control" value="${room.name}" placeholder="Ex: Consultório 01" required>
+          </div>
+          <div class="form-group">
+            <label>Especialidade / Uso Sugerido</label>
+            <input type="text" id="room-specialty" class="form-control" value="${room.specialty || ''}" placeholder="Ex: Clínica Geral">
+          </div>
+          ${isEdit ? `
+          <div class="form-group">
+            <label>Médico Atual (Opcional)</label>
+            <input type="text" id="room-doctor" class="form-control" value="${room.currentDoctor || ''}" placeholder="Deixe em branco se vazio">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="room-status" class="form-control">
+              <option value="Disponível" ${room.status === 'Disponível' ? 'selected' : ''}>Disponível</option>
+              <option value="Em Uso" ${room.status === 'Em Uso' ? 'selected' : ''}>Em Uso</option>
+              <option value="Manutenção" ${room.status === 'Manutenção' ? 'selected' : ''}>Manutenção</option>
+            </select>
+          </div>
+          ` : ''}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="document.getElementById('room-modal').remove()">Cancelar</button>
+          <button class="btn btn-primary" onclick="saveRoom('${room.id}')">Salvar Consultório</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+async function saveRoom(roomId) {
+  const name = document.getElementById('room-name').value.trim();
+  const specialty = document.getElementById('room-specialty').value.trim();
+  
+  if (!name) return showCustomAlert({ title: 'Aviso', message: 'O nome do consultório é obrigatório.', type: 'warning' });
+
+  let payload = { name, specialty };
+  let url = '/api/consulting-rooms';
+  let method = 'POST';
+
+  if (roomId) {
+    url = \`/api/consulting-rooms/\${roomId}\`;
+    method = 'PUT';
+    payload.currentDoctor = document.getElementById('room-doctor').value.trim();
+    payload.status = document.getElementById('room-status').value;
+  }
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (res.ok) {
+      document.getElementById('room-modal').remove();
+      showCustomAlert({ title: 'Sucesso', message: 'Consultório salvo com sucesso.', type: 'success' });
+      loadConsultingRooms();
+    } else {
+      showCustomAlert({ title: 'Erro', message: 'Falha ao salvar consultório.', type: 'error' });
+    }
+  } catch (e) {
+    showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'error' });
+  }
+}
+
+async function deleteRoom(roomId) {
+  if (!confirm('Tem certeza que deseja excluir este consultório?')) return;
+  try {
+    const res = await fetch(\`/api/consulting-rooms/\${roomId}\`, { method: 'DELETE' });
+    if (res.ok) {
+      showCustomAlert({ title: 'Sucesso', message: 'Consultório removido.', type: 'success' });
+      loadConsultingRooms();
+    } else {
+      showCustomAlert({ title: 'Erro', message: 'Falha ao remover consultório.', type: 'error' });
+    }
+  } catch (e) {
+    showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'error' });
+  }
+}
+
 async function renderAgendaTab() {
   const contentArea = document.getElementById('main-content');
   const todayIso = new Date().toISOString().split('T')[0];
@@ -6159,6 +6332,14 @@ async function renderLeitosTab() {
         </div>
       </div>
 
+      <!-- Fila de Internação -->
+      <div id="internacao-queue-container" style="display: none; margin-bottom: 24px;">
+        <h3 style="font-size: 1.1rem; color: var(--danger); margin-bottom: 12px;"><i class="fa-solid fa-clock-rotate-left"></i> Fila de Internação (Aguardando Leito)</h3>
+        <div id="internacao-queue-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Items inserted via JS -->
+        </div>
+      </div>
+
       <!-- Grid Visual de Leitos -->
       <div id="beds-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary);">
@@ -6186,6 +6367,7 @@ async function renderLeitosTab() {
             <label>Selecione o Paciente *</label>
             <div class="custom-select-container" id="admit-patient-combo"></div>
             <input type="hidden" id="admit-patient-id" required>
+            <input type="hidden" id="admit-encounter-id">
           </div>
           <div class="modal-footer" style="padding-top: 16px;">
             <button type="button" class="btn btn-secondary" id="btn-cancel-admit-modal">Cancelar</button>
@@ -6201,6 +6383,35 @@ async function renderLeitosTab() {
   const loadBeds = async () => {
     try {
       const beds = await cachedApiGet('/api/beds', 'beds');
+
+      // Buscar Fila de Internação
+      try {
+        const encounters = await cachedApiGet('/api/encounters', 'encounters');
+        const queue = encounters.filter(e => e.status === 'Aguardando_Leito');
+        const queueContainer = document.getElementById('internacao-queue-container');
+        const queueList = document.getElementById('internacao-queue-list');
+        
+        if (queue.length > 0) {
+          queueContainer.style.display = 'block';
+          queueList.innerHTML = queue.map(q => `
+            <div style="background: var(--bg-secondary); border-left: 4px solid var(--danger); padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+              <div>
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 1.05rem;">${q.patientName}</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                  <i class="fa-solid fa-clock"></i> Aguardando Leito (${q.room || '-'})
+                </div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}')">
+                <i class="fa-solid fa-bed-pulse"></i> Alocar Leito
+              </button>
+            </div>
+          `).join('');
+        } else {
+          queueContainer.style.display = 'none';
+        }
+      } catch (err) {
+        console.error('Erro ao carregar fila de internação:', err);
+      }
 
       // Atualizar KPIs
       const vagos = beds.filter(b => b.status === 'Vago').length;
@@ -6341,9 +6552,11 @@ async function renderLeitosTab() {
     e.preventDefault();
     const bedId = document.getElementById('admit-bed-id').value;
     const pSelect = document.getElementById('admit-patient-id');
+    const encInput = document.getElementById('admit-encounter-id');
     const selectedOption = pSelect.options ? pSelect.options[pSelect.selectedIndex] : null;
     const patientId = pSelect.value;
     const patientName = selectedOption ? selectedOption.dataset.name : (pSelect.dataset.name || '');
+    const encounterId = encInput ? encInput.value : null;
 
     if (!bedId || !patientId) {
       alert('Selecione um leito e um paciente.');
@@ -6354,7 +6567,7 @@ async function renderLeitosTab() {
       const res = await apiFetch('/api/beds/admit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bedId, patientId, patientName })
+        body: JSON.stringify({ bedId, patientId, patientName, encounterId })
       });
       if (res.ok) {
         showToast('Paciente internado com sucesso!');
@@ -6374,15 +6587,20 @@ async function renderLeitosTab() {
   loadPatientsModal();
 }
 
-window.quickAdmitBed = (bedId) => {
+window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
   const modal = document.getElementById('modal-admit-bed');
   if (modal) {
     modal.style.display = 'flex';
     const bedSelect = document.getElementById('admit-bed-id');
-    if (bedSelect) bedSelect.value = bedId;
+    if (bedSelect && bedId) bedSelect.value = bedId;
+    
+    const encInput = document.getElementById('admit-encounter-id');
+    if (encInput) encInput.value = encounterId || '';
+
     const pSelect = document.getElementById('admit-patient-id');
     const pSearch = document.getElementById('admit-patient-search');
-    if (pSearch) pSearch.value = ''; // limpar campo de busca ao abrir
+    if (pSearch) pSearch.value = patientName || ''; // preenche se veio da fila
+
     if (pSelect) {
       apiFetch(`${API_URL}/patients`).then(r => r.json()).then(patients => {
         const list = Array.isArray(patients) ? patients : (patients.data || []);
@@ -6393,6 +6611,14 @@ window.quickAdmitBed = (bedId) => {
         const renderOptions = (items) => {
           pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
             items.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+          
+          // Auto-selecionar se patientName foi fornecido e encontrado
+          if (patientName) {
+            const found = items.find(p => (p.fullName || '').toLowerCase() === patientName.toLowerCase());
+            if (found) {
+              pSelect.value = found.id;
+            }
+          }
         };
 
         renderOptions(list);
@@ -7763,7 +7989,7 @@ async function loadAndRenderStagnationData() {
   }
 }
 
-window.openReassignModal = function(encounterId, patientName, currentRoom, currentStatus) {
+window.openReassignModal = async function(encounterId, patientName, currentRoom, currentStatus) {
   const existing = document.getElementById('reassign-modal');
   if (existing) existing.remove();
 
@@ -7772,6 +7998,22 @@ window.openReassignModal = function(encounterId, patientName, currentRoom, curre
   modal.className = 'modal-overlay';
   modal.style.display = 'flex';
   modal.style.zIndex = '99999';
+
+  // Fetch consulting rooms dynamically
+  let roomOptionsHtml = '<option value="Ala de Emergência - PS">Ala de Emergência - PS</option>';
+  try {
+    const res = await fetch('/api/consulting-rooms');
+    const result = await res.json();
+    if (result.status === 'success' && result.data.length > 0) {
+      roomOptionsHtml = result.data.map(r => {
+        const roomValue = `${r.name} ${r.currentDoctor ? `(${r.currentDoctor})` : ''}`.trim();
+        const selected = currentRoom && currentRoom.includes(r.name) ? 'selected' : '';
+        return `<option value="${roomValue}" ${selected}>${r.name} ${r.specialty ? ` - ${r.specialty}` : ''}</option>`;
+      }).join('') + '<option value="Ala de Emergência - PS">Ala de Emergência - PS</option><option value="Sala de Sutura / Curativos">Sala de Sutura / Curativos</option><option value="UTI/Internação">UTI/Internação (Leitos)</option>';
+    }
+  } catch (err) {
+    console.error('Erro ao carregar consultórios no modal:', err);
+  }
 
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 480px; width: 90%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); padding: 24px;">
@@ -7790,11 +8032,7 @@ window.openReassignModal = function(encounterId, patientName, currentRoom, curre
         <div>
           <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: block;">Novo Consultório / Ala:</label>
           <select id="reassign-room" class="form-input" style="width: 100%;">
-            <option value="Consultório 01 (Dr. João)" ${currentRoom.includes('01') ? 'selected' : ''}>Consultório 01 (Dr. João - Clinica)</option>
-            <option value="Consultório 02 (Dra. Maria)" ${currentRoom.includes('02') ? 'selected' : ''}>Consultório 02 (Dra. Maria - Pediatria)</option>
-            <option value="Consultório 03 (Dr. Carlos)" ${currentRoom.includes('03') ? 'selected' : ''}>Consultório 03 (Dr. Carlos - Ortopedia)</option>
-            <option value="Ala de Emergência - PS" ${currentRoom.includes('PS') ? 'selected' : ''}>Ala de Emergência - PS</option>
-            <option value="Sala de Sutura / Curativos">Sala de Sutura / Curativos</option>
+            ${roomOptionsHtml}
           </select>
         </div>
 
@@ -7821,6 +8059,19 @@ window.openReassignModal = function(encounterId, patientName, currentRoom, curre
   const closeModal = () => modal.remove();
   document.getElementById('close-reassign-modal').addEventListener('click', closeModal);
   document.getElementById('btn-cancel-reassign').addEventListener('click', closeModal);
+  
+  const btnInternacao = document.getElementById('btn-internacao');
+  if (btnInternacao) {
+    btnInternacao.addEventListener('click', async () => {
+      document.getElementById('reassign-room').value = 'UTI/Internação';
+      document.getElementById('reassign-status').value = 'Aguardando_Leito';
+      // Option to submit immediately or wait for user to click Confirm:
+      // Let's submit immediately
+      if (confirm('Deseja realmente solicitar internação para este paciente?')) {
+        document.getElementById('reassign-form').dispatchEvent(new Event('submit', { cancelable: true }));
+      }
+    });
+  }
 
   document.getElementById('reassign-form').addEventListener('submit', async (e) => {
     e.preventDefault();

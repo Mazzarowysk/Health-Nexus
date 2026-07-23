@@ -1,0 +1,420 @@
+import fs from 'fs';
+import { execSync } from 'child_process';
+import path from 'path';
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Manual do Usuário - Health Nexus</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+  
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1e293b;
+    background: #ffffff;
+    line-height: 1.6;
+    font-size: 13px;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Capa */
+  .cover {
+    height: 900px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
+    color: #ffffff;
+    padding: 40px;
+    box-sizing: border-box;
+    page-break-after: always;
+    border-radius: 16px;
+  }
+
+  .cover-badge {
+    background: rgba(99, 102, 241, 0.25);
+    border: 1px solid #818cf8;
+    color: #c7d2fe;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 30px;
+  }
+
+  .cover h1 {
+    font-size: 46px;
+    font-weight: 800;
+    margin: 0 0 16px 0;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+  }
+
+  .cover h2 {
+    font-size: 20px;
+    font-weight: 400;
+    color: #a5b4fc;
+    margin: 0 0 50px 0;
+    max-width: 550px;
+  }
+
+  .cover-footer {
+    margin-top: 80px;
+    font-size: 13px;
+    color: #94a3b8;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 24px;
+    width: 85%;
+  }
+
+  /* Seções */
+  .section {
+    margin-bottom: 25px;
+  }
+
+  h1.section-title {
+    font-size: 20px;
+    color: #1e1b4b;
+    border-bottom: 2px solid #6366f1;
+    padding-bottom: 6px;
+    margin-top: 25px;
+    margin-bottom: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h2.subsection-title {
+    font-size: 15px;
+    color: #334155;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  p {
+    margin-bottom: 10px;
+    color: #334155;
+    text-align: justify;
+  }
+
+  /* Cards e Modais */
+  .card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #6366f1;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+  }
+
+  .card-title {
+    font-weight: 700;
+    color: #1e1b4b;
+    margin-bottom: 4px;
+  }
+
+  .tip-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #22c55e;
+    color: #166534;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+  }
+
+  .warning-box {
+    background: #fffbeb;
+    border: 1px solid #fef08a;
+    border-left: 4px solid #f59e0b;
+    color: #854d0e;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+  }
+
+  /* Tabelas */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 12px;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  th {
+    background: #3730a3;
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) {
+    background: #f8fafc;
+  }
+
+  /* Badges de Triagem */
+  .badge-red { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-orange { background: #f97316; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-yellow { background: #eab308; color: black; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-green { background: #22c55e; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-blue { background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+
+  ol, ul {
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+
+  li {
+    margin-bottom: 6px;
+  }
+
+  .page-break {
+    page-break-after: always;
+  }
+</style>
+</head>
+<body>
+
+<!-- CAPA -->
+<div class="cover">
+  <div class="cover-badge">Manual de Operação do Sistema</div>
+  <h1>HEALTH NEXUS</h1>
+  <h2>Guia Oficial do Usuário: Prontuário, Admissão de Pacientes, Triagem Manchester e Sincronização Turso Nuvem</h2>
+  
+  <div class="cover-footer">
+    <p style="text-align: center; margin: 0; color: #cbd5e1; font-weight: 600;">Versão do Sistema: 1.0.1 | Data de Emissão: Julho / 2026</p>
+    <p style="text-align: center; margin-top: 6px; color: #94a3b8; font-size: 11px;">Desenvolvido por @mazzarowysk & @coltr1. Todos os direitos reservados.</p>
+  </div>
+</div>
+
+<!-- SUMÁRIO -->
+<div class="section">
+  <h1 class="section-title">📌 Sumário Geral</h1>
+  <ol>
+    <li><b>Visão Geral do Sistema Health Nexus</b></li>
+    <li><b>Acesso, Autenticação e Perfis de Usuário (RBAC)</b></li>
+    <li><b>Admissão e Cadastro Completo de Pacientes</b></li>
+    <li><b>Busca Automática de CEP com Tripla Redundância</b></li>
+    <li><b>Agenda de Consultas e Mapa de Leitos Hospitalares</b></li>
+    <li><b>Triagem de Urgência (Protocolo Manchester)</b></li>
+    <li><b>Prontuário Eletrônico do Paciente (PEP SOAPE) & Prescrições</b></li>
+    <li><b>Sincronização Nuvem (Turso Cloud) e Encerramento do Servidor</b></li>
+    <li><b>Resolução de Dúvidas Frequentes (FAQ)</b></li>
+  </ol>
+</div>
+
+<!-- MÓDULO 1 -->
+<div class="section">
+  <h1 class="section-title">🔐 1. Acesso, Autenticação e Perfis de Usuário</h1>
+  <p>O <b>Health Nexus</b> possui um sistema rigoroso de Controle de Acesso Baseado em Perfis (RBAC), garantindo que cada profissional acesse apenas as telas pertinentes à sua função clínica ou administrativa.</p>
+  
+  <h2 class="subsection-title">1.1 Níveis de Permissão e Cargos</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Cargo / Perfil</th>
+        <th>Descrição das Permissões</th>
+        <th>Nível de Acesso</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>👑 Master</b></td>
+        <td>Acesso irrestrito a todo o sistema, auditorias, nuvem e gerenciador de usuários.</td>
+        <td>Total / Super-admin</td>
+      </tr>
+      <tr>
+        <td><b>🛠️ Administrador</b></td>
+        <td>Gestão de leitos, tabelas de sistema, sincronização Turso e cadastros gerais.</td>
+        <td>Administrativo Geral</td>
+      </tr>
+      <tr>
+        <td><b>🩺 Médico</b></td>
+        <td>Acesso ao Prontuário (PEP), evolução SOAPE, prescrição médica e consultas.</td>
+        <td>Clínico Geral / Especialista</td>
+      </tr>
+      <tr>
+        <td><b>🩺 Enfermeiro</b></td>
+        <td>Classificação de risco Manchester, triagem, mapa de leitos e sinais vitais.</td>
+        <td>Assistencial / Triagem</td>
+      </tr>
+      <tr>
+        <td><b>📋 Recepcionista</b></td>
+        <td>Admissão de pacientes, busca de CEP, agendamento de consultas e chamadas.</td>
+        <td>Recepção / Atendimento</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box">
+    <b>Dica de Segurança:</b> Senhas são armazenadas com criptografia forte via <code>bcryptjs</code>. Para redefinir uma senha esquecida, um usuário com perfil <b>Master</b> ou <b>Administrador</b> pode acessar o menu <b>Usuários</b> na aba Configurações.
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- MÓDULO 2 -->
+<div class="section">
+  <h1 class="section-title">🏥 2. Admissão de Pacientes e Busca de CEP</h1>
+  <p>Na aba <b>Pacientes</b>, é possível registrar novos atendidos ou alterar dados cadastrais existentes.</p>
+  
+  <h2 class="subsection-title">2.1 Formulário de Admissão Completo</h2>
+  <ul>
+    <li><b>Nome Completo*:</b> Preenchimento obrigatório.</li>
+    <li><b>CPF*:</b> Validação automática contra duplicidades.</li>
+    <li><b>Data de Nascimento*:</b> O sistema calcula automaticamente a idade do paciente.</li>
+    <li><b>CEP (Busca Auto):</b> Campo inteligente integrado às APIs nacionais de endereço.</li>
+    <li><b>Endereço (Rua/Av):</b> Preenchido automaticamente via CEP ou digitado manualmente.</li>
+    <li><b>Número / Compl.:</b> Campo dedicado para número residencial e complemento (Ex: <code>120 / Ap 42</code>).</li>
+    <li><b>Bairro:</b> Preenchido automaticamente pelo CEP ou informado manualmente.</li>
+    <li><b>Cidade / UF:</b> Localidade e Estado do paciente (Ex: <code>Osvaldo Cruz - SP</code>).</li>
+    <li><b>Telefones (Fixo e Celular):</b> Para contato e envio de avisos.</li>
+    <li><b>Valor da Consulta / Mensalidade:</b> Campo financeiro para controle de convênio ou particular.</li>
+  </ul>
+
+  <div class="card">
+    <div class="card-title">🔍 Como Funciona a Busca Automática por CEP (Tripla Redundância)</div>
+    <ol>
+      <li>Ao digitar os 8 números do CEP (Ex: <code>17702-342</code>), o sistema consulta a <b>ViaCEP</b> diretamente.</li>
+      <li>Se houver indisponibilidade, o sistema aciona automaticamente a <b>BrasilAPI</b>.</li>
+      <li>Caso ambas falhem, o servidor backend consulta o serviço local de contingência.</li>
+      <li>Você também pode clicar no botão com ícone de <b>Lupa (🔍)</b> a qualquer momento para forçar a busca.</li>
+      <li>Assim que o endereço é localizado, o cursor pula automaticamente para o campo <b>Número / Compl.</b>.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- MÓDULO 3 -->
+<div class="section">
+  <h1 class="section-title">📅 3. Agenda de Consultas e Mapa de Leitos</h1>
+  
+  <h2 class="subsection-title">3.1 Agendamento de Consultas</h2>
+  <p>Na aba <b>Agenda</b>, recepção e médicos acompanham a fila do dia. É possível agendar por data, horário, médico e especialidade. Os status mudam dinamicamente:</p>
+  <ul>
+    <li><b>Agendado:</b> Paciente aguardando data/horário.</li>
+    <li><b>Em Atendimento:</b> Paciente em consulta com o profissional.</li>
+    <li><b>Realizado:</b> Consulta finalizada e gravada no histórico.</li>
+    <li><b>Cancelado:</b> Consulta desmarcada.</li>
+  </ul>
+
+  <h2 class="subsection-title">3.2 Mapa de Leitos Hospitalares</h2>
+  <p>Na aba <b>Leitos</b>, a enfermagem visualiza todos os leitos divididos por setor (UTI, Enfermaria, Emergência, Pós-Operatório). Cada card exibe se o leito está <b>Vago</b>, <b>Ocupado</b> (exibindo nome do paciente e data de internação) ou em <b>Manutenção</b>.</p>
+</div>
+
+<div class="page-break"></div>
+
+<!-- MÓDULO 4 -->
+<div class="section">
+  <h1 class="section-title">🚑 4. Triagem Manchester e Prontuário Eletrônico (PEP)</h1>
+  
+  <h2 class="subsection-title">4.1 Classificação de Risco (Protocolo Manchester)</h2>
+  <p>A triagem atribui cores e prioridades de atendimento com base na gravidade do paciente:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Nível / Cor</th>
+        <th>Classificação</th>
+        <th>Tempo Máximo Alvo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge-red">Vermelho</span></td>
+        <td><b>Emergência</b> (Risco iminente de morte)</td>
+        <td>Atendimento Imediato (0 min)</td>
+      </tr>
+      <tr>
+        <td><span class="badge-orange">Laranja</span></td>
+        <td><b>Muito Urgente</b> (Risco alto)</td>
+        <td>Até 10 minutos</td>
+      </tr>
+      <tr>
+        <td><span class="badge-yellow">Amarelo</span></td>
+        <td><b>Urgente</b> (Gravidade moderada)</td>
+        <td>Até 60 minutos</td>
+      </tr>
+      <tr>
+        <td><span class="badge-green">Verde</span></td>
+        <td><b>Pouco Urgente</b> (Baixa gravidade)</td>
+        <td>Até 120 minutos</td>
+      </tr>
+      <tr>
+        <td><span class="badge-blue">Azul</span></td>
+        <td><b>Não Urgente</b> (Eletivo)</td>
+        <td>Até 240 minutos</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="subsection-title">4.2 Prontuário Eletrônico (PEP) e Modelo SOAPE</h2>
+  <p>No atendimento médico, o profissional registra as impressões clínicas organizadas no padrão recomendado pelo CFM:</p>
+  <ul>
+    <li><b>S (Subjetivo):</b> Relato do paciente e queixas principais.</li>
+    <li><b>O (Objetivo):</b> Exame físico, dados vitais (pressão, temperatura, saturação).</li>
+    <li><b>A (Avaliação):</b> Hipótese diagnóstica ou CID-10.</li>
+    <li><b>P (Plano):</b> Conduta médica, exames solicitados e orientações.</li>
+    <li><b>E (Evolução / Prescrição):</b> Medicamentos receitados e dosagem.</li>
+  </ul>
+</div>
+
+<!-- MÓDULO 5 -->
+<div class="section">
+  <h1 class="section-title">☁️ 5. Sincronização Turso Cloud e Encerramento Seguro</h1>
+  
+  <h2 class="subsection-title">5.1 Sincronização em Nuvem (Turso Cloud)</h2>
+  <p>O Health Nexus possui um mecanismo de banco de dados híbrido: opera super rápido localmente com <b>SQLite</b> e espelha os dados na nuvem <b>Turso Cloud</b>.</p>
+  
+  <div class="card">
+    <div class="card-title">🔄 Recursos de Sincronização</div>
+    <ul>
+      <li><b>Auto-Sync Regressivo:</b> No topo superior direito da tela, um cronômetro realiza o backup para a nuvem a cada 15 minutos.</li>
+      <li><b>Sincronização Manual:</b> Na aba <i>Configurações</i>, utilize o botão <b>"Sincronizar Agora com Turso"</b> (Enviar) ou <b>"Baixar Dados do Turso"</b> (Receber).</li>
+      <li><b>Cooldown de Segurança:</b> O botão possui uma trava temporária de 60 segundos após o acionamento para evitar requisições redundantes.</li>
+    </ul>
+  </div>
+
+  <h2 class="subsection-title">5.2 Auto-Shutdown Inteligente ao Fechar o Navegador</h2>
+  <div class="warning-box">
+    <b>Encerramento do Servidor Local:</b> Ao fechar todas as abas do navegador, o servidor Node.js é encerrado automaticamente para economizar memória do computador. O sistema possui uma margem de tolerância de <b>1.5 segundos</b> para permitir reloads rápidos (F5) sem desligar a aplicação.
+  </div>
+</div>
+
+</body>
+</html>
+`;
+
+const htmlPath = path.resolve('c:/Health Nexus/manual_do_usuario.html');
+const pdfPath = path.resolve('c:/Health Nexus/Manual_do_Usuario_Health_Nexus.pdf');
+
+fs.writeFileSync(htmlPath, htmlContent, 'utf-8');
+console.log('HTML gerado com sucesso em:', htmlPath);
+
+const edgePath = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+
+try {
+  const cmd = `"${edgePath}" --headless --disable-gpu --no-pdf-header-footer --print-to-pdf="${pdfPath}" "file:///${htmlPath.replace(/\\/g, '/')}"`;
+  console.log('Executando conversão para PDF...');
+  execSync(cmd);
+  console.log('PDF gerado com sucesso em:', pdfPath);
+} catch (err) {
+  console.error('Erro ao gerar PDF via Edge:', err);
+}
