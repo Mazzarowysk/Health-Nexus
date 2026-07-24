@@ -1430,11 +1430,15 @@ body {
   animation: rowPulseGlow 2.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 }
 
-/* --- TILT 3D PARALLAX NOS CARDS DE GRÁFICO --- */
+/* --- HOVER SUAVE E ELEGANTE NOS CARDS --- */
 .tilt-card-3d {
-  transition: transform 0.15s ease-out, border-color 0.3s ease, box-shadow 0.3s ease;
-  transform-style: preserve-3d;
-  perspective: 1000px;
+  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tilt-card-3d:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 242, 254, 0.35);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 242, 254, 0.15);
 }
 
 /* --- SELETOR DE MODO DE GRÁFICO --- */

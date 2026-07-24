@@ -4965,58 +4965,57 @@ function renderReportsTab(contentArea) {
     const valuesR$ = data.map(item => item.totalValue);
     const colors = data.map(item => item.color);
 
-    // 1. Gráfico de Pizza ("Distribuição por Status") com Tooltip Personalizada
-    finPieChartInstance = new Chart(pieCtx, {
-      type: 'pie',
+    const ChartClass = window.Chart || (typeof Chart !== 'undefined' ? Chart : null);
+    if (!ChartClass) return;
+
+    // 1. Gráfico de Rosca Neon Glass ("Distribuição por Status")
+    finPieChartInstance = new ChartClass(pieCtx.getContext('2d'), {
+      type: 'doughnut',
       data: {
         labels: labels,
         datasets: [{
           data: quantities,
           backgroundColor: colors,
-          borderWidth: 2,
-          borderColor: '#1a1d24'
+          borderWidth: 3,
+          borderColor: 'rgba(11, 8, 22, 0.95)',
+          borderRadius: 6,
+          spacing: 3,
+          hoverOffset: 10
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: '74%',
+        animation: { animateScale: true, animateRotate: true, duration: 1100 },
         plugins: {
           legend: {
             position: 'bottom',
             labels: {
-              color: '#a0aec0',
-              font: { family: 'Outfit', size: 11 },
+              color: '#cbd5e1',
+              font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' },
               usePointStyle: true,
               padding: 10
             }
           },
           tooltip: {
-            backgroundColor: '#13151b',
-            titleColor: '#ffffff',
-            bodyColor: '#e2e8f0',
-            borderColor: '#2d3748',
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#00f2fe',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(0, 242, 254, 0.35)',
             borderWidth: 1,
             padding: 12,
-            displayColors: true,
             callbacks: {
-              title: function(items) {
-                return items[0].label;
-              },
               label: function(context) {
                 const idx = context.dataIndex;
                 const count = context.parsed;
                 const valor = valuesR$[idx] || 0;
                 const totalQtd = quantities.reduce((a, b) => a + b, 0);
                 const pct = totalQtd > 0 ? ((count / totalQtd) * 100).toFixed(1) : '0.0';
-
-                const valorFormatado = new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(valor);
-
+                const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
                 return [
-                  `Quantidade: ${count} parcelas (${pct}%)`,
-                  `Valor Total: ${valorFormatado}`
+                  ` Quantidade: ${count} parcelas (${pct}%)`,
+                  ` Valor Total: ${valorFormatado}`
                 ];
               }
             }
@@ -5025,45 +5024,60 @@ function renderReportsTab(contentArea) {
       }
     });
 
-    // 2. Gráfico de Barras ("Valor por Status (R$)")
-    finBarChartInstance = new Chart(barCtx, {
+    // 2. Gráfico de Barras Neon Glass ("Valor por Status (R$)")
+    const c2dBar = barCtx.getContext('2d');
+    const barGradients = colors.map(c => {
+      const grad = c2dBar.createLinearGradient(0, 0, 0, 200);
+      grad.addColorStop(0, c);
+      grad.addColorStop(1, 'rgba(11, 8, 22, 0.4)');
+      return grad;
+    });
+
+    finBarChartInstance = new ChartClass(c2dBar, {
       type: 'bar',
       data: {
         labels: labels,
         datasets: [{
           label: 'Valor (R$)',
           data: valuesR$,
-          backgroundColor: colors,
-          borderRadius: 4
+          backgroundColor: barGradients,
+          borderColor: colors,
+          borderWidth: 1.5,
+          borderRadius: 8,
+          borderSkipped: false
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: { duration: 1100, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#00f2fe',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(0, 242, 254, 0.35)',
+            borderWidth: 1,
+            padding: 12,
             callbacks: {
               label: function(context) {
                 const valor = context.parsed.y;
-                return 'Total: ' + new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(valor);
+                return ' Total: ' + new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
               }
             }
           }
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255,255,255,0.03)' },
-            ticks: { color: '#a0aec0', font: { family: 'Inter', size: 10 } }
+            grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' } }
           },
           y: {
-            grid: { color: 'rgba(255,255,255,0.05)' },
+            grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
             ticks: {
-              color: '#a0aec0',
-              font: { family: 'Inter', size: 10 },
+              color: '#94a3b8',
+              font: { family: 'Plus Jakarta Sans', size: 10 },
               callback: function(val) {
                 return 'R$ ' + val.toLocaleString('pt-BR');
               }
@@ -5108,13 +5122,13 @@ function renderReportsTab(contentArea) {
       const totalFormatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVal);
 
       const finData = [
-        { label: 'Pagas', count: pagasCount, totalValue: pagasVal, color: '#00c853' },
-        { label: 'A Vencer', count: aVencerCount, totalValue: aVencerVal, color: '#2979ff' },
-        { label: 'Vencidas', count: vencidasCount, totalValue: vencidasVal, color: '#ff1744' },
-        { label: 'Bonificadas', count: bonificadasCount, totalValue: bonificadasVal, color: '#ffc400' },
-        { label: 'Suspensas', count: suspensasCount, totalValue: suspensasVal, color: '#8d8d8d' },
-        { label: 'Canceladas', count: canceladasCount, totalValue: canceladasVal, color: '#ff9100' },
-        { label: 'Excluídas', count: excluidasCount, totalValue: excluidasVal, color: '#d50000' }
+        { label: 'Pagas', count: pagasCount, totalValue: pagasVal, color: '#34d399' },
+        { label: 'A Vencer', count: aVencerCount, totalValue: aVencerVal, color: '#00f2fe' },
+        { label: 'Vencidas', count: vencidasCount, totalValue: vencidasVal, color: '#f43f5e' },
+        { label: 'Bonificadas', count: bonificadasCount, totalValue: bonificadasVal, color: '#fbbf24' },
+        { label: 'Suspensas', count: suspensasCount, totalValue: suspensasVal, color: '#a855f7' },
+        { label: 'Canceladas', count: canceladasCount, totalValue: canceladasVal, color: '#f97316' },
+        { label: 'Excluídas', count: excluidasCount, totalValue: excluidasVal, color: '#dc2626' }
       ];
 
       previewCard.innerHTML = `
@@ -5130,13 +5144,13 @@ function renderReportsTab(contentArea) {
         <!-- Badges KPI de Status -->
         <div class="financial-kpi-bar" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
           <div class="financial-badges-group" style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.85rem;">
-            <span class="fin-kpi-badge" style="border-left: 3px solid #00c853; padding: 4px 10px; background: rgba(0,200,83,0.08); border-radius: 4px;">• Pagas: <strong>${pagasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #2979ff; padding: 4px 10px; background: rgba(41,121,255,0.08); border-radius: 4px;">• A Vencer: <strong>${aVencerCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #ff1744; padding: 4px 10px; background: rgba(255,23,68,0.08); border-radius: 4px;">• Vencidas: <strong>${vencidasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #ffc400; padding: 4px 10px; background: rgba(255,196,0,0.08); border-radius: 4px;">• Bonificadas: <strong>${bonificadasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #8d8d8d; padding: 4px 10px; background: rgba(141,141,141,0.08); border-radius: 4px;">• Suspensas: <strong>${suspensasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #ff9100; padding: 4px 10px; background: rgba(255,145,0,0.08); border-radius: 4px;">• Canceladas: <strong>${canceladasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #d50000; padding: 4px 10px; background: rgba(213,0,0,0.08); border-radius: 4px;">• Excluídas: <strong>${excluidasCount}</strong></span>
+            <span class="fin-kpi-badge" style="border-left: 3px solid #34d399; padding: 4px 10px; background: rgba(52,211,153,0.1); border-radius: 4px; color: var(--text-primary);">• Pagas: <strong>${pagasCount}</strong></span>
+            <span class="fin-kpi-badge" style="border-left: 3px solid #00f2fe; padding: 4px 10px; background: rgba(0,242,254,0.1); border-radius: 4px; color: var(--text-primary);">• A Vencer: <strong>${aVencerCount}</strong></span>
+            <span class="fin-kpi-badge" style="border-left: 3px solid #f43f5e; padding: 4px 10px; background: rgba(244,63,94,0.1); border-radius: 4px; color: var(--text-primary);">• Vencidas: <strong>${vencidasCount}</strong></span>
+            <span class="fin-kpi-badge" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary);">• Bonificadas: <strong>${bonificadasCount}</strong></span>
+            <span class="fin-kpi-badge" style="border-left: 3px solid #a855f7; padding: 4px 10px; background: rgba(168,85,247,0.1); border-radius: 4px; color: var(--text-primary);">• Suspensas: <strong>${suspensasCount}</strong></span>
+            <span class="fin-kpi-badge" style="border-left: 3px solid #f97316; padding: 4px 10px; background: rgba(249,115,22,0.1); border-radius: 4px; color: var(--text-primary);">• Canceladas: <strong>${canceladasCount}</strong></span>
+            <span class="fin-kpi-badge" style="border-left: 3px solid #dc2626; padding: 4px 10px; background: rgba(220,38,38,0.1); border-radius: 4px; color: var(--text-primary);">• Excluídas: <strong>${excluidasCount}</strong></span>
           </div>
           <div style="font-family: 'Outfit'; text-align: right;">
             <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">SUBTOTAL CLIENTE</span>
@@ -5598,19 +5612,6 @@ function renderReportsTab(contentArea) {
       countUp(document.getElementById('kpi-doc-total'), totalAppts);
       countUp(document.getElementById('kpi-doc-progress'), totalInProgress);
       countUp(document.getElementById('kpi-doc-done'), totalDone);
-
-      // Efeito 3D Parallax Tilt ao Mover o Cursor do Mouse
-      document.querySelectorAll('.tilt-card-3d').forEach(card => {
-        card.addEventListener('mousemove', (e) => {
-          const rect = card.getBoundingClientRect();
-          const x = e.clientX - rect.left - rect.width / 2;
-          const y = e.clientY - rect.top - rect.height / 2;
-          card.style.transform = `perspective(1000px) rotateX(${(-y / rect.height * 8).toFixed(2)}deg) rotateY(${(x / rect.width * 8).toFixed(2)}deg) translateY(-4px)`;
-        });
-        card.addEventListener('mouseleave', () => {
-          card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
-        });
-      });
 
       let currentChartMode = 'bar';
 
