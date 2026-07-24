@@ -5582,6 +5582,197 @@ function renderReportsTab(contentArea) {
 
     setupCheckboxEvents();
     updatePreviewStatusText();
+
+    // ─── RESUMO + GRÁFICOS DINÂMICOS POR ABA ────────────────────────────────
+    const summaryContainerId = 'report-summary-charts';
+    let summaryContainer = document.getElementById(summaryContainerId);
+    if (!summaryContainer) {
+      summaryContainer = document.createElement('div');
+      summaryContainer.id = summaryContainerId;
+      summaryContainer.style.marginTop = '20px';
+      const previewCard = document.querySelector('.preview-card');
+      if (previewCard) previewCard.appendChild(summaryContainer);
+    }
+    summaryContainer.innerHTML = '';
+
+    const ChartClass = window.Chart || (typeof Chart !== 'undefined' ? Chart : null);
+
+    if (activeTab === 'patients' && currentFilteredList.length > 0) {
+      // ── KPIs
+      const totalBilling = currentFilteredList.reduce((acc, p) => {
+        const v = parseFloat((p.billingValue || '').replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+        return acc + v;
+      }, 0);
+      const avgBilling = totalBilling / currentFilteredList.length;
+      const cityCounts = {};
+      currentFilteredList.forEach(p => { cityCounts[p.city || 'N/D'] = (cityCounts[p.city || 'N/D'] || 0) + 1; });
+      const topCity = Object.entries(cityCounts).sort((a,b) => b[1]-a[1])[0];
+      const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+      summaryContainer.innerHTML = `
+        <!-- KPI Cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:18px;">
+          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.07);text-align:center;">
+            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#818cf8;">${currentFilteredList.length}</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;">Pacientes</div>
+          </div>
+          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(52,211,153,0.3);background:rgba(52,211,153,0.07);text-align:center;">
+            <div style="font-size:1.4rem;font-weight:800;font-family:'Outfit',sans-serif;color:#34d399;">${fmt(totalBilling)}</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;">Faturamento Total</div>
+          </div>
+          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.07);text-align:center;">
+            <div style="font-size:1.4rem;font-weight:800;font-family:'Outfit',sans-serif;color:#fbbf24;">${fmt(avgBilling)}</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;">Ticket Médio</div>
+          </div>
+          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(0,242,254,0.3);background:rgba(0,242,254,0.07);text-align:center;">
+            <div style="font-size:1.2rem;font-weight:800;font-family:'Outfit',sans-serif;color:#00f2fe;">${topCity ? topCity[0] : '-'}</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;">Cidade Predominante</div>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="glass-card" style="padding:18px;border-radius:14px;border:1px solid var(--border-color);">
+            <h4 style="margin:0 0 14px;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+              <i class="fa-solid fa-city" style="color:#818cf8;"></i> Pacientes por Cidade
+            </h4>
+            <div style="position:relative;height:210px;"><canvas id="chart-patients-city"></canvas></div>
+          </div>
+          <div class="glass-card" style="padding:18px;border-radius:14px;border:1px solid var(--border-color);">
+            <h4 style="margin:0 0 14px;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+              <i class="fa-solid fa-sack-dollar" style="color:#34d399;"></i> Faturamento por Cidade (R$)
+            </h4>
+            <div style="position:relative;height:210px;"><canvas id="chart-patients-billing"></canvas></div>
+          </div>
+        </div>
+      `;
+
+      if (ChartClass) {
+        setTimeout(() => {
+          const cityLabels = Object.keys(cityCounts).slice(0, 8);
+          const cityVals = cityLabels.map(c => cityCounts[c]);
+          const palette = ['#818cf8','#34d399','#fbbf24','#00f2fe','#f472b6','#a78bfa','#6ee7b7','#fcd34d'];
+
+          const ctxCity = document.getElementById('chart-patients-city');
+          if (ctxCity) new ChartClass(ctxCity.getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: cityLabels, datasets: [{ data: cityVals, backgroundColor: palette, borderWidth: 2, borderColor: 'rgba(0,0,0,0.2)' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 12, padding: 10 } } } }
+          });
+
+          const billingByCity = {};
+          currentFilteredList.forEach(p => {
+            const city = p.city || 'N/D';
+            const v = parseFloat((p.billingValue || '').replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+            billingByCity[city] = (billingByCity[city] || 0) + v;
+          });
+          const billingLabels = Object.keys(billingByCity).slice(0, 8);
+          const billingVals = billingLabels.map(c => billingByCity[c]);
+
+          const ctxBilling = document.getElementById('chart-patients-billing');
+          if (ctxBilling) new ChartClass(ctxBilling.getContext('2d'), {
+            type: 'bar',
+            data: { labels: billingLabels, datasets: [{ label: 'R$', data: billingVals, backgroundColor: palette.map(c => c + '99'), borderColor: palette, borderWidth: 1.5, borderRadius: 6 }] },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => 'R$ ' + v.toLocaleString('pt-BR') }, grid: { color: 'rgba(255,255,255,0.04)' } }
+              }
+            }
+          });
+        }, 60);
+      }
+
+    } else if (activeTab === 'encounters' && currentFilteredList.length > 0) {
+      // ── KPIs Atendimentos
+      const total = currentFilteredList.length;
+      const urgencias = currentFilteredList.filter(e => e.type === 'Urgencia').length;
+      const ambulatorio = total - urgencias;
+      const finalizados = currentFilteredList.filter(e => e.status === 'Finalizado').length;
+      const pctFin = total > 0 ? Math.round((finalizados / total) * 100) : 0;
+
+      const manchesterCounts = {};
+      currentFilteredList.forEach(e => { const k = e.manchesterColor || 'Não Classificado'; manchesterCounts[k] = (manchesterCounts[k] || 0) + 1; });
+
+      const statusCounts = {};
+      const statusLabels = { Aguardando_Triagem: 'Ag. Triagem', Aguardando_Atendimento: 'Ag. Consulta', Em_Atendimento: 'Em Consulta', Finalizado: 'Finalizado' };
+      currentFilteredList.forEach(e => { const k = statusLabels[e.status] || e.status; statusCounts[k] = (statusCounts[k] || 0) + 1; });
+
+      summaryContainer.innerHTML = `
+        <!-- KPI Cards Atendimentos -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:18px;">
+          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(236,72,153,0.3);background:rgba(236,72,153,0.07);text-align:center;">
+            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#ec4899;">${total}</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;">Total Atendimentos</div>
+          </div>
+          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(244,63,94,0.3);background:rgba(244,63,94,0.07);text-align:center;">
+            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#f43f5e;">${urgencias}</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;">Urgências</div>
+          </div>
+          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.07);text-align:center;">
+            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#818cf8;">${ambulatorio}</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;">Ambulatório</div>
+          </div>
+          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(52,211,153,0.3);background:rgba(52,211,153,0.07);text-align:center;">
+            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#34d399;">${pctFin}%</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;">Taxa Conclusão</div>
+          </div>
+        </div>
+
+        <!-- Gráficos Atendimentos -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="glass-card" style="padding:18px;border-radius:14px;border:1px solid var(--border-color);">
+            <h4 style="margin:0 0 14px;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+              <i class="fa-solid fa-shield-halved" style="color:#ec4899;"></i> Classificação Manchester
+            </h4>
+            <div style="position:relative;height:210px;"><canvas id="chart-enc-manchester"></canvas></div>
+          </div>
+          <div class="glass-card" style="padding:18px;border-radius:14px;border:1px solid var(--border-color);">
+            <h4 style="margin:0 0 14px;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+              <i class="fa-solid fa-chart-bar" style="color:#818cf8;"></i> Situação dos Atendimentos
+            </h4>
+            <div style="position:relative;height:210px;"><canvas id="chart-enc-status"></canvas></div>
+          </div>
+        </div>
+      `;
+
+      if (ChartClass) {
+        setTimeout(() => {
+          const manchColors = { Vermelho: '#ef4444', Laranja: '#f97316', Amarelo: '#eab308', Verde: '#22c55e', Azul: '#3b82f6', 'Não Classificado': '#64748b' };
+          const mLabels = Object.keys(manchesterCounts);
+          const mVals = mLabels.map(k => manchesterCounts[k]);
+          const mColors = mLabels.map(k => manchColors[k] || '#a78bfa');
+
+          const ctxManch = document.getElementById('chart-enc-manchester');
+          if (ctxManch) new ChartClass(ctxManch.getContext('2d'), {
+            type: 'pie',
+            data: { labels: mLabels, datasets: [{ data: mVals, backgroundColor: mColors, borderWidth: 2, borderColor: 'rgba(0,0,0,0.15)' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 12, padding: 10 } } } }
+          });
+
+          const sLabels = Object.keys(statusCounts);
+          const sVals = sLabels.map(k => statusCounts[k]);
+          const sPalette = ['#fbbf24','#00f2fe','#ec4899','#34d399'];
+
+          const ctxStatus = document.getElementById('chart-enc-status');
+          if (ctxStatus) new ChartClass(ctxStatus.getContext('2d'), {
+            type: 'bar',
+            data: { labels: sLabels, datasets: [{ label: 'Qtd', data: sVals, backgroundColor: sPalette.map(c => c + '99'), borderColor: sPalette, borderWidth: 1.5, borderRadius: 6 }] },
+            options: {
+              responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+              }
+            }
+          });
+        }, 60);
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
   };
 
   // FUNÇÕES DE EXPORTAÇÃO GLOBAL (CSV, EXCEL, PDF) E EMISSÃO DE BOLETO
