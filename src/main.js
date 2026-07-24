@@ -1820,7 +1820,7 @@ function renderAuthScreen() {
         submitBtn.disabled = false;
       }
     });
-    renderForm();
+
     setTimeout(() => {
       initConstellationCanvas();
     }, 50);
