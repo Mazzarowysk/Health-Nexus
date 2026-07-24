@@ -15,9 +15,15 @@ const htmlContent = `<!DOCTYPE html>
     margin: 15mm;
   }
 
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-sizing: border-box;
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    color: #1e293b;
+    color: #0f172a;
     background: #ffffff;
     line-height: 1.6;
     font-size: 13px;
@@ -33,8 +39,8 @@ const htmlContent = `<!DOCTYPE html>
     justify-content: center;
     align-items: center;
     text-align: center;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%) !important;
+    color: #ffffff !important;
     padding: 40px;
     box-sizing: border-box;
     page-break-after: always;
@@ -42,9 +48,9 @@ const htmlContent = `<!DOCTYPE html>
   }
 
   .cover-badge {
-    background: rgba(99, 102, 241, 0.25);
-    border: 1px solid #818cf8;
-    color: #c7d2fe;
+    background: rgba(99, 102, 241, 0.3) !important;
+    border: 1px solid #818cf8 !important;
+    color: #ffffff !important;
     padding: 8px 20px;
     border-radius: 20px;
     font-weight: 700;
@@ -60,12 +66,13 @@ const htmlContent = `<!DOCTYPE html>
     margin: 0 0 16px 0;
     letter-spacing: -1px;
     line-height: 1.1;
+    color: #ffffff !important;
   }
 
   .cover h2 {
     font-size: 18px;
     font-weight: 400;
-    color: #cbd5e1;
+    color: #cbd5e1 !important;
     max-width: 600px;
     margin: 0 0 40px 0;
     line-height: 1.5;
@@ -73,15 +80,16 @@ const htmlContent = `<!DOCTYPE html>
 
   .cover-footer {
     margin-top: auto;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
     padding-top: 20px;
     width: 100%;
   }
 
   /* Conteúdo Principal */
   .section {
-    margin-bottom: 28px;
-    page-break-inside: avoid;
+    margin-bottom: 24px;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .page-break {
@@ -89,29 +97,29 @@ const htmlContent = `<!DOCTYPE html>
   }
 
   h1.section-title {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 800;
-    color: #0f172a;
-    border-bottom: 2px solid #6366f1;
+    color: #0f172a !important;
+    border-bottom: 2.5px solid #6366f1;
     padding-bottom: 6px;
     margin-top: 0;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
 
   h2.subsection-title {
-    font-size: 15px;
-    color: #334155;
-    margin-top: 18px;
+    font-size: 14.5px;
+    color: #1e293b !important;
+    margin-top: 16px;
     margin-bottom: 8px;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   p {
     margin-bottom: 10px;
-    color: #334155;
+    color: #334155 !important;
     text-align: justify;
   }
 
@@ -119,58 +127,71 @@ const htmlContent = `<!DOCTYPE html>
     margin-top: 6px;
     margin-bottom: 12px;
     padding-left: 22px;
-    color: #1e293b;
+    color: #0f172a !important;
   }
 
   li {
-    margin-bottom: 4px;
-    color: #1e293b;
+    margin-bottom: 5px;
+    color: #0f172a !important;
+    line-height: 1.5;
   }
 
   /* Cards e Modais */
   .card {
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-left: 4px solid #6366f1;
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin: 14px 0;
-    page-break-inside: avoid;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-  }
-
-  .card ol, .card ul, .card li, .card p {
-    color: #1e293b !important;
-    font-size: 12.5px;
+    background-color: #f1f5f9 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-left: 5px solid #4f46e5 !important;
+    border-radius: 8px !important;
+    padding: 14px 18px !important;
+    margin: 14px 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    position: relative !important;
   }
 
   .card-title {
-    font-weight: 700;
-    color: #1e1b4b;
-    margin-bottom: 6px;
-    font-size: 13.5px;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    margin-bottom: 8px !important;
+    font-size: 13.5px !important;
+  }
+
+  .card ol, .card ul, .card li, .card p, .card div {
+    color: #0f172a !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
   }
 
   .tip-box {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-left: 4px solid #22c55e;
-    color: #166534;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 12px 0;
-    page-break-inside: avoid;
+    background-color: #f0fdf4 !important;
+    border: 1.5px solid #86efac !important;
+    border-left: 5px solid #16a34a !important;
+    color: #14532d !important;
+    border-radius: 8px !important;
+    padding: 14px 18px !important;
+    margin: 14px 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .tip-box * {
+    color: #14532d !important;
   }
 
   .warning-box {
-    background: #fffbeb;
-    border: 1px solid #fef08a;
-    border-left: 4px solid #f59e0b;
-    color: #854d0e;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 12px 0;
-    page-break-inside: avoid;
+    background-color: #fffbeb !important;
+    border: 1.5px solid #fde047 !important;
+    border-left: 5px solid #d97706 !important;
+    color: #713f12 !important;
+    border-radius: 8px !important;
+    padding: 14px 18px !important;
+    margin: 14px 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .warning-box * {
+    color: #713f12 !important;
   }
 
   /* Tabelas */
@@ -179,39 +200,41 @@ const htmlContent = `<!DOCTYPE html>
     border-collapse: collapse;
     margin: 14px 0;
     font-size: 12px;
-    page-break-inside: avoid;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   th, td {
-    border: 1px solid #cbd5e1;
+    border: 1.5px solid #94a3b8 !important;
     padding: 8px 12px;
     text-align: left;
   }
 
   th {
-    background: #3730a3;
-    color: #ffffff;
-    font-weight: 600;
+    background-color: #312e81 !important;
+    color: #ffffff !important;
+    font-weight: 700;
   }
 
   tr:nth-child(even) {
-    background: #f8fafc;
+    background-color: #f8fafc !important;
   }
 
   /* Badges de Triagem */
-  .badge-red { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-  .badge-orange { background: #f97316; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-  .badge-yellow { background: #eab308; color: black; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-  .badge-green { background: #22c55e; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-  .badge-blue { background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-red { background: #dc2626 !important; color: white !important; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-orange { background: #ea580c !important; color: white !important; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-yellow { background: #ca8a04 !important; color: white !important; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-green { background: #16a34a !important; color: white !important; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+  .badge-blue { background: #0284c7 !important; color: white !important; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
 
   code {
-    background: #e2e8f0;
+    background: #e2e8f0 !important;
     padding: 2px 6px;
     border-radius: 4px;
     font-family: monospace;
-    font-size: 11px;
-    color: #0f172a;
+    font-size: 11.5px;
+    color: #0f172a !important;
+    font-weight: 700;
   }
 </style>
 </head>
