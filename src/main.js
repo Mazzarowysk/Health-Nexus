@@ -1554,6 +1554,9 @@ function renderAuthScreen() {
       <div class="auth-container">
         <!-- Painel Esquerdo: Branding Imersivo -->
         <div class="auth-brand-panel">
+          <!-- Canvas 2D de Constelação Tecnológica Interativa (Pontos & Conexões em Rede) -->
+          <canvas id="auth-constellation-canvas" class="auth-constellation-canvas"></canvas>
+
           <!-- Camada de Animações Fluídas & Orbes de Luz -->
           <div class="auth-brand-ambient">
             <div class="auth-orb orb-primary"></div>
@@ -1561,14 +1564,6 @@ function renderAuthScreen() {
             <div class="auth-orb orb-accent"></div>
             <div class="auth-ring ring-1"></div>
             <div class="auth-ring ring-2"></div>
-            <div class="auth-particle-field">
-              <div class="auth-particle p-1"></div>
-              <div class="auth-particle p-2"></div>
-              <div class="auth-particle p-3"></div>
-              <div class="auth-particle p-4"></div>
-              <div class="auth-particle p-5"></div>
-              <div class="auth-particle p-6"></div>
-            </div>
           </div>
 
           <div class="auth-brand-content">
@@ -1825,9 +1820,164 @@ function renderAuthScreen() {
         submitBtn.disabled = false;
       }
     });
+    renderForm();
+    setTimeout(() => {
+      initConstellationCanvas();
+    }, 50);
   };
 
   renderForm();
+}
+
+// --- ANIMAÇÃO DE CONSTELAÇÃO TECNOLÓGICA INTERATIVA (CANVAS 2D 60FPS) ---
+function initConstellationCanvas() {
+  const canvas = document.getElementById('auth-constellation-canvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const parent = canvas.parentElement;
+  let animationFrameId;
+  let width, height;
+
+  const resize = () => {
+    if (!parent) return;
+    width = canvas.width = parent.clientWidth;
+    height = canvas.height = parent.clientHeight;
+  };
+
+  resize();
+
+  const resizeObserver = new ResizeObserver(() => resize());
+  resizeObserver.observe(parent);
+
+  // Nós da rede tecnológica
+  const nodeCount = Math.floor(Math.min(width, 700) / 13);
+  const nodes = [];
+  const palette = ['#00f2fe', '#a855f7', '#e026b8', '#38bdf8', '#818cf8', '#34d399'];
+
+  const mouse = { x: null, y: null, radius: 180 };
+
+  const handleMouseMove = (e) => {
+    const rect = parent.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  };
+
+  const handleMouseLeave = () => {
+    mouse.x = null;
+    mouse.y = null;
+  };
+
+  parent.removeEventListener('mousemove', handleMouseMove);
+  parent.removeEventListener('mouseleave', handleMouseLeave);
+  parent.addEventListener('mousemove', handleMouseMove);
+  parent.addEventListener('mouseleave', handleMouseLeave);
+
+  class Node {
+    constructor() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.vx = (Math.random() - 0.5) * 0.9;
+      this.vy = (Math.random() - 0.5) * 0.9;
+      this.radius = Math.random() * 2.2 + 1.2;
+      this.color = palette[Math.floor(Math.random() * palette.length)];
+      this.pulseSpeed = Math.random() * 0.03 + 0.01;
+      this.pulse = Math.random() * Math.PI;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.pulse += this.pulseSpeed;
+
+      if (this.x < 0 || this.x > width) this.vx *= -1;
+      if (this.y < 0 || this.y > height) this.vy *= -1;
+
+      // Atração magnética sutil ao mouse
+      if (mouse.x !== null && mouse.y !== null) {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < mouse.radius && dist > 0) {
+          const force = (mouse.radius - dist) / mouse.radius;
+          this.x += (dx / dist) * force * 0.8;
+          this.y += (dy / dist) * force * 0.8;
+        }
+      }
+    }
+
+    draw() {
+      const currentRadius = this.radius + Math.sin(this.pulse) * 0.6;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, Math.max(0.5, currentRadius), 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.shadowColor = this.color;
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push(new Node());
+  }
+
+  const maxDist = 140;
+
+  const animate = () => {
+    ctx.clearRect(0, 0, width, height);
+
+    // Conexões de rede entre nós próximos
+    for (let i = 0; i < nodes.length; i++) {
+      nodes[i].update();
+      nodes[i].draw();
+
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < maxDist) {
+          const alpha = (1 - dist / maxDist) * 0.55;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      // Conexão cintilante com o cursor do mouse
+      if (mouse.x !== null && mouse.y !== null) {
+        const dx = nodes[i].x - mouse.x;
+        const dy = nodes[i].y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < mouse.radius) {
+          const alpha = (1 - dist / mouse.radius) * 0.75;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.strokeStyle = `rgba(168, 85, 247, ${alpha})`;
+          ctx.lineWidth = 1.3;
+          ctx.stroke();
+        }
+      }
+    }
+
+    animationFrameId = requestAnimationFrame(animate);
+  };
+
+  if (window._authConstellationCancel) {
+    window._authConstellationCancel();
+  }
+  window._authConstellationCancel = () => {
+    cancelAnimationFrame(animationFrameId);
+    resizeObserver.disconnect();
+  };
+
+  animate();
 }
 
 // --- SISTEMA DE NÍVEIS DE ACESSO COMPLETO (RBAC PERFIS HOSPITALARES + DEV) ---
