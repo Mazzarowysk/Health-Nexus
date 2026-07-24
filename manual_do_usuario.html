@@ -54,43 +54,47 @@
     font-size: 46px;
     font-weight: 800;
     margin: 0 0 16px 0;
-    color: #ffffff;
-    letter-spacing: -0.5px;
+    letter-spacing: -1px;
+    line-height: 1.1;
   }
 
   .cover h2 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 400;
-    color: #a5b4fc;
-    margin: 0 0 50px 0;
-    max-width: 550px;
+    color: #cbd5e1;
+    max-width: 600px;
+    margin: 0 0 40px 0;
+    line-height: 1.5;
   }
 
   .cover-footer {
-    margin-top: 80px;
-    font-size: 13px;
-    color: #94a3b8;
-    border-top: 1px solid rgba(255,255,255,0.15);
-    padding-top: 24px;
-    width: 85%;
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 20px;
+    width: 100%;
   }
 
-  /* Seções */
+  /* Conteúdo Principal */
   .section {
-    margin-bottom: 25px;
+    margin-bottom: 28px;
+    page-break-inside: avoid;
+  }
+
+  .page-break {
+    page-break-after: always;
   }
 
   h1.section-title {
     font-size: 20px;
-    color: #1e1b4b;
+    font-weight: 800;
+    color: #0f172a;
     border-bottom: 2px solid #6366f1;
     padding-bottom: 6px;
-    margin-top: 25px;
-    margin-bottom: 14px;
-    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   h2.subsection-title {
@@ -107,20 +111,40 @@
     text-align: justify;
   }
 
+  ul, ol {
+    margin-top: 6px;
+    margin-bottom: 12px;
+    padding-left: 22px;
+    color: #1e293b;
+  }
+
+  li {
+    margin-bottom: 4px;
+    color: #1e293b;
+  }
+
   /* Cards e Modais */
   .card {
     background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
     border-left: 4px solid #6366f1;
     border-radius: 8px;
-    padding: 12px 16px;
-    margin: 12px 0;
+    padding: 14px 18px;
+    margin: 14px 0;
+    page-break-inside: avoid;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+
+  .card ol, .card ul, .card li, .card p {
+    color: #1e293b !important;
+    font-size: 12.5px;
   }
 
   .card-title {
     font-weight: 700;
     color: #1e1b4b;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    font-size: 13.5px;
   }
 
   .tip-box {
@@ -131,6 +155,7 @@
     border-radius: 8px;
     padding: 12px 16px;
     margin: 12px 0;
+    page-break-inside: avoid;
   }
 
   .warning-box {
@@ -141,6 +166,7 @@
     border-radius: 8px;
     padding: 12px 16px;
     margin: 12px 0;
+    page-break-inside: avoid;
   }
 
   /* Tabelas */
@@ -149,6 +175,7 @@
     border-collapse: collapse;
     margin: 14px 0;
     font-size: 12px;
+    page-break-inside: avoid;
   }
 
   th, td {
@@ -174,17 +201,13 @@
   .badge-green { background: #22c55e; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
   .badge-blue { background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
 
-  ol, ul {
-    padding-left: 20px;
-    margin-bottom: 12px;
-  }
-
-  li {
-    margin-bottom: 6px;
-  }
-
-  .page-break {
-    page-break-after: always;
+  code {
+    background: #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #0f172a;
   }
 </style>
 </head>
@@ -192,13 +215,13 @@
 
 <!-- CAPA -->
 <div class="cover">
-  <div class="cover-badge">Manual de Operação do Sistema</div>
+  <div class="cover-badge">Manual Operacional de Engenharia &amp; Clínica</div>
   <h1>HEALTH NEXUS</h1>
-  <h2>Guia Oficial do Usuário: Prontuário, Admissão de Pacientes, Triagem Manchester e Sincronização Turso Nuvem</h2>
+  <h2>Guia Oficial do Usuário: Gestão Hospitalar, Painel TV com Voz, Triagem Manchester, Prontuário Eletrônico e Nuvem Turso</h2>
   
   <div class="cover-footer">
     <p style="text-align: center; margin: 0; color: #cbd5e1; font-weight: 600;">Versão do Sistema: 1.0.1 | Data de Emissão: Julho / 2026</p>
-    <p style="text-align: center; margin-top: 6px; color: #94a3b8; font-size: 11px;">Desenvolvido por @mazzarowysk & @coltr1. Todos os direitos reservados.</p>
+    <p style="text-align: center; margin-top: 6px; color: #94a3b8; font-size: 11px;">Desenvolvido por @mazzarowysk &amp; @coltr1. Todos os direitos reservados.</p>
   </div>
 </div>
 
@@ -206,14 +229,14 @@
 <div class="section">
   <h1 class="section-title">📌 Sumário Geral</h1>
   <ol>
-    <li><b>Visão Geral do Sistema Health Nexus</b></li>
+    <li><b>Visão Geral e Arquitetura do Sistema Health Nexus</b></li>
     <li><b>Acesso, Autenticação e Perfis de Usuário (RBAC)</b></li>
-    <li><b>Admissão e Cadastro Completo de Pacientes</b></li>
-    <li><b>Busca Automática de CEP com Tripla Redundância</b></li>
+    <li><b>Admissão, Busca de CEP e Prevenção Estrita de Duplicidades</b></li>
+    <li><b>Central de Atendimentos (Kanban) e Triagem Manchester</b></li>
+    <li><b>Painel TV (Chamador Eletrônico com Anúncio Sonoro por Voz)</b></li>
     <li><b>Agenda de Consultas e Mapa de Leitos Hospitalares</b></li>
-    <li><b>Triagem de Urgência (Protocolo Manchester)</b></li>
-    <li><b>Prontuário Eletrônico do Paciente (PEP SOAPE) & Prescrições</b></li>
-    <li><b>Sincronização Nuvem (Turso Cloud) e Encerramento do Servidor</b></li>
+    <li><b>Prontuário Eletrônico do Paciente (PEP SOAPE) &amp; Prescrições</b></li>
+    <li><b>Sincronização Nuvem (Turso Cloud), Status Badge e Encerramento Seguro</b></li>
     <li><b>Resolução de Dúvidas Frequentes (FAQ)</b></li>
   </ol>
 </div>
@@ -255,7 +278,7 @@
       </tr>
       <tr>
         <td><b>📋 Recepcionista</b></td>
-        <td>Admissão de pacientes, busca de CEP, agendamento de consultas e chamadas.</td>
+        <td>Admissão de pacientes, busca de CEP, agendamento de consultas e chamadas de TV.</td>
         <td>Recepção / Atendimento</td>
       </tr>
     </tbody>
@@ -270,19 +293,19 @@
 
 <!-- MÓDULO 2 -->
 <div class="section">
-  <h1 class="section-title">🏥 2. Admissão de Pacientes e Busca de CEP</h1>
-  <p>Na aba <b>Pacientes</b>, é possível registrar novos atendidos ou alterar dados cadastrais existentes.</p>
+  <h1 class="section-title">🏥 2. Admissão, Busca de CEP e Prevenção de Duplicidades</h1>
+  <p>Na aba <b>Pacientes</b>, o sistema gerencia o cadastro mestre demográfico dos pacientes com travamento rigoroso contra homônimos e duplicidades.</p>
   
   <h2 class="subsection-title">2.1 Formulário de Admissão Completo</h2>
   <ul>
-    <li><b>Nome Completo*:</b> Preenchimento obrigatório.</li>
-    <li><b>CPF*:</b> Validação automática contra duplicidades.</li>
+    <li><b>Nome Completo*:</b> Preenchimento obrigatório. Validação estrita contra nomes duplicados.</li>
+    <li><b>CPF*:</b> Validação automática contra duplicidades no banco de dados.</li>
     <li><b>Data de Nascimento*:</b> O sistema calcula automaticamente a idade do paciente.</li>
     <li><b>CEP (Busca Auto):</b> Campo inteligente integrado às APIs nacionais de endereço.</li>
     <li><b>Endereço (Rua/Av):</b> Preenchido automaticamente via CEP ou digitado manualmente.</li>
     <li><b>Número / Compl.:</b> Campo dedicado para número residencial e complemento (Ex: <code>120 / Ap 42</code>).</li>
     <li><b>Bairro:</b> Preenchido automaticamente pelo CEP ou informado manualmente.</li>
-    <li><b>Cidade / UF:</b> Localidade e Estado do paciente (Ex: <code>Osvaldo Cruz - SP</code>).</li>
+    <li><b>Cidade / UF:</b> Localidade e Estado do paciente (Ex: <code>São Paulo - SP</code>).</li>
     <li><b>Telefones (Fixo e Celular):</b> Para contato e envio de avisos.</li>
     <li><b>Valor da Consulta / Mensalidade:</b> Campo financeiro para controle de convênio ou particular.</li>
   </ul>
@@ -297,30 +320,38 @@
       <li>Assim que o endereço é localizado, o cursor pula automaticamente para o campo <b>Número / Compl.</b>.</li>
     </ol>
   </div>
+
+  <div class="warning-box">
+    <b>🛡️ Trava de Segurança Antiduplicidade:</b> Tentar cadastrar um paciente com um <b>Nome Completo</b> ou <b>CPF</b> já existente na base gera um bloqueio imediato com aviso na tela e erro <code>HTTP 409 Conflict</code>. Nas admissões de emergência, o sistema reutiliza o cadastro existente em vez de criar duplicatas.
+  </div>
 </div>
 
 <!-- MÓDULO 3 -->
 <div class="section">
-  <h1 class="section-title">📅 3. Agenda de Consultas e Mapa de Leitos</h1>
+  <h1 class="section-title">📺 3. Painel TV de Chamadas com Voz &amp; Central de Atendimentos</h1>
   
-  <h2 class="subsection-title">3.1 Agendamento de Consultas</h2>
-  <p>Na aba <b>Agenda</b>, recepção e médicos acompanham a fila do dia. É possível agendar por data, horário, médico e especialidade. Os status mudam dinamicamente:</p>
+  <h2 class="subsection-title">3.1 Painel TV Eletrônico (Sala de Espera)</h2>
+  <p>O <b>Painel TV</b> é exibido em tela cheia na sala de espera hospitalar para orientação sonora e visual dos pacientes:</p>
   <ul>
-    <li><b>Agendado:</b> Paciente aguardando data/horário.</li>
-    <li><b>Em Atendimento:</b> Paciente em consulta com o profissional.</li>
-    <li><b>Realizado:</b> Consulta finalizada e gravada no histórico.</li>
-    <li><b>Cancelado:</b> Consulta desmarcada.</li>
+    <li><b>Síntese de Voz Audível:</b> Anúncio automático em português (<i>Web Speech API</i>) informando o nome do paciente e o consultório/sala de destino.</li>
+    <li><b>Modal Dinâmico de Chamada:</b> Permite selecionar qualquer paciente presente na fila de atendimento ou digitar o nome manualmente, definindo o consultório e a cor de triagem Manchester.</li>
+    <li><b>Sincronização Automática (Polling 3s):</b> A tela da TV atualiza seus dados a cada 3 segundos em tempo real sempre que um médico ou recepcionista aciona uma chamada.</li>
   </ul>
 
-  <h2 class="subsection-title">3.2 Mapa de Leitos Hospitalares</h2>
-  <p>Na aba <b>Leitos</b>, a enfermagem visualiza todos os leitos divididos por setor (UTI, Enfermaria, Emergência, Pós-Operatório). Cada card exibe se o leito está <b>Vago</b>, <b>Ocupado</b> (exibindo nome do paciente e data de internação) ou em <b>Manutenção</b>.</p>
+  <h2 class="subsection-title">3.2 Central de Atendimentos (Kanban Clínico)</h2>
+  <p>Na aba <b>Atendimento</b>, a recepção e o corpo médico gerenciam o fluxo hospitalar através de um painel Kanban dividido em três etapas:</p>
+  <ol>
+    <li><b>Aguardando Triagem:</b> Pacientes recém-admitidos que aguardam avaliação de enfermagem.</li>
+    <li><b>Aguardando Médico:</b> Pacientes triados ordenados por prioridade Manchester. Ao clicar em <b>"Chamar para Consulta"</b>, o sistema dispara a chamada sonora na TV e altera o status para <i>Em Atendimento</i>.</li>
+    <li><b>Em Atendimento:</b> Pacientes em consulta ativa no consultório, com acesso direto ao Prontuário (PEP).</li>
+  </ol>
 </div>
 
 <div class="page-break"></div>
 
 <!-- MÓDULO 4 -->
 <div class="section">
-  <h1 class="section-title">🚑 4. Triagem Manchester e Prontuário Eletrônico (PEP)</h1>
+  <h1 class="section-title">🚑 4. Triagem Manchester, Agenda e Prontuário Eletrônico (PEP)</h1>
   
   <h2 class="subsection-title">4.1 Classificação de Risco (Protocolo Manchester)</h2>
   <p>A triagem atribui cores e prioridades de atendimento com base na gravidade do paciente:</p>
@@ -376,15 +407,15 @@
 <div class="section">
   <h1 class="section-title">☁️ 5. Sincronização Turso Cloud e Encerramento Seguro</h1>
   
-  <h2 class="subsection-title">5.1 Sincronização em Nuvem (Turso Cloud)</h2>
+  <h2 class="subsection-title">5.1 Sincronização em Nuvem (Turso Cloud) &amp; Status Badge</h2>
   <p>O Health Nexus possui um mecanismo de banco de dados híbrido: opera super rápido localmente com <b>SQLite</b> e espelha os dados na nuvem <b>Turso Cloud</b>.</p>
   
   <div class="card">
     <div class="card-title">🔄 Recursos de Sincronização</div>
     <ul>
-      <li><b>Auto-Sync Regressivo:</b> No topo superior direito da tela, um cronômetro realiza o backup para a nuvem a cada 15 minutos.</li>
-      <li><b>Sincronização Manual:</b> Na aba <i>Configurações</i>, utilize o botão <b>"Sincronizar Agora com Turso"</b> (Enviar) ou <b>"Baixar Dados do Turso"</b> (Receber).</li>
-      <li><b>Cooldown de Segurança:</b> O botão possui uma trava temporária de 60 segundos após o acionamento para evitar requisições redundantes.</li>
+      <li><b>Badge de Status (Cabeçalho):</b> Exibe dinamicamente no topo o estado da conexão ("Conectado ao Turso", "Sincronizado" ou "Modo Local"). É clicável para abrir o comparativo.</li>
+      <li><b>Modal Comparativo ao Logar:</b> Mostra tabela por tabela a quantidade de registros e a data/hora da alteração mais recente.</li>
+      <li><b>Sincronização Pós-Escrita:</b> Modal pergunta ao usuário após cadastros se deseja sincronizar com a nuvem instantaneamente.</li>
     </ul>
   </div>
 
