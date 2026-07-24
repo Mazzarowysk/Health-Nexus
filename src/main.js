@@ -1552,6 +1552,17 @@ function renderAuthScreen() {
   const renderForm = () => {
     root.innerHTML = `
       <div class="auth-container">
+        <!-- Elementos Ambientais Animados (Neon Glass Blobs & Partículas) -->
+        <div class="auth-ambient-bg">
+          <div class="auth-ambient-blob blob-1"></div>
+          <div class="auth-ambient-blob blob-2"></div>
+          <div class="auth-ambient-blob blob-3"></div>
+          <div class="auth-ambient-particle p1"></div>
+          <div class="auth-ambient-particle p2"></div>
+          <div class="auth-ambient-particle p3"></div>
+          <div class="auth-ambient-particle p4"></div>
+        </div>
+
         <!-- Painel Esquerdo: Branding Imersivo -->
         <div class="auth-brand-panel">
           <div class="auth-brand-content">
@@ -3635,7 +3646,7 @@ async function fetchDashboardData() {
   state.loading = false;
 }
 
-// --- FUNÇÃO PARA INICIALIZAR GRÁFICOS CHART.JS ---
+// --- FUNÇÃO PARA INICIALIZAR GRÁFICOS CHART.JS MODERNOS (DARK NEON GLASS) ---
 function initDashboardCharts(data) {
   if (!data) return;
 
@@ -3643,11 +3654,11 @@ function initDashboardCharts(data) {
   const appointmentsCtx = document.getElementById('appointmentsChart');
 
   const occupancyData = (data.occupancyData && data.occupancyData.length > 0) ? data.occupancyData : [
-    { label: 'UTI Adulto', value: 25, color: '#818cf8' },
-    { label: 'Enfermaria', value: 85, color: '#f472b6' },
-    { label: 'Pediatria', value: 12, color: '#38bdf8' },
-    { label: 'Maternidade', value: 18, color: '#fbbf24' },
-    { label: 'Disponíveis', value: 25, color: '#34d399' }
+    { label: 'UTI Adulto', value: 25, color: '#f43f5e' },
+    { label: 'Enfermaria', value: 85, color: '#6366f1' },
+    { label: 'Pediatria', value: 12, color: '#00f2fe' },
+    { label: 'Maternidade', value: 18, color: '#f59e0b' },
+    { label: 'Disponíveis', value: 25, color: '#10b981' }
   ];
 
   const apptHistory = (data.appointmentsHistory && data.appointmentsHistory.length > 0) ? data.appointmentsHistory : [
@@ -3666,33 +3677,78 @@ function initDashboardCharts(data) {
     return;
   }
 
-  // 1. Gráfico de Ocupação de Leitos (Doughnut)
+  // 1. Gráfico de Ocupação de Leitos (Doughnut Neon Glass)
   if (occupancyCtx) {
     if (occupancyCtx._chartInstance) occupancyCtx._chartInstance.destroy();
     occupancyCtx.style.cursor = 'pointer';
 
-    const inst = new ChartClass(occupancyCtx.getContext('2d'), {
+    const ctx = occupancyCtx.getContext('2d');
+
+    const neonColors = [
+      '#f43f5e', // UTI Adulto (Rose Neon)
+      '#6366f1', // Enfermaria (Indigo Neon)
+      '#00f2fe', // Pediatria (Ciano Electric)
+      '#f59e0b', // Maternidade (Amber Warm)
+      '#10b981'  // Disponíveis (Emerald Glow)
+    ];
+
+    const inst = new ChartClass(ctx, {
       type: 'doughnut',
       data: {
         labels: occupancyData.map(item => item.label),
         datasets: [{
           data: occupancyData.map(item => item.value),
-          backgroundColor: occupancyData.map(item => item.color),
-          borderWidth: 2,
-          borderColor: 'rgba(30, 34, 45, 0.8)'
+          backgroundColor: occupancyData.map((item, idx) => item.color || neonColors[idx % neonColors.length]),
+          borderWidth: 3,
+          borderColor: 'rgba(11, 8, 22, 0.95)',
+          borderRadius: 6,
+          spacing: 3,
+          hoverOffset: 8
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '65%',
+        cutout: '72%',
+        animation: {
+          animateScale: true,
+          animateRotate: true,
+          duration: 1200,
+          easing: 'easeOutQuart'
+        },
+        onClick: () => {
+          if (typeof switchTab === 'function') switchTab('leitos');
+        },
         plugins: {
           legend: {
             position: 'right',
             labels: {
-              color: '#94a3b8',
-              font: { family: 'Outfit', size: 11, weight: '500' },
-              padding: 12
+              color: '#cbd5e1',
+              font: { family: 'Plus Jakarta Sans', size: 11.5, weight: '600' },
+              padding: 14,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.92)',
+            titleColor: '#00f2fe',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(0, 242, 254, 0.35)',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+            bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
+            callbacks: {
+              label: (context) => {
+                const label = context.label || '';
+                const val = context.raw || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = Math.round((val / total) * 100);
+                return ` ${label}: ${val} leitos (${pct}%)`;
+              }
             }
           }
         }
@@ -3701,45 +3757,117 @@ function initDashboardCharts(data) {
     occupancyCtx._chartInstance = inst;
   }
 
-  // 2. Gráfico de Histórico Mensal (Line)
+  // 2. Gráfico de Histórico Mensal/Semanal (Line Area Wave Neon)
   if (appointmentsCtx) {
     if (appointmentsCtx._chartInstance) appointmentsCtx._chartInstance.destroy();
     appointmentsCtx.style.cursor = 'pointer';
 
-    const labels = apptHistory.map(item => item.label);
-    const values = apptHistory.map(item => (item.urgencia || 0) + (item.ambulatorial || 0));
+    const ctx2 = appointmentsCtx.getContext('2d');
+    
+    // Gradiente Linear de Fundo Neon Ciano/Roxo
+    const fillGradient = ctx2.createLinearGradient(0, 0, 0, 220);
+    fillGradient.addColorStop(0, 'rgba(0, 242, 254, 0.38)');
+    fillGradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.15)');
+    fillGradient.addColorStop(1, 'rgba(11, 8, 22, 0.0)');
 
-    const inst2 = new ChartClass(appointmentsCtx.getContext('2d'), {
+    const labels = apptHistory.map(item => item.label);
+    const valuesTotal = apptHistory.map(item => (item.urgencia || 0) + (item.ambulatorial || 0));
+    const valuesUrgencia = apptHistory.map(item => item.urgencia || 0);
+
+    const inst2 = new ChartClass(ctx2, {
       type: 'line',
       data: {
         labels: labels,
-        datasets: [{
-          label: 'Atendimentos Totais',
-          data: values,
-          fill: true,
-          backgroundColor: 'rgba(99, 102, 241, 0.12)',
-          borderColor: '#818cf8',
-          borderWidth: 2.5,
-          tension: 0.35,
-          pointBackgroundColor: '#818cf8',
-          pointBorderColor: '#fff',
-          pointHoverRadius: 6
-        }]
+        datasets: [
+          {
+            label: 'Atendimentos Totais',
+            data: valuesTotal,
+            fill: true,
+            backgroundColor: fillGradient,
+            borderColor: '#00f2fe',
+            borderWidth: 3.5,
+            tension: 0.4,
+            pointBackgroundColor: '#00f2fe',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            pointHoverBackgroundColor: '#ffffff',
+            pointHoverBorderColor: '#00f2fe',
+            pointHoverBorderWidth: 3
+          },
+          {
+            label: 'Urgência (Triagem)',
+            data: valuesUrgencia,
+            fill: false,
+            borderColor: '#e026b8',
+            borderWidth: 2.5,
+            borderDash: [5, 5],
+            tension: 0.4,
+            pointBackgroundColor: '#e026b8',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 1.5,
+            pointRadius: 3.5,
+            pointHoverRadius: 6
+          }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          duration: 1200,
+          easing: 'easeOutQuart'
+        },
+        onClick: () => {
+          if (typeof switchTab === 'function') switchTab('atendimento');
+        },
         plugins: {
-          legend: { display: false }
+          legend: {
+            display: true,
+            position: 'top',
+            align: 'end',
+            labels: {
+              color: '#cbd5e1',
+              font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
+              usePointStyle: true,
+              boxWidth: 8,
+              padding: 14
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.92)',
+            titleColor: '#00f2fe',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(0, 242, 254, 0.35)',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+            bodyFont: { family: 'Plus Jakarta Sans', size: 11 }
+          }
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 10 } }
+            grid: {
+              color: 'rgba(255, 255, 255, 0.05)',
+              drawBorder: false
+            },
+            ticks: {
+              color: '#94a3b8',
+              font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' }
+            }
           },
           y: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 10 } }
+            grid: {
+              color: 'rgba(255, 255, 255, 0.05)',
+              drawBorder: false
+            },
+            ticks: {
+              color: '#94a3b8',
+              font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' }
+            }
           }
         }
       }
