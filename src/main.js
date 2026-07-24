@@ -5280,6 +5280,9 @@ function renderReportsTab(contentArea) {
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="btn-fin-show-all" class="btn btn-outline" style="font-size: 0.78rem; padding: 5px 12px;"><i class="fa-solid fa-rotate-left"></i> Mostrar Todos</button>
+              <button id="btn-fin-card-pdf" class="btn btn-primary" style="background: linear-gradient(135deg, #ef4444, #dc2626); font-size: 0.78rem; padding: 5px 12px;"><i class="fa-solid fa-file-pdf"></i> Imprimir / PDF</button>
+              <button id="btn-fin-card-xls" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.78rem; padding: 5px 12px;"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+              <button id="btn-fin-card-csv" class="btn btn-outline" style="font-size: 0.78rem; padding: 5px 12px;"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
             </div>
           </div>
 
@@ -5379,7 +5382,12 @@ function renderReportsTab(contentArea) {
           renderFinTable('Todos');
         });
 
-        // Botões de exportação direta do Relatório Financeiro
+        // Botões de exportação direta do card de Títulos Financeiros
+        document.getElementById('btn-fin-card-pdf')?.addEventListener('click', () => processExport('pdf'));
+        document.getElementById('btn-fin-card-xls')?.addEventListener('click', () => processExport('xls'));
+        document.getElementById('btn-fin-card-csv')?.addEventListener('click', () => processExport('csv'));
+
+        // Botões de exportação do cabeçalho
         document.getElementById('btn-export-pdf')?.addEventListener('click', () => processExport('pdf'));
         document.getElementById('btn-export-xls')?.addEventListener('click', () => processExport('xls'));
         document.getElementById('btn-export-csv')?.addEventListener('click', () => processExport('csv'));
