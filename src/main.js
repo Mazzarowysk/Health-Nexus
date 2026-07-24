@@ -4926,32 +4926,6 @@ function renderReportsTab(contentArea) {
     previewStatus.textContent = `${selected} de ${total} selecionados para exportação`;
   };
 
-  const setupCheckboxEvents = () => {
-    const selectAllCheckbox = document.getElementById('select-all-records');
-    const recordCheckboxes = document.querySelectorAll('.record-checkbox');
-
-    if (selectAllCheckbox) {
-      selectAllCheckbox.addEventListener('change', (e) => {
-        const checked = e.target.checked;
-        recordCheckboxes.forEach(cb => {
-          cb.checked = checked;
-        });
-        updatePreviewStatusText();
-      });
-    }
-
-    recordCheckboxes.forEach(cb => {
-      cb.addEventListener('change', () => {
-        if (!cb.checked && selectAllCheckbox) {
-          selectAllCheckbox.checked = false;
-        } else if (selectAllCheckbox && Array.from(recordCheckboxes).every(c => c.checked)) {
-          selectAllCheckbox.checked = true;
-        }
-        updatePreviewStatusText();
-      });
-    });
-  };
-
   const renderFinancialCharts = (data) => {
     const pieCtx = document.getElementById('finPieChart');
     const barCtx = document.getElementById('finBarChart');
@@ -4970,6 +4944,7 @@ function renderReportsTab(contentArea) {
 
     const pagasItem = data.find(d => d.label === 'Pagas');
     const totalCount = quantities.reduce((a, b) => a + b, 0);
+    const totalVal = valuesR$.reduce((a, b) => a + b, 0);
     const pctPagas = totalCount > 0 ? Math.round((pagasItem ? pagasItem.count : 0) / totalCount * 100) : 0;
 
     const pctEl = document.getElementById('fin-completion-pct');
@@ -4986,7 +4961,15 @@ function renderReportsTab(contentArea) {
       requestAnimationFrame(updatePct);
     }
 
-    // 1. Gráfico de Rosca Neon Glass ("Distribuição por Status") idêntico ao Health Nexus
+    // Animar barras de progresso da lista lateral
+    setTimeout(() => {
+      document.querySelectorAll('#fin-status-progress-list .ward-bar-fill').forEach(fill => {
+        const target = fill.dataset.target || '0';
+        fill.style.width = `${target}%`;
+      });
+    }, 80);
+
+    // 1. Gráfico de Rosca Neon Glass (Sem legenda interna pois a lista lateral atua como legenda ativa)
     finPieChartInstance = new ChartClass(pieCtx.getContext('2d'), {
       type: 'doughnut',
       data: {
@@ -4998,7 +4981,7 @@ function renderReportsTab(contentArea) {
           borderColor: 'rgba(11, 8, 22, 0.95)',
           borderRadius: 6,
           spacing: 3,
-          hoverOffset: 12
+          hoverOffset: 14
         }]
       },
       options: {
@@ -5007,16 +4990,7 @@ function renderReportsTab(contentArea) {
         cutout: '76%',
         animation: { animateScale: true, animateRotate: true, duration: 1100 },
         plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: '#cbd5e1',
-              font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' },
-              usePointStyle: true,
-              boxWidth: 7,
-              padding: 10
-            }
-          },
+          legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(18, 14, 34, 0.94)',
             titleColor: '#00f2fe',
@@ -5043,7 +5017,24 @@ function renderReportsTab(contentArea) {
       }
     });
 
-    // 2. Gráfico de Barras Neon Glass ("Valor por Status (R$)")
+    // Interatividade Hover Lista -> Anel
+    document.querySelectorAll('.fin-progress-row').forEach(row => {
+      row.addEventListener('mouseenter', () => {
+        const idx = parseInt(row.dataset.idx, 10);
+        if (finPieChartInstance && finPieChartInstance.setActiveElements) {
+          finPieChartInstance.setActiveElements([{ datasetIndex: 0, index: idx }]);
+          finPieChartInstance.update();
+        }
+      });
+      row.addEventListener('mouseleave', () => {
+        if (finPieChartInstance && finPieChartInstance.setActiveElements) {
+          finPieChartInstance.setActiveElements([]);
+          finPieChartInstance.update();
+        }
+      });
+    });
+
+    // 2. Gráfico de Barras Neon Glass ("Comparativo Financeiro (R$)")
     const c2dBar = barCtx.getContext('2d');
     const barGradients = colors.map(c => {
       const grad = c2dBar.createLinearGradient(0, 0, 0, 180);
@@ -5112,7 +5103,6 @@ function renderReportsTab(contentArea) {
       const previewCard = document.querySelector('.preview-card');
       if (!previewCard) return;
 
-      // Calcular dados dinâmicos a partir dos pacientes ou conjuntos de demonstração
       let pagasCount = 89, pagasVal = 13500.00;
       let aVencerCount = 8, aVencerVal = 850.00;
       let vencidasCount = 5, vencidasVal = 991.00;
@@ -5121,7 +5111,6 @@ function renderReportsTab(contentArea) {
       let canceladasCount = 0, canceladasVal = 0;
       let excluidasCount = 0, excluidasVal = 0;
 
-      // Se houver dados de pacientes no banco local, agregá-los!
       if (patientsList && patientsList.length > 0) {
         patientsList.forEach((p, i) => {
           const val = parseFloat((p.billingValue || '').replace(/[^\d,]/g, '').replace(',', '.')) || 150.00;
@@ -5137,6 +5126,7 @@ function renderReportsTab(contentArea) {
 
       const totalVal = pagasVal + aVencerVal + vencidasVal + bonificadasVal + suspensasVal + canceladasVal + excluidasVal;
       const totalParcelas = pagasCount + aVencerCount + vencidasCount + bonificadasCount + suspensasCount + canceladasCount + excluidasCount;
+      const pctPagasCount = totalParcelas > 0 ? Math.round((pagasCount / totalParcelas) * 100) : 0;
 
       const totalFormatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVal);
 
@@ -5160,16 +5150,12 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
-        <!-- Badges KPI de Status -->
         <div class="financial-kpi-bar" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
           <div class="financial-badges-group" style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.85rem;">
             <span class="fin-kpi-badge" style="border-left: 3px solid #34d399; padding: 4px 10px; background: rgba(52,211,153,0.1); border-radius: 4px; color: var(--text-primary);">• Pagas: <strong>${pagasCount}</strong></span>
             <span class="fin-kpi-badge" style="border-left: 3px solid #00f2fe; padding: 4px 10px; background: rgba(0,242,254,0.1); border-radius: 4px; color: var(--text-primary);">• A Vencer: <strong>${aVencerCount}</strong></span>
             <span class="fin-kpi-badge" style="border-left: 3px solid #f43f5e; padding: 4px 10px; background: rgba(244,63,94,0.1); border-radius: 4px; color: var(--text-primary);">• Vencidas: <strong>${vencidasCount}</strong></span>
             <span class="fin-kpi-badge" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary);">• Bonificadas: <strong>${bonificadasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #a855f7; padding: 4px 10px; background: rgba(168,85,247,0.1); border-radius: 4px; color: var(--text-primary);">• Suspensas: <strong>${suspensasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #f97316; padding: 4px 10px; background: rgba(249,115,22,0.1); border-radius: 4px; color: var(--text-primary);">• Canceladas: <strong>${canceladasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #dc2626; padding: 4px 10px; background: rgba(220,38,38,0.1); border-radius: 4px; color: var(--text-primary);">• Excluídas: <strong>${excluidasCount}</strong></span>
           </div>
           <div style="font-family: 'Outfit'; text-align: right;">
             <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">SUBTOTAL CLIENTE</span>
@@ -5177,32 +5163,62 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
-        <!-- Seção de Gráficos -->
-        <div class="charts-grid" style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 18px;">
-          <div class="chart-card tilt-card-3d" style="padding: 18px; height: 250px; position: relative;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-              <h4 style="margin:0; font-size:0.9rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-chart-pie" style="color: #a855f7;"></i> Distribuição por Status
-              </h4>
-            </div>
-            <div style="position: relative; height: 185px; width: 100%; display: flex; align-items: center; justify-content: center;">
-              <canvas id="finPieChart"></canvas>
-              <div class="fin-donut-kpi" style="position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
-                <span id="fin-completion-pct" style="font-family: 'Outfit', sans-serif; font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; line-height: 1; filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.4));">0%</span>
-                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-top: 2px;">PAGAS</span>
-              </div>
-            </div>
+        <!-- COMPONENTE HÍBRIDO (ANEL NEON + BARRAS POR CATEGORIA) -->
+        <div class="chart-card tilt-card-3d" style="margin-top: 20px; padding: 22px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+            <h4 style="margin:0; font-size:1.05rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-chart-pie" style="color: #00f2fe;"></i> Distribuição Financeira por Status
+            </h4>
+            <span class="badge-occupancy-status" style="border: 1px solid #34d399; background: rgba(52,211,153,0.12); color: #34d399; padding: 5px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">
+              <i class="fa-solid fa-circle-check"></i> ${pctPagasCount}% Pagas (${pagasCount} parcelas)
+            </span>
           </div>
 
-          <div class="chart-card tilt-card-3d" style="padding: 18px; height: 250px; position: relative;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-              <h4 style="margin:0; font-size:0.9rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-chart-column" style="color: #00f2fe;"></i> Valor por Status (R$)
-              </h4>
+          <div style="display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center;">
+            <div style="position: relative; width: 210px; height: 210px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+              <canvas id="finPieChart"></canvas>
+              <div class="fin-donut-kpi" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                <span id="fin-completion-pct" style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; line-height: 1; filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.45));">0%</span>
+                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 4px;">PAGAS DA CARTEIRA</span>
+              </div>
+            <!-- Lado Direito: Lista de Barras de Progresso por Status (Estilo Ocupação de Leitos por Ala) -->
+            <div class="ward-progress-list" id="fin-status-progress-list">
+              ${finData.map((item, idx) => {
+                const pct = totalVal > 0 ? ((item.totalValue / totalVal) * 100).toFixed(1) : '0.0';
+                const pctCount = totalParcelas > 0 ? ((item.count / totalParcelas) * 100).toFixed(1) : '0.0';
+                const formattedVal = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalValue);
+                const iconMap = {
+                  'Pagas': 'fa-circle-check', 'A Vencer': 'fa-clock', 'Vencidas': 'fa-circle-exclamation',
+                  'Bonificadas': 'fa-award', 'Suspensas': 'fa-ban', 'Canceladas': 'fa-xmark', 'Excluídas': 'fa-trash'
+                };
+                return `
+                  <div class="ward-progress-item fin-progress-row" data-idx="${idx}" style="cursor:pointer;">
+                    <div class="ward-progress-header">
+                      <span class="ward-name"><i class="fa-solid ${iconMap[item.label]||'fa-circle'}" style="color:${item.color};"></i> ${item.label}</span>
+                      <span class="ward-stats">
+                        <strong style="color:${item.color};font-weight:700;">${item.count} parcelas</strong> 
+                        <span style="color:var(--text-muted);font-size:0.76rem;">(${pctCount}%) • ${formattedVal}</span>
+                      </span>
+                    </div>
+                    <div class="ward-bar-track" style="height:6px;background:rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin-top:4px;">
+                      <div class="ward-bar-fill" style="height:100%;width:0%;background:${item.color};border-radius:10px;transition:width 1.2s cubic-bezier(0.165,0.84,0.44,1);" data-target="${pctCount}"></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
             </div>
-            <div style="position: relative; height: 185px; width: 100%;">
-              <canvas id="finBarChart"></canvas>
-            </div>
+          </div>
+        </div>
+
+        <!-- Seção do Gráfico de Barras por Valor -->
+        <div class="chart-card tilt-card-3d" style="margin-top: 18px; padding: 18px; height: 250px; position: relative;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <h4 style="margin:0; font-size:0.9rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-chart-column" style="color: #00f2fe;"></i> Comparativo Financeiro por Status (R$)
+            </h4>
+          </div>
+          <div style="position: relative; height: 185px; width: 100%;">
+            <canvas id="finBarChart"></canvas>
           </div>
         </div>
 
