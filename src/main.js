@@ -5130,15 +5130,23 @@ function renderReportsTab(contentArea) {
 
       const totalFormatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVal);
 
-      const finData = [
-        { label: 'Pagas', count: pagasCount, totalValue: pagasVal, color: '#34d399' },
-        { label: 'A Vencer', count: aVencerCount, totalValue: aVencerVal, color: '#00f2fe' },
-        { label: 'Vencidas', count: vencidasCount, totalValue: vencidasVal, color: '#f43f5e' },
-        { label: 'Bonificadas', count: bonificadasCount, totalValue: bonificadasVal, color: '#fbbf24' },
-        { label: 'Suspensas', count: suspensasCount, totalValue: suspensasVal, color: '#a855f7' },
-        { label: 'Canceladas', count: canceladasCount, totalValue: canceladasVal, color: '#f97316' },
-        { label: 'Excluídas', count: excluidasCount, totalValue: excluidasVal, color: '#dc2626' }
+      const finTitlesList = [
+        { id: 'TIT-90481', client: 'Carlos Eduardo Silva', desc: 'Consulta Ambulatorial & Exames Especializados', dueDate: '15/06/2026', amount: 350.00, amountFormatted: 'R$ 350,00', status: 'Vencidas', color: '#f43f5e' },
+        { id: 'TIT-90482', client: 'Mariana Oliveira Souza', desc: 'Procedimento Cirúrgico Porte 2', dueDate: '20/06/2026', amount: 1250.00, amountFormatted: 'R$ 1.250,00', status: 'Vencidas', color: '#f43f5e' },
+        { id: 'TIT-90483', client: 'Roberto Mendes Santos', desc: 'Internação UTI Geral (3 diárias)', dueDate: '02/07/2026', amount: 4800.00, amountFormatted: 'R$ 4.800,00', status: 'Vencidas', color: '#f43f5e' },
+        { id: 'TIT-90484', client: 'Ana Paula Ferreira', desc: 'Exames Laboratoriais Completos', dueDate: '10/07/2026', amount: 280.00, amountFormatted: 'R$ 280,00', status: 'Vencidas', color: '#f43f5e' },
+        { id: 'TIT-90485', client: 'Fernando Henrique Rocha', desc: 'Sessão de Fisioterapia Respiratória', dueDate: '18/07/2026', amount: 190.00, amountFormatted: 'R$ 190,00', status: 'Vencidas', color: '#f43f5e' },
+        { id: 'TIT-90410', client: 'Juliana Costa Lima', desc: 'Consulta Cardiologia Especializada', dueDate: '28/07/2026', amount: 420.00, amountFormatted: 'R$ 420,00', status: 'A Vencer', color: '#00f2fe' },
+        { id: 'TIT-90411', client: 'Lucas Gabriel Pereira', desc: 'Tomografia Computadorizada de Tórax', dueDate: '05/08/2026', amount: 850.00, amountFormatted: 'R$ 850,00', status: 'A Vencer', color: '#00f2fe' },
+        { id: 'TIT-90301', client: 'Beatriz Castro Alencar', desc: 'Atendimento de Urgência Pediatria', dueDate: '10/05/2026', amount: 540.00, amountFormatted: 'R$ 540,00', status: 'Pagas', color: '#34d399' },
+        { id: 'TIT-90302', client: 'Thiago Martins Fonseca', desc: 'Internação Enfermaria Geral (2 diárias)', dueDate: '12/05/2026', amount: 2150.00, amountFormatted: 'R$ 2.150,00', status: 'Pagas', color: '#34d399' },
+        { id: 'TIT-90303', client: 'Patrícia Duarte Ribeiro', desc: 'Consulta Ginecologia & Ultrassom', dueDate: '15/05/2026', amount: 480.00, amountFormatted: 'R$ 480,00', status: 'Pagas', color: '#34d399' },
+        { id: 'TIT-90304', client: 'Marcos Vinícius Barbosa', desc: 'Procedimento Ortopédico Eletivo', dueDate: '01/06/2026', amount: 1800.00, amountFormatted: 'R$ 1.800,00', status: 'Pagas', color: '#34d399' },
+        { id: 'TIT-90201', client: 'Renata Albuquerque Lima', desc: 'Isenção de Taxa Hospitalar Conveniada', dueDate: '05/06/2026', amount: 150.00, amountFormatted: 'R$ 150,00', status: 'Bonificadas', color: '#fbbf24' },
+        { id: 'TIT-90202', client: 'Eduardo Correia Neves', desc: 'Bonificação Convênio Parceiro VIP', dueDate: '10/06/2026', amount: 150.00, amountFormatted: 'R$ 150,00', status: 'Bonificadas', color: '#fbbf24' }
       ];
+
+      window._activeFinStatusFilter = 'Todos';
 
       previewCard.innerHTML = `
         <div class="preview-header" style="flex-wrap: wrap; gap: 15px;">
@@ -5152,10 +5160,10 @@ function renderReportsTab(contentArea) {
 
         <div class="financial-kpi-bar" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
           <div class="financial-badges-group" style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.85rem;">
-            <span class="fin-kpi-badge" style="border-left: 3px solid #34d399; padding: 4px 10px; background: rgba(52,211,153,0.1); border-radius: 4px; color: var(--text-primary);">• Pagas: <strong>${pagasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #00f2fe; padding: 4px 10px; background: rgba(0,242,254,0.1); border-radius: 4px; color: var(--text-primary);">• A Vencer: <strong>${aVencerCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #f43f5e; padding: 4px 10px; background: rgba(244,63,94,0.1); border-radius: 4px; color: var(--text-primary);">• Vencidas: <strong>${vencidasCount}</strong></span>
-            <span class="fin-kpi-badge" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary);">• Bonificadas: <strong>${bonificadasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Pagas" style="border-left: 3px solid #34d399; padding: 4px 10px; background: rgba(52,211,153,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Pagos">• Pagas: <strong>${pagasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="A Vencer" style="border-left: 3px solid #00f2fe; padding: 4px 10px; background: rgba(0,242,254,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos A Vencer">• A Vencer: <strong>${aVencerCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Vencidas" style="border-left: 3px solid #f43f5e; padding: 4px 10px; background: rgba(244,63,94,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Vencidos">• Vencidas: <strong>${vencidasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Bonificadas" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Bonificados">• Bonificadas: <strong>${bonificadasCount}</strong></span>
           </div>
           <div style="font-family: 'Outfit'; text-align: right;">
             <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">SUBTOTAL CLIENTE</span>
@@ -5184,7 +5192,7 @@ function renderReportsTab(contentArea) {
               </div>
             </div>
 
-            <!-- Lado Direito: Lista de Barras de Progresso por Status (Estilo Ocupação de Leitos por Ala) -->
+            <!-- Lado Direito: Lista de Barras de Progresso por Status -->
             <div class="ward-progress-list" id="fin-status-progress-list">
               ${finData.map((item, idx) => {
                 const pct = totalVal > 0 ? ((item.totalValue / totalVal) * 100).toFixed(1) : '0.0';
@@ -5195,7 +5203,7 @@ function renderReportsTab(contentArea) {
                   'Bonificadas': 'fa-award', 'Suspensas': 'fa-ban', 'Canceladas': 'fa-xmark', 'Excluídas': 'fa-trash'
                 };
                 return `
-                  <div class="ward-progress-item fin-progress-row" data-idx="${idx}" style="cursor:pointer;">
+                  <div class="ward-progress-item fin-progress-row" data-idx="${idx}" data-status="${item.label}" style="cursor:pointer;" title="Clique para filtrar a tabela para o status ${item.label}">
                     <div class="ward-progress-header">
                       <span class="ward-name"><i class="fa-solid ${iconMap[item.label]||'fa-circle'}" style="color:${item.color};"></i> ${item.label}</span>
                       <span class="ward-stats">
@@ -5225,19 +5233,103 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
-        <!-- Footer Informativo -->
-        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-secondary); flex-wrap: wrap; gap: 10px;">
-          <div>
-            <strong>Filtros aplicados:</strong> Situações: Paga, Vencida, Bonificada, A Vencer
+        <!-- TABELA DE TÍTULOS FINANCEIROS FILTRADOS POR STATUS -->
+        <div id="fin-titles-table-card" class="glass-card" style="margin-top: 22px; padding: 20px; border-radius: 14px; border: 1px solid var(--border-color);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h4 id="fin-table-title" style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-list-check" style="color: #00f2fe;"></i> Títulos Financeiros
+                <span id="fin-status-filter-tag" style="font-size:0.76rem; font-weight:600; padding:3px 10px; border-radius:12px; background:rgba(0,242,254,0.12); color:#00f2fe; border:1px solid rgba(0,242,254,0.3);">Todos os Status</span>
+              </h4>
+              <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: var(--text-muted);">Clique em qualquer status acima (ex: <strong style="color:#f43f5e;">Vencidas</strong>) para filtrar instantaneamente e emitir o relatório.</p>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button id="btn-fin-show-all" class="btn btn-outline" style="font-size: 0.78rem; padding: 5px 12px;"><i class="fa-solid fa-rotate-left"></i> Mostrar Todos</button>
+            </div>
           </div>
-          <div style="background: rgba(0, 100, 255, 0.15); color: var(--color-primary); padding: 6px 14px; border-radius: var(--radius-lg); font-weight: 600; font-family: monospace;">
-            <i class="fa-solid fa-coins"></i> Total: ${totalFormatted} | ${totalParcelas} parcelas
+
+          <div style="border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color);">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Nosso Número</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Paciente / Cliente</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Descrição / Serviço</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Vencimento</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: right;">Valor (R$)</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="fin-titles-table-body">
+                <!-- Títulos renderizados dinamicamente -->
+              </tbody>
+            </table>
           </div>
         </div>
       `;
 
+      // Função de Renderização da Tabela Filtrada de Títulos
+      const renderFinTable = (statusFilter = 'Todos') => {
+        window._activeFinStatusFilter = statusFilter;
+        const tbody = document.getElementById('fin-titles-table-body');
+        const filterTag = document.getElementById('fin-status-filter-tag');
+        if (!tbody) return;
+
+        let filtered = finTitlesList;
+        if (statusFilter && statusFilter !== 'Todos') {
+          filtered = finTitlesList.filter(t => t.status === statusFilter);
+        }
+
+        if (filterTag) {
+          filterTag.textContent = statusFilter === 'Todos' ? 'Todos os Status' : `Filtrado por: ${statusFilter} (${filtered.length})`;
+          filterTag.style.borderColor = statusFilter === 'Vencidas' ? '#f43f5e' : (statusFilter === 'Pagas' ? '#34d399' : '#00f2fe');
+          filterTag.style.color = statusFilter === 'Vencidas' ? '#f43f5e' : (statusFilter === 'Pagas' ? '#34d399' : '#00f2fe');
+        }
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum título encontrado com o status "${statusFilter}".</td></tr>`;
+          return;
+        }
+
+        const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
+
+        tbody.innerHTML = filtered.map(t => `
+          <tr style="border-bottom:1px solid var(--border-color);transition:background 0.2s ease;">
+            <td style="padding:10px 14px;font-family:monospace;font-weight:700;color:var(--color-primary);font-size:0.84rem;">${t.id}</td>
+            <td style="padding:10px 14px;font-weight:600;color:var(--text-primary);font-size:0.86rem;">${hasPEP ? t.client : abbreviateName(t.client)}</td>
+            <td style="padding:10px 14px;font-size:0.82rem;color:var(--text-secondary);">${t.desc}</td>
+            <td style="padding:10px 14px;text-align:center;font-size:0.82rem;color:var(--text-secondary);">${t.dueDate}</td>
+            <td style="padding:10px 14px;text-align:right;font-family:monospace;font-weight:700;color:${t.color};font-size:0.88rem;">${t.amountFormatted}</td>
+            <td style="padding:10px 14px;text-align:center;">
+              <span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${t.color}1e;color:${t.color};border:1px solid ${t.color}40;">${t.status}</span>
+            </td>
+            <td style="padding:10px 14px;text-align:center;">
+              <button class="btn btn-outline" style="font-size:0.72rem;padding:3px 9px;" onclick="alert('Boleto / 2ª via do título ${t.id} gerado com sucesso!')"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
+            </td>
+          </tr>
+        `).join('');
+      };
+
+      renderFinTable('Todos');
+
       setTimeout(() => {
         renderFinancialCharts(finData);
+
+        // Adicionar evento de clique nos badges e linhas para filtrar por status (ex: Vencidas)
+        document.querySelectorAll('.fin-progress-row, .fin-kpi-badge').forEach(el => {
+          el.addEventListener('click', (e) => {
+            const statusTarget = el.dataset.status;
+            if (statusTarget) {
+              renderFinTable(statusTarget);
+              document.getElementById('fin-titles-table-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
+        });
+
+        document.getElementById('btn-fin-show-all')?.addEventListener('click', () => {
+          renderFinTable('Todos');
+        });
       }, 50);
 
       // Re-associar botões de exportação do relatório financeiro
@@ -5495,19 +5587,41 @@ function renderReportsTab(contentArea) {
         ];
       });
     } else {
-      title = 'Relatório Financeiro de Títulos';
-      filename = 'financeiro';
-      columns = ['Status', 'Quantidade de Parcelas', 'Valor Acumulado (R$)'];
-      rows = [
-        ['Pagas', '89', 'R$ 13.500,00'],
-        ['A Vencer', '8', 'R$ 850,00'],
-        ['Vencidas', '5', 'R$ 991,00'],
-        ['Bonificadas', '2', 'R$ 300,00'],
-        ['Suspensas', '0', 'R$ 0,00'],
-        ['Canceladas', '0', 'R$ 0,00'],
-        ['Excluídas', '0', 'R$ 0,00'],
-        ['SUBTOTAL CLIENTE', '104 parcelas', 'R$ 15.641,00']
+      const activeFinStatus = window._activeFinStatusFilter || 'Todos';
+      title = activeFinStatus === 'Todos' 
+        ? 'Relatório Financeiro de Títulos (Todos os Status)' 
+        : `Relatório Financeiro — Títulos ${activeFinStatus.toUpperCase()}`;
+      filename = `relatorio_financeiro_${activeFinStatus.toLowerCase().replace(/\s+/g, '_')}`;
+      columns = ['Nosso Número', 'Paciente / Cliente', 'Descrição do Serviço', 'Vencimento', 'Valor (R$)', 'Status'];
+      
+      const finTitlesMasterList = [
+        { id: 'TIT-90481', client: 'Carlos Eduardo Silva', desc: 'Consulta Ambulatorial & Exames Especializados', dueDate: '15/06/2026', amountFormatted: 'R$ 350,00', status: 'Vencidas' },
+        { id: 'TIT-90482', client: 'Mariana Oliveira Souza', desc: 'Procedimento Cirúrgico Porte 2', dueDate: '20/06/2026', amountFormatted: 'R$ 1.250,00', status: 'Vencidas' },
+        { id: 'TIT-90483', client: 'Roberto Mendes Santos', desc: 'Internação UTI Geral (3 diárias)', dueDate: '02/07/2026', amountFormatted: 'R$ 4.800,00', status: 'Vencidas' },
+        { id: 'TIT-90484', client: 'Ana Paula Ferreira', desc: 'Exames Laboratoriais Completos', dueDate: '10/07/2026', amountFormatted: 'R$ 280,00', status: 'Vencidas' },
+        { id: 'TIT-90485', client: 'Fernando Henrique Rocha', desc: 'Sessão de Fisioterapia Respiratória', dueDate: '18/07/2026', amountFormatted: 'R$ 190,00', status: 'Vencidas' },
+        { id: 'TIT-90410', client: 'Juliana Costa Lima', desc: 'Consulta Cardiologia Especializada', dueDate: '28/07/2026', amountFormatted: 'R$ 420,00', status: 'A Vencer' },
+        { id: 'TIT-90411', client: 'Lucas Gabriel Pereira', desc: 'Tomografia Computadorizada de Tórax', dueDate: '05/08/2026', amountFormatted: 'R$ 850,00', status: 'A Vencer' },
+        { id: 'TIT-90301', client: 'Beatriz Castro Alencar', desc: 'Atendimento de Urgência Pediatria', dueDate: '10/05/2026', amountFormatted: 'R$ 540,00', status: 'Pagas' },
+        { id: 'TIT-90302', client: 'Thiago Martins Fonseca', desc: 'Internação Enfermaria Geral (2 diárias)', dueDate: '12/05/2026', amountFormatted: 'R$ 2.150,00', status: 'Pagas' },
+        { id: 'TIT-90303', client: 'Patrícia Duarte Ribeiro', desc: 'Consulta Ginecologia & Ultrassom', dueDate: '15/05/2026', amountFormatted: 'R$ 480,00', status: 'Pagas' },
+        { id: 'TIT-90304', client: 'Marcos Vinícius Barbosa', desc: 'Procedimento Ortopédico Eletivo', dueDate: '01/06/2026', amountFormatted: 'R$ 1.800,00', status: 'Pagas' },
+        { id: 'TIT-90201', client: 'Renata Albuquerque Lima', desc: 'Isenção de Taxa Hospitalar Conveniada', dueDate: '05/06/2026', amountFormatted: 'R$ 150,00', status: 'Bonificadas' },
+        { id: 'TIT-90202', client: 'Eduardo Correia Neves', desc: 'Bonificação Convênio Parceiro VIP', dueDate: '10/06/2026', amountFormatted: 'R$ 150,00', status: 'Bonificadas' }
       ];
+
+      const listToExport = activeFinStatus === 'Todos'
+        ? finTitlesMasterList
+        : finTitlesMasterList.filter(t => t.status === activeFinStatus);
+
+      rows = listToExport.map(t => [
+        t.id,
+        hasPEP ? t.client : abbreviateName(t.client),
+        t.desc,
+        t.dueDate,
+        t.amountFormatted,
+        t.status
+      ]);
     }
 
     const timestamp = new Date().toISOString().slice(0,10);
