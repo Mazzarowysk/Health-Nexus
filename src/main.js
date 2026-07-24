@@ -5517,22 +5517,29 @@ function renderReportsTab(contentArea) {
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0;">
-          ${[{val:ativos,label:'Médicos Ativos',color:'#818cf8'},{val:totalAppts,label:'Total Agendamentos',color:'#38bdf8'},{val:totalInProgress,label:'Em Atendimento',color:'#fbbf24'},{val:totalDone,label:'Concluídos',color:'#34d399'}].map(k=>`<div style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div style="font-size:1.6rem;font-weight:800;color:${k.color};">${k.val}</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${k.label}</div></div>`).join('')}
+          <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-active" style="font-size:1.6rem;font-weight:800;color:#818cf8;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Médicos Ativos</div></div>
+          <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-total" style="font-size:1.6rem;font-weight:800;color:#38bdf8;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Total Agendamentos</div></div>
+          <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-progress" style="font-size:1.6rem;font-weight:800;color:#fbbf24;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Em Atendimento</div></div>
+          <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-done" style="font-size:1.6rem;font-weight:800;color:#34d399;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Concluídos</div></div>
         </div>
 
         <div style="display:grid;grid-template-columns:2fr 1.1fr;gap:18px;margin-bottom:18px;">
-          <div class="chart-card" style="padding:18px;height:250px;position:relative;">
+          <div class="chart-card tilt-card-3d" id="card-doc-productivity" style="padding:18px;height:250px;position:relative;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
               <h4 style="margin:0;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
                 <i class="fa-solid fa-chart-column" style="color:#00f2fe;"></i> Agendamentos por Médico
               </h4>
+              <div style="display:flex;gap:4px;" id="doc-chart-mode-toggle">
+                <button class="chart-mode-pill active" data-mode="bar" title="Visão em Colunas"><i class="fa-solid fa-chart-column"></i></button>
+                <button class="chart-mode-pill" data-mode="line" title="Visão em Onda Smooth Wave"><i class="fa-solid fa-chart-line"></i></button>
+              </div>
             </div>
             <div style="position:relative;height:185px;width:100%;">
               <canvas id="chart-doc-productivity"></canvas>
             </div>
           </div>
 
-          <div class="chart-card" style="padding:18px;height:250px;position:relative;">
+          <div class="chart-card tilt-card-3d" id="card-doc-completion" style="padding:18px;height:250px;position:relative;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
               <h4 style="margin:0;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
                 <i class="fa-solid fa-chart-pie" style="color:#a855f7;"></i> Distribuição Geral
@@ -5556,8 +5563,8 @@ function renderReportsTab(contentArea) {
               </tr>
             </thead>
             <tbody>
-              ${docStats.map(d=>`
-                <tr style="border-bottom:1px solid var(--border-color);">
+              ${docStats.map((d, idx)=>`
+                <tr id="doc-table-row-${idx}" class="doc-table-row" data-idx="${idx}" style="border-bottom:1px solid var(--border-color);transition:background 0.2s ease;cursor:pointer;">
                   <td style="padding:12px 14px;"><div style="font-weight:600;color:var(--text-primary);font-size:0.88rem;">${d.name}</div><div style="font-size:0.74rem;color:var(--text-muted);">CRM: ${d.crm||'—'}</div></td>
                   <td style="padding:12px 14px;font-size:0.84rem;color:var(--text-secondary);">${d.specialty||'—'}</td>
                   <td style="padding:12px 14px;text-align:center;"><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.74rem;font-weight:600;background:${d.status==='Ativo'?'rgba(52,211,153,0.15)':'rgba(248,113,113,0.15)'};color:${d.status==='Ativo'?'#34d399':'#f87171'};">${d.status||'—'}</span></td>
@@ -5573,79 +5580,132 @@ function renderReportsTab(contentArea) {
         <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted);text-align:right;">${docList.length} médico(s) • Gerado em ${new Date().toLocaleString('pt-BR')}</div>
       `;
 
+      // Animação Numérica 0 -> Final (CountUp)
+      const countUp = (el, target, duration = 1200, suffix = '') => {
+        if (!el) return;
+        const startTime = performance.now();
+        const update = (now) => {
+          const progress = Math.min(1, (now - startTime) / duration);
+          const ease = 1 - Math.pow(1 - progress, 3);
+          el.textContent = `${Math.floor(ease * target)}${suffix}`;
+          if (progress < 1) requestAnimationFrame(update);
+          else el.textContent = `${target}${suffix}`;
+        };
+        requestAnimationFrame(update);
+      };
+
+      countUp(document.getElementById('kpi-doc-active'), ativos);
+      countUp(document.getElementById('kpi-doc-total'), totalAppts);
+      countUp(document.getElementById('kpi-doc-progress'), totalInProgress);
+      countUp(document.getElementById('kpi-doc-done'), totalDone);
+
+      // Efeito 3D Parallax Tilt ao Mover o Cursor do Mouse
+      document.querySelectorAll('.tilt-card-3d').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          card.style.transform = `perspective(1000px) rotateX(${(-y / rect.height * 8).toFixed(2)}deg) rotateY(${(x / rect.width * 8).toFixed(2)}deg) translateY(-4px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+        });
+      });
+
+      let currentChartMode = 'bar';
+
       setTimeout(() => {
         const ctxBar = document.getElementById('chart-doc-productivity');
-        if (ctxBar && window.Chart) {
-          if (ctxBar._chartInstance) ctxBar._chartInstance.destroy();
+        let instBar = null;
+
+        const renderBarChart = (mode = 'bar') => {
+          if (!ctxBar || !window.Chart) return;
+          if (instBar) instBar.destroy();
           const c2d = ctxBar.getContext('2d');
 
-          // Gradientes de barra neon
           const gradDone = c2d.createLinearGradient(0, 0, 0, 180);
-          gradDone.addColorStop(0, '#34d399');
-          gradDone.addColorStop(1, '#059669');
+          gradDone.addColorStop(0, '#34d399'); gradDone.addColorStop(1, '#059669');
 
           const gradProgress = c2d.createLinearGradient(0, 0, 0, 180);
-          gradProgress.addColorStop(0, '#fbbf24');
-          gradProgress.addColorStop(1, '#d97706');
+          gradProgress.addColorStop(0, '#fbbf24'); gradProgress.addColorStop(1, '#d97706');
 
           const gradPending = c2d.createLinearGradient(0, 0, 0, 180);
-          gradPending.addColorStop(0, '#6366f1');
-          gradPending.addColorStop(1, '#00f2fe');
+          gradPending.addColorStop(0, '#6366f1'); gradPending.addColorStop(1, '#00f2fe');
 
           const labels = docStats.map(d => d.name.replace(/^(Dr\.|Dra\.)\s*/i, '').split(' ')[0]);
 
-          const inst = new window.Chart(c2d, {
-            type: 'bar',
+          instBar = new window.Chart(c2d, {
+            type: mode === 'line' ? 'line' : 'bar',
             data: {
               labels,
               datasets: [
-                { label: 'Concluídos', data: docStats.map(d => d.done), backgroundColor: gradDone, borderColor: '#10b981', borderWidth: 1, borderRadius: 6, borderSkipped: false },
-                { label: 'Em Atend.', data: docStats.map(d => d.inProgress), backgroundColor: gradProgress, borderColor: '#f59e0b', borderWidth: 1, borderRadius: 6, borderSkipped: false },
-                { label: 'Pendentes', data: docStats.map(d => Math.max(0, d.total - d.done - d.inProgress)), backgroundColor: gradPending, borderColor: '#6366f1', borderWidth: 1, borderRadius: 6, borderSkipped: false }
+                { label: 'Concluídos', data: docStats.map(d => d.done), backgroundColor: mode === 'line' ? 'rgba(52, 211, 153, 0.15)' : gradDone, borderColor: '#10b981', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' },
+                { label: 'Em Atend.', data: docStats.map(d => d.inProgress), backgroundColor: mode === 'line' ? 'rgba(251, 191, 36, 0.15)' : gradProgress, borderColor: '#f59e0b', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' },
+                { label: 'Pendentes', data: docStats.map(d => Math.max(0, d.total - d.done - d.inProgress)), backgroundColor: mode === 'line' ? 'rgba(99, 102, 241, 0.15)' : gradPending, borderColor: '#6366f1', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' }
               ]
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
-              animation: { duration: 1000, easing: 'easeOutQuart' },
+              animation: { duration: 900, easing: 'easeOutQuart' },
+              onClick: (evt, elements) => {
+                if (elements && elements.length > 0) {
+                  const idx = elements[0].index;
+                  const rowEl = document.getElementById(`doc-table-row-${idx}`);
+                  if (rowEl) {
+                    document.querySelectorAll('.row-highlight-pulse').forEach(r => r.classList.remove('row-highlight-pulse'));
+                    rowEl.classList.add('row-highlight-pulse');
+                    rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }
+              },
               plugins: {
                 legend: {
-                  position: 'top',
-                  align: 'end',
-                  labels: {
-                    color: '#cbd5e1',
-                    font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' },
-                    usePointStyle: true,
-                    boxWidth: 7,
-                    padding: 10
-                  }
+                  position: 'top', align: 'end',
+                  labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' }, usePointStyle: true, boxWidth: 7, padding: 10 }
                 },
                 tooltip: {
-                  backgroundColor: 'rgba(18, 14, 34, 0.94)',
-                  titleColor: '#00f2fe',
-                  bodyColor: '#f8fafc',
-                  borderColor: 'rgba(0, 242, 254, 0.35)',
-                  borderWidth: 1,
-                  padding: 10,
-                  usePointStyle: true
+                  backgroundColor: 'rgba(18, 14, 34, 0.94)', titleColor: '#00f2fe', bodyColor: '#f8fafc', borderColor: 'rgba(0, 242, 254, 0.35)', borderWidth: 1, padding: 10, usePointStyle: true
                 }
               },
               scales: {
-                x: {
-                  stacked: true,
-                  grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                  ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
-                },
-                y: {
-                  stacked: true,
-                  grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                  ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 } }
-                }
+                x: { stacked: mode !== 'line', grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } } },
+                y: { stacked: mode !== 'line', grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 } } }
               }
             }
           });
-          ctxBar._chartInstance = inst;
-        }
+          ctxBar._chartInstance = instBar;
+        };
+
+        renderBarChart('bar');
+
+        // Ouvintes do Seletor de Modo de Gráfico
+        document.querySelectorAll('#doc-chart-mode-toggle .chart-mode-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('#doc-chart-mode-toggle .chart-mode-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const mode = btn.dataset.mode;
+            currentChartMode = mode;
+            renderBarChart(mode);
+          });
+        });
+
+        // Interatividade Hover Tabela -> Gráfico
+        document.querySelectorAll('.doc-table-row').forEach(row => {
+          row.addEventListener('mouseenter', () => {
+            const idx = parseInt(row.dataset.idx, 10);
+            if (instBar && instBar.setActiveElements) {
+              instBar.setActiveElements([{ datasetIndex: 0, index: idx }, { datasetIndex: 1, index: idx }, { datasetIndex: 2, index: idx }]);
+              instBar.update();
+            }
+          });
+          row.addEventListener('mouseleave', () => {
+            if (instBar && instBar.setActiveElements) {
+              instBar.setActiveElements([]);
+              instBar.update();
+            }
+          });
+        });
 
         const ctxDoughnut = document.getElementById('chart-doc-completion');
         if (ctxDoughnut && window.Chart) {
@@ -5654,8 +5714,7 @@ function renderReportsTab(contentArea) {
           const pendingCount = Math.max(0, totalAppts - totalDone - totalInProgress);
           const completionRate = totalAppts > 0 ? Math.round((totalDone / totalAppts) * 100) : 0;
 
-          const pctEl = document.getElementById('doc-completion-pct');
-          if (pctEl) pctEl.textContent = `${completionRate}%`;
+          countUp(document.getElementById('doc-completion-pct'), completionRate, 1400, '%');
 
           const inst2 = new window.Chart(ctxDoughnut.getContext('2d'), {
             type: 'doughnut',
@@ -5663,40 +5722,26 @@ function renderReportsTab(contentArea) {
               labels: ['Concluídos', 'Em Atendimento', 'Pendentes'],
               datasets: [{
                 data: [totalDone, totalInProgress, pendingCount],
-                backgroundColor: [
-                  '#34d399', // Concluídos (Esmeralda Neon)
-                  '#fbbf24', // Em Atendimento (Âmbar Electric)
-                  '#6366f1'  // Pendentes (Índigo Ciano)
-                ],
+                backgroundColor: ['#34d399', '#fbbf24', '#6366f1'],
                 borderWidth: 3,
                 borderColor: 'rgba(11, 8, 22, 0.95)',
                 borderRadius: 6,
                 spacing: 3,
-                hoverOffset: 10
+                hoverOffset: 12
               }]
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
               cutout: '76%',
-              animation: { animateScale: true, animateRotate: true, duration: 1000 },
+              animation: { animateScale: true, animateRotate: true, duration: 1200 },
               plugins: {
                 legend: {
                   position: 'bottom',
-                  labels: {
-                    color: '#cbd5e1',
-                    font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' },
-                    usePointStyle: true,
-                    padding: 10
-                  }
+                  labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' }, usePointStyle: true, padding: 10 }
                 },
                 tooltip: {
-                  backgroundColor: 'rgba(18, 14, 34, 0.94)',
-                  titleColor: '#00f2fe',
-                  bodyColor: '#f8fafc',
-                  borderColor: 'rgba(0, 242, 254, 0.35)',
-                  borderWidth: 1,
-                  padding: 10,
+                  backgroundColor: 'rgba(18, 14, 34, 0.94)', titleColor: '#00f2fe', bodyColor: '#f8fafc', borderColor: 'rgba(0, 242, 254, 0.35)', borderWidth: 1, padding: 10,
                   callbacks: {
                     label: (context) => {
                       const val = context.raw || 0;

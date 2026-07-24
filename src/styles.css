@@ -1410,6 +1410,59 @@ body {
   width: 100%;
 }
 
+/* --- EFEITO DE DESTAQUE PULSANTE NA TABELA AO CLICAR NO GRÁFICO --- */
+@keyframes rowPulseGlow {
+  0% {
+    background-color: rgba(0, 242, 254, 0.35);
+    box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.5);
+  }
+  50% {
+    background-color: rgba(168, 85, 247, 0.4);
+    box-shadow: inset 0 0 25px rgba(168, 85, 247, 0.7);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.row-highlight-pulse {
+  animation: rowPulseGlow 2.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+/* --- TILT 3D PARALLAX NOS CARDS DE GRÁFICO --- */
+.tilt-card-3d {
+  transition: transform 0.15s ease-out, border-color 0.3s ease, box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* --- SELETOR DE MODO DE GRÁFICO --- */
+.chart-mode-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chart-mode-pill:hover {
+  background: rgba(0, 242, 254, 0.15);
+  color: #00f2fe;
+  border-color: rgba(0, 242, 254, 0.4);
+}
+
+.chart-mode-pill.active {
+  background: linear-gradient(135deg, #6366f1, #00f2fe);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+}
+
 /* --- HYBRID OCCUPANCY CHART COMPONENT (ANEL NEON + KPI CENTRAL + BARRAS POR ALA) --- */
 .hybrid-occupancy-card {
   display: flex;
