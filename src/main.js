@@ -2440,16 +2440,39 @@ async function renderTabContent() {
           </div>
         </div>
 
-        <!-- Seção de Gráficos Interativos -->
+        <!-- Seção de Gráficos Interativos (Layout Híbrido Neon Glass) -->
         <div class="charts-grid">
-          <div class="chart-card">
-            <h4 class="chart-card-title">
-              <i class="fa-solid fa-chart-pie" style="color: var(--color-primary);"></i> Ocupação de Leitos por Ala
-            </h4>
-            <div class="chart-container">
-              <canvas id="occupancyChart"></canvas>
+          <!-- Card 1: Ocupação Híbrida de Leitos -->
+          <div class="chart-card hybrid-occupancy-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <h4 class="chart-card-title" style="margin-bottom: 0;">
+                <i class="fa-solid fa-bed-pulse" style="color: var(--color-primary);"></i> Ocupação de Leitos por Ala
+              </h4>
+              <span id="occupancy-total-badge" class="badge-status-pill" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(129, 140, 248, 0.35); color: #818cf8; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-chart-line"></i> 82% Ocupado
+              </span>
+            </div>
+
+            <div class="hybrid-occupancy-body">
+              <!-- Lado Esquerdo: Doughnut com KPI Central Gigante -->
+              <div class="doughnut-center-wrap">
+                <div class="chart-container-donut">
+                  <canvas id="occupancyChart"></canvas>
+                </div>
+                <div class="donut-center-kpi">
+                  <span id="donut-center-percentage" class="donut-kpi-num">82%</span>
+                  <span class="donut-kpi-label">Ocupação Geral</span>
+                </div>
+              </div>
+
+              <!-- Lado Direito: Barras de Progresso Neon por Ala -->
+              <div id="ward-progress-list" class="ward-progress-list">
+                <!-- Carregado dinamicamente via JS -->
+              </div>
             </div>
           </div>
+
+          <!-- Card 2: Histórico de Atendimentos Mensais -->
           <div class="chart-card">
             <h4 class="chart-card-title">
               <i class="fa-solid fa-chart-line" style="color: var(--color-accent);"></i> Histórico de Atendimentos Mensais
@@ -3833,7 +3856,7 @@ function initDashboardCharts(data) {
     return;
   }
 
-  // 1. Gráfico de Ocupação de Leitos (Doughnut Neon Glass)
+  // 1. Gráfico Híbrido de Ocupação de Leitos (Doughnut Neon + KPI Central + Progress Bars)
   if (occupancyCtx) {
     if (occupancyCtx._chartInstance) occupancyCtx._chartInstance.destroy();
     occupancyCtx.style.cursor = 'pointer';
@@ -3847,6 +3870,70 @@ function initDashboardCharts(data) {
       '#f59e0b', // Maternidade (Amber Warm)
       '#10b981'  // Disponíveis (Emerald Glow)
     ];
+
+    // Cálculos de Totais & Ocupação %
+    let totalBeds = 0;
+    let occupiedBeds = 0;
+    occupancyData.forEach(item => {
+      totalBeds += item.value;
+      if (item.label !== 'Disponíveis') {
+        occupiedBeds += item.value;
+      }
+    });
+    const occupancyPct = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+
+    // Atualizar KPI Central & Badge de Status
+    const donutCenterNum = document.getElementById('donut-center-percentage');
+    if (donutCenterNum) donutCenterNum.textContent = `${occupancyPct}%`;
+
+    const statusBadge = document.getElementById('occupancy-total-badge');
+    if (statusBadge) {
+      const statusColor = occupancyPct > 85 ? '#f43f5e' : (occupancyPct > 70 ? '#f59e0b' : '#10b981');
+      const statusText = occupancyPct > 85 ? 'Lotação Crítica' : (occupancyPct > 70 ? 'Alta Demanda' : 'Estável');
+      statusBadge.style.borderColor = statusColor;
+      statusBadge.style.color = statusColor;
+      statusBadge.innerHTML = `<i class="fa-solid fa-bed-pulse"></i> ${occupancyPct}% Ocupado (${statusText})`;
+    }
+
+    // Renderizar Lista de Barras de Progresso por Ala
+    const progressListEl = document.getElementById('ward-progress-list');
+    if (progressListEl) {
+      progressListEl.innerHTML = '';
+      const wardIcons = {
+        'UTI Adulto': 'fa-heart-pulse',
+        'Enfermaria': 'fa-hospital-user',
+        'Pediatria': 'fa-baby',
+        'Maternidade': 'fa-person-breastfeeding',
+        'Disponíveis': 'fa-bed'
+      };
+
+      occupancyData.forEach((item, idx) => {
+        const color = item.color || neonColors[idx % neonColors.length];
+        const pct = totalBeds > 0 ? Math.round((item.value / totalBeds) * 100) : 0;
+        const icon = wardIcons[item.label] || 'fa-procedures';
+
+        const wardItem = document.createElement('div');
+        wardItem.className = 'ward-progress-item';
+        wardItem.style.cursor = 'pointer';
+        wardItem.onclick = () => { if (typeof switchTab === 'function') switchTab('leitos'); };
+
+        wardItem.innerHTML = `
+          <div class="ward-progress-header">
+            <span class="ward-name">
+              <i class="fa-solid ${icon}" style="color: ${color}; width: 14px;"></i>
+              ${item.label}
+            </span>
+            <span class="ward-stats">
+              <strong style="color: ${color}; font-size: 0.88rem;">${item.value}</strong> leitos <span style="opacity: 0.65; font-size: 0.75rem;">(${pct}%)</span>
+            </span>
+          </div>
+          <div class="ward-bar-track">
+            <div class="ward-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, ${color}, ${color}dd); box-shadow: 0 0 10px ${color}88;"></div>
+          </div>
+        `;
+        progressListEl.appendChild(wardItem);
+      });
+    }
 
     const inst = new ChartClass(ctx, {
       type: 'doughnut',
@@ -3865,7 +3952,7 @@ function initDashboardCharts(data) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '72%',
+        cutout: '78%',
         animation: {
           animateScale: true,
           animateRotate: true,
@@ -3876,18 +3963,9 @@ function initDashboardCharts(data) {
           if (typeof switchTab === 'function') switchTab('leitos');
         },
         plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              color: '#cbd5e1',
-              font: { family: 'Plus Jakarta Sans', size: 11.5, weight: '600' },
-              padding: 14,
-              usePointStyle: true,
-              pointStyle: 'circle'
-            }
-          },
+          legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(18, 14, 34, 0.92)',
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
             titleColor: '#00f2fe',
             bodyColor: '#f8fafc',
             borderColor: 'rgba(0, 242, 254, 0.35)',
