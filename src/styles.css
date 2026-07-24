@@ -1491,17 +1491,68 @@ body {
   font-size: 1.25rem;
 }
 
-.modal-close {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: color var(--transition-fast);
+/* --- BOTÃO FECHAR MODAL / JANELA MODERNO --- */
+.modal-close,
+.btn-close,
+.close-modal,
+.modal-close-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: var(--text-secondary, #94a3b8) !important;
+  font-size: 1.05rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  outline: none !important;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  padding: 0 !important;
+  line-height: 1 !important;
 }
 
-.modal-close:hover {
-  color: var(--text-primary);
+.modal-close:hover,
+.btn-close:hover,
+.close-modal:hover,
+.modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #f87171 !important;
+  transform: scale(1.08) rotate(90deg) !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+}
+
+.modal-close:active,
+.btn-close:active,
+.close-modal:active,
+.modal-close-btn:active {
+  transform: scale(0.92) !important;
+}
+
+/* Suporte ao Modo Claro (Light Theme) */
+.light-theme .modal-close,
+.light-theme .btn-close,
+.light-theme .close-modal,
+.light-theme .modal-close-btn {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: #64748b !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+}
+
+.light-theme .modal-close:hover,
+.light-theme .btn-close:hover,
+.light-theme .close-modal:hover,
+.light-theme .modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #dc2626 !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2) !important;
 }
 
 .modal-body {

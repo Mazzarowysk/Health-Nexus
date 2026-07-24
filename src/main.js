@@ -340,7 +340,7 @@ const showCustomAlert = ({ title = 'Aviso do Sistema', message = '', type = 'inf
           <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid ${iconClass}"></i> ${title}
           </h3>
-          <button id="btn-hn-alert-x" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; opacity: 0.8;">&times;</button>
+          <button id="btn-hn-alert-x" class="modal-close" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <div class="sync-modal-body" style="padding: 22px 24px; gap: 16px;">
@@ -446,7 +446,7 @@ const showUserManagementModal = async () => {
         <h3 class="sync-header-title" style="display: flex; align-items: center; gap: 10px;">
           <i class="fa-solid fa-users-gear"></i> Gerenciamento de Usuários & Permissões
         </h3>
-        <button id="btn-users-modal-close" style="background: transparent; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; opacity: 0.8;">&times;</button>
+        <button id="btn-users-modal-close" class="modal-close" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="sync-modal-body" style="padding: 24px; gap: 16px; overflow-y: auto; text-align: left; align-items: stretch;">
@@ -680,7 +680,7 @@ const showUserFormModal = (userToEdit = null, onSaved = null) => {
         <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
           <i class="fa-solid ${isEdit ? 'fa-user-pen' : 'fa-user-plus'}"></i> ${isEdit ? 'Editar Usuário' : 'Novo Usuário'}
         </h3>
-        <button id="btn-uform-close" style="background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; opacity: 0.8;">&times;</button>
+        <button id="btn-uform-close" class="modal-close" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <form id="user-editor-form" class="sync-modal-body" style="padding: 20px 24px; gap: 14px; text-align: left; align-items: stretch;">
