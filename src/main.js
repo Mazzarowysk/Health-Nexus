@@ -3094,7 +3094,7 @@ async function renderTabContent() {
       });
       setCol('col-waiting', waiting, '#f59e0b', 'Nenhum aguardando', buildWaitCard, (e) => {
         const b = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-call-consult`);
-        if (b) b.addEventListener('click', () => updateStatus(e.id, 'Em_Atendimento', e.patientName));
+        if (b) b.addEventListener('click', () => updateStatus(e.id, 'Em_Atendimento', e.patientName, e.manchesterColor));
       });
       setCol('col-active', active, '#10b981', 'Nenhum em atendimento', buildActiveCard, (e) => {
         const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
@@ -3168,10 +3168,28 @@ async function renderTabContent() {
         </div>`;
     };
 
-    const updateStatus = async (id, status, patientName) => {
+    const updateStatus = async (id, status, patientName, manchesterColor) => {
       try {
         const res = await apiFetch(`${API_URL}/encounters/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status }) });
         if (res.ok) {
+          if (status === 'Em_Atendimento') {
+            apiFetch('/api/tv/call', {
+              method: 'POST',
+              body: JSON.stringify({
+                patientName: patientName,
+                roomName: 'Consultório 01',
+                manchesterColor: manchesterColor || 'Verde'
+              })
+            }).catch(() => {});
+
+            if ('speechSynthesis' in window) {
+              const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao Consultório 01.`;
+              const utterance = new SpeechSynthesisUtterance(text);
+              utterance.lang = 'pt-BR';
+              utterance.rate = 0.9;
+              window.speechSynthesis.speak(utterance);
+            }
+          }
           const msgs = { 'Em_Atendimento': `📣 ${patientName} chamado(a) para consulta!`, 'Finalizado': `✅ Atendimento de ${patientName} finalizado.` };
           showToast(msgs[status] || 'Status atualizado.');
           await loadAndRenderKanban();
@@ -8404,10 +8422,17 @@ async function renderTVPanelTab() {
     if (el) el.textContent = new Date().toLocaleTimeString('pt-BR');
   };
   updateClock();
-  setInterval(updateClock, 1000);
-
-  // Carregar dados de chamadas
+  if (window._tvPollingTimer) clearInterval(window._tvPollingTimer);
   loadTVCalls();
+  window._tvPollingTimer = setInterval(() => {
+    const tvEl = document.getElementById('tv-last-patient');
+    if (tvEl) {
+      loadTVCalls();
+    } else {
+      clearInterval(window._tvPollingTimer);
+      window._tvPollingTimer = null;
+    }
+  }, 3000);
 
   // Listener para botão de chamar paciente
   document.getElementById('btn-tv-call-modal')?.addEventListener('click', openTVCallModal);
@@ -8472,38 +8497,137 @@ function renderTVCallsUI(calls) {
   }
 }
 
-function openTVCallModal() {
-  // Dispara chamada sonora com síntese de voz e registra no banco
-  showCustomConfirm({
-    title: 'Chamar Paciente no Painel de TV',
-    message: 'Selecione o paciente e a sala para anúncio sonoro com síntese de voz na sala de espera.',
-    confirmText: 'Chamar Agora',
-    cancelText: 'Cancelar',
-    type: 'info'
-  }).then(async (confirmed) => {
-    if (confirmed) {
-      const patientName = 'Amanda Alvarenga';
-      const roomName = 'Consultório 01';
-      try {
-        await apiFetch('/api/tv/call', {
-          method: 'POST',
-          body: JSON.stringify({ patientName, roomName, manchesterColor: 'Amarelo' })
-        });
-        
-        // Chamada por Síntese de Voz (Web Speech API)
-        if ('speechSynthesis' in window) {
-          const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao ${roomName}.`;
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = 'pt-BR';
-          utterance.rate = 0.9;
-          window.speechSynthesis.speak(utterance);
-        }
+async function openTVCallModal() {
+  let waitingPatients = [];
+  try {
+    const res = await apiFetch('/api/encounters');
+    if (res.ok) {
+      const data = await res.json();
+      waitingPatients = (data.data || []).filter(e => e.status !== 'Finalizado' && e.status !== 'Cancelado');
+    }
+  } catch(e) {}
 
-        showCustomAlert({ title: 'Chamada Emitida', message: `Chamada para ${patientName} no ${roomName} emitida com voz!`, type: 'success' });
-        loadTVCalls();
-      } catch (e) {
-        showCustomAlert({ title: 'Erro', message: 'Falha ao emitir chamada na TV.', type: 'danger' });
+  const existingModal = document.getElementById('hn-tv-call-modal');
+  if (existingModal) existingModal.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hn-tv-call-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);';
+
+  const patientOptions = waitingPatients.map(p => `
+    <option value="${p.patientName}" data-manchester="${p.manchesterColor || 'Verde'}">${p.patientName} (${p.status === 'Aguardando_Triagem' ? 'Ag. Triagem' : p.status === 'Aguardando_Atendimento' ? 'Ag. Atendimento' : 'Em Consulta'})</option>
+  `).join('');
+
+  overlay.innerHTML = `
+    <div class="sync-modal-card" style="max-width: 480px; width: 90%; background: #0f172a; border: 1px solid #0284c7; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+      <div class="sync-header-banner" style="background: linear-gradient(135deg, #0284c7, #0369a1); padding: 16px 20px;">
+        <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px; color: #fff; margin: 0;">
+          <i class="fa-solid fa-bullhorn"></i> Chamar Paciente no Painel TV
+        </h3>
+      </div>
+
+      <div class="sync-modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
+            <i class="fa-solid fa-user"></i> Selecionar Paciente da Fila:
+          </label>
+          ${waitingPatients.length > 0 ? `
+            <select id="tv-modal-patient-select" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155; margin-bottom: 8px;">
+              <option value="">-- Selecionar da fila em atendimento --</option>
+              ${patientOptions}
+            </select>
+          ` : ''}
+          <input type="text" id="tv-modal-patient-name" placeholder="Ou digite o nome do paciente..." value="${waitingPatients.length > 0 ? waitingPatients[0].patientName : ''}" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;" />
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
+            <i class="fa-solid fa-door-open"></i> Consultório / Sala de Destino:
+          </label>
+          <select id="tv-modal-room" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
+            <option value="Consultório 01">Consultório 01</option>
+            <option value="Consultório 02">Consultório 02</option>
+            <option value="Consultório 03">Consultório 03</option>
+            <option value="Sala de Triagem">Sala de Triagem</option>
+            <option value="Exames / Raio-X">Exames / Raio-X</option>
+            <option value="Recepção">Recepção</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
+            <i class="fa-solid fa-notes-medical"></i> Classificação Manchester:
+          </label>
+          <select id="tv-modal-color" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
+            <option value="Verde">Pouco Urgente (Verde)</option>
+            <option value="Amarelo">Urgente (Amarelo)</option>
+            <option value="Laranja">Muito Urgente (Laranja)</option>
+            <option value="Vermelho">Emergência (Vermelho)</option>
+            <option value="Azul">Não Urgente (Azul)</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button id="btn-tv-modal-confirm" class="btn btn-primary" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; font-weight: 700; cursor: pointer;">
+            <i class="fa-solid fa-volume-high"></i> Emitir Chamada
+          </button>
+          <button id="btn-tv-modal-cancel" class="btn" style="flex: 1; padding: 12px; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; cursor: pointer;">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const selectEl = document.getElementById('tv-modal-patient-select');
+  const inputEl = document.getElementById('tv-modal-patient-name');
+  const colorEl = document.getElementById('tv-modal-color');
+
+  if (selectEl) {
+    selectEl.addEventListener('change', (ev) => {
+      if (ev.target.value) {
+        inputEl.value = ev.target.value;
+        const opt = ev.target.options[ev.target.selectedIndex];
+        const m = opt.getAttribute('data-manchester');
+        if (m) colorEl.value = m;
       }
+    });
+  }
+
+  document.getElementById('btn-tv-modal-cancel').addEventListener('click', () => overlay.remove());
+
+  document.getElementById('btn-tv-modal-confirm').addEventListener('click', async () => {
+    const patientName = inputEl.value.trim();
+    const roomName = document.getElementById('tv-modal-room').value;
+    const manchesterColor = colorEl.value;
+
+    if (!patientName) {
+      showCustomAlert({ title: 'Atenção', message: 'Por favor, informe o nome do paciente.', type: 'warning' });
+      return;
+    }
+
+    try {
+      await apiFetch('/api/tv/call', {
+        method: 'POST',
+        body: JSON.stringify({ patientName, roomName, manchesterColor })
+      });
+
+      if ('speechSynthesis' in window) {
+        const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao ${roomName}.`;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+
+      overlay.remove();
+      showCustomAlert({ title: 'Chamada Emitida', message: `Chamada para ${patientName} no ${roomName} emitida com voz!`, type: 'success' });
+      loadTVCalls();
+    } catch (e) {
+      showCustomAlert({ title: 'Erro', message: 'Falha ao emitir chamada na TV.', type: 'danger' });
     }
   });
 }

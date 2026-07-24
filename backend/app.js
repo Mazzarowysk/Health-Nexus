@@ -730,6 +730,7 @@ app.post('/api/encounters', async (req, res) => {
 
   try {
     // 1. Garantir que o paciente exista na tabela patients para evitar erro 404 e falha de JOIN
+    let realPatientId = patientId;
     const patientCheck = await db.execute({
       sql: 'SELECT id, fullName FROM patients WHERE id = ?',
       args: [patientId]
@@ -737,19 +738,28 @@ app.post('/api/encounters', async (req, res) => {
 
     if (patientCheck.rows.length === 0) {
       const pName = patientName || 'Paciente Agendado';
-      const nowIso = new Date().toISOString();
-      const randomCpf = `${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}-${Math.floor(10 + Math.random() * 89)}`;
-      await db.execute({
-        sql: `INSERT INTO patients (id, fullName, cpf, birthDate, phone, created_at, updated_at)
-              VALUES (?, ?, ?, '1990-01-01', '(11) 99999-9999', ?, ?)`,
-        args: [patientId, pName, randomCpf, nowIso, nowIso]
+      const nameMatch = await db.execute({
+        sql: 'SELECT id FROM patients WHERE LOWER(TRIM(fullName)) = LOWER(TRIM(?))',
+        args: [pName]
       });
+
+      if (nameMatch.rows.length > 0) {
+        realPatientId = nameMatch.rows[0].id;
+      } else {
+        const nowIso = new Date().toISOString();
+        const randomCpf = `${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}-${Math.floor(10 + Math.random() * 89)}`;
+        await db.execute({
+          sql: `INSERT INTO patients (id, fullName, cpf, birthDate, phone, created_at, updated_at)
+                VALUES (?, ?, ?, '1990-01-01', '(11) 99999-9999', ?, ?)`,
+          args: [patientId, pName, randomCpf, nowIso, nowIso]
+        });
+      }
     }
 
     // 2. Verificar se já existe atendimento ativo para este paciente
     const activeCheck = await db.execute({
       sql: "SELECT id FROM encounters WHERE patientId = ? AND status != 'Finalizado'",
-      args: [patientId]
+      args: [realPatientId]
     });
 
     const targetStatus = reqStatus || (type === 'Ambulatorio' ? 'Em_Atendimento' : 'Aguardando_Triagem');
@@ -789,7 +799,7 @@ app.post('/api/encounters', async (req, res) => {
 
     await db.execute({
       sql: 'INSERT INTO encounters (id, patientId, type, status, admitted_at) VALUES (?, ?, ?, ?, ?)',
-      args: [encounterId, patientId, type, targetStatus, admittedAt]
+      args: [encounterId, realPatientId, type, targetStatus, admittedAt]
     });
 
     // Se for ambulatorial ou direto para consulta, insere registro de triagem padrão
@@ -1154,6 +1164,30 @@ app.post('/api/patients', async (req, res) => {
   }
 
   try {
+    const checkName = await db.execute({
+      sql: 'SELECT id FROM patients WHERE LOWER(TRIM(fullName)) = LOWER(TRIM(?))',
+      args: [fullName]
+    });
+
+    if (checkName.rows.length > 0) {
+      return res.status(409).json({
+        status: 'error',
+        message: 'Já existe um paciente cadastrado com este nome.'
+      });
+    }
+
+    const checkCpf = await db.execute({
+      sql: 'SELECT id FROM patients WHERE cpf = ?',
+      args: [cpf]
+    });
+
+    if (checkCpf.rows.length > 0) {
+      return res.status(409).json({
+        status: 'error',
+        message: 'Já existe um paciente cadastrado com este CPF.'
+      });
+    }
+
     const patientId = await generatePatientId(fullName);
     
     const nowIso = new Date().toISOString();
@@ -1214,6 +1248,18 @@ app.put('/api/patients/:id', async (req, res) => {
   }
 
   try {
+    const checkName = await db.execute({
+      sql: 'SELECT id FROM patients WHERE LOWER(TRIM(fullName)) = LOWER(TRIM(?)) AND id != ?',
+      args: [fullName, id]
+    });
+
+    if (checkName.rows.length > 0) {
+      return res.status(409).json({
+        status: 'error',
+        message: 'Outro paciente já está cadastrado com este nome.'
+      });
+    }
+
     const checkCpf = await db.execute({
       sql: 'SELECT id FROM patients WHERE cpf = ? AND id != ?',
       args: [cpf, id]
