@@ -5340,10 +5340,23 @@ function renderReportsTab(contentArea) {
               <span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${t.color}1e;color:${t.color};border:1px solid ${t.color}40;">${t.status}</span>
             </td>
             <td style="padding:10px 14px;text-align:center;">
-              <button class="btn btn-outline" style="font-size:0.72rem;padding:3px 9px;" onclick="alert('Boleto / 2ª via do título ${t.id} gerado com sucesso!')"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
+              <button class="btn btn-outline btn-view-boleto" style="font-size:0.72rem;padding:3px 9px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
             </td>
           </tr>
         `).join('');
+
+        tbody.querySelectorAll('.btn-view-boleto').forEach(btn => {
+          btn.addEventListener('click', () => {
+            openBoletoModal({
+              id: btn.dataset.id,
+              client: btn.dataset.client,
+              desc: btn.dataset.desc,
+              dueDate: btn.dataset.duedate,
+              amountFormatted: btn.dataset.amount,
+              amount: parseFloat(btn.dataset.val) || 0
+            });
+          });
+        });
       };
 
       renderFinTable('Todos');
@@ -5365,6 +5378,11 @@ function renderReportsTab(contentArea) {
         document.getElementById('btn-fin-show-all')?.addEventListener('click', () => {
           renderFinTable('Todos');
         });
+
+        // Botões de exportação direta do Relatório Financeiro
+        document.getElementById('btn-export-pdf')?.addEventListener('click', () => processExport('pdf'));
+        document.getElementById('btn-export-xls')?.addEventListener('click', () => processExport('xls'));
+        document.getElementById('btn-export-csv')?.addEventListener('click', () => processExport('csv'));
       }, 50);
 
       // Re-associar botões de exportação do relatório financeiro
@@ -5558,14 +5576,301 @@ function renderReportsTab(contentArea) {
     updatePreviewStatusText();
   };
 
-  const processExport = async (format) => {
-    const checkedIds = Array.from(document.querySelectorAll('.record-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
-    if (checkedIds.length === 0) {
-      alert('Por favor, selecione ao menos um registro para exportar.');
+  // FUNÇÕES DE EXPORTAÇÃO GLOBAL (CSV, EXCEL, PDF) E EMISSÃO DE BOLETO
+  function exportToCSV(columns, rows, filename) {
+    const csvContent = "\uFEFF" + [
+      columns.join(";"),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(";"))
+    ].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${filename}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (typeof showToast === 'function') showToast(`Relatório CSV '${filename}.csv' exportado com sucesso!`);
+  }
+
+  function exportToXLS(columns, rows, filename) {
+    const tableHTML = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Relatório Health Nexus</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+      <body style="font-family: Arial; padding: 20px;">
+        <h2 style="color: #4f46e5;">Health Nexus — Relatório Oficial</h2>
+        <p style="color: #64748b; font-size: 0.9rem;">Emissão: ${new Date().toLocaleString('pt-BR')}</p>
+        <table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial;">
+          <thead>
+            <tr style="background-color: #4f46e5; color: #ffffff; font-weight: bold;">
+              ${columns.map(col => `<th style="padding: 10px; text-align: left;">${col}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                ${row.map(cell => `<td style="padding: 8px;">${cell}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+    const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${filename}.xls`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (typeof showToast === 'function') showToast(`Relatório Excel '${filename}.xls' gerado e baixado!`);
+  }
+
+  async function exportToPDF(columns, rows, title, filename) {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Por favor, habilite pop-ups para gerar a impressão/visualização em PDF.');
       return;
     }
 
-    const recordsToExport = currentFilteredList.filter(item => checkedIds.includes(item.id));
+    const dateNow = new Date().toLocaleString('pt-BR');
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>${title} — Health Nexus</title>
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; margin: 0; padding: 15px; font-size: 10pt; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6366f1; padding-bottom: 12px; margin-bottom: 18px; }
+          .logo { font-size: 18pt; font-weight: bold; color: #4f46e5; }
+          .sublogo { font-size: 8.5pt; color: #64748b; }
+          .meta { text-align: right; font-size: 8.5pt; color: #64748b; }
+          h1 { font-size: 15pt; color: #0f172a; margin-top: 0; margin-bottom: 12px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+          th { background-color: #4f46e5; color: #ffffff; text-align: left; padding: 7px 9px; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; }
+          td { padding: 7px 9px; border-bottom: 1px solid #e2e8f0; font-size: 9pt; }
+          tr:nth-child(even) td { background-color: #f8fafc; }
+          .footer { margin-top: 25px; border-top: 1px solid #cbd5e1; padding-top: 8px; font-size: 8pt; color: #94a3b8; text-align: center; }
+          .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-weight: bold; font-size: 8pt; }
+          .badge-vencidas { background: #ffe4e6; color: #e11d48; }
+          .badge-pagas { background: #d1fae5; color: #059669; }
+          .badge-avencer { background: #e0f2fe; color: #0284c7; }
+          .badge-bonificadas { background: #fef3c7; color: #d97706; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="logo">🏥 HEALTH NEXUS</div>
+            <div class="sublogo">Gestão Hospitalar & Inteligência Médica</div>
+          </div>
+          <div class="meta">
+            <div>Data de Emissão: <strong>${dateNow}</strong></div>
+            <div>Documento Autenticado do Sistema</div>
+          </div>
+        </div>
+
+        <h1>${title}</h1>
+        <p style="font-size: 8.5pt; color: #64748b; margin-top: -6px;">Total de registros impressos: <strong>${rows.length}</strong></p>
+
+        <table>
+          <thead>
+            <tr>
+              ${columns.map(col => `<th>${col}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                ${row.map((cell, idx) => {
+                  if (columns[idx] === 'Status') {
+                    const s = String(cell).toLowerCase().replace(/\s+/g, '');
+                    return `<td><span class="badge badge-${s}">${cell}</span></td>`;
+                  }
+                  return `<td>${cell}</td>`;
+                }).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          Health Nexus © 2026 — Sistema Integrado de Saúde Hospitalar • Documento impresso digitalmente.
+        </div>
+        <script>
+          window.onload = function() { window.print(); };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    if (typeof showToast === 'function') showToast(`Relatório PDF gerado! Janela de impressão pronta.`);
+  }
+
+  function openBoletoModal(t) {
+    let modal = document.getElementById('modal-boleto-2via');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modal-boleto-2via';
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+    }
+
+    const linhaDigitavel = `34191.79001 01043.510047 91020.150008 5 94100000035000`;
+    const pixCopyPaste = `00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-426614174000520400005303986540${t.amount ? t.amount.toFixed(2) : '350.00'}5802BR5912HEALTH NEXUS6009SAO PAULO62070503***6304A1B2`;
+
+    modal.innerHTML = `
+      <div class="modal-card glass-card" style="max-width: 680px; width: 92%; padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff;">
+              <i class="fa-solid fa-barcode"></i>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700;">2ª Via do Boleto Bancário</h3>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Título Nº <strong>${t.id}</strong> — Banco Health Nexus (341-7)</span>
+            </div>
+          </div>
+          <button id="close-boleto-modal" class="btn-icon" style="background: transparent; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- CORPO DO BOLETO -->
+        <div id="printable-boleto-area" style="background: #ffffff; color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #cbd5e1; font-family: Arial, sans-serif;">
+          <!-- CABEÇALHO DO BANCO -->
+          <div style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 8px; font-weight: bold;">
+            <span style="font-size: 1.2rem; color: #4f46e5; flex: 1;">HEALTH NEXUS BANK</span>
+            <span style="border-left: 2px solid #000; border-right: 2px solid #000; padding: 0 12px; font-size: 1.2rem;">341-7</span>
+            <span style="font-size: 0.85rem; font-family: monospace; letter-spacing: 0.5px; padding-left: 10px;">${linhaDigitavel}</span>
+          </div>
+
+          <!-- GRID DE INFORMAÇÕES -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1px; background: #94a3b8; margin-top: 10px; border: 1px solid #94a3b8;">
+            <div style="background: #fff; padding: 6px 10px;">
+              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Beneficiário</span>
+              <strong style="font-size: 0.85rem;">Health Nexus Serviços Médicos Hospitalares Ltda</strong>
+            </div>
+            <div style="background: #fff; padding: 6px 10px;">
+              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Agência / Código Beneficiário</span>
+              <strong style="font-size: 0.85rem;">0412 / 00948-2</strong>
+            </div>
+            <div style="background: #fff; padding: 6px 10px;">
+              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Vencimento</span>
+              <strong style="font-size: 0.85rem; color: #e11d48;">${t.dueDate}</strong>
+            </div>
+
+            <div style="background: #fff; padding: 6px 10px; grid-column: span 2;">
+              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Pagador / Paciente</span>
+              <strong style="font-size: 0.85rem;">${t.client}</strong>
+              <span style="font-size: 0.75rem; color: #475569; display: block; margin-top: 2px;">Serviço: ${t.desc}</span>
+            </div>
+            <div style="background: #fff; padding: 6px 10px;">
+              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Valor do Título</span>
+              <strong style="font-size: 1.1rem; color: #059669;">${t.amountFormatted}</strong>
+            </div>
+          </div>
+
+          <!-- CÓDIGO DE BARRAS & PIX -->
+          <div style="margin-top: 16px; padding: 14px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+            <div>
+              <span style="font-size: 0.72rem; color: #64748b; font-weight: bold; display: block; margin-bottom: 4px;">PAGUE VIA PIX (APROVAÇÃO INSTANTÂNEA)</span>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 58px; height: 58px; background: #fff; padding: 4px; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                  <i class="fa-solid fa-qrcode" style="font-size: 2.5rem; color: #0f172a;"></i>
+                </div>
+                <button id="btn-copy-pix" class="btn" style="background: #0d9488; color: #fff; font-size: 0.78rem; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;">
+                  <i class="fa-solid fa-copy"></i> Copiar Chave Pix
+                </button>
+              </div>
+            </div>
+
+            <div style="text-align: right;">
+              <span style="font-size: 0.72rem; color: #64748b; font-weight: bold; display: block; margin-bottom: 4px;">LINHA DIGITÁVEL BOLETO</span>
+              <button id="btn-copy-linha" class="btn" style="background: #4f46e5; color: #fff; font-size: 0.78rem; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;">
+                <i class="fa-solid fa-barcode"></i> Copiar Linha Digitável
+              </button>
+            </div>
+          </div>
+
+          <!-- REPRESENTAÇÃO GRÁFICA DO CÓDIGO DE BARRAS -->
+          <div style="margin-top: 16px; text-align: center;">
+            <div style="height: 48px; background: repeating-linear-gradient(90deg, #000 0px, #000 2px, #fff 2px, #fff 4px, #000 4px, #000 7px, #fff 7px, #fff 9px, #000 9px, #000 10px); width: 100%; border-radius: 2px;"></div>
+            <span style="font-family: monospace; font-size: 0.75rem; color: #64748b; letter-spacing: 2px; margin-top: 4px; display: block;">${t.id} - AUTH 894018492048102</span>
+          </div>
+        </div>
+
+        <!-- BOTÕES DE AÇÃO DO MODAL -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button id="btn-close-boleto-foot" class="btn btn-outline" style="font-size: 0.85rem;">Fechar</button>
+          <button id="btn-print-boleto" class="btn btn-primary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Baixar Boleto PDF</button>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('active');
+
+    const close = () => modal.classList.remove('active');
+    document.getElementById('close-boleto-modal')?.addEventListener('click', close);
+    document.getElementById('btn-close-boleto-foot')?.addEventListener('click', close);
+
+    document.getElementById('btn-copy-linha')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(linhaDigitavel);
+      if (typeof showToast === 'function') showToast('Linha digitável copiada para a área de transferência!');
+    });
+
+    document.getElementById('btn-copy-pix')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(pixCopyPaste);
+      if (typeof showToast === 'function') showToast('Chave Pix Copia e Cola copiada com sucesso!');
+    });
+
+    document.getElementById('btn-print-boleto')?.addEventListener('click', () => {
+      const printWin = window.open('', '_blank');
+      if (!printWin) {
+        alert('Por favor, habilite janelas pop-up para imprimir o boleto.');
+        return;
+      }
+      const boletoHTML = document.getElementById('printable-boleto-area').innerHTML;
+      printWin.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Boleto 2ª Via — ${t.id}</title>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+          <style>
+            body { font-family: Arial, sans-serif; padding: 30px; color: #000; background: #fff; }
+            @page { size: A4 portrait; margin: 10mm; }
+          </style>
+        </head>
+        <body>
+          <div style="max-width: 700px; margin: 0 auto; border: 1px solid #000; padding: 20px; border-radius: 8px;">
+            ${boletoHTML}
+          </div>
+          <script>
+            window.onload = function() { window.print(); };
+          </script>
+        </body>
+        </html>
+      `);
+      printWin.document.close();
+    });
+  }
+
+  const processExport = async (format) => {
+    let recordsToExport = [];
+    if (activeTab !== 'financial') {
+      const checkedIds = Array.from(document.querySelectorAll('.record-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
+      if (checkedIds.length === 0) {
+        alert('Por favor, selecione ao menos um registro para exportar.');
+        return;
+      }
+      recordsToExport = currentFilteredList.filter(item => checkedIds.includes(item.id));
+    }
     
     const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
     let columns = [];
