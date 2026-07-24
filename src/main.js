@@ -5138,6 +5138,16 @@ function renderReportsTab(contentArea) {
 
       const totalFormatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVal);
 
+      const finData = [
+        { label: 'Pagas', count: pagasCount, totalValue: pagasVal, color: '#34d399' },
+        { label: 'A Vencer', count: aVencerCount, totalValue: aVencerVal, color: '#00f2fe' },
+        { label: 'Vencidas', count: vencidasCount, totalValue: vencidasVal, color: '#f43f5e' },
+        { label: 'Bonificadas', count: bonificadasCount, totalValue: bonificadasVal, color: '#fbbf24' },
+        { label: 'Suspensas', count: suspensasCount, totalValue: suspensasVal, color: '#a855f7' },
+        { label: 'Canceladas', count: canceladasCount, totalValue: canceladasVal, color: '#f97316' },
+        { label: 'Excluídas', count: excluidasCount, totalValue: excluidasVal, color: '#dc2626' }
+      ];
+
       const finTitlesList = [
         { id: 'TIT-90481', client: 'Carlos Eduardo Silva', desc: 'Consulta Ambulatorial & Exames Especializados', dueDate: '15/06/2026', amount: 350.00, amountFormatted: 'R$ 350,00', status: 'Vencidas', color: '#f43f5e' },
         { id: 'TIT-90482', client: 'Mariana Oliveira Souza', desc: 'Procedimento Cirúrgico Porte 2', dueDate: '20/06/2026', amount: 1250.00, amountFormatted: 'R$ 1.250,00', status: 'Vencidas', color: '#f43f5e' },
