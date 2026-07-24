@@ -5174,13 +5174,16 @@ function renderReportsTab(contentArea) {
             </span>
           </div>
 
-          <div style="display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center;">
+          <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: center;">
+            <!-- Lado Esquerdo: Anel Donut com KPI Central -->
             <div style="position: relative; width: 210px; height: 210px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
               <canvas id="finPieChart"></canvas>
               <div class="fin-donut-kpi" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
                 <span id="fin-completion-pct" style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; line-height: 1; filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.45));">0%</span>
                 <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 4px;">PAGAS DA CARTEIRA</span>
               </div>
+            </div>
+
             <!-- Lado Direito: Lista de Barras de Progresso por Status (Estilo Ocupação de Leitos por Ala) -->
             <div class="ward-progress-list" id="fin-status-progress-list">
               ${finData.map((item, idx) => {
