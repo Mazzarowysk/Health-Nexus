@@ -5727,17 +5727,17 @@ function renderReportsTab(contentArea) {
     const pixCopyPaste = `00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-426614174000520400005303986540${t.amount ? t.amount.toFixed(2) : '350.00'}5802BR5912HEALTH NEXUS6009SAO PAULO62070503***6304A1B2`;
 
     modal.innerHTML = `
-      <div class="modal-card glass-card" style="max-width: 820px; width: 94%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 92vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+      <div class="modal-card glass-card" style="max-width: 840px; width: 94%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); position: relative;">
         
-        <!-- CABEÇALHO DO MODAL COM AÇÕES RÁPIDAS -->
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <!-- CABEÇALHO DO MODAL COM AÇÕES RÁPIDAS (FIXO AO ROLAR) -->
+        <div style="position: sticky; top: -24px; z-index: 30; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 14px 24px; margin: -24px -24px 18px -24px; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; backdrop-filter: blur(12px);">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,0.3);">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,0.3);">
               <i class="fa-solid fa-barcode"></i>
             </div>
             <div>
-              <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Outfit', sans-serif;">2ª Via do Boleto Bancário FEBRABAN</h3>
-              <span style="font-size: 0.8rem; color: var(--text-muted);">Nosso Número: <strong>${t.id}</strong> • Banco Health Nexus S.A. (341-7)</span>
+              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; font-family: 'Outfit', sans-serif;">2ª Via do Boleto Bancário FEBRABAN</h3>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Nosso Número: <strong>${t.id}</strong> • Health Nexus Bank (341-7)</span>
             </div>
           </div>
           
@@ -5745,7 +5745,7 @@ function renderReportsTab(contentArea) {
             <button id="btn-copy-linha-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(99,102,241,0.4);"><i class="fa-solid fa-copy"></i> Copiar Linha</button>
             <button id="btn-copy-pix-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(52,211,153,0.4); color: #34d399;"><i class="fa-solid fa-qrcode"></i> Copiar Pix</button>
             <button id="btn-print-boleto" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 14px; background: linear-gradient(135deg, #6366f1, #4f46e5);"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
-            <button id="close-boleto-modal" class="btn-icon" style="background: transparent; border: none; font-size: 1.3rem; color: var(--text-muted); cursor: pointer; margin-left: 6px;"><i class="fa-solid fa-xmark"></i></button>
+            <button id="close-boleto-modal" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Fechar Janela (ESC)"><i class="fa-solid fa-xmark"></i></button>
           </div>
         </div>
 
@@ -5765,13 +5765,23 @@ function renderReportsTab(contentArea) {
           </button>
         </div>
 
-        <!-- ESTRUTURA OFICIAL DO BOLETO FEBRABAN -->
+        <!-- ESTRUTURA OFICIAL DO BOLETO FEBRABAN COM LOGO -->
         <div id="printable-boleto-area" style="background: #ffffff; color: #000000; padding: 24px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: 'Arial', sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
           
-          <!-- 1. RECIBO DO PAGADOR (CANHOTO SUPERIOR) -->
+          <!-- 1. RECIBO DO PAGADOR (CANHOTO SUPERIOR COM LOGOTIPO) -->
           <div style="margin-bottom: 12px;">
-            <div style="display: flex; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px;">
-              <span style="font-size: 1.1rem; font-weight: 900; color: #1e1b4b; flex: 1;">HEALTH NEXUS BANK</span>
+            <div style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 6px;">
+              <!-- LOGO BRANDED HEALTH NEXUS -->
+              <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 1.05rem; box-shadow: 0 2px 6px rgba(79,70,229,0.3);">
+                  <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div>
+                  <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
+                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK • GESTÃO HOSPITALAR</div>
+                </div>
+              </div>
+
               <span style="font-size: 1.1rem; font-weight: 900; border-left: 2px solid #000; border-right: 2px solid #000; padding: 0 12px; margin-right: 12px;">341-7</span>
               <span style="font-size: 0.85rem; font-weight: 700; font-family: monospace; letter-spacing: 0.5px;">RECIBO DO PAGADOR</span>
             </div>
@@ -5822,12 +5832,22 @@ function renderReportsTab(contentArea) {
             </span>
           </div>
 
-          <!-- 2. FICHA DE COMPENSAÇÃO FEBRABAN -->
+          <!-- 2. FICHA DE COMPENSAÇÃO FEBRABAN COM LOGOTIPO -->
           <div style="margin-top: 14px;">
-            <!-- CABEÇALHO DO BANCO -->
-            <div style="display: flex; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
-              <span style="font-size: 1.2rem; font-weight: 900; color: #1e1b4b; flex: 1; letter-spacing: -0.5px;">HEALTH NEXUS BANK</span>
-              <span style="font-size: 1.2rem; font-weight: 900; border-left: 2px solid #000; border-right: 2px solid #000; padding: 0 12px; margin-right: 10px;">341-7</span>
+            <!-- CABEÇALHO DO BANCO COM LOGO -->
+            <div style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 4px;">
+              <!-- LOGO BRANDED HEALTH NEXUS -->
+              <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 1.05rem; box-shadow: 0 2px 6px rgba(79,70,229,0.3);">
+                  <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div>
+                  <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
+                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK • GESTÃO HOSPITALAR</div>
+                </div>
+              </div>
+
+              <span style="font-size: 1.1rem; font-weight: 900; border-left: 2px solid #000; border-right: 2px solid #000; padding: 0 12px; margin-right: 10px;">341-7</span>
               <span style="font-size: 0.92rem; font-weight: 800; font-family: monospace; letter-spacing: 0.8px;">${linhaDigitavel}</span>
             </div>
 
@@ -5843,7 +5863,6 @@ function renderReportsTab(contentArea) {
                   <strong style="font-size: 9.5pt; color: #dc2626;">${t.dueDate}</strong>
                 </td>
               </tr>
-
               <tr>
                 <td colspan="5" style="border: 1px solid #000; padding: 3px 6px;">
                   <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Beneficiário</span>
@@ -5955,7 +5974,6 @@ function renderReportsTab(contentArea) {
             <!-- CÓDIGO DE BARRAS NÍTIDO FEBRABAN -->
             <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: flex-end;">
               <div style="flex: 1;">
-                <!-- Barras de precisão SVG -->
                 <svg width="100%" height="54" viewBox="0 0 450 54" preserveAspectRatio="none" style="display: block;">
                   <rect x="0" y="0" width="4" height="54" fill="#000"/>
                   <rect x="6" y="0" width="2" height="54" fill="#000"/>
@@ -6049,9 +6067,27 @@ function renderReportsTab(contentArea) {
 
     modal.classList.add('active');
 
-    const close = () => modal.classList.remove('active');
+    const close = () => {
+      modal.classList.remove('active');
+      setTimeout(() => { modal.remove(); }, 150);
+    };
+
     document.getElementById('close-boleto-modal')?.addEventListener('click', close);
     document.getElementById('btn-close-boleto-foot')?.addEventListener('click', close);
+
+    // Fechar ao clicar fora do cartão (no fundo escuro)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) close();
+    });
+
+    // Fechar com a tecla ESC (Escape)
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        close();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
 
     const handleCopyLinha = () => {
       navigator.clipboard.writeText(linhaDigitavel);
