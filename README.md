@@ -41,18 +41,26 @@
 - Gráficos interativos (Chart.js): Ocupação por ala, Histórico semanal de atendimentos
 - Dados integrados ao banco via API REST
 
-### 3. Gestão de Pacientes (CRUD Completo)
+### 3. Gestão de Pacientes (CRUD Completo & Prevenção de Duplicidades)
 - Listagem com busca em tempo real (filtragem client-side)
 - Formulário de cadastro com validações: máscara de CPF, campos obrigatórios
+- **Bloqueio Estrito de Duplicidades:** Validação de unicidade por **Nome Completo** (case-insensitive) e **CPF** em `POST /api/patients` e `PUT /api/patients/:id`
+- Reutilização automática do cadastro de pacientes existentes na rota de admissão/atendimento
 - Campos completos: Nome, CPF, Data Nascimento, Endereço, Cidade, Telefone, Celular, Valor de Cobrança
 - Edição e exclusão com confirmação
-- IDs sequenciais e únicos por entidade
 
 ### 4. Triagem & Fila de Atendimento (Protocolo Manchester)
 - Classificação de risco em **5 cores**: Vermelho (Emergência), Laranja, Amarelo, Verde, Azul (Não Urgente)
 - Fluxo completo: Admissão → Triagem → Atendimento → Finalização
 - Status rastreados: `Aguardando_Triagem`, `Aguardando_Médico`, `Em_Atendimento`, `Finalizado`
 - Campos clínicos: Peso, Pressão Arterial, Temperatura, FC, Queixas
+
+### 5. Painel TV (Chamador Eletrônico de Pacientes)
+- Exibição de chamadas em tela cheia para sala de espera com relógio digital e histórico em tempo real
+- **Chamada Audível com Voz:** Anúncio por síntese de voz (*Web Speech API* em `pt-BR`) informando nome do paciente e consultório
+- **Modal Dinâmico de Chamada:** Permite selecionar pacientes da fila em tempo real ou digitar nomes/consultórios manualmente
+- **Integração com Central de Atendimentos:** Disparo automático de chamadas de voz e atualização da TV ao clicar em "Chamar para Consulta" no Kanban
+- **Atualização Automática (Polling):** Sincronização da tela da TV a cada 3 segundos com o servidor
 
 ### 5. PEP — Prontuário Eletrônico do Paciente
 - Estrutura **SOAP**: Subjetivo, Objetivo, Avaliação, Plano

@@ -32,7 +32,7 @@ stateDiagram-v2
     *   `Verde` (Pouco Urgente): Até 120 minutos.
     *   `Azul` (Não Urgente): Até 240 minutos.
 2.  **Ordenação da Fila**: A fila de chamada do consultório médico deve priorizar a gravidade da cor em vez da ordem de chegada. Em caso de empate na cor de triagem, o tempo de espera mais longo define a prioridade.
-3.  **Chamada no Painel**: A chamada do paciente para triagem ou consultório deve disparar um sinal visual e sonoro no Painel de Chamada (via WebSockets).
+3.  **Chamada no Painel (TV Signage & Voz)**: A chamada do paciente para triagem ou consultório dispara sinal visual no Painel TV (com auto-refresh a cada 3s) e anúncio sonoro com síntese de voz (*Web Speech API* em português). Pode ser acionada tanto pelo botão "Chamar para Consulta" na Central de Atendimentos quanto pelo modal dinâmico de seleção no próprio Painel TV.
 
 ---
 

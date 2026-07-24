@@ -85,6 +85,15 @@ Health Nexus/
 | `encounters` | id, patientId, type, status, admitted_at, completed_at |
 | `triages` | id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at |
 | `clinical_notes` | id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at |
+| `tv_calls` | id, patientName, roomName, manchesterColor, doctorName, calledAt |
+
+---
+
+### 3.1 APIs Especiais (Painel TV & Validação de Pacientes)
+
+- **`GET /api/tv/calls`**: Retorna as últimas 15 chamadas de TV ordenadas por data descrescente.
+- **`POST /api/tv/call`**: Registra uma nova chamada de TV no banco de dados. O Painel TV sincroniza a cada 3s via auto-polling.
+- **`POST /api/patients` & `PUT /api/patients/:id`**: Valida duplicidade de Nome Completo *(case-insensitive)* e CPF. Retorna `409 Conflict` se houver colisão.
 
 ---
 

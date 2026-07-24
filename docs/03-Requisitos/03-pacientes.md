@@ -25,11 +25,11 @@ stateDiagram-v2
 
 ---
 
-## 3. Regras de Negócio
-1.  **Chave Única**: O CPF deve ser único por paciente. Caso o paciente seja menor de idade e não possua CPF próprio, é obrigatório registrar o CPF e nome do Responsável Legal.
-2.  **Integração ViaCEP**: O preenchimento do campo CEP deve acionar um gatilho para preencher automaticamente os campos: Logradouro, Bairro, Cidade e Estado.
-3.  **Identificação do SUS**: O número do Cartão Nacional de Saúde (CNS) deve ser validado pelo algoritmo oficial do Ministério da Saúde (validador de integridade do CNS).
-4.  **Cadastro Biométrico (Opcional)**: O sistema deve permitir anexar uma foto facial do paciente direto da webcam para identificação visual e segurança nas etapas seguintes (evita fraudes de identidade).
+1.  **Chave Única e Antiduplicidade**: Tanto o CPF quanto o Nome Completo *(case-insensitive)* devem ser únicos no sistema. Tentar cadastrar ou editar um paciente com nome ou CPF já existente resulta em bloqueio com retorno `HTTP 409 Conflict`.
+2.  **Responsável Legal**: Caso o paciente seja menor de idade e não possua CPF próprio, é obrigatório registrar o CPF e nome do Responsável Legal.
+3.  **Integração ViaCEP**: O preenchimento do campo CEP deve acionar um gatilho para preencher automaticamente os campos: Logradouro, Bairro, Cidade e Estado.
+4.  **Identificação do SUS**: O número do Cartão Nacional de Saúde (CNS) deve ser validado pelo algoritmo oficial do Ministério da Saúde.
+5.  **Reutilização na Admissão**: Rotas de admissão e prontuário buscam automaticamente o paciente pré-existente por nome/CPF em vez de gerar registros duplicados.
 
 ---
 
