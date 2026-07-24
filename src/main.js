@@ -5727,88 +5727,322 @@ function renderReportsTab(contentArea) {
     const pixCopyPaste = `00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-426614174000520400005303986540${t.amount ? t.amount.toFixed(2) : '350.00'}5802BR5912HEALTH NEXUS6009SAO PAULO62070503***6304A1B2`;
 
     modal.innerHTML = `
-      <div class="modal-card glass-card" style="max-width: 680px; width: 92%; padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 90vh; overflow-y: auto;">
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
+      <div class="modal-card glass-card" style="max-width: 820px; width: 94%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 92vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+        
+        <!-- CABEÇALHO DO MODAL COM AÇÕES RÁPIDAS -->
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,0.3);">
               <i class="fa-solid fa-barcode"></i>
             </div>
             <div>
-              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700;">2ª Via do Boleto Bancário</h3>
-              <span style="font-size: 0.8rem; color: var(--text-muted);">Título Nº <strong>${t.id}</strong> — Banco Health Nexus (341-7)</span>
+              <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Outfit', sans-serif;">2ª Via do Boleto Bancário FEBRABAN</h3>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Nosso Número: <strong>${t.id}</strong> • Banco Health Nexus S.A. (341-7)</span>
             </div>
           </div>
-          <button id="close-boleto-modal" class="btn-icon" style="background: transparent; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+          
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button id="btn-copy-linha-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(99,102,241,0.4);"><i class="fa-solid fa-copy"></i> Copiar Linha</button>
+            <button id="btn-copy-pix-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(52,211,153,0.4); color: #34d399;"><i class="fa-solid fa-qrcode"></i> Copiar Pix</button>
+            <button id="btn-print-boleto" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 14px; background: linear-gradient(135deg, #6366f1, #4f46e5);"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
+            <button id="close-boleto-modal" class="btn-icon" style="background: transparent; border: none; font-size: 1.3rem; color: var(--text-muted); cursor: pointer; margin-left: 6px;"><i class="fa-solid fa-xmark"></i></button>
+          </div>
         </div>
 
-        <!-- CORPO DO BOLETO -->
-        <div id="printable-boleto-area" style="background: #ffffff; color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #cbd5e1; font-family: Arial, sans-serif;">
-          <!-- CABEÇALHO DO BANCO -->
-          <div style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 8px; font-weight: bold;">
-            <span style="font-size: 1.2rem; color: #4f46e5; flex: 1;">HEALTH NEXUS BANK</span>
-            <span style="border-left: 2px solid #000; border-right: 2px solid #000; padding: 0 12px; font-size: 1.2rem;">341-7</span>
-            <span style="font-size: 0.85rem; font-family: monospace; letter-spacing: 0.5px; padding-left: 10px;">${linhaDigitavel}</span>
-          </div>
-
-          <!-- GRID DE INFORMAÇÕES -->
-          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1px; background: #94a3b8; margin-top: 10px; border: 1px solid #94a3b8;">
-            <div style="background: #fff; padding: 6px 10px;">
-              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Beneficiário</span>
-              <strong style="font-size: 0.85rem;">Health Nexus Serviços Médicos Hospitalares Ltda</strong>
+        <!-- PAINEL PIX (QR CODE COMPACTO) -->
+        <div style="background: rgba(52, 211, 153, 0.06); border: 1px dashed rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; background: #fff; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(52, 211, 153, 0.4);">
+              <i class="fa-solid fa-qrcode" style="font-size: 2.2rem; color: #0d9488;"></i>
             </div>
-            <div style="background: #fff; padding: 6px 10px;">
-              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Agência / Código Beneficiário</span>
-              <strong style="font-size: 0.85rem;">0412 / 00948-2</strong>
-            </div>
-            <div style="background: #fff; padding: 6px 10px;">
-              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Vencimento</span>
-              <strong style="font-size: 0.85rem; color: #e11d48;">${t.dueDate}</strong>
-            </div>
-
-            <div style="background: #fff; padding: 6px 10px; grid-column: span 2;">
-              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Pagador / Paciente</span>
-              <strong style="font-size: 0.85rem;">${t.client}</strong>
-              <span style="font-size: 0.75rem; color: #475569; display: block; margin-top: 2px;">Serviço: ${t.desc}</span>
-            </div>
-            <div style="background: #fff; padding: 6px 10px;">
-              <span style="font-size: 0.65rem; color: #64748b; display: block; text-transform: uppercase;">Valor do Título</span>
-              <strong style="font-size: 1.1rem; color: #059669;">${t.amountFormatted}</strong>
-            </div>
-          </div>
-
-          <!-- CÓDIGO DE BARRAS & PIX -->
-          <div style="margin-top: 16px; padding: 14px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
             <div>
-              <span style="font-size: 0.72rem; color: #64748b; font-weight: bold; display: block; margin-bottom: 4px;">PAGUE VIA PIX (APROVAÇÃO INSTANTÂNEA)</span>
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 58px; height: 58px; background: #fff; padding: 4px; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                  <i class="fa-solid fa-qrcode" style="font-size: 2.5rem; color: #0f172a;"></i>
+              <div style="font-size: 0.85rem; font-weight: 700; color: #34d399;">Pagamento Instantâneo via Pix</div>
+              <div style="font-size: 0.76rem; color: var(--text-muted);">Escaneie com o app do seu banco para quitação em tempo real.</div>
+            </div>
+          </div>
+          <button id="btn-copy-pix-banner" class="btn" style="background: #0d9488; color: #fff; font-size: 0.78rem; padding: 6px 14px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+            <i class="fa-solid fa-copy"></i> Copiar Pix Copia e Cola
+          </button>
+        </div>
+
+        <!-- ESTRUTURA OFICIAL DO BOLETO FEBRABAN -->
+        <div id="printable-boleto-area" style="background: #ffffff; color: #000000; padding: 24px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: 'Arial', sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+          
+          <!-- 1. RECIBO DO PAGADOR (CANHOTO SUPERIOR) -->
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px;">
+              <span style="font-size: 1.1rem; font-weight: 900; color: #1e1b4b; flex: 1;">HEALTH NEXUS BANK</span>
+              <span style="font-size: 1.1rem; font-weight: 900; border-left: 2px solid #000; border-right: 2px solid #000; padding: 0 12px; margin-right: 12px;">341-7</span>
+              <span style="font-size: 0.85rem; font-weight: 700; font-family: monospace; letter-spacing: 0.5px;">RECIBO DO PAGADOR</span>
+            </div>
+
+            <!-- TABELA CANHOTO -->
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 7.5pt; margin-bottom: 8px;">
+              <tr>
+                <td style="border: 1px solid #000; padding: 4px 6px; width: 50%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Beneficiário</span>
+                  <strong style="font-size: 8.5pt;">Health Nexus Serviços Médicos Hospitalares Ltda - CNPJ: 42.109.843/0001-90</strong>
+                </td>
+                <td style="border: 1px solid #000; padding: 4px 6px; width: 25%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Agência / Código Beneficiário</span>
+                  <strong style="font-size: 8.5pt;">0412 / 00948-2</strong>
+                </td>
+                <td style="border: 1px solid #000; padding: 4px 6px; width: 25%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Vencimento</span>
+                  <strong style="font-size: 9pt; color: #e11d48;">${t.dueDate}</strong>
+                </td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000; padding: 4px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Pagador / Paciente</span>
+                  <strong style="font-size: 8.5pt;">${t.client}</strong>
+                </td>
+                <td style="border: 1px solid #000; padding: 4px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Nosso Número</span>
+                  <strong style="font-size: 8.5pt;">175/00948201-9 (${t.id})</strong>
+                </td>
+                <td style="border: 1px solid #000; padding: 4px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Valor do Documento</span>
+                  <strong style="font-size: 9.5pt; color: #059669;">${t.amountFormatted}</strong>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="3" style="border: 1px solid #000; padding: 4px 6px; background: #f8fafc;">
+                  <span style="color: #64748b; font-size: 7pt;">Demonstrativo / Descrição: <strong>${t.desc}</strong></span>
+                  <span style="float: right; color: #94a3b8; font-size: 6.5pt;">Autenticação Mecânica - Recibo do Sacado</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- LINHA PONTILHADA DE CORTE -->
+          <div style="border-bottom: 1.5px dashed #64748b; margin: 16px 0; position: relative; text-align: right;">
+            <span style="position: absolute; right: 0; top: -10px; background: #fff; padding-left: 8px; font-size: 7pt; color: #64748b;">
+              <i class="fa-solid fa-scissors" style="transform: rotate(180deg);"></i> Corte na linha pontilhada abaixo
+            </span>
+          </div>
+
+          <!-- 2. FICHA DE COMPENSAÇÃO FEBRABAN -->
+          <div style="margin-top: 14px;">
+            <!-- CABEÇALHO DO BANCO -->
+            <div style="display: flex; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+              <span style="font-size: 1.2rem; font-weight: 900; color: #1e1b4b; flex: 1; letter-spacing: -0.5px;">HEALTH NEXUS BANK</span>
+              <span style="font-size: 1.2rem; font-weight: 900; border-left: 2px solid #000; border-right: 2px solid #000; padding: 0 12px; margin-right: 10px;">341-7</span>
+              <span style="font-size: 0.92rem; font-weight: 800; font-family: monospace; letter-spacing: 0.8px;">${linhaDigitavel}</span>
+            </div>
+
+            <!-- TABELA FEBRABAN COMPLETA -->
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 7.5pt;">
+              <tr>
+                <td colspan="5" style="border: 1px solid #000; padding: 3px 6px; width: 75%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Local de Pagamento</span>
+                  <strong style="font-size: 8pt;">PAGÁVEL EM QUALQUER BANCO OU CORRESPONDENTE BANCÁRIO ATÉ O VENCIMENTO</strong>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px; width: 25%; background: #fef2f2;">
+                  <span style="color: #991b1b; display: block; font-size: 6.5pt; text-transform: uppercase; font-weight: bold;">Vencimento</span>
+                  <strong style="font-size: 9.5pt; color: #dc2626;">${t.dueDate}</strong>
+                </td>
+              </tr>
+
+              <tr>
+                <td colspan="5" style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Beneficiário</span>
+                  <strong style="font-size: 8.5pt;">Health Nexus Serviços Médicos Hospitalares Ltda - CNPJ: 42.109.843/0001-90</strong>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Agência / Código Beneficiário</span>
+                  <strong style="font-size: 8.5pt;">0412 / 00948-2</strong>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="border: 1px solid #000; padding: 3px 6px; width: 18%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Data do Documento</span>
+                  <span>10/05/2026</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px; width: 20%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Nº do Documento</span>
+                  <strong>${t.id}</strong>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px; width: 12%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Espécie Doc.</span>
+                  <span>DM</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px; width: 10%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Aceite</span>
+                  <span>N</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px; width: 15%;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Data Processamento</span>
+                  <span>10/05/2026</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Nosso Número</span>
+                  <strong>175/00948201-9</strong>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Uso do Banco</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Carteira</span>
+                  <span>109</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Moeda</span>
+                  <span>R$</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Quantidade</span>
+                  <span>1</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Valor do Documento</span>
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px; background: #f0fdf4;">
+                  <span style="color: #166534; display: block; font-size: 6.5pt; text-transform: uppercase; font-weight: bold;">(=) Valor do Documento</span>
+                  <strong style="font-size: 10pt; color: #15803d;">${t.amountFormatted}</strong>
+                </td>
+              </tr>
+
+              <tr>
+                <td colspan="5" rowspan="5" style="border: 1px solid #000; padding: 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.4;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">Instruções (Texto de Responsabilidade do Beneficiário)</span>
+                  • NÃO RECEBER APÓS 30 DIAS DO VENCIMENTO.<br>
+                  • APÓS O VENCIMENTO COBRAR MULTA DE 2,00% E JUROS DE 1,00% AO MÊS.<br>
+                  • TÍTULO REFERENTE A PRESTAÇÃO DE SERVIÇOS HOSPITALARES E CONSULTAS MÉDICAS.<br>
+                  • SERVIÇO PRESTADO: <strong>${t.desc}</strong><br>
+                  • DÚVIDAS OU SEGUNDA VIA LIGUE: (11) 4003-8900 OU WHATSAPP (11) 98888-7700.
+                </td>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(-) Desconto / Abatimento</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(-) Outras Deduções</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(+) Mora / Multa</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000; padding: 3px 6px;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(+) Outros Acréscimos</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #000; padding: 3px 6px; background: #f8fafc;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase; font-weight: bold;">(=) Valor Cobrado</span>
+                  <strong style="font-size: 9pt;">${t.amountFormatted}</strong>
+                </td>
+              </tr>
+
+              <tr>
+                <td colspan="6" style="border: 1px solid #000; padding: 6px; background: #fafafa;">
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Pagador / Sacado</span>
+                  <strong style="font-size: 8.5pt;">${t.client} — CPF: 384.910.284-00</strong><br>
+                  <span style="font-size: 7.5pt; color: #475569;">Av. Paulista, 1000 - Bela Vista - São Paulo / SP - CEP: 01310-100</span>
+                  <span style="float: right; font-size: 7pt; color: #64748b;">Sacador / Avalista: Health Nexus S.A.</span>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CÓDIGO DE BARRAS NÍTIDO FEBRABAN -->
+            <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: flex-end;">
+              <div style="flex: 1;">
+                <!-- Barras de precisão SVG -->
+                <svg width="100%" height="54" viewBox="0 0 450 54" preserveAspectRatio="none" style="display: block;">
+                  <rect x="0" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="6" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="10" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="18" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="22" y="0" width="8" height="54" fill="#000"/>
+                  <rect x="32" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="37" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="44" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="48" y="0" width="7" height="54" fill="#000"/>
+                  <rect x="57" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="62" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="68" y="0" width="8" height="54" fill="#000"/>
+                  <rect x="78" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="82" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="89" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="94" y="0" width="7" height="54" fill="#000"/>
+                  <rect x="103" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="107" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="115" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="121" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="125" y="0" width="8" height="54" fill="#000"/>
+                  <rect x="135" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="140" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="148" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="152" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="159" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="165" y="0" width="7" height="54" fill="#000"/>
+                  <rect x="174" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="178" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="186" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="191" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="198" y="0" width="8" height="54" fill="#000"/>
+                  <rect x="208" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="212" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="218" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="226" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="231" y="0" width="7" height="54" fill="#000"/>
+                  <rect x="240" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="244" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="251" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="257" y="0" width="8" height="54" fill="#000"/>
+                  <rect x="267" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="271" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="279" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="284" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="291" y="0" width="7" height="54" fill="#000"/>
+                  <rect x="300" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="304" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="310" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="318" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="323" y="0" width="8" height="54" fill="#000"/>
+                  <rect x="333" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="337" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="344" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="350" y="0" width="7" height="54" fill="#000"/>
+                  <rect x="359" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="363" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="371" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="376" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="383" y="0" width="8" height="54" fill="#000"/>
+                  <rect x="393" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="397" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="403" y="0" width="6" height="54" fill="#000"/>
+                  <rect x="411" y="0" width="3" height="54" fill="#000"/>
+                  <rect x="416" y="0" width="7" height="54" fill="#000"/>
+                  <rect x="425" y="0" width="2" height="54" fill="#000"/>
+                  <rect x="429" y="0" width="5" height="54" fill="#000"/>
+                  <rect x="436" y="0" width="4" height="54" fill="#000"/>
+                  <rect x="442" y="0" width="8" height="54" fill="#000"/>
+                </svg>
+                <div style="font-family: monospace; font-size: 7.5pt; color: #475569; letter-spacing: 2px; margin-top: 4px;">
+                  34191.79001 01043.510047 91020.150008 5 94100000035000
                 </div>
-                <button id="btn-copy-pix" class="btn" style="background: #0d9488; color: #fff; font-size: 0.78rem; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;">
-                  <i class="fa-solid fa-copy"></i> Copiar Chave Pix
-                </button>
+              </div>
+              <div style="text-align: right; padding-left: 15px; font-size: 6.5pt; color: #64748b;">
+                Ficha de Compensação<br>
+                Autenticação Mecânica FEBRABAN
               </div>
             </div>
-
-            <div style="text-align: right;">
-              <span style="font-size: 0.72rem; color: #64748b; font-weight: bold; display: block; margin-bottom: 4px;">LINHA DIGITÁVEL BOLETO</span>
-              <button id="btn-copy-linha" class="btn" style="background: #4f46e5; color: #fff; font-size: 0.78rem; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;">
-                <i class="fa-solid fa-barcode"></i> Copiar Linha Digitável
-              </button>
-            </div>
-          </div>
-
-          <!-- REPRESENTAÇÃO GRÁFICA DO CÓDIGO DE BARRAS -->
-          <div style="margin-top: 16px; text-align: center;">
-            <div style="height: 48px; background: repeating-linear-gradient(90deg, #000 0px, #000 2px, #fff 2px, #fff 4px, #000 4px, #000 7px, #fff 7px, #fff 9px, #000 9px, #000 10px); width: 100%; border-radius: 2px;"></div>
-            <span style="font-family: monospace; font-size: 0.75rem; color: #64748b; letter-spacing: 2px; margin-top: 4px; display: block;">${t.id} - AUTH 894018492048102</span>
           </div>
         </div>
 
-        <!-- BOTÕES DE AÇÃO DO MODAL -->
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-          <button id="btn-close-boleto-foot" class="btn btn-outline" style="font-size: 0.85rem;">Fechar</button>
-          <button id="btn-print-boleto" class="btn btn-primary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Baixar Boleto PDF</button>
+        <!-- BOTÕES DE FECHAMENTO DO MODAL -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px;">
+          <button id="btn-close-boleto-foot" class="btn btn-outline" style="font-size: 0.85rem; padding: 8px 18px;">Fechar Visualização</button>
+          <button id="btn-print-boleto-foot" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); font-size: 0.85rem; padding: 8px 20px;"><i class="fa-solid fa-print"></i> Imprimir Boleto FEBRABAN</button>
         </div>
       </div>
     `;
@@ -5819,36 +6053,41 @@ function renderReportsTab(contentArea) {
     document.getElementById('close-boleto-modal')?.addEventListener('click', close);
     document.getElementById('btn-close-boleto-foot')?.addEventListener('click', close);
 
-    document.getElementById('btn-copy-linha')?.addEventListener('click', () => {
+    const handleCopyLinha = () => {
       navigator.clipboard.writeText(linhaDigitavel);
-      if (typeof showToast === 'function') showToast('Linha digitável copiada para a área de transferência!');
-    });
+      if (typeof showToast === 'function') showToast('Linha digitável FEBRABAN copiada para a área de transferência!');
+    };
 
-    document.getElementById('btn-copy-pix')?.addEventListener('click', () => {
+    const handleCopyPix = () => {
       navigator.clipboard.writeText(pixCopyPaste);
       if (typeof showToast === 'function') showToast('Chave Pix Copia e Cola copiada com sucesso!');
-    });
+    };
 
-    document.getElementById('btn-print-boleto')?.addEventListener('click', () => {
+    document.getElementById('btn-copy-linha-top')?.addEventListener('click', handleCopyLinha);
+    document.getElementById('btn-copy-pix-top')?.addEventListener('click', handleCopyPix);
+    document.getElementById('btn-copy-pix-banner')?.addEventListener('click', handleCopyPix);
+
+    const handlePrint = () => {
       const printWin = window.open('', '_blank');
       if (!printWin) {
-        alert('Por favor, habilite janelas pop-up para imprimir o boleto.');
+        alert('Por favor, habilite janelas pop-up no seu navegador para imprimir o boleto.');
         return;
       }
       const boletoHTML = document.getElementById('printable-boleto-area').innerHTML;
       printWin.document.write(`
         <!DOCTYPE html>
-        <html>
+        <html lang="pt-BR">
         <head>
-          <title>Boleto 2ª Via — ${t.id}</title>
+          <meta charset="UTF-8">
+          <title>Boleto Bancário FEBRABAN — Título ${t.id}</title>
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
           <style>
-            body { font-family: Arial, sans-serif; padding: 30px; color: #000; background: #fff; }
             @page { size: A4 portrait; margin: 10mm; }
+            body { font-family: Arial, sans-serif; padding: 15px; color: #000; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           </style>
         </head>
         <body>
-          <div style="max-width: 700px; margin: 0 auto; border: 1px solid #000; padding: 20px; border-radius: 8px;">
+          <div style="max-width: 800px; margin: 0 auto;">
             ${boletoHTML}
           </div>
           <script>
@@ -5858,7 +6097,10 @@ function renderReportsTab(contentArea) {
         </html>
       `);
       printWin.document.close();
-    });
+    };
+
+    document.getElementById('btn-print-boleto')?.addEventListener('click', handlePrint);
+    document.getElementById('btn-print-boleto-foot')?.addEventListener('click', handlePrint);
   }
 
   const processExport = async (format) => {
