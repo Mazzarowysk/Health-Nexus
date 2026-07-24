@@ -1991,7 +1991,7 @@ function getRolePermissions(user) {
       role: 'Desenvolvedor',
       label: '💻 Desenvolvedor (Master)',
       badgeColor: 'linear-gradient(135deg, #a855f7, #7e22ce)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -2006,7 +2006,7 @@ function getRolePermissions(user) {
       role: role || 'Master',
       label: '👑 Master (Acesso Total)',
       badgeColor: 'linear-gradient(135deg, #f59e0b, #d97706)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -2020,7 +2020,7 @@ function getRolePermissions(user) {
       role: 'Administrador',
       label: '🛠️ Administrador',
       badgeColor: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -2034,7 +2034,7 @@ function getRolePermissions(user) {
       role: 'Enfermeiro',
       label: '🩺 Enfermeiro(a)',
       badgeColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2048,7 +2048,7 @@ function getRolePermissions(user) {
       role: 'Recepcionista',
       label: '📋 Recepcionista',
       badgeColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-      allowedTabs: ['dashboard', 'pacientes', 'agenda', 'atendimento', 'consultorios', 'tv_panel'],
+      allowedTabs: ['dashboard', 'pacientes', 'agenda', 'atendimento', 'consultorios', 'tv_panel', 'financeiro'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2062,7 +2062,7 @@ function getRolePermissions(user) {
       role: 'Farmacêutico',
       label: '💊 Farmacêutico(a)',
       badgeColor: 'linear-gradient(135deg, #ec4899, #db2777)',
-      allowedTabs: ['dashboard', 'pacientes', 'farmacia', 'atendimento', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'farmacia', 'atendimento', 'financeiro', 'relatorios'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2076,7 +2076,7 @@ function getRolePermissions(user) {
       role: 'Biomédico',
       label: '🧪 Biomédico(a)',
       badgeColor: 'linear-gradient(135deg, #14b8a6, #0d9488)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'financeiro', 'relatorios'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2090,7 +2090,7 @@ function getRolePermissions(user) {
       role: 'Gestor Financeiro',
       label: '📊 Gestor Financeiro',
       badgeColor: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-      allowedTabs: ['dashboard', 'pacientes', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'financeiro', 'relatorios'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2118,7 +2118,7 @@ function getRolePermissions(user) {
     role: 'Médico',
     label: '🩺 Médico',
     badgeColor: 'linear-gradient(135deg, #10b981, #059669)',
-    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'relatorios'],
+    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro', 'relatorios'],
     canApproveUsers: false,
     canManageUsers: false,
     canDeleteRecords: false,
@@ -2143,6 +2143,7 @@ function renderAppStructure() {
     { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
     { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
     { id: 'leitos', label: 'Leitos', icon: 'fa-bed-pulse' },
+    { id: 'financeiro', label: 'Financeiro', icon: 'fa-hand-holding-dollar' },
     { id: 'relatorios', label: 'Relatórios', icon: 'fa-file-contract' },
     { id: 'configuracoes', label: 'Configurações', icon: 'fa-gear' }
   ];
@@ -2356,6 +2357,7 @@ function switchTab(tabName) {
     atendimento:   'Atendimentos',
     estagnacao:    'Alertas & Estagnação',
     leitos:        'Gestão de Leitos',
+    financeiro:    'Gestão Financeira & Títulos',
     relatorios:    'Relatórios',
     configuracoes: 'Configurações'
   };
@@ -3475,6 +3477,12 @@ async function renderTabContent() {
     renderStagnationTab(contentArea);
   } else if (state.activeTab === 'leitos') {
       renderLeitosTab();
+    } else if (state.activeTab === 'financeiro') {
+      renderReportsTab(contentArea);
+      setTimeout(() => {
+        const btnFin = document.getElementById('tab-btn-financial');
+        if (btnFin) btnFin.click();
+      }, 20);
     } else if (state.activeTab === 'relatorios') {
       renderReportsTab(contentArea);
     } else if (state.activeTab === 'configuracoes') {
