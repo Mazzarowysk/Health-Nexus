@@ -1552,19 +1552,25 @@ function renderAuthScreen() {
   const renderForm = () => {
     root.innerHTML = `
       <div class="auth-container">
-        <!-- Elementos Ambientais Animados (Neon Glass Blobs & Partículas) -->
-        <div class="auth-ambient-bg">
-          <div class="auth-ambient-blob blob-1"></div>
-          <div class="auth-ambient-blob blob-2"></div>
-          <div class="auth-ambient-blob blob-3"></div>
-          <div class="auth-ambient-particle p1"></div>
-          <div class="auth-ambient-particle p2"></div>
-          <div class="auth-ambient-particle p3"></div>
-          <div class="auth-ambient-particle p4"></div>
-        </div>
-
         <!-- Painel Esquerdo: Branding Imersivo -->
         <div class="auth-brand-panel">
+          <!-- Camada de Animações Fluídas & Orbes de Luz -->
+          <div class="auth-brand-ambient">
+            <div class="auth-orb orb-primary"></div>
+            <div class="auth-orb orb-secondary"></div>
+            <div class="auth-orb orb-accent"></div>
+            <div class="auth-ring ring-1"></div>
+            <div class="auth-ring ring-2"></div>
+            <div class="auth-particle-field">
+              <div class="auth-particle p-1"></div>
+              <div class="auth-particle p-2"></div>
+              <div class="auth-particle p-3"></div>
+              <div class="auth-particle p-4"></div>
+              <div class="auth-particle p-5"></div>
+              <div class="auth-particle p-6"></div>
+            </div>
+          </div>
+
           <div class="auth-brand-content">
             <div class="auth-brand-logo-wrap">
               <img src="/assets/logo.png" alt="Health Nexus" class="auth-brand-logo-img">
