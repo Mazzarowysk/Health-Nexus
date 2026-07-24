@@ -4968,7 +4968,25 @@ function renderReportsTab(contentArea) {
     const ChartClass = window.Chart || (typeof Chart !== 'undefined' ? Chart : null);
     if (!ChartClass) return;
 
-    // 1. Gráfico de Rosca Neon Glass ("Distribuição por Status")
+    const pagasItem = data.find(d => d.label === 'Pagas');
+    const totalCount = quantities.reduce((a, b) => a + b, 0);
+    const pctPagas = totalCount > 0 ? Math.round((pagasItem ? pagasItem.count : 0) / totalCount * 100) : 0;
+
+    const pctEl = document.getElementById('fin-completion-pct');
+    if (pctEl) {
+      const startTime = performance.now();
+      const duration = 1200;
+      const updatePct = (now) => {
+        const progress = Math.min(1, (now - startTime) / duration);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        pctEl.textContent = `${Math.floor(ease * pctPagas)}%`;
+        if (progress < 1) requestAnimationFrame(updatePct);
+        else pctEl.textContent = `${pctPagas}%`;
+      };
+      requestAnimationFrame(updatePct);
+    }
+
+    // 1. Gráfico de Rosca Neon Glass ("Distribuição por Status") idêntico ao Health Nexus
     finPieChartInstance = new ChartClass(pieCtx.getContext('2d'), {
       type: 'doughnut',
       data: {
@@ -4980,13 +4998,13 @@ function renderReportsTab(contentArea) {
           borderColor: 'rgba(11, 8, 22, 0.95)',
           borderRadius: 6,
           spacing: 3,
-          hoverOffset: 10
+          hoverOffset: 12
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '74%',
+        cutout: '76%',
         animation: { animateScale: true, animateRotate: true, duration: 1100 },
         plugins: {
           legend: {
@@ -4995,6 +5013,7 @@ function renderReportsTab(contentArea) {
               color: '#cbd5e1',
               font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' },
               usePointStyle: true,
+              boxWidth: 7,
               padding: 10
             }
           },
@@ -5027,7 +5046,7 @@ function renderReportsTab(contentArea) {
     // 2. Gráfico de Barras Neon Glass ("Valor por Status (R$)")
     const c2dBar = barCtx.getContext('2d');
     const barGradients = colors.map(c => {
-      const grad = c2dBar.createLinearGradient(0, 0, 0, 200);
+      const grad = c2dBar.createLinearGradient(0, 0, 0, 180);
       grad.addColorStop(0, c);
       grad.addColorStop(1, 'rgba(11, 8, 22, 0.4)');
       return grad;
@@ -5159,20 +5178,29 @@ function renderReportsTab(contentArea) {
         </div>
 
         <!-- Seção de Gráficos -->
-        <div class="charts-grid" style="margin-top: 20px;">
-          <div class="chart-card">
-            <h4 class="chart-card-title">
-              <i class="fa-solid fa-chart-pie" style="color: var(--color-primary);"></i> Distribuição por Status
-            </h4>
-            <div class="chart-container" style="height: 250px;">
+        <div class="charts-grid" style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 18px;">
+          <div class="chart-card tilt-card-3d" style="padding: 18px; height: 250px; position: relative;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+              <h4 style="margin:0; font-size:0.9rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-chart-pie" style="color: #a855f7;"></i> Distribuição por Status
+              </h4>
+            </div>
+            <div style="position: relative; height: 185px; width: 100%; display: flex; align-items: center; justify-content: center;">
               <canvas id="finPieChart"></canvas>
+              <div class="fin-donut-kpi" style="position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                <span id="fin-completion-pct" style="font-family: 'Outfit', sans-serif; font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; line-height: 1; filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.4));">0%</span>
+                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-top: 2px;">PAGAS</span>
+              </div>
             </div>
           </div>
-          <div class="chart-card">
-            <h4 class="chart-card-title">
-              <i class="fa-solid fa-chart-column" style="color: var(--color-accent);"></i> Valor por Status (R$)
-            </h4>
-            <div class="chart-container" style="height: 250px;">
+
+          <div class="chart-card tilt-card-3d" style="padding: 18px; height: 250px; position: relative;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+              <h4 style="margin:0; font-size:0.9rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-chart-column" style="color: #00f2fe;"></i> Valor por Status (R$)
+              </h4>
+            </div>
+            <div style="position: relative; height: 185px; width: 100%;">
               <canvas id="finBarChart"></canvas>
             </div>
           </div>
