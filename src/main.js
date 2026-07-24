@@ -5520,12 +5520,31 @@ function renderReportsTab(contentArea) {
           ${[{val:ativos,label:'Médicos Ativos',color:'#818cf8'},{val:totalAppts,label:'Total Agendamentos',color:'#38bdf8'},{val:totalInProgress,label:'Em Atendimento',color:'#fbbf24'},{val:totalDone,label:'Concluídos',color:'#34d399'}].map(k=>`<div style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div style="font-size:1.6rem;font-weight:800;color:${k.color};">${k.val}</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${k.label}</div></div>`).join('')}
         </div>
 
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
-          <div style="background:var(--bg-tertiary);border-radius:12px;padding:16px;border:1px solid var(--border-color);height:220px;position:relative;">
-            <canvas id="chart-doc-productivity"></canvas>
+        <div style="display:grid;grid-template-columns:2fr 1.1fr;gap:18px;margin-bottom:18px;">
+          <div class="chart-card" style="padding:18px;height:250px;position:relative;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <h4 style="margin:0;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                <i class="fa-solid fa-chart-column" style="color:#00f2fe;"></i> Agendamentos por Médico
+              </h4>
+            </div>
+            <div style="position:relative;height:185px;width:100%;">
+              <canvas id="chart-doc-productivity"></canvas>
+            </div>
           </div>
-          <div style="background:var(--bg-tertiary);border-radius:12px;padding:16px;border:1px solid var(--border-color);height:220px;position:relative;">
-            <canvas id="chart-doc-completion"></canvas>
+
+          <div class="chart-card" style="padding:18px;height:250px;position:relative;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <h4 style="margin:0;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                <i class="fa-solid fa-chart-pie" style="color:#a855f7;"></i> Distribuição Geral
+              </h4>
+            </div>
+            <div style="position:relative;height:185px;width:100%;display:flex;align-items:center;justify-content:center;">
+              <canvas id="chart-doc-completion"></canvas>
+              <div class="doc-donut-kpi" style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                <span id="doc-completion-pct" style="font-family:'Outfit',sans-serif;font-size:1.75rem;font-weight:800;background:linear-gradient(135deg,#ffffff 0%,#34d399 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block;line-height:1;filter:drop-shadow(0 0 10px rgba(52,211,153,0.4));">0%</span>
+                <span style="font-size:0.65rem;font-weight:700;color:var(--text-secondary,#94a3b8);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-top:2px;">Conclusão</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -5558,40 +5577,135 @@ function renderReportsTab(contentArea) {
         const ctxBar = document.getElementById('chart-doc-productivity');
         if (ctxBar && window.Chart) {
           if (ctxBar._chartInstance) ctxBar._chartInstance.destroy();
+          const c2d = ctxBar.getContext('2d');
+
+          // Gradientes de barra neon
+          const gradDone = c2d.createLinearGradient(0, 0, 0, 180);
+          gradDone.addColorStop(0, '#34d399');
+          gradDone.addColorStop(1, '#059669');
+
+          const gradProgress = c2d.createLinearGradient(0, 0, 0, 180);
+          gradProgress.addColorStop(0, '#fbbf24');
+          gradProgress.addColorStop(1, '#d97706');
+
+          const gradPending = c2d.createLinearGradient(0, 0, 0, 180);
+          gradPending.addColorStop(0, '#6366f1');
+          gradPending.addColorStop(1, '#00f2fe');
+
           const labels = docStats.map(d => d.name.replace(/^(Dr\.|Dra\.)\s*/i, '').split(' ')[0]);
-          const inst = new window.Chart(ctxBar.getContext('2d'), {
+
+          const inst = new window.Chart(c2d, {
             type: 'bar',
             data: {
               labels,
               datasets: [
-                { label: 'Concluídos', data: docStats.map(d => d.done), backgroundColor: 'rgba(52,211,153,0.7)', borderRadius: 6 },
-                { label: 'Em Atend.', data: docStats.map(d => d.inProgress), backgroundColor: 'rgba(251,191,36,0.7)', borderRadius: 6 },
-                { label: 'Pendentes', data: docStats.map(d => Math.max(0, d.total - d.done - d.inProgress)), backgroundColor: 'rgba(129,140,248,0.7)', borderRadius: 6 }
+                { label: 'Concluídos', data: docStats.map(d => d.done), backgroundColor: gradDone, borderColor: '#10b981', borderWidth: 1, borderRadius: 6, borderSkipped: false },
+                { label: 'Em Atend.', data: docStats.map(d => d.inProgress), backgroundColor: gradProgress, borderColor: '#f59e0b', borderWidth: 1, borderRadius: 6, borderSkipped: false },
+                { label: 'Pendentes', data: docStats.map(d => Math.max(0, d.total - d.done - d.inProgress)), backgroundColor: gradPending, borderColor: '#6366f1', borderWidth: 1, borderRadius: 6, borderSkipped: false }
               ]
             },
             options: {
-              responsive: true, maintainAspectRatio: false,
-              plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } }, title: { display: true, text: 'Agendamentos por Médico', color: '#e2e8f0', font: { size: 13, weight: '600' } } },
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: { duration: 1000, easing: 'easeOutQuart' },
+              plugins: {
+                legend: {
+                  position: 'top',
+                  align: 'end',
+                  labels: {
+                    color: '#cbd5e1',
+                    font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' },
+                    usePointStyle: true,
+                    boxWidth: 7,
+                    padding: 10
+                  }
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(18, 14, 34, 0.94)',
+                  titleColor: '#00f2fe',
+                  bodyColor: '#f8fafc',
+                  borderColor: 'rgba(0, 242, 254, 0.35)',
+                  borderWidth: 1,
+                  padding: 10,
+                  usePointStyle: true
+                }
+              },
               scales: {
-                x: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                x: {
+                  stacked: true,
+                  grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                  ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
+                },
+                y: {
+                  stacked: true,
+                  grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                  ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 } }
+                }
               }
             }
           });
           ctxBar._chartInstance = inst;
         }
+
         const ctxDoughnut = document.getElementById('chart-doc-completion');
         if (ctxDoughnut && window.Chart) {
           if (ctxDoughnut._chartInstance) ctxDoughnut._chartInstance.destroy();
+
+          const pendingCount = Math.max(0, totalAppts - totalDone - totalInProgress);
+          const completionRate = totalAppts > 0 ? Math.round((totalDone / totalAppts) * 100) : 0;
+
+          const pctEl = document.getElementById('doc-completion-pct');
+          if (pctEl) pctEl.textContent = `${completionRate}%`;
+
           const inst2 = new window.Chart(ctxDoughnut.getContext('2d'), {
             type: 'doughnut',
             data: {
               labels: ['Concluídos', 'Em Atendimento', 'Pendentes'],
-              datasets: [{ data: [totalDone, totalInProgress, Math.max(0, totalAppts - totalDone - totalInProgress)], backgroundColor: ['rgba(52,211,153,0.85)', 'rgba(251,191,36,0.85)', 'rgba(129,140,248,0.85)'], borderWidth: 0, hoverOffset: 8 }]
+              datasets: [{
+                data: [totalDone, totalInProgress, pendingCount],
+                backgroundColor: [
+                  '#34d399', // Concluídos (Esmeralda Neon)
+                  '#fbbf24', // Em Atendimento (Âmbar Electric)
+                  '#6366f1'  // Pendentes (Índigo Ciano)
+                ],
+                borderWidth: 3,
+                borderColor: 'rgba(11, 8, 22, 0.95)',
+                borderRadius: 6,
+                spacing: 3,
+                hoverOffset: 10
+              }]
             },
             options: {
-              responsive: true, maintainAspectRatio: false, cutout: '68%',
-              plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 }, padding: 14 } }, title: { display: true, text: 'Distribuição Geral', color: '#e2e8f0', font: { size: 13, weight: '600' } } }
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '76%',
+              animation: { animateScale: true, animateRotate: true, duration: 1000 },
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    color: '#cbd5e1',
+                    font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '600' },
+                    usePointStyle: true,
+                    padding: 10
+                  }
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(18, 14, 34, 0.94)',
+                  titleColor: '#00f2fe',
+                  bodyColor: '#f8fafc',
+                  borderColor: 'rgba(0, 242, 254, 0.35)',
+                  borderWidth: 1,
+                  padding: 10,
+                  callbacks: {
+                    label: (context) => {
+                      const val = context.raw || 0;
+                      const pct = totalAppts > 0 ? Math.round((val / totalAppts) * 100) : 0;
+                      return ` ${context.label}: ${val} (${pct}%)`;
+                    }
+                  }
+                }
+              }
             }
           });
           ctxDoughnut._chartInstance = inst2;
