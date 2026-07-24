@@ -1740,7 +1740,24 @@ function renderAuthScreen() {
       btnShowInst.addEventListener('click', openLoginInstructionsModal);
     }
 
-    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+    const authForm = document.getElementById('auth-form');
+    if (authForm) {
+      authForm.querySelectorAll('input').forEach(input => {
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (typeof authForm.requestSubmit === 'function') {
+              authForm.requestSubmit();
+            } else {
+              const submitBtn = document.getElementById('auth-submit-btn');
+              if (submitBtn) submitBtn.click();
+            }
+          }
+        });
+      });
+    }
+
+    authForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const errorContainer = document.getElementById('auth-error-container');
       if (errorContainer) errorContainer.innerHTML = '';
