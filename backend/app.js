@@ -18,8 +18,8 @@ app.use(cors());
 app.use(express.json());
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// --- INICIALIZACAO DO BANCO LOCAL ---
-const initLocalDb = async () => {
+// --- INICIALIZACAO DO BANCO DE DADOS ---
+export const init = async () => {
   const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', status TEXT DEFAULT 'Ativo', master_approved INTEGER DEFAULT 1, master_key_requested INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, cep TEXT, address TEXT, number TEXT, neighborhood TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
@@ -119,14 +119,6 @@ const initLocalDb = async () => {
       const initialBeds = [
         { id: 'BED-UTI-01', bedNumber: 'UTI-01', sector: 'UTI Adulto', status: 'Vago' },
         { id: 'BED-UTI-02', bedNumber: 'UTI-02', sector: 'UTI Adulto', status: 'Vago' },
-        { id: 'BED-UTI-03', bedNumber: 'UTI-03', sector: 'UTI Adulto', status: 'Vago' },
-        { id: 'BED-ENF-01', bedNumber: 'ENF-01', sector: 'Enfermaria', status: 'Vago' },
-        { id: 'BED-ENF-02', bedNumber: 'ENF-02', sector: 'Enfermaria', status: 'Vago' },
-        { id: 'BED-ENF-03', bedNumber: 'ENF-03', sector: 'Enfermaria', status: 'Vago' },
-        { id: 'BED-PED-01', bedNumber: 'PED-01', sector: 'Pediatria', status: 'Vago' },
-        { id: 'BED-PED-02', bedNumber: 'PED-02', sector: 'Pediatria', status: 'Vago' },
-        { id: 'BED-MAT-01', bedNumber: 'MAT-01', sector: 'Maternidade', status: 'Vago' },
-        { id: 'BED-MAT-02', bedNumber: 'MAT-02', sector: 'Maternidade', status: 'Vago' }
       ];
       for (const b of initialBeds) {
         await db.execute({
@@ -1873,7 +1865,13 @@ app.delete('/api/consulting-rooms/:id', async (req, res) => {
 // --- FARMÁCIA HOSPITALAR & CONTROLE DE ESTOQUE ---
 app.get('/api/pharmacy', async (req, res) => {
   try {
-    const result = await db.execute('SELECT * FROM pharmacy_items ORDER BY name ASC');
+    let result;
+    try {
+      result = await db.execute('SELECT * FROM pharmacy_items ORDER BY name ASC');
+    } catch (tblErr) {
+      await init();
+      result = await db.execute('SELECT * FROM pharmacy_items ORDER BY name ASC');
+    }
     res.status(200).json({ status: 'success', data: result.rows || [] });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Erro ao listar estoque da farmácia.' });
