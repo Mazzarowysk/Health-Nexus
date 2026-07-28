@@ -1,4 +1,4 @@
-
+﻿
 import './styles.css';
 
 window.updateAppointmentStatus = async function(aptId, newStatus) {
@@ -4218,9 +4218,11 @@ setInterval(() => {
   fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
 }, 3000);
 
-// Encerramento instantâneo do servidor quando o navegador/aba é fechado
+// Encerramento do servidor apenas em producao (nao mata o servidor ao recarregar em dev)
 window.addEventListener('beforeunload', () => {
-  navigator.sendBeacon('/api/shutdown');
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    navigator.sendBeacon('/api/shutdown');
+  }
 });
 
 // --- MÓDULO PEP (PRONTUÁRIO ELETRÔNICO DO PACIENTE) ---
@@ -9862,11 +9864,11 @@ async function renderTVPanelTab() {
             <i class="fa-solid fa-tv" style="color: #0284c7;"></i> Painel de Chamada para TV (Sala de Espera)
           </h2>
           <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
-            Exibição em tela cheia para TV com chamada sonora e classificação por Manchester.
+            Exibi&#231;&#227;o em tela cheia para TV com chamada sonora e classifica&#231;&#227;o por Manchester.
           </p>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
+          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none;">
             <i class="fa-solid fa-bullhorn"></i> Chamar Paciente no Painel
           </button>
         </div>
@@ -9881,7 +9883,7 @@ async function renderTVPanelTab() {
             <i class="fa-solid fa-hospital-user" style="font-size: 2rem; color: #38bdf8;"></i>
             <div>
               <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; letter-spacing: 0.5px;">HEALTH NEXUS | PAINEL DE ATENDIMENTO</h3>
-              <span style="font-size: 0.8rem; color: #94a3b8;">SISTEMA DE CHAMADA AUDÍVEL &amp; TRIAGEM VISUAL</span>
+              <span style="font-size: 0.8rem; color: #94a3b8;">SISTEMA DE CHAMADA AUD&#205;VEL &amp; TRIAGEM VISUAL</span>
             </div>
           </div>
           <div id="tv-clock" style="font-size: 1.8rem; font-weight: 800; font-family: monospace; color: #38bdf8;">--:--:--</div>
@@ -9891,7 +9893,7 @@ async function renderTVPanelTab() {
           
           <!-- CARD CENTRAL: ÚLTIMO PACIENTE CHAMADO -->
           <div style="background: rgba(15, 23, 42, 0.8); border: 2px solid #38bdf8; border-radius: 16px; padding: 32px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 300px; box-shadow: 0 0 25px rgba(2, 132, 199, 0.3);">
-            <span style="font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 12px;">ÚLTIMO PACIENTE CHAMADO</span>
+            <span style="font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 12px;">&#218;LTIMO PACIENTE CHAMADO</span>
             <div id="tv-last-patient" style="font-size: 2.6rem; font-weight: 900; color: #fff; margin-bottom: 16px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Aguardando chamada...</div>
             
             <div style="display: flex; align-items: center; gap: 16px; margin-top: 10px;">
@@ -9903,7 +9905,7 @@ async function renderTVPanelTab() {
           <!-- HISTÓRICO DAS ÚLTIMAS CHAMADAS -->
           <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px;">
             <h4 style="margin-top: 0; margin-bottom: 16px; font-size: 1rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-history"></i> ÚLTIMAS CHAMADAS
+              <i class="fa-solid fa-history"></i> &#218;LTIMAS CHAMADAS
             </h4>
             <div id="tv-history-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 260px; overflow-y: auto;">
               <div style="text-align: center; color: #64748b; padding: 20px; font-size: 0.85rem;">Nenhuma chamada registrada hoje.</div>
@@ -9912,30 +9914,56 @@ async function renderTVPanelTab() {
 
         </div>
 
+
+      <!-- FILA DE ESPERA DE PACIENTES -->
+      <div style="margin-top: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-users-clock" style="color: #f59e0b;"></i>
+            Fila de Pacientes Aguardando
+            <span id="tv-queue-count" style="background: #f59e0b; color: #000; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; margin-left: 4px;">0</span>
+          </h3>
+          <button onclick="loadTVWaitingQueue()" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #f59e0b; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-rotate-right"></i> Atualizar
+          </button>
+        </div>
+        <div id="tv-waiting-queue" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.9rem;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem; margin-bottom: 10px; display: block; color: #f59e0b;"></i>
+            Carregando fila de espera...
+          </div>
+        </div>
       </div>
+
     </div>
   `;
-
-  // Iniciar relógio digital da TV
+  // Relogio digital da TV
   const updateClock = () => {
     const el = document.getElementById('tv-clock');
     if (el) el.textContent = new Date().toLocaleTimeString('pt-BR');
   };
   updateClock();
+  if (window._tvClockTimer) clearInterval(window._tvClockTimer);
+  window._tvClockTimer = setInterval(updateClock, 1000);
+
+  // Polling de chamadas e fila
   if (window._tvPollingTimer) clearInterval(window._tvPollingTimer);
   loadTVCalls();
+  loadTVWaitingQueue();
   window._tvPollingTimer = setInterval(() => {
     const tvEl = document.getElementById('tv-last-patient');
     if (tvEl) {
       loadTVCalls();
+      loadTVWaitingQueue();
     } else {
       clearInterval(window._tvPollingTimer);
       window._tvPollingTimer = null;
+      if (window._tvClockTimer) { clearInterval(window._tvClockTimer); window._tvClockTimer = null; }
     }
-  }, 3000);
+  }, 5000);
 
-  // Listener para botão de chamar paciente
-  document.getElementById('btn-tv-call-modal')?.addEventListener('click', openTVCallModal);
+  // Listener para botao de chamar paciente
+  document.getElementById('btn-tv-call-modal')?.addEventListener('click', () => openTVCallModal());
 }
 
 async function loadTVCalls() {
@@ -9948,6 +9976,112 @@ async function loadTVCalls() {
     }
   } catch (e) {}
 }
+
+window.loadTVWaitingQueue = async function() {
+  const queueEl = document.getElementById('tv-waiting-queue');
+  const countEl = document.getElementById('tv-queue-count');
+  if (!queueEl) return;
+
+  let patients = [];
+
+  // /api/encounters retorna array direto (sem envelope {data:[]})
+  try {
+    const res = await apiFetch('/api/encounters');
+    if (res.ok) {
+      const data = await res.json();
+      const arr = Array.isArray(data) ? data : (data.data || []);
+      arr.filter(e => e.status && e.status !== 'Finalizado' && e.status !== 'Cancelado')
+         .forEach(e => patients.push({
+           patientName: e.patientName,
+           manchesterColor: e.manchesterColor || 'Verde',
+           status: e.status,
+           source: 'encounter'
+         }));
+    }
+  } catch(e) {}
+
+  // Complementar com appointments de hoje que ainda nao tem encounter
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const res2 = await apiFetch('/api/appointments?date=' + today);
+    if (res2.ok) {
+      const d2 = await res2.json();
+      const apts = Array.isArray(d2) ? d2 : (d2.data || []);
+      const activeStatuses = ['Agendado', 'Confirmado', 'Em Atendimento', 'Aguardando'];
+      apts.filter(a => activeStatuses.includes(a.status) && a.patientName)
+          .filter(a => !patients.find(p => p.patientName === a.patientName))
+          .forEach(a => patients.push({
+            patientName: a.patientName,
+            manchesterColor: 'Verde',
+            status: a.status,
+            source: 'appointment',
+            doctorName: a.doctorName,
+            appointmentTime: a.appointmentTime
+          }));
+    }
+  } catch(e) {}
+
+  if (countEl) countEl.textContent = patients.length;
+
+  if (patients.length === 0) {
+    queueEl.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 50px 20px; color: var(--text-muted);">
+        <i class="fa-solid fa-chair" style="font-size: 2.5rem; display: block; margin-bottom: 12px; color: #334155;"></i>
+        <div style="font-size: 1rem; font-weight: 600; margin-bottom: 4px;">Nenhum paciente na fila de espera</div>
+        <div style="font-size: 0.82rem;">Registre pacientes na aba <strong>Atendimento</strong> ou <strong>Agenda</strong> para que aparecam aqui.</div>
+      </div>`;
+    return;
+  }
+
+  const colorMap = {
+    vermelho: { bg: '#dc2626', label: 'Vermelho', icon: 'fa-circle-exclamation' },
+    laranja:  { bg: '#ea580c', label: 'Laranja',  icon: 'fa-triangle-exclamation' },
+    amarelo:  { bg: '#d97706', label: 'Amarelo',  icon: 'fa-circle-info' },
+    verde:    { bg: '#16a34a', label: 'Verde',     icon: 'fa-circle-check' },
+    azul:     { bg: '#0284c7', label: 'Azul',      icon: 'fa-circle' },
+  };
+  const statusMap = {
+    Aguardando_Triagem:     { text: 'Ag. Triagem',     color: '#8b5cf6' },
+    Aguardando_Atendimento: { text: 'Ag. Atendimento', color: '#f59e0b' },
+    Em_Atendimento:         { text: 'Em Atendimento',  color: '#10b981' },
+    Agendado:               { text: 'Agendado',        color: '#0284c7' },
+    Confirmado:             { text: 'Confirmado',      color: '#0284c7' },
+    'Em Atendimento':     { text: 'Em Atendimento',  color: '#10b981' },
+  };
+
+  queueEl.innerHTML = patients.map((p, idx) => {
+    const key = (p.manchesterColor || 'verde').toLowerCase().replace(/[^a-z]/g, '');
+    const col = colorMap[key] || colorMap.verde;
+    const st  = statusMap[p.status] || { text: p.status || 'Aguardando', color: '#64748b' };
+    const ini = (p.patientName || '?').split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+    const sub = p.doctorName ? ('Dr. ' + p.doctorName + (p.appointmentTime ? ' · ' + p.appointmentTime : '')) : col.label;
+    const safeName  = (p.patientName || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const safeColor = (p.manchesterColor || 'Verde').replace(/'/g, "\\'");
+    return `<div onclick="window._tvQuickCall('${safeName}','${safeColor}')"
+      title="Clique para chamar ${p.patientName || ''}"
+      style="background:var(--bg-secondary,#1e293b);border:1px solid rgba(255,255,255,0.08);border-left:4px solid ${col.bg};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;"
+      onmouseenter="this.style.background='rgba(139,92,246,0.1)';this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(139,92,246,0.2)';"
+      onmouseleave="this.style.background='var(--bg-secondary,#1e293b)';this.style.transform='';this.style.boxShadow='';">
+      <div style="width:44px;height:44px;border-radius:50%;background:${col.bg};display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;flex-shrink:0;">${ini}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:0.95rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName || 'Paciente'}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
+          <span style="font-size:0.72rem;font-weight:700;background:${st.color}22;color:${st.color};border:1px solid ${st.color}44;padding:1px 7px;border-radius:20px;">${st.text}</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid ${col.icon}"></i> ${sub}</span>
+        </div>
+      </div>
+      <div style="flex-shrink:0;text-align:right;">
+        <span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;">#${String(idx+1).padStart(2,'0')}</span>
+        <div style="margin-top:4px;font-size:0.72rem;color:#8b5cf6;font-weight:600;"><i class="fa-solid fa-bullhorn"></i> Chamar</div>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window._tvQuickCall = async function(patientName, manchesterColor) {
+  // Abre o modal já com o paciente pré-selecionado
+  await openTVCallModal(patientName.trim(), (manchesterColor || 'Verde').trim());
+};
 
 function renderTVCallsUI(calls) {
   const lastEl = document.getElementById('tv-last-patient');
@@ -9997,13 +10131,16 @@ function renderTVCallsUI(calls) {
   }
 }
 
-async function openTVCallModal() {
+async function openTVCallModal(preselectedName = '', preselectedColor = '') {
   let waitingPatients = [];
   try {
     const res = await apiFetch('/api/encounters');
     if (res.ok) {
       const data = await res.json();
-      waitingPatients = (data.data || []).filter(e => e.status !== 'Finalizado' && e.status !== 'Cancelado');
+      const rawArr = Array.isArray(data) ? data : (data.data || []);
+      waitingPatients = rawArr.filter(e =>
+        e.status && e.status !== 'Finalizado' && e.status !== 'Cancelado'
+      );
     }
   } catch(e) {}
 
@@ -10015,37 +10152,82 @@ async function openTVCallModal() {
   overlay.className = 'modal-overlay';
   overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);';
 
-  const patientOptions = waitingPatients.map(p => `
-    <option value="${p.patientName}" data-manchester="${p.manchesterColor || 'Verde'}">${p.patientName} (${p.status === 'Aguardando_Triagem' ? 'Ag. Triagem' : p.status === 'Aguardando_Atendimento' ? 'Ag. Atendimento' : 'Em Consulta'})</option>
-  `).join('');
+  const manchesterOpts = [
+    { v: 'Verde',    l: 'Pouco Urgente (Verde)',    c: '#16a34a' },
+    { v: 'Amarelo',  l: 'Urgente (Amarelo)',         c: '#d97706' },
+    { v: 'Laranja',  l: 'Muito Urgente (Laranja)',   c: '#ea580c' },
+    { v: 'Vermelho', l: 'Emerg\u00eancia (Vermelho)', c: '#dc2626' },
+    { v: 'Azul',     l: 'N\u00e3o Urgente (Azul)',   c: '#0284c7' },
+  ];
+
+  const statusLabel = (s) => {
+    if (s === 'Aguardando_Triagem')     return 'Ag. Triagem';
+    if (s === 'Aguardando_Atendimento') return 'Ag. Atendimento';
+    if (s === 'Em_Atendimento')         return 'Em Consulta';
+    return s || 'Aguardando';
+  };
+
+  const queueCardsHTML = waitingPatients.length === 0
+    ? `<div style="text-align:center; padding: 20px; color: #64748b; font-size: 0.85rem; grid-column: 1/-1;">
+         <i class="fa-solid fa-chair" style="font-size:1.8rem; display:block; margin-bottom:8px;"></i>
+         Nenhum paciente na fila no momento.<br>
+         <span style="font-size:0.78rem;">Voc&#234; ainda pode digitar o nome manualmente abaixo.</span>
+       </div>`
+    : waitingPatients.map(p => {
+        const mKey = (p.manchesterColor || 'verde').toLowerCase().replace(/[^a-z]/g, '');
+        const mColorMap = { vermelho: '#dc2626', laranja: '#ea580c', amarelo: '#d97706', verde: '#16a34a', azul: '#0284c7' };
+        const bg = mColorMap[mKey] || '#16a34a';
+        const initials = (p.patientName || '?').split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+        const sLabel = statusLabel(p.status);
+        return `<div class="tv-queue-patient-card" data-name="${(p.patientName||'').replace(/"/g,'&quot;')}" data-manchester="${p.manchesterColor||'Verde'}"
+             style="background:#1e293b; border:1px solid #334155; border-left:4px solid ${bg}; border-radius:10px; padding:10px 14px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all 0.18s;"
+             onmouseenter="this.style.background='rgba(139,92,246,0.12)'; this.style.borderColor='#8b5cf6';"
+             onmouseleave="this.style.background='#1e293b'; this.style.borderColor='#334155'; this.style.borderLeftColor='${bg}';">
+          <div style="width:38px;height:38px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:0.9rem;flex-shrink:0;">${initials}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:0.9rem;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName||'Paciente'}</div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">${sLabel} &bull; ${p.manchesterColor||'Verde'}</div>
+          </div>
+          <i class="fa-solid fa-hand-pointer" style="color:#8b5cf6;font-size:0.85rem;flex-shrink:0;"></i>
+        </div>`;
+      }).join('');
 
   overlay.innerHTML = `
-    <div class="sync-modal-card" style="max-width: 480px; width: 90%; background: #0f172a; border: 1px solid #0284c7; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
-      <div class="sync-header-banner" style="background: linear-gradient(135deg, #0284c7, #0369a1); padding: 16px 20px;">
-        <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px; color: #fff; margin: 0;">
+    <div class="sync-modal-card" style="max-width: 540px; width: 95%; background: #0f172a; border: 1px solid #8b5cf6; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.7); max-height: 90vh; display: flex; flex-direction: column;">
+      <div style="background: linear-gradient(135deg, #7c3aed, #4f46e5); padding: 16px 20px; flex-shrink: 0;">
+        <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px; color: #fff; margin: 0;">
           <i class="fa-solid fa-bullhorn"></i> Chamar Paciente no Painel TV
         </h3>
       </div>
 
-      <div class="sync-modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1;">
+
+        <!-- FILA DE PACIENTES (cards clicáveis) -->
         <div>
-          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
-            <i class="fa-solid fa-user"></i> Selecionar Paciente da Fila:
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; color: #94a3b8; margin-bottom: 10px;">
+            <i class="fa-solid fa-users-clock" style="color: #f59e0b;"></i>
+            Pacientes na fila &mdash; clique para selecionar:
+            <span id="tv-modal-queue-count" style="background: #f59e0b; color: #000; font-size: 0.7rem; font-weight: 800; padding: 1px 7px; border-radius: 20px;">${waitingPatients.length}</span>
           </label>
-          ${waitingPatients.length > 0 ? `
-            <select id="tv-modal-patient-select" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155; margin-bottom: 8px;">
-              <option value="">-- Selecionar da fila em atendimento --</option>
-              ${patientOptions}
-            </select>
-          ` : ''}
-          <input type="text" id="tv-modal-patient-name" placeholder="Ou digite o nome do paciente..." value="${waitingPatients.length > 0 ? waitingPatients[0].patientName : ''}" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;" />
+          <div id="tv-modal-queue-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding-right: 2px;">
+            ${queueCardsHTML}
+          </div>
         </div>
 
+        <!-- INPUT NOME (texto livre) -->
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
+            <i class="fa-solid fa-user"></i> Nome do Paciente:
+          </label>
+          <input type="text" id="tv-modal-patient-name" placeholder="Digite ou selecione acima..." value="${preselectedName}" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155; font-size: 0.9rem; box-sizing: border-box;" />
+        </div>
+
+        <!-- CONSULTÓRIO -->
         <div>
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
             <i class="fa-solid fa-door-open"></i> Consultório / Sala de Destino:
           </label>
-          <select id="tv-modal-room" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
+          <select id="tv-modal-room" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
             <option value="Consultório 01">Consultório 01</option>
             <option value="Consultório 02">Consultório 02</option>
             <option value="Consultório 03">Consultório 03</option>
@@ -10055,24 +10237,22 @@ async function openTVCallModal() {
           </select>
         </div>
 
+        <!-- MANCHESTER -->
         <div>
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
             <i class="fa-solid fa-notes-medical"></i> Classificação Manchester:
           </label>
-          <select id="tv-modal-color" style="width: 100%; padding: 10px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
-            <option value="Verde">Pouco Urgente (Verde)</option>
-            <option value="Amarelo">Urgente (Amarelo)</option>
-            <option value="Laranja">Muito Urgente (Laranja)</option>
-            <option value="Vermelho">Emergência (Vermelho)</option>
-            <option value="Azul">Não Urgente (Azul)</option>
+          <select id="tv-modal-color" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
+            ${manchesterOpts.map(o => `<option value="${o.v}" ${o.v === (preselectedColor || 'Verde') ? 'selected' : ''}>${o.l}</option>`).join('')}
           </select>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-          <button id="btn-tv-modal-confirm" class="btn btn-primary" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; font-weight: 700; cursor: pointer;">
+        <!-- BOTÕES -->
+        <div style="display: flex; gap: 10px; margin-top: 4px;">
+          <button id="btn-tv-modal-confirm" class="btn btn-primary" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #7c3aed, #4f46e5); border: none; font-weight: 700; cursor: pointer; border-radius: 8px;">
             <i class="fa-solid fa-volume-high"></i> Emitir Chamada
           </button>
-          <button id="btn-tv-modal-cancel" class="btn" style="flex: 1; padding: 12px; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; cursor: pointer;">
+          <button id="btn-tv-modal-cancel" class="btn" style="flex: 1; padding: 12px; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; cursor: pointer; border-radius: 8px;">
             Cancelar
           </button>
         </div>
@@ -10082,21 +10262,25 @@ async function openTVCallModal() {
 
   document.body.appendChild(overlay);
 
-  const selectEl = document.getElementById('tv-modal-patient-select');
   const inputEl = document.getElementById('tv-modal-patient-name');
   const colorEl = document.getElementById('tv-modal-color');
 
-  if (selectEl) {
-    selectEl.addEventListener('change', (ev) => {
-      if (ev.target.value) {
-        inputEl.value = ev.target.value;
-        const opt = ev.target.options[ev.target.selectedIndex];
-        const m = opt.getAttribute('data-manchester');
-        if (m) colorEl.value = m;
-      }
+  // Clique nos cards da fila seleciona o paciente
+  document.querySelectorAll('.tv-queue-patient-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.tv-queue-patient-card').forEach(c => {
+        c.style.background = '#1e293b'; c.style.borderColor = '#334155';
+      });
+      card.style.background = 'rgba(139,92,246,0.18)';
+      card.style.borderColor = '#8b5cf6';
+      inputEl.value = card.dataset.name;
+      const m = card.dataset.manchester;
+      if (m) colorEl.value = m;
     });
-  }
+  });
 
+  // Fechar clicando fora
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   document.getElementById('btn-tv-modal-cancel').addEventListener('click', () => overlay.remove());
 
   document.getElementById('btn-tv-modal-confirm').addEventListener('click', async () => {
@@ -10105,18 +10289,19 @@ async function openTVCallModal() {
     const manchesterColor = colorEl.value;
 
     if (!patientName) {
-      showCustomAlert({ title: 'Atenção', message: 'Por favor, informe o nome do paciente.', type: 'warning' });
+      showCustomAlert({ title: 'Aten&#231;&#227;o', message: 'Por favor, informe o nome do paciente.', type: 'warning' });
       return;
     }
 
     try {
-      await apiFetch('/api/tv/call', {
+      const r = await apiFetch('/api/tv/call', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ patientName, roomName, manchesterColor })
       });
 
       if ('speechSynthesis' in window) {
-        const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao ${roomName}.`;
+        const text = `Aten\u00e7\u00e3o: Paciente ${patientName}, favor dirigir-se ao ${roomName}.`;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         utterance.rate = 0.9;
@@ -10124,8 +10309,9 @@ async function openTVCallModal() {
       }
 
       overlay.remove();
-      showCustomAlert({ title: 'Chamada Emitida', message: `Chamada para ${patientName} no ${roomName} emitida com voz!`, type: 'success' });
+      showCustomAlert({ title: 'Chamada Emitida!', message: `&#128266; ${patientName} &rarr; ${roomName}`, type: 'success' });
       loadTVCalls();
+      if (typeof loadTVWaitingQueue === 'function') loadTVWaitingQueue();
     } catch (e) {
       showCustomAlert({ title: 'Erro', message: 'Falha ao emitir chamada na TV.', type: 'danger' });
     }
