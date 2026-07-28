@@ -1,4 +1,4 @@
-﻿
+
 import './styles.css';
 
 window.updateAppointmentStatus = async function(aptId, newStatus) {
@@ -9761,16 +9761,7 @@ async function renderPharmacyTab() {
   `;
 
   // Carregar dados da API
-  try {
-    const res = await apiFetch('/api/pharmacy');
-    if (res.ok) {
-      const data = await res.json();
-      const items = data.data || [];
-      renderPharmacyTable(items);
-    }
-  } catch (err) {
-    showCustomAlert({ title: 'Erro', message: 'Falha ao buscar estoque da farmácia.', type: 'danger' });
-  }
+  await loadPharmacyData();
 
   // Event Listeners
   document.getElementById('btn-add-pharm-item')?.addEventListener('click', openAddPharmModal);
@@ -9783,6 +9774,21 @@ async function renderPharmacyTab() {
       r.style.display = txt.includes(term) ? '' : 'none';
     });
   });
+}
+
+let currentPharmacyItems = [];
+
+async function loadPharmacyData() {
+  try {
+    const res = await apiFetch('/api/pharmacy');
+    if (res.ok) {
+      const data = await res.json();
+      currentPharmacyItems = data.data || [];
+      renderPharmacyTable(currentPharmacyItems);
+    }
+  } catch (err) {
+    showCustomAlert({ title: 'Erro', message: 'Falha ao buscar estoque da farmácia.', type: 'danger' });
+  }
 }
 
 function renderPharmacyTable(items) {
@@ -9841,11 +9847,230 @@ function renderPharmacyTable(items) {
 }
 
 function openAddPharmModal() {
-  showCustomAlert({ title: 'Novo Medicamento', message: 'Preencha o formulário para adicionar ao Estoque Central.', type: 'info' });
+  const existingModal = document.getElementById('modal-pharm-add-overlay');
+  if (existingModal) existingModal.remove();
+
+  const modalHtml = `
+    <div id="modal-pharm-add-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 10, 20, 0.82); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 16px;">
+      <div style="background: #1e1c2e; border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 16px; width: 100%; max-width: 560px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; animation: fadeInModal 0.25s ease-out;">
+        <div style="background: linear-gradient(135deg, #be185d, #ec4899); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
+          <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-pills"></i> Cadastrar Novo Medicamento
+          </h3>
+          <button type="button" id="btn-close-pharm-add-modal" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: background 0.2s;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form id="form-add-pharm-item" style="padding: 24px;">
+          <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                Nome do Medicamento *
+              </label>
+              <input type="text" id="pharm-input-name" class="form-input" required placeholder="Ex: Amoxicilina + Clavulanato" style="width: 100%; box-sizing: border-box;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Dosagem
+                </label>
+                <input type="text" id="pharm-input-dosage" class="form-input" placeholder="Ex: 500mg + 125mg" style="width: 100%; box-sizing: border-box;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Forma / Apresentação
+                </label>
+                <input type="text" id="pharm-input-form" class="form-input" placeholder="Ex: Comprimido, Ampola" style="width: 100%; box-sizing: border-box;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Qtd Inicial em Estoque
+                </label>
+                <input type="number" id="pharm-input-stock" class="form-input" min="0" value="100" style="width: 100%; box-sizing: border-box;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Estoque Mínimo (Alerta)
+                </label>
+                <input type="number" id="pharm-input-minstock" class="form-input" min="1" value="10" style="width: 100%; box-sizing: border-box;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Lote
+                </label>
+                <input type="text" id="pharm-input-lot" class="form-input" placeholder="Ex: L2026C08" style="width: 100%; box-sizing: border-box;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Validade
+                </label>
+                <input type="date" id="pharm-input-exp" class="form-input" style="width: 100%; box-sizing: border-box;">
+              </div>
+            </div>
+
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                Preço Unitário (R$)
+              </label>
+              <input type="number" step="0.01" id="pharm-input-price" class="form-input" min="0" placeholder="0.00" style="width: 100%; box-sizing: border-box;">
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+            <button type="button" id="btn-cancel-pharm-add" class="btn btn-secondary" style="padding: 10px 18px;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none; padding: 10px 20px; font-weight: 600;">
+              <i class="fa-solid fa-check" style="margin-right: 6px;"></i> Salvar Medicamento
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  const overlay = document.getElementById('modal-pharm-add-overlay');
+  const closeModal = () => overlay?.remove();
+
+  document.getElementById('btn-close-pharm-add-modal')?.addEventListener('click', closeModal);
+  document.getElementById('btn-cancel-pharm-add')?.addEventListener('click', closeModal);
+
+  document.getElementById('form-add-pharm-item')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('pharm-input-name').value.trim();
+    const dosage = document.getElementById('pharm-input-dosage').value.trim();
+    const form = document.getElementById('pharm-input-form').value.trim();
+    const stockQuantity = Number(document.getElementById('pharm-input-stock').value || 0);
+    const minStock = Number(document.getElementById('pharm-input-minstock').value || 10);
+    const lotNumber = document.getElementById('pharm-input-lot').value.trim() || 'L2026';
+    const expirationDate = document.getElementById('pharm-input-exp').value || '2027-12-31';
+    const unitPrice = Number(document.getElementById('pharm-input-price').value || 0);
+
+    if (!name) {
+      showCustomAlert({ title: 'Aviso', message: 'Informe o nome do medicamento.', type: 'warning' });
+      return;
+    }
+
+    try {
+      const res = await apiFetch('/api/pharmacy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, dosage, form, stockQuantity, minStock, lotNumber, expirationDate, unitPrice })
+      });
+
+      if (res.ok) {
+        closeModal();
+        showCustomAlert({ title: 'Sucesso', message: `Medicamento "${name}" cadastrado com sucesso!`, type: 'success' });
+        await loadPharmacyData();
+      } else {
+        const errData = await res.json();
+        showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao cadastrar medicamento.', type: 'danger' });
+      }
+    } catch (err) {
+      showCustomAlert({ title: 'Erro', message: 'Erro ao conectar com o servidor.', type: 'danger' });
+    }
+  });
 }
 
 function openDispenseMedModal() {
-  showCustomAlert({ title: 'Dispensação de Medicação', message: 'Selecione a prescrição ou leito para baixa de estoque.', type: 'info' });
+  const existingModal = document.getElementById('modal-pharm-dispense-overlay');
+  if (existingModal) existingModal.remove();
+
+  const options = currentPharmacyItems.map(item => `
+    <option value="${item.id}">${item.name} (${item.dosage || 'Sem dosagem'}) - Disponível: ${item.stockQuantity || 0} unds</option>
+  `).join('');
+
+  const modalHtml = `
+    <div id="modal-pharm-dispense-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 10, 20, 0.82); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 16px;">
+      <div style="background: #1e1c2e; border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; animation: fadeInModal 0.25s ease-out;">
+        <div style="background: linear-gradient(135deg, #ec4899, #be185d); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
+          <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-hand-holding-medical"></i> Dispensação de Medicação
+          </h3>
+          <button type="button" id="btn-close-pharm-disp-modal" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: background 0.2s;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form id="form-dispense-pharm-item" style="padding: 24px;">
+          <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                Selecione o Medicamento *
+              </label>
+              <select id="pharm-disp-item-id" class="form-input" style="width: 100%; box-sizing: border-box;" required>
+                ${options.length ? options : '<option value="">Nenhum medicamento disponível</option>'}
+              </select>
+            </div>
+
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                Quantidade a Dispensar *
+              </label>
+              <input type="number" id="pharm-disp-qty" class="form-input" min="1" value="1" required style="width: 100%; box-sizing: border-box;">
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+            <button type="button" id="btn-cancel-pharm-disp" class="btn btn-secondary" style="padding: 10px 18px;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none; padding: 10px 20px; font-weight: 600;">
+              <i class="fa-solid fa-check" style="margin-right: 6px;"></i> Confirmar Baixa
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  const overlay = document.getElementById('modal-pharm-dispense-overlay');
+  const closeModal = () => overlay?.remove();
+
+  document.getElementById('btn-close-pharm-disp-modal')?.addEventListener('click', closeModal);
+  document.getElementById('btn-cancel-pharm-disp')?.addEventListener('click', closeModal);
+
+  document.getElementById('form-dispense-pharm-item')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const itemId = document.getElementById('pharm-disp-item-id').value;
+    const quantity = Number(document.getElementById('pharm-disp-qty').value || 1);
+
+    if (!itemId) {
+      showCustomAlert({ title: 'Aviso', message: 'Selecione um medicamento válido.', type: 'warning' });
+      return;
+    }
+
+    try {
+      const res = await apiFetch('/api/pharmacy/dispense', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, quantity })
+      });
+
+      if (res.ok) {
+        closeModal();
+        showCustomAlert({ title: 'Sucesso', message: 'Dispensação realizada com sucesso!', type: 'success' });
+        await loadPharmacyData();
+      } else {
+        const errData = await res.json();
+        showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao dispensar medicação.', type: 'danger' });
+      }
+    } catch (err) {
+      showCustomAlert({ title: 'Erro', message: 'Erro ao conectar com o servidor.', type: 'danger' });
+    }
+  });
 }
 
 
