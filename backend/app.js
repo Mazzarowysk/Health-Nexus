@@ -505,33 +505,13 @@ const authenticateToken = (req, res, next) => {
 };
 
 // --- ROTAS DE HEARTBEAT E SHUTDOWN ---
-const serverStartTime = Date.now();
-let lastHeartbeat = Date.now();
-
 app.post('/api/heartbeat', (req, res) => {
-  lastHeartbeat = Date.now();
   res.sendStatus(200);
 });
 
 app.post('/api/shutdown', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Servidor encerrado.' });
-  if (!process.env.VERCEL) {
-    console.log('[SYSTEM] Encerrando servidor local por encerramento da aplicação...');
-    setTimeout(() => process.exit(0), 400);
-  }
+  res.status(200).json({ status: 'ok', message: 'Servidor recebido.' });
 });
-
-// Auto-shutdown local quando nenhuma aba do sistema estiver aberta por mais de 12 segundos
-if (!process.env.VERCEL) {
-  setInterval(() => {
-    if (Date.now() - serverStartTime > 20000) {
-      if (Date.now() - lastHeartbeat > 12000) {
-        console.log('[SYSTEM] Nenhuma aba do Health Nexus ativa por 12s. Encerrando servidor local automaticamente...');
-        process.exit(0);
-      }
-    }
-  }, 4000);
-}
 
 
 // --- ROTAS DE AUTENTICAÇÃO ---
