@@ -1263,16 +1263,24 @@ const getSyncStatus = async () => {
       updateSyncBadge();
       return state.syncInfo;
     }
-    const { data } = await res.json();
+    const body = await res.json();
+    // `data` pode ser undefined se o servidor retornar status de erro sem campo data
+    const data = body.data;
+    if (!data) {
+      state.syncInfo = { cloudConfigured: false, isVercel: !!body.isVercel, synchronized: true, local_updates: 0 };
+      updateSyncBadge();
+      return state.syncInfo;
+    }
+    const isVercel = !!body.isVercel;
     state.syncInfo = {
-      cloudConfigured: data.cloud_connected,
-      cloudReachable: data.cloud_connected,
-      synchronized: data.local_updates === 0 && data.cloud_last_update <= data.local_last_update,
-      local_updates: data.local_updates,
-      localTimestamps: { main_data: data.local_last_update },
-      cloudTimestamps: { main_data: data.cloud_last_update },
-      isVercel: false,
-      conflict: data.conflict
+      cloudConfigured: isVercel ? true : !!data.cloud_connected,
+      cloudReachable: !!data.cloud_connected,
+      synchronized: isVercel ? true : (data.local_updates === 0 && data.cloud_last_update <= data.local_last_update),
+      local_updates: data.local_updates || 0,
+      localTimestamps: { main_data: data.local_last_update || 0 },
+      cloudTimestamps: { main_data: data.cloud_last_update || 0 },
+      isVercel,
+      conflict: data.conflict || false
     };
     updateSyncBadge();
     return state.syncInfo;

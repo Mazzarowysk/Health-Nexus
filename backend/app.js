@@ -3348,7 +3348,31 @@ app.get('/api/sync/cloud-status', authenticateToken, async (req, res) => {
 app.get('/api/sync/check', async (req, res) => {
   try {
     const localDb = clientModule.localDb;
-    if (!localDb) return res.json({ status: 'error', error: 'Local DB not available' });
+
+    // Modo Vercel: banco local não existe, nuvem É o banco principal
+    if (!localDb) {
+      const cloudDb = getCloudDb();
+      let cloudMeta = null;
+      let cloudConnected = false;
+      if (cloudDb) {
+        try {
+          const r = await cloudDb.execute('SELECT * FROM sync_metadata WHERE id = 1');
+          cloudMeta = r.rows.length > 0 ? r.rows[0] : null;
+          cloudConnected = true;
+        } catch (e) {}
+      }
+      return res.json({
+        status: 'success',
+        isVercel: true,
+        data: {
+          local_updates: 0,
+          local_last_update: cloudMeta ? (cloudMeta.last_update_time || 0) : 0,
+          cloud_connected: cloudConnected,
+          cloud_last_update: cloudMeta ? (cloudMeta.last_update_time || 0) : 0,
+          conflict: false
+        }
+      });
+    }
 
     const localMetaRes = await localDb.execute('SELECT * FROM sync_metadata WHERE id = 1');
     const localMeta = localMetaRes.rows.length > 0 ? localMetaRes.rows[0] : null;
@@ -3371,6 +3395,7 @@ app.get('/api/sync/check', async (req, res) => {
 
     res.json({
       status: 'success',
+      isVercel: false,
       data: {
         local_updates: pendingCount,
         local_last_update: localMeta ? localMeta.last_update_time : 0,
