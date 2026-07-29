@@ -3788,11 +3788,11 @@ async function renderTabContent() {
 
               <div class="settings-form-group" style="margin-bottom: 16px;">
                 <label style="display: block; color: var(--text-secondary); margin-bottom: 6px; font-size: 13px;">URL do Banco de Dados Turso (Ex: libsql://...)</label>
-                <input type="text" id="turso-cfg-url" class="form-control" style="width: 100%;" placeholder="libsql://...">
+                <input type="text" id="turso-cfg-url" class="form-input" style="width: 100%;" placeholder="libsql://...">
               </div>
               <div class="settings-form-group" style="margin-bottom: 16px;">
                 <label style="display: block; color: var(--text-secondary); margin-bottom: 6px; font-size: 13px;">Token de Autenticação (JWT)</label>
-                <input type="password" id="turso-cfg-token" class="form-control" style="width: 100%;" placeholder="ey...">
+                <input type="password" id="turso-cfg-token" class="form-input" style="width: 100%;" placeholder="ey...">
                 <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block;">Deixe em branco para não alterar se já estiver configurado.</small>
               </div>
               <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
@@ -7582,20 +7582,20 @@ function openRoomModal(roomId = null) {
         <div class="modal-body">
           <div class="form-group">
             <label>Nome / Número do Consultório *</label>
-            <input type="text" id="room-name" class="form-control" value="${room.name}" placeholder="Ex: Consultório 01" required>
+            <input type="text" id="room-name" class="form-input" value="${room.name}" placeholder="Ex: Consultório 01" required>
           </div>
           <div class="form-group">
             <label>Especialidade / Uso Sugerido</label>
-            <input type="text" id="room-specialty" class="form-control" value="${room.specialty || ''}" placeholder="Ex: Clínica Geral">
+            <input type="text" id="room-specialty" class="form-input" value="${room.specialty || ''}" placeholder="Ex: Clínica Geral">
           </div>
           ${isEdit ? `
           <div class="form-group">
             <label>Médico Atual (Opcional)</label>
-            <input type="text" id="room-doctor" class="form-control" value="${room.currentDoctor || ''}" placeholder="Deixe em branco se vazio">
+            <input type="text" id="room-doctor" class="form-input" value="${room.currentDoctor || ''}" placeholder="Deixe em branco se vazio">
           </div>
           <div class="form-group">
             <label>Status</label>
-            <select id="room-status" class="form-control">
+            <select id="room-status" class="form-input">
               <option value="Disponível" ${room.status === 'Disponível' ? 'selected' : ''}>Disponível</option>
               <option value="Em Uso" ${room.status === 'Em Uso' ? 'selected' : ''}>Em Uso</option>
               <option value="Manutenção" ${room.status === 'Manutenção' ? 'selected' : ''}>Manutenção</option>
