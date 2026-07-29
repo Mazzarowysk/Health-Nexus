@@ -928,8 +928,8 @@ const checkCloudStatusAfterLogin = async () => {
 
     const cloudTs = Number(cloudData.lastUpdateTime) || 0;
 
-    // SÓ exibe o modal se a nuvem for estritamente MAIS RECENTE que o banco local!
-    if (cloudTs > localLastUpdate) {
+    // Exibe o modal se a nuvem tiver uma versão diferente do banco local
+    if (cloudTs !== localLastUpdate) {
       showCloudDataFoundModal(cloudData, localLastUpdate);
     }
   } catch (e) {
@@ -1067,9 +1067,12 @@ const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
       if (skipBtn) skipBtn.disabled = true;
       dlBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
       try {
+        sessionStorage.setItem('hn_reloading_after_sync', 'true');
         await syncManager.pullFromCloud();
+        showToast('✅ Dados baixados da nuvem com sucesso!');
+        setTimeout(() => location.reload(), 1000);
       } catch (e) {
-        showToast('❌ Erro ao baixar: ' + e.message);
+        showToast('❌ Erro ao baixar: ' + (e.message || e));
         overlay.remove();
       }
     });
