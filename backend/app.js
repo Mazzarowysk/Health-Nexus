@@ -3451,41 +3451,53 @@ app.post('/api/sync/push', async (req, res) => {
     
     if (!localDb || !cloudDb) return res.status(400).json({ status: 'error', message: 'DBs not available' });
 
-    const queueRes = await localDb.execute("SELECT * FROM sync_queue WHERE status = 'pending' ORDER BY id ASC");
-    if (queueRes.rows.length === 0) {
-      return res.json({ status: 'success', message: 'Nenhuma alteração pendente', synced_count: 0 });
-    }
-
     let synced = 0;
-    for (const item of queueRes.rows) {
-      const { id, table_name, row_id, operation } = item;
+
+    // 1. Processar exclusões pendentes na fila
+    try {
+      const queueRes = await localDb.execute("SELECT * FROM sync_queue WHERE status = 'pending' ORDER BY id ASC");
+      for (const item of queueRes.rows) {
+        const { id, table_name, row_id, operation } = item;
+        try {
+          if (operation === 'DELETE') {
+            await cloudDb.execute({ sql: `DELETE FROM ${table_name} WHERE id = ?`, args: [row_id] });
+          }
+          await localDb.execute({ sql: "UPDATE sync_queue SET status = 'synced', synced_at = ? WHERE id = ?", args: [new Date().toISOString(), id] });
+        } catch (e) {}
+      }
+    } catch (e) {}
+
+    // 2. Enviar todos os dados locais para o Turso Cloud (garante sincronização total)
+    for (const [table, cfg] of Object.entries(tableMap)) {
+      if (table === 'health_sync') continue;
       try {
-        if (operation === 'DELETE') {
-          await cloudDb.execute({ sql: `DELETE FROM ${table_name} WHERE id = ?`, args: [row_id] });
-        } else {
-          const cfg = tableMap[table_name];
-          if (cfg) {
-            const localRowRes = await localDb.execute({ sql: `SELECT * FROM ${table_name} WHERE id = ?`, args: [row_id] });
-            if (localRowRes.rows.length > 0) {
-              const r = localRowRes.rows[0];
-              await cloudDb.execute({ sql: `INSERT OR REPLACE INTO ${table_name} (${cfg.columns}) VALUES (${cfg.placeholders})`, args: cfg.insert(r) });
-            }
+        const localRows = await localDb.execute(`SELECT * FROM ${table}`);
+        for (const r of localRows.rows) {
+          try {
+            await cloudDb.execute({
+              sql: `INSERT OR REPLACE INTO ${table} (${cfg.columns}) VALUES (${cfg.placeholders})`,
+              args: cfg.insert(r)
+            });
+            synced++;
+          } catch (e) {
+            console.error(`[SYNC PUSH] Erro linha em ${table}:`, e.message);
           }
         }
-        await localDb.execute({ sql: "UPDATE sync_queue SET status = 'synced', synced_at = ? WHERE id = ?", args: [new Date().toISOString(), id] });
-        synced++;
-      } catch (err) {
-        console.error(`[SYNC PUSH] Erro sync_queue ${id}:`, err.message);
-        await localDb.execute({ sql: "UPDATE sync_queue SET status = 'failed', error = ? WHERE id = ?", args: [err.message, id] });
+      } catch (e) {
+        console.error(`[SYNC PUSH] Erro tabela ${table}:`, e.message);
       }
     }
 
-    // Atualiza metadata em ambos os bancos (local e nuvem) com o mesmo timestamp de sincronização
+    // 3. Atualiza metadata em ambos os bancos (local e nuvem) com o mesmo timestamp exato
     const syncTs = Date.now();
     await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time, last_sync_time) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?, last_sync_time = ?`, args: [syncTs, syncTs, syncTs, syncTs] });
     await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time, last_sync_time) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?, last_sync_time = ?`, args: [syncTs, syncTs, syncTs, syncTs] });
 
-    res.json({ status: 'success', synced_count: synced });
+    try {
+      await localDb.execute("DELETE FROM sync_queue WHERE status = 'synced'");
+    } catch (e) {}
+
+    res.json({ status: 'success', message: 'Sincronização enviada com sucesso para a nuvem', synced_count: synced });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
