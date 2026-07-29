@@ -2823,7 +2823,10 @@ async function renderTabContent() {
 
           <!-- Coluna 2: Lista com Busca Inteligente -->
           <div class="patients-list-container">
-            <h3 style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 600;">Pacientes Cadastrados</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="margin: 0; font-family: 'Outfit'; font-weight: 600;">Pacientes Cadastrados</h3>
+              <button id="patients-trash-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 6px 12px; font-size: 0.85rem;"><i class="fa-solid fa-trash-can" style="margin-right: 6px; color: var(--danger-color);"></i> Lixeira</button>
+            </div>
             
             <div class="search-container">
               <div class="search-wrapper">
@@ -3131,6 +3134,11 @@ async function renderTabContent() {
 
     // Registrar cancelamento
     document.getElementById('cancel-edit-btn').addEventListener('click', resetForm);
+
+    // Lixeira de pacientes
+    document.getElementById('patients-trash-btn').addEventListener('click', () => {
+      showTrashModal('patients');
+    });
 
     // Registrar busca inteligente (Sem acentos / Sensível a caixa)
     document.getElementById('search-input').addEventListener('input', (e) => {
@@ -7574,7 +7582,7 @@ function openRoomModal(roomId = null) {
   const isEdit = !!roomId;
   const modalHtml = `
     <div id="room-modal" class="modal-overlay">
-      <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-content" style="max-width: 650px;">
         <div class="modal-header">
           <h3>${isEdit ? 'Editar Consultório' : 'Novo Consultório'}</h3>
           <span class="close-modal" onclick="document.getElementById('room-modal').remove()"><i class="fa-solid fa-xmark"></i></span>
@@ -7763,7 +7771,7 @@ async function renderAgendaTab() {
 
     <!-- MODAL NOVA CONSULTA -->
     <div id="modal-appointment" class="modal-overlay" style="display: none;">
-      <div class="modal-content" style="max-width: 480px; width: 100%;">
+      <div class="modal-content" style="max-width: 550px; width: 100%;">
         <div class="modal-header">
           <h3><i class="fa-solid fa-calendar-plus" style="color: var(--color-primary);"></i> Nova Consulta</h3>
           <button class="btn-close" id="btn-close-appointment-modal"><i class="fa-solid fa-xmark"></i></button>
@@ -8228,7 +8236,7 @@ async function renderLeitosTab() {
 
     <!-- Modal Internação -->
     <div id="modal-admit-bed" class="modal-overlay" style="display: none;">
-      <div class="modal-content" style="max-width: 450px;">
+      <div class="modal-content" style="max-width: 520px;">
         <div class="modal-header">
           <h3><i class="fa-solid fa-bed" style="color: var(--color-primary);"></i> Internar Paciente em Leito</h3>
           <button class="btn-close" id="btn-close-admit-modal"><i class="fa-solid fa-xmark"></i></button>
@@ -8575,9 +8583,14 @@ async function renderDoctorsTab() {
           </div>
         </div>
 
-        <button id="btn-open-doctor-modal" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); cursor: pointer;">
-          <i class="fa-solid fa-plus"></i> Novo Médico
-        </button>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button id="doctors-trash-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; cursor: pointer;">
+            <i class="fa-solid fa-trash-can" style="margin-right: 6px; color: var(--danger-color);"></i> Lixeira
+          </button>
+          <button id="btn-open-doctor-modal" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); cursor: pointer;">
+            <i class="fa-solid fa-plus"></i> Novo Médico
+          </button>
+        </div>
       </div>
 
       <!-- CARDS DE KPIS -->
@@ -8602,8 +8615,8 @@ async function renderDoctorsTab() {
 
     <!-- MODAL CADASTRO / EDIÇÃO DE MÉDICO -->
     <div id="modal-doctor" class="modal-overlay" style="display: none;">
-      <div class="modal-content" style="max-width: 520px; width: 100%;">
-        <div class="modal-header">
+      <div class="modal-content" style="max-width: 650px; width: 100%; padding: 24px;">
+        <div class="modal-header" style="margin-bottom: 20px;">
           <h3 id="modal-doctor-title"><i class="fa-solid fa-user-doctor" style="color: var(--color-primary);"></i> Cadastrar Médico</h3>
           <button class="btn-close" id="btn-close-doctor-modal"><i class="fa-solid fa-xmark"></i></button>
         </div>
@@ -8613,7 +8626,7 @@ async function renderDoctorsTab() {
             <label for="doc-name">Nome Completo *</label>
             <input type="text" id="doc-name" class="form-input" placeholder="Ex: Dr. Roberto Almeida" required>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
             <div class="form-group">
               <label for="doc-crm">CRM *</label>
               <input type="text" id="doc-crm" class="form-input" placeholder="123456-SP" required>
@@ -8623,7 +8636,7 @@ async function renderDoctorsTab() {
               <input type="text" id="doc-specialty" class="form-input" placeholder="Ex: Cardiologia" required>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
             <div class="form-group">
               <label for="doc-phone">Telefone / Celular</label>
               <input type="text" id="doc-phone" class="form-input" placeholder="(11) 98765-4321">
@@ -8921,6 +8934,10 @@ async function renderDoctorsTab() {
 
   document.getElementById('btn-close-doctor-modal').addEventListener('click', () => { modal.style.display = 'none'; });
   document.getElementById('btn-cancel-doctor-modal').addEventListener('click', () => { modal.style.display = 'none'; });
+
+  document.getElementById('doctors-trash-btn').addEventListener('click', () => {
+    showTrashModal('doctors');
+  });
 
   document.getElementById('form-doctor').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -10914,3 +10931,116 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
   });
 }
 
+// =========================================================
+// MODAL DE LIXEIRA (Soft Delete)
+// =========================================================
+window.showTrashModal = async function(type) {
+  const old = document.getElementById('modal-trash');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modal-trash';
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'flex';
+  overlay.style.zIndex = '9999';
+
+  const titleStr = type === 'patients' ? 'Pacientes Removidos' : 'Médicos Removidos';
+
+  overlay.innerHTML = `
+    <div class="modal-content" style="max-width: 700px; width: 100%;">
+      <div class="modal-header">
+        <h3 style="margin: 0; font-family: 'Outfit'; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-trash-can" style="color: var(--danger-color);"></i> Lixeira - ${titleStr}</h3>
+        <button class="btn-close" id="btn-close-trash-modal" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="min-height: 200px; max-height: 60vh; overflow-y: auto; padding: 20px;">
+        <div id="trash-list-container" style="text-align: center; color: var(--text-muted); padding: 40px;">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 12px; display: block; color: var(--color-primary);"></i>
+          Buscando itens na lixeira...
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('btn-close-trash-modal').addEventListener('click', () => {
+    overlay.remove();
+  });
+
+  try {
+    const res = await apiFetch(`/api/trash/${type}`);
+    if (res.ok) {
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : (data.data || []);
+      const container = document.getElementById('trash-list-container');
+      
+      if (items.length === 0) {
+        container.innerHTML = \`<div style="text-align: center; color: var(--text-muted); padding: 40px;"><i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: 0.5;"></i><div style="font-size: 1.1rem; font-weight: 600;">Lixeira vazia</div><div style="font-size: 0.85rem; margin-top: 4px;">Nenhum item foi removido recentemente.</div></div>\`;
+      } else {
+        let html = '<table style="width: 100%; border-collapse: collapse; text-align: left;"><thead><tr><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">ID / Nome</th><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Removido em</th><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; text-align: right;">Ação</th></tr></thead><tbody>';
+        
+        items.forEach(item => {
+          const name = item.name || item.fullName || 'Desconhecido';
+          const delDate = item.deleted_at ? new Date(item.deleted_at).toLocaleString('pt-BR') : 'Data desconhecida';
+          
+          html += \`
+            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;" onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+              <td style="padding: 12px 10px;">
+                <div style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">\${name}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">ID: \${item.id}</div>
+              </td>
+              <td style="padding: 12px 10px; font-size: 0.85rem; color: var(--text-secondary);">\${delDate}</td>
+              <td style="padding: 12px 10px; text-align: right;">
+                <button class="btn btn-primary btn-restore-item" data-id="\${item.id}" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-rotate-left"></i> Restaurar
+                </button>
+              </td>
+            </tr>
+          \`;
+        });
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+        
+        document.querySelectorAll('.btn-restore-item').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.id;
+            if(confirm('Tem certeza de que deseja restaurar este item? Ele voltará para a listagem ativa.')) {
+              try {
+                const rRes = await apiFetch(\`/api/\${type}/\${id}/restore\`, { method: 'POST' });
+                if (rRes.ok) {
+                  showCustomAlert({ title: 'Sucesso', message: 'Item restaurado com sucesso!', type: 'success' });
+                  dataCache.delete(type);
+                  overlay.remove();
+                  
+                  // Atualizar aba correspondente
+                  if (type === 'patients') {
+                    // Força recarregamento aba de pacientes
+                    document.querySelector('.nav-item[data-tab="pacientes"]')?.click();
+                  } else {
+                    // Força recarregamento aba médicos
+                    document.querySelector('.nav-item[data-tab="medicos"]')?.click();
+                  }
+                } else {
+                  showCustomAlert({ title: 'Erro', message: 'Falha ao restaurar item. Verifique os logs.', type: 'danger' });
+                }
+              } catch(err) {
+                showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'danger' });
+              }
+            }
+          });
+        });
+      }
+    } else {
+      document.getElementById('trash-list-container').innerHTML = '<div style="text-align: center; color: var(--danger-color); padding: 40px;">Erro ao carregar itens da lixeira.</div>';
+    }
+  } catch(e) {
+    document.getElementById('trash-list-container').innerHTML = '<div style="text-align: center; color: var(--danger-color); padding: 40px;">Erro de conexão. Verifique o console.</div>';
+    console.error(e);
+  }
+};
+
+// Expose functions used in inline onclick events
+window.saveRoom = saveRoom;
+window.deleteRoom = deleteRoom;
+window.openRoomModal = openRoomModal;

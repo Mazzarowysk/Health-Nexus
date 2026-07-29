@@ -1833,6 +1833,19 @@ body {
   font-size: 1.25rem;
 }
 
+.modal-body {
+  padding: 0 24px;
+}
+
+.modal-footer {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 16px;
+}
+
 /* --- BOTÃO FECHAR MODAL / JANELA MODERNO --- */
 .modal-close,
 .btn-close,
@@ -1899,6 +1912,14 @@ body {
 
 .modal-body {
   padding: 24px;
+}
+
+.modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 /* Manchester Selector Group */

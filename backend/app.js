@@ -23,7 +23,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 // --- INICIALIZACAO DO BANCO DE DADOS ---
 const initLocalDb = async () => {
   const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', status TEXT DEFAULT 'Ativo', master_approved INTEGER DEFAULT 1, master_key_requested INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
-  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, cep TEXT, address TEXT, number TEXT, neighborhood TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, cep TEXT, address TEXT, number TEXT, neighborhood TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT, deleted_at TEXT)`;
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -35,7 +35,7 @@ const initLocalDb = async () => {
   const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
 
-  const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT, deleted_at TEXT)`;
   const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_PHARMACY = `CREATE TABLE IF NOT EXISTS pharmacy_items (id TEXT PRIMARY KEY, name TEXT NOT NULL, dosage TEXT, form TEXT, stockQuantity INTEGER DEFAULT 0, minStock INTEGER DEFAULT 10, lotNumber TEXT, expirationDate TEXT, unitPrice REAL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_TV_CALLS = `CREATE TABLE IF NOT EXISTS tv_calls (id TEXT PRIMARY KEY, patientName TEXT NOT NULL, roomName TEXT NOT NULL, manchesterColor TEXT DEFAULT 'Verde', doctorName TEXT, calledAt TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -73,7 +73,9 @@ const initLocalDb = async () => {
     'ALTER TABLE patients ADD COLUMN cellphone TEXT',
     'ALTER TABLE patients ADD COLUMN billingValue TEXT',
     'ALTER TABLE patients ADD COLUMN updated_at TEXT',
-    'ALTER TABLE encounters ADD COLUMN room TEXT'
+    'ALTER TABLE encounters ADD COLUMN room TEXT',
+    'ALTER TABLE patients ADD COLUMN deleted_at TEXT',
+    'ALTER TABLE doctors ADD COLUMN deleted_at TEXT'
   ];
 
   await Promise.all(alterQueries.map(q => db.execute(q).catch(() => {})));
@@ -255,7 +257,7 @@ const autoSyncFromCloud = async () => {
   if (!getCloudDb() || process.env.VERCEL) return;
   console.log('[SYNC] Verificando estrutura do banco Turso...');
   const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
-  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, address TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT, deleted_at TEXT)`;
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -272,7 +274,7 @@ const autoSyncFromCloud = async () => {
     await cloud.execute(SQL_USERS);
     try { await cloud.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
     await cloud.execute(SQL_PATIENTS);
-    for (const col of ['address','city','phone','cellphone','billingValue','updated_at']) {
+    for (const col of ['address','city','phone','cellphone','billingValue','updated_at','deleted_at']) {
       try { await cloud.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
     }
     await cloud.execute(SQL_ENCOUNTERS);
@@ -329,7 +331,7 @@ const initCloudDb = async () => {
 
   const tasks = async () => {
     const SQL_USERS = `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT DEFAULT 'Medico', status TEXT DEFAULT 'Ativo', master_approved INTEGER DEFAULT 1, master_key_requested INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
-    const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, cep TEXT, address TEXT, number TEXT, neighborhood TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+    const SQL_PATIENTS = `CREATE TABLE IF NOT EXISTS patients (id TEXT PRIMARY KEY, fullName TEXT NOT NULL, cpf TEXT UNIQUE NOT NULL, birthDate TEXT NOT NULL, cep TEXT, address TEXT, number TEXT, neighborhood TEXT, city TEXT, phone TEXT, cellphone TEXT, billingValue TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT, deleted_at TEXT)`;
     const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT, room TEXT)`;
     const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
     const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -339,7 +341,7 @@ const initCloudDb = async () => {
     const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
     const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
     const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
-    const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+    const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT, deleted_at TEXT)`;
     const SQL_PHARMACY = `CREATE TABLE IF NOT EXISTS pharmacy_items (id TEXT PRIMARY KEY, name TEXT NOT NULL, dosage TEXT, form TEXT, stockQuantity INTEGER DEFAULT 0, minStock INTEGER DEFAULT 10, lotNumber TEXT, expirationDate TEXT, unitPrice REAL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
     
     await cloud.execute(SQL_USERS);
@@ -348,7 +350,7 @@ const initCloudDb = async () => {
     }
     try { await cloud.execute('ALTER TABLE users RENAME COLUMN email TO username'); } catch (e) {}
     await cloud.execute(SQL_PATIENTS);
-    for (const col of ['cep','address','number','neighborhood','city','phone','cellphone','billingValue','updated_at']) {
+    for (const col of ['cep','address','number','neighborhood','city','phone','cellphone','billingValue','updated_at','deleted_at']) {
       try { await cloud.execute(`ALTER TABLE patients ADD COLUMN ${col} TEXT`); } catch (e) {}
     }
     await cloud.execute(SQL_ENCOUNTERS);
@@ -357,6 +359,7 @@ const initCloudDb = async () => {
     await cloud.execute(SQL_NOTES);
     await cloud.execute(SQL_SYNC_LOGS);
     await cloud.execute(SQL_DOCTORS);
+    try { await cloud.execute('ALTER TABLE doctors ADD COLUMN deleted_at TEXT'); } catch (e) {}
     await cloud.execute(SQL_PHARMACY);
     
     // Tabelas de sincronização
@@ -1280,7 +1283,7 @@ app.post('/api/patients', async (req, res) => {
 // Endpoint para obter todos os pacientes
 app.get('/api/patients', async (req, res) => {
   try {
-    const result = await db.execute('SELECT * FROM patients ORDER BY fullName ASC');
+    const result = await db.execute('SELECT * FROM patients WHERE deleted_at IS NULL ORDER BY fullName ASC');
     res.status(200).json(result.rows);
   } catch (err) {
     console.error('Erro ao buscar pacientes:', err);
@@ -1356,19 +1359,61 @@ app.delete('/api/patients/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
+    const nowIso = new Date().toISOString();
     await db.execute({
-      sql: 'DELETE FROM patients WHERE id = ?',
-      args: [id]
+      sql: 'UPDATE patients SET deleted_at = ?, updated_at = ? WHERE id = ?',
+      args: [nowIso, nowIso, id]
     });
 
-    const nowIso = new Date().toISOString();
     try {
       await updatePreviousAndLastUpload(nowIso);
     } catch (e) {}
 
     res.status(200).json({
       status: 'success',
-      message: 'Paciente excluído com sucesso.'
+      message: 'Paciente movido para a lixeira.'
+    });
+  } catch (err) {
+    console.error('Erro ao excluir paciente:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao excluir paciente.'
+    });
+  }
+});
+
+// Endpoint para obter pacientes na lixeira
+app.get('/api/trash/patients', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM patients WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC');
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar pacientes na lixeira:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao buscar pacientes na lixeira.'
+    });
+  }
+});
+
+// Endpoint para restaurar paciente da lixeira
+app.post('/api/patients/:id/restore', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'UPDATE patients SET deleted_at = NULL, updated_at = ? WHERE id = ?',
+      args: [nowIso, id]
+    });
+
+    try {
+      await updatePreviousAndLastUpload(nowIso);
+    } catch (e) {}
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Paciente restaurado com sucesso.'
     });
   } catch (err) {
     console.error('Erro ao excluir paciente:', err);
@@ -2577,7 +2622,7 @@ app.post('/api/sync/download', async (req, res) => {
 // --- ROTAS DO CORPO CLÍNICO (MÉDICOS) ---
 app.get('/api/doctors', async (req, res) => {
   try {
-    const result = await db.execute('SELECT * FROM doctors ORDER BY name ASC');
+    const result = await db.execute('SELECT * FROM doctors WHERE deleted_at IS NULL ORDER BY name ASC');
     res.status(200).json(result.rows);
   } catch (err) {
     console.error('Erro ao buscar médicos:', err);
@@ -2629,11 +2674,36 @@ app.put('/api/doctors/:id', async (req, res) => {
 app.delete('/api/doctors/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await db.execute({ sql: "UPDATE doctors SET status = 'Inativo', updated_at = ? WHERE id = ?", args: [new Date().toISOString(), id] });
-    res.status(200).json({ status: 'success', message: 'Médico inativado com sucesso!' });
+    const nowIso = new Date().toISOString();
+    await db.execute({ sql: "UPDATE doctors SET deleted_at = ?, updated_at = ? WHERE id = ?", args: [nowIso, nowIso, id] });
+    res.status(200).json({ status: 'success', message: 'Médico movido para a lixeira!' });
   } catch (err) {
     console.error('Erro ao inativar médico:', err);
     res.status(500).json({ status: 'error', message: 'Falha ao inativar médico.' });
+  }
+});
+
+// Endpoint para obter médicos na lixeira
+app.get('/api/trash/doctors', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM doctors WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC');
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar médicos na lixeira:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao buscar médicos na lixeira.' });
+  }
+});
+
+// Endpoint para restaurar médico da lixeira
+app.post('/api/doctors/:id/restore', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const nowIso = new Date().toISOString();
+    await db.execute({ sql: "UPDATE doctors SET deleted_at = NULL, updated_at = ? WHERE id = ?", args: [nowIso, id] });
+    res.status(200).json({ status: 'success', message: 'Médico restaurado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao restaurar médico:', err);
+    res.status(500).json({ status: 'error', message: 'Falha ao restaurar médico.' });
   }
 });
 
