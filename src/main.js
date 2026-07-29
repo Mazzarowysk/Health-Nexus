@@ -146,7 +146,11 @@ const updateThemeIcon = () => {
 const formatSyncDate = (isoOrDate) => {
   if (!isoOrDate || isoOrDate === 'Sem dados') return 'Sem dados';
   try {
-    const d = new Date(isoOrDate);
+    let ts = isoOrDate;
+    if (typeof ts === 'string' && /^\d+$/.test(ts.trim())) {
+      ts = parseInt(ts.trim(), 10);
+    }
+    const d = new Date(ts);
     if (isNaN(d.getTime())) return 'Sem dados';
     return d.toLocaleString('pt-BR', {
       day: '2-digit', month: '2-digit', year: 'numeric',
@@ -809,16 +813,13 @@ const showSyncPromptModal = (syncData = {}) => {
 
     const isVercel = !!syncData.isVercel;
     
-    // Data e horário do momento em que a ação de sincronização será realizada (Envio atual)
-    const nowIso = new Date().toISOString();
-
     // Data do último banco de dados existente na nuvem de quando foi feito o upload anteriormente
     const previousCloudUploadDate = syncData.previousCloudBackup || syncData.lastCloudBackup || syncData.cloudTimestamps?.last_sync || syncData.lastLocalBackup;
 
-    let localLabel = isVercel ? 'Horário Atual no Vercel' : 'Horário de Envio (Momento Atual)';
-    let localDateText = formatSyncDate(nowIso);
+    let localLabel = isVercel ? 'Horário Atual no Vercel' : 'Último Backup Local';
+    let localDateText = formatSyncDate(syncData.lastLocalBackup === 0 || !syncData.lastLocalBackup ? null : syncData.lastLocalBackup);
 
-    let cloudLabel = isVercel ? 'Último Upload na Nuvem (Anterior)' : 'Último Upload Existente na Nuvem';
+    let cloudLabel = isVercel ? 'Último Upload na Nuvem (Anterior)' : 'Versão na Nuvem';
     let cloudDateText = formatSyncDate(previousCloudUploadDate);
 
     overlay.innerHTML = `
@@ -841,7 +842,7 @@ const showSyncPromptModal = (syncData = {}) => {
           <div class="sync-main-msg">
             ${isVercel 
               ? 'Você está operando no <strong>Vercel</strong>. Deseja registrar a versão com a data e horário atual na nuvem?' 
-              : 'Novas alterações realizadas. <strong>Deseja enviar a nova versão para a nuvem com o horário atual?</strong>'}
+              : 'Você fez alterações que ainda não foram enviadas para a nuvem.<br><strong>Deseja salvar tudo no Turso agora?</strong>'}
           </div>
 
           <!-- Caixa de Detalhes de Versões -->
@@ -1229,6 +1230,9 @@ const updateSyncBadge = () => {
 const parseIsoOrSpaceTimestamp = (ts) => {
   if (!ts) return 0;
   let s = String(ts).trim();
+  if (/^\d+$/.test(s)) {
+    return parseInt(s, 10);
+  }
   if (s.includes(' ') && !s.includes('T')) {
     s = s.replace(' ', 'T') + 'Z';
   }
@@ -3538,9 +3542,9 @@ async function renderTabContent() {
               <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
                   <span style="color: var(--text-secondary);">Integração com Turso DB</span>
-                  <span class="status-badge">
-                    <span class="status-indicator success"></span>
-                    Conectado (AWS Us-East-1)
+                  <span class="status-badge" id="turso-settings-status-badge">
+                    <span class="status-indicator"></span>
+                    Verificando...
                   </span>
                 </div>
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
@@ -3701,7 +3705,15 @@ async function renderTabContent() {
           const tursoData = await tursoRes.json();
           document.getElementById('turso-cfg-url').value = tursoData.url || '';
           if (tursoData.hasToken) {
-            document.getElementById('turso-cfg-token').value = '********************************';
+            document.getElementById('turso-cfg-token').value = tursoData.token || '********************************';
+          }
+          const statusBadge = document.getElementById('turso-settings-status-badge');
+          if (statusBadge) {
+             if (tursoData.hasToken) {
+                statusBadge.innerHTML = '<span class="status-indicator success"></span>Conectado (AWS Us-East-1)';
+             } else {
+                statusBadge.innerHTML = '<span class="status-indicator" style="background: red;"></span>Desconectado';
+             }
           }
           if (tursoData.lastSync) {
             document.getElementById('turso-last-sync-time').textContent = new Date(tursoData.lastSync).toLocaleString('pt-BR');
@@ -3778,10 +3790,10 @@ async function renderTabContent() {
           await syncManager.pushToCloud(true);
           const statusData = await getSyncStatus();
           if (statusData) {
-            const localEl = document.getElementById('cfg-sync-local-time');
-            const cloudEl = document.getElementById('cfg-sync-cloud-time');
-            if (localEl) localEl.textContent = formatSyncDate(statusData.lastLocalBackup);
-            if (cloudEl) cloudEl.textContent = formatSyncDate(statusData.lastCloudBackup);
+            const tursoLastEl = document.getElementById('turso-last-sync-time');
+            if (tursoLastEl) {
+              tursoLastEl.textContent = new Date().toLocaleString('pt-BR');
+            }
           }
         } finally {
           btnSyncNow.disabled = false;

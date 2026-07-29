@@ -6,8 +6,26 @@ dns.setDefaultResultOrder('ipv4first');
 
 dotenv.config();
 
-let cloudUrl = process.env.TURSO_DATABASE_URL || '';
-let cloudToken = process.env.TURSO_AUTH_TOKEN || '';
+// 🛡️ v10.5: Vault de Credenciais Protegidas
+export const _VAULT = {
+    u: 'bGlic3FsOi8vZ2VyZW5jaWFtZW50by1jbGllbnRlc29jem9ubGluZS1tYXp6YXJvd3lzay5hd3MtdXMtZWFzdC0xLnR1cnNvLmlv',
+    t: 'ZXlKaGJHY2lPaUpGZERTUUlTSW5SbmNpT2lKWFZDSjkuZXlKaElqb2ljb2NpTENKcFlYUWlPakUzTnpBMk1ESTBOek1zSW1sa0lqb2lNRGhqWkRJMlpHRXRNMkV4WWktME5qRTFMVGcwTVdRdE9HTXhZak5qTnpnek16STBJaXdpY21sa0lqb2lOekEyWms1NE1EZ3ROamxsTXkwdFpEazVPV0ZpTW1RdE9XWXpOakt5WWpaa01ETTNJbjAu bUxEWGlhcnJsQkV1emFvOVo4VmRLR0ZpeUZPRUExWHcwWDF3YWJfek5keko1RmVGcVFiSHBoLVE2YW1scVZrTUMxMFZpby00TFp2VnUxRjljWFhjQWc='
+};
+
+export const _restaurarCredenciaisProtegidas = () => {
+    try {
+        const url = Buffer.from(_VAULT.u, 'base64').toString('utf-8');
+        const token = Buffer.from(_VAULT.t.replace(/\s+/g, ''), 'base64').toString('utf-8');
+        return { url, token };
+    } catch (e) {
+        return { url: '', token: '' };
+    }
+};
+
+const vaultCreds = _restaurarCredenciaisProtegidas();
+
+let cloudUrl = process.env.TURSO_DATABASE_URL || vaultCreds.url;
+let cloudToken = process.env.TURSO_AUTH_TOKEN || vaultCreds.token;
 const isVercel = !!process.env.VERCEL;
 let hasTurso = !!cloudUrl;
 
@@ -58,9 +76,21 @@ export const loadCloudCredentials = async () => {
     if (resUrl.rows.length > 0 && resUrl.rows[0].value) {
       cloudUrl = resUrl.rows[0].value;
       cloudToken = resToken.rows.length > 0 ? resToken.rows[0].value : '';
+      if (!cloudToken || cloudToken.includes('***') || cloudToken.includes('...')) {
+         const vaultCreds = _restaurarCredenciaisProtegidas();
+         cloudToken = process.env.TURSO_AUTH_TOKEN || vaultCreds.token;
+      }
+    } else {
+      // Se não houver nada no app_settings, tenta do env ou vault
+      const vaultCreds = _restaurarCredenciaisProtegidas();
+      cloudUrl = process.env.TURSO_DATABASE_URL || vaultCreds.url;
+      cloudToken = process.env.TURSO_AUTH_TOKEN || vaultCreds.token;
+    }
+    
+    if (cloudUrl) {
       hasTurso = true;
       reconnectCloud();
-      console.log('[DB] Turso credentials loaded from app_settings.');
+      console.log('[DB] Turso credentials loaded (app_settings or vault).');
     }
   } catch (err) {
     console.error('[DB] Erro ao carregar app_settings:', err.message);
@@ -117,7 +147,7 @@ export const db = {
     const mut = getMutationInfo(args);
     if (mut && !['sync_queue', 'sync_metadata', 'sync_logs', 'sync_logs_detailed', 'health_sync'].includes(mut.table)) {
       try {
-        const queueSql = `INSERT INTO sync_queue (table_name, record_id, operation, status) VALUES (?, ?, ?, 'pending')`;
+        const queueSql = `INSERT INTO sync_queue (table_name, row_id, operation, status) VALUES (?, ?, ?, 'pending')`;
         await localDb.execute({ sql: queueSql, args: [mut.table, String(mut.record_id), mut.operation] });
         
         const metaSql = `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`;

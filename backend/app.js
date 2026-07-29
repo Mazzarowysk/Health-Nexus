@@ -1357,44 +1357,82 @@ app.get('/api/settings/turso', async (req, res) => {
   try {
     const resUrl = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_url'`);
     const resToken = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_token'`);
-    let url = resUrl.rows.length > 0 ? resUrl.rows[0].value : process.env.TURSO_DATABASE_URL || '';
-    let token = resToken.rows.length > 0 ? resToken.rows[0].value : process.env.TURSO_AUTH_TOKEN || '';
+    let vaultCreds = { url: '', token: '' };
+    if (clientModule._restaurarCredenciaisProtegidas) {
+        vaultCreds = clientModule._restaurarCredenciaisProtegidas();
+    }
+    
+    let newUrl = (resUrl.rows.length > 0 && resUrl.rows[0].value) ? resUrl.rows[0].value : '';
+    let newToken = (resToken.rows.length > 0 && resToken.rows[0].value) ? resToken.rows[0].value : '';
+    
+    let url = process.env.TURSO_DATABASE_URL || vaultCreds.url;
+    let token = process.env.TURSO_AUTH_TOKEN || vaultCreds.token;
+    
+    if (newUrl && newUrl.trim() !== '') {
+        url = newUrl;
+    }
+    
+    if (newToken && newToken.trim() !== '' && !newToken.includes('***') && !newToken.includes('...')) {
+        token = newToken;
+    }
     
     let maskedToken = token && token.length > 20 ? token.substring(0, 10) + '...' + token.substring(token.length - 10) : (token ? '***' : '');
     
     let lastSync = null;
     try {
-      const metaRes = await localDb.execute('SELECT last_update_time FROM sync_metadata WHERE id = 1');
-      if (metaRes.rows.length > 0) lastSync = metaRes.rows[0].last_update_time;
+      const metaRes = await localDb.execute('SELECT last_sync_time FROM sync_metadata WHERE id = 1');
+      if (metaRes.rows.length > 0) lastSync = metaRes.rows[0].last_sync_time;
     } catch(e) {}
     
     res.json({ url, token: maskedToken, hasToken: !!token, lastSync });
   } catch (err) {
-    res.json({ url: process.env.TURSO_DATABASE_URL || '', token: '', hasToken: !!process.env.TURSO_AUTH_TOKEN, lastSync: null });
+    let vaultCreds = { url: '', token: '' };
+    if (clientModule._restaurarCredenciaisProtegidas) vaultCreds = clientModule._restaurarCredenciaisProtegidas();
+    res.json({ url: process.env.TURSO_DATABASE_URL || vaultCreds.url, token: '', hasToken: !!(process.env.TURSO_AUTH_TOKEN || vaultCreds.token), lastSync: null });
   }
 });
 
 app.post('/api/settings/turso', async (req, res) => {
   const { url, token } = req.body;
   try {
+    let finalUrl = url;
     let finalToken = token;
     const localDb = clientModule.localDb;
     
-    if (!token || token === '' || token.includes('...') || token.includes('***')) {
-      if (localDb) {
-        try {
-           const resToken = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_token'`);
-           if (resToken.rows.length > 0) finalToken = resToken.rows[0].value;
-           else finalToken = process.env.TURSO_AUTH_TOKEN || '';
-        } catch(e) {
-           finalToken = process.env.TURSO_AUTH_TOKEN || '';
-        }
-      } else {
-        finalToken = process.env.TURSO_AUTH_TOKEN || '';
-      }
-    }
+    let vaultCreds = { url: '', token: '' };
+    if (clientModule._restaurarCredenciaisProtegidas) vaultCreds = clientModule._restaurarCredenciaisProtegidas();
+    const fallbackUrl = process.env.TURSO_DATABASE_URL || vaultCreds.url;
+    const fallbackToken = process.env.TURSO_AUTH_TOKEN || vaultCreds.token;
 
-    await clientModule.updateCloudCredentials(url, finalToken);
+    if (localDb) {
+      try {
+         const resUrl = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_url'`);
+         if (!finalUrl || finalUrl.trim() === '') {
+             if (resUrl.rows.length > 0 && resUrl.rows[0].value) {
+                 finalUrl = resUrl.rows[0].value;
+             } else {
+                 finalUrl = fallbackUrl;
+             }
+         }
+         
+         const resToken = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_token'`);
+         if (!finalToken || finalToken.trim() === '' || finalToken.includes('...') || finalToken.includes('***')) {
+             if (resToken.rows.length > 0 && resToken.rows[0].value && !resToken.rows[0].value.includes('***') && !resToken.rows[0].value.includes('...')) {
+                 finalToken = resToken.rows[0].value;
+             } else {
+                 finalToken = fallbackToken;
+             }
+         }
+      } catch(e) {
+         if (!finalUrl || finalUrl.trim() === '') finalUrl = fallbackUrl;
+         if (!finalToken || finalToken.trim() === '' || finalToken.includes('***')) finalToken = fallbackToken;
+      }
+    } else {
+      if (!finalUrl || finalUrl.trim() === '') finalUrl = fallbackUrl;
+      if (!finalToken || finalToken.trim() === '' || finalToken.includes('***')) finalToken = fallbackToken;
+    }
+    
+    await clientModule.updateCloudCredentials(finalUrl, finalToken);
     
     const cloud = getCloudDb();
     if (cloud) {
@@ -3299,7 +3337,7 @@ app.post('/api/sync/push', async (req, res) => {
     const localDb = clientModule.localDb;
     const cloudDb = getCloudDb();
     
-    if (!localDb || !cloudDb) return res.json({ status: 'ignored', message: 'DBs not available' });
+    if (!localDb || !cloudDb) return res.status(400).json({ status: 'error', message: 'DBs not available' });
 
     const queueRes = await localDb.execute("SELECT * FROM sync_queue WHERE status = 'pending' ORDER BY id ASC");
     if (queueRes.rows.length === 0) {
@@ -3337,6 +3375,10 @@ app.post('/api/sync/push', async (req, res) => {
       await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`, args: [ts, ts] });
     }
 
+    const syncTs = Date.now();
+    await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_sync_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_sync_time = ?`, args: [syncTs, syncTs] });
+    await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_sync_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_sync_time = ?`, args: [syncTs, syncTs] });
+
     res.json({ status: 'success', synced_count: synced });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
@@ -3347,7 +3389,7 @@ app.post('/api/sync/pull', async (req, res) => {
   try {
     const localDb = clientModule.localDb;
     const cloudDb = getCloudDb();
-    if (!localDb || !cloudDb) return res.json({ status: 'ignored', message: 'DBs not available' });
+    if (!localDb || !cloudDb) return res.status(400).json({ status: 'error', message: 'DBs not available' });
 
     // 1. Backup local db
     const backupName = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.sqlite`;
@@ -3382,6 +3424,10 @@ app.post('/api/sync/pull', async (req, res) => {
 
     // Clear local sync queue as we just synced with cloud
     await localDb.execute("DELETE FROM sync_queue");
+
+    const syncTs = Date.now();
+    await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_sync_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_sync_time = ?`, args: [syncTs, syncTs] });
+    await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_sync_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_sync_time = ?`, args: [syncTs, syncTs] });
 
     res.json({ status: 'success', message: 'Pull concluído com sucesso', pulled_count: total });
   } catch (err) {
