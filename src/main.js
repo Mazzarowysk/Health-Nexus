@@ -1239,6 +1239,11 @@ class SyncManager {
       });
 
       if (res.ok) {
+        const body = await res.json().catch(() => ({}));
+        if (body.isVercel) {
+          if (showToastMessage) showToast('Modo Vercel: Dados gravados na nuvem em tempo real.');
+          return true;
+        }
         const now = Date.now();
         localStorage.setItem('hn_last_local_update', now.toString());
         localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
@@ -1264,6 +1269,11 @@ class SyncManager {
     try {
       const res = await apiFetch('/api/sync/pull', { method: 'POST' });
       if (res.ok) {
+        const body = await res.json().catch(() => ({}));
+        if (body.isVercel) {
+          showToast('Modo Vercel: O sistema já utiliza os dados diretamente da nuvem.');
+          return true;
+        }
         const now = Date.now();
         localStorage.setItem('hn_last_local_update', now.toString());
         localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
@@ -1287,13 +1297,13 @@ class SyncManager {
 const syncManager = new SyncManager();
 
 const scheduleSyncUpload = async () => {
-  if (state.syncInfo && !state.syncInfo.cloudConfigured) return;
+  if (state.syncInfo && (!state.syncInfo.cloudConfigured || state.syncInfo.isVercel)) return;
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
   
   syncUploadTimeout = setTimeout(async () => {
     // Ao invés de fazer auto-sync, pegamos o status atual e mostramos o modal para o usuário decidir
     const statusData = await getSyncStatus();
-    if (statusData && statusData.local_updates > 0) {
+    if (statusData && !statusData.isVercel && statusData.local_updates > 0) {
       showSyncPromptModal(statusData);
     }
   }, 1000);

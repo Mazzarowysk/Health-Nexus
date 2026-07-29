@@ -3449,7 +3449,12 @@ app.post('/api/sync/push', async (req, res) => {
     const localDb = clientModule.localDb;
     const cloudDb = getCloudDb();
     
-    if (!localDb || !cloudDb) return res.status(400).json({ status: 'error', message: 'DBs not available' });
+    // Modo Vercel: sem banco local, opera direto no Turso Cloud
+    if (!localDb) {
+      return res.json({ status: 'success', isVercel: true, message: 'Modo Vercel: As alterações são salvas diretamente no Turso Cloud em tempo real.', synced_count: 0 });
+    }
+
+    if (!cloudDb) return res.status(400).json({ status: 'error', message: 'Turso Cloud database not available' });
 
     let synced = 0;
 
@@ -3507,7 +3512,13 @@ app.post('/api/sync/pull', async (req, res) => {
   try {
     const localDb = clientModule.localDb;
     const cloudDb = getCloudDb();
-    if (!localDb || !cloudDb) return res.status(400).json({ status: 'error', message: 'DBs not available' });
+
+    // Modo Vercel: sem banco local, opera direto no Turso Cloud
+    if (!localDb) {
+      return res.json({ status: 'success', isVercel: true, message: 'Modo Vercel: O sistema já utiliza os dados diretamente da nuvem.', total: 0 });
+    }
+
+    if (!cloudDb) return res.status(400).json({ status: 'error', message: 'Turso Cloud database not available' });
 
     // 1. Backup local db
     const backupName = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.sqlite`;
