@@ -893,6 +893,147 @@ const showSyncPromptModal = (syncData = {}) => {
   });
 };
 
+// --- VARREDURA PÓS-LOGIN: Verifica dados na nuvem e exibe modal para baixar ---
+const checkCloudStatusAfterLogin = async () => {
+  try {
+    const res = await apiFetch('/api/sync/cloud-status');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (!data.cloudConfigured || !data.hasData) return;
+
+    // Mostra modal de varredura com resumo dos dados encontrados na nuvem
+    showCloudDataFoundModal(data);
+  } catch (e) {
+    console.warn('[Sync] Varredura pós-login falhou silenciosamente:', e.message);
+  }
+};
+
+const showCloudDataFoundModal = (cloudStatus) => {
+  const existing = document.getElementById('cloud-scan-modal');
+  if (existing) existing.remove();
+
+  const formatDate = (ts) => {
+    if (!ts) return 'Não informado';
+    let t = ts;
+    if (typeof t === 'string' && /^\d+$/.test(t.trim())) t = parseInt(t.trim(), 10);
+    const d = new Date(t);
+    if (isNaN(d.getTime())) return 'Não informado';
+    return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const counts = cloudStatus.counts || {};
+  const tableLabels = {
+    patients: { label: 'Pacientes', icon: 'fa-user-injured', color: '#6ee7b7' },
+    appointments: { label: 'Agendamentos', icon: 'fa-calendar-check', color: '#93c5fd' },
+    encounters: { label: 'Atendimentos', icon: 'fa-stethoscope', color: '#fcd34d' },
+    doctors: { label: 'Médicos', icon: 'fa-user-doctor', color: '#a5b4fc' },
+    beds: { label: 'Leitos', icon: 'fa-bed-pulse', color: '#f9a8d4' },
+    prescriptions: { label: 'Prescrições', icon: 'fa-pills', color: '#86efac' },
+    pharmacy_items: { label: 'Farmácia', icon: 'fa-capsules', color: '#fbbf24' }
+  };
+
+  const tableRows = Object.entries(counts)
+    .filter(([, c]) => c > 0)
+    .map(([table, count]) => {
+      const info = tableLabels[table] || { label: table, icon: 'fa-database', color: '#94a3b8' };
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+          <i class="fa-solid ${info.icon}" style="color:${info.color};width:18px;text-align:center;"></i>
+          <span style="flex:1;color:#cbd5e1;font-size:0.875rem;">${info.label}</span>
+          <strong style="color:${info.color};font-size:0.95rem;">${count}</strong>
+        </div>`;
+    }).join('');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'cloud-scan-modal';
+  overlay.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);
+    z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;
+  `;
+
+  overlay.innerHTML = `
+    <div style="
+      background:linear-gradient(145deg,#0f172a,#1e293b);
+      border:1px solid rgba(139,92,246,0.4);
+      border-radius:20px;width:100%;max-width:440px;
+      box-shadow:0 0 60px rgba(139,92,246,0.2);
+      overflow:hidden;
+    ">
+      <!-- Header roxo com ícone de varredura -->
+      <div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:20px 24px;display:flex;align-items:center;gap:14px;">
+        <div style="width:48px;height:48px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+          <i class="fa-solid fa-cloud-arrow-down"></i>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.7);letter-spacing:0.1em;text-transform:uppercase;font-weight:600;">Varredura Concluída</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#fff;">Dados Encontrados na Nuvem!</div>
+        </div>
+      </div>
+
+      <!-- Corpo -->
+      <div style="padding:20px 24px;">
+        <p style="color:#94a3b8;font-size:0.875rem;margin:0 0 16px;line-height:1.6;">
+          Foram encontrados <strong style="color:#c4b5fd;">${cloudStatus.totalRecords} registros</strong> no Turso Cloud.
+          ${cloudStatus.isVercel ? 'Você está no <strong style="color:#38bdf8;">Vercel</strong> — esses dados já estão ativos.' : 'Deseja baixar para o banco local?'}
+        </p>
+
+        <!-- Resumo por tabela -->
+        <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:8px 12px;margin-bottom:18px;">
+          ${tableRows || '<div style="color:#64748b;text-align:center;padding:8px;">Sem dados detalhados</div>'}
+        </div>
+
+        <!-- Última atualização -->
+        ${cloudStatus.lastUpdateTime ? `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;padding:10px 14px;background:rgba(139,92,246,0.1);border-radius:10px;border:1px solid rgba(139,92,246,0.25);">
+          <i class="fa-solid fa-clock" style="color:#a78bfa;"></i>
+          <span style="color:#cbd5e1;font-size:0.8rem;">Última atualização na nuvem: <strong style="color:#e2e8f0;">${formatDate(cloudStatus.lastUpdateTime)}</strong></span>
+        </div>` : ''}
+
+        <!-- Ações -->
+        ${cloudStatus.isVercel ? `
+          <button id="btn-cloud-scan-ok" style="width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+            <i class="fa-solid fa-check"></i> Entendido — Usar Dados da Nuvem
+          </button>
+        ` : `
+          <button id="btn-cloud-scan-download" style="width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
+            <i class="fa-solid fa-cloud-arrow-down"></i> Baixar Dados da Nuvem Agora
+          </button>
+          <button id="btn-cloud-scan-skip" style="width:100%;padding:11px;background:transparent;color:#94a3b8;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:0.85rem;cursor:pointer;">
+            Usar apenas banco local por enquanto
+          </button>
+        `}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const okBtn = document.getElementById('btn-cloud-scan-ok');
+  const dlBtn = document.getElementById('btn-cloud-scan-download');
+  const skipBtn = document.getElementById('btn-cloud-scan-skip');
+
+  if (okBtn) okBtn.addEventListener('click', () => overlay.remove());
+
+  if (dlBtn) {
+    dlBtn.addEventListener('click', async () => {
+      dlBtn.disabled = true;
+      if (skipBtn) skipBtn.disabled = true;
+      dlBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
+      try {
+        await syncManager.pullFromCloud();
+        showToast('✅ Dados da nuvem baixados com sucesso!');
+      } catch (e) {
+        showToast('❌ Erro ao baixar: ' + e.message);
+      } finally {
+        overlay.remove();
+      }
+    });
+  }
+
+  if (skipBtn) skipBtn.addEventListener('click', () => overlay.remove());
+};
+
 // --- MODAL ROXO: "Dados Novos na Nuvem!" (Disparado em Login/Início) ---
 const showSyncComparisonModal = (syncData = {}) => {
   const existing = document.getElementById('sync-comparison-modal');
@@ -1318,6 +1459,8 @@ const initializeApp = async () => {
     }, 120);
     // Verificar sincronização inicial do banco de dados local-nuvem
     checkInitialSync();
+    // Varredura pós-login: verifica dados disponíveis na nuvem Turso
+    setTimeout(() => checkCloudStatusAfterLogin(), 1500);
   } else {
     renderAuthScreen();
   }
