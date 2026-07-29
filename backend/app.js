@@ -1361,7 +1361,36 @@ app.delete('/api/patients/:id', async (req, res) => {
 // --- TURSO DYNAMIC SETTINGS ---
 app.get('/api/settings/turso', async (req, res) => {
   const localDb = clientModule.localDb;
-  if (!localDb) return res.status(400).json({ error: 'Local DB not available' });
+
+  // Modo Vercel: sem banco local, retornar credenciais das env vars / vault
+  if (!localDb) {
+    let vaultCreds = { url: '', token: '' };
+    if (clientModule._restaurarCredenciaisProtegidas) {
+      vaultCreds = clientModule._restaurarCredenciaisProtegidas();
+    }
+    const url = process.env.TURSO_DATABASE_URL || vaultCreds.url || '';
+    const token = process.env.TURSO_AUTH_TOKEN || vaultCreds.token || '';
+    const maskedToken = token && token.length > 20 ? token.substring(0, 10) + '...' + token.substring(token.length - 10) : (token ? '***' : '');
+
+    let lastSync = null;
+    const cloudDb = getCloudDb();
+    if (cloudDb) {
+      try {
+        const r = await cloudDb.execute("SELECT timestamp FROM sync_logs WHERE key = 'last_upload' ORDER BY timestamp DESC LIMIT 1");
+        if (r.rows.length > 0) lastSync = r.rows[0].timestamp;
+      } catch (e) {}
+    }
+
+    return res.json({
+      status: 'success',
+      isVercel: true,
+      cloud_connected: !!cloudDb,
+      url,
+      token: maskedToken,
+      lastSync
+    });
+  }
+
   try {
     const resUrl = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_url'`);
     const resToken = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_token'`);

@@ -3854,17 +3854,40 @@ async function renderTabContent() {
         const tursoRes = await apiFetch(`${API_URL}/settings/turso`);
         if (tursoRes.ok) {
           const tursoData = await tursoRes.json();
+          // Compatibilidade: hasToken pode ser bool (local) ou inferido do token mascarado (Vercel)
+          const hasToken = tursoData.hasToken || (tursoData.token && tursoData.token.length > 0 && tursoData.token !== '');
+          const cloudConnected = tursoData.cloud_connected !== undefined ? tursoData.cloud_connected : hasToken;
+
           document.getElementById('turso-cfg-url').value = tursoData.url || '';
-          if (tursoData.hasToken) {
+          if (hasToken) {
             document.getElementById('turso-cfg-token').value = tursoData.token || '********************************';
           }
+
+          // No Vercel, marcar campos como somente leitura e mostrar aviso
+          if (tursoData.isVercel) {
+            const urlInput = document.getElementById('turso-cfg-url');
+            const tokenInput = document.getElementById('turso-cfg-token');
+            if (urlInput) { urlInput.readOnly = true; urlInput.style.opacity = '0.6'; }
+            if (tokenInput) { tokenInput.readOnly = true; tokenInput.style.opacity = '0.6'; }
+            const formSection = document.getElementById('turso-cfg-url')?.closest('.sync-settings-section, div');
+            // Inserir aviso de modo Vercel se ainda não existe
+            if (!document.getElementById('vercel-mode-notice')) {
+              const notice = document.createElement('div');
+              notice.id = 'vercel-mode-notice';
+              notice.style.cssText = 'background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;color:#38bdf8;font-size:0.82rem;display:flex;align-items:center;gap:8px;';
+              notice.innerHTML = '<i class="fa-solid fa-cloud"></i> <strong>Modo Vercel:</strong> Credenciais gerenciadas pelo servidor. Não é necessário alterar.';
+              const urlInput2 = document.getElementById('turso-cfg-url');
+              if (urlInput2 && urlInput2.parentNode) urlInput2.parentNode.insertBefore(notice, urlInput2);
+            }
+          }
+
           const statusBadge = document.getElementById('turso-settings-status-badge');
           if (statusBadge) {
-             if (tursoData.hasToken) {
-                statusBadge.innerHTML = '<span class="status-indicator success"></span>Conectado (AWS Us-East-1)';
-             } else {
-                statusBadge.innerHTML = '<span class="status-indicator" style="background: red;"></span>Desconectado';
-             }
+            if (cloudConnected) {
+              statusBadge.innerHTML = '<span class="status-indicator success"></span>Conectado (AWS Us-East-1)';
+            } else {
+              statusBadge.innerHTML = '<span class="status-indicator" style="background: red;"></span>Desconectado';
+            }
           }
           if (tursoData.lastSync) {
             document.getElementById('turso-last-sync-time').textContent = new Date(tursoData.lastSync).toLocaleString('pt-BR');
