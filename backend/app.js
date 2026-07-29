@@ -852,6 +852,10 @@ app.post('/api/encounters', async (req, res) => {
       });
     }
 
+    try {
+      await updatePreviousAndLastUpload(admittedAt);
+    } catch (e) {}
+
     res.status(201).json({
       status: 'success',
       encounterId,
@@ -972,6 +976,10 @@ app.post('/api/encounters/:id/triage', async (req, res) => {
       args: [id]
     });
 
+    try {
+      await updatePreviousAndLastUpload(triagedAt);
+    } catch (e) {}
+
     res.status(200).json({
       status: 'success',
       triageId,
@@ -1025,6 +1033,10 @@ app.put('/api/encounters/:id/status', async (req, res) => {
         args: [status, id]
       });
     }
+
+    try {
+      await updatePreviousAndLastUpload(new Date().toISOString());
+    } catch (e) {}
 
     res.status(200).json({
       status: 'success',
@@ -1084,6 +1096,9 @@ app.post('/api/encounters/:id/notes', async (req, res) => {
               VALUES (?, ?, ?, ?, ?, ?, ?)`,
         args: [noteId, id, noteType || 'Anamnese', subjectiveContent || '', objectiveContent || '', assessmentContent || '', planContent || '']
       });
+      try {
+        await updatePreviousAndLastUpload(new Date().toISOString());
+      } catch (e) {}
       return res.status(201).json({ status: 'success', message: 'Rascunho criado.' });
     } else {
       // Atualizar
@@ -1093,6 +1108,9 @@ app.post('/api/encounters/:id/notes', async (req, res) => {
               WHERE encounterId = ?`,
         args: [noteType || 'Anamnese', subjectiveContent || '', objectiveContent || '', assessmentContent || '', planContent || '', id]
       });
+      try {
+        await updatePreviousAndLastUpload(new Date().toISOString());
+      } catch (e) {}
       return res.status(200).json({ status: 'success', message: 'Rascunho atualizado.' });
     }
   } catch (err) {
@@ -1238,7 +1256,7 @@ app.post('/api/patients', async (req, res) => {
     });
 
     try {
-      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+      await updatePreviousAndLastUpload(nowIso);
     } catch (e) {}
 
     res.status(201).json({
@@ -1320,7 +1338,7 @@ app.put('/api/patients/:id', async (req, res) => {
     });
 
     try {
-      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [updatedAt] });
+      await updatePreviousAndLastUpload(updatedAt);
     } catch (e) {}
 
     res.status(200).json({
@@ -1348,7 +1366,7 @@ app.delete('/api/patients/:id', async (req, res) => {
 
     const nowIso = new Date().toISOString();
     try {
-      await db.execute({ sql: "INSERT OR REPLACE INTO sync_logs (key, timestamp) VALUES ('last_upload', ?)", args: [nowIso] });
+      await updatePreviousAndLastUpload(nowIso);
     } catch (e) {}
 
     res.status(200).json({
@@ -1821,9 +1839,7 @@ app.post('/api/appointments', async (req, res) => {
       args: [id, patientId, patientName, doctorName, specialty || 'Clínica Geral', appointmentDate, appointmentTime, notes || '', nowIso, nowIso]
     });
 
-    if (!process.env.VERCEL) {
-      await updatePreviousAndLastUpload(nowIso);
-    }
+    await updatePreviousAndLastUpload(nowIso);
 
     res.status(201).json({ status: 'success', message: 'Consulta agendada com sucesso.', data: { id } });
   } catch (err) {
@@ -1845,12 +1861,10 @@ app.put('/api/appointments/:id', async (req, res) => {
       args: [statusVal, notesVal, nowIso, id]
     });
 
-    if (!process.env.VERCEL) {
-      try {
-        await updatePreviousAndLastUpload(nowIso);
-      } catch (e) {
-        console.warn('[SyncNotice] updatePreviousAndLastUpload notice:', e);
-      }
+    try {
+      await updatePreviousAndLastUpload(nowIso);
+    } catch (e) {
+      console.warn('[SyncNotice] updatePreviousAndLastUpload notice:', e);
     }
 
     res.status(200).json({ status: 'success', message: 'Consulta atualizada com sucesso.' });
@@ -1867,6 +1881,9 @@ app.delete('/api/appointments/:id', async (req, res) => {
       sql: 'DELETE FROM appointments WHERE id = ?',
       args: [id]
     });
+    try {
+      await updatePreviousAndLastUpload(new Date().toISOString());
+    } catch (e) {}
     res.status(200).json({ status: 'success', message: 'Consulta excluída com sucesso.' });
   } catch (err) {
     console.error('Erro em DELETE /api/appointments/:id:', err);
@@ -1903,9 +1920,7 @@ app.post('/api/beds/admit', async (req, res) => {
       });
     }
 
-    if (!process.env.VERCEL) {
-      await updatePreviousAndLastUpload(nowIso);
-    }
+    await updatePreviousAndLastUpload(nowIso);
 
     res.status(200).json({ status: 'success', message: 'Paciente internado no leito com sucesso.' });
   } catch (err) {
@@ -1973,9 +1988,7 @@ app.post('/api/beds/discharge', async (req, res) => {
       args: [nowIso, bedId]
     });
 
-    if (!process.env.VERCEL) {
-      await updatePreviousAndLastUpload(nowIso);
-    }
+    await updatePreviousAndLastUpload(nowIso);
 
     res.status(200).json({ status: 'success', message: 'Alta concedida. Leito encaminhado para higienização.' });
   } catch (err) {
@@ -1993,9 +2006,7 @@ app.put('/api/beds/:id/status', async (req, res) => {
       args: [status, nowIso, id]
     });
 
-    if (!process.env.VERCEL) {
-      await updatePreviousAndLastUpload(nowIso);
-    }
+    await updatePreviousAndLastUpload(nowIso);
 
     res.status(200).json({ status: 'success', message: 'Status do leito atualizado com sucesso.' });
   } catch (err) {
@@ -2077,6 +2088,9 @@ app.post('/api/pharmacy', async (req, res) => {
       sql: 'INSERT INTO pharmacy_items (id, name, dosage, form, stockQuantity, minStock, lotNumber, expirationDate, unitPrice, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       args: [id, name, dosage || '', form || '', Number(stockQuantity || 0), Number(minStock || 10), lotNumber || 'L2026', expirationDate || '', Number(unitPrice || 0), nowIso, nowIso]
     });
+    try {
+      await updatePreviousAndLastUpload(nowIso);
+    } catch (e) {}
     res.status(201).json({ status: 'success', message: 'Medicamento cadastrado com sucesso.', data: { id, name } });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Erro ao cadastrar medicamento.' });
@@ -2169,9 +2183,7 @@ app.post('/api/prescriptions', async (req, res) => {
       args: [id, encounterId, patientId, patientName, doctorName || 'Médico Responsável', JSON.stringify(medicationsJson), nowIso]
     });
 
-    if (!process.env.VERCEL) {
-      await updatePreviousAndLastUpload(nowIso);
-    }
+    await updatePreviousAndLastUpload(nowIso);
 
     res.status(201).json({ status: 'success', message: 'Prescrição emitida com sucesso.', data: { id } });
   } catch (err) {
@@ -2588,6 +2600,9 @@ app.post('/api/doctors', async (req, res) => {
       sql: 'INSERT INTO doctors (id, name, crm, specialty, phone, email, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       args: [id, name.trim(), crm.trim(), specialty.trim(), phone?.trim() || '', email?.trim() || '', 'Ativo', createdAt, createdAt]
     });
+    try {
+      await updatePreviousAndLastUpload(createdAt);
+    } catch (e) {}
     res.status(201).json({ status: 'success', id, message: 'Médico cadastrado com sucesso!' });
   } catch (err) {
     console.error('Erro ao cadastrar médico:', err);
