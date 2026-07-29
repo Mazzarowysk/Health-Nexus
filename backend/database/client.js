@@ -136,7 +136,22 @@ export const db = {
     // Modo Vercel: Roda direto no Turso
     if (isVercel) {
       if (!cloudDb) throw new Error('[DB Error] Turso não configurado no Vercel.');
-      return await cloudDb.execute(...args);
+      const result = await cloudDb.execute(...args);
+
+      // Intercepta mutações no Vercel para atualizar a versão da nuvem
+      const mut = getMutationInfo(args);
+      if (mut && !['sync_queue', 'sync_metadata', 'sync_logs', 'sync_logs_detailed', 'health_sync'].includes(mut.table)) {
+        try {
+          const now = Date.now();
+          await cloudDb.execute({
+            sql: `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`,
+            args: [now, now]
+          });
+        } catch (e) {
+          console.error('[Sync Vercel] Falha ao atualizar metadata na nuvem:', e.message);
+        }
+      }
+      return result;
     }
 
     // Modo Local: Roda no localDb (SQLite)
@@ -163,14 +178,30 @@ export const db = {
   batch: async (...args) => {
     if (isVercel) {
       if (!cloudDb) throw new Error('[DB Error] Turso não configurado no Vercel.');
-      return await cloudDb.batch(...args);
+      const result = await cloudDb.batch(...args);
+      try {
+        const now = Date.now();
+        await cloudDb.execute({
+          sql: `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`,
+          args: [now, now]
+        });
+      } catch (e) {}
+      return result;
     }
     return await localDb.batch(...args);
   },
   transaction: async (...args) => {
     if (isVercel) {
       if (!cloudDb) throw new Error('[DB Error] Turso não configurado no Vercel.');
-      return await cloudDb.transaction(...args);
+      const result = await cloudDb.transaction(...args);
+      try {
+        const now = Date.now();
+        await cloudDb.execute({
+          sql: `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`,
+          args: [now, now]
+        });
+      } catch (e) {}
+      return result;
     }
     return await localDb.transaction(...args);
   }
