@@ -908,10 +908,18 @@ const checkCloudStatusAfterLogin = async () => {
     const cloudData = await cloudRes.json();
     if (!cloudData.cloudConfigured || !cloudData.hasData) return;
 
-    // No Vercel, a nuvem já é o banco ativo. Não precisa baixar nada.
-    if (cloudData.isVercel) return;
+    if (cloudData.isVercel) {
+      const approvedTs = Number(localStorage.getItem('hn_vercel_approved_cloud_ts') || 0);
+      const cloudTs = Number(cloudData.lastUpdateTime || 0);
 
-    // Se o banco local e a nuvem forem diferentes (contagem ou data), pede autorização para baixar
+      // No Vercel, se a nuvem possui atualizações mais recentes do que a última aprovação neste navegador:
+      if (cloudTs > approvedTs) {
+        showCloudDataFoundModal(cloudData, approvedTs);
+      }
+      return;
+    }
+
+    // No Notebook (Local): se o banco local e a nuvem forem diferentes (contagem ou data)
     if (cloudData.isDifferent) {
       showCloudDataFoundModal(cloudData, cloudData.localLastUpdate || 0);
     }
@@ -1042,7 +1050,16 @@ const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
   const dlBtn = document.getElementById('btn-cloud-scan-download');
   const skipBtn = document.getElementById('btn-cloud-scan-skip');
 
-  if (okBtn) okBtn.addEventListener('click', () => overlay.remove());
+  if (okBtn) {
+    okBtn.addEventListener('click', () => {
+      const cloudTs = Number(cloudStatus.lastUpdateTime) || Date.now();
+      localStorage.setItem('hn_vercel_approved_cloud_ts', cloudTs.toString());
+      sessionStorage.setItem('hn_reloading_after_sync', 'true');
+      overlay.remove();
+      showToast('✅ Dados da nuvem confirmados!');
+      setTimeout(() => location.reload(), 500);
+    });
+  }
 
   if (dlBtn) {
     dlBtn.addEventListener('click', async () => {
