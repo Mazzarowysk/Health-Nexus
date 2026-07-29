@@ -7573,7 +7573,7 @@ function openRoomModal(roomId = null) {
 
   const isEdit = !!roomId;
   const modalHtml = `
-    <div id="room-modal" class="modal">
+    <div id="room-modal" class="modal-overlay">
       <div class="modal-content" style="max-width: 500px;">
         <div class="modal-header">
           <h3>${isEdit ? 'Editar Consultório' : 'Novo Consultório'}</h3>
