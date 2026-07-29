@@ -3487,25 +3487,26 @@ app.post('/api/sync/push', async (req, res) => {
       }
     } catch (e) {}
 
-    // 2. Enviar todos os dados locais para o Turso Cloud (garante sincronização total)
+    // 2. Enviar todos os dados locais para o Turso Cloud via BATCH (ultra-rápido)
+    const pushStmts = [];
     for (const [table, cfg] of Object.entries(tableMap)) {
       if (table === 'health_sync') continue;
       try {
         const localRows = await localDb.execute(`SELECT * FROM ${table}`);
         for (const r of localRows.rows) {
-          try {
-            await cloudDb.execute({
-              sql: `INSERT OR REPLACE INTO ${table} (${cfg.columns}) VALUES (${cfg.placeholders})`,
-              args: cfg.insert(r)
-            });
-            synced++;
-          } catch (e) {
-            console.error(`[SYNC PUSH] Erro linha em ${table}:`, e.message);
-          }
+          pushStmts.push({
+            sql: `INSERT OR REPLACE INTO ${table} (${cfg.columns}) VALUES (${cfg.placeholders})`,
+            args: cfg.insert(r)
+          });
         }
       } catch (e) {
         console.error(`[SYNC PUSH] Erro tabela ${table}:`, e.message);
       }
+    }
+
+    if (pushStmts.length > 0) {
+      await batchExecute(cloudDb, pushStmts);
+      synced = pushStmts.length;
     }
 
     // 3. Atualiza metadata em ambos os bancos (local e nuvem) com o mesmo timestamp exato
@@ -3544,19 +3545,27 @@ app.post('/api/sync/pull', async (req, res) => {
     }
 
     let total = 0;
+    const pullStmts = [];
     for (const [table, cfg] of Object.entries(tableMap)) {
       try {
         const rowsRes = await cloudDb.execute(`SELECT * FROM ${table}`);
         if (rowsRes.rows.length > 0) {
-          await localDb.execute(`DELETE FROM ${table}`);
+          pullStmts.push({ sql: `DELETE FROM ${table}`, args: [] });
           for (const r of rowsRes.rows) {
-            await localDb.execute({ sql: `INSERT OR REPLACE INTO ${table} (${cfg.columns}) VALUES (${cfg.placeholders})`, args: cfg.insert(r) });
+            pullStmts.push({
+              sql: `INSERT OR REPLACE INTO ${table} (${cfg.columns}) VALUES (${cfg.placeholders})`,
+              args: cfg.insert(r)
+            });
             total++;
           }
         }
       } catch(e) {
          console.error(`[SYNC PULL] Erro em ${table}:`, e.message);
       }
+    }
+
+    if (pullStmts.length > 0) {
+      await batchExecute(localDb, pullStmts);
     }
 
     // Clear local sync queue as we just synced with cloud
