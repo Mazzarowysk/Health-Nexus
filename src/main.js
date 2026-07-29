@@ -3701,8 +3701,7 @@ async function renderTabContent() {
           const tursoData = await tursoRes.json();
           document.getElementById('turso-cfg-url').value = tursoData.url || '';
           if (tursoData.hasToken) {
-            document.getElementById('turso-cfg-token').value = '';
-            document.getElementById('turso-cfg-token').placeholder = '*** (Configurado)';
+            document.getElementById('turso-cfg-token').value = '********************************';
           }
           if (tursoData.lastSync) {
             document.getElementById('turso-last-sync-container').style.display = 'block';
