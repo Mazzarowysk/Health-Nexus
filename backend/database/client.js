@@ -6,10 +6,10 @@ dns.setDefaultResultOrder('ipv4first');
 
 dotenv.config();
 
-const cloudUrl = process.env.TURSO_DATABASE_URL || '';
-const cloudToken = process.env.TURSO_AUTH_TOKEN || '';
+let cloudUrl = process.env.TURSO_DATABASE_URL || '';
+let cloudToken = process.env.TURSO_AUTH_TOKEN || '';
 const isVercel = !!process.env.VERCEL;
-const hasTurso = !!cloudUrl;
+let hasTurso = !!cloudUrl;
 
 // Factory: sempre cria um novo cliente Turso
 export const createCloudClient = () => {
@@ -24,61 +24,124 @@ export let cloudDb = createCloudClient();
 export const reconnectCloud = () => {
   try { cloudDb?.close?.(); } catch (_) {}
   cloudDb = createCloudClient();
-  console.log('[DB] Turso: nova conexão criada após falha.');
+  tursoOffline = false;
+  hasTurso = !!cloudUrl;
+  console.log('[DB] Turso: nova conexão criada (ou resetada).');
   return cloudDb;
 };
+
+export const getCloudDb = () => tursoOffline ? null : cloudDb;
 
 // Local DB — criado sempre no ambiente local para garantir fallback
 export const localDb = isVercel ? null : createClient({ url: 'file:local.db' });
 
+export const updateCloudCredentials = async (url, token) => {
+  cloudUrl = url || '';
+  cloudToken = token || '';
+  hasTurso = !!cloudUrl;
+  
+  if (localDb) {
+    await localDb.execute(`CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT)`);
+    await localDb.execute({ sql: `INSERT OR REPLACE INTO app_settings (key, value) VALUES ('turso_url', ?)`, args: [cloudUrl] });
+    await localDb.execute({ sql: `INSERT OR REPLACE INTO app_settings (key, value) VALUES ('turso_token', ?)`, args: [cloudToken] });
+  }
+  reconnectCloud();
+  console.log('[DB] Turso credentials updated dynamically.');
+};
+
+export const loadCloudCredentials = async () => {
+  if (isVercel || !localDb) return;
+  try {
+    await localDb.execute(`CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT)`);
+    const resUrl = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_url'`);
+    const resToken = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_token'`);
+    if (resUrl.rows.length > 0 && resUrl.rows[0].value) {
+      cloudUrl = resUrl.rows[0].value;
+      cloudToken = resToken.rows.length > 0 ? resToken.rows[0].value : '';
+      hasTurso = true;
+      reconnectCloud();
+      console.log('[DB] Turso credentials loaded from app_settings.');
+    }
+  } catch (err) {
+    console.error('[DB] Erro ao carregar app_settings:', err.message);
+  }
+};
+
 let tursoOffline = false;
 
 // Objeto DB dinâmico com fallback automático (Graceful Degradation)
+// Helper to extract table and operation for sync queue
+function getMutationInfo(args) {
+  if (!args || args.length === 0) return null;
+  const sql = (typeof args[0] === 'string' ? args[0] : args[0].sql).trim().toUpperCase();
+  let operation = null;
+  let table = 'unknown';
+  let record_id = 'unknown';
+
+  if (sql.startsWith('INSERT INTO') || sql.startsWith('INSERT OR REPLACE INTO')) {
+    operation = 'INSERT';
+    table = sql.split(' ')[sql.startsWith('INSERT OR REPLACE') ? 4 : 2];
+  } else if (sql.startsWith('UPDATE')) {
+    operation = 'UPDATE';
+    table = sql.split(' ')[1];
+  } else if (sql.startsWith('DELETE FROM')) {
+    operation = 'DELETE';
+    table = sql.split(' ')[2];
+  } else {
+    return null;
+  }
+
+  const params = typeof args[0] === 'string' ? args[1] : args[0].args;
+  if (params && params.length > 0) {
+    if (operation === 'INSERT') record_id = params[0];
+    else if (operation === 'UPDATE' || operation === 'DELETE') record_id = params[params.length - 1];
+  }
+
+  return { operation, table, record_id };
+}
+
+// Objeto DB dinâmico com modo Híbrido (Local offline-first vs Vercel cloud-first)
 export const db = {
   execute: async (...args) => {
-    if (hasTurso && !tursoOffline) {
+    // Modo Vercel: Roda direto no Turso
+    if (isVercel) {
+      if (!cloudDb) throw new Error('[DB Error] Turso não configurado no Vercel.');
+      return await cloudDb.execute(...args);
+    }
+
+    // Modo Local: Roda no localDb (SQLite)
+    if (!localDb) throw new Error('[DB Error] Banco local não disponível.');
+    const result = await localDb.execute(...args);
+
+    // Intercepta mutações para a Fila de Sincronização
+    const mut = getMutationInfo(args);
+    if (mut && !['sync_queue', 'sync_metadata', 'sync_logs', 'sync_logs_detailed', 'health_sync'].includes(mut.table)) {
       try {
-        return await cloudDb.execute(...args);
-      } catch (err) {
-        if (err.message?.includes('fetch failed') || err.message?.includes('timeout') || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
-          console.warn('[DB Fallback] Turso indisponível (timeout). Alternando para banco local temporariamente...');
-          tursoOffline = true; // Desativa Turso para as próximas chamadas rápidas
-          if (localDb) return await localDb.execute(...args);
-        }
-        throw err;
+        const queueSql = `INSERT INTO sync_queue (table_name, record_id, operation, status) VALUES (?, ?, ?, 'pending')`;
+        await localDb.execute({ sql: queueSql, args: [mut.table, String(mut.record_id), mut.operation] });
+        
+        const metaSql = `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`;
+        const now = Date.now();
+        await localDb.execute({ sql: metaSql, args: [now, now] });
+      } catch (e) {
+        console.error('[Sync] Falha ao registrar na fila de sincronização:', e.message);
       }
     }
-    if (!localDb) throw new Error('[DB Error] Nenhum cliente de banco de dados disponível.');
-    return await localDb.execute(...args);
+
+    return result;
   },
   batch: async (...args) => {
-    if (hasTurso && !tursoOffline) {
-      try {
-        return await cloudDb.batch(...args);
-      } catch (err) {
-        if (err.message?.includes('fetch failed') || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
-          tursoOffline = true;
-          if (localDb) return await localDb.batch(...args);
-        }
-        throw err;
-      }
+    if (isVercel) {
+      if (!cloudDb) throw new Error('[DB Error] Turso não configurado no Vercel.');
+      return await cloudDb.batch(...args);
     }
-    if (!localDb) throw new Error('[DB Error] Nenhum banco disponível.');
     return await localDb.batch(...args);
   },
   transaction: async (...args) => {
-    if (hasTurso && !tursoOffline) {
-      try {
-        return await cloudDb.transaction(...args);
-      } catch (err) {
-        if (err.message?.includes('fetch failed') || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
-          tursoOffline = true;
-          if (localDb) return await localDb.transaction(...args);
-        }
-        throw err;
-      }
+    if (isVercel) {
+      if (!cloudDb) throw new Error('[DB Error] Turso não configurado no Vercel.');
+      return await cloudDb.transaction(...args);
     }
-    if (!localDb) throw new Error('[DB Error] Nenhum banco disponível.');
     return await localDb.transaction(...args);
   }
 };
@@ -92,3 +155,21 @@ if (!hasTurso) {
 console.log('[DEBUG] Ambiente Vercel:', isVercel);
 console.log('[DEBUG] Banco ativo:', hasTurso ? 'Cloud Turso (persistencia garantida com reconexão dinâmica)' : 'Local SQLite (local.db)');
 console.log('[DEBUG] TURSO_DATABASE_URL:', cloudUrl ? cloudUrl.substring(0, 40) + '...' : 'NAO CONFIGURADO');
+
+// --- HEALTH CHECK PERIODICO: reconecta Turso quando voltar online ---
+const HEALTH_CHECK_MS = 5 * 60 * 1000; // 5 minutos
+if (hasTurso && !isVercel) {
+  setInterval(async () => {
+    if (!tursoOffline) return; // só verifica quando está offline
+    try {
+      const client = createCloudClient();
+      if (!client) return;
+      await client.execute('SELECT 1');
+      client.close?.();
+      reconnectCloud(); // reseta cloudDb + tursoOffline
+      console.log('[DB Health] Turso reconectado com sucesso via health check.');
+    } catch (_) {
+      // continua offline, tenta novamente no próximo ciclo
+    }
+  }, HEALTH_CHECK_MS);
+}

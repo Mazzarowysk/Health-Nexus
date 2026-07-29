@@ -1004,14 +1004,9 @@ class SyncManager {
   }
 
   updateTimerUI() {
-    const mins = Math.floor(this.timerCountdownSeconds / 60);
-    const secs = this.timerCountdownSeconds % 60;
-    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    const badge = document.getElementById('sync-status-badge');
-    if (badge && state.syncInfo && state.syncInfo.cloudConfigured) {
-      const baseText = state.syncInfo.synchronized ? 'Local sincronizado com Turso' : 'Fora de Sincronia';
-      badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> ${baseText} <span style="opacity:0.8; font-size:0.78rem; margin-left:6px;">(${timeStr})</span>`;
-    }
+    // Timer was removed because we don't auto-sync. 
+    // We let updateSyncBadge handle the UI.
+    updateSyncBadge();
   }
 
   async checkCloudVersion(force = false) {
@@ -1028,23 +1023,18 @@ class SyncManager {
     }
 
     try {
-      const res = await apiFetch('/api/sync/check-version');
-      if (!res.ok) return { hasNewData: false, cloudTimestamp: 0 };
-      const data = await res.json();
-
-      if (data.cloudConfigured) {
-        const localTs = Number(localStorage.getItem('hn_last_local_update') || data.localTimestamp || 0);
-        const hasNewData = data.cloudTimestamp > (localTs + 5000);
-
-        if (hasNewData) {
-          const statusData = await getSyncStatus();
-          if (statusData) {
-            showSyncComparisonModal(statusData);
-          }
-        } else {
-          await getSyncStatus();
+      const statusData = await getSyncStatus();
+      if (statusData && statusData.cloudConfigured) {
+        const hasNewData = statusData.cloudTimestamps.main_data > statusData.localTimestamps.main_data;
+        if (statusData.conflict) {
+          // Both local and cloud have new changes
+          showSyncComparisonModal(statusData);
+        } else if (hasNewData) {
+          showSyncComparisonModal(statusData);
+        } else if (statusData.local_updates > 0) {
+          showSyncPromptModal(statusData);
         }
-        return { hasNewData, cloudTimestamp: data.cloudTimestamp };
+        return { hasNewData, cloudTimestamp: statusData.cloudTimestamps.main_data };
       }
       return { hasNewData: false, cloudTimestamp: 0 };
     } catch (e) {
@@ -1058,17 +1048,16 @@ class SyncManager {
     this.syncInProgress = true;
 
     try {
-      const res = await apiFetch('/api/sync/upload', {
+      const res = await apiFetch('/api/sync/push', {
         method: 'POST'
       });
 
       if (res.ok) {
-        const data = await res.json();
-        const now = data.updatedAt || Date.now();
+        const now = Date.now();
         localStorage.setItem('hn_last_local_update', now.toString());
         localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
         this.lastLocalUpdate = now;
-        if (showToastMessage) showToast('Dados sincronizados com o Turso na nuvem!');
+        if (showToastMessage) showToast('Dados enviados para a nuvem com sucesso!');
         await getSyncStatus();
         this.startAutoSyncTimer();
         return true;
@@ -1087,10 +1076,9 @@ class SyncManager {
 
   async pullFromCloud() {
     try {
-      const res = await apiFetch('/api/sync/download', { method: 'POST' });
+      const res = await apiFetch('/api/sync/pull', { method: 'POST' });
       if (res.ok) {
-        const data = await res.json();
-        const now = data.updatedAt || Date.now();
+        const now = Date.now();
         localStorage.setItem('hn_last_local_update', now.toString());
         localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
         sessionStorage.setItem('hn_reloading_after_sync', 'true');
@@ -1112,29 +1100,43 @@ class SyncManager {
 
 const syncManager = new SyncManager();
 
-const scheduleSyncUpload = () => {
+const scheduleSyncUpload = async () => {
   if (state.syncInfo && !state.syncInfo.cloudConfigured) return;
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
+  
   syncUploadTimeout = setTimeout(async () => {
-    await syncManager.pushToCloud(false);
-  }, 500);
+    // Ao invés de fazer auto-sync, pegamos o status atual e mostramos o modal para o usuário decidir
+    const statusData = await getSyncStatus();
+    if (statusData && statusData.local_updates > 0) {
+      showSyncPromptModal(statusData);
+    }
+  }, 1000);
 };
 
 const getSyncStatus = async () => {
   try {
-    const res = await apiFetch('/api/sync/status');
+    const res = await apiFetch('/api/sync/check');
     if (!res.ok) {
-      state.syncInfo = { cloudConfigured: true, isVercel: false, synchronized: true };
+      state.syncInfo = { cloudConfigured: false, isVercel: false, synchronized: true, local_updates: 0 };
       updateSyncBadge();
       return state.syncInfo;
     }
-    const data = await res.json();
-    state.syncInfo = data;
+    const { data } = await res.json();
+    state.syncInfo = {
+      cloudConfigured: data.cloud_connected,
+      cloudReachable: data.cloud_connected,
+      synchronized: data.local_updates === 0 && data.cloud_last_update <= data.local_last_update,
+      local_updates: data.local_updates,
+      localTimestamps: { main_data: data.local_last_update },
+      cloudTimestamps: { main_data: data.cloud_last_update },
+      isVercel: false,
+      conflict: data.conflict
+    };
     updateSyncBadge();
-    return data;
+    return state.syncInfo;
   } catch (err) {
     console.error('Erro ao obter status de sincronização:', err);
-    state.syncInfo = { cloudConfigured: true, isVercel: false, synchronized: true };
+    state.syncInfo = { cloudConfigured: false, isVercel: false, synchronized: true, local_updates: 0 };
     updateSyncBadge();
     return null;
   }
@@ -1198,10 +1200,30 @@ const updateSyncBadge = () => {
     return;
   }
 
-  syncManager.updateTimerUI();
+  if (data.cloudReachable === false) {
+    badge.textContent = 'Nuvem inacessível — modo local';
+    badge.style.background = 'rgba(245,158,11,0.12)';
+    badge.style.borderColor = 'rgba(245,158,11,0.3)';
+    badge.style.color = '#b45309';
+    return;
+  }
+
   badge.style.background = data.synchronized ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)';
   badge.style.borderColor = data.synchronized ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)';
   badge.style.color = data.synchronized ? '#15803d' : '#b45309';
+
+  if (data.local_updates > 0) {
+    badge.innerHTML = `🔴 Sincronização Pendente (${data.local_updates})`;
+    badge.style.background = 'rgba(239,68,68,0.12)';
+    badge.style.borderColor = 'rgba(239,68,68,0.3)';
+    badge.style.color = '#b91c1c';
+  } else if (data.synchronized) {
+    badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Local sincronizado com Turso`;
+  } else if (data.conflict) {
+    badge.innerHTML = `⚠️ Conflito de Sincronização`;
+  } else {
+    badge.innerHTML = `Fora de Sincronia`;
+  }
 };
 
 const parseIsoOrSpaceTimestamp = (ts) => {
@@ -3555,12 +3577,33 @@ async function renderTabContent() {
                 </div>
               </div>
 
+              <div class="settings-form-group" style="margin-bottom: 16px;">
+                <label style="display: block; color: var(--text-secondary); margin-bottom: 6px; font-size: 13px;">URL do Banco de Dados Turso (Ex: libsql://...)</label>
+                <input type="text" id="turso-cfg-url" class="form-control" style="width: 100%;" placeholder="libsql://...">
+              </div>
+              <div class="settings-form-group" style="margin-bottom: 16px;">
+                <label style="display: block; color: var(--text-secondary); margin-bottom: 6px; font-size: 13px;">Token de Autenticação (JWT)</label>
+                <input type="password" id="turso-cfg-token" class="form-control" style="width: 100%;" placeholder="ey...">
+                <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block;">Deixe em branco para não alterar se já estiver configurado.</small>
+              </div>
+              <div id="turso-last-sync-container" style="margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); display: none;">
+                <i class="fa-solid fa-clock-rotate-left" style="color: #10b981;"></i> <strong>Data da Sincronização:</strong> <span id="turso-last-sync-time"></span>
+              </div>
+              <div style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                <button id="btn-save-turso-cfg" class="btn btn-outline" style="border-color: #38bdf8; color: #38bdf8;">
+                  <i class="fa-solid fa-save"></i> Salvar Credenciais
+                </button>
+                <button id="btn-test-turso-cfg" class="btn btn-outline" style="border-color: #10b981; color: #10b981;">
+                  <i class="fa-solid fa-plug-circle-check"></i> Testar Conexão
+                </button>
+              </div>
+
               <div class="settings-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button id="btn-sync-turso-now" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
-                  <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar Agora com Turso (Upload)
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar Agora
                 </button>
                 <button id="btn-sync-turso-download" class="btn btn-secondary" style="border-color: #8b5cf6; color: #a78bfa;">
-                  <i class="fa-solid fa-cloud-arrow-down"></i> Baixar Dados do Turso (Restore)
+                  <i class="fa-solid fa-cloud-arrow-down"></i> Restaurar do Banco
                 </button>
               </div>
             </div>
@@ -3646,14 +3689,85 @@ async function renderTabContent() {
 
     // Atualiza datas da seção de sincronização na aba Configurações
     (async () => {
-      const statusData = await getSyncStatus();
-      if (statusData) {
-        const localEl = document.getElementById('cfg-sync-local-time');
-        const cloudEl = document.getElementById('cfg-sync-cloud-time');
-        if (localEl) localEl.textContent = formatSyncDate(statusData.lastLocalBackup);
-        if (cloudEl) cloudEl.textContent = formatSyncDate(statusData.lastCloudBackup);
+      try {
+        const statusData = await getSyncStatus();
+        if (statusData) {
+          const localEl = document.getElementById('cfg-sync-local-time');
+          const cloudEl = document.getElementById('cfg-sync-cloud-time');
+          if (localEl) localEl.textContent = formatSyncDate(statusData.lastLocalBackup);
+          if (cloudEl) cloudEl.textContent = formatSyncDate(statusData.lastCloudBackup);
+        }
+
+        const tursoRes = await apiFetch(`${API_URL}/settings/turso`);
+        if (tursoRes.ok) {
+          const tursoData = await tursoRes.json();
+          document.getElementById('turso-cfg-url').value = tursoData.url || '';
+          if (tursoData.hasToken) {
+            document.getElementById('turso-cfg-token').value = '';
+            document.getElementById('turso-cfg-token').placeholder = '*** (Configurado)';
+          }
+          if (tursoData.lastSync) {
+            document.getElementById('turso-last-sync-container').style.display = 'block';
+            document.getElementById('turso-last-sync-time').textContent = new Date(tursoData.lastSync).toLocaleString('pt-BR');
+          } else {
+            document.getElementById('turso-last-sync-container').style.display = 'none';
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar configuracoes Turso:', err);
       }
     })();
+
+    const btnSaveTurso = document.getElementById('btn-save-turso-cfg');
+    if (btnSaveTurso) {
+      btnSaveTurso.addEventListener('click', async () => {
+        const url = document.getElementById('turso-cfg-url').value;
+        const token = document.getElementById('turso-cfg-token').value;
+        btnSaveTurso.disabled = true;
+        const oldHtml = btnSaveTurso.innerHTML;
+        btnSaveTurso.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+        try {
+          const res = await apiFetch(`${API_URL}/settings/turso`, {
+            method: 'POST',
+            body: JSON.stringify({ url, token })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showCustomAlert({ title: 'Sucesso', message: data.message, type: 'success' });
+          } else {
+            showCustomAlert({ title: 'Erro', message: data.message, type: 'error' });
+          }
+        } catch (e) {
+          showCustomAlert({ title: 'Erro', message: 'Falha de rede ao salvar credenciais.', type: 'error' });
+        } finally {
+          btnSaveTurso.disabled = false;
+          btnSaveTurso.innerHTML = oldHtml;
+        }
+      });
+    }
+
+    const btnTestTurso = document.getElementById('btn-test-turso-cfg');
+    if (btnTestTurso) {
+      btnTestTurso.addEventListener('click', async () => {
+        btnTestTurso.disabled = true;
+        const oldHtml = btnTestTurso.innerHTML;
+        btnTestTurso.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Testando...';
+        try {
+          const res = await apiFetch(`${API_URL}/settings/turso/test`);
+          const data = await res.json();
+          if (res.ok) {
+            showCustomAlert({ title: 'Sucesso', message: data.message, type: 'success' });
+          } else {
+            showCustomAlert({ title: 'Erro', message: data.message, type: 'error' });
+          }
+        } catch (e) {
+          showCustomAlert({ title: 'Erro', message: 'Falha de rede ao testar conexão.', type: 'error' });
+        } finally {
+          btnTestTurso.disabled = false;
+          btnTestTurso.innerHTML = oldHtml;
+        }
+      });
+    }
 
     const btnSyncNow = document.getElementById('btn-sync-turso-now');
     if (btnSyncNow) {
@@ -6294,13 +6408,27 @@ function renderReportsTab(contentArea) {
     };
     document.addEventListener('keydown', escHandler);
 
+    const copyToClipboard = (text) => {
+      if (navigator.clipboard?.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    };
+
     const handleCopyLinha = () => {
-      navigator.clipboard.writeText(linhaDigitavel);
+      copyToClipboard(linhaDigitavel);
       if (typeof showToast === 'function') showToast('Linha digitável FEBRABAN copiada para a área de transferência!');
     };
 
     const handleCopyPix = () => {
-      navigator.clipboard.writeText(pixCopyPaste);
+      copyToClipboard(pixCopyPaste);
       if (typeof showToast === 'function') showToast('Chave Pix Copia e Cola copiada com sucesso!');
     };
 
@@ -7347,7 +7475,7 @@ async function renderAgendaTab() {
 
         <div style="display: flex; align-items: center; gap: 12px;">
           <button id="btn-open-new-appointment" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
-            <i class="fa-solid fa-plus"></i> Nova Consulta
+            <i class="fa-solid fa-plus"></i> Novo Agendamento
           </button>
         </div>
       </div>

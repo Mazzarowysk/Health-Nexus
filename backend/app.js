@@ -1,4 +1,6 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
 import cors from 'cors';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
@@ -7,7 +9,7 @@ import * as clientModule from './database/client.js';
 import { db, reconnectCloud } from './database/client.js';
 
 // Getter dinâmico: acessa cloudDb atual (pode ser recriado por reconnectCloud)
-const getCloudDb = () => clientModule.cloudDb;
+const getCloudDb = () => clientModule.getCloudDb();
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'health-nexus-super-secret-key';
@@ -25,6 +27,8 @@ const initLocalDb = async () => {
   const SQL_ENCOUNTERS = `CREATE TABLE IF NOT EXISTS encounters (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, admitted_at TEXT NOT NULL, completed_at TEXT)`;
   const SQL_TRIAGES = `CREATE TABLE IF NOT EXISTS triages (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, manchesterColor TEXT NOT NULL, weightKg REAL, bloodPressure TEXT NOT NULL, temperatureCelsius REAL NOT NULL, heartRateBpm INTEGER, complaints TEXT NOT NULL, triaged_at TEXT NOT NULL)`;
   const SQL_NOTES = `CREATE TABLE IF NOT EXISTS clinical_notes (id TEXT PRIMARY KEY, encounterId TEXT UNIQUE NOT NULL, noteType TEXT NOT NULL, subjectiveContent TEXT, objectiveContent TEXT, assessmentContent TEXT, planContent TEXT, signatureHash TEXT, isClosed INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_SYNC_METADATA = `CREATE TABLE IF NOT EXISTS sync_metadata (id INTEGER PRIMARY KEY, version_id TEXT, last_sync_time INTEGER, last_update_time INTEGER)`;
+  const SQL_SYNC_QUEUE = `CREATE TABLE IF NOT EXISTS sync_queue (id INTEGER PRIMARY KEY AUTOINCREMENT, table_name TEXT NOT NULL, row_id TEXT NOT NULL, operation TEXT NOT NULL CHECK(operation IN ('INSERT','UPDATE','DELETE')), status TEXT DEFAULT 'pending', error TEXT, priority INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, synced_at TEXT)`;
   const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
   const SQL_HEALTH_SYNC = `CREATE TABLE IF NOT EXISTS health_sync (sync_key TEXT PRIMARY KEY, sync_value TEXT, updated_at INTEGER)`;
   const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
@@ -42,6 +46,8 @@ const initLocalDb = async () => {
     db.execute(SQL_ENCOUNTERS),
     db.execute(SQL_TRIAGES),
     db.execute(SQL_NOTES),
+    db.execute(SQL_SYNC_METADATA),
+    db.execute(SQL_SYNC_QUEUE),
     db.execute(SQL_SYNC_LOGS),
     db.execute(SQL_HEALTH_SYNC),
     db.execute(SQL_APPOINTMENTS),
@@ -277,6 +283,20 @@ const autoSyncFromCloud = async () => {
     await cloud.execute(SQL_TRIAGES);
     await cloud.execute(SQL_NOTES);
     await cloud.execute(SQL_SYNC_LOGS);
+    
+    // Tabelas de sincronização
+    const SQL_SYNC_QUEUE = `CREATE TABLE IF NOT EXISTS sync_queue (id INTEGER PRIMARY KEY AUTOINCREMENT, table_name TEXT NOT NULL, row_id TEXT NOT NULL, operation TEXT NOT NULL CHECK(operation IN ('INSERT','UPDATE','DELETE')), priority INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, synced_at TEXT)`;
+    const SQL_SYNC_METADATA = `CREATE TABLE IF NOT EXISTS sync_metadata (id INTEGER PRIMARY KEY, version_id TEXT, last_sync_time INTEGER, last_update_time INTEGER)`;
+    const SQL_SYNC_VERSIONS = `CREATE TABLE IF NOT EXISTS sync_versions (table_name TEXT PRIMARY KEY, version TEXT NOT NULL, updated_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+    const SQL_SYNC_LOGS_DETAILED = `CREATE TABLE IF NOT EXISTS sync_logs_detailed (id INTEGER PRIMARY KEY AUTOINCREMENT, direction TEXT NOT NULL CHECK(direction IN ('upload','download')), table_name TEXT, row_id TEXT, operation TEXT, status TEXT DEFAULT 'success', details TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+    
+    await cloud.execute(SQL_SYNC_QUEUE);
+    await cloud.execute(SQL_SYNC_METADATA);
+    await cloud.execute(SQL_SYNC_VERSIONS);
+    await cloud.execute(SQL_SYNC_LOGS_DETAILED);
+    await cloud.execute('CREATE INDEX IF NOT EXISTS idx_sync_queue_status ON sync_queue (synced_at)');
+    await cloud.execute('CREATE INDEX IF NOT EXISTS idx_sync_queue_table ON sync_queue (table_name)');
+
     await cloud.execute(SQL_HEALTH_SYNC);
     await cloud.execute(SQL_APPOINTMENTS);
     await cloud.execute(SQL_BEDS);
@@ -330,6 +350,20 @@ const initCloudDb = async () => {
     await cloud.execute(SQL_TRIAGES);
     await cloud.execute(SQL_NOTES);
     await cloud.execute(SQL_SYNC_LOGS);
+    
+    // Tabelas de sincronização
+    const SQL_SYNC_QUEUE = `CREATE TABLE IF NOT EXISTS sync_queue (id INTEGER PRIMARY KEY AUTOINCREMENT, table_name TEXT NOT NULL, row_id TEXT NOT NULL, operation TEXT NOT NULL CHECK(operation IN ('INSERT','UPDATE','DELETE')), priority INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, synced_at TEXT)`;
+    const SQL_SYNC_METADATA = `CREATE TABLE IF NOT EXISTS sync_metadata (id INTEGER PRIMARY KEY, version_id TEXT, last_sync_time INTEGER, last_update_time INTEGER)`;
+    const SQL_SYNC_VERSIONS = `CREATE TABLE IF NOT EXISTS sync_versions (table_name TEXT PRIMARY KEY, version TEXT NOT NULL, updated_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+    const SQL_SYNC_LOGS_DETAILED = `CREATE TABLE IF NOT EXISTS sync_logs_detailed (id INTEGER PRIMARY KEY AUTOINCREMENT, direction TEXT NOT NULL CHECK(direction IN ('upload','download')), table_name TEXT, row_id TEXT, operation TEXT, status TEXT DEFAULT 'success', details TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+    
+    await cloud.execute(SQL_SYNC_QUEUE);
+    await cloud.execute(SQL_SYNC_METADATA);
+    await cloud.execute(SQL_SYNC_VERSIONS);
+    await cloud.execute(SQL_SYNC_LOGS_DETAILED);
+    await cloud.execute('CREATE INDEX IF NOT EXISTS idx_sync_queue_status ON sync_queue (synced_at)');
+    await cloud.execute('CREATE INDEX IF NOT EXISTS idx_sync_queue_table ON sync_queue (table_name)');
+
     await cloud.execute(SQL_HEALTH_SYNC);
     await cloud.execute(SQL_APPOINTMENTS);
     await cloud.execute(SQL_BEDS);
@@ -417,6 +451,7 @@ export const init = async () => {
       await initLocalDb();
     } else {
       await initLocalDb();
+      await clientModule.loadCloudCredentials();
       if (getCloudDb()) await initCloudDb();
     }
     const {rows} = await db.execute({sql:"SELECT id FROM users WHERE LOWER(username) = 'admin'", args:[]});
@@ -1312,6 +1347,79 @@ app.delete('/api/patients/:id', async (req, res) => {
       status: 'error',
       message: 'Falha ao excluir paciente.'
     });
+  }
+});
+
+// --- TURSO DYNAMIC SETTINGS ---
+app.get('/api/settings/turso', async (req, res) => {
+  const localDb = clientModule.localDb;
+  if (!localDb) return res.status(400).json({ error: 'Local DB not available' });
+  try {
+    const resUrl = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_url'`);
+    const resToken = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_token'`);
+    let url = resUrl.rows.length > 0 ? resUrl.rows[0].value : process.env.TURSO_DATABASE_URL || '';
+    let token = resToken.rows.length > 0 ? resToken.rows[0].value : process.env.TURSO_AUTH_TOKEN || '';
+    
+    let maskedToken = token && token.length > 20 ? token.substring(0, 10) + '...' + token.substring(token.length - 10) : (token ? '***' : '');
+    
+    let lastSync = null;
+    try {
+      const metaRes = await localDb.execute('SELECT last_update_time FROM sync_metadata WHERE id = 1');
+      if (metaRes.rows.length > 0) lastSync = metaRes.rows[0].last_update_time;
+    } catch(e) {}
+    
+    res.json({ url, token: maskedToken, hasToken: !!token, lastSync });
+  } catch (err) {
+    res.json({ url: process.env.TURSO_DATABASE_URL || '', token: '', hasToken: !!process.env.TURSO_AUTH_TOKEN, lastSync: null });
+  }
+});
+
+app.post('/api/settings/turso', async (req, res) => {
+  const { url, token } = req.body;
+  try {
+    let finalToken = token;
+    const localDb = clientModule.localDb;
+    
+    if (!token || token === '' || token.includes('...') || token.includes('***')) {
+      if (localDb) {
+        try {
+           const resToken = await localDb.execute(`SELECT value FROM app_settings WHERE key = 'turso_token'`);
+           if (resToken.rows.length > 0) finalToken = resToken.rows[0].value;
+           else finalToken = process.env.TURSO_AUTH_TOKEN || '';
+        } catch(e) {
+           finalToken = process.env.TURSO_AUTH_TOKEN || '';
+        }
+      } else {
+        finalToken = process.env.TURSO_AUTH_TOKEN || '';
+      }
+    }
+
+    await clientModule.updateCloudCredentials(url, finalToken);
+    
+    const cloud = getCloudDb();
+    if (cloud) {
+      await cloud.execute('SELECT 1');
+      await initCloudDb(); // garante as tabelas
+    }
+
+    res.json({ status: 'success', message: 'Credenciais do Turso salvas e conexão estabelecida!' });
+  } catch (err) {
+    console.error('[API] Erro ao atualizar Turso:', err.message);
+    res.status(500).json({ status: 'error', message: 'Erro ao conectar no Turso: ' + err.message });
+  }
+});
+
+app.get('/api/settings/turso/test', async (req, res) => {
+  try {
+    const cloud = getCloudDb();
+    if (!cloud) {
+      return res.status(400).json({ status: 'error', message: 'Turso Cloud não configurado.' });
+    }
+    await cloud.execute('SELECT 1');
+    res.json({ status: 'success', message: 'Conexão com o Turso Cloud bem-sucedida!' });
+  } catch (err) {
+    console.error('[API] Erro no teste do Turso:', err.message);
+    res.status(500).json({ status: 'error', message: 'Falha na conexão com o Turso: ' + err.message });
   }
 });
 
@@ -3128,6 +3236,156 @@ app.get('/api/cep/:cep', async (req, res) => {
     res.status(404).json({ status: 'error', message: 'CEP não encontrado.' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Erro ao buscar CEP.' });
+  }
+});
+
+// --- ROTAS DE SINCRONIZAÇÃO (Intelligent Sync) ---
+const tableMap = {
+  users: { columns: 'id, name, username, password_hash, role, status, master_approved, master_key_requested, created_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.name, r.username, r.password_hash, r.role || 'Medico', r.status || 'Ativo', r.master_approved || 1, r.master_key_requested || 0, r.created_at] },
+  patients: { columns: 'id, fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue, created_at, updated_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.fullName, r.cpf, r.birthDate, r.cep || null, r.address || null, r.number || null, r.neighborhood || null, r.city || null, r.phone || null, r.cellphone || null, r.billingValue || null, r.created_at, r.updated_at || r.created_at] },
+  encounters: { columns: 'id, patientId, type, status, admitted_at, completed_at', placeholders: '?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.patientId, r.type, r.status, r.admitted_at, r.completed_at] },
+  triages: { columns: 'id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.encounterId, r.manchesterColor, r.weightKg, r.bloodPressure, r.temperatureCelsius, r.heartRateBpm, r.complaints, r.triaged_at] },
+  clinical_notes: { columns: 'id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.encounterId, r.noteType, r.subjectiveContent, r.objectiveContent, r.assessmentContent, r.planContent, r.signatureHash, r.isClosed, r.created_at] },
+  appointments: { columns: 'id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.patientId, r.patientName, r.doctorName, r.specialty, r.appointmentDate, r.appointmentTime, r.status, r.notes || null, r.created_at, r.updated_at] },
+  beds: { columns: 'id, bedNumber, sector, status, patientId, patientName, admittedAt, updated_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.bedNumber, r.sector, r.status, r.patientId || null, r.patientName || null, r.admittedAt || null, r.updated_at] },
+  prescriptions: { columns: 'id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.encounterId, r.patientId, r.patientName, r.doctorName, r.medicationsJson, r.status, r.created_at] },
+  doctors: { columns: 'id, name, crm, specialty, phone, email, status, created_at, updated_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.name, r.crm, r.specialty, r.phone || null, r.email || null, r.status || 'Ativo', r.created_at, r.updated_at] },
+  consulting_rooms: { columns: 'id, name, specialty, currentDoctor, status, created_at, updated_at', placeholders: '?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.name, r.specialty || null, r.currentDoctor || null, r.status || 'Disponível', r.created_at, r.updated_at] },
+  pharmacy_items: { columns: 'id, name, dosage, form, stockQuantity, minStock, lotNumber, expirationDate, unitPrice, created_at, updated_at', placeholders: '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?', insert: (r) => [r.id, r.name, r.dosage || null, r.form || null, r.stockQuantity || 0, r.minStock || 10, r.lotNumber || null, r.expirationDate || null, r.unitPrice || 0, r.created_at, r.updated_at] },
+  health_sync: { columns: 'sync_key, sync_value, updated_at', placeholders: '?, ?, ?', insert: (r) => [r.sync_key, r.sync_value, r.updated_at] },
+};
+
+app.get('/api/sync/check', async (req, res) => {
+  try {
+    const localDb = clientModule.localDb;
+    if (!localDb) return res.json({ status: 'error', error: 'Local DB not available' });
+
+    const localMetaRes = await localDb.execute('SELECT * FROM sync_metadata WHERE id = 1');
+    const localMeta = localMetaRes.rows.length > 0 ? localMetaRes.rows[0] : null;
+
+    const queueRes = await localDb.execute("SELECT COUNT(*) as count FROM sync_queue WHERE status = 'pending'");
+    const pendingCount = queueRes.rows[0].count;
+
+    let cloudMeta = null;
+    let cloudConnected = false;
+    const cloudDb = getCloudDb();
+    if (cloudDb) {
+      try {
+        const cloudMetaRes = await cloudDb.execute('SELECT * FROM sync_metadata WHERE id = 1');
+        cloudMeta = cloudMetaRes.rows.length > 0 ? cloudMetaRes.rows[0] : null;
+        cloudConnected = true;
+      } catch (e) {
+        console.error('[SYNC CHECK] Erro cloud:', e.message);
+      }
+    }
+
+    res.json({
+      status: 'success',
+      data: {
+        local_updates: pendingCount,
+        local_last_update: localMeta ? localMeta.last_update_time : 0,
+        cloud_connected: cloudConnected,
+        cloud_last_update: cloudMeta ? cloudMeta.last_update_time : 0,
+        conflict: cloudMeta && localMeta && cloudMeta.last_update_time > localMeta.last_update_time && pendingCount > 0
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+app.post('/api/sync/push', async (req, res) => {
+  try {
+    const localDb = clientModule.localDb;
+    const cloudDb = getCloudDb();
+    
+    if (!localDb || !cloudDb) return res.json({ status: 'ignored', message: 'DBs not available' });
+
+    const queueRes = await localDb.execute("SELECT * FROM sync_queue WHERE status = 'pending' ORDER BY id ASC");
+    if (queueRes.rows.length === 0) {
+      return res.json({ status: 'success', message: 'Nenhuma alteração pendente', synced_count: 0 });
+    }
+
+    let synced = 0;
+    for (const item of queueRes.rows) {
+      const { id, table_name, row_id, operation } = item;
+      try {
+        if (operation === 'DELETE') {
+          await cloudDb.execute({ sql: `DELETE FROM ${table_name} WHERE id = ?`, args: [row_id] });
+        } else {
+          const cfg = tableMap[table_name];
+          if (cfg) {
+            const localRowRes = await localDb.execute({ sql: `SELECT * FROM ${table_name} WHERE id = ?`, args: [row_id] });
+            if (localRowRes.rows.length > 0) {
+              const r = localRowRes.rows[0];
+              await cloudDb.execute({ sql: `INSERT OR REPLACE INTO ${table_name} (${cfg.columns}) VALUES (${cfg.placeholders})`, args: cfg.insert(r) });
+            }
+          }
+        }
+        await localDb.execute({ sql: "UPDATE sync_queue SET status = 'synced', synced_at = ? WHERE id = ?", args: [new Date().toISOString(), id] });
+        synced++;
+      } catch (err) {
+        console.error(`[SYNC PUSH] Erro sync_queue ${id}:`, err.message);
+        await localDb.execute({ sql: "UPDATE sync_queue SET status = 'failed', error = ? WHERE id = ?", args: [err.message, id] });
+      }
+    }
+
+    // Update metadata on cloud
+    const localMetaRes = await localDb.execute('SELECT * FROM sync_metadata WHERE id = 1');
+    if (localMetaRes.rows.length > 0) {
+      const ts = localMetaRes.rows[0].last_update_time;
+      await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`, args: [ts, ts] });
+    }
+
+    res.json({ status: 'success', synced_count: synced });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+app.post('/api/sync/pull', async (req, res) => {
+  try {
+    const localDb = clientModule.localDb;
+    const cloudDb = getCloudDb();
+    if (!localDb || !cloudDb) return res.json({ status: 'ignored', message: 'DBs not available' });
+
+    // 1. Backup local db
+    const backupName = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.sqlite`;
+    try {
+      fs.copyFileSync('local.db', backupName);
+    } catch (e) {
+      console.warn('[SYNC PULL] Failed to backup local.db:', e.message);
+    }
+
+    let total = 0;
+    for (const [table, cfg] of Object.entries(tableMap)) {
+      try {
+        const rowsRes = await cloudDb.execute(`SELECT * FROM ${table}`);
+        if (rowsRes.rows.length > 0) {
+          await localDb.execute(`DELETE FROM ${table}`);
+          for (const r of rowsRes.rows) {
+            await localDb.execute({ sql: `INSERT OR REPLACE INTO ${table} (${cfg.columns}) VALUES (${cfg.placeholders})`, args: cfg.insert(r) });
+            total++;
+          }
+        }
+      } catch(e) {
+         console.error(`[SYNC PULL] Erro em ${table}:`, e.message);
+      }
+    }
+
+    // sync metadata
+    const cloudMetaRes = await cloudDb.execute('SELECT * FROM sync_metadata WHERE id = 1');
+    if (cloudMetaRes.rows.length > 0) {
+      const ts = cloudMetaRes.rows[0].last_update_time;
+      await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`, args: [ts, ts] });
+    }
+
+    // Clear local sync queue as we just synced with cloud
+    await localDb.execute("DELETE FROM sync_queue");
+
+    res.json({ status: 'success', message: 'Pull concluído com sucesso', pulled_count: total });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 });
 
