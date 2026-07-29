@@ -3586,25 +3586,23 @@ async function renderTabContent() {
                 <input type="password" id="turso-cfg-token" class="form-control" style="width: 100%;" placeholder="ey...">
                 <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block;">Deixe em branco para não alterar se já estiver configurado.</small>
               </div>
-              <div id="turso-last-sync-container" style="margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); display: none;">
-                <i class="fa-solid fa-clock-rotate-left" style="color: #10b981;"></i> <strong>Data da Sincronização:</strong> <span id="turso-last-sync-time"></span>
-              </div>
-              <div style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
-                <button id="btn-save-turso-cfg" class="btn btn-outline" style="border-color: #38bdf8; color: #38bdf8;">
+              <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                <button id="btn-save-turso-cfg" style="background-color: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                   <i class="fa-solid fa-save"></i> Salvar Credenciais
                 </button>
-                <button id="btn-test-turso-cfg" class="btn btn-outline" style="border-color: #10b981; color: #10b981;">
-                  <i class="fa-solid fa-plug-circle-check"></i> Testar Conexão
+                <button id="btn-test-turso-cfg" style="background-color: #334155; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                  <i class="fa-solid fa-arrows-rotate"></i> Testar Conexão
                 </button>
-              </div>
-
-              <div class="settings-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <button id="btn-sync-turso-now" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
-                  <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar Agora
-                </button>
-                <button id="btn-sync-turso-download" class="btn btn-secondary" style="border-color: #8b5cf6; color: #a78bfa;">
+                <button id="btn-sync-turso-download" style="background-color: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                   <i class="fa-solid fa-cloud-arrow-down"></i> Restaurar do Banco
                 </button>
+                <button id="btn-sync-turso-now" style="background-color: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar Agora
+                </button>
+
+                <div id="turso-last-sync-container" style="margin-left: auto; font-size: 12px; color: #94a3b8; display: none;">
+                  Última sincronização: <span id="turso-last-sync-time" style="color: #10b981;"></span>
+                </div>
               </div>
             </div>
           </details>
