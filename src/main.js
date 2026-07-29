@@ -902,35 +902,18 @@ const checkCloudStatusAfterLogin = async () => {
       return;
     }
 
-    // Busca status da nuvem E status local em paralelo
-    const [cloudRes, syncRes] = await Promise.all([
-      apiFetch('/api/sync/cloud-status'),
-      apiFetch('/api/sync/check')
-    ]);
-
+    const cloudRes = await apiFetch('/api/sync/cloud-status');
     if (!cloudRes.ok) return;
+
     const cloudData = await cloudRes.json();
     if (!cloudData.cloudConfigured || !cloudData.hasData) return;
 
     // No Vercel, a nuvem já é o banco ativo. Não precisa baixar nada.
     if (cloudData.isVercel) return;
 
-    // Obtém o timestamp local para comparação
-    let localLastUpdate = 0;
-    if (syncRes && syncRes.ok) {
-      try {
-        const syncBody = await syncRes.json();
-        if (syncBody.data) {
-          localLastUpdate = Number(syncBody.data.local_last_update) || 0;
-        }
-      } catch (e) {}
-    }
-
-    const cloudTs = Number(cloudData.lastUpdateTime) || 0;
-
-    // Exibe o modal se a nuvem tiver uma versão diferente do banco local
-    if (cloudTs !== localLastUpdate) {
-      showCloudDataFoundModal(cloudData, localLastUpdate);
+    // Se o banco local e a nuvem forem diferentes (contagem ou data), pede autorização para baixar
+    if (cloudData.isDifferent) {
+      showCloudDataFoundModal(cloudData, cloudData.localLastUpdate || 0);
     }
   } catch (e) {
     console.warn('[Sync] Varredura pós-login falhou silenciosamente:', e.message);

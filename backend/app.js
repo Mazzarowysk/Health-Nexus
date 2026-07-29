@@ -3374,9 +3374,35 @@ app.get('/api/sync/cloud-status', authenticateToken, async (req, res) => {
     try {
       const metaRes = await cloudDb.execute('SELECT last_update_time, last_sync_time FROM sync_metadata WHERE id = 1');
       if (metaRes.rows.length > 0) {
-        lastUpdateTime = metaRes.rows[0].last_update_time || metaRes.rows[0].last_sync_time || 0;
+        lastUpdateTime = Number(metaRes.rows[0].last_update_time || metaRes.rows[0].last_sync_time || 0);
       }
     } catch (e) {}
+
+    const localDb = clientModule.localDb;
+    const localCounts = {};
+    let localTotalRecords = 0;
+    let localLastUpdate = 0;
+
+    if (localDb && !isVercel) {
+      for (const table of tables) {
+        try {
+          const r = await localDb.execute(`SELECT COUNT(*) as c FROM ${table}`);
+          const count = Number(r.rows[0].c);
+          localCounts[table] = count;
+          localTotalRecords += count;
+        } catch (e) {
+          localCounts[table] = 0;
+        }
+      }
+      try {
+        const localMetaRes = await localDb.execute('SELECT last_update_time FROM sync_metadata WHERE id = 1');
+        if (localMetaRes.rows.length > 0) {
+          localLastUpdate = Number(localMetaRes.rows[0].last_update_time || 0);
+        }
+      } catch (e) {}
+    }
+
+    const isDifferent = isVercel ? false : (totalRecords !== localTotalRecords || lastUpdateTime !== localLastUpdate);
 
     return res.json({
       cloudConfigured: true,
@@ -3384,7 +3410,11 @@ app.get('/api/sync/cloud-status', authenticateToken, async (req, res) => {
       totalRecords,
       counts,
       lastUpdateTime,
-      lastUpdateFormatted: lastUpdateTime ? new Date(Number(lastUpdateTime)).toISOString() : null,
+      lastUpdateFormatted: lastUpdateTime ? new Date(lastUpdateTime).toISOString() : null,
+      localTotalRecords,
+      localCounts,
+      localLastUpdate,
+      isDifferent,
       isVercel: isVercel
     });
   } catch (err) {
