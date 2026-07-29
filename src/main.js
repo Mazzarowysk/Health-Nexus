@@ -3600,8 +3600,8 @@ async function renderTabContent() {
                   <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar Agora
                 </button>
 
-                <div id="turso-last-sync-container" style="margin-left: auto; font-size: 12px; color: #94a3b8; display: none;">
-                  Última sincronização: <span id="turso-last-sync-time" style="color: #10b981;"></span>
+                <div id="turso-last-sync-container" style="margin-left: auto; font-size: 12px; color: #94a3b8; display: block;">
+                  Última sincronização: <span id="turso-last-sync-time" style="color: #10b981;">---</span>
                 </div>
               </div>
             </div>
@@ -3704,10 +3704,9 @@ async function renderTabContent() {
             document.getElementById('turso-cfg-token').value = '********************************';
           }
           if (tursoData.lastSync) {
-            document.getElementById('turso-last-sync-container').style.display = 'block';
             document.getElementById('turso-last-sync-time').textContent = new Date(tursoData.lastSync).toLocaleString('pt-BR');
           } else {
-            document.getElementById('turso-last-sync-container').style.display = 'none';
+            document.getElementById('turso-last-sync-time').textContent = 'Nenhuma';
           }
         }
       } catch (err) {
@@ -3731,6 +3730,9 @@ async function renderTabContent() {
           const data = await res.json();
           if (res.ok) {
             showCustomAlert({ title: 'Sucesso', message: data.message, type: 'success' });
+            if (typeof checkInitialSync === 'function') {
+              checkInitialSync();
+            }
           } else {
             showCustomAlert({ title: 'Erro', message: data.message, type: 'error' });
           }
