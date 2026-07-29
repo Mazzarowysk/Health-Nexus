@@ -446,7 +446,13 @@ const updatePreviousAndLastUpload = async (ts) => {
       sql: 'INSERT OR REPLACE INTO health_sync (sync_key, sync_value, updated_at) VALUES (?, ?, ?)',
       args: ['last_update', nowIso, nowMs]
     });
-  } catch (e) {}
+    await db.execute({
+      sql: 'INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?',
+      args: [nowMs, nowMs]
+    });
+  } catch (e) {
+    console.warn('[updatePreviousAndLastUpload] Erro:', e.message);
+  }
 };
 
 // --- INICIALIZACAO PRINCIPAL ---

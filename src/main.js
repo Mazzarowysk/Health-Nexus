@@ -896,6 +896,12 @@ const showSyncPromptModal = (syncData = {}) => {
 // --- VARREDURA PÓS-LOGIN: Verifica dados na nuvem e exibe modal para baixar ---
 const checkCloudStatusAfterLogin = async () => {
   try {
+    // Se acabou de sincronizar e recarregar, limpa a flag e evita abrir o modal novamente
+    if (sessionStorage.getItem('hn_reloading_after_sync') === 'true') {
+      sessionStorage.removeItem('hn_reloading_after_sync');
+      return;
+    }
+
     // Busca status da nuvem E status local em paralelo
     const [cloudRes, syncRes] = await Promise.all([
       apiFetch('/api/sync/cloud-status'),
@@ -906,9 +912,12 @@ const checkCloudStatusAfterLogin = async () => {
     const cloudData = await cloudRes.json();
     if (!cloudData.cloudConfigured || !cloudData.hasData) return;
 
-    // Tenta obter o timestamp local para comparação
+    // No Vercel, a nuvem já é o banco ativo. Não precisa baixar nada.
+    if (cloudData.isVercel) return;
+
+    // Obtém o timestamp local para comparação
     let localLastUpdate = 0;
-    if (syncRes.ok) {
+    if (syncRes && syncRes.ok) {
       try {
         const syncBody = await syncRes.json();
         if (syncBody.data) {
@@ -917,8 +926,12 @@ const checkCloudStatusAfterLogin = async () => {
       } catch (e) {}
     }
 
-    // Mostra modal com dados de comparação local vs nuvem
-    showCloudDataFoundModal(cloudData, localLastUpdate);
+    const cloudTs = Number(cloudData.lastUpdateTime) || 0;
+
+    // SÓ exibe o modal se a nuvem for estritamente MAIS RECENTE que o banco local!
+    if (cloudTs > localLastUpdate) {
+      showCloudDataFoundModal(cloudData, localLastUpdate);
+    }
   } catch (e) {
     console.warn('[Sync] Varredura pós-login falhou silenciosamente:', e.message);
   }
@@ -1197,10 +1210,10 @@ class SyncManager {
 
     try {
       const statusData = await getSyncStatus();
-      if (statusData && statusData.cloudConfigured) {
+      if (statusData && statusData.cloudConfigured && !statusData.isVercel) {
         const hasNewData = statusData.cloudTimestamps.main_data > statusData.localTimestamps.main_data;
         if (statusData.conflict) {
-          // Both local and cloud have new changes
+          // Ambos local e nuvem possuem alterações
           showSyncComparisonModal(statusData);
         } else if (hasNewData) {
           showSyncComparisonModal(statusData);
