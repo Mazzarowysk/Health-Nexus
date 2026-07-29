@@ -1301,11 +1301,8 @@ const scheduleSyncUpload = async () => {
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
   
   syncUploadTimeout = setTimeout(async () => {
-    // Ao invés de fazer auto-sync, pegamos o status atual e mostramos o modal para o usuário decidir
-    const statusData = await getSyncStatus();
-    if (statusData && !statusData.isVercel && statusData.local_updates > 0) {
-      showSyncPromptModal(statusData);
-    }
+    // Toda alteração feita no notebook é automaticamente enviada para a nuvem em 1s
+    await syncManager.pushToCloud(false);
   }, 1000);
 };
 
