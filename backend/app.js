@@ -3480,16 +3480,10 @@ app.post('/api/sync/push', async (req, res) => {
       }
     }
 
-    // Update metadata on cloud
-    const localMetaRes = await localDb.execute('SELECT * FROM sync_metadata WHERE id = 1');
-    if (localMetaRes.rows.length > 0) {
-      const ts = localMetaRes.rows[0].last_update_time;
-      await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`, args: [ts, ts] });
-    }
-
+    // Atualiza metadata em ambos os bancos (local e nuvem) com o mesmo timestamp de sincronização
     const syncTs = Date.now();
-    await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_sync_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_sync_time = ?`, args: [syncTs, syncTs] });
-    await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_sync_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_sync_time = ?`, args: [syncTs, syncTs] });
+    await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time, last_sync_time) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?, last_sync_time = ?`, args: [syncTs, syncTs, syncTs, syncTs] });
+    await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time, last_sync_time) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?, last_sync_time = ?`, args: [syncTs, syncTs, syncTs, syncTs] });
 
     res.json({ status: 'success', synced_count: synced });
   } catch (err) {
@@ -3527,19 +3521,12 @@ app.post('/api/sync/pull', async (req, res) => {
       }
     }
 
-    // sync metadata
-    const cloudMetaRes = await cloudDb.execute('SELECT * FROM sync_metadata WHERE id = 1');
-    if (cloudMetaRes.rows.length > 0) {
-      const ts = cloudMetaRes.rows[0].last_update_time;
-      await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?`, args: [ts, ts] });
-    }
-
     // Clear local sync queue as we just synced with cloud
     await localDb.execute("DELETE FROM sync_queue");
 
     const syncTs = Date.now();
-    await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_sync_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_sync_time = ?`, args: [syncTs, syncTs] });
-    await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_sync_time) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET last_sync_time = ?`, args: [syncTs, syncTs] });
+    await localDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time, last_sync_time) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?, last_sync_time = ?`, args: [syncTs, syncTs, syncTs, syncTs] });
+    await cloudDb.execute({ sql: `INSERT INTO sync_metadata (id, last_update_time, last_sync_time) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET last_update_time = ?, last_sync_time = ?`, args: [syncTs, syncTs, syncTs, syncTs] });
 
     res.json({ status: 'success', message: 'Pull concluído com sucesso', pulled_count: total });
   } catch (err) {
