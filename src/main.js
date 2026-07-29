@@ -896,31 +896,50 @@ const showSyncPromptModal = (syncData = {}) => {
 // --- VARREDURA PÓS-LOGIN: Verifica dados na nuvem e exibe modal para baixar ---
 const checkCloudStatusAfterLogin = async () => {
   try {
-    const res = await apiFetch('/api/sync/cloud-status');
-    if (!res.ok) return;
-    const data = await res.json();
+    // Busca status da nuvem E status local em paralelo
+    const [cloudRes, syncRes] = await Promise.all([
+      apiFetch('/api/sync/cloud-status'),
+      apiFetch('/api/sync/check')
+    ]);
 
-    if (!data.cloudConfigured || !data.hasData) return;
+    if (!cloudRes.ok) return;
+    const cloudData = await cloudRes.json();
+    if (!cloudData.cloudConfigured || !cloudData.hasData) return;
 
-    // Mostra modal de varredura com resumo dos dados encontrados na nuvem
-    showCloudDataFoundModal(data);
+    // Tenta obter o timestamp local para comparação
+    let localLastUpdate = 0;
+    if (syncRes.ok) {
+      try {
+        const syncBody = await syncRes.json();
+        if (syncBody.data) {
+          localLastUpdate = Number(syncBody.data.local_last_update) || 0;
+        }
+      } catch (e) {}
+    }
+
+    // Mostra modal com dados de comparação local vs nuvem
+    showCloudDataFoundModal(cloudData, localLastUpdate);
   } catch (e) {
     console.warn('[Sync] Varredura pós-login falhou silenciosamente:', e.message);
   }
 };
 
-const showCloudDataFoundModal = (cloudStatus) => {
+const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
   const existing = document.getElementById('cloud-scan-modal');
   if (existing) existing.remove();
 
   const formatDate = (ts) => {
-    if (!ts) return 'Não informado';
+    if (!ts || ts === 0) return 'Sem dados';
     let t = ts;
     if (typeof t === 'string' && /^\d+$/.test(t.trim())) t = parseInt(t.trim(), 10);
     const d = new Date(t);
-    if (isNaN(d.getTime())) return 'Não informado';
+    if (isNaN(d.getTime())) return 'Sem dados';
     return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
+
+  const cloudTs = Number(cloudStatus.lastUpdateTime) || 0;
+  const localTs = Number(localLastUpdate) || 0;
+  const cloudNewer = cloudTs > localTs;
 
   const counts = cloudStatus.counts || {};
   const tableLabels = {
@@ -938,17 +957,17 @@ const showCloudDataFoundModal = (cloudStatus) => {
     .map(([table, count]) => {
       const info = tableLabels[table] || { label: table, icon: 'fa-database', color: '#94a3b8' };
       return `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
-          <i class="fa-solid ${info.icon}" style="color:${info.color};width:18px;text-align:center;"></i>
-          <span style="flex:1;color:#cbd5e1;font-size:0.875rem;">${info.label}</span>
-          <strong style="color:${info.color};font-size:0.95rem;">${count}</strong>
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <i class="fa-solid ${info.icon}" style="color:${info.color};width:18px;text-align:center;font-size:0.85rem;"></i>
+          <span style="flex:1;color:#cbd5e1;font-size:0.83rem;">${info.label}</span>
+          <strong style="color:${info.color};font-size:0.9rem;">${count}</strong>
         </div>`;
     }).join('');
 
   const overlay = document.createElement('div');
   overlay.id = 'cloud-scan-modal';
   overlay.style.cssText = `
-    position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);
+    position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(8px);
     z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;
   `;
 
@@ -956,39 +975,53 @@ const showCloudDataFoundModal = (cloudStatus) => {
     <div style="
       background:linear-gradient(145deg,#0f172a,#1e293b);
       border:1px solid rgba(139,92,246,0.4);
-      border-radius:20px;width:100%;max-width:440px;
-      box-shadow:0 0 60px rgba(139,92,246,0.2);
+      border-radius:20px;width:100%;max-width:460px;
+      box-shadow:0 0 60px rgba(139,92,246,0.25);
       overflow:hidden;
     ">
-      <!-- Header roxo com ícone de varredura -->
-      <div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:20px 24px;display:flex;align-items:center;gap:14px;">
-        <div style="width:48px;height:48px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:18px 22px;display:flex;align-items:center;gap:14px;">
+        <div style="width:46px;height:46px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
           <i class="fa-solid fa-cloud-arrow-down"></i>
         </div>
         <div>
-          <div style="font-size:0.75rem;color:rgba(255,255,255,0.7);letter-spacing:0.1em;text-transform:uppercase;font-weight:600;">Varredura Concluída</div>
-          <div style="font-size:1.1rem;font-weight:700;color:#fff;">Dados Encontrados na Nuvem!</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.7);letter-spacing:0.1em;text-transform:uppercase;font-weight:600;">Varredura Concluída</div>
+          <div style="font-size:1.05rem;font-weight:700;color:#fff;">Dados Encontrados na Nuvem!</div>
         </div>
       </div>
 
       <!-- Corpo -->
-      <div style="padding:20px 24px;">
-        <p style="color:#94a3b8;font-size:0.875rem;margin:0 0 16px;line-height:1.6;">
-          Foram encontrados <strong style="color:#c4b5fd;">${cloudStatus.totalRecords} registros</strong> no Turso Cloud.
-          ${cloudStatus.isVercel ? 'Você está no <strong style="color:#38bdf8;">Vercel</strong> — esses dados já estão ativos.' : 'Deseja baixar para o banco local?'}
-        </p>
+      <div style="padding:18px 22px;">
 
-        <!-- Resumo por tabela -->
-        <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:8px 12px;margin-bottom:18px;">
-          ${tableRows || '<div style="color:#64748b;text-align:center;padding:8px;">Sem dados detalhados</div>'}
+        <!-- COMPARAÇÃO LOCAL vs NUVEM -->
+        <div style="background:rgba(255,255,255,0.04);border-radius:14px;padding:12px 14px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.07);">
+          <!-- Linha Local -->
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <i class="fa-solid fa-desktop" style="color:#818cf8;width:18px;text-align:center;"></i>
+            <span style="flex:1;color:#94a3b8;font-size:0.83rem;">Último Backup Local:</span>
+            <strong style="color:${localTs > 0 ? '#e2e8f0' : '#64748b'};font-size:0.85rem;">${formatDate(localTs)}</strong>
+          </div>
+          <!-- Linha Nuvem -->
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+            <i class="fa-solid fa-cloud" style="color:#38bdf8;width:18px;text-align:center;"></i>
+            <span style="flex:1;color:#94a3b8;font-size:0.83rem;">Versão na Nuvem:</span>
+            <span style="display:flex;align-items:center;gap:6px;">
+              <strong style="color:${cloudNewer ? '#6ee7b7' : '#e2e8f0'};font-size:0.85rem;">${formatDate(cloudTs)}</strong>
+              ${cloudNewer ? '<span style="background:#065f46;color:#6ee7b7;font-size:0.65rem;padding:2px 6px;border-radius:6px;font-weight:700;">MAIS RECENTE</span>' : ''}
+            </span>
+          </div>
         </div>
 
-        <!-- Última atualização -->
-        ${cloudStatus.lastUpdateTime ? `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;padding:10px 14px;background:rgba(139,92,246,0.1);border-radius:10px;border:1px solid rgba(139,92,246,0.25);">
-          <i class="fa-solid fa-clock" style="color:#a78bfa;"></i>
-          <span style="color:#cbd5e1;font-size:0.8rem;">Última atualização na nuvem: <strong style="color:#e2e8f0;">${formatDate(cloudStatus.lastUpdateTime)}</strong></span>
-        </div>` : ''}
+        <!-- Resumo por tabela (colapsável) -->
+        <details style="margin-bottom:16px;">
+          <summary style="cursor:pointer;color:#a78bfa;font-size:0.82rem;font-weight:600;list-style:none;display:flex;align-items:center;gap:6px;padding:6px 0;">
+            <i class="fa-solid fa-table-list"></i>
+            Ver detalhes — ${cloudStatus.totalRecords} registros na nuvem
+          </summary>
+          <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:6px 10px;margin-top:8px;">
+            ${tableRows || '<div style="color:#64748b;text-align:center;padding:8px;font-size:0.82rem;">Sem dados detalhados</div>'}
+          </div>
+        </details>
 
         <!-- Ações -->
         ${cloudStatus.isVercel ? `
@@ -1022,10 +1055,8 @@ const showCloudDataFoundModal = (cloudStatus) => {
       dlBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
       try {
         await syncManager.pullFromCloud();
-        showToast('✅ Dados da nuvem baixados com sucesso!');
       } catch (e) {
         showToast('❌ Erro ao baixar: ' + e.message);
-      } finally {
         overlay.remove();
       }
     });
