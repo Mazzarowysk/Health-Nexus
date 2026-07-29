@@ -505,9 +505,14 @@ const authenticateToken = (req, res, next) => {
 };
 
 // --- ROTAS DE HEARTBEAT E SHUTDOWN ---
-// No Vercel (serverless) e localmente, o servidor roda sem auto-shutdown
-// O /api/heartbeat e /api/shutdown existem apenas para compatibilidade com o frontend
-app.post('/api/heartbeat', (req, res) => res.sendStatus(200));
+const serverStartTime = Date.now();
+let lastHeartbeat = Date.now();
+
+app.post('/api/heartbeat', (req, res) => {
+  lastHeartbeat = Date.now();
+  res.sendStatus(200);
+});
+
 app.post('/api/shutdown', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Servidor encerrado.' });
   if (!process.env.VERCEL) {
@@ -515,6 +520,18 @@ app.post('/api/shutdown', (req, res) => {
     setTimeout(() => process.exit(0), 400);
   }
 });
+
+// Auto-shutdown local quando nenhuma aba do sistema estiver aberta por mais de 12 segundos
+if (!process.env.VERCEL) {
+  setInterval(() => {
+    if (Date.now() - serverStartTime > 20000) {
+      if (Date.now() - lastHeartbeat > 12000) {
+        console.log('[SYSTEM] Nenhuma aba do Health Nexus ativa por 12s. Encerrando servidor local automaticamente...');
+        process.exit(0);
+      }
+    }
+  }, 4000);
+}
 
 
 // --- ROTAS DE AUTENTICAÇÃO ---
@@ -3565,7 +3582,9 @@ app.post('/api/sync/pull', async (req, res) => {
     }
 
     if (pullStmts.length > 0) {
+      try { await localDb.execute('PRAGMA foreign_keys = OFF;'); } catch (e) {}
       await batchExecute(localDb, pullStmts);
+      try { await localDb.execute('PRAGMA foreign_keys = ON;'); } catch (e) {}
     }
 
     // Clear local sync queue as we just synced with cloud
