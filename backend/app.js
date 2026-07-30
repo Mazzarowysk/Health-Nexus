@@ -75,7 +75,8 @@ const initLocalDb = async () => {
     'ALTER TABLE patients ADD COLUMN updated_at TEXT',
     'ALTER TABLE encounters ADD COLUMN room TEXT',
     'ALTER TABLE patients ADD COLUMN deleted_at TEXT',
-    'ALTER TABLE doctors ADD COLUMN deleted_at TEXT'
+    'ALTER TABLE doctors ADD COLUMN deleted_at TEXT',
+    'ALTER TABLE encounters ADD COLUMN status_updated_at TEXT'
   ];
 
   await Promise.all(alterQueries.map(q => db.execute(q).catch(() => {})));
@@ -2775,23 +2776,24 @@ app.get('/api/patients/:id/history', async (req, res) => {
 // ==========================================
 app.get('/api/stagnation/alerts', async (req, res) => {
   try {
-    const result = await db.execute(`
-      SELECT 
-        e.id, e.patientId, e.type, e.status, e.room, e.admitted_at, e.completed_at,
-        p.fullName as patientName, p.cpf as patientCpf, p.phone as patientPhone,
-        t.manchesterColor, t.bloodPressure, t.temperatureCelsius, t.complaints, t.triaged_at
-      FROM encounters e
-      JOIN patients p ON e.patientId = p.id
-      LEFT JOIN triages t ON e.id = t.encounterId
-      WHERE e.status != 'Finalizado'
-      ORDER BY e.admitted_at ASC
-    `);
+      const result = await db.execute(`
+        SELECT 
+          e.id, e.patientId, e.type, e.status, e.room, e.admitted_at, e.completed_at, e.status_updated_at,
+          p.fullName as patientName, p.cpf as patientCpf, p.phone as patientPhone,
+          t.manchesterColor, t.bloodPressure, t.temperatureCelsius, t.complaints, t.triaged_at
+        FROM encounters e
+        JOIN patients p ON e.patientId = p.id
+        LEFT JOIN triages t ON e.id = t.encounterId
+        WHERE e.status != 'Finalizado'
+        ORDER BY e.admitted_at ASC
+      `);
 
     const now = new Date();
     const alerts = [];
 
     (result.rows || []).forEach(e => {
-      const startTime = new Date(e.triaged_at || e.admitted_at || now);
+      // Prioritize the last time the status was updated, else triage time, else admission time
+      const startTime = new Date(e.status_updated_at || e.triaged_at || e.admitted_at || now);
       const elapsedMin = Math.max(0, Math.floor((now - startTime) / (60 * 1000)));
 
       let isAlert = false;
@@ -2865,17 +2867,17 @@ app.post('/api/stagnation/reassign', async (req, res) => {
 
     if (room && status) {
       await db.execute({
-        sql: 'UPDATE encounters SET room = ?, status = ? WHERE id = ?',
+        sql: 'UPDATE encounters SET room = ?, status = ?, status_updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         args: [room, status, encounterId]
       });
     } else if (room) {
       await db.execute({
-        sql: 'UPDATE encounters SET room = ? WHERE id = ?',
+        sql: 'UPDATE encounters SET room = ?, status_updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         args: [room, encounterId]
       });
     } else if (status) {
       await db.execute({
-        sql: 'UPDATE encounters SET status = ? WHERE id = ?',
+        sql: 'UPDATE encounters SET status = ?, status_updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         args: [status, encounterId]
       });
     }

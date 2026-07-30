@@ -9977,7 +9977,15 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
       btnInternacao.addEventListener('click', async () => {
         document.getElementById('reassign-room').value = 'UTI/Internação';
         document.getElementById('reassign-status').value = 'Aguardando_Leito';
-        if (confirm('Deseja realmente solicitar internação para este paciente?')) {
+        
+        const confirmed = await showCustomConfirm({
+          title: 'Solicitar Internação',
+          message: 'Deseja realmente solicitar internação para este paciente?',
+          confirmText: 'Sim, Solicitar Internação',
+          type: 'danger'
+        });
+        
+        if (confirmed) {
           document.getElementById('reassign-form').dispatchEvent(new Event('submit', { cancelable: true }));
         }
       });
