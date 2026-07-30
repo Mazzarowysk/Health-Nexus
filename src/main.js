@@ -843,28 +843,28 @@ const showSyncPromptModal = (syncData = {}) => {
           </div>
 
           <!-- Caixa de Detalhes de Versões -->
-          <div style="background:var(--bg-tertiary);border-radius:10px;padding:12px 14px;margin-bottom:16px;border:1px solid var(--border-color);">
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
-              <i class="fa-solid ${isVercel ? 'fa-globe' : 'fa-clock'}" style="color:var(--text-secondary);width:18px;text-align:center;"></i>
-              <span style="flex:1;color:var(--text-secondary);font-size:0.85rem;">${localLabel}:</span>
-              <strong style="color:var(--text-primary);font-size:0.85rem;">${localDateText}</strong>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
-              <i class="fa-solid fa-cloud-arrow-up" style="color:var(--warning);width:18px;text-align:center;"></i>
-              <span style="flex:1;color:var(--text-secondary);font-size:0.85rem;">${cloudLabel}:</span>
-              <strong style="color:var(--text-primary);font-size:0.85rem;">${cloudDateText}</strong>
-            </div>
+        <div style="background:var(--bg-tertiary);border-radius:10px;padding:12px 14px;margin-bottom:16px;border:1px solid var(--border-color);">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
+            <i class="fa-solid ${isVercel ? 'fa-globe' : 'fa-clock'}" style="color:var(--text-secondary);width:18px;text-align:center;font-size:1rem;"></i>
+            <span style="flex:1;color:var(--text-secondary);font-size:1rem;">${localLabel}:</span>
+            <strong style="color:var(--text-primary);font-size:1rem;">${localDateText}</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+            <i class="fa-solid fa-cloud-arrow-up" style="color:var(--warning);width:18px;text-align:center;font-size:1rem;"></i>
+            <span style="flex:1;color:var(--text-secondary);font-size:1rem;">${cloudLabel}:</span>
+            <strong style="color:var(--text-primary);font-size:1rem;">${cloudDateText}</strong>
           </div>
         </div>
+      </div>
 
-        <div class="modal-footer" style="flex-direction: column; gap: 10px;">
-          <button id="btn-sync-confirm" class="btn-primary" style="width: 100%; justify-content: center;">
-            <i class="fa-solid fa-cloud-arrow-up"></i> ${isVercel ? 'Sim, Confirmar Sincronização' : 'Sim, Enviar para Nuvem'}
-          </button>
-          <button id="btn-sync-cancel" class="btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
-            Lembrar mais tarde
-          </button>
-        </div>
+      <div class="modal-footer" style="flex-direction: column; gap: 10px;">
+        <button id="btn-sync-confirm" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-cloud-arrow-up"></i> ${isVercel ? 'Sim, Confirmar Sincronização' : 'Sim, Enviar para Nuvem'}
+        </button>
+        <button id="btn-sync-cancel" class="btn btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
+          Lembrar mais tarde
+        </button>
+      </div>
       </div>
     `;
 
@@ -1000,42 +1000,42 @@ const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
         <!-- COMPARAÇÃO LOCAL vs NUVEM -->
         <div style="background:var(--bg-tertiary);border-radius:10px;padding:12px 14px;margin-bottom:16px;border:1px solid var(--border-color);">
           <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
-            <i class="fa-solid fa-desktop" style="color:var(--text-secondary);width:18px;text-align:center;"></i>
-            <span style="flex:1;color:var(--text-secondary);font-size:0.85rem;">Último Backup Local:</span>
-            <strong style="color:var(--text-primary);font-size:0.85rem;">${formatDate(localTs)}</strong>
+            <i class="fa-solid fa-desktop" style="color:var(--text-secondary);width:18px;text-align:center;font-size:1rem;"></i>
+            <span style="flex:1;color:var(--text-secondary);font-size:1rem;">Último Backup Local:</span>
+            <strong style="color:var(--text-primary);font-size:1rem;">${formatDate(localTs)}</strong>
           </div>
           <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
-            <i class="fa-solid fa-cloud" style="color:var(--primary);width:18px;text-align:center;"></i>
-            <span style="flex:1;color:var(--text-secondary);font-size:0.85rem;">Versão na Nuvem:</span>
+            <i class="fa-solid fa-cloud" style="color:var(--primary);width:18px;text-align:center;font-size:1rem;"></i>
+            <span style="flex:1;color:var(--text-secondary);font-size:1rem;">Versão na Nuvem:</span>
             <span style="display:flex;align-items:center;gap:6px;">
-              <strong style="color:var(--text-primary);font-size:0.85rem;">${formatDate(cloudTs)}</strong>
-              ${cloudNewer ? '<span style="background:rgba(16, 185, 129, 0.1);color:#10b981;font-size:0.65rem;padding:2px 6px;border-radius:6px;font-weight:700;">MAIS RECENTE</span>' : ''}
+              <strong style="color:var(--text-primary);font-size:1rem;">${formatDate(cloudTs)}</strong>
+              ${cloudNewer ? '<span style="background:rgba(16, 185, 129, 0.1);color:#10b981;font-size:0.75rem;padding:2px 6px;border-radius:6px;font-weight:700;">MAIS RECENTE</span>' : ''}
             </span>
           </div>
         </div>
 
         <!-- Resumo por tabela -->
         <details style="margin-bottom:8px;">
-          <summary style="cursor:pointer;color:var(--primary);font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:6px;padding:6px 0;">
+          <summary style="cursor:pointer;color:var(--primary);font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:6px;padding:6px 0;">
             <i class="fa-solid fa-table-list"></i>
             Ver detalhes — ${cloudStatus.totalRecords} registros
           </summary>
           <div style="background:var(--bg-tertiary);border-radius:8px;padding:8px;margin-top:8px;border:1px solid var(--border-color);">
-            ${tableRows || '<div style="color:var(--text-secondary);text-align:center;padding:8px;font-size:0.85rem;">Sem dados detalhados</div>'}
+            ${tableRows || '<div style="color:var(--text-secondary);text-align:center;padding:8px;font-size:0.95rem;">Sem dados detalhados</div>'}
           </div>
         </details>
       </div>
 
       <div class="modal-footer" style="flex-direction: column; gap: 10px;">
         ${cloudStatus.isVercel ? `
-          <button id="btn-cloud-scan-ok" class="btn-primary" style="width: 100%; justify-content: center;">
+          <button id="btn-cloud-scan-ok" class="btn btn-primary" style="width: 100%; justify-content: center;">
             <i class="fa-solid fa-check"></i> Entendido — Usar Dados da Nuvem
           </button>
         ` : `
-          <button id="btn-cloud-scan-download" class="btn-primary" style="width: 100%; justify-content: center;">
+          <button id="btn-cloud-scan-download" class="btn btn-primary" style="width: 100%; justify-content: center;">
             <i class="fa-solid fa-cloud-arrow-down"></i> Baixar Dados da Nuvem Agora
           </button>
-          <button id="btn-cloud-scan-skip" class="btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
+          <button id="btn-cloud-scan-skip" class="btn btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
             Usar apenas banco local por enquanto
           </button>
         `}
@@ -1120,23 +1120,23 @@ const showSyncComparisonModal = (syncData = {}) => {
         <!-- Caixa de Detalhes de Versões -->
         <div style="background:var(--bg-tertiary);border-radius:10px;padding:12px 14px;margin-bottom:16px;border:1px solid var(--border-color);">
           <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
-            <i class="fa-solid fa-desktop" style="color:var(--text-secondary);width:18px;text-align:center;"></i>
-            <span style="flex:1;color:var(--text-secondary);font-size:0.85rem;">Último Backup Local:</span>
-            <strong style="color:var(--text-primary);font-size:0.85rem;">${localDateText}</strong>
+            <i class="fa-solid fa-desktop" style="color:var(--text-secondary);width:18px;text-align:center;font-size:1rem;"></i>
+            <span style="flex:1;color:var(--text-secondary);font-size:1rem;">Último Backup Local:</span>
+            <strong style="color:var(--text-primary);font-size:1rem;">${localDateText}</strong>
           </div>
           <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
-            <i class="fa-solid fa-cloud" style="color:var(--primary);width:18px;text-align:center;"></i>
-            <span style="flex:1;color:var(--text-secondary);font-size:0.85rem;">Versão na Nuvem:</span>
-            <strong style="color:var(--text-primary);font-size:0.85rem;">${cloudDateText}</strong>
+            <i class="fa-solid fa-cloud" style="color:var(--primary);width:18px;text-align:center;font-size:1rem;"></i>
+            <span style="flex:1;color:var(--text-secondary);font-size:1rem;">Versão na Nuvem:</span>
+            <strong style="color:var(--text-primary);font-size:1rem;">${cloudDateText}</strong>
           </div>
         </div>
       </div>
       
       <div class="modal-footer" style="flex-direction: column; gap: 10px;">
-        <button id="btn-sync-comp-download" class="btn-primary" style="width: 100%; justify-content: center;">
+        <button id="btn-sync-comp-download" class="btn btn-primary" style="width: 100%; justify-content: center;">
           <i class="fa-solid fa-cloud-arrow-down"></i> Sim, Baixar da Nuvem
         </button>
-        <button id="btn-sync-comp-skip" class="btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
+        <button id="btn-sync-comp-skip" class="btn btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
           Lembrar mais tarde
         </button>
       </div>
