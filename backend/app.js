@@ -1952,13 +1952,13 @@ app.post('/api/beds/admit', async (req, res) => {
     }
     const nowIso = new Date().toISOString();
     await db.execute({
-      sql: 'UPDATE beds SET status = "Ocupado", patientId = ?, patientName = ?, admittedAt = ?, updated_at = ? WHERE id = ?',
+      sql: "UPDATE beds SET status = 'Ocupado', patientId = ?, patientName = ?, admittedAt = ?, updated_at = ? WHERE id = ?",
       args: [patientId, patientName, nowIso, nowIso, bedId]
     });
 
     if (encounterId) {
       await db.execute({
-        sql: 'UPDATE encounters SET status = "Internado" WHERE id = ?',
+        sql: "UPDATE encounters SET status = 'Internado' WHERE id = ?",
         args: [encounterId]
       });
     }
