@@ -2382,16 +2382,16 @@ function renderAppStructure() {
 
   const allNavItems = [
     { id: 'dashboard', label: 'Health Nexus', icon: 'fa-chart-line' },
-    { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
-    { id: 'medicos', label: 'Corpo Clínico', icon: 'fa-user-doctor' },
-    { id: 'consultorios', label: 'Consultórios', icon: 'fa-door-open' },
-    { id: 'farmacia', label: 'Farmácia & Estoque', icon: 'fa-pills' },
-    { id: 'tv_panel', label: 'Painel TV (Chamador)', icon: 'fa-tv' },
     { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-check' },
+    { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
     { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
+    { id: 'tv_panel', label: 'Painel TV (Chamador)', icon: 'fa-tv' },
     { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
     { id: 'leitos', label: 'Leitos', icon: 'fa-bed-pulse' },
+    { id: 'farmacia', label: 'Farmácia & Estoque', icon: 'fa-pills' },
     { id: 'financeiro', label: 'Financeiro', icon: 'fa-hand-holding-dollar' },
+    { id: 'medicos', label: 'Corpo Clínico', icon: 'fa-user-doctor' },
+    { id: 'consultorios', label: 'Consultórios', icon: 'fa-door-open' },
     { id: 'relatorios', label: 'Relatórios', icon: 'fa-file-contract' },
     { id: 'configuracoes', label: 'Configurações', icon: 'fa-gear' }
   ];
@@ -2825,7 +2825,7 @@ async function renderTabContent() {
           <div class="patients-list-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
               <h3 style="margin: 0; font-family: 'Outfit'; font-weight: 600;">Pacientes Cadastrados</h3>
-              <button id="patients-trash-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 6px 12px; font-size: 0.85rem;"><i class="fa-solid fa-trash-can" style="margin-right: 6px; color: var(--danger-color);"></i> Lixeira</button>
+              <button id="patients-trash-btn" class="btn" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; transition: all 0.2s;"><i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i> Lixeira</button>
             </div>
             
             <div class="search-container">
@@ -8584,8 +8584,8 @@ async function renderDoctorsTab() {
         </div>
 
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-          <button id="doctors-trash-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; cursor: pointer;">
-            <i class="fa-solid fa-trash-can" style="margin-right: 6px; color: var(--danger-color);"></i> Lixeira
+          <button id="doctors-trash-btn" class="btn" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+            <i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i> Lixeira
           </button>
           <button id="btn-open-doctor-modal" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); cursor: pointer;">
             <i class="fa-solid fa-plus"></i> Novo Médico
@@ -9884,119 +9884,134 @@ async function loadAndRenderStagnationData() {
 }
 
 window.openReassignModal = async function(encounterId, patientName, currentRoom, currentStatus) {
-  const existing = document.getElementById('reassign-modal');
-  if (existing) existing.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'reassign-modal';
-  modal.className = 'modal-overlay';
-  modal.style.display = 'flex';
-  modal.style.zIndex = '99999';
-
-  // Fetch consulting rooms dynamically
-  let roomOptionsHtml = '<option value="">Carregando...</option>';
   try {
-    const res = await apiFetch('/api/consulting-rooms');
-    const result = await res.json();
-    if (result.status === 'success' && result.data.length > 0) {
-      roomOptionsHtml = result.data.map(r => {
-        const roomValue = `${r.name} ${r.currentDoctor ? `(${r.currentDoctor})` : ''}`.trim();
-        const selected = currentRoom && currentRoom.includes(r.name) ? 'selected' : '';
-        return `<option value="${roomValue}" ${selected}>${r.name} ${r.specialty ? ` - ${r.specialty}` : ''}</option>`;
-      }).join('');
-    }
-  } catch (err) {
-    console.error('Erro ao carregar consultórios no modal:', err);
-  }
+    console.log('Abrindo modal para:', patientName);
+    const existing = document.getElementById('reassign-modal');
+    if (existing) existing.remove();
 
-  modal.innerHTML = `
-    <div class="modal-content" style="max-width: 480px; width: 90%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); padding: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">
-          <i class="fa-solid fa-right-left" style="color: var(--color-primary); margin-right: 8px;"></i> Direcionar Atendimento
-        </h3>
-        <button id="close-reassign-modal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+    const modal = document.createElement('div');
+    modal.id = 'reassign-modal';
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.style.zIndex = '99999';
+
+    // Append modal IMMEDIATELY so the user sees action
+    document.body.appendChild(modal);
+
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 480px; width: 90%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); padding: 24px; text-align: center;">
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 12px;"></i>
+        <p>Carregando informações...</p>
       </div>
+    `;
 
-      <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px; background: var(--bg-tertiary); padding: 12px; border-radius: 10px;">
-        Paciente: <strong style="color: var(--text-primary);">${patientName}</strong>
-      </div>
-
-      <form id="reassign-form" style="display: flex; flex-direction: column; gap: 14px;">
-        <div>
-          <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: block;">Novo Consultório / Ala:</label>
-          <select id="reassign-room" class="form-input" style="width: 100%;">
-            ${roomOptionsHtml}
-          </select>
-        </div>
-
-        <div>
-          <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: block;">Novo Status do Atendimento:</label>
-          <select id="reassign-status" class="form-input" style="width: 100%;">
-            <option value="Aguardando_Triagem" ${currentStatus === 'Aguardando_Triagem' ? 'selected' : ''}>Aguardando Triagem</option>
-            <option value="Aguardando_Atendimento" ${currentStatus === 'Aguardando_Atendimento' ? 'selected' : ''}>Aguardando Atendimento Médico</option>
-            <option value="Em_Atendimento" ${currentStatus === 'Em_Atendimento' ? 'selected' : ''}>Em Atendimento (No Consultório)</option>
-            <option value="Finalizado" ${currentStatus === 'Finalizado' ? 'selected' : ''}>Finalizar / Alta Médica</option>
-          </select>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-          <div>
-            <button type="button" id="btn-internacao" class="btn" style="background: var(--danger); color: white; border: none;"><i class="fa-solid fa-bed-pulse"></i> Solicitar Internação (UTI / Enf)</button>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button type="button" id="btn-cancel-reassign" class="btn btn-secondary">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Confirmar Direcionamento</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  const closeModal = () => modal.remove();
-  document.getElementById('close-reassign-modal').addEventListener('click', closeModal);
-  document.getElementById('btn-cancel-reassign').addEventListener('click', closeModal);
-  
-  const btnInternacao = document.getElementById('btn-internacao');
-  if (btnInternacao) {
-    btnInternacao.addEventListener('click', async () => {
-      document.getElementById('reassign-room').value = 'UTI/Internação';
-      document.getElementById('reassign-status').value = 'Aguardando_Leito';
-      // Option to submit immediately or wait for user to click Confirm:
-      // Let's submit immediately
-      if (confirm('Deseja realmente solicitar internação para este paciente?')) {
-        document.getElementById('reassign-form').dispatchEvent(new Event('submit', { cancelable: true }));
-      }
-    });
-  }
-
-  document.getElementById('reassign-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const room = document.getElementById('reassign-room').value;
-    const status = document.getElementById('reassign-status').value;
-
+    // Fetch consulting rooms dynamically
+    let roomOptionsHtml = '<option value="">Carregando...</option>';
     try {
-      const res = await apiFetch('/api/stagnation/reassign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ encounterId, room, status })
-      });
-
-      if (res.ok) {
-        showToast('⚡ Atendimento direcionado com sucesso!');
-        closeModal();
-        if (state.activeTab === 'estagnacao') {
-          renderStagnationTab(document.getElementById('main-content'));
-        }
+      const res = await apiFetch('/api/consulting-rooms');
+      const result = await res.json();
+      if (result.status === 'success' && result.data && result.data.length > 0) {
+        roomOptionsHtml = result.data.map(r => {
+          const roomValue = `${r.name} ${r.currentDoctor ? `(${r.currentDoctor})` : ''}`.trim();
+          const selected = currentRoom && currentRoom.includes(r.name) ? 'selected' : '';
+          return `<option value="${roomValue}" ${selected}>${r.name} ${r.specialty ? ` - ${r.specialty}` : ''}</option>`;
+        }).join('');
       } else {
-        alert('Erro ao atualizar atendimento.');
+        roomOptionsHtml = '<option value="">Nenhum consultório encontrado</option>';
       }
     } catch (err) {
-      alert('Erro de conexão com o servidor.');
+      console.error('Erro ao carregar consultórios no modal:', err);
+      roomOptionsHtml = '<option value="">Erro ao carregar</option>';
     }
-  });
+
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 480px; width: 90%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">
+            <i class="fa-solid fa-right-left" style="color: var(--color-primary); margin-right: 8px;"></i> Direcionar Atendimento
+          </h3>
+          <button id="close-reassign-modal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px; background: var(--bg-tertiary); padding: 12px; border-radius: 10px;">
+          Paciente: <strong style="color: var(--text-primary);">${patientName}</strong>
+        </div>
+
+        <form id="reassign-form" style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: block;">Novo Consultório / Ala:</label>
+            <select id="reassign-room" class="form-input" style="width: 100%;">
+              ${roomOptionsHtml}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: block;">Novo Status do Atendimento:</label>
+            <select id="reassign-status" class="form-input" style="width: 100%;">
+              <option value="Aguardando_Triagem" ${currentStatus === 'Aguardando_Triagem' ? 'selected' : ''}>Aguardando Triagem</option>
+              <option value="Aguardando_Atendimento" ${currentStatus === 'Aguardando_Atendimento' ? 'selected' : ''}>Aguardando Atendimento Médico</option>
+              <option value="Em_Atendimento" ${currentStatus === 'Em_Atendimento' ? 'selected' : ''}>Em Atendimento (No Consultório)</option>
+              <option value="Finalizado" ${currentStatus === 'Finalizado' ? 'selected' : ''}>Finalizar / Alta Médica</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+            <div>
+              <button type="button" id="btn-internacao" class="btn" style="background: var(--danger); color: white; border: none;"><i class="fa-solid fa-bed-pulse"></i> Solicitar Internação</button>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" id="btn-cancel-reassign" class="btn btn-secondary">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Confirmar Direcionamento</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    `;
+
+    const closeModal = () => modal.remove();
+    document.getElementById('close-reassign-modal').addEventListener('click', closeModal);
+    document.getElementById('btn-cancel-reassign').addEventListener('click', closeModal);
+    
+    const btnInternacao = document.getElementById('btn-internacao');
+    if (btnInternacao) {
+      btnInternacao.addEventListener('click', async () => {
+        document.getElementById('reassign-room').value = 'UTI/Internação';
+        document.getElementById('reassign-status').value = 'Aguardando_Leito';
+        if (confirm('Deseja realmente solicitar internação para este paciente?')) {
+          document.getElementById('reassign-form').dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+      });
+    }
+
+    document.getElementById('reassign-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const room = document.getElementById('reassign-room').value;
+      const status = document.getElementById('reassign-status').value;
+
+      try {
+        const res = await apiFetch('/api/stagnation/reassign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ encounterId, room, status })
+        });
+
+        if (res.ok) {
+          showToast('⚡ Atendimento direcionado com sucesso!');
+          closeModal();
+          if (state.activeTab === 'estagnacao') {
+            renderStagnationTab(document.getElementById('main-content'));
+          }
+        } else {
+          alert('Erro ao atualizar atendimento.');
+        }
+      } catch (err) {
+        alert('Erro de conexão com o servidor.');
+      }
+    });
+  } catch (err) {
+    console.error('Erro na função openReassignModal:', err);
+    alert('Erro ao tentar abrir o modal. Verifique o console.');
+  }
 };
 
 // ==========================================
@@ -10975,7 +10990,7 @@ window.showTrashModal = async function(type) {
       const container = document.getElementById('trash-list-container');
       
       if (items.length === 0) {
-        container.innerHTML = \`<div style="text-align: center; color: var(--text-muted); padding: 40px;"><i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: 0.5;"></i><div style="font-size: 1.1rem; font-weight: 600;">Lixeira vazia</div><div style="font-size: 0.85rem; margin-top: 4px;">Nenhum item foi removido recentemente.</div></div>\`;
+        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 40px;"><i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: 0.5;"></i><div style="font-size: 1.1rem; font-weight: 600;">Lixeira vazia</div><div style="font-size: 0.85rem; margin-top: 4px;">Nenhum item foi removido recentemente.</div></div>`;
       } else {
         let html = '<table style="width: 100%; border-collapse: collapse; text-align: left;"><thead><tr><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">ID / Nome</th><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Removido em</th><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; text-align: right;">Ação</th></tr></thead><tbody>';
         
@@ -10983,20 +10998,20 @@ window.showTrashModal = async function(type) {
           const name = item.name || item.fullName || 'Desconhecido';
           const delDate = item.deleted_at ? new Date(item.deleted_at).toLocaleString('pt-BR') : 'Data desconhecida';
           
-          html += \`
+          html += `
             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;" onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
               <td style="padding: 12px 10px;">
-                <div style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">\${name}</div>
-                <div style="font-size: 0.75rem; color: var(--text-muted);">ID: \${item.id}</div>
+                <div style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">${name}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">ID: ${item.id}</div>
               </td>
-              <td style="padding: 12px 10px; font-size: 0.85rem; color: var(--text-secondary);">\${delDate}</td>
+              <td style="padding: 12px 10px; font-size: 0.85rem; color: var(--text-secondary);">${delDate}</td>
               <td style="padding: 12px 10px; text-align: right;">
-                <button class="btn btn-primary btn-restore-item" data-id="\${item.id}" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <button class="btn btn-primary btn-restore-item" data-id="${item.id}" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                   <i class="fa-solid fa-rotate-left"></i> Restaurar
                 </button>
               </td>
             </tr>
-          \`;
+          `;
         });
         
         html += '</tbody></table>';
@@ -11007,7 +11022,7 @@ window.showTrashModal = async function(type) {
             const id = e.currentTarget.dataset.id;
             if(confirm('Tem certeza de que deseja restaurar este item? Ele voltará para a listagem ativa.')) {
               try {
-                const rRes = await apiFetch(\`/api/\${type}/\${id}/restore\`, { method: 'POST' });
+                const rRes = await apiFetch(`/api/${type}/${id}/restore`, { method: 'POST' });
                 if (rRes.ok) {
                   showCustomAlert({ title: 'Sucesso', message: 'Item restaurado com sucesso!', type: 'success' });
                   dataCache.delete(type);
