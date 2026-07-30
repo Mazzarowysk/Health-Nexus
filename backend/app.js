@@ -3476,6 +3476,14 @@ app.get('/api/sync/cloud-status', authenticateToken, async (req, res) => {
 
     const isDifferent = isVercel ? false : (totalRecords !== localTotalRecords || lastUpdateTime !== localLastUpdate);
 
+    let local_updates = 0;
+    if (localDb && !isVercel) {
+      try {
+        const queueRes = await localDb.execute("SELECT COUNT(*) as count FROM sync_queue WHERE status = 'pending'");
+        local_updates = Number(queueRes.rows[0].count);
+      } catch (e) {}
+    }
+
     return res.json({
       cloudConfigured: true,
       hasData: totalRecords > 0,
@@ -3486,6 +3494,7 @@ app.get('/api/sync/cloud-status', authenticateToken, async (req, res) => {
       localTotalRecords,
       localCounts,
       localLastUpdate,
+      local_updates,
       isDifferent,
       isVercel: isVercel
     });
