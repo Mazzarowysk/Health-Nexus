@@ -8528,25 +8528,14 @@ async function renderConsultingRoomsTab() {
   contentArea.innerHTML = `
     <div class="tab-section active">
       <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0;"><i class="fa-solid fa-door-open" style="color: var(--primary);"></i> Gestão de Consultórios</h2>
+        <h2 style="margin: 0;"><i class="fa-solid fa-door-open" style="color: var(--primary);"></i> Painel de Consultórios</h2>
         <button id="btn-new-room" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Novo Consultório</button>
       </div>
 
-      <div class="table-responsive">
-        <table class="data-table" style="width: 100%;">
-          <thead>
-            <tr>
-              <th>ID / Nome</th>
-              <th>Especialidade/Uso</th>
-              <th>Médico Atual</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="rooms-table-body">
-            <tr><td colspan="5" style="text-align: center;">Carregando...</td></tr>
-          </tbody>
-        </table>
+      <div id="rooms-dashboard" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+        <div style="text-align: center; grid-column: 1 / -1; padding: 40px;">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--color-primary);"></i>
+        </div>
       </div>
     </div>
   `;
@@ -8556,40 +8545,82 @@ async function renderConsultingRoomsTab() {
 }
 
 async function loadConsultingRooms() {
-  const tbody = document.getElementById('rooms-table-body');
-  if (!tbody) return;
+  const dashboard = document.getElementById('rooms-dashboard');
+  if (!dashboard) return;
 
   try {
-    const res = await apiFetch('/api/consulting-rooms');
-    const result = await res.json();
-    if (result.status === 'success') {
-      const rooms = result.data;
+    const todayIso = new Date().toISOString().split('T')[0];
+    const [roomsRes, aptRes] = await Promise.all([
+      apiFetch('/api/consulting-rooms'),
+      apiFetch('/api/appointments?date=' + todayIso)
+    ]);
+    
+    const roomsResult = await roomsRes.json();
+    const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
+    
+    if (roomsResult.status === 'success') {
+      const rooms = roomsResult.data;
+      const appointments = aptResult.data || [];
+      
       if (rooms.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum consultório cadastrado.</td></tr>';
+        dashboard.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px;">Nenhum consultório cadastrado.</div>';
         return;
       }
 
-      tbody.innerHTML = rooms.map(r => `
-        <tr>
-          <td><strong>${r.name}</strong><br><small style="color: var(--text-muted);">${r.id}</small></td>
-          <td>${r.specialty || '-'}</td>
-          <td>${r.currentDoctor ? `<span class="badge" style="background: var(--info); color: white;">${r.currentDoctor}</span>` : '-'}</td>
-          <td><span class="badge" style="background: ${r.status === 'Disponível' ? 'var(--success)' : 'var(--warning)'}; color: white;">${r.status}</span></td>
-          <td>
-            <button class="btn btn-icon btn-outline" onclick="openRoomModal('${r.id}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
-            <button class="btn btn-icon btn-danger" onclick="deleteRoom('${r.id}')" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('');
+      dashboard.innerHTML = rooms.map(r => {
+        const roomApts = appointments.filter(a => a.roomName === r.name);
+        const waiting = roomApts.filter(a => a.status === 'Confirmado' || a.status === 'Agendado');
+        const inProgress = roomApts.find(a => a.status === 'Em Atendimento');
+        
+        const statusColor = r.status === 'Disponível' ? 'var(--success)' : 'var(--warning)';
+        
+        return `
+          <div class="interactive-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="window.pendingAgendaRoomFilter = '${r.name}'; switchTab('agenda');" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-door-open" style="color: var(--color-primary);"></i> ${r.name}
+                </h3>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">${r.specialty || 'Uso Geral'}</div>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-icon btn-outline" style="width: 28px; height: 28px;" onclick="event.stopPropagation(); openRoomModal('${r.id}')" title="Editar"><i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i></button>
+              </div>
+            </div>
+            
+            <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${statusColor}22; color: ${statusColor}; border: 1px solid ${statusColor}44;">
+                <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> ${r.status}
+              </span>
+              ${r.currentDoctor ? `<span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);"><i class="fa-solid fa-user-doctor"></i> ${r.currentDoctor}</span>` : ''}
+            </div>
+
+            <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
+              ${inProgress ? `
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-primary); background: rgba(99,102,241,0.1); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.2);">
+                  <i class="fa-solid fa-stethoscope" style="color: var(--color-primary);"></i>
+                  <span style="font-weight: 600;">${inProgress.patientName}</span>
+                </div>
+              ` : `
+                <div style="font-size: 0.85rem; color: var(--text-muted); padding: 8px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento agora</div>
+              `}
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                <span style="color: var(--text-muted);">Próximos na Fila:</span>
+                <span style="font-weight: 700; color: var(--text-primary); background: var(--bg-tertiary); padding: 2px 8px; border-radius: 12px;">${waiting.length}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
       
-      // Salva no state para uso no modal de edição
       state.consultingRooms = rooms;
     } else {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">${result.message || 'Erro ao carregar consultórios.'}</td></tr>`;
+      dashboard.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: red;">${roomsResult.message || 'Erro ao carregar consultórios.'}</div>`;
     }
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro de conexão ao carregar consultórios.</td></tr>';
+    dashboard.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: red;">Erro de conexão ao carregar consultórios.</div>';
   }
 }
 
@@ -8770,6 +8801,13 @@ async function renderAgendaTab() {
               <option value="">Todos os Médicos</option>
             </select>
           </div>
+          <!-- Consultório (Dinâmico) -->
+          <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px; min-width: 200px;">
+            <i class="fa-solid fa-door-open" style="color: var(--text-muted); font-size: 0.82rem;"></i>
+            <select id="filter-agenda-room" style="background: transparent; border: none; color: var(--text-primary); font-size: 0.85rem; outline: none; cursor: pointer; flex: 1; -webkit-appearance: none;">
+              <option value="">Todos os Consultórios</option>
+            </select>
+          </div>
         </div>
 
         <!-- Status Filter Tabs -->
@@ -8806,6 +8844,12 @@ async function renderAgendaTab() {
             <label for="apt-doctor">Médico Responsável *</label>
             <select id="apt-doctor" class="form-input" required>
               <option value="">Selecione o médico...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="apt-room">Consultório *</label>
+            <select id="apt-room" class="form-input" required>
+              <option value="">Selecione o consultório...</option>
             </select>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -8883,6 +8927,43 @@ async function renderAgendaTab() {
           opt.value = d.name;
           opt.textContent = d.name + ' — ' + d.specialty;
           opt.dataset.specialty = d.specialty;
+          modalSelect.appendChild(opt);
+        });
+      }
+    } catch (e) {}
+  };
+
+  const loadRoomsList = async () => {
+    try {
+      const rList = await cachedApiGet('/api/consulting-rooms', 'consulting_rooms');
+      const rooms = Array.isArray(rList) ? rList : (rList.data || []);
+      
+      const filterSelect = document.getElementById('filter-agenda-room');
+      const modalSelect = document.getElementById('apt-room');
+      
+      if (filterSelect) {
+        const curVal = window.pendingAgendaRoomFilter !== undefined ? window.pendingAgendaRoomFilter : filterSelect.value;
+        filterSelect.innerHTML = '<option value="">Todos os Consultórios</option>';
+        rooms.forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r.name;
+          opt.textContent = r.name;
+          filterSelect.appendChild(opt);
+        });
+        filterSelect.value = curVal;
+        
+        if (window.pendingAgendaRoomFilter !== undefined) {
+          window.pendingAgendaRoomFilter = undefined;
+          if (typeof window.reloadAgenda === 'function') window.reloadAgenda();
+        }
+      }
+      
+      if (modalSelect) {
+        modalSelect.innerHTML = '<option value="">Selecione o consultório...</option>';
+        rooms.forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r.name;
+          opt.textContent = r.name;
           modalSelect.appendChild(opt);
         });
       }
@@ -9032,6 +9113,11 @@ async function renderAgendaTab() {
                 <span style="font-size: 0.82rem; color: ${dc.text}; font-weight: 600;">${apt.doctorName}</span>
                 <span style="font-size: 0.74rem; color: ${dc.text}; opacity: 0.8;">· ${specialty}</span>
               </div>
+              ${apt.roomName ? `
+              <div style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; color: var(--text-muted); background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 20px; padding: 3px 10px;">
+                <i class="fa-solid fa-door-open" style="font-size: 0.7rem;"></i> ${apt.roomName}
+              </div>
+              ` : ''}
             </div>
             ${notesHtml}
           </div>
@@ -9070,12 +9156,15 @@ async function renderAgendaTab() {
   const loadAgenda = async () => {
     const selectedDate = document.getElementById('filter-agenda-date').value;
     const selectedDoctor = document.getElementById('filter-agenda-doctor').value;
+    const roomEl = document.getElementById('filter-agenda-room');
+    const selectedRoom = roomEl ? roomEl.value : '';
     const container = document.getElementById('agenda-list-container');
     container.innerHTML = '<div style="text-align: center; padding: 48px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.6rem; color: var(--color-primary);"></i></div>';
     try {
       let url = '/api/appointments?date=' + selectedDate;
       if (selectedDoctor) url += '&doctor=' + encodeURIComponent(selectedDoctor);
-      const cacheKey = 'appointments_' + selectedDate + '_' + selectedDoctor;
+      if (selectedRoom) url += '&room=' + encodeURIComponent(selectedRoom);
+      const cacheKey = 'appointments_' + selectedDate + '_' + selectedDoctor + '_' + selectedRoom;
       const appointments = await cachedApiGet(url, cacheKey);
       allAppointmentsCache = Array.isArray(appointments) ? appointments : [];
       renderAgendaCards(allAppointmentsCache);
@@ -9093,6 +9182,11 @@ async function renderAgendaTab() {
   });
 
   document.getElementById('filter-agenda-doctor').addEventListener('change', loadAgenda);
+  
+  const filterRoomEl = document.getElementById('filter-agenda-room');
+  if (filterRoomEl) {
+    filterRoomEl.addEventListener('change', loadAgenda);
+  }
 
   document.getElementById('filter-agenda-search').addEventListener('input', (e) => {
     currentSearchQuery = e.target.value;
@@ -9132,6 +9226,8 @@ async function renderAgendaTab() {
     const doctorName = dSelect.value;
     const specialty = selectedDocOption ? (selectedDocOption.dataset.specialty || 'Clínica Geral') : 'Clínica Geral';
 
+    const roomSelect = document.getElementById('apt-room');
+    const roomName = roomSelect ? roomSelect.value : '';
     const appointmentDate = document.getElementById('apt-date').value;
     const appointmentTime = document.getElementById('apt-time').value;
     const notes = document.getElementById('apt-notes').value;
@@ -9139,7 +9235,7 @@ async function renderAgendaTab() {
       const res = await apiFetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, notes })
+        body: JSON.stringify({ patientId, patientName, doctorName, specialty, roomName, appointmentDate, appointmentTime, notes })
       });
       if (res.ok) {
         showToast('Consulta agendada com sucesso!');
@@ -9160,6 +9256,7 @@ async function renderAgendaTab() {
   loadAgenda();
   loadPatients();
   loadDoctorsList();
+  loadRoomsList();
 }
 window.updateAppointmentStatus = async (id, status) => {
   try {

@@ -32,7 +32,7 @@ const initLocalDb = async () => {
   const SQL_SYNC_QUEUE = `CREATE TABLE IF NOT EXISTS sync_queue (id INTEGER PRIMARY KEY AUTOINCREMENT, table_name TEXT NOT NULL, row_id TEXT NOT NULL, operation TEXT NOT NULL CHECK(operation IN ('INSERT','UPDATE','DELETE')), status TEXT DEFAULT 'pending', error TEXT, priority INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, synced_at TEXT)`;
   const SQL_SYNC_LOGS = `CREATE TABLE IF NOT EXISTS sync_logs (key TEXT PRIMARY KEY, timestamp TEXT NOT NULL)`;
   const SQL_HEALTH_SYNC = `CREATE TABLE IF NOT EXISTS health_sync (sync_key TEXT PRIMARY KEY, sync_value TEXT, updated_at INTEGER)`;
-  const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
+  const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, roomName TEXT, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
   const SQL_PRESCRIPTION_ADMINISTRATIONS = `CREATE TABLE IF NOT EXISTS prescription_administrations (id TEXT PRIMARY KEY, prescriptionId TEXT NOT NULL, medicationName TEXT NOT NULL, nurseName TEXT NOT NULL, administeredAt TEXT NOT NULL, notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
@@ -97,7 +97,8 @@ const initLocalDb = async () => {
     'ALTER TABLE patients ADD COLUMN responsibleRelationship TEXT',
     'ALTER TABLE encounters ADD COLUMN observation_started_at TEXT',
     'ALTER TABLE encounters ADD COLUMN observation_notes TEXT',
-    'ALTER TABLE encounters ADD COLUMN transfer_bed_id TEXT'
+    'ALTER TABLE encounters ADD COLUMN transfer_bed_id TEXT',
+    'ALTER TABLE appointments ADD COLUMN roomName TEXT'
   ];
 
   await Promise.all(alterQueries.map(q => db.execute(q).catch(() => {})));
@@ -1994,7 +1995,7 @@ app.post('/api/settings/import', async (req, res) => {
 // --- AGENDA MÉDICA (APPOINTMENTS) ---
 app.get('/api/appointments', async (req, res) => {
   try {
-    const { date, doctor } = req.query;
+    const { date, doctor, room } = req.query;
     let sql = 'SELECT * FROM appointments';
     let args = [];
     let conditions = [];
@@ -2006,6 +2007,10 @@ app.get('/api/appointments', async (req, res) => {
     if (doctor) {
       conditions.push('doctorName = ?');
       args.push(doctor);
+    }
+    if (room) {
+      conditions.push('roomName = ?');
+      args.push(room);
     }
 
     if (conditions.length > 0) {
@@ -2022,16 +2027,16 @@ app.get('/api/appointments', async (req, res) => {
 
 app.post('/api/appointments', async (req, res) => {
   try {
-    const { patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, notes } = req.body;
+    const { patientId, patientName, doctorName, specialty, roomName, appointmentDate, appointmentTime, notes } = req.body;
     if (!patientId || !patientName || !doctorName || !appointmentDate || !appointmentTime) {
       return res.status(400).json({ status: 'error', message: 'Preencha todos os campos obrigatórios da consulta.' });
     }
     const id = 'APT-' + crypto.randomBytes(4).toString('hex');
     const nowIso = new Date().toISOString();
     await db.execute({
-      sql: `INSERT INTO appointments (id, patientId, patientName, doctorName, specialty, appointmentDate, appointmentTime, status, notes, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'Agendado', ?, ?, ?)`,
-      args: [id, patientId, patientName, doctorName, specialty || 'Clínica Geral', appointmentDate, appointmentTime, notes || '', nowIso, nowIso]
+      sql: `INSERT INTO appointments (id, patientId, patientName, doctorName, specialty, roomName, appointmentDate, appointmentTime, status, notes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Agendado', ?, ?, ?)`,
+      args: [id, patientId, patientName, doctorName, specialty || 'Clínica Geral', roomName || '', appointmentDate, appointmentTime, notes || '', nowIso, nowIso]
     });
 
     await updatePreviousAndLastUpload(nowIso);
@@ -2045,15 +2050,16 @@ app.post('/api/appointments', async (req, res) => {
 app.put('/api/appointments/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, notes } = req.body;
+    const { status, notes, roomName } = req.body;
     const nowIso = new Date().toISOString();
     
     const statusVal = status !== undefined ? status : null;
     const notesVal = notes !== undefined ? notes : null;
+    const roomNameVal = roomName !== undefined ? roomName : null;
 
     await db.execute({
-      sql: 'UPDATE appointments SET status = COALESCE(?, status), notes = COALESCE(?, notes), updated_at = ? WHERE id = ?',
-      args: [statusVal, notesVal, nowIso, id]
+      sql: 'UPDATE appointments SET status = COALESCE(?, status), notes = COALESCE(?, notes), roomName = COALESCE(?, roomName), updated_at = ? WHERE id = ?',
+      args: [statusVal, notesVal, roomNameVal, nowIso, id]
     });
 
     try {
