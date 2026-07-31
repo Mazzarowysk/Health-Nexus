@@ -7815,7 +7815,7 @@ function renderReportsTab(contentArea) {
     filename = `${filename}_${timestamp}`;
 
     if (format === 'pdf') {
-      await exportToPDF(columns, rows, title, filename);
+      await exportToPDF(columns, rows, title, filename, financialSummary);
     } else if (format === 'xls') {
       exportToXLS(columns, rows, filename);
     } else if (format === 'csv') {
