@@ -6635,7 +6635,7 @@ function renderReportsTab(contentArea) {
     if (typeof showToast === 'function') showToast(`Relatório Excel '${filename}.xls' gerado e baixado!`);
   }
 
-  async function exportToPDF(columns, rows, title, filename) {
+  async function exportToPDF(columns, rows, title, filename, financialSummary) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       alert('Por favor, habilite pop-ups para gerar a impressão/visualização em PDF.');
@@ -6643,6 +6643,66 @@ function renderReportsTab(contentArea) {
     }
 
     const dateNow = new Date().toLocaleString('pt-BR');
+    const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+
+    // ---- Bloco de Resumo Financeiro (opcional) ----
+    const summaryBlock = financialSummary ? `
+      <div style="margin-bottom: 22px;">
+        <div style="font-size: 11pt; font-weight: 700; color: #1e1b4b; border-bottom: 2px solid #6366f1; padding-bottom: 6px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+          📊 Resumo Executivo do Filtro
+        </div>
+
+        <!-- KPI CARDS em 3 colunas -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+          <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px 12px;">
+            <div style="font-size: 7.5pt; color: #15803d; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">✅ Pagas</div>
+            <div style="font-size: 13pt; font-weight: 800; color: #16a34a;">${fmt(financialSummary.pagasVal)}</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.pagasC} parcela(s)</div>
+          </div>
+          <div style="background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 10px 12px;">
+            <div style="font-size: 7.5pt; color: #1d4ed8; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">🕐 A Vencer</div>
+            <div style="font-size: 13pt; font-weight: 800; color: #2563eb;">${fmt(financialSummary.aVencerVal)}</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.aVencerC} parcela(s)</div>
+          </div>
+          <div style="background: #fff1f2; border: 1.5px solid #fda4af; border-radius: 8px; padding: 10px 12px;">
+            <div style="font-size: 7.5pt; color: #be123c; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">❗ Vencidas</div>
+            <div style="font-size: 13pt; font-weight: 800; color: #e11d48;">${fmt(financialSummary.vencidasVal)}</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.vencidasC} parcela(s)</div>
+          </div>
+          <div style="background: #f5f3ff; border: 1.5px solid #c4b5fd; border-radius: 8px; padding: 10px 12px;">
+            <div style="font-size: 7.5pt; color: #7c3aed; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">⚖️ Saldo Líquido</div>
+            <div style="font-size: 13pt; font-weight: 800; color: ${financialSummary.saldo >= 0 ? '#16a34a' : '#e11d48'};">${fmt(financialSummary.saldo)}</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">Receitas − Despesas</div>
+          </div>
+          <div style="background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 8px; padding: 10px 12px;">
+            <div style="font-size: 7.5pt; color: #b45309; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">🏆 Bonificadas</div>
+            <div style="font-size: 13pt; font-weight: 800; color: #d97706;">${fmt(financialSummary.bonificadasVal)}</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.bonificadasC} parcela(s)</div>
+          </div>
+          <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 8px; padding: 10px 12px;">
+            <div style="font-size: 7.5pt; color: #dc2626; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">🚫 Outras</div>
+            <div style="font-size: 13pt; font-weight: 800; color: #dc2626;">${fmt((financialSummary.suspensasVal||0)+(financialSummary.canceladasVal||0)+(financialSummary.excluidasVal||0))}</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">Suspensas / Canceladas / Excluídas</div>
+          </div>
+        </div>
+
+        <!-- GRÁFICOS como imagens base64 -->
+        ${(financialSummary.donutImg || financialSummary.barImg) ? `
+        <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 12px; margin-bottom: 8px;">
+          ${financialSummary.donutImg ? `
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">📈 Distribuição por Status</div>
+            <img src="${financialSummary.donutImg}" style="max-width: 100%; max-height: 160px; object-fit: contain;" />
+          </div>` : ''}
+          ${financialSummary.barImg ? `
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">📊 Volume por Forma de Pagamento (R$)</div>
+            <img src="${financialSummary.barImg}" style="max-width: 100%; max-height: 160px; object-fit: contain;" />
+          </div>` : ''}
+        </div>` : ''}
+      </div>
+    ` : '';
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -6651,7 +6711,7 @@ function renderReportsTab(contentArea) {
         <title>${title} — Health Nexus</title>
         <style>
           @page { size: A4 portrait; margin: 15mm; }
-          body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; margin: 0; padding: 15px; font-size: 10pt; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; margin: 0; padding: 15px; font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6366f1; padding-bottom: 12px; margin-bottom: 18px; }
           .logo { font-size: 18pt; font-weight: bold; color: #4f46e5; }
           .sublogo { font-size: 8.5pt; color: #64748b; }
@@ -6667,6 +6727,9 @@ function renderReportsTab(contentArea) {
           .badge-pagas { background: #d1fae5; color: #059669; }
           .badge-avencer { background: #e0f2fe; color: #0284c7; }
           .badge-bonificadas { background: #fef3c7; color: #d97706; }
+          .badge-suspensas { background: #f3f4f6; color: #374151; }
+          .badge-canceladas { background: #fee2e2; color: #dc2626; }
+          .badge-excluídas { background: #fee2e2; color: #7f1d1d; }
         </style>
       </head>
       <body>
@@ -6683,6 +6746,8 @@ function renderReportsTab(contentArea) {
 
         <h1>${title}</h1>
         <p style="font-size: 8.5pt; color: #64748b; margin-top: -6px;">Total de registros impressos: <strong>${rows.length}</strong></p>
+
+        ${summaryBlock}
 
         <table>
           <thead>
@@ -7686,41 +7751,59 @@ function renderReportsTab(contentArea) {
         ];
       });
     } else {
+      // ---- ABA FINANCEIRO: usa dados reais da janela dedicada ----
       const activeFinStatus = window._activeFinStatusFilter || 'Todos';
-      title = activeFinStatus === 'Todos' 
-        ? 'Relatório Financeiro de Títulos (Todos os Status)' 
+      title = activeFinStatus === 'Todos'
+        ? 'Relatório Financeiro de Títulos (Todos os Status)'
         : `Relatório Financeiro — Títulos ${activeFinStatus.toUpperCase()}`;
       filename = `relatorio_financeiro_${activeFinStatus.toLowerCase().replace(/\s+/g, '_')}`;
       columns = ['Nosso Número', 'Paciente / Cliente', 'Descrição do Serviço', 'Vencimento', 'Valor (R$)', 'Status'];
-      
-      const finTitlesMasterList = [
-        { id: 'TIT-90481', client: 'Carlos Eduardo Silva', desc: 'Consulta Ambulatorial & Exames Especializados', dueDate: '15/06/2026', amountFormatted: 'R$ 350,00', status: 'Vencidas' },
-        { id: 'TIT-90482', client: 'Mariana Oliveira Souza', desc: 'Procedimento Cirúrgico Porte 2', dueDate: '20/06/2026', amountFormatted: 'R$ 1.250,00', status: 'Vencidas' },
-        { id: 'TIT-90483', client: 'Roberto Mendes Santos', desc: 'Internação UTI Geral (3 diárias)', dueDate: '02/07/2026', amountFormatted: 'R$ 4.800,00', status: 'Vencidas' },
-        { id: 'TIT-90484', client: 'Ana Paula Ferreira', desc: 'Exames Laboratoriais Completos', dueDate: '10/07/2026', amountFormatted: 'R$ 280,00', status: 'Vencidas' },
-        { id: 'TIT-90485', client: 'Fernando Henrique Rocha', desc: 'Sessão de Fisioterapia Respiratória', dueDate: '18/07/2026', amountFormatted: 'R$ 190,00', status: 'Vencidas' },
-        { id: 'TIT-90410', client: 'Juliana Costa Lima', desc: 'Consulta Cardiologia Especializada', dueDate: '28/07/2026', amountFormatted: 'R$ 420,00', status: 'A Vencer' },
-        { id: 'TIT-90411', client: 'Lucas Gabriel Pereira', desc: 'Tomografia Computadorizada de Tórax', dueDate: '05/08/2026', amountFormatted: 'R$ 850,00', status: 'A Vencer' },
-        { id: 'TIT-90301', client: 'Beatriz Castro Alencar', desc: 'Atendimento de Urgência Pediatria', dueDate: '10/05/2026', amountFormatted: 'R$ 540,00', status: 'Pagas' },
-        { id: 'TIT-90302', client: 'Thiago Martins Fonseca', desc: 'Internação Enfermaria Geral (2 diárias)', dueDate: '12/05/2026', amountFormatted: 'R$ 2.150,00', status: 'Pagas' },
-        { id: 'TIT-90303', client: 'Patrícia Duarte Ribeiro', desc: 'Consulta Ginecologia & Ultrassom', dueDate: '15/05/2026', amountFormatted: 'R$ 480,00', status: 'Pagas' },
-        { id: 'TIT-90304', client: 'Marcos Vinícius Barbosa', desc: 'Procedimento Ortopédico Eletivo', dueDate: '01/06/2026', amountFormatted: 'R$ 1.800,00', status: 'Pagas' },
-        { id: 'TIT-90201', client: 'Renata Albuquerque Lima', desc: 'Isenção de Taxa Hospitalar Conveniada', dueDate: '05/06/2026', amountFormatted: 'R$ 150,00', status: 'Bonificadas' },
-        { id: 'TIT-90202', client: 'Eduardo Correia Neves', desc: 'Bonificação Convênio Parceiro VIP', dueDate: '10/06/2026', amountFormatted: 'R$ 150,00', status: 'Bonificadas' }
-      ];
 
-      const listToExport = activeFinStatus === 'Todos'
-        ? finTitlesMasterList
-        : finTitlesMasterList.filter(t => t.status === activeFinStatus);
+      // Pegar a lista que está na janela dedicada (window._finTitlesList é definido pelo filterAndRender)
+      const listToExport = (window._finTitlesList || []).filter(t =>
+        activeFinStatus === 'Todos' || t.status === activeFinStatus
+      );
 
       rows = listToExport.map(t => [
         t.id,
-        hasPEP ? t.client : abbreviateName(t.client),
+        hasPEP ? t.client : (typeof abbreviateName === 'function' ? abbreviateName(t.client) : t.client),
         t.desc,
         t.dueDate,
         t.amountFormatted,
         t.status
       ]);
+
+      // ---- Computar KPI summary para o PDF ----
+      let pagasVal=0, aVencerVal=0, vencidasVal=0, bonificadasVal=0, suspensasVal=0, canceladasVal=0, excluidasVal=0;
+      let pagasC=0, aVencerC=0, vencidasC=0, bonificadasC=0, suspensasC=0, canceladasC=0, excluidasC=0;
+      let totalRec=0, totalDesp=0;
+      listToExport.forEach(t => {
+        const v = parseFloat(t.amount) || 0;
+        if (t.type === 'Despesa') totalDesp += v; else totalRec += v;
+        switch(t.status) {
+          case 'Pagas':       pagasC++;       pagasVal += v;       break;
+          case 'A Vencer':    aVencerC++;     aVencerVal += v;     break;
+          case 'Vencidas':    vencidasC++;    vencidasVal += v;    break;
+          case 'Bonificadas': bonificadasC++; bonificadasVal += v; break;
+          case 'Suspensas':   suspensasC++;   suspensasVal += v;   break;
+          case 'Canceladas':  canceladasC++;  canceladasVal += v;  break;
+          case 'Excluídas':   excluidasC++;   excluidasVal += v;   break;
+        }
+      });
+
+      // Capturar imagens dos gráficos Chart.js (canvas -> base64)
+      // Tentar primeiro o modal, depois a aba financeiro
+      const donutCanvas = document.getElementById('modal-fin-donut-chart') || document.getElementById('finPieChart');
+      const barCanvas = document.getElementById('modal-fin-bar-chart') || document.getElementById('finBarChart');
+      const donutImg = donutCanvas ? donutCanvas.toDataURL('image/png') : null;
+      const barImg   = barCanvas   ? barCanvas.toDataURL('image/png')   : null;
+
+      financialSummary = {
+        pagasVal, aVencerVal, vencidasVal, bonificadasVal, suspensasVal, canceladasVal, excluidasVal,
+        pagasC, aVencerC, vencidasC, bonificadasC, suspensasC, canceladasC, excluidasC,
+        totalRec, totalDesp, saldo: totalRec - totalDesp,
+        donutImg, barImg
+      };
     }
 
     const timestamp = new Date().toISOString().slice(0,10);
