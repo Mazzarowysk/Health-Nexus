@@ -6860,66 +6860,121 @@ function renderReportsTab(contentArea) {
       document.body.appendChild(modal);
     }
 
+    // ---- Computar KPIs completos (todos os 7 status) ----
     let totalReceitas = 0, totalDespesas = 0;
     let pagasCount = 0, aVencerCount = 0, vencidasCount = 0;
-
+    const saldoLiquido_ref = { val: 0 };
+    const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
+    let pagasVal = 0, aVencerVal = 0, vencidasVal = 0, bonificadasVal = 0, suspensasVal = 0, canceladasVal = 0, excluidasVal = 0;
+    let pagasC = 0, aVencerC = 0, vencidasC = 0, bonificadasC = 0, suspensasC = 0, canceladasC = 0, excluidasC = 0;
     installmentsList.forEach(t => {
-      const val = parseFloat(t.amount) || 0;
-      if (t.type === 'Despesa') totalDespesas += val;
-      else totalReceitas += val;
-
-      if (t.status === 'Pagas') pagasCount++;
-      else if (t.status === 'Vencidas') vencidasCount++;
-      else aVencerCount++;
+      const v = parseFloat(t.amount) || 0;
+      if (t.type === 'Despesa') totalDespesas += v; else totalReceitas += v;
+      switch(t.status) {
+        case 'Pagas':       pagasC++;       pagasVal += v;       break;
+        case 'A Vencer':    aVencerC++;     aVencerVal += v;     break;
+        case 'Vencidas':    vencidasC++;    vencidasVal += v;    break;
+        case 'Bonificadas': bonificadasC++; bonificadasVal += v; break;
+        case 'Suspensas':   suspensasC++;   suspensasVal += v;   break;
+        case 'Canceladas':  canceladasC++;  canceladasVal += v;  break;
+        case 'Excluídas':   excluidasC++;   excluidasVal += v;   break;
+      }
     });
 
+    // Recalcular com os totais corretos
+    pagasCount = pagasC; aVencerCount = aVencerC; vencidasCount = vencidasC;
     const saldoLiquido = totalReceitas - totalDespesas;
-    const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
+    const totalGeral = pagasVal + aVencerVal + vencidasVal + bonificadasVal + suspensasVal + canceladasVal + excluidasVal;
+    const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+    // Formas de pagamento para gráfico de barras
+    const methodMap = {};
+    installmentsList.forEach(t => {
+      const m = t.paymentMethod || 'Pix';
+      if (!methodMap[m]) methodMap[m] = 0;
+      methodMap[m] += parseFloat(t.amount) || 0;
+    });
 
     modal.innerHTML = `
-      <div class="modal-card glass-card" style="max-width: 1240px; width: 96%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 92vh; overflow-y: auto; box-shadow: 0 25px 60px -12px rgba(0,0,0,0.8); position: relative;">
+      <div class="modal-card glass-card" style="max-width: 1280px; width: 97%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 94vh; overflow-y: auto; box-shadow: 0 25px 60px -12px rgba(0,0,0,0.85); position: relative;">
         
-        <div style="position: sticky; top: -24px; z-index: 40; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 14px 20px; margin: -24px -24px 18px -24px; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; backdrop-filter: blur(12px);">
+        <!-- CABEÇALHO STICKY -->
+        <div style="position: sticky; top: -24px; z-index: 40; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 14px 20px; margin: -24px -24px 0 -24px; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; backdrop-filter: blur(12px);">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #00f2fe, #4f46e5); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: #fff; box-shadow: 0 4px 14px rgba(0,242,254,0.3);">
-              <i class="fa-solid fa-window-restore"></i>
+              <i class="fa-solid fa-chart-line"></i>
             </div>
             <div>
-              <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Outfit', sans-serif; display: flex; align-items: center; gap: 8px;">
-                Janela Dedicada: Títulos Financeiros & Parcelas
-              </h3>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">${installmentsList.length} títulos listados no filtro ativo</span>
+              <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Outfit', sans-serif;">Janela Dedicada: Títulos Financeiros & Parcelas</h3>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">${installmentsList.length} títulos no filtro ativo • Total geral: ${fmt(totalGeral)}</span>
             </div>
           </div>
-
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button id="modal-fin-btn-pdf" class="btn btn-primary" style="background: linear-gradient(135deg, #ef4444, #dc2626); font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
-            <button id="modal-fin-btn-xls" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-            <button id="modal-fin-btn-csv" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
-            <button id="modal-fin-btn-batch-pay" class="btn btn-primary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); font-size: 0.78rem; padding: 6px 14px; display: none;"><i class="fa-solid fa-check-double"></i> Baixar Selecionadas em Lote (<span id="modal-fin-batch-count">0</span>)</button>
+            <button id="modal-fin-btn-pdf" class="btn btn-primary" style="background: linear-gradient(135deg, #ef4444, #dc2626); font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button id="modal-fin-btn-xls" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-excel"></i> Excel</button>
+            <button id="modal-fin-btn-csv" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button id="modal-fin-btn-batch-pay" class="btn btn-primary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); font-size: 0.78rem; padding: 6px 14px; display: none;"><i class="fa-solid fa-check-double"></i> Baixar Lote (<span id="modal-fin-batch-count">0</span>)</button>
             <button id="close-modal-fin-window" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px;">
-          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 12px 16px;">
-            <span style="font-size: 0.72rem; color: #34d399; font-weight: 700; text-transform: uppercase;">Total Receitas (Entradas)</span>
-            <div style="font-family: 'Outfit'; font-size: 1.2rem; font-weight: 800; color: #34d399; margin-top: 2px;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalReceitas)}</div>
+        <!-- KPI CARDS RESUMO -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 18px 0;">
+          <div style="background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)); border: 1px solid rgba(52,211,153,0.35); border-radius: 14px; padding: 14px 16px;">
+            <div style="font-size: 0.7rem; color: #34d399; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-circle-check"></i> Pagas</div>
+            <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #34d399;">${fmt(pagasVal)}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${pagasC} parcelas</div>
           </div>
-          <div style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 12px; padding: 12px 16px;">
-            <span style="font-size: 0.72rem; color: #f43f5e; font-weight: 700; text-transform: uppercase;">Total Despesas (Saídas)</span>
-            <div style="font-family: 'Outfit'; font-size: 1.2rem; font-weight: 800; color: #f43f5e; margin-top: 2px;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalDespesas)}</div>
+          <div style="background: linear-gradient(135deg, rgba(0,242,254,0.12), rgba(0,242,254,0.04)); border: 1px solid rgba(0,242,254,0.35); border-radius: 14px; padding: 14px 16px;">
+            <div style="font-size: 0.7rem; color: #00f2fe; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-clock"></i> A Vencer</div>
+            <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #00f2fe;">${fmt(aVencerVal)}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${aVencerC} parcelas</div>
           </div>
-          <div style="background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 12px; padding: 12px 16px;">
-            <span style="font-size: 0.72rem; color: #00f2fe; font-weight: 700; text-transform: uppercase;">Saldo Líquido Filtrado</span>
-            <div style="font-family: 'Outfit'; font-size: 1.2rem; font-weight: 800; color: ${saldoLiquido >= 0 ? '#00f2fe' : '#f43f5e'}; margin-top: 2px;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(saldoLiquido)}</div>
+          <div style="background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(244,63,94,0.04)); border: 1px solid rgba(244,63,94,0.35); border-radius: 14px; padding: 14px 16px;">
+            <div style="font-size: 0.7rem; color: #f43f5e; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-circle-exclamation"></i> Vencidas</div>
+            <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #f43f5e;">${fmt(vencidasVal)}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${vencidasC} parcelas</div>
           </div>
-          <div style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 12px 16px;">
-            <span style="font-size: 0.72rem; color: #fbbf24; font-weight: 700; text-transform: uppercase;">Resumo por Status</span>
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-top: 4px;">Pagas: ${pagasCount} • A Vencer: ${aVencerCount} • Vencidas: ${vencidasCount}</div>
+          <div style="background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(244,63,94,0.08)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 16px;">
+            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-scale-balanced"></i> Saldo Líquido</div>
+            <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: ${saldoLiquido >= 0 ? '#34d399' : '#f43f5e'};">${fmt(saldoLiquido)}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Receitas − Despesas</div>
+          </div>
+          <div style="background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.04)); border: 1px solid rgba(251,191,36,0.25); border-radius: 14px; padding: 14px 16px;">
+            <div style="font-size: 0.7rem; color: #fbbf24; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-award"></i> Bonificadas</div>
+            <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #fbbf24;">${fmt(bonificadasVal)}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${bonificadasC} parcelas</div>
+          </div>
+          <div style="background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.04)); border: 1px solid rgba(248,113,113,0.2); border-radius: 14px; padding: 14px 16px;">
+            <div style="font-size: 0.7rem; color: #f87171; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-ban"></i> Outras</div>
+            <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #f87171;">${fmt(suspensasVal + canceladasVal + excluidasVal)}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${suspensasC + canceladasC + excluidasC} parcelas</div>
           </div>
         </div>
 
+        <!-- SEÇÃO DE GRÁFICOS -->
+        <div style="display: grid; grid-template-columns: 280px 1fr; gap: 16px; margin-bottom: 20px; align-items: stretch;">
+          <!-- Gráfico de Rosca: Distribuição por Status -->
+          <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-chart-pie" style="color:#00f2fe;"></i> Distribuição por Status
+            </div>
+            <div style="position: relative; height: 190px; display: flex; align-items: center; justify-content: center;">
+              <canvas id="modal-fin-donut-chart"></canvas>
+            </div>
+          </div>
+          <!-- Gráfico de Barras: Volume por Forma de Pagamento -->
+          <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-chart-bar" style="color:#a855f7;"></i> Volume por Forma de Pagamento (R$)
+            </div>
+            <div style="position: relative; height: 190px;">
+              <canvas id="modal-fin-bar-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABELA DE PARCELAS -->
         <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 20px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
             <thead>
@@ -6943,7 +6998,7 @@ function renderReportsTab(contentArea) {
                 const instStr = (t.installmentNumber && t.totalInstallments) ? `${t.installmentNumber}/${t.totalInstallments}` : '1/1';
                 const clientName = hasPEP ? t.client : (typeof abbreviateName === 'function' ? abbreviateName(t.client) : t.client);
                 return `
-                  <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                  <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
                     <td style="padding: 10px 12px; text-align: center;"><input type="checkbox" class="modal-fin-row-check" data-id="${t.id}" style="cursor:pointer;"></td>
                     <td style="padding: 10px 12px; font-family: monospace; font-weight: 700; color: var(--color-primary); font-size: 0.84rem;">${t.id}</td>
                     <td style="padding: 10px 12px; font-weight: 600; color: var(--text-primary); font-size: 0.86rem;">${clientName}</td>
@@ -6971,6 +7026,79 @@ function renderReportsTab(contentArea) {
     `;
 
     modal.style.display = 'flex';
+
+    // ---- Renderizar gráficos após o DOM estar pronto ----
+    setTimeout(() => {
+      // Gráfico de Rosca - Status
+      const donutCtx = document.getElementById('modal-fin-donut-chart');
+      if (donutCtx && window.Chart) {
+        const donutData = [
+          { label: 'Pagas', value: pagasVal, color: '#34d399' },
+          { label: 'A Vencer', value: aVencerVal, color: '#00f2fe' },
+          { label: 'Vencidas', value: vencidasVal, color: '#f43f5e' },
+          { label: 'Bonificadas', value: bonificadasVal, color: '#fbbf24' },
+          { label: 'Suspensas', value: suspensasVal, color: '#a855f7' },
+          { label: 'Canceladas', value: canceladasVal, color: '#f97316' },
+          { label: 'Excluídas', value: excluidasVal, color: '#dc2626' },
+        ].filter(d => d.value > 0);
+
+        new window.Chart(donutCtx, {
+          type: 'doughnut',
+          data: {
+            labels: donutData.map(d => d.label),
+            datasets: [{
+              data: donutData.map(d => d.value),
+              backgroundColor: donutData.map(d => d.color + '99'),
+              borderColor: donutData.map(d => d.color),
+              borderWidth: 2,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+              legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 10, padding: 8 } },
+              tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${fmt(ctx.parsed)}` } }
+            }
+          }
+        });
+      }
+
+      // Gráfico de Barras - Forma de Pagamento
+      const barCtx = document.getElementById('modal-fin-bar-chart');
+      if (barCtx && window.Chart) {
+        const methods = Object.keys(methodMap);
+        const methodColors = ['#6366f1','#34d399','#00f2fe','#f43f5e','#fbbf24','#a855f7'];
+        new window.Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: methods,
+            datasets: [{
+              label: 'Valor Total (R$)',
+              data: methods.map(m => methodMap[m]),
+              backgroundColor: methods.map((_, i) => methodColors[i % methodColors.length] + 'bb'),
+              borderColor: methods.map((_, i) => methodColors[i % methodColors.length]),
+              borderWidth: 1.5,
+              borderRadius: 6,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.parsed.y)}` } }
+            },
+            scales: {
+              x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+              y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => 'R$' + (v/1000).toFixed(1) + 'k' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+            }
+          }
+        });
+      }
+    }, 80);
 
     const closeModal = () => { modal.style.display = 'none'; };
     document.getElementById('close-modal-fin-window')?.addEventListener('click', closeModal);
