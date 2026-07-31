@@ -5575,11 +5575,11 @@ function renderReportsTab(contentArea) {
         <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; align-items: flex-end;">
           <div class="filter-group">
             <label>Vencimento Inicial</label>
-            <input type="date" id="filter-date-start" value="2026-05-01">
+            <input type="date" id="filter-date-start" value="${new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]}">
           </div>
           <div class="filter-group">
             <label>Vencimento Final</label>
-            <input type="date" id="filter-date-end" value="2026-12-31">
+            <input type="date" id="filter-date-end" value="${new Date(new Date().getFullYear(), 11, 31).toISOString().split('T')[0]}">
           </div>
           <div class="filter-group">
             <label>Tipo Operação</label>
@@ -5600,6 +5600,8 @@ function renderReportsTab(contentArea) {
                 <li><input type="checkbox" class="filter-fin-item" value="Vencidas" id="fin-st-3" checked><label for="fin-st-3">Vencidas</label></li>
                 <li><input type="checkbox" class="filter-fin-item" value="Bonificadas" id="fin-st-4" checked><label for="fin-st-4">Bonificadas</label></li>
                 <li><input type="checkbox" class="filter-fin-item" value="Suspensas" id="fin-st-5" checked><label for="fin-st-5">Suspensas</label></li>
+                <li><input type="checkbox" class="filter-fin-item" value="Canceladas" id="fin-st-6" checked><label for="fin-st-6">Canceladas</label></li>
+                <li><input type="checkbox" class="filter-fin-item" value="Excluídas" id="fin-st-7" checked><label for="fin-st-7">Excluídas</label></li>
               </ul>
             </div>
           </div>
