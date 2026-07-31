@@ -2185,7 +2185,7 @@ app.post('/api/beds/discharge', async (req, res) => {
     }
     const nowIso = new Date().toISOString();
     await db.execute({
-      sql: 'UPDATE beds SET status = "Higienizacao", patientId = NULL, patientName = NULL, admittedAt = NULL, updated_at = ? WHERE id = ?',
+      sql: 'UPDATE beds SET status = \\'Higienizacao\\', patientId = NULL, patientName = NULL, admittedAt = NULL, updated_at = ? WHERE id = ?',
       args: [nowIso, bedId]
     });
 
@@ -2193,6 +2193,7 @@ app.post('/api/beds/discharge', async (req, res) => {
 
     res.status(200).json({ status: 'success', message: 'Alta concedida. Leito encaminhado para higienização.' });
   } catch (err) {
+    console.error('[Discharge Error]', err);
     res.status(500).json({ status: 'error', message: 'Erro ao dar alta do leito.' });
   }
 });
@@ -2294,7 +2295,7 @@ app.post('/api/prescriptions/:id/administer', async (req, res) => {
 app.delete('/api/prescriptions/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await db.execute({ sql: 'UPDATE prescriptions SET status = "Cancelada" WHERE id = ?', args: [id] });
+    await db.execute({ sql: 'UPDATE prescriptions SET status = \\'Cancelada\\' WHERE id = ?', args: [id] });
     res.status(200).json({ status: 'success', message: 'Prescrição cancelada.' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Erro ao cancelar prescrição.' });
@@ -2308,7 +2309,7 @@ app.put('/api/encounters/:id/start-observation', async (req, res) => {
     const { notes } = req.body;
     const nowIso = new Date().toISOString();
     await db.execute({
-      sql: 'UPDATE encounters SET status = "Em_Observacao", observation_started_at = ?, observation_notes = ?, status_updated_at = ? WHERE id = ?',
+      sql: 'UPDATE encounters SET status = \\'Em_Observacao\\', observation_started_at = ?, observation_notes = ?, status_updated_at = ? WHERE id = ?',
       args: [nowIso, notes || 'Paciente colocado em observação no PS', nowIso, id]
     });
     try { await updatePreviousAndLastUpload(nowIso); } catch (e) {}
@@ -2328,7 +2329,7 @@ app.put('/api/encounters/:id/transfer-to-bed', async (req, res) => {
 
     // 1. Atualizar encounter
     await db.execute({
-      sql: 'UPDATE encounters SET status = "Internado", completed_at = ?, transfer_bed_id = ?, status_updated_at = ? WHERE id = ?',
+      sql: 'UPDATE encounters SET status = \\'Internado\\', completed_at = ?, transfer_bed_id = ?, status_updated_at = ? WHERE id = ?',
       args: [nowIso, bedId, nowIso, id]
     });
 
@@ -2338,7 +2339,7 @@ app.put('/api/encounters/:id/transfer-to-bed', async (req, res) => {
     const pId = encRes.rows.length > 0 ? encRes.rows[0].patientId : '';
 
     await db.execute({
-      sql: 'UPDATE beds SET status = "Ocupado", patientId = ?, patientName = ?, admittedAt = ?, updated_at = ? WHERE id = ?',
+      sql: 'UPDATE beds SET status = \\'Ocupado\\', patientId = ?, patientName = ?, admittedAt = ?, updated_at = ? WHERE id = ?',
       args: [pId, pName, nowIso, nowIso, bedId]
     });
 
