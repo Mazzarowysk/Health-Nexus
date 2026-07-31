@@ -6638,7 +6638,11 @@ function renderReportsTab(contentArea) {
   async function exportToPDF(columns, rows, title, filename, financialSummary) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Por favor, habilite pop-ups para gerar a impressão/visualização em PDF.');
+      if (typeof showCustomAlert === 'function') {
+        showCustomAlert({ title: 'Pop-up Bloqueado', message: 'Por favor, habilite pop-ups para este site nas configurações do navegador e tente novamente.', type: 'warning' });
+      } else {
+        alert('Por favor, habilite pop-ups para gerar a impressão/visualização em PDF.');
+      }
       return;
     }
 
