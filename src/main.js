@@ -8575,7 +8575,7 @@ async function loadConsultingRooms() {
         const statusColor = r.status === 'Disponível' ? 'var(--success)' : 'var(--warning)';
         
         return `
-          <div class="interactive-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="window.pendingAgendaRoomFilter = '${r.name}'; switchTab('agenda');" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+          <div class="interactive-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
               <div>
                 <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
@@ -8721,6 +8721,75 @@ async function deleteRoom(roomId) {
     }
   } catch (e) {
     showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'error' });
+  }
+}
+
+async function openConsultorioDetailsModal(roomName) {
+  try {
+    const todayIso = new Date().toISOString().split('T')[0];
+    const aptRes = await apiFetch('/api/appointments?date=' + todayIso);
+    const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
+    const appointments = aptResult.data || [];
+    
+    const roomApts = appointments.filter(a => a.roomName === roomName);
+    const inProgress = roomApts.find(a => a.status === 'Em Atendimento');
+    const completed = roomApts.filter(a => a.status === 'Concluído');
+    
+    let html = `
+      <div id="consultorio-details-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+          <div class="modal-header">
+            <h3><i class="fa-solid fa-door-open" style="color: var(--color-primary);"></i> Detalhes: ${roomName}</h3>
+            <span class="close-modal" onclick="document.getElementById('consultorio-details-modal').remove()"><i class="fa-solid fa-xmark"></i></span>
+          </div>
+          <div class="modal-body">
+            <h4 style="margin-bottom: 12px; color: var(--text-primary); font-size: 1.05rem;"><i class="fa-solid fa-stethoscope" style="color: var(--color-primary);"></i> Em Realização</h4>
+            ${inProgress ? `
+              <div style="background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); padding: 14px; border-radius: 8px; margin-bottom: 24px; color: var(--text-primary);">
+                <strong>Paciente:</strong> ${inProgress.patientName} <br/>
+                <strong style="margin-top: 6px; display: inline-block;">Médico:</strong> ${inProgress.doctorName || 'Não atribuído'} <br/>
+                <strong style="margin-top: 6px; display: inline-block;">Horário:</strong> ${inProgress.time || 'N/A'}
+              </div>
+            ` : '<div style="color: var(--text-muted); margin-bottom: 24px; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">Nenhum atendimento em andamento no momento.</div>'}
+
+            <h4 style="margin-bottom: 12px; color: var(--text-primary); font-size: 1.05rem;"><i class="fa-solid fa-check-double" style="color: var(--success);"></i> Procedimentos Feitos (Hoje)</h4>
+            ${completed.length > 0 ? `
+              <ul style="list-style: none; padding: 0; margin-bottom: 24px; max-height: 250px; overflow-y: auto; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                ${completed.map((c, i) => `
+                  <li style="border-bottom: ${i === completed.length - 1 ? 'none' : '1px solid var(--border-color)'}; padding: 12px 14px; color: var(--text-primary);">
+                    <span style="color: var(--text-muted); font-size: 0.85rem; margin-right: 8px;">${c.time || '--:--'}</span>
+                    <strong>${c.patientName}</strong> <span style="color: var(--text-muted); font-size: 0.9rem;">(${c.doctorName ? 'Dr. ' + c.doctorName : 'N/A'})</span>
+                  </li>
+                `).join('')}
+              </ul>
+            ` : '<div style="color: var(--text-muted); margin-bottom: 24px; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">Nenhum procedimento concluído hoje neste consultório.</div>'}
+
+            <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;">
+              <button class="btn btn-outline" onclick="
+                window.pendingAgendaRoomFilter = '${roomName}';
+                document.getElementById('consultorio-details-modal').remove();
+                switchTab('agenda');
+              "><i class="fa-solid fa-list"></i> Ver Agendamentos</button>
+              
+              <button class="btn btn-primary" onclick="
+                window.pendingAgendaRoomFilter = '${roomName}';
+                document.getElementById('consultorio-details-modal').remove();
+                switchTab('agenda');
+                setTimeout(() => {
+                  const btn = document.getElementById('btn-open-new-appointment');
+                  if (btn) btn.click();
+                }, 100);
+              "><i class="fa-solid fa-calendar-plus"></i> Criar Agendamento</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch (err) {
+    console.error(err);
+    showCustomAlert({ title: 'Erro', message: 'Erro ao carregar detalhes do consultório.', type: 'error' });
   }
 }
 
