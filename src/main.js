@@ -9728,8 +9728,28 @@ window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
   }
 };
 
-window.dischargeBed = async (bedId) => {
-  if (!confirm('Confirma a alta do paciente e envio do leito para higienização?')) return;
+window.dischargeBed = (bedId) => {
+  const modalHtml = `
+    <div id="discharge-confirm-modal" class="modal-overlay" style="z-index: 9999;">
+      <div class="modal-content" style="max-width: 450px; text-align: center;">
+        <div style="margin-bottom: 20px;">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 16px;">
+            <i class="fa-solid fa-bed-pulse"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Confirmar Alta</h3>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">Confirma a alta do paciente e o envio do leito para higienização?</p>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button class="btn btn-secondary" onclick="document.getElementById('discharge-confirm-modal').remove()">Cancelar</button>
+          <button class="btn btn-primary" onclick="document.getElementById('discharge-confirm-modal').remove(); window.executeDischarge('${bedId}')">Sim, Confirmar</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+window.executeDischarge = async (bedId) => {
   try {
     const res = await apiFetch('/api/beds/discharge', {
       method: 'POST',
@@ -9738,7 +9758,6 @@ window.dischargeBed = async (bedId) => {
     });
     if (res.ok) {
       showToast('Alta concedida com sucesso! Leito encaminhado para limpeza.');
-      
       renderLeitosTab();
     }
   } catch (e) {}
