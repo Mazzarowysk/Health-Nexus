@@ -39,6 +39,7 @@ const initLocalDb = async () => {
   const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_PHARMACY = `CREATE TABLE IF NOT EXISTS pharmacy_items (id TEXT PRIMARY KEY, name TEXT NOT NULL, dosage TEXT, form TEXT, stockQuantity INTEGER DEFAULT 0, minStock INTEGER DEFAULT 10, lotNumber TEXT, expirationDate TEXT, unitPrice REAL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_TV_CALLS = `CREATE TABLE IF NOT EXISTS tv_calls (id TEXT PRIMARY KEY, patientName TEXT NOT NULL, roomName TEXT NOT NULL, manchesterColor TEXT DEFAULT 'Verde', doctorName TEXT, calledAt TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_FINANCIAL = `CREATE TABLE IF NOT EXISTS financial_installments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, description TEXT NOT NULL, amount REAL NOT NULL, dueDate TEXT NOT NULL, status TEXT DEFAULT 'A Vencer', paymentDate TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
 
   await Promise.all([
     db.execute(SQL_USERS),
@@ -56,7 +57,8 @@ const initLocalDb = async () => {
     db.execute(SQL_DOCTORS),
     db.execute(SQL_CONSULTING_ROOMS),
     db.execute(SQL_PHARMACY),
-    db.execute(SQL_TV_CALLS)
+    db.execute(SQL_TV_CALLS),
+    db.execute(SQL_FINANCIAL)
   ]);
 
   const alterQueries = [
@@ -76,7 +78,18 @@ const initLocalDb = async () => {
     'ALTER TABLE encounters ADD COLUMN room TEXT',
     'ALTER TABLE patients ADD COLUMN deleted_at TEXT',
     'ALTER TABLE doctors ADD COLUMN deleted_at TEXT',
-    'ALTER TABLE encounters ADD COLUMN status_updated_at TEXT'
+    'ALTER TABLE encounters ADD COLUMN status_updated_at TEXT',
+    'ALTER TABLE patients ADD COLUMN motherName TEXT',
+    'ALTER TABLE patients ADD COLUMN fatherName TEXT',
+    'ALTER TABLE patients ADD COLUMN organDonor TEXT',
+    'ALTER TABLE patients ADD COLUMN race TEXT',
+    'ALTER TABLE patients ADD COLUMN religion TEXT',
+    'ALTER TABLE patients ADD COLUMN healthPlan TEXT',
+    'ALTER TABLE patients ADD COLUMN cardNumber TEXT',
+    'ALTER TABLE patients ADD COLUMN responsibleName TEXT',
+    'ALTER TABLE patients ADD COLUMN responsibleCpf TEXT',
+    'ALTER TABLE patients ADD COLUMN responsiblePhone TEXT',
+    'ALTER TABLE patients ADD COLUMN responsibleRelationship TEXT'
   ];
 
   await Promise.all(alterQueries.map(q => db.execute(q).catch(() => {})));
@@ -508,13 +521,41 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- ROTAS DE HEARTBEAT E SHUTDOWN ---
+let lastHeartbeatTime = Date.now();
+let heartbeatInterval = null;
+let heartbeatReceived = false;
+
+if (!isVercel) {
+  heartbeatInterval = setInterval(() => {
+    // Dá 60s para o front-end carregar a primeira vez (compilação do Vite). Depois, exige heartbeat a cada 15s.
+    const timeout = heartbeatReceived ? 15000 : 60000;
+    if (Date.now() - lastHeartbeatTime > timeout) {
+      console.log('\n[SISTEMA ENCERRADO] A aba do navegador foi fechada. Encerrando o servidor local Health Nexus para liberar recursos...');
+      const { exec } = require('child_process');
+      exec('taskkill /FI "WINDOWTITLE eq Health Nexus - Servidor Ativo*" /T /F', () => {
+        process.exit(0);
+      });
+    }
+  }, 5000);
+}
+
 app.post('/api/heartbeat', (req, res) => {
+  heartbeatReceived = true;
+  lastHeartbeatTime = Date.now();
   res.sendStatus(200);
 });
 
 app.post('/api/shutdown', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Servidor recebido.' });
+  res.status(200).json({ status: 'ok', message: 'Servidor encerrado.' });
+  if (!isVercel) {
+    setTimeout(() => {
+      console.log('\n[SISTEMA ENCERRADO] Recebido comando de shutdown. Encerrando o servidor local Health Nexus...');
+      const { exec } = require('child_process');
+      exec('taskkill /FI "WINDOWTITLE eq Health Nexus - Servidor Ativo*" /T /F', () => {
+        process.exit(0);
+      });
+    }, 500);
+  }
 });
 
 
@@ -722,14 +763,20 @@ app.get('/api/dashboard/summary', async (req, res) => {
       }
     }
 
+    const finResult = await db.execute("SELECT SUM(amount) as total FROM financial_installments WHERE status = 'Pagas'");
+    const finPendingResult = await db.execute("SELECT SUM(amount) as total FROM financial_installments WHERE status != 'Pagas' AND status != 'Canceladas' AND status != 'Excluídas'");
+    
+    const totalRevenue = Number(finResult.rows[0]?.total || 0);
+    const pendingClaims = Number(finPendingResult.rows[0]?.total || 0);
+
     res.status(200).json({
       activePatients: totalPatients,
       occupancyRate: 84.5,
       averageWaitTimeMinutes: avgWaitTime,
       dailyAppointmentsCount: 84 + activePatientsCount,
       billingSummary: {
-        totalRevenue: 245000.00,
-        pendingClaims: 45100.00
+        totalRevenue: totalRevenue,
+        pendingClaims: pendingClaims
       },
       occupancyData: [
         { label: 'UTI Adulto', value: 25, color: '#e63946' },
@@ -1214,7 +1261,11 @@ async function generatePatientId(fullName) {
 
 // Endpoint para criação de pacientes
 app.post('/api/patients', async (req, res) => {
-  const { fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue } = req.body;
+  const {
+    fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue,
+    motherName, fatherName, organDonor, race, religion, healthPlan, cardNumber,
+    responsibleName, responsibleCpf, responsiblePhone, responsibleRelationship
+  } = req.body;
 
   if (!fullName || !cpf || !birthDate) {
     return res.status(400).json({
@@ -1252,8 +1303,18 @@ app.post('/api/patients', async (req, res) => {
     
     const nowIso = new Date().toISOString();
     await db.execute({
-      sql: 'INSERT INTO patients (id, fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      args: [patientId, fullName, cpf, birthDate, cep || '', address || '', number || '', neighborhood || '', city || '', phone || '', cellphone || '', billingValue || '', nowIso, nowIso]
+      sql: `INSERT INTO patients (
+        id, fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue,
+        motherName, fatherName, organDonor, race, religion, healthPlan, cardNumber,
+        responsibleName, responsibleCpf, responsiblePhone, responsibleRelationship,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        patientId, fullName, cpf, birthDate, cep || '', address || '', number || '', neighborhood || '', city || '', phone || '', cellphone || '', billingValue || '',
+        motherName || '', fatherName || '', organDonor || 'Não Declarado', race || 'Não Informado', religion || '', healthPlan || 'Particular', cardNumber || '',
+        responsibleName || '', responsibleCpf || '', responsiblePhone || '', responsibleRelationship || '',
+        nowIso, nowIso
+      ]
     });
 
     try {
@@ -1298,7 +1359,11 @@ app.get('/api/patients', async (req, res) => {
 // Endpoint para atualizar um paciente
 app.put('/api/patients/:id', async (req, res) => {
   const { id } = req.params;
-  const { fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue } = req.body;
+  const {
+    fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue,
+    motherName, fatherName, organDonor, race, religion, healthPlan, cardNumber,
+    responsibleName, responsibleCpf, responsiblePhone, responsibleRelationship
+  } = req.body;
 
   if (!fullName || !cpf || !birthDate) {
     return res.status(400).json({
@@ -1334,8 +1399,18 @@ app.put('/api/patients/:id', async (req, res) => {
 
     const updatedAt = new Date().toISOString();
     await db.execute({
-      sql: 'UPDATE patients SET fullName = ?, cpf = ?, birthDate = ?, cep = ?, address = ?, number = ?, neighborhood = ?, city = ?, phone = ?, cellphone = ?, billingValue = ?, updated_at = ? WHERE id = ?',
-      args: [fullName, cpf, birthDate, cep || '', address || '', number || '', neighborhood || '', city || '', phone || '', cellphone || '', billingValue || '', updatedAt, id]
+      sql: `UPDATE patients SET 
+        fullName = ?, cpf = ?, birthDate = ?, cep = ?, address = ?, number = ?, neighborhood = ?, city = ?, phone = ?, cellphone = ?, billingValue = ?,
+        motherName = ?, fatherName = ?, organDonor = ?, race = ?, religion = ?, healthPlan = ?, cardNumber = ?,
+        responsibleName = ?, responsibleCpf = ?, responsiblePhone = ?, responsibleRelationship = ?,
+        updated_at = ? 
+        WHERE id = ?`,
+      args: [
+        fullName, cpf, birthDate, cep || '', address || '', number || '', neighborhood || '', city || '', phone || '', cellphone || '', billingValue || '',
+        motherName || '', fatherName || '', organDonor || 'Não Declarado', race || 'Não Informado', religion || '', healthPlan || 'Particular', cardNumber || '',
+        responsibleName || '', responsibleCpf || '', responsiblePhone || '', responsibleRelationship || '',
+        updatedAt, id
+      ]
     });
 
     try {
@@ -2160,6 +2235,35 @@ app.post('/api/pharmacy/dispense', async (req, res) => {
     res.status(200).json({ status: 'success', message: 'Medicação dispensada com sucesso.', newStock });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Erro ao dispensar medicação.' });
+  }
+});
+
+app.put('/api/pharmacy/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, dosage, form, stockQuantity, minStock, lotNumber, expirationDate, unitPrice } = req.body;
+    if (!name) return res.status(400).json({ status: 'error', message: 'Nome do medicamento é obrigatório.' });
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'UPDATE pharmacy_items SET name = ?, dosage = ?, form = ?, stockQuantity = ?, minStock = ?, lotNumber = ?, expirationDate = ?, unitPrice = ?, updated_at = ? WHERE id = ?',
+      args: [name, dosage || '', form || '', Number(stockQuantity || 0), Number(minStock || 10), lotNumber || '', expirationDate || '', Number(unitPrice || 0), nowIso, id]
+    });
+    try { await updatePreviousAndLastUpload(nowIso); } catch (e) {}
+    res.status(200).json({ status: 'success', message: 'Medicamento atualizado com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao atualizar medicamento.' });
+  }
+});
+
+app.delete('/api/pharmacy/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute({ sql: 'DELETE FROM pharmacy_items WHERE id = ?', args: [id] });
+    const nowIso = new Date().toISOString();
+    try { await updatePreviousAndLastUpload(nowIso); } catch (e) {}
+    res.status(200).json({ status: 'success', message: 'Medicamento removido da farmácia com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao remover medicamento.' });
   }
 });
 
@@ -3688,6 +3792,47 @@ app.post('/api/sync/pull', async (req, res) => {
     res.json({ status: 'success', message: 'Pull concluído com sucesso', pulled_count: total });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// --- FINANCIAL ENDPOINTS ---
+app.get('/api/financial/installments', async (req, res) => {
+  try {
+    const result = await db.execute('SELECT * FROM financial_installments ORDER BY dueDate ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/financial/installments', async (req, res) => {
+  try {
+    const { id, patientId, patientName, description, amount, dueDate, status } = req.body;
+    await db.execute({
+      sql: 'INSERT INTO financial_installments (id, patientId, patientName, description, amount, dueDate, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      args: [id, patientId, patientName, description, amount, dueDate, status || 'A Vencer']
+    });
+    // Queue sync
+    await db.execute({ sql: "INSERT INTO sync_queue (table_name, row_id, operation) VALUES ('financial_installments', ?, 'INSERT')", args: [id] });
+    res.status(201).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/financial/installments/:id/pay', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const now = new Date().toISOString();
+    await db.execute({
+      sql: 'UPDATE financial_installments SET status = ?, paymentDate = ?, updated_at = ? WHERE id = ?',
+      args: ['Pagas', now, now, id]
+    });
+    // Queue sync
+    await db.execute({ sql: "INSERT INTO sync_queue (table_name, row_id, operation) VALUES ('financial_installments', ?, 'UPDATE')", args: [id] });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

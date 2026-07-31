@@ -1366,10 +1366,13 @@ const requestSyncPromptIfConfigured = async () => {
     statusData.lastLocalBackup = localMax.str || new Date().toISOString();
     statusData.lastCloudBackup = cloudMax.str || new Date().toISOString();
 
-    if (localMax.time > cloudMax.time || statusData.isVercel) {
+    const hasLocalUpdates = statusData.local_updates > 0;
+    if (hasLocalUpdates || statusData.isVercel) {
       showSyncPromptModal(statusData);
     } else if (cloudMax.time > localMax.time) {
       showSyncComparisonModal(statusData);
+    } else {
+      showToast('Banco local já está perfeitamente sincronizado com a nuvem.');
     }
     return true;
   } catch (err) {
@@ -2467,6 +2470,9 @@ function renderAppStructure() {
           <span id="sync-status-badge" style="font-size: 0.82rem; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border-color); background: rgba(59,130,246,0.08); color: var(--text-primary);">
             Verificando Turso...
           </span>
+          <button id="btn-density-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 14px; height: 40px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; gap: 6px; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Densidade Visual (Modo Normal / Modo Compacto Hospitalar)">
+            <i class="fa-solid fa-compress" id="density-icon"></i> <span id="density-label">Modo Compacto</span>
+          </button>
           <button id="btn-theme-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; padding: 0; font-size: 1.15rem; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Tema Claro/Escuro">
             <i class="fa-solid fa-sun" id="theme-icon"></i>
           </button>
@@ -2585,6 +2591,30 @@ function renderAppStructure() {
   if (themeToggle) {
     themeToggle.addEventListener('click', toggleTheme);
     updateThemeIcon();
+  }
+
+  // Botão de alternar densidade (Modo Compacto Hospitalar)
+  const savedDensity = localStorage.getItem('hn_density');
+  if (savedDensity === 'compact') {
+    document.body.classList.add('compact-mode');
+  }
+  const densityToggle = document.getElementById('btn-density-toggle');
+  if (densityToggle) {
+    const updateDensityBtn = () => {
+      const isCompact = document.body.classList.contains('compact-mode');
+      const icon = document.getElementById('density-icon');
+      const label = document.getElementById('density-label');
+      if (icon) icon.className = isCompact ? 'fa-solid fa-expand' : 'fa-solid fa-compress';
+      if (label) label.textContent = isCompact ? 'Modo Normal' : 'Modo Compacto';
+    };
+    updateDensityBtn();
+    densityToggle.addEventListener('click', () => {
+      document.body.classList.toggle('compact-mode');
+      const isCompact = document.body.classList.contains('compact-mode');
+      localStorage.setItem('hn_density', isCompact ? 'compact' : 'normal');
+      updateDensityBtn();
+      showToast(isCompact ? 'Modo Compacto (Alta Densidade) ativado!' : 'Modo Normal ativado.');
+    });
   }
 
   // Renderizar o conteúdo da aba ativa
@@ -2756,74 +2786,184 @@ async function renderTabContent() {
     contentArea.innerHTML = `
       <div class="tab-section active">
         <div class="patients-grid">
-          <!-- Coluna 1: Formulário Completo com Máscaras -->
-          <div class="patients-form-container">
-            <h3 id="form-title" style="margin-bottom: 20px; font-family: 'Outfit'; font-weight: 600;">Admissão de Paciente</h3>
+          <!-- Coluna 1: Formulário Completo com Máscaras e Dados Hospitalares/SUS -->
+          <div class="patients-form-container" style="max-width: 100%;">
+            <h3 id="form-title" style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente
+            </h3>
             <form id="patient-form">
               <input type="hidden" id="editId">
-              
-              <div class="form-group">
-                <label class="form-label" for="fullName">* Nome Completo:</label>
-                <input type="text" id="fullName" class="form-input" required placeholder="Nome completo civil">
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="cpf">* CPF:</label>
-                  <input type="text" id="cpf" class="form-input" required placeholder="000.000.000-00" inputmode="numeric">
+
+              <!-- SEÇÃO 1: DADOS PESSOAIS & FILIAÇÃO -->
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-user"></i> 1. Dados Pessoais &amp; Filiação
                 </div>
+
                 <div class="form-group">
-                  <label class="form-label" for="birthDate">* Data Nasc.:</label>
-                  <input type="date" id="birthDate" class="form-input" required>
+                  <label class="form-label" for="fullName">* Nome Completo (Civil):</label>
+                  <input type="text" id="fullName" class="form-input" required placeholder="Nome completo do paciente">
                 </div>
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group" style="flex: 1;">
-                  <label class="form-label" for="cep">CEP (Busca Auto):</label>
-                  <div style="position: relative; display: flex; align-items: center;">
-                    <input type="text" id="cep" class="form-input" placeholder="00000-000" inputmode="numeric" maxlength="9" style="padding-right: 36px;">
-                    <button type="button" id="btn-search-cep" title="Buscar Endereço pelo CEP" style="position: absolute; right: 8px; background: transparent; border: none; color: #818cf8; cursor: pointer; font-size: 1rem; padding: 4px;">
-                      <i class="fa-solid fa-magnifying-glass" id="cep-search-icon"></i>
-                      <i class="fa-solid fa-spinner fa-spin" id="cep-loading-icon" style="display: none;"></i>
-                    </button>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="cpf">* CPF:</label>
+                    <input type="text" id="cpf" class="form-input" required placeholder="000.000.000-00" inputmode="numeric">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="birthDate">* Data de Nascimento:</label>
+                    <input type="date" id="birthDate" class="form-input" required>
                   </div>
                 </div>
-                <div class="form-group" style="flex: 2;">
-                  <label class="form-label" for="address">Endereço (Rua/Av):</label>
-                  <input type="text" id="address" class="form-input" placeholder="Ex: Rua Santa Anita">
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="motherName">* Nome da Mãe (Obrigatório SUS):</label>
+                    <input type="text" id="motherName" class="form-input" placeholder="Nome completo da mãe" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="fatherName">Nome do Pai:</label>
+                    <input type="text" id="fatherName" class="form-input" placeholder="Nome completo do pai (opcional)">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="organDonor">Doador de Órgãos:</label>
+                    <select id="organDonor" class="form-input">
+                      <option value="Não Declarado">Não Declarado</option>
+                      <option value="Sim">Sim</option>
+                      <option value="Não">Não</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="race">Raça / Cor (IBGE):</label>
+                    <select id="race" class="form-input">
+                      <option value="Parda">Parda</option>
+                      <option value="Branca">Branca</option>
+                      <option value="Preta">Preta</option>
+                      <option value="Amarela">Amarela</option>
+                      <option value="Indígena">Indígena</option>
+                      <option value="Não Informado">Não Informado</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="religion">Religião / Crença:</label>
+                    <input type="text" id="religion" class="form-input" placeholder="Ex: Católica, Evangélica, etc.">
+                  </div>
                 </div>
               </div>
-              
-              <div class="form-row">
-                <div class="form-group" style="flex: 1;">
-                  <label class="form-label" for="number">Número / Compl.:</label>
-                  <input type="text" id="number" class="form-input" placeholder="Ex: 120 / Ap 42">
+
+              <!-- SEÇÃO 2: CONVÊNIO & CONTATO -->
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-hospital-user"></i> 2. Convênio &amp; Contato
                 </div>
-                <div class="form-group" style="flex: 1;">
-                  <label class="form-label" for="neighborhood">Bairro:</label>
-                  <input type="text" id="neighborhood" class="form-input" placeholder="Ex: Vila Promissão">
+
+                <div class="form-row">
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="healthPlan">Plano de Saúde / Convênio:</label>
+                    <select id="healthPlan" class="form-input">
+                      <option value="Particular">Particular</option>
+                      <option value="SUS">SUS (Sistema Único de Saúde)</option>
+                      <option value="Unimed">Unimed</option>
+                      <option value="Bradesco Saúde">Bradesco Saúde</option>
+                      <option value="Amil">Amil</option>
+                      <option value="SulAmérica">SulAmérica</option>
+                      <option value="Outro">Outro Convênio</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="cardNumber">Nº Carteirinha / Cartão SUS:</label>
+                    <input type="text" id="cardNumber" class="form-input" placeholder="000 0000 0000 0000">
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                  <label class="form-label" for="city">Cidade / UF:</label>
-                  <input type="text" id="city" class="form-input" placeholder="Ex: Osvaldo Cruz - SP">
+
+                <div class="form-row">
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="cep">CEP (Busca Auto):</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                      <input type="text" id="cep" class="form-input" placeholder="00000-000" inputmode="numeric" maxlength="9" style="padding-right: 36px;">
+                      <button type="button" id="btn-search-cep" title="Buscar Endereço pelo CEP" style="position: absolute; right: 8px; background: transparent; border: none; color: #818cf8; cursor: pointer; font-size: 1rem; padding: 4px;">
+                        <i class="fa-solid fa-magnifying-glass" id="cep-search-icon"></i>
+                        <i class="fa-solid fa-spinner fa-spin" id="cep-loading-icon" style="display: none;"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="form-group" style="flex: 2;">
+                    <label class="form-label" for="address">Endereço (Rua/Av):</label>
+                    <input type="text" id="address" class="form-input" placeholder="Ex: Rua Santa Anita">
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="number">Número / Compl.:</label>
+                    <input type="text" id="number" class="form-input" placeholder="Ex: 120 / Ap 42">
+                  </div>
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="neighborhood">Bairro:</label>
+                    <input type="text" id="neighborhood" class="form-input" placeholder="Ex: Vila Promissão">
+                  </div>
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="city">Cidade / UF:</label>
+                    <input type="text" id="city" class="form-input" placeholder="Ex: Osvaldo Cruz - SP">
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="phone">Telefone Fixo:</label>
+                    <input type="text" id="phone" class="form-input" placeholder="(18) 3528-5022">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="cellphone">Celular / WhatsApp:</label>
+                    <input type="text" id="cellphone" class="form-input" placeholder="(18) 98817-5809">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="billingValue">Valor Consulta/Tabela:</label>
+                    <input type="text" id="billingValue" class="form-input" placeholder="R$ 0,00">
+                  </div>
                 </div>
               </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="phone">Telefone Fixo:</label>
-                  <input type="text" id="phone" class="form-input" placeholder="(18) 3528-5022">
+
+              <!-- SEÇÃO 3: RESPONSÁVEL LEGAL (AUTOMÁTICO PARA MENORES DE 18 OU MAIORES DE 65 ANOS) -->
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-users"></i> 3. Responsável Legal / Acompanhante
                 </div>
-                <div class="form-group">
-                  <label class="form-label" for="cellphone">Celular:</label>
-                  <input type="text" id="cellphone" class="form-input" placeholder="(18) 98817-5809">
+
+                <div id="responsible-alert-badge" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; margin-bottom: 12px;">
+                  <i class="fa-solid fa-circle-info"></i> Preenchimento obrigatório para menores de 18 anos ou maiores de 65 anos.
                 </div>
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label" for="billingValue">Valor da Consulta/Mensalidade:</label>
-                <input type="text" id="billingValue" class="form-input" placeholder="R$ 0,00">
+
+                <div class="form-row">
+                  <div class="form-group" style="flex: 2;">
+                    <label class="form-label" for="responsibleName" id="lbl-responsibleName">Nome do Responsável:</label>
+                    <input type="text" id="responsibleName" class="form-input" placeholder="Nome completo do responsável legal">
+                  </div>
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="responsibleCpf" id="lbl-responsibleCpf">CPF Responsável:</label>
+                    <input type="text" id="responsibleCpf" class="form-input" placeholder="000.000.000-00" inputmode="numeric">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="responsiblePhone">Telefone Responsável:</label>
+                    <input type="text" id="responsiblePhone" class="form-input" placeholder="(18) 99999-0000">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="responsibleRelationship">Grau de Parentesco:</label>
+                    <select id="responsibleRelationship" class="form-input">
+                      <option value="Pai/Mãe">Pai / Mãe</option>
+                      <option value="Cônjuge">Cônjuge / Esposo(a)</option>
+                      <option value="Filho(a)">Filho(a)</option>
+                      <option value="Tutor(a)">Tutor(a) Legal</option>
+                      <option value="Outro">Outro Parentesco</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -2898,7 +3038,7 @@ async function renderTabContent() {
         tableHtml += `
           <tr>
             <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${p.id}</td>
-            <td style="font-weight: 500;">${p.fullName}</td>
+            <td style="font-weight: 500;">${p.fullName}<br><small style="color: var(--text-muted); font-size: 0.76rem;">Mãe: ${p.motherName || '-'}</small></td>
             <td style="font-family: monospace; font-size: 0.9rem;">${p.cpf}</td>
             <td>${formattedDate}</td>
             <td>${p.city || '-'}</td>
@@ -2917,9 +3057,20 @@ async function renderTabContent() {
                 </button>
                 <button class="btn-icon btn-icon-edit" 
                   data-edit-id="${p.id}" 
-                  data-full-name="${p.fullName}" 
-                  data-cpf="${p.cpf}" 
-                  data-birth-date="${p.birthDate}"
+                  data-full-name="${p.fullName || ''}" 
+                  data-cpf="${p.cpf || ''}" 
+                  data-birth-date="${p.birthDate || ''}"
+                  data-mother-name="${p.motherName || ''}"
+                  data-father-name="${p.fatherName || ''}"
+                  data-organ-donor="${p.organDonor || 'Não Declarado'}"
+                  data-race="${p.race || 'Parda'}"
+                  data-religion="${p.religion || ''}"
+                  data-health-plan="${p.healthPlan || 'Particular'}"
+                  data-card-number="${p.cardNumber || ''}"
+                  data-responsible-name="${p.responsibleName || ''}"
+                  data-responsible-cpf="${p.responsibleCpf || ''}"
+                  data-responsible-phone="${p.responsiblePhone || ''}"
+                  data-responsible-relationship="${p.responsibleRelationship || 'Pai/Mãe'}"
                   data-cep="${p.cep || ''}"
                   data-address="${p.address || ''}"
                   data-number="${p.number || ''}"
@@ -2950,6 +3101,19 @@ async function renderTabContent() {
           document.getElementById('fullName').value = btn.getAttribute('data-full-name');
           document.getElementById('cpf').value = btn.getAttribute('data-cpf');
           document.getElementById('birthDate').value = btn.getAttribute('data-birth-date');
+          
+          if (document.getElementById('motherName')) document.getElementById('motherName').value = btn.getAttribute('data-mother-name') || '';
+          if (document.getElementById('fatherName')) document.getElementById('fatherName').value = btn.getAttribute('data-father-name') || '';
+          if (document.getElementById('organDonor')) document.getElementById('organDonor').value = btn.getAttribute('data-organ-donor') || 'Não Declarado';
+          if (document.getElementById('race')) document.getElementById('race').value = btn.getAttribute('data-race') || 'Parda';
+          if (document.getElementById('religion')) document.getElementById('religion').value = btn.getAttribute('data-religion') || '';
+          if (document.getElementById('healthPlan')) document.getElementById('healthPlan').value = btn.getAttribute('data-health-plan') || 'Particular';
+          if (document.getElementById('cardNumber')) document.getElementById('cardNumber').value = btn.getAttribute('data-card-number') || '';
+          if (document.getElementById('responsibleName')) document.getElementById('responsibleName').value = btn.getAttribute('data-responsible-name') || '';
+          if (document.getElementById('responsibleCpf')) document.getElementById('responsibleCpf').value = btn.getAttribute('data-responsible-cpf') || '';
+          if (document.getElementById('responsiblePhone')) document.getElementById('responsiblePhone').value = btn.getAttribute('data-responsible-phone') || '';
+          if (document.getElementById('responsibleRelationship')) document.getElementById('responsibleRelationship').value = btn.getAttribute('data-responsible-relationship') || 'Pai/Mãe';
+
           const cepEl = document.getElementById('cep');
           if (cepEl) cepEl.value = btn.getAttribute('data-cep') || '';
           document.getElementById('address').value = btn.getAttribute('data-address');
@@ -2962,9 +3126,11 @@ async function renderTabContent() {
           document.getElementById('cellphone').value = btn.getAttribute('data-cellphone');
           document.getElementById('billingValue').value = btn.getAttribute('data-billing-value');
 
-          document.getElementById('form-title').textContent = "Editar Paciente";
+          document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--color-primary);"></i> Editar Paciente';
           document.getElementById('submit-btn').textContent = "Salvar Alterações";
           document.getElementById('cancel-edit-btn').style.display = "inline-flex";
+
+          checkAgeValidation();
 
           const formContainer = document.querySelector('.patients-form-container');
           if (formContainer) {
@@ -3003,6 +3169,46 @@ async function renderTabContent() {
         });
       });
     };
+
+    // Validação Automática de Responsável Legal por Idade (<18 ou >65)
+    const checkAgeValidation = () => {
+      const birthVal = document.getElementById('birthDate')?.value;
+      if (!birthVal) return;
+      const birth = new Date(birthVal + 'T12:00:00');
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+      const alertBadge = document.getElementById('responsible-alert-badge');
+      const respName = document.getElementById('responsibleName');
+      const respCpf = document.getElementById('responsibleCpf');
+      const lblName = document.getElementById('lbl-responsibleName');
+      const lblCpf = document.getElementById('lbl-responsibleCpf');
+
+      if (age < 18 || age > 65) {
+        if (alertBadge) {
+          alertBadge.style.display = 'block';
+          alertBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>Idade (${age} anos):</strong> Menores de 18 anos ou maiores de 65 anos exigem o preenchimento do Responsável Legal.`;
+        }
+        if (respName) respName.required = true;
+        if (respCpf) respCpf.required = true;
+        if (lblName) lblName.textContent = '* Nome do Responsável (Obrigatório):';
+        if (lblCpf) lblCpf.textContent = '* CPF Responsável (Obrigatório):';
+      } else {
+        if (alertBadge) alertBadge.style.display = 'none';
+        if (respName) respName.required = false;
+        if (respCpf) respCpf.required = false;
+        if (lblName) lblName.textContent = 'Nome do Responsável:';
+        if (lblCpf) lblCpf.textContent = 'CPF Responsável:';
+      }
+    };
+
+    const birthInput = document.getElementById('birthDate');
+    if (birthInput) {
+      birthInput.addEventListener('change', checkAgeValidation);
+      birthInput.addEventListener('input', checkAgeValidation);
+    }
 
     // Máscara e Busca Automática de CEP via ViaCEP + BrasilAPI + Backend
     const cepInput = document.getElementById('cep');
@@ -3139,9 +3345,11 @@ async function renderTabContent() {
     const resetForm = () => {
       document.getElementById('patient-form').reset();
       document.getElementById('editId').value = "";
-      document.getElementById('form-title').textContent = "Admissão de Paciente";
+      document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente';
       document.getElementById('submit-btn').textContent = "Registrar Paciente";
       document.getElementById('cancel-edit-btn').style.display = "none";
+      const alertBadge = document.getElementById('responsible-alert-badge');
+      if (alertBadge) alertBadge.style.display = 'none';
     };
 
     // Registrar cancelamento
@@ -3171,6 +3379,17 @@ async function renderTabContent() {
       const fullName = document.getElementById('fullName').value;
       const cpf = document.getElementById('cpf').value;
       const birthDate = document.getElementById('birthDate').value;
+      const motherName = document.getElementById('motherName')?.value || '';
+      const fatherName = document.getElementById('fatherName')?.value || '';
+      const organDonor = document.getElementById('organDonor')?.value || 'Não Declarado';
+      const race = document.getElementById('race')?.value || 'Parda';
+      const religion = document.getElementById('religion')?.value || '';
+      const healthPlan = document.getElementById('healthPlan')?.value || 'Particular';
+      const cardNumber = document.getElementById('cardNumber')?.value || '';
+      const responsibleName = document.getElementById('responsibleName')?.value || '';
+      const responsibleCpf = document.getElementById('responsibleCpf')?.value || '';
+      const responsiblePhone = document.getElementById('responsiblePhone')?.value || '';
+      const responsibleRelationship = document.getElementById('responsibleRelationship')?.value || 'Pai/Mãe';
       const cep = document.getElementById('cep')?.value || '';
       const address = document.getElementById('address').value;
       const number = document.getElementById('number')?.value || '';
@@ -3192,23 +3411,29 @@ async function renderTabContent() {
           submitButton.textContent = 'Salvando...';
         }
 
+        const payload = {
+          fullName, cpf, birthDate, motherName, fatherName, organDonor, race, religion,
+          healthPlan, cardNumber, responsibleName, responsibleCpf, responsiblePhone, responsibleRelationship,
+          cep, address, number, neighborhood, city, phone, cellphone, billingValue
+        };
+
         const res = await apiFetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, cpf, birthDate, cep, address, number, neighborhood, city, phone, cellphone, billingValue }),
-          skipSyncPrompt: true
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (res.ok) {
           resetForm();
+          dataCache.delete('patients');
           await loadAndRenderTable();
+          showToast(`✅ Paciente ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`);
           state.loading = true;
-          await requestSyncPromptIfConfigured();
         } else {
-          alert(`Erro: ${data.message || 'Falha ao salvar paciente.'}`);
+          showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao salvar paciente.', type: 'danger' });
         }
       } catch (err) {
-        alert('Erro ao conectar-se à API.');
+        showCustomAlert({ title: 'Erro', message: 'Erro ao conectar-se à API.', type: 'danger' });
       } finally {
         if (submitButton) {
           submitButton.disabled = false;
@@ -4196,7 +4421,7 @@ async function fetchDashboardData() {
     } catch(e) {}
   }
 
-  const billingSum = (d.billingSummary && Number(d.billingSummary.totalRevenue) > 0)
+  const billingSum = d.billingSummary
     ? d.billingSummary
     : { totalRevenue: 245000.00, pendingClaims: 45100.00 };
 
@@ -5502,30 +5727,58 @@ function renderReportsTab(contentArea) {
     });
   };
 
-  const filterAndRender = () => {
+  const filterAndRender = async () => {
     if (activeTab === 'financial') {
       const previewCard = document.querySelector('.preview-card');
       if (!previewCard) return;
 
-      let pagasCount = 89, pagasVal = 13500.00;
-      let aVencerCount = 8, aVencerVal = 850.00;
-      let vencidasCount = 5, vencidasVal = 991.00;
-      let bonificadasCount = 2, bonificadasVal = 300.00;
+      let pagasCount = 0, pagasVal = 0;
+      let aVencerCount = 0, aVencerVal = 0;
+      let vencidasCount = 0, vencidasVal = 0;
+      let bonificadasCount = 0, bonificadasVal = 0;
       let suspensasCount = 0, suspensasVal = 0;
       let canceladasCount = 0, canceladasVal = 0;
       let excluidasCount = 0, excluidasVal = 0;
 
-      if (patientsList && patientsList.length > 0) {
-        patientsList.forEach((p, i) => {
-          const val = parseFloat((p.billingValue || '').replace(/[^\d,]/g, '').replace(',', '.')) || 150.00;
-          if (i % 5 === 0) {
-            aVencerCount++; aVencerVal += val;
-          } else if (i % 7 === 0) {
-            vencidasCount++; vencidasVal += val;
-          } else {
-            pagasCount++; pagasVal += val;
-          }
-        });
+      let finTitlesList = [];
+      try {
+        const response = await fetch('/api/financial/installments');
+        if (response.ok) {
+          const installments = await response.json();
+          finTitlesList = installments.map(inst => {
+            const val = parseFloat(inst.amount) || 0;
+            switch(inst.status) {
+              case 'Pagas': pagasCount++; pagasVal += val; break;
+              case 'A Vencer': aVencerCount++; aVencerVal += val; break;
+              case 'Vencidas': vencidasCount++; vencidasVal += val; break;
+              case 'Bonificadas': bonificadasCount++; bonificadasVal += val; break;
+              case 'Suspensas': suspensasCount++; suspensasVal += val; break;
+              case 'Canceladas': canceladasCount++; canceladasVal += val; break;
+              case 'Excluídas': excluidasCount++; excluidasVal += val; break;
+            }
+
+            let color = '#00f2fe';
+            if (inst.status === 'Pagas') color = '#34d399';
+            if (inst.status === 'Vencidas') color = '#f43f5e';
+            if (inst.status === 'Bonificadas') color = '#fbbf24';
+            if (inst.status === 'Suspensas') color = '#a855f7';
+            if (inst.status === 'Canceladas') color = '#f97316';
+            if (inst.status === 'Excluídas') color = '#dc2626';
+
+            return {
+              id: inst.id,
+              client: inst.patientName,
+              desc: inst.description,
+              dueDate: new Date(inst.dueDate).toLocaleDateString('pt-BR'),
+              amount: val,
+              amountFormatted: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val),
+              status: inst.status,
+              color: color
+            };
+          });
+        }
+      } catch (e) {
+        console.error("Erro ao carregar dados financeiros", e);
       }
 
       const totalVal = pagasVal + aVencerVal + vencidasVal + bonificadasVal + suspensasVal + canceladasVal + excluidasVal;
@@ -5542,22 +5795,6 @@ function renderReportsTab(contentArea) {
         { label: 'Suspensas', count: suspensasCount, totalValue: suspensasVal, color: '#a855f7' },
         { label: 'Canceladas', count: canceladasCount, totalValue: canceladasVal, color: '#f97316' },
         { label: 'Excluídas', count: excluidasCount, totalValue: excluidasVal, color: '#dc2626' }
-      ];
-
-      const finTitlesList = [
-        { id: 'TIT-90481', client: 'Carlos Eduardo Silva', desc: 'Consulta Ambulatorial & Exames Especializados', dueDate: '15/06/2026', amount: 350.00, amountFormatted: 'R$ 350,00', status: 'Vencidas', color: '#f43f5e' },
-        { id: 'TIT-90482', client: 'Mariana Oliveira Souza', desc: 'Procedimento Cirúrgico Porte 2', dueDate: '20/06/2026', amount: 1250.00, amountFormatted: 'R$ 1.250,00', status: 'Vencidas', color: '#f43f5e' },
-        { id: 'TIT-90483', client: 'Roberto Mendes Santos', desc: 'Internação UTI Geral (3 diárias)', dueDate: '02/07/2026', amount: 4800.00, amountFormatted: 'R$ 4.800,00', status: 'Vencidas', color: '#f43f5e' },
-        { id: 'TIT-90484', client: 'Ana Paula Ferreira', desc: 'Exames Laboratoriais Completos', dueDate: '10/07/2026', amount: 280.00, amountFormatted: 'R$ 280,00', status: 'Vencidas', color: '#f43f5e' },
-        { id: 'TIT-90485', client: 'Fernando Henrique Rocha', desc: 'Sessão de Fisioterapia Respiratória', dueDate: '18/07/2026', amount: 190.00, amountFormatted: 'R$ 190,00', status: 'Vencidas', color: '#f43f5e' },
-        { id: 'TIT-90410', client: 'Juliana Costa Lima', desc: 'Consulta Cardiologia Especializada', dueDate: '28/07/2026', amount: 420.00, amountFormatted: 'R$ 420,00', status: 'A Vencer', color: '#00f2fe' },
-        { id: 'TIT-90411', client: 'Lucas Gabriel Pereira', desc: 'Tomografia Computadorizada de Tórax', dueDate: '05/08/2026', amount: 850.00, amountFormatted: 'R$ 850,00', status: 'A Vencer', color: '#00f2fe' },
-        { id: 'TIT-90301', client: 'Beatriz Castro Alencar', desc: 'Atendimento de Urgência Pediatria', dueDate: '10/05/2026', amount: 540.00, amountFormatted: 'R$ 540,00', status: 'Pagas', color: '#34d399' },
-        { id: 'TIT-90302', client: 'Thiago Martins Fonseca', desc: 'Internação Enfermaria Geral (2 diárias)', dueDate: '12/05/2026', amount: 2150.00, amountFormatted: 'R$ 2.150,00', status: 'Pagas', color: '#34d399' },
-        { id: 'TIT-90303', client: 'Patrícia Duarte Ribeiro', desc: 'Consulta Ginecologia & Ultrassom', dueDate: '15/05/2026', amount: 480.00, amountFormatted: 'R$ 480,00', status: 'Pagas', color: '#34d399' },
-        { id: 'TIT-90304', client: 'Marcos Vinícius Barbosa', desc: 'Procedimento Ortopédico Eletivo', dueDate: '01/06/2026', amount: 1800.00, amountFormatted: 'R$ 1.800,00', status: 'Pagas', color: '#34d399' },
-        { id: 'TIT-90201', client: 'Renata Albuquerque Lima', desc: 'Isenção de Taxa Hospitalar Conveniada', dueDate: '05/06/2026', amount: 150.00, amountFormatted: 'R$ 150,00', status: 'Bonificadas', color: '#fbbf24' },
-        { id: 'TIT-90202', client: 'Eduardo Correia Neves', desc: 'Bonificação Convênio Parceiro VIP', dueDate: '10/06/2026', amount: 150.00, amountFormatted: 'R$ 150,00', status: 'Bonificadas', color: '#fbbf24' }
       ];
 
       window._activeFinStatusFilter = 'Todos';
@@ -5722,7 +5959,10 @@ function renderReportsTab(contentArea) {
               <span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${t.color}1e;color:${t.color};border:1px solid ${t.color}40;">${t.status}</span>
             </td>
             <td style="padding:10px 14px;text-align:center;">
-              <button class="btn btn-outline btn-view-boleto" style="font-size:0.72rem;padding:3px 9px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
+              <div style="display:flex;gap:5px;justify-content:center;">
+                <button class="btn btn-outline btn-view-boleto" style="font-size:0.72rem;padding:3px 9px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
+                ${t.status !== 'Pagas' ? `<button class="btn btn-primary btn-pay-installment" style="background:var(--success-color);font-size:0.72rem;padding:3px 9px;" data-id="${t.id}"><i class="fa-solid fa-check"></i> Baixar</button>` : ''}
+              </div>
             </td>
           </tr>
         `).join('');
@@ -5737,6 +5977,24 @@ function renderReportsTab(contentArea) {
               amountFormatted: btn.dataset.amount,
               amount: parseFloat(btn.dataset.val) || 0
             });
+          });
+        });
+
+        tbody.querySelectorAll('.btn-pay-installment').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (confirm('Confirmar baixa manual desta parcela?')) {
+              try {
+                const response = await fetch('/api/financial/installments/' + btn.dataset.id + '/pay', { method: 'PUT' });
+                if (response.ok) {
+                   filterAndRender(); // re-render
+                   fetchDashboardData(); // update header summaries
+                } else {
+                   alert('Erro ao baixar parcela.');
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }
           });
         });
       };
@@ -8136,7 +8394,7 @@ async function renderAgendaTab() {
       if (res.ok) {
         showToast('Consulta agendada com sucesso!');
         modal.style.display = 'none';
-        requestSyncPromptIfConfigured();
+        
         for (const key of dataCache.keys()) {
           if (typeof key === 'string' && key.startsWith('appointments_')) { dataCache.delete(key); dataCacheTimestamps.delete(key); }
         }
@@ -8162,7 +8420,7 @@ window.updateAppointmentStatus = async (id, status) => {
     });
     if (res.ok) {
       showToast(`Status da consulta atualizado para ${status}!`);
-      requestSyncPromptIfConfigured();
+      
       // Invalida cache de appointments e recarrega só a tabela (sem reconstruir a aba inteira)
       for (const key of dataCache.keys()) {
         if (typeof key === 'string' && key.startsWith('appointments_')) {
@@ -8469,7 +8727,7 @@ async function renderLeitosTab() {
       if (res.ok) {
         showToast('Paciente internado com sucesso!');
         modal.style.display = 'none';
-        requestSyncPromptIfConfigured();
+        
         loadBeds();
       } else {
         const d = await res.json();
@@ -8553,7 +8811,7 @@ window.dischargeBed = async (bedId) => {
     });
     if (res.ok) {
       showToast('Alta concedida com sucesso! Leito encaminhado para limpeza.');
-      requestSyncPromptIfConfigured();
+      
       renderLeitosTab();
     }
   } catch (e) {}
@@ -8568,7 +8826,7 @@ window.updateBedStatus = async (bedId, status) => {
     });
     if (res.ok) {
       showToast('Status do leito atualizado!');
-      requestSyncPromptIfConfigured();
+      
       renderLeitosTab();
     }
   } catch (e) {}
@@ -10168,11 +10426,12 @@ async function renderPharmacyTab() {
                 <th style="padding: 12px;">QTD ESTOQUE</th>
                 <th style="padding: 12px;">STATUS</th>
                 <th style="padding: 12px;">PREÇO UNIT.</th>
+                <th style="padding: 12px; text-align: right;">AÇÕES</th>
               </tr>
             </thead>
             <tbody id="pharmacy-table-body">
               <tr>
-                <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+                <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-secondary);">
                   <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Carregando estoque da farmácia...
                 </td>
               </tr>
@@ -10187,7 +10446,7 @@ async function renderPharmacyTab() {
   await loadPharmacyData();
 
   // Event Listeners
-  document.getElementById('btn-add-pharm-item')?.addEventListener('click', openAddPharmModal);
+  document.getElementById('btn-add-pharm-item')?.addEventListener('click', () => openAddPharmModal());
   document.getElementById('btn-dispense-med')?.addEventListener('click', openDispenseMedModal);
   document.getElementById('pharm-search-input')?.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
@@ -10221,7 +10480,7 @@ function renderPharmacyTable(items) {
   if (items.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+        <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-secondary);">
           Nenhum medicamento cadastrado no estoque.
         </td>
       </tr>
@@ -10259,6 +10518,16 @@ function renderPharmacyTable(items) {
         <td style="padding: 12px; font-weight: 700; color: ${isCritical ? '#ef4444' : 'var(--text-primary)'};">${qty} unds</td>
         <td style="padding: 12px;">${statusBadge}</td>
         <td style="padding: 12px; color: var(--text-primary); font-weight: 600;">R$ ${price.toFixed(2)}</td>
+        <td style="padding: 12px; text-align: right;">
+          <div class="actions-cell" style="justify-content: flex-end;">
+            <button class="btn-icon btn-edit-pharm" data-id="${item.id}" title="Editar Medicamento" style="color: #ec4899;">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button class="btn-icon btn-del-pharm" data-id="${item.id}" data-name="${item.name}" title="Excluir Medicamento" style="color: var(--color-danger);">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </td>
       </tr>
     `;
   }).join('');
@@ -10267,18 +10536,54 @@ function renderPharmacyTable(items) {
   document.getElementById('kpi-pharm-critical').textContent = criticalCount;
   document.getElementById('kpi-pharm-units').textContent = totalUnits;
   document.getElementById('kpi-pharm-value').textContent = `R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+  // Eventos de Editar e Excluir
+  document.querySelectorAll('.btn-edit-pharm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = currentPharmacyItems.find(i => i.id === btn.dataset.id);
+      if (item) openAddPharmModal(item);
+    });
+  });
+
+  document.querySelectorAll('.btn-del-pharm').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const name = btn.dataset.name;
+      const confirmed = await showCustomConfirm({
+        title: 'Excluir Medicamento',
+        message: `Tem certeza que deseja excluir o medicamento <strong>${name}</strong> do estoque?`,
+        confirmText: 'Sim, Excluir',
+        type: 'danger'
+      });
+
+      if (confirmed) {
+        try {
+          const res = await apiFetch(`/api/pharmacy/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast(`Medicamento "${name}" removido!`);
+            loadPharmacyData();
+          } else {
+            showCustomAlert({ title: 'Erro', message: 'Falha ao remover medicamento.', type: 'danger' });
+          }
+        } catch (e) {
+          showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'danger' });
+        }
+      }
+    });
+  });
 }
 
-function openAddPharmModal() {
+function openAddPharmModal(itemToEdit = null) {
   const existingModal = document.getElementById('modal-pharm-add-overlay');
   if (existingModal) existingModal.remove();
 
+  const isEdit = !!itemToEdit;
   const modalHtml = `
     <div id="modal-pharm-add-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 10, 20, 0.82); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 16px;">
       <div style="background: #1e1c2e; border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 16px; width: 100%; max-width: 560px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; animation: fadeInModal 0.25s ease-out;">
         <div style="background: linear-gradient(135deg, #be185d, #ec4899); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
           <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-pills"></i> Cadastrar Novo Medicamento
+            <i class="fa-solid ${isEdit ? 'fa-pen-to-square' : 'fa-pills'}"></i> ${isEdit ? 'Editar Medicamento' : 'Cadastrar Novo Medicamento'}
           </h3>
           <button type="button" id="btn-close-pharm-add-modal" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: background 0.2s;">
             <i class="fa-solid fa-xmark"></i>
@@ -10291,7 +10596,7 @@ function openAddPharmModal() {
               <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                 Nome do Medicamento *
               </label>
-              <input type="text" id="pharm-input-name" class="form-input" required placeholder="Ex: Amoxicilina + Clavulanato" style="width: 100%; box-sizing: border-box;">
+              <input type="text" id="pharm-input-name" class="form-input" required value="${itemToEdit?.name || ''}" placeholder="Ex: Amoxicilina + Clavulanato" style="width: 100%; box-sizing: border-box;">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -10299,28 +10604,28 @@ function openAddPharmModal() {
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                   Dosagem
                 </label>
-                <input type="text" id="pharm-input-dosage" class="form-input" placeholder="Ex: 500mg + 125mg" style="width: 100%; box-sizing: border-box;">
+                <input type="text" id="pharm-input-dosage" class="form-input" value="${itemToEdit?.dosage || ''}" placeholder="Ex: 500mg + 125mg" style="width: 100%; box-sizing: border-box;">
               </div>
               <div>
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                   Forma / Apresentação
                 </label>
-                <input type="text" id="pharm-input-form" class="form-input" placeholder="Ex: Comprimido, Ampola" style="width: 100%; box-sizing: border-box;">
+                <input type="text" id="pharm-input-form" class="form-input" value="${itemToEdit?.form || ''}" placeholder="Ex: Comprimido, Ampola" style="width: 100%; box-sizing: border-box;">
               </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div>
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
-                  Qtd Inicial em Estoque
+                  Qtd Atual em Estoque
                 </label>
-                <input type="number" id="pharm-input-stock" class="form-input" min="0" value="100" style="width: 100%; box-sizing: border-box;">
+                <input type="number" id="pharm-input-stock" class="form-input" min="0" value="${itemToEdit ? itemToEdit.stockQuantity : 100}" style="width: 100%; box-sizing: border-box;">
               </div>
               <div>
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                   Estoque Mínimo (Alerta)
                 </label>
-                <input type="number" id="pharm-input-minstock" class="form-input" min="1" value="10" style="width: 100%; box-sizing: border-box;">
+                <input type="number" id="pharm-input-minstock" class="form-input" min="1" value="${itemToEdit ? itemToEdit.minStock : 10}" style="width: 100%; box-sizing: border-box;">
               </div>
             </div>
 
@@ -10329,13 +10634,13 @@ function openAddPharmModal() {
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                   Lote
                 </label>
-                <input type="text" id="pharm-input-lot" class="form-input" placeholder="Ex: L2026C08" style="width: 100%; box-sizing: border-box;">
+                <input type="text" id="pharm-input-lot" class="form-input" value="${itemToEdit?.lotNumber || ''}" placeholder="Ex: L2026C08" style="width: 100%; box-sizing: border-box;">
               </div>
               <div>
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                   Validade
                 </label>
-                <input type="date" id="pharm-input-exp" class="form-input" style="width: 100%; box-sizing: border-box;">
+                <input type="date" id="pharm-input-exp" class="form-input" value="${itemToEdit?.expirationDate || ''}" style="width: 100%; box-sizing: border-box;">
               </div>
             </div>
 
@@ -10343,7 +10648,7 @@ function openAddPharmModal() {
               <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                 Preço Unitário (R$)
               </label>
-              <input type="number" step="0.01" id="pharm-input-price" class="form-input" min="0" placeholder="0.00" style="width: 100%; box-sizing: border-box;">
+              <input type="number" step="0.01" id="pharm-input-price" class="form-input" min="0" value="${itemToEdit?.unitPrice || 0}" placeholder="0.00" style="width: 100%; box-sizing: border-box;">
             </div>
           </div>
 
@@ -10352,7 +10657,7 @@ function openAddPharmModal() {
               Cancelar
             </button>
             <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none; padding: 10px 20px; font-weight: 600;">
-              <i class="fa-solid fa-check" style="margin-right: 6px;"></i> Salvar Medicamento
+              <i class="fa-solid fa-check" style="margin-right: 6px;"></i> ${isEdit ? 'Salvar Alterações' : 'Salvar Medicamento'}
             </button>
           </div>
         </form>
@@ -10384,20 +10689,23 @@ function openAddPharmModal() {
       return;
     }
 
+    const url = isEdit ? `/api/pharmacy/${itemToEdit.id}` : '/api/pharmacy';
+    const method = isEdit ? 'PUT' : 'POST';
+
     try {
-      const res = await apiFetch('/api/pharmacy', {
-        method: 'POST',
+      const res = await apiFetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, dosage, form, stockQuantity, minStock, lotNumber, expirationDate, unitPrice })
       });
 
       if (res.ok) {
         closeModal();
-        showCustomAlert({ title: 'Sucesso', message: `Medicamento "${name}" cadastrado com sucesso!`, type: 'success' });
+        showCustomAlert({ title: 'Sucesso', message: `Medicamento "${name}" ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`, type: 'success' });
         await loadPharmacyData();
       } else {
         const errData = await res.json();
-        showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao cadastrar medicamento.', type: 'danger' });
+        showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao salvar medicamento.', type: 'danger' });
       }
     } catch (err) {
       showCustomAlert({ title: 'Erro', message: 'Erro ao conectar com o servidor.', type: 'danger' });

@@ -1,6 +1,6 @@
-# Health Nexus — Guia do Desenvolvedor
+# Health Nexus — Guia do Desenvolvedor (Completo)
 
-Este manual orienta novos engenheiros na configuração do ambiente de desenvolvimento local, padrões de código, versionamento e implantação do **Health Nexus**.
+Este manual orienta novos engenheiros na configuração do ambiente de desenvolvimento local, padrões de código, versionamento, arquitetura de UI e implantação do **Health Nexus**.
 
 ---
 
@@ -58,6 +58,8 @@ PORT=3001
 
 ## 3. Arquitetura do Projeto
 
+O sistema é um monólito moderno com Frontend Vanilla e Backend Express.
+
 ```
 Health Nexus/
 ├── backend/
@@ -73,15 +75,18 @@ Health Nexus/
 ├── index.html           # Entry point HTML
 ├── vite.config.js       # Configuração do bundler Vite
 ├── vercel.json          # Configuração de deploy serverless no Vercel
+├── scripts/             # Scripts utilitários (ex: gerador de PDF)
 └── docs/                # Documentação técnica por módulo
 ```
 
-### Banco de Dados — Tabelas
+### 3.1 Banco de Dados — Tabelas e Soft-Delete
+
+A maioria das tabelas possui o campo `deleted_at` para permitir o fluxo de Lixeira.
 
 | Tabela | Campos principais |
 |---|---|
-| `users` | id, name, username, password_hash, role, created_at |
-| `patients` | id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at |
+| `users` | id, name, username, password_hash, role, created_at, deleted_at |
+| `patients` | id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, deleted_at |
 | `encounters` | id, patientId, type, status, admitted_at, completed_at |
 | `triages` | id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at |
 | `clinical_notes` | id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at |
@@ -89,15 +94,27 @@ Health Nexus/
 
 ---
 
-### 3.1 APIs Especiais (Painel TV & Validação de Pacientes)
+## 4. Módulos e Funcionalidades (O UI Router)
 
-- **`GET /api/tv/calls`**: Retorna as últimas 15 chamadas de TV ordenadas por data descrescente.
-- **`POST /api/tv/call`**: Registra uma nova chamada de TV no banco de dados. O Painel TV sincroniza a cada 3s via auto-polling.
-- **`POST /api/patients` & `PUT /api/patients/:id`**: Valida duplicidade de Nome Completo *(case-insensitive)* e CPF. Retorna `409 Conflict` se houver colisão.
+Toda a lógica visual está em `src/main.js`. O roteamento é feito injetando HTML no `<main id="app-content">` através do array de navegação `allNavItems` renderizado por `renderAppStructure()`.
+
+### Abas Suportadas e Suas Funções:
+1. **Dashboard:** Usa `Chart.js` para renderizar métricas financeiras e clínicas.
+2. **Agenda:** CRUD de horários vinculados aos médicos (Corpo Clínico).
+3. **Pacientes:** Formulário com API ViaCEP e prevenção `409 Conflict` contra CPFs/Nomes duplicados. Possui botão **Lixeira**.
+4. **Atendimento:** Renderiza colunas estilo Kanban (`Aguardando Triagem`, `Aguardando Médico`, `Em Atendimento`). Dispara o Painel TV via botão "Chamar".
+5. **Painel TV:** Faz auto-polling a cada 3 segundos em `/api/tv/calls` e usa `window.speechSynthesis` para ler os nomes em voz alta.
+6. **Alertas & Estagnação:** Monitora tempo excedido para Triagem (Manchester).
+7. **Leitos:** Exibe mapa de ocupação e gerencia limpeza (higienização pós-alta).
+8. **Farmácia & Estoque:** Cadastros e níveis de alerta para reposição de insumos.
+9. **Financeiro:** Telas para lançamento de guias e recebimentos de pacientes.
+10. **Corpo Clínico & Consultórios:** Configurações base.
+11. **Relatórios:** Permite puxar estatísticas gerais e exportar em PDF e CSV.
+12. **Configurações:** Setup do sistema, sincronização Turso e gestão de usuários (RBAC).
 
 ---
 
-## 4. Sincronização Local ↔ Turso (Cloud)
+## 5. Sincronização Local ↔ Turso (Cloud)
 
 O sistema opera em **dual-database mode**:
 
@@ -105,30 +122,14 @@ O sistema opera em **dual-database mode**:
 - **Vercel (produção):** banco principal é o Turso cloud
 
 ### Comportamento de Sync
-
-1. **Ao iniciar o servidor:** o sistema compara contagens e, se o Turso tiver mais registros, baixa automaticamente (`autoSyncFromCloud`)
-2. **Ao logar:** exibe modal de comparativo com quantidade e **data/hora** do último registro por tabela
-3. **Após cada escrita** (POST/PUT/DELETE): modal pergunta se deseja enviar os dados para a nuvem
-4. **Manual:** botões na aba Configurações para Enviar / Baixar a qualquer momento
-
-### Endpoint `/api/sync/status`
-
-Retorna:
-```json
-{
-  "cloudConfigured": true,
-  "isVercel": false,
-  "synchronized": false,
-  "local": { "users": 2, "patients": 5, ... },
-  "cloud": { "users": 2, "patients": 3, ... },
-  "localTimestamps": { "patients": "2026-07-19T13:10:00Z", ... },
-  "cloudTimestamps": { "patients": "2026-07-18T22:00:00Z", ... }
-}
-```
+1. **Ao iniciar o servidor:** compara contagens (`autoSyncFromCloud`).
+2. **Ao logar:** exibe modal de comparativo com quantidade e **data/hora** do último registro.
+3. **Após cada escrita** (POST/PUT/DELETE): modal pergunta se deseja enviar os dados para a nuvem.
+4. **Auto-Shutdown Inteligente:** O servidor Node.js finaliza (process.exit) se o navegador for fechado (tolerância de 1.5s).
 
 ---
 
-## 5. Padrões de Código
+## 6. Padrões de Código
 
 ### Convenção de Commits (Conventional Commits)
 
@@ -142,61 +143,30 @@ perf:     Otimização de performance
 chore:    Tarefas de manutenção (deps, scripts, config)
 ```
 
-**Exemplos:**
-```
-feat: modal de sync com data/hora por tabela ao logar
-fix: light mode — select com fundo escuro no modo claro
-docs: atualizar README com módulos implementados
-style: melhorar contraste de botões no tema claro
-```
-
-### Branches
-
-| Branch | Uso |
-|---|---|
-| `main` | Produção — qualquer push dispara deploy no Vercel |
-| `develop` | Integração de features em desenvolvimento |
-| `feature/*` | Nova funcionalidade ou módulo |
-| `hotfix/*` | Correção urgente direto da `main` |
+### Componentização Vanilla JS
+Toda tela principal no `main.js` segue o padrão:
+1. `renderNomeDaTela()`: Gera o layout HTML base (`innerHTML`).
+2. `fetchDados()`: Faz as chamadas à API local `fetch('/api/...')`.
+3. `updateDOM()`: Preenche os dados recebidos nas tabelas ou gráficos.
+4. `setupListeners()`: Adiciona os `addEventListener` aos botões.
 
 ---
 
-## 6. Deploy (Vercel)
+## 7. Deploy e Produção (Vercel)
 
-O deploy é **automático** via GitHub Actions / Vercel integration:
+O deploy é **automático** via integração Vercel e Github:
 
 ```bash
-# Qualquer push para main → build + deploy automático no Vercel
 git add .
-git commit -m "feat: descrição da mudança"
+git commit -m "feat: modulo de farmácia adicionado"
 git push origin main
 ```
 
-O arquivo `vercel.json` configura:
-- Rewrite de todas as rotas `/api/*` para o backend Express
-- Build com Vite para o frontend SPA
+O arquivo `vercel.json` garante:
+- Rewrite de rotas `/api/*` para a API Express Node.js.
+- Compilação estática do Vite para a interface.
+- Geração automatizada de logs em tempo de execução.
 
 ---
 
-## 7. Status Atual de Desenvolvimento — BETA 1.0.0
-
-### ✅ Implementado e Funcional
-- Autenticação JWT + roles (Administrador / Médico)
-- Dashboard com KPIs reais e gráficos (Chart.js)
-- CRUD completo de Pacientes
-- Triagem Manchester (5 cores) + Fila de Atendimento
-- PEP — Prontuário Eletrônico com SOAP + Assinatura digital
-- Relatórios e exportação PDF / XLSX / CSV
-- Tema Claro / Escuro (design system completo com tokens CSS)
-- Sincronização Local ↔ Turso com modal comparativo (qtd + data/hora)
-- Modal de confirmação após cada operação de escrita
-
-### 🔜 Próximos Módulos
-- Laboratório e resultados de exames
-- Integração DICOM/PACS (imagens médicas)
-- Faturamento e TISS (ANS)
-- Notificações em tempo real (WebSocket)
-
----
-
-*Desenvolvido por @mazzarowysk & @_coltri_*
+*Saúde e código limpo caminham juntos. Bom trabalho!*
