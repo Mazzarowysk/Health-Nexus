@@ -7701,6 +7701,8 @@ function renderReportsTab(contentArea) {
   }
 
   const processExport = async (format) => {
+    try {
+      if (typeof showToast === 'function') showToast(`Gerando ${format.toUpperCase()}...`);
     let recordsToExport = [];
     if (activeTab !== 'financial') {
       const checkedIds = Array.from(document.querySelectorAll('.record-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
@@ -7834,7 +7836,11 @@ function renderReportsTab(contentArea) {
     } else if (format === 'csv') {
       exportToCSV(columns, rows, filename);
     }
-  };
+  } catch (err) {
+    console.error('Erro ao exportar:', err);
+    if (typeof showToast === 'function') showToast('Erro ao exportar: ' + err.message);
+  }
+};
 
   btnPdf.addEventListener('click', () => processExport('pdf'));
   btnXls.addEventListener('click', () => processExport('xls'));
