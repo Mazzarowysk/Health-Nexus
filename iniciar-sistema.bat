@@ -5,13 +5,15 @@ echo ===================================================
 echo    HEALTH NEXUS - SISTEMA DE GESTAO HOSPITALAR
 echo ===================================================
 echo.
-echo [1/2] Abrindo a aplicacao no navegador (http://localhost:5173)...
-start http://localhost:5173
+echo [INFO] Encerrando processos Node anteriores (se houver)...
+taskkill /f /im node.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
 echo.
-echo [2/2] Servidor rodando localmente (Vite + Express)...
+echo [1/2] Iniciando Backend (porta 3001) + Frontend (porta 5173)...
+echo [2/2] Abrindo o navegador em 5 segundos...
 echo.
 echo ATENCAO: Mantenha esta janela aberta enquanto utilizar o sistema.
-echo.
 echo ===================================================
 echo.
+start /min cmd /c "timeout /t 5 /nobreak >nul && start http://localhost:5173"
 npm run dev
