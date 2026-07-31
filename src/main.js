@@ -6917,6 +6917,8 @@ function renderReportsTab(contentArea) {
   }
 
   function openFinancialListWindowModal(installmentsList, onRefresh) {
+    // Expor dados do modal para exportação global
+    window._modalFinTitlesList = installmentsList;
     let modal = document.getElementById('modal-financial-results-window');
     if (!modal) {
       modal = document.createElement('div');
@@ -7759,8 +7761,11 @@ function renderReportsTab(contentArea) {
       filename = `relatorio_financeiro_${activeFinStatus.toLowerCase().replace(/\s+/g, '_')}`;
       columns = ['Nosso Número', 'Paciente / Cliente', 'Descrição do Serviço', 'Vencimento', 'Valor (R$)', 'Status'];
 
-      // Pegar a lista que está na janela dedicada (window._finTitlesList é definido pelo filterAndRender)
-      const listToExport = (window._finTitlesList || []).filter(t =>
+      // Preferir dados do modal se estiver aberto, senão da aba financeiro
+      const modalList = window._modalFinTitlesList || [];
+      const tabList = window._finTitlesList || [];
+      const sourceList = modalList.length > 0 ? modalList : tabList;
+      const listToExport = sourceList.filter(t =>
         activeFinStatus === 'Todos' || t.status === activeFinStatus
       );
 
@@ -7792,7 +7797,7 @@ function renderReportsTab(contentArea) {
       });
 
       // Capturar imagens dos gráficos Chart.js (canvas -> base64)
-      // Tentar primeiro o modal, depois a aba financeiro
+      // Priorizar canvas do modal, depois da aba financeiro
       const donutCanvas = document.getElementById('modal-fin-donut-chart') || document.getElementById('finPieChart');
       const barCanvas = document.getElementById('modal-fin-bar-chart') || document.getElementById('finBarChart');
       const donutImg = donutCanvas ? donutCanvas.toDataURL('image/png') : null;
