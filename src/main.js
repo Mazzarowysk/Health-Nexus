@@ -5549,49 +5549,82 @@ function renderReportsTab(contentArea) {
       `;
     } else if (activeTab === 'financial') {
       filtersContainer.innerHTML = `
-        <div class="filters-grid">
+        <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; align-items: flex-end;">
           <div class="filter-group">
             <label>Vencimento Inicial</label>
             <input type="date" id="filter-date-start" value="2026-05-01">
           </div>
           <div class="filter-group">
             <label>Vencimento Final</label>
-            <input type="date" id="filter-date-end" value="2026-07-27">
+            <input type="date" id="filter-date-end" value="2026-12-31">
           </div>
           <div class="filter-group">
-            <label>Status Financeiro</label>
+            <label>Tipo Operação</label>
+            <select id="filter-fin-type" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.82rem;cursor:pointer;">
+              <option value="Todos">Todos (Receitas/Despesas)</option>
+              <option value="Receita">Receitas (Entradas)</option>
+              <option value="Despesa">Despesas (Saídas)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Status (Checkboxes)</label>
             <div class="dropdown-check-list" id="dropdown-fin-status">
               <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-status', event)">Status: Todos</div>
               <ul class="items">
-                <li>
-                  <input type="checkbox" id="filter-fin-all" checked>
-                  <label for="filter-fin-all"><strong>Selecionar Todos</strong></label>
-                </li>
-                <li>
-                  <input type="checkbox" class="filter-fin-item" value="Pagas" id="fin-st-1" checked>
-                  <label for="fin-st-1">Pagas</label>
-                </li>
-                <li>
-                  <input type="checkbox" class="filter-fin-item" value="A Vencer" id="fin-st-2" checked>
-                  <label for="fin-st-2">A Vencer</label>
-                </li>
-                <li>
-                  <input type="checkbox" class="filter-fin-item" value="Vencidas" id="fin-st-3" checked>
-                  <label for="fin-st-3">Vencidas</label>
-                </li>
-                <li>
-                  <input type="checkbox" class="filter-fin-item" value="Bonificadas" id="fin-st-4" checked>
-                  <label for="fin-st-4">Bonificadas</label>
-                </li>
+                <li><input type="checkbox" id="filter-fin-all" checked><label for="filter-fin-all"><strong>Selecionar Todos</strong></label></li>
+                <li><input type="checkbox" class="filter-fin-item" value="Pagas" id="fin-st-1" checked><label for="fin-st-1">Pagas</label></li>
+                <li><input type="checkbox" class="filter-fin-item" value="A Vencer" id="fin-st-2" checked><label for="fin-st-2">A Vencer</label></li>
+                <li><input type="checkbox" class="filter-fin-item" value="Vencidas" id="fin-st-3" checked><label for="fin-st-3">Vencidas</label></li>
+                <li><input type="checkbox" class="filter-fin-item" value="Bonificadas" id="fin-st-4" checked><label for="fin-st-4">Bonificadas</label></li>
+                <li><input type="checkbox" class="filter-fin-item" value="Suspensas" id="fin-st-5" checked><label for="fin-st-5">Suspensas</label></li>
               </ul>
             </div>
+          </div>
+          <div class="filter-group">
+            <label>Categorias</label>
+            <div class="dropdown-check-list" id="dropdown-fin-category">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-category', event)">Categorias: Todas</div>
+              <ul class="items">
+                <li><input type="checkbox" id="filter-fin-cat-all" checked><label for="filter-fin-cat-all"><strong>Selecionar Todas</strong></label></li>
+                <li><input type="checkbox" class="filter-fin-cat-item" value="Consultas" id="fin-cat-1" checked><label for="fin-cat-1">Consultas</label></li>
+                <li><input type="checkbox" class="filter-fin-cat-item" value="Procedimentos" id="fin-cat-2" checked><label for="fin-cat-2">Procedimentos</label></li>
+                <li><input type="checkbox" class="filter-fin-cat-item" value="Exames" id="fin-cat-3" checked><label for="fin-cat-3">Exames</label></li>
+                <li><input type="checkbox" class="filter-fin-cat-item" value="Operacionais" id="fin-cat-4" checked><label for="fin-cat-4">Operacionais</label></li>
+                <li><input type="checkbox" class="filter-fin-cat-item" value="Farmácia" id="fin-cat-5" checked><label for="fin-cat-5">Farmácia</label></li>
+                <li><input type="checkbox" class="filter-fin-cat-item" value="Insumos" id="fin-cat-6" checked><label for="fin-cat-6">Insumos</label></li>
+              </ul>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Forma Pagamento</label>
+            <div class="dropdown-check-list" id="dropdown-fin-method">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-method', event)">Formas: Todas</div>
+              <ul class="items">
+                <li><input type="checkbox" id="filter-fin-method-all" checked><label for="filter-fin-method-all"><strong>Selecionar Todas</strong></label></li>
+                <li><input type="checkbox" class="filter-fin-method-item" value="Pix" id="fin-m-1" checked><label for="fin-m-1">Pix</label></li>
+                <li><input type="checkbox" class="filter-fin-method-item" value="Boleto" id="fin-m-2" checked><label for="fin-m-2">Boleto</label></li>
+                <li><input type="checkbox" class="filter-fin-method-item" value="Cartão de Crédito" id="fin-m-3" checked><label for="fin-m-3">Cartão Crédito</label></li>
+                <li><input type="checkbox" class="filter-fin-method-item" value="Cartão de Débito" id="fin-m-4" checked><label for="fin-m-4">Cartão Débito</label></li>
+                <li><input type="checkbox" class="filter-fin-method-item" value="Dinheiro" id="fin-m-5" checked><label for="fin-m-5">Dinheiro</label></li>
+                <li><input type="checkbox" class="filter-fin-method-item" value="Convênio" id="fin-m-6" checked><label for="fin-m-6">Convênio</label></li>
+              </ul>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Busca Livre</label>
+            <input type="text" id="filter-fin-search" placeholder="Paciente ou ID..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.82rem;">
+          </div>
+          <div class="filter-group" style="grid-column: span 2; min-width: 240px;">
+            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;background:linear-gradient(135deg, #00f2fe, #4f46e5);color:#fff;font-weight:700;font-size:0.82rem;padding:8px 12px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(0,242,254,0.25);cursor:pointer;">
+              <i class="fa-solid fa-window-restore"></i> Visualizar Listagem em Janela Dedicada
+            </button>
           </div>
         </div>
       `;
     }
 
-    // Registrar event listeners nos campos de texto/data
-    const textInputs = filtersContainer.querySelectorAll('input[type="date"], input[type="number"]');
+    // Registrar event listeners nos campos de texto/data/select
+    const textInputs = filtersContainer.querySelectorAll('input[type="date"], input[type="text"], input[type="number"], select');
     textInputs.forEach(input => {
       input.addEventListener('change', filterAndRender);
       input.addEventListener('input', filterAndRender);
@@ -5607,6 +5640,8 @@ function renderReportsTab(contentArea) {
       document.getElementById('filter-doctor-name')?.addEventListener('change', filterAndRender);
     } else if (activeTab === 'financial') {
       setupFilterGroupSelectAll('filter-fin-all', 'filter-fin-item', 'dropdown-fin-status', 'Status');
+      setupFilterGroupSelectAll('filter-fin-cat-all', 'filter-fin-cat-item', 'dropdown-fin-category', 'Categorias');
+      setupFilterGroupSelectAll('filter-fin-method-all', 'filter-fin-method-item', 'dropdown-fin-method', 'Formas');
     }
 
     filterAndRender();
@@ -5795,6 +5830,15 @@ function renderReportsTab(contentArea) {
       const previewCard = document.querySelector('.preview-card');
       if (!previewCard) return;
 
+      // Capturar filtros ativos dos controles da UI
+      const dStart = document.getElementById('filter-date-start')?.value;
+      const dEnd = document.getElementById('filter-date-end')?.value;
+      const opType = document.getElementById('filter-fin-type')?.value || 'Todos';
+      const selStatus = [...document.querySelectorAll('.filter-fin-item:checked')].map(c => c.value);
+      const selCat = [...document.querySelectorAll('.filter-fin-cat-item:checked')].map(c => c.value);
+      const selMethod = [...document.querySelectorAll('.filter-fin-method-item:checked')].map(c => c.value);
+      const sTerm = document.getElementById('filter-fin-search')?.value?.toLowerCase()?.trim() || '';
+
       let pagasCount = 0, pagasVal = 0;
       let aVencerCount = 0, aVencerVal = 0;
       let vencidasCount = 0, vencidasVal = 0;
@@ -5808,7 +5852,37 @@ function renderReportsTab(contentArea) {
         const response = await fetch('/api/financial/installments');
         if (response.ok) {
           const installments = await response.json();
-          finTitlesList = installments.map(inst => {
+          finTitlesList = installments.filter(inst => {
+            const val = parseFloat(inst.amount) || 0;
+            const due = inst.dueDate || '';
+            const instType = inst.type || 'Receita';
+            const instCat = inst.category || 'Consultas';
+            const instMethod = inst.paymentMethod || 'Pix';
+            const clientName = (inst.patientName || '').toLowerCase();
+            const descName = (inst.description || '').toLowerCase();
+            const idName = (inst.id || '').toLowerCase();
+
+            // Filtro por Data
+            if (dStart && due < dStart) return false;
+            if (dEnd && due > dEnd) return false;
+
+            // Filtro por Tipo de Operação
+            if (opType !== 'Todos' && instType !== opType) return false;
+
+            // Filtro por Status
+            if (selStatus.length > 0 && !selStatus.includes(inst.status)) return false;
+
+            // Filtro por Categoria
+            if (selCat.length > 0 && !selCat.includes(instCat)) return false;
+
+            // Filtro por Forma de Pagamento
+            if (selMethod.length > 0 && !selMethod.includes(instMethod)) return false;
+
+            // Busca Livre por Texto
+            if (sTerm && !clientName.includes(sTerm) && !descName.includes(sTerm) && !idName.includes(sTerm)) return false;
+
+            return true;
+          }).map(inst => {
             const val = parseFloat(inst.amount) || 0;
             switch(inst.status) {
               case 'Pagas': pagasCount++; pagasVal += val; break;
@@ -5836,6 +5910,11 @@ function renderReportsTab(contentArea) {
               amount: val,
               amountFormatted: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val),
               status: inst.status,
+              type: inst.type || 'Receita',
+              category: inst.category || 'Consultas',
+              paymentMethod: inst.paymentMethod || 'Pix',
+              installmentNumber: inst.installmentNumber || 1,
+              totalInstallments: inst.totalInstallments || 1,
               color: color
             };
           });
@@ -5864,8 +5943,9 @@ function renderReportsTab(contentArea) {
 
       previewCard.innerHTML = `
         <div class="preview-header" style="flex-wrap: wrap; gap: 15px;">
-          <h3><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary);"></i> Relatório Financeiro de Títulos</h3>
+          <h3><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary);"></i> Relatório Financeiro de Títulos & Baixa Manual</h3>
           <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
+            <button id="btn-open-fin-window-card" class="btn btn-primary" style="background: linear-gradient(135deg, #00f2fe, #4f46e5); font-size: 0.8rem;"><i class="fa-solid fa-window-restore"></i> Abrir Janela Dedicada</button>
             <button id="btn-export-pdf" class="btn btn-primary" style="background: var(--danger-color); font-size: 0.8rem;"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
             <button id="btn-export-xls" class="btn btn-primary" style="background: var(--success-color); font-size: 0.8rem;"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
             <button id="btn-export-csv" class="btn btn-outline" style="font-size: 0.8rem;"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
@@ -5880,7 +5960,7 @@ function renderReportsTab(contentArea) {
             <span class="fin-kpi-badge" data-status="Bonificadas" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Bonificados">• Bonificadas: <strong>${bonificadasCount}</strong></span>
           </div>
           <div style="font-family: 'Outfit'; text-align: right;">
-            <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">SUBTOTAL CLIENTE</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">SUBTOTAL FILTRADO</span>
             <strong style="font-size: 1.2rem; color: var(--color-primary);">${totalFormatted}</strong>
           </div>
         </div>
@@ -5897,7 +5977,6 @@ function renderReportsTab(contentArea) {
           </div>
 
           <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: center;">
-            <!-- Lado Esquerdo: Anel Donut com KPI Central -->
             <div style="position: relative; width: 210px; height: 210px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
               <canvas id="finPieChart"></canvas>
               <div class="fin-donut-kpi" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
@@ -5906,7 +5985,6 @@ function renderReportsTab(contentArea) {
               </div>
             </div>
 
-            <!-- Lado Direito: Lista de Barras de Progresso por Status -->
             <div class="ward-progress-list" id="fin-status-progress-list">
               ${finData.map((item, idx) => {
                 const pct = totalVal > 0 ? ((item.totalValue / totalVal) * 100).toFixed(1) : '0.0';
@@ -5935,7 +6013,6 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
-        <!-- Seção do Gráfico de Barras por Valor -->
         <div class="chart-card tilt-card-3d" style="margin-top: 18px; padding: 18px; height: 250px; position: relative;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <h4 style="margin:0; font-size:0.9rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
@@ -5947,7 +6024,6 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
-        <!-- TABELA DE TÍTULOS FINANCEIROS FILTRADOS POR STATUS -->
         <div id="fin-titles-table-card" class="glass-card" style="margin-top: 22px; padding: 20px; border-radius: 14px; border: 1px solid var(--border-color);">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
             <div>
@@ -5955,7 +6031,7 @@ function renderReportsTab(contentArea) {
                 <i class="fa-solid fa-list-check" style="color: #00f2fe;"></i> Títulos Financeiros
                 <span id="fin-status-filter-tag" style="font-size:0.76rem; font-weight:600; padding:3px 10px; border-radius:12px; background:rgba(0,242,254,0.12); color:#00f2fe; border:1px solid rgba(0,242,254,0.3);">Todos os Status</span>
               </h4>
-              <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: var(--text-muted);">Clique em qualquer status acima (ex: <strong style="color:#f43f5e;">Vencidas</strong>) para filtrar instantaneamente e emitir o relatório.</p>
+              <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: var(--text-muted);">Clique no botão <strong style="color:#00f2fe;">Dar Baixa Manual</strong> para quitar qualquer parcela de forma simples e detalhada.</p>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="btn-fin-show-all" class="btn btn-outline" style="font-size: 0.78rem; padding: 5px 12px;"><i class="fa-solid fa-rotate-left"></i> Mostrar Todos</button>
@@ -5972,6 +6048,7 @@ function renderReportsTab(contentArea) {
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Nosso Número</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Paciente / Cliente</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Descrição / Serviço</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Parcela</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Vencimento</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: right;">Valor (R$)</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
@@ -5986,7 +6063,6 @@ function renderReportsTab(contentArea) {
         </div>
       `;
 
-      // Função de Renderização da Tabela Filtrada de Títulos
       const renderFinTable = (statusFilter = 'Todos') => {
         window._activeFinStatusFilter = statusFilter;
         const tbody = document.getElementById('fin-titles-table-body');
@@ -6005,30 +6081,34 @@ function renderReportsTab(contentArea) {
         }
 
         if (filtered.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum título encontrado com o status "${statusFilter}".</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum título encontrado com o status "${statusFilter}".</td></tr>`;
           return;
         }
 
         const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
 
-        tbody.innerHTML = filtered.map(t => `
-          <tr style="border-bottom:1px solid var(--border-color);transition:background 0.2s ease;">
-            <td style="padding:10px 14px;font-family:monospace;font-weight:700;color:var(--color-primary);font-size:0.84rem;">${t.id}</td>
-            <td style="padding:10px 14px;font-weight:600;color:var(--text-primary);font-size:0.86rem;">${hasPEP ? t.client : abbreviateName(t.client)}</td>
-            <td style="padding:10px 14px;font-size:0.82rem;color:var(--text-secondary);">${t.desc}</td>
-            <td style="padding:10px 14px;text-align:center;font-size:0.82rem;color:var(--text-secondary);">${t.dueDate}</td>
-            <td style="padding:10px 14px;text-align:right;font-family:monospace;font-weight:700;color:${t.color};font-size:0.88rem;">${t.amountFormatted}</td>
-            <td style="padding:10px 14px;text-align:center;">
-              <span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${t.color}1e;color:${t.color};border:1px solid ${t.color}40;">${t.status}</span>
-            </td>
-            <td style="padding:10px 14px;text-align:center;">
-              <div style="display:flex;gap:5px;justify-content:center;">
-                <button class="btn btn-outline btn-view-boleto" style="font-size:0.72rem;padding:3px 9px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
-                ${t.status !== 'Pagas' ? `<button class="btn btn-primary btn-pay-installment" style="background:var(--success-color);font-size:0.72rem;padding:3px 9px;" data-id="${t.id}"><i class="fa-solid fa-check"></i> Baixar</button>` : ''}
-              </div>
-            </td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = filtered.map(t => {
+          const instStr = (t.installmentNumber && t.totalInstallments) ? `${t.installmentNumber}/${t.totalInstallments}` : '1/1';
+          return `
+            <tr style="border-bottom:1px solid var(--border-color);transition:background 0.2s ease;">
+              <td style="padding:10px 14px;font-family:monospace;font-weight:700;color:var(--color-primary);font-size:0.84rem;">${t.id}</td>
+              <td style="padding:10px 14px;font-weight:600;color:var(--text-primary);font-size:0.86rem;">${hasPEP ? t.client : (typeof abbreviateName === 'function' ? abbreviateName(t.client) : t.client)}</td>
+              <td style="padding:10px 14px;font-size:0.82rem;color:var(--text-secondary);">${t.desc}</td>
+              <td style="padding:10px 14px;text-align:center;font-size:0.8rem;font-weight:700;color:#00f2fe;">${instStr}</td>
+              <td style="padding:10px 14px;text-align:center;font-size:0.82rem;color:var(--text-secondary);">${t.dueDate}</td>
+              <td style="padding:10px 14px;text-align:right;font-family:monospace;font-weight:700;color:${t.color};font-size:0.88rem;">${t.amountFormatted}</td>
+              <td style="padding:10px 14px;text-align:center;">
+                <span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${t.color}1e;color:${t.color};border:1px solid ${t.color}40;">${t.status}</span>
+              </td>
+              <td style="padding:10px 14px;text-align:center;">
+                <div style="display:flex;gap:5px;justify-content:center;">
+                  <button class="btn btn-outline btn-view-boleto" style="font-size:0.72rem;padding:3px 9px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
+                  ${t.status !== 'Pagas' ? `<button class="btn btn-primary btn-pay-installment-modal" style="background:linear-gradient(135deg, #10b981, #059669);font-size:0.72rem;padding:3px 9px;cursor:pointer;" data-id="${t.id}"><i class="fa-solid fa-hand-holding-dollar"></i> Quitar</button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
 
         tbody.querySelectorAll('.btn-view-boleto').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -6043,20 +6123,14 @@ function renderReportsTab(contentArea) {
           });
         });
 
-        tbody.querySelectorAll('.btn-pay-installment').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            if (confirm('Confirmar baixa manual desta parcela?')) {
-              try {
-                const response = await fetch('/api/financial/installments/' + btn.dataset.id + '/pay', { method: 'PUT' });
-                if (response.ok) {
-                   filterAndRender(); // re-render
-                   fetchDashboardData(); // update header summaries
-                } else {
-                   alert('Erro ao baixar parcela.');
-                }
-              } catch (e) {
-                console.error(e);
-              }
+        tbody.querySelectorAll('.btn-pay-installment-modal').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const item = finTitlesList.find(t => t.id === btn.dataset.id);
+            if (item) {
+              openPayInstallmentModal(item, () => {
+                filterAndRender();
+                if (typeof fetchDashboardData === 'function') fetchDashboardData();
+              });
             }
           });
         });
@@ -6067,7 +6141,6 @@ function renderReportsTab(contentArea) {
       setTimeout(() => {
         renderFinancialCharts(finData);
 
-        // Adicionar evento de clique nos badges e linhas para filtrar por status (ex: Vencidas)
         document.querySelectorAll('.fin-progress-row, .fin-kpi-badge').forEach(el => {
           el.addEventListener('click', (e) => {
             const statusTarget = el.dataset.status;
@@ -6082,12 +6155,21 @@ function renderReportsTab(contentArea) {
           renderFinTable('Todos');
         });
 
-        // Botões de exportação direta do card de Títulos Financeiros
+        // Event listener para a janela dedicada (Modal de Resultados)
+        const openWindowHandler = () => {
+          openFinancialListWindowModal(finTitlesList, () => {
+            filterAndRender();
+            if (typeof fetchDashboardData === 'function') fetchDashboardData();
+          });
+        };
+
+        document.getElementById('btn-open-fin-window-top')?.addEventListener('click', openWindowHandler);
+        document.getElementById('btn-open-fin-window-card')?.addEventListener('click', openWindowHandler);
+
         document.getElementById('btn-fin-card-pdf')?.addEventListener('click', () => processExport('pdf'));
         document.getElementById('btn-fin-card-xls')?.addEventListener('click', () => processExport('xls'));
         document.getElementById('btn-fin-card-csv')?.addEventListener('click', () => processExport('csv'));
 
-        // Botões de exportação do cabeçalho
         document.getElementById('btn-export-pdf')?.addEventListener('click', () => processExport('pdf'));
         document.getElementById('btn-export-xls')?.addEventListener('click', () => processExport('xls'));
         document.getElementById('btn-export-csv')?.addEventListener('click', () => processExport('csv'));
@@ -6611,6 +6693,339 @@ function renderReportsTab(contentArea) {
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     if (typeof showToast === 'function') showToast(`Relatório PDF gerado! Janela de impressão pronta.`);
+  }
+
+  function openPayInstallmentModal(installment, onComplete) {
+    let modal = document.getElementById('modal-manual-settlement');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modal-manual-settlement';
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const origAmount = parseFloat(installment.amount) || 0;
+    const instNumStr = (installment.installmentNumber && installment.totalInstallments) 
+      ? `${installment.installmentNumber}/${installment.totalInstallments}` 
+      : '1/1 (À Vista)';
+
+    modal.innerHTML = `
+      <div class="modal-card glass-card" style="max-width: 580px; width: 92%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); position: relative; z-index: 99999;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; font-family: 'Outfit', sans-serif;">Baixa Manual de Parcela</h3>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Quitação de Título Financeiro • Nosso Nº: <strong>${installment.id}</strong></span>
+            </div>
+          </div>
+          <button id="close-pay-modal-btn" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 18px; font-size: 0.84rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">PACIENTE / FAVORECIDO</span><strong>${installment.client || installment.patientName || 'Cliente Particular'}</strong></div>
+            <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">Nº PARCELA</span><strong style="color: #00f2fe;">${instNumStr}</strong></div>
+            <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">DESCRIÇÃO / SERVIÇO</span><span>${installment.desc || installment.description || 'Consulta Médica'}</span></div>
+            <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">VALOR ORIGINAL</span><strong style="color: #34d399; font-size: 1rem;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(origAmount)}</strong></div>
+          </div>
+        </div>
+
+        <form id="pay-installment-form">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Data do Pagamento *</label>
+              <input type="date" id="pay-date-input" value="${todayStr}" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.86rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Forma de Pagamento Efetiva *</label>
+              <select id="pay-method-input" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.86rem;">
+                <option value="Pix" ${installment.paymentMethod === 'Pix' ? 'selected' : ''}>Pix (Transferência Instantânea)</option>
+                <option value="Boleto" ${installment.paymentMethod === 'Boleto' ? 'selected' : ''}>Boleto Bancário</option>
+                <option value="Cartão de Crédito" ${installment.paymentMethod === 'Cartão de Crédito' ? 'selected' : ''}>Cartão de Crédito</option>
+                <option value="Cartão de Débito" ${installment.paymentMethod === 'Cartão de Débito' ? 'selected' : ''}>Cartão de Débito</option>
+                <option value="Dinheiro" ${installment.paymentMethod === 'Dinheiro' ? 'selected' : ''}>Dinheiro / Espécie</option>
+                <option value="Convênio" ${installment.paymentMethod === 'Convênio' ? 'selected' : ''}>Faturamento Convênio</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div>
+              <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Valor Pago (R$) *</label>
+              <input type="number" step="0.01" id="pay-amount-input" value="${origAmount.toFixed(2)}" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: #34d399; font-weight: 700; font-size: 0.9rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Desconto (R$)</label>
+              <input type="number" step="0.01" id="pay-discount-input" value="0.00" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.86rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Juros / Multa (R$)</label>
+              <input type="number" step="0.01" id="pay-interest-input" value="0.00" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.86rem;">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Observação / Nº do Comprovante</label>
+            <input type="text" id="pay-notes-input" placeholder="Ex: Aut. Pix 987654321 - Quitado no caixa hospitalar" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.86rem;">
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" id="cancel-pay-modal-btn" class="btn btn-outline" style="font-size: 0.85rem; padding: 8px 16px;">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-weight: 700; font-size: 0.88rem; padding: 8px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); cursor: pointer;">
+              <i class="fa-solid fa-check"></i> Confirmar Baixa Manual
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+
+    const closeModal = () => { modal.style.display = 'none'; };
+    document.getElementById('close-pay-modal-btn')?.addEventListener('click', closeModal);
+    document.getElementById('cancel-pay-modal-btn')?.addEventListener('click', closeModal);
+
+    document.getElementById('pay-installment-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payDate = document.getElementById('pay-date-input').value;
+      const payMethod = document.getElementById('pay-method-input').value;
+      const amountPaid = parseFloat(document.getElementById('pay-amount-input').value) || origAmount;
+      const discount = parseFloat(document.getElementById('pay-discount-input').value) || 0;
+      const interest = parseFloat(document.getElementById('pay-interest-input').value) || 0;
+      const notes = document.getElementById('pay-notes-input').value;
+
+      try {
+        const response = await fetch('/api/financial/installments/' + installment.id + '/pay', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentDate: payDate,
+            amountPaid: amountPaid,
+            paymentMethod: payMethod,
+            discount: discount,
+            interest: interest,
+            notes: notes
+          })
+        });
+
+        if (response.ok) {
+          closeModal();
+          if (typeof showToast === 'function') showToast(`✅ Baixa manual da parcela ${installment.id} efetuada com sucesso!`);
+          if (typeof onComplete === 'function') onComplete();
+        } else {
+          alert('Erro ao efetuar baixa manual.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erro na comunicação com o servidor.');
+      }
+    });
+  }
+
+  function openFinancialListWindowModal(installmentsList, onRefresh) {
+    let modal = document.getElementById('modal-financial-results-window');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modal-financial-results-window';
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+    }
+
+    let totalReceitas = 0, totalDespesas = 0;
+    let pagasCount = 0, aVencerCount = 0, vencidasCount = 0;
+
+    installmentsList.forEach(t => {
+      const val = parseFloat(t.amount) || 0;
+      if (t.type === 'Despesa') totalDespesas += val;
+      else totalReceitas += val;
+
+      if (t.status === 'Pagas') pagasCount++;
+      else if (t.status === 'Vencidas') vencidasCount++;
+      else aVencerCount++;
+    });
+
+    const saldoLiquido = totalReceitas - totalDespesas;
+    const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
+
+    modal.innerHTML = `
+      <div class="modal-card glass-card" style="max-width: 1240px; width: 96%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 92vh; overflow-y: auto; box-shadow: 0 25px 60px -12px rgba(0,0,0,0.8); position: relative;">
+        
+        <div style="position: sticky; top: -24px; z-index: 40; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 14px 20px; margin: -24px -24px 18px -24px; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; backdrop-filter: blur(12px);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #00f2fe, #4f46e5); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: #fff; box-shadow: 0 4px 14px rgba(0,242,254,0.3);">
+              <i class="fa-solid fa-window-restore"></i>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Outfit', sans-serif; display: flex; align-items: center; gap: 8px;">
+                Janela Dedicada: Títulos Financeiros & Parcelas
+              </h3>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">${installmentsList.length} títulos listados no filtro ativo</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button id="modal-fin-btn-pdf" class="btn btn-primary" style="background: linear-gradient(135deg, #ef4444, #dc2626); font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+            <button id="modal-fin-btn-xls" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+            <button id="modal-fin-btn-csv" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px;"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
+            <button id="modal-fin-btn-batch-pay" class="btn btn-primary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); font-size: 0.78rem; padding: 6px 14px; display: none;"><i class="fa-solid fa-check-double"></i> Baixar Selecionadas em Lote (<span id="modal-fin-batch-count">0</span>)</button>
+            <button id="close-modal-fin-window" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px;">
+          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 12px 16px;">
+            <span style="font-size: 0.72rem; color: #34d399; font-weight: 700; text-transform: uppercase;">Total Receitas (Entradas)</span>
+            <div style="font-family: 'Outfit'; font-size: 1.2rem; font-weight: 800; color: #34d399; margin-top: 2px;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalReceitas)}</div>
+          </div>
+          <div style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 12px; padding: 12px 16px;">
+            <span style="font-size: 0.72rem; color: #f43f5e; font-weight: 700; text-transform: uppercase;">Total Despesas (Saídas)</span>
+            <div style="font-family: 'Outfit'; font-size: 1.2rem; font-weight: 800; color: #f43f5e; margin-top: 2px;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalDespesas)}</div>
+          </div>
+          <div style="background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 12px; padding: 12px 16px;">
+            <span style="font-size: 0.72rem; color: #00f2fe; font-weight: 700; text-transform: uppercase;">Saldo Líquido Filtrado</span>
+            <div style="font-family: 'Outfit'; font-size: 1.2rem; font-weight: 800; color: ${saldoLiquido >= 0 ? '#00f2fe' : '#f43f5e'}; margin-top: 2px;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(saldoLiquido)}</div>
+          </div>
+          <div style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 12px 16px;">
+            <span style="font-size: 0.72rem; color: #fbbf24; font-weight: 700; text-transform: uppercase;">Resumo por Status</span>
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-top: 4px;">Pagas: ${pagasCount} • A Vencer: ${aVencerCount} • Vencidas: ${vencidasCount}</div>
+          </div>
+        </div>
+
+        <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 20px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+            <thead>
+              <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+                <th style="padding: 10px 12px; width: 36px; text-align: center;"><input type="checkbox" id="modal-fin-select-all" style="cursor:pointer;"></th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Nosso Número</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Paciente / Favorecido</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Descrição / Categoria</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Parcela</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Vencimento</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Forma Pagto</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: right;">Valor (R$)</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${installmentsList.length === 0 ? `
+                <tr><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum título financeiro encontrado para os filtros selecionados.</td></tr>
+              ` : installmentsList.map(t => {
+                const instStr = (t.installmentNumber && t.totalInstallments) ? `${t.installmentNumber}/${t.totalInstallments}` : '1/1';
+                const clientName = hasPEP ? t.client : (typeof abbreviateName === 'function' ? abbreviateName(t.client) : t.client);
+                return `
+                  <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                    <td style="padding: 10px 12px; text-align: center;"><input type="checkbox" class="modal-fin-row-check" data-id="${t.id}" style="cursor:pointer;"></td>
+                    <td style="padding: 10px 12px; font-family: monospace; font-weight: 700; color: var(--color-primary); font-size: 0.84rem;">${t.id}</td>
+                    <td style="padding: 10px 12px; font-weight: 600; color: var(--text-primary); font-size: 0.86rem;">${clientName}</td>
+                    <td style="padding: 10px 12px; font-size: 0.82rem; color: var(--text-secondary);">${t.desc} <span style="font-size:0.7rem; padding:1px 6px; border-radius:8px; background:rgba(255,255,255,0.06); margin-left:4px;">${t.category || 'Geral'}</span></td>
+                    <td style="padding: 10px 12px; text-align: center; font-size: 0.8rem; font-weight: 700; color: #00f2fe;">${instStr}</td>
+                    <td style="padding: 10px 12px; text-align: center; font-size: 0.82rem; color: var(--text-secondary);">${t.dueDate}</td>
+                    <td style="padding: 10px 12px; text-align: center; font-size: 0.78rem;"><span style="padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.06); font-weight: 600;">${t.paymentMethod || 'Pix'}</span></td>
+                    <td style="padding: 10px 12px; text-align: right; font-family: monospace; font-weight: 700; color: ${t.color}; font-size: 0.88rem;">${t.amountFormatted}</td>
+                    <td style="padding: 10px 12px; text-align: center;">
+                      <span style="padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: ${t.color}1e; color: ${t.color}; border: 1px solid ${t.color}40;">${t.status}</span>
+                    </td>
+                    <td style="padding: 10px 12px; text-align: center;">
+                      <div style="display: flex; gap: 6px; justify-content: center;">
+                        <button class="btn btn-outline modal-btn-boleto" style="font-size: 0.72rem; padding: 4px 8px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
+                        ${t.status !== 'Pagas' ? `<button class="btn btn-primary modal-btn-pay" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; cursor: pointer;" data-id="${t.id}"><i class="fa-solid fa-hand-holding-dollar"></i> Quitar</button>` : ''}
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+
+    const closeModal = () => { modal.style.display = 'none'; };
+    document.getElementById('close-modal-fin-window')?.addEventListener('click', closeModal);
+
+    const selectAll = document.getElementById('modal-fin-select-all');
+    const batchBtn = document.getElementById('modal-fin-btn-batch-pay');
+    const batchCount = document.getElementById('modal-fin-batch-count');
+
+    const updateBatchState = () => {
+      const checked = document.querySelectorAll('.modal-fin-row-check:checked');
+      if (checked.length > 0) {
+        batchBtn.style.display = 'inline-flex';
+        batchCount.textContent = checked.length;
+      } else {
+        batchBtn.style.display = 'none';
+      }
+    };
+
+    selectAll?.addEventListener('change', (e) => {
+      document.querySelectorAll('.modal-fin-row-check').forEach(cb => {
+        cb.checked = e.target.checked;
+      });
+      updateBatchState();
+    });
+
+    document.querySelectorAll('.modal-fin-row-check').forEach(cb => {
+      cb.addEventListener('change', updateBatchState);
+    });
+
+    batchBtn?.addEventListener('click', async () => {
+      const checked = [...document.querySelectorAll('.modal-fin-row-check:checked')].map(c => c.dataset.id);
+      if (checked.length === 0) return;
+      if (confirm(`Confirmar baixa manual em lote de ${checked.length} parcelas selecionadas?`)) {
+        try {
+          const response = await fetch('/api/financial/installments/pay-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: checked, notes: 'Baixa em lote realizada pela janela dedicada' })
+          });
+          if (response.ok) {
+            if (typeof showToast === 'function') showToast(`✅ ${checked.length} parcelas baixadas com sucesso!`);
+            closeModal();
+            if (typeof onRefresh === 'function') onRefresh();
+          } else {
+            alert('Erro ao efetuar baixa em lote.');
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
+
+    document.querySelectorAll('.modal-btn-boleto').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openBoletoModal({
+          id: btn.dataset.id,
+          client: btn.dataset.client,
+          desc: btn.dataset.desc,
+          dueDate: btn.dataset.duedate,
+          amountFormatted: btn.dataset.amount,
+          amount: parseFloat(btn.dataset.val) || 0
+        });
+      });
+    });
+
+    document.querySelectorAll('.modal-btn-pay').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = installmentsList.find(t => t.id === btn.dataset.id);
+        if (item) {
+          openPayInstallmentModal(item, () => {
+            closeModal();
+            if (typeof onRefresh === 'function') onRefresh();
+          });
+        }
+      });
+    });
+
+    document.getElementById('modal-fin-btn-pdf')?.addEventListener('click', () => processExport('pdf'));
+    document.getElementById('modal-fin-btn-xls')?.addEventListener('click', () => processExport('xls'));
+    document.getElementById('modal-fin-btn-csv')?.addEventListener('click', () => processExport('csv'));
   }
 
   function openBoletoModal(t) {

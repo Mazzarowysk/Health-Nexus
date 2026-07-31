@@ -270,6 +270,77 @@ const initLocalDb = async () => {
     }
   } catch (e) {}
 
+  // Seed de parcelas financeiras de demonstração se a tabela estiver vazia
+  try {
+    const SQL_FINANCIAL = `CREATE TABLE IF NOT EXISTS financial_installments (
+      id TEXT PRIMARY KEY,
+      patientId TEXT,
+      patientName TEXT,
+      description TEXT,
+      amount REAL NOT NULL,
+      dueDate TEXT NOT NULL,
+      status TEXT DEFAULT 'A Vencer',
+      type TEXT DEFAULT 'Receita',
+      category TEXT DEFAULT 'Consultas',
+      paymentMethod TEXT DEFAULT 'Pix',
+      installmentNumber INTEGER DEFAULT 1,
+      totalInstallments INTEGER DEFAULT 1,
+      paymentDate TEXT,
+      amountPaid REAL,
+      discount REAL DEFAULT 0,
+      interest REAL DEFAULT 0,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT
+    );`;
+    await db.execute(SQL_FINANCIAL);
+    for (const col of ["type TEXT DEFAULT 'Receita'", "category TEXT DEFAULT 'Consultas'", "paymentMethod TEXT DEFAULT 'Pix'", 'installmentNumber INTEGER DEFAULT 1', 'totalInstallments INTEGER DEFAULT 1', 'paymentDate TEXT', 'amountPaid REAL', 'discount REAL DEFAULT 0', 'interest REAL DEFAULT 0', 'notes TEXT', 'created_at TEXT DEFAULT CURRENT_TIMESTAMP', 'updated_at TEXT']) {
+      try { await db.execute(`ALTER TABLE financial_installments ADD COLUMN ${col}`); } catch (e) {}
+    }
+
+    const finCount = Number((await db.execute('SELECT COUNT(*) as c FROM financial_installments')).rows[0].c);
+    if (finCount === 0) {
+      const nowIso = new Date().toISOString();
+      const demoFinancial = [
+        { id: 'TIT-90481', patientId: 'PAT-DEMO-01', patientName: 'Carlos Eduardo Silva', description: 'Consulta Ambulatorial & Exames Especiais', amount: 350.00, dueDate: '2026-06-15', status: 'Vencidas', type: 'Receita', category: 'Consultas', paymentMethod: 'Boleto', installmentNumber: 1, totalInstallments: 1 },
+        { id: 'TIT-90482', patientId: 'PAT-DEMO-02', patientName: 'Mariana Oliveira Souza', description: 'Procedimento Cirúrgico Ortopédico (Porte 2)', amount: 625.00, dueDate: '2026-06-20', status: 'Vencidas', type: 'Receita', category: 'Procedimentos', paymentMethod: 'Cartão de Crédito', installmentNumber: 1, totalInstallments: 2 },
+        { id: 'TIT-90482-2', patientId: 'PAT-DEMO-02', patientName: 'Mariana Oliveira Souza', description: 'Procedimento Cirúrgico Ortopédico (Porte 2)', amount: 625.00, dueDate: '2026-07-20', status: 'A Vencer', type: 'Receita', category: 'Procedimentos', paymentMethod: 'Cartão de Crédito', installmentNumber: 2, totalInstallments: 2 },
+        { id: 'TIT-90483', patientId: 'PAT-DEMO-03', patientName: 'Roberto Mendes Santos', description: 'Internação UTI Geral (3 Diárias)', amount: 1600.00, dueDate: '2026-07-02', status: 'Vencidas', type: 'Receita', category: 'Operacionais', paymentMethod: 'Boleto', installmentNumber: 1, totalInstallments: 3 },
+        { id: 'TIT-90483-2', patientId: 'PAT-DEMO-03', patientName: 'Roberto Mendes Santos', description: 'Internação UTI Geral (3 Diárias)', amount: 1600.00, dueDate: '2026-08-02', status: 'A Vencer', type: 'Receita', category: 'Operacionais', paymentMethod: 'Boleto', installmentNumber: 2, totalInstallments: 3 },
+        { id: 'TIT-90483-3', patientId: 'PAT-DEMO-03', patientName: 'Roberto Mendes Santos', description: 'Internação UTI Geral (3 Diárias)', amount: 1600.00, dueDate: '2026-09-02', status: 'A Vencer', type: 'Receita', category: 'Operacionais', paymentMethod: 'Boleto', installmentNumber: 3, totalInstallments: 3 },
+        { id: 'TIT-90484', patientId: 'PAT-DEMO-04', patientName: 'Ana Paula Ferreira', description: 'Exames Laboratoriais Bioquímicos Completos', amount: 280.00, dueDate: '2026-07-10', status: 'Vencidas', type: 'Receita', category: 'Exames', paymentMethod: 'Pix', installmentNumber: 1, totalInstallments: 1 },
+        { id: 'TIT-90485', patientId: 'PAT-DEMO-05', patientName: 'Fernando Henrique Rocha', description: 'Sessão de Fisioterapia Respiratória', amount: 190.00, dueDate: '2026-07-18', status: 'Vencidas', type: 'Receita', category: 'Consultas', paymentMethod: 'Dinheiro', installmentNumber: 1, totalInstallments: 1 },
+        { id: 'TIT-90410', patientId: 'PAT-DEMO-06', patientName: 'Juliana Costa Lima', description: 'Consulta Cardiologia Especializada + ECG', amount: 420.00, dueDate: '2026-07-28', status: 'A Vencer', type: 'Receita', category: 'Consultas', paymentMethod: 'Pix', installmentNumber: 1, totalInstallments: 1 },
+        { id: 'TIT-90411', patientId: 'PAT-DEMO-07', patientName: 'Lucas Gabriel Pereira', description: 'Tomografia Computadorizada de Tórax', amount: 425.00, dueDate: '2026-08-05', status: 'A Vencer', type: 'Receita', category: 'Exames', paymentMethod: 'Cartão de Débito', installmentNumber: 1, totalInstallments: 2 },
+        { id: 'TIT-90411-2', patientId: 'PAT-DEMO-07', patientName: 'Lucas Gabriel Pereira', description: 'Tomografia Computadorizada de Tórax', amount: 425.00, dueDate: '2026-09-05', status: 'A Vencer', type: 'Receita', category: 'Exames', paymentMethod: 'Cartão de Débito', installmentNumber: 2, totalInstallments: 2 },
+        { id: 'TIT-90301', patientId: 'PAT-DEMO-08', patientName: 'Beatriz Castro Alencar', description: 'Atendimento Urgência Pediatria', amount: 540.00, dueDate: '2026-05-10', status: 'Pagas', type: 'Receita', category: 'Consultas', paymentMethod: 'Pix', installmentNumber: 1, totalInstallments: 1, paymentDate: '2026-05-10T14:30:00Z', amountPaid: 540.00 },
+        { id: 'TIT-90302', patientId: 'PAT-DEMO-09', patientName: 'Thiago Martins Fonseca', description: 'Internação Enfermaria Geral (2 Diárias)', amount: 1075.00, dueDate: '2026-05-12', status: 'Pagas', type: 'Receita', category: 'Operacionais', paymentMethod: 'Convênio', installmentNumber: 1, totalInstallments: 2, paymentDate: '2026-05-12T09:15:00Z', amountPaid: 1075.00 },
+        { id: 'TIT-90302-2', patientId: 'PAT-DEMO-09', patientName: 'Thiago Martins Fonseca', description: 'Internação Enfermaria Geral (2 Diárias)', amount: 1075.00, dueDate: '2026-06-12', status: 'Pagas', type: 'Receita', category: 'Operacionais', paymentMethod: 'Convênio', installmentNumber: 2, totalInstallments: 2, paymentDate: '2026-06-11T16:00:00Z', amountPaid: 1075.00 },
+        { id: 'TIT-90303', patientId: 'PAT-DEMO-10', patientName: 'Patrícia Duarte Ribeiro', description: 'Consulta Ginecologia & Ultrassonografia', amount: 480.00, dueDate: '2026-05-15', status: 'Pagas', type: 'Receita', category: 'Exames', paymentMethod: 'Cartão de Crédito', installmentNumber: 1, totalInstallments: 1, paymentDate: '2026-05-15T11:00:00Z', amountPaid: 480.00 },
+        { id: 'TIT-90304', patientId: 'PAT-DEMO-11', patientName: 'Marcos Vinícius Barbosa', description: 'Procedimento Ortopédico Eletivo', amount: 900.00, dueDate: '2026-06-01', status: 'Pagas', type: 'Receita', category: 'Procedimentos', paymentMethod: 'Boleto', installmentNumber: 1, totalInstallments: 2, paymentDate: '2026-06-01T10:20:00Z', amountPaid: 900.00 },
+        { id: 'TIT-90304-2', patientId: 'PAT-DEMO-11', patientName: 'Marcos Vinícius Barbosa', description: 'Procedimento Ortopédico Eletivo', amount: 900.00, dueDate: '2026-07-01', status: 'A Vencer', type: 'Receita', category: 'Procedimentos', paymentMethod: 'Boleto', installmentNumber: 2, totalInstallments: 2 },
+        { id: 'TIT-90201', patientId: 'PAT-DEMO-12', patientName: 'Renata Albuquerque Lima', description: 'Taxa Hospitalar Conveniada Isenta', amount: 150.00, dueDate: '2026-06-05', status: 'Bonificadas', type: 'Receita', category: 'Consultas', paymentMethod: 'Convênio', installmentNumber: 1, totalInstallments: 1 },
+        { id: 'TIT-90202', patientId: 'PAT-DEMO-13', patientName: 'Eduardo Correia Neves', description: 'Bonificação Convênio VIP Pós-Cirúrgico', amount: 150.00, dueDate: '2026-06-10', status: 'Bonificadas', type: 'Receita', category: 'Consultas', paymentMethod: 'Convênio', installmentNumber: 1, totalInstallments: 1 },
+        { id: 'TIT-90101', patientId: 'FOR-001', patientName: 'Farmácia BioMed Ltda', description: 'Aquisição de Antibióticos Hospitalares Lote A1', amount: 1850.00, dueDate: '2026-07-15', status: 'A Vencer', type: 'Despesa', category: 'Farmácia', paymentMethod: 'Boleto', installmentNumber: 1, totalInstallments: 1 },
+        { id: 'TIT-90102', patientId: 'FOR-002', patientName: 'Insumos Medic S.A.', description: 'Materiais Descartáveis, Seringas e Curativos', amount: 920.00, dueDate: '2026-07-22', status: 'A Vencer', type: 'Despesa', category: 'Insumos', paymentMethod: 'Boleto', installmentNumber: 1, totalInstallments: 1 }
+      ];
+
+      for (const item of demoFinancial) {
+        await db.execute({
+          sql: `INSERT INTO financial_installments (id, patientId, patientName, description, amount, dueDate, status, type, category, paymentMethod, installmentNumber, totalInstallments, paymentDate, amountPaid, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [
+            item.id, item.patientId, item.patientName, item.description, item.amount, item.dueDate, 
+            item.status, item.type, item.category, item.paymentMethod, item.installmentNumber, item.totalInstallments, 
+            item.paymentDate || null, item.amountPaid || null, nowIso, nowIso
+          ]
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('[DB] Erro no seed financeiro:', e.message);
+  }
+
   console.log('[DB] Banco local OK.');
 };
 
@@ -3985,8 +4056,35 @@ app.post('/api/sync/pull', async (req, res) => {
 // --- FINANCIAL ENDPOINTS ---
 app.get('/api/financial/installments', async (req, res) => {
   try {
-    const result = await db.execute('SELECT * FROM financial_installments ORDER BY dueDate ASC');
-    res.json(result.rows);
+    const { status, type, dateStart, dateEnd, search } = req.query;
+    let sql = 'SELECT * FROM financial_installments WHERE 1=1';
+    let args = [];
+
+    if (status && status !== 'Todos') {
+      sql += ' AND status = ?';
+      args.push(status);
+    }
+    if (type && type !== 'Todos') {
+      sql += ' AND type = ?';
+      args.push(type);
+    }
+    if (dateStart) {
+      sql += ' AND dueDate >= ?';
+      args.push(dateStart);
+    }
+    if (dateEnd) {
+      sql += ' AND dueDate <= ?';
+      args.push(dateEnd);
+    }
+    if (search) {
+      sql += ' AND (LOWER(patientName) LIKE ? OR LOWER(description) LIKE ? OR LOWER(id) LIKE ?)';
+      const term = `%${search.toLowerCase()}%`;
+      args.push(term, term, term);
+    }
+
+    sql += ' ORDER BY dueDate ASC';
+    const result = await db.execute({ sql, args });
+    res.json(result.rows || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -3994,14 +4092,21 @@ app.get('/api/financial/installments', async (req, res) => {
 
 app.post('/api/financial/installments', async (req, res) => {
   try {
-    const { id, patientId, patientName, description, amount, dueDate, status } = req.body;
+    const { id, patientId, patientName, description, amount, dueDate, status, type, category, paymentMethod, installmentNumber, totalInstallments } = req.body;
+    const instId = id || ('TIT-' + Math.floor(10000 + Math.random() * 90000));
+    const nowIso = new Date().toISOString();
     await db.execute({
-      sql: 'INSERT INTO financial_installments (id, patientId, patientName, description, amount, dueDate, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      args: [id, patientId, patientName, description, amount, dueDate, status || 'A Vencer']
+      sql: `INSERT INTO financial_installments (id, patientId, patientName, description, amount, dueDate, status, type, category, paymentMethod, installmentNumber, totalInstallments, created_at, updated_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        instId, patientId || '', patientName || 'Cliente Particular', description || 'Consulta Médica Hospitalar', 
+        Number(amount || 0), dueDate || nowIso.split('T')[0], status || 'A Vencer', type || 'Receita', 
+        category || 'Consultas', paymentMethod || 'Pix', Number(installmentNumber || 1), Number(totalInstallments || 1), 
+        nowIso, nowIso
+      ]
     });
-    // Queue sync
-    await db.execute({ sql: "INSERT INTO sync_queue (table_name, row_id, operation) VALUES ('financial_installments', ?, 'INSERT')", args: [id] });
-    res.status(201).json({ success: true });
+    try { await db.execute({ sql: "INSERT INTO sync_queue (table_name, row_id, operation) VALUES ('financial_installments', ?, 'INSERT')", args: [instId] }); } catch (e) {}
+    res.status(201).json({ success: true, message: 'Título financeiro criado com sucesso.', data: { id: instId } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -4010,17 +4115,44 @@ app.post('/api/financial/installments', async (req, res) => {
 app.put('/api/financial/installments/:id/pay', async (req, res) => {
   try {
     const { id } = req.params;
-    const now = new Date().toISOString();
+    const { paymentDate, amountPaid, paymentMethod, discount, interest, notes } = req.body || {};
+    const now = paymentDate ? new Date(paymentDate).toISOString() : new Date().toISOString();
+    const updatedIso = new Date().toISOString();
+
     await db.execute({
-      sql: 'UPDATE financial_installments SET status = ?, paymentDate = ?, updated_at = ? WHERE id = ?',
-      args: ['Pagas', now, now, id]
+      sql: `UPDATE financial_installments 
+            SET status = 'Pagas', paymentDate = ?, amountPaid = ?, paymentMethod = COALESCE(?, paymentMethod), discount = ?, interest = ?, notes = ?, updated_at = ? 
+            WHERE id = ?`,
+      args: [now, amountPaid ? Number(amountPaid) : null, paymentMethod || null, discount ? Number(discount) : 0, interest ? Number(interest) : 0, notes || 'Baixa manual realizada pelo usuário', updatedIso, id]
     });
-    // Queue sync
-    await db.execute({ sql: "INSERT INTO sync_queue (table_name, row_id, operation) VALUES ('financial_installments', ?, 'UPDATE')", args: [id] });
-    res.json({ success: true });
+    try { await db.execute({ sql: "INSERT INTO sync_queue (table_name, row_id, operation) VALUES ('financial_installments', ?, 'UPDATE')", args: [id] }); } catch (e) {}
+    res.json({ success: true, message: 'Baixa manual da parcela realizada com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/financial/installments/pay-batch', async (req, res) => {
+  try {
+    const { ids, paymentDate, paymentMethod, notes } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ status: 'error', message: 'Nenhuma parcela selecionada para baixa.' });
+    }
+    const now = paymentDate ? new Date(paymentDate).toISOString() : new Date().toISOString();
+    const updatedIso = new Date().toISOString();
+
+    for (const id of ids) {
+      await db.execute({
+        sql: `UPDATE financial_installments SET status = 'Pagas', paymentDate = ?, paymentMethod = COALESCE(?, paymentMethod), notes = ?, updated_at = ? WHERE id = ?`,
+        args: [now, paymentMethod || null, notes || 'Baixa em lote efetuada pelo usuário', updatedIso, id]
+      });
+      try { await db.execute({ sql: "INSERT INTO sync_queue (table_name, row_id, operation) VALUES ('financial_installments', ?, 'UPDATE')", args: [id] }); } catch (e) {}
+    }
+    res.json({ success: true, count: ids.length, message: `${ids.length} parcelas baixadas com sucesso.` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 export default app;
+
