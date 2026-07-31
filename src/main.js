@@ -8765,6 +8765,7 @@ async function openConsultorioDetailsModal(roomName) {
             ` : '<div style="color: var(--text-muted); margin-bottom: 24px; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">Nenhum procedimento concluído hoje neste consultório.</div>'}
 
             <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;">
+              <button class="btn btn-outline" style="margin-right: auto;" onclick="document.getElementById('consultorio-details-modal').remove();"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
               <button class="btn btn-outline" onclick="
                 window.pendingAgendaRoomFilter = '${roomName}';
                 document.getElementById('consultorio-details-modal').remove();
