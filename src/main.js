@@ -1484,9 +1484,13 @@ const initializeApp = async () => {
   initTheme();
   if (state.isAuthenticated && state.token) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       const res = await fetch(`${API_URL}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${state.token}` }
+        headers: { 'Authorization': `Bearer ${state.token}` },
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
@@ -1498,7 +1502,7 @@ const initializeApp = async () => {
         return;
       }
     } catch (e) {
-      console.warn('Servidor inacessível durante verificação inicial de sessão, usando credenciais em cache.');
+      console.warn('Servidor inacessível ou tempo esgotado na verificação de sessão. Usando dados locais.');
     }
 
     renderAppStructure();
@@ -3783,8 +3787,26 @@ async function renderTabContent() {
       });
       setCol('col-active', active, '#10b981', 'Nenhum em atendimento', buildActiveCard, (e) => {
         const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
+        const rx = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-rx`);
+        const obs = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-start-obs`);
+        const bed = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-transfer-bed`);
         const fin = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-finish-consult`);
         if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
+        if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
+        if (obs) obs.addEventListener('click', async () => {
+          try {
+            const res = await apiFetch(`/api/encounters/${e.id}/start-observation`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ notes: 'Paciente colocado em observação médica no PS' })
+            });
+            if (res.ok) {
+              showToast('⏱️ Paciente colocado em Observação Médica (Cronômetro 12h iniciado)');
+              await loadAndRenderKanban();
+            }
+          } catch(err) { showToast('Erro ao iniciar observação.', true); }
+        });
+        if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
         if (fin) fin.addEventListener('click', () => updateStatus(e.id, 'Finalizado', e.patientName));
       });
     };
@@ -3830,23 +3852,64 @@ async function renderTabContent() {
 
     const buildActiveCard = (e) => {
       const mc = getMC(e.manchesterColor);
+      const isObs = e.status === 'Em_Observacao' || !!e.observation_started_at;
+      let obsBadgeHtml = '';
+
+      if (isObs) {
+        const obsStart = new Date(e.observation_started_at || e.admitted_at).getTime();
+        const diffMs = Math.max(0, Date.now() - obsStart);
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (diffHours >= 12) {
+          obsBadgeHtml = `<div style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#f87171; border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; animation:pulse 1.5s infinite;">
+            <span><i class="fa-solid fa-triangle-exclamation"></i> EXCEDEU 12H PS: ${diffHours}h ${diffMins}m</span>
+            <span style="font-size:0.68rem; background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px;">TRANSFERIR</span>
+          </div>`;
+        } else if (diffHours >= 10) {
+          obsBadgeHtml = `<div style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fbbf24; border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+            <span><i class="fa-solid fa-clock"></i> Atenção (Limite 12h): ${diffHours}h ${diffMins}m</span>
+          </div>`;
+        } else {
+          obsBadgeHtml = `<div style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#60a5fa; border-radius:8px; padding:5px 10px; font-size:0.73rem; font-weight:600; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+            <span><i class="fa-solid fa-bed-pulse"></i> Obs PS: ${diffHours}h ${diffMins}m / 12h max</span>
+          </div>`;
+        }
+      }
+
       return `
-        <div style="background:var(--bg-tertiary);border:1px solid rgba(16,185,129,0.3);border-left:4px solid #10b981;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
+        <div style="background:var(--bg-tertiary);border:1px solid rgba(16,185,129,0.3);border-left:4px solid ${isObs ? '#f59e0b' : '#10b981'};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
             <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
             <span id="timer-${e.id}" style="font-size:0.7rem;color:#10b981;font-family:monospace;background:rgba(16,185,129,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:${e.complaints?'8px':'12px'};">
-            <span style="width:7px;height:7px;background:#10b981;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
-            <span style="font-size:0.75rem;color:#10b981;font-weight:600;">Em Consulta</span>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:${e.complaints || isObs ? '8px':'12px'};">
+            <span style="width:7px;height:7px;background:${isObs ? '#f59e0b' : '#10b981'};border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
+            <span style="font-size:0.75rem;color:${isObs ? '#f59e0b' : '#10b981'};font-weight:600;">${isObs ? 'Em Observação' : 'Em Consulta'}</span>
             ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;margin-left:auto;">${mc.label}</span>`:''}
           </div>
+          ${obsBadgeHtml}
           ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-open-pep" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary);border-radius:var(--radius-md);cursor:pointer;">
+          
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+            <button class="btn btn-open-pep" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary);border-radius:var(--radius-md);cursor:pointer;" title="Prontuário Eletrônico">
               <i class="fa-solid fa-file-medical"></i> PEP
             </button>
-            <button class="btn btn-primary btn-finish-consult" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:linear-gradient(135deg,#10b981,#059669);border:none;cursor:pointer;">
+            <button class="btn btn-open-rx" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a78bfa;border-radius:var(--radius-md);cursor:pointer;" title="Prescrição de Medicações">
+              <i class="fa-solid fa-scroll"></i> Prescrição
+            </button>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+            ${!isObs ? `
+              <button class="btn btn-start-obs" data-enc-id="${e.id}" style="font-size:0.72rem;padding:6px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fbbf24;border-radius:var(--radius-md);cursor:pointer;" title="Iniciar tempo de observação médica">
+                <i class="fa-solid fa-clock"></i> Observação
+              </button>
+            ` : `
+              <button class="btn btn-transfer-bed" data-enc-id="${e.id}" style="font-size:0.72rem;padding:6px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:var(--radius-md);cursor:pointer;font-weight:700;" title="Subir paciente para leito de internação">
+                <i class="fa-solid fa-bed"></i> Internar
+              </button>
+            `}
+            <button class="btn btn-primary btn-finish-consult" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:linear-gradient(135deg,#10b981,#059669);border:none;cursor:pointer;">
               <i class="fa-solid fa-circle-check"></i> Finalizar
             </button>
           </div>
@@ -8854,12 +8917,36 @@ async function renderDoctorsTab() {
         </div>
 
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button id="btn-open-duty-modal" class="btn" style="background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); padding: 10px 20px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s;" onclick="window.openDutyScheduleModal()">
+            <i class="fa-solid fa-calendar-days" style="margin-right: 6px;"></i> Escala de Plantão
+          </button>
           <button id="doctors-trash-btn" class="btn" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
             <i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i> Lixeira
           </button>
           <button id="btn-open-doctor-modal" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); cursor: pointer;">
             <i class="fa-solid fa-plus"></i> Novo Médico
           </button>
+        </div>
+      </div>
+
+      <!-- ESCALA DO DIA BANNER -->
+      <div id="duty-schedule-banner" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; backdrop-filter: var(--glass-blur);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); display: flex; align-items: center; justify-content: center; color: #60a5fa;">
+              <i class="fa-solid fa-calendar-check" style="font-size: 1.1rem;"></i>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">Médicos de Plantão Hoje</h3>
+              <span id="duty-schedule-date" style="font-size: 0.78rem; color: var(--text-muted);"></span>
+            </div>
+          </div>
+          <button class="btn" onclick="window.openDutyScheduleModal()" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; cursor: pointer;">
+            <i class="fa-solid fa-plus-circle" style="color: #60a5fa;"></i> Adicionar Plantonista
+          </button>
+        </div>
+        <div id="duty-schedule-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+          <div style="text-align: center; color: var(--text-muted); padding: 18px; font-size: 0.85rem;">Carregando escala de plantão...</div>
         </div>
       </div>
 
@@ -9114,6 +9201,7 @@ async function renderDoctorsTab() {
 
   const loadDoctors = async () => {
     try {
+      window.loadDutyScheduleBanner();
       const doctors = await cachedApiGet('/api/doctors', 'doctors');
       allDoctorsCache = Array.isArray(doctors) ? doctors : [];
       renderTable(allDoctorsCache);
@@ -11387,3 +11475,710 @@ window.showTrashModal = async function(type) {
 window.saveRoom = saveRoom;
 window.deleteRoom = deleteRoom;
 window.openRoomModal = openRoomModal;
+
+// --- FASE 2: PRESCRIÇÃO MÉDICA, TIMER DE OBSERVAÇÃO 12H E TRANSFERÊNCIA DE LEITO ---
+
+// 1. PDF DA PRESCRIÇÃO MÉDICA
+window.generatePrescriptionPDF = async function(prescription, administrations = []) {
+  if (!window.jspdf) { alert('⚠️ Biblioteca PDF não carregada.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const loadLogo = () => new Promise(resolve => {
+    const img = new Image(); img.src = '/assets/logo.png';
+    img.onload = () => resolve(img); img.onerror = () => resolve(null);
+  });
+
+  const logoImg = await loadLogo();
+
+  // Cabeçalho
+  doc.setFillColor(99, 102, 241);
+  doc.rect(0, 0, 210, 28, 'F');
+  if (logoImg) doc.addImage(logoImg, 'PNG', 8, 5, 18, 18);
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(15); doc.setFont('helvetica', 'bold');
+  doc.text('HEALTH NEXUS', 30, 13);
+  doc.setFontSize(8.5); doc.setFont('helvetica', 'normal');
+  doc.text('Sistema de Gestão Hospitalar & Prontuário', 30, 19);
+  doc.text('RECEITUÁRIO & PRESCRIÇÃO MÉDICA', 125, 13);
+  doc.text(`Data: ${new Date(prescription.created_at || Date.now()).toLocaleString('pt-BR')}`, 125, 19);
+
+  // Informações do Paciente e Médico
+  doc.setTextColor(30, 30, 50);
+  doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+  doc.text(`PACIENTE: ${prescription.patientName}`, 14, 38);
+  doc.setFontSize(9.5); doc.setFont('helvetica', 'normal');
+  doc.text(`MÉDICO PRESCRITOR: ${prescription.doctorName}`, 14, 45);
+  doc.text(`Nº PRESCRIÇÃO: #${prescription.id}`, 145, 45);
+
+  doc.setDrawColor(99, 102, 241); doc.setLineWidth(0.5);
+  doc.line(14, 49, 196, 49);
+
+  // Tabela de Medicamentos
+  let medications = [];
+  try {
+    medications = typeof prescription.medicationsJson === 'string' ? JSON.parse(prescription.medicationsJson) : prescription.medicationsJson;
+  } catch(e) { medications = []; }
+
+  const tableData = medications.map((m, idx) => [
+    `${idx + 1}. ${m.name}`,
+    m.dosage || '—',
+    m.route || 'VO',
+    m.frequency || '8/8h',
+    m.instructions || 'Conforme orientação'
+  ]);
+
+  doc.autoTable({
+    startY: 54,
+    head: [['Medicamento', 'Dose', 'Via', 'Frequência', 'Instruções']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+    styles: { fontSize: 8.5, cellPadding: 3 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 14, right: 14 }
+  });
+
+  let finalY = doc.lastAutoTable.finalY + 10;
+
+  // Tabela de Administrações da Enfermagem se houver
+  if (administrations && administrations.length > 0) {
+    if (finalY > 220) { doc.addPage(); finalY = 20; }
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(16, 185, 129);
+    doc.text('REGISTRO DE ADMINISTRAÇÃO (ENFERMAGEM)', 14, finalY);
+    finalY += 5;
+
+    const admData = administrations.map(a => [
+      a.medicationName,
+      a.nurseName,
+      new Date(a.administeredAt).toLocaleString('pt-BR'),
+      a.notes || 'Administrado'
+    ]);
+
+    doc.autoTable({
+      startY: finalY,
+      head: [['Medicamento', 'Enfermeiro(a)', 'Data / Hora', 'Observações']],
+      body: admData,
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold', fontSize: 8.5 },
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { left: 14, right: 14 }
+    });
+    finalY = doc.lastAutoTable.finalY + 10;
+  }
+
+  // Assinatura Médica
+  if (finalY > 235) { doc.addPage(); finalY = 30; }
+  doc.setDrawColor(150, 150, 150); doc.setLineWidth(0.4);
+  doc.line(65, finalY + 15, 145, finalY + 15);
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(50, 50, 70);
+  doc.text(prescription.doctorName, 105, finalY + 20, { align: 'center' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100, 100, 120);
+  doc.text('Assinatura e Carimbo do Profissional Responsável', 105, finalY + 24, { align: 'center' });
+
+  // Rodapé
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8); doc.setTextColor(160, 160, 160);
+    doc.line(14, 283, 196, 283);
+    doc.text(`Health Nexus — Prescrição Hospitalar Oficial | Página ${i} de ${pageCount}`, 105, 288, { align: 'center' });
+  }
+
+  const safeName = (prescription.patientName || 'paciente').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 25);
+  doc.save(`prescricao_${safeName}_#${prescription.id}.pdf`);
+};
+
+// 2. MODAL DE PRESCRIÇÃO MÉDICA E PLANILHA DE ADMINISTRAÇÃO DA ENFERMAGEM
+window.openPrescriptionModal = async function(encounterId, patientName, patientId = '') {
+  let modal = document.getElementById('modal-prescription-rx');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-prescription-rx';
+    modal.className = 'modal-overlay';
+    modal.style.zIndex = '3500';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 900px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column; padding: 24px; border-radius: 16px;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: center; color: #a78bfa;">
+            <i class="fa-solid fa-scroll" style="font-size: 1.1rem;"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">Receituário & Prescrição Médica</h3>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Paciente: <strong style="color: var(--text-primary);">${patientName}</strong></span>
+          </div>
+        </div>
+        <button class="btn-close" onclick="document.getElementById('modal-prescription-rx').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body" style="overflow-y: auto; flex: 1; padding-right: 6px;">
+        
+        <!-- SEÇÃO 1: CRIAR NOVA PRESCRIÇÃO -->
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; margin-bottom: 20px;">
+          <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; font-weight: 700; color: #a78bfa; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-file-signature"></i> Nova Prescrição Médica (Planilha)
+          </h4>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr; gap: 10px; margin-bottom: 10px;" id="rx-item-inputs">
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Medicamento</label>
+              <input type="text" id="rx-med-name" class="form-input" placeholder="Ex: Dipirona Sódica" style="width: 100%; font-size: 0.83rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Dose</label>
+              <input type="text" id="rx-med-dose" class="form-input" placeholder="Ex: 500mg (1 amp)" style="width: 100%; font-size: 0.83rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Via</label>
+              <select id="rx-med-route" class="form-input" style="width: 100%; font-size: 0.83rem;">
+                <option value="VO">VO (Oral)</option>
+                <option value="EV">EV (Endovenoso)</option>
+                <option value="IM">IM (Intramuscular)</option>
+                <option value="SC">SC (Subcutâneo)</option>
+                <option value="Tópica">Tópica</option>
+                <option value="Inalatória">Inalatória</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Frequência</label>
+              <select id="rx-med-freq" class="form-input" style="width: 100%; font-size: 0.83rem;">
+                <option value="De 8 em 8h">De 8/8h</option>
+                <option value="De 6 em 6h">De 6/6h</option>
+                <option value="De 12 em 12h">De 12/12h</option>
+                <option value="1x ao dia">1x ao dia</option>
+                <option value="Se dor/febre">Se dor/febre</option>
+                <option value="Dose Única">Dose Única</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Instruções</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="text" id="rx-med-notes" class="form-input" placeholder="Diluir em 100ml SF" style="flex: 1; font-size: 0.83rem;">
+                <button type="button" id="btn-add-rx-item" class="btn btn-primary" style="padding: 0 12px; font-size: 0.8rem; height: 38px; border-radius: 8px;" title="Adicionar item à lista">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RASCUNHO DA TABELA DE MEDICAÇÕES -->
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; margin-top: 12px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Planilha da Prescrição Atual:</div>
+            <div id="rx-draft-table" style="max-height: 140px; overflow-y: auto;">
+              <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+).</div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+              <button type="button" id="btn-save-rx" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" disabled>
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Prescrição Médica
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEÇÃO 2: PRESCRIÇÕES ATIVAS & PLANILHA DE ADMINISTRAÇÃO DA ENFERMAGEM -->
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px;">
+          <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; font-weight: 700; color: #34d399; display: flex; align-items: center; justify-content: space-between;">
+            <span><i class="fa-solid fa-notes-medical"></i> Prescrições Ativas & Checagem da Enfermagem</span>
+            <span style="font-size: 0.78rem; font-weight: 400; color: var(--text-muted);">Administração Contínua</span>
+          </h4>
+          <div id="rx-active-container">
+            <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 24px;">Carregando prescrições...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+
+  let draftItems = [];
+
+  const updateDraftTable = () => {
+    const tableEl = document.getElementById('rx-draft-table');
+    const saveBtn = document.getElementById('btn-save-rx');
+    if (draftItems.length === 0) {
+      tableEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+).</div>';
+      saveBtn.disabled = true;
+      return;
+    }
+    saveBtn.disabled = false;
+
+    let html = `
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-muted);">
+            <th style="padding: 6px;">Medicamento</th>
+            <th style="padding: 6px;">Dose</th>
+            <th style="padding: 6px;">Via</th>
+            <th style="padding: 6px;">Frequência</th>
+            <th style="padding: 6px;">Instruções</th>
+            <th style="padding: 6px; text-align: right;">Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    draftItems.forEach((item, idx) => {
+      html += `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 6px; font-weight: 600; color: var(--text-primary);">${item.name}</td>
+          <td style="padding: 6px; color: var(--text-secondary);">${item.dosage || '—'}</td>
+          <td style="padding: 6px;"><span style="background: rgba(99,102,241,0.15); color: #a78bfa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${item.route}</span></td>
+          <td style="padding: 6px; color: var(--text-secondary);">${item.frequency}</td>
+          <td style="padding: 6px; color: var(--text-muted);">${item.instructions || '—'}</td>
+          <td style="padding: 6px; text-align: right;">
+            <button type="button" class="btn-remove-rx-draft" data-idx="${idx}" style="background: transparent; border: none; color: var(--danger-color); cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table>';
+    tableEl.innerHTML = html;
+
+    tableEl.querySelectorAll('.btn-remove-rx-draft').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = Number(e.currentTarget.dataset.idx);
+        draftItems.splice(idx, 1);
+        updateDraftTable();
+      });
+    });
+  };
+
+  document.getElementById('btn-add-rx-item').onclick = () => {
+    const name = document.getElementById('rx-med-name').value.trim();
+    const dosage = document.getElementById('rx-med-dose').value.trim();
+    const route = document.getElementById('rx-med-route').value;
+    const frequency = document.getElementById('rx-med-freq').value;
+    const instructions = document.getElementById('rx-med-notes').value.trim();
+
+    if (!name) { alert('Digite o nome do medicamento.'); return; }
+
+    draftItems.push({ name, dosage, route, frequency, instructions });
+    document.getElementById('rx-med-name').value = '';
+    document.getElementById('rx-med-dose').value = '';
+    document.getElementById('rx-med-notes').value = '';
+    updateDraftTable();
+  };
+
+  document.getElementById('btn-save-rx').onclick = async () => {
+    if (draftItems.length === 0) return;
+    const doctorName = state.user ? state.user.name : 'Dr. Médico Plantonista';
+    try {
+      const res = await apiFetch(`/api/encounters/${encounterId}/prescriptions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId: patientId || 'P-' + Date.now(), patientName, doctorName, medications: draftItems })
+      });
+      if (res.ok) {
+        showToast(' Prescrição médica salva com sucesso!');
+        draftItems = [];
+        updateDraftTable();
+        loadActivePrescriptions();
+      }
+    } catch(err) {
+      alert('Erro de conexão ao salvar prescrição.');
+    }
+  };
+
+  const loadActivePrescriptions = async () => {
+    const container = document.getElementById('rx-active-container');
+    try {
+      const res = await apiFetch(`/api/encounters/${encounterId}/prescriptions`);
+      const json = await res.json();
+      const prescriptions = json.data?.prescriptions || [];
+      const administrations = json.data?.administrations || [];
+
+      if (prescriptions.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 24px;">Nenhuma prescrição gerada para este atendimento ainda.</div>';
+        return;
+      }
+
+      let html = '';
+      prescriptions.forEach(p => {
+        let meds = [];
+        try { meds = typeof p.medicationsJson === 'string' ? JSON.parse(p.medicationsJson) : p.medicationsJson; } catch(e) { meds = []; }
+
+        html += `
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">Prescrição #${p.id}</span>
+                <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 10px;">Prescrito por: <strong style="color:var(--text-primary);">${p.doctorName}</strong> em ${new Date(p.created_at).toLocaleString('pt-BR')}</span>
+              </div>
+              <button class="btn btn-primary btn-pdf-rx" data-id="${p.id}" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-file-pdf"></i> Imprimir PDF
+              </button>
+            </div>
+
+            <!-- TABELA ESTILO PLANILHA DE ENFERMAGEM -->
+            <div class="table-responsive">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-muted);">
+                    <th style="padding: 8px;">Medicamento / Dose</th>
+                    <th style="padding: 8px;">Via & Freq.</th>
+                    <th style="padding: 8px;">Instruções</th>
+                    <th style="padding: 8px;">Última Checagem Enfermagem</th>
+                    <th style="padding: 8px; text-align: right;">Ação Enfermagem</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        meds.forEach(m => {
+          const medAdms = administrations.filter(a => a.prescriptionId === p.id && a.medicationName === m.name);
+          const lastAdm = medAdms.length > 0 ? medAdms[0] : null;
+
+          html += `
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 8px;">
+                <strong style="color: var(--text-primary);">${m.name}</strong><br>
+                <span style="font-size: 0.73rem; color: var(--text-muted);">${m.dosage || 'Dose padrão'}</span>
+              </td>
+              <td style="padding: 8px;">
+                <span style="background: rgba(99,102,241,0.15); color: #a78bfa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${m.route}</span>
+                <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 4px;">${m.frequency}</span>
+              </td>
+              <td style="padding: 8px; color: var(--text-secondary); font-style: italic;">${m.instructions || '—'}</td>
+              <td style="padding: 8px;">
+                ${lastAdm ? `
+                  <span style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${new Date(lastAdm.administeredAt).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span><br>
+                  <span style="font-size: 0.7rem; color: var(--text-muted);">Por: ${lastAdm.nurseName}</span>
+                ` : `
+                  <span style="color: var(--text-muted); font-style: italic;">Pendente</span>
+                `}
+              </td>
+              <td style="padding: 8px; text-align: right;">
+                <button class="btn btn-administer-med" data-pres-id="${p.id}" data-med-name="${m.name}" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                  <i class="fa-solid fa-syringe"></i> Checar / Administrar
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+
+      // Event listeners para PDF e Checagem da Enfermagem
+      container.querySelectorAll('.btn-pdf-rx').forEach(b => {
+        b.onclick = () => {
+          const presObj = prescriptions.find(p => p.id === b.dataset.id);
+          if (presObj) window.generatePrescriptionPDF(presObj, administrations);
+        };
+      });
+
+      container.querySelectorAll('.btn-administer-med').forEach(b => {
+        b.onclick = async () => {
+          const presId = b.dataset.presId;
+          const medName = b.dataset.medName;
+          const nurseName = prompt('Nome do(a) Enfermeiro(a) responsável pela checagem:', state.user ? state.user.name : 'Enf. Plantonista');
+          if (!nurseName) return;
+
+          try {
+            const res = await apiFetch(`/api/prescriptions/${presId}/administer`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ medicationName: medName, nurseName, notes: 'Medicação administrada em planilha' })
+            });
+            if (res.ok) {
+              showToast(`💉 Medicação ${medName} checada e administrada por ${nurseName}!`);
+              loadActivePrescriptions();
+            }
+          } catch(err) {
+            alert('Erro de conexão ao registrar administração.');
+          }
+        };
+      });
+
+    } catch(err) {
+      container.innerHTML = '<div style="text-align: center; color: var(--danger-color); font-size: 0.85rem; padding: 24px;">Erro ao carregar prescrições.</div>';
+    }
+  };
+
+  loadActivePrescriptions();
+};
+
+// 3. MODAL DE TRANSFERÊNCIA DE LEITO (SUBIR PARA INTERNAÇÃO)
+window.openTransferBedModal = async function(encounterId, patientName) {
+  let modal = document.getElementById('modal-transfer-bed-drawer');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-transfer-bed-drawer';
+    modal.className = 'modal-overlay';
+    modal.style.zIndex = '3600';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 550px; width: 95vw; padding: 24px; border-radius: 16px;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); display: flex; align-items: center; justify-content: center; color: #f87171;">
+            <i class="fa-solid fa-bed-pulse" style="font-size: 1.15rem;"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Subir para Internação</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Transferir paciente do PS para Leito Hospitalar</span>
+          </div>
+        </div>
+        <button class="btn-close" onclick="document.getElementById('modal-transfer-bed-drawer').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Paciente em Transferência:</div>
+          <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">${patientName}</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 8px;">Selecione o Leito Vago *</label>
+          <select id="transfer-bed-select" class="form-input" style="width: 100%; font-size: 0.9rem; padding: 10px;">
+            <option value="">Carregando leitos vagos...</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-secondary" onclick="document.getElementById('modal-transfer-bed-drawer').style.display='none'">Cancelar</button>
+          <button class="btn btn-primary" id="btn-confirm-transfer-bed" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">
+            <i class="fa-solid fa-bed"></i> Confirmar Internação
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+
+  // Carregar leitos vagos
+  try {
+    const res = await apiFetch('/api/beds');
+    const beds = await res.json();
+    const vagoBeds = (beds || []).filter(b => b.status === 'Vago');
+    const select = document.getElementById('transfer-bed-select');
+
+    if (vagoBeds.length === 0) {
+      select.innerHTML = '<option value="">Nenhum leito vago disponível no momento</option>';
+      document.getElementById('btn-confirm-transfer-bed').disabled = true;
+    } else {
+      select.innerHTML = '<option value="">Escolha o leito...</option>' + 
+        vagoBeds.map(b => `<option value="${b.id}">Leito ${b.bedNumber} — Setor: ${b.sector}</option>`).join('');
+    }
+  } catch(e) {
+    document.getElementById('transfer-bed-select').innerHTML = '<option value="">Erro ao carregar leitos.</option>';
+  }
+
+  document.getElementById('btn-confirm-transfer-bed').onclick = async () => {
+    const bedId = document.getElementById('transfer-bed-select').value;
+    if (!bedId) { alert('Selecione um leito vago para a internação.'); return; }
+
+    try {
+      const res = await apiFetch(`/api/encounters/${encounterId}/transfer-to-bed`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bedId, patientName })
+      });
+      if (res.ok) {
+        showToast(`🛌 Paciente ${patientName} transferido(a) para internação hospitalar!`);
+        modal.style.display = 'none';
+        if (state.activeTab === 'atendimento') {
+          renderTabContent();
+        }
+      }
+    } catch(e) {
+      alert('Erro ao transferir leito.');
+    }
+  };
+};
+
+// 4. ESCALA DE MÉDICOS DE PLANTÃO NO CORPO CLÍNICO
+window.loadDutyScheduleBanner = async function() {
+  const container = document.getElementById('duty-schedule-grid');
+  const dateEl = document.getElementById('duty-schedule-date');
+  if (!container) return;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+  try {
+    const res = await apiFetch(`/api/duty-schedules?date=${todayStr}`);
+    const json = await res.json();
+    const duties = json.data || [];
+
+    if (duties.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 18px; font-size: 0.85rem;">
+          Nenhum médico escalado para o plantão de hoje. Clique em <strong>"Escala de Plantão"</strong> acima para montar a equipe.
+        </div>
+      `;
+      return;
+    }
+
+    const shiftsOrder = ['Manhã', 'Tarde', 'Noite', 'Plantão 24h'];
+    let html = '';
+
+    shiftsOrder.forEach(shift => {
+      const shiftDuties = duties.filter(d => d.shiftType === shift);
+      if (shiftDuties.length > 0) {
+        html += `
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #a78bfa; text-transform: uppercase; margin-bottom: 8px;">
+              <i class="fa-solid fa-clock"></i> Turno: ${shift}
+            </div>
+        `;
+        shiftDuties.forEach(d => {
+          html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border-color);">
+              <div>
+                <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">${d.doctorName}</strong>
+                <span style="font-size: 0.73rem; color: var(--text-muted);">${d.specialty} — ${d.roomName}</span>
+              </div>
+              <button onclick="window.deleteDutySchedule('${d.id}')" style="background: transparent; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.8rem;" title="Remover da escala"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+    });
+
+    container.innerHTML = html;
+  } catch(e) {
+    container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--danger-color); padding: 18px;">Erro ao carregar escala de plantão.</div>';
+  }
+};
+
+window.openDutyScheduleModal = async function() {
+  let modal = document.getElementById('modal-duty-schedule-dialog');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-duty-schedule-dialog';
+    modal.className = 'modal-overlay';
+    modal.style.zIndex = '3700';
+    document.body.appendChild(modal);
+  }
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 500px; width: 95vw; padding: 24px; border-radius: 16px;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); display: flex; align-items: center; justify-content: center; color: #60a5fa;">
+            <i class="fa-solid fa-calendar-days" style="font-size: 1.15rem;"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Escala de Plantão Médico</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Adicionar médico à escala diária</span>
+          </div>
+        </div>
+        <button class="btn-close" onclick="document.getElementById('modal-duty-schedule-dialog').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="form-duty-schedule" class="modal-body">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Selecione o Médico *</label>
+          <select id="duty-doctor-select" class="form-input" style="width: 100%; font-size: 0.88rem;" required>
+            <option value="">Carregando corpo clínico...</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="form-group">
+            <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Data *</label>
+            <input type="date" id="duty-date" class="form-input" value="${todayStr}" style="width: 100%; font-size: 0.88rem;" required>
+          </div>
+          <div class="form-group">
+            <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Turno *</label>
+            <select id="duty-shift" class="form-input" style="width: 100%; font-size: 0.88rem;" required>
+              <option value="Manhã">Manhã (07h-13h)</option>
+              <option value="Tarde">Tarde (13h-19h)</option>
+              <option value="Noite">Noite (19h-07h)</option>
+              <option value="Plantão 24h">Plantão 24h</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Consultório / Local</label>
+          <input type="text" id="duty-room" class="form-input" placeholder="Ex: Consultório 01" value="Consultório 01" style="width: 100%; font-size: 0.88rem;">
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-duty-schedule-dialog').style.display='none'">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Adicionar à Escala</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+
+  // Carregar médicos
+  try {
+    const res = await apiFetch('/api/doctors');
+    const doctors = await res.json();
+    const docSelect = document.getElementById('duty-doctor-select');
+    docSelect.innerHTML = '<option value="">Selecione o médico...</option>' +
+      (doctors || []).map(d => `<option value="${d.id}" data-name="${d.name}" data-spec="${d.specialty}">${d.name} (${d.specialty})</option>`).join('');
+  } catch(e) {}
+
+  document.getElementById('form-duty-schedule').onsubmit = async (e) => {
+    e.preventDefault();
+    const select = document.getElementById('duty-doctor-select');
+    const doctorId = select.value;
+    const opt = select.options[select.selectedIndex];
+    const doctorName = opt.dataset.name || 'Dr. Médico';
+    const specialty = opt.dataset.spec || 'Clínica Geral';
+    const shiftDate = document.getElementById('duty-date').value;
+    const shiftType = document.getElementById('duty-shift').value;
+    const roomName = document.getElementById('duty-room').value.trim();
+
+    try {
+      const res = await apiFetch('/api/duty-schedules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ doctorId, doctorName, specialty, shiftDate, shiftType, roomName })
+      });
+      if (res.ok) {
+        showToast('📅 Médico adicionado à escala de plantão!');
+        modal.style.display = 'none';
+        window.loadDutyScheduleBanner();
+      }
+    } catch(e) {
+      alert('Erro ao salvar escala.');
+    }
+  };
+};
+
+window.deleteDutySchedule = async function(id) {
+  if (!confirm('Deseja remover este plantonista da escala?')) return;
+  try {
+    const res = await apiFetch(`/api/duty-schedules/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Plantonista removido.');
+      window.loadDutyScheduleBanner();
+    }
+  } catch(e) {}
+};
+
+// --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
+}
+

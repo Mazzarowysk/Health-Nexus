@@ -34,6 +34,8 @@ const initLocalDb = async () => {
   const SQL_APPOINTMENTS = `CREATE TABLE IF NOT EXISTS appointments (id TEXT PRIMARY KEY, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, appointmentDate TEXT NOT NULL, appointmentTime TEXT NOT NULL, status TEXT DEFAULT 'Agendado', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
   const SQL_BEDS = `CREATE TABLE IF NOT EXISTS beds (id TEXT PRIMARY KEY, bedNumber TEXT NOT NULL, sector TEXT NOT NULL, status TEXT DEFAULT 'Vago', patientId TEXT, patientName TEXT, admittedAt TEXT, updated_at TEXT)`;
   const SQL_PRESCRIPTIONS = `CREATE TABLE IF NOT EXISTS prescriptions (id TEXT PRIMARY KEY, encounterId TEXT NOT NULL, patientId TEXT NOT NULL, patientName TEXT NOT NULL, doctorName TEXT NOT NULL, medicationsJson TEXT NOT NULL, status TEXT DEFAULT 'Ativa', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_PRESCRIPTION_ADMINISTRATIONS = `CREATE TABLE IF NOT EXISTS prescription_administrations (id TEXT PRIMARY KEY, prescriptionId TEXT NOT NULL, medicationName TEXT NOT NULL, nurseName TEXT NOT NULL, administeredAt TEXT NOT NULL, notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
+  const SQL_DUTY_SCHEDULES = `CREATE TABLE IF NOT EXISTS duty_schedules (id TEXT PRIMARY KEY, doctorId TEXT NOT NULL, doctorName TEXT NOT NULL, specialty TEXT NOT NULL, shiftDate TEXT NOT NULL, shiftType TEXT NOT NULL, roomName TEXT, status TEXT DEFAULT 'Escalado', created_at TEXT DEFAULT CURRENT_TIMESTAMP)`;
 
   const SQL_DOCTORS = `CREATE TABLE IF NOT EXISTS doctors (id TEXT PRIMARY KEY, name TEXT NOT NULL, crm TEXT UNIQUE NOT NULL, specialty TEXT NOT NULL, phone TEXT, email TEXT, status TEXT DEFAULT 'Ativo', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT, deleted_at TEXT)`;
   const SQL_CONSULTING_ROOMS = `CREATE TABLE IF NOT EXISTS consulting_rooms (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT, currentDoctor TEXT, status TEXT DEFAULT 'Disponível', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT)`;
@@ -54,6 +56,8 @@ const initLocalDb = async () => {
     db.execute(SQL_APPOINTMENTS),
     db.execute(SQL_BEDS),
     db.execute(SQL_PRESCRIPTIONS),
+    db.execute(SQL_PRESCRIPTION_ADMINISTRATIONS),
+    db.execute(SQL_DUTY_SCHEDULES),
     db.execute(SQL_DOCTORS),
     db.execute(SQL_CONSULTING_ROOMS),
     db.execute(SQL_PHARMACY),
@@ -89,7 +93,10 @@ const initLocalDb = async () => {
     'ALTER TABLE patients ADD COLUMN responsibleName TEXT',
     'ALTER TABLE patients ADD COLUMN responsibleCpf TEXT',
     'ALTER TABLE patients ADD COLUMN responsiblePhone TEXT',
-    'ALTER TABLE patients ADD COLUMN responsibleRelationship TEXT'
+    'ALTER TABLE patients ADD COLUMN responsibleRelationship TEXT',
+    'ALTER TABLE encounters ADD COLUMN observation_started_at TEXT',
+    'ALTER TABLE encounters ADD COLUMN observation_notes TEXT',
+    'ALTER TABLE encounters ADD COLUMN transfer_bed_id TEXT'
   ];
 
   await Promise.all(alterQueries.map(q => db.execute(q).catch(() => {})));
@@ -2129,6 +2136,186 @@ app.put('/api/beds/:id/status', async (req, res) => {
     res.status(200).json({ status: 'success', message: 'Status do leito atualizado com sucesso.' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Erro ao atualizar status do leito.' });
+  }
+});
+
+// --- FASE 2: PRESCRIÇÕES MÉDICAS & CHECAGEM DE ENFERMAGEM ---
+app.get('/api/encounters/:id/prescriptions', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pRes = await db.execute({
+      sql: 'SELECT * FROM prescriptions WHERE encounterId = ? ORDER BY created_at DESC',
+      args: [id]
+    });
+    const prescriptions = pRes.rows || [];
+
+    let administrations = [];
+    if (prescriptions.length > 0) {
+      const pIds = prescriptions.map(p => p.id);
+      const placeholders = pIds.map(() => '?').join(',');
+      const aRes = await db.execute({
+        sql: `SELECT * FROM prescription_administrations WHERE prescriptionId IN (${placeholders}) ORDER BY administeredAt DESC`,
+        args: pIds
+      });
+      administrations = aRes.rows || [];
+    }
+
+    res.status(200).json({ status: 'success', data: { prescriptions, administrations } });
+  } catch (err) {
+    console.error('Erro ao buscar prescrições:', err);
+    res.status(500).json({ status: 'error', message: 'Erro ao buscar prescrições.' });
+  }
+});
+
+app.post('/api/encounters/:id/prescriptions', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { patientId, patientName, doctorName, medications } = req.body;
+    if (!patientId || !medications || !Array.isArray(medications)) {
+      return res.status(400).json({ status: 'error', message: 'Dados inválidos para prescrição.' });
+    }
+
+    const presId = 'RX-' + Date.now().toString().slice(-6);
+    const nowIso = new Date().toISOString();
+    const medsJson = JSON.stringify(medications);
+
+    await db.execute({
+      sql: 'INSERT INTO prescriptions (id, encounterId, patientId, patientName, doctorName, medicationsJson, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [presId, id, patientId, patientName || 'Paciente', doctorName || 'Médico Plantonista', medsJson, 'Ativa', nowIso]
+    });
+
+    try { await updatePreviousAndLastUpload(nowIso); } catch (e) {}
+    res.status(201).json({ status: 'success', message: 'Prescrição gerada com sucesso!', data: { id: presId } });
+  } catch (err) {
+    console.error('Erro ao salvar prescrição:', err);
+    res.status(500).json({ status: 'error', message: 'Erro ao criar prescrição.' });
+  }
+});
+
+app.post('/api/prescriptions/:id/administer', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { medicationName, nurseName, notes } = req.body;
+    if (!medicationName || !nurseName) {
+      return res.status(400).json({ status: 'error', message: 'Nome da medicação e do enfermeiro são obrigatórios.' });
+    }
+
+    const admId = 'ADM-' + Date.now().toString().slice(-6);
+    const nowIso = new Date().toISOString();
+
+    await db.execute({
+      sql: 'INSERT INTO prescription_administrations (id, prescriptionId, medicationName, nurseName, administeredAt, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      args: [admId, id, medicationName, nurseName, nowIso, notes || '', nowIso]
+    });
+
+    try { await updatePreviousAndLastUpload(nowIso); } catch (e) {}
+    res.status(201).json({ status: 'success', message: 'Administração registrada!', data: { id: admId } });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao registrar administração de medicamento.' });
+  }
+});
+
+app.delete('/api/prescriptions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute({ sql: 'UPDATE prescriptions SET status = "Cancelada" WHERE id = ?', args: [id] });
+    res.status(200).json({ status: 'success', message: 'Prescrição cancelada.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao cancelar prescrição.' });
+  }
+});
+
+// --- FASE 2: TIMER DE OBSERVAÇÃO 12H E TRANSFERÊNCIA DE LEITO ---
+app.put('/api/encounters/:id/start-observation', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const nowIso = new Date().toISOString();
+    await db.execute({
+      sql: 'UPDATE encounters SET status = "Em_Observacao", observation_started_at = ?, observation_notes = ?, status_updated_at = ? WHERE id = ?',
+      args: [nowIso, notes || 'Paciente colocado em observação no PS', nowIso, id]
+    });
+    try { await updatePreviousAndLastUpload(nowIso); } catch (e) {}
+    res.status(200).json({ status: 'success', message: 'Paciente em observação no PS.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao iniciar observação.' });
+  }
+});
+
+app.put('/api/encounters/:id/transfer-to-bed', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { bedId, patientName } = req.body;
+    if (!bedId) return res.status(400).json({ status: 'error', message: 'Selecione um leito vago.' });
+
+    const nowIso = new Date().toISOString();
+
+    // 1. Atualizar encounter
+    await db.execute({
+      sql: 'UPDATE encounters SET status = "Internado", completed_at = ?, transfer_bed_id = ?, status_updated_at = ? WHERE id = ?',
+      args: [nowIso, bedId, nowIso, id]
+    });
+
+    // 2. Ocupar o leito selecionado em beds
+    const encRes = await db.execute({ sql: 'SELECT e.*, p.fullName FROM encounters e JOIN patients p ON e.patientId = p.id WHERE e.id = ?', args: [id] });
+    const pName = encRes.rows.length > 0 ? encRes.rows[0].fullName : (patientName || 'Paciente');
+    const pId = encRes.rows.length > 0 ? encRes.rows[0].patientId : '';
+
+    await db.execute({
+      sql: 'UPDATE beds SET status = "Ocupado", patientId = ?, patientName = ?, admittedAt = ?, updated_at = ? WHERE id = ?',
+      args: [pId, pName, nowIso, nowIso, bedId]
+    });
+
+    try { await updatePreviousAndLastUpload(nowIso); } catch (e) {}
+    res.status(200).json({ status: 'success', message: `Paciente ${pName} transferido com sucesso para o leito!` });
+  } catch (err) {
+    console.error('Erro ao transferir leito:', err);
+    res.status(500).json({ status: 'error', message: 'Erro ao transferir paciente para leito.' });
+  }
+});
+
+// --- FASE 2: ESCALA DE MÉDICOS DE PLANTÃO DO CORPO CLÍNICO ---
+app.get('/api/duty-schedules', async (req, res) => {
+  try {
+    const targetDate = req.query.date || new Date().toISOString().split('T')[0];
+    const result = await db.execute({
+      sql: 'SELECT * FROM duty_schedules WHERE shiftDate = ? ORDER BY shiftType ASC',
+      args: [targetDate]
+    });
+    res.status(200).json({ status: 'success', date: targetDate, data: result.rows || [] });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao buscar escala de plantão.' });
+  }
+});
+
+app.post('/api/duty-schedules', async (req, res) => {
+  try {
+    const { doctorId, doctorName, specialty, shiftDate, shiftType, roomName, status } = req.body;
+    if (!doctorId || !shiftDate || !shiftType) {
+      return res.status(400).json({ status: 'error', message: 'Médico, data e turno são obrigatórios.' });
+    }
+
+    const id = 'DUTY-' + Date.now().toString().slice(-6);
+    await db.execute({
+      sql: 'INSERT INTO duty_schedules (id, doctorId, doctorName, specialty, shiftDate, shiftType, roomName, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [id, doctorId, doctorName || 'Dr. Médico', specialty || 'Clínica Geral', shiftDate, shiftType, roomName || 'Consultório 01', status || 'Escalado']
+    });
+
+    const nowIso = new Date().toISOString();
+    try { await updatePreviousAndLastUpload(nowIso); } catch (e) {}
+    res.status(201).json({ status: 'success', message: 'Médico adicionado à escala de plantão!', data: { id } });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao salvar escala de plantão.' });
+  }
+});
+
+app.delete('/api/duty-schedules/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute({ sql: 'DELETE FROM duty_schedules WHERE id = ?', args: [id] });
+    res.status(200).json({ status: 'success', message: 'Plantonista removido da escala.' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Erro ao remover plantonista.' });
   }
 });
 
