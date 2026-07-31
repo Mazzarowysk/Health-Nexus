@@ -1482,7 +1482,18 @@ const checkInitialSync = async () => {
 
 const initializeApp = async () => {
   initTheme();
+
+  // Timer de segurança anti-trava do loader inicial
+  const loaderSafetyTimer = setTimeout(() => {
+    const loader = document.querySelector('.initial-loader');
+    if (loader && !state.isAuthenticated) {
+      console.warn('[Init] Loader inicial persistente detectado. Forçando exibição da tela de login.');
+      renderAuthScreen();
+    }
+  }, 1500);
+
   if (state.isAuthenticated && state.token) {
+    let authValid = false;
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2000);
@@ -1491,58 +1502,66 @@ const initializeApp = async () => {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
+
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
           state.user = data.user;
           sessionStorage.setItem('hn_user', JSON.stringify(data.user));
+          authValid = true;
         }
       } else {
+        clearTimeout(loaderSafetyTimer);
         logout();
         return;
       }
     } catch (e) {
-      console.warn('Servidor inacessível ou tempo esgotado na verificação de sessão. Usando dados locais.');
+      console.warn('Servidor inacessível ou tempo esgotado na verificação de sessão. Usando sessão em cache.');
+      if (state.user) authValid = true;
     }
 
-    renderAppStructure();
-    const logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        logout();
-      });
-    }
-    // Registrar clique na badge de status para abrir o modal adequado
-    setTimeout(() => {
-      const badge = document.getElementById('sync-status-badge');
-      if (badge) {
-        badge.style.cursor = 'pointer';
-        badge.addEventListener('click', () => {
-          if (state.syncInfo && state.syncInfo.cloudConfigured) {
-            const localMax = getMaxTimestamp(state.syncInfo.localTimestamps);
-            const cloudMax = getMaxTimestamp(state.syncInfo.cloudTimestamps);
-            state.syncInfo.lastLocalBackup = localMax.str;
-            state.syncInfo.lastCloudBackup = cloudMax.str;
-            if (localMax.time > cloudMax.time) {
-              showSyncPromptModal(state.syncInfo);
-            } else if (cloudMax.time > localMax.time) {
-              showSyncComparisonModal(state.syncInfo);
-            } else {
-              showToast('Banco local já está perfeitamente sincronizado com a nuvem.');
-            }
-          } else {
-            showToast('Turso não configurado ou sem dados para comparar.');
-          }
+    clearTimeout(loaderSafetyTimer);
+
+    if (authValid) {
+      renderAppStructure();
+      const logoutBtn = document.getElementById('btn-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          logout();
         });
       }
-      updateSyncBadge();
-    }, 120);
-    // Verificar sincronização inicial do banco de dados local-nuvem
-    checkInitialSync();
-    // Varredura pós-login: verifica dados disponíveis na nuvem Turso
-    setTimeout(() => checkCloudStatusAfterLogin(), 1500);
+      setTimeout(() => {
+        const badge = document.getElementById('sync-status-badge');
+        if (badge) {
+          badge.style.cursor = 'pointer';
+          badge.addEventListener('click', () => {
+            if (state.syncInfo && state.syncInfo.cloudConfigured) {
+              const localMax = getMaxTimestamp(state.syncInfo.localTimestamps);
+              const cloudMax = getMaxTimestamp(state.syncInfo.cloudTimestamps);
+              state.syncInfo.lastLocalBackup = localMax.str;
+              state.syncInfo.lastCloudBackup = cloudMax.str;
+              if (localMax.time > cloudMax.time) {
+                showSyncPromptModal(state.syncInfo);
+              } else if (cloudMax.time > localMax.time) {
+                showSyncComparisonModal(state.syncInfo);
+              } else {
+                showToast('Banco local já está perfeitamente sincronizado com a nuvem.');
+              }
+            } else {
+              showToast('Turso não configurado ou sem dados para comparar.');
+            }
+          });
+        }
+        updateSyncBadge();
+      }, 120);
+      checkInitialSync();
+      setTimeout(() => checkCloudStatusAfterLogin(), 1500);
+    } else {
+      logout();
+    }
   } else {
+    clearTimeout(loaderSafetyTimer);
     renderAuthScreen();
   }
 };
@@ -1553,8 +1572,12 @@ const logout = () => {
   state.isAuthenticated = false;
   state.token = null;
   state.user = null;
-  initializeApp();
+  renderAuthScreen();
 };
+
+window.renderAuthScreen = renderAuthScreen;
+window.logout = logout;
+window.initializeApp = initializeApp;
 
 const invalidateCacheForUrl = (url) => {
   if (url.startsWith(`${API_URL}/patients`)) {
