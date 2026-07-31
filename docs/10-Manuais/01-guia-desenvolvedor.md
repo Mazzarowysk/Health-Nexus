@@ -1,172 +1,197 @@
-# Health Nexus — Guia do Desenvolvedor (Completo)
+# 💻 Health Nexus — Guia Completo do Desenvolvedor & Arquitetura de Software
 
-Este manual orienta novos engenheiros na configuração do ambiente de desenvolvimento local, padrões de código, versionamento, arquitetura de UI e implantação do **Health Nexus**.
+> **Versão:** 2.0.0 (Fase 2 Concluída)  
+> **Arquitetura:** Monólito Híbrido Local-First (Vanilla JS Single Page Application + Express REST API + Dual-Database SQLite/Turso LibSQL)  
+> **Última Atualização:** Julho / 2026  
 
 ---
 
-## 1. Quick Start (Configuração Rápida)
+## 📐 1. Organograma da Arquitetura do Sistema
 
-### Pré-requisitos
-- **Node.js** 18.x LTS ou superior
-- **Git** instalado
-- (Opcional) Conta no **Turso** para sincronização cloud
+O **Health Nexus** foi construído com separação limpa de responsabilidades mantendo extrema simplicidade operacional (zero frameworks pesados no frontend, performance instantânea < 5ms localmente).
 
-### Passo a Passo
+```mermaid
+graph TD
+    subgraph Client ["💻 Client Layer (Navegador)"]
+        UI["SPA Vanilla JS (src/main.js)"]
+        CSS["Design System & CSS Tokens (src/styles.css)"]
+        TTS["Web Speech API (Sintetizador Voz TV)"]
+        PDF["PDF Generator (Scripts / Canvas A4)"]
+    end
+
+    subgraph Server ["⚡ Server Layer (Node.js / Express)"]
+        API["Express REST API (backend/app.js)"]
+        AUTH["JWT Middleware & RBAC Checker"]
+        SYNC["SyncManager & Cloud Proxy"]
+        SHUTDOWN["Graceful Shutdown (Heartbeat)"]
+    end
+
+    subgraph Data ["🗄️ Persistence Layer (Dual-Database)"]
+        SQLITE[("local.db (SQLite Local)")"]
+        TURSO[("Turso Cloud DB (LibSQL Edge)")"]
+    end
+
+    UI -->|HTTP / REST JSON| API
+    API --> AUTH
+    API -->|knex / better-sqlite3| SQLITE
+    SYNC -->|HTTP LibSQL Sync| TURSO
+    API --> SYNC
+    UI --> TTS
+    UI --> PDF
+```
+
+---
+
+## 🔄 2. Fluxogramas dos Processos Principais
+
+### 2.1 Fluxograma de Inicialização & Autenticação Instantânea
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Usuário / Profissional
+    participant UI as Frontend (src/main.js)
+    participant API as Express API (/api/auth/me)
+    participant DB as SQLite / Turso DB
+
+    User->>UI: Abre http://localhost:5173
+    UI->>UI: renderAuthScreen() imediato (< 200ms)
+    alt Possui Token em SessionStorage
+        UI->>API: GET /api/auth/me (AbortController timeout 2s)
+        alt Resposta OK (200)
+            API->>DB: Select User & Roles
+            DB-->>API: Dados do Usuário
+            API-->>UI: User Payload
+            UI->>UI: renderAppStructure() + Monta RBAC
+        else Timeout ou Erro (401/500)
+            UI->>UI: Mantém Tela de Login & Alerta
+        end
+    else Sem Token
+        UI->>UI: Exibe Formulário de Login (Constelação 2D)
+    end
+```
+
+---
+
+### 2.2 Fluxograma de Atendimento, Prescrição Planilha & Observação PS (12h)
+
+```mermaid
+flowchart TD
+    A[Recepção: Admissão 11 Campos SUS] --> B[Fila: Aguardando Triagem]
+    B --> C[Enfermagem: Triagem Manchester & Sinais Vitais]
+    C --> D[Fila: Aguardando Médico - Sorting por Gravidade]
+    D --> E[Chamada Painel TV com Sintetizador de Voz]
+    E --> F[Médico: Consulta & Prontuário SOAPE]
+    F --> G[Médico: Prescrição Médica em Planilha]
+    G --> H[Enfermagem: Matriz de Checagem & Aplicação]
+    H --> I{Decisão Clínica}
+    I -->|Alta Médica| J[Emissão de Receituário A4 PDF]
+    I -->|Manter em Observação| K[Atendimento: Em Observação PS]
+    K --> L[Timer de Permanência PS - Max 12h]
+    L --> M{Alerta do Timer}
+    M -->|< 10 horas| N[Badge Azul: Normal]
+    M -->|10h a 12h| O[Badge Amarelo: Alerta Legal]
+    M -->|> 12 horas| P[Badge Vermelho Pulsante: EXCEDIDO]
+    P --> Q[Botão 'Subir para Internação']
+    Q --> R[Gaveta de Leitos Vagos: UTI / Enfermaria]
+    R --> S[Transferência Concluída: Status Internado]
+```
+
+---
+
+### 2.3 Fluxograma da Sincronização Local-First ↔ Cloud Turso DB
+
+```mermaid
+flowchart LR
+    A[Ação de Escrita: POST/PUT/DELETE] --> B[API Express salva em local.db]
+    B --> C{Ambiente de Execução}
+    C -->|Vercel Serverless| D[Gravação Direta em Tempo Real no Turso DB]
+    C -->|Desktop / Node Local| E[Servidor Retorna HTTP 200 OK]
+    E --> F[Frontend Detecta Escrita & Exibe Modal de Sync]
+    F --> G[Clique 'Enviar para Nuvem']
+    G --> H[SyncManager envia deltas para LibSQL Turso Cloud]
+```
+
+---
+
+## 📊 3. Tabelas de Referência Completa da API REST
+
+Toda a API REST está concentrada em `backend/app.js`.
+
+### 3.1 Endpoints de Autenticação e Usuários
+| Método | Endpoint | Descrição | Permissão RBAC |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | Autentica usuário e retorna Token JWT + Perfil | Público |
+| `POST` | `/api/auth/register` | Cadastro de novo usuário (Pendente se Master sem chave) | Público |
+| `GET` | `/api/auth/me` | Valida sessão ativa e renova dados do perfil | Logado |
+| `GET` | `/api/users` | Lista todos os usuários cadastrados | Admin / Master |
+| `PUT` | `/api/users/:id/approve-master` | Aprova ou rejeita cadastro de acesso Master | Apenas Master |
+| `DELETE` | `/api/users/:id` | Executa soft-delete em conta de usuário | Admin / Master |
+
+### 3.2 Endpoints de Pacientes e Triagem
+| Método | Endpoint | Descrição | Permissão RBAC |
+|---|---|---|---|
+| `GET` | `/api/patients` | Lista pacientes (suporta busca por nome, CPF e ID) | Recepção, Enfermeiro, Médico, Master |
+| `POST` | `/api/patients` | Admissão com 11 campos SUS + validação de responsável | Recepcionista, Master |
+| `PUT` | `/api/patients/:id` | Atualiza dados cadastrais de paciente | Recepcionista, Master |
+| `DELETE` | `/api/patients/:id` | Move paciente para a Lixeira de Segurança | Apenas Master |
+| `POST` | `/api/encounters/:id/triage` | Registra sinais vitais e cor Manchester | Enfermeiro, Médico, Master |
+
+### 3.3 Endpoints da Fase 2 (Prescrição, Timer PS, Escala de Plantão)
+| Método | Endpoint | Descrição | Permissão RBAC |
+|---|---|---|---|
+| `GET` | `/api/encounters/:id/prescriptions` | Obtém prescrições e matriz de checagem | Médico, Enfermeiro |
+| `POST` | `/api/encounters/:id/prescriptions` | Cria nova prescrição médica em planilha | Médico, Master |
+| `POST` | `/api/prescriptions/:id/administrate` | Registra dose/checagem da enfermagem | Enfermeiro, Aux. Enfermagem |
+| `PUT` | `/api/encounters/:id/transfer-bed` | Transfere paciente de Obs PS para Leito vagos | Enfermeiro, Médico, Master |
+| `GET` | `/api/duty-schedules` | Consulta escala de médicos de plantão do dia | Todos os perfis |
+| `POST` | `/api/duty-schedules` | Adiciona plantonista à escala por turno | Admin, Master |
+
+---
+
+## 🗄️ 4. Esquema de Banco de Dados (Dicionário de Tabelas)
+
+```mermaid
+erDiagram
+    users ||--o{ clinical_notes : signs
+    patients ||--o{ encounters : has
+    encounters ||--o1 triages : receives
+    encounters ||--o{ clinical_notes : contains
+    encounters ||--o{ prescriptions : includes
+    prescriptions ||--o{ prescription_administrations : tracks
+    beds ||--o| encounters : occupies
+    doctors ||--o{ duty_schedules : scheduled
+```
+
+### Principais Tabelas:
+1. **`users`**: Contas e perfis RBAC (`id`, `name`, `username`, `password_hash`, `role`, `deleted_at`).
+2. **`patients`**: Cadastros SUS (`id`, `fullName`, `cpf`, `birthDate`, `responsibleName`, `responsibleCpf`, `responsiblePhone`, `responsibleRelationship`, `deleted_at`).
+3. **`encounters`**: Atendimentos ativos/histórico (`id`, `patientId`, `status`, `observation_started_at`, `transfer_bed_id`, `deleted_at`).
+4. **`prescriptions`**: Medicamentos em planilha (`id`, `encounterId`, `medicationName`, `dosage`, `route`, `frequency`, `instructions`).
+5. **`prescription_administrations`**: Doses checadas (`id`, `prescriptionId`, `administered_at`, `nurse_name`).
+6. **`duty_schedules`**: Escala de plantão (`id`, `doctorId`, `doctorName`, `shiftDate`, `shiftType`, `roomName`).
+
+---
+
+## 🛠️ 5. Guia de Setup & Resolução de Problemas para Desenvolvedores
+
+### Passo a Passo de Execução Local:
 
 ```bash
-# 1. Clonar o repositório
-git clone https://github.com/Mazzarowysk/Health-Nexus.git "C:\Health Nexus"
-cd "C:\Health Nexus"
+# 1. Clonar repositório
+git clone https://github.com/Mazzarowysk/Health-Nexus.git
+cd Health-Nexus
 
-# 2. Instalar dependências (frontend + backend)
+# 2. Instalar dependências
 npm install
 
-# 3. Configurar variáveis de ambiente
-cp .env.example .env
-# Edite o .env se quiser ativar a sincronização com Turso
-
-# 4. Iniciar em modo desenvolvimento
+# 3. Rodar em modo desenvolvimento
 npm run dev
+
+# 4. Executar build de produção
+npm run build
 ```
-
-| Serviço | URL |
-|---|---|
-| Frontend (Vite) | http://localhost:5173 |
-| Backend (Express) | http://localhost:3001 |
-
-**Login padrão criado automaticamente:** usuário `admin` · senha `admin`
 
 ---
 
-## 2. Variáveis de Ambiente (.env)
-
-```env
-# Banco de dados Turso (deixe vazio para usar apenas o banco local SQLite)
-TURSO_DATABASE_URL=libsql://seu-banco.turso.io
-TURSO_AUTH_TOKEN=seu-token-aqui
-
-# JWT (substitua em produção)
-JWT_SECRET=health-nexus-super-secret-key
-
-# Porta do backend (padrão: 3001)
-PORT=3001
-```
-
-> Sem as variáveis Turso, o sistema opera **100% offline** usando `local.db` (SQLite).
-
----
-
-## 3. Arquitetura do Projeto
-
-O sistema é um monólito moderno com Frontend Vanilla e Backend Express.
-
-```
-Health Nexus/
-├── backend/
-│   ├── app.js           # Toda a API REST (Express) — rotas, middlewares, lógica
-│   ├── server.js        # Ponto de entrada do servidor Node
-│   └── database/
-│       └── client.js    # Configuração dos clientes DB (local + Turso cloud)
-├── src/
-│   ├── main.js          # SPA completa — toda a UI, roteamento, estado, chamadas API
-│   └── styles.css       # Design system completo (dark + light theme tokens)
-├── assets/
-│   └── logo.png         # Logomarca do sistema
-├── index.html           # Entry point HTML
-├── vite.config.js       # Configuração do bundler Vite
-├── vercel.json          # Configuração de deploy serverless no Vercel
-├── scripts/             # Scripts utilitários (ex: gerador de PDF)
-└── docs/                # Documentação técnica por módulo
-```
-
-### 3.1 Banco de Dados — Tabelas e Soft-Delete
-
-A maioria das tabelas possui o campo `deleted_at` para permitir o fluxo de Lixeira.
-
-| Tabela | Campos principais |
-|---|---|
-| `users` | id, name, username, password_hash, role, created_at, deleted_at |
-| `patients` | id, fullName, cpf, birthDate, address, city, phone, cellphone, billingValue, created_at, deleted_at |
-| `encounters` | id, patientId, type, status, admitted_at, completed_at |
-| `triages` | id, encounterId, manchesterColor, weightKg, bloodPressure, temperatureCelsius, heartRateBpm, complaints, triaged_at |
-| `clinical_notes` | id, encounterId, noteType, subjectiveContent, objectiveContent, assessmentContent, planContent, signatureHash, isClosed, created_at |
-| `tv_calls` | id, patientName, roomName, manchesterColor, doctorName, calledAt |
-
----
-
-## 4. Módulos e Funcionalidades (O UI Router)
-
-Toda a lógica visual está em `src/main.js`. O roteamento é feito injetando HTML no `<main id="app-content">` através do array de navegação `allNavItems` renderizado por `renderAppStructure()`.
-
-### Abas Suportadas e Suas Funções:
-1. **Dashboard:** Usa `Chart.js` para renderizar métricas financeiras e clínicas.
-2. **Agenda:** CRUD de horários vinculados aos médicos (Corpo Clínico).
-3. **Pacientes:** Formulário com API ViaCEP e prevenção `409 Conflict` contra CPFs/Nomes duplicados. Possui botão **Lixeira**.
-4. **Atendimento:** Renderiza colunas estilo Kanban (`Aguardando Triagem`, `Aguardando Médico`, `Em Atendimento`). Dispara o Painel TV via botão "Chamar".
-5. **Painel TV:** Faz auto-polling a cada 3 segundos em `/api/tv/calls` e usa `window.speechSynthesis` para ler os nomes em voz alta.
-6. **Alertas & Estagnação:** Monitora tempo excedido para Triagem (Manchester).
-7. **Leitos:** Exibe mapa de ocupação e gerencia limpeza (higienização pós-alta).
-8. **Farmácia & Estoque:** Cadastros e níveis de alerta para reposição de insumos.
-9. **Financeiro:** Telas para lançamento de guias e recebimentos de pacientes.
-10. **Corpo Clínico & Consultórios:** Configurações base.
-11. **Relatórios:** Permite puxar estatísticas gerais e exportar em PDF e CSV.
-12. **Configurações:** Setup do sistema, sincronização Turso e gestão de usuários (RBAC).
-
----
-
-## 5. Sincronização Local ↔ Turso (Cloud)
-
-O sistema opera em **dual-database mode**:
-
-- **Localmente:** banco principal é `local.db` (SQLite)
-- **Vercel (produção):** banco principal é o Turso cloud
-
-### Comportamento de Sync
-1. **Ao iniciar o servidor:** compara contagens (`autoSyncFromCloud`).
-2. **Ao logar:** exibe modal de comparativo com quantidade e **data/hora** do último registro.
-3. **Após cada escrita** (POST/PUT/DELETE): modal pergunta se deseja enviar os dados para a nuvem.
-4. **Auto-Shutdown Inteligente:** O servidor Node.js finaliza (process.exit) se o navegador for fechado (tolerância de 1.5s).
-
----
-
-## 6. Padrões de Código
-
-### Convenção de Commits (Conventional Commits)
-
-```
-feat:     Nova funcionalidade
-fix:      Correção de bug
-docs:     Documentação técnica
-style:    Ajustes visuais / CSS (sem lógica)
-refactor: Refatoração sem mudança de comportamento
-perf:     Otimização de performance
-chore:    Tarefas de manutenção (deps, scripts, config)
-```
-
-### Componentização Vanilla JS
-Toda tela principal no `main.js` segue o padrão:
-1. `renderNomeDaTela()`: Gera o layout HTML base (`innerHTML`).
-2. `fetchDados()`: Faz as chamadas à API local `fetch('/api/...')`.
-3. `updateDOM()`: Preenche os dados recebidos nas tabelas ou gráficos.
-4. `setupListeners()`: Adiciona os `addEventListener` aos botões.
-
----
-
-## 7. Deploy e Produção (Vercel)
-
-O deploy é **automático** via integração Vercel e Github:
-
-```bash
-git add .
-git commit -m "feat: modulo de farmácia adicionado"
-git push origin main
-```
-
-O arquivo `vercel.json` garante:
-- Rewrite de rotas `/api/*` para a API Express Node.js.
-- Compilação estática do Vite para a interface.
-- Geração automatizada de logs em tempo de execução.
-
----
-
-*Saúde e código limpo caminham juntos. Bom trabalho!*
+*Documentação mantida pela equipe de Engenharia de Software Health Nexus.*

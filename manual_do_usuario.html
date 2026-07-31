@@ -5,7 +5,7 @@
 <script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
 <title>Manual do Usuário — Health Nexus</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@500;600;700;800&display=swap');
 
 /* ── Reset & Base ─────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,7 +14,7 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 11px;
   color: #334155;
-  background: #c8cdd6;
+  background: #cbd5e1;
   line-height: 1.6;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -25,45 +25,51 @@ body {
   size: A4;
   margin: 18mm 16mm 20mm 16mm;
   @top-left {
-    content: "Health Nexus";
+    content: "Health Nexus ™ · Sistema Hospitalar";
     font-size: 8px;
     font-family: 'Inter', sans-serif;
-    color: #94a3b8;
+    color: #64748b;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
   @top-right {
-    content: "Manual do Usuário";
+    content: "Manual do Usuário · v2.0";
     font-size: 8px;
     font-family: 'Inter', sans-serif;
-    color: #94a3b8;
+    color: #64748b;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
   @bottom-right {
     content: counter(page);
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 800;
     font-family: 'Inter', sans-serif;
-    color: #64748b;
+    color: #475569;
   }
 }
 
 @page :first {
   margin: 0;
-  @bottom-right {
-    content: none;
-  }
+  @bottom-right { content: none; }
+  @top-left { content: none; }
+  @top-right { content: none; }
 }
 
 .page {
   break-before: page;
   background: #fff;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
 /* ── Cover Page ─────────────────────────────────── */
 .cover {
-  background: radial-gradient(circle at 10% 20%, #1e1b4b 0%, #0f172a 40%, #172554 100%);
+  background: radial-gradient(circle at 15% 20%, #1e1b4b 0%, #0f172a 45%, #090d16 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -73,77 +79,76 @@ body {
   box-sizing: border-box;
 }
 
-.cover-top { }
-
 .cover-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 6px 16px;
+  background: rgba(99, 102, 241, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(129, 140, 248, 0.4);
+  padding: 6px 18px;
   border-radius: 50px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: #c7d2fe;
+  color: #a5b4fc;
   margin-bottom: 24px;
 }
 
 .cover-logo {
-  font-size: 72px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 68px;
   font-weight: 900;
-  letter-spacing: -3.5px;
+  letter-spacing: -3px;
   line-height: 1.05;
-  margin-bottom: 12px;
-  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 60%, #818cf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .cover-sub {
-  font-size: 18px;
-  font-weight: 600;
-  color: #e0e7ff;
+  font-size: 20px;
+  font-weight: 700;
+  color: #38bdf8;
   letter-spacing: -0.5px;
   margin-bottom: 16px;
 }
 
 .cover-desc {
-  font-size: 13px;
+  font-size: 12.5px;
   color: #94a3b8;
-  max-width: 480px;
+  max-width: 520px;
   line-height: 1.7;
 }
 
 .cover-divider {
   height: 1px;
-  background: linear-gradient(to right, rgba(255,255,255,0.2), transparent);
-  margin: 16px 0;
+  background: linear-gradient(to right, rgba(99, 102, 241, 0.4), transparent);
+  margin: 20px 0;
 }
 
 .cover-modules {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .cover-module-pill {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
   font-size: 10px;
-  color: #c7d2fe;
+  color: #cbd5e1;
   line-height: 1.4;
 }
 
 .cover-module-pill strong {
   display: block;
-  color: #fff;
+  color: #818cf8;
   font-size: 11px;
   font-weight: 800;
   margin-bottom: 2px;
@@ -154,64 +159,17 @@ body {
   justify-content: space-between;
   align-items: flex-end;
   border-top: 1px solid rgba(255,255,255,0.15);
-  padding-top: 12px;
+  padding-top: 16px;
 }
 
-.cover-footer-left { font-size: 11.5px; color: #94a3b8; line-height: 1.6; }
-.cover-footer-right { font-size: 10px; color: #64748b; text-align: right; }
+.cover-footer-left { font-size: 11px; color: #94a3b8; line-height: 1.6; }
+.cover-footer-right { font-size: 10.5px; color: #64748b; text-align: right; }
 
-/* ── Summary Page ──────────────────────────────── */
-.summary-page .page-header { margin-bottom: 10px; }
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
-}
-
-.summary-item {
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 7px 10px;
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.summary-item-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: #f1f5f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-.summary-item-body { }
-.summary-item-num {
-  font-size: 8px;
-  font-weight: 700;
-  color: #6366f1;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-.summary-item-title {
-  font-size: 10px;
-  font-weight: 700;
-  color: #0f172a;
-  line-height: 1.25;
-  margin-bottom: 1px;
-}
-.summary-item-desc { font-size: 9.5px; color: #64748b; line-height: 1.35; }
-
-/* ── Page Header (each module page) ──────────── */
+/* ── Typography & Headers ────────────────────────── */
 .page-header {
   border-bottom: 3px solid #4f46e5;
-  padding-bottom: 8px;
-  margin-bottom: 14px;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
   break-after: avoid;
 }
 
@@ -221,15 +179,16 @@ body {
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: #6366f1;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .page-header h1 {
-  font-size: 19px;
-  font-weight: 900;
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.5px;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .page-header p {
@@ -239,12 +198,12 @@ body {
   line-height: 1.5;
 }
 
-/* ── Section heading inside page ─────────────── */
 h2.sh {
-  font-size: 13px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13.5px;
   font-weight: 800;
   color: #0f172a;
-  margin: 16px 0 8px;
+  margin: 18px 0 10px;
   padding-left: 10px;
   border-left: 4px solid #4f46e5;
   line-height: 1.3;
@@ -255,26 +214,47 @@ h3.ssh {
   font-size: 11.5px;
   font-weight: 700;
   color: #1e293b;
-  margin: 12px 0 6px;
+  margin: 14px 0 6px;
   break-after: avoid;
 }
 
-p.body { font-size: 11px; color: #334155; margin-bottom: 8px; line-height: 1.6; orphans: 3; widows: 3; }
+p.body { font-size: 11px; color: #334155; margin-bottom: 10px; line-height: 1.6; }
+
+/* ── Diagrams & SVGs ───────────────────────────── */
+.svg-container {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 14px 0;
+  text-align: center;
+  break-inside: avoid;
+}
+
+.svg-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #1e1b4b;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+}
 
 /* ── Tables ──────────────────────────────────── */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 8px 0 12px;
+  margin: 10px 0 14px;
   font-size: 10.5px;
   break-inside: avoid;
 }
 
-thead tr { background: #312e81; }
+thead tr { background: #1e1b4b; }
 th {
   color: #fff;
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 7px 10px;
   text-align: left;
   font-size: 9.5px;
   letter-spacing: 0.5px;
@@ -283,7 +263,7 @@ th:first-child { border-radius: 6px 0 0 0; }
 th:last-child  { border-radius: 0 6px 0 0; }
 
 td {
-  padding: 6px 10px;
+  padding: 7px 10px;
   border-bottom: 1px solid #e2e8f0;
   color: #1e293b;
   vertical-align: top;
@@ -293,39 +273,38 @@ td {
 
 tbody tr:nth-child(odd)  { background: #fff; }
 tbody tr:nth-child(even) { background: #f8fafc; }
-tbody tr:last-child td { border-bottom: 2px solid #312e81; }
+tbody tr:last-child td { border-bottom: 2.5px solid #1e1b4b; }
 
-td strong { color: #0f172a; }
-td em { color: #64748b; font-style: normal; font-size: 10.5px; }
-
-/* ── Step Card ────────────────────────────────── */
+/* ── Cards & Elements ─────────────────────────── */
 .step-card {
   background: linear-gradient(135deg, #f0f4ff 0%, #eef2ff 100%);
   border: 1.5px solid #c7d2fe;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin: 10px 0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 12px 0;
   break-inside: avoid;
 }
 
 .step-card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .step-card-icon {
-  width: 30px; height: 30px;
+  width: 32px; height: 32px;
   background: #4f46e5;
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; color: #fff;
   flex-shrink: 0;
+  font-weight: 800;
 }
 
 .step-card-header-title {
-  font-size: 12.5px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
   font-weight: 800;
   color: #1e1b4b;
 }
@@ -334,9 +313,9 @@ td em { color: #64748b; font-style: normal; font-size: 10.5px; }
 .steps ol li {
   counter-increment: step-counter;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: flex-start;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: 10.5px;
   color: #1e293b;
   line-height: 1.55;
@@ -344,272 +323,93 @@ td em { color: #64748b; font-style: normal; font-size: 10.5px; }
 
 .steps ol li::before {
   content: counter(step-counter);
-  min-width: 19px; height: 19px;
+  min-width: 20px; height: 20px;
   background: #4f46e5;
   color: #fff;
   border-radius: 50%;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 800;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   margin-top: 1px;
 }
 
-.steps ol li strong { color: #1e1b4b; }
-
-/* ── Info Boxes ───────────────────────────────── */
 .info-box {
   border-radius: 8px;
-  padding: 10px 12px;
-  margin: 10px 0;
+  padding: 12px 14px;
+  margin: 12px 0;
   font-size: 10.5px;
-  line-height: 1.55;
+  line-height: 1.6;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-start;
   break-inside: avoid;
 }
 
-.info-box-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-.info-box-title { font-size: 10.5px; font-weight: 800; margin-bottom: 3px; }
-.info-box-text { font-size: 10.5px; line-height: 1.55; }
+.info-box-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.info-box-title { font-weight: 800; margin-bottom: 3px; font-size: 11px; }
 
 .box-tip    { background: #f0fdf4; border: 1.5px solid #86efac; color: #14532d; }
 .box-warn   { background: #fffbeb; border: 1.5px solid #fde68a; color: #78350f; }
 .box-danger { background: #fff1f2; border: 1.5px solid #fecaca; color: #7f1d1d; }
 .box-info   { background: #eff6ff; border: 1.5px solid #bfdbfe; color: #1e3a8a; }
 
-/* ── Status Badges ────────────────────────────── */
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 9px;
+  padding: 3px 10px;
   border-radius: 20px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   white-space: nowrap;
 }
 .badge-red    { background: #dc2626; color: #fff; }
 .badge-orange { background: #ea580c; color: #fff; }
 .badge-yellow { background: #ca8a04; color: #fff; }
 .badge-green  { background: #16a34a; color: #fff; }
-.badge-blue   { background: #1d4ed8; color: #fff; }
-.badge-gray   { background: #475569; color: #fff; }
+.badge-blue   { background: #2563eb; color: #fff; }
 .badge-purple { background: #7c3aed; color: #fff; }
 
-/* ── Role Card (horizontal) ───────────────────── */
-.role-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 5px;
-  margin: 7px 0;
-}
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
 
-.role-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 7px;
-  padding: 7px 9px;
-  background: #fafafa;
-}
-
-.role-card-header {
-  display: flex; align-items: center; gap: 6px;
-  margin-bottom: 4px;
-}
-
-.role-icon {
-  width: 22px; height: 22px;
-  border-radius: 5px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px;
-  flex-shrink: 0;
-}
-
-.role-name { font-size: 10px; font-weight: 800; color: #0f172a; }
-.role-label { font-size: 9px; color: #64748b; font-weight: 500; }
-
-.role-perms { font-size: 9px; color: #334155; line-height: 1.4; margin-bottom: 4px; }
-
-.role-block {
-  display: flex; flex-wrap: wrap; gap: 3px;
-}
-.role-block .tag {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 3px;
-  font-size: 8.5px;
-  padding: 1px 5px;
-  color: #64748b;
-  font-weight: 600;
-}
-.role-block .tag.allow { background: #dcfce7; border-color: #86efac; color: #14532d; }
-.role-block .tag.deny  { background: #fee2e2; border-color: #fca5a5; color: #7f1d1d; }
-
-/* ── Two Column Layout ────────────────────────── */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 7px 0; }
-.two-col-3-2 { display: grid; grid-template-columns: 3fr 2fr; gap: 9px; margin: 7px 0; }
-
-/* ── Manchester Color Blocks ───────────────────── */
-.manchester-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
-  margin: 7px 0;
-}
-
-.manchester-item {
-  border-radius: 7px;
-  padding: 7px 6px;
-  text-align: center;
-}
-
-.manchester-item .m-color { font-size: 16px; margin-bottom: 3px; }
-.manchester-item .m-label { font-size: 8.5px; font-weight: 800; margin-bottom: 1px; }
-.manchester-item .m-time  { font-size: 9px; font-weight: 600; }
-.manchester-item .m-desc  { font-size: 8px; margin-top: 2px; line-height: 1.3; }
-
-.m-red    { background: #fef2f2; border: 2px solid #dc2626; color: #7f1d1d; }
-.m-orange { background: #fff7ed; border: 2px solid #ea580c; color: #7c2d12; }
-.m-yellow { background: #fffbeb; border: 2px solid #ca8a04; color: #78350f; }
-.m-green  { background: #f0fdf4; border: 2px solid #16a34a; color: #14532d; }
-.m-blue   { background: #eff6ff; border: 2px solid #1d4ed8; color: #1e3a8a; }
-
-/* ── Kanban Preview ─────────────────────────────── */
-.kanban-preview {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  margin: 7px 0;
-}
-
-.kanban-col-mini {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 6px;
-}
-
-.kanban-col-title {
-  font-size: 8.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: #64748b;
-  margin-bottom: 4px;
-  text-align: center;
-}
-
-.kanban-card-mini {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-left-width: 3px;
-  border-radius: 4px;
-  padding: 4px 6px;
-  margin-bottom: 4px;
-  font-size: 8.5px;
-  line-height: 1.3;
-}
-
-.kanban-card-mini .kc-name { font-weight: 700; color: #0f172a; }
-.kanban-card-mini .kc-time { color: #94a3b8; font-size: 8.5px; }
-
-/* ── Bed Map ─────────────────────────────────────── */
-.bed-map {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-  margin: 7px 0;
-}
-
-.bed-cell {
-  border-radius: 5px;
-  padding: 5px 4px;
-  text-align: center;
-  font-size: 8.5px;
-  font-weight: 700;
-}
-
-.bed-cell .bed-num { font-size: 11px; margin-bottom: 1px; }
-.bed-cell .bed-label { font-size: 8px; line-height: 1.15; }
-
-.bed-free  { background: #dcfce7; border: 2px solid #16a34a; color: #14532d; }
-.bed-occ   { background: #fee2e2; border: 2px solid #dc2626; color: #7f1d1d; }
-.bed-clean { background: #fffbeb; border: 2px solid #ca8a04; color: #78350f; }
-.bed-maint { background: #f1f5f9; border: 2px solid #94a3b8; color: #475569; }
-
-/* ── Pharmacy item row ─────────────────────────── */
-.pharmacy-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  gap: 0;
-  font-size: 10px;
-  border-bottom: 1px solid #e2e8f0;
-  align-items: center;
-}
-
-.pharmacy-row.header { background: #312e81; color: #fff; font-weight: 700; border-radius: 6px 6px 0 0; }
-.pharmacy-row:not(.header):nth-child(odd) { background: #fff; }
-.pharmacy-row:not(.header):nth-child(even) { background: #f8fafc; }
-
-.pharmacy-row div { padding: 7px 10px; }
-
-.stock-low { color: #dc2626; font-weight: 700; }
-.stock-ok  { color: #16a34a; font-weight: 700; }
-
-/* ── KPI Cards (Dashboard) ────────────────────── */
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin: 7px 0;
-}
-
-.kpi-card {
-  border: 1px solid #e2e8f0;
+/* ── Component Mockups ───────────────────────────── */
+.mockup-window {
+  background: #0f172a;
+  border: 1px solid #334155;
   border-radius: 8px;
-  padding: 8px 10px;
-  background: #fff;
+  overflow: hidden;
+  margin: 12px 0;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
-.kpi-label { font-size: 8.5px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-.kpi-value { font-size: 19px; font-weight: 900; color: #0f172a; letter-spacing: -1px; line-height: 1; }
-.kpi-sub   { font-size: 8.5px; color: #94a3b8; margin-top: 2px; }
-.kpi-badge { margin-top: 3px; }
-
-/* ── Finance Row ─────────────────────────────────── */
-.finance-row {
+.mockup-header {
+  background: #1e293b;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 5px 9px;
-  border-radius: 5px;
-  margin-bottom: 3px;
-  font-size: 9.5px;
+  gap: 8px;
+  border-bottom: 1px solid #334155;
 }
-.finance-row.income { background: #dcfce7; border: 1.5px solid #86efac; }
-.finance-row.expense { background: #fee2e2; border: 1.5px solid #fca5a5; }
-.finance-row .fr-desc { font-weight: 600; color: #0f172a; }
-.finance-row .fr-val { font-weight: 800; }
-.finance-row.income .fr-val { color: #15803d; }
-.finance-row.expense .fr-val { color: #dc2626; }
-.finance-row .fr-date { font-size: 9.5px; color: #64748b; }
 
-/* ── Code ─────────────────────────────────────── */
+.mockup-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.mockup-dot.red { background: #ef4444; }
+.mockup-dot.yellow { background: #f59e0b; }
+.mockup-dot.green { background: #10b981; }
+
+.mockup-title { color: #94a3b8; font-size: 10px; font-family: monospace; margin-left: 8px; }
+
+.mockup-body { padding: 14px; color: #f8fafc; font-size: 11px; }
+
 code {
   background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
   border-radius: 4px;
-  padding: 1px 5px;
+  padding: 1px 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   color: #4f46e5;
   font-weight: 700;
 }
 
-/* ── Print fixes ──────────────────────────────── */
-@media print {
-  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .page { page-break-after: always; }
-}
 </style>
 </head>
 <body>
@@ -618,1149 +418,483 @@ code {
 <!--  CAPA                                                      -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="cover">
-  <div class="cover-top">
-    <div class="cover-badge">📋 Manual Oficial do Usuário · Versão 1.0.2</div>
+  <div>
+    <div class="cover-badge">📋 Manual Oficial do Usuário · Versão 2.0 (Fase 2)</div>
     <div class="cover-logo">Health Nexus</div>
-    <div class="cover-sub">Sistema de Gestão Hospitalar Integrado</div>
-    <div class="cover-desc">Guia completo de operação para todos os perfis de usuário: recepcionistas, enfermeiros, médicos, farmacêuticos e gestores. Todos os módulos, campos, fluxos e regras de negócio.</div>
+    <div class="cover-sub">Sistema de Gestão Hospitalar & Pronto-Socorro</div>
+    <div class="cover-desc">
+      Guia técnico e operacional ilustrado com organogramas, fluxogramas de atendimento, tabelas de referência e instruções detalhadas passo a passo para todos os perfis assistenciais e administrativos.
+    </div>
     <div class="cover-divider"></div>
     <div class="cover-modules">
-      <div class="cover-module-pill"><strong>🔐 Módulo 1</strong>Login e Perfis de Acesso</div>
-      <div class="cover-module-pill"><strong>📊 Módulo 2</strong>Dashboard e KPIs</div>
-      <div class="cover-module-pill"><strong>🏥 Módulo 3</strong>Admissão de Pacientes</div>
+      <div class="cover-module-pill"><strong>🔐 Módulo 1</strong>Login & Perfis RBAC</div>
+      <div class="cover-module-pill"><strong>📊 Módulo 2</strong>Dashboard & KPIs</div>
+      <div class="cover-module-pill"><strong>🏥 Módulo 3</strong>Admissão 11 Campos SUS</div>
       <div class="cover-module-pill"><strong>📅 Módulo 4</strong>Agenda de Consultas</div>
       <div class="cover-module-pill"><strong>🚦 Módulo 5</strong>Triagem Manchester</div>
-      <div class="cover-module-pill"><strong>📺 Módulo 6</strong>Painel TV com Voz</div>
-      <div class="cover-module-pill"><strong>📋 Módulo 7</strong>Prontuário (PEP)</div>
-      <div class="cover-module-pill"><strong>🛏️ Módulo 8</strong>Gestão de Leitos</div>
-      <div class="cover-module-pill"><strong>💊 Módulo 9</strong>Farmácia e Estoque</div>
-      <div class="cover-module-pill"><strong>💲 Módulo 10</strong>Financeiro e Caixa</div>
-      <div class="cover-module-pill"><strong>👨‍⚕️ Módulo 11</strong>Corpo Clínico</div>
-      <div class="cover-module-pill"><strong>📄 Módulo 12</strong>Relatórios e BI</div>
-      <div class="cover-module-pill"><strong>⚠️ Módulo 13</strong>Alertas de Estagnação</div>
-      <div class="cover-module-pill"><strong>🗑️ Módulo 14</strong>Lixeira de Segurança</div>
-      <div class="cover-module-pill"><strong>☁️ Módulo 15</strong>Nuvem e Configurações</div>
+      <div class="cover-module-pill"><strong>📺 Módulo 6</strong>Painel TV & Voz</div>
+      <div class="cover-module-pill"><strong>📋 Módulo 7</strong>Prontuário PEP (SOAPE)</div>
+      <div class="cover-module-pill"><strong>💊 Módulo 8</strong>Prescrição em Planilha</div>
+      <div class="cover-module-pill"><strong>⏱️ Módulo 9</strong>Timer 12h Obs PS</div>
+      <div class="cover-module-pill"><strong>🛏️ Módulo 10</strong>Gestão de Leitos</div>
+      <div class="cover-module-pill"><strong>👨‍⚕️ Módulo 11</strong>Corpo Clínico & Escala</div>
+      <div class="cover-module-pill"><strong>💊 Módulo 12</strong>Farmácia & Lotes</div>
+      <div class="cover-module-pill"><strong>💲 Módulo 13</strong>Financeiro & Caixa</div>
+      <div class="cover-module-pill"><strong>📄 Módulo 14</strong>Relatórios & BI</div>
+      <div class="cover-module-pill"><strong>☁️ Módulo 15</strong>Sync Dual-DB (Turso)</div>
     </div>
   </div>
   <div class="cover-footer">
     <div class="cover-footer-left">
-      Versão do Sistema: <strong>1.0.2</strong><br>
-      Data de Emissão: <strong>Julho / 2026</strong>
+      Versão do Sistema: <strong>2.0.0 (Fase 2 Concluída)</strong><br>
+      Data da Edição: <strong>Julho / 2026</strong>
     </div>
     <div class="cover-footer-right">
-      Desenvolvido por @mazzarowysk &amp; @coltr1<br>
+      Desenvolvido por @mazzarowysk &amp; @_coltri_<br>
       Todos os direitos reservados · Health Nexus™
     </div>
   </div>
 </div>
-<div class="module-sep"></div>
 
 <!-- ══════════════════════════════════════════════════════════ -->
-<!--  SUMÁRIO                                                   -->
+<!--  ORGANOGRAMA HOSPITALAR E RBAC                            -->
 <!-- ══════════════════════════════════════════════════════════ -->
-<div class="page summary-page">
+<div class="page">
   <div class="page-header">
-    <div class="page-header-eyebrow">Navegação Geral</div>
-    <h1>Sumário dos Módulos</h1>
-    <p>Clique em qualquer módulo para navegar. Cada seção cobre campos, regras de negócio, fluxos de trabalho e exemplos práticos de uso real.</p>
+    <div class="page-header-eyebrow">Arquitetura de Perfis & Organograma</div>
+    <h1>🏛️ Organograma Hospitalar & Matriz RBAC</h1>
+    <p>O Health Nexus estrutura a gestão do hospital através de níveis hierárquicos e perfis de acesso bem delimitados (RBAC — Role-Based Access Control).</p>
   </div>
 
-  <div class="summary-grid">
-    <div class="summary-item">
-      <div class="summary-item-icon">🔐</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 1</div>
-        <div class="summary-item-title">Login, Autenticação e Perfis de Acesso (RBAC)</div>
-        <div class="summary-item-desc">Tela de login, 5 perfis de usuário, permissões e criação de novas contas.</div>
+  <div class="svg-container">
+    <div class="svg-title">Organograma de Níveis de Acesso e Responsabilidade Hospitalar</div>
+    <svg viewBox="0 0 800 360" width="100%" height="280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="gMaster" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b"/>
+          <stop offset="100%" stop-color="#d97706"/>
+        </linearGradient>
+        <linearGradient id="gDev" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#a855f7"/>
+          <stop offset="100%" stop-color="#7e22ce"/>
+        </linearGradient>
+        <linearGradient id="gMed" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981"/>
+          <stop offset="100%" stop-color="#059669"/>
+        </linearGradient>
+        <linearGradient id="gEnf" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#38bdf8"/>
+          <stop offset="100%" stop-color="#0284c7"/>
+        </linearGradient>
+        <linearGradient id="gRecep" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ec4899"/>
+          <stop offset="100%" stop-color="#be185d"/>
+        </linearGradient>
+        <linearGradient id="gFin" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#6366f1"/>
+          <stop offset="100%" stop-color="#4338ca"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Level 1: Root Master -->
+      <rect x="290" y="10" width="220" height="45" rx="8" fill="url(#gMaster)" />
+      <text x="400" y="32" font-family="Outfit, sans-serif" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">👑 MASTER / ADMINISTRADOR</text>
+      <text x="400" y="46" font-family="Inter, sans-serif" font-size="9" fill="#fef3c7" text-anchor="middle">Gestão Total · Aprovação · Auditoria</text>
+
+      <!-- Vertical Lines -->
+      <line x1="400" y1="55" x2="400" y2="85" stroke="#94a3b8" stroke-width="2" />
+      <line x1="120" y1="85" x2="680" y2="85" stroke="#94a3b8" stroke-width="2" />
+
+      <!-- Level 2 Branches -->
+      <line x1="120" y1="85" x2="120" y2="115" stroke="#94a3b8" stroke-width="2" />
+      <line x1="260" y1="85" x2="260" y2="115" stroke="#94a3b8" stroke-width="2" />
+      <line x1="400" y1="85" x2="400" y2="115" stroke="#94a3b8" stroke-width="2" />
+      <line x1="540" y1="85" x2="540" y2="115" stroke="#94a3b8" stroke-width="2" />
+      <line x1="680" y1="85" x2="680" y2="115" stroke="#94a3b8" stroke-width="2" />
+
+      <!-- Nodes -->
+      <!-- Dev -->
+      <rect x="50" y="115" width="140" height="50" rx="6" fill="url(#gDev)" />
+      <text x="120" y="137" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">💻 DESENVOLVEDOR</text>
+      <text x="120" y="152" font-family="Inter, sans-serif" font-size="8.5" fill="#e9d5ff" text-anchor="middle">Controle de Código & Sync</text>
+
+      <!-- Corpo Clínico -->
+      <rect x="190" y="115" width="140" height="50" rx="6" fill="url(#gMed)" />
+      <text x="260" y="137" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">🩺 CORPO CLÍNICO</text>
+      <text x="260" y="152" font-family="Inter, sans-serif" font-size="8.5" fill="#d1fae5" text-anchor="middle">Médicos & Especialistas</text>
+
+      <!-- Enfermagem -->
+      <rect x="330" y="115" width="140" height="50" rx="6" fill="url(#gEnf)" />
+      <text x="400" y="137" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">🩺 ENFERMAGEM</text>
+      <text x="400" y="152" font-family="Inter, sans-serif" font-size="8.5" fill="#e0f2fe" text-anchor="middle">Triagem & Leitos & Meds</text>
+
+      <!-- Recepção -->
+      <rect x="470" y="115" width="140" height="50" rx="6" fill="url(#gRecep)" />
+      <text x="540" y="137" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">📋 RECEPÇÃO</text>
+      <text x="540" y="152" font-family="Inter, sans-serif" font-size="8.5" fill="#fce7f3" text-anchor="middle">Admissão & Agenda & TV</text>
+
+      <!-- Financeiro -->
+      <rect x="610" y="115" width="140" height="50" rx="6" fill="url(#gFin)" />
+      <text x="680" y="137" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">📊 GESTÃO FINANCEIRA</text>
+      <text x="680" y="152" font-family="Inter, sans-serif" font-size="8.5" fill="#e0e7ff" text-anchor="middle">Faturamento & Títulos</text>
+
+      <!-- Sub Level Items -->
+      <path d="M260,165 L260,200" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4"/>
+      <rect x="195" y="200" width="130" height="35" rx="4" fill="#f1f5f9" stroke="#10b981"/>
+      <text x="260" y="217" font-family="Inter, sans-serif" font-size="9" font-weight="bold" fill="#065f46" text-anchor="middle">PEP SOAPE & Planilha</text>
+
+      <path d="M400,165 L400,200" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4"/>
+      <rect x="335" y="200" width="130" height="35" rx="4" fill="#f1f5f9" stroke="#0284c7"/>
+      <text x="400" y="217" font-family="Inter, sans-serif" font-size="9" font-weight="bold" fill="#075985" text-anchor="middle">Checagem & Timer PS 12h</text>
+
+      <path d="M540,165 L540,200" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4"/>
+      <rect x="475" y="200" width="130" height="35" rx="4" fill="#f1f5f9" stroke="#be185d"/>
+      <text x="540" y="217" font-family="Inter, sans-serif" font-size="9" font-weight="bold" fill="#831843" text-anchor="middle">Triagem & Responsável Legal</text>
+    </svg>
+  </div>
+
+  <h2 class="sh">Matriz Geral de Permissões por Perfil (RBAC)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Perfil / Função</th>
+        <th>Abas Permitidas</th>
+        <th>Prontuário (PEP)</th>
+        <th>Triagem</th>
+        <th>Farmácia / Leitos</th>
+        <th>Financeiro</th>
+        <th>Aprovação Master</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>👑 Master / Dev</strong></td>
+        <td>Todas as 13 Abas</td>
+        <td><span class="badge badge-green">Total</span></td>
+        <td><span class="badge badge-green">Sim</span></td>
+        <td><span class="badge badge-green">Total</span></td>
+        <td><span class="badge badge-green">Total</span></td>
+        <td><span class="badge badge-purple">Exclusivo</span></td>
+      </tr>
+      <tr>
+        <td><strong>🩺 Médico</strong></td>
+        <td>Dashboard, Pacientes, Médicos, Atendimento, Farmácia, Leitos, Relatórios</td>
+        <td><span class="badge badge-green">Assinatura & Planilha</span></td>
+        <td><span class="badge badge-green">Sim</span></td>
+        <td><span class="badge badge-blue">Consulta/Prescrição</span></td>
+        <td><span class="badge badge-red">Bloqueado</span></td>
+        <td><span class="badge badge-red">Não</span></td>
+      </tr>
+      <tr>
+        <td><strong>🩺 Enfermeiro(a)</strong></td>
+        <td>Dashboard, Pacientes, Atendimento, Consultórios, Leitos, Farmácia</td>
+        <td><span class="badge badge-yellow">Apenas Leitura</span></td>
+        <td><span class="badge badge-green">Execução Manchester</span></td>
+        <td><span class="badge badge-green">Checagem & Gestão</span></td>
+        <td><span class="badge badge-red">Bloqueado</span></td>
+        <td><span class="badge badge-red">Não</span></td>
+      </tr>
+      <tr>
+        <td><strong>📋 Recepcionista</strong></td>
+        <td>Dashboard, Pacientes, Agenda, Atendimento, Painel TV, Financeiro (Entradas)</td>
+        <td><span class="badge badge-red">Bloqueado</span></td>
+        <td><span class="badge badge-red">Bloqueado</span></td>
+        <td><span class="badge badge-red">Bloqueado</span></td>
+        <td><span class="badge badge-yellow">Apenas Lançamento</span></td>
+        <td><span class="badge badge-red">Não</span></td>
+      </tr>
+      <tr>
+        <td><strong>💊 Farmacêutico(a)</strong></td>
+        <td>Dashboard, Pacientes, Farmácia, Relatórios</td>
+        <td><span class="badge badge-red">Bloqueado</span></td>
+        <td><span class="badge badge-red">Bloqueado</span></td>
+        <td><span class="badge badge-green">Gestão Total de Lotes</span></td>
+        <td><span class="badge badge-red">Bloqueado</span></td>
+        <td><span class="badge badge-red">Não</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  FLUXOGRAMA JORNADA DO PACIENTE                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-eyebrow">Fluxo Assistencial Completo</div>
+    <h1>🔄 Jornada do Paciente no Pronto-Socorro / Hospital</h1>
+    <p>Mapeamento visual de ponta a ponta desde a admissão no balcão até a alta médica ou internação hospitalar.</p>
+  </div>
+
+  <div class="svg-container">
+    <div class="svg-title">Fluxograma Operacional do Atendimento Médico e Hospitalar</div>
+    <svg viewBox="0 0 800 280" width="100%" height="230" xmlns="http://www.w3.org/2000/svg">
+      <!-- Step 1 -->
+      <rect x="20" y="30" width="130" height="50" rx="8" fill="#ec4899" />
+      <text x="85" y="52" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">1. ADMISSÃO SUS</text>
+      <text x="85" y="66" font-family="Inter, sans-serif" font-size="8" fill="#fce7f3" text-anchor="middle">11 Campos + Responsável</text>
+
+      <path d="M150,55 L180,55" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+
+      <!-- Step 2 -->
+      <rect x="180" y="30" width="130" height="50" rx="8" fill="#0284c7" />
+      <text x="245" y="52" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">2. TRIAGEM MANCHESTER</text>
+      <text x="245" y="66" font-family="Inter, sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Sinais Vitais & Cor Risco</text>
+
+      <path d="M310,55 L340,55" stroke="#475569" stroke-width="2" />
+
+      <!-- Step 3 -->
+      <rect x="340" y="30" width="130" height="50" rx="8" fill="#8b5cf6" />
+      <text x="405" y="52" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">3. CHAMADA PAINEL TV</text>
+      <text x="405" y="66" font-family="Inter, sans-serif" font-size="8" fill="#ede9fe" text-anchor="middle">Voz Sintetizada (TTS)</text>
+
+      <path d="M470,55 L500,55" stroke="#475569" stroke-width="2" />
+
+      <!-- Step 4 -->
+      <rect x="500" y="30" width="130" height="50" rx="8" fill="#10b981" />
+      <text x="565" y="52" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">4. CONSULTA / PEP</text>
+      <text x="565" y="66" font-family="Inter, sans-serif" font-size="8" fill="#d1fae5" text-anchor="middle">Metodologia SOAPE</text>
+
+      <path d="M630,55 L660,55" stroke="#475569" stroke-width="2" />
+
+      <!-- Step 5 -->
+      <rect x="660" y="30" width="120" height="50" rx="8" fill="#f59e0b" />
+      <text x="720" y="52" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">5. PRESCRIÇÃO</text>
+      <text x="720" y="66" font-family="Inter, sans-serif" font-size="8" fill="#fef3c7" text-anchor="middle">Planilha de Medicações</text>
+
+      <!-- Row 2 Connections -->
+      <path d="M720,80 L720,140 L630,140" stroke="#475569" stroke-width="2" fill="none" />
+
+      <!-- Step 6 -->
+      <rect x="500" y="115" width="130" height="50" rx="8" fill="#06b6d4" />
+      <text x="565" y="137" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">6. CHECAGEM ENFERMAGEM</text>
+      <text x="565" y="151" font-family="Inter, sans-serif" font-size="8" fill="#cff4fc" text-anchor="middle">Administração & Horários</text>
+
+      <path d="M500,140 L470,140" stroke="#475569" stroke-width="2" />
+
+      <!-- Step 7 -->
+      <rect x="340" y="115" width="130" height="50" rx="8" fill="#3b82f6" />
+      <text x="405" y="137" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">7. TIMER OBS PS (12H)</text>
+      <text x="405" y="151" font-family="Inter, sans-serif" font-size="8" fill="#dbeafe" text-anchor="middle">Monitoramento de Permanência</text>
+
+      <!-- Decision Branches -->
+      <path d="M340,140 L200,140 L200,200" stroke="#10b981" stroke-width="2" fill="none" />
+      <path d="M405,165 L405,200" stroke="#ef4444" stroke-width="2" fill="none" />
+
+      <!-- Outcome A: Alta -->
+      <rect x="135" y="200" width="130" height="45" rx="6" fill="#10b981" />
+      <text x="200" y="220" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">✅ ALTA MÉDICA</text>
+      <text x="200" y="233" font-family="Inter, sans-serif" font-size="8" fill="#d1fae5" text-anchor="middle">Receituário A4 PDF Impresso</text>
+
+      <!-- Outcome B: Internação -->
+      <rect x="340" y="200" width="130" height="45" rx="6" fill="#ef4444" />
+      <text x="405" y="220" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">🛌 SUBIR P/ INTERNAÇÃO</text>
+      <text x="405" y="233" font-family="Inter, sans-serif" font-size="8" fill="#fee2e2" text-anchor="middle">Transferência p/ Leito Vago</text>
+    </svg>
+  </div>
+
+  <h2 class="sh">Detalhamento dos Passos da Jornada</h2>
+  <div class="two-col">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">1</div>
+        <div class="step-card-header-title">Admissão & Validação do Responsável</div>
+      </div>
+      <div class="steps">
+        <ol>
+          <li>Preenchimento dos <strong>11 Campos SUS</strong> (Nome, CPF, Data Nasc, Cartão SUS, Raça, etc.).</li>
+          <li><strong>Trava Automática de Idade:</strong> Se idade &lt; 18 ou &gt; 65 anos, é obrigatório registrar Nome, CPF, Telefone e Parentesco do <strong>Responsável Legal</strong>.</li>
+        </ol>
       </div>
     </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">📊</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 2</div>
-        <div class="summary-item-title">Dashboard Gerencial e KPIs em Tempo Real</div>
-        <div class="summary-item-desc">Cards de métricas, gráficos de triagem, tempo médio e faturamento do dia.</div>
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">2</div>
+        <div class="step-card-header-title">Triagem Manchester & Fila</div>
       </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">🏥</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 3</div>
-        <div class="summary-item-title">Admissão e Cadastro de Pacientes</div>
-        <div class="summary-item-desc">Formulário completo, travas de CPF, busca de CEP automática e re-admissão.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">📅</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 4</div>
-        <div class="summary-item-title">Agenda de Consultas Eletivas</div>
-        <div class="summary-item-desc">Calendário visual, agendamento, status e recepção do paciente no dia.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">🚦</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 5</div>
-        <div class="summary-item-title">Triagem Manchester e Kanban de Atendimento</div>
-        <div class="summary-item-desc">Protocolo de 5 cores, sinais vitais, fluxo Kanban e sorting por gravidade.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">📺</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 6</div>
-        <div class="summary-item-title">Painel TV e Chamadas com Sintetizador de Voz</div>
-        <div class="summary-item-desc">Tela de chamada automática, Web Speech API, polling a cada 3 segundos.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">📋</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 7</div>
-        <div class="summary-item-title">Prontuário Eletrônico (PEP SOAPE)</div>
-        <div class="summary-item-desc">Registro clínico completo: Subjetivo, Objetivo, Avaliação, Plano e Evolução.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">🛏️</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 8</div>
-        <div class="summary-item-title">Gestão de Leitos e Censo Hospitalar</div>
-        <div class="summary-item-desc">Mapa de leitos, ciclo de higienização, internação e alta hospitalar.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">💊</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 9</div>
-        <div class="summary-item-title">Farmácia, Estoque de Insumos e Rastreio de Lotes</div>
-        <div class="summary-item-desc">Entrada e saída de medicamentos, controle por lote/validade, alertas.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">💲</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 10</div>
-        <div class="summary-item-title">Financeiro, Fluxo de Caixa e DRE</div>
-        <div class="summary-item-desc">Lançamento de receitas/despesas, saldo líquido em tempo real, segurança RBAC.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">👨‍⚕️</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 11</div>
-        <div class="summary-item-title">Corpo Clínico, Consultórios e Infraestrutura</div>
-        <div class="summary-item-desc">Cadastro de médicos (CRM), salas, especialidades e integração com TV e Agenda.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">📄</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 12</div>
-        <div class="summary-item-title">Relatórios Estratégicos e Exportação de BI</div>
-        <div class="summary-item-desc">Filtros de período, download em PDF e Excel, fechamento mensal.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">⚠️</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 13</div>
-        <div class="summary-item-title">Sistema de Alertas de Estagnação (Watchdog)</div>
-        <div class="summary-item-desc">Detecção automática de pacientes parados além do tempo permitido por cor.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">🗑️</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 14</div>
-        <div class="summary-item-title">Lixeira de Segurança e Recuperação (Soft-Delete)</div>
-        <div class="summary-item-desc">Apagamento lógico, rastreio de quem deletou e restauração completa.</div>
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-item-icon">☁️</div>
-      <div class="summary-item-body">
-        <div class="summary-item-num">Módulo 15</div>
-        <div class="summary-item-title">Nuvem Turso, Configurações e Desligamento Seguro</div>
-        <div class="summary-item-desc">Arquitetura Local-First, sincronização Turso Cloud, heartbeat e graceful shutdown.</div>
+      <div class="steps">
+        <ol>
+          <li>Aferição de sinais vitais (PA, FC, Temp, SpO₂, Glicemia, IMC).</li>
+          <li>Classificação em uma das <strong>5 Cores de Risco</strong>. O paciente vai para a Fila de Espera com sorting inteligente por gravidade.</li>
+        </ol>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 1 — LOGIN E PERFIS                                 -->
+<!--  NOVAS FUNCIONALIDADES FASE 2                             -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="page">
   <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 1 · Primeiro Acesso</div>
-    <h1>🔐 Login, Autenticação e Perfis de Acesso</h1>
-    <p>O Health Nexus usa controle de acesso baseado em perfis (RBAC — Role-Based Access Control). O sistema monta o menu lateral e oculta automaticamente funcionalidades que não pertencem ao cargo do usuário logado.</p>
+    <div class="page-header-eyebrow">Recursos Especiais · Fase 2</div>
+    <h1>💊 Prescrição Médica em Planilha & Timer de Obs (12h)</h1>
+    <p>Detalhamento das novas funcionalidades desenvolvidas para alta densidade e agilidade hospitalar.</p>
   </div>
 
-  <h2 class="sh">Tela de Login — Campos e Regras</h2>
-  <table>
-    <thead><tr><th>Campo</th><th>Instrução de Preenchimento</th><th>Regras do Sistema</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Usuário</strong></td><td>Digite o nome de usuário fornecido pelo T.I. (ex: <code>recep01</code>, <code>dr.lucas</code>)</td><td>Não diferencia maiúsculas/minúsculas. Sem espaços.</td></tr>
-      <tr><td><strong>Senha</strong></td><td>Senha pessoal e intransferível. Oculta por asteriscos durante a digitação.</td><td>Mínimo 6 caracteres. Diferencia maiúsculas/minúsculas.</td></tr>
-      <tr><td><strong>Botão "Entrar"</strong></td><td>Clique no botão azul brilhante após preencher os dois campos acima.</td><td>Se Caps Lock estiver ativo, a tela exibirá um aviso laranja de alerta antes mesmo de tentar.</td></tr>
-      <tr><td><strong>Erro de Login</strong></td><td>Mensagem vermelha: <em>"Usuário ou senha inválidos."</em></td><td>Após 5 tentativas falhas seguidas, a conta é bloqueada por 10 minutos por segurança.</td></tr>
-    </tbody>
-  </table>
+  <h2 class="sh">1. Prescrição Médica em Formato de Planilha & Matriz da Enfermagem</h2>
+  <p class="body">
+    O médico monta o receituário dentro do PEP selecionando múltiplos medicamentos. O sistema gera uma grade estilo planilha hospitalar onde os enfermeiros clicam diretamente para checar e registrar a administração.
+  </p>
 
-  <h2 class="sh">Perfis de Acesso — Mapa Completo de Permissões</h2>
-  <div class="role-grid">
-    <div class="role-card">
-      <div class="role-card-header">
-        <div class="role-icon" style="background:#fef3c7;">👑</div>
-        <div><div class="role-name">Master</div><div class="role-label">Dono da Clínica / T.I.</div></div>
-      </div>
-      <div class="role-perms">Acesso irrestrito a todos os 15 módulos. Único perfil que pode ver a Lixeira de Segurança, forçar sincronização com a nuvem, criar usuários Master e alterar quaisquer senhas.</div>
-      <div class="role-block">
-        <span class="tag allow">✓ Todos os módulos</span>
-        <span class="tag allow">✓ Lixeira</span>
-        <span class="tag allow">✓ Criar usuários</span>
-      </div>
+  <div class="mockup-window">
+    <div class="mockup-header">
+      <span class="mockup-dot red"></span>
+      <span class="mockup-dot yellow"></span>
+      <span class="mockup-dot green"></span>
+      <span class="mockup-title">Matriz de Checagem da Enfermagem — Prescrição Ativa</span>
     </div>
-    <div class="role-card">
-      <div class="role-card-header">
-        <div class="role-icon" style="background:#ede9fe;">🛠️</div>
-        <div><div class="role-name">Administrador</div><div class="role-label">Gerente / Coordenador</div></div>
+    <div class="mockup-body">
+      <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between;">
+        <span><strong>Paciente:</strong> Roberto Ferreira · Prontuário #1042</span>
+        <span style="color: #38bdf8;"><strong>Leito:</strong> Obs PS 02</span>
       </div>
-      <div class="role-perms">Acessa Farmácia, Financeiro, Relatórios, Corpo Clínico e Pacientes. Pode criar usuários abaixo de Master. Não pode fazer triagem ou registrar prontuário.</div>
-      <div class="role-block">
-        <span class="tag allow">✓ Financeiro</span>
-        <span class="tag allow">✓ Relatórios</span>
-        <span class="tag deny">✗ PEP Médico</span>
-        <span class="tag deny">✗ Triagem</span>
-      </div>
+      <table style="margin: 0; background: transparent; color: #fff;">
+        <thead>
+          <tr style="background: #1e293b;">
+            <th style="color: #a5b4fc;">Medicamento</th>
+            <th style="color: #a5b4fc;">Dose / Via</th>
+            <th style="color: #a5b4fc;">Frequência</th>
+            <th style="color: #a5b4fc;">Horários & Status de Administração</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Dipirona IV</strong></td>
+            <td>1g / EV</td>
+            <td>6/6 horas</td>
+            <td>
+              <span class="badge badge-green">✓ 06:00 (Enf. Ana)</span>
+              <span class="badge badge-green">✓ 12:00 (Enf. Ana)</span>
+              <span class="badge badge-yellow">⏱ 18:00 (Pendente)</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Ketanest / Soro 0.9%</strong></td>
+            <td>500ml / EV Contínua</td>
+            <td>12/12 horas</td>
+            <td>
+              <span class="badge badge-green">✓ 08:00 (Enf. Carlos)</span>
+              <span class="badge badge-blue">⏱ 20:00 (Aguardando)</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="role-card">
-      <div class="role-card-header">
-        <div class="role-icon" style="background:#dbeafe;">🩺</div>
-        <div><div class="role-name">Médico</div><div class="role-label">Corpo Clínico</div></div>
-      </div>
-      <div class="role-perms">Foco total na aba Atendimento. Vê Kanban (Coluna 2 e 3). Acessa e preenche o PEP completo (SOAPE), prescreve e concede alta. Não vê financeiro nem relatórios de faturamento.</div>
-      <div class="role-block">
-        <span class="tag allow">✓ Atendimento</span>
-        <span class="tag allow">✓ PEP SOAPE</span>
-        <span class="tag deny">✗ Financeiro</span>
-        <span class="tag deny">✗ Configurações</span>
-      </div>
-    </div>
-    <div class="role-card">
-      <div class="role-card-header">
-        <div class="role-icon" style="background:#dcfce7;">💉</div>
-        <div><div class="role-name">Enfermeiro</div><div class="role-label">Equipe Assistencial</div></div>
-      </div>
-      <div class="role-perms">Aba Atendimento (Coluna 1 — Triagem) e Gestão de Leitos. Insere sinais vitais e define cor de risco Manchester. Autorizado a abater medicamentos no estoque da Farmácia.</div>
-      <div class="role-block">
-        <span class="tag allow">✓ Triagem</span>
-        <span class="tag allow">✓ Leitos</span>
-        <span class="tag allow">✓ Farmácia</span>
-        <span class="tag deny">✗ PEP completo</span>
-      </div>
-    </div>
-    <div class="role-card">
-      <div class="role-card-header">
-        <div class="role-icon" style="background:#fce7f3;">📋</div>
-        <div><div class="role-name">Recepcionista</div><div class="role-label">Atendimento Balcão</div></div>
-      </div>
-      <div class="role-perms">Abas Pacientes, Agenda e Financeiro (somente Entrada de receita). Cadastra pacientes, agenda consultas, envia para a fila e aciona o Painel TV quando necessário.</div>
-      <div class="role-block">
-        <span class="tag allow">✓ Pacientes</span>
-        <span class="tag allow">✓ Agenda</span>
-        <span class="tag allow">✓ Caixa Entrada</span>
-        <span class="tag deny">✗ PEP / Leitos</span>
-      </div>
-    </div>
+  </div>
+
+  <h2 class="sh">2. Timer de Observação do PS (Limite 12h) & "Subir para Internação"</h2>
+  <div class="svg-container">
+    <div class="svg-title">Estados Dinâmicos do Cronômetro de Observação no Pronto-Socorro</div>
+    <svg viewBox="0 0 750 140" width="100%" height="120" xmlns="http://www.w3.org/2000/svg">
+      <!-- State 1 -->
+      <rect x="20" y="25" width="220" height="85" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+      <text x="130" y="50" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#1e3a8a" text-anchor="middle">⏱️ OBSERVAÇÃO NORMAL</text>
+      <text x="130" y="70" font-family="Inter, sans-serif" font-size="12" font-weight="extrabold" fill="#2563eb" text-anchor="middle">04h 15m / 12h max</text>
+      <text x="130" y="90" font-family="Inter, sans-serif" font-size="8.5" fill="#64748b" text-anchor="middle">Tempo &lt; 10 horas (Estável)</text>
+
+      <!-- State 2 -->
+      <rect x="265" y="25" width="220" height="85" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+      <text x="375" y="50" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#78350f" text-anchor="middle">⚠️ ALERTA DE LIMITE LEGAL</text>
+      <text x="375" y="70" font-family="Inter, sans-serif" font-size="12" font-weight="extrabold" fill="#d97706" text-anchor="middle">10h 40m / 12h max</text>
+      <text x="375" y="90" font-family="Inter, sans-serif" font-size="8.5" fill="#78350f" text-anchor="middle">Entre 10h e 12h (Atenção)</text>
+
+      <!-- State 3 -->
+      <rect x="510" y="25" width="220" height="85" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2.5"/>
+      <text x="620" y="50" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#7f1d1d" text-anchor="middle">🚨 LIMITE EXCEDIDO (PS)</text>
+      <text x="620" y="70" font-family="Inter, sans-serif" font-size="12" font-weight="extrabold" fill="#dc2626" text-anchor="middle">12h 45m (EXCEDEU)</text>
+      <text x="620" y="95" font-family="Inter, sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">
+        <tspan fill="#dc2626">TRANSFERÊNCIA OBRIGATÓRIA</tspan>
+      </text>
+    </svg>
   </div>
 
   <div class="step-card">
     <div class="step-card-header">
-      <div class="step-card-icon">▶</div>
-      <div class="step-card-header-title">Passo a Passo — Como realizar o Login e o primeiro acesso ao sistema</div>
+      <div class="step-card-icon">🛌</div>
+      <div class="step-card-header-title">Como transferir o paciente de Obs para Leito Hospitalar ("Subir para Internação")</div>
     </div>
-    <div class="steps"><ol>
-      <li>Abra o navegador Google Chrome (recomendado) e acesse o endereço fornecido pela T.I., ex: <code>http://localhost:5173</code> ou IP interno da rede hospitalar.</li>
-      <li>Na tela branca de login, insira seu <strong>Usuário</strong> no campo superior (ex: <code>recep01</code>).</li>
-      <li>Insira sua <strong>Senha</strong> pessoal no campo inferior. Os caracteres aparecerão ocultos por asteriscos.</li>
-      <li>Clique no botão azul <strong>"Entrar no Sistema"</strong>.</li>
-      <li>O sistema valida suas credenciais. Se aprovado, você é redirecionado para a tela inicial adequada ao seu perfil. O menu lateral esquerdo é montado automaticamente.</li>
-      <li>Se aparecer mensagem vermelha de erro, verifique se o <strong>Caps Lock</strong> está desligado e tente novamente.</li>
-    </ol></div>
-  </div>
-
-  <div class="info-box box-tip">
-    <div class="info-box-icon">💡</div>
-    <div class="info-box-body">
-      <div class="info-box-title">Como criar ou alterar uma senha (apenas Master/Admin)</div>
-      <div class="info-box-text">Acesse <strong>Configurações → Usuários</strong> no menu lateral. Clique em <strong>"Novo Usuário"</strong> para criar, ou clique no ícone de lápis na linha do usuário existente para editar. Defina o nome de usuário, senha provisória e perfil. O novo funcionário já pode logar imediatamente após o cadastro ser salvo.</div>
+    <div class="steps">
+      <ol>
+        <li>No card do atendimento ativo, observe o timer de permanência.</li>
+        <li>Clique no botão roxo <strong>"🛌 Subir para Internação"</strong> no rodapé do card.</li>
+        <li>Uma gaveta lateral é aberta exibindo os <strong>Leitos Hospitalares Vagos</strong> (UTI, Enfermaria, Pediatria).</li>
+        <li>Selecione o leito desejado e confirme. O status do atendimento muda para <strong>Internado</strong> e o leito vira <strong>Ocupado</strong>.</li>
+      </ol>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 2 — DASHBOARD                                      -->
+<!--  ARQUITETURA DE SINCRONIZAÇÃO DUAL-DB                     -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="page">
   <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 2 · Visão Gerencial</div>
-    <h1>📊 Dashboard e KPIs em Tempo Real</h1>
-    <p>Tela inicial para perfis Master, Administrador e Enfermeiro-Chefe. Exibe o estado atual do hospital em tempo real, sem precisar gerar relatórios. Ideal para a chefia bater o olho e entender a lotação instantaneamente.</p>
+    <div class="page-header-eyebrow">Arquitetura de Dados & Backup</div>
+    <h1>☁️ Sincronização Local-First ↔ Turso Cloud DB</h1>
+    <p>O Health Nexus opera em modo híbrido inteligente: velocidade offline máxima com sincronização em nuvem.</p>
   </div>
 
-  <h2 class="sh">Cards de KPI — Topo da Tela</h2>
-  <div class="kpi-row">
-    <div class="kpi-card">
-      <div class="kpi-label">👥 Pacientes Ativos</div>
-      <div class="kpi-value">14</div>
-      <div class="kpi-sub">Total em triagem + aguardando + em consulta</div>
-      <div class="kpi-badge"><span class="badge badge-blue">Atualiza em tempo real</span></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">⏱ Tempo Médio de Espera</div>
-      <div class="kpi-value">18<span style="font-size:14px;font-weight:600;"> min</span></div>
-      <div class="kpi-sub">Da admissão até a chamada do médico</div>
-      <div class="kpi-badge"><span class="badge badge-green">Dentro do limite SUS</span></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">💰 Faturamento do Dia</div>
-      <div class="kpi-value" style="font-size:16px;">R$ 1.500</div>
-      <div class="kpi-sub">Soma das entradas lançadas no Financeiro hoje</div>
-      <div class="kpi-badge"><span class="badge badge-purple">Oculto para Médicos</span></div>
-    </div>
+  <div class="svg-container">
+    <div class="svg-title">Fluxo de Gravação Local-First e Sincronização Cloud Turso</div>
+    <svg viewBox="0 0 750 180" width="100%" height="150" xmlns="http://www.w3.org/2000/svg">
+      <!-- Client UI -->
+      <rect x="20" y="40" width="160" height="60" rx="8" fill="#4f46e5"/>
+      <text x="100" y="65" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">1. OPERAÇÃO NO BROWSER</text>
+      <text x="100" y="80" font-family="Inter, sans-serif" font-size="8.5" fill="#c7d2fe" text-anchor="middle">UI Vanilla JS (Vite)</text>
+
+      <path d="M180,70 L230,70" stroke="#475569" stroke-width="2"/>
+
+      <!-- Express Backend -->
+      <rect x="230" y="40" width="160" height="60" rx="8" fill="#0284c7"/>
+      <text x="310" y="65" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">2. SERVIDOR EXPRESS</text>
+      <text x="310" y="80" font-family="Inter, sans-serif" font-size="8.5" fill="#e0f2fe" text-anchor="middle">API REST Local Node.js</text>
+
+      <path d="M390,70 L440,70" stroke="#475569" stroke-width="2"/>
+
+      <!-- Local SQLite -->
+      <rect x="440" y="15" width="140" height="50" rx="6" fill="#10b981"/>
+      <text x="510" y="37" font-family="Outfit, sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">local.db (SQLite)</text>
+      <text x="510" y="50" font-family="Inter, sans-serif" font-size="8" fill="#d1fae5" text-anchor="middle">Escrita Instantânea &lt; 5ms</text>
+
+      <path d="M510,65 L510,95" stroke="#10b981" stroke-width="2" stroke-dasharray="3"/>
+
+      <!-- Turso Cloud -->
+      <rect x="440" y="95" width="280" height="60" rx="8" fill="#8b5cf6"/>
+      <text x="580" y="120" font-family="Outfit, sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">3. TURSO CLOUD DB (LibSQL Edge)</text>
+      <text x="580" y="135" font-family="Inter, sans-serif" font-size="8.5" fill="#ede9fe" text-anchor="middle">Sincronização em Nuvem / Vercel Production</text>
+
+      <path d="M390,70 L440,125" stroke="#8b5cf6" stroke-width="2"/>
+    </svg>
   </div>
 
-  <div class="kpi-row">
-    <div class="kpi-card">
-      <div class="kpi-label">🛏️ Leitos Ocupados</div>
-      <div class="kpi-value">17<span style="font-size:14px;font-weight:600;">/20</span></div>
-      <div class="kpi-sub">85% de ocupação. Capacidade máxima: 20 leitos</div>
-      <div class="kpi-badge"><span class="badge badge-orange">⚠ Alta ocupação</span></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">📊 Distribuição Manchester</div>
-      <div class="kpi-value" style="font-size:14px; line-height:1.4;">🔴×2 🟠×3 🟡×6 🟢×2 🔵×1</div>
-      <div class="kpi-sub">Pacientes por cor de triagem neste momento</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">✅ Atendimentos Concluídos</div>
-      <div class="kpi-value">27</div>
-      <div class="kpi-sub">Altas emitidas pelo médico hoje</div>
-      <div class="kpi-badge"><span class="badge badge-green">Meta diária: 30</span></div>
-    </div>
-  </div>
-
-  <h2 class="sh">Dicionário de Todos os Blocos da Tela</h2>
+  <h2 class="sh">Dicionário de Solução de Problemas (Troubleshooting)</h2>
   <table>
-    <thead><tr><th>Componente / Bloco</th><th>Dado Exibido</th><th>Comportamento e Regra de Negócio</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Card: Pacientes Ativos</strong></td><td>Número absoluto em destaque</td><td>Total de pessoas ativas no fluxo (Triagem + Aguardando Médico + Em Atendimento). Atualiza em tempo real. Pacientes com alta somem deste número automaticamente.</td></tr>
-      <tr><td><strong>Card: Tempo Médio</strong></td><td>Valor em minutos</td><td>Cronometrado do instante em que a Recepção clica em "Salvar Paciente" até o momento em que o Médico clica em "Chamar". Média de todos os pacientes do dia. Se >30 min, card fica laranja de alerta.</td></tr>
-      <tr><td><strong>Card: Faturamento Hoje</strong></td><td>Valor monetário (R$)</td><td>Soma de todas as entradas lançadas na aba Financeiro com data de hoje. <em>Médicos e Enfermeiros não visualizam este card — bloqueio RBAC.</em></td></tr>
-      <tr><td><strong>Card: Leitos Ocupados</strong></td><td>Porcentagem e fração (ex: 85% — 17/20)</td><td>Divide os leitos com status Ocupado ou Manutenção pelo total cadastrado. Ao atingir 100%, o card fica vermelho com alerta "Lotação Máxima" e notifica a enfermagem.</td></tr>
-      <tr><td><strong>Gráfico de Triagem por Cor</strong></td><td>Gráfico de barras colorido</td><td>Agrupa pacientes do dia por cor Manchester (Vermelho, Laranja, Amarelo, Verde, Azul). Permite analisar a gravidade do fluxo e decidir sobre reforço de equipe.</td></tr>
-      <tr><td><strong>Gráfico de Fluxo Diário</strong></td><td>Gráfico de linha por hora</td><td>Exibe o volume de admissões ao longo das horas do dia (pico das 10h, queda às 14h, etc). Útil para escalas de plantão e dimensionamento de equipe.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="step-card">
-    <div class="step-card-header">
-      <div class="step-card-icon">▶</div>
-      <div class="step-card-header-title">Como usar o Dashboard para gerenciar o fluxo do dia</div>
-    </div>
-    <div class="steps"><ol>
-      <li>Ao logar, o Dashboard carrega automaticamente. Observe o <strong>Tempo Médio de Espera</strong>. Acima de 30 minutos indica gargalo no atendimento — convoque mais equipe.</li>
-      <li>Analise o <strong>Gráfico de Triagem por Cor</strong>. Se barras vermelha e laranja dominam, o dia está crítico. Acione o Plantão de Reforço do Pronto-Socorro.</li>
-      <li>Verifique o <strong>Card de Leitos</strong>. Se ultrapassar 90%, avise a chefia de enfermagem para preparar alta dos pacientes estáveis internados.</li>
-      <li>Nenhuma tela precisa de F5 (atualização manual). O sistema é reativo e qualquer alteração feita pela equipe em qualquer sala atualiza os cards em tempo real no seu Dashboard.</li>
-    </ol></div>
-  </div>
-
-  <div class="info-box box-info">
-    <div class="info-box-icon">ℹ️</div>
-    <div class="info-box-body">
-      <div class="info-box-title">Acesso Restrito ao Dashboard</div>
-      <div class="info-box-text">Recepcionistas e Médicos que acessarem o sistema são redirecionados diretamente para suas telas de trabalho (Pacientes/Atendimento). Eles não chegam a ver o Dashboard completo de KPIs — este é exclusivo de perfis gerenciais (Master, Administrador, Enfermeiro-Chefe).</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 3 — ADMISSÃO                                       -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 3 · Recepção e Entrada de Pacientes</div>
-    <h1>🏥 Admissão e Cadastro de Pacientes</h1>
-    <p>Todo paciente que chega à clínica ou hospital para atendimento imediato passa pela aba <strong>Pacientes</strong>, operada pela Recepção. O sistema foi projetado para evitar o pior problema hospitalar: duplicidade de prontuários (homônimos com dados confundidos).</p>
-  </div>
-
-  <h2 class="sh">Dicionário Completo de Campos do Formulário de Admissão</h2>
-  <table>
-    <thead><tr><th>Campo da Tela</th><th>Instrução de Preenchimento</th><th>Travas e Regras de Segurança do Sistema</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Nome Completo</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>Digite o nome exatamente como no documento de identidade ou CNH.</td><td>Se tentar cadastrar um nome idêntico a um já existente (case-insensitive), o sistema bloqueia e exibe: <em>"Paciente já existe. Use a Busca para admitir novamente."</em></td></tr>
-      <tr><td><strong>CPF</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>11 dígitos numéricos. O sistema formata automaticamente com pontos e traço (000.000.000-00).</td><td>Valida matematicamente se o CPF é real. Dois CPFs iguais no banco de dados geram bloqueio imediato, impedindo fraude ou duplicidade de cadastro.</td></tr>
-      <tr><td><strong>Data de Nascimento</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>Formato DD/MM/AAAA pelo seletor de calendário.</td><td>O campo <strong>"Idade"</strong> ao lado é calculado e preenchido automaticamente pelo sistema. É somente leitura (read-only) — não pode ser editado manualmente para evitar erro matemático.</td></tr>
-      <tr><td><strong>Sexo Biológico</strong></td><td>Selecione: Masculino / Feminino / Não informado.</td><td>Campo opcional, mas recomendado para prontuários de internação que requerem segregação de leitos.</td></tr>
-      <tr><td><strong>Telefone de Contato</strong></td><td>DDD + número (ex: 11 98765-4321).</td><td>Máscara automática aplicada. Usado para confirmação de agendamentos e contato emergencial com responsável.</td></tr>
-      <tr><td><strong>E-mail</strong></td><td>Endereço de e-mail válido (opcional).</td><td>Usado para envio de receitas digitais e comunicados do sistema. O sistema valida o formato com @.</td></tr>
-      <tr><td><strong>CEP (Busca Inteligente)</strong></td><td>Digite os 8 dígitos numéricos e clique fora do campo ou pressione Tab.</td><td>Sistema consulta a API ViaCEP em tempo real. Se offline, usa fallback alternativo. Rua, Bairro, Cidade e UF são auto-preenchidos e travados.</td></tr>
-      <tr><td><strong>Número / Complemento</strong></td><td>Após a busca do CEP, o cursor pula automaticamente para este campo.</td><td>Único campo de endereço editável manualmente pelo recepcionista após a busca de CEP.</td></tr>
-      <tr><td><strong>Convênio / Plano de Saúde</strong></td><td>Selecione: Particular, Unimed, Amil, SUS, Bradesco Saúde, Notre Dame, ou outro.</td><td>Campo vital para o módulo Financeiro e para geração de guias TISS. Se deixado em branco, o sistema assume "Particular".</td></tr>
-      <tr><td><strong>Número da Carteirinha</strong></td><td>Número impresso na carteirinha do plano (se houver).</td><td>Preenchimento recomendado para evitar glosa (negativa de pagamento) pelo convênio na auditoria.</td></tr>
-      <tr><td><strong>Valor da Consulta</strong></td><td>Para pacientes particulares, o valor combinado no balcão (ex: 400.00).</td><td>Não gera entrada automática no Financeiro, mas serve como referência para o caixa lançar corretamente o recebimento na aba Financeiro logo após.</td></tr>
-      <tr><td><strong>Observações Iniciais</strong></td><td>Texto livre para anotações da recepção (ex: "Paciente veio de ambulância", "Acompanhada de esposo").</td><td>Visível para todos os profissionais que abrirem o prontuário deste paciente.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="two-col">
-    <div class="step-card">
-      <div class="step-card-header">
-        <div class="step-card-icon">➕</div>
-        <div class="step-card-header-title">Cadastrando um Paciente Novo (1ª vez)</div>
-      </div>
-      <div class="steps"><ol>
-        <li>Na aba <strong>Pacientes</strong>, clique no botão azul <strong>"Novo Paciente"</strong> no canto superior direito.</li>
-        <li>Preencha Nome, CPF e Data de Nascimento. O sistema calculará a Idade automaticamente.</li>
-        <li>Digite o <strong>CEP</strong> e pressione Tab. Aguarde o preenchimento automático do endereço (Rua, Bairro, Cidade, UF).</li>
-        <li>Digite o <strong>Número</strong> da residência no campo que ficará em foco.</li>
-        <li>Selecione o <strong>Convênio</strong> e preencha o Valor da Consulta, se particular.</li>
-        <li>Clique em <strong>"Salvar Cadastro"</strong>. Se todos os dados passarem na auditoria, um banner verde confirma: <em>"Paciente admitido e enviado para Triagem!"</em></li>
-      </ol></div>
-    </div>
-    <div>
-      <div class="info-box box-warn" style="margin-top:0;">
-        <div class="info-box-icon">⚠️</div>
-        <div class="info-box-body">
-          <div class="info-box-title">Paciente que JÁ FOI atendido antes</div>
-          <div class="info-box-text">NÃO clique em "Novo Paciente". Localize o nome na lista da aba Pacientes, clique no botão azul <strong>"Nova Ficha / Admitir"</strong> na linha dele. O sistema cria um novo atendimento de hoje usando o cadastro já existente, preservando o histórico completo.</div>
-        </div>
-      </div>
-      <div class="info-box box-danger" style="margin-top:8px;">
-        <div class="info-box-icon">🚫</div>
-        <div class="info-box-body">
-          <div class="info-box-title">Nunca crie duplicatas de CPF</div>
-          <div class="info-box-text">Duplicidade de prontuário é uma infração na LGPD e pode causar erros graves de medicação — administração de remédio do prontuário errado ao paciente. O sistema bloqueia automaticamente, mas a atenção humana é essencial.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 4 — AGENDA                                         -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 4 · Consultas Programadas</div>
-    <h1>📅 Agenda de Consultas Eletivas</h1>
-    <p>Para pacientes que não são urgência e apenas desejam marcar uma consulta futura, a Recepção usa o módulo <strong>Agenda</strong>. O calendário visual exibe blocos por médico e horário, com sistema de status de presença.</p>
-  </div>
-
-  <h2 class="sh">Dicionário de Campos do Modal de Agendamento</h2>
-  <table>
-    <thead><tr><th>Campo da Tela</th><th>Instrução Exata de Preenchimento</th><th>Regras de Negócio e Impacto</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Calendário Visual</strong></td><td>Painel central da tela com dias e blocos coloridos com nomes. Clique em um bloco para abrir detalhes, editar ou cancelar.</td><td>Blocos azuis = Agendado. Verdes = Confirmado. Cinzas = Cancelado. Roxos = Na Recepção (chegou no dia).</td></tr>
-      <tr><td><strong>Paciente (Seleção)</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>Campo de busca com autocomplete. Digite as 3 primeiras letras do nome.</td><td>O paciente DEVE estar pré-cadastrado na aba Pacientes. Sem cadastro prévio, não aparece nesta lista.</td></tr>
-      <tr><td><strong>Data do Agendamento</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>Calendário do navegador. Selecione apenas datas futuras.</td><td>O sistema bloqueia datas passadas. Não é possível agendar para ontem ou hoje neste módulo (use Admissão para consultas no dia).</td></tr>
-      <tr><td><strong>Horário</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>Caixa suspensa com intervalos de 15 em 15 minutos (ex: 09:00, 09:15, 09:30...).</td><td>Se o médico selecionado já tiver um agendamento no mesmo dia/horário, o sistema exibirá aviso de conflito de agenda.</td></tr>
-      <tr><td><strong>Médico Solicitado</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>Lista de médicos do hospital. Filtre por especialidade se necessário.</td><td>A lista puxa diretamente da aba <strong>Corpo Clínico (Módulo 11)</strong>. Médico não cadastrado lá não aparece aqui.</td></tr>
-      <tr><td><strong>Especialidade / Tipo</strong></td><td>Consulta, Retorno, Exame, Procedimento, etc.</td><td>Usado para filtragem em relatórios e classificação do gráfico de demanda.</td></tr>
-      <tr><td><strong>Observações</strong></td><td>Texto livre. Ex: <em>"Trazer exame de sangue antigo", "Paciente cadeirante"</em>.</td><td>Visível para o médico e para a recepção no dia do agendamento.</td></tr>
-      <tr><td><strong>Status do Agendamento</strong></td><td>Dropdown: Agendado → Confirmado → Na Recepção → Cancelado → Faltou.</td><td>Fundamental atualizar no dia para que o médico saiba quem chegou. O status <strong>"Na Recepção"</strong> é o gatilho para o médico iniciar o atendimento.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="two-col">
-    <div class="step-card">
-      <div class="step-card-header">
-        <div class="step-card-icon">📞</div>
-        <div class="step-card-header-title">Marcando consulta ao telefone</div>
-      </div>
-      <div class="steps"><ol>
-        <li>Acesse a aba <strong>Agenda</strong> no menu lateral.</li>
-        <li>Clique em <strong>"Novo Agendamento"</strong> no topo direito.</li>
-        <li>Se for o primeiro contato do paciente, cadastre-o rapidamente na aba Pacientes e volte.</li>
-        <li>Selecione o paciente, data, horário e o médico solicitado.</li>
-        <li>Adicione observações relevantes (ex: <em>"Trazer raio-x antigo de coluna"</em>).</li>
-        <li>Status: <strong>Agendado</strong>. Clique em <strong>Salvar</strong>. O evento aparecerá no calendário.</li>
-      </ol></div>
-    </div>
-    <div class="step-card">
-      <div class="step-card-header">
-        <div class="step-card-icon">🏥</div>
-        <div class="step-card-header-title">Recebendo o paciente no dia marcado</div>
-      </div>
-      <div class="steps"><ol>
-        <li>O paciente chega na recepção no dia da consulta.</li>
-        <li>Abra a aba <strong>Agenda</strong> e localize o evento dele no calendário de hoje.</li>
-        <li>Clique no bloco do nome dele para abrir os detalhes do agendamento.</li>
-        <li>Altere o status para <strong>"Na Recepção"</strong> e clique em <strong>Salvar</strong>.</li>
-        <li>O médico correspondente verá o status atualizado na aba Atendimento e saberá que o paciente já está aguardando no sofá da sala de espera.</li>
-      </ol></div>
-    </div>
-  </div>
-
-  <div class="info-box box-info">
-    <div class="info-box-icon">📌</div>
-    <div class="info-box-body">
-      <div class="info-box-title">Diferença entre Agenda e Admissão Direta</div>
-      <div class="info-box-text"><strong>Agenda (Módulo 4):</strong> Para consultas programadas (dias ou semanas à frente). O paciente é inserido no calendário para uma data futura. Não entra na fila do Kanban imediatamente.<br><strong>Admissão Direta (Módulo 3):</strong> Para atendimento <em>agora</em>. O paciente é cadastrado e vai instantaneamente para a Coluna 1 do Kanban (Aguardando Triagem).</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 5 — TRIAGEM E KANBAN                               -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 5 · Fluxo Clínico Central</div>
-    <h1>🚦 Triagem Manchester e Central Kanban</h1>
-    <p>A aba <strong>Atendimento</strong> é o coração operacional do hospital para Enfermeiros e Médicos. O fluxo de pacientes é visualizado em 4 colunas no formato Kanban, da admissão até a alta. A primeira fase usa o Protocolo de Manchester — padrão internacional de classificação de risco.</p>
-  </div>
-
-  <h2 class="sh">Protocolo de Manchester — 5 Cores de Risco</h2>
-  <div class="manchester-grid">
-    <div class="manchester-item m-red">
-      <div class="m-color">🔴</div>
-      <div class="m-label">EMERGÊNCIA</div>
-      <div class="m-time">0 minutos</div>
-      <div class="m-desc">Risco de morte imediato. AVC, PCR, Hemorragia Grave, Parada Respiratória.</div>
-    </div>
-    <div class="manchester-item m-orange">
-      <div class="m-color">🟠</div>
-      <div class="m-label">MUITO URGENTE</div>
-      <div class="m-time">≤ 10 minutos</div>
-      <div class="m-desc">Funções vitais comprometidas. Infarto em andamento, Dor 10/10, Convulsão ativa.</div>
-    </div>
-    <div class="manchester-item m-yellow">
-      <div class="m-color">🟡</div>
-      <div class="m-label">URGENTE</div>
-      <div class="m-time">≤ 60 minutos</div>
-      <div class="m-desc">Risco moderado. Fratura fechada, dor aguda intensa, vômitos repetidos.</div>
-    </div>
-    <div class="manchester-item m-green">
-      <div class="m-color">🟢</div>
-      <div class="m-label">POUCO URGENTE</div>
-      <div class="m-time">≤ 120 minutos</div>
-      <div class="m-desc">Baixa gravidade. Asma leve controlada, torção, corte pequeno, crise alérgica leve.</div>
-    </div>
-    <div class="manchester-item m-blue">
-      <div class="m-color">🔵</div>
-      <div class="m-label">NÃO URGENTE</div>
-      <div class="m-time">≤ 240 minutos</div>
-      <div class="m-desc">Sem urgência clínica. Troca de receita, atestado, gripe leve, consulta de rotina.</div>
-    </div>
-  </div>
-
-  <div class="two-col">
-    <div>
-      <h2 class="sh">Campos da Triagem — O que preencher</h2>
-      <table>
-        <thead><tr><th>Campo</th><th>Preenchimento e Regra</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Pressão Arterial (PA)</strong></td><td>Formato: <code>120x80</code>. Apenas números e "x". Campos não aceitam letras.</td></tr>
-          <tr><td><strong>Frequência Cardíaca (FC)</strong></td><td>Número inteiro em bpm (ex: <code>85</code>). Não pode ser 0.</td></tr>
-          <tr><td><strong>Saturação O₂ (SpO₂)</strong></td><td>Porcentagem (ex: <code>97</code>). Abaixo de 90% dispara alerta automático.</td></tr>
-          <tr><td><strong>Temperatura</strong></td><td>Graus Celsius com ponto (ex: <code>38.5</code>).</td></tr>
-          <tr><td><strong>Peso / Altura</strong></td><td>Quilogramas e centímetros (ex: <code>72.5</code> kg / <code>170</code> cm). IMC calculado automaticamente.</td></tr>
-          <tr><td><strong>Glicemia (se disponível)</strong></td><td>mg/dL (ex: <code>120</code>). Campo opcional, mas recomendado para diabéticos.</td></tr>
-          <tr><td><strong>Queixas e Sintomas</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>Texto livre da enfermagem. <em>Sem este campo, a triagem não salva.</em> Ex: <em>"Paciente suando frio, dor torácica irradiando para o braço esquerdo há 1 hora."</em></td></tr>
-          <tr><td><strong>Cor de Risco (Manchester)</strong><br><span class="badge badge-red" style="font-size:8px;">Obrigatório</span></td><td>Botões coloridos lado a lado. O Enfermeiro DEVE clicar em uma cor para finalizar a triagem.</td></tr>
-          <tr><td><strong>Alergias Conhecidas</strong></td><td>Texto livre. Ex: <em>"Alérgica a Dipirona e Penicilina"</em>. Aparecerá no topo do PEP do médico em vermelho.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div>
-      <h2 class="sh">Estrutura Visual do Kanban (4 Colunas)</h2>
-      <div class="kanban-preview">
-        <div class="kanban-col-mini">
-          <div class="kanban-col-title">① Aguardando Triagem</div>
-          <div class="kanban-card-mini" style="border-left-color:#94a3b8;">
-            <div class="kc-name">Carlos A.</div>
-            <div class="kc-time">há 8 min · Recepção</div>
-          </div>
-          <div class="kanban-card-mini" style="border-left-color:#94a3b8;">
-            <div class="kc-name">Sra. Lúcia</div>
-            <div class="kc-time">há 2 min · Recepção</div>
-          </div>
-        </div>
-        <div class="kanban-col-mini">
-          <div class="kanban-col-title">② Aguardando Médico</div>
-          <div class="kanban-card-mini" style="border-left-color:#dc2626;">
-            <div class="kc-name">José M.</div>
-            <div class="kc-time">🔴 Emergência · 3 min</div>
-          </div>
-          <div class="kanban-card-mini" style="border-left-color:#ea580c;">
-            <div class="kc-name">Maria S.</div>
-            <div class="kc-time">🟠 M.Urgente · 7 min</div>
-          </div>
-          <div class="kanban-card-mini" style="border-left-color:#16a34a;">
-            <div class="kc-name">Ana P.</div>
-            <div class="kc-time">🟢 P.Urgente · 25 min</div>
-          </div>
-        </div>
-        <div class="kanban-col-mini">
-          <div class="kanban-col-title">③ Em Atendimento</div>
-          <div class="kanban-card-mini" style="border-left-color:#4f46e5;">
-            <div class="kc-name">Roberto F.</div>
-            <div class="kc-time">🟡 Urgente · Dr. Lima</div>
-          </div>
-        </div>
-        <div class="kanban-col-mini">
-          <div class="kanban-col-title">④ Alta / Encerrado</div>
-          <div class="kanban-card-mini" style="border-left-color:#16a34a;">
-            <div class="kc-name">Fernanda B.</div>
-            <div class="kc-time">✅ Alta às 10:42</div>
-          </div>
-          <div class="kanban-card-mini" style="border-left-color:#16a34a;">
-            <div class="kc-name">Paulo N.</div>
-            <div class="kc-time">✅ Alta às 11:15</div>
-          </div>
-        </div>
-      </div>
-      <div class="info-box box-danger" style="margin-top:8px;">
-        <div class="info-box-icon">🚨</div>
-        <div class="info-box-body">
-          <div class="info-box-title">Sorting Inteligente da Coluna 2 (Médico)</div>
-          <div class="info-box-text">Os cards <strong>não</strong> são ordenados por hora de chegada! O sistema usa sorting por gravidade: Vermelho sempre no topo, seguido de Laranja, Amarelo, Verde e Azul. Um paciente Vermelho admitido às 10:50 aparecerá acima de um Azul admitido às 10:00. <strong>Atenda sempre de cima para baixo.</strong></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="step-card">
-    <div class="step-card-header">
-      <div class="step-card-icon">💉</div>
-      <div class="step-card-header-title">Passo a Passo — Realizando a Triagem de Enfermagem</div>
-    </div>
-    <div class="steps"><ol>
-      <li>Logue com o perfil <strong>Enfermeiro</strong>. Clique em <strong>Atendimento</strong> no menu lateral.</li>
-      <li>Na <strong>Coluna 1 — Aguardando Triagem</strong>, localize o card do paciente recém-admitido pela recepção.</li>
-      <li>Chame o paciente pelo nome e clique no botão laranja <strong>"Triar"</strong> dentro do card dele.</li>
-      <li>No modal que abrir, preencha todos os campos de sinais vitais: PA, FC, SpO₂, Temperatura, Peso.</li>
-      <li>No campo <strong>Queixas e Sintomas</strong>, descreva em detalhes o que o paciente relatou e o que você observou.</li>
-      <li>Informe alergias conhecidas, se houver.</li>
-      <li>Analise os dados e clique na <strong>cor de risco</strong> adequada pelo Protocolo Manchester.</li>
-      <li>Clique em <strong>"Salvar Triagem"</strong>. O card migra automaticamente para a <strong>Coluna 2 — Aguardando Médico</strong>, com a cor selecionada. O médico é notificado visualmente na tela dele.</li>
-    </ol></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 6 — PAINEL TV                                      -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 6 · Painel de Sala de Espera</div>
-    <h1>📺 Painel TV com Chamadas Eletrônicas e Voz</h1>
-    <p>A aba <strong>Painel TV</strong> existe exclusivamente para ficar aberta em tela cheia na televisão da sala de espera. Exibe o nome do próximo paciente chamado com destaque visual e áudio sintetizado em português, integrando o médico no consultório com os pacientes aguardando.</p>
-  </div>
-
-  <h2 class="sh">Componentes e Tecnologias do Painel</h2>
-  <table>
-    <thead><tr><th>Recurso do Painel</th><th>Como Funciona Internamente</th><th>Configuração e Ação Necessária</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Design Dark Mode</strong></td><td>Fundo escuro que não ofusca a sala de espera com brilho branco excessivo. Nome do chamado fica em fonte gigante no centro.</td><td>Nenhuma configuração. Ao abrir a aba no Chrome da TV, o design escuro carrega automaticamente.</td></tr>
-      <tr><td><strong>Relógio Digital Sincronizado</strong></td><td>Relógio grande e visível no canto superior, sincronizado com o horário do servidor para eliminar dúvidas dos pacientes sobre o horário.</td><td>Sem configuração. Aparece automaticamente e é atualizado a cada segundo.</td></tr>
-      <tr><td><strong>Voz Sintetizada (TTS)</strong></td><td>Usa a Web Speech API nativa do Google Chrome. Lê o texto e gera voz sintética em português do Brasil. Pronuncia o nome do paciente e o consultório de destino.</td><td><strong>Requisito:</strong> A TV ou PC conectado deve ter caixa de som ligada e com volume audível. O Chrome deve ter permissão de execução de áudio na aba (não pode estar silenciado).</td></tr>
-      <tr><td><strong>Polling Automático (3 segundos)</strong></td><td>A cada 3 segundos, a aba pergunta ao servidor silenciosamente: <em>"Algum médico chamou alguém?"</em>. Se sim, exibe e fala o nome.</td><td><strong>NUNCA pressione F5 na TV.</strong> O polling é automático. Deixe a aba aberta sem interação humana.</td></tr>
-      <tr><td><strong>Fila de Histórico</strong></td><td>Mostra os últimos 3 nomes chamados em destaque menor abaixo do nome atual.</td><td>Útil para quem foi ao banheiro e não ouviu o chamado na primeira vez. O paciente pode verificar se foi chamado.</td></tr>
-      <tr><td><strong>Número do Guichê / Sala</strong></td><td>Exibe o nome do consultório cadastrado no Módulo 11 para onde o paciente deve se dirigir.</td><td>O nome do consultório é preenchido automaticamente pelo sistema com base na sala associada ao médico que acionou o chamado.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="two-col">
-    <div class="step-card">
-      <div class="step-card-header">
-        <div class="step-card-icon">📺</div>
-        <div class="step-card-header-title">Setup da TV (feito pela T.I. de manhã)</div>
-      </div>
-      <div class="steps"><ol>
-        <li>Acesse o computador conectado à TV (pode ser um mini-PC ou notebook).</li>
-        <li>Abra o <strong>Google Chrome</strong> e acesse o endereço do sistema (ex: <code>http://192.168.1.100:5173</code>).</li>
-        <li>Faça login com um usuário dedicado (ex: <code>painel.tv</code>), de preferência com perfil Recepcionista.</li>
-        <li>Clique em <strong>Painel TV</strong> no menu lateral.</li>
-        <li>Pressione <strong>F11</strong> para modo tela cheia, ocultando a barra do navegador.</li>
-        <li>Verifique se o volume da caixa de som está alto o suficiente para a sala de espera.</li>
-        <li>Pronto. Abandone a TV. O sistema gerencia tudo automaticamente a partir daqui.</li>
-      </ol></div>
-    </div>
-    <div class="step-card">
-      <div class="step-card-header">
-        <div class="step-card-icon">🩺</div>
-        <div class="step-card-header-title">Como o Médico chama um paciente pela TV</div>
-      </div>
-      <div class="steps"><ol>
-        <li>O médico, em seu consultório, loga na aba <strong>Atendimento</strong> e vê a Coluna 2.</li>
-        <li>Analisa o card no topo (gravidade mais alta) e clica no botão azul pequeno <strong>"Chamar"</strong>.</li>
-        <li>O sistema move o paciente para a Coluna 3 (Em Atendimento) na tela do médico.</li>
-        <li>Em até 2 segundos, o computador da TV detecta o novo chamado via polling.</li>
-        <li>A <strong>TV exibe o nome</strong> em destaque com cor da triagem. Um som de "Ding Dong" toca e a voz sintetizada anuncia: <em>"Atenção, [Nome], comparecer ao Consultório [X]."</em></li>
-        <li>O paciente levanta e entra na sala. O médico só precisou apertar 1 botão.</li>
-      </ol></div>
-    </div>
-  </div>
-
-  <div class="info-box box-tip">
-    <div class="info-box-icon">💡</div>
-    <div class="info-box-body">
-      <div class="info-box-title">Chamada Manual Extra (sem passar pelo Kanban)</div>
-      <div class="info-box-text">A recepcionista pode chamar qualquer nome na TV sem que a pessoa esteja no fluxo do Kanban. Basta abrir a aba <strong>Painel TV</strong> no próprio computador da recepção, digitar o nome desejado no campo de texto no rodapé escuro da interface e clicar no botão de microfone. A TV anunciará imediatamente. Útil para chamar acompanhantes, familiares, ou pacientes de exame externo.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 7 — PEP                                            -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 7 · Registro Clínico Legal</div>
-    <h1>📋 Prontuário Eletrônico do Paciente (PEP — Metodologia SOAPE)</h1>
-    <p>Quando o paciente entra na sala de consulta (Coluna 3 do Kanban), o médico conduz o registro clínico no PEP. O Health Nexus adota a metodologia <strong>SOAPE</strong> — padrão-ouro internacional para estruturação do raciocínio médico no prontuário.</p>
-  </div>
-
-  <h2 class="sh">Barra Superior do PEP — Informações da Triagem (Somente Leitura)</h2>
-  <div class="info-box box-info" style="margin-bottom:10px;">
-    <div class="info-box-icon">📊</div>
-    <div class="info-box-body">
-      <div class="info-box-title">Header Automático com Sinais Vitais — O médico NÃO edita estes campos</div>
-      <div class="info-box-text">PA: <strong>130×90</strong> mmHg · FC: <strong>92</strong> bpm · SpO₂: <strong>96%</strong> · Temperatura: <strong>38.2°C</strong> · Peso: <strong>78 kg</strong> · IMC: <strong>26.4</strong> · Alergias: <strong style="color:#dc2626;">⚠ Dipirona, Penicilina</strong> · Queixa: <em>Dor torácica irradiando p/ braço esq. há 2h</em></div>
-    </div>
-  </div>
-
-  <h2 class="sh">Metodologia SOAPE — Guia de Preenchimento de Cada Seção</h2>
-  <table>
-    <thead><tr><th style="width:5%">Letra</th><th style="width:18%">Nome da Seção</th><th>O que digitar — Exemplos Práticos Obrigatórios</th><th style="width:15%">Obrigatoriedade</th></tr></thead>
+    <thead>
+      <tr>
+        <th>Sintoma / Problema</th>
+        <th>Causa Provável</th>
+        <th>Solução Passo a Passo</th>
+      </tr>
+    </thead>
     <tbody>
       <tr>
-        <td><strong style="font-size:18px;color:#4f46e5;">S</strong></td>
-        <td><strong>Subjetivo</strong><br><em>História e Anamnese</em></td>
-        <td>O que o paciente relatou: queixa principal, história da moléstia atual, antecedentes pessoais e familiares. <br><em>Ex: "Paciente do sexo masculino, 52 anos, relata dor torácica em aperto há 2 horas, que irradia para o braço esquerdo. Nega febre. Histórico de HAS e pai infartou aos 58 anos. Tabagista há 25 anos (1 maço/dia)."</em></td>
-        <td><span class="badge badge-red">Obrigatório</span></td>
+        <td><strong>Tela travada no carregamento</strong></td>
+        <td>Servidor Node.js em inicialização ou sem conexão.</td>
+        <td>Pressione <code>Ctrl + F5</code>. O sistema possui timeout automático de 2s para liberar a tela.</td>
       </tr>
       <tr>
-        <td><strong style="font-size:18px;color:#4f46e5;">O</strong></td>
-        <td><strong>Objetivo</strong><br><em>Exame Físico</em></td>
-        <td>Dados técnicos do exame físico realizado pelo médico: inspeção, palpação, percussão, ausculta. <br><em>Ex: "Paciente lúcido e orientado em T/E/S. Sudorese fria presente. Tórax sem alterações visíveis. Ausculta cardíaca: bulhas normofonéticas sem sopros. Abdome flácido, indolor. MMII sem edema. Pulso radial fraco e irregular."</em></td>
-        <td><span class="badge badge-red">Obrigatório</span></td>
+        <td><strong>Voz da TV não fala o nome</strong></td>
+        <td>Áudio do navegador silenciado ou volume da TV desligado.</td>
+        <td>Clique em qualquer lugar da tela da TV para conceder permissão de áudio ao Chrome. Ajuste a caixa de som.</td>
       </tr>
       <tr>
-        <td><strong style="font-size:18px;color:#4f46e5;">A</strong></td>
-        <td><strong>Avaliação</strong><br><em>Hipótese Diagnóstica</em></td>
-        <td>O raciocínio clínico e veredito do médico. Deve incluir o <strong>código CID-10</strong> para fins de faturamento e estatística. <br><em>Ex: "Quadro altamente sugestivo de Infarto Agudo do Miocárdio com Supradesnivelamento ST (IAMCSST — CID-10: I21.0). Diagnóstico diferencial: Angina Instável (I20.0). Risco cardiovascular ALTO."</em></td>
-        <td><span class="badge badge-orange">Fortemente recomendado</span></td>
-      </tr>
-      <tr>
-        <td><strong style="font-size:18px;color:#4f46e5;">P</strong></td>
-        <td><strong>Plano</strong><br><em>Conduta Terapêutica</em></td>
-        <td>As decisões e próximos passos clínicos do médico: exames solicitados, encaminhamentos, procedimentos. <br><em>Ex: "1. ECG de 12 derivações URGENTE. 2. Coleta de Troponina I seriada (agora, 3h e 6h). 3. Cineangiocoronariografia emergencial. 4. Acionar Hemodinâmica. 5. Acionar Cardiologista plantonista. 6. Solicitar internação em UTI Coronariana."</em></td>
-        <td><span class="badge badge-orange">Fortemente recomendado</span></td>
-      </tr>
-      <tr>
-        <td><strong style="font-size:18px;color:#4f46e5;">E</strong></td>
-        <td><strong>Evolução</strong><br><em>Prescrição Médica</em></td>
-        <td>A receita médica / prescrição de medicamentos com posologia completa. Os enfermeiros lerão este campo para aplicar medicações. <br><em>Ex: "1. AAS 200mg VO imediatamente (mascar). 2. Clopidogrel 300mg VO dose de ataque. 3. Atorvastatina 80mg VO. 4. Enoxaparina 1mg/kg SC. 5. Morfina 2mg IV se dor EVA ≥8. 6. O₂ sob máscara 4L/min. 7. Repouso absoluto. 8. Monitorização cardíaca contínua."</em></td>
-        <td><span class="badge badge-orange">Se houver medicação</span></td>
-      </tr>
-      <tr>
-        <td colspan="2"><strong>☑ Solicitar Internação / Leito</strong></td>
-        <td>Checkbox. Se marcado, ao salvar o PEP, o sistema envia uma notificação automática para o módulo de <strong>Gestão de Leitos (Módulo 8)</strong>, informando que este paciente precisa de uma cama hospitalar.</td>
-        <td><span class="badge badge-blue">Opcional (mas vital)</span></td>
+        <td><strong>Badge "Nuvem Inacessível"</strong></td>
+        <td>Sem internet ou token do Turso expirado no <code>.env</code>.</td>
+        <td>O sistema continuará operando 100% normal em modo local (SQLite). Os dados serão enviados quando a conexão voltar.</td>
       </tr>
     </tbody>
   </table>
-
-  <div class="step-card">
-    <div class="step-card-header">
-      <div class="step-card-icon">🩺</div>
-      <div class="step-card-header-title">Passo a Passo — Executando a consulta e finalizando o PEP</div>
-    </div>
-    <div class="steps"><ol>
-      <li>Na aba Atendimento, veja o paciente na <strong>Coluna 3 (Em Atendimento)</strong>. Clique em <strong>"Abrir Prontuário"</strong> no card.</li>
-      <li>O PEP abre em tela cheia. Leia os sinais vitais e alergias no cabeçalho antes de iniciar a anamnese.</li>
-      <li>Converse com o paciente e preencha as seções S → O → A → P → E em sequência.</li>
-      <li>Se precisar de leito hospitalar, marque o checkbox <strong>"Solicitar Internação"</strong>.</li>
-      <li>Para consulta simples: clique no botão vermelho grande <strong>"Finalizar Atendimento / Dar Alta"</strong>. O PEP fecha, o registro fica salvo e blindado no banco de dados, e o card some do Kanban.</li>
-      <li>Para internação: o sistema abre um diálogo pedindo para confirmar a solicitação de leito. Confirme e o Módulo 8 recebe o alerta.</li>
-    </ol></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 8 — LEITOS                                         -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 8 · Internação Hospitalar</div>
-    <h1>🛏️ Gestão de Leitos e Censo Hospitalar</h1>
-    <p>O módulo <strong>Leitos</strong> substitui o quadro-branco de canetão no corredor das enfermeiras. Fornece uma planta-baixa virtual do hospital, gerenciada pela chefia de enfermagem. Essencial para controlar lotação, higienização e manutenção de cada leito.</p>
-  </div>
-
-  <h2 class="sh">Mapa de Leitos — Visualização em Grade (Exemplo)</h2>
-  <div class="bed-map">
-    <div class="bed-cell bed-free"><div class="bed-num">🛏 101</div><div class="bed-label">UTI-A<br>LIVRE</div></div>
-    <div class="bed-cell bed-occ"><div class="bed-num">🛏 102</div><div class="bed-label">UTI-A<br>José M.</div></div>
-    <div class="bed-cell bed-occ"><div class="bed-num">🛏 103</div><div class="bed-label">UTI-A<br>Maria S.</div></div>
-    <div class="bed-cell bed-clean"><div class="bed-num">🛏 104</div><div class="bed-label">UTI-A<br>HIGIENIZAÇÃO</div></div>
-    <div class="bed-cell bed-maint"><div class="bed-num">🛏 105</div><div class="bed-label">UTI-A<br>MANUTENÇÃO</div></div>
-    <div class="bed-cell bed-free"><div class="bed-num">🛏 201</div><div class="bed-label">Enf-B<br>LIVRE</div></div>
-    <div class="bed-cell bed-occ"><div class="bed-num">🛏 202</div><div class="bed-label">Enf-B<br>Carlos F.</div></div>
-    <div class="bed-cell bed-free"><div class="bed-num">🛏 203</div><div class="bed-label">Enf-B<br>LIVRE</div></div>
-    <div class="bed-cell bed-occ"><div class="bed-num">🛏 204</div><div class="bed-label">Enf-B<br>Ana T.</div></div>
-    <div class="bed-cell bed-occ"><div class="bed-num">🛏 205</div><div class="bed-label">Enf-B<br>Paulo N.</div></div>
-  </div>
-
-  <div style="display:flex;gap:8px;margin-bottom:12px;font-size:10px;">
-    <span style="background:#dcfce7;border:1.5px solid #16a34a;padding:4px 10px;border-radius:5px;font-weight:700;color:#14532d;">🟢 LIVRE — Pronto para receber</span>
-    <span style="background:#fee2e2;border:1.5px solid #dc2626;padding:4px 10px;border-radius:5px;font-weight:700;color:#7f1d1d;">🔴 OCUPADO — Com paciente</span>
-    <span style="background:#fffbeb;border:1.5px solid #ca8a04;padding:4px 10px;border-radius:5px;font-weight:700;color:#78350f;">🟡 HIGIENIZAÇÃO — Aguardando limpeza</span>
-    <span style="background:#f1f5f9;border:1.5px solid #94a3b8;padding:4px 10px;border-radius:5px;font-weight:700;color:#475569;">⚫ MANUTENÇÃO — Bloqueado</span>
-  </div>
-
-  <h2 class="sh">Dicionário de Status e Operações de Cada Leito</h2>
-  <table>
-    <thead><tr><th>Status do Leito</th><th>O que significa fisicamente</th><th>Ação necessária no sistema</th><th>Impacto nos outros módulos</th></tr></thead>
-    <tbody>
-      <tr><td><span class="badge badge-green">🟢 LIVRE</span></td><td>Cama com lençóis novos, ambiente varrido e desinfetado, pronto para receber paciente.</td><td>Nenhuma ação. O médico pode internar um paciente aqui via PEP (Módulo 7).</td><td>Disponível para seleção no formulário de internação. Contador do Dashboard sobe ao ocupar.</td></tr>
-      <tr><td><span class="badge badge-red">🔴 OCUPADO</span></td><td>Paciente internado fisicamente presente. O nome e data de entrada aparecem no bloco vermelho.</td><td>Enfermeiros realizam cuidados assistenciais presenciais. Sem ação de tela necessária.</td><td>Dashboard mostra % de ocupação. Leito bloqueado para novas internações até dar alta.</td></tr>
-      <tr><td><span class="badge badge-yellow">🟡 HIGIENIZAÇÃO</span></td><td>Paciente teve alta ou transferência. Cama com material biológico, roupa de cama usada. Requer limpeza total antes de novo uso.</td><td>1) Enfermeiro muda status para "Higienização" ao dar alta do paciente.<br>2) Equipe de limpeza atua fisicamente.<br>3) Enfermeiro muda para "Livre" quando a cama secar.</td><td>Não disponível para internação durante limpeza. Dashboard desconta da capacidade disponível.</td></tr>
-      <tr><td><span class="badge badge-gray">⚫ MANUTENÇÃO</span></td><td>Falha técnica: monitor cardíaco queimado, grade da cama quebrada, infiltração no teto, problema elétrico.</td><td>Enfermeiro muda para "Manutenção" e documenta o problema. Engenharia Clínica é acionada.<br>Ao conserto concluído, volta para "Livre".</td><td>Totalmente bloqueado para o sistema. Não entra no cálculo de capacidade hospitalar. Invisível na seleção de leitos.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="step-card">
-    <div class="step-card-header">
-      <div class="step-card-icon">🔄</div>
-      <div class="step-card-header-title">Passo a Passo — Ciclo completo de vida de um leito (Internação → Alta → Limpeza → Livre)</div>
-    </div>
-    <div class="steps"><ol>
-      <li>O médico, via PEP (Módulo 7), marca o checkbox "Solicitar Internação" e finaliza o atendimento.</li>
-      <li>O gestor de leitos recebe a notificação e abre a aba <strong>Leitos</strong>. Identifica um leito Verde disponível (ex: Leito 101 — UTI-A).</li>
-      <li>Clica no leito 101 → seleciona status <strong>"Ocupado"</strong> → digita o nome do paciente → salva. O bloco vira vermelho com o nome do paciente.</li>
-      <li>O paciente é fisicamente transportado para o leito 101. A equipe realiza cuidados assistenciais pelos dias necessários.</li>
-      <li>Médico avalia melhora clínica, atesta alta de internamento via prontuário.</li>
-      <li>Enfermeiro abre a aba Leitos, clica no leito 101 → altera para <strong>"Higienização"</strong> → salva. O bloco fica amarelo, nome do paciente é removido.</li>
-      <li>Equipe de limpeza realiza o processo físico completo de higienização do quarto.</li>
-      <li>Após confirmação da limpeza, enfermeiro clica no leito amarelo 101 → altera para <strong>"Livre"</strong> → salva. O leito fica verde e disponível novamente. O ciclo está completo.</li>
-    </ol></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 9 — FARMÁCIA                                       -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 9 · Controle de Insumos</div>
-    <h1>💊 Farmácia, Estoque e Rastreio de Lotes</h1>
-    <p>A aba <strong>Farmácia</strong> controla tudo que entra e sai do estoque hospitalar: medicamentos, insumos e materiais. Permite rastreio por lote/validade (exigido pela ANVISA) e alertas automáticos de desabastecimento crítico.</p>
-  </div>
-
-  <h2 class="sh">Tabela de Estoque — Exemplo Visual de Como Aparece na Tela</h2>
-  <div class="pharmacy-row header">
-    <div>Medicamento / Insumo</div>
-    <div>Lote</div>
-    <div>Validade</div>
-    <div>Qtd. Atual</div>
-    <div>Qtd. Mínima</div>
-  </div>
-  <div class="pharmacy-row">
-    <div><strong>Paracetamol 500mg (cx 24)</strong></div>
-    <div><code>LTR489-01</code></div>
-    <div>01/2027</div>
-    <div class="stock-ok">87 un.</div>
-    <div>20 un.</div>
-  </div>
-  <div class="pharmacy-row">
-    <div><strong>Dipirona IV 500mg/2ml (amp)</strong></div>
-    <div><code>AMP221-07</code></div>
-    <div>06/2026</div>
-    <div class="stock-low">⚠ 14 un.</div>
-    <div>20 un.</div>
-  </div>
-  <div class="pharmacy-row">
-    <div><strong>Soro Fisiológico 0,9% 500ml</strong></div>
-    <div><code>SF900-22B</code></div>
-    <div>03/2028</div>
-    <div class="stock-ok">52 un.</div>
-    <div>15 un.</div>
-  </div>
-  <div class="pharmacy-row">
-    <div><strong>Seringa Descartável 10ml</strong></div>
-    <div><code>MAT-SER10</code></div>
-    <div>12/2029</div>
-    <div class="stock-low">⚠ 8 un.</div>
-    <div>50 un.</div>
-  </div>
-  <div class="pharmacy-row">
-    <div><strong>Luva de Procedimento M (pct)</strong></div>
-    <div><code>LVA-M-2024</code></div>
-    <div>01/2030</div>
-    <div class="stock-ok">124 un.</div>
-    <div>30 un.</div>
-  </div>
-
-  <h2 class="sh">Dicionário de Campos do Cadastro de Insumos</h2>
-  <table>
-    <thead><tr><th>Campo</th><th>Instrução de Preenchimento</th><th>Regra de Negócio e Impacto</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Nome do Item</strong></td><td>Nome completo e gramatura. Ex: <em>Dipirona 500mg Ampola, Gaze Estéril 10x10cm Pacote, Diprivan (Propofol) 1%.</em></td><td>Não use siglas obscuras. Os enfermeiros buscam por nome para dar baixa após a administração.</td></tr>
-      <tr><td><strong>Tipo / Categoria</strong></td><td>Selecione: Medicamento, Material de Consumo, Soro/Solução, Gás Medicinal, Equipamento, Descartável, Antibiótico Controlado.</td><td>Usado para filtragem em relatórios de auditoria e controle de psicotrópicos e controlados (Portaria 344/SVS).</td></tr>
-      <tr><td><strong>Lote (Código)</strong></td><td>Código de barras ou lote impresso na embalagem da indústria farmacêutica. Ex: <code>AMP221-07</code>.</td><td><strong>Vital para vigilância sanitária.</strong> Em caso de recall da ANVISA por contaminação, o sistema identifica em segundos qual paciente recebeu qual lote.</td></tr>
-      <tr><td><strong>Data de Validade</strong></td><td>Formato MM/AAAA da data de expiração na embalagem.</td><td>O sistema destaca em vermelho itens com validade inferior a 90 dias. Itens vencidos são sinalizados de forma distinta para descarte obrigatório com registro.</td></tr>
-      <tr><td><strong>Quantidade Atual</strong></td><td>O número de unidades físicas contadas e inseridas na prateleira no momento do cadastro.</td><td>Este valor é decrementado automaticamente a cada "Registrar Saída". Nunca edite manualmente — use o fluxo de entrada/saída.</td></tr>
-      <tr><td><strong>Quantidade Mínima</strong></td><td>O limite de segurança. Ex: se Mínima = 20, quando o estoque chegar a 19 unidades, o sistema emite alerta de reposição.</td><td>Se Qtd. Atual ≤ Qtd. Mínima, a linha fica destacada em vermelho e aparece nas notificações de estoque crítico do Dashboard (para Masters e Admins).</td></tr>
-      <tr><td><strong>Fornecedor</strong></td><td>Nome do laboratório ou distribuidor que fornece o item.</td><td>Facilita contato rápido para compra emergencial quando o estoque cai abaixo do mínimo.</td></tr>
-      <tr><td><strong>Custo Unitário</strong></td><td>Valor pago por unidade na nota fiscal (ex: R$ 0,75).</td><td>Multiplica-se pela saída para calcular custo operacional de insumos no módulo de Relatórios.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="two-col">
-    <div class="step-card">
-      <div class="step-card-header">
-        <div class="step-card-icon">📦</div>
-        <div class="step-card-header-title">Registrando ENTRADA (chegada de compra)</div>
-      </div>
-      <div class="steps"><ol>
-        <li>O caminhão do fornecedor entregou 100 caixas de Paracetamol.</li>
-        <li>Logue e acesse a aba <strong>Farmácia</strong>. Clique em <strong>"Novo Item"</strong>.</li>
-        <li>Preencha: Nome, Tipo, Lote (da embalagem), Validade, <strong>Qtd. Atual: 100</strong>, Mínima: 15, Fornecedor.</li>
-        <li>Clique em <strong>Salvar</strong>. O item aparece na tabela de estoque.</li>
-        <li>Se o item já existia (recompra do mesmo item), clique em <strong>"Registrar Entrada"</strong> na linha do item existente e adicione apenas a quantidade nova recebida.</li>
-      </ol></div>
-    </div>
-    <div class="step-card">
-      <div class="step-card-header">
-        <div class="step-card-icon">💉</div>
-        <div class="step-card-header-title">Registrando SAÍDA (após administrar ao paciente)</div>
-      </div>
-      <div class="steps"><ol>
-        <li>O médico prescreveu Paracetamol para a Sra. Ana (PEP — Módulo 7, seção E).</li>
-        <li>O enfermeiro administra o medicamento fisicamente ao paciente no quarto.</li>
-        <li>Acesse a aba <strong>Farmácia</strong>. Localize "Paracetamol 500mg" na tabela.</li>
-        <li>Clique em <strong>"Registrar Saída"</strong> na linha do item.</li>
-        <li>No painel: Quantidade: <strong>1</strong>. Motivo: <em>"Administração à paciente Ana Silva — Quarto 204 — Prescrição Dr. Oliveira"</em>. Salvar.</li>
-        <li>Sistema atualiza o estoque subtraindo 1. O registro fica auditado: quem saiu, para quem, quando e por qual profissional — rastreabilidade total.</li>
-      </ol></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 10 — FINANCEIRO                                    -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 10 · Gestão Financeira</div>
-    <h1>💲 Financeiro, Fluxo de Caixa e DRE</h1>
-    <p>A aba <strong>Financeiro</strong> é o ERP simplificado da clínica. Registra todas as receitas (consultas, procedimentos) e despesas (contas, compras), calculando o saldo líquido em tempo real. Acesso bloqueado para Médicos e Enfermeiros por padrão.</p>
-  </div>
-
-  <h2 class="sh">Lançamentos do Dia — Como Aparece na Tela</h2>
-  <div class="finance-row income">
-    <div><div class="fr-desc">💚 Consulta Particular — Paciente José da Silva</div><div class="fr-date">29/07/2026 · 09:15 · Lançado por: recep01</div></div>
-    <div class="fr-val">+ R$ 400,00</div>
-  </div>
-  <div class="finance-row income">
-    <div><div class="fr-desc">💚 Procedimento — Sutura (5 pontos) · Plano Unimed</div><div class="fr-date">29/07/2026 · 10:42 · Lançado por: recep01</div></div>
-    <div class="fr-val">+ R$ 280,00</div>
-  </div>
-  <div class="finance-row expense">
-    <div><div class="fr-desc">❌ Conta de Energia Elétrica — Bandeirantes Energia</div><div class="fr-date">29/07/2026 · 11:00 · Lançado por: admin</div></div>
-    <div class="fr-val">− R$ 3.200,00</div>
-  </div>
-  <div class="finance-row income">
-    <div><div class="fr-desc">💚 Guia TISS — Amil Saúde · Consulta cardiologia · Dr. Lima</div><div class="fr-date">29/07/2026 · 13:30 · Lançado por: recep01</div></div>
-    <div class="fr-val">+ R$ 620,00</div>
-  </div>
-  <div class="finance-row expense">
-    <div><div class="fr-desc">❌ Compra de Insumos — Cirúrgica Boa Saúde · NF 00234</div><div class="fr-date">29/07/2026 · 14:00 · Lançado por: admin</div></div>
-    <div class="fr-val">− R$ 1.150,00</div>
-  </div>
-
-  <h2 class="sh">Dicionário de Campos e Funcionalidades do Financeiro</h2>
-  <table>
-    <thead><tr><th>Área / Botão</th><th>Instrução Completa de Uso</th><th>Impacto Visual e Contábil</th></tr></thead>
-    <tbody>
-      <tr><td><strong>💚 Nova Receita</strong></td><td>Clique no botão verde. Preencha: <strong>Descrição</strong> (ex: <em>Consulta Particular Paciente José</em>), <strong>Valor</strong> numérico (ex: 400.00 — use ponto como separador decimal), <strong>Data</strong> do recebimento, <strong>Forma de pagamento</strong> (PIX, Dinheiro, Cartão, Boleto, Convênio).</td><td>Linha verde adicionada na tabela. Valor SOMADO ao saldo total. O card "Faturamento Hoje" no Dashboard sobe imediatamente.</td></tr>
-      <tr><td><strong>❌ Nova Despesa</strong></td><td>Clique no botão vermelho. Preencha: <strong>Descrição</strong> do passivo (ex: <em>Pagamento Conta de Luz — Agosto</em>), <strong>Valor</strong> (ex: 3200.00), <strong>Data</strong> do vencimento/pagamento, <strong>Categoria</strong> (Utilidades, Pessoal, Insumos, Manutenção).</td><td>Linha vermelha adicionada. Valor SUBTRAÍDO do saldo líquido total. Aparece em relatórios de despesas por categoria.</td></tr>
-      <tr><td><strong>📊 Card DRE (Saldo Líquido)</strong></td><td>Cartão grande no topo da tela. Não é clicável — é um display automático.</td><td>Formula: Σ Receitas − Σ Despesas do período. Se positivo, fica verde (lucro). Se negativo, fica vermelho (déficit). Atualiza a cada lançamento.</td></tr>
-      <tr><td><strong>🔍 Filtros de Período</strong></td><td>Defina Data Inicial e Data Final para visualizar apenas os lançamentos do período escolhido. Ex: filtrar apenas julho/2026.</td><td>O DRE é recalculado para o período filtrado. Útil para análise mensal ou trimestral de desempenho financeiro.</td></tr>
-      <tr><td><strong>✏️ Editar Lançamento</strong></td><td>Clique no ícone de lápis na linha do registro. Disponível apenas nas últimas 24 horas para evitar adulteração retroativa.</td><td>O sistema registra na auditoria quem editou, quando e qual era o valor original — log imutável.</td></tr>
-      <tr><td><strong>🗑️ Excluir Lançamento</strong></td><td>Disponível apenas para Master. Clique no ícone de lixeira na linha do registro.</td><td>O lançamento não é deletado definitivamente — usa soft-delete (Módulo 14). Fica visível apenas para Master na lixeira financeira.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="info-box box-danger">
-    <div class="info-box-icon">🔒</div>
-    <div class="info-box-body">
-      <div class="info-box-title">Bloqueio Absoluto de Acesso — RBAC Nível 3</div>
-      <div class="info-box-text">Médicos e Enfermeiros com seus tokens de sessão têm a rota <code>/financeiro</code> bloqueada em hard-code no servidor Node.js. Mesmo que tentem acessar a URL diretamente pelo navegador, recebem erro 403 Forbidden. Não há forma de burlar este bloqueio sem alterar o código-fonte do sistema.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULO 11 — CORPO CLÍNICO                                 -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulo 11 · Infraestrutura Humana e Física</div>
-    <h1>👨‍⚕️ Corpo Clínico, Consultórios e Infraestrutura</h1>
-    <p>A aba <strong>Corpo Clínico</strong> é o pré-requisito de toda a operação do sistema. Sem médicos cadastrados aqui, a Recepção não consegue preencher o dropdown da Agenda. Sem salas cadastradas, a TV não anuncia o consultório correto.</p>
-  </div>
-
-  <div class="two-col">
-    <div>
-      <h2 class="sh">Aba — Médicos do Hospital</h2>
-      <table>
-        <thead><tr><th>Campo</th><th>Instrução e Regra</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Nome Completo</strong></td><td>Nome do médico com prefixo Dr./Dra. Ex: <em>Dr. Lucas Andrade</em>. Aparecerá exatamente assim no dropdown da Agenda e na TV.</td></tr>
-          <tr><td><strong>CRM + Conselho</strong></td><td>Número do CRM e estado. Ex: <code>123456/SP</code>. Obrigatório para validade legal da assinatura digital dos prontuários.</td></tr>
-          <tr><td><strong>Especialidade</strong></td><td>Seleção: Clínico Geral, Cardiologista, Ortopedista, Pediatra, Ginecologista, Neurologista, etc. Usado para filtros na Agenda.</td></tr>
-          <tr><td><strong>Dias e Turnos</strong></td><td>Dias da semana e horários que o médico trabalha na clínica. Usado para bloquear agendamentos fora do horário de plantão.</td></tr>
-          <tr><td><strong>Sala Padrão</strong></td><td>Consultório associado a este médico. A TV anuncia automaticamente esta sala ao chamar os pacientes deste médico.</td></tr>
-          <tr><td><strong>Telefone/Ramal</strong></td><td>Contato interno para comunicação entre setores.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div>
-      <h2 class="sh">Aba — Salas e Consultórios</h2>
-      <table>
-        <thead><tr><th>Campo</th><th>Instrução e Regra</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Nome da Sala</strong></td><td>O texto exato que será anunciado pela voz na TV. Ex: <em>Consultório 1, Sala de Gesso, Sala de Sutura, UTI Adulto, Sala Cirúrgica B.</em></td></tr>
-          <tr><td><strong>Tipo / Setor</strong></td><td>Consultório, Sala de Procedimentos, UTI, Enfermaria, Emergência, Exames, Administrativo.</td></tr>
-          <tr><td><strong>Capacidade de Leitos</strong></td><td>Quantidade de leitos dentro desta sala/ala (para UTIs e Enfermarias). Integra com o Módulo 8.</td></tr>
-          <tr><td><strong>Equipamentos</strong></td><td>Lista de equipamentos disponíveis (ex: Desfibrilador, Ultrassom, Oxigênio Canalizado). Útil para a equipe saber onde encontrar recursos.</td></tr>
-        </tbody>
-      </table>
-      <div class="info-box box-warn" style="margin-top:8px;">
-        <div class="info-box-icon">⚠️</div>
-        <div class="info-box-body">
-          <div class="info-box-title">Cadastrar ANTES de começar a operar</div>
-          <div class="info-box-text">O Corpo Clínico deve ser a <strong>primeira configuração</strong> feita ao instalar o sistema. Sem médicos e salas cadastrados, a Agenda não funciona, a TV não anuncia corretamente e as escalas de plantão ficam em branco.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="step-card">
-    <div class="step-card-header">
-      <div class="step-card-icon">🏥</div>
-      <div class="step-card-header-title">Passo a Passo — Adicionando um novo médico e sua sala ao sistema</div>
-    </div>
-    <div class="steps"><ol>
-      <li>O hospital contratou a <strong>Dra. Camila Santos (Pediatra)</strong> e preparou o <strong>"Consultório de Pediatria — Ursinho"</strong> para ela.</li>
-      <li>Logue com perfil Master ou Administrador e acesse a aba <strong>Corpo Clínico</strong>.</li>
-      <li>Na subdivisão <strong>"Salas"</strong>, clique em <strong>"Nova Sala"</strong>. Preencha: Nome: <em>Consultório de Pediatria — Ursinho</em>, Tipo: Consultório. Salvar.</li>
-      <li>Na subdivisão <strong>"Médicos"</strong>, clique em <strong>"Novo Médico"</strong>. Preencha: Nome: <em>Dra. Camila Santos</em>, CRM: <em>98765/SP</em>, Especialidade: <em>Pediatra</em>, Sala Padrão: <em>Consultório de Pediatria — Ursinho</em>. Selecione os dias de trabalho. Salvar.</li>
-      <li>A partir deste momento: a Recepção pode selecionar a Dra. Camila no dropdown da Agenda; a TV anuncia automaticamente os pacientes para o "Consultório de Pediatria — Ursinho"; o sistema de escalas reconhece os dias de plantão dela.</li>
-    </ol></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!--  MÓDULOS 12, 13, 14, 15                                    -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-eyebrow">Módulos 12, 13, 14 e 15 · Inteligência, Segurança e Infraestrutura</div>
-    <h1>📄 ⚠️ 🗑️ ☁️ Relatórios, Estagnação, Lixeira e Nuvem</h1>
-  </div>
-
-  <div class="two-col-3-2">
-    <div>
-      <h2 class="sh">Módulo 12 — Relatórios e BI</h2>
-      <p class="body">A aba <strong>Relatórios</strong> compila dados cruzados de todos os módulos e os exporta em formatos prontos para auditoria, reuniões de diretoria e prestação de contas a convênios.</p>
-      <table>
-        <thead><tr><th>Filtro / Função</th><th>Como usar e o que gera</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Tipo de Relatório</strong></td><td>Selecione: Faturamento Geral, Pacientes Atendidos, Consumo de Farmácia, Produção Médica por Especialidade, ou Relatório de Estagnação. Cada tipo acessa tabelas SQL diferentes.</td></tr>
-          <tr><td><strong>Período (Datas)</strong></td><td>Data Inicial + Data Final. O botão fica inativo sem este preenchimento. O sistema filtra registros pelo campo <code>created_at</code>.</td></tr>
-          <tr><td><strong>Download PDF</strong></td><td>Gera relatório timbrado com logo do hospital, pronto para impressão e arquivo físico. Usa renderização de DOM via biblioteca pdf.</td></tr>
-          <tr><td><strong>Download Excel (.xlsx)</strong></td><td>Formato numérico contábil, células com tipo R$ aplicado. Pronto para fórmulas no Excel sem erros de tipo. Usa SheetJS no frontend.</td></tr>
-          <tr><td><strong>Envio por E-mail</strong></td><td>Insira o e-mail do destinatário (ex: contador@clinica.com.br) e clique em Enviar. O sistema dispara o arquivo diretamente via SMTP.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div>
-      <h2 class="sh">Módulo 13 — Sistema Watchdog (Estagnação)</h2>
-      <p class="body">Não possui aba dedicada no menu — é um <strong>script de fundo</strong> que vigia automaticamente o tempo dos pacientes em cada coluna do Kanban e dispara alertas visuais quando os limites Manchester são ultrapassados.</p>
-      <table>
-        <thead><tr><th>Situação</th><th>Alerta Gerado</th></tr></thead>
-        <tbody>
-          <tr><td>Paciente aguarda triagem há mais de <strong>30 min</strong></td><td>Card da Coluna 1 ganha borda amarela pulsante com cronômetro regressivo. Alerta aparece no Dashboard.</td></tr>
-          <tr><td>Paciente 🟠 Laranja aguarda médico há mais de <strong>10 min</strong></td><td>Card vira vermelho escuro pulsante com texto <strong>"TIMEOUT CRÍTICO"</strong> em todas as telas.</td></tr>
-          <tr><td>Paciente 🟡 Amarelo aguarda há mais de <strong>60 min</strong></td><td>Card muda de cor e emite alerta sonoro na TV (beep de alerta).</td></tr>
-          <tr><td>Paciente 🟢 Verde aguarda há mais de <strong>120 min</strong></td><td>Banner laranja no painel do médico indica ultrapassagem do protocolo.</td></tr>
-        </tbody>
-      </table>
-      <div class="info-box box-tip" style="margin-top:8px;">
-        <div class="info-box-icon">💡</div>
-        <div class="info-box-body">
-          <div class="info-box-title">O Watchdog não para</div>
-          <div class="info-box-text">O script roda no servidor independente de quem está logado. Mesmo com a sala vazia à noite, se um paciente ficou esquecido no sistema, o Watchdog continuará registrando o tempo e acionará alertas quando um usuário logar pela manhã.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="two-col" style="margin-top:14px;">
-    <div>
-      <h2 class="sh">Módulo 14 — Lixeira de Segurança (Soft-Delete)</h2>
-      <p class="body">No Health Nexus, <strong>nenhum dado pode ser destruído permanentemente por acidente</strong>. Toda "exclusão" na verdade aplica a técnica de Soft-Delete: o registro recebe uma flag <code>deleted_at</code> e desaparece das telas normais, mas permanece no banco de dados e é visível apenas para o Master.</p>
-      <table>
-        <thead><tr><th>O que aconteceu</th><th>Comportamento real e recuperação</th></tr></thead>
-        <tbody>
-          <tr><td>Usuário deletou ficha de paciente</td><td>Dado marcado com <code>deleted_at = NOW()</code>. Some de todas as buscas. Recuperável via Lixeira.</td></tr>
-          <tr><td>Usuário deletou lançamento financeiro</td><td>Idem — nunca apagado do SQL. Log auditado: quem deletou, quando e valor original.</td></tr>
-          <tr><td>Master acessa a Lixeira</td><td>Vê lista completa com: o que foi deletado, data/hora exata dos milissegundos, e <strong>nome do usuário que deletou</strong>. Pode restaurar com 1 clique.</td></tr>
-        </tbody>
-      </table>
-      <div class="step-card" style="margin-top:8px;">
-        <div class="step-card-header">
-          <div class="step-card-icon">↩</div>
-          <div class="step-card-header-title">Como restaurar uma exclusão acidental</div>
-        </div>
-        <div class="steps"><ol>
-          <li>Master acessa <strong>Configurações → Lixeira de Cadastros</strong>.</li>
-          <li>Localiza o item deletado (ex: <em>Sr. Marcos — deletado por recep01 em 29/07/2026 às 14:32:18</em>).</li>
-          <li>Clica no botão azul <strong>"Restaurar"</strong>. A flag <code>deleted_at</code> é limpa. O item reaparece em todas as telas normais.</li>
-        </ol></div>
-      </div>
-    </div>
-    <div>
-      <h2 class="sh">Módulo 15 — Nuvem Turso e Desligamento Seguro</h2>
-      <p class="body">O Health Nexus usa arquitetura <strong>Local-First</strong>: dados gravados no SSD local primeiro (velocidade máxima, zero dependência de internet). A nuvem Turso (LibSQL Edge) é usada apenas como backup espelhado.</p>
-      <table>
-        <thead><tr><th>Recurso</th><th>Funcionamento</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Badge de Status (topo do Chrome)</strong></td><td>Semáforo visual: 🟢 Conectado ao Turso Cloud | 🔴 Modo Local / Desconectado. Clicável para ver estatísticas de divergência.</td></tr>
-          <tr><td><strong>Divergência Local × Nuvem</strong></td><td>Ao clicar no badge, popup exibe: <em>"Local: 45 pacientes | Nuvem: 43 pacientes"</em>. Indica que 2 registros ainda não foram sincronizados.</td></tr>
-          <tr><td><strong>Upload Forçado (Sync)</strong></td><td>Botão no popup que envia os registros pendentes para a nuvem imediatamente.</td></tr>
-          <tr><td><strong>Sync Automático Pós-Cadastro</strong></td><td>Após salvar um paciente, popup pergunta: <em>"Enviar para a nuvem agora?"</em>. Se cancelar, o envio é feito em lote no encerramento do dia.</td></tr>
-        </tbody>
-      </table>
-      <div class="info-box box-warn" style="margin-top:8px;">
-        <div class="info-box-icon">⚡</div>
-        <div class="info-box-body">
-          <div class="info-box-title">Graceful Shutdown — Desligamento Automático Inteligente</div>
-          <div class="info-box-text">O servidor Node.js detecta quando a aba do Chrome é fechada via <strong>WebSocket Heartbeat</strong>. Após <strong>1,5 segundo</strong> sem resposta do frontend, o servidor encerra todos os processos e libera a RAM. Se for apenas um F5 acidental, o heartbeat retorna a tempo e tudo continua normal. Nunca deixa processos zumbi rodando em background.</div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 </body>
