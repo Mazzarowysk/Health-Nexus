@@ -9741,7 +9741,7 @@ window.dischargeBed = (bedId) => {
         </div>
         <div style="display: flex; gap: 12px; justify-content: center;">
           <button class="btn btn-secondary" onclick="document.getElementById('discharge-confirm-modal').remove()">Cancelar</button>
-          <button class="btn btn-primary" onclick="document.getElementById('discharge-confirm-modal').remove(); window.executeDischarge('${bedId}')">Sim, Confirmar</button>
+          <button class="btn btn-primary" onclick="window.executeDischarge('${bedId}')">Sim, Confirmar</button>
         </div>
       </div>
     </div>
@@ -9750,6 +9750,9 @@ window.dischargeBed = (bedId) => {
 };
 
 window.executeDischarge = async (bedId) => {
+  const modal = document.getElementById('discharge-confirm-modal');
+  if (modal) modal.remove();
+  
   try {
     const res = await apiFetch('/api/beds/discharge', {
       method: 'POST',
@@ -9758,9 +9761,19 @@ window.executeDischarge = async (bedId) => {
     });
     if (res.ok) {
       showToast('Alta concedida com sucesso! Leito encaminhado para limpeza.');
-      renderLeitosTab();
+      if (typeof renderLeitosTab === 'function') {
+        renderLeitosTab();
+      } else {
+        window.location.reload();
+      }
+    } else {
+      const data = await res.json();
+      showToast(data.message || 'Erro ao dar alta no leito.', true);
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('Erro em executeDischarge:', e);
+    showToast('Erro interno ao tentar dar alta.', true);
+  }
 };
 
 window.updateBedStatus = async (bedId, status) => {
