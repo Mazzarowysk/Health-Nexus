@@ -8768,12 +8768,14 @@ async function openConsultorioDetailsModal(roomName) {
               <button class="btn btn-outline" style="margin-right: auto;" onclick="document.getElementById('consultorio-details-modal').remove();"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
               <button class="btn btn-outline" onclick="
                 window.pendingAgendaRoomFilter = '${roomName}';
+                window.returnToConsultorio = '${roomName}';
                 document.getElementById('consultorio-details-modal').remove();
                 switchTab('agenda');
               "><i class="fa-solid fa-list"></i> Ver Agendamentos</button>
               
               <button class="btn btn-primary" onclick="
                 window.pendingAgendaRoomFilter = '${roomName}';
+                window.returnToConsultorio = '${roomName}';
                 document.getElementById('consultorio-details-modal').remove();
                 switchTab('agenda');
                 setTimeout(() => {
@@ -8842,6 +8844,14 @@ async function renderAgendaTab() {
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px;">
+          ${window.returnToConsultorio ? `
+            <button class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; cursor: pointer;" onclick="
+              const room = window.returnToConsultorio;
+              window.returnToConsultorio = null;
+              switchTab('consultorios');
+              setTimeout(() => { openConsultorioDetailsModal(room); }, 100);
+            "><i class="fa-solid fa-arrow-left"></i> Voltar p/ ${window.returnToConsultorio}</button>
+          ` : ''}
           <button id="btn-open-new-appointment" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
             <i class="fa-solid fa-plus"></i> Novo Agendamento
           </button>
