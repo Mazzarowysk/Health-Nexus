@@ -606,8 +606,8 @@ let heartbeatReceived = false;
 
 if (!isVercel) {
   heartbeatInterval = setInterval(() => {
-    // Dá 60s para o front-end carregar a primeira vez (compilação do Vite). Depois, exige heartbeat a cada 15s.
-    const timeout = heartbeatReceived ? 15000 : 60000;
+    // Dá 3min para o front-end carregar a primeira vez. Depois, tolera até 2min sem heartbeat.
+    const timeout = heartbeatReceived ? 120000 : 180000;
     if (Date.now() - lastHeartbeatTime > timeout) {
       console.log('\n[SISTEMA ENCERRADO] A aba do navegador foi fechada. Encerrando o servidor local Health Nexus para liberar recursos...');
       exec('taskkill /FI "WINDOWTITLE eq Health Nexus - Servidor Ativo*" /T /F', () => {

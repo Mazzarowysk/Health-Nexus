@@ -5874,7 +5874,7 @@ function renderReportsTab(contentArea) {
 
       let finTitlesList = [];
       try {
-        const response = await fetch('/api/financial/installments');
+        const response = await apiFetch('/api/financial/installments');
         if (response.ok) {
           const installments = await response.json();
           finTitlesList = installments.filter(inst => {
@@ -6824,7 +6824,7 @@ function renderReportsTab(contentArea) {
       const notes = document.getElementById('pay-notes-input').value;
 
       try {
-        const response = await fetch('/api/financial/installments/' + installment.id + '/pay', {
+        const response = await apiFetch('/api/financial/installments/' + installment.id + '/pay', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -7005,7 +7005,7 @@ function renderReportsTab(contentArea) {
       if (checked.length === 0) return;
       if (confirm(`Confirmar baixa manual em lote de ${checked.length} parcelas selecionadas?`)) {
         try {
-          const response = await fetch('/api/financial/installments/pay-batch', {
+          const response = await apiFetch('/api/financial/installments/pay-batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids: checked, notes: 'Baixa em lote realizada pela janela dedicada' })
