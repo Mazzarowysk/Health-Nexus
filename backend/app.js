@@ -5,6 +5,7 @@ import cors from 'cors';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { exec } from 'child_process';
 import * as clientModule from './database/client.js';
 import { db, reconnectCloud } from './database/client.js';
 
@@ -609,7 +610,6 @@ if (!isVercel) {
     const timeout = heartbeatReceived ? 15000 : 60000;
     if (Date.now() - lastHeartbeatTime > timeout) {
       console.log('\n[SISTEMA ENCERRADO] A aba do navegador foi fechada. Encerrando o servidor local Health Nexus para liberar recursos...');
-      const { exec } = require('child_process');
       exec('taskkill /FI "WINDOWTITLE eq Health Nexus - Servidor Ativo*" /T /F', () => {
         process.exit(0);
       });
@@ -628,7 +628,6 @@ app.post('/api/shutdown', (req, res) => {
   if (!isVercel) {
     setTimeout(() => {
       console.log('\n[SISTEMA ENCERRADO] Recebido comando de shutdown. Encerrando o servidor local Health Nexus...');
-      const { exec } = require('child_process');
       exec('taskkill /FI "WINDOWTITLE eq Health Nexus - Servidor Ativo*" /T /F', () => {
         process.exit(0);
       });
