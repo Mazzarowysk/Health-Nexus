@@ -6390,6 +6390,22 @@ function renderReportsTab(contentArea) {
     setupCheckboxEvents();
     updatePreviewStatusText();
 
+    // Setup checkbox events for preview table
+    function setupCheckboxEvents() {
+      const selectAll = document.getElementById('select-all-records');
+      if (selectAll) {
+        selectAll.addEventListener('change', (e) => {
+          document.querySelectorAll('.record-checkbox').forEach(cb => cb.checked = e.target.checked);
+        });
+      }
+      document.querySelectorAll('.record-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const allChecked = document.querySelectorAll('.record-checkbox:checked').length === document.querySelectorAll('.record-checkbox').length;
+          if (selectAll) selectAll.checked = allChecked;
+        });
+      });
+    }
+
     // ─── RESUMO + GRÁFICOS DINÂMICOS POR ABA ────────────────────────────────
     const summaryContainerId = 'report-summary-charts';
     let summaryContainer = document.getElementById(summaryContainerId);
@@ -6583,7 +6599,7 @@ function renderReportsTab(contentArea) {
   };
 
   // FUNÇÕES DE EXPORTAÇÃO GLOBAL (CSV, EXCEL, PDF) E EMISSÃO DE BOLETO
-  function exportToCSV(columns, rows, filename) {
+  function exportHtmlCSV(columns, rows, filename) {
     const csvContent = "\uFEFF" + [
       columns.join(";"),
       ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(";"))
@@ -6600,7 +6616,7 @@ function renderReportsTab(contentArea) {
     if (typeof showToast === 'function') showToast(`Relatório CSV '${filename}.csv' exportado com sucesso!`);
   }
 
-  function exportToXLS(columns, rows, filename) {
+  function exportHtmlXLS(columns, rows, filename) {
     const tableHTML = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Relatório Health Nexus</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
@@ -6635,7 +6651,7 @@ function renderReportsTab(contentArea) {
     if (typeof showToast === 'function') showToast(`Relatório Excel '${filename}.xls' gerado e baixado!`);
   }
 
-  async function exportToPDF(columns, rows, title, filename, financialSummary) {
+  async function exportHtmlPDF(columns, rows, title, filename, financialSummary) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       if (typeof showCustomAlert === 'function') {
@@ -6784,18 +6800,13 @@ function renderReportsTab(contentArea) {
       </html>
     `;
 
-    // Download direto do arquivo HTML (evita bloqueador de pop-up)
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${filename}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Escreve o conteúdo na nova janela para acionar a impressão
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.focus();
 
-    if (typeof showToast === 'function') showToast(`Relatório HTML '${filename}.html' baixado! Abra no navegador e use Ctrl+P para salvar como PDF.`);
+    if (typeof showToast === 'function') showToast(`Visualização para impressão PDF aberta com sucesso!`);
   }
 
   function openPayInstallmentModal(installment, onComplete) {
@@ -7718,6 +7729,7 @@ function renderReportsTab(contentArea) {
     let rows = [];
     let title = '';
     let filename = '';
+    let financialSummary;
 
     if (activeTab === 'patients') {
       title = 'Relatório de Pacientes';
@@ -7830,11 +7842,11 @@ function renderReportsTab(contentArea) {
     filename = `${filename}_${timestamp}`;
 
     if (format === 'pdf') {
-      await exportToPDF(columns, rows, title, filename, financialSummary);
+      await exportHtmlPDF(columns, rows, title, filename, activeTab === 'financial' ? financialSummary : undefined);
     } else if (format === 'xls') {
-      exportToXLS(columns, rows, filename);
+      exportHtmlXLS(columns, rows, filename);
     } else if (format === 'csv') {
-      exportToCSV(columns, rows, filename);
+      exportHtmlCSV(columns, rows, filename);
     }
   } catch (err) {
     console.error('Erro ao exportar:', err);
