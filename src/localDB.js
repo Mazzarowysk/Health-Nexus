@@ -144,3 +144,9 @@ export function overwriteLocal(cloudPayload) {
     localStorage.setItem(UPDATED_AT_KEY, cloudPayload.updated_at.toString());
   }
 }
+
+export function clear() {
+  localStorage.removeItem(DB_KEY);
+  localStorage.setItem(UPDATED_AT_KEY, Date.now().toString());
+}
+

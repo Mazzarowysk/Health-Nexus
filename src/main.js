@@ -1718,32 +1718,43 @@ const apiFetch = async (url, options = {}) => {
       responseData = { alerts, criticalCount, warningCount };
     }
     else if (url.startsWith('/api/')) {
-      // Extract table from URL: e.g. /api/patients/PAT-123 -> table: patients, id: PAT-123
-      const parts = url.split('?')[0].replace('/api/', '').split('/');
-      let table = parts[0];
-      const id = parts[1];
+      if (url.includes('/api/settings/reset') && method === 'POST') {
+        localDB.clear();
+        responseData = { message: 'Database reset successfully' };
+      } else if (url.includes('/api/settings/seed') && method === 'POST') {
+        if (typeof window.populateFakeDatabase === 'function') {
+          window.populateFakeDatabase();
+        }
+        responseData = { message: 'Database populated successfully' };
+      } else {
+        // Extract table from URL: e.g. /api/patients/PAT-123 -> table: patients, id: PAT-123
+        const parts = url.split('?')[0].replace('/api/', '').split('/');
+        let table = parts[0];
+        let id = parts[1];
 
-      // mapping table names if necessary
-      if (table === 'encounters') table = 'encounters';
-      if (table === 'patients') table = 'patients';
-      if (table === 'appointments') table = 'appointments';
-      if (table === 'triages') table = 'triages';
-      if (table === 'clinical-notes') table = 'clinical_notes';
-      if (table === 'prescriptions') table = 'prescriptions';
-      if (table === 'pharmacy') table = 'pharmacy_items';
-      if (table === 'beds') table = 'beds';
-      if (table === 'financial') table = 'financial_installments';
-      
-      if (method === 'GET') {
-        if (id) responseData = localDB.get(table, id);
-        else responseData = { data: localDB.list(table) };
-      } else if (method === 'POST') {
-        responseData = { data: localDB.insert(table, body) };
-      } else if (method === 'PUT') {
-        responseData = { data: localDB.update(table, id, body) };
-      } else if (method === 'DELETE') {
-        localDB.remove(table, id);
-        responseData = { message: 'Removido com sucesso' };
+        // mapping table names if necessary
+        if (table === 'encounters') table = 'encounters';
+        if (table === 'patients') table = 'patients';
+        if (table === 'appointments') table = 'appointments';
+        if (table === 'triages') table = 'triages';
+        if (table === 'clinical-notes') table = 'clinical_notes';
+        if (table === 'prescriptions') table = 'prescriptions';
+        if (table === 'pharmacy') table = 'pharmacy_items';
+        if (table === 'beds') table = 'beds';
+        if (table === 'financial') table = 'financial_installments';
+        if (table === 'tv') { table = 'tv_calls'; id = undefined; } // fix TV calls routing
+
+        if (method === 'GET') {
+          if (id) responseData = localDB.get(table, id);
+          else responseData = { data: localDB.list(table) };
+        } else if (method === 'POST') {
+          responseData = { data: localDB.insert(table, body) };
+        } else if (method === 'PUT') {
+          responseData = { data: localDB.update(table, id, body) };
+        } else if (method === 'DELETE') {
+          localDB.remove(table, id);
+          responseData = { message: 'Removido com sucesso' };
+        }
       }
     }
     else {
@@ -3888,7 +3899,8 @@ async function renderTabContent() {
       try {
         const res = await apiFetch(`${API_URL}/encounters`);
         if (!res.ok) throw new Error();
-        allEncounters = await res.json();
+        const json = await res.json();
+        allEncounters = Array.isArray(json) ? json : (json.data || []);
         renderKanban(allEncounters);
       } catch {
         ['col-triage','col-waiting','col-active'].forEach(id => {
@@ -4629,10 +4641,20 @@ async function fetchDashboardData() {
       }
     } catch(e) {}
   }
+  let totalRealRevenue = 0;
+  try {
+    const resF = await apiFetch(`${API_URL}/financial`);
+    if (resF.ok) {
+      const fList = await resF.json();
+      const arrF = Array.isArray(fList) ? fList : (fList.data || []);
+      totalRealRevenue = arrF.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    }
+  } catch(e) {}
 
-  const billingSum = d.billingSummary
-    ? d.billingSummary
-    : { totalRevenue: 245000.00, pendingClaims: 45100.00 };
+  const billingSum = {
+    totalRevenue: totalRealRevenue > 0 ? totalRealRevenue : (d.billingSummary?.totalRevenue || 245000.00),
+    pendingClaims: d.billingSummary?.pendingClaims || 45100.00
+  };
 
   state.dashboardData = {
     activePatients: realActivePatients || 28,
@@ -13194,3 +13216,47 @@ window.deleteDutySchedule = async function(id) {
 // Start app immediately (module execution is already deferred until DOM is parsed)
 initializeApp();
 
+window.populateFakeDatabase = function() {
+  const users = [
+    { id: 'USR-ADMIN', username: 'admin', role: 'Administrador', name: 'Administrador Hospitalar', status: 'Ativo' }
+  ];
+  const patients = [
+    { id: 'PAT-001', fullName: 'Carlos Silva', cpf: '111.111.111-11', phone: '(11) 99999-1111', status: 'Ativo' },
+    { id: 'PAT-002', fullName: 'Maria Oliveira', cpf: '222.222.222-22', phone: '(11) 99999-2222', status: 'Ativo' },
+    { id: 'PAT-003', fullName: 'João Pedro Souza', cpf: '333.333.333-33', phone: '(11) 99999-3333', status: 'Ativo' },
+    { id: 'PAT-004', fullName: 'Ana Beatriz Alves', cpf: '444.444.444-44', phone: '(11) 99999-4444', status: 'Ativo' },
+    { id: 'PAT-005', fullName: 'Lucas Mendes', cpf: '555.555.555-55', phone: '(11) 99999-5555', status: 'Ativo' }
+  ];
+  
+  const encounters = [
+    { id: 'ENC-001', patientId: 'PAT-001', patientName: 'Carlos Silva', status: 'Aguardando_Triagem', admitted_at: new Date(Date.now() - 5*60000).toISOString() },
+    { id: 'ENC-002', patientId: 'PAT-002', patientName: 'Maria Oliveira', status: 'Aguardando_Atendimento', manchesterColor: 'Amarelo', admitted_at: new Date(Date.now() - 30*60000).toISOString() },
+    { id: 'ENC-003', patientId: 'PAT-003', patientName: 'João Pedro Souza', status: 'Aguardando_Atendimento', manchesterColor: 'Verde', admitted_at: new Date(Date.now() - 45*60000).toISOString() },
+    { id: 'ENC-004', patientId: 'PAT-004', patientName: 'Ana Beatriz Alves', status: 'Em_Atendimento', manchesterColor: 'Vermelho', room: 'Consultório 01', admitted_at: new Date(Date.now() - 60*60000).toISOString() },
+    { id: 'ENC-005', patientId: 'PAT-005', patientName: 'Lucas Mendes', status: 'Finalizado', manchesterColor: 'Azul', admitted_at: new Date(Date.now() - 120*60000).toISOString() }
+  ];
+
+  const financial_installments = [
+    { id: 'FIN-001', amount: 150.00, status: 'Pago', patientId: 'PAT-001', date: new Date().toISOString() },
+    { id: 'FIN-002', amount: 350.50, status: 'Pago', patientId: 'PAT-002', date: new Date().toISOString() },
+    { id: 'FIN-003', amount: 1200.00, status: 'Pendente', patientId: 'PAT-004', date: new Date().toISOString() }
+  ];
+
+  const tv_calls = [
+    { id: 'TV-001', patientName: 'Ana Beatriz Alves', roomName: 'Consultório 01', manchesterColor: 'Vermelho', timestamp: new Date(Date.now() - 10000).toISOString() }
+  ];
+
+  const dbData = {
+    users,
+    patients,
+    encounters,
+    financial_installments,
+    tv_calls
+  };
+
+  localStorage.setItem('oczOnlineDados', JSON.stringify(dbData));
+  localStorage.setItem('oczOnlineUpdatedAt', Date.now().toString());
+  
+  showToast('Banco de dados repopulado com sucesso! Recarregando...');
+  setTimeout(() => window.location.reload(), 1500);
+};
