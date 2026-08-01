@@ -3011,8 +3011,10 @@ async function renderTabContent() {
                     <input type="text" id="religion" class="form-input" placeholder="Ex: Católica, Evangélica, etc.">
                   </div>
                 </div>
+              </div> <!-- Fim Seção 1 -->
               </div> <!-- Fim coluna 1 -->
-              <div style="display: flex; flex-direction: column; gap: 16px;">
+              
+              <div style="display: flex; flex-direction: column; gap: 16px;"> <!-- Início coluna 2 -->
               <!-- SEÇÃO 2: CONVÊNIO & CONTATO -->
               <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
