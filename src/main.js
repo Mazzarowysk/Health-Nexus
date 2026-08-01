@@ -4935,13 +4935,7 @@ function applyInputMasks() {
 }
 
 // Inicializar aplicativo
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
-  });
-} else {
-  initializeApp();
-}
+// Inicializar aplicativo (chamada movida para o final do arquivo)
 
 // Heartbeat para manter o servidor rodando apenas enquanto a aba estiver aberta
 setInterval(() => {
@@ -13117,9 +13111,6 @@ window.deleteDutySchedule = async function(id) {
 };
 
 // --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-  initializeApp();
-}
+// Start app immediately (module execution is already deferred until DOM is parsed)
+initializeApp();
 
