@@ -2943,15 +2943,15 @@ async function renderTabContent() {
 
       <!-- Modal de Admissão de Paciente -->
       <div id="patient-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-        <div class="patients-form-container" style="background: var(--bg-secondary); width: 95%; max-width: 1200px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s ease-out;">
+        <div class="patients-form-container" style="background: var(--bg-secondary); width: 95%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s ease-out;">
           <button type="button" id="btn-close-patient-modal" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
           <h3 id="form-title" style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 600; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente
           </h3>
-          <form id="patient-form">
+          <form id="patient-form" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
             <input type="hidden" id="editId">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
-              <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; flex: 1; overflow: hidden; align-items: start;">
+              <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px; max-height: 65vh;" class="custom-scrollbar">
 
             <!-- SEÇÃO 1: DADOS PESSOAIS & FILIAÇÃO -->
             <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
@@ -3014,9 +3014,9 @@ async function renderTabContent() {
               </div> <!-- Fim Seção 1 -->
               </div> <!-- Fim coluna 1 -->
               
-              <div style="display: flex; flex-direction: column; gap: 16px;"> <!-- Início coluna 2 -->
+              <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px; max-height: 65vh;" class="custom-scrollbar"> <!-- Início coluna 2 -->
               <!-- SEÇÃO 2: CONVÊNIO & CONTATO -->
-              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px;">
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px; flex-shrink: 0;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
                   <i class="fa-solid fa-hospital-user"></i> 2. Convênio &amp; Contato
                 </div>
@@ -3089,7 +3089,7 @@ async function renderTabContent() {
               </div>
 
               <!-- SEÇÃO 3: RESPONSÁVEL LEGAL (AUTOMÁTICO PARA MENORES DE 18 OU MAIORES DE 65 ANOS) -->
-              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px;">
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px; flex-shrink: 0;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
                   <i class="fa-solid fa-users"></i> 3. Responsável Legal / Acompanhante
                 </div>
@@ -3129,7 +3129,7 @@ async function renderTabContent() {
               </div> <!-- Fim coluna 2 -->
             </div> <!-- Fim grid duas colunas -->
 
-              <div style="display: flex; gap: 10px; margin-top: 20px;">
+              <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
                 <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1;">Registrar Paciente</button>
                 <button type="button" id="cancel-edit-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); flex: 1;">Cancelar</button>
               </div>
