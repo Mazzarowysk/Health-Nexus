@@ -1611,7 +1611,7 @@ const cachedApiGet = async (url, cacheKey = null) => {
   return result;
 };
 
-let syncUploadTimeout = null;
+
 
 const scheduleSyncUpload = async () => {
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
