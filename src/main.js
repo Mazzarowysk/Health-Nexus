@@ -1631,20 +1631,22 @@ const apiFetch = async (url, options = {}) => {
   try {
     // Route matching for localDB
     if (url.includes('/api/auth/login')) {
-      let users = localDB.list('users');
-      // Se não houver usuários locais (primeiro acesso em um novo navegador/dispositivo), tenta puxar da nuvem silenciosamente
-      if (users.length === 0) {
+      let isFirstTime = Object.keys(localDB.getFullDB()).length === 0;
+      
+      // Se for o primeiro acesso, tenta puxar da nuvem silenciosamente
+      if (isFirstTime) {
         try {
           const res = await fetch('/api/turso');
           if (res.ok) {
             const body = await res.json();
             localDB.overwriteLocal(body);
-            users = localDB.list('users');
           }
         } catch (e) {
           console.error('Erro ao buscar dados iniciais para login:', e);
         }
       }
+
+      const users = localDB.list('users');
 
       const user = users.find(u => u.username === body.username);
       // In local mode, we assume the password check is bypassed or checked locally if plain
