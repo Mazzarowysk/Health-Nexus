@@ -1631,9 +1631,23 @@ const apiFetch = async (url, options = {}) => {
   try {
     // Route matching for localDB
     if (url.includes('/api/auth/login')) {
-      const users = localDB.list('users');
+      let users = localDB.list('users');
+      // Se não houver usuários locais (primeiro acesso em um novo navegador/dispositivo), tenta puxar da nuvem silenciosamente
+      if (users.length === 0) {
+        try {
+          const res = await fetch('/api/turso');
+          if (res.ok) {
+            const body = await res.json();
+            localDB.overwriteLocal(body);
+            users = localDB.list('users');
+          }
+        } catch (e) {
+          console.error('Erro ao buscar dados iniciais para login:', e);
+        }
+      }
+
       const user = users.find(u => u.username === body.username);
-      // In local mode, we assume the password check is bypassed or checked locally if plain (we shouldn't have plain but for mock we'll accept any if user exists)
+      // In local mode, we assume the password check is bypassed or checked locally if plain
       if (user) {
         responseData = { token: 'mock-jwt-token', user };
       } else {
