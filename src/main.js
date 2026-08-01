@@ -2872,22 +2872,46 @@ async function renderTabContent() {
   } else if (state.activeTab === 'pacientes') {
     contentArea.innerHTML = `
       <div class="tab-section active">
-        <div class="patients-grid">
-          <!-- Coluna 1: Formulário Completo com Máscaras e Dados Hospitalares/SUS -->
-          <div class="patients-form-container" style="max-width: 100%;">
-            <h3 id="form-title" style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente
-            </h3>
-            <form id="patient-form">
-              <input type="hidden" id="editId">
+        <!-- Coluna Única: Lista com Busca Inteligente -->
+        <div class="patients-list-container" style="width: 100%;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <h3 style="margin: 0; font-family: 'Outfit'; font-weight: 600;">Pacientes Cadastrados</h3>
+              <button id="btn-new-patient" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem; font-weight: 600; border-radius: 8px;"><i class="fa-solid fa-plus"></i> Novo Paciente</button>
+            </div>
+            <button id="patients-trash-btn" class="btn" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; transition: all 0.2s;"><i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i> Lixeira</button>
+          </div>
+          
+          <div class="search-container">
+            <div class="search-wrapper">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input type="text" id="search-input" class="search-input" placeholder="Buscar paciente por nome, CPF, cidade ou ID (ignora caixa e acentos)...">
+            </div>
+          </div>
 
-              <!-- SEÇÃO 1: DADOS PESSOAIS & FILIAÇÃO -->
-              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
-                <div style="font-size: 0.82rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-                  <i class="fa-solid fa-user"></i> 1. Dados Pessoais &amp; Filiação
-                </div>
+          <div id="patients-table-wrapper" style="overflow-x: auto;">
+            <div style="text-align: center; color: var(--text-secondary); padding: 40px;">Carregando registros...</div>
+          </div>
+        </div>
+      </div>
 
-                <div class="form-group">
+      <!-- Modal de Admissão de Paciente -->
+      <div id="patient-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+        <div class="patients-form-container" style="background: var(--bg-secondary); width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s ease-out;">
+          <button type="button" id="btn-close-patient-modal" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
+          <h3 id="form-title" style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente
+          </h3>
+          <form id="patient-form">
+            <input type="hidden" id="editId">
+
+            <!-- SEÇÃO 1: DADOS PESSOAIS & FILIAÇÃO -->
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-user"></i> 1. Dados Pessoais &amp; Filiação
+              </div>
+
+              <div class="form-group">
                   <label class="form-label" for="fullName">* Nome Completo (Civil):</label>
                   <input type="text" id="fullName" class="form-input" required placeholder="Nome completo do paciente">
                 </div>
@@ -3055,31 +3079,11 @@ async function renderTabContent() {
 
               <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1;">Registrar Paciente</button>
-                <button type="button" id="cancel-edit-btn" class="btn" style="display: none; background-color: var(--bg-tertiary); color: var(--text-primary);">Cancelar</button>
+                <button type="button" id="cancel-edit-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); flex: 1;">Cancelar</button>
               </div>
             </form>
           </div>
-
-          <!-- Coluna 2: Lista com Busca Inteligente -->
-          <div class="patients-list-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h3 style="margin: 0; font-family: 'Outfit'; font-weight: 600;">Pacientes Cadastrados</h3>
-              <button id="patients-trash-btn" class="btn" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; transition: all 0.2s;"><i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i> Lixeira</button>
-            </div>
-            
-            <div class="search-container">
-              <div class="search-wrapper">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="search-input" class="search-input" placeholder="Buscar paciente por nome, CPF, cidade ou ID (ignora caixa e acentos)...">
-              </div>
-            </div>
-
-            <div id="patients-table-wrapper" style="overflow-x: auto;">
-              <div style="text-align: center; color: var(--text-secondary); padding: 40px;">Carregando registros...</div>
-            </div>
-          </div>
         </div>
-      </div>
     `;
 
     // Aplicar máscaras de input
@@ -3215,13 +3219,12 @@ async function renderTabContent() {
 
           document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--color-primary);"></i> Editar Paciente';
           document.getElementById('submit-btn').textContent = "Salvar Alterações";
-          document.getElementById('cancel-edit-btn').style.display = "inline-flex";
 
           checkAgeValidation();
 
-          const formContainer = document.querySelector('.patients-form-container');
-          if (formContainer) {
-            formContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          const modalOverlay = document.getElementById('patient-modal-overlay');
+          if (modalOverlay) {
+            modalOverlay.style.display = 'flex';
           }
         });
       });
@@ -3434,13 +3437,21 @@ async function renderTabContent() {
       document.getElementById('editId').value = "";
       document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente';
       document.getElementById('submit-btn').textContent = "Registrar Paciente";
-      document.getElementById('cancel-edit-btn').style.display = "none";
       const alertBadge = document.getElementById('responsible-alert-badge');
       if (alertBadge) alertBadge.style.display = 'none';
+      
+      const modalOverlay = document.getElementById('patient-modal-overlay');
+      if (modalOverlay) modalOverlay.style.display = 'none';
     };
 
-    // Registrar cancelamento
-    document.getElementById('cancel-edit-btn').addEventListener('click', resetForm);
+    // Registrar cancelamento e botões do modal
+    document.getElementById('cancel-edit-btn')?.addEventListener('click', resetForm);
+    document.getElementById('btn-close-patient-modal')?.addEventListener('click', resetForm);
+    document.getElementById('btn-new-patient')?.addEventListener('click', () => {
+      resetForm();
+      const modalOverlay = document.getElementById('patient-modal-overlay');
+      if (modalOverlay) modalOverlay.style.display = 'flex';
+    });
 
     // Lixeira de pacientes
     document.getElementById('patients-trash-btn').addEventListener('click', () => {

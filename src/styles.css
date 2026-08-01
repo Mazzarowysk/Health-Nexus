@@ -3443,8 +3443,6 @@ body.light-theme {
 }
 
 .patients-form-container {
-  position: sticky;
-  top: 0px;
   background: var(--card-bg, rgba(26, 21, 50, 0.85));
   backdrop-filter: var(--glass-blur, blur(16px));
   -webkit-backdrop-filter: var(--glass-blur, blur(16px));
