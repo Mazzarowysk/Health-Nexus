@@ -1308,7 +1308,7 @@ const getSyncStatus = async () => {
   try {
     const res = await fetch('/api/turso?status=1');
     if (!res.ok) {
-      state.syncInfo = { cloudConfigured: false, isVercel: false, synchronized: true, local_updates: 0 };
+      state.syncInfo = { cloudConfigured: false, isVercel: false, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
       updateSyncBadge();
       return state.syncInfo;
     }
@@ -1327,6 +1327,8 @@ const getSyncStatus = async () => {
       local_updates: local_updates,
       localTimestamps: { main_data: localUpdated },
       cloudTimestamps: { main_data: cloudUpdated },
+      lastLocalBackup: localUpdated,
+      lastCloudBackup: cloudUpdated,
       isVercel: false,
       conflict: (localUpdated > cloudUpdated && cloudUpdated > Number(localStorage.getItem('ultimoSyncUpdatedAt') || 0)) // simplistic conflict
     };
@@ -1334,7 +1336,7 @@ const getSyncStatus = async () => {
     return state.syncInfo;
   } catch (err) {
     console.error('Erro ao obter status de sincronização:', err);
-    state.syncInfo = { cloudConfigured: false, isVercel: false, synchronized: true, local_updates: 0 };
+    state.syncInfo = { cloudConfigured: false, isVercel: false, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
     updateSyncBadge();
     return null;
   }
