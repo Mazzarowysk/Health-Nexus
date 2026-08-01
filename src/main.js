@@ -1707,7 +1707,7 @@ const apiFetch = async (url, options = {}) => {
             room: enc.room || enc.location || '-',
             elapsedMin: elapsedMin,
             severity: isCritical ? 'CRITICAL' : 'WARNING',
-            reason: \`Aguardando no status '\${enc.status}' há \${elapsedMin} min\`,
+            reason: `Aguardando no status '${enc.status}' há ${elapsedMin} min`,
             recommendedAction: 'Verificar situação e prosseguir com atendimento.'
           });
         }
