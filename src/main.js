@@ -12409,7 +12409,6 @@ window.deleteRoom = deleteRoom;
 window.openRoomModal = openRoomModal;
 window.openConsultorioDetailsModal = openConsultorioDetailsModal;
 window.switchTab = switchTab;
-window.openNovaConsultaModal = openNovaConsultaModal;
 
 // --- FASE 2: PRESCRIÇÃO MÉDICA, TIMER DE OBSERVAÇÃO 12H E TRANSFERÊNCIA DE LEITO ---
 
