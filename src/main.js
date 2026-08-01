@@ -1671,6 +1671,52 @@ const apiFetch = async (url, options = {}) => {
       const res = await fetch(url, options);
       return res;
     }
+    else if (url.includes('/api/stagnation/alerts')) {
+      const allEncounters = localDB.list('encounters') || [];
+      const alerts = [];
+      let criticalCount = 0;
+      let warningCount = 0;
+      
+      const now = new Date();
+      allEncounters.forEach(enc => {
+        if (enc.status === 'Finalizado' || enc.status === 'Cancelado') return;
+        
+        let elapsedMin = 0;
+        if (enc.lastStatusUpdate) {
+           const updateTime = new Date(enc.lastStatusUpdate);
+           elapsedMin = Math.floor((now - updateTime) / 60000);
+        } else if (enc.timestamp) {
+           const updateTime = new Date(enc.timestamp);
+           elapsedMin = Math.floor((now - updateTime) / 60000);
+        }
+        
+        if (elapsedMin > 15) {
+          const isCritical = elapsedMin > 30;
+          if (isCritical) criticalCount++; else warningCount++;
+          
+          let patient = { fullName: 'Desconhecido', cpf: '' };
+          if (enc.patientId) {
+             patient = localDB.get('patients', enc.patientId) || patient;
+          }
+          
+          alerts.push({
+            id: enc.id,
+            patientName: patient.fullName,
+            patientCpf: patient.cpf,
+            status: enc.status,
+            room: enc.room || enc.location || '-',
+            elapsedMin: elapsedMin,
+            severity: isCritical ? 'CRITICAL' : 'WARNING',
+            reason: \`Aguardando no status '\${enc.status}' há \${elapsedMin} min\`,
+            recommendedAction: 'Verificar situação e prosseguir com atendimento.'
+          });
+        }
+      });
+      
+      alerts.sort((a, b) => b.elapsedMin - a.elapsedMin);
+      
+      responseData = { alerts, criticalCount, warningCount };
+    }
     else if (url.startsWith('/api/')) {
       // Extract table from URL: e.g. /api/patients/PAT-123 -> table: patients, id: PAT-123
       const parts = url.split('?')[0].replace('/api/', '').split('/');
@@ -2897,13 +2943,15 @@ async function renderTabContent() {
 
       <!-- Modal de Admissão de Paciente -->
       <div id="patient-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-        <div class="patients-form-container" style="background: var(--bg-secondary); width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s ease-out;">
+        <div class="patients-form-container" style="background: var(--bg-secondary); width: 95%; max-width: 1200px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s ease-out;">
           <button type="button" id="btn-close-patient-modal" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
           <h3 id="form-title" style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 600; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente
           </h3>
           <form id="patient-form">
             <input type="hidden" id="editId">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
 
             <!-- SEÇÃO 1: DADOS PESSOAIS & FILIAÇÃO -->
             <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
@@ -2963,10 +3011,10 @@ async function renderTabContent() {
                     <input type="text" id="religion" class="form-input" placeholder="Ex: Católica, Evangélica, etc.">
                   </div>
                 </div>
-              </div>
-
+              </div> <!-- Fim coluna 1 -->
+              <div style="display: flex; flex-direction: column; gap: 16px;">
               <!-- SEÇÃO 2: CONVÊNIO & CONTATO -->
-              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
                   <i class="fa-solid fa-hospital-user"></i> 2. Convênio &amp; Contato
                 </div>
@@ -3039,7 +3087,7 @@ async function renderTabContent() {
               </div>
 
               <!-- SEÇÃO 3: RESPONSÁVEL LEGAL (AUTOMÁTICO PARA MENORES DE 18 OU MAIORES DE 65 ANOS) -->
-              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
                   <i class="fa-solid fa-users"></i> 3. Responsável Legal / Acompanhante
                 </div>
@@ -3076,6 +3124,8 @@ async function renderTabContent() {
                   </div>
                 </div>
               </div>
+              </div> <!-- Fim coluna 2 -->
+            </div> <!-- Fim grid duas colunas -->
 
               <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1;">Registrar Paciente</button>
