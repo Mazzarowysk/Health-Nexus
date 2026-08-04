@@ -1,6 +1,7 @@
 
 import './styles.css';
 import * as localDB from './localDB.js';
+import { generateMockData } from './mockDataGenerator.js';
 
 window.updateAppointmentStatus = async function(aptId, newStatus) {
   try {
@@ -423,6 +424,32 @@ const showCustomConfirm = ({ title = 'Confirmação Necessária', message = '', 
       resolve(false);
     });
   });
+};
+
+// --- MODAL FLUTUANTE DE CARREGAMENTO (LOADING) DO SISTEMA ---
+const showLoadingModal = (message = 'Carregando...') => {
+  const existing = document.getElementById('hn-custom-loading-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hn-custom-loading-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);';
+
+  overlay.innerHTML = `
+    <div class="sync-modal-card" style="max-width: 400px; text-align: center; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; background: var(--bg-card, #1e293b); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 16px;">
+      <div style="width: 46px; height: 46px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <h3 style="font-size: 1.1rem; color: var(--text-primary, #f8fafc); font-weight: 600; margin: 0;">${message}</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary, #94a3b8); margin: 0;">Por favor, aguarde alguns instantes...</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+};
+
+const hideLoadingModal = () => {
+  const modal = document.getElementById('hn-custom-loading-modal');
+  if (modal) modal.remove();
 };
 
 // --- SOBRESCREVER ALERT NATIVO DO NAVEGADOR PARA USAR DESIGN DO SISTEMA ---
@@ -4292,10 +4319,11 @@ async function renderTabContent() {
                 Utilize os botões abaixo para simular a carga de dados fictícios para testes rápidos ou zerar o banco de dados completamente.
               </p>
               <div class="settings-actions">
-                <button id="btn-seed" class="btn btn-primary">
-                  <i class="fa-solid fa-circle-plus"></i> Gerar Dados Fictícios
+
+                <button id="btn-seed-300" class="btn btn-primary" style="margin-left: 8px;">
+                  <i class="fa-solid fa-users"></i> Gerar 300 Registros de Teste
                 </button>
-                <button id="btn-reset" class="btn" style="background-color: rgba(255, 50, 80, 0.15); border-color: var(--color-danger); color: var(--color-danger);">
+                <button id="btn-reset" class="btn" style="background-color: rgba(255, 50, 80, 0.15); border-color: var(--color-danger); color: var(--color-danger); margin-left: 8px;">
                   <i class="fa-solid fa-trash-can"></i> Limpar Banco de Dados
                 </button>
               </div>
@@ -4521,18 +4549,59 @@ async function renderTabContent() {
       });
     }
 
-    document.getElementById('btn-seed').addEventListener('click', async () => {
+
+
+    document.getElementById('btn-seed-300').addEventListener('click', async () => {
+      const confirmAction = await showCustomConfirm({
+        title: '🏥 Simulação Completa do Sistema',
+        message: `<strong>Esta ação irá:</strong>
+          <br>• Limpar todos os dados de simulação anteriores
+          <br>• Gerar <strong>80 pacientes</strong> com CPFs únicos
+          <br>• Gerar <strong>12 médicos</strong> com especialidades variadas
+          <br>• Gerar <strong>60 agendamentos</strong> (passados, hoje e futuros)
+          <br>• Gerar <strong>45 atendimentos</strong> com triagem Manchester completa
+          <br>• Gerar <strong>20 leitos</strong> (12 ocupados + fila de internação)
+          <br>• Gerar <strong>90 títulos financeiros</strong> (pagos, pendentes, vencidos)
+          <br>• Gerar <strong>15 chamadas TV</strong> com timestamps escalonados
+          <br>• Gerar <strong>30 medicamentos</strong> com alertas de estoque
+          <br>• Gerar <strong>10 escalas de plantão</strong> (hoje e amanhã)
+          <br><br><em>Usuários admin/mazzarowysk serão preservados.</em>`,
+        confirmText: '🚀 Executar Simulação Completa',
+        cancelText: 'Cancelar',
+        type: 'warning'
+      });
+      if (!confirmAction) return;
+
+      showLoadingModal('⚙️ Executando simulação completa do sistema...');
       try {
-        const res = await apiFetch(`${API_URL}/settings/seed`, { method: 'POST' });
-        const data = await res.json();
-        if (res.ok) {
-          showCustomAlert({ title: 'Sucesso', message: '5 pacientes fictícios foram inseridos no banco Turso.', type: 'success' });
-          state.loading = true;
-        } else {
-          showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao popular banco.', type: 'danger' });
-        }
-      } catch (err) {
-        showCustomAlert({ title: 'Erro de Conexão', message: 'Erro ao conectar-se à API.', type: 'danger' });
+        await new Promise(r => setTimeout(r, 200));
+        const result = await generateMockData();
+        dataCache.clear();
+        dataCacheTimestamps.clear();
+        hideLoadingModal();
+        const paidCount = (result.financial_installments || []).filter(f => f.status === 'Pago').length;
+        const pendingCount = (result.financial_installments || []).filter(f => f.status === 'Pendente').length;
+        const overdueCount = (result.financial_installments || []).filter(f => f.status === 'Vencido').length;
+        const occupiedBeds = (result.beds || []).filter(b => b.status === 'Ocupado').length;
+        await showCustomAlert({
+          title: '✅ Simulação Concluída com Sucesso!',
+          message: `<strong>Dados gerados:</strong>
+            <br>👤 ${(result.patients || []).length} pacientes únicos
+            <br>👨‍⚕️ ${(result.doctors || []).length} médicos cadastrados
+            <br>📅 ${(result.appointments || []).length} agendamentos
+            <br>🏥 ${(result.encounters || []).length} atendimentos | ${(result.triages || []).length} triagens
+            <br>🛏️ ${occupiedBeds}/${(result.beds || []).length} leitos ocupados
+            <br>💰 ${paidCount} pagos | ${pendingCount} pendentes | ${overdueCount} vencidos
+            <br>📺 ${(result.tv_calls || []).length} chamadas TV
+            <br>💊 ${(result.medications || []).length} medicamentos no estoque
+            <br>📋 ${(result.duty_schedules || []).length} escalas de plantão`,
+          type: 'success'
+        });
+        window.location.reload();
+      } catch (e) {
+        hideLoadingModal();
+        console.error('Erro ao gerar dados mockados:', e);
+        showCustomAlert({ title: 'Erro ao Gerar Dados', message: 'Erro: ' + (e.message || e), type: 'danger' });
       }
     });
 
@@ -4629,54 +4698,57 @@ async function fetchDashboardData() {
 
   const d = state.dashboardData || {};
 
-  // Buscar contagem real de pacientes se activePatients for 0
-  let realActivePatients = d.activePatients || 0;
-  if (!realActivePatients) {
+  // Buscar contagem real de pacientes se activePatients for undefined/null ou 0
+  let realActivePatients = d.activePatients;
+  if (realActivePatients === undefined || realActivePatients === null || realActivePatients === 0) {
     try {
       const resP = await apiFetch(`${API_URL}/patients`);
       if (resP.ok) {
         const pList = await resP.json();
         const arr = Array.isArray(pList) ? pList : (pList.data || []);
-        if (arr.length > 0) realActivePatients = arr.length;
+        realActivePatients = arr.length;
       }
     } catch(e) {}
   }
+  
   let totalRealRevenue = 0;
+  let revenueLoaded = false;
   try {
     const resF = await apiFetch(`${API_URL}/financial`);
     if (resF.ok) {
       const fList = await resF.json();
       const arrF = Array.isArray(fList) ? fList : (fList.data || []);
       totalRealRevenue = arrF.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      revenueLoaded = true;
     }
   } catch(e) {}
 
   const billingSum = {
-    totalRevenue: totalRealRevenue > 0 ? totalRealRevenue : (d.billingSummary?.totalRevenue || 245000.00),
-    pendingClaims: d.billingSummary?.pendingClaims || 45100.00
+    totalRevenue: revenueLoaded ? totalRealRevenue : (d.billingSummary?.totalRevenue ?? 0),
+    pendingClaims: d.billingSummary?.pendingClaims ?? 0
   };
 
   state.dashboardData = {
-    activePatients: realActivePatients || 28,
-    occupancyRate: d.occupancyRate || 84.5,
-    averageWaitTimeMinutes: d.averageWaitTimeMinutes || 18,
-    dailyAppointmentsCount: d.dailyAppointmentsCount || 84,
+    activePatients: realActivePatients ?? 0,
+    occupancyRate: d.occupancyRate ?? 0,
+    averageWaitTimeMinutes: d.averageWaitTimeMinutes ?? 0,
+    dailyAppointmentsCount: d.dailyAppointmentsCount ?? 0,
     billingSummary: billingSum,
     occupancyData: (d.occupancyData && d.occupancyData.length > 0) ? d.occupancyData : [
-      { label: 'UTI Adulto', value: 25, color: '#818cf8' },
-      { label: 'Enfermaria', value: 85, color: '#f472b6' },
-      { label: 'Pediatria', value: 12, color: '#38bdf8' },
-      { label: 'Maternidade', value: 18, color: '#fbbf24' },
-      { label: 'Disponíveis', value: 25, color: '#34d399' }
+      { label: 'UTI Adulto', value: 0, color: '#818cf8' },
+      { label: 'Enfermaria', value: 0, color: '#f472b6' },
+      { label: 'Pediatria', value: 0, color: '#38bdf8' },
+      { label: 'Maternidade', value: 0, color: '#fbbf24' },
+      { label: 'Disponíveis', value: 100, color: '#34d399' }
     ],
     appointmentsHistory: (d.appointmentsHistory && d.appointmentsHistory.length > 0) ? d.appointmentsHistory : [
-      { label: 'Seg', urgencia: 45, ambulatorial: 120 },
-      { label: 'Ter', urgencia: 52, ambulatorial: 135 },
-      { label: 'Qua', urgencia: 48, ambulatorial: 125 },
-      { label: 'Qui', urgencia: 60, ambulatorial: 140 },
-      { label: 'Sex', urgencia: 58, ambulatorial: 130 },
-      { label: 'Sáb', urgencia: 75, ambulatorial: 40 },
-      { label: 'Dom', urgencia: 82, ambulatorial: 15 }
+      { label: 'Seg', urgencia: 0, ambulatorial: 0 },
+      { label: 'Ter', urgencia: 0, ambulatorial: 0 },
+      { label: 'Qua', urgencia: 0, ambulatorial: 0 },
+      { label: 'Qui', urgencia: 0, ambulatorial: 0 },
+      { label: 'Sex', urgencia: 0, ambulatorial: 0 },
+      { label: 'Sáb', urgencia: 0, ambulatorial: 0 },
+      { label: 'Dom', urgencia: 0, ambulatorial: 0 }
     ]
   };
 
@@ -4691,21 +4763,21 @@ function initDashboardCharts(data) {
   const appointmentsCtx = document.getElementById('appointmentsChart');
 
   const occupancyData = (data.occupancyData && data.occupancyData.length > 0) ? data.occupancyData : [
-    { label: 'UTI Adulto', value: 25, color: '#f43f5e' },
-    { label: 'Enfermaria', value: 85, color: '#6366f1' },
-    { label: 'Pediatria', value: 12, color: '#00f2fe' },
-    { label: 'Maternidade', value: 18, color: '#f59e0b' },
-    { label: 'Disponíveis', value: 25, color: '#10b981' }
+    { label: 'UTI Adulto', value: 0, color: '#f43f5e' },
+    { label: 'Enfermaria', value: 0, color: '#6366f1' },
+    { label: 'Pediatria', value: 0, color: '#00f2fe' },
+    { label: 'Maternidade', value: 0, color: '#f59e0b' },
+    { label: 'Disponíveis', value: 100, color: '#10b981' }
   ];
 
   const apptHistory = (data.appointmentsHistory && data.appointmentsHistory.length > 0) ? data.appointmentsHistory : [
-    { label: 'Seg', urgencia: 45, ambulatorial: 120 },
-    { label: 'Ter', urgencia: 52, ambulatorial: 135 },
-    { label: 'Qua', urgencia: 48, ambulatorial: 125 },
-    { label: 'Qui', urgencia: 60, ambulatorial: 140 },
-    { label: 'Sex', urgencia: 58, ambulatorial: 130 },
-    { label: 'Sáb', urgencia: 75, ambulatorial: 40 },
-    { label: 'Dom', urgencia: 82, ambulatorial: 15 }
+    { label: 'Seg', urgencia: 0, ambulatorial: 0 },
+    { label: 'Ter', urgencia: 0, ambulatorial: 0 },
+    { label: 'Qua', urgencia: 0, ambulatorial: 0 },
+    { label: 'Qui', urgencia: 0, ambulatorial: 0 },
+    { label: 'Sex', urgencia: 0, ambulatorial: 0 },
+    { label: 'Sáb', urgencia: 0, ambulatorial: 0 },
+    { label: 'Dom', urgencia: 0, ambulatorial: 0 }
   ];
 
   const ChartClass = window.Chart || (typeof Chart !== 'undefined' ? Chart : null);
@@ -8697,8 +8769,8 @@ async function loadConsultingRooms() {
     const roomsResult = await roomsRes.json();
     const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
     
-    if (roomsResult.status === 'success') {
-      const rooms = roomsResult.data;
+    if (roomsResult.status === 'success' || Array.isArray(roomsResult.data)) {
+      const rooms = roomsResult.data || roomsResult;
       const appointments = aptResult.data || [];
       
       if (rooms.length === 0) {
@@ -8711,7 +8783,7 @@ async function loadConsultingRooms() {
         const waiting = roomApts.filter(a => a.status === 'Confirmado' || a.status === 'Agendado');
         const inProgress = roomApts.find(a => a.status === 'Em Atendimento');
         
-        const statusColor = r.status === 'Disponível' ? 'var(--success)' : 'var(--warning)';
+        const statusColor = (r.status || 'Disponível') === 'Disponível' ? 'var(--success)' : 'var(--warning)';
         
         return `
           <div class="interactive-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
@@ -8729,7 +8801,7 @@ async function loadConsultingRooms() {
             
             <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
               <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${statusColor}22; color: ${statusColor}; border: 1px solid ${statusColor}44;">
-                <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> ${r.status}
+                <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> ${r.status || 'Disponível'}
               </span>
               ${r.currentDoctor ? `<span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);"><i class="fa-solid fa-user-doctor"></i> ${r.currentDoctor}</span>` : ''}
             </div>
@@ -10242,7 +10314,7 @@ async function renderDoctorsTab() {
       renderTable(allDoctorsCache);
     } catch (e) {
       console.error('[Doctors] Erro:', e);
-      document.getElementById('doctors-list-container').innerHTML = '<div style="text-align:center;padding:40px;color:var(--color-danger);"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao carregar médicos.</div>';
+      document.getElementById('doctors-list-container').innerHTML = `<div style="text-align:center;padding:40px;color:var(--color-danger);"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao carregar médicos: ${e.message}<br><small>${e.stack}</small></div>`;
     }
   };
 
@@ -12050,7 +12122,8 @@ async function loadTVCalls() {
     const res = await apiFetch('/api/tv/calls');
     if (res.ok) {
       const data = await res.json();
-      const calls = data.data || [];
+      let calls = data.data || [];
+      calls.sort((a, b) => new Date(b.calledAt || 0).getTime() - new Date(a.calledAt || 0).getTime());
       renderTVCallsUI(calls);
     }
   } catch (e) {}
@@ -13216,47 +13289,32 @@ window.deleteDutySchedule = async function(id) {
 // Start app immediately (module execution is already deferred until DOM is parsed)
 initializeApp();
 
-window.populateFakeDatabase = function() {
-  const users = [
-    { id: 'USR-ADMIN', username: 'admin', role: 'Administrador', name: 'Administrador Hospitalar', status: 'Ativo' }
-  ];
-  const patients = [
-    { id: 'PAT-001', fullName: 'Carlos Silva', cpf: '111.111.111-11', phone: '(11) 99999-1111', status: 'Ativo' },
-    { id: 'PAT-002', fullName: 'Maria Oliveira', cpf: '222.222.222-22', phone: '(11) 99999-2222', status: 'Ativo' },
-    { id: 'PAT-003', fullName: 'João Pedro Souza', cpf: '333.333.333-33', phone: '(11) 99999-3333', status: 'Ativo' },
-    { id: 'PAT-004', fullName: 'Ana Beatriz Alves', cpf: '444.444.444-44', phone: '(11) 99999-4444', status: 'Ativo' },
-    { id: 'PAT-005', fullName: 'Lucas Mendes', cpf: '555.555.555-55', phone: '(11) 99999-5555', status: 'Ativo' }
-  ];
-  
-  const encounters = [
-    { id: 'ENC-001', patientId: 'PAT-001', patientName: 'Carlos Silva', status: 'Aguardando_Triagem', admitted_at: new Date(Date.now() - 5*60000).toISOString() },
-    { id: 'ENC-002', patientId: 'PAT-002', patientName: 'Maria Oliveira', status: 'Aguardando_Atendimento', manchesterColor: 'Amarelo', admitted_at: new Date(Date.now() - 30*60000).toISOString() },
-    { id: 'ENC-003', patientId: 'PAT-003', patientName: 'João Pedro Souza', status: 'Aguardando_Atendimento', manchesterColor: 'Verde', admitted_at: new Date(Date.now() - 45*60000).toISOString() },
-    { id: 'ENC-004', patientId: 'PAT-004', patientName: 'Ana Beatriz Alves', status: 'Em_Atendimento', manchesterColor: 'Vermelho', room: 'Consultório 01', admitted_at: new Date(Date.now() - 60*60000).toISOString() },
-    { id: 'ENC-005', patientId: 'PAT-005', patientName: 'Lucas Mendes', status: 'Finalizado', manchesterColor: 'Azul', admitted_at: new Date(Date.now() - 120*60000).toISOString() }
-  ];
-
-  const financial_installments = [
-    { id: 'FIN-001', amount: 150.00, status: 'Pago', patientId: 'PAT-001', date: new Date().toISOString() },
-    { id: 'FIN-002', amount: 350.50, status: 'Pago', patientId: 'PAT-002', date: new Date().toISOString() },
-    { id: 'FIN-003', amount: 1200.00, status: 'Pendente', patientId: 'PAT-004', date: new Date().toISOString() }
-  ];
-
-  const tv_calls = [
-    { id: 'TV-001', patientName: 'Ana Beatriz Alves', roomName: 'Consultório 01', manchesterColor: 'Vermelho', timestamp: new Date(Date.now() - 10000).toISOString() }
-  ];
-
-  const dbData = {
-    users,
-    patients,
-    encounters,
-    financial_installments,
-    tv_calls
-  };
-
-  localStorage.setItem('oczOnlineDados', JSON.stringify(dbData));
-  localStorage.setItem('oczOnlineUpdatedAt', Date.now().toString());
-  
-  showToast('Banco de dados repopulado com sucesso! Recarregando...');
-  setTimeout(() => window.location.reload(), 1500);
+window.populateFakeDatabase = async function() {
+  showToast('⚙️ Executando simulação completa... aguarde.');
+  try {
+    await generateMockData();
+    showToast('✅ Banco de dados simulado com sucesso! Recarregando...');
+    setTimeout(() => window.location.reload(), 1500);
+  } catch (e) {
+    console.error('[populateFakeDatabase] Erro:', e);
+    showToast('❌ Erro ao simular banco: ' + (e.message || e));
+  }
 };
+
+window.generateMockData = async function() {
+  const result = await generateMockData();
+  const summary = [
+    `👤 ${(result.patients||[]).length} pacientes`,
+    `👨‍⚕️ ${(result.doctors||[]).length} médicos`,
+    `📅 ${(result.appointments||[]).length} agendamentos`,
+    `🏥 ${(result.encounters||[]).length} atendimentos`,
+    `💰 ${(result.financial_installments||[]).length} títulos financeiros`,
+    `🛏️ ${(result.beds||[]).filter(b=>b.status==='Ocupado').length} leitos ocupados`,
+    `📺 ${(result.tv_calls||[]).length} chamadas TV`,
+    `💊 ${(result.medications||[]).length} medicamentos`,
+  ].join(' | ');
+  showToast('✅ Simulação completa! ' + summary);
+  setTimeout(() => window.location.reload(), 2000);
+};
+
+

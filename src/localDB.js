@@ -50,11 +50,18 @@ export function generateId(prefix = 'ID') {
 
 // Inicializa a tabela se não existir
 function ensureTable(db, table) {
+  let modified = false;
   if (!db[table]) {
     db[table] = [];
-    
-    // Seed padrão se a tabela for users
-    if (table === 'users') {
+    modified = true;
+  }
+  
+  // Seed padrão garantido para usuários essenciais
+  if (table === 'users') {
+    const hasAdmin = db[table].some(u => u.username === 'admin');
+    const hasMazz = db[table].some(u => u.username === 'mazzarowysk');
+
+    if (!hasAdmin) {
       db[table].push({
         id: 'USR-ADMIN',
         name: 'Administrador Hospitalar',
@@ -63,8 +70,27 @@ function ensureTable(db, table) {
         status: 'Ativo',
         created_at: new Date().toISOString()
       });
-      // Importante não chamar saveFullDB aqui diretamente se estiver sendo chamado pelo getFullDB, mas podemos chamar se quisermos
+      modified = true;
     }
+    
+    if (!hasMazz) {
+      db[table].push({
+        id: 'USR-MAZZAROWYSK',
+        name: 'Dr. Marcelo Mazarowysk',
+        username: 'mazzarowysk',
+        role: 'Master',
+        status: 'Ativo',
+        created_at: new Date().toISOString()
+      });
+      modified = true;
+    }
+  }
+  
+  if (modified) {
+    // Only safely save if we actually modified something fundamental like table initialization
+    try {
+      localStorage.setItem('oczOnlineDados', JSON.stringify(db));
+    } catch(e) {}
   }
 }
 
