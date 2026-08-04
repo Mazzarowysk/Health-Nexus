@@ -293,6 +293,7 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
       admitted_at: admittedAt,
       finished_at: isFinished ? new Date(Date.now() - rnd(0, hoursAgo - 1) * 3600000).toISOString() : null,
       healthPlan: patient.healthPlan,
+      lastStatusUpdate: new Date(Date.now() - rnd(5, 50) * 60000).toISOString(),
       created_at: admittedAt,
       updated_at: new Date().toISOString()
     });

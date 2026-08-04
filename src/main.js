@@ -1745,7 +1745,41 @@ const apiFetch = async (url, options = {}) => {
       responseData = { alerts, criticalCount, warningCount };
     }
     else if (url.startsWith('/api/')) {
-      if (url.includes('/api/settings/reset') && method === 'POST') {
+      if (url.includes('/api/dashboard/summary')) {
+        const db = localDB.getFullDB();
+        const patients = db.patients || [];
+        const encounters = db.encounters || [];
+        const beds = db.beds || [];
+        
+        const activePatients = patients.length;
+        const occupiedBeds = beds.filter(b => b.status === 'Ocupado').length;
+        const totalBeds = beds.length || 20;
+        const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+        
+        const occupancyData = [
+          { label: 'Ocupados', value: occupiedBeds, color: '#f43f5e' },
+          { label: 'Disponíveis', value: totalBeds - occupiedBeds, color: '#10b981' }
+        ];
+        
+        const appointmentsHistory = [
+          { label: 'Seg', urgencia: 10, ambulatorial: 12 },
+          { label: 'Ter', urgencia: 8, ambulatorial: 15 },
+          { label: 'Qua', urgencia: 15, ambulatorial: 10 },
+          { label: 'Qui', urgencia: 5, ambulatorial: 20 },
+          { label: 'Sex', urgencia: 20, ambulatorial: 25 },
+          { label: 'Sáb', urgencia: 25, ambulatorial: 5 },
+          { label: 'Dom', urgencia: 30, ambulatorial: 2 }
+        ];
+
+        responseData = {
+          activePatients,
+          occupancyRate,
+          averageWaitTimeMinutes: 12,
+          dailyAppointmentsCount: encounters.length,
+          occupancyData,
+          appointmentsHistory
+        };
+      } else if (url.includes('/api/settings/reset') && method === 'POST') {
         localDB.clear();
         responseData = { message: 'Database reset successfully' };
       } else if (url.includes('/api/settings/seed') && method === 'POST') {
@@ -1768,7 +1802,7 @@ const apiFetch = async (url, options = {}) => {
         if (table === 'prescriptions') table = 'prescriptions';
         if (table === 'pharmacy') table = 'pharmacy_items';
         if (table === 'beds') table = 'beds';
-        if (table === 'financial') table = 'financial_installments';
+        if (table === 'financial') { table = 'financial_installments'; if (id === 'installments') id = undefined; }
         if (table === 'tv') { table = 'tv_calls'; id = undefined; } // fix TV calls routing
 
         if (method === 'GET') {
