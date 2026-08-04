@@ -1800,7 +1800,8 @@ const apiFetch = async (url, options = {}) => {
         if (table === 'triages') table = 'triages';
         if (table === 'clinical-notes') table = 'clinical_notes';
         if (table === 'prescriptions') table = 'prescriptions';
-        if (table === 'pharmacy') table = 'pharmacy_items';
+        if (table === 'pharmacy') table = 'medications'; // mock stores as 'medications'
+        if (table === 'consulting-rooms') table = 'consultorios'; // mock stores as 'consultorios'
         if (table === 'beds') table = 'beds';
         if (table === 'financial') { table = 'financial_installments'; if (id === 'installments') id = undefined; }
         if (table === 'tv') { table = 'tv_calls'; id = undefined; } // fix TV calls routing
@@ -1809,7 +1810,19 @@ const apiFetch = async (url, options = {}) => {
           if (id) responseData = localDB.get(table, id);
           else responseData = { data: localDB.list(table) };
         } else if (method === 'POST') {
-          if (table === 'tv_calls') body.calledAt = new Date().toISOString();
+          if (table === 'tv_calls') {
+            body.calledAt = new Date().toISOString();
+            // When a patient is called, update their encounter status so they leave the waiting queue
+            if (body.patientId) {
+              const allEncounters = localDB.list('encounters');
+              const enc = allEncounters.find(e => e.patientId === body.patientId && e.status && e.status !== 'Finalizado' && e.status !== 'Cancelado');
+              if (enc) localDB.update('encounters', enc.id, { ...enc, status: 'Finalizado' });
+            } else if (body.patientName) {
+              const allEncounters = localDB.list('encounters');
+              const enc = allEncounters.find(e => e.patientName === body.patientName && e.status && e.status !== 'Finalizado' && e.status !== 'Cancelado');
+              if (enc) localDB.update('encounters', enc.id, { ...enc, status: 'Finalizado' });
+            }
+          }
           responseData = { data: localDB.insert(table, body) };
         } else if (method === 'PUT') {
           responseData = { data: localDB.update(table, id, body) };
@@ -8804,8 +8817,8 @@ async function loadConsultingRooms() {
     const roomsResult = await roomsRes.json();
     const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
     
-    if (roomsResult.status === 'success' || Array.isArray(roomsResult.data)) {
-      const rooms = roomsResult.data || roomsResult;
+    if (roomsResult.data !== undefined || Array.isArray(roomsResult)) {
+      const rooms = Array.isArray(roomsResult) ? roomsResult : (roomsResult.data || []);
       const appointments = aptResult.data || [];
       
       if (rooms.length === 0) {
@@ -8818,7 +8831,10 @@ async function loadConsultingRooms() {
         const waiting = roomApts.filter(a => a.status === 'Confirmado' || a.status === 'Agendado');
         const inProgress = roomApts.find(a => a.status === 'Em Atendimento');
         
-        const statusColor = (r.status || 'Disponível') === 'Disponível' ? 'var(--success)' : 'var(--warning)';
+        const roomStatus = r.status || 'Disponível';
+        const isActive = roomStatus === 'Disponível' || roomStatus === 'Ativo';
+        const statusColor = isActive ? 'var(--success)' : 'var(--warning)';
+        const doctorDisplay = r.currentDoctor || r.doctorName || '';
         
         return `
           <div class="interactive-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
@@ -8838,7 +8854,7 @@ async function loadConsultingRooms() {
               <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${statusColor}22; color: ${statusColor}; border: 1px solid ${statusColor}44;">
                 <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> ${r.status || 'Disponível'}
               </span>
-              ${r.currentDoctor ? `<span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);"><i class="fa-solid fa-user-doctor"></i> ${r.currentDoctor}</span>` : ''}
+              ${doctorDisplay ? `<span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);"><i class="fa-solid fa-user-doctor"></i> ${doctorDisplay}</span>` : ''}
             </div>
 
             <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
