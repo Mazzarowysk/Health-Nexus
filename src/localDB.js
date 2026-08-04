@@ -56,24 +56,11 @@ function ensureTable(db, table) {
     modified = true;
   }
   
-  // Seed padrão garantido para usuários essenciais
+  // Seed padrão garantido para usuários essenciais do sistema
   if (table === 'users') {
-    const hasAdmin = db[table].some(u => u.username === 'admin');
     const hasMazz = db[table].some(u => u.username === 'mazzarowysk');
     const hasBcoltri = db[table].some(u => u.username === 'bcoltri');
 
-    if (!hasAdmin) {
-      db[table].push({
-        id: 'USR-ADMIN',
-        name: 'Administrador Hospitalar',
-        username: 'admin',
-        role: 'Administrador',
-        status: 'Ativo',
-        created_at: new Date().toISOString()
-      });
-      modified = true;
-    }
-    
     if (!hasMazz) {
       db[table].push({
         id: 'USR-MAZZAROWYSK',

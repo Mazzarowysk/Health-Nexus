@@ -558,17 +558,10 @@ export async function generateMockData() {
     try { return JSON.parse(localStorage.getItem('oczOnlineDados') || '{}'); } catch { return {}; }
   })();
 
-  // Preservar usuários essenciais
+  // Preservar usuários essenciais do sistema (nunca podem ser apagados)
   const preservedUsers = (currentDB.users || []).filter(u =>
-    u.username === 'admin' || u.username === 'mazzarowysk' || u.username === 'bcoltri'
+    u.username === 'mazzarowysk' || u.username === 'bcoltri'
   );
-  // Garantir admin existe
-  if (!preservedUsers.find(u => u.username === 'admin')) {
-    preservedUsers.push({
-      id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin',
-      role: 'Administrador', status: 'Ativo', created_at: new Date().toISOString()
-    });
-  }
   if (!preservedUsers.find(u => u.username === 'mazzarowysk')) {
     preservedUsers.push({
       id: 'USR-MAZZAROWYSK', name: 'Dr. Marcelo Mazarowysk', username: 'mazzarowysk',
@@ -581,6 +574,7 @@ export async function generateMockData() {
       role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString()
     });
   }
+
 
   // ── 2. Gerar todos os dados ──
   console.log('[MockGen] Gerando pacientes...');

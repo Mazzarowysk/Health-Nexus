@@ -579,7 +579,8 @@ const showUserManagementModal = async () => {
                 roleTextColor = '#fbbf24';
               }
 
-              const isMasterOrAdmin = u.username === 'mazzarowysk' || u.username === 'admin';
+              // Apenas os usuários do sistema (devs) são imutáveis
+              const isSystemUser = u.username === 'mazzarowysk' || u.username === 'bcoltri';
 
               return `
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
@@ -594,7 +595,7 @@ const showUserManagementModal = async () => {
                     <button class="btn-icon btn-edit-user" data-user='${JSON.stringify(u)}' title="Editar Usuário" style="margin-right: 6px;">
                       <i class="fa-solid fa-pen"></i>
                     </button>
-                    ${!isMasterOrAdmin ? `
+                    ${!isSystemUser ? `
                       <button class="btn-icon btn-del-user" data-id="${u.id}" data-name="${u.name}" title="Excluir Usuário" style="color: var(--color-danger);">
                         <i class="fa-solid fa-trash"></i>
                       </button>
