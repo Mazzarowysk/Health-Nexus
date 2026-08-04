@@ -1809,6 +1809,7 @@ const apiFetch = async (url, options = {}) => {
           if (id) responseData = localDB.get(table, id);
           else responseData = { data: localDB.list(table) };
         } else if (method === 'POST') {
+          if (table === 'tv_calls') body.calledAt = new Date().toISOString();
           responseData = { data: localDB.insert(table, body) };
         } else if (method === 'PUT') {
           responseData = { data: localDB.update(table, id, body) };

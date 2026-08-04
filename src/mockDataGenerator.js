@@ -467,6 +467,7 @@ function generateTvCalls(patients, count = 15) {
       patientId: patient.id,
       calledBy: pick(['Dr. Carlos Eduardo Silva','Dra. Ana Maria Costa','Dr. João Pedro Santos','Recepção']),
       timestamp: new Date(Date.now() - tsOffset).toISOString(),
+      calledAt: new Date(Date.now() - tsOffset).toISOString(),
       created_at: new Date(Date.now() - tsOffset).toISOString()
     });
   }
