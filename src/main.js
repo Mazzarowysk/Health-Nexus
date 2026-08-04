@@ -4399,20 +4399,20 @@ async function renderTabContent() {
             </div>
           </details>
 
-          <!-- Accordion de Gerenciamento de Usuários (Apenas Master) -->
+          <!-- Accordion de Gerenciamento de Usuários (Apenas Master/Admin) -->
           <details class="settings-accordion">
             <summary class="settings-accordion-header">
               <i class="fa-solid fa-users-gear"></i> Gerenciamento de Usuários
-              ${state.user?.username === 'mazzarowysk' ? '<span class="status-badge" style="margin-left:auto;"><span class="status-indicator success"></span>MASTER</span>' : '<span class="status-badge" style="margin-left:auto; background:rgba(255,0,0,0.1);"><i class="fa-solid fa-lock"></i> BLOQUEADO</span>'}
+              ${getRolePermissions(state.user).canManageUsers ? '<span class="status-badge" style="margin-left:auto;"><span class="status-indicator success"></span>' + (getRolePermissions(state.user).role || 'MASTER').toUpperCase() + '</span>' : '<span class="status-badge" style="margin-left:auto; background:rgba(255,0,0,0.1);"><i class="fa-solid fa-lock"></i> BLOQUEADO</span>'}
             </summary>
             <div class="settings-accordion-body">
-              ${state.user?.username === 'mazzarowysk' ? `
+              ${getRolePermissions(state.user).canManageUsers ? `
                 <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
-                  <strong>Bem-vindo, Master.</strong> Aqui você poderá editar perfis, resetar senhas e alterar permissões de outros usuários da clínica.
+                  <strong>Bem-vindo, ${getRolePermissions(state.user).label}.</strong> Aqui você poderá editar perfis, resetar senhas e alterar permissões de outros usuários da clínica.
                 </p>
                 <div class="settings-actions">
                   <button id="btn-edit-permissions" class="btn btn-primary">
-                    <i class="fa-solid fa-users-gear"></i> Gerenciar Usuários & Permissões
+                    <i class="fa-solid fa-users-gear"></i> Gerenciar Usuários &amp; Permissões
                   </button>
                 </div>
               ` : `

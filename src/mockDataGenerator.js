@@ -560,7 +560,7 @@ export async function generateMockData() {
 
   // Preservar usuários essenciais
   const preservedUsers = (currentDB.users || []).filter(u =>
-    u.username === 'admin' || u.username === 'mazzarowysk'
+    u.username === 'admin' || u.username === 'mazzarowysk' || u.username === 'bcoltri'
   );
   // Garantir admin existe
   if (!preservedUsers.find(u => u.username === 'admin')) {
@@ -573,6 +573,12 @@ export async function generateMockData() {
     preservedUsers.push({
       id: 'USR-MAZZAROWYSK', name: 'Dr. Marcelo Mazarowysk', username: 'mazzarowysk',
       role: 'Master', status: 'Ativo', created_at: new Date().toISOString()
+    });
+  }
+  if (!preservedUsers.find(u => u.username === 'bcoltri')) {
+    preservedUsers.push({
+      id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri',
+      role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString()
     });
   }
 

@@ -60,6 +60,7 @@ function ensureTable(db, table) {
   if (table === 'users') {
     const hasAdmin = db[table].some(u => u.username === 'admin');
     const hasMazz = db[table].some(u => u.username === 'mazzarowysk');
+    const hasBcoltri = db[table].some(u => u.username === 'bcoltri');
 
     if (!hasAdmin) {
       db[table].push({
@@ -79,6 +80,18 @@ function ensureTable(db, table) {
         name: 'Dr. Marcelo Mazarowysk',
         username: 'mazzarowysk',
         role: 'Master',
+        status: 'Ativo',
+        created_at: new Date().toISOString()
+      });
+      modified = true;
+    }
+
+    if (!hasBcoltri) {
+      db[table].push({
+        id: 'USR-BCOLTRI',
+        name: 'Breno Coltri',
+        username: 'bcoltri',
+        role: 'Desenvolvedor',
         status: 'Ativo',
         created_at: new Date().toISOString()
       });
