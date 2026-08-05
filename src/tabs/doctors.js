@@ -895,8 +895,17 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
     const result = await res.json();
     const data = result.data || result;
 
-    const encounters = data.encounters || [];
-    const appointments = data.appointments || [];
+    let encounters = data.encounters || [];
+    let appointments = data.appointments || [];
+
+    if (encounters.length === 0) {
+      try {
+        const encRes = await apiFetch('/api/encounters');
+        const encJson = await encRes.json();
+        const allEncs = Array.isArray(encJson) ? encJson : (encJson?.data || []);
+        encounters = allEncs.filter(e => e.patientId === patientId || (patientName && e.patientName === patientName));
+      } catch (e) {}
+    }
 
     const bodyEl = document.getElementById('history-modal-body');
     if (!bodyEl) return;

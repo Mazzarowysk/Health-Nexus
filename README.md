@@ -1,8 +1,16 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `1.2.0`  
+**Versão:** `1.2.1`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
+
+---
+
+## 📘 Documentação & Manual do Usuário
+
+- 🌐 **Portal Web Interativo:** [manual_do_usuario.html](file:///c:/Health%20Nexus/manual_do_usuario.html) *(acessível no botão `📖 Manual do Usuário` no topo do sistema)*
+- 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
+- 📄 **Manual Completo em Markdown:** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
 
 ---
 

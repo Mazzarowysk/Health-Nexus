@@ -1658,7 +1658,7 @@ const cachedApiGet = async (url, cacheKey = null) => {
 
 
 const scheduleSyncUpload = async () => {
-  if (syncUploadTimeout) clearTimeout(getSyncUploadTimeout());
+  if (getSyncUploadTimeout()) clearTimeout(getSyncUploadTimeout());
   
   setSyncUploadTimeout(setTimeout(() => {
     if (document.getElementById('sync-prompt-modal')) return;
@@ -1819,6 +1819,41 @@ const apiFetch = async (url, options = {}) => {
         } else {
           responseData = { data: localDB.insert('settings', body), message: 'Configuração do Turso criada com sucesso' };
         }
+      } else if (url.includes('/history') && url.includes('/patients/')) {
+        const match = url.match(/\/patients\/([^\/]+)\/history/);
+        const patId = match ? match[1] : null;
+        const db = localDB.getFullDB();
+        const allPatients = db.patients || [];
+        
+        let patient = patId ? allPatients.find(p => p.id === patId) : null;
+        if (!patient && patId) {
+          patient = localDB.get('patients', patId);
+        }
+        if (!patient && patId) {
+          const encs = db.encounters || [];
+          const enc = encs.find(e => e.id === patId || e.patientId === patId);
+          if (enc) {
+            patient = allPatients.find(p => p.id === enc.patientId || p.fullName === enc.patientName) || { id: enc.patientId || patId, fullName: enc.patientName || 'Paciente' };
+          }
+        }
+        
+        const allEncounters = db.encounters || [];
+        const encounters = patId ? allEncounters.filter(e => e.patientId === patId || e.patientId === patient?.id || (patient?.fullName && e.patientName === patient.fullName)) : [];
+        
+        const allAppointments = db.appointments || [];
+        const appointments = patId ? allAppointments.filter(a => a.patientId === patId || a.patientId === patient?.id || (patient?.fullName && a.patientName === patient.fullName)) : [];
+        
+        const allTriages = db.triages || [];
+        const triages = patId ? allTriages.filter(t => t.patientId === patId || t.patientId === patient?.id || (patient?.fullName && t.patientName === patient.fullName)) : [];
+        
+        responseData = {
+          data: {
+            patient: patient || { id: patId || 'PAT-001', fullName: 'Paciente' },
+            encounters,
+            appointments,
+            triages
+          }
+        };
       } else {
         // Extract table from URL: e.g. /api/patients/PAT-123 -> table: patients, id: PAT-123
         const parts = url.split('?')[0].replace('/api/', '').split('/');
@@ -2724,6 +2759,9 @@ function renderAppStructure() {
           </div>
         </div>
         <div id="sync-status-container" style="display: flex; align-items: center; gap: 10px;">
+          <a href="/manual_do_usuario.html" target="_blank" class="btn" style="background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(14,165,233,0.2)); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0 14px; height: 40px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; gap: 6px; transition: all 0.2s ease;" title="Abrir Manual do Usuário Interativo em Nova Aba">
+            <i class="fa-solid fa-book-open"></i> Manual do Usuário
+          </a>
           <span id="sync-status-badge" style="font-size: 0.82rem; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border-color); background: rgba(59,130,246,0.08); color: var(--text-primary);">
             Verificando Turso...
           </span>
@@ -2746,66 +2784,123 @@ function renderAppStructure() {
     <div id="pep-modal" class="pep-modal">
       <div class="pep-content">
         <div class="pep-header">
-          <div class="pep-title">
-            <i class="fa-solid fa-file-medical"></i>
-            Prontuário Eletrônico do Paciente
+          <div class="pep-title-container">
+            <div class="pep-title">
+              <i class="fa-solid fa-file-waveform" style="color: #a78bfa; font-size: 1.4rem;"></i>
+              <div>
+                <span>Prontuário Eletrônico do Paciente</span>
+                <span class="pep-subtitle">Evolução Clínica SOAP & Prescrição Médica</span>
+              </div>
+            </div>
           </div>
           <div class="pep-header-info">
-            <span id="pep-patient-name"><i class="fa-solid fa-user"></i> -</span>
-            <span id="pep-encounter-status"><i class="fa-solid fa-clock"></i> -</span>
+            <div class="pep-info-chip"><i class="fa-solid fa-user-circle" style="color: #60a5fa;"></i> <span id="pep-patient-name">Paciente</span></div>
+            <div class="pep-info-chip"><i class="fa-solid fa-clock" style="color: #34d399;"></i> <span id="pep-encounter-status">-</span></div>
           </div>
         </div>
         <div class="pep-body">
           <div class="pep-sidebar">
-            <div class="pep-section" style="margin-bottom: 20px;">
-              <label>Cor de Risco (Triagem)</label>
-              <div id="pep-manchester-badge" style="font-weight:bold; font-size: 1.1rem;">-</div>
+            <div class="pep-sidebar-group">
+              <label class="pep-sidebar-label"><i class="fa-solid fa-shield-heart"></i> Classificação de Risco</label>
+              <div id="pep-manchester-badge" class="pep-manchester-pill">-</div>
             </div>
-            <div class="pep-section" style="margin-bottom: 20px;">
-              <label>Sinais Vitais</label>
-              <div style="font-size: 0.85rem; color: var(--text-primary);">
-                <p><strong>PA:</strong> <span id="pep-bp">-</span> mmHg</p>
-                <p><strong>FC:</strong> <span id="pep-hr">-</span> bpm</p>
-                <p><strong>Temp:</strong> <span id="pep-temp">-</span> °C</p>
-                <p><strong>Peso:</strong> <span id="pep-weight">-</span> kg</p>
+            
+            <div class="pep-sidebar-group">
+              <label class="pep-sidebar-label"><i class="fa-solid fa-heart-pulse"></i> Sinais Vitais (Triagem)</label>
+              <div class="pep-vitals-grid">
+                <div class="pep-vital-item">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-gauge-high" style="color: #60a5fa;"></i> PA</span>
+                  <span class="pep-vital-val"><strong id="pep-bp">-</strong> <small>mmHg</small></span>
+                </div>
+                <div class="pep-vital-item">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-heartbeat" style="color: #f87171;"></i> FC</span>
+                  <span class="pep-vital-val"><strong id="pep-hr">-</strong> <small>bpm</small></span>
+                </div>
+                <div class="pep-vital-item">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-temperature-three-quarters" style="color: #fbbf24;"></i> Temp</span>
+                  <span class="pep-vital-val"><strong id="pep-temp">-</strong> <small>°C</small></span>
+                </div>
+                <div class="pep-vital-item">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-weight-scale" style="color: #34d399;"></i> Peso</span>
+                  <span class="pep-vital-val"><strong id="pep-weight">-</strong> <small>kg</small></span>
+                </div>
+                <div class="pep-vital-item">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-lungs" style="color: #a78bfa;"></i> SpO2</span>
+                  <span class="pep-vital-val"><strong id="pep-spo2">-</strong> <small>%</small></span>
+                </div>
+                <div class="pep-vital-item">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-face-frown-open" style="color: #f43f5e;"></i> Dor</span>
+                  <span class="pep-vital-val"><strong id="pep-pain">-</strong> <small>/10</small></span>
+                </div>
               </div>
             </div>
-            <div class="pep-section">
-              <label>Queixa Principal (Triagem)</label>
-              <p id="pep-complaints" style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.4;">-</p>
+
+            <div class="pep-sidebar-group">
+              <label class="pep-sidebar-label"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</label>
+              <div class="pep-complaints-card">
+                <p id="pep-complaints">-</p>
+              </div>
             </div>
           </div>
+          
           <div class="pep-main">
-            <div class="pep-section">
-              <label for="pep-subjective">S - Subjetivo (Anamnese)</label>
-              <textarea id="pep-subjective" class="pep-textarea" placeholder="Relato do paciente, histórico da moléstia atual..."></textarea>
+            <div class="pep-soap-card">
+              <div class="pep-soap-header">
+                <span class="pep-soap-tag tag-s">S</span>
+                <label for="pep-subjective">Subjetivo (Anamnese & Queixa)</label>
+                <small class="pep-soap-hint">Relato do paciente, histórico dos sintomas e medicamentos em uso</small>
+              </div>
+              <textarea id="pep-subjective" class="pep-textarea" placeholder="Digite o relato detalhado do paciente, início e evolução das queixas..."></textarea>
             </div>
-            <div class="pep-section">
-              <label for="pep-objective">O - Objetivo (Exame Físico)</label>
-              <textarea id="pep-objective" class="pep-textarea" placeholder="Achados do exame físico, resultados de exames..."></textarea>
+
+            <div class="pep-soap-card">
+              <div class="pep-soap-header">
+                <span class="pep-soap-tag tag-o">O</span>
+                <label for="pep-objective">Objetivo (Exame Físico & Achados)</label>
+                <small class="pep-soap-hint">Exame físico segmentar, sinais clínicos e exames complementares</small>
+              </div>
+              <textarea id="pep-objective" class="pep-textarea" placeholder="Achados ao exame físico (ex: RCR 2T BNF sem sopros, MV+ sem ruidos adventícios...)"></textarea>
             </div>
-            <div class="pep-section autocomplete-container">
-              <label for="pep-assessment">A - Avaliação (Diagnóstico / CID-10)</label>
-              <input type="text" id="pep-assessment" class="form-input" style="width: 100%;" placeholder="Digite para buscar o CID-10..." autocomplete="off">
+
+            <div class="pep-soap-card autocomplete-container">
+              <div class="pep-soap-header">
+                <span class="pep-soap-tag tag-a">A</span>
+                <label for="pep-assessment">Avaliação (Diagnóstico / CID-10)</label>
+                <small class="pep-soap-hint">Hipótese diagnóstica principal e busca automática CID-10</small>
+              </div>
+              <input type="text" id="pep-assessment" class="form-input pep-cid-input" placeholder="Digite para buscar código ou descrição do CID-10..." autocomplete="off">
               <div id="pep-cid-dropdown" class="autocomplete-dropdown"></div>
             </div>
-            <div class="pep-section" style="flex: 1;">
-              <label for="pep-plan">P - Plano (Prescrição / Conduta)</label>
-              <textarea id="pep-plan" class="pep-textarea" style="flex: 1;" placeholder="Conduta terapêutica, prescrição médica, orientações..."></textarea>
+
+            <div class="pep-soap-card pep-soap-card-fill">
+              <div class="pep-soap-header">
+                <span class="pep-soap-tag tag-p">P</span>
+                <label for="pep-plan">Plano (Prescrição / Conduta Terapêutica)</label>
+                <small class="pep-soap-hint">Medicamentos prescritos, exames solicitados e conduta de alta/internação</small>
+              </div>
+              <textarea id="pep-plan" class="pep-textarea" placeholder="Prescrição médica completa, dosagens, horários, recomendações e conduta final..."></textarea>
             </div>
           </div>
         </div>
         <div class="pep-footer">
-          <span id="pep-status-badge"></span>
-          <button class="btn btn-secondary" onclick="closePEPModal()">
-            <i class="fa-solid fa-xmark"></i> Fechar
-          </button>
-          <button class="btn btn-secondary" id="btn-save-draft" onclick="savePEPDraft()">
-            <i class="fa-solid fa-save"></i> Salvar Rascunho
-          </button>
-          <button class="btn btn-primary" id="btn-sign-pep" onclick="openSignModal()">
-            <i class="fa-solid fa-file-signature"></i> Assinar e Finalizar
-          </button>
+          <div class="pep-footer-status" style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status do Prontuário:</span>
+            <span id="pep-status-badge"></span>
+          </div>
+          <div class="pep-footer-actions">
+            <button class="btn btn-secondary" onclick="closePEPModal()">
+              <i class="fa-solid fa-xmark"></i> Fechar
+            </button>
+            <button class="btn btn-secondary" onclick="printCurrentPEP()">
+              <i class="fa-solid fa-print"></i> Imprimir / PDF
+            </button>
+            <button class="btn btn-secondary" id="btn-save-draft" onclick="savePEPDraft()">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar Rascunho
+            </button>
+            <button class="btn btn-primary btn-sign-highlight" id="btn-sign-pep" onclick="openSignModal()">
+              <i class="fa-solid fa-file-signature"></i> Assinar e Finalizar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -3741,16 +3836,29 @@ async function renderTabContent() {
             <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">Gestão do fluxo clínico em tempo real</p>
           </div>
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <div id="atd-kpi-bar" style="display:flex; gap:8px;">
-              <span class="atd-kpi-chip" style="background:rgba(245,158,11,0.12); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); font-size:0.78rem; padding:5px 10px; border-radius:20px; font-weight:600;">
-                <i class="fa-solid fa-hourglass-half"></i> <span id="kpi-aguardando-num">0</span> Aguardando
-              </span>
-              <span class="atd-kpi-chip" style="background:rgba(139,92,246,0.12); color:#8b5cf6; border:1px solid rgba(139,92,246,0.3); font-size:0.78rem; padding:5px 10px; border-radius:20px; font-weight:600;">
-                <i class="fa-solid fa-stethoscope"></i> <span id="kpi-triagem-num">0</span> Triagem
-              </span>
-              <span class="atd-kpi-chip" style="background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.3); font-size:0.78rem; padding:5px 10px; border-radius:20px; font-weight:600;">
-                <i class="fa-solid fa-user-doctor"></i> <span id="kpi-consulta-num">0</span> Em Consulta
-              </span>
+            <div id="atd-kpi-bar" style="display:flex; gap:8px; align-items:center;">
+              <div id="card-kpi-triage" class="atd-metric-card" onclick="filterKanbanColumn('triage')" title="Filtrar por Fila de Triagem" style="background:rgba(139,92,246,0.12); color:#a78bfa; border:1px solid rgba(139,92,246,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+                <i class="fa-solid fa-stethoscope" style="font-size:0.9rem; color:#8b5cf6;"></i>
+                <strong id="kpi-triagem-num" style="font-size:0.95rem; font-weight:800; color:#a78bfa;">0</strong>
+                <span>Triagem</span>
+              </div>
+
+              <div id="card-kpi-waiting" class="atd-metric-card" onclick="filterKanbanColumn('waiting')" title="Filtrar por Pacientes Aguardando Médico" style="background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+                <i class="fa-solid fa-hourglass-half" style="font-size:0.9rem; color:#f59e0b;"></i>
+                <strong id="kpi-aguardando-num" style="font-size:0.95rem; font-weight:800; color:#fbbf24;">0</strong>
+                <span>Ag. Médico</span>
+              </div>
+
+              <div id="card-kpi-active" class="atd-metric-card" onclick="filterKanbanColumn('active')" title="Filtrar por Atendimentos em Consulta" style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+                <i class="fa-solid fa-user-doctor" style="font-size:0.9rem; color:#10b981;"></i>
+                <strong id="kpi-consulta-num" style="font-size:0.95rem; font-weight:800; color:#34d399;">0</strong>
+                <span>Em Consulta</span>
+              </div>
+
+              <div id="card-kpi-all" class="atd-metric-card active-filter" onclick="filterKanbanColumn('all')" title="Exibir Todas as Colunas" style="background:rgba(255,255,255,0.05); color:var(--text-primary); border:1px solid rgba(255,255,255,0.15); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+                <i class="fa-solid fa-layer-group" style="font-size:0.85rem; color:var(--text-muted);"></i>
+                <span>Ver Todos</span>
+              </div>
             </div>
             <button id="btn-open-admission-panel" class="btn btn-primary" style="font-size:0.85rem; padding:8px 14px;">
               <i class="fa-solid fa-plus"></i> Nova Admissão
@@ -4031,6 +4139,49 @@ async function renderTabContent() {
       const waiting = [...encounters.filter(e => e.status === 'Aguardando_Atendimento')].sort((a,b) => (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at));
       const active  = encounters.filter(e => e.status === 'Em_Atendimento');
 
+      window.filterKanbanColumn = function(type) {
+        const colTriage = document.getElementById('col-triage')?.parentElement;
+        const colWaiting = document.getElementById('col-waiting')?.parentElement;
+        const colActive = document.getElementById('col-active')?.parentElement;
+        if (!colTriage || !colWaiting || !colActive) return;
+        const grid = colTriage.parentElement;
+
+        ['triage', 'waiting', 'active', 'all'].forEach(t => {
+          const card = document.getElementById(`card-kpi-${t}`);
+          if (card) {
+            if (t === type) {
+              card.classList.add('active-filter');
+              card.style.opacity = '1';
+            } else {
+              card.classList.remove('active-filter');
+              card.style.opacity = type === 'all' ? '1' : '0.55';
+            }
+          }
+        });
+
+        if (type === 'all') {
+          grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+          colTriage.style.display = 'block';
+          colWaiting.style.display = 'block';
+          colActive.style.display = 'block';
+        } else if (type === 'triage') {
+          grid.style.gridTemplateColumns = '1fr';
+          colTriage.style.display = 'block';
+          colWaiting.style.display = 'none';
+          colActive.style.display = 'none';
+        } else if (type === 'waiting') {
+          grid.style.gridTemplateColumns = '1fr';
+          colTriage.style.display = 'none';
+          colWaiting.style.display = 'block';
+          colActive.style.display = 'none';
+        } else if (type === 'active') {
+          grid.style.gridTemplateColumns = '1fr';
+          colTriage.style.display = 'none';
+          colWaiting.style.display = 'none';
+          colActive.style.display = 'block';
+        }
+      };
+
       // Update KPI chips
       document.getElementById('kpi-triagem-num').textContent = triage.length;
       document.getElementById('kpi-aguardando-num').textContent = waiting.length;
@@ -4282,7 +4433,9 @@ async function renderTabContent() {
       document.getElementById('history-panel').style.display = 'flex';
       try {
         const res = await apiFetch(`${API_URL}/encounters`);
-        allHistory = (await res.json()).filter(e => e.status === 'Finalizado').reverse();
+        const encJson = await res.json();
+        const encountersList = Array.isArray(encJson) ? encJson : (encJson?.data || []);
+        allHistory = encountersList.filter(e => e.status === 'Finalizado').reverse();
         renderHistory(allHistory);
       } catch { document.getElementById('history-list').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">Erro ao carregar histórico.</div>'; }
     });
@@ -5292,56 +5445,85 @@ window.openPEPModal = async function(encounterId) {
   try {
     // 1. Buscar detalhes do Atendimento para cabeçalho
     const encRes = await apiFetch(`${API_URL}/encounters`);
-    const encounters = await encRes.json();
+    const encJson = await encRes.json();
+    const encounters = Array.isArray(encJson) ? encJson : (encJson?.data || []);
     const encounter = encounters.find(e => e.id === encounterId);
     
     if (encounter) {
-      document.getElementById('pep-patient-name').innerHTML = `<i class="fa-solid fa-user"></i> ${encounter.patientName || 'Paciente'}`;
-      document.getElementById('pep-encounter-status').innerHTML = `<i class="fa-solid fa-clock"></i> ${new Date(encounter.created_at).toLocaleString('pt-BR')}`;
+      document.getElementById('pep-patient-name').textContent = encounter.patientName || 'Paciente';
+      const dateVal = encounter.created_at || encounter.timestamp || Date.now();
+      document.getElementById('pep-encounter-status').textContent = new Date(dateVal).toLocaleString('pt-BR');
     }
     
     // 2. Buscar dados da Triagem para Sidebar
     const trRes = await apiFetch(`${API_URL}/triages`);
-    const triages = await trRes.json();
-    const triage = triages.find(t => t.encounterId === encounterId);
+    const trJson = await trRes.json();
+    const triages = Array.isArray(trJson) ? trJson : (trJson?.data || []);
+    const triage = triages.find(t => t.encounterId === encounterId || t.patientId === encounter?.patientId);
     
-    if (triage) {
-      const badge = document.getElementById('pep-manchester-badge');
-      badge.textContent = triage.manchesterColor.toUpperCase();
-      badge.style.color = getManchesterColorHex(triage.manchesterColor);
-      
-      document.getElementById('pep-bp').textContent = triage.bloodPressure || '-';
-      document.getElementById('pep-hr').textContent = triage.heartRateBpm || '-';
-      document.getElementById('pep-temp').textContent = triage.temperatureCelsius || '-';
-      document.getElementById('pep-weight').textContent = triage.weightKg || '-';
-      document.getElementById('pep-complaints').textContent = triage.complaints || '-';
+    const trColor = triage?.manchesterColor || triage?.color || triage?.label || encounter?.manchesterColor || encounter?.manchesterLabel || 'AMARELO';
+    const bp = triage?.bloodPressure || (triage?.bloodPressureSystolic && triage?.bloodPressureDiastolic ? `${triage.bloodPressureSystolic}/${triage.bloodPressureDiastolic}` : null) || encounter?.bloodPressure || '-';
+    const hr = triage?.heartRateBpm || triage?.heartRate || encounter?.heartRateBpm || '-';
+    const temp = triage?.temperatureCelsius || triage?.temperature || encounter?.temperatureCelsius || '-';
+    const weight = triage?.weightKg || triage?.weight || encounter?.weightKg || '-';
+    const complaints = triage?.complaints || triage?.notes || encounter?.complaints || '-';
+    const oxygenSaturation = triage?.oxygenSaturation || triage?.spo2 || encounter?.oxygenSaturation || '-';
+    const painScale = triage?.painScale !== undefined ? triage.painScale : (encounter?.painScale !== undefined ? encounter.painScale : '-');
+
+    const badge = document.getElementById('pep-manchester-badge');
+    if (badge) {
+      badge.textContent = trColor.toUpperCase();
+      const hex = getManchesterColorHex(trColor);
+      badge.style.backgroundColor = `${hex}22`;
+      badge.style.color = hex;
+      badge.style.border = `1px solid ${hex}55`;
     }
+    
+    const bpEl = document.getElementById('pep-bp'); if (bpEl) bpEl.textContent = bp;
+    const hrEl = document.getElementById('pep-hr'); if (hrEl) hrEl.textContent = hr;
+    const tempEl = document.getElementById('pep-temp'); if (tempEl) tempEl.textContent = temp;
+    const weightEl = document.getElementById('pep-weight'); if (weightEl) weightEl.textContent = weight;
+    const spo2El = document.getElementById('pep-spo2'); if (spo2El) spo2El.textContent = oxygenSaturation;
+    const painEl = document.getElementById('pep-pain'); if (painEl) painEl.textContent = painScale;
+    const compEl = document.getElementById('pep-complaints'); if (compEl) compEl.textContent = complaints;
     
     // 3. Buscar Nota Clínica se existir
     const noteRes = await apiFetch(`${API_URL}/encounters/${encounterId}/notes`);
-    const note = await noteRes.json();
+    const noteRaw = await noteRes.json();
+    const note = (noteRaw && typeof noteRaw === 'object') ? (noteRaw.data || noteRaw) : null;
     
     const isClosed = note && note.isClosed === 1;
     
-    if (note) {
+    if (note && (note.subjectiveContent || note.objectiveContent || note.assessmentContent || note.planContent)) {
       document.getElementById('pep-subjective').value = note.subjectiveContent || '';
       document.getElementById('pep-objective').value = note.objectiveContent || '';
       document.getElementById('pep-assessment').value = note.assessmentContent || '';
       document.getElementById('pep-plan').value = note.planContent || '';
       
       const badge = document.getElementById('pep-status-badge');
-      if (isClosed) {
-        badge.textContent = 'ASSINADO E FECHADO';
-        badge.className = 'badge-signed';
-      } else {
-        badge.textContent = 'RASCUNHO SALVO';
+      if (badge) {
+        if (isClosed) {
+          badge.innerHTML = '<i class="fa-solid fa-lock"></i> ASSINADO E FECHADO';
+          badge.className = 'badge-signed';
+        } else {
+          badge.innerHTML = '<i class="fa-solid fa-file-pen"></i> RASCUNHO SALVO';
+          badge.className = 'badge-draft';
+        }
+      }
+    } else {
+      const badge = document.getElementById('pep-status-badge');
+      if (badge) {
+        badge.innerHTML = '<i class="fa-solid fa-pencil"></i> NOVO ATENDIMENTO';
         badge.className = 'badge-draft';
       }
     }
     
     // Bloquear campos se estiver assinado
     const fields = ['pep-subjective', 'pep-objective', 'pep-assessment', 'pep-plan'];
-    fields.forEach(f => document.getElementById(f).disabled = isClosed);
+    fields.forEach(f => {
+      const el = document.getElementById(f);
+      if (el) el.disabled = isClosed;
+    });
     
     document.getElementById('btn-save-draft').style.display = isClosed ? 'none' : 'inline-flex';
     document.getElementById('btn-sign-pep').style.display = isClosed ? 'none' : 'inline-flex';
@@ -5361,6 +5543,37 @@ window.openPEPModal = async function(encounterId) {
 window.closePEPModal = function() {
   document.getElementById('pep-modal').style.display = 'none';
   currentPEPEncounterId = null;
+};
+
+// Imprimir PEP atual em PDF
+window.printCurrentPEP = async function() {
+  if (!currentPEPEncounterId) {
+    showToast('Nenhum atendimento ativo selecionado.');
+    return;
+  }
+  
+  try {
+    const encRes = await apiFetch(`${API_URL}/encounters`);
+    const encJson = await encRes.json();
+    const encounters = Array.isArray(encJson) ? encJson : (encJson?.data || []);
+    const encounter = encounters.find(e => e.id === currentPEPEncounterId);
+    
+    let patId = encounter?.patientId;
+    let patName = encounter?.patientName || 'Paciente';
+    
+    if (!patId) {
+      const patRes = await apiFetch(`${API_URL}/patients`);
+      const patJson = await patRes.json();
+      const patients = Array.isArray(patJson) ? patJson : (patJson?.data || []);
+      const patient = patients.find(p => p.fullName === patName);
+      patId = patient ? patient.id : currentPEPEncounterId;
+    }
+    
+    await generatePatientPDF(patId, patName);
+  } catch (err) {
+    console.error('Erro ao gerar PDF do PEP:', err);
+    showToast('Erro ao gerar PDF do prontuário.');
+  }
 };
 
 // Salvar Rascunho
@@ -5576,10 +5789,30 @@ window.generatePatientPDF = async function(patientId, patientName) {
     const res = await apiFetch(`${API_URL}/patients/${patientId}/history`);
     if (!res.ok) throw new Error('Falha ao buscar dados do paciente');
     const resp = await res.json();
-    const data = resp.data || {};
-    const patient = data.patient || {};
-    const encounters = data.encounters || [];
-    const appointments = data.appointments || [];
+    const data = resp.data || resp;
+    let patient = data.patient || (data.fullName ? data : {});
+    let encounters = data.encounters || [];
+    let appointments = data.appointments || [];
+
+    // Fallback: se dados do paciente estiverem incompletos, busca diretamente na tabela de pacientes
+    if (!patient.fullName || !patient.cpf) {
+      try {
+        const patRes = await apiFetch(`${API_URL}/patients`);
+        const patJson = await patRes.json();
+        const allPatients = Array.isArray(patJson) ? patJson : (patJson?.data || []);
+        const found = allPatients.find(p => p.id === patientId || (patientName && p.fullName === patientName));
+        if (found) patient = { ...patient, ...found };
+      } catch (e) {}
+    }
+
+    if (encounters.length === 0) {
+      try {
+        const encRes = await apiFetch(`${API_URL}/encounters`);
+        const encJson = await encRes.json();
+        const allEncs = Array.isArray(encJson) ? encJson : (encJson?.data || []);
+        encounters = allEncs.filter(e => e.patientId === patientId || (patient?.fullName && e.patientName === patient.fullName) || (patientName && e.patientName === patientName));
+      } catch (e) {}
+    }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
