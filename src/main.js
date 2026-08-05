@@ -2674,8 +2674,8 @@ function renderAppStructure() {
           <ul class="nav-menu">
             ${navHtml}
             <li style="margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
-              <a href="/src/manual.html?print=true" target="_blank" class="nav-item" style="background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); color: white !important; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-                <i class="fa-solid fa-file-pdf" style="color: white !important;"></i>
+              <a href="/src/manual.html?print=true" target="_blank" style="display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-radius: var(--radius-md); text-decoration: none; font-family: 'Outfit', sans-serif; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); color: white; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                <i class="fa-solid fa-file-pdf" style="color: white;"></i>
                 <span>Baixar Manual (PDF)</span>
               </a>
             </li>
