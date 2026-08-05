@@ -19,16 +19,20 @@ async function renderLeitosTab() {
       </div>
 
       <!-- Cards de Métricas de Leitos -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="padding: 20px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="card kpi-leitos-filter active" data-status="Todos" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--color-primary); background: rgba(99, 102, 241, 0.05);">
+          <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Total de Leitos</div>
+          <div id="kpi-beds-total" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 4px;">-</div>
+        </div>
+        <div class="card kpi-leitos-filter" data-status="Vago" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent;">
           <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Leitos Vagos</div>
           <div id="kpi-beds-vago" style="font-size: 1.8rem; font-weight: 700; color: #4ade80; margin-top: 4px;">-</div>
         </div>
-        <div class="card" style="padding: 20px;">
+        <div class="card kpi-leitos-filter" data-status="Ocupado" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent;">
           <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Leitos Ocupados</div>
           <div id="kpi-beds-ocupado" style="font-size: 1.8rem; font-weight: 700; color: #f87171; margin-top: 4px;">-</div>
         </div>
-        <div class="card" style="padding: 20px;">
+        <div class="card kpi-leitos-filter" data-status="Higienizacao" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent;">
           <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Em Higienização</div>
           <div id="kpi-beds-clean" style="font-size: 1.8rem; font-weight: 700; color: #facc15; margin-top: 4px;">-</div>
         </div>
@@ -97,10 +101,19 @@ async function renderLeitosTab() {
   `;
 
   let currentSector = 'Todos';
+  let currentStatus = 'Todos';
 
   const loadBeds = async () => {
     try {
       const beds = await cachedApiGet('/api/beds', 'beds');
+
+      // Normalizar dados legados
+      beds.forEach(b => {
+        if (!b.bedNumber && b.number) b.bedNumber = b.number;
+        if (b.type === 'Enfermaria' && b.ward === 'Pediatria') b.sector = 'Pediatria';
+        if (b.type === 'UTI Pediátrica') b.sector = 'Pediatria';
+        if (!b.sector) b.sector = b.type;
+      });
 
       // Buscar Fila de Internação
       try {
@@ -131,13 +144,17 @@ async function renderLeitosTab() {
         console.error('Erro ao carregar fila de internação:', err);
       }
 
-      // Atualizar KPIs
-      const vagos = beds.filter(b => b.status === 'Vago').length;
-      const ocupados = beds.filter(b => b.status === 'Ocupado').length;
-      const higienizacao = beds.filter(b => b.status === 'Higienizacao').length;
-      const total = beds.length || 1;
-      const rate = Math.round((ocupados / total) * 100);
+      // Filtrar por Setor (para KPIs)
+      const sectorBeds = currentSector === 'Todos' ? beds : beds.filter(b => b.sector === currentSector);
 
+      // Atualizar KPIs baseados no setor selecionado
+      const vagos = sectorBeds.filter(b => b.status === 'Vago').length;
+      const ocupados = sectorBeds.filter(b => b.status === 'Ocupado').length;
+      const higienizacao = sectorBeds.filter(b => b.status === 'Higienizacao').length;
+      const total = sectorBeds.length;
+      const rate = total > 0 ? Math.round((ocupados / total) * 100) : 0;
+
+      if(document.getElementById('kpi-beds-total')) document.getElementById('kpi-beds-total').textContent = total;
       document.getElementById('kpi-beds-vago').textContent = vagos;
       document.getElementById('kpi-beds-ocupado').textContent = ocupados;
       document.getElementById('kpi-beds-clean').textContent = higienizacao;
@@ -155,8 +172,8 @@ async function renderLeitosTab() {
         }
       }
 
-      // Filtrar por Setor
-      const filtered = currentSector === 'Todos' ? beds : beds.filter(b => b.sector === currentSector);
+      // Filtrar por Setor e Status (para Grid)
+      const filtered = sectorBeds.filter(b => currentStatus === 'Todos' || b.status === currentStatus);
       const grid = document.getElementById('beds-grid');
 
       if (filtered.length === 0) {
@@ -256,6 +273,22 @@ async function renderLeitosTab() {
       btn.classList.add('active', 'btn-primary');
       btn.classList.remove('btn-outline');
       currentSector = btn.getAttribute('data-sector');
+      loadBeds();
+    });
+  });
+
+  // Eventos de Filtro por Status (KPIs)
+  document.querySelectorAll('.kpi-leitos-filter').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.kpi-leitos-filter').forEach(c => {
+        c.classList.remove('active');
+        c.style.border = '1px solid transparent';
+        c.style.background = '';
+      });
+      card.classList.add('active');
+      card.style.border = '1px solid var(--color-primary)';
+      card.style.background = 'rgba(99, 102, 241, 0.05)';
+      currentStatus = card.getAttribute('data-status');
       loadBeds();
     });
   });

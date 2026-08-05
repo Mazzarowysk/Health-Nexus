@@ -353,6 +353,9 @@ function generateBeds(encounters) {
     { number: 'OBS-01', type: 'Observação', ward: 'Observação' },
     { number: 'OBS-02', type: 'Observação', ward: 'Observação' },
     { number: 'OBS-03', type: 'Observação', ward: 'Observação' },
+    // Maternidade
+    { number: 'MAT-01', type: 'Maternidade', ward: 'Maternidade' },
+    { number: 'MAT-02', type: 'Maternidade', ward: 'Maternidade' },
   ];
 
   // Pacientes dos encounters finalizados/internados (excluir Alta)
@@ -365,10 +368,12 @@ function generateBeds(encounters) {
     const admittedAt = enc ? new Date(Date.now() - rnd(1, 168) * 3600000).toISOString() : null;
     return {
       id: `BED-${String(i + 1).padStart(3, '0')}`,
+      bedNumber: def.number,
       number: def.number,
       type: def.type,
+      sector: def.ward === 'Pediatria' || def.type === 'UTI Pediátrica' ? 'Pediatria' : def.type,
       ward: def.ward,
-      status: enc ? 'Ocupado' : 'Livre',
+      status: enc ? 'Ocupado' : 'Vago',
       patientId: enc ? enc.patientId : null,
       patientName: enc ? enc.patientName : null,
       encounterId: enc ? enc.id : null,
