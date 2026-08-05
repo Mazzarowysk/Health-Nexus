@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `1.0.1`  
+**Versão:** `1.2.0`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -29,20 +29,90 @@
 
 ## 🧩 Módulos Implementados (Visão Geral 360º)
 
-1. **Autenticação & Controle de Acesso (RBAC):** Telas de login com JWT e gestão de papéis (`Master`, `Médico`, `Enfermeiro`, `Recepcionista`).
-2. **Dashboard (Health Nexus):** KPIs e gráficos gerenciais (Chart.js) em tempo real.
-3. **Agenda de Consultas:** Agendamento inteligente e controle de status de horários médicos.
-4. **Pacientes (Admissão & Lixeira):** CRUD completo com API ViaCEP, prevenção contra CPFs e Nomes duplicados e Lixeira (Soft-delete).
-5. **Atendimento (Kanban & Triagem Manchester):** Fluxo de colunas visuais com priorização de risco por cores.
-6. **Painel TV (Chamador com Voz):** Tela cheia para sala de espera que anuncia pacientes através da *Web Speech API*.
-7. **Prontuário Eletrônico (PEP SOAPE):** Autosave, assinatura digital, prescrições e histórico de pacientes.
-8. **Alertas & Estagnação:** Monitoramento de gargalos (pacientes há muito tempo aguardando triagem).
-9. **Leitos (Censo Hospitalar):** Mapa de leitos e status (Ocupado, Livre, Higienização).
-10. **Farmácia & Estoque:** Gerenciamento de insumos e notificações de estoque baixo.
-11. **Financeiro:** Faturamento, recebimentos (Pix/Cartão) e contas a pagar.
-12. **Corpo Clínico & Consultórios:** Cadastros base da infraestrutura hospitalar com Lixeira.
-13. **Relatórios & Exportação:** Exportação inteligente para PDF, XLSX e CSV.
-14. **Configurações & Nuvem (Turso Cloud):** Sincronização avançada SQLite ↔ Turso com comparativos de data/hora.
+1. **Autenticação & Controle de Acesso (RBAC)**  
+   Login com JWT e gestão de papéis: `Master`, `Médico`, `Enfermeiro`, `Recepcionista`.  
+   - Aprovação de novos usuários pelo Master via Painel de Estagnação.
+   - Solicitação de acesso Master via chave secreta.
+
+2. **Dashboard (Health Nexus)**  
+   KPIs e gráficos gerenciais em tempo real via Chart.js:  
+   - Atendimentos por período, taxa de ocupação de leitos, receita mensal e evolução de pacientes.
+
+3. **Agenda de Consultas**  
+   - Agendamento inteligente com seleção de médico e consultório dinâmicos.  
+   - **Cards KPI interativos** (Total, Confirmados, Em Atendimento, Concluídos): clique para filtrar a lista. Card ativo recebe destaque visual colorido. Clique duplo desfaz o filtro.
+   - Filtros por data, médico, consultório e status.
+   - Sincronização bidirecional dos tabs de status com os cards KPI.
+
+4. **Pacientes (Admissão & Lixeira)**  
+   - CRUD completo com autopreenchimento de endereço via API ViaCEP.  
+   - Prevenção contra CPFs e nomes duplicados.  
+   - Lixeira com soft-delete e restauração.
+
+5. **Atendimentos (Kanban & Triagem Manchester)**  
+   - Fluxo visual em colunas: Aguardando Triagem → Aguardando Atendimento → Em Atendimento → Finalizado.  
+   - Priorização por cores de risco (Manchester).  
+   - Prontuário eletrônico (PEP SOAP) integrado.  
+   - Chamada de paciente integrada com Painel TV (Web Speech API).
+
+6. **Painel TV (Chamador com Voz)**  
+   - Tela cheia para sala de espera.  
+   - Anuncia paciente com voz sintetizada (Web Speech API) e exibe nome em destaque.  
+   - Operado via botão na aba Atendimentos.
+
+7. **Prontuário Eletrônico (PEP SOAP)**  
+   - Autosave, assinatura digital, prescrições médicas.  
+   - Histórico completo por paciente.
+
+8. **Alertas & Estagnação**  
+   - Monitoramento proativo de gargalos (pacientes há muito tempo em triagem/atendimento).  
+   - **Cards KPI clicáveis** (Críticos, Alertas de Espera, Total Estagnados) com filtro instantâneo da tabela.  
+   - Painel exclusivo de aprovação de usuários Master.  
+   - Badge no menu lateral com contagem de alertas + aprovações pendentes.
+
+9. **Leitos (Censo Hospitalar)**  
+   - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo).  
+   - Alocação e alta de pacientes com atualização em tempo real.
+
+10. **Farmácia & Estoque**  
+    - Gerenciamento de medicamentos e insumos com controle de quantidade.  
+    - **Cards KPI interativos** para filtrar por status do estoque.  
+    - Notificações automáticas de estoque baixo.  
+    - Baixa de medicamentos vinculada ao atendimento.
+
+11. **Financeiro**  
+    - Faturamento, recebimentos (Pix/Cartão/Dinheiro) e contas a pagar.  
+    - Lançamentos vinculados a atendimentos.
+
+12. **Corpo Clínico & Consultórios**  
+    - CRUD de médicos com CRM, especialidade, contato e status.  
+    - **Cards KPI interativos**: Total (ver todos), Ativos (filtrar por status), Especialidades (abre painel flutuante com chips clicáveis por área médica).  
+    - Painel de Atividades do Médico: agendamentos + prontuários SOAP em modal dedicado.  
+    - Escala de Plantão diária com banner integrado.  
+    - Lixeira com soft-delete.
+
+13. **Relatórios & Exportação**  
+    - Exportação inteligente para PDF, XLSX e CSV.  
+    - Relatórios por período, médico, status e tipo.
+
+14. **Configurações & Nuvem (Turso Cloud)**  
+    - Sincronização avançada SQLite ↔ Turso com comparativos de data/hora.  
+    - Upload e download seletivo por tabela.
+
+---
+
+## 🎨 Cards KPI Interativos (v1.2.0)
+
+Todos os painéis com cards de KPI passaram a ser **filtros clicáveis**:
+
+| Aba | Cards | Comportamento |
+|-----|-------|--------------|
+| **Agenda** | Total · Confirmados · Em Atendimento · Concluídos | Filtra lista de consultas; toggle ao clicar 2× |
+| **Corpo Clínico** | Total · Ativos · Especialidades | Filtra tabela de médicos; Especialidades abre painel de chips |
+| **Farmácia** | Total · Baixo Estoque · Crítico | Filtra lista de medicamentos |
+| **Estagnação** | Críticos · Alertas de Espera · Total | Filtra tabela de alertas |
+
+**Padrão visual:** card ativo recebe borda colorida + leve elevação + glow correspondente à sua cor de acento. Clicar novamente no mesmo card ativo volta para "Todos".
 
 ---
 
@@ -52,6 +122,17 @@ O Health Nexus implementa um design system completo com tokens CSS (`--variávei
 
 - **Modo Escuro (padrão):** Glassmorphism com fundo roxo profundo, acentos neon magenta/ciano
 - **Modo Claro:** Branco clínico profissional (azul médico `#2563eb` + verde teal `#0d9488`), totalmente polido com overrides para todos os componentes: sidebar, header, cards, tabelas, modais, inputs, badges, etc.
+
+---
+
+## 🔐 Papéis de Acesso (RBAC)
+
+| Papel | Acesso |
+|-------|--------|
+| **Master** | Acesso total + aprovação de usuários + configurações de nuvem |
+| **Médico** | Atendimentos, Agenda, PEP, Leitos (leitura), Relatórios próprios |
+| **Enfermeiro** | Triagem, Atendimentos, Leitos, Farmácia |
+| **Recepcionista** | Pacientes, Agenda, Financeiro (básico) |
 
 ---
 
@@ -69,6 +150,7 @@ O Health Nexus implementa um design system completo com tokens CSS (`--variávei
 - Integração de Imagens (DICOM/PACS)
 - App Mobile para Médicos (React Native)
 - Integração Telemedicina via WebRTC
+- Notificações Push (PWA)
 
 ---
 

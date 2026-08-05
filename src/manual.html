@@ -62,6 +62,7 @@
       -webkit-text-fill-color: transparent;
     }
     .header p { margin: 5px 0 0 0; color: var(--text-light); font-size: 1.1rem; }
+    .header .version { display: inline-block; margin-top: 10px; background: #1e293b; color: #4facfe; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
     
     .section-title {
       font-size: 1.5rem;
@@ -125,6 +126,7 @@
     .icon-gestao { border-color: #0f172a; color: #0f172a; }
     .icon-config { border-color: #f43f5e; color: #f43f5e; }
     .icon-tv { border-color: #06b6d4; color: #06b6d4; }
+    .icon-kpi { border-color: #8b5cf6; color: #8b5cf6; }
 
     .node-content {
       background: #f8fafc;
@@ -187,6 +189,19 @@
       margin-top: 10px;
     }
 
+    .node-tip {
+      background: #f0fdf4;
+      border-left: 4px solid var(--success);
+      padding: 10px 15px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.9rem;
+      color: #065f46;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
     .btn-badge {
       display: inline-block;
       padding: 2px 6px;
@@ -198,6 +213,88 @@
     }
     .btn-badge.primary { background: linear-gradient(135deg, var(--primary), var(--accent)); }
     .btn-badge.success { background: var(--success); }
+    .btn-badge.warning { background: var(--warning); }
+    .btn-badge.danger  { background: var(--danger); }
+
+    /* Feature grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .feature-card {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .feature-card h4 {
+      margin: 0 0 6px 0;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .feature-card p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+
+    /* KPI interactive callout */
+    .kpi-callout {
+      background: linear-gradient(135deg, #ede9fe, #dbeafe);
+      border: 1px solid #c4b5fd;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+    .kpi-callout h4 {
+      margin: 0 0 10px 0;
+      font-size: 1.05rem;
+      color: var(--purple);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .kpi-callout table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .kpi-callout th {
+      text-align: left;
+      padding: 6px 10px;
+      color: #6d28d9;
+      font-weight: 700;
+      border-bottom: 1px solid #c4b5fd;
+    }
+    .kpi-callout td {
+      padding: 6px 10px;
+      color: var(--text-dark);
+      border-bottom: 1px solid #ede9fe;
+    }
+
+    .rbac-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+    .rbac-table th {
+      background: #1e293b;
+      color: white;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .rbac-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .rbac-table tr:nth-child(even) td { background: #f8fafc; }
 
     .print-btn-container { text-align: center; margin-bottom: 20px; }
     .print-btn {
@@ -219,11 +316,12 @@
     <button class="print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Manual (PDF)</button>
   </div>
 
-  <!-- PÁGINA 1 -->
+  <!-- PÁGINA 1 — Jornada do Paciente -->
   <div class="page">
     <div class="header">
       <h1>Health Nexus</h1>
-      <p>Manual Oficial - Jornada Completa (Todas as Abas)</p>
+      <p>Manual Oficial — Jornada Completa de Todas as Abas</p>
+      <span class="version">Versão 1.2.0 · Agosto 2026</span>
     </div>
 
     <h2 class="section-title"><i class="fa-solid fa-route"></i> Jornada 1: O Caminho do Paciente (Ambulatório)</h2>
@@ -237,9 +335,9 @@
         <div class="node-content">
           <h3>1. O Primeiro Contato</h3>
           <div class="aba-badge"><i class="fa-solid fa-users"></i> Aba: Pacientes</div>
-          <p>Tudo começa aqui. Quando o paciente chega, você deve garantir que ele existe no banco de dados. Cadastre seu nome, data de nascimento e endereço.</p>
+          <p>Tudo começa aqui. Quando o paciente chega, garanta que ele existe no banco de dados. Cadastre nome, data de nascimento e endereço. O sistema preenche endereço automaticamente via CEP (ViaCEP). CPF e nome duplicados são bloqueados.</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> <span>Paciente cadastrado? Siga para a aba Agenda para confirmar a presença.</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>Paciente cadastrado? Siga para a aba <strong>Agenda</strong> para confirmar a presença.</span>
           </div>
         </div>
       </div>
@@ -250,9 +348,9 @@
         <div class="node-content">
           <h3>2. A Confirmação de Presença</h3>
           <div class="aba-badge"><i class="fa-solid fa-calendar-days"></i> Aba: Agenda</div>
-          <p>O paciente agendado chegou na clínica. Localize-o na lista do dia e aperte o botão verde <span class="btn-badge success">Check-in</span>.</p>
+          <p>O paciente agendado chegou na clínica. Localize-o na lista do dia e aperte o botão verde <span class="btn-badge success">Check-in</span>. Use os <strong>filtros rápidos</strong> no topo: clique nos cards <em>Confirmados</em> ou <em>Em Atendimento</em> para focar o que importa.</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> <span>Ao clicar em Check-in, ele "viaja" instantaneamente para a aba Atendimentos (fila da Enfermagem).</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>Ao fazer Check-in, o paciente "viaja" instantaneamente para a aba <strong>Atendimentos</strong> (fila da Enfermagem).</span>
           </div>
         </div>
       </div>
@@ -263,9 +361,9 @@
         <div class="node-content">
           <h3>3. Avaliação de Sinais Vitais (Triagem)</h3>
           <div class="aba-badge"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos</div>
-          <p>A Enfermagem visualiza o paciente na coluna <em>Aguardando Triagem</em>. Mede a Pressão, Temperatura e escolhe a cor (Grau de Urgência de Manchester).</p>
+          <p>A Enfermagem visualiza o paciente na coluna <em>Aguardando Triagem</em>. Mede a Pressão, Temperatura e escolhe a cor de urgência (Protocolo de Manchester).</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> <span>Ao salvar, o paciente pula de coluna nesta mesma aba, ficando visível na coluna do Médico.</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>Ao salvar, o paciente pula para a coluna do Médico (<em>Aguardando Atendimento</em>).</span>
           </div>
         </div>
       </div>
@@ -276,9 +374,9 @@
         <div class="node-content">
           <h3>4. A Chamada Sonora na Sala de Espera</h3>
           <div class="aba-badge"><i class="fa-solid fa-tv"></i> Aba: Painel TV (Chamador)</div>
-          <p>O médico (ainda na aba Atendimentos) clica no ícone da Televisão. Isso ativa esta aba (Painel TV), que deve estar aberta na TV do corredor, soando o gongo ("Plim Plom") e exibindo o nome do paciente em tela cheia.</p>
+          <p>O médico (na aba Atendimentos) clica no ícone da televisão ao lado do paciente. Isso ativa o Painel TV — que deve estar aberto na TV do corredor — soando o gongo ("Plim Plom") e exibindo o nome do paciente em tela cheia com voz sintetizada.</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> <span>O paciente levanta e entra no consultório. O médico volta para a aba Atendimentos.</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>O paciente entra no consultório. O médico volta para a aba Atendimentos e clica em <span class="btn-badge success">Atender</span>.</span>
           </div>
         </div>
       </div>
@@ -289,9 +387,9 @@
         <div class="node-content">
           <h3>5. O Prontuário Eletrônico (Consulta)</h3>
           <div class="aba-badge"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos</div>
-          <p>O médico clica em <span class="btn-badge success">Atender</span> e preenche o Prontuário (Evolução e Receita). No final, ele escolhe o destino (ex: <strong>Retirada de Medicamento</strong>).</p>
+          <p>O médico preenche o Prontuário SOAP (Subjetivo, Objetivo, Avaliação, Plano). Pode emitir prescrições e ao final escolhe o destino do paciente (ex: <strong>Retirada de Medicamento</strong>, <strong>Alta</strong> ou <strong>Internação</strong>).</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> <span>A consulta acabou. Como o destino foi remédios, o paciente foi enviado à aba Farmácia.</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>Destino = Remédios? O paciente é enviado à aba <strong>Farmácia</strong>.</span>
           </div>
         </div>
       </div>
@@ -302,9 +400,9 @@
         <div class="node-content">
           <h3>6. Entrega de Remédios</h3>
           <div class="aba-badge"><i class="fa-solid fa-pills"></i> Aba: Farmácia & Estoque</div>
-          <p>O paciente aparece na lista da Farmácia. O farmacêutico entrega a medicação física e clica em "Dar Baixa", diminuindo o estoque digital.</p>
+          <p>O paciente aparece na lista da Farmácia. O farmacêutico entrega a medicação e clica em <span class="btn-badge warning">Dar Baixa</span>, diminuindo o estoque digital. Use os cards KPI para filtrar por status de estoque.</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> <span>Vá para a aba Financeiro cobrar pelos serviços e medicações gastas.</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>Vá para a aba <strong>Financeiro</strong> cobrar pelos serviços e medicações.</span>
           </div>
         </div>
       </div>
@@ -322,7 +420,7 @@
     </div>
   </div>
 
-  <!-- PÁGINA 2 -->
+  <!-- PÁGINA 2 — Internação e Gestão -->
   <div class="page">
     
     <h2 class="section-title"><i class="fa-solid fa-bed-pulse"></i> Jornada 2: Internação de Urgência</h2>
@@ -335,7 +433,7 @@
           <h3>1. Decreto de Internação</h3>
           <div class="aba-badge"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos</div>
           <p>Dentro do Prontuário Médico, no campo Direcionamento, o doutor escolhe "Internação" ao invés de Alta.</p>
-          <div class="node-action"><i class="fa-solid fa-arrow-right"></i> <span>A enfermagem recebe o aviso e corre para a aba Leitos.</span></div>
+          <div class="node-action"><i class="fa-solid fa-arrow-right"></i> <span>A enfermagem recebe o aviso e abre a aba <strong>Leitos</strong>.</span></div>
         </div>
       </div>
 
@@ -344,7 +442,7 @@
         <div class="node-content">
           <h3>2. Alocação e Higienização de Quartos</h3>
           <div class="aba-badge"><i class="fa-solid fa-bed"></i> Aba: Leitos</div>
-          <p>A enfermagem pega um leito <strong>Verde (Livre)</strong> e clica em <span class="btn-badge primary">Alocar</span> para o paciente, tornando-o <strong>Vermelho (Ocupado)</strong>. Dias depois, na alta do paciente, o leito é liberado, tornando-se <strong>Amarelo (Higienização)</strong> para a equipe de limpeza.</p>
+          <p>A enfermagem pega um leito <strong>Verde (Livre)</strong> e clica em <span class="btn-badge primary">Alocar</span> para o paciente, tornando-o <strong style="color:var(--danger)">Vermelho (Ocupado)</strong>. Na alta do paciente, o leito é liberado tornando-se <strong style="color:var(--warning)">Amarelo (Higienização)</strong> para a equipe de limpeza.</p>
         </div>
       </div>
     </div>
@@ -361,7 +459,7 @@
         <div class="node-content">
           <h3>1. Configurando a Nuvem</h3>
           <div class="aba-badge"><i class="fa-solid fa-gear"></i> Aba: Configurações</div>
-          <p>O administrador do sistema insere aqui as credenciais do Turso DB. É a partir desta tela que você "Sobe (Upload)" e "Baixa (Download)" todos os dados do hospital de forma segura, garantindo o backup.</p>
+          <p>O administrador insere as credenciais do Turso DB. É aqui que você faz Upload (envio) e Download (restauração) de todos os dados de forma segura, com comparativo de data e hora de cada registro.</p>
         </div>
       </div>
 
@@ -371,7 +469,11 @@
         <div class="node-content">
           <h3>2. Cadastro de Colaboradores</h3>
           <div class="aba-badge"><i class="fa-solid fa-user-doctor"></i> Aba: Corpo Clínico</div>
-          <p>A equipe de RH cadastra todos os novos médicos e recepcionistas aqui, definindo seus Níveis de Acesso e seus CRMs (se aplicável).</p>
+          <p>A equipe de RH cadastra médicos com CRM, especialidade e contato. Use o card <em>Especialidades</em> para abrir o painel de filtro por área médica. O card <em>Ativos</em> filtra somente médicos em exercício. O botão <strong>Atividades</strong> na tabela abre o histórico completo de agendamentos e prontuários do médico.</p>
+          <div class="node-tip">
+            <i class="fa-solid fa-lightbulb" style="flex-shrink:0;margin-top:2px;"></i>
+            <span>A <strong>Escala de Plantão</strong> (banner no topo da aba) mostra quem está de plantão hoje. Use o botão <em>Escala de Plantão</em> para cadastrar os plantonistas do dia.</span>
+          </div>
         </div>
       </div>
 
@@ -381,7 +483,7 @@
         <div class="node-content">
           <h3>3. Mapeando Salas Físicas</h3>
           <div class="aba-badge"><i class="fa-solid fa-door-open"></i> Aba: Consultórios</div>
-          <p>Aqui você cria os nomes das salas do prédio (Ex: "Consultório 1 - Pediatria"). Esses nomes serão usados pelo Painel TV quando os pacientes forem chamados.</p>
+          <p>Crie os nomes das salas do prédio (ex: "Consultório 1 — Pediatria"). Esses nomes são usados pelo Painel TV ao chamar os pacientes e pela Agenda ao associar consultas.</p>
         </div>
       </div>
 
@@ -389,9 +491,9 @@
       <div class="workflow-node">
         <div class="node-icon icon-gestao" style="border-color:var(--danger); color:var(--danger)"><i class="fa-solid fa-stopwatch"></i></div>
         <div class="node-content">
-          <h3>4. Polícia do Tempo e Aprovações</h3>
+          <h3>4. Monitoramento e Aprovações</h3>
           <div class="aba-badge"><i class="fa-solid fa-triangle-exclamation"></i> Aba: Alertas & Estagnação</div>
-          <p>O Coordenador Clínico usa esta tela para monitorar negligências: se um paciente ficar esperando horas, ele apitará aqui! Também é aqui que novos cadastros aguardam aprovação de segurança do Desenvolvedor Master.</p>
+          <p>O Coordenador Clínico usa esta tela para monitorar gargalos: se um paciente ficar esperando além do SLA, ele aparece aqui com alerta colorido. Use os cards <span class="btn-badge danger">Críticos</span> e <span class="btn-badge warning">Alertas</span> para filtrar por severidade. O Master também aprova ou recusa novos usuários nesta tela. O badge no menu lateral exibe o total de alertas em aberto.</p>
         </div>
       </div>
 
@@ -401,10 +503,10 @@
         <div class="node-content">
           <h3>5. O Fechamento do Mês</h3>
           <div class="aba-badge"><i class="fa-solid fa-file-contract"></i> Aba: Relatórios</div>
-          <p>O setor contábil puxa os dados de Atendimentos, Receitas e Financeiro (Excel ou PDF) para prestação de contas.</p>
+          <p>O setor contábil exporta os dados de Atendimentos, Receitas e Financeiro em Excel ou PDF para prestação de contas.</p>
           <div class="node-action" style="background:#f1f5f9; color:#334155; border-color:#94a3b8;">
             <i class="fa-solid fa-arrow-right"></i> 
-            <span><strong>Análise Final:</strong> O dono da clínica abre a aba <span class="btn-badge" style="background:#0f172a;">Health Nexus (Dashboard)</span> para visualizar todos os KPIs em gráficos bonitos!</span>
+            <span><strong>Análise Final:</strong> O gestor abre o <span class="btn-badge" style="background:#0f172a;">Dashboard (Health Nexus)</span> para visualizar todos os KPIs em gráficos.</span>
           </div>
         </div>
       </div>
@@ -412,5 +514,118 @@
     </div>
 
   </div>
+
+  <!-- PÁGINA 3 — Cards KPI Interativos & RBAC -->
+  <div class="page">
+
+    <h2 class="section-title"><i class="fa-solid fa-chart-bar"></i> Cards KPI Interativos (v1.2.0)</h2>
+    <p style="color: var(--text-light); font-size: 1rem; margin-bottom: 18px;">Todos os painéis com cards de KPI são <strong>filtros clicáveis</strong>. O card ativo recebe borda colorida, leve elevação e glow. Clicar 2× no mesmo card volta para "Todos".</p>
+
+    <div class="kpi-callout">
+      <h4><i class="fa-solid fa-hand-pointer"></i> Como usar os Cards KPI</h4>
+      <table>
+        <tr>
+          <th>Aba</th>
+          <th>Cards Disponíveis</th>
+          <th>Efeito</th>
+        </tr>
+        <tr>
+          <td><strong>Agenda</strong></td>
+          <td>Total · Confirmados · Em Atendimento · Concluídos</td>
+          <td>Filtra a lista de consultas do dia</td>
+        </tr>
+        <tr>
+          <td><strong>Corpo Clínico</strong></td>
+          <td>Total · Ativos · Especialidades</td>
+          <td>Filtra tabela de médicos; Especialidades abre painel de chips por área</td>
+        </tr>
+        <tr>
+          <td><strong>Farmácia</strong></td>
+          <td>Total · Baixo Estoque · Crítico</td>
+          <td>Filtra a lista de medicamentos</td>
+        </tr>
+        <tr>
+          <td><strong>Estagnação</strong></td>
+          <td>Críticos · Alertas de Espera · Total</td>
+          <td>Filtra a tabela de pacientes estagnados por severidade</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-circle-half-stroke" style="color:var(--purple)"></i> Destaque Visual Ativo</h4>
+        <p>O card ativo ganha borda colorida, sobe levemente (transform) e emite um brilho sutil (box-shadow) na cor correspondente ao seu status.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-toggle-on" style="color:var(--success)"></i> Toggle Inteligente</h4>
+        <p>Clicar no card ativo novamente retorna para "Todos" — sem precisar procurar um botão de limpar filtro.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-filter" style="color:#22d3ee"></i> Painel de Especialidades</h4>
+        <p>No Corpo Clínico, o card <em>Especialidades</em> abre um painel flutuante com chips clicáveis para filtrar por área médica (ex: Cardiologia, Pediatria). Fecha ao clicar fora.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-sync" style="color:#f59e0b"></i> Sincronização com Tabs</h4>
+        <p>Na Agenda, os botões de status (Todos / Confirmados / Em Atendimento) sincronizam com os cards KPI e vice-versa.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 40px;"><i class="fa-solid fa-shield-halved"></i> Controle de Acesso por Papel (RBAC)</h2>
+
+    <table class="rbac-table">
+      <tr>
+        <th>Papel</th>
+        <th>Acesso Permitido</th>
+      </tr>
+      <tr>
+        <td><strong>🔴 Master</strong></td>
+        <td>Acesso total a todas as abas + aprovação de novos usuários + configurações de nuvem Turso</td>
+      </tr>
+      <tr>
+        <td><strong>🟢 Médico</strong></td>
+        <td>Atendimentos, Agenda (próprios), PEP, Leitos (leitura), Relatórios próprios, Corpo Clínico (leitura)</td>
+      </tr>
+      <tr>
+        <td><strong>🟡 Enfermeiro</strong></td>
+        <td>Triagem, Atendimentos, Leitos (edição), Farmácia, Agenda (leitura)</td>
+      </tr>
+      <tr>
+        <td><strong>🔵 Recepcionista</strong></td>
+        <td>Pacientes, Agenda (edição), Financeiro (básico), Dashboard (leitura)</td>
+      </tr>
+    </table>
+
+    <h2 class="section-title" style="margin-top: 40px;"><i class="fa-solid fa-circle-info"></i> Dicas Rápidas de Operação</h2>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-trash-can" style="color:var(--danger)"></i> Lixeira</h4>
+        <p>Pacientes e médicos excluídos vão para a Lixeira (soft-delete). Restaure pelo botão Lixeira no cabeçalho da aba.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-bell" style="color:var(--warning)"></i> Badge de Alertas</h4>
+        <p>O número vermelho no menu <em>Alertas & Estagnação</em> mostra a soma de pacientes estagnados + usuários aguardando aprovação.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-download" style="color:var(--primary)"></i> Exportações</h4>
+        <p>Na aba Relatórios, exporte qualquer dado em PDF, Excel (XLSX) ou CSV com um clique.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-moon" style="color:#818cf8"></i> Modo Claro/Escuro</h4>
+        <p>Alterne pelo ícone de sol/lua no cabeçalho. O tema é salvo automaticamente no navegador.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-location-dot" style="color:var(--success)"></i> Auto-CEP</h4>
+        <p>No cadastro de pacientes, digite o CEP e o endereço é preenchido automaticamente via API ViaCEP.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8"></i> Backup na Nuvem</h4>
+        <p>Na aba Configurações, sincronize o banco local com o Turso Cloud para garantir que seus dados estejam seguros.</p>
+      </div>
+    </div>
+
+  </div>
+
 </body>
 </html>
