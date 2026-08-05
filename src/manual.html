@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Health Nexus - Manual do Sistema (Fluxogramas)</title>
+  <title>Health Nexus - Manual de Jornadas</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,7 +79,6 @@
       position: relative;
       margin: 30px 0 40px 10px;
     }
-    /* Linha central conectando os passos */
     .workflow::before {
       content: '';
       position: absolute;
@@ -95,7 +94,7 @@
       position: relative;
       display: flex;
       gap: 25px;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
     }
     .workflow-node:last-child {
       margin-bottom: 0;
@@ -117,7 +116,6 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
     
-    /* Cores Especificas para Ícones */
     .icon-recepcao { border-color: #3b82f6; color: #3b82f6; }
     .icon-enfermagem { border-color: var(--warning); color: var(--warning); }
     .icon-medico { border-color: var(--success); color: var(--success); }
@@ -125,16 +123,17 @@
     .icon-financeiro { border-color: #10b981; color: #10b981; }
     .icon-leito { border-color: #ef4444; color: #ef4444; }
     .icon-gestao { border-color: #0f172a; color: #0f172a; }
+    .icon-config { border-color: #f43f5e; color: #f43f5e; }
+    .icon-tv { border-color: #06b6d4; color: #06b6d4; }
 
     .node-content {
       background: #f8fafc;
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 20px;
+      padding: 15px 20px;
       flex-grow: 1;
       position: relative;
     }
-    /* Seta apontando pro icone */
     .node-content::before {
       content: '';
       position: absolute;
@@ -150,72 +149,66 @@
 
     .node-content h3 { 
       margin: 0 0 5px 0; 
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       color: var(--text-dark); 
     }
-    .node-aba {
-      display: inline-block;
-      background: #e2e8f0;
-      padding: 3px 10px;
+    
+    .aba-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e293b;
+      color: white;
+      padding: 4px 12px;
       border-radius: 20px;
       font-size: 0.85rem;
-      color: #475569;
       font-weight: 600;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .node-aba i { margin-right: 5px; }
 
     .node-content p { 
-      margin: 0 0 15px 0; 
+      margin: 0 0 10px 0; 
       color: var(--text-dark); 
-      font-size: 1rem; 
-      line-height: 1.5;
+      font-size: 0.95rem; 
+      line-height: 1.4;
     }
 
     .node-action {
       background: #e0f2fe;
       border-left: 4px solid var(--primary);
-      padding: 12px 15px;
+      padding: 10px 15px;
       border-radius: 0 8px 8px 0;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: #0369a1;
       display: flex;
       align-items: center;
       gap: 10px;
+      margin-top: 10px;
     }
-    .node-action i { font-size: 1.2rem; }
 
-    /* Button highlighting */
     .btn-badge {
       display: inline-block;
-      padding: 3px 8px;
+      padding: 2px 6px;
       background: var(--text-dark);
       color: white;
       border-radius: 4px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 600;
-      margin: 0 3px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .btn-badge.primary { background: linear-gradient(135deg, var(--primary), var(--accent)); }
-    .btn-badge.danger { background: var(--danger); }
     .btn-badge.success { background: var(--success); }
-    .btn-badge.warning { background: var(--warning); }
-    .btn-badge.purple { background: #8b5cf6; }
 
     .print-btn-container { text-align: center; margin-bottom: 20px; }
     .print-btn {
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: white; border: none; padding: 15px 30px; font-size: 1.1rem;
       font-weight: 600; border-radius: 8px; cursor: pointer; font-family: inherit;
-      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4); transition: transform 0.2s;
     }
-    .print-btn:hover { transform: translateY(-2px); }
 
     @media print {
       body { background: white; margin: 0; padding: 0; }
       .page { margin: 0; border: none; box-shadow: none; border-radius: 0; page-break-after: always; min-height: 297mm; }
-      .page:last-child { page-break-after: auto; }
       .no-print { display: none !important; }
     }
   </style>
@@ -223,20 +216,18 @@
 <body>
 
   <div class="print-btn-container no-print">
-    <button class="print-btn" onclick="window.print()">
-      <i class="fa-solid fa-print"></i> Imprimir / Salvar como PDF
-    </button>
+    <button class="print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Manual (PDF)</button>
   </div>
 
-  <!-- PÁGINA 1: JORNADA PRINCIPAL (AMBULATÓRIO) -->
+  <!-- PÁGINA 1 -->
   <div class="page">
     <div class="header">
       <h1>Health Nexus</h1>
-      <p>Fluxogramas de Operação Hospitalar</p>
+      <p>Manual Oficial - Jornada Completa (Todas as Abas)</p>
     </div>
 
-    <h2 class="section-title"><i class="fa-solid fa-route"></i> Fluxo 1: Atendimento Ambulatorial Padrão</h2>
-    <p style="color: var(--text-light); font-size: 1.05rem;">Siga este caminho quando um paciente chega ao hospital sentindo algum mal-estar, passa pela consulta, é medicado e vai embora.</p>
+    <h2 class="section-title"><i class="fa-solid fa-route"></i> Jornada 1: O Caminho do Paciente (Ambulatório)</h2>
+    <p style="color: var(--text-light); font-size: 1rem;">O trajeto exato desde a entrada pela porta até o pagamento e saída da clínica.</p>
 
     <div class="workflow">
       
@@ -244,12 +235,11 @@
       <div class="workflow-node">
         <div class="node-icon icon-recepcao"><i class="fa-solid fa-users"></i></div>
         <div class="node-content">
-          <h3>1. O Paciente Chegou</h3>
-          <div class="node-aba"><i class="fa-solid fa-users"></i> Aba: Pacientes</div>
-          <p>A primeira etapa de qualquer fluxo. Se o paciente for novo, cadastre seus dados pessoais (Nome, Data de Nascimento, CEP).</p>
+          <h3>1. O Primeiro Contato</h3>
+          <div class="aba-badge"><i class="fa-solid fa-users"></i> Aba: Pacientes</div>
+          <p>Tudo começa aqui. Quando o paciente chega, você deve garantir que ele existe no banco de dados. Cadastre seu nome, data de nascimento e endereço.</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> 
-            <span><strong>Próximo passo:</strong> Após cadastrar, você precisa avisar ao hospital que ele está presente. Siga para a aba <strong>Agenda</strong>.</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>Paciente cadastrado? Siga para a aba Agenda para confirmar a presença.</span>
           </div>
         </div>
       </div>
@@ -258,12 +248,11 @@
       <div class="workflow-node">
         <div class="node-icon icon-recepcao"><i class="fa-solid fa-calendar-check"></i></div>
         <div class="node-content">
-          <h3>2. Confirmando a Presença</h3>
-          <div class="node-aba"><i class="fa-solid fa-calendar-days"></i> Aba: Agenda</div>
-          <p>Crie um agendamento rápido para ele para a data de hoje. Quando o nome dele aparecer na lista do dia, <strong>este é o momento crítico:</strong> clique no botão verde <span class="btn-badge success">Check-in</span>.</p>
-          <div class="node-action" style="background:#fef3c7; color:#b45309; border-color:#f59e0b;">
-            <i class="fa-solid fa-bolt"></i> 
-            <span><strong>Mágica do Sistema:</strong> Ao clicar em Check-in, o paciente "viaja" instantaneamente para a tela da Enfermagem. A recepção concluiu seu trabalho!</span>
+          <h3>2. A Confirmação de Presença</h3>
+          <div class="aba-badge"><i class="fa-solid fa-calendar-days"></i> Aba: Agenda</div>
+          <p>O paciente agendado chegou na clínica. Localize-o na lista do dia e aperte o botão verde <span class="btn-badge success">Check-in</span>.</p>
+          <div class="node-action">
+            <i class="fa-solid fa-arrow-right"></i> <span>Ao clicar em Check-in, ele "viaja" instantaneamente para a aba Atendimentos (fila da Enfermagem).</span>
           </div>
         </div>
       </div>
@@ -272,193 +261,156 @@
       <div class="workflow-node">
         <div class="node-icon icon-enfermagem"><i class="fa-solid fa-heart-pulse"></i></div>
         <div class="node-content">
-          <h3>3. Avaliação de Risco (Triagem)</h3>
-          <div class="node-aba"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos (Coluna: Aguardando Triagem)</div>
-          <p>A equipe de Enfermagem assume. Clique em <span class="btn-badge primary">Iniciar Triagem</span> no paciente recém-chegado. Meça a Pressão, Temperatura, anote a queixa e escolha a cor de urgência de Manchester (ex: Amarelo - Urgente).</p>
+          <h3>3. Avaliação de Sinais Vitais (Triagem)</h3>
+          <div class="aba-badge"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos</div>
+          <p>A Enfermagem visualiza o paciente na coluna <em>Aguardando Triagem</em>. Mede a Pressão, Temperatura e escolhe a cor (Grau de Urgência de Manchester).</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> 
-            <span>Ao clicar em <span class="btn-badge success">Salvar Triagem</span>, o paciente é enviado direto para a tela do Médico, já ordenado pela gravidade.</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>Ao salvar, o paciente pula de coluna nesta mesma aba, ficando visível na coluna do Médico.</span>
           </div>
         </div>
       </div>
 
       <!-- Passo 4 -->
       <div class="workflow-node">
-        <div class="node-icon icon-medico"><i class="fa-solid fa-user-doctor"></i></div>
+        <div class="node-icon icon-tv"><i class="fa-solid fa-tv"></i></div>
         <div class="node-content">
-          <h3>4. A Chamada Médica e o Prontuário</h3>
-          <div class="node-aba"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos (Coluna: Médico) & Painel TV</div>
-          <p>O médico visualiza a lista. Para chamar, ele clica no ícone da <span class="btn-badge primary"><i class="fa-solid fa-tv"></i></span>. O sistema fará "Plim Plom" na aba <strong>Painel TV</strong> da sala de espera.</p>
-          <p>Quando o paciente entra, o médico clica em <span class="btn-badge success">Atender</span> e preenche o Prontuário Eletrônico (Evolução e Receitas).</p>
-          <div class="node-action" style="background:#f3e8ff; color:#7e22ce; border-color:#a855f7;">
-            <i class="fa-solid fa-code-branch"></i> 
-            <span><strong>Decisão do Médico (Direcionamento):</strong> Ao salvar o prontuário, o médico deve decidir para onde a pessoa vai. Se prescreveu um remédio, deve selecionar <strong>Retirada de Medicamento</strong>. Se ela curou, seleciona <strong>Alta</strong>.</span>
+          <h3>4. A Chamada Sonora na Sala de Espera</h3>
+          <div class="aba-badge"><i class="fa-solid fa-tv"></i> Aba: Painel TV (Chamador)</div>
+          <p>O médico (ainda na aba Atendimentos) clica no ícone da Televisão. Isso ativa esta aba (Painel TV), que deve estar aberta na TV do corredor, soando o gongo ("Plim Plom") e exibindo o nome do paciente em tela cheia.</p>
+          <div class="node-action">
+            <i class="fa-solid fa-arrow-right"></i> <span>O paciente levanta e entra no consultório. O médico volta para a aba Atendimentos.</span>
           </div>
         </div>
       </div>
 
       <!-- Passo 5 -->
       <div class="workflow-node">
-        <div class="node-icon icon-farmacia"><i class="fa-solid fa-pills"></i></div>
+        <div class="node-icon icon-medico"><i class="fa-solid fa-user-doctor"></i></div>
         <div class="node-content">
-          <h3>5. Dispensação de Medicamentos</h3>
-          <div class="node-aba"><i class="fa-solid fa-pills"></i> Aba: Farmácia & Estoque</div>
-          <p>Se o médico ordenou "Retirada de Medicamento", o paciente brota na fila da Farmácia. O farmacêutico clica em <span class="btn-badge success">Dar Baixa</span>, escolhe o remédio do estoque, entrega a caixinha na mão do paciente e finaliza.</p>
+          <h3>5. O Prontuário Eletrônico (Consulta)</h3>
+          <div class="aba-badge"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos</div>
+          <p>O médico clica em <span class="btn-badge success">Atender</span> e preenche o Prontuário (Evolução e Receita). No final, ele escolhe o destino (ex: <strong>Retirada de Medicamento</strong>).</p>
           <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> 
-            <span><strong>Próximo passo:</strong> O atendimento clínico terminou. Agora, os custos devem ser faturados.</span>
+            <i class="fa-solid fa-arrow-right"></i> <span>A consulta acabou. Como o destino foi remédios, o paciente foi enviado à aba Farmácia.</span>
           </div>
         </div>
       </div>
 
       <!-- Passo 6 -->
       <div class="workflow-node">
+        <div class="node-icon icon-farmacia"><i class="fa-solid fa-pills"></i></div>
+        <div class="node-content">
+          <h3>6. Entrega de Remédios</h3>
+          <div class="aba-badge"><i class="fa-solid fa-pills"></i> Aba: Farmácia & Estoque</div>
+          <p>O paciente aparece na lista da Farmácia. O farmacêutico entrega a medicação física e clica em "Dar Baixa", diminuindo o estoque digital.</p>
+          <div class="node-action">
+            <i class="fa-solid fa-arrow-right"></i> <span>Vá para a aba Financeiro cobrar pelos serviços e medicações gastas.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passo 7 -->
+      <div class="workflow-node">
         <div class="node-icon icon-financeiro"><i class="fa-solid fa-file-invoice-dollar"></i></div>
         <div class="node-content">
-          <h3>6. Pagamento (Faturamento)</h3>
-          <div class="node-aba"><i class="fa-solid fa-file-invoice-dollar"></i> Aba: Financeiro</div>
-          <p>A recepção/caixa clica em <span class="btn-badge primary">Emitir Fatura</span> vinculada àquele paciente. Escolhe o valor da consulta. Quando o paciente passar o cartão, clica-se em <span class="btn-badge primary">Dar Baixa Manual</span>. O paciente vai para casa curado e com a conta paga.</p>
+          <h3>7. Faturamento e Pagamento</h3>
+          <div class="aba-badge"><i class="fa-solid fa-file-invoice-dollar"></i> Aba: Financeiro</div>
+          <p>A recepcionista emite a Fatura. Quando o paciente paga no caixa, ela clica em <span class="btn-badge primary">Dar Baixa Manual</span>. O paciente vai para casa curado e com a conta quitada.</p>
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- PÁGINA 2: JORNADA DE INTERNAÇÃO (LEITOS) -->
+  <!-- PÁGINA 2 -->
   <div class="page">
-    <h2 class="section-title"><i class="fa-solid fa-bed-pulse"></i> Fluxo 2: Internação (Quando a coisa agrava)</h2>
-    <p style="color: var(--text-light); font-size: 1.05rem;">Siga este caminho quando o médico decide que o paciente não pode ir para casa e precisa ficar no hospital.</p>
+    
+    <h2 class="section-title"><i class="fa-solid fa-bed-pulse"></i> Jornada 2: Internação de Urgência</h2>
+    <p style="color: var(--text-light); font-size: 1rem;">O que acontece se o médico decidir que o paciente não pode voltar para casa?</p>
 
     <div class="workflow">
-      
-      <!-- Passo 1 -->
       <div class="workflow-node">
         <div class="node-icon icon-medico"><i class="fa-solid fa-user-doctor"></i></div>
         <div class="node-content">
-          <h3>1. O Médico Decreta Internação</h3>
-          <div class="node-aba"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos (Prontuário Médico)</div>
-          <p>Durante a consulta, no fim da "Aba de Evolução", no campo de <strong>Direcionamento</strong>, o médico seleciona a opção <strong>"Internação"</strong> e salva o prontuário.</p>
-          <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> 
-            <span>O sistema notifica a Enfermagem-Chefe de que um paciente precisa de um quarto imediatamente. Vá para a aba Leitos.</span>
-          </div>
+          <h3>1. Decreto de Internação</h3>
+          <div class="aba-badge"><i class="fa-solid fa-stethoscope"></i> Aba: Atendimentos</div>
+          <p>Dentro do Prontuário Médico, no campo Direcionamento, o doutor escolhe "Internação" ao invés de Alta.</p>
+          <div class="node-action"><i class="fa-solid fa-arrow-right"></i> <span>A enfermagem recebe o aviso e corre para a aba Leitos.</span></div>
         </div>
       </div>
 
-      <!-- Passo 2 -->
       <div class="workflow-node">
         <div class="node-icon icon-leito"><i class="fa-solid fa-bed"></i></div>
         <div class="node-content">
-          <h3>2. Alocando no Quarto Físico</h3>
-          <div class="node-aba"><i class="fa-solid fa-bed"></i> Aba: Leitos</div>
-          <p>A Enfermagem visualiza o Mapa de Leitos. Encontra um leito com status <strong>Verde (Livre)</strong>. Clica no botão <span class="btn-badge primary">Alocar Paciente</span> e seleciona o paciente que acabou de ser internado pelo médico.</p>
-          <div class="node-action" style="background:#fee2e2; color:#b91c1c; border-color:#ef4444;">
-            <i class="fa-solid fa-lock"></i> 
-            <span>O leito fica <strong>Vermelho (Ocupado)</strong>. Ninguém mais pode ser colocado ali.</span>
-          </div>
+          <h3>2. Alocação e Higienização de Quartos</h3>
+          <div class="aba-badge"><i class="fa-solid fa-bed"></i> Aba: Leitos</div>
+          <p>A enfermagem pega um leito <strong>Verde (Livre)</strong> e clica em <span class="btn-badge primary">Alocar</span> para o paciente, tornando-o <strong>Vermelho (Ocupado)</strong>. Dias depois, na alta do paciente, o leito é liberado, tornando-se <strong>Amarelo (Higienização)</strong> para a equipe de limpeza.</p>
         </div>
       </div>
-
-      <!-- Passo 3 -->
-      <div class="workflow-node">
-        <div class="node-icon icon-leito" style="border-color: var(--warning); color: var(--warning);"><i class="fa-solid fa-broom"></i></div>
-        <div class="node-content">
-          <h3>3. Alta e Higienização do Quarto</h3>
-          <div class="node-aba"><i class="fa-solid fa-bed"></i> Aba: Leitos</div>
-          <p>Dias depois, o paciente recebe alta. A Enfermagem clica no leito vermelho dele e escolhe <span class="btn-badge purple">Liberar Leito</span>.</p>
-          <p>O quarto NÃO fica livre imediatamente. Ele fica <strong>Amarelo (Em Higienização)</strong>. A equipe de limpeza realiza o serviço, e só então, clica no leito amarelo confirmando a limpeza. Ele volta a ficar Verde.</p>
-          <div class="node-action">
-            <i class="fa-solid fa-arrow-right"></i> 
-            <span>O paciente já está em casa. Agora o departamento financeiro vai faturar as diárias e remédios gastos na aba Financeiro.</span>
-          </div>
-        </div>
-      </div>
-
     </div>
-  </div>
 
-  <!-- PÁGINA 3: GESTÃO DO HOSPITAL E SEGURANÇA -->
-  <div class="page">
-    <h2 class="section-title"><i class="fa-solid fa-building-user"></i> Fluxo 3: Administração, Gestão e Segurança</h2>
-    <p style="color: var(--text-light); font-size: 1.05rem;">Como os Administradores e o TI mantêm a engrenagem funcionando (Fluxos Diários de Gestão).</p>
+
+    <h2 class="section-title" style="margin-top: 50px;"><i class="fa-solid fa-building-user"></i> Jornada 3: Os Bastidores (Gestão Hospitalar)</h2>
+    <p style="color: var(--text-light); font-size: 1rem;">O fluxo diário dos Coordenadores, Administradores de RH e TI.</p>
 
     <div class="workflow">
       
+      <!-- Passo Infra -->
+      <div class="workflow-node">
+        <div class="node-icon icon-config"><i class="fa-solid fa-cloud"></i></div>
+        <div class="node-content">
+          <h3>1. Configurando a Nuvem</h3>
+          <div class="aba-badge"><i class="fa-solid fa-gear"></i> Aba: Configurações</div>
+          <p>O administrador do sistema insere aqui as credenciais do Turso DB. É a partir desta tela que você "Sobe (Upload)" e "Baixa (Download)" todos os dados do hospital de forma segura, garantindo o backup.</p>
+        </div>
+      </div>
+
       <!-- Passo RH -->
       <div class="workflow-node">
         <div class="node-icon icon-gestao"><i class="fa-solid fa-id-card"></i></div>
         <div class="node-content">
-          <h3>1. Contratação de Novo Profissional (RH)</h3>
-          <div class="node-aba"><i class="fa-solid fa-user-doctor"></i> Aba: Corpo Clínico</div>
-          <p>Chegou um médico novo no hospital? A gestão deve ir nesta aba e cadastrar seu Nome, Especialidade (ex: Cardiologia) e Nível de Acesso (Médico).</p>
-          <div class="node-action" style="background:#f1f5f9; color:#334155; border-color:#94a3b8;">
-            <i class="fa-solid fa-triangle-exclamation"></i> 
-            <span>Se o próprio médico criar uma conta na tela de login, o perfil dele fica bloqueado. O Administrador deve ir na Aba <strong>Alertas & Estagnação</strong> e Aprovar o acesso dele manualmente por segurança.</span>
-          </div>
+          <h3>2. Cadastro de Colaboradores</h3>
+          <div class="aba-badge"><i class="fa-solid fa-user-doctor"></i> Aba: Corpo Clínico</div>
+          <p>A equipe de RH cadastra todos os novos médicos e recepcionistas aqui, definindo seus Níveis de Acesso e seus CRMs (se aplicável).</p>
         </div>
       </div>
 
-      <!-- Passo Consultorios -->
+      <!-- Passo Infraestrutura -->
       <div class="workflow-node">
         <div class="node-icon icon-gestao"><i class="fa-solid fa-door-open"></i></div>
         <div class="node-content">
-          <h3>2. Preparando as Instalações</h3>
-          <div class="node-aba"><i class="fa-solid fa-door-open"></i> Aba: Consultórios</div>
-          <p>Cadastre as salas de atendimento reais. Nomeie-as (Ex: Sala 01 - Triagem, Consultório 05 - Ortopedia). É esse nome que vai piscar brilhante na Televisão quando o paciente for chamado!</p>
+          <h3>3. Mapeando Salas Físicas</h3>
+          <div class="aba-badge"><i class="fa-solid fa-door-open"></i> Aba: Consultórios</div>
+          <p>Aqui você cria os nomes das salas do prédio (Ex: "Consultório 1 - Pediatria"). Esses nomes serão usados pelo Painel TV quando os pacientes forem chamados.</p>
         </div>
       </div>
 
       <!-- Passo Fiscalizacao -->
       <div class="workflow-node">
-        <div class="node-icon icon-gestao"><i class="fa-solid fa-stopwatch"></i></div>
+        <div class="node-icon icon-gestao" style="border-color:var(--danger); color:var(--danger)"><i class="fa-solid fa-stopwatch"></i></div>
         <div class="node-content">
-          <h3>3. Monitorando Gargalos em Tempo Real</h3>
-          <div class="node-aba"><i class="fa-solid fa-triangle-exclamation"></i> Aba: Alertas & Estagnação</div>
-          <p>A tela mais importante do Coordenador Médico. Fique de olho nela. Se um paciente demorar demais para ser triado, ou se o médico demorar demais para atender, o nome do paciente apita aqui como <strong>Estagnado</strong>. Tome providências imediatamente!</p>
+          <h3>4. Polícia do Tempo e Aprovações</h3>
+          <div class="aba-badge"><i class="fa-solid fa-triangle-exclamation"></i> Aba: Alertas & Estagnação</div>
+          <p>O Coordenador Clínico usa esta tela para monitorar negligências: se um paciente ficar esperando horas, ele apitará aqui! Também é aqui que novos cadastros aguardam aprovação de segurança do Desenvolvedor Master.</p>
         </div>
       </div>
 
-      <!-- Passo Fechamento -->
+      <!-- Passo Fechamento Mês -->
       <div class="workflow-node">
-        <div class="node-icon icon-gestao"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="node-icon icon-gestao" style="border-color:var(--success); color:var(--success)"><i class="fa-solid fa-chart-pie"></i></div>
         <div class="node-content">
-          <h3>4. Fechamento do Mês</h3>
-          <div class="node-aba"><i class="fa-solid fa-file-contract"></i> Aba: Relatórios & Health Nexus (Dashboard)</div>
-          <p>No final do mês, abra o Dashboard Principal para ver o gráfico de crescimento do hospital. Em seguida, vá na aba Relatórios para Exportar os dados de Atendimentos Clínicos e Fechamentos Financeiros para Excel ou PDF para entregar ao contador.</p>
+          <h3>5. O Fechamento do Mês</h3>
+          <div class="aba-badge"><i class="fa-solid fa-file-contract"></i> Aba: Relatórios</div>
+          <p>O setor contábil puxa os dados de Atendimentos, Receitas e Financeiro (Excel ou PDF) para prestação de contas.</p>
+          <div class="node-action" style="background:#f1f5f9; color:#334155; border-color:#94a3b8;">
+            <i class="fa-solid fa-arrow-right"></i> 
+            <span><strong>Análise Final:</strong> O dono da clínica abre a aba <span class="btn-badge" style="background:#0f172a;">Health Nexus (Dashboard)</span> para visualizar todos os KPIs em gráficos bonitos!</span>
+          </div>
         </div>
       </div>
 
-      <!-- Passo TI -->
-      <div class="workflow-node">
-        <div class="node-icon icon-gestao" style="border-color: #3b82f6; color:#3b82f6;"><i class="fa-solid fa-cloud"></i></div>
-        <div class="node-content">
-          <h3>5. O Coração Tecnológico: Nuvem</h3>
-          <div class="node-aba"><i class="fa-solid fa-gear"></i> Aba: Configurações</div>
-          <p>Como o Health Nexus funciona Offline para não parar o hospital se a internet cair, a equipe deve lembrar de sincronizar os dados com a Nuvem.</p>
-          <ul>
-            <li>Cole a URL e o Token do Turso DB (seu banco de dados online).</li>
-            <li>Quando fizer muitos atendimentos e a internet estiver OK, clique no botão Verde <strong>Enviar Dados para Nuvem</strong>.</li>
-            <li>Se o colega em outro PC fez coisas, clique no botão Azul <strong>Baixar da Nuvem</strong>. O sistema avisará automaticamente quando tiver coisas novas!</li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="instructions" style="text-align: center; margin-top: 50px; background: #f1f5f9; border: none;">
-      <strong>Fim dos Fluxogramas</strong><br><br>
-      Agora você entende não apenas os botões, mas a <strong>Jornada Real</strong> de como a informação flui da Recepção até a Alta do paciente.<br>
-      <strong>Health Nexus - Tecnologia de ponta a favor da vida.</strong>
     </div>
 
   </div>
-
-  <script>
-    window.onload = function() {
-      if (window.location.search.includes('print=true')) {
-        setTimeout(function() { window.print(); }, 500);
-      }
-    };
-  </script>
 </body>
 </html>
