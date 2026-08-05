@@ -6075,3 +6075,7 @@ window.saveRoom = saveRoom;
 window.deleteRoom = deleteRoom;
 window.openRoomModal = openRoomModal;
 window.openConsultorioDetailsModal = openConsultorioDetailsModal;
+
+// --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---
+// Start app immediately (module execution is already deferred until DOM is parsed)
+initializeApp();
