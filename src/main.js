@@ -641,6 +641,21 @@ const showUserManagementModal = async () => {
       container.querySelectorAll('.btn-edit-user').forEach(btn => {
         btn.addEventListener('click', () => {
           const userObj = JSON.parse(btn.dataset.user);
+          const currentUser = state.user || {};
+          
+          // Regra de Segurança: Proteção de Perfis Master
+          const isTargetMaster = userObj.role === 'Master' || userObj.role === 'Administrador' || userObj.username === 'mazzarowysk';
+          const isCurrentMaster = currentUser.role === 'Master' || currentUser.role === 'Administrador' || currentUser.username === 'mazzarowysk';
+          
+          if (isTargetMaster && !isCurrentMaster && currentUser.username !== userObj.username) {
+            showCustomAlert({ 
+              title: 'Acesso Negado', 
+              message: 'Você não tem permissão para editar este perfil. Apenas um usuário MASTER pode autorizar ou realizar mudanças em contas Master.', 
+              type: 'danger' 
+            });
+            return;
+          }
+
           showUserFormModal(userObj, loadUsersList);
         });
       });
