@@ -134,6 +134,8 @@ O Health Nexus implementa um design system completo com tokens CSS (`--variávei
 | **Enfermeiro** | Triagem, Atendimentos, Leitos, Farmácia |
 | **Recepcionista** | Pacientes, Agenda, Financeiro (básico) |
 
+> **🛡️ Proteção de Segurança (v1.2.0):** Perfis `Master` e `Administrador` são protegidos. Apenas um usuário autenticado com status `Master` possui permissão para editar, excluir ou autorizar mudanças nessas contas. Desenvolvedores e perfis básicos não podem escalar ou alterar esses acessos.
+
 ---
 
 ## 🔧 Automações Especiais
