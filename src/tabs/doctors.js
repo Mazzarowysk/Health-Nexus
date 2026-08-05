@@ -134,6 +134,11 @@ async function renderDoctorsTab() {
     const searchQuery = (document.getElementById('filter-doctor-search')?.value || '').toLowerCase().trim();
 
     let filtered = doctors || [];
+    
+    if (window.currentDocFilter === 'Ativo') {
+      filtered = filtered.filter(d => (d.status || 'Ativo') === 'Ativo');
+    }
+
     if (searchQuery) {
       filtered = filtered.filter(d => 
         (d.name || '').toLowerCase().includes(searchQuery) ||
@@ -148,7 +153,7 @@ async function renderDoctorsTab() {
 
     if (kpisEl) {
       kpisEl.innerHTML = `
-        <div class="interactive-card" id="kpi-doc-total" title="Clique para exibir todos os médicos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-doc-total" title="Clique para exibir todos os médicos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s ease;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25); display: flex; align-items: center; justify-content: center; color: #a78bfa;">
             <i class="fa-solid fa-user-doctor" style="font-size: 1.2rem;"></i>
           </div>
@@ -158,7 +163,7 @@ async function renderDoctorsTab() {
           </div>
         </div>
 
-        <div class="interactive-card" id="kpi-doc-active" title="Clique para buscar médicos ativos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-doc-active" title="Clique para buscar médicos ativos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s ease;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; color: #34d399;">
             <i class="fa-solid fa-user-check" style="font-size: 1.2rem;"></i>
           </div>
@@ -168,7 +173,7 @@ async function renderDoctorsTab() {
           </div>
         </div>
 
-        <div class="interactive-card" id="kpi-doc-specs" title="Clique para ver resumo por Especialidade" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="interactive-card" id="kpi-doc-specs" title="Clique para ver resumo por Especialidade" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s ease;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.25); display: flex; align-items: center; justify-content: center; color: #67e8f9;">
             <i class="fa-solid fa-stethoscope" style="font-size: 1.2rem;"></i>
           </div>
@@ -178,6 +183,31 @@ async function renderDoctorsTab() {
           </div>
         </div>
       `;
+
+      const applyCardStyle = (id, color, isActive) => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (isActive) {
+            el.style.border = `1px solid ${color}`;
+            el.style.transform = 'translateY(-2px)';
+            el.style.boxShadow = `0 4px 12px ${color}30`;
+          } else {
+            el.style.border = '1px solid var(--border-color)';
+            el.style.transform = 'none';
+            el.style.boxShadow = 'none';
+          }
+        }
+      };
+
+      const curFilter = window.currentDocFilter || 'all';
+      applyCardStyle('kpi-doc-total', '#a78bfa', curFilter === 'all');
+      applyCardStyle('kpi-doc-active', '#34d399', curFilter === 'Ativo');
+      applyCardStyle('kpi-doc-specs', '#67e8f9', curFilter === 'specs');
+
+      const setFilter = (f) => { window.currentDocFilter = f; renderTable(allDoctorsCache); };
+      document.getElementById('kpi-doc-total')?.addEventListener('click', () => setFilter('all'));
+      document.getElementById('kpi-doc-active')?.addEventListener('click', () => setFilter('Ativo'));
+      document.getElementById('kpi-doc-specs')?.addEventListener('click', () => setFilter('all')); // Fallback to all
     }
 
     if (filtered.length === 0) {

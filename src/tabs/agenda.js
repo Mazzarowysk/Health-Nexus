@@ -480,20 +480,71 @@ async function renderAgendaTab() {
     renderAgendaCards(allAppointmentsCache);
   });
 
-  document.querySelectorAll('.agenda-status-tab').forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      document.querySelectorAll('.agenda-status-tab').forEach(t => {
+  const updateAgendaFilter = (statusFilter) => {
+    currentStatusFilter = statusFilter;
+    
+    // Update small tabs
+    document.querySelectorAll('.agenda-status-tab').forEach(t => {
+      if (t.dataset.status === statusFilter) {
+        t.classList.add('active');
+        t.style.background = 'var(--bg-secondary)';
+        t.style.color = 'var(--text-primary)';
+      } else {
         t.classList.remove('active');
         t.style.background = 'transparent';
         t.style.color = 'var(--text-muted)';
-      });
-      const target = e.currentTarget;
-      target.classList.add('active');
-      target.style.background = 'var(--bg-secondary)';
-      target.style.color = 'var(--text-primary)';
-      currentStatusFilter = target.dataset.status;
-      renderAgendaCards(allAppointmentsCache);
+      }
     });
+
+    // Update big KPI cards
+    const cardMapping = {
+      'all': { id: 'kpi-agenda-all', color: '#818cf8' },
+      'Confirmado': { id: 'kpi-agenda-confirmed', color: '#34d399' },
+      'Em Atendimento': { id: 'kpi-agenda-progress', color: '#fbbf24' },
+      'Concluído': { id: 'kpi-agenda-completed', color: '#94a3b8' }
+    };
+    
+    Object.keys(cardMapping).forEach(status => {
+      const cardInfo = cardMapping[status];
+      const cardEl = document.getElementById(cardInfo.id);
+      if (cardEl) {
+        if (status === statusFilter) {
+          cardEl.style.border = `1px solid ${cardInfo.color}`;
+          cardEl.style.transform = 'translateY(-2px)';
+          cardEl.style.boxShadow = `0 4px 12px ${cardInfo.color}30`;
+        } else {
+          cardEl.style.border = '1px solid var(--border-color)';
+          cardEl.style.transform = 'none';
+          cardEl.style.boxShadow = 'none';
+        }
+      }
+    });
+
+    renderAgendaCards(allAppointmentsCache);
+  };
+
+  document.querySelectorAll('.agenda-status-tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      updateAgendaFilter(e.currentTarget.dataset.status);
+    });
+  });
+
+  // KPI card listeners
+  const kpiMappings = [
+    { id: 'kpi-agenda-all', status: 'all' },
+    { id: 'kpi-agenda-confirmed', status: 'Confirmado' },
+    { id: 'kpi-agenda-progress', status: 'Em Atendimento' },
+    { id: 'kpi-agenda-completed', status: 'Concluído' }
+  ];
+  kpiMappings.forEach(mapping => {
+    const cardEl = document.getElementById(mapping.id);
+    if (cardEl) {
+      cardEl.addEventListener('click', () => {
+        updateAgendaFilter(mapping.status);
+      });
+      cardEl.style.cursor = 'pointer';
+      cardEl.style.transition = 'all 0.2s ease';
+    }
   });
 
   const modal = document.getElementById('modal-appointment');
