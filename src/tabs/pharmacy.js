@@ -30,7 +30,7 @@ async function renderPharmacyTab() {
 
       <!-- KPI CARDS FARMÁCIA -->
       <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px;">
+        <div id="kpi-card-pharm-all" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--color-primary); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);">
           <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
             <span>TOTAL DE ITENS</span>
             <i class="fa-solid fa-boxes-stacked" style="color: var(--color-primary);"></i>
@@ -38,7 +38,7 @@ async function renderPharmacyTab() {
           <div id="kpi-pharm-total" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 8px;">--</div>
         </div>
 
-        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px;">
+        <div id="kpi-card-pharm-critical" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
           <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
             <span>ESTOQUE CRÍTICO</span>
             <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
@@ -46,7 +46,7 @@ async function renderPharmacyTab() {
           <div id="kpi-pharm-critical" style="font-size: 1.8rem; font-weight: 700; color: #ef4444; margin-top: 8px;">--</div>
         </div>
 
-        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px;">
+        <div id="kpi-card-pharm-units" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
           <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
             <span>UNIDADES EM ESTOQUE</span>
             <i class="fa-solid fa-capsules" style="color: #10b981;"></i>
@@ -54,7 +54,7 @@ async function renderPharmacyTab() {
           <div id="kpi-pharm-units" style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 8px;">--</div>
         </div>
 
-        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px;">
+        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; opacity: 0.8;">
           <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
             <span>VALOR EM ESTOQUE</span>
             <i class="fa-solid fa-brazilian-real-sign" style="color: #3b82f6;"></i>
@@ -111,8 +111,44 @@ async function renderPharmacyTab() {
       r.style.display = txt.includes(term) ? '' : 'none';
     });
   });
+
+  // KPI Filter click listeners
+  const updateActiveCardStyle = (activeId, color) => {
+    ['kpi-card-pharm-all', 'kpi-card-pharm-critical', 'kpi-card-pharm-units'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (id === activeId) {
+        el.style.border = `1px solid ${color}`;
+        el.style.transform = 'translateY(-2px)';
+        el.style.boxShadow = `0 4px 12px ${color}26`; // adds transparency to hex color
+      } else {
+        el.style.border = '1px solid var(--border-color)';
+        el.style.transform = 'none';
+        el.style.boxShadow = 'none';
+      }
+    });
+  };
+
+  document.getElementById('kpi-card-pharm-all')?.addEventListener('click', () => {
+    window.currentPharmFilter = 'ALL';
+    updateActiveCardStyle('kpi-card-pharm-all', 'var(--color-primary)');
+    renderPharmacyTable(currentPharmacyItems);
+  });
+
+  document.getElementById('kpi-card-pharm-critical')?.addEventListener('click', () => {
+    window.currentPharmFilter = 'CRITICAL';
+    updateActiveCardStyle('kpi-card-pharm-critical', '#ef4444');
+    renderPharmacyTable(currentPharmacyItems);
+  });
+
+  document.getElementById('kpi-card-pharm-units')?.addEventListener('click', () => {
+    window.currentPharmFilter = 'IN_STOCK';
+    updateActiveCardStyle('kpi-card-pharm-units', '#10b981');
+    renderPharmacyTable(currentPharmacyItems);
+  });
 }
 
+window.currentPharmFilter = 'ALL';
 let currentPharmacyItems = [];
 
 async function loadPharmacyData() {
@@ -148,7 +184,8 @@ function renderPharmacyTable(items) {
   let totalUnits = 0;
   let totalValue = 0;
 
-  tbody.innerHTML = items.map(item => {
+  // Calculte KPIs from ALL items
+  items.forEach(item => {
     const qty = Number(item.stockQuantity || 0);
     const min = Number(item.minStock || 10);
     const price = Number(item.unitPrice || 0);
@@ -157,35 +194,60 @@ function renderPharmacyTable(items) {
     totalUnits += qty;
     totalValue += (qty * price);
     if (isCritical) criticalCount++;
+  });
 
-    const statusBadge = isCritical
-      ? `<span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Estoque Baixo</span>`
-      : `<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight:700;"><i class="fa-solid fa-check"></i> Normal</span>`;
+  // Apply filter for rendering
+  let filteredItems = items;
+  if (window.currentPharmFilter === 'CRITICAL') {
+    filteredItems = items.filter(item => Number(item.stockQuantity || 0) <= Number(item.minStock || 10));
+  } else if (window.currentPharmFilter === 'IN_STOCK') {
+    filteredItems = items.filter(item => Number(item.stockQuantity || 0) > 0);
+  }
 
-    const searchTxt = `${item.id} ${item.name} ${item.lotNumber} ${item.dosage}`.toLowerCase();
-
-    return `
-      <tr data-search="${searchTxt}" style="border-bottom: 1px solid var(--border-color); font-size: 0.88rem;">
-        <td style="padding: 12px; font-family: monospace; font-weight: 700; color: #ec4899;">${item.id}</td>
-        <td style="padding: 12px; font-weight: 600; color: var(--text-primary);">${item.name}</td>
-        <td style="padding: 12px; color: var(--text-secondary);">${item.dosage || '-'} (${item.form || 'Und'})</td>
-        <td style="padding: 12px; color: var(--text-secondary);">${item.lotNumber || '-'} / <span style="color: var(--text-primary);">${item.expirationDate || '-'}</span></td>
-        <td style="padding: 12px; font-weight: 700; color: ${isCritical ? '#ef4444' : 'var(--text-primary)'};">${qty} unds</td>
-        <td style="padding: 12px;">${statusBadge}</td>
-        <td style="padding: 12px; color: var(--text-primary); font-weight: 600;">R$ ${price.toFixed(2)}</td>
-        <td style="padding: 12px; text-align: right;">
-          <div class="actions-cell" style="justify-content: flex-end;">
-            <button class="btn-icon btn-edit-pharm" data-id="${item.id}" title="Editar Medicamento" style="color: #ec4899;">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </button>
-            <button class="btn-icon btn-del-pharm" data-id="${item.id}" data-name="${item.name}" title="Excluir Medicamento" style="color: var(--color-danger);">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </div>
+  if (filteredItems.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+          Nenhum medicamento encontrado para este filtro.
         </td>
       </tr>
     `;
-  }).join('');
+  } else {
+    tbody.innerHTML = filteredItems.map(item => {
+      const qty = Number(item.stockQuantity || 0);
+      const min = Number(item.minStock || 10);
+      const price = Number(item.unitPrice || 0);
+      const isCritical = qty <= min;
+
+      const statusBadge = isCritical
+        ? `<span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Estoque Baixo</span>`
+        : `<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight:700;"><i class="fa-solid fa-check"></i> Normal</span>`;
+
+      const searchTxt = `${item.id} ${item.name} ${item.lotNumber} ${item.dosage}`.toLowerCase();
+
+      return `
+        <tr data-search="${searchTxt}" style="border-bottom: 1px solid var(--border-color); font-size: 0.88rem;">
+          <td style="padding: 12px; font-family: monospace; font-weight: 700; color: #ec4899;">${item.id}</td>
+          <td style="padding: 12px; font-weight: 600; color: var(--text-primary);">${item.name}</td>
+          <td style="padding: 12px; color: var(--text-secondary);">${item.dosage || '-'} (${item.form || 'Und'})</td>
+          <td style="padding: 12px; color: var(--text-secondary);">${item.lotNumber || '-'} / <span style="color: var(--text-primary);">${item.expirationDate || '-'}</span></td>
+          <td style="padding: 12px; font-weight: 700; color: ${isCritical ? '#ef4444' : 'var(--text-primary)'};">${qty} unds</td>
+          <td style="padding: 12px;">${statusBadge}</td>
+          <td style="padding: 12px; color: var(--text-primary); font-weight: 600;">R$ ${price.toFixed(2)}</td>
+          <td style="padding: 12px; text-align: right;">
+            <div class="actions-cell" style="justify-content: flex-end;">
+              <button class="btn-icon btn-edit-pharm" data-id="${item.id}" title="Editar Medicamento" style="color: #ec4899;">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="btn-icon btn-del-pharm" data-id="${item.id}" data-name="${item.name}" title="Excluir Medicamento" style="color: var(--color-danger);">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
 
   document.getElementById('kpi-pharm-total').textContent = totalItems;
   document.getElementById('kpi-pharm-critical').textContent = criticalCount;
