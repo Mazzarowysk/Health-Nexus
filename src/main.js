@@ -1334,10 +1334,10 @@ class SyncManager {
 const syncManager = new SyncManager();
 
 const getSyncStatus = async () => {
+  const isVercel = window.location.hostname.includes('vercel.app');
   try {
     const res = await fetch('/api/turso?status=1');
     if (!res.ok) {
-      const isVercel = window.location.hostname.includes('vercel.app');
       state.syncInfo = { cloudConfigured: isVercel, cloudReachable: false, isVercel: isVercel, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
       updateSyncBadge();
       return state.syncInfo;
@@ -1366,7 +1366,6 @@ const getSyncStatus = async () => {
     return state.syncInfo;
   } catch (err) {
     console.error('Erro ao obter status de sincronização:', err);
-    const isVercel = window.location.hostname.includes('vercel.app');
     state.syncInfo = { cloudConfigured: isVercel, cloudReachable: false, isVercel: isVercel, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
     updateSyncBadge();
     return null;
