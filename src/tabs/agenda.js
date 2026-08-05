@@ -288,6 +288,7 @@ async function renderAgendaTab() {
           <div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Total de Consultas</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">${total}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">Ver todas</div>
           </div>
         </div>
 
@@ -298,6 +299,7 @@ async function renderAgendaTab() {
           <div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Confirmados</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: #34d399;">${confirmados}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">Filtrar confirmados</div>
           </div>
         </div>
 
@@ -308,6 +310,7 @@ async function renderAgendaTab() {
           <div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Em Atendimento</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: #fbbf24;">${emAtendimento}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">Filtrar em atendimento</div>
           </div>
         </div>
 
@@ -318,9 +321,72 @@ async function renderAgendaTab() {
           <div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Concluídos</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: #94a3b8;">${concluidos}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">Filtrar concluídos</div>
           </div>
         </div>
       `;
+
+      // Sync active state of the status tab bar below the search bar
+      const syncStatusTabBar = (status) => {
+        document.querySelectorAll('.agenda-status-tab').forEach(btn => {
+          const isActive = btn.dataset.status === status;
+          btn.style.background = isActive ? 'var(--bg-secondary)' : 'transparent';
+          btn.style.color      = isActive ? 'var(--text-primary)' : 'var(--text-muted)';
+        });
+      };
+
+      // Apply active highlight to a card and reset the others
+      const applyAgendaCardActive = (activeId) => {
+        const cards = [
+          { id: 'kpi-agenda-all',       color: '#818cf8' },
+          { id: 'kpi-agenda-confirmed', color: '#34d399' },
+          { id: 'kpi-agenda-progress',  color: '#fbbf24' },
+          { id: 'kpi-agenda-completed', color: '#94a3b8' },
+        ];
+        cards.forEach(({ id, color }) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const isActive = id === activeId;
+          el.style.cursor     = 'pointer';
+          el.style.transition = 'all 0.22s ease';
+          el.style.border     = isActive ? `1px solid ${color}` : '1px solid var(--border-color)';
+          el.style.transform  = isActive ? 'translateY(-2px)' : 'none';
+          el.style.boxShadow  = isActive ? `0 6px 18px ${color}40` : 'none';
+          el.style.background = isActive ? `color-mix(in srgb, ${color} 8%, var(--bg-secondary))` : 'var(--bg-secondary)';
+        });
+      };
+
+      // Reflect current filter state right after rendering
+      const activeCardId = {
+        'all':            'kpi-agenda-all',
+        'Confirmado':     'kpi-agenda-confirmed',
+        'Em Atendimento': 'kpi-agenda-progress',
+        'Concluído':      'kpi-agenda-completed',
+      }[currentStatusFilter] || 'kpi-agenda-all';
+      applyAgendaCardActive(activeCardId);
+
+      // Wire up click events — clicking same card again resets to "all"
+      const setAgendaFilter = (status, cardId) => {
+        if (currentStatusFilter === status && status !== 'all') {
+          currentStatusFilter = 'all';
+          applyAgendaCardActive('kpi-agenda-all');
+          syncStatusTabBar('all');
+        } else {
+          currentStatusFilter = status;
+          applyAgendaCardActive(cardId);
+          syncStatusTabBar(status);
+        }
+        renderAgendaCards(allAppointmentsCache);
+      };
+
+      document.getElementById('kpi-agenda-all')?.addEventListener('click', () =>
+        setAgendaFilter('all', 'kpi-agenda-all'));
+      document.getElementById('kpi-agenda-confirmed')?.addEventListener('click', () =>
+        setAgendaFilter('Confirmado', 'kpi-agenda-confirmed'));
+      document.getElementById('kpi-agenda-progress')?.addEventListener('click', () =>
+        setAgendaFilter('Em Atendimento', 'kpi-agenda-progress'));
+      document.getElementById('kpi-agenda-completed')?.addEventListener('click', () =>
+        setAgendaFilter('Concluído', 'kpi-agenda-completed'));
     }
 
     if (filtered.length === 0) {
