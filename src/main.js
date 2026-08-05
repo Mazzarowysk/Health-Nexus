@@ -1531,7 +1531,8 @@ const initializeApp = async () => {
     clearTimeout(loaderSafetyTimer);
 
     if (authValid) {
-      if (Object.keys(localDB.getFullDB()).length === 0) {
+      const fullDB = localDB.getFullDB();
+      if (Object.keys(fullDB).length === 0 || (fullDB.medications && fullDB.medications.length > 0 && fullDB.medications[0].stockQuantity === undefined)) {
         console.log('[Init] Banco de dados vazio detectado. Gerando dados simulados iniciais...');
         await generateMockData();
       }
