@@ -24,17 +24,17 @@ async function renderStagnationTab(container) {
       <div id="stagnation-master-approval-area"></div>
 
       <div id="stagnation-kpi-area" class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 24px;">
-        <div class="kpi-card" style="border-left: 4px solid #ef4444;">
+        <div class="kpi-card" id="stag-card-critical" style="border-left: 4px solid #ef4444; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" title="Filtrar por Alertas Críticos">
           <div class="kpi-header"><span>Alertas Críticos</span><div class="kpi-icon danger"><i class="fa-solid fa-bell"></i></div></div>
           <div class="kpi-value" id="stag-kpi-critical">0</div>
           <div class="kpi-trend"><span>Risco Clínico / Fila Vermelha</span></div>
         </div>
-        <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+        <div class="kpi-card" id="stag-card-warning" style="border-left: 4px solid #f59e0b; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" title="Filtrar por Alertas de Espera">
           <div class="kpi-header"><span>Alertas de Espera</span><div class="kpi-icon warning"><i class="fa-solid fa-hourglass-half"></i></div></div>
           <div class="kpi-value" id="stag-kpi-warning">0</div>
           <div class="kpi-trend"><span>Estouro de SLA (> 15/30 min)</span></div>
         </div>
-        <div class="kpi-card" style="border-left: 4px solid #3b82f6;">
+        <div class="kpi-card" id="stag-card-total" style="border-left: 4px solid #3b82f6; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" title="Mostrar Todos os Pacientes Estagnados">
           <div class="kpi-header"><span>Total Estagnados</span><div class="kpi-icon primary"><i class="fa-solid fa-hospital-user"></i></div></div>
           <div class="kpi-value" id="stag-kpi-total">0</div>
           <div class="kpi-trend"><span>Pacientes Necessitando Ação</span></div>
@@ -53,6 +53,30 @@ async function renderStagnationTab(container) {
   `;
 
   document.getElementById('btn-refresh-stagnation')?.addEventListener('click', () => renderStagnationTab(container));
+
+  window.currentStagnationFilter = 'ALL';
+  window.currentStagnationAlerts = [];
+
+  ['critical', 'warning', 'total'].forEach(type => {
+    const card = document.getElementById(`stag-card-${type}`);
+    if (card) {
+      card.addEventListener('click', () => {
+        window.currentStagnationFilter = type === 'critical' ? 'CRITICAL' : type === 'warning' ? 'WARNING' : 'ALL';
+        
+        document.querySelectorAll('.kpi-card').forEach(c => {
+          c.style.transform = 'scale(1)';
+          c.style.boxShadow = 'none';
+        });
+        card.style.transform = 'scale(1.02)';
+        card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+
+        if (window.renderStagnationTable) {
+          window.renderStagnationTable();
+        }
+      });
+    }
+  });
+
   await loadAndRenderStagnationData();
 }
 
@@ -216,74 +240,90 @@ async function loadAndRenderStagnationData() {
     const wrapper = document.getElementById('stagnation-list-wrapper');
     if (!wrapper) return;
 
-    if (alerts.length === 0) {
-      wrapper.innerHTML = `
-        <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
-          <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: #10b981; margin-bottom: 14px; opacity: 0.8;"></i>
-          <h3 style="color: var(--text-primary); font-weight: 700; margin-bottom: 6px;">Nenhum Paciente Estagnado</h3>
-          <p style="font-size: 0.85rem; max-width: 480px; margin: 0 auto;">Todos os atendimentos estão dentro do tempo limite recomendado (SLA). Excelente fluxo hospitalar!</p>
-        </div>
-      `;
-      return;
+    window.currentStagnationAlerts = alerts;
+
+    if (!window.renderStagnationTable) {
+      window.renderStagnationTable = function() {
+        const wrap = document.getElementById('stagnation-list-wrapper');
+        if (!wrap) return;
+
+        const currentAlerts = window.currentStagnationFilter === 'ALL' 
+          ? window.currentStagnationAlerts 
+          : window.currentStagnationAlerts.filter(a => a.severity === window.currentStagnationFilter);
+
+        if (currentAlerts.length === 0) {
+          const isFilterEmpty = window.currentStagnationAlerts.length > 0;
+          wrap.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+              <i class="fa-solid ${isFilterEmpty ? 'fa-filter' : 'fa-circle-check'}" style="font-size: 3rem; color: ${isFilterEmpty ? 'var(--text-muted)' : '#10b981'}; margin-bottom: 14px; opacity: 0.8;"></i>
+              <h3 style="color: var(--text-primary); font-weight: 700; margin-bottom: 6px;">${isFilterEmpty ? 'Nenhum paciente neste filtro' : 'Nenhum Paciente Estagnado'}</h3>
+              <p style="font-size: 0.85rem; max-width: 480px; margin: 0 auto;">${isFilterEmpty ? 'Tente selecionar outro filtro nos cards acima.' : 'Todos os atendimentos estão dentro do tempo limite recomendado (SLA). Excelente fluxo hospitalar!'}</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = `
+          <table class="data-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th>PACIENTE</th>
+                <th>STATUS ATUAL</th>
+                <th>SALA / CONSULTÓRIO</th>
+                <th>TEMPO PARADO</th>
+                <th>DIAGNOSTICO DE ESTAGNAÇÃO</th>
+                <th style="text-align: right;">AÇÕES RÁPIDAS</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        currentAlerts.forEach(item => {
+          const isCritical = item.severity === 'CRITICAL';
+          const isWarning = item.severity === 'WARNING';
+          
+          const badgeBg = isCritical ? 'rgba(239, 68, 68, 0.15)' : (isWarning ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)');
+          const badgeColor = isCritical ? '#f87171' : (isWarning ? '#fbbf24' : '#60a5fa');
+          const badgeBorder = isCritical ? 'rgba(239, 68, 68, 0.3)' : (isWarning ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)');
+
+          html += `
+            <tr style="${isCritical ? 'background: rgba(239,68,68,0.03);' : ''}">
+              <td>
+                <div style="font-weight: 700; color: var(--text-primary);">${item.patientName}</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">CPF: ${item.patientCpf || 'Não informado'}</div>
+              </td>
+              <td>
+                <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};">
+                  ${item.status}
+                </span>
+              </td>
+              <td>
+                <span style="font-weight: 600; color: #34d399;"><i class="fa-solid fa-door-open" style="margin-right: 4px;"></i>${item.room || 'Consultório 01'}</span>
+              </td>
+              <td style="font-family: monospace; font-weight: 700; color: ${isCritical ? '#f87171' : '#fbbf24'};">
+                <i class="fa-solid fa-clock" style="margin-right: 4px;"></i>${item.elapsedMin} min
+              </td>
+              <td style="font-size: 0.82rem; color: var(--text-secondary);">
+                <strong>${item.reason}</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${item.recommendedAction}</div>
+              </td>
+              <td style="text-align: right;">
+                <div class="actions-cell" style="justify-content: flex-end;">
+                  <button class="btn btn-primary" onclick="openReassignModal('${item.id}', '${(item.patientName||'').replace(/'/g, "\\'")}', '${item.room||'Consultório 01'}', '${item.status}')" style="font-size: 0.78rem; padding: 6px 12px; background: linear-gradient(135deg, #2563eb, #1d4ed8);" title="Redirecionar de Consultório/Ala ou Avançar Status">
+                    <i class="fa-solid fa-right-left" style="margin-right: 4px;"></i> Direcionar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `</tbody></table>`;
+        wrap.innerHTML = html;
+      };
     }
 
-    let html = `
-      <table class="data-table" style="width: 100%;">
-        <thead>
-          <tr>
-            <th>PACIENTE</th>
-            <th>STATUS ATUAL</th>
-            <th>SALA / CONSULTÓRIO</th>
-            <th>TEMPO PARADO</th>
-            <th>DIAGNOSTICO DE ESTAGNAÇÃO</th>
-            <th style="text-align: right;">AÇÕES RÁPIDAS</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
-
-    alerts.forEach(item => {
-      const isCritical = item.severity === 'CRITICAL';
-      const isWarning = item.severity === 'WARNING';
-      
-      const badgeBg = isCritical ? 'rgba(239, 68, 68, 0.15)' : (isWarning ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)');
-      const badgeColor = isCritical ? '#f87171' : (isWarning ? '#fbbf24' : '#60a5fa');
-      const badgeBorder = isCritical ? 'rgba(239, 68, 68, 0.3)' : (isWarning ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)');
-
-      html += `
-        <tr style="${isCritical ? 'background: rgba(239,68,68,0.03);' : ''}">
-          <td>
-            <div style="font-weight: 700; color: var(--text-primary);">${item.patientName}</div>
-            <div style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">CPF: ${item.patientCpf || 'Não informado'}</div>
-          </td>
-          <td>
-            <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};">
-              ${item.status}
-            </span>
-          </td>
-          <td>
-            <span style="font-weight: 600; color: #34d399;"><i class="fa-solid fa-door-open" style="margin-right: 4px;"></i>${item.room || 'Consultório 01'}</span>
-          </td>
-          <td style="font-family: monospace; font-weight: 700; color: ${isCritical ? '#f87171' : '#fbbf24'};">
-            <i class="fa-solid fa-clock" style="margin-right: 4px;"></i>${item.elapsedMin} min
-          </td>
-          <td style="font-size: 0.82rem; color: var(--text-secondary);">
-            <strong>${item.reason}</strong>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${item.recommendedAction}</div>
-          </td>
-          <td style="text-align: right;">
-            <div class="actions-cell" style="justify-content: flex-end;">
-              <button class="btn btn-primary" onclick="openReassignModal('${item.id}', '${(item.patientName||'').replace(/'/g, "\\'")}', '${item.room||'Consultório 01'}', '${item.status}')" style="font-size: 0.78rem; padding: 6px 12px; background: linear-gradient(135deg, #2563eb, #1d4ed8);" title="Redirecionar de Consultório/Ala ou Avançar Status">
-                <i class="fa-solid fa-right-left" style="margin-right: 4px;"></i> Direcionar
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    html += `</tbody></table>`;
-    wrapper.innerHTML = html;
+    window.renderStagnationTable();
 
   } catch (e) {
     console.error('Erro ao carregar dados de estagnação:', e);
