@@ -384,20 +384,20 @@ function generateBeds(encounters) {
   return beds;
 }
 
-function generateFinancial(patients, encounters, count = 90) {
+function generateFinancial(patients, encounters, count = 150) {
   const installments = [];
-  const paymentForms = ['PIX','Cartão de Crédito','Cartão de Débito','Dinheiro','Boleto','Convênio','SUS'];
-  const categories = ['Consulta','Exame Laboratorial','Exame de Imagem','Procedimento','Internação','Medicamento','Taxa de Uso'];
-  const statusWeights = { Pago: 0.50, Pendente: 0.28, Vencido: 0.14, Cancelado: 0.08 };
+  // Field names must match what reports.js filterAndRender expects
+  const paymentMethods = ['Pix','Boleto','Cartão de Crédito','Cartão de Débito','Dinheiro','Convênio'];
+  const categories = ['Consultas','Procedimentos','Exames','Operacionais','Farmácia','Insumos'];
+  const statusWeights = { Pagas: 0.50, 'A Vencer': 0.28, Vencidas: 0.14, Canceladas: 0.08 };
 
   const baseValues = {
-    'Consulta': [80, 120, 180, 250, 350],
-    'Exame Laboratorial': [40, 80, 120, 200],
-    'Exame de Imagem': [150, 250, 400, 600, 800],
-    'Procedimento': [200, 500, 800, 1200, 2000],
-    'Internação': [800, 1500, 2500, 4000, 7500],
-    'Medicamento': [20, 45, 80, 150],
-    'Taxa de Uso': [30, 50, 80]
+    'Consultas': [80, 120, 180, 250, 350],
+    'Exames': [40, 80, 120, 200, 350],
+    'Procedimentos': [200, 500, 800, 1200, 2000],
+    'Operacionais': [150, 300, 500, 800],
+    'Farmácia': [20, 45, 80, 150, 250],
+    'Insumos': [30, 50, 80, 120]
   };
 
   for (let i = 0; i < count; i++) {
@@ -406,18 +406,18 @@ function generateFinancial(patients, encounters, count = 90) {
     const enc = Math.random() > 0.4 ? pick(encounters) : null;
 
     const statusRoll = Math.random();
-    let cumW = 0, status = 'Pago';
+    let cumW = 0, status = 'Pagas';
     for (const [s, w] of Object.entries(statusWeights)) { cumW += w; if (statusRoll < cumW) { status = s; break; } }
 
     let dueDate, payDate;
-    if (status === 'Pago') {
+    if (status === 'Pagas') {
       dueDate = pastDate(90).split('T')[0];
       payDate = pastDate(80).split('T')[0];
-    } else if (status === 'Pendente') {
+    } else if (status === 'A Vencer') {
       const future = new Date(Date.now() + rnd(1, 30) * 86400000);
       dueDate = future.toISOString().split('T')[0];
       payDate = null;
-    } else if (status === 'Vencido') {
+    } else if (status === 'Vencidas') {
       dueDate = new Date(Date.now() - rnd(5, 90) * 86400000).toISOString().split('T')[0];
       payDate = null;
     } else {
@@ -434,13 +434,14 @@ function generateFinancial(patients, encounters, count = 90) {
       patientId: patient.id,
       patientName: patient.fullName,
       encounterId: enc ? enc.id : null,
+      type: ['Operacionais', 'Insumos'].includes(cat) ? 'Despesa' : 'Receita',
       category: cat,
       description: `${cat} - ${patient.fullName.split(' ')[0]}`,
       amount,
       discount,
       finalAmount,
       status,
-      paymentForm: status === 'Pago' ? pick(paymentForms) : null,
+      paymentMethod: status === 'Pagas' ? pick(paymentMethods) : null,
       healthPlan: patient.healthPlan,
       dueDate,
       payDate,
