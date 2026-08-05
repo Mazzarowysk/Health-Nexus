@@ -6068,7 +6068,7 @@ window.generateMockData = async function() {
   setTimeout(() => window.location.reload(), 2000);
 };
 
-export { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate };
+export { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions };
 
 // Expondo variáveis utilizadas em onclicks (movidas de tv.js)
 window.saveRoom = saveRoom;
