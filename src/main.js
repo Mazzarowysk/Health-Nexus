@@ -1695,8 +1695,13 @@ const apiFetch = async (url, options = {}) => {
       }
     } 
     else if (url.includes('/api/auth/me')) {
-      const users = localDB.list('users');
-      responseData = { user: users[0] || { role: 'Administrador', name: 'Admin Local' } };
+      const storedUser = JSON.parse(sessionStorage.getItem('hn_user') || 'null');
+      if (storedUser) {
+        responseData = { user: storedUser };
+      } else {
+        const users = localDB.list('users');
+        responseData = { user: users[0] || { role: 'Administrador', name: 'Admin Local' } };
+      }
     }
     else if (url.includes('/api/turso/sync')) {
       // handled by real network to vercel proxy, let it pass through
