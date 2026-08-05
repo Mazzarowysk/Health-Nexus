@@ -5961,7 +5961,8 @@ function renderReportsTab(contentArea) {
   const updatePreviewStatusText = () => {
     const total = currentFilteredList.length;
     const selected = document.querySelectorAll('.record-checkbox:checked').length;
-    previewStatus.textContent = `${selected} de ${total} selecionados para exportação`;
+    const ps = document.getElementById('preview-status');
+    if (ps) ps.textContent = `${selected} de ${total} selecionados para exportação`;
   };
 
   const renderFinancialCharts = (data) => {
@@ -6526,10 +6527,13 @@ function renderReportsTab(contentArea) {
       document.getElementById('btn-export-csv')?.addEventListener('click', () => processExport('csv'));
     }
 
+    const dynTableHead = document.getElementById('preview-table-head');
+    const dynTableBody = document.getElementById('preview-table-body');
+
     if (activeTab === 'patients') {
-      const dateStart = document.getElementById('filter-date-start').value;
-      const dateEnd = document.getElementById('filter-date-end').value;
-      const billingMin = document.getElementById('filter-billing-min').value;
+      const dateStart = document.getElementById('filter-date-start')?.value || '';
+      const dateEnd = document.getElementById('filter-date-end')?.value || '';
+      const billingMin = document.getElementById('filter-billing-min')?.value || '';
       
       const checkedCities = Array.from(document.querySelectorAll('.filter-city-item:checked')).map(cb => cb.value);
 
@@ -6556,7 +6560,7 @@ function renderReportsTab(contentArea) {
         return true;
       });
 
-      tableHead.innerHTML = `
+      if (dynTableHead) dynTableHead.innerHTML = `
         <tr>
           <th class="col-checkbox"><input type="checkbox" id="select-all-records" checked></th>
           <th>ID</th>
@@ -6569,10 +6573,10 @@ function renderReportsTab(contentArea) {
       `;
 
       if (currentFilteredList.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhum paciente encontrado com os filtros atuais.</td></tr>`;
+        if (dynTableBody) dynTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhum paciente encontrado com os filtros atuais.</td></tr>`;
       } else {
         const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
-        tableBody.innerHTML = currentFilteredList.map(p => {
+        if (dynTableBody) dynTableBody.innerHTML = currentFilteredList.map(p => {
           let formattedDate = p.birthDate || '-';
           if (p.birthDate && p.birthDate.includes('-')) {
             const [y, m, d] = p.birthDate.split('-');
@@ -6595,8 +6599,8 @@ function renderReportsTab(contentArea) {
       }
 
     } else {
-      const dateStart = document.getElementById('filter-date-start').value;
-      const dateEnd = document.getElementById('filter-date-end').value;
+      const dateStart = document.getElementById('filter-date-start')?.value || '';
+      const dateEnd = document.getElementById('filter-date-end')?.value || '';
 
       const checkedStatuses = Array.from(document.querySelectorAll('.filter-status-item:checked')).map(cb => cb.value);
       const checkedManchester = Array.from(document.querySelectorAll('.filter-manchester-item:checked')).map(cb => cb.value);
@@ -6631,7 +6635,7 @@ function renderReportsTab(contentArea) {
         return true;
       });
 
-      tableHead.innerHTML = `
+      if (dynTableHead) dynTableHead.innerHTML = `
         <tr>
           <th class="col-checkbox"><input type="checkbox" id="select-all-records" checked></th>
           <th>ID</th>
@@ -6644,7 +6648,7 @@ function renderReportsTab(contentArea) {
       `;
 
       if (currentFilteredList.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhum atendimento encontrado com os filtros atuais.</td></tr>`;
+        if (dynTableBody) dynTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhum atendimento encontrado com os filtros atuais.</td></tr>`;
       } else {
         const hasPEP = state.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
         const statusMap = {
@@ -6653,7 +6657,7 @@ function renderReportsTab(contentArea) {
           'Em_Atendimento': 'Em Consulta',
           'Finalizado': 'Finalizado'
         };
-        tableBody.innerHTML = currentFilteredList.map(e => {
+        if (dynTableBody) dynTableBody.innerHTML = currentFilteredList.map(e => {
           const name = hasPEP ? (e.patientName || 'Desconhecido') : abbreviateName(e.patientName || 'Desconhecido');
           const dateStr = e.admitted_at ? new Date(e.admitted_at).toLocaleString() : '-';
           const badgeClass = e.manchesterColor ? `badge-${e.manchesterColor.toLowerCase()}` : '';
