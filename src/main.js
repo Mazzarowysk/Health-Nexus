@@ -6070,3 +6070,8 @@ window.generateMockData = async function() {
 
 export { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate };
 
+// Expondo variáveis utilizadas em onclicks (movidas de tv.js)
+window.saveRoom = saveRoom;
+window.deleteRoom = deleteRoom;
+window.openRoomModal = openRoomModal;
+window.openConsultorioDetailsModal = openConsultorioDetailsModal;

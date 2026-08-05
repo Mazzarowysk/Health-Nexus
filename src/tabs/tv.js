@@ -580,11 +580,8 @@ window.showTrashModal = async function(type) {
 };
 
 // Expose functions used in inline onclick events
-window.saveRoom = saveRoom;
-window.deleteRoom = deleteRoom;
-window.openRoomModal = openRoomModal;
-window.openConsultorioDetailsModal = openConsultorioDetailsModal;
 window.switchTab = switchTab;
+
 
 // --- FASE 2: PRESCRIÇÃO MÉDICA, TIMER DE OBSERVAÇÃO 12H E TRANSFERÊNCIA DE LEITO ---
 
