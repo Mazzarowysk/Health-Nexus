@@ -1264,8 +1264,8 @@ class SyncManager {
     this.syncInProgress = true;
 
     try {
-      const dados_json = localStorage.getItem('oczOnlineDados') || '{}';
-      const config_json = localStorage.getItem('oczOnlineConfig') || '{}';
+      const dados_json = localStorage.getItem('healthNexusDados') || '{}';
+      const config_json = localStorage.getItem('healthNexusConfig') || '{}';
 
       const res = await fetch('/api/turso?sync=1', {
         method: 'POST',
@@ -1276,7 +1276,7 @@ class SyncManager {
       if (res.ok) {
         const body = await res.json();
         const now = body.updated_at || Date.now();
-        localStorage.setItem('oczOnlineUpdatedAt', now.toString());
+        localStorage.setItem('healthNexusUpdatedAt', now.toString());
         localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
         this.lastLocalUpdate = now;
         if (showToastMessage) showToast('Dados enviados para a nuvem com sucesso!');
@@ -1304,7 +1304,7 @@ class SyncManager {
         localDB.overwriteLocal(body);
         
         const now = body.updated_at || Date.now();
-        localStorage.setItem('oczOnlineUpdatedAt', now.toString());
+        localStorage.setItem('healthNexusUpdatedAt', now.toString());
         localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
         sessionStorage.setItem('hn_reloading_after_sync', 'true');
         showToast('Banco local atualizado com os dados da nuvem!');
@@ -1351,7 +1351,7 @@ const getSyncStatus = async () => {
       lastLocalBackup: localUpdated,
       lastCloudBackup: cloudUpdated,
       isVercel: isVercel,
-      conflict: (localUpdated > cloudUpdated && cloudUpdated > Number(localStorage.getItem('oczOnlineUpdatedAt') || 0)) // simplistic conflict
+      conflict: (localUpdated > cloudUpdated && cloudUpdated > Number(localStorage.getItem('healthNexusUpdatedAt') || 0)) // simplistic conflict
     };
     updateSyncBadge();
     return state.syncInfo;
@@ -1531,6 +1531,10 @@ const initializeApp = async () => {
     clearTimeout(loaderSafetyTimer);
 
     if (authValid) {
+      if (Object.keys(localDB.getFullDB()).length === 0) {
+        console.log('[Init] Banco de dados vazio detectado. Gerando dados simulados iniciais...');
+        await generateMockData();
+      }
       renderAppStructure();
       const logoutBtn = document.getElementById('btn-logout');
       if (logoutBtn) {

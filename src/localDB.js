@@ -1,9 +1,8 @@
 // src/localDB.js
 
-// Chaves do localStorage
-const DB_KEY = 'oczOnlineDados';
-const CONFIG_KEY = 'oczOnlineConfig';
-const UPDATED_AT_KEY = 'oczOnlineUpdatedAt';
+const DB_KEY = 'healthNexusDados';
+const CONFIG_KEY = 'healthNexusConfig';
+const UPDATED_AT_KEY = 'healthNexusUpdatedAt';
 
 // Função para obter todo o banco
 export function getFullDB() {
@@ -89,7 +88,7 @@ function ensureTable(db, table) {
   if (modified) {
     // Only safely save if we actually modified something fundamental like table initialization
     try {
-      localStorage.setItem('oczOnlineDados', JSON.stringify(db));
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
     } catch(e) {}
   }
 }

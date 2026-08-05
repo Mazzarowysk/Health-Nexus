@@ -556,7 +556,7 @@ function generateConsultorios(doctors) {
 export async function generateMockData() {
   // ── 1. Limpar banco (preservar usuários) ──
   const currentDB = (() => {
-    try { return JSON.parse(localStorage.getItem('oczOnlineDados') || '{}'); } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem('healthNexusDados') || '{}'); } catch { return {}; }
   })();
 
   // Preservar usuários essenciais do sistema (nunca podem ser apagados)
@@ -625,8 +625,8 @@ export async function generateMockData() {
     consultorios,
   };
 
-  localStorage.setItem('oczOnlineDados', JSON.stringify(db));
-  localStorage.setItem('oczOnlineUpdatedAt', Date.now().toString());
+  localStorage.setItem('healthNexusDados', JSON.stringify(db));
+  localStorage.setItem('healthNexusUpdatedAt', Date.now().toString());
 
   console.log('[MockGen] ✅ Simulação completa gerada!');
   console.log(`  → ${patients.length} pacientes`);
