@@ -2,7 +2,7 @@
 
 **Versão:** `1.0.1`  
 **Status:** Em desenvolvimento ativo  
-**Última atualização:** Julho 2026
+**Última atualização:** Agosto 2026
 
 ---
 
