@@ -127,87 +127,114 @@ async function renderDoctorsTab() {
   `;
 
   let allDoctorsCache = [];
+  // Track current active filter: 'all' | 'Ativo' | specialty string
+  if (!window.currentDocFilter) window.currentDocFilter = 'all';
+
+  const updateCardStyles = () => {
+    const curFilter = window.currentDocFilter;
+    const configs = [
+      { id: 'kpi-doc-total',  color: '#a78bfa', active: curFilter === 'all' },
+      { id: 'kpi-doc-active', color: '#34d399', active: curFilter === 'Ativo' },
+      { id: 'kpi-doc-specs',  color: '#67e8f9', active: typeof curFilter === 'string' && curFilter !== 'all' && curFilter !== 'Ativo' },
+    ];
+    configs.forEach(({ id, color, active }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.border      = active ? `1px solid ${color}` : '1px solid var(--border-color)';
+      el.style.transform   = active ? 'translateY(-2px)' : 'none';
+      el.style.boxShadow   = active ? `0 6px 18px ${color}40` : 'none';
+      el.style.background  = active ? `color-mix(in srgb, ${color} 8%, var(--bg-secondary))` : 'var(--bg-secondary)';
+    });
+  };
 
   const renderTable = (doctors) => {
     const container = document.getElementById('doctors-list-container');
-    const kpisEl = document.getElementById('doctors-kpis');
+    const kpisEl    = document.getElementById('doctors-kpis');
     const searchQuery = (document.getElementById('filter-doctor-search')?.value || '').toLowerCase().trim();
 
     let filtered = doctors || [];
-    
+
     if (window.currentDocFilter === 'Ativo') {
       filtered = filtered.filter(d => (d.status || 'Ativo') === 'Ativo');
+    } else if (window.currentDocFilter !== 'all') {
+      // Filter by specialty
+      filtered = filtered.filter(d => (d.specialty || '') === window.currentDocFilter);
     }
 
     if (searchQuery) {
-      filtered = filtered.filter(d => 
-        (d.name || '').toLowerCase().includes(searchQuery) ||
-        (d.crm || '').toLowerCase().includes(searchQuery) ||
-        (d.specialty || '').toLowerCase().includes(searchQuery)
+      filtered = filtered.filter(d =>
+        (d.name     || '').toLowerCase().includes(searchQuery) ||
+        (d.crm      || '').toLowerCase().includes(searchQuery) ||
+        (d.specialty|| '').toLowerCase().includes(searchQuery)
       );
     }
 
-    const total = doctors.length;
-    const ativos = doctors.filter(d => (d.status || 'Ativo') === 'Ativo').length;
+    const total        = doctors.length;
+    const ativos       = doctors.filter(d => (d.status || 'Ativo') === 'Ativo').length;
     const especialidades = new Set(doctors.map(d => d.specialty)).size;
 
     if (kpisEl) {
       kpisEl.innerHTML = `
-        <div class="interactive-card" id="kpi-doc-total" title="Clique para exibir todos os médicos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s ease;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25); display: flex; align-items: center; justify-content: center; color: #a78bfa;">
+        <div class="interactive-card" id="kpi-doc-total"
+          title="Clique para exibir todos os médicos"
+          style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.22s ease;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25); display: flex; align-items: center; justify-content: center; color: #a78bfa; flex-shrink: 0;">
             <i class="fa-solid fa-user-doctor" style="font-size: 1.2rem;"></i>
           </div>
           <div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Total de Médicos</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">${total}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">Ver todos</div>
           </div>
         </div>
 
-        <div class="interactive-card" id="kpi-doc-active" title="Clique para buscar médicos ativos" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s ease;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; color: #34d399;">
+        <div class="interactive-card" id="kpi-doc-active"
+          title="Clique para filtrar médicos ativos"
+          style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.22s ease;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center; color: #34d399; flex-shrink: 0;">
             <i class="fa-solid fa-user-check" style="font-size: 1.2rem;"></i>
           </div>
           <div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Médicos Ativos</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: #34d399;">${ativos}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">Filtrar ativos</div>
           </div>
         </div>
 
-        <div class="interactive-card" id="kpi-doc-specs" title="Clique para ver resumo por Especialidade" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s ease;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.25); display: flex; align-items: center; justify-content: center; color: #67e8f9;">
+        <div class="interactive-card" id="kpi-doc-specs"
+          title="Clique para filtrar por especialidade"
+          style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.22s ease;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.25); display: flex; align-items: center; justify-content: center; color: #67e8f9; flex-shrink: 0;">
             <i class="fa-solid fa-stethoscope" style="font-size: 1.2rem;"></i>
           </div>
           <div>
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Especialidades</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: #67e8f9;">${especialidades}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">Filtrar por área</div>
           </div>
         </div>
       `;
 
-      const applyCardStyle = (id, color, isActive) => {
-        const el = document.getElementById(id);
-        if (el) {
-          if (isActive) {
-            el.style.border = `1px solid ${color}`;
-            el.style.transform = 'translateY(-2px)';
-            el.style.boxShadow = `0 4px 12px ${color}30`;
-          } else {
-            el.style.border = '1px solid var(--border-color)';
-            el.style.transform = 'none';
-            el.style.boxShadow = 'none';
-          }
-        }
-      };
+      updateCardStyles();
 
-      const curFilter = window.currentDocFilter || 'all';
-      applyCardStyle('kpi-doc-total', '#a78bfa', curFilter === 'all');
-      applyCardStyle('kpi-doc-active', '#34d399', curFilter === 'Ativo');
-      applyCardStyle('kpi-doc-specs', '#67e8f9', curFilter === 'specs');
+      // --- Card Click Handlers (attached once per render) ---
+      document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
+        window.currentDocFilter = 'all';
+        const inp = document.getElementById('filter-doctor-search');
+        if (inp) inp.value = '';
+        renderTable(allDoctorsCache);
+      });
 
-      const setFilter = (f) => { window.currentDocFilter = f; renderTable(allDoctorsCache); };
-      document.getElementById('kpi-doc-total')?.addEventListener('click', () => setFilter('all'));
-      document.getElementById('kpi-doc-active')?.addEventListener('click', () => setFilter('Ativo'));
-      document.getElementById('kpi-doc-specs')?.addEventListener('click', () => setFilter('all')); // Fallback to all
+      document.getElementById('kpi-doc-active')?.addEventListener('click', () => {
+        window.currentDocFilter = window.currentDocFilter === 'Ativo' ? 'all' : 'Ativo';
+        const inp = document.getElementById('filter-doctor-search');
+        if (inp) inp.value = '';
+        renderTable(allDoctorsCache);
+      });
+
+      document.getElementById('kpi-doc-specs')?.addEventListener('click', () => {
+        openSpecialtyFilterPanel(allDoctorsCache);
+      });
     }
 
     if (filtered.length === 0) {
@@ -351,73 +378,89 @@ async function renderDoctorsTab() {
   // Event Listeners
   document.getElementById('filter-doctor-search').addEventListener('input', () => renderTable(allDoctorsCache));
 
-  document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
-    const input = document.getElementById('filter-doctor-search');
-    if (input) { input.value = ''; renderTable(allDoctorsCache); }
-  });
+  // Specialty Filter Panel — opens a floating card with specialty chips
+  function openSpecialtyFilterPanel(doctors) {
+    const existing = document.getElementById('specialty-filter-panel');
+    if (existing) { existing.remove(); return; }
 
-  document.getElementById('kpi-doc-active')?.addEventListener('click', () => {
-    const input = document.getElementById('filter-doctor-search');
-    if (input) { input.value = ''; renderTable(allDoctorsCache); }
-  });
-
-  document.getElementById('kpi-doc-specs')?.addEventListener('click', () => {
     const specsMap = {};
-    allDoctorsCache.forEach(d => { specsMap[d.specialty] = (specsMap[d.specialty] || 0) + 1; });
-    const list = Object.entries(specsMap).map(([s, c]) => `• ${s}: ${c} médico(s)`).join('\n');
-    alert('Resumo de Especialidades no Corpo Clínico:\n\n' + (list || 'Nenhuma especialidade cadastrada.'));
-  });
+    doctors.forEach(d => { specsMap[d.specialty || 'Sem especialidade'] = (specsMap[d.specialty || 'Sem especialidade'] || 0) + 1; });
+    const specEntries = Object.entries(specsMap).sort((a, b) => b[1] - a[1]);
 
-  document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
-    const input = document.getElementById('filter-doctor-search');
-    if (input) { input.value = ''; renderTable(allDoctorsCache); }
-  });
+    const kpiCard = document.getElementById('kpi-doc-specs');
+    const rect    = kpiCard ? kpiCard.getBoundingClientRect() : { left: 0, bottom: 0 };
 
-  document.getElementById('kpi-doc-active')?.addEventListener('click', () => {
-    const input = document.getElementById('filter-doctor-search');
-    if (input) { input.value = ''; renderTable(allDoctorsCache); }
-  });
+    const panel = document.createElement('div');
+    panel.id = 'specialty-filter-panel';
+    panel.style.cssText = `
+      position: fixed;
+      top: ${rect.bottom + 8 + window.scrollY}px;
+      left: ${Math.max(8, rect.left)}px;
+      z-index: 99999;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 20px;
+      min-width: 280px; max-width: 380px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+      animation: fadeInDown 0.18s ease;
+    `;
 
-  document.getElementById('kpi-doc-specs')?.addEventListener('click', () => {
-    const specsMap = {};
-    allDoctorsCache.forEach(d => { specsMap[d.specialty] = (specsMap[d.specialty] || 0) + 1; });
-    const list = Object.entries(specsMap).map(([s, c]) => `• ${s}: ${c} médico(s)`).join('\n');
-    alert('Resumo de Especialidades no Corpo Clínico:\n\n' + (list || 'Nenhuma especialidade cadastrada.'));
-  });
+    const activeSpec = (window.currentDocFilter !== 'all' && window.currentDocFilter !== 'Ativo') ? window.currentDocFilter : null;
 
-  document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
-    const input = document.getElementById('filter-doctor-search');
-    if (input) { input.value = ''; renderTable(allDoctorsCache); }
-  });
+    panel.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-stethoscope" style="color: #67e8f9;"></i> Filtrar por Especialidade
+        </div>
+        <button id="btn-close-spec-panel" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 260px; overflow-y: auto;">
+        <button class="spec-chip ${!activeSpec ? 'spec-chip-active' : ''}" data-spec="all"
+          style="padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+          border: 1px solid ${!activeSpec ? '#67e8f9' : 'var(--border-color)'};
+          background: ${!activeSpec ? 'rgba(34,211,238,0.15)' : 'var(--bg-tertiary)'};
+          color: ${!activeSpec ? '#67e8f9' : 'var(--text-secondary)'}; transition: all 0.15s;">
+          Todas (${doctors.length})
+        </button>
+        ${specEntries.map(([spec, count]) => `
+          <button class="spec-chip ${activeSpec === spec ? 'spec-chip-active' : ''}" data-spec="${spec}"
+            style="padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            border: 1px solid ${activeSpec === spec ? '#67e8f9' : 'var(--border-color)'};
+            background: ${activeSpec === spec ? 'rgba(34,211,238,0.15)' : 'var(--bg-tertiary)'};
+            color: ${activeSpec === spec ? '#67e8f9' : 'var(--text-secondary)'}; transition: all 0.15s;">
+            ${spec} <span style="opacity:0.7;">(${count})</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
 
-  document.getElementById('kpi-doc-active')?.addEventListener('click', () => {
-    const input = document.getElementById('filter-doctor-search');
-    if (input) { input.value = ''; renderTable(allDoctorsCache); }
-  });
+    document.body.appendChild(panel);
 
-  document.getElementById('kpi-doc-specs')?.addEventListener('click', () => {
-    const specsMap = {};
-    allDoctorsCache.forEach(d => { specsMap[d.specialty] = (specsMap[d.specialty] || 0) + 1; });
-    const list = Object.entries(specsMap).map(([s, c]) => `• ${s}: ${c} médico(s)`).join('\n');
-    alert('Resumo de Especialidades no Corpo Clínico:\n\n' + (list || 'Nenhuma especialidade cadastrada.'));
-  });
+    panel.querySelectorAll('.spec-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const spec = chip.dataset.spec;
+        window.currentDocFilter = spec === 'all' ? 'all' : spec;
+        const inp = document.getElementById('filter-doctor-search');
+        if (inp) inp.value = '';
+        panel.remove();
+        renderTable(allDoctorsCache);
+      });
+    });
 
-  document.getElementById('kpi-doc-total')?.addEventListener('click', () => {
-    const input = document.getElementById('filter-doctor-search');
-    if (input) { input.value = ''; renderTable(allDoctorsCache); }
-  });
+    document.getElementById('btn-close-spec-panel').addEventListener('click', () => panel.remove());
 
-  document.getElementById('kpi-doc-active')?.addEventListener('click', () => {
-    const input = document.getElementById('filter-doctor-search');
-    if (input) { input.value = ''; renderTable(allDoctorsCache); }
-  });
-
-  document.getElementById('kpi-doc-specs')?.addEventListener('click', () => {
-    const specsMap = {};
-    allDoctorsCache.forEach(d => { specsMap[d.specialty] = (specsMap[d.specialty] || 0) + 1; });
-    const list = Object.entries(specsMap).map(([s, c]) => `• ${s}: ${c} médico(s)`).join('\n');
-    alert('Resumo de Especialidades no Corpo Clínico:\n\n' + (list || 'Nenhuma especialidade cadastrada.'));
-  });
+    // Close on outside click
+    setTimeout(() => {
+      const closeOnOutside = (e) => {
+        if (!panel.contains(e.target) && e.target.id !== 'kpi-doc-specs') {
+          panel.remove();
+          document.removeEventListener('click', closeOnOutside);
+        }
+      };
+      document.addEventListener('click', closeOnOutside);
+    }, 100);
+  }
 
   const modal = document.getElementById('modal-doctor');
   document.getElementById('btn-open-doctor-modal').addEventListener('click', () => {
