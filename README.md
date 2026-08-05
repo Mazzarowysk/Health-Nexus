@@ -107,10 +107,11 @@ Todos os painéis com cards de KPI passaram a ser **filtros clicáveis**:
 
 | Aba | Cards | Comportamento |
 |-----|-------|--------------|
-| **Agenda** | Total · Confirmados · Em Atendimento · Concluídos | Filtra lista de consultas; toggle ao clicar 2× |
-| **Corpo Clínico** | Total · Ativos · Especialidades | Filtra tabela de médicos; Especialidades abre painel de chips |
-| **Farmácia** | Total · Baixo Estoque · Crítico | Filtra lista de medicamentos |
-| **Estagnação** | Críticos · Alertas de Espera · Total | Filtra tabela de alertas |
+| **Agenda** | Total, Confirmados, Em Atendimento, Concluídos | Filtra lista de consultas; toggle ao clicar 2º |
+| **Corpo Clínico** | Total, Ativos, Especialidades | Filtra tabela de médicos; Especialidades abre painel de chips |
+| **Farmácia** | Total, Baixo Estoque, Crítico | Filtra lista de medicamentos |
+| **Estagnação** | Críticos, Alertas de Espera, Total | Filtra tabela de alertas |
+| **Leitos** | Total, Vagos, Ocupados, Higienização | Filtra a grade visual do mapa de leitos pelo status selecionado |
 
 **Padrão visual:** card ativo recebe borda colorida + leve elevação + glow correspondente à sua cor de acento. Clicar novamente no mesmo card ativo volta para "Todos".
 
