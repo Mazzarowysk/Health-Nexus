@@ -1243,19 +1243,19 @@ class SyncManager {
         const hasNewData = statusData.cloudTimestamps.main_data > statusData.localTimestamps.main_data;
         
         if (force) {
-          if (statusData.local_updates > 0) {
-            showSyncPromptModal(statusData);
-          } else if (hasNewData || statusData.conflict) {
+          if (hasNewData || statusData.conflict) {
             showSyncComparisonModal(statusData);
+          } else if (statusData.local_updates > 0) {
+            showSyncPromptModal(statusData);
           } else {
             showToast('Banco local já está atualizado com a nuvem.');
           }
         } else {
           // Checagem em background
-          if (statusData.local_updates > 0) {
-            syncManager.pushToCloud(false);
-          } else if (hasNewData) {
+          if (hasNewData) {
             showSyncComparisonModal(statusData);
+          } else if (statusData.local_updates > 0 && !statusData.isVercel) {
+            syncManager.pushToCloud(false);
           }
         }
         
@@ -1357,7 +1357,7 @@ const getSyncStatus = async () => {
       cloudTimestamps: { main_data: cloudUpdated },
       lastLocalBackup: localUpdated,
       lastCloudBackup: cloudUpdated,
-      isVercel: false,
+      isVercel: window.location.hostname.includes('vercel.app'),
       conflict: (localUpdated > cloudUpdated && cloudUpdated > Number(localStorage.getItem('ultimoSyncUpdatedAt') || 0)) // simplistic conflict
     };
     updateSyncBadge();
@@ -1381,10 +1381,11 @@ const requestSyncPromptIfConfigured = async () => {
     statusData.lastCloudBackup = cloudMax.str || new Date().toISOString();
 
     const hasLocalUpdates = statusData.local_updates > 0;
-    if (hasLocalUpdates || statusData.isVercel) {
-      showSyncPromptModal(statusData);
-    } else if (cloudMax.time > localMax.time) {
+    
+    if (cloudMax.time > localMax.time) {
       showSyncComparisonModal(statusData);
+    } else if (hasLocalUpdates || statusData.isVercel) {
+      showSyncPromptModal(statusData);
     } else {
       showToast('Banco local já está perfeitamente sincronizado com a nuvem.');
     }
@@ -1648,7 +1649,10 @@ const scheduleSyncUpload = async () => {
   
   syncUploadTimeout = setTimeout(async () => {
     // Toda alteração feita no notebook é automaticamente enviada para a nuvem em 1s
-    await syncManager.pushToCloud(false);
+    const isVercelEnvironment = window.location.hostname.includes('vercel.app');
+    if (!isVercelEnvironment) {
+      await syncManager.pushToCloud(false);
+    }
   }, 1000);
 };
 
@@ -1666,10 +1670,13 @@ const apiFetch = async (url, options = {}) => {
       // Se for o primeiro acesso, tenta puxar da nuvem silenciosamente
       if (isFirstTime) {
         try {
-          const res = await fetch('/api/turso');
-          if (res.ok) {
-            const body = await res.json();
-            localDB.overwriteLocal(body);
+          const isVercelEnvironment = window.location.hostname.includes('vercel.app');
+          if (!isVercelEnvironment) {
+            const res = await fetch('/api/turso');
+            if (res.ok) {
+              const body = await res.json();
+              localDB.overwriteLocal(body);
+            }
           }
         } catch (e) {
           console.error('Erro ao buscar dados iniciais para login:', e);
@@ -1853,7 +1860,7 @@ const apiFetch = async (url, options = {}) => {
 
   if (mockRes.ok && ['POST', 'PUT', 'DELETE'].includes(method)) {
     invalidateCacheForUrl(url);
-    if (!options.skipSyncPrompt) scheduleSyncUpload();
+    if (!options.skipSyncPrompt && !url.includes('/api/auth/login')) scheduleSyncUpload();
   }
 
   return mockRes;
