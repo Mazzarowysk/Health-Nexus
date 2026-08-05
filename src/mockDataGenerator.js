@@ -609,6 +609,7 @@ export async function generateMockData() {
 
   // ── 3. Montar e salvar banco completo ──
   const db = {
+    settings: currentDB.settings || [],
     users: preservedUsers,
     patients,
     doctors,
