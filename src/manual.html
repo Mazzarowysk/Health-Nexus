@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Health Nexus - Manual do Sistema</title>
+  <title>Health Nexus - Manual do Sistema (Completo)</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,6 +72,8 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 10px;
     }
 
     /* Flowchart / Journey */
@@ -120,9 +122,9 @@
     /* Info Cards */
     .card-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 20px;
-      margin-top: 20px;
+      margin-bottom: 20px;
     }
     .card {
       border: 1px solid var(--border-color);
@@ -130,25 +132,38 @@
       padding: 20px;
       background: #fafafa;
     }
-    .card h4 { margin: 0 0 10px 0; color: var(--text-dark); display: flex; align-items: center; gap: 8px;}
+    .card h4 { margin: 0 0 10px 0; color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-size: 1.2rem;}
     .card h4 i { color: var(--primary); }
-    .card ul { margin: 0; padding-left: 20px; color: var(--text-light); font-size: 0.95rem; }
-    .card ul li { margin-bottom: 8px; }
+    .card ul { margin: 0; padding-left: 20px; color: var(--text-dark); font-size: 1rem; line-height: 1.6;}
+    .card ul li { margin-bottom: 10px; }
 
     /* Button highlighting */
     .btn-badge {
       display: inline-block;
-      padding: 2px 8px;
+      padding: 3px 8px;
       background: var(--text-dark);
       color: white;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 600;
       margin: 0 3px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .btn-badge.primary { background: linear-gradient(135deg, var(--primary), var(--accent)); }
     .btn-badge.danger { background: var(--danger); }
     .btn-badge.success { background: var(--success); }
+    .btn-badge.warning { background: var(--warning); }
+    .btn-badge.purple { background: #8b5cf6; }
+
+    .instructions {
+        background: #e0f2fe;
+        border-left: 4px solid var(--primary);
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin: 15px 0;
+        font-size: 0.95rem;
+        color: #0369a1;
+    }
 
     /* Print Button (Hidden on Print) */
     .print-btn-container {
@@ -179,7 +194,7 @@
         box-shadow: none;
         border-radius: 0;
         page-break-after: always;
-        min-height: auto;
+        min-height: 297mm;
       }
       .page:last-child { page-break-after: auto; }
       .no-print { display: none !important; }
@@ -192,189 +207,306 @@
     <button class="print-btn" onclick="window.print()">
       <i class="fa-solid fa-print"></i> Imprimir / Salvar como PDF
     </button>
+    <p style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Lembre-se de ativar "Gráficos de segundo plano" na impressão.</p>
   </div>
 
   <!-- PÁGINA 1: VISÃO GERAL -->
   <div class="page">
     <div class="header">
       <h1>Health Nexus</h1>
-      <p>Manual do Usuário & Fluxo de Operações</p>
+      <p>Manual Completo de Utilização & Funcionalidades</p>
     </div>
 
-    <h2 class="section-title"><i class="fa-solid fa-map"></i> Jornada do Paciente</h2>
+    <div class="instructions">
+      <strong>Bem-vindo ao Health Nexus.</strong> Este manual detalhado explica cada botão, cada aba e cada passo que você deve realizar para operar o sistema com perfeição na sua clínica ou hospital.
+    </div>
+
+    <h2 class="section-title"><i class="fa-solid fa-map"></i> A Grande Jornada (Resumo)</h2>
     <p style="color: var(--text-light); font-size: 1.05rem;">
-      O Health Nexus gerencia todo o ciclo de vida do paciente dentro da clínica/hospital, 
-      desde a chegada até o faturamento. Siga o fluxo abaixo:
+      Antes de entrarmos nos detalhes, entenda o fluxo lógico do sistema. Tudo começa na recepção e termina no faturamento:
     </p>
 
     <div class="journey">
       <div class="journey-step">
         <div class="step-icon"><i class="fa-solid fa-hospital-user"></i></div>
         <div class="step-content">
-          <h3>1. Recepção (Agendamento & Check-in)</h3>
-          <p>O paciente é cadastrado no sistema. Ele pode ter um agendamento futuro ou ser atendido na hora. Quando o paciente chega à clínica, a recepção realiza o <strong>Check-in</strong>, enviando-o automaticamente para a Fila de Triagem.</p>
+          <h3>Passo 1: Cadastro & Check-in (Recepção)</h3>
+          <p>Tudo nasce na aba <strong>Pacientes</strong> ou <strong>Agenda</strong>. Sem o paciente cadastrado e sem o clique no botão <strong>Check-in</strong>, ninguém sabe que ele chegou.</p>
         </div>
       </div>
 
       <div class="journey-step">
         <div class="step-icon" style="background: var(--warning)"><i class="fa-solid fa-heart-pulse"></i></div>
         <div class="step-content">
-          <h3>2. Triagem (Enfermagem)</h3>
-          <p>O enfermeiro avalia os sinais vitais (Pressão, Temperatura, etc.) e aplica a <strong>Classificação de Risco</strong> (Protocolo de Manchester). Após salvar, o paciente é enviado para a Fila de Atendimento do Médico.</p>
+          <h3>Passo 2: Avaliação de Risco (Triagem)</h3>
+          <p>O paciente que fez Check-in cai na tela da Enfermagem. Eles medem os sinais vitais, escolhem a cor de risco e passam a bola para o médico.</p>
         </div>
       </div>
 
       <div class="journey-step">
         <div class="step-icon" style="background: var(--success)"><i class="fa-solid fa-user-doctor"></i></div>
         <div class="step-content">
-          <h3>3. Consultório (Atendimento Médico)</h3>
-          <p>O médico visualiza a fila, chama o paciente no painel (TV), e preenche o <strong>Prontuário Eletrônico (PEP)</strong>. Aqui podem ser feitas prescrições de medicamentos. Por fim, o médico direciona o paciente (Alta, Internação ou Farmácia).</p>
+          <h3>Passo 3: Prontuário & TV (Consultório Médico)</h3>
+          <p>O médico visualiza a fila já colorida (urgência). Ele chama na TV com um clique, atende no Prontuário Eletrônico, passa a Receita e escolhe para onde o paciente vai depois (Alta, Farmácia, Internação).</p>
         </div>
       </div>
 
       <div class="journey-step">
         <div class="step-icon" style="background: #8b5cf6"><i class="fa-solid fa-pills"></i></div>
         <div class="step-content">
-          <h3>4. Farmácia (Dispensação)</h3>
-          <p>Se o médico prescreveu medicação e direcionou para a farmácia, o farmacêutico visualiza a receita pendente e dá <strong>Baixa no Estoque</strong> após a entrega ao paciente.</p>
+          <h3>Passo 4: Retirada (Farmácia) / Internação (Leitos)</h3>
+          <p>Se o médico mandou para a farmácia, o paciente aparece lá. Se mandou internar, ele deve ser alocado na tela de Leitos.</p>
         </div>
       </div>
 
       <div class="journey-step">
         <div class="step-icon" style="background: #3b82f6"><i class="fa-solid fa-file-invoice-dollar"></i></div>
         <div class="step-content">
-          <h3>5. Financeiro (Faturamento)</h3>
-          <p>Todo atendimento gera custos. O setor financeiro emite boletos, envia cobranças por e-mail, e controla os recebimentos realizando a <strong>Baixa Manual</strong> de parcelas pagas.</p>
+          <h3>Passo 5: Faturamento (Financeiro)</h3>
+          <p>Emissão das cobranças do paciente, controle de boletos, baixas manuais e acompanhamento de receita.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- PÁGINA 2: RECEPÇÃO E TRIAGEM -->
+  <!-- PÁGINA 2: PACIENTES E AGENDA -->
   <div class="page">
     <div class="header">
-      <h1>Módulo 1</h1>
-      <p>Recepção e Triagem</p>
+      <h1>Módulo 1: A Recepção</h1>
+      <p>Gerenciando Pacientes e a Agenda (Check-in)</p>
     </div>
 
-    <div class="card-grid" style="grid-template-columns: 1fr; gap: 30px;">
+    <div class="card-grid">
       
       <div class="card">
-        <h4><i class="fa-solid fa-users"></i> Menu: Pacientes</h4>
-        <p>A primeira aba do sistema é o coração do cadastro.</p>
+        <h4><i class="fa-solid fa-users"></i> Aba: Pacientes</h4>
+        <p>Esta é a sua base de dados de todos os clientes que já pisaram na clínica.</p>
         <ul>
-          <li><strong>Novo Paciente:</strong> Clique em <span class="btn-badge primary">+ Novo Paciente</span> para cadastrar. Nome e Data de Nascimento são obrigatórios.</li>
-          <li><strong>Editar:</strong> O botão amarelo <span class="btn-badge" style="background:var(--warning)"><i class="fa-solid fa-pen"></i></span> permite alterar dados cadastrais de qualquer paciente.</li>
-          <li><strong>Agendamento Rápido:</strong> Use o botão azul <span class="btn-badge primary"><i class="fa-solid fa-calendar-plus"></i></span> na linha do paciente para agendar rapidamente uma consulta.</li>
+          <li><strong>Cadastrar Alguém:</strong> Clique no grande botão superior <span class="btn-badge primary">+ Novo Paciente</span>.
+            <ul>
+              <li>Preencha Nome Completo e Data de Nascimento (obrigatórios).</li>
+              <li>Dica: Ao digitar o CEP, o sistema busca a Rua automaticamente, economizando tempo.</li>
+            </ul>
+          </li>
+          <li><strong>Editar Dados:</strong> Localize o paciente na lista e clique no ícone amarelo <span class="btn-badge warning"><i class="fa-solid fa-pen"></i></span>.</li>
+          <li><strong>Excluir:</strong> Caso tenha criado errado, clique na lixeira vermelha <span class="btn-badge danger"><i class="fa-solid fa-trash"></i></span> (ação não pode ser desfeita).</li>
+          <li><strong>Agendar Rapidamente:</strong> Para pular etapas, clique no calendário azul na linha do paciente <span class="btn-badge primary"><i class="fa-solid fa-calendar-plus"></i></span>. O sistema já abrirá o formulário de consulta com o nome dele preenchido.</li>
         </ul>
       </div>
 
       <div class="card">
-        <h4><i class="fa-solid fa-calendar-check"></i> Menu: Agenda (Check-in)</h4>
-        <p>A aba Agenda exibe as consultas do dia. É aqui que o fluxo do atendimento começa de fato.</p>
+        <h4><i class="fa-solid fa-calendar-check"></i> Aba: Agenda</h4>
+        <p>Aqui você controla quem vem, quem faltou, e quem já está na recepção esperando.</p>
         <ul>
-          <li><strong>O que é o Check-in?</strong> Quando o paciente chega fisicamente à clínica, o recepcionista clica no botão verde <span class="btn-badge success">Check-in</span>.</li>
-          <li><strong>Efeito do Check-in:</strong> Ao fazer o Check-in, o sistema altera o status para <em>"Aguardando Triagem"</em> e o paciente <strong>aparece instantaneamente na tela da Enfermagem</strong>.</li>
-          <li><strong>Atenção:</strong> Sem o Check-in, o médico ou enfermeiro não saberão que o paciente chegou.</li>
-        </ul>
-      </div>
-
-      <div class="card">
-        <h4><i class="fa-solid fa-heart-pulse"></i> Menu: Triagem</h4>
-        <p>Aba de uso exclusivo da enfermagem para avaliação inicial.</p>
-        <ul>
-          <li><strong>Chamar Paciente:</strong> Clique em <span class="btn-badge primary">Iniciar Triagem</span>. Isso marca que o paciente está com você.</li>
-          <li><strong>Formulário:</strong> Preencha Pressão Arterial, Peso, Sintomas, etc.</li>
-          <li><strong>Classificação:</strong> Escolha a cor correspondente à gravidade (Azul, Verde, Amarelo, Vermelho).</li>
-          <li><strong>Concluir:</strong> Ao clicar em <span class="btn-badge success">Salvar Triagem</span>, o paciente sai desta lista e vai direto para a <strong>Fila do Médico</strong>.</li>
+          <li><strong>Criar Agendamento:</strong> Clique em <span class="btn-badge primary">Novo Agendamento</span>. Você deve digitar a Data, Hora, e escolher o Médico/Especialidade. O paciente deve já ter sido cadastrado na aba anterior.</li>
+          <li><strong>Filtro de Data:</strong> O calendário só mostra as consultas do dia escolhido no topo. Mude a data para ver o futuro.</li>
+          <li><strong>O Botão Check-in (MUITO IMPORTANTE):</strong> Quando o paciente chegar presencialmente, localize ele na lista de hoje e clique em <span class="btn-badge success">Check-in</span>.
+            <ul>
+              <li><strong>O que isso faz?</strong> Ele avisa ao sistema que a pessoa chegou. Imediatamente, o nome dela brota na tela da Enfermagem (Aba Triagem).</li>
+              <li>Se você não clicar aqui, o médico e o enfermeiro nunca saberão que o paciente está na sala de espera.</li>
+            </ul>
+          </li>
+          <li><strong>Cancelar ou Faltou:</strong> Use os ícones de X vermelho para cancelar, limpando a fila.</li>
         </ul>
       </div>
 
     </div>
   </div>
 
-  <!-- PÁGINA 3: CONSULTÓRIO E RECEITA -->
+  <!-- PÁGINA 3: TRIAGEM -->
   <div class="page">
     <div class="header">
-      <h1>Módulo 2</h1>
-      <p>Consultório e Prontuário</p>
+      <h1>Módulo 2: A Enfermagem</h1>
+      <p>Aba Triagem (Classificação de Risco)</p>
     </div>
 
-    <div class="card-grid" style="grid-template-columns: 1fr; gap: 30px;">
+    <div class="instructions">
+      <strong>Atenção Enfermeiros:</strong> Vocês só verão pacientes nesta lista se a Recepção tiver clicado no botão "Check-in". Se a lista estiver vazia, certifique-se com a recepção.
+    </div>
+
+    <div class="card-grid">
       
       <div class="card">
-        <h4><i class="fa-solid fa-user-doctor"></i> Menu: Consultório</h4>
-        <p>Painel do Médico. Lista apenas pacientes que já passaram pela Triagem (ou que o status é "Aguardando Atendimento").</p>
+        <h4><i class="fa-solid fa-heart-pulse"></i> Como realizar uma Triagem passo a passo</h4>
         <ul>
-          <li><strong>Chamar Painel (TV):</strong> Clique no ícone azul com a TV <span class="btn-badge primary"><i class="fa-solid fa-tv"></i></span>. O nome do paciente será enviado para a tela de chamadas da recepção, com alerta sonoro.</li>
-          <li><strong>Iniciar Atendimento:</strong> Clique no botão verde <span class="btn-badge success">Atender</span> para abrir o Prontuário Eletrônico (PEP) do paciente.</li>
+          <li><strong>Passo 1 (Chamar):</strong> Clique no botão azul <span class="btn-badge primary">Iniciar Triagem</span> na linha do paciente desejado. Uma janela lateral deslizará.</li>
+          <li><strong>Passo 2 (Sinais Vitais):</strong> Preencha os campos vitais obrigatórios:
+            <ul>
+              <li><strong>Pressão Arterial (PA):</strong> Ex: 120/80</li>
+              <li><strong>Frequência Cardíaca (FC):</strong> Batimentos por minuto.</li>
+              <li><strong>Temperatura:</strong> Importante para indicar febre (risco).</li>
+              <li><strong>Peso:</strong> Fundamental se o médico for prescrever medicação infantil ou baseada em peso corporal.</li>
+            </ul>
+          </li>
+          <li><strong>Passo 3 (Sintomas):</strong> No campo grande "Queixa / Sintomas", anote o motivo da vinda. Ex: "Dor de cabeça forte há 3 dias, tontura."</li>
+          <li><strong>Passo 4 (Classificação de Manchester):</strong> Escolha a gravidade selecionando a cor:
+            <ul>
+              <li><strong style="color:var(--danger)">Vermelho (Emergência):</strong> Risco de morte, passa na frente de todos.</li>
+              <li><strong style="color:var(--warning)">Amarelo (Urgente):</strong> Casos severos.</li>
+              <li><strong style="color:var(--success)">Verde (Pouco Urgente):</strong> Rotina ou dores leves.</li>
+              <li><strong style="color:#3b82f6">Azul (Não Urgente):</strong> Renovação de receitas, etc.</li>
+            </ul>
+          </li>
+          <li><strong>Passo 5 (Liberar):</strong> Clique no botão verde gigante embaixo <span class="btn-badge success">Salvar Triagem</span>. O paciente sairá da sua tela e aparecerá no computador do Médico já classificado.</li>
         </ul>
       </div>
 
-      <div class="card" style="border-left: 4px solid var(--primary);">
-        <h4><i class="fa-solid fa-notes-medical"></i> Dentro do Prontuário Eletrônico</h4>
-        <p>O coração do atendimento clínico. Possui 3 abas essenciais no painel superior:</p>
+      <div class="card" style="border: 1px dashed var(--danger); background: #fef2f2;">
+        <h4><i class="fa-solid fa-triangle-exclamation"></i> Retorno à Triagem</h4>
+        <p>Se, por algum motivo, você fechou o formulário ou a tela recarregou antes de salvar, o status do paciente ficará como <em>"Em Triagem"</em>. Você pode simplesmente clicar no botão <span class="btn-badge warning">Continuar Triagem</span> e preencher o resto.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PÁGINA 4: O CONSULTÓRIO MÉDICO (TV e PEP) -->
+  <div class="page">
+    <div class="header">
+      <h1>Módulo 3: O Médico</h1>
+      <p>Painel de Chamadas, PEP, Receita e Direcionamento</p>
+    </div>
+
+    <div class="instructions">
+      <strong>Atenção Doutores:</strong> A fila do médico é ordenada pelas cores da Triagem (Vermelho primeiro, depois Amarelo, etc). Pacientes sem triagem não aparecem aqui.
+    </div>
+
+    <div class="card-grid">
+      
+      <div class="card">
+        <h4><i class="fa-solid fa-tv"></i> Como chamar o Paciente (TV)</h4>
         <ul>
-          <li><strong>Resumo Clínico:</strong> Histórico de atendimentos passados, alertas e comorbidades para rápida leitura.</li>
-          <li><strong>Evolução:</strong> Onde o médico digita as anotações do dia (queixa, exame físico, conduta). Ao final, o médico deve escolher um "Direcionamento" (Ex: <em>Alta</em>, <em>Retirada de Medicamento</em>, <em>Internação</em>) e clicar em <span class="btn-badge success">Salvar Evolução & Encerrar</span>.</li>
-          <li><strong>Receita Eletrônica:</strong> Permite buscar e adicionar remédios à receita do paciente. Você pode imprimir o PDF da receita clicando em <span class="btn-badge primary">Imprimir Receita</span>. Se houver remédios para entregar na unidade, o paciente deve ser direcionado à Farmácia.</li>
+          <li>Na sua lista "Aguardando Atendimento", ao lado direito de cada paciente, há um botão de TV <span class="btn-badge primary"><i class="fa-solid fa-tv"></i></span>.</li>
+          <li>Ao clicar nele, o sistema aciona a Aba "Painel TV" (aquela que fica rodando na televisão da sala de espera), emite um sinal sonoro ("Plim Plom") e exibe o nome do paciente com a sala do médico em tela cheia.</li>
+          <li>Clique duas vezes seguidas no botão se o paciente demorar a entrar.</li>
         </ul>
       </div>
 
       <div class="card">
-        <h4><i class="fa-solid fa-bed-pulse"></i> Menu: Leitos</h4>
-        <p>Se o médico direcionar o paciente para "Internação" na evolução, ele deverá ser alocado aqui.</p>
+        <h4><i class="fa-solid fa-stethoscope"></i> Abrindo o Prontuário</h4>
         <ul>
-          <li>Visualize os leitos disponíveis (Livres, Ocupados, em Limpeza).</li>
-          <li>Clique em <span class="btn-badge primary">Alocar Paciente</span> num leito livre.</li>
-          <li>Quando o paciente for embora, clique em <span class="btn-badge" style="background:#8b5cf6">Liberar Leito</span> (o leito entrará em Higienização).</li>
+          <li>Após chamar na TV e o paciente entrar, clique em <span class="btn-badge success">Atender</span> (ou <span class="btn-badge warning">Retomar</span> se já tinha começado).</li>
+          <li>A tela mudará completamente para o <strong>Prontuário Eletrônico (PEP)</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-left: 5px solid var(--success);">
+        <h4><i class="fa-solid fa-file-medical"></i> As 3 abas do Prontuário Eletrônico</h4>
+        <ul>
+          <li><strong>1. Resumo Clínico:</strong> Aba de leitura. Mostra as comorbidades, alergias e a Triagem (Pressão, Temperatura) que a Enfermagem acabou de tirar.</li>
+          <li><strong>2. Evolução (Obrigatória):</strong> 
+            <ul>
+              <li>Preencha a História Clínica e o Exame Físico.</li>
+              <li>Obrigatório: No fundo desta tela existe a opção "Direcionamento Pós-Consulta". Você **precisa** escolher o destino do paciente:
+                <br> - <strong>Alta Médica:</strong> Vai para casa (encerra tudo).
+                <br> - <strong>Internação:</strong> Envia ele para a fila da aba de Leitos.
+                <br> - <strong>Retirada de Medicamento:</strong> Envia ele para a fila da Farmácia.
+              </li>
+            </ul>
+          </li>
+          <li><strong>3. Receita Digital:</strong>
+            <ul>
+              <li>Pesquise um remédio, adicione e digite a posologia (Ex: Tomar de 8/8h).</li>
+              <li>Para entregar ao paciente o papel, clique em <span class="btn-badge primary">Imprimir Receita</span>. O sistema gera um PDF carimbado para você imprimir ou mandar por WhatsApp.</li>
+            </ul>
+          </li>
+          <li><strong>Encerrando:</strong> Sempre volte à aba "Evolução" e clique em <span class="btn-badge success">Salvar Evolução & Encerrar Atendimento</span>. Isso limpará a sua fila.</li>
         </ul>
       </div>
 
     </div>
   </div>
 
-  <!-- PÁGINA 4: FARMÁCIA E FINANCEIRO -->
+  <!-- PÁGINA 5: FARMÁCIA E LEITOS -->
   <div class="page">
     <div class="header">
-      <h1>Módulo 3</h1>
-      <p>Farmácia & Financeiro</p>
+      <h1>Módulo 4: Pós-Consulta</h1>
+      <p>Farmácia, Estoque e Internação</p>
     </div>
 
-    <div class="card-grid" style="grid-template-columns: 1fr; gap: 30px;">
+    <div class="card-grid">
       
       <div class="card">
-        <h4><i class="fa-solid fa-pills"></i> Menu: Farmácia</h4>
-        <p>Gerencia a entrega de remédios receitados pelo médico na unidade.</p>
+        <h4><i class="fa-solid fa-pills"></i> Aba: Farmácia (Estoque e Dispensação)</h4>
+        <p>A farmácia é dividida em dois ambientes na mesma tela:</p>
         <ul>
-          <li><strong>Estoque:</strong> Aba que exibe quantos comprimidos/caixas a clínica tem.</li>
-          <li><strong>Receitas Pendentes:</strong> Se o médico receitou algo para retirar no local e direcionou para "Retirada de Medicamento", o nome do paciente aparecerá aqui.</li>
-          <li><strong>Dispensação (Dar Baixa):</strong> O farmacêutico seleciona a receita e clica em <span class="btn-badge success">Dar Baixa</span>. Isso deduz automaticamente o remédio do Estoque e registra a entrega no histórico do paciente.</li>
+          <li><strong>Cadastrar Estoque (Aba "Estoque e Produtos"):</strong> 
+            <ul>
+              <li>Clique em <span class="btn-badge primary">Novo Medicamento</span>.</li>
+              <li>Insira o nome, tipo (Caixa, Comprimido) e a quantidade inicial (ex: 50). Sem estoque, você não poderá dispensar remédios.</li>
+            </ul>
+          </li>
+          <li><strong>Entregar ao Paciente (Aba "Receitas Pendentes"):</strong> 
+            <ul>
+              <li>Se o médico (no módulo anterior) marcou "Retirada de Medicamento", o paciente surge nesta lista.</li>
+              <li>Clique em <span class="btn-badge success">Dar Baixa / Dispensar</span>.</li>
+              <li>Uma janela abrirá perguntando **qual remédio** e **quantas unidades** o paciente está levando. Selecione o medicamento do seu estoque.</li>
+              <li>Confirme. O sistema descontará essa quantidade matematicamente do seu Estoque e o paciente será marcado como finalizado.</li>
+            </ul>
+          </li>
         </ul>
       </div>
 
       <div class="card">
-        <h4><i class="fa-solid fa-file-invoice-dollar"></i> Menu: Financeiro</h4>
-        <p>Controle completo de faturamento, faturas (invoices) e parcelamentos.</p>
+        <h4><i class="fa-solid fa-bed-pulse"></i> Aba: Leitos (Internação)</h4>
+        <p>Gestão visual do mapa da clínica (quartos e UTIs).</p>
         <ul>
-          <li><strong>Emissão de Fatura:</strong> Clique em <span class="btn-badge primary">Emitir Nova Fatura</span>. Vincule a um paciente, digite o valor e selecione a condição (À vista, Parcelado 2x, etc.).</li>
-          <li><strong>Status das Parcelas:</strong> O sistema dividirá a fatura em parcelas com status <span class="btn-badge" style="background:var(--warning)">Pendente</span>.</li>
-          <li><strong>Baixa Manual:</strong> Ao confirmar o recebimento do dinheiro, clique no botão azul <span class="btn-badge primary">Dar Baixa Manual</span> na aba de Títulos, preenchendo a data e forma de pagamento. O status mudará para <span class="btn-badge success">Pago</span>.</li>
-          <li><strong>Baixa em Lote:</strong> Para dar baixa em várias parcelas ao mesmo tempo, marque as caixas de seleção (checkbox) ao lado delas e clique em <span class="btn-badge success">Baixa em Lote</span>.</li>
-        </ul>
-      </div>
-
-      <div class="card" style="border: 1px dashed var(--border-color); background: #f8fafc;">
-        <h4><i class="fa-solid fa-cloud"></i> Sincronização em Nuvem (Turso)</h4>
-        <p>Sua base de dados não se perde!</p>
-        <ul>
-          <li>Vá em <strong>Configurações > Turso</strong>.</li>
-          <li>Insira a URL e o Token do seu banco de dados na nuvem.</li>
-          <li>O sistema irá comparar o que você tem offline com o que está na nuvem e perguntar se deseja <strong>Enviar</strong> os dados atualizados. Clique na notificação ou no botão de Sincronizar na barra superior.</li>
+          <li><strong>Cadastrando Leitos:</strong> Clique em <span class="btn-badge primary">Adicionar Leito</span> e nomeie (Ex: Quarto 101, UTI A).</li>
+          <li><strong>Alocação:</strong> 
+            <ul>
+              <li>Um leito Livre fica <strong style="color:var(--success)">Verde</strong>. Se o médico enviou alguém para Internação, clique em <span class="btn-badge primary">Alocar Paciente</span> no leito desejado e selecione o paciente da lista.</li>
+              <li>O leito ficará <strong style="color:var(--danger)">Vermelho</strong> (Ocupado).</li>
+            </ul>
+          </li>
+          <li><strong>Alta e Higienização:</strong>
+            <ul>
+              <li>Quando o paciente for de alta, clique no leito vermelho e depois em <span class="btn-badge purple">Liberar Leito</span>.</li>
+              <li>O leito ficará <strong style="color:var(--warning)">Amarelo</strong> (Em Higienização). Apenas após o time de limpeza terminar, clique novamente para torná-lo Verde (Livre).</li>
+            </ul>
+          </li>
         </ul>
       </div>
 
     </div>
+  </div>
+
+  <!-- PÁGINA 6: FINANCEIRO E TURSO -->
+  <div class="page">
+    <div class="header">
+      <h1>Módulo 5: Gestão & Segurança</h1>
+      <p>Faturamento Financeiro e Sincronização de Banco</p>
+    </div>
+
+    <div class="card-grid">
+      
+      <div class="card">
+        <h4><i class="fa-solid fa-file-invoice-dollar"></i> Aba: Financeiro</h4>
+        <p>A central onde o dinheiro é administrado.</p>
+        <ul>
+          <li><strong>Emitir Nova Fatura:</strong> Clicando neste botão, você cria uma cobrança. Escolha o paciente, digite o valor e a modalidade (Ex: Parcelado em 3x). O sistema dividirá os valores matematicamente e criará 3 parcelas separadas.</li>
+          <li><strong>Baixa Manual:</strong> Se o paciente pagou no caixa, localize a parcela na lista (ela estará com tag Amarela de Pendente), clique em <span class="btn-badge primary">Dar Baixa Manual</span>. Escolha a data de hoje e o método (PIX, Cartão, Dinheiro). O status vira Verde (Pago).</li>
+          <li><strong>Baixa em Lote:</strong> Se você recebeu uma remessa do convênio, selecione as "caixinhas" (checkbox) do lado esquerdo de várias parcelas. O botão superior direito <span class="btn-badge success">Dar Baixa Lote</span> ficará clicável. Clique nele para quitar todas juntas!</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border: 2px solid var(--primary); background: #f8fafc;">
+        <h4><i class="fa-solid fa-cloud"></i> Configurações: Turso DB e Sincronização</h4>
+        <p>O Health Nexus funciona de forma offline-first, garantindo alta velocidade e segurança caso a internet caia. Mas os dados devem ir para a nuvem.</p>
+        <ul>
+          <li><strong>Inserir Credenciais:</strong> Vá na aba Configurações > Turso. Cole sua "URL do Banco" e o "Token de Autenticação". Clique em Salvar (os dados são gravados localmente no seu PC de forma segura).</li>
+          <li><strong>Notificação de Dados Novos:</strong> Se o seu colega na recepção atualizou a nuvem, o seu sistema avisará "Dados Novos na Nuvem". Ele vai sugerir baixar.</li>
+          <li><strong>Envio dos seus Dados:</strong> Você preencheu coisas e não tem internet? Sem problema. Quando a internet voltar, uma notificação vai sugerir "Enviar Dados para a Nuvem".</li>
+          <li><strong>O Botão 300 Dados de Teste:</strong> Útil apenas para treinamentos. Apaga todos os registros da nuvem/local e enche o sistema de dados fictícios em massa para praticar todas as funções deste manual.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="instructions" style="text-align: center; margin-top: 50px; background: #f1f5f9; border: none;">
+      <strong>Fim do Manual</strong><br><br>
+      Esperamos que tenha um excelente uso da plataforma Health Nexus. <br>
+      Tecnologia de ponta a favor da vida.
+    </div>
+
   </div>
 
   <script>
