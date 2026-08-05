@@ -1795,7 +1795,14 @@ const apiFetch = async (url, options = {}) => {
         if (typeof window.populateFakeDatabase === 'function') {
           window.populateFakeDatabase();
         }
-        responseData = { message: 'Database populated successfully' };
+      } else if (url.includes('/api/settings/turso') && method === 'POST') {
+        const existing = localDB.get('settings', 'turso');
+        body.id = 'turso';
+        if (existing) {
+          responseData = { data: localDB.update('settings', 'turso', body), message: 'Configuração do Turso atualizada com sucesso' };
+        } else {
+          responseData = { data: localDB.insert('settings', body), message: 'Configuração do Turso criada com sucesso' };
+        }
       } else {
         // Extract table from URL: e.g. /api/patients/PAT-123 -> table: patients, id: PAT-123
         const parts = url.split('?')[0].replace('/api/', '').split('/');
