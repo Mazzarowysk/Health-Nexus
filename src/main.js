@@ -1647,21 +1647,74 @@ const cachedApiGet = async (url, cacheKey = null) => {
 
 
 
+let syncPromptVisible = false;
 const scheduleSyncUpload = async () => {
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
   
-  syncUploadTimeout = setTimeout(async () => {
-    const confirmed = await showCustomConfirm({
-      title: 'Alterações Salvas Localmente',
-      message: 'Você realizou alterações no sistema. Deseja enviá-las agora mesmo para a nuvem (Turso) para manter o backup 100% atualizado?',
-      confirmText: 'Sim, Enviar para Nuvem',
-      cancelText: 'Agora não',
-      type: 'warning'
-    });
-    if (confirmed) {
-      await syncManager.pushToCloud(true);
+  syncUploadTimeout = setTimeout(() => {
+    if (syncPromptVisible) return;
+    const isVercelEnvironment = window.location.hostname.includes('vercel.app');
+    if (!isVercelEnvironment) {
+       // if local, just sync silently or don't prompt as aggressively? The user said "tanto pelo notebook como perlo vercel." So yes, prompt everywhere.
     }
-  }, 500);
+    
+    syncPromptVisible = true;
+    const promptDiv = document.createElement('div');
+    promptDiv.id = 'sync-prompt-floating';
+    promptDiv.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      z-index: 100000;
+      width: 320px;
+      font-family: 'Outfit', sans-serif;
+      animation: slideInUp 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-top: 4px solid var(--color-warning);
+    `;
+
+    promptDiv.innerHTML = `
+      <div>
+        <h4 style="margin:0 0 6px 0; color:var(--text-primary); font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-cloud-arrow-up" style="color:var(--color-warning);"></i> Alteraçes Pendentes
+        </h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-secondary); line-height:1.4;">
+          Você realizou alterações. Deseja enviar para a nuvem agora?
+        </p>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="sync-prompt-cancel" style="background:transparent; border:1px solid var(--border-color); color:var(--text-secondary); padding:6px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.85rem; font-weight:600; flex:1;">
+          Mais tarde
+        </button>
+        <button id="sync-prompt-confirm" style="background:var(--color-primary); border:none; color:#fff; padding:6px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.85rem; font-weight:600; flex:1;">
+          Enviar Agora
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(promptDiv);
+
+    document.getElementById('sync-prompt-cancel').addEventListener('click', () => {
+      promptDiv.remove();
+      syncPromptVisible = false;
+    });
+
+    document.getElementById('sync-prompt-confirm').addEventListener('click', async () => {
+      document.getElementById('sync-prompt-confirm').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Enviando...';
+      document.getElementById('sync-prompt-confirm').style.opacity = '0.7';
+      await syncManager.pushToCloud(true);
+      promptDiv.remove();
+      syncPromptVisible = false;
+    });
+
+  }, 1000); // Aguarda 1 segundo após a última interação para mostrar
 };
 
 const apiFetch = async (url, options = {}) => {
@@ -1706,8 +1759,8 @@ const apiFetch = async (url, options = {}) => {
       if (storedUser) {
         responseData = { user: storedUser };
       } else {
-        const users = localDB.list('users');
-        responseData = { user: users[0] || { role: 'Administrador', name: 'Admin Local' } };
+        status = 401;
+        responseData = { message: 'Usuário não autenticado' };
       }
     }
     else if (url.includes('/api/turso/sync')) {
