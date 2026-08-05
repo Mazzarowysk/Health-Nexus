@@ -1649,12 +1649,20 @@ const scheduleSyncUpload = async () => {
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
   
   syncUploadTimeout = setTimeout(async () => {
-    // Toda alteração feita no notebook é automaticamente enviada para a nuvem em 1s
     const isVercelEnvironment = window.location.hostname.includes('vercel.app');
     if (!isVercelEnvironment) {
-      await syncManager.pushToCloud(false);
+      const confirmed = await showCustomConfirm({
+        title: 'Alterações Salvas Localmente',
+        message: 'Você realizou alterações no sistema. Deseja enviá-las agora mesmo para a nuvem (Turso) para manter o backup 100% atualizado?',
+        confirmText: 'Sim, Enviar para Nuvem',
+        cancelText: 'Agora não',
+        type: 'warning'
+      });
+      if (confirmed) {
+        await syncManager.pushToCloud(true);
+      }
     }
-  }, 1000);
+  }, 500);
 };
 
 const apiFetch = async (url, options = {}) => {
