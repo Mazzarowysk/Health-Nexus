@@ -1284,7 +1284,7 @@ window.deleteDutySchedule = async function(id) {
 
 // --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---
 // Start app immediately (module execution is already deferred until DOM is parsed)
-initializeApp();
+// initializeApp(); - REMOVIDO: Já é inicializado em main.js
 
 
 window.renderTVPanelTab = renderTVPanelTab;
