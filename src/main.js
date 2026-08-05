@@ -1337,7 +1337,8 @@ const getSyncStatus = async () => {
   try {
     const res = await fetch('/api/turso?status=1');
     if (!res.ok) {
-      state.syncInfo = { cloudConfigured: false, isVercel: false, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
+      const isVercel = window.location.hostname.includes('vercel.app');
+      state.syncInfo = { cloudConfigured: isVercel, cloudReachable: false, isVercel: isVercel, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
       updateSyncBadge();
       return state.syncInfo;
     }
@@ -1358,14 +1359,15 @@ const getSyncStatus = async () => {
       cloudTimestamps: { main_data: cloudUpdated },
       lastLocalBackup: localUpdated,
       lastCloudBackup: cloudUpdated,
-      isVercel: window.location.hostname.includes('vercel.app'),
+      isVercel: isVercel,
       conflict: (localUpdated > cloudUpdated && cloudUpdated > Number(localStorage.getItem('oczOnlineUpdatedAt') || 0)) // simplistic conflict
     };
     updateSyncBadge();
     return state.syncInfo;
   } catch (err) {
     console.error('Erro ao obter status de sincronização:', err);
-    state.syncInfo = { cloudConfigured: false, isVercel: false, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
+    const isVercel = window.location.hostname.includes('vercel.app');
+    state.syncInfo = { cloudConfigured: isVercel, cloudReachable: false, isVercel: isVercel, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
     updateSyncBadge();
     return null;
   }
@@ -1410,10 +1412,10 @@ const updateSyncBadge = () => {
   }
 
   if (!data) {
-    badge.textContent = 'Turso Cloud Conectado';
-    badge.style.background = 'rgba(59,130,246,0.12)';
-    badge.style.borderColor = 'rgba(59,130,246,0.3)';
-    badge.style.color = '#2563eb';
+    badge.textContent = 'Verificando Turso...';
+    badge.style.background = 'rgba(100,116,139,0.1)';
+    badge.style.borderColor = 'rgba(100,116,139,0.3)';
+    badge.style.color = '#64748b';
     return;
   }
 
@@ -1425,19 +1427,19 @@ const updateSyncBadge = () => {
     return;
   }
 
-  if (data.isVercel) {
-    badge.textContent = 'Conectado ao Turso (Vercel)';
-    badge.style.background = 'rgba(13,148,136,0.12)';
-    badge.style.borderColor = 'rgba(14,165,233,0.3)';
-    badge.style.color = 'var(--color-accent)';
-    return;
-  }
-
   if (data.cloudReachable === false) {
     badge.textContent = 'Nuvem inacessível — modo local';
     badge.style.background = 'rgba(245,158,11,0.12)';
     badge.style.borderColor = 'rgba(245,158,11,0.3)';
     badge.style.color = '#b45309';
+    return;
+  }
+
+  if (data.isVercel) {
+    badge.textContent = 'Conectado ao Turso (Vercel)';
+    badge.style.background = 'rgba(13,148,136,0.12)';
+    badge.style.borderColor = 'rgba(14,165,233,0.3)';
+    badge.style.color = 'var(--color-accent)';
     return;
   }
 
