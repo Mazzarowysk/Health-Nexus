@@ -1313,6 +1313,7 @@ class SyncManager {
         localDB.overwriteLocal(body);
         
         const now = body.updated_at || Date.now();
+        localStorage.setItem('oczOnlineUpdatedAt', now.toString());
         localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
         sessionStorage.setItem('hn_reloading_after_sync', 'true');
         showToast('Banco local atualizado com os dados da nuvem!');
@@ -1358,7 +1359,7 @@ const getSyncStatus = async () => {
       lastLocalBackup: localUpdated,
       lastCloudBackup: cloudUpdated,
       isVercel: window.location.hostname.includes('vercel.app'),
-      conflict: (localUpdated > cloudUpdated && cloudUpdated > Number(localStorage.getItem('ultimoSyncUpdatedAt') || 0)) // simplistic conflict
+      conflict: (localUpdated > cloudUpdated && cloudUpdated > Number(localStorage.getItem('oczOnlineUpdatedAt') || 0)) // simplistic conflict
     };
     updateSyncBadge();
     return state.syncInfo;
