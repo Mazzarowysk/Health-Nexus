@@ -1,0 +1,10 @@
+node_modules
+.git
+*.log
+*.md
+scratch
+simulation_output.json
+extract.cjs
+import_to_browser.js
+temp_main.js
+backend/local.db
