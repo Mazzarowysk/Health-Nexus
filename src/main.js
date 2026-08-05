@@ -1649,18 +1649,15 @@ const scheduleSyncUpload = async () => {
   if (syncUploadTimeout) clearTimeout(syncUploadTimeout);
   
   syncUploadTimeout = setTimeout(async () => {
-    const isVercelEnvironment = window.location.hostname.includes('vercel.app');
-    if (!isVercelEnvironment) {
-      const confirmed = await showCustomConfirm({
-        title: 'Alterações Salvas Localmente',
-        message: 'Você realizou alterações no sistema. Deseja enviá-las agora mesmo para a nuvem (Turso) para manter o backup 100% atualizado?',
-        confirmText: 'Sim, Enviar para Nuvem',
-        cancelText: 'Agora não',
-        type: 'warning'
-      });
-      if (confirmed) {
-        await syncManager.pushToCloud(true);
-      }
+    const confirmed = await showCustomConfirm({
+      title: 'Alterações Salvas Localmente',
+      message: 'Você realizou alterações no sistema. Deseja enviá-las agora mesmo para a nuvem (Turso) para manter o backup 100% atualizado?',
+      confirmText: 'Sim, Enviar para Nuvem',
+      cancelText: 'Agora não',
+      type: 'warning'
+    });
+    if (confirmed) {
+      await syncManager.pushToCloud(true);
     }
   }, 500);
 };
