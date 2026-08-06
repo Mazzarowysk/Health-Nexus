@@ -79,16 +79,17 @@
    - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo).  
    - Alocação e alta de pacientes com atualização em tempo real.
 
-10. **🆕 Kanban de Internação** *(v1.3.0)*  
+10. **🆕 Kanban de Internação** *(v1.3.0+)*  
     Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas:  
     - **5 colunas de setor:** Pronto Socorro (PS), Corredor de Internação, Clínica Cirúrgica, Clínica Médica (SUS) e UTI.  
-    - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · **UTI: 5 dias**.  
+    - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
     - **Barra de progresso visual** (verde → amarelo → vermelho) por card.  
     - **Admissão completa:** leito, diagnóstico, médico responsável, data e notas iniciais.  
-    - **Ações por card:** Evoluir clinicamente, mover de setor, registrar alta.  
-    - **Drag & Drop** para mover pacientes entre setores.  
-    - **Filtros rápidos** por setor (Todos · PS · Corredor · Cirúrgica · Médica · UTI).  
-    - Notas de evolução clínica com visualizador modal.
+    - **🩺 Prontuário direto do card:** abre o histórico clínico completo do paciente (consultas, PEP SOAP, receituários, atestados).  
+    - **📝 Painel de Evolução Clínica:** registra novas evoluções com timestamp e autor; exibe timeline completa de todas as entradas anteriores.  
+    - **Ações de gerenciamento por card:** ✏️ Editar dados, 🔄 Mover setor, 🚶 Alta hospitalar.  
+    - **Drag & Drop** para mover pacientes entre colunas (setor reiniciado automaticamente).  
+    - **Filtros rápidos** por setor com contagem em tempo real (cards KPI interativos).
 
 11. **Farmácia & Estoque**  
     - Gerenciamento de medicamentos e insumos.  
@@ -203,12 +204,16 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 
 ## 📅 Changelog
 
-### v1.3.0 — Agosto 2026
-- ✅ **Kanban de Internação:** 5 setores, metas de tempo, drag & drop, barra de progresso visual
-- ✅ **Admissão Kanban completa:** leito, diagnóstico, médico responsável, data, notas
-- ✅ **Ações por card:** Evoluir, Mover setor, Alta
-- ✅ **Histórico de Sessões:** relatório de entrada/saída exclusivo Master
-- ✅ **Filtros por setor** no Kanban com toggle visual
+### v1.3.0 — Agosto 2026 (atual)
+- ✅ **Kanban de Internação:** 5 setores, metas de tempo por setor, drag & drop, barra de progresso visual
+- ✅ **Admissão Kanban completa:** leito, diagnóstico, médico responsável, data e observações iniciais
+- ✅ **Cards interativos com alinhamento premium:** avatar colorido, diagnóstico, leito, médico e tempos
+- ✅ **Botão 🩺 Prontuário:** acesso direto ao histórico clínico completo (PEP, consultas, receituários)
+- ✅ **Painel 📝 Evolução Clínica:** registro de novas evoluções com timestamp + timeline de histórico
+- ✅ **Migração automática:** notas legadas convertidas para o novo formato de array de evoluções
+- ✅ **Indicador visual:** ponto vermelho no botão Evolução quando há anotações registradas
+- ✅ **Histórico de Sessões:** relatório de login/logout com tempo de uso (exclusivo Master)
+- ✅ **Filtros por setor** no Kanban com cards KPI interativos e contagem em tempo real
 
 ### v1.2.1 — Julho 2026
 - Cards KPI interativos em todas as abas principais

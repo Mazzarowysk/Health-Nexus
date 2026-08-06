@@ -469,21 +469,50 @@ O card aparecerá imediatamente na coluna do setor selecionado.
 Cada card exibe:
 - **Avatar colorido** com as iniciais do paciente (cor da coluna do setor)
 - **Nome completo** e ID curto do paciente
-- **Diagnóstico, Leito e Médico** responsável (quando preenchidos)
+- **Diagnóstico, Leito e Médico** responsável (quando preenchidos), com ícones alinhados
 - **Barra de progresso** — indica visualmente quanto da meta de tempo foi consumida:
   - 🟢 Verde: dentro do prazo
   - 🟡 Amarelo: atenção (75%+ da meta)
   - 🔴 Vermelho: meta excedida (100%+)
 - **Tempo no setor atual** e **tempo total de internação**
-- **Ícone de notas** 📝 (aparece quando há notas de evolução registradas)
+- **Ponto vermelho 🔴** no botão Evolução quando há anotações clínicas registradas
 
 ### 🔧 Ações Disponíveis no Card
 
+O card é dividido em **dois grupos de ações**:
+
+#### Ações Clínicas (Acesso Rápido)
+
 | Botão | Ação |
 |---|---|
-| ✏️ (lápis) | **Evoluir** — abre modal para atualizar diagnóstico, leito e notas clínicas |
-| ↔️ (setas) | **Mover Setor** — abre modal para transferir para outra coluna (registra nova entrada) |
-| 🚶 (pessoa saindo) | **Alta** — solicita confirmação e remove o paciente do Kanban |
+| 🩺 **Prontuário** | Abre o **histórico clínico completo** do paciente: PEP SOAP, consultas anteriores, receituários, atestados e toda a documentação médica |
+| 📝 **Evolução** | Abre o **Painel de Evolução Clínica** — veja detalhes abaixo |
+
+#### Ações de Gerenciamento (Rodapé do Card)
+
+| Botão | Ação |
+|---|---|
+| ✏️ (lápis) | **Editar Detalhes** — atualiza diagnóstico, leito e médico responsável |
+| ↔️ (setas) | **Mover Setor** — transfere para outra coluna (reinicia o contador de tempo no setor) |
+| 🚶 (pessoa saindo) | **Alta Hospitalar** — solicita confirmação e remove o paciente do Kanban |
+
+### 📝 Painel de Evolução Clínica
+
+Ao clicar em **📝 Evolução**, um painel completo é aberto com:
+
+1. **Campo de nova anotação** — textarea com destaque de foco ao digitar
+2. **Timestamp automático** — data e hora exatas da anotação
+3. **Botão Prontuário** — acesso direto ao histórico completo sem fechar o painel
+4. **Botão Salvar** — persiste a evolução com nome do profissional logado e data/hora
+5. **Timeline de histórico** — todas as evoluções anteriores em ordem cronológica reversa (mais recente primeiro), exibindo autor e data de cada entrada
+
+> 💡 **Migração automática:** Anotações antigas (campo `notes`) são automaticamente reconhecidas e exibidas no histórico como entradas legadas.
+
+**Para registrar uma evolução clínica:**
+1. Clique em **📝 Evolução** no card do paciente.
+2. Digite a evolução no campo de texto.
+3. Clique em **Salvar** — a anotação fica registrada com seu nome e horário.
+4. O ponto vermelho aparecerá no botão do card, indicando que há registros.
 
 ### 🖱️ Drag & Drop
 
@@ -503,21 +532,7 @@ No topo do Kanban, os setores são exibidos em um moderno **grid de Cards intera
 ### 🎨 Design Premium das Colunas e Pacientes
 
 - **Colunas *Tinted*:** As colunas do Kanban possuem fundo transparente (*tinted*) e bordas estilizadas de acordo com a cor do setor, conferindo um layout visual limpo e de alto padrão.
-- **Cards de Pacientes Interativos:** 
-   O Kanban foi atualizado para exibir as informações com melhor alinhamento e separação visual das informações (nome, leito, médico). Cada card agora possui ferramentas de interação direta:
-   - **🩺 Prontuário:** Botão de acesso rápido a todo o Histórico Pós-Alta, consultas, relatórios médicos e anotações completas, sem precisar sair do Kanban.
-   - **📝 Evolução:** Acesso rápido ao campo de Evoluções e Anotações, incluindo um indicador visual (ponto vermelho) quando há anotações recentes.
-   - **Botões de Gerenciamento:** Ferramentas para ✏️ Editar Detalhes, 🔄 Mover entre Setores, e 🚶 Alta Hospitalar, mantidas na barra inferior.
-   - **Arrastar e Soltar:** Facilidade de clicar e arrastar (Drag and Drop) o card do paciente entre colunas para transferência rápida de setor.
-
-### 📝 Notas de Evolução
-
-Para registrar ou atualizar uma evolução clínica:
-1. Clique no botão ✏️ do card desejado.
-2. Atualize o campo **Notas de Evolução**.
-3. Clique em **Salvar**.
-
-Um ícone 📝 aparecerá no card. Clique nele para ler as notas sem abrir o modal completo.
+- **Cards Premium:** Avatar colorido com iniciais, informações alinhadas com ícones, barra de progresso com glow colorido e painel de ações bem delimitado.
 
 ---
 
@@ -548,5 +563,6 @@ O relatório exibe, para cada usuário:
 - Os dados de sessão **não podem ser apagados** por usuários comuns.
 
 ---
-*Health Nexus — Manual do Usuário v1.3.0 | Sistema de Gestão Hospitalar de Alta Performance*
+*Health Nexus — Manual do Usuário v1.3.0 | Sistema de Gestão Hospitalar de Alta Performance*  
 *Atualizado em Agosto 2026 — @mazzarowysk & @_coltri_*
+

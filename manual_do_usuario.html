@@ -1545,7 +1545,7 @@ Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.<hr>
 <ul>
 <li><strong>Avatar colorido</strong> com as iniciais do paciente (cor da coluna do setor)</li>
 <li><strong>Nome completo</strong> e ID curto do paciente</li>
-<li><strong>Diagnóstico, Leito e Médico</strong> responsável (quando preenchidos)</li>
+<li><strong>Diagnóstico, Leito e Médico</strong> responsável (quando preenchidos), com ícones alinhados</li>
 <li><strong>Barra de progresso</strong> — indica visualmente quanto da meta de tempo foi consumida:<ul>
 <li>🟢 Verde: dentro do prazo</li>
 <li>🟡 Amarelo: atenção (75%+ da meta)</li>
@@ -1553,9 +1553,28 @@ Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.<hr>
 </ul>
 </li>
 <li><strong>Tempo no setor atual</strong> e <strong>tempo total de internação</strong></li>
-<li><strong>Ícone de notas</strong> 📝 (aparece quando há notas de evolução registradas)</li>
+<li><strong>Ponto vermelho 🔴</strong> no botão Evolução quando há anotações clínicas registradas</li>
 </ul>
 <h3>🔧 Ações Disponíveis no Card</h3>
+<p>O card é dividido em <strong>dois grupos de ações</strong>:</p>
+<h4>Ações Clínicas (Acesso Rápido)</h4>
+<table>
+<thead>
+<tr>
+<th>Botão</th>
+<th>Ação</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>🩺 <strong>Prontuário</strong></td>
+<td>Abre o <strong>histórico clínico completo</strong> do paciente: PEP SOAP, consultas anteriores, receituários, atestados e toda a documentação médica</td>
+</tr>
+<tr>
+<td>📝 <strong>Evolução</strong></td>
+<td>Abre o <strong>Painel de Evolução Clínica</strong> — veja detalhes abaixo</td>
+</tr>
+</tbody></table>
+<h4>Ações de Gerenciamento (Rodapé do Card)</h4>
 <table>
 <thead>
 <tr>
@@ -1565,17 +1584,36 @@ Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.<hr>
 </thead>
 <tbody><tr>
 <td>✏️ (lápis)</td>
-<td><strong>Evoluir</strong> — abre modal para atualizar diagnóstico, leito e notas clínicas</td>
+<td><strong>Editar Detalhes</strong> — atualiza diagnóstico, leito e médico responsável</td>
 </tr>
 <tr>
 <td>↔️ (setas)</td>
-<td><strong>Mover Setor</strong> — abre modal para transferir para outra coluna (registra nova entrada)</td>
+<td><strong>Mover Setor</strong> — transfere para outra coluna (reinicia o contador de tempo no setor)</td>
 </tr>
 <tr>
 <td>🚶 (pessoa saindo)</td>
-<td><strong>Alta</strong> — solicita confirmação e remove o paciente do Kanban</td>
+<td><strong>Alta Hospitalar</strong> — solicita confirmação e remove o paciente do Kanban</td>
 </tr>
 </tbody></table>
+<h3>📝 Painel de Evolução Clínica</h3>
+<p>Ao clicar em <strong>📝 Evolução</strong>, um painel completo é aberto com:</p>
+<ol>
+<li><strong>Campo de nova anotação</strong> — textarea com destaque de foco ao digitar</li>
+<li><strong>Timestamp automático</strong> — data e hora exatas da anotação</li>
+<li><strong>Botão Prontuário</strong> — acesso direto ao histórico completo sem fechar o painel</li>
+<li><strong>Botão Salvar</strong> — persiste a evolução com nome do profissional logado e data/hora</li>
+<li><strong>Timeline de histórico</strong> — todas as evoluções anteriores em ordem cronológica reversa (mais recente primeiro), exibindo autor e data de cada entrada</li>
+</ol>
+<blockquote>
+<p>💡 <strong>Migração automática:</strong> Anotações antigas (campo <code>notes</code>) são automaticamente reconhecidas e exibidas no histórico como entradas legadas.</p>
+</blockquote>
+<p><strong>Para registrar uma evolução clínica:</strong></p>
+<ol>
+<li>Clique em <strong>📝 Evolução</strong> no card do paciente.</li>
+<li>Digite a evolução no campo de texto.</li>
+<li>Clique em <strong>Salvar</strong> — a anotação fica registrada com seu nome e horário.</li>
+<li>O ponto vermelho aparecerá no botão do card, indicando que há registros.</li>
+</ol>
 <h3>🖱️ Drag &amp; Drop</h3>
 <p>Além dos botões, é possível <strong>arrastar e soltar</strong> os cards entre as colunas:</p>
 <ol>
@@ -1594,16 +1632,8 @@ Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.<hr>
 <h3>🎨 Design Premium das Colunas e Pacientes</h3>
 <ul>
 <li><strong>Colunas <em>Tinted</em>:</strong> As colunas do Kanban possuem fundo transparente (<em>tinted</em>) e bordas estilizadas de acordo com a cor do setor, conferindo um layout visual limpo e de alto padrão.</li>
-<li><strong>Cards Interativos:</strong> Os cards dos pacientes possuem efeitos visuais ao passar o mouse (<em>hover</em>), sombra dinâmica, barra de progresso colorida e uma organização intuitiva para rápida leitura do quadro (diagnóstico, leito, tempos e avisos).</li>
+<li><strong>Cards Premium:</strong> Avatar colorido com iniciais, informações alinhadas com ícones, barra de progresso com glow colorido e painel de ações bem delimitado.</li>
 </ul>
-<h3>📝 Notas de Evolução</h3>
-<p>Para registrar ou atualizar uma evolução clínica:</p>
-<ol>
-<li>Clique no botão ✏️ do card desejado.</li>
-<li>Atualize o campo <strong>Notas de Evolução</strong>.</li>
-<li>Clique em <strong>Salvar</strong>.</li>
-</ol>
-<p>Um ícone 📝 aparecerá no card. Clique nele para ler as notas sem abrir o modal completo.</p>
 <hr>
 <h2 id="sec-20">20. 🆕 Histórico de Sessões de Usuários (Exclusivo Master)</h2><p>O <strong>Histórico de Sessões</strong> registra automaticamente cada entrada e saída de todos os usuários do sistema.</p>
 <h3>📍 Como Acessar</h3>
@@ -1630,8 +1660,7 @@ Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.<hr>
 <li>Os dados de sessão <strong>não podem ser apagados</strong> por usuários comuns.</li>
 </ul>
 <hr>
-<p><em>Health Nexus — Manual do Usuário v1.3.0 | Sistema de Gestão Hospitalar de Alta Performance</em>
-<em>Atualizado em Agosto 2026 — @mazzarowysk &amp; @<em>coltri</em></em></p>
+<p><em>Health Nexus — Manual do Usuário v1.3.0 | Sistema de Gestão Hospitalar de Alta Performance</em><br><em>Atualizado em Agosto 2026 — @mazzarowysk &amp; @<em>coltri</em></em></p>
 
     </main>
   </div>

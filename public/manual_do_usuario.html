@@ -346,7 +346,7 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v1.0)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v1.3.0)</h1>
 <blockquote>
 <p><strong>Health Nexus — Sistema de Gestão Hospitalar &amp; Prontuário Eletrônico</strong><br>Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.</p>
 </blockquote>
@@ -444,6 +444,14 @@
 </li>
 <li><ol start="18">
 <li><a href="#sec-18">Solução de Dúvidas Frequentes &amp; Erros Comuns (FAQ)</a></li>
+</ol>
+</li>
+<li><ol start="19">
+<li><a href="#sec-19">🆕 Kanban de Internação — Guia Completo</a></li>
+</ol>
+</li>
+<li><ol start="20">
+<li><a href="#sec-20">🆕 Histórico de Sessões de Usuários (Master)</a></li>
 </ol>
 </li>
 </ul>
@@ -1451,9 +1459,208 @@ Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.<hr>
 <td align="left">Intervalo de atualização pausado</td>
 <td align="left">Clique no botão <code>Atualizar</code> na barra superior ou recarregue a aba <em>Atendimentos</em>.</td>
 </tr>
+<tr>
+<td align="left"><strong>Paciente adicionado ao Kanban não aparece</strong></td>
+<td align="left">Filtro de setor ativo diferente do setor escolhido</td>
+<td align="left">Clique em <strong>Todos</strong> nos filtros rápidos do Kanban para exibir todos os setores.</td>
+</tr>
+<tr>
+<td align="left"><strong>Barra de progresso do card Kanban está vermelha</strong></td>
+<td align="left">Meta de tempo do setor excedida</td>
+<td align="left">Revise a conduta clínica do paciente e avalie alta ou transferência de setor.</td>
+</tr>
+<tr>
+<td align="left"><strong>Histórico de Sessões não aparece no menu</strong></td>
+<td align="left">Usuário sem perfil Master</td>
+<td align="left">O Histórico de Sessões é exclusivo para o perfil <strong>Master</strong>. Faça login com uma conta Master.</td>
+</tr>
 </tbody></table>
 <hr>
-<p><em>Health Nexus — Manual do Usuário v1.0 | Sistema de Gestão Hospitalar de Alta Performance</em></p>
+<h2 id="sec-19">19. 🆕 Kanban de Internação — Guia Completo</h2><p>O <strong>Kanban de Internação</strong> é uma ferramenta de gestão visual do fluxo de pacientes internados, inspirado na metodologia Kanban, adaptada para o ambiente hospitalar.</p>
+<h3>📌 Objetivo</h3>
+<p>Permitir que a equipe clínica visualize, em tempo real, todos os pacientes internados, o setor em que se encontram, o tempo de permanência e o status em relação às metas de alta evolutiva.</p>
+<h3>🏛️ Setores (Colunas do Kanban)</h3>
+<table>
+<thead>
+<tr>
+<th>Setor</th>
+<th>Cor</th>
+<th>Meta de Alta</th>
+<th>Lógica de Alerta</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Pronto Socorro (Obs)</strong></td>
+<td>🔵 Azul</td>
+<td>24 horas</td>
+<td>Após 18h → Atenção; Após 24h → Crítico</td>
+</tr>
+<tr>
+<td><strong>Corredor de Internação</strong></td>
+<td>🟡 Amarelo</td>
+<td>1 dia</td>
+<td>Após 18h → Atenção; Após 24h → Crítico</td>
+</tr>
+<tr>
+<td><strong>Clínica Cirúrgica</strong></td>
+<td>🟣 Roxo</td>
+<td>7 dias</td>
+<td>Após 5d → Atenção; Após 7d → Crítico</td>
+</tr>
+<tr>
+<td><strong>Clínica Médica (SUS)</strong></td>
+<td>🟢 Verde</td>
+<td>10 dias</td>
+<td>Após 7d → Atenção; Após 10d → Crítico</td>
+</tr>
+<tr>
+<td><strong>UTI</strong></td>
+<td>🔴 Vermelho</td>
+<td><strong>5 dias</strong></td>
+<td>Após 3d → Atenção; Após 5d → Crítico</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>Filosofia das Metas:</strong> As metas não são prazos rígidos, mas estimuladores de conduta clínica proativa. Especialmente na UTI, onde o objetivo de 5 dias incentiva a equipe a buscar resultados evolutivos que viabilizem a alta ou remanejamento do paciente.</p>
+</blockquote>
+<h3>➕ Como Adicionar um Paciente ao Kanban</h3>
+<ol>
+<li>Acesse a aba <strong>Kanban</strong> no menu lateral.</li>
+<li>Clique no botão <strong>+ Adicionar Paciente</strong> (canto superior direito).</li>
+<li>No modal de admissão, preencha:<ul>
+<li><strong>Paciente *</strong> — selecione da lista de pacientes cadastrados</li>
+<li><strong>Setor Inicial *</strong> — coluna onde o paciente será posicionado</li>
+<li><strong>Leito</strong> — número ou código do leito (ex: UTI-03)</li>
+<li><strong>Data de Admissão</strong> — pré-preenchida com a data/hora atual</li>
+<li><strong>Diagnóstico / Hipótese</strong> — texto livre (ex: Pneumonia Grave, TCE leve)</li>
+<li><strong>Médico Responsável</strong> — selecione da lista de usuários médicos</li>
+<li><strong>Observações Iniciais</strong> — notas de admissão</li>
+</ul>
+</li>
+<li>Clique em <strong>Adicionar</strong>.</li>
+</ol>
+<p>O card aparecerá imediatamente na coluna do setor selecionado.</p>
+<h3>🃏 Entendendo o Card do Paciente</h3>
+<p>Cada card exibe:</p>
+<ul>
+<li><strong>Avatar colorido</strong> com as iniciais do paciente (cor da coluna do setor)</li>
+<li><strong>Nome completo</strong> e ID curto do paciente</li>
+<li><strong>Diagnóstico, Leito e Médico</strong> responsável (quando preenchidos), com ícones alinhados</li>
+<li><strong>Barra de progresso</strong> — indica visualmente quanto da meta de tempo foi consumida:<ul>
+<li>🟢 Verde: dentro do prazo</li>
+<li>🟡 Amarelo: atenção (75%+ da meta)</li>
+<li>🔴 Vermelho: meta excedida (100%+)</li>
+</ul>
+</li>
+<li><strong>Tempo no setor atual</strong> e <strong>tempo total de internação</strong></li>
+<li><strong>Ponto vermelho 🔴</strong> no botão Evolução quando há anotações clínicas registradas</li>
+</ul>
+<h3>🔧 Ações Disponíveis no Card</h3>
+<p>O card é dividido em <strong>dois grupos de ações</strong>:</p>
+<h4>Ações Clínicas (Acesso Rápido)</h4>
+<table>
+<thead>
+<tr>
+<th>Botão</th>
+<th>Ação</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>🩺 <strong>Prontuário</strong></td>
+<td>Abre o <strong>histórico clínico completo</strong> do paciente: PEP SOAP, consultas anteriores, receituários, atestados e toda a documentação médica</td>
+</tr>
+<tr>
+<td>📝 <strong>Evolução</strong></td>
+<td>Abre o <strong>Painel de Evolução Clínica</strong> — veja detalhes abaixo</td>
+</tr>
+</tbody></table>
+<h4>Ações de Gerenciamento (Rodapé do Card)</h4>
+<table>
+<thead>
+<tr>
+<th>Botão</th>
+<th>Ação</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>✏️ (lápis)</td>
+<td><strong>Editar Detalhes</strong> — atualiza diagnóstico, leito e médico responsável</td>
+</tr>
+<tr>
+<td>↔️ (setas)</td>
+<td><strong>Mover Setor</strong> — transfere para outra coluna (reinicia o contador de tempo no setor)</td>
+</tr>
+<tr>
+<td>🚶 (pessoa saindo)</td>
+<td><strong>Alta Hospitalar</strong> — solicita confirmação e remove o paciente do Kanban</td>
+</tr>
+</tbody></table>
+<h3>📝 Painel de Evolução Clínica</h3>
+<p>Ao clicar em <strong>📝 Evolução</strong>, um painel completo é aberto com:</p>
+<ol>
+<li><strong>Campo de nova anotação</strong> — textarea com destaque de foco ao digitar</li>
+<li><strong>Timestamp automático</strong> — data e hora exatas da anotação</li>
+<li><strong>Botão Prontuário</strong> — acesso direto ao histórico completo sem fechar o painel</li>
+<li><strong>Botão Salvar</strong> — persiste a evolução com nome do profissional logado e data/hora</li>
+<li><strong>Timeline de histórico</strong> — todas as evoluções anteriores em ordem cronológica reversa (mais recente primeiro), exibindo autor e data de cada entrada</li>
+</ol>
+<blockquote>
+<p>💡 <strong>Migração automática:</strong> Anotações antigas (campo <code>notes</code>) são automaticamente reconhecidas e exibidas no histórico como entradas legadas.</p>
+</blockquote>
+<p><strong>Para registrar uma evolução clínica:</strong></p>
+<ol>
+<li>Clique em <strong>📝 Evolução</strong> no card do paciente.</li>
+<li>Digite a evolução no campo de texto.</li>
+<li>Clique em <strong>Salvar</strong> — a anotação fica registrada com seu nome e horário.</li>
+<li>O ponto vermelho aparecerá no botão do card, indicando que há registros.</li>
+</ol>
+<h3>🖱️ Drag &amp; Drop</h3>
+<p>Além dos botões, é possível <strong>arrastar e soltar</strong> os cards entre as colunas:</p>
+<ol>
+<li>Clique e segure o card.</li>
+<li>Arraste até a coluna de destino.</li>
+<li>Solte — o paciente será movido e o tempo no setor será reiniciado automaticamente.</li>
+</ol>
+<h3>🔍 Filtros em Formato de Card (Dashboard)</h3>
+<p>No topo do Kanban, os setores são exibidos em um moderno <strong>grid de Cards interativos</strong>:</p>
+<ul>
+<li>Cada card representa um setor e mostra a <strong>contagem em tempo real</strong> de pacientes internados (ex: <em>Todos</em>, <em>Pronto Socorro</em>, <em>UTI</em>).</li>
+<li>Ao clicar em um card, o sistema filtra a tela para focar exclusivamente na respectiva coluna (expandindo sua largura para melhor visualização).</li>
+<li>O card selecionado ganha destaque visual (sombra e borda acentuadas) com um selo <code>ATIVO</code>.</li>
+<li>Clique no card <strong>Todos Setores</strong> para retornar à visão geral com todas as colunas lado a lado.</li>
+</ul>
+<h3>🎨 Design Premium das Colunas e Pacientes</h3>
+<ul>
+<li><strong>Colunas <em>Tinted</em>:</strong> As colunas do Kanban possuem fundo transparente (<em>tinted</em>) e bordas estilizadas de acordo com a cor do setor, conferindo um layout visual limpo e de alto padrão.</li>
+<li><strong>Cards Premium:</strong> Avatar colorido com iniciais, informações alinhadas com ícones, barra de progresso com glow colorido e painel de ações bem delimitado.</li>
+</ul>
+<hr>
+<h2 id="sec-20">20. 🆕 Histórico de Sessões de Usuários (Exclusivo Master)</h2><p>O <strong>Histórico de Sessões</strong> registra automaticamente cada entrada e saída de todos os usuários do sistema.</p>
+<h3>📍 Como Acessar</h3>
+<blockquote>
+<p>⚠️ Este recurso é <strong>exclusivo para o perfil Master</strong>.</p>
+</blockquote>
+<ol>
+<li>Faça login com uma conta Master.</li>
+<li>Acesse a aba <strong>Gestão de Usuários</strong> no menu lateral.</li>
+<li>Clique no botão <strong>📊 Histórico de Sessões</strong> disponível no painel.</li>
+</ol>
+<h3>📊 Informações do Relatório</h3>
+<p>O relatório exibe, para cada usuário:</p>
+<ul>
+<li>Data e hora de <strong>login</strong> (entrada no sistema)</li>
+<li>Data e hora de <strong>logout</strong> (saída ou encerramento de sessão)</li>
+<li><strong>Tempo de uso</strong> total da sessão</li>
+<li>Gráfico visual de tempo de uso por período</li>
+</ul>
+<h3>🔒 Privacidade e Segurança</h3>
+<ul>
+<li>Os registros são armazenados localmente e sincronizados via Turso Cloud quando configurado.</li>
+<li>Apenas usuários com perfil <strong>Master</strong> têm acesso a esses dados.</li>
+<li>Os dados de sessão <strong>não podem ser apagados</strong> por usuários comuns.</li>
+</ul>
+<hr>
+<p><em>Health Nexus — Manual do Usuário v1.3.0 | Sistema de Gestão Hospitalar de Alta Performance</em><br><em>Atualizado em Agosto 2026 — @mazzarowysk &amp; @<em>coltri</em></em></p>
 
     </main>
   </div>
@@ -1500,24 +1707,11 @@ Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.<hr>
         });
       }
 
-      // Smooth click handling for Sidebar
+      // Smooth click handling
       sidebarNav.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', (e) => {
           e.preventDefault();
           const targetId = link.getAttribute('data-target');
-          const targetEl = document.getElementById(targetId);
-          if (targetEl) {
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            history.pushState(null, '', '#' + targetId);
-          }
-        });
-      });
-
-      // Smooth click handling for TOC inside content
-      document.querySelectorAll('.markdown-content a[href^="#"]').forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          const targetId = link.getAttribute('href').substring(1);
           const targetEl = document.getElementById(targetId);
           if (targetEl) {
             targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
