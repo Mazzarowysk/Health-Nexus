@@ -791,10 +791,11 @@ window.openDoctorActivityModal = async function(doctorName, specialty, crm) {
   try {
     const res = await apiFetch(`/api/doctors/${encodedName}/activity`);
     if (!res.ok) throw new Error('Falha ao buscar atividades');
-    actData = await res.json();
+    const rawJson = await res.json();
+    actData = (rawJson && typeof rawJson === 'object') ? (rawJson.data || rawJson) : {};
 
     // Preenche KPIs
-    const s = actData.summary || {};
+    const s = (actData && actData.summary) ? actData.summary : {};
     document.getElementById('kpi-act-total').textContent = s.totalAppointments ?? 0;
     document.getElementById('kpi-act-today').textContent = s.todayAppointments ?? 0;
     document.getElementById('kpi-act-inprogress').textContent = s.inProgress ?? 0;
