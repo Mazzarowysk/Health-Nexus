@@ -1682,13 +1682,10 @@ const apiFetch = async (url, options = {}) => {
       // Se for o primeiro acesso, tenta puxar da nuvem silenciosamente
       if (isFirstTime) {
         try {
-          const isVercelEnvironment = window.location.hostname.includes('vercel.app');
-          if (!isVercelEnvironment) {
-            const res = await fetch('/api/turso');
-            if (res.ok) {
-              const body = await res.json();
-              localDB.overwriteLocal(body);
-            }
+          const res = await fetch('/api/turso');
+          if (res.ok) {
+            const body = await res.json();
+            localDB.overwriteLocal(body);
           }
         } catch (e) {
           console.error('Erro ao buscar dados iniciais para login:', e);
@@ -1793,6 +1790,27 @@ const apiFetch = async (url, options = {}) => {
         };
         localDB.insert('encounters', newEnc);
         responseData = { status: 'success', data: newEnc };
+      }
+    }
+    else if (url.includes('/approve-master') && method === 'PUT') {
+      const match = url.match(/\/api\/users\/([^\/]+)\/approve-master/);
+      const uid = match ? match[1] : null;
+      if (uid) {
+        const u = localDB.get('users', uid);
+        if (u) {
+          const newRole = body?.action === 'approve' ? 'Master' : (u.role || 'Médico');
+          const updated = {
+            ...u,
+            role: newRole,
+            status: 'Ativo',
+            master_key_requested: 0,
+            updated_at: new Date().toISOString()
+          };
+          localDB.update('users', uid, updated);
+          responseData = { status: 'success', data: updated };
+        } else {
+          status = 404; responseData = { message: 'Usuário não encontrado' };
+        }
       }
     }
     else if (url.startsWith('/api/')) {

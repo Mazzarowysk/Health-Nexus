@@ -564,13 +564,14 @@ export async function generateMockData() {
     try { return JSON.parse(localStorage.getItem('healthNexusDados') || '{}'); } catch { return {}; }
   })();
 
-  // Preservar usuários essenciais do sistema (nunca podem ser apagados)
-  const preservedUsers = (currentDB.users || []).filter(u =>
-    u.username === 'mazzarowysk' || u.username === 'bcoltri'
-  );
+  // Preservar todos os usuários cadastrados e essenciais do sistema (nunca podem ser apagados ao regerar dados)
+  const preservedUsers = (currentDB.users && Array.isArray(currentDB.users) && currentDB.users.length > 0)
+    ? [...currentDB.users]
+    : [];
+
   if (!preservedUsers.find(u => u.username === 'mazzarowysk')) {
     preservedUsers.push({
-      id: 'USR-MAZZAROWYSK', name: 'Dr. Marcelo Mazarowysk', username: 'mazzarowysk',
+      id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk',
       role: 'Master', status: 'Ativo', created_at: new Date().toISOString()
     });
   }
@@ -578,6 +579,12 @@ export async function generateMockData() {
     preservedUsers.push({
       id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri',
       role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString()
+    });
+  }
+  if (!preservedUsers.find(u => u.username === 'silviacwb')) {
+    preservedUsers.push({
+      id: 'USR-SILVIACWB', name: 'Enf. Sílvia', username: 'silviacwb',
+      role: 'Enfermeiro', status: 'Ativo', created_at: new Date().toISOString()
     });
   }
 
