@@ -432,13 +432,14 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
               <option value="Aguardando_Triagem" ${currentStatus === 'Aguardando_Triagem' ? 'selected' : ''}>Aguardando Triagem</option>
               <option value="Aguardando_Atendimento" ${currentStatus === 'Aguardando_Atendimento' ? 'selected' : ''}>Aguardando Atendimento Médico</option>
               <option value="Em_Atendimento" ${currentStatus === 'Em_Atendimento' ? 'selected' : ''}>Em Atendimento (No Consultório)</option>
+              <option value="Aguardando_Leito" ${currentStatus === 'Aguardando_Leito' ? 'selected' : ''}>Solicitar Internação / Aguardando Leito</option>
               <option value="Finalizado" ${currentStatus === 'Finalizado' ? 'selected' : ''}>Finalizar / Alta Médica</option>
             </select>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
             <div>
-              <button type="button" id="btn-internacao" class="btn" style="background: var(--danger); color: white; border: none;"><i class="fa-solid fa-bed-pulse"></i> Solicitar Internação</button>
+              <button type="button" id="btn-internacao" class="btn" style="background: var(--danger); color: white; border: none; font-weight: 600;"><i class="fa-solid fa-bed-pulse"></i> Solicitar Internação</button>
             </div>
             <div style="display: flex; gap: 10px;">
               <button type="button" id="btn-cancel-reassign" class="btn btn-secondary">Cancelar</button>
@@ -456,17 +457,29 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
     const btnInternacao = document.getElementById('btn-internacao');
     if (btnInternacao) {
       btnInternacao.addEventListener('click', async () => {
-        document.getElementById('reassign-room').value = 'UTI/Internação';
-        document.getElementById('reassign-status').value = 'Aguardando_Leito';
-        
         const confirmed = await showCustomConfirm({
           title: 'Solicitar Internação',
-          message: 'Deseja realmente solicitar internação para este paciente?',
+          message: `Deseja realmente solicitar a internação em UTI/Leito para o paciente ${patientName}?`,
           confirmText: 'Sim, Solicitar Internação',
           type: 'danger'
         });
         
         if (confirmed) {
+          const roomSelect = document.getElementById('reassign-room');
+          const statusSelect = document.getElementById('reassign-status');
+          
+          // Ensure UTI option exists or add it dynamically
+          let utiOpt = Array.from(roomSelect.options).find(o => o.value.includes('UTI') || o.value.includes('Internação'));
+          if (!utiOpt) {
+            utiOpt = document.createElement('option');
+            utiOpt.value = 'UTI / Internação';
+            utiOpt.textContent = 'UTI / Internação - Unidade Crítica';
+            roomSelect.appendChild(utiOpt);
+          }
+          roomSelect.value = utiOpt.value;
+
+          statusSelect.value = 'Aguardando_Leito';
+          
           document.getElementById('reassign-form').dispatchEvent(new Event('submit', { cancelable: true }));
         }
       });
