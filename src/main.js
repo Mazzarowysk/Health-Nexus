@@ -2857,39 +2857,46 @@ function renderAppStructure() {
             </div>
             
             <div class="pep-sidebar-group">
-              <label class="pep-sidebar-label"><i class="fa-solid fa-heart-pulse"></i> Sinais Vitais (Triagem)</label>
+            <div class="pep-sidebar-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="pep-sidebar-label" style="margin: 0;"><i class="fa-solid fa-heart-pulse"></i> Sinais Vitais (Triagem)</label>
+                <span style="font-size: 0.7rem; color: #a78bfa; font-weight: 600; cursor: pointer;" title="Clique em qualquer sinal vital para ver a referência médica"><i class="fa-solid fa-circle-info"></i> Guia Rápido</span>
+              </div>
               <div class="pep-vitals-grid">
-                <div class="pep-vital-item">
-                  <span class="pep-vital-lbl"><i class="fa-solid fa-gauge-high" style="color: #60a5fa;"></i> PA</span>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('pa')" style="cursor: pointer;" title="Clique para ver referência médica da PA">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-gauge-high" style="color: #60a5fa;"></i> PA <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
                   <span class="pep-vital-val"><strong id="pep-bp">-</strong> <small>mmHg</small></span>
                 </div>
-                <div class="pep-vital-item">
-                  <span class="pep-vital-lbl"><i class="fa-solid fa-heartbeat" style="color: #f87171;"></i> FC</span>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('fc')" style="cursor: pointer;" title="Clique para ver referência médica da FC">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-heartbeat" style="color: #f87171;"></i> FC <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
                   <span class="pep-vital-val"><strong id="pep-hr">-</strong> <small>bpm</small></span>
                 </div>
-                <div class="pep-vital-item">
-                  <span class="pep-vital-lbl"><i class="fa-solid fa-temperature-three-quarters" style="color: #fbbf24;"></i> Temp</span>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('temp')" style="cursor: pointer;" title="Clique para ver referência médica da Temperatura">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-temperature-three-quarters" style="color: #fbbf24;"></i> Temp <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
                   <span class="pep-vital-val"><strong id="pep-temp">-</strong> <small>°C</small></span>
                 </div>
-                <div class="pep-vital-item">
-                  <span class="pep-vital-lbl"><i class="fa-solid fa-weight-scale" style="color: #34d399;"></i> Peso</span>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('weight')" style="cursor: pointer;" title="Clique para ver referência médica do Peso">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-weight-scale" style="color: #34d399;"></i> Peso <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
                   <span class="pep-vital-val"><strong id="pep-weight">-</strong> <small>kg</small></span>
                 </div>
-                <div class="pep-vital-item">
-                  <span class="pep-vital-lbl"><i class="fa-solid fa-lungs" style="color: #a78bfa;"></i> SpO2</span>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('spo2')" style="cursor: pointer;" title="Clique para ver referência médica da SpO2">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-lungs" style="color: #a78bfa;"></i> SpO2 <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
                   <span class="pep-vital-val"><strong id="pep-spo2">-</strong> <small>%</small></span>
                 </div>
-                <div class="pep-vital-item">
-                  <span class="pep-vital-lbl"><i class="fa-solid fa-face-frown-open" style="color: #f43f5e;"></i> Dor</span>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('pain')" style="cursor: pointer;" title="Clique para ver referência médica da Dor">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-face-frown-open" style="color: #f43f5e;"></i> Dor <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
                   <span class="pep-vital-val"><strong id="pep-pain">-</strong> <small>/10</small></span>
                 </div>
               </div>
             </div>
 
             <div class="pep-sidebar-group">
-              <label class="pep-sidebar-label"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</label>
-              <div class="pep-complaints-card">
-                <p id="pep-complaints">-</p>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="pep-sidebar-label" style="margin: 0;"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</label>
+                <span style="font-size: 0.7rem; color: #34d399; font-weight: 600;"><i class="fa-solid fa-pen-to-square"></i> Editável</span>
+              </div>
+              <div class="pep-complaints-card" style="padding: 0; background: none; border: none;">
+                <textarea id="pep-complaints" class="form-input pep-textarea" style="width: 100%; min-height: 130px; resize: vertical; font-size: 0.9rem; line-height: 1.5; background: rgba(167, 139, 250, 0.08); border: 1px solid rgba(167, 139, 250, 0.3); border-left: 4px solid #a78bfa; border-radius: 12px; color: var(--text-primary); padding: 14px 16px;" placeholder="Digite ou edite a queixa principal do paciente..."></textarea>
               </div>
             </div>
           </div>
@@ -5873,7 +5880,7 @@ window.openPEPModal = async function(encounterId) {
     const weightEl = document.getElementById('pep-weight'); if (weightEl) weightEl.textContent = weight;
     const spo2El = document.getElementById('pep-spo2'); if (spo2El) spo2El.textContent = oxygenSaturation;
     const painEl = document.getElementById('pep-pain'); if (painEl) painEl.textContent = painScale;
-    const compEl = document.getElementById('pep-complaints'); if (compEl) compEl.textContent = complaints;
+    const compEl = document.getElementById('pep-complaints'); if (compEl) compEl.value = (complaints && complaints !== '-' ? complaints : '');
     
     // 3. Buscar Nota Clínica se existir
     const noteRes = await apiFetch(`${API_URL}/encounters/${encounterId}/notes`);
@@ -5882,11 +5889,12 @@ window.openPEPModal = async function(encounterId) {
     
     const isClosed = note && note.isClosed === 1;
     
-    if (note && (note.subjectiveContent || note.objectiveContent || note.assessmentContent || note.planContent)) {
+    if (note && (note.subjectiveContent || note.objectiveContent || note.assessmentContent || note.planContent || note.complaints)) {
       document.getElementById('pep-subjective').value = note.subjectiveContent || '';
       document.getElementById('pep-objective').value = note.objectiveContent || '';
       document.getElementById('pep-assessment').value = note.assessmentContent || '';
       document.getElementById('pep-plan').value = note.planContent || '';
+      if (note.complaints) document.getElementById('pep-complaints').value = note.complaints;
       
       const badge = document.getElementById('pep-status-badge');
       if (badge) {
@@ -5907,7 +5915,7 @@ window.openPEPModal = async function(encounterId) {
     }
     
     // Bloquear campos se estiver assinado
-    const fields = ['pep-subjective', 'pep-objective', 'pep-assessment', 'pep-plan'];
+    const fields = ['pep-subjective', 'pep-objective', 'pep-assessment', 'pep-plan', 'pep-complaints'];
     fields.forEach(f => {
       const el = document.getElementById(f);
       if (el) el.disabled = isClosed;
@@ -5973,7 +5981,8 @@ window.savePEPDraft = async function() {
     subjectiveContent: document.getElementById('pep-subjective').value,
     objectiveContent: document.getElementById('pep-objective').value,
     assessmentContent: document.getElementById('pep-assessment').value,
-    planContent: document.getElementById('pep-plan').value
+    planContent: document.getElementById('pep-plan').value,
+    complaints: document.getElementById('pep-complaints')?.value || ''
   };
   
   try {
@@ -5987,14 +5996,216 @@ window.savePEPDraft = async function() {
     if (res.ok) {
       showToast('Rascunho salvo com sucesso.');
       const badge = document.getElementById('pep-status-badge');
-      badge.textContent = 'RASCUNHO SALVO';
-      badge.className = 'badge-draft';
+      if (badge) {
+        badge.innerHTML = '<i class="fa-solid fa-file-pen"></i> RASCUNHO SALVO';
+        badge.className = 'badge-draft';
+      }
     } else {
       showToast(result.message || 'Erro ao salvar rascunho.');
     }
   } catch (err) {
     showToast('Erro de conexão ao salvar rascunho.');
   }
+};
+
+// Modal de Guia Clínico & Referência Médica de Sinais Vitais
+window.openVitalDetailModal = function(vitalKey) {
+  const VITAL_INFO = {
+    pa: {
+      title: 'Pressão Arterial (PA)',
+      unit: 'mmHg',
+      icon: 'fa-gauge-high',
+      color: '#60a5fa',
+      targetId: 'pep-bp',
+      description: 'Mede a força exercida pelo sangue contra as paredes das artérias durante a sístole (contração) e diástole (relaxamento) do coração.',
+      normalRange: '120/80 mmHg (Ótima) | 120-129 / <80 (Normal)',
+      stages: [
+        { label: 'Ótima', range: '< 120 / < 80 mmHg', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Pressão arterial ideal para adultos.' },
+        { label: 'Normal', range: '120-129 / 80-84 mmHg', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Dentro do padrão fisiológico normal.' },
+        { label: 'Pré-Hipertensão', range: '130-139 / 85-89 mmHg', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Atenção preventiva e monitoramento.' },
+        { label: 'Hipertensão Estágio 1', range: '140-159 / 90-99 mmHg', badgeStyle: 'background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.3);', desc: 'Elevação moderada. Avaliação médica recomendada.' },
+        { label: 'Hipertensão Estágio 2/3', range: '≥ 160 / ≥ 100 mmHg', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Crítico. Risco cardiovascular e de lesão de órgão-alvo.' }
+      ]
+    },
+    fc: {
+      title: 'Frequência Cardíaca (FC)',
+      unit: 'bpm',
+      icon: 'fa-heartbeat',
+      color: '#f87171',
+      targetId: 'pep-hr',
+      description: 'Número de batimentos que o coração realiza por minuto (bpm). Indicador vital de estresse e perfusão.',
+      normalRange: '60 a 100 bpm (em repouso)',
+      stages: [
+        { label: 'Bradicardia', range: '< 60 bpm', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Ritmo cardíaco reduzido. Comum em atletas ou por medicação.' },
+        { label: 'Normocardia', range: '60 - 100 bpm', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Frequência cardíaca ideal em repouso.' },
+        { label: 'Taquicardia Leve', range: '101 - 120 bpm', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Acelerado. Investigar dor, ansiedade, desidratação ou febre.' },
+        { label: 'Taquicardia Grave', range: '> 120 bpm', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Batimentos muito elevados. Risco de choque ou arritmia.' }
+      ]
+    },
+    temp: {
+      title: 'Temperatura Corporal (Temp)',
+      unit: '°C',
+      icon: 'fa-temperature-three-quarters',
+      color: '#fbbf24',
+      targetId: 'pep-temp',
+      description: 'Mede a temperatura corporal interna. Alterações indicam processos infecciosos ou inflamatórios sistêmicos.',
+      normalRange: '36.1°C a 37.2°C',
+      stages: [
+        { label: 'Hipotermia', range: '< 35.5 °C', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Perda excessiva de calor corporal.' },
+        { label: 'Normotermia (Afebril)', range: '35.5°C - 37.2°C', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Temperatura corporal normal.' },
+        { label: 'Subfebril / Febrícula', range: '37.3°C - 37.7°C', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Elevação leve. Acompanhar a evolução.' },
+        { label: 'Febre (Hipertermia)', range: '37.8°C - 38.9°C', badgeStyle: 'background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.3);', desc: 'Reação imune ativa contra patógenos.' },
+        { label: 'Febre Alta / Pirexia', range: '≥ 39.0 °C', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Crítico. Intervenção antitérmica imediata.' }
+      ]
+    },
+    weight: {
+      title: 'Peso Corporal (Peso)',
+      unit: 'kg',
+      icon: 'fa-weight-scale',
+      color: '#34d399',
+      targetId: 'pep-weight',
+      description: 'Massa corporal total. Usado no cálculo de IMC, balanço hídrico e dosagens de medicamentos e anestésicos.',
+      normalRange: 'Varia por altura (IMC saudável: 18.5 - 24.9 kg/m²)',
+      stages: [
+        { label: 'Baixo Peso', range: 'IMC < 18.5', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Possível desnutrição ou déficit de massa corporal.' },
+        { label: 'Peso Eutrófico (Normal)', range: 'IMC 18.5 - 24.9', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Faixa recomendada pelas diretrizes mundiais.' },
+        { label: 'Sobrepeso', range: 'IMC 25.0 - 29.9', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Aumento leve de risco metabólico.' },
+        { label: 'Obesidade', range: 'IMC ≥ 30.0', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Fator de risco para comorbidades cardiovasculares.' }
+      ]
+    },
+    spo2: {
+      title: 'Saturação de Oxigênio (SpO2)',
+      unit: '%',
+      icon: 'fa-lungs',
+      color: '#a78bfa',
+      targetId: 'pep-spo2',
+      description: 'Mede o percentual de hemoglobina ligada ao oxigênio. Avalia diretamente a capacidade ventilatória pulmonar.',
+      normalRange: '95% a 100% em ar ambiente',
+      stages: [
+        { label: 'Normal / Eupneico', range: '95% - 100%', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Excelente troca gasosa e oxigenação tecidual.' },
+        { label: 'Hipóxia Leve', range: '91% - 94%', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Desconforto respiratório inicial. Monitorar com atenção.' },
+        { label: 'Hipóxia Moderada', range: '86% - 90%', badgeStyle: 'background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.3);', desc: 'Indicação de oxigenoterapia complementar (cateter/máscara).' },
+        { label: 'Hipóxia Grave', range: '< 85%', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Emergência médica. Risco iminente de falência respiratória.' }
+      ]
+    },
+    pain: {
+      title: 'Escala Visual Analógica da Dor (Dor)',
+      unit: '/10',
+      icon: 'fa-face-frown-open',
+      color: '#f43f5e',
+      targetId: 'pep-pain',
+      description: 'Mensuração subjetiva da dor relatada pelo paciente, pontuada de 0 (sem dor) a 10 (dor insuportável).',
+      normalRange: '0 / 10 (Sem dor)',
+      stages: [
+        { label: 'Sem Dor', range: '0 / 10', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Conforto total preservado.' },
+        { label: 'Dor Leve', range: '1 - 3 / 10', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Desconforto leve. Analgésicos de primeira linha.' },
+        { label: 'Dor Moderada', range: '4 - 6 / 10', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Interfere na concentração/atividades. Analgesia moderada.' },
+        { label: 'Dor Intensa', range: '7 - 9 / 10', badgeStyle: 'background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.3);', desc: 'Incapacitante. Analgesia potente/opioides.' },
+        { label: 'Dor Insuportável', range: '10 / 10', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Máxima intensidade descrita. Abordagem imediata de emergência.' }
+      ]
+    }
+  };
+
+  const info = VITAL_INFO[vitalKey];
+  if (!info) return;
+
+  const currentValEl = document.getElementById(info.targetId);
+  const currentVal = currentValEl ? currentValEl.textContent.trim() : '-';
+
+  const existing = document.getElementById('vital-detail-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'vital-detail-modal';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal.style.zIndex = '999999';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 580px; width: 92%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.7);">
+      <div class="modal-header" style="padding: 20px 24px; background: linear-gradient(135deg, #1e1b4b, #2e1065); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: ${info.color}22; border: 1px solid ${info.color}55; display: flex; align-items: center; justify-content: center; color: ${info.color}; font-size: 1.2rem;">
+            <i class="fa-solid ${info.icon}"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff;">${info.title}</h3>
+            <span style="font-size: 0.78rem; color: #c4b5fd;">Guia Clínico & Padrões Médicos Normais</span>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="document.getElementById('vital-detail-modal').remove()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 24px; overflow-y: auto; max-height: 75vh; display: flex; flex-direction: column; gap: 20px;">
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Medição Registrada no Paciente</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #fff; font-family: 'JetBrains Mono', monospace; margin-top: 4px;">
+              ${currentVal} <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">${info.unit}</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Padrão Clínico Ideal</div>
+            <span style="font-size: 0.8rem; font-weight: 700; background: rgba(52,199,89,0.15); color: #34c759; border: 1px solid rgba(52,199,89,0.3); padding: 4px 10px; border-radius: 12px; display: inline-block;">
+              ${info.normalRange}
+            </span>
+          </div>
+        </div>
+
+        <div style="font-size: 0.88rem; line-height: 1.6; color: var(--text-primary); background: rgba(0,0,0,0.2); padding: 14px 16px; border-radius: 10px; border-left: 4px solid ${info.color};">
+          <strong style="color: ${info.color}; display: block; margin-bottom: 4px;"><i class="fa-solid fa-book-medical"></i> Definição Fisiológica:</strong>
+          ${info.description}
+        </div>
+
+        <div>
+          <h4 style="font-family: Outfit, sans-serif; font-size: 0.92rem; font-weight: 700; color: #fff; margin: 0 0 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-list-check" style="color: #a78bfa;"></i> Tabela de Classificação e Intervalos Médicos
+          </h4>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${info.stages.map(st => `
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 140px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; ${st.badgeStyle}">
+                    ${st.label}
+                  </span>
+                  <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">${st.desc}</div>
+                </div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: #fff; font-family: monospace;">
+                  ${st.range}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 4px;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 8px;">
+            <i class="fa-solid fa-pen-to-square" style="color: #34d399;"></i> Atualizar ou Informar Valor no Prontuário (${info.unit}):
+          </label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="vital-quick-input" class="form-input" style="flex: 1; font-size: 0.9rem;" placeholder="Digite o novo valor (ex: ${info.unit === 'mmHg' ? '120/80' : '36.5'})..." value="${currentVal !== '-' ? currentVal : ''}">
+            <button type="button" class="btn btn-primary" onclick="updateVitalValueInPEP('${info.targetId}')" style="font-size: 0.82rem; padding: 8px 16px;">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar Valor
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+};
+
+window.updateVitalValueInPEP = function(targetId) {
+  const val = document.getElementById('vital-quick-input').value.trim();
+  const targetEl = document.getElementById(targetId);
+  if (targetEl) {
+    targetEl.textContent = val || '-';
+    showToast('Sinal vital atualizado no prontuário!');
+  }
+  const modal = document.getElementById('vital-detail-modal');
+  if (modal) modal.remove();
 };
 
 // Modal de Assinatura
