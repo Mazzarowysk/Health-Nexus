@@ -2771,7 +2771,11 @@ function renderAppStructure() {
 
       <!-- Cabeçalho Superior -->
       <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 24px; gap: 16px;">
-        <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <button id="global-back-btn" style="display: none; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(59,130,246,0.25)); border: 1px solid rgba(129,140,248,0.4); color: #818cf8; font-weight: 700; font-size: 0.82rem; padding: 7px 14px; border-radius: 20px; cursor: pointer; align-items: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" title="Voltar para a tela anterior (Atalho: Alt + Seta Esquerda)">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span id="global-back-label">Voltar</span>
+          </button>
           <h1 class="page-title" id="page-title-label" style="margin: 0;">Health Nexus</h1>
           <div class="header-brand-text" style="margin: 0;">
             <i class="fa-solid fa-circle-nodes"></i>
@@ -2986,12 +2990,24 @@ function renderAppStructure() {
     });
   }
 
+  const backBtn = document.getElementById('global-back-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', goBack);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key === 'ArrowLeft') {
+      e.preventDefault();
+      goBack();
+    }
+  });
+
   // Renderizar o conteúdo da aba ativa
   renderTabContent();
 }
 
-// --- CONTROLE DE MUDANÇA DE ABA COM PERMISSÃO (RBAC) ---
-function switchTab(tabName) {
+// --- CONTROLE DE MUDANÇA DE ABA COM PERMISSÃO (RBAC) & NAVEGAÇÃO DE RETORNO ---
+function switchTab(tabName, isBack = false) {
   const perms = getRolePermissions(state.user);
   if (!perms.allowedTabs.includes(tabName)) {
     showCustomAlert({
@@ -3002,7 +3018,16 @@ function switchTab(tabName) {
     return;
   }
 
+  // Registrar histórico de navegação global
+  if (!isBack && state.activeTab && state.activeTab !== tabName) {
+    if (!state.navHistory) state.navHistory = [];
+    if (state.navHistory[state.navHistory.length - 1] !== state.activeTab) {
+      state.navHistory.push(state.activeTab);
+    }
+  }
+
   state.activeTab = tabName;
+  updateGlobalBackButton();
   
   // Mapa de nomes de exibição por aba
   const tabLabels = {
@@ -3038,6 +3063,47 @@ function switchTab(tabName) {
 
   // Re-renderiza a área de conteúdo
   renderTabContent();
+}
+
+function updateGlobalBackButton() {
+  const backBtn = document.getElementById('global-back-btn');
+  const backLabel = document.getElementById('global-back-label');
+  if (!backBtn) return;
+
+  const tabShortLabels = {
+    dashboard: 'Health Nexus',
+    pacientes: 'Pacientes',
+    medicos: 'Médicos',
+    consultorios: 'Consultórios',
+    farmacia: 'Farmácia',
+    tv_panel: 'Painel TV',
+    agenda: 'Agenda',
+    atendimento: 'Atendimentos',
+    estagnacao: 'Alertas',
+    leitos: 'Leitos',
+    financeiro: 'Financeiro',
+    relatorios: 'Relatórios',
+    configuracoes: 'Configurações'
+  };
+
+  if (state.navHistory && state.navHistory.length > 0) {
+    const prevTab = state.navHistory[state.navHistory.length - 1];
+    const prevName = tabShortLabels[prevTab] || prevTab;
+    if (backLabel) backLabel.textContent = `Voltar para ${prevName}`;
+    backBtn.style.display = 'inline-flex';
+  } else {
+    backBtn.style.display = 'none';
+  }
+}
+
+function goBack() {
+  if (state.navHistory && state.navHistory.length > 0) {
+    const prevTab = state.navHistory.pop();
+    if (typeof showToast === 'function') {
+      showToast(`⬅️ Voltando para a tela anterior...`);
+    }
+    switchTab(prevTab, true);
+  }
 }
 
 // --- CONTEÚDO DAS ABAS ---

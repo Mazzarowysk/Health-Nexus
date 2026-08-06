@@ -10,7 +10,8 @@ export const state = {
     dailyAppointmentsCount: 0,
     billingSummary: { totalRevenue: 0, pendingClaims: 0 }
   },
-  loading: true
+  loading: true,
+  navHistory: []
 };
 
 export const CACHE_TTL_MS = 30_000;
