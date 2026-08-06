@@ -1207,6 +1207,7 @@ function renderReportsTab(contentArea) {
           <th>Tipo</th>
           <th>Situação</th>
           <th>Data/Hora</th>
+          <th style="text-align:center;">Ações</th>
         </tr>
       `;
 
@@ -1220,23 +1221,48 @@ function renderReportsTab(contentArea) {
           'Em_Atendimento': 'Em Consulta',
           'Finalizado': 'Finalizado'
         };
+        const manchesterHex = { 'Vermelho': '#ef4444', 'Laranja': '#f97316', 'Amarelo': '#eab308', 'Verde': '#22c55e', 'Azul': '#3b82f6', 'Branco': '#f1f5f9' };
         if (dynTableBody) dynTableBody.innerHTML = currentFilteredList.map(e => {
           const name = hasPEP ? (e.patientName || 'Desconhecido') : abbreviateName(e.patientName || 'Desconhecido');
-          const dateStr = e.admitted_at ? new Date(e.admitted_at).toLocaleString() : '-';
-          const badgeClass = e.manchesterColor ? `badge-${e.manchesterColor.toLowerCase()}` : '';
-          const displayColor = e.manchesterColor ? `<span class="badge-manchester ${badgeClass}">${e.manchesterColor}</span>` : '-';
+          const dateStr = e.admitted_at ? new Date(e.admitted_at).toLocaleString('pt-BR') : '-';
+          const mc = e.manchesterColor;
+          const hex = mc ? (manchesterHex[mc] || '#818cf8') : null;
+          const displayColor = mc ? `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;background:${hex}22;color:${hex};border:1px solid ${hex}55;">${mc.toUpperCase()}</span>` : '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>';
+          const statusColors = { 'Aguardando_Triagem': '#fbbf24', 'Aguardando_Atendimento': '#38bdf8', 'Em_Atendimento': '#a78bfa', 'Finalizado': '#34d399' };
+          const stColor = statusColors[e.status] || '#94a3b8';
+          const stLabel = statusMap[e.status] || e.status;
+          const encIdShort = (e.id || '').substring(0, 8) + '...';
           return `
-            <tr>
-              <td class="col-checkbox"><input type="checkbox" class="record-checkbox" data-id="${e.id}" checked></td>
-              <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${e.id.substring(0, 8)}...</td>
-              <td style="font-weight: 500;">${name}</td>
+            <tr class="report-enc-row" data-enc-id="${e.id}" style="border-bottom:1px solid var(--border-color);cursor:pointer;transition:background 0.15s ease, box-shadow 0.15s ease;"
+              onmouseenter="this.style.background='rgba(99,102,241,0.07)'; this.style.boxShadow='inset 3px 0 0 #818cf8';"
+              onmouseleave="this.style.background=''; this.style.boxShadow='';">
+              <td class="col-checkbox" onclick="event.stopPropagation()"><input type="checkbox" class="record-checkbox" data-id="${e.id}" checked></td>
+              <td style="font-family:monospace;font-weight:700;color:var(--color-primary);font-size:0.83rem;" title="${e.id}">${encIdShort}</td>
+              <td style="font-weight:600;color:var(--text-primary);">${name}</td>
               <td>${displayColor}</td>
-              <td>${e.type === 'Urgencia' ? 'Urgência' : 'Ambulatório'}</td>
-              <td>${statusMap[e.status] || e.status}</td>
-              <td style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr}</td>
+              <td style="font-size:0.83rem;color:var(--text-secondary);">${e.type === 'Urgencia' ? 'Urgência' : 'Ambulatório'}</td>
+              <td><span style="font-size:0.77rem;font-weight:700;padding:3px 10px;border-radius:20px;background:${stColor}1a;color:${stColor};border:1px solid ${stColor}44;">${stLabel}</span></td>
+              <td style="font-size:0.8rem;color:var(--text-secondary);">${dateStr}</td>
+              <td style="text-align:center;" onclick="event.stopPropagation()">
+                <div style="display:flex;gap:5px;justify-content:center;">
+                  <button class="btn-report-detail" data-enc-id="${e.id}" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.4);color:#818cf8;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Ver detalhes completos"><i class="fa-solid fa-eye"></i> Detalhes</button>
+                  ${hasPEP ? `<button class="btn-report-pep" data-enc-id="${e.id}" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#f472b6;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Abrir Prontuário Eletrônico"><i class="fa-solid fa-file-medical"></i> PEP</button>` : ''}
+                </div>
+              </td>
             </tr>
           `;
         }).join('');
+
+        // Wire up row clicks and action buttons
+        dynTableBody.querySelectorAll('.report-enc-row').forEach(row => {
+          row.addEventListener('click', () => openEncounterReportDetail(row.dataset.encId));
+        });
+        dynTableBody.querySelectorAll('.btn-report-detail').forEach(btn => {
+          btn.addEventListener('click', (ev) => { ev.stopPropagation(); openEncounterReportDetail(btn.dataset.encId); });
+        });
+        dynTableBody.querySelectorAll('.btn-report-pep').forEach(btn => {
+          btn.addEventListener('click', (ev) => { ev.stopPropagation(); if (typeof window.openPEPModal === 'function') window.openPEPModal(btn.dataset.encId); });
+        });
       }
     }
 
@@ -3027,3 +3053,176 @@ function renderReportsTab(contentArea) {
   loadData();
 }
 window.renderReportsTab = renderReportsTab;
+
+// ──────────────────────────────────────────────────────────────
+//  Modal de Detalhes do Atendimento (aberto pela tabela Reports)
+// ──────────────────────────────────────────────────────────────
+async function openEncounterReportDetail(encId) {
+  // Remover modal antigo se houver
+  document.getElementById('enc-report-detail-modal')?.remove();
+
+  const manchesterHex = { 'Vermelho': '#ef4444', 'Laranja': '#f97316', 'Amarelo': '#eab308', 'Verde': '#22c55e', 'Azul': '#3b82f6', 'Branco': '#f1f5f9' };
+  const statusMap = { 'Aguardando_Triagem': 'Aguardando Triagem', 'Aguardando_Atendimento': 'Aguardando Consulta', 'Em_Atendimento': 'Em Consulta', 'Finalizado': 'Finalizado' };
+  const statusColors = { 'Aguardando_Triagem': '#fbbf24', 'Aguardando_Atendimento': '#38bdf8', 'Em_Atendimento': '#a78bfa', 'Finalizado': '#34d399' };
+
+  // Spinner enquanto carrega
+  const overlay = document.createElement('div');
+  overlay.id = 'enc-report-detail-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `<div style="color:#818cf8;font-size:1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando atendimento...</div>`;
+  document.body.appendChild(overlay);
+
+  // Fechar ao clicar fora
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  try {
+    const [encRes, triageRes, noteRes] = await Promise.all([
+      apiFetch('/api/encounters'),
+      apiFetch('/api/triages'),
+      apiFetch(`/api/encounters/${encId}/notes`).catch(() => null)
+    ]);
+
+    const encs = await encRes.json().then(r => Array.isArray(r) ? r : (r.data || []));
+    const triages = await triageRes.json().then(r => Array.isArray(r) ? r : (r.data || []));
+    const enc = encs.find(e => e.id === encId);
+    if (!enc) throw new Error('Atendimento não encontrado');
+
+    const triage = triages.find(t => String(t.encounterId) === String(encId) || String(t.patientId) === String(enc.patientId));
+    const noteRaw = noteRes ? await noteRes.json().catch(() => null) : null;
+    const note = noteRaw && typeof noteRaw === 'object' ? (noteRaw.data || noteRaw) : null;
+
+    const mc = enc.manchesterColor || triage?.manchesterColor;
+    const hex = mc ? (manchesterHex[mc] || '#818cf8') : '#818cf8';
+    const stColor = statusColors[enc.status] || '#94a3b8';
+    const dateStr = enc.admitted_at ? new Date(enc.admitted_at).toLocaleString('pt-BR', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+
+    // Vitais do triage
+    const bp = triage?.bloodPressure || (triage?.bloodPressureSystolic ? `${triage.bloodPressureSystolic}/${triage.bloodPressureDiastolic}` : null) || enc.bloodPressure || '—';
+    const hr = triage?.heartRateBpm || triage?.heartRate || enc.heartRateBpm || '—';
+    const temp = triage?.temperatureCelsius || triage?.temperature || enc.temperatureCelsius || '—';
+    const weight = triage?.weightKg || triage?.weight || enc.weightKg || '—';
+    const spo2 = triage?.oxygenSaturation || enc.oxygenSaturation || '—';
+    const pain = triage?.painScale !== undefined ? triage.painScale : (enc.painScale !== undefined ? enc.painScale : '—');
+
+    const vitalCard = (icon, label, value, unit, color) => `
+      <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:1.1rem;color:${color};margin-bottom:4px;"><i class="fa-solid ${icon}"></i></div>
+        <div style="font-size:1.15rem;font-weight:800;font-family:'Outfit';color:${color};">${value}<span style="font-size:0.65rem;color:var(--text-muted);margin-left:2px;">${unit}</span></div>
+        <div style="font-size:0.67rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:2px;">${label}</div>
+      </div>`;
+
+    const soapBlock = (letter, title, content, color) => content ? `
+      <div style="background:rgba(0,0,0,0.18);border-left:3px solid ${color};border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:8px;">
+        <div style="font-size:0.7rem;font-weight:800;color:${color};text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">${letter} — ${title}</div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.55;">${content}</div>
+      </div>` : '';
+
+    const isClinical = state?.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
+
+    overlay.innerHTML = `
+      <div style="
+        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+        border: 1px solid rgba(99,102,241,0.3);
+        border-radius: 20px;
+        width: min(760px, 95vw);
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 28px 30px;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15);
+        position: relative;
+      ">
+        <!-- Fechar -->
+        <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="position:absolute;top:16px;right:18px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;width:32px;height:32px;color:var(--text-muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+
+        <!-- Header -->
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:22px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:${hex}22;border:1.5px solid ${hex}55;display:flex;align-items:center;justify-content:center;color:${hex};font-size:1.4rem;flex-shrink:0;">
+            <i class="fa-solid fa-notes-medical"></i>
+          </div>
+          <div style="flex:1;">
+            <h3 style="margin:0 0 4px;font-size:1.22rem;font-weight:800;font-family:'Outfit';color:var(--text-primary);">${enc.patientName || 'Paciente'}</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+              <span style="font-family:monospace;font-size:0.78rem;color:var(--color-primary);">${encId}</span>
+              ${mc ? `<span style="padding:3px 10px;border-radius:20px;font-size:0.73rem;font-weight:700;background:${hex}22;color:${hex};border:1px solid ${hex}44;">${mc.toUpperCase()}</span>` : ''}
+              <span style="padding:3px 10px;border-radius:20px;font-size:0.73rem;font-weight:700;background:${stColor}1a;color:${stColor};border:1px solid ${stColor}44;">${statusMap[enc.status] || enc.status}</span>
+              <span style="font-size:0.78rem;color:var(--text-muted);"><i class="fa-regular fa-clock"></i> ${dateStr}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Rápida -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:11px 14px;">
+            <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Tipo</div>
+            <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);">${enc.type === 'Urgencia' ? '🚨 Urgência' : '🏥 Ambulatório'}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:11px 14px;">
+            <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Médico Responsável</div>
+            <div style="font-size:0.87rem;font-weight:600;color:var(--text-primary);">${enc.doctorName || '—'}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:11px 14px;">
+            <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Sala / Leito</div>
+            <div style="font-size:0.87rem;font-weight:600;color:var(--text-primary);">${enc.room || enc.bed || '—'}</div>
+          </div>
+        </div>
+
+        <!-- Sinais Vitais -->
+        ${(triage || enc.bloodPressure) ? `
+        <div style="margin-bottom:20px;">
+          <h4 style="margin:0 0 10px;font-size:0.85rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:7px;">
+            <i class="fa-solid fa-heart-pulse" style="color:#f472b6;"></i> Sinais Vitais (Triagem)
+          </h4>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+            ${vitalCard('fa-droplet', 'PA', bp, 'mmHg', '#818cf8')}
+            ${vitalCard('fa-heart', 'FC', hr, 'bpm', '#f472b6')}
+            ${vitalCard('fa-thermometer-half', 'Temp', temp, '°C', '#fb923c')}
+            ${vitalCard('fa-weight-scale', 'Peso', weight, 'kg', '#34d399')}
+            ${vitalCard('fa-lungs', 'SpO₂', spo2, '%', '#38bdf8')}
+            ${vitalCard('fa-face-grimace', 'Dor', pain, '/10', '#fbbf24')}
+          </div>
+        </div>` : ''}
+
+        <!-- Queixa Principal -->
+        ${(triage?.complaints || enc.complaints) ? `
+        <div style="margin-bottom:20px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:14px;">
+          <div style="font-size:0.7rem;font-weight:800;color:#fbbf24;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</div>
+          <p style="margin:0;font-size:0.88rem;color:var(--text-secondary);line-height:1.6;">${triage?.complaints || enc.complaints}</p>
+        </div>` : ''}
+
+        <!-- SOAP -->
+        ${note && (note.subjective || note.objective || note.assessment || note.plan) ? `
+        <div style="margin-bottom:20px;">
+          <h4 style="margin:0 0 10px;font-size:0.85rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:7px;">
+            <i class="fa-solid fa-file-medical" style="color:#a78bfa;"></i> Nota Clínica SOAP
+            ${note.isClosed ? '<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:rgba(52,211,153,0.15);color:#34d399;border:1px solid #34d39940;">✓ Assinada</span>' : '<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid #fbbf2440;">Rascunho</span>'}
+          </h4>
+          ${soapBlock('S', 'Subjetivo', note.subjective, '#818cf8')}
+          ${soapBlock('O', 'Objetivo', note.objective, '#38bdf8')}
+          ${soapBlock('A', 'Avaliação', note.assessment, '#fb923c')}
+          ${soapBlock('P', 'Plano', note.plan, '#34d399')}
+        </div>` : `
+        <div style="margin-bottom:20px;text-align:center;padding:18px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px dashed rgba(255,255,255,0.1);">
+          <i class="fa-regular fa-file-lines" style="font-size:1.5rem;color:var(--text-muted);margin-bottom:6px;display:block;"></i>
+          <span style="font-size:0.83rem;color:var(--text-muted);">Nenhuma nota clínica registrada para este atendimento.</span>
+        </div>`}
+
+        <!-- Ações -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px;border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;">
+          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove(); if(typeof window.openPEPModal==='function') window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:9px 18px;font-weight:700;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(236,72,153,0.35);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
+          <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--text-secondary);border-radius:10px;padding:9px 18px;font-weight:600;font-size:0.85rem;cursor:pointer;">Fechar</button>
+        </div>
+      </div>
+    `;
+
+  } catch (err) {
+    overlay.innerHTML = `
+      <div style="background:#1a1a2e;border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:40px 32px;text-align:center;max-width:400px;">
+        <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;font-size:2rem;margin-bottom:12px;display:block;"></i>
+        <div style="color:#ef4444;font-weight:700;margin-bottom:8px;">Erro ao carregar atendimento</div>
+        <div style="color:var(--text-muted);font-size:0.83rem;">${err.message}</div>
+        <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="margin-top:16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--text-secondary);border-radius:8px;padding:7px 18px;cursor:pointer;">Fechar</button>
+      </div>`;
+    overlay.style.cursor = 'default';
+  }
+}
+window.openEncounterReportDetail = openEncounterReportDetail;
