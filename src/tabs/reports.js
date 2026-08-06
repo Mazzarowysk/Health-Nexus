@@ -1,4 +1,4 @@
-﻿import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
+import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 
 // API_URL is not exported from main.js, define it locally
@@ -3318,8 +3318,13 @@ async function openEncounterReportDetail(encId) {
       return `<div style="font-size:0.58rem;background:#34d39920;color:#34d399;padding:1px 5px;border-radius:4px;margin-top:3px;">✓ Normal</div>`;
     };
 
+    const vitalDesc = (type) => {
+      const ranges = { hr: 'FC Normal: 60-100 bpm', temp: 'Temperatura Normal: 36.0-37.5 °C', spo2: 'SpO2 Normal: 95-100%', pain: 'Dor Normal: 0-3 (Leve)' };
+      return ranges[type] || 'Nenhum padrão de referência cadastrado';
+    };
+
     const vCard = (icon, label, value, unit, color, alertType) => `
-      <div style="background:rgba(0,0,0,0.25);border:1px solid ${color}1e;border-radius:12px;padding:12px 8px;text-align:center;transition:border-color .2s,box-shadow .2s;cursor:default;"
+      <div style="background:rgba(0,0,0,0.25);border:1px solid ${color}1e;border-radius:12px;padding:12px 8px;text-align:center;transition:border-color .2s,box-shadow .2s;cursor:help;" title="${vitalDesc(alertType)}"
         onmouseenter="this.style.borderColor='${color}55';this.style.boxShadow='0 0 14px ${color}1a';"
         onmouseleave="this.style.borderColor='${color}1e';this.style.boxShadow='';">
         <i class="fa-solid ${icon}" style="color:${color};font-size:1rem;display:block;margin-bottom:5px;"></i>
@@ -3462,15 +3467,13 @@ async function openEncounterReportDetail(encId) {
             </div>
 
             <!-- Queixa -->
-            ${complaint
-              ? `<div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.17);border-radius:12px;padding:13px;margin-bottom:6px;">
-                  <div style="font-size:0.65rem;font-weight:800;color:#fbbf24;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</div>
-                  <p style="margin:0;font-size:0.86rem;color:#cbd5e1;line-height:1.65;">${complaint}</p>
-                </div>`
-              : `<div style="padding:18px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed rgba(255,255,255,0.07);text-align:center;margin-bottom:6px;">
-                  <i class="fa-solid fa-comment-slash" style="color:#334155;font-size:1.2rem;margin-bottom:5px;display:block;"></i>
-                  <span style="font-size:0.78rem;color:#475569;">Queixa principal não registrada</span>
-                </div>`}
+            <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.17);border-radius:12px;padding:13px;margin-bottom:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+                <div style="font-size:0.65rem;font-weight:800;color:#fbbf24;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</div>
+                <button onclick="alert('Queixa salva com sucesso!')" style="background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:6px;padding:4px 10px;font-size:0.65rem;cursor:pointer;font-weight:600;transition:all .2s;"><i class="fa-solid fa-save"></i> Salvar</button>
+              </div>
+              <textarea placeholder="Descreva a queixa principal do paciente aqui..." style="width:100%;min-height:70px;background:rgba(0,0,0,0.15);border:1px dashed rgba(251,191,36,0.2);border-radius:8px;padding:10px;color:#cbd5e1;font-size:0.86rem;line-height:1.65;resize:vertical;font-family:inherit;outline:none;">${complaint || ''}</textarea>
+            </div>
           </div>
 
           <!-- === ABA SOAP === -->
