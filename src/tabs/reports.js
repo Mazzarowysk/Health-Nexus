@@ -419,27 +419,27 @@ function renderReportsTab(contentArea) {
       `;
     } else if (activeTab === 'financial') {
       filtersContainer.innerHTML = `
-        <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; align-items: flex-end;">
+        <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: flex-end;">
           <div class="filter-group">
-            <label>Vencimento Inicial</label>
-            <input type="date" id="filter-date-start" value="${new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]}">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Vencimento Inicial</label>
+            <input type="date" id="filter-date-start" value="${new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]}" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
           </div>
           <div class="filter-group">
-            <label>Vencimento Final</label>
-            <input type="date" id="filter-date-end" value="${new Date(new Date().getFullYear(), 11, 31).toISOString().split('T')[0]}">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Vencimento Final</label>
+            <input type="date" id="filter-date-end" value="${new Date(new Date().getFullYear(), 11, 31).toISOString().split('T')[0]}" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
           </div>
           <div class="filter-group">
-            <label>Tipo Operação</label>
-            <select id="filter-fin-type" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.82rem;cursor:pointer;">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Tipo Operação</label>
+            <select id="filter-fin-type" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
               <option value="Todos">Todos (Receitas/Despesas)</option>
               <option value="Receita">Receitas (Entradas)</option>
               <option value="Despesa">Despesas (Saídas)</option>
             </select>
           </div>
           <div class="filter-group">
-            <label>Status (Checkboxes)</label>
-            <div class="dropdown-check-list" id="dropdown-fin-status">
-              <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-status', event)">Status: Todos</div>
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Status (Filtro)</label>
+            <div class="dropdown-check-list" id="dropdown-fin-status" style="width: 100%;">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-status', event)" style="height:40px;display:flex;align-items:center;padding:0 12px;border-radius:10px;box-sizing:border-box;">Status: Todos</div>
               <ul class="items">
                 <li><input type="checkbox" id="filter-fin-all" checked><label for="filter-fin-all"><strong>Selecionar Todos</strong></label></li>
                 <li><input type="checkbox" class="filter-fin-item" value="Pagas" id="fin-st-1" checked><label for="fin-st-1">Pagas</label></li>
@@ -453,9 +453,9 @@ function renderReportsTab(contentArea) {
             </div>
           </div>
           <div class="filter-group">
-            <label>Categorias</label>
-            <div class="dropdown-check-list" id="dropdown-fin-category">
-              <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-category', event)">Categorias: Todas</div>
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Categorias</label>
+            <div class="dropdown-check-list" id="dropdown-fin-category" style="width: 100%;">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-category', event)" style="height:40px;display:flex;align-items:center;padding:0 12px;border-radius:10px;box-sizing:border-box;">Categorias: Todas</div>
               <ul class="items">
                 <li><input type="checkbox" id="filter-fin-cat-all" checked><label for="filter-fin-cat-all"><strong>Selecionar Todas</strong></label></li>
                 <li><input type="checkbox" class="filter-fin-cat-item" value="Consultas" id="fin-cat-1" checked><label for="fin-cat-1">Consultas</label></li>
@@ -468,9 +468,9 @@ function renderReportsTab(contentArea) {
             </div>
           </div>
           <div class="filter-group">
-            <label>Forma Pagamento</label>
-            <div class="dropdown-check-list" id="dropdown-fin-method">
-              <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-method', event)">Formas: Todas</div>
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Forma Pagamento</label>
+            <div class="dropdown-check-list" id="dropdown-fin-method" style="width: 100%;">
+              <div class="anchor" onclick="toggleFilterDropdown('dropdown-fin-method', event)" style="height:40px;display:flex;align-items:center;padding:0 12px;border-radius:10px;box-sizing:border-box;">Formas: Todas</div>
               <ul class="items">
                 <li><input type="checkbox" id="filter-fin-method-all" checked><label for="filter-fin-method-all"><strong>Selecionar Todas</strong></label></li>
                 <li><input type="checkbox" class="filter-fin-method-item" value="Pix" id="fin-m-1" checked><label for="fin-m-1">Pix</label></li>
@@ -483,11 +483,11 @@ function renderReportsTab(contentArea) {
             </div>
           </div>
           <div class="filter-group">
-            <label>Busca Livre</label>
-            <input type="text" id="filter-fin-search" placeholder="Paciente ou ID..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.82rem;">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Busca Livre</label>
+            <input type="text" id="filter-fin-search" placeholder="Paciente ou ID..." style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
           </div>
-          <div class="filter-group" style="grid-column: span 2; min-width: 240px;">
-            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;background:linear-gradient(135deg, #00f2fe, #4f46e5);color:#fff;font-weight:700;font-size:0.82rem;padding:8px 12px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(0,242,254,0.25);cursor:pointer;">
+          <div class="filter-group" style="grid-column: 1 / -1; margin-top: 8px;">
+            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;height:44px;background:linear-gradient(135deg, #6366f1, #4f46e5);color:#fff;font-weight:700;font-size:0.88rem;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(99,102,241,0.35);cursor:pointer;border:none;">
               <i class="fa-solid fa-window-restore"></i> Visualizar Listagem em Janela Dedicada
             </button>
           </div>
