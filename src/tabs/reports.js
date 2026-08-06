@@ -1390,90 +1390,285 @@ function renderReportsTab(contentArea) {
     } else if (activeTab === 'encounters' && currentFilteredList.length > 0) {
       // ── KPIs Atendimentos
       const total = currentFilteredList.length;
+
       const urgencias = currentFilteredList.filter(e => e.type === 'Urgencia').length;
       const ambulatorio = total - urgencias;
       const finalizados = currentFilteredList.filter(e => e.status === 'Finalizado').length;
+      const emAtendimento = currentFilteredList.filter(e => e.status === 'Em_Atendimento').length;
+      const aguardando = currentFilteredList.filter(e => e.status === 'Aguardando_Triagem' || e.status === 'Aguardando_Atendimento').length;
       const pctFin = total > 0 ? Math.round((finalizados / total) * 100) : 0;
 
       const manchesterCounts = {};
       currentFilteredList.forEach(e => { const k = e.manchesterColor || 'Não Classificado'; manchesterCounts[k] = (manchesterCounts[k] || 0) + 1; });
 
-      const statusCounts = {};
-      const statusLabels = { Aguardando_Triagem: 'Ag. Triagem', Aguardando_Atendimento: 'Ag. Consulta', Em_Atendimento: 'Em Consulta', Finalizado: 'Finalizado' };
-      currentFilteredList.forEach(e => { const k = statusLabels[e.status] || e.status; statusCounts[k] = (statusCounts[k] || 0) + 1; });
+      const statusCountsRaw = {};
+      const statusDisplayMap = { Aguardando_Triagem: 'Ag. Triagem', Aguardando_Atendimento: 'Ag. Consulta', Em_Atendimento: 'Em Consulta', Finalizado: 'Finalizado' };
+      const statusColorMap = { Aguardando_Triagem: '#fbbf24', Aguardando_Atendimento: '#38bdf8', Em_Atendimento: '#a78bfa', Finalizado: '#34d399' };
+      currentFilteredList.forEach(e => { statusCountsRaw[e.status] = (statusCountsRaw[e.status] || 0) + 1; });
+
+      const manchColors = { Vermelho: '#ef4444', Laranja: '#f97316', Amarelo: '#eab308', Verde: '#22c55e', Azul: '#3b82f6', 'Não Classificado': '#64748b' };
+
+      // Helper: KPI card
+      const kpiCard = (value, label, color, icon, filterKey, filterVal) => `
+        <div class="enc-kpi-card" data-filter-key="${filterKey}" data-filter-val="${filterVal}"
+          style="
+            padding:18px 16px;border-radius:16px;text-align:center;cursor:pointer;
+            background:${color}0d;border:1.5px solid ${color}33;
+            box-shadow:0 4px 20px ${color}15;
+            transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            position:relative;overflow:hidden;
+          "
+          onmouseenter="this.style.transform='translateY(-4px) scale(1.03)';this.style.boxShadow='0 12px 30px ${color}30';this.style.borderColor='${color}66';"
+          onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 20px ${color}15';this.style.borderColor='${color}33';"
+        >
+          <div style="position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;background:${color}10;"></div>
+          <i class="fa-solid ${icon}" style="font-size:1.3rem;color:${color};margin-bottom:8px;display:block;opacity:0.85;"></i>
+          <div style="font-size:2rem;font-weight:900;font-family:'Outfit',sans-serif;background:linear-gradient(135deg,${color},${color}cc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:4px;">${value}</div>
+          <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);font-weight:600;">${label}</div>
+        </div>`;
 
       summaryContainer.innerHTML = `
         <!-- KPI Cards Atendimentos -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:18px;">
-          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(236,72,153,0.3);background:rgba(236,72,153,0.07);text-align:center;">
-            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#ec4899;">${total}</div>
-            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;">Total Atendimentos</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;">
+          ${kpiCard(total, 'Total Atendimentos', '#ec4899', 'fa-notes-medical', 'all', '')}
+          ${kpiCard(urgencias, 'Urgências', '#ef4444', 'fa-truck-medical', 'type', 'Urgencia')}
+          ${kpiCard(ambulatorio, 'Ambulatório', '#818cf8', 'fa-hospital', 'type', 'Ambulatorio')}
+          ${kpiCard(pctFin + '%', 'Concluídos', '#34d399', 'fa-circle-check', 'status', 'Finalizado')}
+        </div>
+
+        <!-- Charts row -->
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;margin-bottom:20px;">
+
+          <!-- DONUT — Classificação Manchester -->
+          <div class="glass-card" style="padding:20px;border-radius:16px;border:1px solid rgba(236,72,153,0.2);background:rgba(236,72,153,0.04);">
+            <h4 style="margin:0 0 14px;font-size:0.88rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+              <i class="fa-solid fa-shield-halved" style="color:#ec4899;"></i> Classificação Manchester
+              <span style="margin-left:auto;font-size:0.68rem;color:var(--text-muted);font-weight:400;">Clique para filtrar</span>
+            </h4>
+            <div style="position:relative;width:180px;height:180px;margin:0 auto 14px;">
+              <canvas id="chart-enc-manchester"></canvas>
+              <div id="manch-donut-kpi" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                <span style="font-family:'Outfit';font-size:2rem;font-weight:900;color:#ec4899;display:block;line-height:1;filter:drop-shadow(0 0 8px rgba(236,72,153,0.4));">${total}</span>
+                <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">TOTAL</span>
+              </div>
+            </div>
+            <div id="manch-legend" style="display:flex;flex-direction:column;gap:6px;"></div>
           </div>
-          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(244,63,94,0.3);background:rgba(244,63,94,0.07);text-align:center;">
-            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#f43f5e;">${urgencias}</div>
-            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;">Urgências</div>
-          </div>
-          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.07);text-align:center;">
-            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#818cf8;">${ambulatorio}</div>
-            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;">Ambulatório</div>
-          </div>
-          <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(52,211,153,0.3);background:rgba(52,211,153,0.07);text-align:center;">
-            <div style="font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;color:#34d399;">${pctFin}%</div>
-            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;">Taxa Conclusão</div>
+
+          <!-- PROGRESS BARS — Status dos Atendimentos -->
+          <div class="glass-card" style="padding:20px;border-radius:16px;border:1px solid rgba(129,140,248,0.2);background:rgba(129,140,248,0.04);">
+            <h4 style="margin:0 0 16px;font-size:0.88rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+              <i class="fa-solid fa-chart-gantt" style="color:#818cf8;"></i> Situação dos Atendimentos
+              <span style="margin-left:auto;font-size:0.68rem;color:var(--text-muted);font-weight:400;">Clique para filtrar</span>
+            </h4>
+            <div id="status-progress-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+            <!-- Mini donut ring for completion -->
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:16px;">
+              <div style="position:relative;width:64px;height:64px;flex-shrink:0;">
+                <canvas id="chart-enc-completion-ring"></canvas>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                  <span style="font-size:0.8rem;font-weight:800;font-family:'Outfit';color:#34d399;">${pctFin}%</span>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:0.78rem;font-weight:700;color:var(--text-primary);">Taxa de Conclusão</div>
+                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${finalizados} de ${total} atendimentos finalizados</div>
+                <div style="font-size:0.72rem;color:#a78bfa;margin-top:2px;"><i class="fa-solid fa-circle-dot"></i> ${emAtendimento} em andamento • <span style="color:#fbbf24;">${aguardando} aguardando</span></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Gráficos Atendimentos -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div class="glass-card" style="padding:18px;border-radius:14px;border:1px solid var(--border-color);">
-            <h4 style="margin:0 0 14px;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-              <i class="fa-solid fa-shield-halved" style="color:#ec4899;"></i> Classificação Manchester
-            </h4>
-            <div style="position:relative;height:210px;"><canvas id="chart-enc-manchester"></canvas></div>
-          </div>
-          <div class="glass-card" style="padding:18px;border-radius:14px;border:1px solid var(--border-color);">
-            <h4 style="margin:0 0 14px;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-              <i class="fa-solid fa-chart-bar" style="color:#818cf8;"></i> Situação dos Atendimentos
-            </h4>
-            <div style="position:relative;height:210px;"><canvas id="chart-enc-status"></canvas></div>
-          </div>
+        <!-- Manchester horizontal bars (same style as financial) -->
+        <div class="glass-card" style="padding:20px;border-radius:16px;border:1px solid rgba(255,255,255,0.07);margin-bottom:6px;">
+          <h4 style="margin:0 0 14px;font-size:0.88rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+            <i class="fa-solid fa-bars-progress" style="color:#fbbf24;"></i> Distribuição por Classificação de Risco
+            <span style="margin-left:auto;font-size:0.68rem;color:var(--text-muted);font-weight:400;">Clique em cada linha para filtrar a tabela</span>
+          </h4>
+          <div id="manch-progress-list" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
       `;
 
+      // Wire KPI card click-to-filter
+      summaryContainer.querySelectorAll('.enc-kpi-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const key = card.dataset.filterKey;
+          const val = card.dataset.filterVal;
+          if (key === 'all') { filterAndRender(); return; }
+          // apply filter via checkbox state
+          if (key === 'type') {
+            document.querySelectorAll('.filter-type-item').forEach(cb => { cb.checked = cb.value === val; });
+            document.querySelectorAll('.filter-status-item').forEach(cb => { cb.checked = true; });
+          } else if (key === 'status') {
+            document.querySelectorAll('.filter-status-item').forEach(cb => { cb.checked = cb.value === val; });
+            document.querySelectorAll('.filter-type-item').forEach(cb => { cb.checked = true; });
+          }
+          filterAndRender();
+          if (typeof showToast === 'function') showToast(`Filtrando por: ${card.querySelector('div:last-child')?.textContent}`);
+        });
+      });
+
       if (ChartClass) {
         setTimeout(() => {
-          const manchColors = { Vermelho: '#ef4444', Laranja: '#f97316', Amarelo: '#eab308', Verde: '#22c55e', Azul: '#3b82f6', 'Não Classificado': '#64748b' };
+          // ─── DONUT MANCHESTER
           const mLabels = Object.keys(manchesterCounts);
           const mVals = mLabels.map(k => manchesterCounts[k]);
           const mColors = mLabels.map(k => manchColors[k] || '#a78bfa');
 
           const ctxManch = document.getElementById('chart-enc-manchester');
-          if (ctxManch) new ChartClass(ctxManch.getContext('2d'), {
-            type: 'pie',
-            data: { labels: mLabels, datasets: [{ data: mVals, backgroundColor: mColors, borderWidth: 2, borderColor: 'rgba(0,0,0,0.15)' }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 12, padding: 10 } } } }
-          });
-
-          const sLabels = Object.keys(statusCounts);
-          const sVals = sLabels.map(k => statusCounts[k]);
-          const sPalette = ['#fbbf24','#00f2fe','#ec4899','#34d399'];
-
-          const ctxStatus = document.getElementById('chart-enc-status');
-          if (ctxStatus) new ChartClass(ctxStatus.getContext('2d'), {
-            type: 'bar',
-            data: { labels: sLabels, datasets: [{ label: 'Qtd', data: sVals, backgroundColor: sPalette.map(c => c + '99'), borderColor: sPalette, borderWidth: 1.5, borderRadius: 6 }] },
-            options: {
-              responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-              plugins: { legend: { display: false } },
-              scales: {
-                x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+          let manchChartInst = null;
+          if (ctxManch) {
+            manchChartInst = new ChartClass(ctxManch.getContext('2d'), {
+              type: 'doughnut',
+              data: { labels: mLabels, datasets: [{ data: mVals, backgroundColor: mColors.map(c => c + 'cc'), borderColor: mColors, borderWidth: 2, hoverOffset: 8 }] },
+              options: {
+                responsive: true, maintainAspectRatio: false, cutout: '68%',
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} atend. (${Math.round(ctx.parsed / total * 100)}%)` } } },
+                onClick: (evt, elements) => {
+                  if (!elements.length) return;
+                  const label = mLabels[elements[0].index];
+                  if (label === 'Não Classificado') {
+                    document.querySelectorAll('.filter-manchester-item').forEach(cb => { cb.checked = cb.value === 'null'; });
+                  } else {
+                    document.querySelectorAll('.filter-manchester-item').forEach(cb => { cb.checked = cb.value === label; });
+                  }
+                  filterAndRender();
+                  if (typeof showToast === 'function') showToast(`Filtrando por Manchester: ${label}`);
+                }
               }
-            }
-          });
+            });
+          }
+
+          // Custom Manchester legend
+          const manchLegend = document.getElementById('manch-legend');
+          if (manchLegend) {
+            manchLegend.innerHTML = mLabels.map((label, i) => {
+              const pct = total > 0 ? Math.round(mVals[i] / total * 100) : 0;
+              return `<div class="manch-legend-item" data-manchester="${label}" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;cursor:pointer;transition:background .15s;"
+                onmouseenter="this.style.background='rgba(255,255,255,0.06)';" onmouseleave="this.style.background='';">
+                <span style="width:11px;height:11px;border-radius:3px;background:${mColors[i]};flex-shrink:0;"></span>
+                <span style="font-size:0.78rem;color:var(--text-secondary);flex:1;">${label}</span>
+                <strong style="font-size:0.82rem;color:${mColors[i]};">${mVals[i]}</strong>
+                <span style="font-size:0.68rem;color:var(--text-muted);">${pct}%</span>
+              </div>`;
+            }).join('');
+            manchLegend.querySelectorAll('.manch-legend-item').forEach(item => {
+              item.addEventListener('click', () => {
+                const label = item.dataset.manchester;
+                if (label === 'Não Classificado') {
+                  document.querySelectorAll('.filter-manchester-item').forEach(cb => { cb.checked = cb.value === 'null'; });
+                } else {
+                  document.querySelectorAll('.filter-manchester-item').forEach(cb => { cb.checked = cb.value === label; });
+                }
+                filterAndRender();
+              });
+            });
+          }
+
+          // ─── STATUS PROGRESS BARS
+          const statusList = document.getElementById('status-progress-list');
+          const statusOrder = ['Finalizado', 'Em_Atendimento', 'Aguardando_Atendimento', 'Aguardando_Triagem'];
+          if (statusList) {
+            statusList.innerHTML = statusOrder.map(sk => {
+              const count = statusCountsRaw[sk] || 0;
+              const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+              const color = statusColorMap[sk] || '#94a3b8';
+              const label = statusDisplayMap[sk] || sk;
+              return `<div class="enc-status-progress-row" data-status="${sk}" style="cursor:pointer;"
+                onmouseenter="this.querySelector('.enc-bar-fill').style.filter='brightness(1.3)';"
+                onmouseleave="this.querySelector('.enc-bar-fill').style.filter='';">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                  <span style="font-size:0.8rem;color:var(--text-secondary);display:flex;align-items:center;gap:7px;">
+                    <span style="width:8px;height:8px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color}88;"></span>${label}
+                  </span>
+                  <span style="font-size:0.78rem;font-weight:700;color:${color};">${count} <span style="font-size:0.68rem;color:var(--text-muted);font-weight:400;">(${pct}%)</span></span>
+                </div>
+                <div style="height:7px;background:rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;">
+                  <div class="enc-bar-fill" style="height:100%;width:0%;background:linear-gradient(90deg,${color}99,${color});border-radius:10px;transition:width 1.1s cubic-bezier(0.165,0.84,0.44,1),filter .2s;" data-target="${pct}"></div>
+                </div>
+              </div>`;
+            }).join('');
+
+            statusList.querySelectorAll('.enc-status-progress-row').forEach(row => {
+              row.addEventListener('click', () => {
+                const sk = row.dataset.status;
+                document.querySelectorAll('.filter-status-item').forEach(cb => { cb.checked = cb.value === sk; });
+                filterAndRender();
+                if (typeof showToast === 'function') showToast(`Filtrando por status: ${statusDisplayMap[sk] || sk}`);
+              });
+            });
+
+            // Animate bars
+            setTimeout(() => {
+              statusList.querySelectorAll('.enc-bar-fill').forEach(bar => {
+                bar.style.width = bar.dataset.target + '%';
+              });
+            }, 80);
+          }
+
+          // ─── COMPLETION RING (mini)
+          const ringCtx = document.getElementById('chart-enc-completion-ring');
+          if (ringCtx) {
+            new ChartClass(ringCtx.getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                datasets: [{
+                  data: [finalizados, total - finalizados],
+                  backgroundColor: ['#34d399', 'rgba(255,255,255,0.06)'],
+                  borderWidth: 0, hoverOffset: 0
+                }]
+              },
+              options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+            });
+          }
+
+          // ─── MANCHESTER HORIZONTAL PROGRESS BARS
+          const manchProgList = document.getElementById('manch-progress-list');
+          if (manchProgList) {
+            const iconMap = { Vermelho: 'fa-circle-xmark', Laranja: 'fa-triangle-exclamation', Amarelo: 'fa-clock', Verde: 'fa-circle-check', Azul: 'fa-circle-minus', 'Não Classificado': 'fa-circle-question' };
+            manchProgList.innerHTML = mLabels.map((label, i) => {
+              const pct = total > 0 ? ((mVals[i] / total) * 100).toFixed(1) : '0.0';
+              const color = mColors[i];
+              return `<div class="manch-prog-row" data-manchester="${label}" style="cursor:pointer;"
+                onmouseenter="this.querySelector('.manch-bar-fill').style.filter='brightness(1.25)';"
+                onmouseleave="this.querySelector('.manch-bar-fill').style.filter='';">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                  <span style="font-size:0.8rem;color:var(--text-secondary);display:flex;align-items:center;gap:7px;">
+                    <i class="fa-solid ${iconMap[label] || 'fa-circle'}" style="color:${color};font-size:0.82rem;"></i> ${label}
+                  </span>
+                  <span style="font-size:0.8rem;font-weight:700;color:${color};">${mVals[i]} atend. <span style="font-size:0.68rem;color:var(--text-muted);font-weight:400;">(${pct}%)</span></span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;">
+                  <div class="manch-bar-fill" style="height:100%;width:0%;background:${color};border-radius:10px;transition:width 1.1s cubic-bezier(0.165,0.84,0.44,1),filter .2s;" data-target="${pct}"></div>
+                </div>
+              </div>`;
+            }).join('');
+
+            manchProgList.querySelectorAll('.manch-prog-row').forEach(row => {
+              row.addEventListener('click', () => {
+                const label = row.dataset.manchester;
+                if (label === 'Não Classificado') {
+                  document.querySelectorAll('.filter-manchester-item').forEach(cb => { cb.checked = cb.value === 'null'; });
+                } else {
+                  document.querySelectorAll('.filter-manchester-item').forEach(cb => { cb.checked = cb.value === label; });
+                }
+                filterAndRender();
+                if (typeof showToast === 'function') showToast(`Filtrando por Manchester: ${label}`);
+              });
+            });
+
+            setTimeout(() => {
+              manchProgList.querySelectorAll('.manch-bar-fill').forEach(bar => {
+                bar.style.width = bar.dataset.target + '%';
+              });
+            }, 100);
+          }
+
         }, 60);
       }
     }
+
     // ─────────────────────────────────────────────────────────────────────────
   };
 
