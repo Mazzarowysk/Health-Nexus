@@ -998,6 +998,12 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
                       ${enc.subjectiveContent || enc.notes}
                     </div>
                   ` : ''}
+
+                  <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openPEPModal('${enc.id}')" style="font-size: 0.78rem; border-radius: 8px; padding: 5px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                      <i class="fa-solid fa-file-signature"></i> Abrir Prontuário Eletrônico (PEP Completo)
+                    </button>
+                  </div>
                 </div>
               `;
             }).join('')}
