@@ -14,7 +14,7 @@ async function renderLeitosTab() {
           <p style="color: var(--text-secondary); font-size: 0.9rem;">Mapa em tempo real da ocupação de leitos por setor hospitalar.</p>
         </div>
         <button id="btn-open-admit-modal" class="btn btn-primary">
-          <i class="fa-solid fa-user-plus"></i> Internar Paciente
+          <i class="fa-solid fa-plus"></i> Nova Internação
         </button>
       </div>
 
@@ -132,8 +132,8 @@ async function renderLeitosTab() {
                   <i class="fa-solid fa-clock"></i> Aguardando Leito (${q.room || '-'})
                 </div>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}')">
-                <i class="fa-solid fa-bed-pulse"></i> Alocar Leito
+              <button class="btn btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <i class="fa-solid fa-bed-pulse"></i> Alocar Leito a Paciente
               </button>
             </div>
           `).join('');
@@ -218,7 +218,7 @@ async function renderLeitosTab() {
             <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end;">
               ${b.status === 'Vago' ? `
                 <button class="btn btn-sm btn-primary" onclick="quickAdmitBed('${b.id}')" style="width: 100%;">
-                  <i class="fa-solid fa-user-plus"></i> Internar
+                  <i class="fa-solid fa-bed"></i> Internar Neste Leito
                 </button>
               ` : ''}
               ${b.status === 'Ocupado' ? `
