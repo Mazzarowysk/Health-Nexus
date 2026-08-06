@@ -406,29 +406,56 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
     }
 
     modal.innerHTML = `
-      <div class="modal-content" style="max-width: 480px; width: 90%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); padding: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">
-            <i class="fa-solid fa-right-left" style="color: var(--color-primary); margin-right: 8px;"></i> Direcionar Atendimento
-          </h3>
-          <button id="close-reassign-modal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-content" style="max-width: 520px; width: 92%; background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.7); padding: 28px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(14,165,233,0.25)); border: 1px solid rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.2rem;">
+              <i class="fa-solid fa-right-left"></i>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.2rem; font-weight: 800; color: #ffffff; letter-spacing: -0.01em;">
+                Direcionar Atendimento
+              </h3>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">Remaneje consultório ou altere a fila do paciente</div>
+            </div>
+          </div>
+          <button id="close-reassign-modal" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px; background: var(--bg-tertiary); padding: 12px; border-radius: 10px;">
-          Paciente: <strong style="color: var(--text-primary);">${patientName}</strong>
+        <!-- Patient Header Card -->
+        <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+              <i class="fa-solid fa-user-injured"></i>
+            </div>
+            <div>
+              <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; font-weight: 700;">PACIENTE SELECIONADO</div>
+              <div style="font-size: 1.05rem; font-weight: 800; color: #ffffff;">${patientName}</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; font-weight: 700;">LOCAL ATUAL</div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: #34d399; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); padding: 3px 10px; border-radius: 20px; display: inline-block; margin-top: 2px;">
+              ${currentRoom || 'Consultório 01'}
+            </span>
+          </div>
         </div>
 
-        <form id="reassign-form" style="display: flex; flex-direction: column; gap: 14px;">
+        <form id="reassign-form" style="display: flex; flex-direction: column; gap: 18px;">
           <div>
-            <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: block;">Novo Consultório / Ala:</label>
-            <select id="reassign-room" class="form-input" style="width: 100%;">
+            <label class="form-label" style="font-weight: 600; color: #e2e8f0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.88rem;">
+              <i class="fa-solid fa-door-open" style="color: #38bdf8;"></i> Novo Consultório / Ala:
+            </label>
+            <select id="reassign-room" class="form-input" style="width: 100%; height: 44px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-size: 0.9rem; padding: 0 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
               ${roomOptionsHtml}
             </select>
           </div>
 
           <div>
-            <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: block;">Novo Status do Atendimento:</label>
-            <select id="reassign-status" class="form-input" style="width: 100%;">
+            <label class="form-label" style="font-weight: 600; color: #e2e8f0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.88rem;">
+              <i class="fa-solid fa-arrows-spin" style="color: #a5b4fc;"></i> Novo Status do Atendimento:
+            </label>
+            <select id="reassign-status" class="form-input" style="width: 100%; height: 44px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-size: 0.9rem; padding: 0 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
               <option value="Aguardando_Triagem" ${currentStatus === 'Aguardando_Triagem' ? 'selected' : ''}>Aguardando Triagem</option>
               <option value="Aguardando_Atendimento" ${currentStatus === 'Aguardando_Atendimento' ? 'selected' : ''}>Aguardando Atendimento Médico</option>
               <option value="Em_Atendimento" ${currentStatus === 'Em_Atendimento' ? 'selected' : ''}>Em Atendimento (No Consultório)</option>
@@ -437,16 +464,30 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
             </select>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
-            <div>
-              <button type="button" id="btn-internacao" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; border: 1px solid #f87171; font-weight: 700; font-size: 0.85rem; padding: 10px 18px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); transition: transform 0.2s, box-shadow 0.2s;" title="Solicitar vaga imediata na UTI / Leito de Enfermaria">
-                <i class="fa-solid fa-bed-pulse"></i> Solicitar Internação
-              </button>
+          <!-- Action Banner: Solicitar Internação -->
+          <div style="background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(220,38,38,0.06)); border: 1px dashed rgba(239,68,68,0.35); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(239,68,68,0.2); color: #f87171; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                <i class="fa-solid fa-bed-pulse"></i>
+              </div>
+              <div>
+                <div style="font-weight: 700; color: #f87171; font-size: 0.88rem;">Solicitar Internação Hospitalar</div>
+                <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 1px;">Encaminha para vaga em UTI / Enfermaria</div>
+              </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-              <button type="button" id="btn-cancel-reassign" class="btn btn-secondary" style="padding: 10px 16px; border-radius: 12px; font-weight: 600;">Cancelar</button>
-              <button type="submit" class="btn btn-primary" style="padding: 10px 20px; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 14px rgba(99,102,241,0.35);">Confirmar Direcionamento</button>
-            </div>
+            <button type="button" id="btn-internacao" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; border: none; font-weight: 700; font-size: 0.82rem; padding: 9px 16px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(239,68,68,0.35); flex-shrink: 0; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'" title="Solicitar vaga imediata na UTI / Leito de Enfermaria">
+              <i class="fa-solid fa-bed-pulse"></i> Encaminhar
+            </button>
+          </div>
+
+          <!-- Main Form Buttons -->
+          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 10px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+            <button type="button" id="btn-cancel-reassign" class="btn btn-secondary" style="padding: 11px 20px; border-radius: 12px; font-weight: 600; font-size: 0.88rem; background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid var(--border-color); cursor: pointer;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary" style="padding: 11px 24px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; border: none; box-shadow: 0 4px 16px rgba(99,102,241,0.4); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-check"></i> Confirmar Direcionamento
+            </button>
           </div>
         </form>
       </div>
