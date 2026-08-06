@@ -492,11 +492,18 @@ Além dos botões, é possível **arrastar e soltar** os cards entre as colunas:
 2. Arraste até a coluna de destino.
 3. Solte — o paciente será movido e o tempo no setor será reiniciado automaticamente.
 
-### 🔍 Filtros por Setor
+### 🔍 Filtros em Formato de Card (Dashboard)
 
-Os botões no topo do board permitem focar em um setor específico:
-- Clique em **PS**, **Corredor**, **Cirúrgica**, **Médica** ou **UTI** para exibir apenas aquele setor em tamanho expandido.
-- Clique em **Todos** para voltar à visão completa.
+No topo do Kanban, os setores são exibidos em um moderno **grid de Cards interativos**:
+- Cada card representa um setor e mostra a **contagem em tempo real** de pacientes internados (ex: *Todos*, *Pronto Socorro*, *UTI*).
+- Ao clicar em um card, o sistema filtra a tela para focar exclusivamente na respectiva coluna (expandindo sua largura para melhor visualização).
+- O card selecionado ganha destaque visual (sombra e borda acentuadas) com um selo `ATIVO`.
+- Clique no card **Todos Setores** para retornar à visão geral com todas as colunas lado a lado.
+
+### 🎨 Design Premium das Colunas e Pacientes
+
+- **Colunas *Tinted*:** As colunas do Kanban possuem fundo transparente (*tinted*) e bordas estilizadas de acordo com a cor do setor, conferindo um layout visual limpo e de alto padrão.
+- **Cards Interativos:** Os cards dos pacientes possuem efeitos visuais ao passar o mouse (*hover*), sombra dinâmica, barra de progresso colorida e uma organização intuitiva para rápida leitura do quadro (diagnóstico, leito, tempos e avisos).
 
 ### 📝 Notas de Evolução
 

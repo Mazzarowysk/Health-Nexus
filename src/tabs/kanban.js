@@ -17,53 +17,83 @@ export async function renderKanbanTab() {
   const contentArea = document.getElementById('main-content');
   if (!contentArea) return;
 
+  const FILTER_CARDS = [
+    { id: 'all', label: 'Todos Setores', icon: 'fa-hospital-user', color: '#6366f1', rgb: '99,102,241' },
+    { id: 'pronto_socorro', label: 'Pronto Socorro', icon: 'fa-truck-medical', color: '#3b82f6', rgb: '59,130,246' },
+    { id: 'corredor_internacao', label: 'Corredor', icon: 'fa-bed-pulse', color: '#f59e0b', rgb: '245,158,11' },
+    { id: 'clinica_cirurgica', label: 'Cirurgica', icon: 'fa-scalpel', color: '#8b5cf6', rgb: '139,92,246' },
+    { id: 'clinica_medica', label: 'Clinica Medica', icon: 'fa-stethoscope', color: '#10b981', rgb: '16,185,129' },
+    { id: 'uti', label: 'UTI', icon: 'fa-heart-pulse', color: '#ef4444', rgb: '239,68,68' }
+  ];
+
+  const filtersHtml = FILTER_CARDS.map(f => `
+    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(${f.rgb},0.4)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
+        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.1rem;">
+          <i class="fa-solid ${f.icon}"></i>
+        </div>
+        <span class="card-status-badge" style="display: none; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: rgba(${f.rgb}, 0.2); color: ${f.color}; border: 1px solid rgba(${f.rgb}, 0.4); letter-spacing: 0.5px;">ATIVO</span>
+      </div>
+      <div>
+        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">${f.label}</h4>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; font-weight: 600;"><span id="count-${f.id}">0</span> pacientes</p>
+      </div>
+    </div>
+  `).join('');
+
   contentArea.innerHTML = `
     <div class="tab-section active" id="kanban-root" style="display:flex; flex-direction:column; height: calc(100vh - 60px); overflow:hidden;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; flex-shrink:0;">
         <div>
           <h2 style="font-family:'Outfit'; font-weight:700; font-size:1.4rem; margin:0; color:var(--text-primary);">
-            <i class="fa-solid fa-table-columns" style="color:var(--color-primary);"></i> Kanban de Internacao
+            <i class="fa-solid fa-table-columns" style="color:var(--color-primary);"></i> Kanban de Internação
           </h2>
-          <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">Gestao visual do fluxo de pacientes e acompanhamento de metas evolutivas.</p>
+          <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">Gestão visual do fluxo de pacientes e acompanhamento de metas evolutivas.</p>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <span style="font-size:0.78rem; color:var(--text-muted); background:var(--bg-card); border:1px solid var(--border-color); padding:4px 12px; border-radius:20px;">
-            <i class="fa-solid fa-bed-pulse"></i> <span id="kanban-total-count">0</span> internados
-          </span>
-          <button onclick="openAddPatientKanbanModal()" class="btn-primary" style="padding:8px 16px; border-radius:8px; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+          <button onclick="openAddPatientKanbanModal()" class="btn-primary" style="padding:10px 18px; border-radius:10px; font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:8px; box-shadow: 0 4px 14px rgba(99,102,241,0.3);">
             <i class="fa-solid fa-plus"></i> Adicionar Paciente
           </button>
         </div>
       </div>
 
-      <div style="display:flex; gap:8px; margin-bottom:16px; flex-shrink:0; flex-wrap:wrap;">
-        <button onclick="setKanbanFilter('all')" id="kf-all" style="padding:5px 14px; border-radius:20px; font-size:0.78rem; cursor:pointer; border:1px solid var(--color-primary); background:var(--color-primary); color:#fff; font-weight:600; transition:all 0.2s;" class="kanban-filter-btn">
-          Todos
-        </button>
-        <button onclick="setKanbanFilter('pronto_socorro')" id="kf-pronto_socorro" style="padding:5px 14px; border-radius:20px; font-size:0.78rem; cursor:pointer; border:1px solid #3b82f6; background:transparent; color:#3b82f6; font-weight:600;" class="kanban-filter-btn">PS</button>
-        <button onclick="setKanbanFilter('corredor_internacao')" id="kf-corredor_internacao" style="padding:5px 14px; border-radius:20px; font-size:0.78rem; cursor:pointer; border:1px solid #f59e0b; background:transparent; color:#f59e0b; font-weight:600;" class="kanban-filter-btn">Corredor</button>
-        <button onclick="setKanbanFilter('clinica_cirurgica')" id="kf-clinica_cirurgica" style="padding:5px 14px; border-radius:20px; font-size:0.78rem; cursor:pointer; border:1px solid #8b5cf6; background:transparent; color:#8b5cf6; font-weight:600;" class="kanban-filter-btn">Cirurgica</button>
-        <button onclick="setKanbanFilter('clinica_medica')" id="kf-clinica_medica" style="padding:5px 14px; border-radius:20px; font-size:0.78rem; cursor:pointer; border:1px solid #10b981; background:transparent; color:#10b981; font-weight:600;" class="kanban-filter-btn">Medica</button>
-        <button onclick="setKanbanFilter('uti')" id="kf-uti" style="padding:5px 14px; border-radius:20px; font-size:0.78rem; cursor:pointer; border:1px solid #ef4444; background:transparent; color:#ef4444; font-weight:600;" class="kanban-filter-btn">UTI</button>
+      <div style="display:grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; flex-shrink:0;">
+        ${filtersHtml}
       </div>
 
-      <div class="kanban-board" id="kanban-board" style="display:flex; gap:14px; overflow-x:auto; flex-grow:1; padding-bottom:16px; align-items:flex-start;">
+      <div class="kanban-board" id="kanban-board" style="display:flex; gap:16px; overflow-x:auto; flex-grow:1; padding-bottom:16px; align-items:flex-start;">
       </div>
     </div>
   `;
 
   loadAndRenderKanban();
+  // Ensure the correct filter styling is applied initially
+  setTimeout(() => setKanbanFilter(currentFilter), 10);
 }
 
 window.setKanbanFilter = function(filterId) {
   currentFilter = filterId;
-  const colorMap = { pronto_socorro:'#3b82f6', corredor_internacao:'#f59e0b', clinica_cirurgica:'#8b5cf6', clinica_medica:'#10b981', uti:'#ef4444' };
-  document.querySelectorAll('.kanban-filter-btn').forEach(btn => {
-    const id = btn.id.replace('kf-', '');
-    const isActive = `kf-${filterId}` === btn.id || (filterId === 'all' && btn.id === 'kf-all');
-    const color = id === 'all' ? 'var(--color-primary)' : (colorMap[id] || 'var(--color-primary)');
-    btn.style.background = isActive ? color : 'transparent';
-    btn.style.color = isActive ? '#fff' : color;
+  document.querySelectorAll('.kanban-filter-card').forEach(card => {
+    const id = card.id.replace('kf-', '');
+    const isActive = id === filterId;
+    const rgb = card.getAttribute('data-rgb');
+    const badge = card.querySelector('.card-status-badge');
+    
+    if (isActive) {
+      card.style.background = \`rgba(\${rgb}, 0.08)\`;
+      card.style.borderColor = \`rgba(\${rgb}, 0.5)\`;
+      card.style.borderWidth = '1.5px';
+      card.style.boxShadow = \`0 6px 20px rgba(\${rgb}, 0.15)\`;
+      card.style.transform = 'translateY(-2px)';
+      if (badge) badge.style.display = 'inline-block';
+    } else {
+      card.style.background = 'var(--bg-secondary)';
+      card.style.borderColor = 'var(--border-color)';
+      card.style.borderWidth = '1px';
+      card.style.boxShadow = 'none';
+      card.style.transform = 'none';
+      if (badge) badge.style.display = 'none';
+    }
   });
   loadAndRenderKanban();
 };
@@ -100,33 +130,33 @@ function renderCard(hosp, col) {
   const notesBadge = hosp.notes ? `<span title="${hosp.notes.substring(0,60)}" onclick="viewKanbanNotes('${hosp.id}')" style="font-size:0.65rem; color:var(--color-primary); border:1px solid var(--color-primary); padding:1px 5px; border-radius:3px; cursor:pointer;"><i class="fa-regular fa-note-sticky"></i></span>` : '';
 
   return `
-    <div class="kanban-card" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--bg-color); border:1px solid var(--border-color); border-left:3px solid ${statusColor}; border-radius:8px; padding:12px; cursor:grab; box-shadow:0 1px 4px rgba(0,0,0,0.1); position:relative;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; gap:8px;">
-        <div style="display:flex; align-items:center; gap:7px; min-width:0;">
-          <div style="width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,${col.color}44,${col.color}88); display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:700; color:${col.color}; flex-shrink:0;">${initials}</div>
-          <strong style="font-size:0.85rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${hosp.patientName}">${hosp.patientName}</strong>
+    <div class="kanban-card" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--bg-card); border:1px solid var(--border-color); border-left:4px solid ${statusColor}; border-radius:10px; padding:14px; cursor:grab; box-shadow:0 2px 8px rgba(0,0,0,0.15); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.25)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+          <div style="width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,${col.color}44,${col.color}88); display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:${col.color}; flex-shrink:0; border: 1px solid ${col.color}44;">${initials}</div>
+          <strong style="font-size:0.9rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${hosp.patientName}">${hosp.patientName}</strong>
         </div>
-        <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
           ${notesBadge}
-          <span style="font-size:0.65rem; padding:2px 5px; border-radius:4px; font-weight:600; background:rgba(0,0,0,0.06); color:var(--text-muted);">${(hosp.patient_id||'').substring(0,6)}</span>
+          <span style="font-size:0.65rem; padding:3px 6px; border-radius:6px; font-weight:600; background:var(--bg-secondary); color:var(--text-muted); border: 1px solid var(--border-color);">${(hosp.patient_id||'').substring(0,6)}</span>
         </div>
       </div>
-      <div style="margin-bottom:8px;">${diagHtml}${bedHtml}${drHtml}</div>
-      <div style="margin-bottom:10px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+      <div style="margin-bottom:10px;">${diagHtml}${bedHtml}${drHtml}</div>
+      <div style="margin-bottom:12px; background: rgba(0,0,0,0.1); padding: 8px; border-radius: 8px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
           <span style="font-size:0.7rem; color:var(--text-muted);">Setor: <b style="color:var(--text-primary);">${timeStr}</b></span>
-          <span style="font-size:0.7rem; font-weight:600; color:${statusColor};">${statusText}</span>
+          <span style="font-size:0.7rem; font-weight:700; color:${statusColor};">${statusText}</span>
         </div>
-        <div style="height:4px; background:var(--border-color); border-radius:2px; overflow:hidden;">
-          <div style="height:100%; width:${pct}%; background:${statusColor}; border-radius:2px;"></div>
+        <div style="height:6px; background:var(--border-color); border-radius:3px; overflow:hidden;">
+          <div style="height:100%; width:${pct}%; background:${statusColor}; border-radius:3px; box-shadow: 0 0 6px ${statusColor};"></div>
         </div>
       </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:7px;">
-        <span style="font-size:0.7rem; color:var(--text-muted);"><i class="fa-solid fa-hospital" style="width:12px;"></i> Total: <b>${totalStr}</b></span>
-        <div style="display:flex; gap:2px;">
-          <button onclick="openEditKanbanCard('${hosp.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:0.82rem; padding:3px 6px; border-radius:4px;" title="Editar"><i class="fa-regular fa-pen-to-square"></i></button>
-          <button onclick="moveKanbanCard('${hosp.id}')" style="background:none; border:none; cursor:pointer; color:var(--color-primary); font-size:0.82rem; padding:3px 6px; border-radius:4px;" title="Mover setor"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
-          <button onclick="dischargePatient('${hosp.id}')" style="background:none; border:none; cursor:pointer; color:#10b981; font-size:0.82rem; padding:3px 6px; border-radius:4px;" title="Alta"><i class="fa-solid fa-person-walking-arrow-right"></i></button>
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:10px;">
+        <span style="font-size:0.72rem; color:var(--text-muted);"><i class="fa-solid fa-hospital" style="width:12px;"></i> Total: <b style="color:var(--text-primary);">${totalStr}</b></span>
+        <div style="display:flex; gap:4px;">
+          <button onclick="openEditKanbanCard('${hosp.id}')" style="background:var(--bg-secondary); border:1px solid var(--border-color); cursor:pointer; color:var(--text-primary); font-size:0.8rem; padding:4px 8px; border-radius:6px; transition: 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'" title="Editar"><i class="fa-regular fa-pen-to-square"></i></button>
+          <button onclick="moveKanbanCard('${hosp.id}')" style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.3); cursor:pointer; color:var(--color-primary); font-size:0.8rem; padding:4px 8px; border-radius:6px; transition: 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'" title="Mover setor"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+          <button onclick="dischargePatient('${hosp.id}')" style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); cursor:pointer; color:#10b981; font-size:0.8rem; padding:4px 8px; border-radius:6px; transition: 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'" title="Alta"><i class="fa-solid fa-person-walking-arrow-right"></i></button>
         </div>
       </div>
     </div>
@@ -142,27 +172,42 @@ function loadAndRenderKanban() {
     const pat = patients.find(p => p.id === h.patient_id) || {};
     return { ...h, patientName: pat.fullName || pat.name || 'Desconhecido' };
   });
-  const totalEl = document.getElementById('kanban-total-count');
-  if (totalEl) totalEl.textContent = active.length;
+
+  // Atualizar os contadores nos filtros
+  const cAll = document.getElementById('count-all'); if(cAll) cAll.textContent = active.length;
+  const cPs = document.getElementById('count-pronto_socorro'); if(cPs) cPs.textContent = active.filter(h => h.current_sector === 'pronto_socorro').length;
+  const cCor = document.getElementById('count-corredor_internacao'); if(cCor) cCor.textContent = active.filter(h => h.current_sector === 'corredor_internacao').length;
+  const cCir = document.getElementById('count-clinica_cirurgica'); if(cCir) cCir.textContent = active.filter(h => h.current_sector === 'clinica_cirurgica').length;
+  const cMed = document.getElementById('count-clinica_medica'); if(cMed) cMed.textContent = active.filter(h => h.current_sector === 'clinica_medica').length;
+  const cUti = document.getElementById('count-uti'); if(cUti) cUti.textContent = active.filter(h => h.current_sector === 'uti').length;
+
   const cols = currentFilter === 'all' ? KANBAN_COLUMNS : KANBAN_COLUMNS.filter(c => c.id === currentFilter);
-  const w = currentFilter === 'all' ? '270px' : '340px';
+  const w = currentFilter === 'all' ? '290px' : '360px'; // Colunas mais largas
+
+  function hexToRgb(hex) {
+    const bigint = parseInt(hex.slice(1), 16);
+    return `${(bigint >> 16) & 255}, ${(bigint >> 8) & 255}, ${bigint & 255}`;
+  }
+
   board.innerHTML = cols.map(col => {
     const cards = active.filter(h => h.current_sector === col.id).sort((a,b) => new Date(a.sector_entry_date)-new Date(b.sector_entry_date));
+    const rgb = hexToRgb(col.color);
+    
     return `
-      <div class="kanban-col" data-col="${col.id}" style="min-width:${w}; width:${w}; background:var(--bg-card); border-radius:12px; display:flex; flex-direction:column; border:1px solid var(--border-color); box-shadow:0 4px 12px rgba(0,0,0,0.08); flex-shrink:0;">
-        <div style="padding:12px 16px; border-bottom:3px solid ${col.color}; display:flex; justify-content:space-between; align-items:center; border-radius:12px 12px 0 0;">
-          <h3 style="margin:0; font-size:0.88rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:7px;">
-            <span style="width:10px; height:10px; border-radius:50%; background:${col.color}; display:inline-block; flex-shrink:0;"></span>
+      <div class="kanban-col" data-col="${col.id}" style="min-width:${w}; width:${w}; background: rgba(${rgb}, 0.05); border-radius:14px; display:flex; flex-direction:column; border:1.5px solid rgba(${rgb}, 0.3); box-shadow:0 6px 16px rgba(${rgb}, 0.08); flex-shrink:0; overflow:hidden;">
+        <div style="padding:16px; border-bottom:1px solid rgba(${rgb}, 0.2); background: rgba(${rgb}, 0.1); display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="margin:0; font-size:0.95rem; font-weight:700; color:${col.color}; display:flex; align-items:center; gap:8px;">
+            <span style="width:12px; height:12px; border-radius:50%; background:${col.color}; display:inline-block; flex-shrink:0; box-shadow: 0 0 8px ${col.color};"></span>
             ${col.label}
           </h3>
-          <div style="display:flex; align-items:center; gap:6px;">
-            ${col.maxDays ? `<span style="font-size:0.68rem; color:${col.color}; font-weight:600;">Meta:${col.maxDays}d</span>` : (col.maxHours ? `<span style="font-size:0.68rem; color:${col.color}; font-weight:600;">Meta:${col.maxHours}h</span>` : '')}
-            <span style="background:rgba(0,0,0,0.12); color:var(--text-muted); font-size:0.75rem; padding:2px 8px; border-radius:10px; font-weight:700;">${cards.length}</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${col.maxDays ? `<span style="font-size:0.7rem; color:${col.color}; font-weight:700; padding: 2px 6px; background: rgba(${rgb}, 0.15); border-radius: 6px; border: 1px solid rgba(${rgb}, 0.3);">Meta: ${col.maxDays}d</span>` : (col.maxHours ? `<span style="font-size:0.7rem; color:${col.color}; font-weight:700; padding: 2px 6px; background: rgba(${rgb}, 0.15); border-radius: 6px; border: 1px solid rgba(${rgb}, 0.3);">Meta: ${col.maxHours}h</span>` : '')}
+            <span style="background: ${col.color}; color:#fff; font-size:0.75rem; padding:2px 10px; border-radius:12px; font-weight:800; box-shadow: 0 2px 6px rgba(${rgb}, 0.4);">${cards.length}</span>
           </div>
         </div>
-        <div class="kanban-col-body" style="padding:10px; flex-grow:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; min-height:200px; max-height:calc(100vh - 280px);">
+        <div class="kanban-col-body" style="padding:14px; flex-grow:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px; min-height:200px; max-height:calc(100vh - 350px);">
           ${cards.map(h => renderCard(h, col)).join('')}
-          ${cards.length === 0 ? '<div style="text-align:center;padding:30px 10px;color:var(--text-muted);font-size:0.82rem;"><i class="fa-regular fa-circle-check" style="font-size:1.5rem;margin-bottom:8px;display:block;opacity:0.4;"></i>Nenhum paciente</div>' : ''}
+          ${cards.length === 0 ? `<div style="text-align:center;padding:40px 10px;color:rgba(${rgb},0.6);font-size:0.85rem;"><i class="fa-regular fa-circle-check" style="font-size:2.2rem;margin-bottom:12px;display:block;opacity:0.5;color:${col.color}"></i>Nenhum paciente</div>` : ''}
         </div>
       </div>`;
   }).join('');
