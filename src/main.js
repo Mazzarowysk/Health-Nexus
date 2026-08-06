@@ -2724,12 +2724,6 @@ function renderAppStructure() {
         <nav>
           <ul class="nav-menu">
             ${navHtml}
-            <li style="margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
-              <a href="/src/manual.html?print=true" target="_blank" style="display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-radius: var(--radius-md); text-decoration: none; font-family: 'Outfit', sans-serif; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); color: white; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-                <i class="fa-solid fa-file-pdf" style="color: white;"></i>
-                <span>Baixar Manual (PDF)</span>
-              </a>
-            </li>
           </ul>
         </nav>
         <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 16px;">
@@ -2759,9 +2753,6 @@ function renderAppStructure() {
           </div>
         </div>
         <div id="sync-status-container" style="display: flex; align-items: center; gap: 10px;">
-          <a href="/manual_do_usuario.html" target="_blank" class="btn" style="background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(14,165,233,0.2)); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0 14px; height: 40px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; gap: 6px; transition: all 0.2s ease;" title="Abrir Manual do Usuário Interativo em Nova Aba">
-            <i class="fa-solid fa-book-open"></i> Manual do Usuário
-          </a>
           <span id="sync-status-badge" style="font-size: 0.82rem; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border-color); background: rgba(59,130,246,0.08); color: var(--text-primary);">
             Verificando Turso...
           </span>
