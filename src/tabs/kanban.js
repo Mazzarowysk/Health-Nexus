@@ -168,7 +168,7 @@ function renderCard(hosp, col) {
         </button>
         <button onclick="viewKanbanNotes('${hosp.id}')" style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px; padding:6px; font-size:0.75rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'" title="Evoluções e Anotações">
           <i class="fa-regular fa-note-sticky" style="color:var(--color-primary);"></i> Evolução
-          ${hosp.notes ? '<span style="width:6px;height:6px;background:#ef4444;border-radius:50%;margin-left:2px;" title="Há anotações recentes"></span>' : ''}
+          ${(hosp.evolutions?.length > 0 || hosp.notes) ? '<span style="width:6px;height:6px;background:#ef4444;border-radius:50%;margin-left:2px;" title="Há anotações recentes"></span>' : ''}
         </button>
       </div>
 
@@ -415,19 +415,83 @@ window.confirmMoveKanban = function(hospId) {
   loadAndRenderKanban();
 };
 
-// ──── Notas ────
+// ──── Notas / Evolução Clínica ────
 window.viewKanbanNotes = function(hospId) {
   const ex=document.getElementById('kanban-notes-modal'); if(ex) ex.remove();
-  const hosp=localDB.get('hospitalizations',hospId); if(!hosp||!hosp.notes) return;
+  const hosp=localDB.get('hospitalizations',hospId); if(!hosp) return;
   const pat=(localDB.list('patients').find(p=>p.id===hosp.patient_id)||{});
+  // Parse evolutions: stored as JSON array or legacy plain text
+  let evolutions = [];
+  if (hosp.evolutions && Array.isArray(hosp.evolutions)) {
+    evolutions = hosp.evolutions;
+  } else if (hosp.notes) {
+    // Migrate legacy notes to evolution format
+    evolutions = [{ ts: hosp.admission_date || new Date().toISOString(), text: hosp.notes, author: 'Sistema' }];
+  }
+  const evoHtml = evolutions.length > 0
+    ? evolutions.slice().reverse().map(e => `
+        <div style="background:var(--bg-color);padding:12px 14px;border-radius:8px;border:1px solid var(--border-color);margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:0.72rem;font-weight:700;color:var(--color-primary);"><i class="fa-regular fa-user-circle"></i> ${e.author||'Equipe'}</span>
+            <span style="font-size:0.72rem;color:var(--text-muted);">${new Date(e.ts).toLocaleString('pt-BR')}</span>
+          </div>
+          <p style="margin:0;font-size:0.85rem;color:var(--text-primary);white-space:pre-wrap;line-height:1.6;">${e.text}</p>
+        </div>`).join('')
+    : `<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;padding:20px 0;"><i class="fa-regular fa-circle-check" style="font-size:1.8rem;display:block;margin-bottom:8px;opacity:0.4;"></i>Nenhuma evolução registrada ainda.</div>`;
+
   document.body.insertAdjacentHTML('beforeend',`
     <div id="kanban-notes-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;backdrop-filter:blur(4px);">
-      <div style="background:var(--bg-card);padding:24px;border-radius:14px;width:100%;max-width:420px;box-shadow:0 20px 50px rgba(0,0,0,0.4);border:1px solid var(--border-color);">
-        <h3 style="margin:0 0 10px;color:var(--text-primary);font-family:'Outfit';font-size:1.0rem;"><i class="fa-regular fa-note-sticky" style="color:var(--color-primary);"></i> Notas — ${pat.name||'Paciente'}</h3>
-        <div style="background:var(--bg-color);padding:14px;border-radius:8px;border:1px solid var(--border-color);white-space:pre-wrap;font-size:0.88rem;color:var(--text-primary);max-height:220px;overflow-y:auto;margin-bottom:16px;">${hosp.notes}</div>
-        <div style="text-align:right;"><button onclick="document.getElementById('kanban-notes-modal').remove()" style="padding:8px 18px;border-radius:8px;background:var(--color-primary);color:#fff;border:none;cursor:pointer;font-size:0.88rem;">Fechar</button></div>
+      <div style="background:var(--bg-card);padding:24px;border-radius:14px;width:100%;max-width:540px;box-shadow:0 20px 50px rgba(0,0,0,0.4);border:1px solid var(--border-color);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div>
+            <h3 style="margin:0 0 2px;color:var(--text-primary);font-family:'Outfit';font-size:1.1rem;"><i class="fa-solid fa-notes-medical" style="color:var(--color-primary);"></i> Evolução Clínica</h3>
+            <p style="margin:0;font-size:0.8rem;color:var(--text-muted);">${pat.fullName||pat.name||'Paciente'} · Leito: <b style="color:var(--text-primary);">${hosp.bed||'—'}</b></p>
+          </div>
+          <button onclick="document.getElementById('kanban-notes-modal').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.3rem;">&times;</button>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;"><i class="fa-solid fa-pen-to-square" style="margin-right:4px;"></i>Nova Anotação / Evolução</label>
+          <textarea id="kanban-new-note" placeholder="Descreva a evolução clínica, observações ou procedimentos realizados..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.88rem;min-height:90px;resize:vertical;box-sizing:border-box;font-family:inherit;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--color-primary)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px;">
+          <span style="font-size:0.75rem;color:var(--text-muted);"><i class="fa-regular fa-clock"></i> ${new Date().toLocaleString('pt-BR')}</span>
+          <div style="display:flex;gap:8px;">
+            <button onclick="openPatientHistoryModal('${hosp.patient_id}', '${pat.fullName||pat.name||'Paciente'}')" style="padding:7px 14px;border-radius:8px;background:var(--bg-secondary);color:var(--color-primary);border:1px solid rgba(99,102,241,0.3);cursor:pointer;font-size:0.82rem;font-weight:600;display:flex;align-items:center;gap:5px;" title="Ver prontuário completo"><i class="fa-solid fa-file-medical"></i> Prontuário</button>
+            <button onclick="saveKanbanEvolution('${hospId}')" style="padding:7px 16px;border-radius:8px;background:var(--color-primary);color:#fff;border:none;cursor:pointer;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border-color);padding-top:14px;">
+          <p style="font-size:0.75rem;font-weight:700;color:var(--text-muted);margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:6px;">
+            <i class="fa-solid fa-timeline" style="color:var(--color-primary);"></i>
+            Histórico de Evoluções (${evolutions.length})
+          </p>
+          <div style="max-height:280px;overflow-y:auto;padding-right:2px;">${evoHtml}</div>
+        </div>
       </div>
     </div>`);
+};
+
+window.saveKanbanEvolution = function(hospId) {
+  const text = (document.getElementById('kanban-new-note')?.value || '').trim();
+  if (!text) { if(window.showToast) window.showToast('Digite a evolução antes de salvar.'); return; }
+  const hosp = localDB.get('hospitalizations', hospId); if (!hosp) return;
+  const user = window.state?.currentUser;
+  const author = user?.name || user?.username || 'Equipe';
+
+  // Migrate legacy notes
+  let evolutions = [];
+  if (hosp.evolutions && Array.isArray(hosp.evolutions)) {
+    evolutions = hosp.evolutions;
+  } else if (hosp.notes) {
+    evolutions = [{ ts: hosp.admission_date || new Date().toISOString(), text: hosp.notes, author: 'Sistema' }];
+  }
+  evolutions.push({ ts: new Date().toISOString(), text, author });
+  localDB.update('hospitalizations', hospId, { evolutions, notes: text });
+  document.getElementById('kanban-notes-modal')?.remove();
+  if(window.showToast) window.showToast('Evolução registrada!');
+  loadAndRenderKanban();
 };
 
 // ──── Alta ────
