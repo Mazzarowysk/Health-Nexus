@@ -4420,11 +4420,15 @@ async function renderTabContent() {
 
       setCol('col-triage', triage, '#8b5cf6', 'Fila vazia', buildTriageCard, (e) => {
         const b = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-triar`);
+        const pepBtn = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-open-pep-direct`);
         if (b) b.addEventListener('click', () => openTriageModal(e.id, e.patientName));
+        if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
       });
       setCol('col-waiting', waiting, '#f59e0b', 'Nenhum aguardando', buildWaitCard, (e) => {
         const b = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-call-consult`);
+        const pepBtn = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-open-pep-direct`);
         if (b) b.addEventListener('click', () => updateStatus(e.id, 'Em_Atendimento', e.patientName, e.manchesterColor));
+        if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
       });
       setCol('col-active', active, '#10b981', 'Nenhum em atendimento', buildActiveCard, (e) => {
         const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
@@ -4465,10 +4469,15 @@ async function renderTabContent() {
           <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
           <span id="timer-${e.id}" style="font-size:0.7rem;color:#8b5cf6;font-family:monospace;background:rgba(139,92,246,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
         </div>
-        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;"><i class="fa-solid fa-tag" style="color:#8b5cf6;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}</div>
-        <button class="btn btn-primary btn-triar" data-enc-id="${e.id}" style="width:100%;font-size:0.8rem;padding:7px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;cursor:pointer;">
-          <i class="fa-solid fa-user-nurse"></i> Realizar Triagem
-        </button>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;"><i class="fa-solid fa-tag" style="color:#8b5cf6;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}</div>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button class="btn btn-primary btn-triar" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;cursor:pointer;">
+            <i class="fa-solid fa-user-nurse"></i> Realizar Triagem
+          </button>
+          <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);color:#f472b6;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+            <i class="fa-solid fa-file-medical"></i> PEP
+          </button>
+        </div>
       </div>`;
 
     const buildWaitCard = (e) => {
@@ -4485,9 +4494,14 @@ async function renderTabContent() {
           </div>
           ${e.bloodPressure||e.temperatureCelsius?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">${e.bloodPressure?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">PA</span><br><strong style="color:var(--text-primary);">${e.bloodPressure}</strong></div>`:''} ${e.temperatureCelsius?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">Temp.</span><br><strong style="color:var(--text-primary);">${e.temperatureCelsius}°C</strong></div>`:''}</div>`:''}
           ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
-          <button class="btn btn-primary btn-call-consult" data-enc-id="${e.id}" style="width:100%;font-size:0.8rem;padding:7px;cursor:pointer;">
-            <i class="fa-solid fa-bullhorn"></i> Chamar para Consulta
-          </button>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button class="btn btn-primary btn-call-consult" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;cursor:pointer;">
+              <i class="fa-solid fa-bullhorn"></i> Chamar
+            </button>
+            <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);color:#f472b6;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+              <i class="fa-solid fa-file-medical"></i> PEP
+            </button>
+          </div>
         </div>`;
     };
 
