@@ -3226,8 +3226,7 @@ function renderReportsTab(contentArea) {
       if (pc) pc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--color-danger);"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao carregar relatório de médicos.</div>';
     }
   };
-
-  const loadData = async () => {
+const loadData = async () => {
     try {
       previewStatus.textContent = 'Buscando dados...';
       const [resPatients, resEncounters] = await Promise.all([
