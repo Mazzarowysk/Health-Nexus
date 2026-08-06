@@ -1,4 +1,4 @@
-import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
+﻿import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 
 // API_URL is not exported from main.js, define it locally
@@ -8,8 +8,8 @@ function renderReportsTab(contentArea) {
   contentArea.innerHTML = `
     <div class="tab-section active" style="padding: 28px 36px; width: 100%; max-width: 100%; box-sizing: border-box;">
       <div class="section-header" style="margin-bottom: 24px;">
-        <h2><i class="fa-solid fa-file-contract"></i> Relatórios e Exportação</h2>
-        <p>Gere e exporte relatórios filtrados por período, status, departamento ou classificação.</p>
+        <h2><i class="fa-solid fa-file-contract"></i> RelatÃ³rios e Exportação</h2>
+        <p>Gere e exporte relatÃ³rios filtrados por perÃ­odo, status, departamento ou classificação.</p>
       </div>
 
       <!-- Seletor em formato de Cards Interativos Lado a Lado (4 colunas) -->
@@ -39,7 +39,7 @@ function renderReportsTab(contentArea) {
           </div>
           <div>
             <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Atendimentos & PEP</h4>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Triagem Manchester, situação clínica e médico responsável.</p>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Triagem Manchester, situação clínica e médico responsÃ¡vel.</p>
           </div>
         </div>
 
@@ -53,11 +53,11 @@ function renderReportsTab(contentArea) {
           </div>
           <div>
             <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Financeiro</h4>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Títulos a vencer, parcelas pagas e balanço de faturamento.</p>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">TÃ­tulos a vencer, parcelas pagas e balanço de faturamento.</p>
           </div>
         </div>
 
-        <!-- CARD 4: POR MÉDICO -->
+        <!-- CARD 4: POR MÃ‰DICO -->
         <div id="tab-btn-doctors" class="report-tab-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(52,211,153,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
           <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;">
             <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 1.25rem;">
@@ -67,13 +67,13 @@ function renderReportsTab(contentArea) {
           </div>
           <div>
             <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Por Médico</h4>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Produtividade do corpo clínico e gráficos analíticos.</p>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Produtividade do corpo clÃ­nico e grÃ¡ficos analÃ­ticos.</p>
           </div>
         </div>
 
       </div>
 
-      <!-- Card de Filtros Dinâmicos -->
+      <!-- Card de Filtros DinÃ¢micos -->
       <div class="filter-panel-card glass-card">
         <h3 style="margin-bottom: 16px; font-family: 'Outfit'; font-size: 1.1rem; color: var(--text-primary);">
           <i class="fa-solid fa-filter"></i> Filtros de Pesquisa
@@ -83,7 +83,7 @@ function renderReportsTab(contentArea) {
         </div>
       </div>
 
-      <!-- Card de Pré-visualização e Exportação -->
+      <!-- Card de PrÃ©-visualização e Exportação -->
       <div class="preview-card glass-card">
         <div class="preview-header">
           <h3><i class="fa-solid fa-list-check"></i> Registros Correspondentes</h3>
@@ -93,15 +93,15 @@ function renderReportsTab(contentArea) {
         <div class="preview-table-wrapper">
           <table class="preview-table">
             <thead id="preview-table-head">
-              <!-- Cabeçalhos dinâmicos -->
+              <!-- Cabeçalhos dinÃ¢micos -->
             </thead>
             <tbody id="preview-table-body">
-              <!-- Registros da pré-visualização -->
+              <!-- Registros da prÃ©-visualização -->
             </tbody>
           </table>
         </div>
 
-        <!-- Botões de Exportação -->
+        <!-- BotÃµes de Exportação -->
         <div class="report-actions" style="margin-top: 20px;">
           <button id="btn-export-pdf" class="btn btn-primary" style="background: var(--danger-color)">
             <i class="fa-solid fa-file-pdf"></i> Exportar PDF
@@ -117,7 +117,7 @@ function renderReportsTab(contentArea) {
     </div>
   `;
 
-  // Inicialização de variáveis locais
+  // Inicialização de variÃ¡veis locais
   let activeTab = 'patients';
   let patientsList = [];
   let encountersList = [];
@@ -308,7 +308,7 @@ function renderReportsTab(contentArea) {
             </div>
           </div>
           <div class="filter-group">
-            <label>Faturamento Mínimo (R$)</label>
+            <label>Faturamento MÃ­nimo (R$)</label>
             <input type="number" id="filter-billing-min" placeholder="Ex: 500" min="0">
           </div>
         </div>
@@ -317,11 +317,11 @@ function renderReportsTab(contentArea) {
       filtersContainer.innerHTML = `
         <div class="filters-grid">
           <div class="filter-group">
-            <label>Período Inicial (Admissão)</label>
+            <label>PerÃ­odo Inicial (Admissão)</label>
             <input type="date" id="filter-date-start">
           </div>
           <div class="filter-group">
-            <label>Período Final (Admissão)</label>
+            <label>PerÃ­odo Final (Admissão)</label>
             <input type="date" id="filter-date-end">
           </div>
           <div class="filter-group">
@@ -363,7 +363,7 @@ function renderReportsTab(contentArea) {
                 </li>
                 <li>
                   <input type="checkbox" class="filter-manchester-item" value="Vermelho" id="filter-risk-1" checked>
-                  <label for="filter-risk-1">Vermelho (Emergência)</label>
+                  <label for="filter-risk-1">Vermelho (EmergÃªncia)</label>
                 </li>
                 <li>
                   <input type="checkbox" class="filter-manchester-item" value="Laranja" id="filter-risk-2" checked>
@@ -409,7 +409,7 @@ function renderReportsTab(contentArea) {
             </div>
           </div>
           <div class="filter-group" style="min-width: 180px;">
-            <label>Médico Responsável</label>
+            <label>Médico ResponsÃ¡vel</label>
             <select id="filter-doctor-name" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;">
               <option value="">— Todos os Médicos —</option>
               ${[...new Set(encountersList.map(e => e.doctorName).filter(Boolean))].sort().map(d => `<option value="${d}">${d}</option>`).join('')}
@@ -433,7 +433,7 @@ function renderReportsTab(contentArea) {
             <select id="filter-fin-type" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
               <option value="Todos">Todos (Receitas/Despesas)</option>
               <option value="Receita">Receitas (Entradas)</option>
-              <option value="Despesa">Despesas (Saídas)</option>
+              <option value="Despesa">Despesas (SaÃ­das)</option>
             </select>
           </div>
           <div class="filter-group">
@@ -448,7 +448,7 @@ function renderReportsTab(contentArea) {
                 <li><input type="checkbox" class="filter-fin-item" value="Bonificadas" id="fin-st-4" checked><label for="fin-st-4">Bonificadas</label></li>
                 <li><input type="checkbox" class="filter-fin-item" value="Suspensas" id="fin-st-5" checked><label for="fin-st-5">Suspensas</label></li>
                 <li><input type="checkbox" class="filter-fin-item" value="Canceladas" id="fin-st-6" checked><label for="fin-st-6">Canceladas</label></li>
-                <li><input type="checkbox" class="filter-fin-item" value="Excluídas" id="fin-st-7" checked><label for="fin-st-7">Excluídas</label></li>
+                <li><input type="checkbox" class="filter-fin-item" value="ExcluÃ­das" id="fin-st-7" checked><label for="fin-st-7">ExcluÃ­das</label></li>
               </ul>
             </div>
           </div>
@@ -462,7 +462,7 @@ function renderReportsTab(contentArea) {
                 <li><input type="checkbox" class="filter-fin-cat-item" value="Procedimentos" id="fin-cat-2" checked><label for="fin-cat-2">Procedimentos</label></li>
                 <li><input type="checkbox" class="filter-fin-cat-item" value="Exames" id="fin-cat-3" checked><label for="fin-cat-3">Exames</label></li>
                 <li><input type="checkbox" class="filter-fin-cat-item" value="Operacionais" id="fin-cat-4" checked><label for="fin-cat-4">Operacionais</label></li>
-                <li><input type="checkbox" class="filter-fin-cat-item" value="Farmácia" id="fin-cat-5" checked><label for="fin-cat-5">Farmácia</label></li>
+                <li><input type="checkbox" class="filter-fin-cat-item" value="FarmÃ¡cia" id="fin-cat-5" checked><label for="fin-cat-5">FarmÃ¡cia</label></li>
                 <li><input type="checkbox" class="filter-fin-cat-item" value="Insumos" id="fin-cat-6" checked><label for="fin-cat-6">Insumos</label></li>
               </ul>
             </div>
@@ -475,8 +475,8 @@ function renderReportsTab(contentArea) {
                 <li><input type="checkbox" id="filter-fin-method-all" checked><label for="filter-fin-method-all"><strong>Selecionar Todas</strong></label></li>
                 <li><input type="checkbox" class="filter-fin-method-item" value="Pix" id="fin-m-1" checked><label for="fin-m-1">Pix</label></li>
                 <li><input type="checkbox" class="filter-fin-method-item" value="Boleto" id="fin-m-2" checked><label for="fin-m-2">Boleto</label></li>
-                <li><input type="checkbox" class="filter-fin-method-item" value="Cartão de Crédito" id="fin-m-3" checked><label for="fin-m-3">Cartão Crédito</label></li>
-                <li><input type="checkbox" class="filter-fin-method-item" value="Cartão de Débito" id="fin-m-4" checked><label for="fin-m-4">Cartão Débito</label></li>
+                <li><input type="checkbox" class="filter-fin-method-item" value="Cartão de CrÃ©dito" id="fin-m-3" checked><label for="fin-m-3">Cartão CrÃ©dito</label></li>
+                <li><input type="checkbox" class="filter-fin-method-item" value="Cartão de DÃ©bito" id="fin-m-4" checked><label for="fin-m-4">Cartão DÃ©bito</label></li>
                 <li><input type="checkbox" class="filter-fin-method-item" value="Dinheiro" id="fin-m-5" checked><label for="fin-m-5">Dinheiro</label></li>
                 <li><input type="checkbox" class="filter-fin-method-item" value="Convênio" id="fin-m-6" checked><label for="fin-m-6">Convênio</label></li>
               </ul>
@@ -569,7 +569,7 @@ function renderReportsTab(contentArea) {
       });
     }, 80);
 
-    // 1. Gráfico de Rosca Neon Glass (Sem legenda interna pois a lista lateral atua como legenda ativa)
+    // 1. GrÃ¡fico de Rosca Neon Glass (Sem legenda interna pois a lista lateral atua como legenda ativa)
     finPieChartInstance = new ChartClass(pieCtx.getContext('2d'), {
       type: 'doughnut',
       data: {
@@ -634,7 +634,7 @@ function renderReportsTab(contentArea) {
       });
     });
 
-    // 2. Gráfico de Barras Neon Glass ("Comparativo Financeiro (R$)")
+    // 2. GrÃ¡fico de Barras Neon Glass ("Comparativo Financeiro (R$)")
     const c2dBar = barCtx.getContext('2d');
     const barGradients = colors.map(c => {
       const grad = c2dBar.createLinearGradient(0, 0, 0, 180);
@@ -725,7 +725,7 @@ function renderReportsTab(contentArea) {
         const response = await apiFetch('/api/financial/installments');
         if (response.ok) {
           const raw = await response.json();
-          // apiFetch returns { data: [...] } – extract the array
+          // apiFetch returns { data: [...] } â€“ extract the array
           const installments = Array.isArray(raw) ? raw : (raw.data || []);
           finTitlesList = installments.filter(inst => {
             const val = parseFloat(inst.amount) || 0;
@@ -766,7 +766,7 @@ function renderReportsTab(contentArea) {
               case 'Bonificadas': bonificadasCount++; bonificadasVal += val; break;
               case 'Suspensas': suspensasCount++; suspensasVal += val; break;
               case 'Canceladas': canceladasCount++; canceladasVal += val; break;
-              case 'Excluídas': excluidasCount++; excluidasVal += val; break;
+              case 'ExcluÃ­das': excluidasCount++; excluidasVal += val; break;
             }
 
             let color = '#00f2fe';
@@ -775,7 +775,7 @@ function renderReportsTab(contentArea) {
             if (inst.status === 'Bonificadas') color = '#fbbf24';
             if (inst.status === 'Suspensas') color = '#a855f7';
             if (inst.status === 'Canceladas') color = '#f97316';
-            if (inst.status === 'Excluídas') color = '#dc2626';
+            if (inst.status === 'ExcluÃ­das') color = '#dc2626';
 
             return {
               id: inst.id,
@@ -811,14 +811,14 @@ function renderReportsTab(contentArea) {
         { label: 'Bonificadas', count: bonificadasCount, totalValue: bonificadasVal, color: '#fbbf24' },
         { label: 'Suspensas', count: suspensasCount, totalValue: suspensasVal, color: '#a855f7' },
         { label: 'Canceladas', count: canceladasCount, totalValue: canceladasVal, color: '#f97316' },
-        { label: 'Excluídas', count: excluidasCount, totalValue: excluidasVal, color: '#dc2626' }
+        { label: 'ExcluÃ­das', count: excluidasCount, totalValue: excluidasVal, color: '#dc2626' }
       ];
 
       window._activeFinStatusFilter = 'Todos';
 
       previewCard.innerHTML = `
         <div class="preview-header" style="flex-wrap: wrap; gap: 15px;">
-          <h3><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary);"></i> Relatório Financeiro de Títulos & Baixa Manual</h3>
+          <h3><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary);"></i> RelatÃ³rio Financeiro de TÃ­tulos & Baixa Manual</h3>
           <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
             <button id="btn-open-fin-window-card" class="btn btn-primary" style="background: linear-gradient(135deg, #00f2fe, #4f46e5); font-size: 0.8rem;"><i class="fa-solid fa-window-restore"></i> Abrir Janela Dedicada</button>
             <button id="btn-export-pdf" class="btn btn-primary" style="background: var(--danger-color); font-size: 0.8rem;"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
@@ -829,10 +829,10 @@ function renderReportsTab(contentArea) {
 
         <div class="financial-kpi-bar" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
           <div class="financial-badges-group" style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.85rem;">
-            <span class="fin-kpi-badge" data-status="Pagas" style="border-left: 3px solid #34d399; padding: 4px 10px; background: rgba(52,211,153,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Pagos">• Pagas: <strong>${pagasCount}</strong></span>
-            <span class="fin-kpi-badge" data-status="A Vencer" style="border-left: 3px solid #00f2fe; padding: 4px 10px; background: rgba(0,242,254,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos A Vencer">• A Vencer: <strong>${aVencerCount}</strong></span>
-            <span class="fin-kpi-badge" data-status="Vencidas" style="border-left: 3px solid #f43f5e; padding: 4px 10px; background: rgba(244,63,94,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Vencidos">• Vencidas: <strong>${vencidasCount}</strong></span>
-            <span class="fin-kpi-badge" data-status="Bonificadas" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Bonificados">• Bonificadas: <strong>${bonificadasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Pagas" style="border-left: 3px solid #34d399; padding: 4px 10px; background: rgba(52,211,153,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas tÃ­tulos Pagos">â€¢ Pagas: <strong>${pagasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="A Vencer" style="border-left: 3px solid #00f2fe; padding: 4px 10px; background: rgba(0,242,254,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas tÃ­tulos A Vencer">â€¢ A Vencer: <strong>${aVencerCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Vencidas" style="border-left: 3px solid #f43f5e; padding: 4px 10px; background: rgba(244,63,94,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas tÃ­tulos Vencidos">â€¢ Vencidas: <strong>${vencidasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Bonificadas" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas tÃ­tulos Bonificados">â€¢ Bonificadas: <strong>${bonificadasCount}</strong></span>
           </div>
           <div style="font-family: 'Outfit'; text-align: right;">
             <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">SUBTOTAL FILTRADO</span>
@@ -840,7 +840,7 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
-        <!-- COMPONENTE HÍBRIDO (ANEL NEON + BARRAS POR CATEGORIA) -->
+        <!-- COMPONENTE HÃBRIDO (ANEL NEON + BARRAS POR CATEGORIA) -->
         <div class="chart-card tilt-card-3d" style="margin-top: 20px; padding: 22px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
             <h4 style="margin:0; font-size:1.05rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
@@ -867,7 +867,7 @@ function renderReportsTab(contentArea) {
                 const formattedVal = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalValue);
                 const iconMap = {
                   'Pagas': 'fa-circle-check', 'A Vencer': 'fa-clock', 'Vencidas': 'fa-circle-exclamation',
-                  'Bonificadas': 'fa-award', 'Suspensas': 'fa-ban', 'Canceladas': 'fa-xmark', 'Excluídas': 'fa-trash'
+                  'Bonificadas': 'fa-award', 'Suspensas': 'fa-ban', 'Canceladas': 'fa-xmark', 'ExcluÃ­das': 'fa-trash'
                 };
                 return `
                   <div class="ward-progress-item fin-progress-row" data-idx="${idx}" data-status="${item.label}" style="cursor:pointer;" title="Clique para filtrar a tabela para o status ${item.label}">
@@ -875,7 +875,7 @@ function renderReportsTab(contentArea) {
                       <span class="ward-name"><i class="fa-solid ${iconMap[item.label]||'fa-circle'}" style="color:${item.color};"></i> ${item.label}</span>
                       <span class="ward-stats">
                         <strong style="color:${item.color};font-weight:700;">${item.count} parcelas</strong> 
-                        <span style="color:var(--text-muted);font-size:0.76rem;">(${pctCount}%) • ${formattedVal}</span>
+                        <span style="color:var(--text-muted);font-size:0.76rem;">(${pctCount}%) â€¢ ${formattedVal}</span>
                       </span>
                     </div>
                     <div class="ward-bar-track" style="height:6px;background:rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin-top:4px;">
@@ -903,7 +903,7 @@ function renderReportsTab(contentArea) {
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
             <div>
               <h4 id="fin-table-title" style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-list-check" style="color: #00f2fe;"></i> Títulos Financeiros
+                <i class="fa-solid fa-list-check" style="color: #00f2fe;"></i> TÃ­tulos Financeiros
                 <span id="fin-status-filter-tag" style="font-size:0.76rem; font-weight:600; padding:3px 10px; border-radius:12px; background:rgba(0,242,254,0.12); color:#00f2fe; border:1px solid rgba(0,242,254,0.3);">Todos os Status</span>
               </h4>
               <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: var(--text-muted);">Clique no botão <strong style="color:#00f2fe;">Dar Baixa Manual</strong> para quitar qualquer parcela de forma simples e detalhada.</p>
@@ -920,18 +920,18 @@ function renderReportsTab(contentArea) {
             <table style="width: 100%; border-collapse: collapse;">
               <thead>
                 <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
-                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Nosso Número</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Nosso NÃºmero</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Paciente / Cliente</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Descrição / Serviço</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Parcela</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Vencimento</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: right;">Valor (R$)</th>
                   <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
-                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Ações</th>
+                  <th style="padding: 10px 14px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">AçÃµes</th>
                 </tr>
               </thead>
               <tbody id="fin-titles-table-body">
-                <!-- Títulos renderizados dinamicamente -->
+                <!-- TÃ­tulos renderizados dinamicamente -->
               </tbody>
             </table>
           </div>
@@ -956,7 +956,7 @@ function renderReportsTab(contentArea) {
         }
 
         if (filtered.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum título encontrado com o status "${statusFilter}".</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum tÃ­tulo encontrado com o status "${statusFilter}".</td></tr>`;
           return;
         }
 
@@ -977,7 +977,7 @@ function renderReportsTab(contentArea) {
               </td>
               <td style="padding:10px 14px;text-align:center;">
                 <div style="display:flex;gap:5px;justify-content:center;">
-                  <button class="btn btn-outline btn-view-boleto" style="font-size:0.72rem;padding:3px 9px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
+                  <button class="btn btn-outline btn-view-boleto" style="font-size:0.72rem;padding:3px 9px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2Âª Via</button>
                   ${t.status !== 'Pagas' ? `<button class="btn btn-primary btn-pay-installment-modal" style="background:linear-gradient(135deg, #10b981, #059669);font-size:0.72rem;padding:3px 9px;cursor:pointer;" data-id="${t.id}"><i class="fa-solid fa-hand-holding-dollar"></i> Quitar</button>` : ''}
                 </div>
               </td>
@@ -1050,7 +1050,7 @@ function renderReportsTab(contentArea) {
         document.getElementById('btn-export-csv')?.addEventListener('click', () => processExport('csv'));
       }, 50);
 
-      // Re-associar botões de exportação do relatório financeiro
+      // Re-associar botÃµes de exportação do relatÃ³rio financeiro
       const finBtnPdf = document.getElementById('btn-export-pdf');
       const finBtnXls = document.getElementById('btn-export-xls');
       const finBtnCsv = document.getElementById('btn-export-csv');
@@ -1062,7 +1062,7 @@ function renderReportsTab(contentArea) {
       return;
     }
 
-    // Restaurar estrutura original para as abas 'patients' e 'encounters' se necessário
+    // Restaurar estrutura original para as abas 'patients' e 'encounters' se necessÃ¡rio
     const previewCard = document.querySelector('.preview-card');
     if (previewCard && !document.getElementById('preview-table-head')) {
       previewCard.innerHTML = `
@@ -1185,14 +1185,14 @@ function renderReportsTab(contentArea) {
         // Filtrar pelos status marcados nos checkboxes
         if (!checkedStatuses.includes(e.status)) return false;
 
-        // Filtrar pelas classificações Manchester (tratando null/vazio como "null")
+        // Filtrar pelas classificaçÃµes Manchester (tratando null/vazio como "null")
         const mColor = e.manchesterColor || 'null';
         if (!checkedManchester.includes(mColor)) return false;
 
         // Filtrar pelos tipos de atendimento
         if (!checkedTypes.includes(e.type)) return false;
 
-        // Filtrar por médico responsável
+        // Filtrar por médico responsÃ¡vel
         if (filterDoctor && (e.doctorName || '') !== filterDoctor) return false;
 
         return true;
@@ -1207,7 +1207,7 @@ function renderReportsTab(contentArea) {
           <th>Tipo</th>
           <th>Situação</th>
           <th>Data/Hora</th>
-          <th style="text-align:center;">Ações</th>
+          <th style="text-align:center;">AçÃµes</th>
         </tr>
       `;
 
@@ -1246,7 +1246,7 @@ function renderReportsTab(contentArea) {
               <td style="text-align:center;" onclick="event.stopPropagation()">
                 <div style="display:flex;gap:5px;justify-content:center;">
                   <button class="btn-report-detail" data-enc-id="${e.id}" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.4);color:#818cf8;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Ver detalhes completos"><i class="fa-solid fa-eye"></i> Detalhes</button>
-                  ${hasPEP ? `<button class="btn-report-pep" data-enc-id="${e.id}" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#f472b6;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Abrir Prontuário Eletrônico"><i class="fa-solid fa-file-medical"></i> PEP</button>` : ''}
+                  ${hasPEP ? `<button class="btn-report-pep" data-enc-id="${e.id}" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#f472b6;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Abrir ProntuÃ¡rio EletrÃ´nico"><i class="fa-solid fa-file-medical"></i> PEP</button>` : ''}
                 </div>
               </td>
             </tr>
@@ -1285,7 +1285,7 @@ function renderReportsTab(contentArea) {
       });
     }
 
-    // ─── RESUMO + GRÁFICOS DINÂMICOS POR ABA ────────────────────────────────
+    // â”€â”€â”€ RESUMO + GRÃFICOS DINÃ‚MICOS POR ABA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const summaryContainerId = 'report-summary-charts';
     let summaryContainer = document.getElementById(summaryContainerId);
     if (!summaryContainer) {
@@ -1300,7 +1300,7 @@ function renderReportsTab(contentArea) {
     const ChartClass = window.Chart || (typeof Chart !== 'undefined' ? Chart : null);
 
     if (activeTab === 'patients' && currentFilteredList.length > 0) {
-      // ── KPIs
+      // â”€â”€ KPIs
       const totalBilling = currentFilteredList.reduce((acc, p) => {
         const v = parseFloat((p.billingValue || '').replace(/[^\d,]/g, '').replace(',', '.')) || 0;
         return acc + v;
@@ -1324,7 +1324,7 @@ function renderReportsTab(contentArea) {
           </div>
           <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.07);text-align:center;">
             <div style="font-size:1.4rem;font-weight:800;font-family:'Outfit',sans-serif;color:#fbbf24;">${fmt(avgBilling)}</div>
-            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;">Ticket Médio</div>
+            <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;">Ticket MÃ©dio</div>
           </div>
           <div class="glass-card" style="padding:16px;border-radius:14px;border:1px solid rgba(0,242,254,0.3);background:rgba(0,242,254,0.07);text-align:center;">
             <div style="font-size:1.2rem;font-weight:800;font-family:'Outfit',sans-serif;color:#00f2fe;">${topCity ? topCity[0] : '-'}</div>
@@ -1332,7 +1332,7 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
-        <!-- Gráficos -->
+        <!-- GrÃ¡ficos -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
           <div class="glass-card" style="padding:18px;border-radius:14px;border:1px solid var(--border-color);">
             <h4 style="margin:0 0 14px;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
@@ -1388,7 +1388,7 @@ function renderReportsTab(contentArea) {
       }
 
     } else if (activeTab === 'encounters' && currentFilteredList.length > 0) {
-      // ── KPIs Atendimentos
+      // â”€â”€ KPIs Atendimentos
       const total = currentFilteredList.length;
 
       const urgencias = currentFilteredList.filter(e => e.type === 'Urgencia').length;
@@ -1433,7 +1433,7 @@ function renderReportsTab(contentArea) {
           ${kpiCard(total, 'Total Atendimentos', '#ec4899', 'fa-notes-medical', 'all', '')}
           ${kpiCard(urgencias, 'Urgências', '#ef4444', 'fa-truck-medical', 'type', 'Urgencia')}
           ${kpiCard(ambulatorio, 'Ambulatório', '#818cf8', 'fa-hospital', 'type', 'Ambulatorio')}
-          ${kpiCard(pctFin + '%', 'Concluídos', '#34d399', 'fa-circle-check', 'status', 'Finalizado')}
+          ${kpiCard(pctFin + '%', 'ConcluÃ­dos', '#34d399', 'fa-circle-check', 'status', 'Finalizado')}
         </div>
 
         <!-- Charts row -->
@@ -1474,7 +1474,7 @@ function renderReportsTab(contentArea) {
               <div>
                 <div style="font-size:0.78rem;font-weight:700;color:var(--text-primary);">Taxa de Conclusão</div>
                 <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${finalizados} de ${total} atendimentos finalizados</div>
-                <div style="font-size:0.72rem;color:#a78bfa;margin-top:2px;"><i class="fa-solid fa-circle-dot"></i> ${emAtendimento} em andamento • <span style="color:#fbbf24;">${aguardando} aguardando</span></div>
+                <div style="font-size:0.72rem;color:#a78bfa;margin-top:2px;"><i class="fa-solid fa-circle-dot"></i> ${emAtendimento} em andamento â€¢ <span style="color:#fbbf24;">${aguardando} aguardando</span></div>
               </div>
             </div>
           </div>
@@ -1511,7 +1511,7 @@ function renderReportsTab(contentArea) {
 
       if (ChartClass) {
         setTimeout(() => {
-          // ─── DONUT MANCHESTER
+          // â”€â”€â”€ DONUT MANCHESTER
           const mLabels = Object.keys(manchesterCounts);
           const mVals = mLabels.map(k => manchesterCounts[k]);
           const mColors = mLabels.map(k => manchColors[k] || '#a78bfa');
@@ -1566,7 +1566,7 @@ function renderReportsTab(contentArea) {
             });
           }
 
-          // ─── STATUS PROGRESS BARS
+          // â”€â”€â”€ STATUS PROGRESS BARS
           const statusList = document.getElementById('status-progress-list');
           const statusOrder = ['Finalizado', 'Em_Atendimento', 'Aguardando_Atendimento', 'Aguardando_Triagem'];
           if (statusList) {
@@ -1607,7 +1607,7 @@ function renderReportsTab(contentArea) {
             }, 80);
           }
 
-          // ─── COMPLETION RING (mini)
+          // â”€â”€â”€ COMPLETION RING (mini)
           const ringCtx = document.getElementById('chart-enc-completion-ring');
           if (ringCtx) {
             new ChartClass(ringCtx.getContext('2d'), {
@@ -1623,7 +1623,7 @@ function renderReportsTab(contentArea) {
             });
           }
 
-          // ─── MANCHESTER HORIZONTAL PROGRESS BARS
+          // â”€â”€â”€ MANCHESTER HORIZONTAL PROGRESS BARS
           const manchProgList = document.getElementById('manch-progress-list');
           if (manchProgList) {
             const iconMap = { Vermelho: 'fa-circle-xmark', Laranja: 'fa-triangle-exclamation', Amarelo: 'fa-clock', Verde: 'fa-circle-check', Azul: 'fa-circle-minus', 'Não Classificado': 'fa-circle-question' };
@@ -1669,10 +1669,10 @@ function renderReportsTab(contentArea) {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   };
 
-  // FUNÇÕES DE EXPORTAÇÃO GLOBAL (CSV, EXCEL, PDF) E EMISSÃO DE BOLETO
+  // FUNÃ‡Ã•ES DE EXPORTAÃ‡ÃƒO GLOBAL (CSV, EXCEL, PDF) E EMISSÃƒO DE BOLETO
   function exportHtmlCSV(columns, rows, filename) {
     const csvContent = "\uFEFF" + [
       columns.join(";"),
@@ -1687,15 +1687,15 @@ function renderReportsTab(contentArea) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    if (typeof showToast === 'function') showToast(`Relatório CSV '${filename}.csv' exportado com sucesso!`);
+    if (typeof showToast === 'function') showToast(`RelatÃ³rio CSV '${filename}.csv' exportado com sucesso!`);
   }
 
   function exportHtmlXLS(columns, rows, filename) {
     const tableHTML = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-      <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Relatório Health Nexus</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+      <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>RelatÃ³rio Health Nexus</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
       <body style="font-family: Arial; padding: 20px;">
-        <h2 style="color: #4f46e5;">Health Nexus — Relatório Oficial</h2>
+        <h2 style="color: #4f46e5;">Health Nexus — RelatÃ³rio Oficial</h2>
         <p style="color: #64748b; font-size: 0.9rem;">Emissão: ${new Date().toLocaleString('pt-BR')}</p>
         <table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial;">
           <thead>
@@ -1722,14 +1722,14 @@ function renderReportsTab(contentArea) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    if (typeof showToast === 'function') showToast(`Relatório Excel '${filename}.xls' gerado e baixado!`);
+    if (typeof showToast === 'function') showToast(`RelatÃ³rio Excel '${filename}.xls' gerado e baixado!`);
   }
 
   async function exportHtmlPDF(columns, rows, title, filename, financialSummary) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       if (typeof showCustomAlert === 'function') {
-        showCustomAlert({ title: 'Pop-up Bloqueado', message: 'Por favor, habilite pop-ups para este site nas configurações do navegador e tente novamente.', type: 'warning' });
+        showCustomAlert({ title: 'Pop-up Bloqueado', message: 'Por favor, habilite pop-ups para este site nas configuraçÃµes do navegador e tente novamente.', type: 'warning' });
       } else {
         alert('Por favor, habilite pop-ups para gerar a impressão/visualização em PDF.');
       }
@@ -1743,54 +1743,54 @@ function renderReportsTab(contentArea) {
     const summaryBlock = financialSummary ? `
       <div style="margin-bottom: 22px;">
         <div style="font-size: 11pt; font-weight: 700; color: #1e1b4b; border-bottom: 2px solid #6366f1; padding-bottom: 6px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-          📊 Resumo Executivo do Filtro
+          ðŸ“Š Resumo Executivo do Filtro
         </div>
 
         <!-- KPI CARDS em 3 colunas -->
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
           <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #15803d; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">✅ Pagas</div>
+            <div style="font-size: 7.5pt; color: #15803d; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">âœ… Pagas</div>
             <div style="font-size: 13pt; font-weight: 800; color: #16a34a;">${fmt(financialSummary.pagasVal)}</div>
             <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.pagasC} parcela(s)</div>
           </div>
           <div style="background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #1d4ed8; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">🕐 A Vencer</div>
+            <div style="font-size: 7.5pt; color: #1d4ed8; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">ðŸ• A Vencer</div>
             <div style="font-size: 13pt; font-weight: 800; color: #2563eb;">${fmt(financialSummary.aVencerVal)}</div>
             <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.aVencerC} parcela(s)</div>
           </div>
           <div style="background: #fff1f2; border: 1.5px solid #fda4af; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #be123c; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">❗ Vencidas</div>
+            <div style="font-size: 7.5pt; color: #be123c; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">â— Vencidas</div>
             <div style="font-size: 13pt; font-weight: 800; color: #e11d48;">${fmt(financialSummary.vencidasVal)}</div>
             <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.vencidasC} parcela(s)</div>
           </div>
           <div style="background: #f5f3ff; border: 1.5px solid #c4b5fd; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #7c3aed; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">⚖️ Saldo Líquido</div>
+            <div style="font-size: 7.5pt; color: #7c3aed; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">âš–ï¸ Saldo LÃ­quido</div>
             <div style="font-size: 13pt; font-weight: 800; color: ${financialSummary.saldo >= 0 ? '#16a34a' : '#e11d48'};">${fmt(financialSummary.saldo)}</div>
-            <div style="font-size: 7.5pt; color: #4b5563;">Receitas − Despesas</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">Receitas âˆ’ Despesas</div>
           </div>
           <div style="background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #b45309; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">🏆 Bonificadas</div>
+            <div style="font-size: 7.5pt; color: #b45309; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">ðŸ† Bonificadas</div>
             <div style="font-size: 13pt; font-weight: 800; color: #d97706;">${fmt(financialSummary.bonificadasVal)}</div>
             <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.bonificadasC} parcela(s)</div>
           </div>
           <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #dc2626; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">🚫 Outras</div>
+            <div style="font-size: 7.5pt; color: #dc2626; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">ðŸš« Outras</div>
             <div style="font-size: 13pt; font-weight: 800; color: #dc2626;">${fmt((financialSummary.suspensasVal||0)+(financialSummary.canceladasVal||0)+(financialSummary.excluidasVal||0))}</div>
-            <div style="font-size: 7.5pt; color: #4b5563;">Suspensas / Canceladas / Excluídas</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">Suspensas / Canceladas / ExcluÃ­das</div>
           </div>
         </div>
 
-        <!-- GRÁFICOS como imagens base64 -->
+        <!-- GRÃFICOS como imagens base64 -->
         ${(financialSummary.donutImg || financialSummary.barImg) ? `
         <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 12px; margin-bottom: 8px;">
           ${financialSummary.donutImg ? `
           <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">📈 Distribuição por Status</div>
+            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">ðŸ“ˆ Distribuição por Status</div>
             <img src="${financialSummary.donutImg}" style="max-width: 100%; max-height: 160px; object-fit: contain;" />
           </div>` : ''}
           ${financialSummary.barImg ? `
           <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">📊 Volume por Forma de Pagamento (R$)</div>
+            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">ðŸ“Š Volume por Forma de Pagamento (R$)</div>
             <img src="${financialSummary.barImg}" style="max-width: 100%; max-height: 160px; object-fit: contain;" />
           </div>` : ''}
         </div>` : ''}
@@ -1823,14 +1823,14 @@ function renderReportsTab(contentArea) {
           .badge-bonificadas { background: #fef3c7; color: #d97706; }
           .badge-suspensas { background: #f3f4f6; color: #374151; }
           .badge-canceladas { background: #fee2e2; color: #dc2626; }
-          .badge-excluídas { background: #fee2e2; color: #7f1d1d; }
+          .badge-excluÃ­das { background: #fee2e2; color: #7f1d1d; }
         </style>
       </head>
       <body>
         <div class="header">
           <div>
-            <div class="logo">🏥 HEALTH NEXUS</div>
-            <div class="sublogo">Gestão Hospitalar & Inteligência Médica</div>
+            <div class="logo">ðŸ¥ HEALTH NEXUS</div>
+            <div class="sublogo">Gestão Hospitalar & InteligÃªncia MÃ©dica</div>
           </div>
           <div class="meta">
             <div>Data de Emissão: <strong>${dateNow}</strong></div>
@@ -1865,7 +1865,7 @@ function renderReportsTab(contentArea) {
         </table>
 
         <div class="footer">
-          Health Nexus © 2026 — Sistema Integrado de Saúde Hospitalar • Documento impresso digitalmente.
+          Health Nexus Â© 2026 — Sistema Integrado de SaÃºde Hospitalar â€¢ Documento impresso digitalmente.
         </div>
         <script>
           window.onload = function() { window.print(); };
@@ -1874,7 +1874,7 @@ function renderReportsTab(contentArea) {
       </html>
     `;
 
-    // Escreve o conteúdo na nova janela para acionar a impressão
+    // Escreve o conteÃºdo na nova janela para acionar a impressão
     printWindow.document.open();
     printWindow.document.write(htmlContent);
     printWindow.document.close();
@@ -1896,7 +1896,7 @@ function renderReportsTab(contentArea) {
     const origAmount = parseFloat(installment.amount) || 0;
     const instNumStr = (installment.installmentNumber && installment.totalInstallments) 
       ? `${installment.installmentNumber}/${installment.totalInstallments}` 
-      : '1/1 (À Vista)';
+      : '1/1 (Ã€ Vista)';
 
     modal.innerHTML = `
       <div class="modal-card glass-card" style="max-width: 580px; width: 92%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); position: relative; z-index: 99999;">
@@ -1907,7 +1907,7 @@ function renderReportsTab(contentArea) {
             </div>
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; font-family: 'Outfit', sans-serif;">Baixa Manual de Parcela</h3>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Quitação de Título Financeiro • Nosso Nº: <strong>${installment.id}</strong></span>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Quitação de TÃ­tulo Financeiro â€¢ Nosso NÂº: <strong>${installment.id}</strong></span>
             </div>
           </div>
           <button id="close-pay-modal-btn" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
@@ -1916,8 +1916,8 @@ function renderReportsTab(contentArea) {
         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 18px; font-size: 0.84rem;">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">PACIENTE / FAVORECIDO</span><strong>${installment.client || installment.patientName || 'Cliente Particular'}</strong></div>
-            <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">Nº PARCELA</span><strong style="color: #00f2fe;">${instNumStr}</strong></div>
-            <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">DESCRIÇÃO / SERVIÇO</span><span>${installment.desc || installment.description || 'Consulta Médica'}</span></div>
+            <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">NÂº PARCELA</span><strong style="color: #00f2fe;">${instNumStr}</strong></div>
+            <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">DESCRIÃ‡ÃƒO / SERVIÃ‡O</span><span>${installment.desc || installment.description || 'Consulta MÃ©dica'}</span></div>
             <div><span style="color: var(--text-muted); display: block; font-size: 0.74rem;">VALOR ORIGINAL</span><strong style="color: #34d399; font-size: 1rem;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(origAmount)}</strong></div>
           </div>
         </div>
@@ -1931,11 +1931,11 @@ function renderReportsTab(contentArea) {
             <div>
               <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Forma de Pagamento Efetiva *</label>
               <select id="pay-method-input" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.86rem;">
-                <option value="Pix" ${installment.paymentMethod === 'Pix' ? 'selected' : ''}>Pix (Transferência Instantânea)</option>
-                <option value="Boleto" ${installment.paymentMethod === 'Boleto' ? 'selected' : ''}>Boleto Bancário</option>
-                <option value="Cartão de Crédito" ${installment.paymentMethod === 'Cartão de Crédito' ? 'selected' : ''}>Cartão de Crédito</option>
-                <option value="Cartão de Débito" ${installment.paymentMethod === 'Cartão de Débito' ? 'selected' : ''}>Cartão de Débito</option>
-                <option value="Dinheiro" ${installment.paymentMethod === 'Dinheiro' ? 'selected' : ''}>Dinheiro / Espécie</option>
+                <option value="Pix" ${installment.paymentMethod === 'Pix' ? 'selected' : ''}>Pix (TransferÃªncia InstantÃ¢nea)</option>
+                <option value="Boleto" ${installment.paymentMethod === 'Boleto' ? 'selected' : ''}>Boleto BancÃ¡rio</option>
+                <option value="Cartão de CrÃ©dito" ${installment.paymentMethod === 'Cartão de CrÃ©dito' ? 'selected' : ''}>Cartão de CrÃ©dito</option>
+                <option value="Cartão de DÃ©bito" ${installment.paymentMethod === 'Cartão de DÃ©bito' ? 'selected' : ''}>Cartão de DÃ©bito</option>
+                <option value="Dinheiro" ${installment.paymentMethod === 'Dinheiro' ? 'selected' : ''}>Dinheiro / EspÃ©cie</option>
                 <option value="Convênio" ${installment.paymentMethod === 'Convênio' ? 'selected' : ''}>Faturamento Convênio</option>
               </select>
             </div>
@@ -1957,7 +1957,7 @@ function renderReportsTab(contentArea) {
           </div>
 
           <div style="margin-bottom: 20px;">
-            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Observação / Nº do Comprovante</label>
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Observação / NÂº do Comprovante</label>
             <input type="text" id="pay-notes-input" placeholder="Ex: Aut. Pix 987654321 - Quitado no caixa hospitalar" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.86rem;">
           </div>
 
@@ -2002,7 +2002,7 @@ function renderReportsTab(contentArea) {
 
         if (response.ok) {
           closeModal();
-          if (typeof showToast === 'function') showToast(`✅ Baixa manual da parcela ${installment.id} efetuada com sucesso!`);
+          if (typeof showToast === 'function') showToast(`âœ… Baixa manual da parcela ${installment.id} efetuada com sucesso!`);
           if (typeof onComplete === 'function') onComplete();
         } else {
           alert('Erro ao efetuar baixa manual.');
@@ -2042,7 +2042,7 @@ function renderReportsTab(contentArea) {
         case 'Bonificadas': bonificadasC++; bonificadasVal += v; break;
         case 'Suspensas':   suspensasC++;   suspensasVal += v;   break;
         case 'Canceladas':  canceladasC++;  canceladasVal += v;  break;
-        case 'Excluídas':   excluidasC++;   excluidasVal += v;   break;
+        case 'ExcluÃ­das':   excluidasC++;   excluidasVal += v;   break;
       }
     });
 
@@ -2052,7 +2052,7 @@ function renderReportsTab(contentArea) {
     const totalGeral = pagasVal + aVencerVal + vencidasVal + bonificadasVal + suspensasVal + canceladasVal + excluidasVal;
     const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-    // Formas de pagamento para gráfico de barras
+    // Formas de pagamento para grÃ¡fico de barras
     const methodMap = {};
     installmentsList.forEach(t => {
       const m = t.paymentMethod || 'Pix';
@@ -2063,15 +2063,15 @@ function renderReportsTab(contentArea) {
     modal.innerHTML = `
       <div class="modal-card glass-card" style="max-width: 1280px; width: 97%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 94vh; overflow-y: auto; box-shadow: 0 25px 60px -12px rgba(0,0,0,0.85); position: relative;">
         
-        <!-- CABEÇALHO STICKY -->
+        <!-- CABEÃ‡ALHO STICKY -->
         <div style="position: sticky; top: -24px; z-index: 40; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 14px 20px; margin: -24px -24px 0 -24px; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; backdrop-filter: blur(12px);">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #00f2fe, #4f46e5); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: #fff; box-shadow: 0 4px 14px rgba(0,242,254,0.3);">
               <i class="fa-solid fa-chart-line"></i>
             </div>
             <div>
-              <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Outfit', sans-serif;">Janela Dedicada: Títulos Financeiros & Parcelas</h3>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">${installmentsList.length} títulos no filtro ativo • Total geral: ${fmt(totalGeral)}</span>
+              <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Outfit', sans-serif;">Janela Dedicada: TÃ­tulos Financeiros & Parcelas</h3>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">${installmentsList.length} tÃ­tulos no filtro ativo â€¢ Total geral: ${fmt(totalGeral)}</span>
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -2101,9 +2101,9 @@ function renderReportsTab(contentArea) {
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${vencidasC} parcelas</div>
           </div>
           <div style="background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(244,63,94,0.08)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 16px;">
-            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-scale-balanced"></i> Saldo Líquido</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-scale-balanced"></i> Saldo LÃ­quido</div>
             <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: ${saldoLiquido >= 0 ? '#34d399' : '#f43f5e'};">${fmt(saldoLiquido)}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Receitas − Despesas</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Receitas âˆ’ Despesas</div>
           </div>
           <div style="background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.04)); border: 1px solid rgba(251,191,36,0.25); border-radius: 14px; padding: 14px 16px;">
             <div style="font-size: 0.7rem; color: #fbbf24; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-award"></i> Bonificadas</div>
@@ -2117,9 +2117,9 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
-        <!-- SEÇÃO DE GRÁFICOS -->
+        <!-- SEÃ‡ÃƒO DE GRÃFICOS -->
         <div style="display: grid; grid-template-columns: 280px 1fr; gap: 16px; margin-bottom: 20px; align-items: stretch;">
-          <!-- Gráfico de Rosca: Distribuição por Status -->
+          <!-- GrÃ¡fico de Rosca: Distribuição por Status -->
           <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
             <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-chart-pie" style="color:#00f2fe;"></i> Distribuição por Status
@@ -2128,7 +2128,7 @@ function renderReportsTab(contentArea) {
               <canvas id="modal-fin-donut-chart"></canvas>
             </div>
           </div>
-          <!-- Gráfico de Barras: Volume por Forma de Pagamento -->
+          <!-- GrÃ¡fico de Barras: Volume por Forma de Pagamento -->
           <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
             <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-chart-bar" style="color:#a855f7;"></i> Volume por Forma de Pagamento (R$)
@@ -2145,7 +2145,7 @@ function renderReportsTab(contentArea) {
             <thead>
               <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
                 <th style="padding: 10px 12px; width: 36px; text-align: center;"><input type="checkbox" id="modal-fin-select-all" style="cursor:pointer;"></th>
-                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Nosso Número</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Nosso NÃºmero</th>
                 <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Paciente / Favorecido</th>
                 <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Descrição / Categoria</th>
                 <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Parcela</th>
@@ -2153,12 +2153,12 @@ function renderReportsTab(contentArea) {
                 <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Forma Pagto</th>
                 <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: right;">Valor (R$)</th>
                 <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
-                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">Ações</th>
+                <th style="padding: 10px 12px; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; text-align: center;">AçÃµes</th>
               </tr>
             </thead>
             <tbody>
               ${installmentsList.length === 0 ? `
-                <tr><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum título financeiro encontrado para os filtros selecionados.</td></tr>
+                <tr><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum tÃ­tulo financeiro encontrado para os filtros selecionados.</td></tr>
               ` : installmentsList.map(t => {
                 const instStr = (t.installmentNumber && t.totalInstallments) ? `${t.installmentNumber}/${t.totalInstallments}` : '1/1';
                 const clientName = hasPEP ? t.client : (typeof abbreviateName === 'function' ? abbreviateName(t.client) : t.client);
@@ -2177,7 +2177,7 @@ function renderReportsTab(contentArea) {
                     </td>
                     <td style="padding: 10px 12px; text-align: center;">
                       <div style="display: flex; gap: 6px; justify-content: center;">
-                        <button class="btn btn-outline modal-btn-boleto" style="font-size: 0.72rem; padding: 4px 8px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2ª Via</button>
+                        <button class="btn btn-outline modal-btn-boleto" style="font-size: 0.72rem; padding: 4px 8px;" data-id="${t.id}" data-client="${t.client}" data-desc="${t.desc}" data-duedate="${t.dueDate}" data-amount="${t.amountFormatted}" data-val="${t.amount}"><i class="fa-solid fa-barcode"></i> 2Âª Via</button>
                         ${t.status !== 'Pagas' ? `<button class="btn btn-primary modal-btn-pay" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; cursor: pointer;" data-id="${t.id}"><i class="fa-solid fa-hand-holding-dollar"></i> Quitar</button>` : ''}
                       </div>
                     </td>
@@ -2192,9 +2192,9 @@ function renderReportsTab(contentArea) {
 
     modal.style.display = 'flex';
 
-    // ---- Renderizar gráficos após o DOM estar pronto ----
+    // ---- Renderizar grÃ¡ficos apÃ³s o DOM estar pronto ----
     setTimeout(() => {
-      // Gráfico de Rosca - Status
+      // GrÃ¡fico de Rosca - Status
       const donutCtx = document.getElementById('modal-fin-donut-chart');
       if (donutCtx && window.Chart) {
         const donutData = [
@@ -2204,7 +2204,7 @@ function renderReportsTab(contentArea) {
           { label: 'Bonificadas', value: bonificadasVal, color: '#fbbf24' },
           { label: 'Suspensas', value: suspensasVal, color: '#a855f7' },
           { label: 'Canceladas', value: canceladasVal, color: '#f97316' },
-          { label: 'Excluídas', value: excluidasVal, color: '#dc2626' },
+          { label: 'ExcluÃ­das', value: excluidasVal, color: '#dc2626' },
         ].filter(d => d.value > 0);
 
         new window.Chart(donutCtx, {
@@ -2231,7 +2231,7 @@ function renderReportsTab(contentArea) {
         });
       }
 
-      // Gráfico de Barras - Forma de Pagamento
+      // GrÃ¡fico de Barras - Forma de Pagamento
       const barCtx = document.getElementById('modal-fin-bar-chart');
       if (barCtx && window.Chart) {
         const methods = Object.keys(methodMap);
@@ -2304,7 +2304,7 @@ function renderReportsTab(contentArea) {
             body: JSON.stringify({ ids: checked, notes: 'Baixa em lote realizada pela janela dedicada' })
           });
           if (response.ok) {
-            if (typeof showToast === 'function') showToast(`✅ ${checked.length} parcelas baixadas com sucesso!`);
+            if (typeof showToast === 'function') showToast(`âœ… ${checked.length} parcelas baixadas com sucesso!`);
             closeModal();
             if (typeof onRefresh === 'function') onRefresh();
           } else {
@@ -2361,15 +2361,15 @@ function renderReportsTab(contentArea) {
     modal.innerHTML = `
       <div class="modal-card glass-card" style="max-width: 840px; width: 94%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); position: relative;">
         
-        <!-- CABEÇALHO DO MODAL COM AÇÕES RÁPIDAS (FIXO AO ROLAR) -->
+        <!-- CABEÃ‡ALHO DO MODAL COM AÃ‡Ã•ES RÃPIDAS (FIXO AO ROLAR) -->
         <div style="position: sticky; top: -24px; z-index: 30; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 14px 24px; margin: -24px -24px 18px -24px; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; backdrop-filter: blur(12px);">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,0.3);">
               <i class="fa-solid fa-barcode"></i>
             </div>
             <div>
-              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; font-family: 'Outfit', sans-serif;">2ª Via do Boleto Bancário FEBRABAN</h3>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Nosso Número: <strong>${t.id}</strong> • Health Nexus Bank (341-7)</span>
+              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; font-family: 'Outfit', sans-serif;">2Âª Via do Boleto BancÃ¡rio FEBRABAN</h3>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Nosso NÃºmero: <strong>${t.id}</strong> â€¢ Health Nexus Bank (341-7)</span>
             </div>
           </div>
           
@@ -2388,7 +2388,7 @@ function renderReportsTab(contentArea) {
               <i class="fa-solid fa-qrcode" style="font-size: 2.2rem; color: #0d9488;"></i>
             </div>
             <div>
-              <div style="font-size: 0.85rem; font-weight: 700; color: #34d399;">Pagamento Instantâneo via Pix</div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: #34d399;">Pagamento InstantÃ¢neo via Pix</div>
               <div style="font-size: 0.76rem; color: var(--text-muted);">Escaneie com o app do seu banco para quitação em tempo real.</div>
             </div>
           </div>
@@ -2410,7 +2410,7 @@ function renderReportsTab(contentArea) {
                 </div>
                 <div>
                   <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
-                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK • GESTÃO HOSPITALAR</div>
+                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK â€¢ GESTÃƒO HOSPITALAR</div>
                 </div>
               </div>
 
@@ -2422,11 +2422,11 @@ function renderReportsTab(contentArea) {
             <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 7.5pt; margin-bottom: 8px;">
               <tr>
                 <td style="border: 1px solid #000; padding: 4px 6px; width: 50%;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Beneficiário</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">BeneficiÃ¡rio</span>
                   <strong style="font-size: 8.5pt;">Health Nexus Serviços Médicos Hospitalares Ltda - CNPJ: 42.109.843/0001-90</strong>
                 </td>
                 <td style="border: 1px solid #000; padding: 4px 6px; width: 25%;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Agência / Código Beneficiário</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">AgÃªncia / CÃ³digo BeneficiÃ¡rio</span>
                   <strong style="font-size: 8.5pt;">0412 / 00948-2</strong>
                 </td>
                 <td style="border: 1px solid #000; padding: 4px 6px; width: 25%;">
@@ -2440,7 +2440,7 @@ function renderReportsTab(contentArea) {
                   <strong style="font-size: 8.5pt;">${t.client}</strong>
                 </td>
                 <td style="border: 1px solid #000; padding: 4px 6px;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Nosso Número</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Nosso NÃºmero</span>
                   <strong style="font-size: 8.5pt;">175/00948201-9 (${t.id})</strong>
                 </td>
                 <td style="border: 1px solid #000; padding: 4px 6px;">
@@ -2451,7 +2451,7 @@ function renderReportsTab(contentArea) {
               <tr>
                 <td colspan="3" style="border: 1px solid #000; padding: 4px 6px; background: #f8fafc;">
                   <span style="color: #64748b; font-size: 7pt;">Demonstrativo / Descrição: <strong>${t.desc}</strong></span>
-                  <span style="float: right; color: #94a3b8; font-size: 6.5pt;">Autenticação Mecânica - Recibo do Sacado</span>
+                  <span style="float: right; color: #94a3b8; font-size: 6.5pt;">Autenticação MecÃ¢nica - Recibo do Sacado</span>
                 </td>
               </tr>
             </table>
@@ -2464,9 +2464,9 @@ function renderReportsTab(contentArea) {
             </span>
           </div>
 
-          <!-- 2. FICHA DE COMPENSAÇÃO FEBRABAN COM LOGOTIPO -->
+          <!-- 2. FICHA DE COMPENSAÃ‡ÃƒO FEBRABAN COM LOGOTIPO -->
           <div style="margin-top: 14px;">
-            <!-- CABEÇALHO DO BANCO COM LOGO -->
+            <!-- CABEÃ‡ALHO DO BANCO COM LOGO -->
             <div style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 4px;">
               <!-- LOGO BRANDED HEALTH NEXUS -->
               <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
@@ -2475,7 +2475,7 @@ function renderReportsTab(contentArea) {
                 </div>
                 <div>
                   <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
-                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK • GESTÃO HOSPITALAR</div>
+                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK â€¢ GESTÃƒO HOSPITALAR</div>
                 </div>
               </div>
 
@@ -2488,7 +2488,7 @@ function renderReportsTab(contentArea) {
               <tr>
                 <td colspan="5" style="border: 1px solid #000; padding: 3px 6px; width: 75%;">
                   <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Local de Pagamento</span>
-                  <strong style="font-size: 8pt;">PAGÁVEL EM QUALQUER BANCO OU CORRESPONDENTE BANCÁRIO ATÉ O VENCIMENTO</strong>
+                  <strong style="font-size: 8pt;">PAGÃVEL EM QUALQUER BANCO OU CORRESPONDENTE BANCÃRIO ATÃ‰ O VENCIMENTO</strong>
                 </td>
                 <td style="border: 1px solid #000; padding: 3px 6px; width: 25%; background: #fef2f2;">
                   <span style="color: #991b1b; display: block; font-size: 6.5pt; text-transform: uppercase; font-weight: bold;">Vencimento</span>
@@ -2497,11 +2497,11 @@ function renderReportsTab(contentArea) {
               </tr>
               <tr>
                 <td colspan="5" style="border: 1px solid #000; padding: 3px 6px;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Beneficiário</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">BeneficiÃ¡rio</span>
                   <strong style="font-size: 8.5pt;">Health Nexus Serviços Médicos Hospitalares Ltda - CNPJ: 42.109.843/0001-90</strong>
                 </td>
                 <td style="border: 1px solid #000; padding: 3px 6px;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Agência / Código Beneficiário</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">AgÃªncia / CÃ³digo BeneficiÃ¡rio</span>
                   <strong style="font-size: 8.5pt;">0412 / 00948-2</strong>
                 </td>
               </tr>
@@ -2512,11 +2512,11 @@ function renderReportsTab(contentArea) {
                   <span>10/05/2026</span>
                 </td>
                 <td style="border: 1px solid #000; padding: 3px 6px; width: 20%;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Nº do Documento</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">NÂº do Documento</span>
                   <strong>${t.id}</strong>
                 </td>
                 <td style="border: 1px solid #000; padding: 3px 6px; width: 12%;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Espécie Doc.</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">EspÃ©cie Doc.</span>
                   <span>DM</span>
                 </td>
                 <td style="border: 1px solid #000; padding: 3px 6px; width: 10%;">
@@ -2528,7 +2528,7 @@ function renderReportsTab(contentArea) {
                   <span>10/05/2026</span>
                 </td>
                 <td style="border: 1px solid #000; padding: 3px 6px;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Nosso Número</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">Nosso NÃºmero</span>
                   <strong>175/00948201-9</strong>
                 </td>
               </tr>
@@ -2560,12 +2560,12 @@ function renderReportsTab(contentArea) {
 
               <tr>
                 <td colspan="5" rowspan="5" style="border: 1px solid #000; padding: 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.4;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">Instruções (Texto de Responsabilidade do Beneficiário)</span>
-                  • NÃO RECEBER APÓS 30 DIAS DO VENCIMENTO.<br>
-                  • APÓS O VENCIMENTO COBRAR MULTA DE 2,00% E JUROS DE 1,00% AO MÊS.<br>
-                  • TÍTULO REFERENTE A PRESTAÇÃO DE SERVIÇOS HOSPITALARES E CONSULTAS MÉDICAS.<br>
-                  • SERVIÇO PRESTADO: <strong>${t.desc}</strong><br>
-                  • DÚVIDAS OU SEGUNDA VIA LIGUE: (11) 4003-8900 OU WHATSAPP (11) 98888-7700.
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">InstruçÃµes (Texto de Responsabilidade do BeneficiÃ¡rio)</span>
+                  â€¢ NÃƒO RECEBER APÃ“S 30 DIAS DO VENCIMENTO.<br>
+                  â€¢ APÃ“S O VENCIMENTO COBRAR MULTA DE 2,00% E JUROS DE 1,00% AO MÃŠS.<br>
+                  â€¢ TÃTULO REFERENTE A PRESTAÃ‡ÃƒO DE SERVIÃ‡OS HOSPITALARES E CONSULTAS MÃ‰DICAS.<br>
+                  â€¢ SERVIÃ‡O PRESTADO: <strong>${t.desc}</strong><br>
+                  â€¢ DÃšVIDAS OU SEGUNDA VIA LIGUE: (11) 4003-8900 OU WHATSAPP (11) 98888-7700.
                 </td>
                 <td style="border: 1px solid #000; padding: 3px 6px;">
                   <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(-) Desconto / Abatimento</span>
@@ -2573,7 +2573,7 @@ function renderReportsTab(contentArea) {
               </tr>
               <tr>
                 <td style="border: 1px solid #000; padding: 3px 6px;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(-) Outras Deduções</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(-) Outras DeduçÃµes</span>
                 </td>
               </tr>
               <tr>
@@ -2583,7 +2583,7 @@ function renderReportsTab(contentArea) {
               </tr>
               <tr>
                 <td style="border: 1px solid #000; padding: 3px 6px;">
-                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(+) Outros Acréscimos</span>
+                  <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(+) Outros AcrÃ©scimos</span>
                 </td>
               </tr>
               <tr>
@@ -2603,7 +2603,7 @@ function renderReportsTab(contentArea) {
               </tr>
             </table>
 
-            <!-- CÓDIGO DE BARRAS NÍTIDO FEBRABAN -->
+            <!-- CÃ“DIGO DE BARRAS NÃTIDO FEBRABAN -->
             <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: flex-end;">
               <div style="flex: 1;">
                 <svg width="100%" height="54" viewBox="0 0 450 54" preserveAspectRatio="none" style="display: block;">
@@ -2683,13 +2683,13 @@ function renderReportsTab(contentArea) {
               </div>
               <div style="text-align: right; padding-left: 15px; font-size: 6.5pt; color: #64748b;">
                 Ficha de Compensação<br>
-                Autenticação Mecânica FEBRABAN
+                Autenticação MecÃ¢nica FEBRABAN
               </div>
             </div>
           </div>
         </div>
 
-        <!-- BOTÕES DE FECHAMENTO DO MODAL -->
+        <!-- BOTÃ•ES DE FECHAMENTO DO MODAL -->
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px;">
           <button id="btn-close-boleto-foot" class="btn btn-outline" style="font-size: 0.85rem; padding: 8px 18px;">Fechar Visualização</button>
           <button id="btn-print-boleto-foot" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); font-size: 0.85rem; padding: 8px 20px;"><i class="fa-solid fa-print"></i> Imprimir Boleto FEBRABAN</button>
@@ -2737,7 +2737,7 @@ function renderReportsTab(contentArea) {
 
     const handleCopyLinha = () => {
       copyToClipboard(linhaDigitavel);
-      if (typeof showToast === 'function') showToast('Linha digitável FEBRABAN copiada para a área de transferência!');
+      if (typeof showToast === 'function') showToast('Linha digitÃ¡vel FEBRABAN copiada para a Ã¡rea de transferÃªncia!');
     };
 
     const handleCopyPix = () => {
@@ -2761,7 +2761,7 @@ function renderReportsTab(contentArea) {
         <html lang="pt-BR">
         <head>
           <meta charset="UTF-8">
-          <title>Boleto Bancário FEBRABAN — Título ${t.id}</title>
+          <title>Boleto BancÃ¡rio FEBRABAN — TÃ­tulo ${t.id}</title>
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
           <style>
             @page { size: A4 portrait; margin: 10mm; }
@@ -2806,7 +2806,7 @@ function renderReportsTab(contentArea) {
     let financialSummary;
 
     if (activeTab === 'patients') {
-      title = 'Relatório de Pacientes';
+      title = 'RelatÃ³rio de Pacientes';
       filename = 'pacientes';
       columns = ['ID', 'Nome Completo', 'CPF', 'Data de Nascimento', 'Cidade', 'Telefones', 'Faturamento'];
       rows = recordsToExport.map(p => {
@@ -2829,7 +2829,7 @@ function renderReportsTab(contentArea) {
         ];
       });
     } else if (activeTab === 'encounters') {
-      title = 'Relatório de Atendimentos';
+      title = 'RelatÃ³rio de Atendimentos';
       filename = 'atendimentos';
       columns = ['ID', 'Paciente', 'CPF Paciente', 'Motivo', 'Classificação', 'Status', 'Data'];
       rows = recordsToExport.map(e => {
@@ -2857,10 +2857,10 @@ function renderReportsTab(contentArea) {
       // ---- ABA FINANCEIRO: usa dados reais da janela dedicada ----
       const activeFinStatus = window._activeFinStatusFilter || 'Todos';
       title = activeFinStatus === 'Todos'
-        ? 'Relatório Financeiro de Títulos (Todos os Status)'
-        : `Relatório Financeiro — Títulos ${activeFinStatus.toUpperCase()}`;
+        ? 'RelatÃ³rio Financeiro de TÃ­tulos (Todos os Status)'
+        : `RelatÃ³rio Financeiro — TÃ­tulos ${activeFinStatus.toUpperCase()}`;
       filename = `relatorio_financeiro_${activeFinStatus.toLowerCase().replace(/\s+/g, '_')}`;
-      columns = ['Nosso Número', 'Paciente / Cliente', 'Descrição do Serviço', 'Vencimento', 'Valor (R$)', 'Status'];
+      columns = ['Nosso NÃºmero', 'Paciente / Cliente', 'Descrição do Serviço', 'Vencimento', 'Valor (R$)', 'Status'];
 
       // Preferir dados do modal se estiver aberto, senão da aba financeiro
       const modalList = window._modalFinTitlesList || [];
@@ -2893,11 +2893,11 @@ function renderReportsTab(contentArea) {
           case 'Bonificadas': bonificadasC++; bonificadasVal += v; break;
           case 'Suspensas':   suspensasC++;   suspensasVal += v;   break;
           case 'Canceladas':  canceladasC++;  canceladasVal += v;  break;
-          case 'Excluídas':   excluidasC++;   excluidasVal += v;   break;
+          case 'ExcluÃ­das':   excluidasC++;   excluidasVal += v;   break;
         }
       });
 
-      // Capturar imagens dos gráficos Chart.js (canvas -> base64)
+      // Capturar imagens dos grÃ¡ficos Chart.js (canvas -> base64)
       // Priorizar canvas do modal, depois da aba financeiro
       const donutCanvas = document.getElementById('modal-fin-donut-chart') || document.getElementById('finPieChart');
       const barCanvas = document.getElementById('modal-fin-bar-chart') || document.getElementById('finBarChart');
@@ -2933,14 +2933,14 @@ function renderReportsTab(contentArea) {
   btnCsv.addEventListener('click', () => processExport('csv'));
 
   // -------------------------------------------------------
-  // RELATÓRIO POR MÉDICO
+  // RELATÃ“RIO POR MÃ‰DICO
   // -------------------------------------------------------
   const renderDoctorReport = async () => {
     const previewCard = document.querySelector('.preview-card');
     if (!previewCard) return;
     previewCard.innerHTML = `
       <div class="preview-header" style="margin-bottom:0;">
-        <h3><i class="fa-solid fa-user-doctor" style="color:var(--color-primary);"></i> Relatório de Atividades por Médico</h3>
+        <h3><i class="fa-solid fa-user-doctor" style="color:var(--color-primary);"></i> RelatÃ³rio de Atividades por Médico</h3>
       </div>
       <div style="text-align:center;padding:30px;color:var(--text-muted);">
         <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;color:#818cf8;"></i>
@@ -2963,7 +2963,7 @@ function renderReportsTab(contentArea) {
         const cleanName = name.replace(/^(Dr\.|Dra\.)\s*/i, '');
         const myAppts = apptList.filter(a => (a.doctorName||'').includes(name)||(a.doctorName||'').includes(cleanName));
         const today = myAppts.filter(a => a.appointmentDate === todayStr).length;
-        const done = myAppts.filter(a => a.status === 'Concluído').length;
+        const done = myAppts.filter(a => a.status === 'ConcluÃ­do').length;
         const inProgress = myAppts.filter(a => a.status === 'Em Atendimento').length;
         return { name: doc.name, crm: doc.crm, specialty: doc.specialty, status: doc.status, total: myAppts.length, today, done, inProgress };
       });
@@ -2976,7 +2976,7 @@ function renderReportsTab(contentArea) {
 
       previewCard.innerHTML = `
         <div class="preview-header" style="flex-wrap:wrap;gap:10px;">
-          <h3><i class="fa-solid fa-user-doctor" style="color:var(--color-primary);"></i> Relatório de Atividades por Médico</h3>
+          <h3><i class="fa-solid fa-user-doctor" style="color:var(--color-primary);"></i> RelatÃ³rio de Atividades por Médico</h3>
           <div style="display:flex;gap:8px;margin-left:auto;">
             <button id="btn-doc-export-pdf" class="btn btn-primary" style="background:#dc2626;font-size:0.82rem;"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
             <button id="btn-doc-export-csv" class="btn btn-outline" style="font-size:0.82rem;"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
@@ -2987,7 +2987,7 @@ function renderReportsTab(contentArea) {
           <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-active" style="font-size:1.6rem;font-weight:800;color:#818cf8;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Médicos Ativos</div></div>
           <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-total" style="font-size:1.6rem;font-weight:800;color:#38bdf8;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Total Agendamentos</div></div>
           <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-progress" style="font-size:1.6rem;font-weight:800;color:#fbbf24;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Em Atendimento</div></div>
-          <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-done" style="font-size:1.6rem;font-weight:800;color:#34d399;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Concluídos</div></div>
+          <div class="tilt-card-3d" style="background:var(--bg-tertiary);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border-color);"><div id="kpi-doc-done" style="font-size:1.6rem;font-weight:800;color:#34d399;">0</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">ConcluÃ­dos</div></div>
         </div>
 
         <div style="display:grid;grid-template-columns:2fr 1.1fr;gap:18px;margin-bottom:18px;">
@@ -3026,7 +3026,7 @@ function renderReportsTab(contentArea) {
           <table style="width:100%;border-collapse:collapse;">
             <thead>
               <tr style="background:var(--bg-tertiary);border-bottom:1px solid var(--border-color);">
-                ${['Médico','Especialidade','Status','Total','Hoje','Em Atend.','Concluídos'].map(h=>`<th style="padding:11px 14px;font-size:0.73rem;color:var(--text-muted);text-transform:uppercase;">${h}</th>`).join('')}
+                ${['Médico','Especialidade','Status','Total','Hoje','Em Atend.','ConcluÃ­dos'].map(h=>`<th style="padding:11px 14px;font-size:0.73rem;color:var(--text-muted);text-transform:uppercase;">${h}</th>`).join('')}
               </tr>
             </thead>
             <tbody>
@@ -3044,10 +3044,10 @@ function renderReportsTab(contentArea) {
             </tbody>
           </table>
         </div>
-        <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted);text-align:right;">${docList.length} médico(s) • Gerado em ${new Date().toLocaleString('pt-BR')}</div>
+        <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted);text-align:right;">${docList.length} médico(s) â€¢ Gerado em ${new Date().toLocaleString('pt-BR')}</div>
       `;
 
-      // Animação Numérica 0 -> Final (CountUp)
+      // Animação NumÃ©rica 0 -> Final (CountUp)
       const countUp = (el, target, duration = 1200, suffix = '') => {
         if (!el) return;
         const startTime = performance.now();
@@ -3093,7 +3093,7 @@ function renderReportsTab(contentArea) {
             data: {
               labels,
               datasets: [
-                { label: 'Concluídos', data: docStats.map(d => d.done), backgroundColor: mode === 'line' ? 'rgba(52, 211, 153, 0.15)' : gradDone, borderColor: '#10b981', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' },
+                { label: 'ConcluÃ­dos', data: docStats.map(d => d.done), backgroundColor: mode === 'line' ? 'rgba(52, 211, 153, 0.15)' : gradDone, borderColor: '#10b981', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' },
                 { label: 'Em Atend.', data: docStats.map(d => d.inProgress), backgroundColor: mode === 'line' ? 'rgba(251, 191, 36, 0.15)' : gradProgress, borderColor: '#f59e0b', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' },
                 { label: 'Pendentes', data: docStats.map(d => Math.max(0, d.total - d.done - d.inProgress)), backgroundColor: mode === 'line' ? 'rgba(99, 102, 241, 0.15)' : gradPending, borderColor: '#6366f1', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' }
               ]
@@ -3133,7 +3133,7 @@ function renderReportsTab(contentArea) {
 
         renderBarChart('bar');
 
-        // Ouvintes do Seletor de Modo de Gráfico
+        // Ouvintes do Seletor de Modo de GrÃ¡fico
         document.querySelectorAll('#doc-chart-mode-toggle .chart-mode-pill').forEach(btn => {
           btn.addEventListener('click', () => {
             document.querySelectorAll('#doc-chart-mode-toggle .chart-mode-pill').forEach(b => b.classList.remove('active'));
@@ -3144,7 +3144,7 @@ function renderReportsTab(contentArea) {
           });
         });
 
-        // Interatividade Hover Tabela -> Gráfico
+        // Interatividade Hover Tabela -> GrÃ¡fico
         document.querySelectorAll('.doc-table-row').forEach(row => {
           row.addEventListener('mouseenter', () => {
             const idx = parseInt(row.dataset.idx, 10);
@@ -3173,7 +3173,7 @@ function renderReportsTab(contentArea) {
           const inst2 = new window.Chart(ctxDoughnut.getContext('2d'), {
             type: 'doughnut',
             data: {
-              labels: ['Concluídos', 'Em Atendimento', 'Pendentes'],
+              labels: ['ConcluÃ­dos', 'Em Atendimento', 'Pendentes'],
               datasets: [{
                 data: [totalDone, totalInProgress, pendingCount],
                 backgroundColor: ['#34d399', '#fbbf24', '#6366f1'],
@@ -3213,17 +3213,17 @@ function renderReportsTab(contentArea) {
 
       document.getElementById('btn-doc-export-pdf')?.addEventListener('click', async () => {
         const ts = new Date().toISOString().slice(0,10);
-        await exportToPDF(['Médico','Especialidade','CRM','Status','Total','Hoje','Em Atend.','Concluídos'], rows, 'Relatório de Atividades por Médico', `relatorio_medicos_${ts}`);
+        await exportToPDF(['Médico','Especialidade','CRM','Status','Total','Hoje','Em Atend.','ConcluÃ­dos'], rows, 'RelatÃ³rio de Atividades por Médico', `relatorio_medicos_${ts}`);
       });
       document.getElementById('btn-doc-export-csv')?.addEventListener('click', () => {
         const ts = new Date().toISOString().slice(0,10);
-        exportToCSV(['Médico','Especialidade','CRM','Status','Total','Hoje','Em Atend.','Concluídos'], rows, `relatorio_medicos_${ts}`);
+        exportToCSV(['Médico','Especialidade','CRM','Status','Total','Hoje','Em Atend.','ConcluÃ­dos'], rows, `relatorio_medicos_${ts}`);
       });
 
     } catch(err) {
       console.error('[DoctorReport]', err);
       const pc = document.querySelector('.preview-card');
-      if (pc) pc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--color-danger);"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao carregar relatório de médicos.</div>';
+      if (pc) pc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--color-danger);"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao carregar relatÃ³rio de médicos.</div>';
     }
   };
 const loadData = async () => {
@@ -3248,40 +3248,39 @@ const loadData = async () => {
 }
 window.renderReportsTab = renderReportsTab;
 
-// ──────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //  Modal de Detalhes do Atendimento (aberto pela tabela Reports)
-// ──────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function openEncounterReportDetail(encId) {
-  // Remover modal antigo se houver
   document.getElementById('enc-report-detail-modal')?.remove();
 
   const manchesterHex = { 'Vermelho': '#ef4444', 'Laranja': '#f97316', 'Amarelo': '#eab308', 'Verde': '#22c55e', 'Azul': '#3b82f6', 'Branco': '#f1f5f9' };
   const statusMap = { 'Aguardando_Triagem': 'Aguardando Triagem', 'Aguardando_Atendimento': 'Aguardando Consulta', 'Em_Atendimento': 'Em Consulta', 'Finalizado': 'Finalizado' };
   const statusColors = { 'Aguardando_Triagem': '#fbbf24', 'Aguardando_Atendimento': '#38bdf8', 'Em_Atendimento': '#a78bfa', 'Finalizado': '#34d399' };
 
-  // Spinner enquanto carrega
   const overlay = document.createElement('div');
   overlay.id = 'enc-report-detail-modal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   overlay.innerHTML = `<div style="color:#818cf8;font-size:1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando atendimento...</div>`;
   document.body.appendChild(overlay);
-
-  // Fechar ao clicar fora
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 
   try {
-    const [encRes, triageRes, noteRes] = await Promise.all([
+    const [encRes, triageRes, patRes, noteRes] = await Promise.all([
       apiFetch('/api/encounters'),
       apiFetch('/api/triages'),
+      apiFetch('/api/patients'),
       apiFetch(`/api/encounters/${encId}/notes`).catch(() => null)
     ]);
 
     const encs = await encRes.json().then(r => Array.isArray(r) ? r : (r.data || []));
     const triages = await triageRes.json().then(r => Array.isArray(r) ? r : (r.data || []));
+    const patients = await patRes.json().then(r => Array.isArray(r) ? r : (r.data || []));
     const enc = encs.find(e => e.id === encId);
     if (!enc) throw new Error('Atendimento não encontrado');
 
     const triage = triages.find(t => String(t.encounterId) === String(encId) || String(t.patientId) === String(enc.patientId));
+    const patient = patients.find(p => String(p.id) === String(enc.patientId));
     const noteRaw = noteRes ? await noteRes.json().catch(() => null) : null;
     const note = noteRaw && typeof noteRaw === 'object' ? (noteRaw.data || noteRaw) : null;
 
@@ -3290,123 +3289,352 @@ async function openEncounterReportDetail(encId) {
     const stColor = statusColors[enc.status] || '#94a3b8';
     const dateStr = enc.admitted_at ? new Date(enc.admitted_at).toLocaleString('pt-BR', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
 
-    // Vitais do triage
+    const calcAge = (bdate) => {
+      if (!bdate) return '—';
+      const diff = Date.now() - new Date(bdate).getTime();
+      return Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+    };
+    const age = calcAge(patient?.birthDate || enc.birthDate);
+    const cpf = patient?.cpf || enc.cpf || '';
+    const cpfDisplay = cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : '—';
+
     const bp = triage?.bloodPressure || (triage?.bloodPressureSystolic ? `${triage.bloodPressureSystolic}/${triage.bloodPressureDiastolic}` : null) || enc.bloodPressure || '—';
     const hr = triage?.heartRateBpm || triage?.heartRate || enc.heartRateBpm || '—';
     const temp = triage?.temperatureCelsius || triage?.temperature || enc.temperatureCelsius || '—';
     const weight = triage?.weightKg || triage?.weight || enc.weightKg || '—';
     const spo2 = triage?.oxygenSaturation || enc.oxygenSaturation || '—';
     const pain = triage?.painScale !== undefined ? triage.painScale : (enc.painScale !== undefined ? enc.painScale : '—');
+    const rr = triage?.respiratoryRate || enc.respiratoryRate || '—';
 
-    const vitalCard = (icon, label, value, unit, color) => `
-      <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;text-align:center;">
-        <div style="font-size:1.1rem;color:${color};margin-bottom:4px;"><i class="fa-solid ${icon}"></i></div>
-        <div style="font-size:1.15rem;font-weight:800;font-family:'Outfit';color:${color};">${value}<span style="font-size:0.65rem;color:var(--text-muted);margin-left:2px;">${unit}</span></div>
-        <div style="font-size:0.67rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:2px;">${label}</div>
+    const vitalAlert = (type, val) => {
+      if (val === '—') return '';
+      const v = parseFloat(String(val).split('/')[0]);
+      if (isNaN(v)) return '';
+      const ranges = { hr: { low:60, high:100 }, temp: { low:36.0, high:37.5 }, spo2: { low:95, high:100 }, pain: { low:0, high:3 } };
+      const r = ranges[type];
+      if (!r) return '';
+      if (v < r.low) return `<div style="font-size:0.58rem;background:#38bdf820;color:#38bdf8;padding:1px 5px;border-radius:4px;margin-top:3px;">â†“ Baixo</div>`;
+      if (v > r.high) return `<div style="font-size:0.58rem;background:#ef444420;color:#ef4444;padding:1px 5px;border-radius:4px;margin-top:3px;">â†‘ Alto</div>`;
+      return `<div style="font-size:0.58rem;background:#34d39920;color:#34d399;padding:1px 5px;border-radius:4px;margin-top:3px;">✓ Normal</div>`;
+    };
+
+    const vCard = (icon, label, value, unit, color, alertType) => `
+      <div style="background:rgba(0,0,0,0.25);border:1px solid ${color}1e;border-radius:12px;padding:12px 8px;text-align:center;transition:border-color .2s,box-shadow .2s;cursor:default;"
+        onmouseenter="this.style.borderColor='${color}55';this.style.boxShadow='0 0 14px ${color}1a';"
+        onmouseleave="this.style.borderColor='${color}1e';this.style.boxShadow='';">
+        <i class="fa-solid ${icon}" style="color:${color};font-size:1rem;display:block;margin-bottom:5px;"></i>
+        <div style="font-size:1.1rem;font-weight:900;font-family:'Outfit';color:${color};line-height:1.1;">${value}<span style="font-size:0.58rem;color:#475569;margin-left:1px;">${unit}</span></div>
+        <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:.05em;color:#475569;margin-top:3px;">${label}</div>
+        ${vitalAlert(alertType, value)}
       </div>`;
 
-    const soapBlock = (letter, title, content, color) => content ? `
-      <div style="background:rgba(0,0,0,0.18);border-left:3px solid ${color};border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:8px;">
-        <div style="font-size:0.7rem;font-weight:800;color:${color};text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">${letter} — ${title}</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.55;">${content}</div>
+    const sBlock = (letter, title, content, color) => content ? `
+      <div style="background:rgba(0,0,0,0.15);border-left:3px solid ${color};border-radius:0 10px 10px 0;padding:12px 15px;margin-bottom:9px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;">
+          <span style="background:${color};color:#000;font-size:0.65rem;font-weight:900;width:17px;height:17px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">${letter}</span>
+          <span style="font-size:0.7rem;font-weight:800;color:${color};text-transform:uppercase;letter-spacing:.06em;">${title}</span>
+        </div>
+        <div style="font-size:0.85rem;color:#cbd5e1;line-height:1.65;">${content}</div>
       </div>` : '';
 
     const isClinical = state?.user && (state.user.role === 'Médico' || state.user.role === 'Enfermeiro');
+    const complaint = triage?.complaints || enc.complaints || '';
+    const cid = note?.cid || enc.cid || '';
+
+    // Status timeline
+    const statusOrder = ['Aguardando_Triagem','Aguardando_Atendimento','Em_Atendimento','Finalizado'];
+    const curIdx = statusOrder.indexOf(enc.status);
+    const timelineLabels = { Aguardando_Triagem:'Triagem', Aguardando_Atendimento:'Ag. Consulta', Em_Atendimento:'Em Atend.', Finalizado:'Finalizado' };
+    const timelineHtml = `<div style="display:flex;align-items:flex-start;gap:0;margin:4px 0 20px;position:relative;">
+      ${statusOrder.map((s, i) => {
+        const done = i < curIdx, active = i === curIdx;
+        const c = statusColors[s];
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative;">
+          ${i > 0 ? `<div style="position:absolute;top:11px;left:-50%;width:100%;height:2px;background:${done ? c + '80' : 'rgba(255,255,255,0.06)'};"></div>` : ''}
+          <div style="width:22px;height:22px;border-radius:50%;background:${active ? c : done ? c + '55' : 'rgba(255,255,255,0.06)'};border:2px solid ${active ? c : done ? c + '40' : 'rgba(255,255,255,0.1)'};display:flex;align-items:center;justify-content:center;font-size:0.58rem;color:${active || done ? '#fff' : '#334155'};z-index:1;position:relative;box-shadow:${active ? '0 0 12px ' + c + '66' : 'none'};">
+            ${done ? '✓' : i+1}
+          </div>
+          <span style="font-size:0.6rem;margin-top:5px;color:${active ? c : done ? '#64748b' : '#334155'};font-weight:${active ? '700':'400'};text-align:center;max-width:56px;">${timelineLabels[s]}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+    // Info rows helper
+    const infoRow = (l, v) => `<div><div style="font-size:0.61rem;color:#475569;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">${l}</div><div style="font-size:0.83rem;font-weight:600;color:#e2e8f0;">${v || '—'}</div></div>`;
 
     overlay.innerHTML = `
       <div style="
-        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-        border: 1px solid rgba(99,102,241,0.3);
-        border-radius: 20px;
-        width: min(760px, 95vw);
-        max-height: 90vh;
-        overflow-y: auto;
-        padding: 28px 30px;
-        box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15);
-        position: relative;
-      ">
-        <!-- Fechar -->
-        <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="position:absolute;top:16px;right:18px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;width:32px;height:32px;color:var(--text-muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+        background:linear-gradient(145deg,#0f172a 0%,#1e1b4b 55%,#0f2060 100%);
+        border:1px solid rgba(99,102,241,0.22);border-radius:22px;
+        width:min(860px,98vw);max-height:92vh;
+        display:flex;flex-direction:column;
+        box-shadow:0 40px 100px rgba(0,0,0,0.75),inset 0 1px 0 rgba(255,255,255,0.05);
+        position:relative;overflow:hidden;">
 
-        <!-- Header -->
-        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:22px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:${hex}22;border:1.5px solid ${hex}55;display:flex;align-items:center;justify-content:center;color:${hex};font-size:1.4rem;flex-shrink:0;">
-            <i class="fa-solid fa-notes-medical"></i>
+        <!-- Background glows -->
+        <div style="position:absolute;top:-80px;right:-80px;width:250px;height:250px;border-radius:50%;background:${hex}08;pointer-events:none;"></div>
+        <div style="position:absolute;bottom:-50px;left:-50px;width:180px;height:180px;border-radius:50%;background:rgba(99,102,241,0.05);pointer-events:none;"></div>
+
+        <!-- HEADER -->
+        <div style="padding:20px 24px 14px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:46px;border-radius:13px;background:${hex}18;border:1.5px solid ${hex}44;display:flex;align-items:center;justify-content:center;color:${hex};font-size:1.2rem;flex-shrink:0;">
+              <i class="fa-solid fa-notes-medical"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <h3 style="margin:0 0 4px;font-size:1.18rem;font-weight:800;font-family:'Outfit';color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${enc.patientName || 'Paciente'}</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                <code style="font-size:0.7rem;color:#818cf8;background:rgba(129,140,248,0.1);padding:2px 7px;border-radius:5px;">${encId.substring(0,16)}…</code>
+                ${mc ? `<span style="padding:2px 9px;border-radius:20px;font-size:0.68rem;font-weight:700;background:${hex}1e;color:${hex};border:1px solid ${hex}3a;">${mc.toUpperCase()}</span>` : ''}
+                <span style="padding:2px 9px;border-radius:20px;font-size:0.68rem;font-weight:700;background:${stColor}16;color:${stColor};border:1px solid ${stColor}3a;">${statusMap[enc.status] || enc.status}</span>
+                <span style="font-size:0.7rem;color:#475569;"><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
+              </div>
+            </div>
+            <button onclick="document.getElementById('enc-report-detail-modal').remove()"
+              style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:9px;width:32px;height:32px;color:#475569;font-size:1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;"
+              onmouseenter="this.style.background='rgba(239,68,68,0.15)';this.style.color='#ef4444';"
+              onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.color='#475569';">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
           </div>
-          <div style="flex:1;">
-            <h3 style="margin:0 0 4px;font-size:1.22rem;font-weight:800;font-family:'Outfit';color:var(--text-primary);">${enc.patientName || 'Paciente'}</h3>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-              <span style="font-family:monospace;font-size:0.78rem;color:var(--color-primary);">${encId}</span>
-              ${mc ? `<span style="padding:3px 10px;border-radius:20px;font-size:0.73rem;font-weight:700;background:${hex}22;color:${hex};border:1px solid ${hex}44;">${mc.toUpperCase()}</span>` : ''}
-              <span style="padding:3px 10px;border-radius:20px;font-size:0.73rem;font-weight:700;background:${stColor}1a;color:${stColor};border:1px solid ${stColor}44;">${statusMap[enc.status] || enc.status}</span>
-              <span style="font-size:0.78rem;color:var(--text-muted);"><i class="fa-regular fa-clock"></i> ${dateStr}</span>
+
+          <!-- Tabs -->
+          <div style="display:flex;gap:4px;margin-top:14px;">
+            <button class="enc-tab-btn active" data-tab="resumo"
+              style="padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(99,102,241,0.4);background:rgba(99,102,241,0.14);color:#818cf8;transition:all .2s;">
+              <i class="fa-solid fa-stethoscope"></i> Resumo
+            </button>
+            <button class="enc-tab-btn" data-tab="soap"
+              style="padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.07);background:transparent;color:#475569;transition:all .2s;">
+              <i class="fa-solid fa-file-medical"></i> Nota SOAP
+            </button>
+            <button class="enc-tab-btn" data-tab="export"
+              style="padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.07);background:transparent;color:#475569;transition:all .2s;">
+              <i class="fa-solid fa-file-export"></i> Exportar
+            </button>
+          </div>
+        </div>
+
+        <!-- BODY scrollÃ¡vel -->
+        <div style="overflow-y:auto;flex:1;padding:18px 24px 10px;">
+
+          <!-- === ABA RESUMO === -->
+          <div id="enc-tab-resumo" class="enc-tab-panel">
+            ${timelineHtml}
+
+            <!-- Dados paciente + atendimento -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:13px;padding:13px;">
+                <div style="font-size:0.65rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px;display:flex;align-items:center;gap:5px;"><i class="fa-solid fa-user-circle"></i> Paciente</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  ${infoRow('Idade', age !== '—' ? age + ' anos' : '—')}
+                  ${infoRow('CPF', cpfDisplay)}
+                  ${infoRow('Cidade', patient?.city || enc.city)}
+                  ${infoRow('Convênio', patient?.insurance || enc.insurance || 'Particular')}
+                </div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:13px;padding:13px;">
+                <div style="font-size:0.65rem;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px;display:flex;align-items:center;gap:5px;"><i class="fa-solid fa-hospital"></i> Atendimento</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  ${infoRow('Tipo', enc.type === 'Urgencia' ? 'ðŸš¨ Urgência' : 'ðŸ¥ Ambulatório')}
+                  ${infoRow('Médico', enc.doctorName)}
+                  ${infoRow('Sala / Leito', enc.room || enc.bed)}
+                  ${infoRow('CID-10', cid)}
+                </div>
+              </div>
+            </div>
+
+            <!-- Sinais Vitais -->
+            <div style="margin-bottom:16px;">
+              <div style="font-size:0.72rem;font-weight:700;color:#f472b6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;display:flex;align-items:center;gap:6px;">
+                <i class="fa-solid fa-heart-pulse"></i> Sinais Vitais
+                <span style="font-size:0.6rem;color:#475569;font-weight:400;">${triage ? '— da triagem' : '— dados parciais'}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;">
+                ${vCard('fa-droplet','PA',bp,'mmHg','#818cf8','')}
+                ${vCard('fa-heart','FC',hr,'bpm','#f472b6','hr')}
+                ${vCard('fa-thermometer-half','Temp',temp,'°C','#fb923c','temp')}
+                ${vCard('fa-weight-scale','Peso',weight,'kg','#34d399','')}
+                ${vCard('fa-lungs','SpO₂',spo2,'%','#38bdf8','spo2')}
+                ${vCard('fa-wind','F.Resp',rr,'irpm','#a78bfa','')}
+                ${vCard('fa-face-grimace','Dor',pain,'/10','#fbbf24','pain')}
+              </div>
+            </div>
+
+            <!-- Queixa -->
+            ${complaint
+              ? `<div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.17);border-radius:12px;padding:13px;margin-bottom:6px;">
+                  <div style="font-size:0.65rem;font-weight:800;color:#fbbf24;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</div>
+                  <p style="margin:0;font-size:0.86rem;color:#cbd5e1;line-height:1.65;">${complaint}</p>
+                </div>`
+              : `<div style="padding:18px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed rgba(255,255,255,0.07);text-align:center;margin-bottom:6px;">
+                  <i class="fa-solid fa-comment-slash" style="color:#334155;font-size:1.2rem;margin-bottom:5px;display:block;"></i>
+                  <span style="font-size:0.78rem;color:#475569;">Queixa principal não registrada</span>
+                </div>`}
+          </div>
+
+          <!-- === ABA SOAP === -->
+          <div id="enc-tab-soap" class="enc-tab-panel" style="display:none;">
+            ${note && (note.subjective || note.objective || note.assessment || note.plan)
+              ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+                  <span style="font-size:0.8rem;font-weight:700;color:#e2e8f0;">Nota ClÃ­nica SOAP</span>
+                  ${note.isClosed
+                    ? '<span style="font-size:0.67rem;padding:2px 9px;border-radius:20px;background:rgba(52,211,153,0.14);color:#34d399;border:1px solid rgba(52,211,153,0.28);">✓ Assinada e Fechada</span>'
+                    : '<span style="font-size:0.67rem;padding:2px 9px;border-radius:20px;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.28);">âœï¸ Rascunho</span>'}
+                </div>
+                ${sBlock('S','Subjetivo — queixas e histÃ³ria',note.subjective,'#818cf8')}
+                ${sBlock('O','Objetivo — exame fÃ­sico e dados',note.objective,'#38bdf8')}
+                ${sBlock('A','Avaliação — diagnÃ³stico',note.assessment,'#fb923c')}
+                ${sBlock('P','Plano — condutas e tratamento',note.plan,'#34d399')}
+                ${note.closedAt ? `<div style="text-align:right;font-size:0.68rem;color:#475569;margin-top:6px;"><i class="fa-solid fa-signature"></i> Assinado: ${new Date(note.closedAt).toLocaleString('pt-BR')}</div>` : ''}`
+              : `<div style="text-align:center;padding:50px 30px;">
+                  <div style="width:60px;height:60px;border-radius:16px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                    <i class="fa-regular fa-file-lines" style="font-size:1.5rem;color:#334155;"></i>
+                  </div>
+                  <div style="font-size:0.92rem;font-weight:700;color:#475569;margin-bottom:6px;">Sem nota clínica</div>
+                  <div style="font-size:0.78rem;color:#334155;margin-bottom:16px;">A nota SOAP será criada durante o atendimento médico.</div>
+                  ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i> Criar Nota no PEP</button>` : ''}
+                </div>`}
+          </div>
+
+          <!-- === ABA EXPORTAR === -->
+          <div id="enc-tab-export" class="enc-tab-panel" style="display:none;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+              <!-- PDF -->
+              <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.18);border-radius:16px;padding:20px;text-align:center;transition:all .2s;"
+                onmouseenter="this.style.background='rgba(239,68,68,0.09)';this.style.borderColor='rgba(239,68,68,0.35)';"
+                onmouseleave="this.style.background='rgba(239,68,68,0.05)';this.style.borderColor='rgba(239,68,68,0.18)';">
+                <div style="width:48px;height:48px;border-radius:13px;background:rgba(239,68,68,0.14);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:1.4rem;color:#ef4444;"><i class="fa-solid fa-file-pdf"></i></div>
+                <div style="font-size:0.88rem;font-weight:700;color:#f1f5f9;margin-bottom:4px;">Resumo em PDF</div>
+                <div style="font-size:0.73rem;color:#475569;margin-bottom:13px;line-height:1.5;">Exporta dados do paciente, vitais, queixa e nota SOAP com layout para impressão A4</div>
+                <button id="btn-enc-pdf" style="background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;color:#fff;border-radius:10px;padding:8px 18px;font-weight:700;font-size:0.8rem;cursor:pointer;width:100%;box-shadow:0 4px 14px rgba(239,68,68,0.28);">
+                  <i class="fa-solid fa-download"></i> Gerar PDF
+                </button>
+              </div>
+              <!-- Imprimir -->
+              <div style="background:rgba(56,189,248,0.05);border:1px solid rgba(56,189,248,0.18);border-radius:16px;padding:20px;text-align:center;transition:all .2s;"
+                onmouseenter="this.style.background='rgba(56,189,248,0.09)';this.style.borderColor='rgba(56,189,248,0.35)';"
+                onmouseleave="this.style.background='rgba(56,189,248,0.05)';this.style.borderColor='rgba(56,189,248,0.18)';">
+                <div style="width:48px;height:48px;border-radius:13px;background:rgba(56,189,248,0.14);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:1.4rem;color:#38bdf8;"><i class="fa-solid fa-print"></i></div>
+                <div style="font-size:0.88rem;font-weight:700;color:#f1f5f9;margin-bottom:4px;">Impressão Direta</div>
+                <div style="font-size:0.73rem;color:#475569;margin-bottom:13px;line-height:1.5;">Abre diÃ¡logo de impressão do navegador com layout otimizado para papel</div>
+                <button id="btn-enc-print" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);border:none;color:#fff;border-radius:10px;padding:8px 18px;font-weight:700;font-size:0.8rem;cursor:pointer;width:100%;box-shadow:0 4px 14px rgba(14,165,233,0.28);">
+                  <i class="fa-solid fa-print"></i> Imprimir
+                </button>
+              </div>
+            </div>
+
+            <!-- Checklist do documento -->
+            <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:15px;">
+              <div style="font-size:0.68rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">ConteÃºdo do documento gerado</div>
+              ${[
+                ['✓','Identificação do paciente (nome, idade, CPF)','#34d399',true],
+                ['✓','Dados do atendimento (ID, data, médico, tipo)','#34d399',true],
+                ['✓','Classificação de risco Manchester','#34d399',true],
+                [triage?'✓':'â—‹','Sinais vitais da triagem',triage?'#34d399':'#334155',!!triage],
+                [complaint?'✓':'â—‹','Queixa principal',complaint?'#34d399':'#334155',!!complaint],
+                [note?'✓':'â—‹','Nota clínica SOAP',note?'#34d399':'#334155',!!note],
+                ['â—‹','Assinatura digital (disponível no PEP)','#334155',false],
+              ].map(([ic,label,c]) => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
+                <span style="color:${c};font-size:0.72rem;width:14px;text-align:center;">${ic}</span>
+                <span style="font-size:0.76rem;color:${c === '#34d399' ? '#94a3b8' : '#334155'};">${label}</span>
+              </div>`).join('')}
             </div>
           </div>
         </div>
 
-        <!-- Info Rápida -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:11px 14px;">
-            <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Tipo</div>
-            <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);">${enc.type === 'Urgencia' ? '🚨 Urgência' : '🏥 Ambulatório'}</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:11px 14px;">
-            <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Médico Responsável</div>
-            <div style="font-size:0.87rem;font-weight:600;color:var(--text-primary);">${enc.doctorName || '—'}</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:11px 14px;">
-            <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Sala / Leito</div>
-            <div style="font-size:0.87rem;font-weight:600;color:var(--text-primary);">${enc.room || enc.bed || '—'}</div>
-          </div>
-        </div>
-
-        <!-- Sinais Vitais -->
-        ${(triage || enc.bloodPressure) ? `
-        <div style="margin-bottom:20px;">
-          <h4 style="margin:0 0 10px;font-size:0.85rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:7px;">
-            <i class="fa-solid fa-heart-pulse" style="color:#f472b6;"></i> Sinais Vitais (Triagem)
-          </h4>
-          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
-            ${vitalCard('fa-droplet', 'PA', bp, 'mmHg', '#818cf8')}
-            ${vitalCard('fa-heart', 'FC', hr, 'bpm', '#f472b6')}
-            ${vitalCard('fa-thermometer-half', 'Temp', temp, '°C', '#fb923c')}
-            ${vitalCard('fa-weight-scale', 'Peso', weight, 'kg', '#34d399')}
-            ${vitalCard('fa-lungs', 'SpO₂', spo2, '%', '#38bdf8')}
-            ${vitalCard('fa-face-grimace', 'Dor', pain, '/10', '#fbbf24')}
-          </div>
-        </div>` : ''}
-
-        <!-- Queixa Principal -->
-        ${(triage?.complaints || enc.complaints) ? `
-        <div style="margin-bottom:20px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:14px;">
-          <div style="font-size:0.7rem;font-weight:800;color:#fbbf24;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</div>
-          <p style="margin:0;font-size:0.88rem;color:var(--text-secondary);line-height:1.6;">${triage?.complaints || enc.complaints}</p>
-        </div>` : ''}
-
-        <!-- SOAP -->
-        ${note && (note.subjective || note.objective || note.assessment || note.plan) ? `
-        <div style="margin-bottom:20px;">
-          <h4 style="margin:0 0 10px;font-size:0.85rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:7px;">
-            <i class="fa-solid fa-file-medical" style="color:#a78bfa;"></i> Nota Clínica SOAP
-            ${note.isClosed ? '<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:rgba(52,211,153,0.15);color:#34d399;border:1px solid #34d39940;">✓ Assinada</span>' : '<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid #fbbf2440;">Rascunho</span>'}
-          </h4>
-          ${soapBlock('S', 'Subjetivo', note.subjective, '#818cf8')}
-          ${soapBlock('O', 'Objetivo', note.objective, '#38bdf8')}
-          ${soapBlock('A', 'Avaliação', note.assessment, '#fb923c')}
-          ${soapBlock('P', 'Plano', note.plan, '#34d399')}
-        </div>` : `
-        <div style="margin-bottom:20px;text-align:center;padding:18px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px dashed rgba(255,255,255,0.1);">
-          <i class="fa-regular fa-file-lines" style="font-size:1.5rem;color:var(--text-muted);margin-bottom:6px;display:block;"></i>
-          <span style="font-size:0.83rem;color:var(--text-muted);">Nenhuma nota clínica registrada para este atendimento.</span>
-        </div>`}
-
-        <!-- Ações -->
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px;border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;">
-          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove(); if(typeof window.openPEPModal==='function') window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:9px 18px;font-weight:700;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(236,72,153,0.35);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
-          <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--text-secondary);border-radius:10px;padding:9px 18px;font-weight:600;font-size:0.85rem;cursor:pointer;">Fechar</button>
+        <!-- FOOTER -->
+        <div style="padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:9px;justify-content:flex-end;flex-shrink:0;">
+          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:8px 17px;font-weight:700;font-size:0.81rem;cursor:pointer;box-shadow:0 4px 14px rgba(236,72,153,0.28);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
+          <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#94a3b8;border-radius:10px;padding:8px 17px;font-weight:600;font-size:0.81rem;cursor:pointer;">Fechar</button>
         </div>
       </div>
     `;
+
+    // Tab switching
+    overlay.querySelectorAll('.enc-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        overlay.querySelectorAll('.enc-tab-btn').forEach(b => {
+          b.style.cssText = 'padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.07);background:transparent;color:#475569;transition:all .2s;';
+        });
+        btn.style.cssText = 'padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(99,102,241,0.4);background:rgba(99,102,241,0.14);color:#818cf8;transition:all .2s;';
+        overlay.querySelectorAll('.enc-tab-panel').forEach(p => { p.style.display = 'none'; });
+        const panel = overlay.querySelector(`#enc-tab-${tab}`);
+        if (panel) panel.style.display = 'block';
+      });
+    });
+
+    // PDF / Print
+    const genDoc = () => {
+      const manchColor = manchesterHex[mc] || '#6366f1';
+      const vRow = (l, v) => `<tr><td style="padding:5px 10px;font-size:9pt;color:#475569;border-bottom:1px solid #f1f5f9;width:32%;">${l}</td><td style="padding:5px 10px;font-size:9pt;font-weight:600;color:#0f172a;border-bottom:1px solid #f1f5f9;">${v||'—'}</td></tr>`;
+      return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Atendimento — ${enc.patientName}</title>
+      <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;background:#fff;padding:26px 30px;}
+      .hdr{display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:3px solid #6366f1;margin-bottom:18px;}
+      .logo{width:48px;height:48px;border-radius:11px;background:${manchColor}18;border:2px solid ${manchColor}44;display:flex;align-items:center;justify-content:center;font-size:20pt;color:${manchColor};}
+      .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:8pt;font-weight:700;margin-right:4px;}
+      .sec{font-size:8.5pt;font-weight:800;color:#6366f1;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 7px;padding-bottom:4px;border-bottom:1.5px solid #e2e8f0;}
+      table{width:100%;border-collapse:collapse;}
+      .vg{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:7px;}
+      .vb{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:9px;text-align:center;}
+      .vv{font-size:13pt;font-weight:800;color:#0f172a;}.vl{font-size:7pt;color:#64748b;text-transform:uppercase;margin-top:2px;}
+      .sb{border-left:3px solid #6366f1;padding:7px 12px;margin-bottom:7px;background:#fafafa;border-radius:0 6px 6px 0;}
+      .sl{font-size:8pt;font-weight:800;color:#6366f1;text-transform:uppercase;margin-bottom:3px;}
+      .sc{font-size:9pt;color:#1e293b;line-height:1.6;}
+      .ftr{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:7.5pt;color:#94a3b8;}
+      @media print{body{padding:14px 18px;}}</style></head><body>
+      <div class="hdr">
+        <div class="logo">+</div>
+        <div style="flex:1;">
+          <div style="font-size:7pt;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Health Nexus — Resumo do Atendimento</div>
+          <h1 style="font-size:15pt;font-weight:800;color:#0f172a;margin:3px 0;">${enc.patientName||'Paciente'}</h1>
+          <div style="margin-top:5px;">
+            ${mc?`<span class="badge" style="background:${manchColor}18;color:${manchColor};border:1px solid ${manchColor}40;">${mc.toUpperCase()}</span>`:''}
+            <span class="badge" style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;">${statusMap[enc.status]||enc.status}</span>
+            <span style="font-size:8pt;color:#64748b;">${dateStr}</span>
+          </div>
+        </div>
+        <div style="text-align:right;"><div style="font-size:7pt;color:#94a3b8;">ID</div><div style="font-family:monospace;font-size:7.5pt;color:#6366f1;">${encId.substring(0,20)}…</div></div>
+      </div>
+      <div class="sec">👤 Paciente e Atendimento</div>
+      <table><tbody>
+        ${vRow('Nome',enc.patientName)}${vRow('Idade',age!=='—'?age+' anos':'—')}${vRow('CPF',cpfDisplay)}
+        ${vRow('Cidade',patient?.city||enc.city)}${vRow('Convênio',patient?.insurance||'Particular')}
+        ${vRow('Tipo',enc.type==='Urgencia'?'Urgência':'Ambulatório')}
+        ${vRow('Médico',enc.doctorName)}${vRow('Sala/Leito',enc.room||enc.bed)}
+        ${vRow('Entrada',dateStr)}${cid?vRow('CID-10',cid):''}
+      </tbody></table>
+      <div class="sec">🩺 Sinais Vitais</div>
+      <div class="vg">
+        ${[['PA',bp,'mmHg'],['FC',hr,'bpm'],['Temp.',temp,'°C'],['SpO₂',spo2,'%'],['Peso',weight,'kg'],['F.Resp',rr,'irpm'],['Dor',pain,'/10']].map(([l,v,u])=>`<div class="vb"><div class="vv">${v}<span style="font-size:8pt;color:#94a3b8;">${u}</span></div><div class="vl">${l}</div></div>`).join('')}
+      </div>
+      ${complaint?`<div class="sec">💬 Queixa Principal</div><p style="font-size:9.5pt;color:#1e293b;line-height:1.65;background:#fffbeb;padding:10px 12px;border-radius:6px;border-left:3px solid #fbbf24;">${complaint}</p>`:''}
+      ${note&&(note.subjective||note.objective||note.assessment||note.plan)?`
+      <div class="sec">📋 Nota SOAP ${note.isClosed?'— <span style="color:#15803d">✓ Assinada</span>':'— Rascunho'}</div>
+      ${note.subjective?`<div class="sb"><div class="sl">S — Subjetivo</div><div class="sc">${note.subjective}</div></div>`:''}
+      ${note.objective?`<div class="sb" style="border-color:#0ea5e9"><div class="sl" style="color:#0ea5e9">O — Objetivo</div><div class="sc">${note.objective}</div></div>`:''}
+      ${note.assessment?`<div class="sb" style="border-color:#f97316"><div class="sl" style="color:#f97316">A — Avaliação</div><div class="sc">${note.assessment}</div></div>`:''}
+      ${note.plan?`<div class="sb" style="border-color:#22c55e"><div class="sl" style="color:#22c55e">P — Plano</div><div class="sc">${note.plan}</div></div>`:''}
+      `:`<div class="sec">📋 Nota SOAP</div><p style="font-size:9pt;color:#94a3b8;"><em>Nenhuma nota registrada.</em></p>`}
+      <div class="ftr"><span>Health Nexus — Sistema de Gestão Hospitalar</span><span>Gerado: ${new Date().toLocaleString('pt-BR')}</span></div>
+      </body></html>`;
+    };
+
+    overlay.querySelector('#btn-enc-pdf')?.addEventListener('click', () => {
+      const w = window.open('','_blank','width=900,height=700');
+      if (!w) { if(typeof showToast==='function') showToast('Habilite pop-ups para gerar PDF'); return; }
+      w.document.write(genDoc());
+      w.document.close();
+      setTimeout(()=>{ w.focus(); w.print(); }, 700);
+    });
+    overlay.querySelector('#btn-enc-print')?.addEventListener('click', () => {
+      const w = window.open('','_blank','width=900,height=700');
+      if (!w) { if(typeof showToast==='function') showToast('Habilite pop-ups para imprimir'); return; }
+      w.document.write(genDoc());
+      w.document.close();
+      setTimeout(()=>{ w.focus(); w.print(); }, 700);
+    });
 
   } catch (err) {
     overlay.innerHTML = `
@@ -3416,7 +3644,7 @@ async function openEncounterReportDetail(encId) {
         <div style="color:var(--text-muted);font-size:0.83rem;">${err.message}</div>
         <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="margin-top:16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--text-secondary);border-radius:8px;padding:7px 18px;cursor:pointer;">Fechar</button>
       </div>`;
-    overlay.style.cursor = 'default';
   }
 }
 window.openEncounterReportDetail = openEncounterReportDetail;
+
