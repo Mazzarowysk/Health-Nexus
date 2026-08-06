@@ -80,10 +80,10 @@ window.setKanbanFilter = function(filterId) {
     const badge = card.querySelector('.card-status-badge');
     
     if (isActive) {
-      card.style.background = \`rgba(\${rgb}, 0.08)\`;
-      card.style.borderColor = \`rgba(\${rgb}, 0.5)\`;
+      card.style.background = `rgba(${rgb}, 0.08)`;
+      card.style.borderColor = `rgba(${rgb}, 0.5)`;
       card.style.borderWidth = '1.5px';
-      card.style.boxShadow = \`0 6px 20px rgba(\${rgb}, 0.15)\`;
+      card.style.boxShadow = `0 6px 20px rgba(${rgb}, 0.15)`;
       card.style.transform = 'translateY(-2px)';
       if (badge) badge.style.display = 'inline-block';
     } else {
