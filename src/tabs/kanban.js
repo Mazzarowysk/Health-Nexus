@@ -230,7 +230,7 @@ function loadAndRenderKanban() {
         </div>
         <div class="kanban-col-body" style="padding:14px; flex-grow:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px; min-height:200px; max-height:calc(100vh - 350px);">
           ${cards.map(h => renderCard(h, col)).join('')}
-          ${cards.length === 0 ? `<div style="text-align:center;padding:40px 10px;color:rgba(${rgb},0.6);font-size:0.85rem;"><i class="fa-regular fa-circle-check" style="font-size:2.2rem;margin-bottom:12px;display:block;opacity:0.5;color:${col.color}"></i>Nenhum paciente</div>` : ''}
+          ${cards.length === 0 ? `<div onclick="openAddPatientKanbanModal('${col.id}')" style="text-align:center;padding:40px 10px;color:rgba(${rgb},0.6);font-size:0.85rem; cursor:pointer; transition:all 0.2s; border-radius:10px;" onmouseover="this.style.background='rgba(${rgb},0.1)';this.style.color='rgba(${rgb},0.9)'" onmouseout="this.style.background='transparent';this.style.color='rgba(${rgb},0.6)'" title="Clique para adicionar paciente neste setor"><i class="fa-regular fa-circle-check" style="font-size:2.2rem;margin-bottom:12px;display:block;opacity:0.5;color:${col.color}"></i>Clique para adicionar</div>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -261,7 +261,7 @@ function setupDND() {
 }
 
 // ──── Adicionar ────
-window.openAddPatientKanbanModal = function() {
+window.openAddPatientKanbanModal = function(preselectedSectorId = null) {
   const ex=document.getElementById('kanban-modal'); if(ex) ex.remove();
   const patients=localDB.list('patients');
   const users=localDB.list('users').filter(u=>['Medico','Master','Desenvolvedor','Enfermeiro'].includes(u.role));
@@ -283,7 +283,7 @@ window.openAddPatientKanbanModal = function() {
           <div>
             <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Setor Inicial *</label>
             <select id="kanban-sector-select" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;">
-              ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}">${c.label}</option>`).join('')}
+              ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id === preselectedSectorId ? 'selected' : ''}>${c.label}</option>`).join('')}
             </select>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
