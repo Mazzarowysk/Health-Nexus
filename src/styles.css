@@ -2243,91 +2243,97 @@ body {
 }
 
 .pep-sidebar {
-  width: 310px;
+  width: 330px;
   background: rgba(255, 255, 255, 0.02);
   border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
-  padding: 20px 18px;
+  padding: 22px 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 .pep-sidebar-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .pep-sidebar-label {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted, #94a3b8);
+  letter-spacing: 0.06em;
+  color: var(--text-primary, #f8fafc);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .pep-manchester-pill {
-  padding: 10px 14px;
-  border-radius: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
   font-weight: 800;
-  font-size: 0.92rem;
+  font-size: 1.15rem;
   text-align: center;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 .pep-vitals-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .pep-vital-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  transition: border-color 0.2s;
+  gap: 6px;
+  transition: all 0.2s;
 }
 
 .pep-vital-item:hover {
-  border-color: rgba(167, 139, 250, 0.3);
+  border-color: rgba(167, 139, 250, 0.5);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .pep-vital-lbl {
-  font-size: 0.72rem;
-  color: var(--text-muted, #94a3b8);
-  font-weight: 600;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .pep-vital-val {
-  font-size: 1rem;
-  color: var(--text-primary);
-  font-family: monospace;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace, sans-serif;
 }
 
 .pep-vital-val small {
-  font-size: 0.7rem;
-  color: var(--text-muted);
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-left: 2px;
 }
 
 .pep-complaints-card {
-  background: rgba(167, 139, 250, 0.06);
-  border-left: 3px solid #a78bfa;
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 0.85rem;
+  background: rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  border-left: 4px solid #a78bfa;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
   color: var(--text-primary);
   line-height: 1.5;
 }
