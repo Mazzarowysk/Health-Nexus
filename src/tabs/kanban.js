@@ -1,4 +1,4 @@
-﻿import { state } from '../state.js';
+import { state } from '../state.js';
 import * as localDB from '../localDB.js';
 
 window.renderKanbanTab = renderKanbanTab;
@@ -140,7 +140,7 @@ function loadAndRenderKanban() {
   const patients = localDB.list('patients');
   const active = all.filter(h => h.status !== 'Alta').map(h => {
     const pat = patients.find(p => p.id === h.patient_id) || {};
-    return { ...h, patientName: pat.name || 'Desconhecido' };
+    return { ...h, patientName: pat.fullName || pat.name || 'Desconhecido' };
   });
   const totalEl = document.getElementById('kanban-total-count');
   if (totalEl) totalEl.textContent = active.length;
@@ -209,7 +209,7 @@ window.openAddPatientKanbanModal = function() {
             <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Paciente *</label>
             <select id="kanban-pat-select" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;">
               <option value="">Selecione o paciente...</option>
-              ${patients.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+              ${patients.map(p => `<option value="${p.id}">${p.fullName || p.name || '(sem nome)'} ${p.cpf ? '— CPF: ' + p.cpf : ''}</option>`).join('')}
             </select>
           </div>
           <div>
@@ -236,7 +236,7 @@ window.openAddPatientKanbanModal = function() {
             <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Medico Responsavel</label>
             <select id="kanban-doctor-select" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;">
               <option value="">Selecione...</option>
-              ${users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('')}
+              ${users.map(u=>`<option value="${u.id}">${u.name || u.username || '(sem nome)'}</option>`).join('')}
             </select>
           </div>
           <div>
@@ -276,6 +276,7 @@ window.openEditKanbanCard = function(hospId) {
   const ex=document.getElementById('kanban-edit-modal'); if(ex) ex.remove();
   const hosp=localDB.get('hospitalizations',hospId); if(!hosp) return;
   const pat=(localDB.list('patients').find(p=>p.id===hosp.patient_id)||{});
+  const patName = pat.fullName || pat.name || 'Desconhecido';
   const colLabel=KANBAN_COLUMNS.find(c=>c.id===hosp.current_sector)?.label||hosp.current_sector;
   document.body.insertAdjacentHTML('beforeend',`
     <div id="kanban-edit-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;backdrop-filter:blur(4px);">
@@ -284,7 +285,7 @@ window.openEditKanbanCard = function(hospId) {
           <h3 style="margin:0;color:var(--text-primary);font-family:'Outfit';font-size:1.1rem;"><i class="fa-regular fa-pen-to-square" style="color:var(--color-primary);"></i> Evoluir Paciente</h3>
           <button onclick="document.getElementById('kanban-edit-modal').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.3rem;">&times;</button>
         </div>
-        <p style="margin:0 0 16px;font-size:0.9rem;color:var(--text-muted);">${pat.name||'N/D'} &middot; <b style="color:var(--text-primary);">${colLabel}</b></p>
+        <p style="margin:0 0 16px;font-size:0.9rem;color:var(--text-muted);">${patName} &middot; <b style="color:var(--text-primary);">${colLabel}</b></p>
         <div style="display:grid;gap:12px;">
           <div><label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Diagnostico</label>
             <input id="edit-diagnosis" type="text" class="form-control" value="${hosp.diagnosis||''}" placeholder="Diagnostico..." style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;"></div>
@@ -321,7 +322,7 @@ window.moveKanbanCard = function(hospId) {
     <div id="kanban-move-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;backdrop-filter:blur(4px);">
       <div style="background:var(--bg-card);padding:28px;border-radius:14px;width:100%;max-width:360px;box-shadow:0 20px 50px rgba(0,0,0,0.4);border:1px solid var(--border-color);">
         <h3 style="margin:0 0 8px;color:var(--text-primary);font-family:'Outfit';font-size:1.1rem;"><i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--color-primary);"></i> Mover Setor</h3>
-        <p style="font-size:0.85rem;color:var(--text-muted);margin:0 0 18px;">${pat.name||'Paciente'}</p>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin:0 0 18px;">${pat.fullName || pat.name||'Paciente'}</p>
         <div><label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Novo Setor</label>
           <select id="move-sector-select" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);">
             ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id===hosp.current_sector?'selected':''}>${c.label}</option>`).join('')}
