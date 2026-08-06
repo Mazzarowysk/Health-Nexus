@@ -498,16 +498,21 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
         });
 
         if (res.ok) {
-          showToast('⚡ Atendimento direcionado com sucesso!');
+          if (status === 'Aguardando_Leito') {
+            showToast(`🛏️ Internação em UTI/Leito solicitada com sucesso para ${patientName}!`);
+          } else {
+            showToast(`⚡ Atendimento de ${patientName} direcionado para ${room}!`);
+          }
           closeModal();
-          if (state.activeTab === 'estagnacao') {
-            renderStagnationTab(document.getElementById('main-content'));
+          const mainContent = document.getElementById('main-content');
+          if (mainContent) {
+            loadAndRenderStagnationData();
           }
         } else {
-          alert('Erro ao atualizar atendimento.');
+          showCustomAlert({ title: 'Atenção', message: 'Erro ao atualizar atendimento.', type: 'warning' });
         }
       } catch (err) {
-        alert('Erro de conexão com o servidor.');
+        showCustomAlert({ title: 'Erro', message: 'Falha de conexão com o servidor.', type: 'danger' });
       }
     });
   } catch (err) {

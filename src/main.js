@@ -1769,6 +1769,32 @@ const apiFetch = async (url, options = {}) => {
       
       responseData = { alerts, criticalCount, warningCount };
     }
+    else if (url.includes('/api/stagnation/reassign') && method === 'POST') {
+      const { encounterId, room, status } = body || {};
+      const allEncounters = localDB.list('encounters') || [];
+      const enc = allEncounters.find(e => e.id === encounterId || e.encounterId === encounterId || e.patientId === encounterId);
+
+      if (enc) {
+        const updated = {
+          ...enc,
+          room: room || enc.room || 'UTI / Internação',
+          status: status || enc.status || 'Aguardando_Leito',
+          lastStatusUpdate: new Date().toISOString()
+        };
+        localDB.update('encounters', enc.id, updated);
+        responseData = { status: 'success', data: updated };
+      } else {
+        // Fallback: Create or update encounter
+        const newEnc = {
+          id: encounterId || `enc-${Date.now()}`,
+          room: room || 'UTI / Internação',
+          status: status || 'Aguardando_Leito',
+          lastStatusUpdate: new Date().toISOString()
+        };
+        localDB.insert('encounters', newEnc);
+        responseData = { status: 'success', data: newEnc };
+      }
+    }
     else if (url.startsWith('/api/')) {
       if (url.includes('/api/dashboard/summary')) {
         const db = localDB.getFullDB();
