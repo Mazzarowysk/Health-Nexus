@@ -503,7 +503,12 @@ No topo do Kanban, os setores são exibidos em um moderno **grid de Cards intera
 ### 🎨 Design Premium das Colunas e Pacientes
 
 - **Colunas *Tinted*:** As colunas do Kanban possuem fundo transparente (*tinted*) e bordas estilizadas de acordo com a cor do setor, conferindo um layout visual limpo e de alto padrão.
-- **Cards Interativos:** Os cards dos pacientes possuem efeitos visuais ao passar o mouse (*hover*), sombra dinâmica, barra de progresso colorida e uma organização intuitiva para rápida leitura do quadro (diagnóstico, leito, tempos e avisos).
+- **Cards de Pacientes Interativos:** 
+   O Kanban foi atualizado para exibir as informações com melhor alinhamento e separação visual das informações (nome, leito, médico). Cada card agora possui ferramentas de interação direta:
+   - **🩺 Prontuário:** Botão de acesso rápido a todo o Histórico Pós-Alta, consultas, relatórios médicos e anotações completas, sem precisar sair do Kanban.
+   - **📝 Evolução:** Acesso rápido ao campo de Evoluções e Anotações, incluindo um indicador visual (ponto vermelho) quando há anotações recentes.
+   - **Botões de Gerenciamento:** Ferramentas para ✏️ Editar Detalhes, 🔄 Mover entre Setores, e 🚶 Alta Hospitalar, mantidas na barra inferior.
+   - **Arrastar e Soltar:** Facilidade de clicar e arrastar (Drag and Drop) o card do paciente entre colunas para transferência rápida de setor.
 
 ### 📝 Notas de Evolução
 
