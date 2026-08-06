@@ -1393,18 +1393,38 @@ body {
 /* --- ESTILOS DO GRÁFICO FUNIL DE ATENDIMENTO HOSPITALAR --- */
 .funnel-card-body {
   display: flex;
-  gap: 20px;
+  gap: 22px;
   align-items: center;
-  margin-top: 8px;
+  margin-top: 12px;
+}
+
+.funnel-period-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.funnel-period-pill:hover,
+.funnel-period-pill.active {
+  background: rgba(59, 130, 246, 0.25);
+  color: #60a5fa;
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
 }
 
 .funnel-wrapper {
-  flex: 1.1;
+  flex: 1.15;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 8px 0;
+  padding: 10px 0;
 }
 
 .funnel-stage {
@@ -1413,61 +1433,97 @@ body {
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  font-weight: 700;
-  font-size: 0.85rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease, filter 0.2s ease;
+  font-weight: 800;
+  font-size: 0.86rem;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
   cursor: pointer;
+  user-select: none;
+}
+
+.funnel-stage::after {
+  content: '➜ Clique para filtrar';
+  position: absolute;
+  top: -30px;
+  background: rgba(15, 23, 42, 0.95);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  z-index: 10;
+}
+
+.funnel-stage:hover::after {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .funnel-stage:hover {
-  transform: scale(1.03);
-  filter: brightness(1.15);
-  z-index: 2;
+  transform: scale(1.04);
+  filter: brightness(1.2);
+  z-index: 5;
+}
+
+.funnel-stage:active {
+  transform: scale(0.98);
 }
 
 .funnel-stage-1 {
   width: 100%;
   height: 44px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
   border-radius: 8px 8px 4px 4px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
 }
 
 .funnel-stage-2 {
   width: 86%;
   height: 42px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
   clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
   border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
 }
 
 .funnel-stage-3 {
   width: 72%;
   height: 40px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
   clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%);
   border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
 }
 
 .funnel-stage-4 {
   width: 58%;
   height: 38px;
-  background: linear-gradient(135deg, #f97316, #ea580c);
+  background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
   clip-path: polygon(0 0, 100% 0, 78% 100%, 22% 100%);
   border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.4);
 }
 
 .funnel-stage-5 {
   width: 44%;
   height: 38px;
-  background: linear-gradient(135deg, #34d399, #059669);
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
   clip-path: polygon(0 0, 100% 0, 72% 100%, 28% 100%);
   border-radius: 4px 4px 8px 8px;
+  box-shadow: 0 4px 20px rgba(52, 211, 153, 0.4);
 }
 
 .funnel-legend-list {
-  flex: 0.9;
+  flex: 0.85;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1481,11 +1537,14 @@ body {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .funnel-legend-item:hover {
   background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(56, 189, 248, 0.3);
+  transform: translateX(4px);
 }
 
 .funnel-dot {
@@ -1494,6 +1553,7 @@ body {
   border-radius: 50%;
   display: inline-block;
   margin-right: 8px;
+  box-shadow: 0 0 8px currentColor;
 }
 
 /* --- EFEITO DE DESTAQUE PULSANTE NA TABELA AO CLICAR NO GRÁFICO --- */

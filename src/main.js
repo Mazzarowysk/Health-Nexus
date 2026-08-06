@@ -3103,68 +3103,71 @@ async function renderTabContent() {
 
         <!-- Seção de Gráficos Interativos (Layout Híbrido Neon Glass) -->
         <div class="charts-grid">
-          <!-- Card 1: FUNIL DE ATENDIMENTO HOSPITALAR (Estilo Funil) -->
+          <!-- Card 1: FUNIL DE ATENDIMENTO HOSPITALAR (Estilo Funil Interativo) -->
           <div class="chart-card">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <h4 class="chart-card-title" style="margin-bottom: 0;">
                 <i class="fa-solid fa-filter" style="color: #3b82f6;"></i> Funil de Atendimento Hospitalar
               </h4>
-              <span class="badge-status-pill" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
-                <i class="fa-solid fa-bolt"></i> Tempo Real
-              </span>
+              <!-- Seletor de Período Interativo -->
+              <div style="display: flex; gap: 6px;">
+                <button class="funnel-period-pill active" data-period="hoje">Hoje</button>
+                <button class="funnel-period-pill" data-period="semana">Semana</button>
+                <button class="funnel-period-pill" data-period="mes">Mês</button>
+              </div>
             </div>
 
             <div class="funnel-card-body">
-              <!-- Visual do Funil Trapezoidal -->
+              <!-- Visual do Funil Trapezoidal Interativo -->
               <div class="funnel-wrapper">
-                <div class="funnel-stage funnel-stage-1" title="Entrada / Recepção: 1.250 pacientes (100%)">
-                  <i class="fa-solid fa-users" style="margin-right: 6px;"></i> 1.250 (100%)
+                <div class="funnel-stage funnel-stage-1" data-target-tab="atendimento" data-stage-name="Recepção" title="Clique para ver os Pacientes na Recepção (1.250)">
+                  <i class="fa-solid fa-users" style="margin-right: 6px;"></i> <span id="funnel-num-1">1.250 (100%)</span>
                 </div>
-                <div class="funnel-stage funnel-stage-2" title="Triagem Manchester: 1.080 pacientes (86,4%)">
-                  <i class="fa-solid fa-clipboard-check" style="margin-right: 6px;"></i> 1.080 (86,4%)
+                <div class="funnel-stage funnel-stage-2" data-target-tab="estagnacao" data-stage-name="Triagem Manchester" title="Clique para ver os Pacientes Triados (1.080)">
+                  <i class="fa-solid fa-clipboard-check" style="margin-right: 6px;"></i> <span id="funnel-num-2">1.080 (86,4%)</span>
                 </div>
-                <div class="funnel-stage funnel-stage-3" title="Atendimento Médico: 890 pacientes (71,2%)">
-                  <i class="fa-solid fa-user-doctor" style="margin-right: 6px;"></i> 890 (71,2%)
+                <div class="funnel-stage funnel-stage-3" data-target-tab="consultorios" data-stage-name="Consultórios" title="Clique para ver os Consultórios (890)">
+                  <i class="fa-solid fa-user-doctor" style="margin-right: 6px;"></i> <span id="funnel-num-3">890 (71,2%)</span>
                 </div>
-                <div class="funnel-stage funnel-stage-4" title="Exames / Medicação: 420 pacientes (33,6%)">
-                  <i class="fa-solid fa-vial" style="margin-right: 6px;"></i> 420 (33,6%)
+                <div class="funnel-stage funnel-stage-4" data-target-tab="farmacia" data-stage-name="Exames / Medicação" title="Clique para ver a Farmácia (420)">
+                  <i class="fa-solid fa-vial" style="margin-right: 6px;"></i> <span id="funnel-num-4">420 (33,6%)</span>
                 </div>
-                <div class="funnel-stage funnel-stage-5" title="Alta / Resolvidos: 385 pacientes (30,8%)">
-                  <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> 385 (30,8%)
+                <div class="funnel-stage funnel-stage-5" data-target-tab="relatorios" data-stage-name="Alta Médica" title="Clique para ver Relatório de Altas (385)">
+                  <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> <span id="funnel-num-5">385 (30,8%)</span>
                 </div>
               </div>
 
-              <!-- Legenda Detalhada Lateral -->
+              <!-- Legenda Detalhada Lateral Interativa -->
               <div class="funnel-legend-list">
-                <div class="funnel-legend-item">
+                <div class="funnel-legend-item" data-target-tab="atendimento" data-stage-name="Recepção">
                   <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
-                    <span class="funnel-dot" style="background: #3b82f6;"></span> Recepção / Entrada
+                    <span class="funnel-dot" style="background: #3b82f6; color: #3b82f6;"></span> Recepção / Entrada
                   </span>
-                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">1.250 <small style="color: #3b82f6; font-size: 0.72rem;">100%</small></span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;"><span id="funnel-leg-1">1.250</span> <small style="color: #3b82f6; font-size: 0.72rem;">100%</small></span>
                 </div>
-                <div class="funnel-legend-item">
+                <div class="funnel-legend-item" data-target-tab="estagnacao" data-stage-name="Triagem Manchester">
                   <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
-                    <span class="funnel-dot" style="background: #10b981;"></span> Triados Manchester
+                    <span class="funnel-dot" style="background: #10b981; color: #10b981;"></span> Triados Manchester
                   </span>
-                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">1.080 <small style="color: #10b981; font-size: 0.72rem;">86,4%</small></span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;"><span id="funnel-leg-2">1.080</span> <small style="color: #10b981; font-size: 0.72rem;">86,4%</small></span>
                 </div>
-                <div class="funnel-legend-item">
+                <div class="funnel-legend-item" data-target-tab="consultorios" data-stage-name="Consultórios">
                   <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
-                    <span class="funnel-dot" style="background: #f59e0b;"></span> Atendidos Consultório
+                    <span class="funnel-dot" style="background: #f59e0b; color: #f59e0b;"></span> Atendidos Consultório
                   </span>
-                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">890 <small style="color: #f59e0b; font-size: 0.72rem;">71,2%</small></span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;"><span id="funnel-leg-3">890</span> <small style="color: #f59e0b; font-size: 0.72rem;">71,2%</small></span>
                 </div>
-                <div class="funnel-legend-item">
+                <div class="funnel-legend-item" data-target-tab="farmacia" data-stage-name="Exames / Medicação">
                   <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
-                    <span class="funnel-dot" style="background: #f97316;"></span> Exames & Medicação
+                    <span class="funnel-dot" style="background: #f97316; color: #f97316;"></span> Exames & Medicação
                   </span>
-                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">420 <small style="color: #f97316; font-size: 0.72rem;">33,6%</small></span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;"><span id="funnel-leg-4">420</span> <small style="color: #f97316; font-size: 0.72rem;">33,6%</small></span>
                 </div>
-                <div class="funnel-legend-item">
+                <div class="funnel-legend-item" data-target-tab="relatorios" data-stage-name="Alta Médica">
                   <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
-                    <span class="funnel-dot" style="background: #34d399;"></span> Alta / Resolvidos
+                    <span class="funnel-dot" style="background: #34d399; color: #34d399;"></span> Alta / Resolvidos
                   </span>
-                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">385 <small style="color: #34d399; font-size: 0.72rem;">30,8%</small></span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;"><span id="funnel-leg-5">385</span> <small style="color: #34d399; font-size: 0.72rem;">30,8%</small></span>
                 </div>
               </div>
             </div>
@@ -3174,13 +3177,13 @@ async function renderTabContent() {
               <div>
                 <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 700;">Taxa de Resolutividade Final</div>
                 <div style="font-size: 1.25rem; font-weight: 800; color: #34d399; display: flex; align-items: center; gap: 6px;">
-                  <i class="fa-solid fa-arrow-trend-up"></i> 30,8%
+                  <i class="fa-solid fa-arrow-trend-up"></i> <span id="funnel-res-rate">30,8%</span>
                 </div>
               </div>
               <div style="text-align: right; width: 45%;">
-                <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Meta: <strong>35,0%</strong> <span style="color: #34d399; font-size: 0.7rem;">(88% da meta)</span></div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Meta: <strong>35,0%</strong> <span style="color: #34d399; font-size: 0.7rem;" id="funnel-goal-text">(88% da meta)</span></div>
                 <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
-                  <div style="width: 88%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 10px;"></div>
+                  <div id="funnel-goal-bar" style="width: 88%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 10px; transition: width 0.4s ease;"></div>
                 </div>
               </div>
             </div>
@@ -5472,6 +5475,86 @@ function initDashboardCharts(data) {
     });
     manchesterCtx._chartInstance = instM;
   }
+
+  // 4. Inicialização da Interatividade do Funil
+  initInteractiveFunnel();
+}
+
+function initInteractiveFunnel() {
+  const periodPills = document.querySelectorAll('.funnel-period-pill');
+  const stageEls = document.querySelectorAll('.funnel-stage, .funnel-legend-item');
+
+  const periodData = {
+    hoje: {
+      nums: ['142 (100%)', '124 (87,3%)', '102 (71,8%)', '48 (33,8%)', '44 (31,0%)'],
+      legs: ['142', '124', '102', '48', '44'],
+      resRate: '31,0%',
+      goalText: '(88% da meta)',
+      goalWidth: '88%'
+    },
+    semana: {
+      nums: ['860 (100%)', '748 (86,9%)', '612 (71,1%)', '292 (33,9%)', '268 (31,1%)'],
+      legs: ['860', '748', '612', '292', '268'],
+      resRate: '31,1%',
+      goalText: '(89% da meta)',
+      goalWidth: '89%'
+    },
+    mes: {
+      nums: ['1.250 (100%)', '1.080 (86,4%)', '890 (71,2%)', '420 (33,6%)', '385 (30,8%)'],
+      legs: ['1.250', '1.080', '890', '420', '385'],
+      resRate: '30,8%',
+      goalText: '(88% da meta)',
+      goalWidth: '88%'
+    }
+  };
+
+  periodPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      periodPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      const period = pill.dataset.period || 'hoje';
+      const data = periodData[period] || periodData['hoje'];
+
+      data.nums.forEach((val, idx) => {
+        const el = document.getElementById(`funnel-num-${idx + 1}`);
+        if (el) el.textContent = val;
+      });
+
+      data.legs.forEach((val, idx) => {
+        const el = document.getElementById(`funnel-leg-${idx + 1}`);
+        if (el) el.textContent = val;
+      });
+
+      const resRateEl = document.getElementById('funnel-res-rate');
+      if (resRateEl) resRateEl.textContent = data.resRate;
+
+      const goalTextEl = document.getElementById('funnel-goal-text');
+      if (goalTextEl) goalTextEl.textContent = data.goalText;
+
+      const goalBarEl = document.getElementById('funnel-goal-bar');
+      if (goalBarEl) goalBarEl.style.width = data.goalWidth;
+
+      if (typeof showToast === 'function') {
+        showToast(`📊 Funil recalculado para o período: ${period.toUpperCase()}`);
+      }
+    });
+  });
+
+  stageEls.forEach(el => {
+    el.addEventListener('click', () => {
+      const targetTab = el.dataset.targetTab;
+      const stageName = el.dataset.stageName;
+
+      if (stageName && typeof showToast === 'function') {
+        showToast(`🎯 Direcionando visão detalhada: ${stageName}`);
+      }
+
+      if (targetTab && typeof switchTab === 'function') {
+        switchTab(targetTab);
+      }
+    });
+  });
 }
 
 // --- MÁSCARAS DE INPUT ---
