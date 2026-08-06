@@ -1,6 +1,229 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `1.2.1`  
+**Versão:** `1.3.0`  
+**Status:** Em desenvolvimento ativo  
+**Última atualização:** Agosto 2026
+
+---
+
+## 📘 Documentação & Manual do Usuário
+
+- 🌐 **Portal Web Interativo:** [manual_do_usuario.html](file:///c:/Health%20Nexus/manual_do_usuario.html) *(acessível no botão `📖 Manual do Usuário` no topo do sistema)*
+- 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
+- 📄 **Manual Completo em Markdown:** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
+
+---
+
+## 🏗️ Infraestrutura & Integrações
+
+| Serviço | Status | Descrição |
+|---|---|---|
+| 🐙 **GitHub** | ✅ Ativo | Branch `main` · Commits disparam deploys automáticos |
+| ▲ **Vercel** | ✅ Ativo | Hospeda Frontend (Vite) + Backend (Express API serverless) |
+| 🗄️ **Turso (LibSQL)** | ✅ Ativo | Banco de dados edge distribuído — Pacientes, Atendimentos, PEP |
+
+---
+
+## 📦 Stack Tecnológica
+
+- **Frontend:** HTML5 + JavaScript (Vanilla SPA) · Vite 5 · Chart.js · jsPDF · SheetJS
+- **Backend:** Node.js + Express.js (API REST) · JWT · Bcrypt
+- **Banco de dados:** SQLite local (`local.db`) + Turso cloud (LibSQL) via `@libsql/client`
+- **CSS:** Design System próprio — Glassmorphism dark + Light mode completo
+- **Tipografia:** Outfit (títulos) + Inter (corpo) via Google Fonts
+- **Ícones:** Font Awesome 6
+
+---
+
+## 🧩 Módulos Implementados (Visão Geral 360º)
+
+1. **Autenticação & Controle de Acesso (RBAC)**  
+   Login com JWT e gestão de papéis: `Master`, `Médico`, `Enfermeiro`, `Recepcionista`.  
+   - Aprovação de novos usuários pelo Master via Painel de Estagnação.
+   - Solicitação de acesso Master via chave secreta.
+
+2. **Dashboard (Health Nexus)**  
+   KPIs e gráficos gerenciais em tempo real via Chart.js:  
+   - Atendimentos por período, taxa de ocupação de leitos, receita mensal e evolução de pacientes.
+
+3. **Agenda de Consultas**  
+   - Agendamento inteligente com seleção de médico e consultório dinâmicos.  
+   - **Cards KPI interativos** (Total, Confirmados, Em Atendimento, Concluídos): clique para filtrar a lista.
+   - Filtros por data, médico, consultório e status.
+
+4. **Pacientes (Admissão & Lixeira)**  
+   - CRUD completo com autopreenchimento de endereço via API ViaCEP.  
+   - Prevenção contra CPFs e nomes duplicados.  
+   - Lixeira com soft-delete e restauração.
+
+5. **Atendimentos (Kanban & Triagem Manchester)**  
+   - Fluxo visual em colunas: Aguardando Triagem → Aguardando Atendimento → Em Atendimento → Finalizado.  
+   - Priorização por cores de risco (Manchester).  
+   - Prontuário eletrônico (PEP SOAP) integrado.  
+   - Chamada de paciente integrada com Painel TV (Web Speech API).
+
+6. **Painel TV (Chamador com Voz)**  
+   - Tela cheia para sala de espera.  
+   - Anuncia paciente com voz sintetizada (Web Speech API) e exibe nome em destaque.
+
+7. **Prontuário Eletrônico (PEP SOAP)**  
+   - Autosave, assinatura digital, prescrições médicas.  
+   - Histórico completo por paciente.
+
+8. **Alertas & Estagnação**  
+   - Monitoramento proativo de gargalos.  
+   - **Cards KPI clicáveis** com filtro instantâneo da tabela.  
+   - Painel exclusivo de aprovação de usuários Master.
+
+9. **Leitos (Censo Hospitalar)**  
+   - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo).  
+   - Alocação e alta de pacientes com atualização em tempo real.
+
+10. **🆕 Kanban de Internação** *(v1.3.0)*  
+    Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas:  
+    - **5 colunas de setor:** Pronto Socorro (PS), Corredor de Internação, Clínica Cirúrgica, Clínica Médica (SUS) e UTI.  
+    - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · **UTI: 5 dias**.  
+    - **Barra de progresso visual** (verde → amarelo → vermelho) por card.  
+    - **Admissão completa:** leito, diagnóstico, médico responsável, data e notas iniciais.  
+    - **Ações por card:** Evoluir clinicamente, mover de setor, registrar alta.  
+    - **Drag & Drop** para mover pacientes entre setores.  
+    - **Filtros rápidos** por setor (Todos · PS · Corredor · Cirúrgica · Médica · UTI).  
+    - Notas de evolução clínica com visualizador modal.
+
+11. **Farmácia & Estoque**  
+    - Gerenciamento de medicamentos e insumos.  
+    - Notificações automáticas de estoque baixo.
+
+12. **Financeiro**  
+    - Faturamento, recebimentos (Pix/Cartão/Dinheiro) e contas a pagar.
+
+13. **Corpo Clínico & Consultórios**  
+    - CRUD de médicos com CRM, especialidade e escala de plantão.
+
+14. **Relatórios & Exportação**  
+    - Exportação para PDF, XLSX e CSV.
+
+15. **Configurações & Nuvem (Turso Cloud)**  
+    - Sincronização SQLite ↔ Turso.
+
+16. **🆕 Histórico de Sessões** *(v1.3.0 · Exclusivo Master)*  
+    - Registro automático de login e logout de cada usuário.  
+    - Relatório com gráfico de tempo de uso (exclusivo para o perfil Master).  
+    - Disponível na aba **Gestão de Usuários** → botão "Histórico de Sessões".
+
+---
+
+## 📋 Kanban de Internação — Metas por Setor
+
+| Setor | Meta de Alta | Alerta Amarelo | Alerta Vermelho |
+|---|---|---|---|
+| 🔵 Pronto Socorro (Obs) | 24 horas | 18h+ | 24h+ |
+| 🟡 Corredor de Internação | 1 dia | 18h+ | 24h+ |
+| 🟣 Clínica Cirúrgica | 7 dias | 5d+ | 7d+ |
+| 🟢 Clínica Médica (SUS) | 10 dias | 7d+ | 10d+ |
+| 🔴 **UTI** | **5 dias** | **3d+** | **5d+** |
+
+> 💡 As metas estimulam a equipe a buscar condutas que propiciem alta evolutiva, principalmente na UTI onde 5 dias é a meta de resultado clínico.
+
+---
+
+## 🎨 Cards KPI Interativos (v1.2.0+)
+
+| Aba | Cards | Comportamento |
+|-----|-------|--------------|
+| **Agenda** | Total, Confirmados, Em Atendimento, Concluídos | Filtra lista de consultas |
+| **Corpo Clínico** | Total, Ativos, Especialidades | Filtra tabela de médicos |
+| **Farmácia** | Total, Baixo Estoque, Crítico | Filtra lista de medicamentos |
+| **Estagnação** | Críticos, Alertas de Espera, Total | Filtra tabela de alertas |
+| **Leitos** | Total, Vagos, Ocupados, Higienização | Filtra grade visual |
+
+---
+
+## 🎨 Design System
+
+- **Modo Escuro (padrão):** Glassmorphism com fundo roxo profundo, acentos neon magenta/ciano
+- **Modo Claro:** Branco clínico profissional (azul médico `#2563eb` + verde teal `#0d9488`)
+
+---
+
+## 🔐 Papéis de Acesso (RBAC)
+
+| Papel | Acesso |
+|-------|--------|
+| **Master** | Acesso total + Histórico de Sessões + Kanban + aprovações |
+| **Médico** | Atendimentos, Agenda, PEP, Leitos, Kanban |
+| **Enfermeiro** | Triagem, Atendimentos, Leitos, Farmácia, Kanban |
+| **Recepcionista** | Pacientes, Agenda, Financeiro (básico) |
+
+> **🛡️ Proteção de Segurança:** Perfis `Master` e `Administrador` são protegidos contra escalonamento não autorizado.
+
+---
+
+## 🔧 Automações Especiais
+
+- **Auto-shutdown do servidor:** O processo Node se encerra automaticamente quando a aba do navegador é fechada
+- **Criação automática do banco:** Todas as tabelas criadas via `CREATE TABLE IF NOT EXISTS` ao iniciar
+- **Usuário admin padrão:** Criado automaticamente se não existir nenhum usuário
+
+---
+
+## 🗺️ Próximos Passos (Versão 2.0)
+
+- Laboratório e Integração de Equipamentos (LIS)
+- Integração de Imagens (DICOM/PACS)
+- App Mobile para Médicos (React Native)
+- Integração Telemedicina via WebRTC
+- Notificações Push (PWA)
+- Dashboard de Indicadores do Kanban (relatório de giro de leitos, tempo médio por setor)
+
+---
+
+## 🚀 Execução Local
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/Mazzarowysk/Health-Nexus.git "C:\Health Nexus"
+cd "C:\Health Nexus"
+
+# 2. Instalar dependências
+npm install
+
+# 3. Configurar variáveis de ambiente
+cp .env.example .env
+# Editar .env com TURSO_DATABASE_URL e TURSO_AUTH_TOKEN (opcional para uso local)
+
+# 4. Iniciar em modo desenvolvimento (frontend + backend simultâneos)
+npm run dev
+```
+
+Acesse: `http://localhost:5173` · Backend: `http://localhost:3001`  
+Login padrão: **usuário** `admin` · **senha** `admin`
+
+---
+
+## 📅 Changelog
+
+### v1.3.0 — Agosto 2026
+- ✅ **Kanban de Internação:** 5 setores, metas de tempo, drag & drop, barra de progresso visual
+- ✅ **Admissão Kanban completa:** leito, diagnóstico, médico responsável, data, notas
+- ✅ **Ações por card:** Evoluir, Mover setor, Alta
+- ✅ **Histórico de Sessões:** relatório de entrada/saída exclusivo Master
+- ✅ **Filtros por setor** no Kanban com toggle visual
+
+### v1.2.1 — Julho 2026
+- Cards KPI interativos em todas as abas principais
+- Proteção de perfil Master contra escalonamento
+- Melhorias de performance e UX
+
+### v1.2.0 — Junho 2026
+- Modo claro completo
+- Sincronização Turso Cloud
+- Exportação PDF/XLSX/CSV
+
+---
+
+*Desenvolvido por @mazzarowysk & @_coltri_*
+
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 

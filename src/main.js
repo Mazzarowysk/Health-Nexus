@@ -10,6 +10,7 @@ import './tabs/doctors.js';
 import './tabs/stagnation.js';
 import './tabs/pharmacy.js';
 import './tabs/tv.js';
+import './tabs/kanban.js';
 import { generateMockData } from './mockDataGenerator.js';
 
 window.updateAppointmentStatus = async function(aptId, newStatus) {
@@ -453,6 +454,84 @@ window.alert = function(msg) {
   showCustomAlert({ title, message: String(msg), type });
 };
 
+// ==========================================
+// User Management
+// ==========================================
+
+const showUserSessionsHistory = (userId, userName) => {
+  const existing = document.getElementById('hn-sessions-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'hn-sessions-modal';
+  overlay.style.zIndex = '10002'; // Acima do user management
+  
+  const sessions = localDB.list('user_sessions', s => s.user_id === userId).sort((a, b) => new Date(b.login_time) - new Date(a.login_time));
+  
+  let rows = '';
+  if (sessions.length === 0) {
+    rows = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-secondary);">Nenhuma sessão registrada.</td></tr>`;
+  } else {
+    rows = sessions.map(s => {
+      const loginDate = new Date(s.login_time);
+      const loginStr = loginDate.toLocaleString('pt-BR');
+      
+      let logoutStr = '<span style="color: var(--color-primary);">Online</span>';
+      let durationStr = '-';
+      
+      if (s.logout_time) {
+        const logoutDate = new Date(s.logout_time);
+        logoutStr = logoutDate.toLocaleString('pt-BR');
+        const durMins = s.duration_minutes || 0;
+        const h = Math.floor(durMins / 60);
+        const m = durMins % 60;
+        durationStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+      }
+      
+      return `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <td style="padding: 12px 10px;">${loginStr}</td>
+          <td style="padding: 12px 10px;">${logoutStr}</td>
+          <td style="padding: 12px 10px; font-weight: 600; color: #10b981;">${durationStr}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  overlay.innerHTML = `
+    <div class="modal-content" style="max-width: 600px; padding: 0;">
+      <div class="modal-header" style="padding: 18px 24px;">
+        <h3 class="modal-title" style="font-size: 1.15rem;">
+          <i class="fa-solid fa-clock-rotate-left"></i> Histórico de Sessões: ${userName}
+        </h3>
+        <button id="btn-sessions-modal-close" class="modal-close" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+          <thead>
+            <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); color: var(--text-secondary);">
+              <th style="padding: 10px; font-weight: 600;">Entrada</th>
+              <th style="padding: 10px; font-weight: 600;">Saída</th>
+              <th style="padding: 10px; font-weight: 600;">Tempo de Uso</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('btn-sessions-modal-close').addEventListener('click', () => {
+    overlay.classList.remove('open');
+    setTimeout(() => overlay.remove(), 300);
+  });
+};
+
 // --- MODAL FLUTUANTE DE GERENCIAMENTO DE USUÁRIOS E PERMISSÕES ---
 const showUserManagementModal = async () => {
   const existing = document.getElementById('hn-users-modal');
@@ -540,6 +619,7 @@ const showUserManagementModal = async () => {
           </div>
         `;
       }
+      const isCurrentMaster = state.user && (state.user.role === 'Master' || state.user.role === 'Administrador' || state.user.username === 'mazzarowysk');
 
       container.innerHTML = `
         ${pendingHtml}
@@ -583,6 +663,11 @@ const showUserManagementModal = async () => {
                     </span>
                   </td>
                   <td style="padding: 12px 10px; text-align: right;">
+                    ${isCurrentMaster ? `
+                    <button class="btn-icon btn-history-user" data-uid="${u.id}" data-name="${u.name}" title="Histórico de Sessões" style="color: #8b5cf6; margin-right: 6px;">
+                      <i class="fa-solid fa-clock-rotate-left"></i>
+                    </button>
+                    ` : ''}
                     <button class="btn-icon btn-edit-user" data-user='${JSON.stringify(u)}' title="Editar Usuário" style="margin-right: 6px;">
                       <i class="fa-solid fa-pen"></i>
                     </button>
@@ -635,6 +720,14 @@ const showUserManagementModal = async () => {
               loadUsersList();
             }
           } catch (e) {}
+        });
+      });
+
+      container.querySelectorAll('.btn-history-user').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const uid = btn.dataset.uid;
+          const uname = btn.dataset.name;
+          showUserSessionsHistory(uid, uname);
         });
       });
 
@@ -1595,6 +1688,20 @@ const initializeApp = async () => {
 };
 
 const logout = () => {
+  const sessionId = sessionStorage.getItem('hn_session_id');
+  if (sessionId) {
+    const sessionRec = localDB.get('user_sessions', sessionId);
+    if (sessionRec) {
+      const logoutTime = new Date();
+      const loginTime = new Date(sessionRec.login_time);
+      const durationMinutes = Math.round((logoutTime - loginTime) / 60000);
+      localDB.update('user_sessions', sessionId, {
+        logout_time: logoutTime.toISOString(),
+        duration_minutes: durationMinutes
+      });
+    }
+  }
+  sessionStorage.removeItem('hn_session_id');
   sessionStorage.removeItem('hn_token');
   sessionStorage.removeItem('hn_user');
   state.isAuthenticated = false;
@@ -2438,6 +2545,16 @@ function renderAuthScreen() {
           if (isLogin) {
             sessionStorage.setItem('hn_token', data.token);
             sessionStorage.setItem('hn_user', JSON.stringify(data.user));
+            
+            const newSession = {
+              user_id: data.user.id,
+              login_time: new Date().toISOString(),
+              logout_time: null,
+              duration_minutes: 0
+            };
+            const sessionRec = localDB.insert('user_sessions', newSession);
+            sessionStorage.setItem('hn_session_id', sessionRec.id);
+            
             state.isAuthenticated = true;
             state.token = data.token;
             state.user = data.user;
@@ -2657,7 +2774,7 @@ function getRolePermissions(user) {
       role: 'Desenvolvedor',
       label: '💻 Desenvolvedor (Master)',
       badgeColor: 'linear-gradient(135deg, #a855f7, #7e22ce)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -2672,7 +2789,7 @@ function getRolePermissions(user) {
       role: role || 'Master',
       label: '👑 Master (Acesso Total)',
       badgeColor: 'linear-gradient(135deg, #f59e0b, #d97706)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -2686,7 +2803,7 @@ function getRolePermissions(user) {
       role: 'Administrador',
       label: '🛠️ Administrador',
       badgeColor: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -2700,7 +2817,7 @@ function getRolePermissions(user) {
       role: 'Enfermeiro',
       label: '🩺 Enfermeiro(a)',
       badgeColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2770,7 +2887,7 @@ function getRolePermissions(user) {
       role: 'Auxiliar de Enfermagem',
       label: '🏥 Aux. de Enfermagem',
       badgeColor: 'linear-gradient(135deg, #64748b, #475569)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'leitos'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'leitos', 'kanban'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2784,7 +2901,7 @@ function getRolePermissions(user) {
     role: 'Médico',
     label: '🩺 Médico',
     badgeColor: 'linear-gradient(135deg, #10b981, #059669)',
-    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'financeiro', 'relatorios'],
+    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro', 'relatorios'],
     canApproveUsers: false,
     canManageUsers: false,
     canDeleteRecords: false,
@@ -2806,6 +2923,7 @@ function renderAppStructure() {
     { id: 'tv_panel', label: 'Painel TV (Chamador)', icon: 'fa-tv' },
     { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
     { id: 'leitos', label: 'Leitos', icon: 'fa-bed-pulse' },
+    { id: 'kanban', label: 'Kanban', icon: 'fa-table-columns' },
     { id: 'farmacia', label: 'Farmácia & Estoque', icon: 'fa-pills' },
     { id: 'financeiro', label: 'Financeiro', icon: 'fa-hand-holding-dollar' },
     { id: 'medicos', label: 'Corpo Clínico', icon: 'fa-user-doctor' },
@@ -3138,6 +3256,7 @@ function switchTab(tabName, isBack = false) {
     atendimento:   'Atendimentos',
     estagnacao:    'Alertas & Estagnação',
     leitos:        'Gestão de Leitos',
+    kanban:        'Kanban de Internação',
     financeiro:    'Gestão Financeira & Títulos',
     relatorios:    'Relatórios',
     configuracoes: 'Configurações'
@@ -3178,6 +3297,7 @@ function updateGlobalBackButton() {
     atendimento: 'Atendimentos',
     estagnacao: 'Alertas',
     leitos: 'Leitos',
+    kanban: 'Kanban',
     financeiro: 'Financeiro',
     relatorios: 'Relatórios',
     configuracoes: 'Configurações'
@@ -4755,6 +4875,8 @@ async function renderTabContent() {
     
   } else if (state.activeTab === 'estagnacao') {
     renderStagnationTab(contentArea);
+  } else if (state.activeTab === 'kanban') {
+    window.renderKanbanTab();
   } else if (state.activeTab === 'leitos') {
       renderLeitosTab();
     } else if (state.activeTab === 'financeiro') {

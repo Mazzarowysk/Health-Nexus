@@ -1,4 +1,4 @@
-# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v1.0)
+# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v1.3.0)
 
 > **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletrônico**  
 > Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.
@@ -39,6 +39,8 @@
 - 16. [Sistema de Avisos, Notificações & Toasts](#sec-16)
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
 - 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
+- 19. [🆕 Kanban de Internação — Guia Completo](#sec-19)
+- 20. [🆕 Histórico de Sessões de Usuários (Master)](#sec-20)
 
 ---
 
@@ -421,6 +423,118 @@ Na aba **Configurações**, realiza-se a manutenção do banco de dados local e 
 | **Prontuário gerado em PDF com campos vazios** | Paciente sem CPF/dados cadastrais | Acesse a aba *Pacientes*, complete o cadastro do paciente e tente gerar novamente. |
 | **Histórico exibe "Nenhum atendimento registrado"** | Consulta recém-criada sem triagem | Certifique-se de realizar a Triagem de Manchester antes de buscar o histórico. |
 | **O cronômetro do card não está atualizando** | Intervalo de atualização pausado | Clique no botão `Atualizar` na barra superior ou recarregue a aba *Atendimentos*. |
+| **Paciente adicionado ao Kanban não aparece** | Filtro de setor ativo diferente do setor escolhido | Clique em **Todos** nos filtros rápidos do Kanban para exibir todos os setores. |
+| **Barra de progresso do card Kanban está vermelha** | Meta de tempo do setor excedida | Revise a conduta clínica do paciente e avalie alta ou transferência de setor. |
+| **Histórico de Sessões não aparece no menu** | Usuário sem perfil Master | O Histórico de Sessões é exclusivo para o perfil **Master**. Faça login com uma conta Master. |
 
 ---
-*Health Nexus — Manual do Usuário v1.0 | Sistema de Gestão Hospitalar de Alta Performance*
+
+<h2 id="sec-19">19. 🆕 Kanban de Internação — Guia Completo</h2>
+
+O **Kanban de Internação** é uma ferramenta de gestão visual do fluxo de pacientes internados, inspirado na metodologia Kanban, adaptada para o ambiente hospitalar.
+
+### 📌 Objetivo
+Permitir que a equipe clínica visualize, em tempo real, todos os pacientes internados, o setor em que se encontram, o tempo de permanência e o status em relação às metas de alta evolutiva.
+
+### 🏛️ Setores (Colunas do Kanban)
+
+| Setor | Cor | Meta de Alta | Lógica de Alerta |
+|---|---|---|---|
+| **Pronto Socorro (Obs)** | 🔵 Azul | 24 horas | Após 18h → Atenção; Após 24h → Crítico |
+| **Corredor de Internação** | 🟡 Amarelo | 1 dia | Após 18h → Atenção; Após 24h → Crítico |
+| **Clínica Cirúrgica** | 🟣 Roxo | 7 dias | Após 5d → Atenção; Após 7d → Crítico |
+| **Clínica Médica (SUS)** | 🟢 Verde | 10 dias | Após 7d → Atenção; Após 10d → Crítico |
+| **UTI** | 🔴 Vermelho | **5 dias** | Após 3d → Atenção; Após 5d → Crítico |
+
+> 💡 **Filosofia das Metas:** As metas não são prazos rígidos, mas estimuladores de conduta clínica proativa. Especialmente na UTI, onde o objetivo de 5 dias incentiva a equipe a buscar resultados evolutivos que viabilizem a alta ou remanejamento do paciente.
+
+### ➕ Como Adicionar um Paciente ao Kanban
+
+1. Acesse a aba **Kanban** no menu lateral.
+2. Clique no botão **+ Adicionar Paciente** (canto superior direito).
+3. No modal de admissão, preencha:
+   - **Paciente \*** — selecione da lista de pacientes cadastrados
+   - **Setor Inicial \*** — coluna onde o paciente será posicionado
+   - **Leito** — número ou código do leito (ex: UTI-03)
+   - **Data de Admissão** — pré-preenchida com a data/hora atual
+   - **Diagnóstico / Hipótese** — texto livre (ex: Pneumonia Grave, TCE leve)
+   - **Médico Responsável** — selecione da lista de usuários médicos
+   - **Observações Iniciais** — notas de admissão
+4. Clique em **Adicionar**.
+
+O card aparecerá imediatamente na coluna do setor selecionado.
+
+### 🃏 Entendendo o Card do Paciente
+
+Cada card exibe:
+- **Avatar colorido** com as iniciais do paciente (cor da coluna do setor)
+- **Nome completo** e ID curto do paciente
+- **Diagnóstico, Leito e Médico** responsável (quando preenchidos)
+- **Barra de progresso** — indica visualmente quanto da meta de tempo foi consumida:
+  - 🟢 Verde: dentro do prazo
+  - 🟡 Amarelo: atenção (75%+ da meta)
+  - 🔴 Vermelho: meta excedida (100%+)
+- **Tempo no setor atual** e **tempo total de internação**
+- **Ícone de notas** 📝 (aparece quando há notas de evolução registradas)
+
+### 🔧 Ações Disponíveis no Card
+
+| Botão | Ação |
+|---|---|
+| ✏️ (lápis) | **Evoluir** — abre modal para atualizar diagnóstico, leito e notas clínicas |
+| ↔️ (setas) | **Mover Setor** — abre modal para transferir para outra coluna (registra nova entrada) |
+| 🚶 (pessoa saindo) | **Alta** — solicita confirmação e remove o paciente do Kanban |
+
+### 🖱️ Drag & Drop
+
+Além dos botões, é possível **arrastar e soltar** os cards entre as colunas:
+1. Clique e segure o card.
+2. Arraste até a coluna de destino.
+3. Solte — o paciente será movido e o tempo no setor será reiniciado automaticamente.
+
+### 🔍 Filtros por Setor
+
+Os botões no topo do board permitem focar em um setor específico:
+- Clique em **PS**, **Corredor**, **Cirúrgica**, **Médica** ou **UTI** para exibir apenas aquele setor em tamanho expandido.
+- Clique em **Todos** para voltar à visão completa.
+
+### 📝 Notas de Evolução
+
+Para registrar ou atualizar uma evolução clínica:
+1. Clique no botão ✏️ do card desejado.
+2. Atualize o campo **Notas de Evolução**.
+3. Clique em **Salvar**.
+
+Um ícone 📝 aparecerá no card. Clique nele para ler as notas sem abrir o modal completo.
+
+---
+
+<h2 id="sec-20">20. 🆕 Histórico de Sessões de Usuários (Exclusivo Master)</h2>
+
+O **Histórico de Sessões** registra automaticamente cada entrada e saída de todos os usuários do sistema.
+
+### 📍 Como Acessar
+
+> ⚠️ Este recurso é **exclusivo para o perfil Master**.
+
+1. Faça login com uma conta Master.
+2. Acesse a aba **Gestão de Usuários** no menu lateral.
+3. Clique no botão **📊 Histórico de Sessões** disponível no painel.
+
+### 📊 Informações do Relatório
+
+O relatório exibe, para cada usuário:
+- Data e hora de **login** (entrada no sistema)
+- Data e hora de **logout** (saída ou encerramento de sessão)
+- **Tempo de uso** total da sessão
+- Gráfico visual de tempo de uso por período
+
+### 🔒 Privacidade e Segurança
+
+- Os registros são armazenados localmente e sincronizados via Turso Cloud quando configurado.
+- Apenas usuários com perfil **Master** têm acesso a esses dados.
+- Os dados de sessão **não podem ser apagados** por usuários comuns.
+
+---
+*Health Nexus — Manual do Usuário v1.3.0 | Sistema de Gestão Hospitalar de Alta Performance*
+*Atualizado em Agosto 2026 — @mazzarowysk & @_coltri_*
