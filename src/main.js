@@ -4496,8 +4496,31 @@ async function renderTabContent() {
             </div>
           </details>
 
-          <!-- Accordion de Sincronização Cloud Turso -->
+          <!-- Accordion de Centro de Documentação & Manuais -->
           <details class="settings-accordion" open>
+            <summary class="settings-accordion-header">
+              <i class="fa-solid fa-book-medical" style="color: #a5b4fc;"></i> Centro de Documentação &amp; Manuais do Usuário
+            </summary>
+            <div class="settings-accordion-body">
+              <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
+                Acesse a documentação unificada e exaustiva do <strong>Health Nexus v1.2.1</strong>. Disponível em portal web interativo com navegação rápida e em documento PDF corporativo para download ou impressão.
+              </p>
+              <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px;">
+                <a href="manual_do_usuario.html" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; padding: 10px 18px; border-radius: 8px;">
+                  <i class="fa-solid fa-globe"></i> Abrir Portal Web Interativo (HTML)
+                </a>
+                <a href="Manual_do_Usuario_Health_Nexus.pdf" target="_blank" class="btn" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; padding: 10px 18px; border-radius: 8px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc;">
+                  <i class="fa-solid fa-file-pdf"></i> Baixar Manual Oficial (PDF)
+                </a>
+                <a href="MANUAL_DO_USUARIO_HEALTH_NEXUS.md" target="_blank" class="btn" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 500; padding: 10px 18px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: #cbd5e1;">
+                  <i class="fa-solid fa-file-code"></i> Código Fonte (Markdown)
+                </a>
+              </div>
+            </div>
+          </details>
+
+          <!-- Accordion de Sincronização Cloud Turso -->
+          <details class="settings-accordion">
             <summary class="settings-accordion-header">
               <i class="fa-solid fa-cloud-arrow-up" style="color: #38bdf8;"></i> Sincronização com Banco Turso Cloud
             </summary>

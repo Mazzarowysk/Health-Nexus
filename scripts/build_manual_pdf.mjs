@@ -5,7 +5,7 @@ import puppeteer from 'puppeteer';
 
 async function generateManual() {
   const mdPath = path.resolve('MANUAL_DO_USUARIO_HEALTH_NEXUS.md');
-  const pdfPath = path.resolve('Manual_do_Usuario_Health_Nexus_v3.pdf');
+  const pdfPath = path.resolve('Manual_do_Usuario_Health_Nexus.pdf');
   const htmlPath = path.resolve('manual_do_usuario.html');
   const mdContent = fs.readFileSync(mdPath, 'utf8');
 
