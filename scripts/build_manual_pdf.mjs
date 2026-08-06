@@ -20,6 +20,7 @@ async function generateManual() {
   <title>Manual do Usuário — Health Nexus</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     :root {
       --primary: #4f46e5;
@@ -151,7 +152,7 @@ async function generateManual() {
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #6366f1;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -313,6 +314,15 @@ async function generateManual() {
       line-height: 1.5;
     }
 
+    .mermaid {
+      background: #0f172a;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      margin: 24px 0;
+      text-align: center;
+    }
+
     @media (max-width: 900px) {
       .layout-container { flex-direction: column; }
       .sidebar { width: 100%; height: auto; position: static; max-height: 350px; }
@@ -324,7 +334,7 @@ async function generateManual() {
 
   <div class="cover-page">
     <div class="brand-badge">
-      <i class="fa-solid fa-hospital-user"></i> Health Nexus v1.0
+      <i class="fa-solid fa-hospital-user"></i> Health Nexus v1.2.1
     </div>
     <h1 class="cover-title">Manual do Usuário & Guia Operacional</h1>
     <p class="cover-subtitle">Documentação técnica e passo a passo detalhado de todas as telas, botões, protocolos médicos e fluxos da plataforma hospitalar.</p>
@@ -338,6 +348,10 @@ async function generateManual() {
   <div class="layout-container">
     <aside class="sidebar">
       <div class="sidebar-title"><i class="fa-solid fa-list-ul"></i> Sumário Rápido</div>
+      <div style="margin-bottom: 14px; position: relative;">
+        <input type="text" id="sidebar-search-input" placeholder="🔍 Pesquisar no manual..." style="width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 9px 12px 9px 34px; color: #f8fafc; font-size: 0.82rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.78rem;"></i>
+      </div>
       <nav>
         <ul id="sidebar-nav">
           <!-- Populated dynamically via JavaScript for 100% accurate heading targets -->
@@ -352,6 +366,8 @@ async function generateManual() {
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
       const mainContent = document.getElementById('doc-main-content');
       const sidebarNav = document.getElementById('sidebar-nav');
       if (!mainContent || !sidebarNav) return;
@@ -361,7 +377,6 @@ async function generateManual() {
       const headingElements = [];
 
       headings.forEach((heading, idx) => {
-        // Create clean slug ID
         const text = heading.textContent.trim();
         const id = 'sec-' + (idx + 1) + '-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         heading.id = id;
@@ -374,6 +389,22 @@ async function generateManual() {
       });
 
       sidebarNav.innerHTML = navHtml;
+
+      // Live search input filtering
+      const searchInput = document.getElementById('sidebar-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const q = e.target.value.toLowerCase().trim();
+          sidebarNav.querySelectorAll('li').forEach(li => {
+            const txt = li.textContent.toLowerCase();
+            if (!q || txt.includes(q)) {
+              li.style.display = 'block';
+            } else {
+              li.style.display = 'none';
+            }
+          });
+        });
+      }
 
       // Smooth click handling
       sidebarNav.querySelectorAll('a').forEach(link => {

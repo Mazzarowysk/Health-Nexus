@@ -46,6 +46,24 @@
 
 O **Health Nexus** organiza a jornada assistencial do paciente desde a recepção até a alta definitiva ou internação em UTI/Enfermaria.
 
+### 🔄 Diagrama de Fluxo da Jornada Assistencial
+```mermaid
+graph TD
+    A["🏥 Recepção / Admissão"] --> B["🩺 Triagem de Manchester"]
+    B --> C{"Classificação de Risco"}
+    C -->|"🔴 Vermelho (0m)"| D1["🚨 Sala Vermelha (Emergência)"]
+    C -->|"🟠 Laranja (10m)"| D2["⚡ Atendimento Imediato"]
+    C -->|"🟡 Amarelo (60m)"| D3["⏳ Fila Urgente"]
+    C -->|"🟢 Verde (120m)"| D4["⏳ Fila Pouco Urgente"]
+    C -->|"🔵 Azul (240m)"| D5["⏳ Fila Não Urgente"]
+    D1 & D2 & D3 & D4 & D5 --> E["📢 Chamada Painel TV / Consultório"]
+    E --> F["📄 Atendimento Médico (PEP SOAP)"]
+    F --> G{"Conduta Final"}
+    G -->|"Alta Médica"| H["✅ Conclusão & Receita"]
+    G -->|"Observação PS (12h max)"| I["🕒 Card de Observação com Cronômetro"]
+    G -->|"Necessidade de Leito"| J["🛏️ Transferência para Enfermaria / UTI"]
+```
+
 ### 👥 Perfis de Acesso & Matriz de Permissões
 | Perfil | Acesso Principal | Módulos Liberados | Ações Permitidas |
 | :--- | :--- | :--- | :--- |
