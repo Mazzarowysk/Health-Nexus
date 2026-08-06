@@ -521,6 +521,10 @@ Além dos botões, é possível **arrastar e soltar** os cards entre as colunas:
 2. Arraste até a coluna de destino.
 3. Solte — o paciente será movido e o tempo no setor será reiniciado automaticamente.
 
+### ➕ Adicionar Paciente em Setor Vazio
+
+Se uma coluna não tiver pacientes, você pode **clicar diretamente no aviso central da coluna** ("Clique para adicionar"). O sistema abrirá o formulário de internação com aquele setor já pré-selecionado automaticamente.
+
 ### 🔍 Filtros em Formato de Card (Dashboard)
 
 No topo do Kanban, os setores são exibidos em um moderno **grid de Cards interativos**:

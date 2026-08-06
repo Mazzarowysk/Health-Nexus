@@ -88,6 +88,7 @@
     - **🩺 Prontuário direto do card:** abre o histórico clínico completo do paciente (consultas, PEP SOAP, receituários, atestados).  
     - **📝 Painel de Evolução Clínica:** registra novas evoluções com timestamp e autor; exibe timeline completa de todas as entradas anteriores.  
     - **Ações de gerenciamento por card:** ✏️ Editar dados, 🔄 Mover setor, 🚶 Alta hospitalar.  
+    - **Colunas Interativas:** Clique em áreas vazias de uma coluna para abrir o modal de adição de paciente com aquele setor já pré-selecionado.
     - **Drag & Drop** para mover pacientes entre colunas (setor reiniciado automaticamente).  
     - **Filtros rápidos** por setor com contagem em tempo real (cards KPI interativos).
 
