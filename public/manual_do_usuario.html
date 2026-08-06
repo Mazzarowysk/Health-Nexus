@@ -1500,11 +1500,24 @@ Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.<hr>
         });
       }
 
-      // Smooth click handling
+      // Smooth click handling for Sidebar
       sidebarNav.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', (e) => {
           e.preventDefault();
           const targetId = link.getAttribute('data-target');
+          const targetEl = document.getElementById(targetId);
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            history.pushState(null, '', '#' + targetId);
+          }
+        });
+      });
+
+      // Smooth click handling for TOC inside content
+      document.querySelectorAll('.markdown-content a[href^="#"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetId = link.getAttribute('href').substring(1);
           const targetEl = document.getElementById(targetId);
           if (targetEl) {
             targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
