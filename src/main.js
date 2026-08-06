@@ -1865,34 +1865,46 @@ const apiFetch = async (url, options = {}) => {
         }
       } else if (url.includes('/history') && url.includes('/patients/')) {
         const match = url.match(/\/patients\/([^\/]+)\/history/);
-        const patId = match ? match[1] : null;
+        const patId = match ? decodeURIComponent(match[1]) : null;
         const db = localDB.getFullDB();
         const allPatients = db.patients || [];
         
-        let patient = patId ? allPatients.find(p => p.id === patId) : null;
+        let patient = patId ? allPatients.find(p => p.id === patId || p.fullName === patId || (p.fullName && p.fullName.toLowerCase() === patId.toLowerCase())) : null;
         if (!patient && patId) {
           patient = localDB.get('patients', patId);
         }
         if (!patient && patId) {
           const encs = db.encounters || [];
-          const enc = encs.find(e => e.id === patId || e.patientId === patId);
+          const enc = encs.find(e => e.id === patId || e.patientId === patId || e.patientName === patId);
           if (enc) {
-            patient = allPatients.find(p => p.id === enc.patientId || p.fullName === enc.patientName) || { id: enc.patientId || patId, fullName: enc.patientName || 'Paciente' };
+            patient = allPatients.find(p => p.id === enc.patientId || (p.fullName && p.fullName === enc.patientName)) || { id: enc.patientId || patId, fullName: enc.patientName || patId };
           }
         }
-        
+
+        const pId = patient?.id || patId;
+        const pName = patient?.fullName || patId;
+
         const allEncounters = db.encounters || [];
-        const encounters = patId ? allEncounters.filter(e => e.patientId === patId || e.patientId === patient?.id || (patient?.fullName && e.patientName === patient.fullName)) : [];
+        const encounters = pId ? allEncounters.filter(e => 
+          e.patientId === pId || e.patientId === patId || 
+          (pName && e.patientName && e.patientName.toLowerCase() === pName.toLowerCase())
+        ) : [];
         
         const allAppointments = db.appointments || [];
-        const appointments = patId ? allAppointments.filter(a => a.patientId === patId || a.patientId === patient?.id || (patient?.fullName && a.patientName === patient.fullName)) : [];
+        const appointments = pId ? allAppointments.filter(a => 
+          a.patientId === pId || a.patientId === patId || 
+          (pName && a.patientName && a.patientName.toLowerCase() === pName.toLowerCase())
+        ) : [];
         
         const allTriages = db.triages || [];
-        const triages = patId ? allTriages.filter(t => t.patientId === patId || t.patientId === patient?.id || (patient?.fullName && t.patientName === patient.fullName)) : [];
+        const triages = pId ? allTriages.filter(t => 
+          t.patientId === pId || t.patientId === patId || 
+          (pName && t.patientName && t.patientName.toLowerCase() === pName.toLowerCase())
+        ) : [];
         
         responseData = {
           data: {
-            patient: patient || { id: patId || 'PAT-001', fullName: 'Paciente' },
+            patient: patient || { id: pId, fullName: pName },
             encounters,
             appointments,
             triages

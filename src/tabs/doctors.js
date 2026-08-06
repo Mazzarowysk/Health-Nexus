@@ -895,70 +895,146 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
     const result = await res.json();
     const data = result.data || result;
 
+    let patient = data.patient || {};
     let encounters = data.encounters || [];
     let appointments = data.appointments || [];
 
+    // Fallbacks se estiver vazio
     if (encounters.length === 0) {
       try {
         const encRes = await apiFetch('/api/encounters');
         const encJson = await encRes.json();
         const allEncs = Array.isArray(encJson) ? encJson : (encJson?.data || []);
-        encounters = allEncs.filter(e => e.patientId === patientId || (patientName && e.patientName === patientName));
+        encounters = allEncs.filter(e => e.patientId === patientId || (patientName && e.patientName && e.patientName.toLowerCase() === patientName.toLowerCase()));
+      } catch (e) {}
+    }
+
+    if (appointments.length === 0) {
+      try {
+        const aptRes = await apiFetch('/api/appointments');
+        const aptJson = await aptRes.json();
+        const allApts = Array.isArray(aptJson) ? aptJson : (aptJson?.data || []);
+        appointments = allApts.filter(a => a.patientId === patientId || (patientName && a.patientName && a.patientName.toLowerCase() === patientName.toLowerCase()));
       } catch (e) {}
     }
 
     const bodyEl = document.getElementById('history-modal-body');
     if (!bodyEl) return;
 
-    if (encounters.length === 0 && appointments.length === 0) {
-      bodyEl.innerHTML = `
-        <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
-          <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 12px; opacity: 0.5;"></i>
-          <h4 style="color: var(--text-primary); margin-bottom: 6px;">Nenhum atendimento registrado</h4>
-          <p style="font-size: 0.85rem;">Este paciente ainda não possui histórico de consultas ou internações pós-alta.</p>
-        </div>
-      `;
-      return;
-    }
-
     let html = `
-      <div style="margin-bottom: 20px; font-weight: 700; color: var(--text-primary); font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-clock-rotate-left" style="color: var(--color-primary);"></i> Histórico de Atendimentos & Pós-Alta (${encounters.length})
+      <!-- Card de Informações do Paciente -->
+      <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> ${patient.fullName || patientName}
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap;">
+            <span><strong>CPF:</strong> ${patient.cpf || 'Não informado'}</span>
+            <span><strong>Nascimento:</strong> ${patient.birthDate || 'Não informado'}</span>
+            <span><strong>Gênero:</strong> ${patient.gender || 'Não informado'}</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+            ${encounters.length} Atendimento(s)
+          </span>
+          <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+            ${appointments.length} Consulta(s)
+          </span>
+        </div>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 14px;">
+
+      <!-- SEÇÃO 1: ATENDIMENTOS & INTERNAÇÕES -->
+      <div style="margin-bottom: 24px;">
+        <div style="margin-bottom: 12px; font-weight: 700; color: var(--text-primary); font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-notes-medical" style="color: var(--color-primary);"></i> Atendimentos & Internações (${encounters.length})
+        </div>
+        
+        ${encounters.length === 0 ? `
+          <div style="background: var(--bg-tertiary); border: 1px dashed var(--border-color); border-radius: 12px; padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+            <i class="fa-solid fa-folder-open" style="font-size: 1.5rem; opacity: 0.5; margin-bottom: 6px; display: block;"></i>
+            Nenhum atendimento emergencial ou internação cadastrada para este paciente.
+          </div>
+        ` : `
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            ${encounters.map(enc => {
+              const isCompleted = enc.status === 'Finalizado' || enc.completed_at;
+              const statusLabel = isCompleted ? 'Alta Médica / Finalizado' : (enc.status || 'Em Atendimento');
+              const dateText = enc.admitted_at ? new Date(enc.admitted_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (enc.created_at ? new Date(enc.created_at).toLocaleDateString('pt-BR') : 'Data não registrada');
+              
+              const mColor = enc.manchesterColor || 'Verde';
+              let badgeBg = 'rgba(16, 185, 129, 0.2)';
+              let badgeColor = '#34d399';
+              if (mColor === 'Vermelho') { badgeBg = 'rgba(239, 68, 68, 0.2)'; badgeColor = '#f87171'; }
+              else if (mColor === 'Laranja') { badgeBg = 'rgba(249, 115, 22, 0.2)'; badgeColor = '#fb923c'; }
+              else if (mColor === 'Amarelo') { badgeBg = 'rgba(234, 179, 8, 0.2)'; badgeColor = '#facc15'; }
+              else if (mColor === 'Azul') { badgeBg = 'rgba(59, 130, 246, 0.2)'; badgeColor = '#60a5fa'; }
+
+              return `
+                <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-left: 4px solid ${isCompleted ? '#10b981' : '#f59e0b'}; border-radius: 12px; padding: 18px 22px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">Tipo: ${enc.type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</span>
+                      <span style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">
+                        Triagem ${mColor}
+                      </span>
+                      <span class="${isCompleted ? 'badge-alta' : 'badge-warning'}" style="font-size: 0.72rem;">
+                        <i class="fa-solid ${isCompleted ? 'fa-circle-check' : 'fa-spinner fa-spin'}" style="margin-right: 4px;"></i>${statusLabel}
+                      </span>
+                    </div>
+                    <span style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-calendar" style="margin-right: 4px;"></i>${dateText}</span>
+                  </div>
+
+                  <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
+                    <strong>Médico Responsável:</strong> ${enc.doctorName || 'Corpo Clínico Plantonista'}
+                  </div>
+                  <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
+                    <strong>Queixa Principal / Triagem:</strong> ${enc.complaints || enc.reason || 'Sem registro de queixa'}
+                  </div>
+
+                  ${enc.subjectiveContent || enc.notes ? `
+                    <div style="font-size: 0.82rem; background: rgba(0,0,0,0.25); padding: 12px 14px; border-radius: 8px; margin-top: 10px; color: var(--text-primary); border: 1px solid rgba(255,255,255,0.06);">
+                      <div style="font-weight: 700; color: var(--color-primary); margin-bottom: 4px;"><i class="fa-solid fa-stethoscope"></i> Avaliação Médica / PEP:</div>
+                      ${enc.subjectiveContent || enc.notes}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+
+      <!-- SEÇÃO 2: CONSULTAS & AGENDAMENTOS -->
+      <div style="margin-bottom: 10px;">
+        <div style="margin-bottom: 12px; font-weight: 700; color: var(--text-primary); font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-calendar-check" style="color: #60a5fa;"></i> Consultas & Agendamentos Ambulatoriais (${appointments.length})
+        </div>
+        
+        ${appointments.length === 0 ? `
+          <div style="background: var(--bg-tertiary); border: 1px dashed var(--border-color); border-radius: 12px; padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+            Nenhuma consulta agendada ou registrada para este paciente.
+          </div>
+        ` : `
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            ${appointments.map(apt => `
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">${apt.specialty || 'Consulta Médica'} — ${apt.doctorName || 'Médico Plantonista'}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                    <i class="fa-solid fa-clock"></i> ${apt.date || 'Data a definir'} ${apt.time ? `às ${apt.time}` : ''}
+                  </div>
+                </div>
+                <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 0.75rem;">
+                  ${apt.status || 'Agendado'}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
     `;
 
-    encounters.forEach(enc => {
-      const isCompleted = enc.status === 'Finalizado' || enc.completed_at;
-      const statusLabel = isCompleted ? 'Alta Médica / Finalizado' : enc.status;
-      const dateText = enc.admitted_at ? new Date(enc.admitted_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Data não registrada';
-
-      html += `
-        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-left: 4px solid ${isCompleted ? '#10b981' : '#f59e0b'}; border-radius: 12px; padding: 18px 22px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">Tipo: ${enc.type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</span>
-              <span class="${isCompleted ? 'badge-alta' : 'badge-warning'}" style="font-size: 0.72rem;">
-                <i class="fa-solid ${isCompleted ? 'fa-circle-check' : 'fa-spinner fa-spin'}" style="margin-right: 4px;"></i>${statusLabel}
-              </span>
-            </div>
-            <span style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-calendar" style="margin-right: 4px;"></i>${dateText}</span>
-          </div>
-
-          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
-            <strong>Queixa Principal / Triagem:</strong> ${enc.complaints || 'Sem registro de queixa'}
-          </div>
-
-          ${enc.subjectiveContent ? `
-            <div style="font-size: 0.82rem; background: rgba(0,0,0,0.2); padding: 10px 14px; border-radius: 8px; margin-top: 8px; color: var(--text-primary); border: 1px solid rgba(255,255,255,0.05);">
-              <strong>Avaliação Médica / PEP:</strong> ${enc.subjectiveContent}
-            </div>
-          ` : ''}
-        </div>
-      `;
-    });
-
-    html += `</div>`;
     bodyEl.innerHTML = html;
 
   } catch (e) {
