@@ -264,15 +264,15 @@ async function loadAndRenderStagnationData() {
         }
 
         let html = `
-          <table class="data-table" style="width: 100%;">
+          <table class="data-table" style="width: 100%; border-collapse: collapse;">
             <thead>
               <tr>
-                <th>PACIENTE</th>
-                <th>STATUS ATUAL</th>
-                <th>SALA / CONSULTÓRIO</th>
-                <th>TEMPO PARADO</th>
-                <th>DIAGNOSTICO DE ESTAGNAÇÃO</th>
-                <th style="text-align: right;">AÇÕES RÁPIDAS</th>
+                <th style="padding: 14px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--border-color);">PACIENTE</th>
+                <th style="padding: 14px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--border-color);">STATUS ATUAL</th>
+                <th style="padding: 14px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--border-color);">SALA / CONSULTÓRIO</th>
+                <th style="padding: 14px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--border-color);">TEMPO PARADO</th>
+                <th style="padding: 14px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--border-color);">DIAGNÓSTICO DE ESTAGNAÇÃO</th>
+                <th style="padding: 14px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--border-color); text-align: right;">AÇÕES RÁPIDAS</th>
               </tr>
             </thead>
             <tbody>
@@ -284,33 +284,48 @@ async function loadAndRenderStagnationData() {
           
           const badgeBg = isCritical ? 'rgba(239, 68, 68, 0.15)' : (isWarning ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)');
           const badgeColor = isCritical ? '#f87171' : (isWarning ? '#fbbf24' : '#60a5fa');
-          const badgeBorder = isCritical ? 'rgba(239, 68, 68, 0.3)' : (isWarning ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)');
+          const badgeBorder = isCritical ? 'rgba(239, 68, 68, 0.35)' : (isWarning ? 'rgba(245, 158, 11, 0.35)' : 'rgba(59, 130, 246, 0.35)');
+          const cleanStatus = (item.status || '').replace(/_/g, ' ');
 
           html += `
-            <tr style="${isCritical ? 'background: rgba(239,68,68,0.03);' : ''}">
-              <td>
-                <div style="font-weight: 700; color: var(--text-primary);">${item.patientName}</div>
-                <div style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">CPF: ${item.patientCpf || 'Não informado'}</div>
+            <tr style="border-bottom: 1px solid var(--border-color); ${isCritical ? 'background: rgba(239,68,68,0.03);' : ''} transition: background 0.2s ease;">
+              <td style="padding: 18px 16px; vertical-align: middle;">
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.98rem; margin-bottom: 4px; letter-spacing: -0.01em;">${item.patientName}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 4px; opacity: 0.85;">
+                  <i class="fa-solid fa-id-card" style="font-size: 0.72rem; color: #818cf8;"></i> CPF: ${item.patientCpf || 'Não informado'}
+                </div>
               </td>
-              <td>
-                <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};">
-                  ${item.status}
+              <td style="padding: 18px 16px; vertical-align: middle;">
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder}; letter-spacing: 0.02em;">
+                  <span style="width: 7px; height: 7px; border-radius: 50%; background: ${badgeColor}; display: inline-block;"></span>
+                  ${cleanStatus}
                 </span>
               </td>
-              <td>
-                <span style="font-weight: 600; color: #34d399;"><i class="fa-solid fa-door-open" style="margin-right: 4px;"></i>${item.room || 'Consultório 01'}</span>
+              <td style="padding: 18px 16px; vertical-align: middle;">
+                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 10px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); color: #34d399; font-size: 0.85rem; font-weight: 600;">
+                  <i class="fa-solid fa-door-open"></i> ${item.room || 'Consultório 01'}
+                </div>
               </td>
-              <td style="font-family: monospace; font-weight: 700; color: ${isCritical ? '#f87171' : '#fbbf24'};">
-                <i class="fa-solid fa-clock" style="margin-right: 4px;"></i>${item.elapsedMin} min
+              <td style="padding: 18px 16px; vertical-align: middle;">
+                <div style="display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.9rem; color: ${isCritical ? '#f87171' : '#fbbf24'}; background: ${isCritical ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)'}; padding: 6px 12px; border-radius: 10px; border: 1px solid ${isCritical ? 'rgba(239,68,68,0.25)' : 'rgba(245,158,11,0.25)'};">
+                  <i class="fa-solid fa-clock"></i> ${item.elapsedMin} min
+                </div>
               </td>
-              <td style="font-size: 0.82rem; color: var(--text-secondary);">
-                <strong>${item.reason}</strong>
-                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${item.recommendedAction}</div>
+              <td style="padding: 18px 16px; vertical-align: middle; max-width: 380px;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary); line-height: 1.4;">
+                    ${item.reason}
+                  </div>
+                  <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.4; display: flex; align-items: flex-start; gap: 6px; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                    <i class="fa-solid fa-lightbulb" style="color: #f59e0b; margin-top: 2px; flex-shrink: 0;"></i>
+                    <span>${item.recommendedAction}</span>
+                  </div>
+                </div>
               </td>
-              <td style="text-align: right;">
+              <td style="padding: 18px 16px; vertical-align: middle; text-align: right;">
                 <div class="actions-cell" style="justify-content: flex-end;">
-                  <button class="btn btn-primary" onclick="openReassignModal('${item.id}', '${(item.patientName||'').replace(/'/g, "\\'")}', '${item.room||'Consultório 01'}', '${item.status}')" style="font-size: 0.78rem; padding: 6px 12px; background: linear-gradient(135deg, #2563eb, #1d4ed8);" title="Redirecionar de Consultório/Ala ou Avançar Status">
-                    <i class="fa-solid fa-right-left" style="margin-right: 4px;"></i> Direcionar
+                  <button class="btn btn-primary" onclick="openReassignModal('${item.id}', '${(item.patientName||'').replace(/'/g, "\\'")}', '${item.room||'Consultório 01'}', '${item.status}')" style="font-size: 0.82rem; font-weight: 700; padding: 9px 18px; border-radius: 20px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; box-shadow: 0 4px 14px rgba(99,102,241,0.35); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: #ffffff;" title="Redirecionar de Consultório/Ala ou Avançar Status">
+                    <i class="fa-solid fa-right-left"></i> Direcionar
                   </button>
                 </div>
               </td>

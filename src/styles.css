@@ -4306,6 +4306,45 @@ body.compact-mode .modal-content {
   background: var(--text-muted);
 }
 
+/* --- MELHORIAS DE DIAGRAMAÇÃO DE TABELAS --- */
+.data-table, .patients-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th, .patients-table th {
+  padding: 16px 20px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-color);
+  text-align: left;
+}
+
+.data-table td, .patients-table td {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  line-height: 1.6;
+  vertical-align: middle;
+}
+
+.data-table tbody tr, .patients-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.data-table tbody tr:hover td, .patients-table tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.light-theme .data-table tbody tr:hover td, .light-theme .patients-table tbody tr:hover td {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+
 
 
 
