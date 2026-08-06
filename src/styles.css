@@ -2498,29 +2498,35 @@ body {
 .badge-draft {
   background-color: rgba(245, 166, 35, 0.15);
   color: #f5a623;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   border: 1px solid rgba(245, 166, 35, 0.3);
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  cursor: default;
+  user-select: none;
+  pointer-events: none;
 }
 
 .badge-signed {
   background-color: rgba(52, 199, 89, 0.15);
   color: #34c759;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   border: 1px solid rgba(52, 199, 89, 0.3);
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  cursor: default;
+  user-select: none;
+  pointer-events: none;
 }
 /* --- ATENDIMENTOS METRIC CARDS --- */
 .atd-metric-card {

@@ -5891,7 +5891,7 @@ window.openPEPModal = async function(encounterId) {
       const badge = document.getElementById('pep-status-badge');
       if (badge) {
         if (isClosed) {
-          badge.innerHTML = '<i class="fa-solid fa-lock"></i> ASSINADO E FECHADO';
+          badge.innerHTML = '<i class="fa-solid fa-lock"></i> ASSINADO E CONCLUÍDO';
           badge.className = 'badge-signed';
         } else {
           badge.innerHTML = '<i class="fa-solid fa-file-pen"></i> RASCUNHO SALVO';
@@ -5901,7 +5901,7 @@ window.openPEPModal = async function(encounterId) {
     } else {
       const badge = document.getElementById('pep-status-badge');
       if (badge) {
-        badge.innerHTML = '<i class="fa-solid fa-pencil"></i> NOVO ATENDIMENTO';
+        badge.innerHTML = '<i class="fa-solid fa-file-circle-plus"></i> EM PREENCHIMENTO';
         badge.className = 'badge-draft';
       }
     }
