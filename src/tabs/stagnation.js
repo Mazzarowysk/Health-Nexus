@@ -437,13 +437,15 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
             </select>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
             <div>
-              <button type="button" id="btn-internacao" class="btn" style="background: var(--danger); color: white; border: none; font-weight: 600;"><i class="fa-solid fa-bed-pulse"></i> Solicitar Internação</button>
+              <button type="button" id="btn-internacao" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; border: 1px solid #f87171; font-weight: 700; font-size: 0.85rem; padding: 10px 18px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); transition: transform 0.2s, box-shadow 0.2s;" title="Solicitar vaga imediata na UTI / Leito de Enfermaria">
+                <i class="fa-solid fa-bed-pulse"></i> Solicitar Internação
+              </button>
             </div>
             <div style="display: flex; gap: 10px;">
-              <button type="button" id="btn-cancel-reassign" class="btn btn-secondary">Cancelar</button>
-              <button type="submit" class="btn btn-primary">Confirmar Direcionamento</button>
+              <button type="button" id="btn-cancel-reassign" class="btn btn-secondary" style="padding: 10px 16px; border-radius: 12px; font-weight: 600;">Cancelar</button>
+              <button type="submit" class="btn btn-primary" style="padding: 10px 20px; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 14px rgba(99,102,241,0.35);">Confirmar Direcionamento</button>
             </div>
           </div>
         </form>
@@ -457,30 +459,36 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
     const btnInternacao = document.getElementById('btn-internacao');
     if (btnInternacao) {
       btnInternacao.addEventListener('click', async () => {
-        const confirmed = await showCustomConfirm({
-          title: 'Solicitar Internação',
-          message: `Deseja realmente solicitar a internação em UTI/Leito para o paciente ${patientName}?`,
-          confirmText: 'Sim, Solicitar Internação',
-          type: 'danger'
-        });
+        btnInternacao.disabled = true;
+        btnInternacao.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Solicitando...';
         
-        if (confirmed) {
-          const roomSelect = document.getElementById('reassign-room');
-          const statusSelect = document.getElementById('reassign-status');
-          
-          // Ensure UTI option exists or add it dynamically
-          let utiOpt = Array.from(roomSelect.options).find(o => o.value.includes('UTI') || o.value.includes('Internação'));
-          if (!utiOpt) {
-            utiOpt = document.createElement('option');
-            utiOpt.value = 'UTI / Internação';
-            utiOpt.textContent = 'UTI / Internação - Unidade Crítica';
-            roomSelect.appendChild(utiOpt);
-          }
-          roomSelect.value = utiOpt.value;
+        try {
+          const res = await apiFetch('/api/stagnation/reassign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              encounterId,
+              room: 'UTI / Internação',
+              status: 'Aguardando_Leito'
+            })
+          });
 
-          statusSelect.value = 'Aguardando_Leito';
-          
-          document.getElementById('reassign-form').dispatchEvent(new Event('submit', { cancelable: true }));
+          if (res.ok) {
+            showToast(`🛏️ Internação em UTI/Leito solicitada com sucesso para ${patientName}!`);
+            closeModal();
+            const mainContent = document.getElementById('main-content');
+            if (mainContent) {
+              loadAndRenderStagnationData();
+            }
+          } else {
+            showCustomAlert({ title: 'Atenção', message: 'Erro ao solicitar internação.', type: 'warning' });
+            btnInternacao.disabled = false;
+            btnInternacao.innerHTML = '<i class="fa-solid fa-bed-pulse"></i> Solicitar Internação';
+          }
+        } catch (err) {
+          showCustomAlert({ title: 'Erro', message: 'Falha de conexão ao solicitar internação.', type: 'danger' });
+          btnInternacao.disabled = false;
+          btnInternacao.innerHTML = '<i class="fa-solid fa-bed-pulse"></i> Solicitar Internação';
         }
       });
     }
