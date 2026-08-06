@@ -3103,7 +3103,90 @@ async function renderTabContent() {
 
         <!-- Seção de Gráficos Interativos (Layout Híbrido Neon Glass) -->
         <div class="charts-grid">
-          <!-- Card 1: Ocupação Híbrida de Leitos -->
+          <!-- Card 1: FUNIL DE ATENDIMENTO HOSPITALAR (Estilo Funil) -->
+          <div class="chart-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h4 class="chart-card-title" style="margin-bottom: 0;">
+                <i class="fa-solid fa-filter" style="color: #3b82f6;"></i> Funil de Atendimento Hospitalar
+              </h4>
+              <span class="badge-status-pill" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
+                <i class="fa-solid fa-bolt"></i> Tempo Real
+              </span>
+            </div>
+
+            <div class="funnel-card-body">
+              <!-- Visual do Funil Trapezoidal -->
+              <div class="funnel-wrapper">
+                <div class="funnel-stage funnel-stage-1" title="Entrada / Recepção: 1.250 pacientes (100%)">
+                  <i class="fa-solid fa-users" style="margin-right: 6px;"></i> 1.250 (100%)
+                </div>
+                <div class="funnel-stage funnel-stage-2" title="Triagem Manchester: 1.080 pacientes (86,4%)">
+                  <i class="fa-solid fa-clipboard-check" style="margin-right: 6px;"></i> 1.080 (86,4%)
+                </div>
+                <div class="funnel-stage funnel-stage-3" title="Atendimento Médico: 890 pacientes (71,2%)">
+                  <i class="fa-solid fa-user-doctor" style="margin-right: 6px;"></i> 890 (71,2%)
+                </div>
+                <div class="funnel-stage funnel-stage-4" title="Exames / Medicação: 420 pacientes (33,6%)">
+                  <i class="fa-solid fa-vial" style="margin-right: 6px;"></i> 420 (33,6%)
+                </div>
+                <div class="funnel-stage funnel-stage-5" title="Alta / Resolvidos: 385 pacientes (30,8%)">
+                  <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> 385 (30,8%)
+                </div>
+              </div>
+
+              <!-- Legenda Detalhada Lateral -->
+              <div class="funnel-legend-list">
+                <div class="funnel-legend-item">
+                  <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
+                    <span class="funnel-dot" style="background: #3b82f6;"></span> Recepção / Entrada
+                  </span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">1.250 <small style="color: #3b82f6; font-size: 0.72rem;">100%</small></span>
+                </div>
+                <div class="funnel-legend-item">
+                  <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
+                    <span class="funnel-dot" style="background: #10b981;"></span> Triados Manchester
+                  </span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">1.080 <small style="color: #10b981; font-size: 0.72rem;">86,4%</small></span>
+                </div>
+                <div class="funnel-legend-item">
+                  <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
+                    <span class="funnel-dot" style="background: #f59e0b;"></span> Atendidos Consultório
+                  </span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">890 <small style="color: #f59e0b; font-size: 0.72rem;">71,2%</small></span>
+                </div>
+                <div class="funnel-legend-item">
+                  <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
+                    <span class="funnel-dot" style="background: #f97316;"></span> Exames & Medicação
+                  </span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">420 <small style="color: #f97316; font-size: 0.72rem;">33,6%</small></span>
+                </div>
+                <div class="funnel-legend-item">
+                  <span style="font-size: 0.8rem; color: #cbd5e1; display: flex; align-items: center;">
+                    <span class="funnel-dot" style="background: #34d399;"></span> Alta / Resolvidos
+                  </span>
+                  <span style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">385 <small style="color: #34d399; font-size: 0.72rem;">30,8%</small></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rodapé de Taxa de Conversão / Resolutividade Final -->
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 700;">Taxa de Resolutividade Final</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: #34d399; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-arrow-trend-up"></i> 30,8%
+                </div>
+              </div>
+              <div style="text-align: right; width: 45%;">
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Meta: <strong>35,0%</strong> <span style="color: #34d399; font-size: 0.7rem;">(88% da meta)</span></div>
+                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+                  <div style="width: 88%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 10px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Ocupação Híbrida de Leitos -->
           <div class="chart-card hybrid-occupancy-card">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
               <h4 class="chart-card-title" style="margin-bottom: 0;">
@@ -3133,12 +3216,32 @@ async function renderTabContent() {
             </div>
           </div>
 
-          <!-- Card 2: Histórico de Atendimentos Mensais -->
+          <!-- Card 3: Classificação de Risco Manchester -->
           <div class="chart-card">
-            <h4 class="chart-card-title">
-              <i class="fa-solid fa-chart-line" style="color: var(--color-accent);"></i> Histórico de Atendimentos Mensais
-            </h4>
-            <div class="chart-container">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h4 class="chart-card-title" style="margin-bottom: 0;">
+                <i class="fa-solid fa-shield-halved" style="color: #ef4444;"></i> Risco Manchester (Gravidade)
+              </h4>
+              <span class="badge-status-pill" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Triagem PS
+              </span>
+            </div>
+            <div class="chart-container" style="height: 240px;">
+              <canvas id="manchesterChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Card 4: Histórico de Atendimentos Mensais -->
+          <div class="chart-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h4 class="chart-card-title" style="margin-bottom: 0;">
+                <i class="fa-solid fa-chart-line" style="color: var(--color-accent);"></i> Histórico de Atendimentos Mensais
+              </h4>
+              <span class="badge-status-pill" style="background: rgba(0, 242, 254, 0.15); border: 1px solid rgba(0, 242, 254, 0.35); color: #00f2fe; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
+                <i class="fa-solid fa-calendar-days"></i> Mês Atual
+              </span>
+            </div>
+            <div class="chart-container" style="height: 240px;">
               <canvas id="appointmentsChart"></canvas>
             </div>
           </div>
@@ -5316,6 +5419,58 @@ function initDashboardCharts(data) {
       }
     });
     appointmentsCtx._chartInstance = inst2;
+  }
+
+  // 3. Gráfico de Classificação de Risco Manchester (Doughnut Risco PS)
+  const manchesterCtx = document.getElementById('manchesterChart');
+  if (manchesterCtx) {
+    if (manchesterCtx._chartInstance) manchesterCtx._chartInstance.destroy();
+    const ctxM = manchesterCtx.getContext('2d');
+    const instM = new ChartClass(ctxM, {
+      type: 'doughnut',
+      data: {
+        labels: ['Vermelho (Emergência)', 'Laranja (Muito Urgente)', 'Amarelo (Urgente)', 'Verde (Pouco Urgente)', 'Azul (Não Urgente)'],
+        datasets: [{
+          data: [8, 18, 42, 24, 8],
+          backgroundColor: ['#ef4444', '#f97316', '#eab308', '#10b981', '#3b82f6'],
+          borderWidth: 3,
+          borderColor: 'rgba(11, 8, 22, 0.95)',
+          borderRadius: 6,
+          spacing: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        animation: { duration: 1200, easing: 'easeOutQuart' },
+        onClick: () => {
+          if (typeof switchTab === 'function') switchTab('estagnacao');
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'right',
+            labels: {
+              color: '#cbd5e1',
+              font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
+              usePointStyle: true,
+              boxWidth: 8,
+              padding: 10
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.92)',
+            titleColor: '#00f2fe',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(239, 68, 68, 0.35)',
+            borderWidth: 1,
+            padding: 10
+          }
+        }
+      }
+    });
+    manchesterCtx._chartInstance = instM;
   }
 }
 

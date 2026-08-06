@@ -1390,6 +1390,112 @@ body {
   width: 100%;
 }
 
+/* --- ESTILOS DO GRÁFICO FUNIL DE ATENDIMENTO HOSPITALAR --- */
+.funnel-card-body {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.funnel-wrapper {
+  flex: 1.1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.funnel-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, filter 0.2s ease;
+  cursor: pointer;
+}
+
+.funnel-stage:hover {
+  transform: scale(1.03);
+  filter: brightness(1.15);
+  z-index: 2;
+}
+
+.funnel-stage-1 {
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+  border-radius: 8px 8px 4px 4px;
+}
+
+.funnel-stage-2 {
+  width: 86%;
+  height: 42px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
+  border-radius: 4px;
+}
+
+.funnel-stage-3 {
+  width: 72%;
+  height: 40px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%);
+  border-radius: 4px;
+}
+
+.funnel-stage-4 {
+  width: 58%;
+  height: 38px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  clip-path: polygon(0 0, 100% 0, 78% 100%, 22% 100%);
+  border-radius: 4px;
+}
+
+.funnel-stage-5 {
+  width: 44%;
+  height: 38px;
+  background: linear-gradient(135deg, #34d399, #059669);
+  clip-path: polygon(0 0, 100% 0, 72% 100%, 28% 100%);
+  border-radius: 4px 4px 8px 8px;
+}
+
+.funnel-legend-list {
+  flex: 0.9;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.funnel-legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.funnel-legend-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.funnel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
 /* --- EFEITO DE DESTAQUE PULSANTE NA TABELA AO CLICAR NO GRÁFICO --- */
 @keyframes rowPulseGlow {
   0% {
