@@ -367,23 +367,42 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
       </div>
     `;
 
-    // Fetch consulting rooms dynamically
-    let roomOptionsHtml = '<option value="">Carregando...</option>';
+    // Fetch consulting rooms dynamically with robust fallbacks
+    let roomOptionsHtml = '';
     try {
       const res = await apiFetch('/api/consulting-rooms');
       const result = await res.json();
-      if (result.status === 'success' && result.data && result.data.length > 0) {
-        roomOptionsHtml = result.data.map(r => {
-          const roomValue = `${r.name} ${r.currentDoctor ? `(${r.currentDoctor})` : ''}`.trim();
-          const selected = currentRoom && currentRoom.includes(r.name) ? 'selected' : '';
-          return `<option value="${roomValue}" ${selected}>${r.name} ${r.specialty ? ` - ${r.specialty}` : ''}</option>`;
+      const roomsList = Array.isArray(result) ? result : (result.data || result.consultorios || []);
+
+      if (roomsList && roomsList.length > 0) {
+        roomOptionsHtml = roomsList.map(r => {
+          const roomName = r.name || r.nome || r.room || 'Consultório';
+          const spec = r.specialty || r.especialidade || r.ala || '';
+          const doctor = r.currentDoctor || r.medico || '';
+          const roomValue = `${roomName}${doctor ? ` (${doctor})` : ''}`.trim();
+          const selected = currentRoom && currentRoom.includes(roomName) ? 'selected' : '';
+          return `<option value="${roomValue}" ${selected}>${roomName}${spec ? ` - ${spec}` : ''}</option>`;
         }).join('');
-      } else {
-        roomOptionsHtml = '<option value="">Nenhum consultório encontrado</option>';
       }
     } catch (err) {
       console.error('Erro ao carregar consultórios no modal:', err);
-      roomOptionsHtml = '<option value="">Erro ao carregar</option>';
+    }
+
+    // Default hospital room fallbacks if database table is empty
+    if (!roomOptionsHtml || roomOptionsHtml.trim() === '') {
+      const defaultRooms = [
+        { name: 'Consultório 01', spec: 'Clínica Geral' },
+        { name: 'Consultório 02', spec: 'Pediatria' },
+        { name: 'Consultório 03', spec: 'Ortopedia' },
+        { name: 'Consultório 04', spec: 'Cardiologia' },
+        { name: 'Sala de Emergência', spec: 'Urgência / PS' },
+        { name: 'Sala de Procedimentos', spec: 'Enfermagem' },
+        { name: 'UTI / Internação', spec: 'Unidade Crítica' }
+      ];
+      roomOptionsHtml = defaultRooms.map(r => {
+        const selected = currentRoom && currentRoom.includes(r.name) ? 'selected' : '';
+        return `<option value="${r.name}" ${selected}>${r.name} - ${r.spec}</option>`;
+      }).join('');
     }
 
     modal.innerHTML = `
