@@ -326,6 +326,46 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
   return { encounters, triages };
 }
 
+
+function generateHospitalizations(patients, doctors, count = 25) {
+  const hospitalizations = [];
+  const sectors = ['ps', 'corredor', 'clinica-medica', 'uti'];
+  
+  for (let i = 0; i < count; i++) {
+    const patient = pick(patients);
+    const doctor = pick(doctors);
+    const sector = pick(sectors);
+    
+    // Some are 'Internado', some are 'Alta'
+    const status = Math.random() > 0.8 ? 'Alta' : 'Internado';
+    const admHoursAgo = rnd(24, 240);
+    const admDate = new Date(Date.now() - admHoursAgo * 3600000).toISOString();
+    const sectorDate = new Date(Date.now() - rnd(1, admHoursAgo - 1) * 3600000).toISOString();
+    
+    hospitalizations.push({
+      id: \HOSP-\\,
+      patient_id: patient.id,
+      patientName: patient.fullName,
+      current_sector: sector,
+      sector_entry_date: sectorDate,
+      admission_date: admDate,
+      bed: sector === 'uti' ? \UTI-\\ : sector === 'clinica-medica' ? \ENF-\\ : 'S/ Leito',
+      diagnosis: pick(['Pneumonia', 'IAM', 'Sepse', 'Pós-operatório', 'Trauma', 'Insuficiência Cardíaca']),
+      doctor_id: doctor.id,
+      doctor_name: doctor.name,
+      notes: pick(['Quadro estável', 'Aguardando exames', 'Evolução favorável', 'Programar alta', 'Agitado']),
+      status: status,
+      discharge_date: status === 'Alta' ? new Date(Date.now() - rnd(1, 24) * 3600000).toISOString() : null,
+      evolutions: [
+        { date: admDate, text: 'Paciente admitido com ' + pick(['dor intensa', 'falta de ar', 'febre alta', 'desconforto']), doctor: doctor.name }
+      ],
+      created_at: admDate,
+      updated_at: new Date().toISOString()
+    });
+  }
+  return hospitalizations;
+}
+
 function generateBeds(encounters) {
   const bedDefs = [
     // Enfermaria
@@ -602,8 +642,13 @@ export async function generateMockData() {
   console.log('[MockGen] Gerando atendimentos e triagens...');
   const { encounters, triages } = generateEncountersAndTriages(patients, doctors, 45);
 
+
   console.log('[MockGen] Gerando leitos...');
   const beds = generateBeds(encounters);
+
+  console.log('[MockGen] Gerando internações (Kanban)...');
+  const hospitalizations = generateHospitalizations(patients, doctors, 25);
+
 
   console.log('[MockGen] Gerando financeiro...');
   const financial_installments = generateFinancial(patients, encounters, 90);
@@ -630,6 +675,7 @@ export async function generateMockData() {
     encounters,
     triages,
     beds,
+    hospitalizations,
     financial_installments,
     tv_calls,
     medications,
@@ -651,5 +697,5 @@ export async function generateMockData() {
   console.log(`  → ${medications.length} medicamentos`);
   console.log(`  → ${duty_schedules.length} escalas de plantão`);
 
-  return { patients, doctors, appointments, encounters, triages, beds, financial_installments, tv_calls, medications, duty_schedules };
+  return { patients, doctors, appointments, encounters, triages, beds, hospitalizations, financial_installments, tv_calls, medications, duty_schedules };
 }
