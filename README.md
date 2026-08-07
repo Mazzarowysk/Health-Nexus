@@ -418,3 +418,12 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 ---
 
 *Desenvolvido por @mazzarowysk & @_coltri_*
+
+
+## Nova Atualização: Gráficos e Interatividade
+- **Dashboard Principal**: Agora conta com visualização completa de ocupação através de gráficos interativos.
+- **Kanban Interativo**: 
+  - Gráfico 'Distribuição Geral' para análise em tempo real dos pacientes por setor.
+  - Cartões de pacientes agora são **clicáveis**, exibindo o histórico detalhado do paciente.
+  - Áreas vazias de colunas permitem o rápido cadastro de admissão no setor.
+- **Relatórios**: A sessão de Relatórios e Exportação foi refinada e padronizada.

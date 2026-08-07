@@ -151,7 +151,7 @@ function renderCard(hosp, col) {
   const safeName = (hosp.patientName || '').replace(/'/g, "\\'");
 
   return `
-    <div class="kanban-card" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--bg-card); border:1px solid var(--border-color); border-left:4px solid ${statusColor}; border-radius:10px; padding:14px; cursor:grab; box-shadow:0 2px 8px rgba(0,0,0,0.15); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease; display:flex; flex-direction:column; gap:12px;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.25)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';">
+    <div class="kanban-card" onclick="if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${hosp.patient_id}');" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--bg-card); border:1px solid var(--border-color); border-left:4px solid ${statusColor}; border-radius:10px; padding:14px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease; display:flex; flex-direction:column; gap:12px;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.25)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';">
       
       <!-- Top: User Info & ID -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
