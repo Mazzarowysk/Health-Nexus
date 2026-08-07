@@ -320,55 +320,65 @@ window.openAddPatientKanbanModal = function(preselectedSectorId = null) {
   const patients=localDB.list('patients');
   const users=localDB.list('users').filter(u=>['Medico','Master','Desenvolvedor','Enfermeiro'].includes(u.role));
   document.body.insertAdjacentHTML('beforeend', `
-    <div id="kanban-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;backdrop-filter:blur(4px);">
-      <div style="background:var(--bg-card);padding:28px;border-radius:14px;width:100%;max-width:460px;box-shadow:0 20px 50px rgba(0,0,0,0.4);border:1px solid var(--border-color);max-height:90vh;overflow-y:auto;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-          <h3 style="margin:0;color:var(--text-primary);font-family:'Outfit';font-size:1.1rem;"><i class="fa-solid fa-bed-pulse" style="color:var(--color-primary);"></i> Adicionar ao Kanban</h3>
-          <button onclick="document.getElementById('kanban-modal').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.3rem;">&times;</button>
+    <div id="kanban-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.75);z-index:99999;backdrop-filter:blur(6px);">
+      <div style="background:#18152e;padding:26px 28px;border-radius:16px;width:92%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,0.7);border:1px solid rgba(139,92,246,0.35);max-height:90vh;overflow-y:auto;">
+        
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.1);">
+          <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:10px;">
+            <i class="fa-solid fa-bed-pulse" style="color:#ec4899;font-size:1.2rem;"></i> Adicionar ao Kanban
+          </h3>
+          <button onclick="document.getElementById('kanban-modal').remove()" style="background:rgba(255,255,255,0.1);border:none;cursor:pointer;color:#ffffff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">&times;</button>
         </div>
-        <div style="display:grid;gap:14px;">
+
+        <div style="display:grid;gap:16px;">
           <div>
-            <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Paciente *</label>
-            <select id="kanban-pat-select" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;">
-              <option value="">Selecione o paciente...</option>
-              ${patients.map(p => `<option value="${p.id}">${p.fullName || p.name || '(sem nome)'} ${p.cpf ? '— CPF: ' + p.cpf : ''}</option>`).join('')}
+            <label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;letter-spacing:0.3px;">Paciente *</label>
+            <select id="kanban-pat-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;font-weight:500;box-sizing:border-box;">
+              <option value="" style="background:#0f172a;color:#94a3b8;">Selecione o paciente...</option>
+              ${patients.map(p => `<option value="${p.id}" style="background:#0f172a;color:#ffffff;">${p.fullName || p.name || '(sem nome)'} ${p.cpf ? '— CPF: ' + p.cpf : ''}</option>`).join('')}
             </select>
           </div>
+
           <div>
-            <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Setor Inicial *</label>
-            <select id="kanban-sector-select" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;">
-              ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id === preselectedSectorId ? 'selected' : ''}>${c.label}</option>`).join('')}
+            <label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;letter-spacing:0.3px;">Setor Inicial *</label>
+            <select id="kanban-sector-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;font-weight:500;box-sizing:border-box;">
+              ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id === preselectedSectorId ? 'selected' : ''} style="background:#0f172a;color:#ffffff;">${c.label}</option>`).join('')}
             </select>
           </div>
+
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-              <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Leito</label>
-              <input id="kanban-bed" type="text" placeholder="Ex: UTI-05" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;">
+              <label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;letter-spacing:0.3px;">Leito</label>
+              <input id="kanban-bed" type="text" placeholder="Ex: UTI-05" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;box-sizing:border-box;">
             </div>
             <div>
-              <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Data Admissao</label>
-              <input id="kanban-admission" type="datetime-local" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;" value="${new Date().toISOString().slice(0,16)}">
+              <label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;letter-spacing:0.3px;">Data Admissão</label>
+              <input id="kanban-admission" type="datetime-local" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;box-sizing:border-box;color-scheme:dark;" value="${new Date().toISOString().slice(0,16)}">
             </div>
           </div>
+
           <div>
-            <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Diagnostico / Hipotese</label>
-            <input id="kanban-diagnosis" type="text" placeholder="Ex: Pneumonia, TCE..." class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;">
+            <label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;letter-spacing:0.3px;">Diagnóstico / Hipótese</label>
+            <input id="kanban-diagnosis" type="text" placeholder="Ex: Pneumonia, TCE..." class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;box-sizing:border-box;">
           </div>
+
           <div>
-            <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Medico Responsavel</label>
-            <select id="kanban-doctor-select" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;">
-              <option value="">Selecione...</option>
-              ${users.map(u=>`<option value="${u.id}">${u.name || u.username || '(sem nome)'}</option>`).join('')}
+            <label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;letter-spacing:0.3px;">Médico Responsável</label>
+            <select id="kanban-doctor-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;font-weight:500;box-sizing:border-box;">
+              <option value="" style="background:#0f172a;color:#94a3b8;">Selecione o médico...</option>
+              ${users.map(u=>`<option value="${u.id}" style="background:#0f172a;color:#ffffff;">${u.name || u.username || '(sem nome)'}</option>`).join('')}
             </select>
           </div>
+
           <div>
-            <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Observacoes Iniciais</label>
-            <textarea id="kanban-notes" placeholder="Notas de admissao..." class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;min-height:70px;resize:vertical;box-sizing:border-box;"></textarea>
+            <label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;letter-spacing:0.3px;">Observações Iniciais</label>
+            <textarea id="kanban-notes" placeholder="Notas de admissão..." class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;min-height:75px;resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
           </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
-          <button onclick="document.getElementById('kanban-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-primary);cursor:pointer;font-size:0.88rem;">Cancelar</button>
-          <button onclick="saveKanbanPatient()" style="padding:9px 18px;border-radius:8px;background:var(--color-primary);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:600;"><i class="fa-solid fa-plus"></i> Adicionar</button>
+
+        <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);">
+          <button onclick="document.getElementById('kanban-modal').remove()" style="padding:10px 20px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">Cancelar</button>
+          <button onclick="saveKanbanPatient()" style="padding:10px 22px;border-radius:8px;background:linear-gradient(135deg, #ec4899, #8b5cf6);color:#ffffff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 15px rgba(236,72,153,0.4);display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-plus"></i> Adicionar</button>
         </div>
       </div>
     </div>
@@ -401,24 +411,24 @@ window.openEditKanbanCard = function(hospId) {
   const patName = pat.fullName || pat.name || 'Desconhecido';
   const colLabel=KANBAN_COLUMNS.find(c=>c.id===hosp.current_sector)?.label||hosp.current_sector;
   document.body.insertAdjacentHTML('beforeend',`
-    <div id="kanban-edit-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;backdrop-filter:blur(4px);">
-      <div style="background:var(--bg-card);padding:28px;border-radius:14px;width:100%;max-width:460px;box-shadow:0 20px 50px rgba(0,0,0,0.4);border:1px solid var(--border-color);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <h3 style="margin:0;color:var(--text-primary);font-family:'Outfit';font-size:1.1rem;"><i class="fa-regular fa-pen-to-square" style="color:var(--color-primary);"></i> Evoluir Paciente</h3>
-          <button onclick="document.getElementById('kanban-edit-modal').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.3rem;">&times;</button>
+    <div id="kanban-edit-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.75);z-index:99999;backdrop-filter:blur(6px);">
+      <div style="background:#18152e;padding:26px 28px;border-radius:16px;width:92%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,0.7);border:1px solid rgba(139,92,246,0.35);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
+          <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;"><i class="fa-regular fa-pen-to-square" style="color:#ec4899;"></i> Evoluir Paciente</h3>
+          <button onclick="document.getElementById('kanban-edit-modal').remove()" style="background:rgba(255,255,255,0.1);border:none;cursor:pointer;color:#ffffff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;">&times;</button>
         </div>
-        <p style="margin:0 0 16px;font-size:0.9rem;color:var(--text-muted);">${patName} &middot; <b style="color:var(--text-primary);">${colLabel}</b></p>
-        <div style="display:grid;gap:12px;">
-          <div><label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Diagnostico</label>
-            <input id="edit-diagnosis" type="text" class="form-control" value="${hosp.diagnosis||''}" placeholder="Diagnostico..." style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;"></div>
-          <div><label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Leito</label>
-            <input id="edit-bed" type="text" class="form-control" value="${hosp.bed||''}" placeholder="Leito..." style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;"></div>
-          <div><label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Notas de Evolucao</label>
-            <textarea id="edit-notes" class="form-control" placeholder="Evolucao clinica..." style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;min-height:90px;resize:vertical;box-sizing:border-box;">${hosp.notes||''}</textarea></div>
+        <p style="margin:0 0 16px;font-size:0.92rem;color:#cbd5e1;font-weight:600;">${patName} &middot; <b style="color:#a7f3d0;">${colLabel}</b></p>
+        <div style="display:grid;gap:14px;">
+          <div><label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;">Diagnóstico</label>
+            <input id="edit-diagnosis" type="text" class="form-control" value="${hosp.diagnosis||''}" placeholder="Diagnóstico..." style="width:100%;padding:10px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;box-sizing:border-box;"></div>
+          <div><label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;">Leito</label>
+            <input id="edit-bed" type="text" class="form-control" value="${hosp.bed||''}" placeholder="Leito..." style="width:100%;padding:10px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;box-sizing:border-box;"></div>
+          <div><label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;">Notas de Evolução</label>
+            <textarea id="edit-notes" class="form-control" placeholder="Evolução clínica..." style="width:100%;padding:10px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;min-height:90px;resize:vertical;box-sizing:border-box;">${hosp.notes||''}</textarea></div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
-          <button onclick="document.getElementById('kanban-edit-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-primary);cursor:pointer;font-size:0.88rem;">Cancelar</button>
-          <button onclick="saveEditKanbanCard('${hospId}')" style="padding:9px 18px;border-radius:8px;background:var(--color-primary);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:600;"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);">
+          <button onclick="document.getElementById('kanban-edit-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;">Cancelar</button>
+          <button onclick="saveEditKanbanCard('${hospId}')" style="padding:9px 18px;border-radius:8px;background:linear-gradient(135deg, #ec4899, #8b5cf6);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 14px rgba(236,72,153,0.4);"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
         </div>
       </div>
     </div>`);
@@ -431,7 +441,7 @@ window.saveEditKanbanCard = function(hospId) {
     notes:document.getElementById('edit-notes').value.trim()
   });
   document.getElementById('kanban-edit-modal').remove();
-  if(window.showToast) window.showToast('Evolucao registrada!');
+  if(window.showToast) window.showToast('Evolução registrada!');
   loadAndRenderKanban();
 };
 
@@ -441,17 +451,17 @@ window.moveKanbanCard = function(hospId) {
   const hosp=localDB.get('hospitalizations',hospId); if(!hosp) return;
   const pat=(localDB.list('patients').find(p=>p.id===hosp.patient_id)||{});
   document.body.insertAdjacentHTML('beforeend',`
-    <div id="kanban-move-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;backdrop-filter:blur(4px);">
-      <div style="background:var(--bg-card);padding:28px;border-radius:14px;width:100%;max-width:360px;box-shadow:0 20px 50px rgba(0,0,0,0.4);border:1px solid var(--border-color);">
-        <h3 style="margin:0 0 8px;color:var(--text-primary);font-family:'Outfit';font-size:1.1rem;"><i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--color-primary);"></i> Mover Setor</h3>
-        <p style="font-size:0.85rem;color:var(--text-muted);margin:0 0 18px;">${pat.fullName || pat.name||'Paciente'}</p>
-        <div><label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;">Novo Setor</label>
-          <select id="move-sector-select" class="form-control" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);">
-            ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id===hosp.current_sector?'selected':''}>${c.label}</option>`).join('')}
+    <div id="kanban-move-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.75);z-index:99999;backdrop-filter:blur(6px);">
+      <div style="background:#18152e;padding:26px 28px;border-radius:16px;width:92%;max-width:380px;box-shadow:0 25px 60px rgba(0,0,0,0.7);border:1px solid rgba(139,92,246,0.35);">
+        <h3 style="margin:0 0 8px;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;"><i class="fa-solid fa-arrow-right-arrow-left" style="color:#6366f1;"></i> Mover Setor</h3>
+        <p style="font-size:0.9rem;color:#cbd5e1;margin:0 0 18px;font-weight:600;">${pat.fullName || pat.name||'Paciente'}</p>
+        <div><label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;">Novo Setor</label>
+          <select id="move-sector-select" class="form-control" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;font-weight:500;">
+            ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id===hosp.current_sector?'selected':''} style="background:#0f172a;color:#ffffff;">${c.label}</option>`).join('')}
           </select></div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
-          <button onclick="document.getElementById('kanban-move-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-primary);cursor:pointer;font-size:0.88rem;">Cancelar</button>
-          <button onclick="confirmMoveKanban('${hospId}')" style="padding:9px 18px;border-radius:8px;background:var(--color-primary);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:600;"><i class="fa-solid fa-check"></i> Mover</button>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
+          <button onclick="document.getElementById('kanban-move-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;">Cancelar</button>
+          <button onclick="confirmMoveKanban('${hospId}')" style="padding:9px 18px;border-radius:8px;background:linear-gradient(135deg, #6366f1, #8b5cf6);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 14px rgba(99,102,241,0.4);"><i class="fa-solid fa-check"></i> Mover</button>
         </div>
       </div>
     </div>`);
@@ -484,29 +494,29 @@ window.viewKanbanNotes = function(hospId) {
   }
   const evoHtml = evolutions.length > 0
     ? evolutions.slice().reverse().map(e => `
-        <div style="background:var(--bg-color);padding:12px 14px;border-radius:8px;border:1px solid var(--border-color);margin-bottom:8px;">
+        <div style="background:#0f172a;padding:12px 14px;border-radius:10px;border:1px solid rgba(139,92,246,0.3);margin-bottom:10px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-size:0.72rem;font-weight:700;color:var(--color-primary);"><i class="fa-regular fa-user-circle"></i> ${e.author||'Equipe'}</span>
-            <span style="font-size:0.72rem;color:var(--text-muted);">${new Date(e.ts).toLocaleString('pt-BR')}</span>
+            <span style="font-size:0.75rem;font-weight:700;color:#38bdf8;"><i class="fa-regular fa-user-circle"></i> ${e.author||'Equipe'}</span>
+            <span style="font-size:0.75rem;color:#94a3b8;font-weight:500;">${new Date(e.ts).toLocaleString('pt-BR')}</span>
           </div>
-          <p style="margin:0;font-size:0.85rem;color:var(--text-primary);white-space:pre-wrap;line-height:1.6;">${e.text}</p>
+          <p style="margin:0;font-size:0.88rem;color:#f8fafc;white-space:pre-wrap;line-height:1.6;font-weight:400;">${e.text}</p>
         </div>`).join('')
-    : `<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;padding:20px 0;"><i class="fa-regular fa-circle-check" style="font-size:1.8rem;display:block;margin-bottom:8px;opacity:0.4;"></i>Nenhuma evolução registrada ainda.</div>`;
+    : `<div style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:20px 0;"><i class="fa-regular fa-circle-check" style="font-size:1.8rem;display:block;margin-bottom:8px;opacity:0.4;"></i>Nenhuma evolução registrada ainda.</div>`;
 
   document.body.insertAdjacentHTML('beforeend',`
-    <div id="kanban-notes-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;backdrop-filter:blur(4px);">
-      <div style="background:var(--bg-card);padding:24px;border-radius:14px;width:100%;max-width:540px;box-shadow:0 20px 50px rgba(0,0,0,0.4);border:1px solid var(--border-color);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:0;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div id="kanban-notes-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.75);z-index:99999;backdrop-filter:blur(6px);">
+      <div style="background:#18152e;padding:26px 28px;border-radius:16px;width:92%;max-width:560px;box-shadow:0 25px 60px rgba(0,0,0,0.7);border:1px solid rgba(139,92,246,0.35);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
           <div>
-            <h3 style="margin:0 0 2px;color:var(--text-primary);font-family:'Outfit';font-size:1.1rem;"><i class="fa-solid fa-notes-medical" style="color:var(--color-primary);"></i> Evolução Clínica</h3>
-            <p style="margin:0;font-size:0.8rem;color:var(--text-muted);">${pat.fullName||pat.name||'Paciente'} · Leito: <b style="color:var(--text-primary);">${hosp.bed||'—'}</b></p>
+            <h3 style="margin:0 0 2px;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;"><i class="fa-solid fa-notes-medical" style="color:#ec4899;"></i> Evolução Clínica</h3>
+            <p style="margin:0;font-size:0.85rem;color:#cbd5e1;font-weight:600;">${pat.fullName||pat.name||'Paciente'} · Leito: <b style="color:#a7f3d0;">${hosp.bed||'—'}</b></p>
           </div>
-          <button onclick="document.getElementById('kanban-notes-modal').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.3rem;">&times;</button>
+          <button onclick="document.getElementById('kanban-notes-modal').remove()" style="background:rgba(255,255,255,0.1);border:none;cursor:pointer;color:#ffffff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;">&times;</button>
         </div>
 
         <div style="margin-bottom:14px;">
-          <label style="display:block;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);font-weight:600;"><i class="fa-solid fa-pen-to-square" style="margin-right:4px;"></i>Nova Anotação / Evolução</label>
-          <textarea id="kanban-new-note" placeholder="Descreva a evolução clínica, observações ou procedimentos realizados..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:0.88rem;min-height:90px;resize:vertical;box-sizing:border-box;font-family:inherit;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--color-primary)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
+          <label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;"><i class="fa-solid fa-pen-to-square" style="margin-right:4px;"></i>Nova Anotação / Evolução</label>
+          <textarea id="kanban-new-note" placeholder="Descreva a evolução clínica, observações ou procedimentos realizados..." style="width:100%;padding:12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.4);background:#0f172a;color:#ffffff;font-size:0.9rem;min-height:90px;resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px;">
           <span style="font-size:0.75rem;color:var(--text-muted);"><i class="fa-regular fa-clock"></i> ${new Date().toLocaleString('pt-BR')}</span>
