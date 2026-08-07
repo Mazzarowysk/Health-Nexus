@@ -343,13 +343,13 @@ function generateHospitalizations(patients, doctors, count = 25) {
     const sectorDate = new Date(Date.now() - rnd(1, admHoursAgo - 1) * 3600000).toISOString();
     
     hospitalizations.push({
-      id: \HOSP-\\,
+      id: `HOSP-${String(i + 1).padStart(3, '0')}`,
       patient_id: patient.id,
       patientName: patient.fullName,
       current_sector: sector,
       sector_entry_date: sectorDate,
       admission_date: admDate,
-      bed: sector === 'uti' ? \UTI-\\ : sector === 'clinica-medica' ? \ENF-\\ : 'S/ Leito',
+      bed: sector === 'uti' ? `UTI-${rnd(1, 10)}` : sector === 'clinica-medica' ? `ENF-${rnd(101, 120)}` : 'S/ Leito',
       diagnosis: pick(['Pneumonia', 'IAM', 'Sepse', 'Pós-operatório', 'Trauma', 'Insuficiência Cardíaca']),
       doctor_id: doctor.id,
       doctor_name: doctor.name,
