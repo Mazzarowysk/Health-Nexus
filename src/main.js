@@ -1030,10 +1030,10 @@ const checkCloudStatusAfterLogin = async () => {
     }
 
     const cloudRes = await apiFetch('/api/sync/cloud-status');
-    if (!cloudRes.ok) return;
+    if (!cloudRes || !cloudRes.ok) return;
 
-    const cloudData = await cloudRes.json();
-    if (!cloudData.cloudConfigured || !cloudData.hasData) return;
+    const cloudData = await cloudRes.json().catch(() => null);
+    if (!cloudData || !cloudData.cloudConfigured || !cloudData.hasData) return;
 
     if (cloudData.isVercel) {
       const approvedTs = Number(localStorage.getItem('hn_vercel_approved_cloud_ts') || 0);
@@ -3527,8 +3527,18 @@ async function renderTabContent() {
                 <i class="fa-solid fa-calendar-days"></i> Mês Atual
               </span>
             </div>
-            <div class="chart-container" style="height: 240px;">
-              <canvas id="appointmentsChart"></canvas>
+          <!-- Card 5: Kanban de Internação & Fluxo por Setor (Novo) -->
+          <div class="chart-card" onclick="if(typeof window.switchTab==='function') window.switchTab('kanban')" style="cursor: pointer; transition: transform 0.2s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='none'" title="Clique para abrir a aba Kanban de Internação">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h4 class="chart-card-title" style="margin-bottom: 0;">
+                <i class="fa-solid fa-table-columns" style="color: #6366f1;"></i> Fluxo Kanban de Internação
+              </h4>
+              <span class="badge-status-pill" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #818cf8; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Kanban
+              </span>
+            </div>
+            <div class="chart-container" style="height: 240px; position: relative;">
+              <canvas id="dashboardKanbanChart"></canvas>
             </div>
           </div>
         </div>
