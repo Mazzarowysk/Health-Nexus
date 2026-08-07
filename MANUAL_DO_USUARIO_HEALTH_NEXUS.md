@@ -572,15 +572,17 @@ O relatório exibe, para cada usuário:
 
 
 
-## Nova Atualização: Gráficos, Interatividade e Simulação de Dados
+## Nova Atualização: Painel de Gráficos Analíticos, Interatividade e Simulação de Dados
 - **Dashboard Principal**: Agora conta com visualização completa de ocupação através de gráficos interativos.
-- **Kanban Interativo**: 
-  - Gráfico 'Distribuição Geral' para análise em tempo real dos pacientes por setor.
-  - Cartões de pacientes agora são **clicáveis**, abrindo o **Prontuário e Histórico Clínico** detalhado do paciente.
+- **Kanban Interativo & Painel Analítico**: 
+  - **Gráfico de Distribuição por Setor:** Donut futurista com totalizador central para análise rápida da alocação de leitos.
+  - **Gráfico de Metas de Tempo (SLA):** Donut analítico de acompanhamento de permanência hospitalar dividida em *No Prazo (🟢)*, *Atenção (🟡)* e *Meta Excedida (🔴)*.
+  - **Funil da Jornada Hospitalar:** Visualizador dinâmico estilo funil de barras com percentual e contagem de evolução entre setores (*Pronto Socorro → Corredor → Cirúrgica → Médica → UTI*).
+  - **Acesso ao Prontuário:** Cartões de pacientes são **clicáveis** e contêm o botão **Prontuário**, abrindo o modal completo do histórico clínico do paciente.
   - **Prontuário Interativo:**
-    - É possível adicionar uma **Nova Evolução / Anotação Clínica** diretamente por dentro do modal do prontuário clicado no Kanban.
-    - Exportação de todo o histórico do paciente em **PDF**.
-    - Botão de atalho rápido para **Anexar e Importar Exames** e laudos para a linha do tempo do paciente.
+    - Registro direto de **Nova Evolução / Anotação Clínica** pela janela do histórico.
+    - Exportação de relatório consolidado em **PDF**.
+    - Atalho rápido para **Anexar e Importar Exames**.
   - Áreas vazias de colunas permitem o rápido cadastro de admissão no setor.
 - **Relatórios**: A sessão de Relatórios e Exportação foi refinada e padronizada.
-- **Gerador de Dados de Teste:** No painel Master (Configurações), o "Gerar 300 Registros de Teste" agora inclui internações e distribui os pacientes automaticamente nas colunas do Kanban, viabilizando o uso prático de gráficos e testes de simulação.
+- **Gerador de Dados de Teste:** No painel Master (Configurações), o "Gerar 300 Registros de Teste" inclui internações e distribui os pacientes automaticamente nas colunas do Kanban.
