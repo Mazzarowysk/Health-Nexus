@@ -327,21 +327,44 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
 }
 
 
-function generateHospitalizations(patients, doctors, count = 25) {
+function generateHospitalizations(patients, doctors, count = 35) {
   const hospitalizations = [];
-  const sectors = ['pronto_socorro', 'corredor_internacao', 'clinica_cirurgica', 'clinica_medica'];
+  const sectors = ['pronto_socorro', 'corredor_internacao', 'clinica_cirurgica', 'clinica_medica', 'uti'];
   
+  const EVOLUCOES_EXEMPLO = [
+    'Paciente admitido no setor. Quadro hemodinamicamente estável, mantendo boa saturação em ar ambiente.',
+    'Avaliando resultados de exames laboratoriais. Prescrição médica ajustada e antibioticoterapia mantida.',
+    'Realizada troca de curativo cirúrgico. Ferida operatória com bom aspecto, sem sinais flogísticos.',
+    'Aguardando parecer da equipe cirúrgica e liberação de vaga em leito de enfermaria.',
+    'Paciente refere melhora álgica significativa. Programada alta médica após rodada de exames matinais.',
+    'Mantendo suporte hemodinâmico leve. Monitorização contínua de sinais vitais sem intercorrências.'
+  ];
+
   for (let i = 0; i < count; i++) {
     const patient = pick(patients);
     const doctor = pick(doctors);
-    const sector = pick(sectors);
+
+    // Distribui uniformemente pelos 5 setores do Kanban
+    const sector = sectors[i % sectors.length];
     
-    // Some are 'Internado', some are 'Alta'
-    const status = Math.random() > 0.8 ? 'Alta' : 'Internado';
-    const admHoursAgo = rnd(24, 240);
+    // Status: 85% Internado, 15% Alta
+    const status = Math.random() > 0.85 ? 'Alta' : 'Internado';
+    const admHoursAgo = rnd(12, 180);
     const admDate = new Date(Date.now() - admHoursAgo * 3600000).toISOString();
-    const sectorDate = new Date(Date.now() - rnd(1, admHoursAgo - 1) * 3600000).toISOString();
-    
+    const sectorDate = new Date(Date.now() - rnd(1, Math.max(2, admHoursAgo - 2)) * 3600000).toISOString();
+
+    let bedName = 'S/ Leito';
+    if (sector === 'pronto_socorro') bedName = `Box PS-0${rnd(1, 9)}`;
+    else if (sector === 'corredor_internacao') bedName = `Maca COR-0${rnd(1, 9)}`;
+    else if (sector === 'clinica_cirurgica') bedName = `Quarto CIR-${rnd(101, 110)}`;
+    else if (sector === 'clinica_medica') bedName = `Enf MED-${rnd(201, 215)}`;
+    else if (sector === 'uti') bedName = `Leito UTI-0${rnd(1, 9)}`;
+
+    const evolutions = [
+      { ts: admDate, text: 'Admissão: Paciente recebido no setor com queixa de ' + pick(['dor intensa', 'falta de ar', 'febre alta', 'desconforto abdominal', 'tontura']), author: doctor.name },
+      { ts: sectorDate, text: pick(EVOLUCOES_EXEMPLO), author: 'Equipe de Enfermagem' }
+    ];
+
     hospitalizations.push({
       id: `HOSP-${String(i + 1).padStart(3, '0')}`,
       patient_id: patient.id,
@@ -349,16 +372,14 @@ function generateHospitalizations(patients, doctors, count = 25) {
       current_sector: sector,
       sector_entry_date: sectorDate,
       admission_date: admDate,
-      bed: sector === 'uti' ? `UTI-${rnd(1, 10)}` : sector === 'clinica-medica' ? `ENF-${rnd(101, 120)}` : 'S/ Leito',
-      diagnosis: pick(['Pneumonia', 'IAM', 'Sepse', 'Pós-operatório', 'Trauma', 'Insuficiência Cardíaca']),
+      bed: bedName,
+      diagnosis: pick(['Pneumonia Comunitária', 'IAM com Supra', 'Sepse Foco Pulmonar', 'Pós-op Apendicectomia', 'Trauma Abdominal', 'Insuficiência Cardíaca Descompensada', 'Acidente Vascular Cerebral']),
       doctor_id: doctor.id,
       doctor_name: doctor.name,
-      notes: pick(['Quadro estável', 'Aguardando exames', 'Evolução favorável', 'Programar alta', 'Agitado']),
+      notes: pick(EVOLUCOES_EXEMPLO),
       status: status,
-      discharge_date: status === 'Alta' ? new Date(Date.now() - rnd(1, 24) * 3600000).toISOString() : null,
-      evolutions: [
-        { date: admDate, text: 'Paciente admitido com ' + pick(['dor intensa', 'falta de ar', 'febre alta', 'desconforto']), doctor: doctor.name }
-      ],
+      discharge_date: status === 'Alta' ? new Date(Date.now() - rnd(1, 12) * 3600000).toISOString() : null,
+      evolutions: evolutions,
       created_at: admDate,
       updated_at: new Date().toISOString()
     });

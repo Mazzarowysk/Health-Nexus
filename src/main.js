@@ -5105,10 +5105,8 @@ async function renderTabContent() {
           const hasToken = tursoData.hasToken || (tursoData.token && tursoData.token.length > 0 && tursoData.token !== '');
           const cloudConnected = tursoData.cloud_connected !== undefined ? tursoData.cloud_connected : hasToken;
 
-          document.getElementById('turso-cfg-url').value = tursoData.url || '';
-          if (hasToken) {
-            document.getElementById('turso-cfg-token').value = tursoData.token || '********************************';
-          }
+          document.getElementById('turso-cfg-url').value = tursoData.url || 'libsql://health-nexus-mazzarowysk.aws-us-east-1.turso.io';
+          document.getElementById('turso-cfg-token').value = (tursoData.token && tursoData.token !== '') ? tursoData.token : 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODYxNDU1NTgsImlkIjoiMDE5Zjc1YmYtMTUwMS03YmMyLTlkYTQtZTA1ZGIxMzdiYjEyIiwia2lkIjoiU0RZWEtINkIzZWg1b3JtRDBPRXpUbmhUaGpFMllXRXJxbjhCNVFnSmVLZyIsInJpZCI6Ijg4YTY2NjM0LTM3YWQtNGEyZC04ZmUxLTFmYjM3ZDAxNGE4YiJ9.teLr9MEIIXvjkOJh_nUWWaGwJuF0vnFwaMdUsyQLQba1kLOP30ziYQJkCWDDbADYl74zhYLujOwdr0Gg5EWoAg';
 
           // No Vercel, marcar campos como somente leitura e mostrar aviso
           if (tursoData.isVercel) {

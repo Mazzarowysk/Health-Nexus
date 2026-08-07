@@ -11,13 +11,11 @@ app.use(express.json({ limit: '10mb' })); // Permitir grandes payloads
 // Inicializa Turso Cliente
 let tursoClient = null;
 const initTurso = () => {
-  const url = process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
+  const url = process.env.TURSO_DATABASE_URL || 'libsql://health-nexus-mazzarowysk.aws-us-east-1.turso.io';
+  const authToken = process.env.TURSO_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODYxNDU1NTgsImlkIjoiMDE5Zjc1YmYtMTUwMS03YmMyLTlkYTQtZTA1ZGIxMzdiYjEyIiwia2lkIjoiU0RZWEtINkIzZWg1b3JtRDBPRXpUbmhUaGpFMllXRXJxbjhCNVFnSmVLZyIsInJpZCI6Ijg4YTY2NjM0LTM3YWQtNGEyZC04ZmUxLTFmYjM3ZDAxNGE4YiJ9.teLr9MEIIXvjkOJh_nUWWaGwJuF0vnFwaMdUsyQLQba1kLOP30ziYQJkCWDDbADYl74zhYLujOwdr0Gg5EWoAg';
   if (url && authToken) {
     tursoClient = createClient({ url, authToken });
     console.log('[Backend] Conectado ao Turso.');
-  } else {
-    console.warn('[Backend] Aviso: TURSO_DATABASE_URL ou TURSO_AUTH_TOKEN não configurado. Sincronização em nuvem não funcionará localmente.');
   }
 };
 initTurso();
