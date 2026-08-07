@@ -5790,6 +5790,70 @@ function initDashboardCharts(data) {
     manchesterCtx._chartInstance = instM;
   }
 
+  // 5. Gráfico de Fluxo Kanban de Internação (na aba Health Nexus)
+  const dashboardKanbanCtx = document.getElementById('dashboardKanbanChart');
+  if (dashboardKanbanCtx) {
+    if (dashboardKanbanCtx._chartInstance) dashboardKanbanCtx._chartInstance.destroy();
+    
+    // Buscar internações ativas do localDB
+    const activeHosps = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('hospitalizations').filter(h => h.status !== 'Alta') : [];
+    
+    const sectors = [
+      { id: 'pronto_socorro', label: 'PS (Obs)', color: '#3b82f6' },
+      { id: 'corredor_internacao', label: 'Corredor', color: '#f59e0b' },
+      { id: 'clinica_cirurgica', label: 'Cirúrgica', color: '#8b5cf6' },
+      { id: 'clinica_medica', label: 'Clínica Médica', color: '#10b981' },
+      { id: 'uti', label: 'UTI', color: '#ef4444' }
+    ];
+
+    const sectorCounts = sectors.map(s => activeHosps.filter(h => h.current_sector === s.id).length);
+
+    const instK = new ChartClass(dashboardKanbanCtx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: sectors.map(s => s.label),
+        datasets: [{
+          label: 'Pacientes no Kanban',
+          data: sectorCounts,
+          backgroundColor: sectors.map(s => s.color),
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: () => { if (typeof switchTab === 'function') switchTab('kanban'); },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#818cf8',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(99, 102, 241, 0.35)',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label: (context) => ` ${context.raw} pacientes no setor`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } }
+          },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 }, precision: 0 },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+    dashboardKanbanCtx._chartInstance = instK;
+  }
+
   // 4. Inicialização da Interatividade do Funil
   initInteractiveFunnel();
 }
