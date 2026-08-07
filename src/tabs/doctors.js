@@ -859,20 +859,30 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
   const modal = document.createElement('div');
   modal.id = 'patient-history-modal';
   modal.className = 'modal-overlay';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100vw';
+  modal.style.height = '100vh';
   modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+  modal.style.background = 'rgba(0, 0, 0, 0.75)';
+  modal.style.backdropFilter = 'blur(6px)';
   modal.style.zIndex = '99999';
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 900px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 18px; box-shadow: 0 25px 60px rgba(0,0,0,0.65);">
+    <div class="modal-content" style="max-width: 880px; width: 90%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.6);">
       
-      <div class="modal-header" style="padding: 20px 28px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.25); border: 1px solid rgba(139,92,246,0.4); display: flex; align-items: center; justify-content: center; color: #a78bfa;">
-            <i class="fa-solid fa-file-medical" style="font-size: 1.3rem;"></i>
+      <div class="modal-header" style="padding: 16px 24px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139,92,246,0.25); border: 1px solid rgba(139,92,246,0.4); display: flex; align-items: center; justify-content: center; color: #a78bfa;">
+            <i class="fa-solid fa-file-medical" style="font-size: 1.2rem;"></i>
           </div>
           <div>
-            <h3 style="font-family: Outfit, sans-serif; font-size: 1.25rem; font-weight: 700; color: #fff; margin: 0;">Prontuário & Histórico Clínico</h3>
-            <div style="font-size: 0.82rem; color: #c4b5fd;">Paciente: <strong style="color: #fff;">${patientName}</strong></div>
+            <h3 style="font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0;">Prontuário & Histórico Clínico</h3>
+            <div style="font-size: 0.8rem; color: #c4b5fd;">Paciente: <strong style="color: #fff;">${patientName}</strong></div>
           </div>
+        </div>
         <div style="display: flex; gap: 8px; align-items: center;">
           <button type="button" onclick="window.generateHistoryReport('${patientId}', '${patientName || ''}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Exportar Histórico Completo">
             <i class="fa-solid fa-file-pdf"></i> Gerar PDF

@@ -3527,6 +3527,11 @@ async function renderTabContent() {
                 <i class="fa-solid fa-calendar-days"></i> Mês Atual
               </span>
             </div>
+            <div class="chart-container" style="height: 240px;">
+              <canvas id="appointmentsChart"></canvas>
+            </div>
+          </div>
+
           <!-- Card 5: Kanban de Internação & Fluxo por Setor (Novo) -->
           <div class="chart-card" onclick="if(typeof window.switchTab==='function') window.switchTab('kanban')" style="cursor: pointer; transition: transform 0.2s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='none'" title="Clique para abrir a aba Kanban de Internação">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
