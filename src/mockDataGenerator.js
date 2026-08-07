@@ -329,7 +329,7 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
 
 function generateHospitalizations(patients, doctors, count = 25) {
   const hospitalizations = [];
-  const sectors = ['ps', 'corredor', 'clinica-medica', 'uti'];
+  const sectors = ['pronto_socorro', 'corredor_internacao', 'clinica_cirurgica', 'clinica_medica'];
   
   for (let i = 0; i < count; i++) {
     const patient = pick(patients);
