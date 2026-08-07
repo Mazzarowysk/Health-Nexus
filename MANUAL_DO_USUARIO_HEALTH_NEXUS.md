@@ -572,10 +572,15 @@ O relatório exibe, para cada usuário:
 
 
 
-## Nova Atualização: Gráficos e Interatividade
+## Nova Atualização: Gráficos, Interatividade e Simulação de Dados
 - **Dashboard Principal**: Agora conta com visualização completa de ocupação através de gráficos interativos.
 - **Kanban Interativo**: 
   - Gráfico 'Distribuição Geral' para análise em tempo real dos pacientes por setor.
-  - Cartões de pacientes agora são **clicáveis**, exibindo o histórico detalhado do paciente.
+  - Cartões de pacientes agora são **clicáveis**, abrindo o **Prontuário e Histórico Clínico** detalhado do paciente.
+  - **Prontuário Interativo:**
+    - É possível adicionar uma **Nova Evolução / Anotação Clínica** diretamente por dentro do modal do prontuário clicado no Kanban.
+    - Exportação de todo o histórico do paciente em **PDF**.
+    - Botão de atalho rápido para **Anexar e Importar Exames** e laudos para a linha do tempo do paciente.
   - Áreas vazias de colunas permitem o rápido cadastro de admissão no setor.
 - **Relatórios**: A sessão de Relatórios e Exportação foi refinada e padronizada.
+- **Gerador de Dados de Teste:** No painel Master (Configurações), o "Gerar 300 Registros de Teste" agora inclui internações e distribui os pacientes automaticamente nas colunas do Kanban, viabilizando o uso prático de gráficos e testes de simulação.

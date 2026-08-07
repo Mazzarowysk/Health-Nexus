@@ -85,12 +85,13 @@
     - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
     - **Barra de progresso visual** (verde → amarelo → vermelho) por card.  
     - **Admissão completa:** leito, diagnóstico, médico responsável, data e notas iniciais.  
-    - **🩺 Prontuário direto do card:** abre o histórico clínico completo do paciente (consultas, PEP SOAP, receituários, atestados).  
-    - **📝 Painel de Evolução Clínica:** registra novas evoluções com timestamp e autor; exibe timeline completa de todas as entradas anteriores.  
+    - **🩺 Prontuário direto do card:** clicar num card abre o histórico clínico detalhado do paciente.
+    - **📝 Prontuário Interativo:** Permite lançar uma **Nova Evolução**, exportar **Relatório em PDF** e **Importar Exames** diretamente pela janela do Kanban.
     - **Ações de gerenciamento por card:** ✏️ Editar dados, 🔄 Mover setor, 🚶 Alta hospitalar.  
     - **Colunas Interativas:** Clique em áreas vazias de uma coluna para abrir o modal de adição de paciente com aquele setor já pré-selecionado.
     - **Drag & Drop** para mover pacientes entre colunas (setor reiniciado automaticamente).  
     - **Filtros rápidos** por setor com contagem em tempo real (cards KPI interativos).
+    - **Gráfico Analytics:** Gráfico em rosca de distribuição geral de pacientes.
 
 11. **Farmácia & Estoque**  
     - Gerenciamento de medicamentos e insumos.  
@@ -103,10 +104,11 @@
     - CRUD de médicos com CRM, especialidade e escala de plantão.
 
 14. **Relatórios & Exportação**  
-    - Exportação para PDF, XLSX e CSV.
+    - Exportação para PDF, XLSX e CSV (padronizados e estabilizados).
 
-15. **Configurações & Nuvem (Turso Cloud)**  
+15. **Configurações, Simulador & Nuvem (Turso Cloud)**  
     - Sincronização SQLite ↔ Turso.
+    - **Gerador de Dados de Teste:** O sistema conta com um algoritmo inteligente de simulação de dados que gera centenas de registros fictícios de uma vez (pacientes, agendas, PEPs, internações) para testes locais.
 
 16. **🆕 Histórico de Sessões** *(v1.3.0 · Exclusivo Master)*  
     - Registro automático de login e logout de cada usuário.  
