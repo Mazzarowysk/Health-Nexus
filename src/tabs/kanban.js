@@ -58,26 +58,60 @@ export async function renderKanbanTab() {
         </div>
       </div>
 
-      <!-- Chart Area & Filters -->
-      <div style="display:flex; gap: 16px; margin-bottom: 20px; flex-shrink:0; flex-wrap:wrap;">
+      <!-- Analytics Header Dashboard -->
+      <div style="display:flex; gap: 16px; margin-bottom: 16px; flex-shrink:0; flex-wrap:wrap; align-items:stretch;">
         
-        <!-- Kanban Overview Chart -->
-        <div class="kanban-chart-card" style="flex: 1; min-width: 250px; max-width: 300px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative;">
-          <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 0 0 10px 0; text-align: center;"><i class="fa-solid fa-chart-pie" style="color: var(--color-primary); margin-right: 6px;"></i> Distribuição Geral</h4>
-          <div style="flex-grow: 1; position: relative; height: 160px;">
+        <!-- Chart 1: Distribuição por Setor -->
+        <div class="kanban-chart-card" style="flex: 1; min-width: 220px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative;">
+          <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 0 0 10px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <i class="fa-solid fa-chart-pie" style="color: #6366f1;"></i> Distribuição por Setor
+          </h4>
+          <div style="flex-grow: 1; position: relative; height: 140px;">
             <canvas id="kanbanSectorChart"></canvas>
             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
-              <span id="kanban-chart-center-val" style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">0</span>
+              <span id="kanban-chart-center-val" style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary);">0</span>
               <br>
-              <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Pacientes</span>
+              <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Pacientes</span>
             </div>
           </div>
         </div>
 
-        <!-- Filters Grid -->
-        <div style="flex: 3; display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px;">
-          ${filtersHtml}
+        <!-- Chart 2: SLA & Metas de Tempo -->
+        <div class="kanban-chart-card" style="flex: 1; min-width: 220px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative;">
+          <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 0 0 10px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <i class="fa-solid fa-hourglass-half" style="color: #f59e0b;"></i> Metas de Tempo (SLA)
+          </h4>
+          <div style="flex-grow: 1; position: relative; height: 140px;">
+            <canvas id="kanbanSlaChart"></canvas>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+              <span id="kanban-sla-center-val" style="font-size: 1.3rem; font-weight: 800; color: #10b981;">0%</span>
+              <br>
+              <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">No Prazo</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Funil da Jornada de Internação -->
+        <div style="flex: 1.6; min-width: 280px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 0; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-filter" style="color: #3b82f6;"></i> Funil da Jornada Hospitalar
+            </h4>
+            <span id="kanban-resolutividade-tag" style="font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);">
+              Carregando...
+            </span>
+          </div>
+
+          <!-- Progress / Funnel Bars -->
+          <div id="kanban-funnel-container" style="display:flex; flex-direction:column; gap:6px; justify-content:center; flex-grow:1;">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Filters Grid -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; flex-shrink:0;">
+        ${filtersHtml}
       </div>
 
       <div class="kanban-board" id="kanban-board" style="display:flex; gap:16px; overflow-x:auto; flex-grow:1; padding-bottom:16px; align-items:flex-start;">
@@ -523,68 +557,153 @@ window.dischargePatient = function(hospId) {
   }
 };
 
+let kanbanSectorChartInstance = null;
+let kanbanSlaChartInstance = null;
+
 function initKanbanChart(activePatients) {
   const ChartClass = window.Chart || (typeof Chart !== 'undefined' ? Chart : null);
-  if (!ChartClass) return;
+  
+  // 1. Calculate SLA stats
+  let onTime = 0, warning = 0, exceeded = 0;
+  const now = new Date();
 
-  const ctx = document.getElementById('kanbanSectorChart');
-  if (!ctx) return;
-
-  if (kanbanChartInstance) {
-    kanbanChartInstance.destroy();
-  }
-
-  const dataMap = {};
-  KANBAN_COLUMNS.forEach(col => dataMap[col.id] = 0);
   activePatients.forEach(p => {
-    if (dataMap[p.current_sector] !== undefined) {
-      dataMap[p.current_sector]++;
+    const col = KANBAN_COLUMNS.find(c => c.id === p.current_sector);
+    if (!col) return;
+    const entry = new Date(p.sector_entry_date || p.admission_date);
+    const hoursIn = (now - entry) / 3600000;
+    const daysIn = hoursIn / 24;
+
+    if (col.maxDays) {
+      if (daysIn >= col.maxDays) exceeded++;
+      else if (daysIn >= col.maxDays * 0.75) warning++;
+      else onTime++;
+    } else if (col.maxHours) {
+      if (hoursIn >= col.maxHours) exceeded++;
+      else if (hoursIn >= col.maxHours * 0.75) warning++;
+      else onTime++;
+    } else {
+      onTime++;
     }
   });
 
-  const labels = KANBAN_COLUMNS.map(c => c.shortLabel);
-  const data = KANBAN_COLUMNS.map(c => dataMap[c.id]);
-  const bgColors = KANBAN_COLUMNS.map(c => c.color);
+  const total = activePatients.length || 1;
+  const onTimePct = Math.round((onTime / total) * 100);
 
-  const centerVal = document.getElementById('kanban-chart-center-val');
-  if (centerVal) {
-    centerVal.textContent = activePatients.length;
+  // Update SLA center text
+  const slaCenter = document.getElementById('kanban-sla-center-val');
+  if (slaCenter) {
+    slaCenter.textContent = `${onTimePct}%`;
+    slaCenter.style.color = onTimePct > 70 ? '#10b981' : (onTimePct > 40 ? '#f59e0b' : '#ef4444');
   }
 
-  kanbanChartInstance = new ChartClass(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: bgColors,
-        borderWidth: 2,
-        borderColor: 'rgba(11, 8, 22, 0.95)',
-        borderRadius: 4,
-        hoverOffset: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '75%',
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(18, 14, 34, 0.94)',
-          titleColor: '#00f2fe',
-          bodyColor: '#f8fafc',
-          borderColor: 'rgba(0, 242, 254, 0.35)',
-          borderWidth: 1,
-          padding: 8,
-          usePointStyle: true,
-          callbacks: {
-            label: function(context) {
-              return ` ${context.raw} pacientes`;
-            }
+  const resTag = document.getElementById('kanban-resolutividade-tag');
+  if (resTag) {
+    resTag.textContent = `${onTimePct}% no prazo`;
+    resTag.style.background = onTimePct > 70 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+    resTag.style.color = onTimePct > 70 ? '#10b981' : '#ef4444';
+  }
+
+  // Render Funnel Container
+  const funnelContainer = document.getElementById('kanban-funnel-container');
+  if (funnelContainer) {
+    const sectorCounts = {};
+    KANBAN_COLUMNS.forEach(c => sectorCounts[c.id] = 0);
+    activePatients.forEach(p => { if (sectorCounts[p.current_sector] !== undefined) sectorCounts[p.current_sector]++; });
+
+    funnelContainer.innerHTML = KANBAN_COLUMNS.map(col => {
+      const count = sectorCounts[col.id] || 0;
+      const pct = Math.round((count / total) * 100);
+      return `
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.75rem;">
+          <span style="width:75px; color:var(--text-muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${col.label}">${col.shortLabel}</span>
+          <div style="flex-grow:1; height:8px; background:var(--bg-secondary); border-radius:4px; overflow:hidden; border:1px solid var(--border-color);">
+            <div style="height:100%; width:${pct}%; background:${col.color}; border-radius:4px; box-shadow:0 0 6px ${col.color}; transition: width 0.4s ease;"></div>
+          </div>
+          <span style="width:45px; text-align:right; font-weight:700; color:var(--text-primary);">${count} <small style="color:var(--text-muted); font-size:0.65rem;">(${pct}%)</small></span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  if (!ChartClass) return;
+
+  // 2. Render Sector Chart
+  const ctxSector = document.getElementById('kanbanSectorChart');
+  if (ctxSector) {
+    if (kanbanSectorChartInstance) kanbanSectorChartInstance.destroy();
+    
+    const dataMap = {};
+    KANBAN_COLUMNS.forEach(col => dataMap[col.id] = 0);
+    activePatients.forEach(p => { if (dataMap[p.current_sector] !== undefined) dataMap[p.current_sector]++; });
+
+    const centerVal = document.getElementById('kanban-chart-center-val');
+    if (centerVal) centerVal.textContent = activePatients.length;
+
+    kanbanSectorChartInstance = new ChartClass(ctxSector, {
+      type: 'doughnut',
+      data: {
+        labels: KANBAN_COLUMNS.map(c => c.shortLabel),
+        datasets: [{
+          data: KANBAN_COLUMNS.map(c => dataMap[c.id]),
+          backgroundColor: KANBAN_COLUMNS.map(c => c.color),
+          borderWidth: 2,
+          borderColor: 'rgba(18, 14, 34, 0.95)',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#00f2fe',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(0, 242, 254, 0.35)',
+            borderWidth: 1,
+            padding: 8
           }
         }
       }
-    }
-  });
+    });
+  }
+
+  // 3. Render SLA Chart
+  const ctxSla = document.getElementById('kanbanSlaChart');
+  if (ctxSla) {
+    if (kanbanSlaChartInstance) kanbanSlaChartInstance.destroy();
+
+    kanbanSlaChartInstance = new ChartClass(ctxSla, {
+      type: 'doughnut',
+      data: {
+        labels: ['No Prazo', 'Atenção', 'Meta Excedida'],
+        datasets: [{
+          data: [onTime, warning, exceeded],
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+          borderWidth: 2,
+          borderColor: 'rgba(18, 14, 34, 0.95)',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#f59e0b',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(245, 158, 11, 0.35)',
+            borderWidth: 1,
+            padding: 8
+          }
+        }
+      }
+    });
+  }
 }

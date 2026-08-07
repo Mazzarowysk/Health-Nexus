@@ -874,7 +874,7 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
             <div style="font-size: 0.82rem; color: #c4b5fd;">Paciente: <strong style="color: #fff;">${patientName}</strong></div>
           </div>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <button type="button" onclick="window.generateHistoryReport('${patientId}', '${patient.fullName || patientName || ''}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Exportar Histórico Completo">
+          <button type="button" onclick="window.generateHistoryReport('${patientId}', '${patientName || ''}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Exportar Histórico Completo">
             <i class="fa-solid fa-file-pdf"></i> Gerar PDF
           </button>
           <button type="button" onclick="document.getElementById('import-exam-input').click()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Anexar laudos ou resultados de exames">
@@ -960,7 +960,7 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
         </div>
         <textarea id="new-history-evolution" class="form-input" rows="2" placeholder="Digite a evolução clínica ou anotação rápida aqui..." style="width: 100%; resize: vertical; margin-bottom: 10px;"></textarea>
         <div style="display: flex; justify-content: flex-end;">
-          <button type="button" onclick="window.saveHistoryEvolution('${patientId}', '${patient.fullName || patientName || ''}')" style="background: var(--color-primary); color: #fff; padding: 6px 16px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer;">
+          <button type="button" onclick="window.saveHistoryEvolution('${patientId}', '${patientName || ''}')" style="background: var(--color-primary); color: #fff; padding: 6px 16px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer;">
             <i class="fa-solid fa-save"></i> Salvar Evolução
           </button>
         </div>
