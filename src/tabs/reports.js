@@ -830,10 +830,10 @@ function renderReportsTab(contentArea) {
 
         <div class="financial-kpi-bar" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
           <div class="financial-badges-group" style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.85rem;">
-            <span class="fin-kpi-badge" data-status="Pagas" style="border-left: 3px solid #34d399; padding: 4px 10px; background: rgba(52,211,153,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Pagos">â€¢ Pagas: <strong>${pagasCount}</strong></span>
-            <span class="fin-kpi-badge" data-status="A Vencer" style="border-left: 3px solid #00f2fe; padding: 4px 10px; background: rgba(0,242,254,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos A Vencer">â€¢ A Vencer: <strong>${aVencerCount}</strong></span>
-            <span class="fin-kpi-badge" data-status="Vencidas" style="border-left: 3px solid #f43f5e; padding: 4px 10px; background: rgba(244,63,94,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Vencidos">â€¢ Vencidas: <strong>${vencidasCount}</strong></span>
-            <span class="fin-kpi-badge" data-status="Bonificadas" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Bonificados">â€¢ Bonificadas: <strong>${bonificadasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Pagas" style="border-left: 3px solid #34d399; padding: 4px 10px; background: rgba(52,211,153,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Pagos">• Pagas: <strong>${pagasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="A Vencer" style="border-left: 3px solid #00f2fe; padding: 4px 10px; background: rgba(0,242,254,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos A Vencer">• A Vencer: <strong>${aVencerCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Vencidas" style="border-left: 3px solid #f43f5e; padding: 4px 10px; background: rgba(244,63,94,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Vencidos">• Vencidas: <strong>${vencidasCount}</strong></span>
+            <span class="fin-kpi-badge" data-status="Bonificadas" style="border-left: 3px solid #fbbf24; padding: 4px 10px; background: rgba(251,191,36,0.1); border-radius: 4px; color: var(--text-primary); cursor:pointer;" title="Clique para filtrar apenas títulos Bonificados">• Bonificadas: <strong>${bonificadasCount}</strong></span>
           </div>
           <div style="font-family: 'Outfit'; text-align: right;">
             <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">SUBTOTAL FILTRADO</span>
@@ -876,7 +876,7 @@ function renderReportsTab(contentArea) {
                       <span class="ward-name"><i class="fa-solid ${iconMap[item.label]||'fa-circle'}" style="color:${item.color};"></i> ${item.label}</span>
                       <span class="ward-stats">
                         <strong style="color:${item.color};font-weight:700;">${item.count} parcelas</strong> 
-                        <span style="color:var(--text-muted);font-size:0.76rem;">(${pctCount}%) â€¢ ${formattedVal}</span>
+                        <span style="color:var(--text-muted);font-size:0.76rem;">(${pctCount}%) • ${formattedVal}</span>
                       </span>
                     </div>
                     <div class="ward-bar-track" style="height:6px;background:rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin-top:4px;">
@@ -1475,7 +1475,7 @@ function renderReportsTab(contentArea) {
               <div>
                 <div style="font-size:0.78rem;font-weight:700;color:var(--text-primary);">Taxa de Conclusão</div>
                 <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${finalizados} de ${total} atendimentos finalizados</div>
-                <div style="font-size:0.72rem;color:#a78bfa;margin-top:2px;"><i class="fa-solid fa-circle-dot"></i> ${emAtendimento} em andamento â€¢ <span style="color:#fbbf24;">${aguardando} aguardando</span></div>
+                <div style="font-size:0.72rem;color:#a78bfa;margin-top:2px;"><i class="fa-solid fa-circle-dot"></i> ${emAtendimento} em andamento • <span style="color:#fbbf24;">${aguardando} aguardando</span></div>
               </div>
             </div>
           </div>
@@ -1744,18 +1744,18 @@ function renderReportsTab(contentArea) {
     const summaryBlock = financialSummary ? `
       <div style="margin-bottom: 22px;">
         <div style="font-size: 11pt; font-weight: 700; color: #1e1b4b; border-bottom: 2px solid #6366f1; padding-bottom: 6px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-          ðŸ“Š Resumo Executivo do Filtro
+          📊 Resumo Executivo do Filtro
         </div>
 
         <!-- KPI CARDS em 3 colunas -->
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
           <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #15803d; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">âœ… Pagas</div>
+            <div style="font-size: 7.5pt; color: #15803d; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">✅ Pagas</div>
             <div style="font-size: 13pt; font-weight: 800; color: #16a34a;">${fmt(financialSummary.pagasVal)}</div>
             <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.pagasC} parcela(s)</div>
           </div>
           <div style="background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #1d4ed8; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">ðŸ• A Vencer</div>
+            <div style="font-size: 7.5pt; color: #1d4ed8; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">🕒 A Vencer</div>
             <div style="font-size: 13pt; font-weight: 800; color: #2563eb;">${fmt(financialSummary.aVencerVal)}</div>
             <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.aVencerC} parcela(s)</div>
           </div>
@@ -1767,7 +1767,7 @@ function renderReportsTab(contentArea) {
           <div style="background: #f5f3ff; border: 1.5px solid #c4b5fd; border-radius: 8px; padding: 10px 12px;">
             <div style="font-size: 7.5pt; color: #7c3aed; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">âš–ï¸ Saldo Líquido</div>
             <div style="font-size: 13pt; font-weight: 800; color: ${financialSummary.saldo >= 0 ? '#16a34a' : '#e11d48'};">${fmt(financialSummary.saldo)}</div>
-            <div style="font-size: 7.5pt; color: #4b5563;">Receitas âˆ’ Despesas</div>
+            <div style="font-size: 7.5pt; color: #4b5563;">Receitas − Despesas</div>
           </div>
           <div style="background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 8px; padding: 10px 12px;">
             <div style="font-size: 7.5pt; color: #b45309; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">ðŸ† Bonificadas</div>
@@ -1775,7 +1775,7 @@ function renderReportsTab(contentArea) {
             <div style="font-size: 7.5pt; color: #4b5563;">${financialSummary.bonificadasC} parcela(s)</div>
           </div>
           <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 8px; padding: 10px 12px;">
-            <div style="font-size: 7.5pt; color: #dc2626; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">ðŸš« Outras</div>
+            <div style="font-size: 7.5pt; color: #dc2626; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">🚫 Outras</div>
             <div style="font-size: 13pt; font-weight: 800; color: #dc2626;">${fmt((financialSummary.suspensasVal||0)+(financialSummary.canceladasVal||0)+(financialSummary.excluidasVal||0))}</div>
             <div style="font-size: 7.5pt; color: #4b5563;">Suspensas / Canceladas / Excluídas</div>
           </div>
@@ -1786,12 +1786,12 @@ function renderReportsTab(contentArea) {
         <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 12px; margin-bottom: 8px;">
           ${financialSummary.donutImg ? `
           <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">ðŸ“ˆ Distribuição por Status</div>
+            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">📈 Distribuição por Status</div>
             <img src="${financialSummary.donutImg}" style="max-width: 100%; max-height: 160px; object-fit: contain;" />
           </div>` : ''}
           ${financialSummary.barImg ? `
           <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">ðŸ“Š Volume por Forma de Pagamento (R$)</div>
+            <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 6px;">📊 Volume por Forma de Pagamento (R$)</div>
             <img src="${financialSummary.barImg}" style="max-width: 100%; max-height: 160px; object-fit: contain;" />
           </div>` : ''}
         </div>` : ''}
@@ -1866,7 +1866,7 @@ function renderReportsTab(contentArea) {
         </table>
 
         <div class="footer">
-          Health Nexus Â© 2026 — Sistema Integrado de Saúde Hospitalar â€¢ Documento impresso digitalmente.
+          Health Nexus © 2026 — Sistema Integrado de Saúde Hospitalar • Documento impresso digitalmente.
         </div>
         <script>
           window.onload = function() { window.print(); };
@@ -1908,7 +1908,7 @@ function renderReportsTab(contentArea) {
             </div>
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; font-family: 'Outfit', sans-serif;">Baixa Manual de Parcela</h3>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Quitação de Título Financeiro â€¢ Nosso NÂº: <strong>${installment.id}</strong></span>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Quitação de Título Financeiro • Nosso NÂº: <strong>${installment.id}</strong></span>
             </div>
           </div>
           <button id="close-pay-modal-btn" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
@@ -2003,7 +2003,7 @@ function renderReportsTab(contentArea) {
 
         if (response.ok) {
           closeModal();
-          if (typeof showToast === 'function') showToast(`âœ… Baixa manual da parcela ${installment.id} efetuada com sucesso!`);
+          if (typeof showToast === 'function') showToast(`✅ Baixa manual da parcela ${installment.id} efetuada com sucesso!`);
           if (typeof onComplete === 'function') onComplete();
         } else {
           alert('Erro ao efetuar baixa manual.');
@@ -2072,7 +2072,7 @@ function renderReportsTab(contentArea) {
             </div>
             <div>
               <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Outfit', sans-serif;">Janela Dedicada: Títulos Financeiros & Parcelas</h3>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">${installmentsList.length} títulos no filtro ativo â€¢ Total geral: ${fmt(totalGeral)}</span>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">${installmentsList.length} títulos no filtro ativo • Total geral: ${fmt(totalGeral)}</span>
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -2104,7 +2104,7 @@ function renderReportsTab(contentArea) {
           <div class="fin-kpi-card" data-filter="All" style="background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(244,63,94,0.08)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" title="Ver Todos (Saldo Líquido)">
             <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-scale-balanced"></i> Saldo Líquido</div>
             <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: ${saldoLiquido >= 0 ? '#34d399' : '#f43f5e'};">${fmt(saldoLiquido)}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Receitas âˆ’ Despesas</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Receitas − Despesas</div>
           </div>
           <div class="fin-kpi-card" data-filter="Bonificadas" style="background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.04)); border: 1px solid rgba(251,191,36,0.25); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="font-size: 0.7rem; color: #fbbf24; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-award"></i> Bonificadas</div>
@@ -2352,7 +2352,7 @@ function renderReportsTab(contentArea) {
             body: JSON.stringify({ ids: checked, notes: 'Baixa em lote realizada pela janela dedicada' })
           });
           if (response.ok) {
-            if (typeof showToast === 'function') showToast(`âœ… ${checked.length} parcelas baixadas com sucesso!`);
+            if (typeof showToast === 'function') showToast(`✅ ${checked.length} parcelas baixadas com sucesso!`);
             closeModal();
             if (typeof onRefresh === 'function') onRefresh();
           } else {
@@ -2417,7 +2417,7 @@ function renderReportsTab(contentArea) {
             </div>
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; font-family: 'Outfit', sans-serif;">2Âª Via do Boleto Bancário FEBRABAN</h3>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Nosso Número: <strong>${t.id}</strong> â€¢ Health Nexus Bank (341-7)</span>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Nosso Número: <strong>${t.id}</strong> • Health Nexus Bank (341-7)</span>
             </div>
           </div>
           
@@ -2458,7 +2458,7 @@ function renderReportsTab(contentArea) {
                 </div>
                 <div>
                   <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
-                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK â€¢ GESTÃO HOSPITALAR</div>
+                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK • GESTÃO HOSPITALAR</div>
                 </div>
               </div>
 
@@ -2523,7 +2523,7 @@ function renderReportsTab(contentArea) {
                 </div>
                 <div>
                   <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
-                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK â€¢ GESTÃO HOSPITALAR</div>
+                  <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK • GESTÃO HOSPITALAR</div>
                 </div>
               </div>
 
@@ -2609,11 +2609,11 @@ function renderReportsTab(contentArea) {
               <tr>
                 <td colspan="5" rowspan="5" style="border: 1px solid #000; padding: 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.4;">
                   <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">Instruções (Texto de Responsabilidade do Beneficiário)</span>
-                  â€¢ NÃO RECEBER APÓS 30 DIAS DO VENCIMENTO.<br>
-                  â€¢ APÓS O VENCIMENTO COBRAR MULTA DE 2,00% E JUROS DE 1,00% AO MÊS.<br>
-                  â€¢ TÃTULO REFERENTE A PRESTAÇÃO DE SERVIÇOS HOSPITALARES E CONSULTAS MÉDICAS.<br>
-                  â€¢ SERVIÇO PRESTADO: <strong>${t.desc}</strong><br>
-                  â€¢ DÚVIDAS OU SEGUNDA VIA LIGUE: (11) 4003-8900 OU WHATSAPP (11) 98888-7700.
+                  • NÃO RECEBER APÓS 30 DIAS DO VENCIMENTO.<br>
+                  • APÓS O VENCIMENTO COBRAR MULTA DE 2,00% E JUROS DE 1,00% AO MÊS.<br>
+                  • TÃTULO REFERENTE A PRESTAÇÃO DE SERVIÇOS HOSPITALARES E CONSULTAS MÉDICAS.<br>
+                  • SERVIÇO PRESTADO: <strong>${t.desc}</strong><br>
+                  • DÚVIDAS OU SEGUNDA VIA LIGUE: (11) 4003-8900 OU WHATSAPP (11) 98888-7700.
                 </td>
                 <td style="border: 1px solid #000; padding: 3px 6px;">
                   <span style="color: #475569; display: block; font-size: 6.5pt; text-transform: uppercase;">(-) Desconto / Abatimento</span>
@@ -3092,7 +3092,7 @@ function renderReportsTab(contentArea) {
             </tbody>
           </table>
         </div>
-        <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted);text-align:right;">${docList.length} médico(s) â€¢ Gerado em ${new Date().toLocaleString('pt-BR')}</div>
+        <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted);text-align:right;">${docList.length} médico(s) • Gerado em ${new Date().toLocaleString('pt-BR')}</div>
       `;
 
       // Animação Numérica 0 -> Final (CountUp)
@@ -3489,7 +3489,7 @@ async function openEncounterReportDetail(encId) {
               <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:13px;padding:13px;">
                 <div style="font-size:0.65rem;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px;display:flex;align-items:center;gap:5px;"><i class="fa-solid fa-hospital"></i> Atendimento</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                  ${infoRow('Tipo', enc.type === 'Urgencia' ? 'ðŸš¨ Urgência' : 'ðŸ¥ Ambulatório')}
+                  ${infoRow('Tipo', enc.type === 'Urgencia' ? '🚨 Urgência' : 'ðŸ¥ Ambulatório')}
                   ${infoRow('Médico', enc.doctorName)}
                   ${infoRow('Sala / Leito', enc.room || enc.bed)}
                   ${infoRow('CID-10', cid)}
