@@ -121,10 +121,10 @@ export async function renderKanbanTab() {
 
       <!-- Synchronized Scrollable Board Container (Sector Header Cards + Kanban Columns 1-to-1 Grid) -->
       <div style="overflow-x:auto; flex-grow:1; display:flex; flex-direction:column; padding-bottom:12px;">
-        <div style="min-width: 1400px; display:flex; flex-direction:column; gap:14px; flex-grow:1;">
+        <div id="kanban-scroll-wrapper" style="min-width: 1400px; display:flex; flex-direction:column; gap:14px; flex-grow:1;">
           
           <!-- Sector Cards Row (5 Columns) -->
-          <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 14px; flex-shrink:0;">
+          <div id="kanban-filters-row" style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 14px; flex-shrink:0;">
             ${filtersHtml}
           </div>
 
@@ -318,7 +318,24 @@ function loadAndRenderKanban() {
     return `${(bigint >> 16) & 255}, ${(bigint >> 8) & 255}, ${bigint & 255}`;
   }
 
-  // Always render all 5 columns so each column is physically aligned directly under its header card
+  // Update layouts for isolation
+  const scrollWrapper = document.getElementById('kanban-scroll-wrapper');
+  if (scrollWrapper) scrollWrapper.style.minWidth = currentFilter === 'all' ? '1400px' : '100%';
+  
+  const filtersRow = document.getElementById('kanban-filters-row');
+  if (filtersRow) {
+    // Keep filters in a scrollable horizontal row if isolated
+    filtersRow.style.minWidth = currentFilter === 'all' ? 'auto' : '1400px'; 
+  }
+
+  if (currentFilter !== 'all') {
+    board.style.display = 'flex';
+    board.style.justifyContent = 'center';
+  } else {
+    board.style.display = 'grid';
+    board.style.gridTemplateColumns = 'repeat(5, 1fr)';
+  }
+
   board.innerHTML = KANBAN_COLUMNS.map(col => {
     let cards = active.filter(h => h.current_sector === col.id).sort((a,b) => new Date(a.sector_entry_date)-new Date(b.sector_entry_date));
     
@@ -337,8 +354,10 @@ function loadAndRenderKanban() {
     const isSelected = currentFilter === col.id;
     const isFilteredOut = currentFilter !== 'all' && !isSelected;
 
+    if (isFilteredOut) return ''; // Completely hide unselected columns
+
     return `
-      <div class="kanban-col" data-col="${col.id}" style="background: rgba(${rgb}, ${isSelected ? '0.1' : '0.04'}); border-radius:14px; display:flex; flex-direction:column; border:1.5px solid rgba(${rgb}, ${isSelected ? '0.7' : isFilteredOut ? '0.15' : '0.3'}); box-shadow:${isSelected ? `0 8px 24px rgba(${rgb}, 0.25)` : `0 4px 12px rgba(${rgb}, 0.05)`}; overflow:hidden; transition: all 0.3s ease; opacity: ${isFilteredOut ? '0.35' : '1'}; filter: ${isFilteredOut ? 'grayscale(40%)' : 'none'};">
+      <div class="kanban-col" data-col="${col.id}" style="background: rgba(${rgb}, ${isSelected ? '0.1' : '0.04'}); border-radius:14px; display:flex; flex-direction:column; border:1.5px solid rgba(${rgb}, ${isSelected ? '0.7' : '0.3'}); box-shadow:${isSelected ? `0 8px 24px rgba(${rgb}, 0.25)` : `0 4px 12px rgba(${rgb}, 0.05)`}; overflow:hidden; transition: all 0.3s ease; width: ${isSelected ? '100%' : 'auto'}; max-width: ${isSelected ? '800px' : 'none'};">
         <div style="padding:14px 16px; border-bottom:1px solid rgba(${rgb}, 0.2); background: rgba(${rgb}, ${isSelected ? '0.2' : '0.08'}); display:flex; justify-content:space-between; align-items:center;">
           <h3 style="margin:0; font-size:0.95rem; font-weight:700; color:${col.color}; display:flex; align-items:center; gap:8px;">
             <span style="width:12px; height:12px; border-radius:50%; background:${col.color}; display:inline-block; flex-shrink:0; box-shadow: 0 0 8px ${col.color};"></span>
