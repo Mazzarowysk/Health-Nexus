@@ -636,12 +636,7 @@ function renderReportsTab(contentArea) {
 
     // 2. Gráfico de Barras Neon Glass ("Comparativo Financeiro (R$)")
     const c2dBar = barCtx.getContext('2d');
-    const barGradients = colors.map(c => {
-      const grad = c2dBar.createLinearGradient(0, 0, 0, 180);
-      grad.addColorStop(0, c);
-      grad.addColorStop(1, 'rgba(11, 8, 22, 0.4)');
-      return grad;
-    });
+
     const barGradients = colors.map(c => {
       const grad = c2dBar.createLinearGradient(0, 0, 0, 180);
       grad.addColorStop(0, c);
