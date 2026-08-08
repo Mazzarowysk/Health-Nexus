@@ -821,7 +821,7 @@ function renderReportsTab(contentArea) {
         <div class="preview-header" style="flex-wrap: wrap; gap: 15px;">
           <h3><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary);"></i> Relatório Financeiro de Títulos & Baixa Manual</h3>
           <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
-            <button id="btn-open-fin-window-card" class="btn btn-primary" style="background: linear-gradient(135deg, #00f2fe, #4f46e5); font-size: 0.8rem;"><i class="fa-solid fa-window-restore"></i> Abrir Janela Dedicada</button>
+            
             <button id="btn-export-pdf" class="btn btn-primary" style="background: var(--danger-color); font-size: 0.8rem;"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
             <button id="btn-export-xls" class="btn btn-primary" style="background: var(--success-color); font-size: 0.8rem;"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
             <button id="btn-export-csv" class="btn btn-outline" style="font-size: 0.8rem;"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
@@ -1040,7 +1040,7 @@ function renderReportsTab(contentArea) {
         };
 
         document.getElementById('btn-open-fin-window-top')?.addEventListener('click', openWindowHandler);
-        document.getElementById('btn-open-fin-window-card')?.addEventListener('click', openWindowHandler);
+        
 
         document.getElementById('btn-fin-card-pdf')?.addEventListener('click', () => processExport('pdf'));
         document.getElementById('btn-fin-card-xls')?.addEventListener('click', () => processExport('xls'));
