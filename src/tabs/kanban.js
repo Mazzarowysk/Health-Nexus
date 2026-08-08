@@ -152,6 +152,24 @@ window.setKanbanFilter = function(filterId) {
     
     if (isActive) {
       card.style.background = `rgba(${rgb}, 0.15)`;
+      card.style.borderColor = color;
+      card.style.borderWidth = '1.5px';
+      card.style.boxShadow = `0 8px 24px rgba(${rgb}, 0.3), inset 0 2px 0 rgba(${rgb}, 0.4)`;
+      card.style.transform = 'translateY(-4px)';
+      if (badge) badge.style.display = 'inline-block';
+    } else {
+      card.style.background = 'rgba(18, 20, 32, 0.9)';
+      card.style.borderWidth = '1.5px';
+      card.style.borderColor = `rgba(${rgb}, 0.4)`;
+      card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+      card.style.transform = 'none';
+      if (badge) badge.style.display = 'none';
+    }
+  });
+  
+  loadAndRenderKanban();
+};
+
 function calcStatus(hosp, col) {
   const now = new Date();
   const entry = new Date(hosp.sector_entry_date);
