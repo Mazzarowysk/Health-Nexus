@@ -351,7 +351,7 @@ function loadAndRenderKanban() {
         </div>
         <div class="kanban-col-body" style="padding:14px; flex-grow:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px; min-height:200px; max-height:calc(100vh - 350px);">
           ${cards.map(h => renderCard(h, col)).join('')}
-          ${cards.length === 0 ? `<div onclick="openAddPatientKanbanModal('${col.id}')" style="text-align:center;padding:40px 10px;color:rgba(${rgb},0.6);font-size:0.85rem; cursor:pointer; transition:all 0.2s; border-radius:10px;" onmouseover="this.style.background='rgba(${rgb},0.1)';this.style.color='rgba(${rgb},0.9)'" onmouseout="this.style.background='transparent';this.style.color='rgba(${rgb},0.6)'" title="Clique para adicionar paciente neste setor"><i class="fa-regular fa-circle-check" style="font-size:2.2rem;margin-bottom:12px;display:block;opacity:0.5;color:${col.color}"></i>${currentSlaFilter !== 'all' ? 'Nenhum paciente neste filtro SLA' : 'Clique para adicionar'}</div>` : ''}
+          ${cards.length === 0 ? `<div onclick="openAddPatientKanbanModal('${col.id}')" style="text-align:center;padding:40px 10px;color:rgba(${rgb},0.9);font-size:0.85rem; font-weight:500; cursor:pointer; transition:all 0.2s; border-radius:10px;" onmouseover="this.style.background='rgba(${rgb},0.15)';this.style.color='rgba(${rgb},1)'" onmouseout="this.style.background='transparent';this.style.color='rgba(${rgb},0.9)'" title="Clique para adicionar paciente neste setor"><i class="fa-regular fa-circle-check" style="font-size:2.2rem;margin-bottom:12px;display:block;opacity:0.85;color:${col.color}"></i>${currentSlaFilter !== 'all' ? 'Nenhum paciente neste filtro SLA' : 'Clique para adicionar'}</div>` : ''}
         </div>
       </div>`;
   }).join('');

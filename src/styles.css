@@ -3109,12 +3109,12 @@ body {
   --glass-blur: blur(16px);
 
   /* Text - high contrast for accessibility */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-primary: #020617; /* Quase preto */
+  --text-secondary: #334155; /* Slate 700 */
+  --text-muted: #64748b; /* Slate 500, contraste mais forte que o original */
 
   /* Borders & shadows */
-  --border-color: rgba(148, 163, 184, 0.35);
+  --border-color: rgba(71, 85, 105, 0.25); /* Borda mais visível e elegante */
   --border-focus: #2563eb;
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.07), 0 4px 8px rgba(0, 0, 0, 0.04);
