@@ -337,9 +337,22 @@ Na aba **Farmácia**, faz-se a gestão de estoque e rastreabilidade de medicamen
 
 <h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2>
 
-Na aba **Faturamento**, acompanha-se a receita e os repasses dos convênios.
+Na aba **Faturamento**, a equipe financeira acompanha a receita, contas a receber e repasses dos convênios através de um painel completo.
 
-### 💳 Tabela de Lançamentos Financeiros
+### 💳 Janela Dedicada: Títulos Financeiros & Parcelas
+No menu superior de Relatórios e Faturamento, ao clicar no botão **Visualizar Listagem em Janela Dedicada**, o sistema apresenta um Dashboard Financeiro imersivo em tela cheia com gráficos modernos e filtros interativos:
+
+- **Cards KPI Interativos:** Clique nos cards para filtrar instantaneamente os títulos financeiros exibidos na tabela abaixo.
+  - **Visão Geral:** Restaura a lista completa (sem filtros).
+  - **Pagas, A Vencer, Vencidas:** Filtra os títulos por status com cores correspondentes.
+  - **Saldo Líquido:** Atua como um macroindicador consolidado (Receitas - Despesas) sem função de filtro.
+  - **Bonificadas / Outras:** Filtros para parcelas suspensas, canceladas ou estornadas.
+
+- **Gráficos Modernos em Tempo Real:** 
+  - **Distribuição por Status (Donut Chart):** Proporção visual dos títulos pagos, vencidos e a vencer.
+  - **Volume por Forma de Pagamento (Bar Chart):** Gráfico de barras com efeito glassmorphism demonstrando o volume financeiro transacionado por Pix, Dinheiro, Cartão, Boleto, etc.
+
+### 💳 Tabela de Lançamentos Financeiros (Padrão)
 | Código Atendimento | Paciente | Convênio / Plano | Valor dos Serviços | Valor Taxas/Exames | Status Financeiro | Ações Disponíveis |
 | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
 | `#ATD-2026-081` | Renato Ramos | Unimed Saúde | R$ 350,00 | R$ 120,00 | 🟡 `Pendente` | `Dar Baixa`, `Editar` |

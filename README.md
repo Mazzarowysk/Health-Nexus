@@ -96,8 +96,11 @@
     - Gerenciamento de medicamentos e insumos.  
     - Notificações automáticas de estoque baixo.
 
-12. **Financeiro**  
+12. **Financeiro (Títulos & Parcelas)**  
     - Faturamento, recebimentos (Pix/Cartão/Dinheiro) e contas a pagar.
+    - **Janela Dedicada:** Dashboard de relatórios financeiros expandido em tela cheia.
+    - **Cards KPI Interativos:** Filtro instantâneo de contas a vencer, vencidas, pagas e visão geral.
+    - **Gráficos Glassmorphism:** Distribuição por status (Donut) e volume por métodos de pagamento (Bar) com Chart.js.
 
 13. **Corpo Clínico & Consultórios**  
     - CRUD de médicos com CRM, especialidade e escala de plantão.
