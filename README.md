@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `1.3.0`  
+**Versão:** `2.2.0`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -8,9 +8,9 @@
 
 ## 📘 Documentação & Manual do Usuário
 
-- 🌐 **Portal Web Interativo:** [manual_do_usuario.html](file:///c:/Health%20Nexus/manual_do_usuario.html) *(acessível no botão `📖 Manual do Usuário` no topo do sistema)*
+- 🌐 **Portal Web Interativo (Redesenhado):** [manual_do_usuario.html](file:///c:/Health%20Nexus/manual_do_usuario.html) *(acessível no botão `📖 Manual do Usuário` no topo do sistema)*
 - 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
-- 📄 **Manual Completo em Markdown:** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
+- 📄 **Manual Completo em Markdown (Com Fluxograma):** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
 
 ---
 
@@ -79,8 +79,8 @@
    - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo).  
    - Alocação e alta de pacientes com atualização em tempo real.
 
-10. **🆕 Kanban de Internação** *(v1.3.0+)*  
-    Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas:  
+10. **🆕 Kanban de Internação Interativo** *(v2.2.0)*  
+    Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas e alta interatividade:  
     - **5 colunas de setor:** Pronto Socorro (PS), Corredor de Internação, Clínica Cirúrgica, Clínica Médica (SUS) e UTI.  
     - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
     - **Barra de progresso visual** (verde → amarelo → vermelho) por card.  
@@ -90,8 +90,7 @@
     - **Ações de gerenciamento por card:** ✏️ Editar dados, 🔄 Mover setor, 🚶 Alta hospitalar.  
     - **Colunas Interativas:** Clique em áreas vazias de uma coluna para abrir o modal de adição de paciente com aquele setor já pré-selecionado.
     - **Drag & Drop** para mover pacientes entre colunas (setor reiniciado automaticamente).  
-    - **Filtros rápidos** por setor com contagem em tempo real (cards KPI interativos).
-    - **Gráfico Analytics:** Gráfico em rosca de distribuição geral de pacientes.
+    - **Cards e Gráficos KPI Interativos:** Gráficos de distribuição por setor e funil de jornada hospitalar com drill-down e modais de auditoria ao clicar nas fatias e barras.
 
 11. **Farmácia & Estoque**  
     - Gerenciamento de medicamentos e insumos.  
@@ -140,6 +139,7 @@
 | **Farmácia** | Total, Baixo Estoque, Crítico | Filtra lista de medicamentos |
 | **Estagnação** | Críticos, Alertas de Espera, Total | Filtra tabela de alertas |
 | **Leitos** | Total, Vagos, Ocupados, Higienização | Filtra grade visual |
+| **Kanban** | Distribuição Setor, Metas (SLA), Funil | Clicar em gráficos e métricas filtra o quadro ou abre modais de auditoria |
 
 ---
 

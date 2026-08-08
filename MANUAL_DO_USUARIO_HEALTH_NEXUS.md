@@ -44,9 +44,29 @@
 
 ---
 
-<h2 id="sec-1">1. Visão Geral & Arquitetura do Fluxo Hospitalar</h2>
+<h2 id="sec-1">1. Visão Geral & Arquitetura do Fluxo Hospitalar (Fluxograma de Ligações)</h2>
 
 O **Health Nexus** organiza a jornada assistencial do paciente desde a recepção até a alta definitiva ou internação em UTI/Enfermaria.
+
+### 🌐 Arquitetura de Módulos: Conectados vs Isolados
+
+O sistema é subdividido em 3 categorias de módulos estruturais:
+
+1. **Fluxo Core Assistencial (Cadeia Encadeada Linear)**:
+   - `Recepção / Admissão PS` ➔ `Triagem de Manchester` ➔ `Painel TV Chamador` ➔ `Consultório & PEP SOAP` ➔ `Kanban de Internação` ➔ `Mapa de Leitos` ➔ `Central de Altas` ➔ `Faturamento & Guias TISS`.
+2. **Módulos Atrelados / Integrados (Dependentes)**:
+   - **Prescrição & Farmácia**: Atrelado ao PEP SOAP e aos Leitos para dispensação e controle de lote/validade.
+   - **Exames & Laudos**: Atrelado ao Prontuário para anexação de resultados laboratoriais e imagens DICOM.
+   - **Corpo Clínico & Escalas**: Atrelado ao Consultório e Centro Cirúrgico para vinculação de responsabilidade médica e CRM.
+   - **Turso Cloud Sync**: Atrelado a todas as mutações no banco local para réplica síncrona com LibSQL.
+3. **Módulos Isolados / Autônomos (Ferramentas Independentes)**:
+   - **Configurações Globais**: Módulo administrativo isolado para alteração de parâmetros e personalização.
+   - **Backup & Exportação JSON**: Utilitário autônomo para geração e restauração de snapshots de dados.
+   - **Histórico de Sessões Master**: Painel autônomo de auditoria de logins e acessos de administradores.
+   - **Simulador de Dados 300**: Ferramenta isolada de estresse e carga fictícia de registros para testes.
+   - **Telemedicina Remote**: Plataforma de videoatendimento autônoma com sincronização opcional via API.
+
+---
 
 ### 🔄 Diagrama de Fluxo da Jornada Assistencial
 ```mermaid
@@ -66,28 +86,21 @@ graph TD
     G -->|"Necessidade de Leito"| J["🛏️ Transferência para Enfermaria / UTI"]
 ```
 
-### 👥 Perfis de Acesso & Matriz de Permissões
-| Perfil | Acesso Principal | Módulos Liberados | Ações Permitidas |
-| :--- | :--- | :--- | :--- |
-| **Administrador Master** | Todo o sistema | Todas as abas + Painel Master | Aprovar solicitações de acesso Master, gerenciar usuários, importar/exportar backups JSON, resetar banco. |
-| **Médico** | Atendimentos, PEP, Leitos | Atendimentos, Pacientes, Leitos, Agenda | Realizar atendimento médico, assinar PEP (SOAP), prescrever medicamentos, colocar em observação, solicitar leito. |
-| **Enfermeiro(a)** | Atendimentos, Triagem | Atendimentos, Pacientes, Farmácia | Realizar Triagem de Manchester, coletar sinais vitais (PA, FC, Temp, SpO2, Dor), administrar medicação. |
-| **Recepcionista** | Pacientes, Agenda | Pacientes, Agenda, Atendimentos (Admissão) | Cadastrar novos pacientes, agendar consultas eletivas, dar entrada na recepção do PS, emitir senhas. |
-| **Farmacêutico(a)** | Farmácia | Farmácia, Estoque | Controle de lote/validade, dar baixa em receitas dispensadas, definir estoque mínimo de segurança. |
-
 ---
 
-<h2 id="sec-2">2. Central de Atendimentos & Painel Kanban</h2>
+<h2 id="sec-2">2. Central de Atendimentos & Cards Interativos do Kanban</h2>
 
-<h3 id="sec-2-1">2.1. Cards Métricos e Filtros de Fila</h3>
-No topo da aba **Atendimentos**, encontram-se os 4 **Cards Métricos Clicáveis** para controle imediato do fluxo:
+<h3 id="sec-2-1">2.1. Cards Métricos e Filtros de Fila Interativos</h3>
+No topo da aba **Kanban de Internação**, encontram-se os **Cards Métricos Clicáveis** para controle imediato do fluxo:
 
-| Card | Ícone | Cor Tema | Ação ao Clicar | Descrição / Objetivo |
-| :--- | :---: | :---: | :--- | :--- |
-| **Triagem** | 🩺 | Roxo (`#8b5cf6`) | `filterKanbanColumn('triage')` | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem da enfermagem. |
-| **Ag. Médico** | ⌛ | Amarelo (`#f59e0b`) | `filterKanbanColumn('waiting')` | Filtra a tela para exibir apenas os pacientes triados aguardando chamada do médico. |
-| **Em Consulta** | 👤 | Verde (`#10b981`) | `filterKanbanColumn('active')` | Filtra a tela para focar nos atendimentos em andamento e em observação no PS. |
-| **Ver Todos** | 🔳 | Neutro (`#94a3b8`) | `filterKanbanColumn('all')` | Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban. |
+| Card | Elemento Clicável | Ação no Sistema | Descrição / Objetivo |
+| :--- | :--- | :--- | :--- |
+| **Distribuição por Setor** | Fatia do Gráfico Donut | `setKanbanFilter(sectorId)` | Filtra a grade Kanban exibindo apenas os pacientes do setor selecionado. |
+| **Distribuição por Setor** | Número Central | `openKanbanSectorBreakdownModal()` | Abre o modal de detalhamento listando todos os pacientes por setor e leito. |
+| **Metas de Tempo (SLA)** | Fatia Verde / Amarela / Vermelha | `setKanbanSlaFilter(type)` | Filtra a grade Kanban por status de SLA (No prazo, Atenção ou Meta Excedida). |
+| **Metas de Tempo (SLA)** | Percentual Central | `openKanbanSlaAuditModal()` | Abre o modal gerencial de auditoria de gargalos e permanência. |
+| **Funil da Jornada** | Barra do Setor | `setKanbanFilter(sectorId)` | Filtra rapidamente a coluna correspondente no painel. |
+| **Badge Filtro Ativo** | Botão "X" | `resetKanbanAllFilters()` | Reseta todos os filtros ativados e reexibe a grade completa de 5 colunas. |
 
 ---
 
