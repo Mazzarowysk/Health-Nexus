@@ -21,7 +21,6 @@ export async function renderKanbanTab() {
 
   const FILTER_CARDS = [
     { id: 'all', label: 'Visão Geral', icon: 'fa-layer-group', color: '#818cf8', rgb: '129,140,248' },
-    { id: 'all', label: 'Visão Geral', icon: 'fa-layer-group', color: '#818cf8', rgb: '129,140,248' },
     { id: 'pronto_socorro', label: 'Pronto Socorro', icon: 'fa-truck-medical', color: '#3b82f6', rgb: '59,130,246' },
     { id: 'corredor_internacao', label: 'Corredor', icon: 'fa-bed-pulse', color: '#f59e0b', rgb: '245,158,11' },
     { id: 'clinica_cirurgica', label: 'Cirurgica', icon: 'fa-scalpel', color: '#8b5cf6', rgb: '139,92,246' },
@@ -30,7 +29,7 @@ export async function renderKanbanTab() {
   ];
 
   const filtersHtml = FILTER_CARDS.map(f => `
-    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: rgba(18, 20, 32, 0.9); border: 1.5px solid rgba(${f.rgb}, 0.4); border-radius: 12px; padding: 24px 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 140px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-4px)'; this.style.borderColor='${f.color}'; this.style.boxShadow='0 8px 24px rgba(${f.rgb}, 0.2)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='rgba(${f.rgb}, 0.4)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'; }">
+    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: rgba(18, 20, 32, 0.9); border: 1px solid rgba(255,255,255,0.06); border-top: 3px solid ${f.color}; border-radius: 12px; padding: 24px 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 140px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-4px)'; this.style.background='rgba(${f.rgb}, 0.05)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4), inset 0 24px 24px -24px rgba(${f.rgb}, 0.3)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.background='rgba(18, 20, 32, 0.9)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'; }">
       <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.3rem; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(${f.rgb}, 0.15);">
         <i class="fa-solid ${f.icon}"></i>
       </div>
@@ -151,16 +150,20 @@ window.setKanbanFilter = function(filterId) {
     const badge = card.querySelector('.card-status-badge');
     
     if (isActive) {
-      card.style.background = `rgba(${rgb}, 0.15)`;
-      card.style.borderColor = color;
-      card.style.borderWidth = '1.5px';
-      card.style.boxShadow = `0 8px 24px rgba(${rgb}, 0.3), inset 0 2px 0 rgba(${rgb}, 0.4)`;
+      card.style.background = `rgba(${rgb}, 0.12)`;
+      card.style.borderTop = `3px solid ${color}`;
+      card.style.borderRight = '1px solid rgba(255,255,255,0.1)';
+      card.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+      card.style.borderLeft = '1px solid rgba(255,255,255,0.1)';
+      card.style.boxShadow = `0 8px 24px rgba(0,0,0,0.4), inset 0 24px 24px -24px rgba(${rgb}, 0.5)`;
       card.style.transform = 'translateY(-4px)';
       if (badge) badge.style.display = 'inline-block';
     } else {
       card.style.background = 'rgba(18, 20, 32, 0.9)';
-      card.style.borderWidth = '1.5px';
-      card.style.borderColor = `rgba(${rgb}, 0.4)`;
+      card.style.borderTop = `3px solid ${color}`;
+      card.style.borderRight = '1px solid rgba(255,255,255,0.06)';
+      card.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
+      card.style.borderLeft = '1px solid rgba(255,255,255,0.06)';
       card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
       card.style.transform = 'none';
       if (badge) badge.style.display = 'none';
