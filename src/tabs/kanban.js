@@ -198,24 +198,24 @@ function calcStatus(hosp, col) {
 function renderCard(hosp, col) {
   const { pct, statusColor, statusText, timeStr, totalStr } = calcStatus(hosp, col);
   const initials = (hosp.patientName || '?').split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
-  const diagHtml = hosp.diagnosis ? `<div style="font-size:0.72rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${hosp.diagnosis}"><i class="fa-solid fa-stethoscope" style="width:14px; text-align:center;"></i> <span style="overflow:hidden; text-overflow:ellipsis;">${hosp.diagnosis}</span></div>` : '';
-  const bedHtml = hosp.bed ? `<div style="font-size:0.72rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-bed" style="width:14px; text-align:center;"></i> Leito: <b style="color:var(--text-primary);">${hosp.bed}</b></div>` : '';
-  const drHtml = hosp.doctor_name ? `<div style="font-size:0.72rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-user-doctor" style="width:14px; text-align:center;"></i> Dr(a). ${hosp.doctor_name}</div>` : '';
+  const diagHtml = hosp.diagnosis ? `<div style="font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${hosp.diagnosis}"><i class="fa-solid fa-stethoscope" style="width:14px; text-align:center;"></i> <span style="overflow:hidden; text-overflow:ellipsis;">${hosp.diagnosis}</span></div>` : '';
+  const bedHtml = hosp.bed ? `<div style="font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-bed" style="width:14px; text-align:center;"></i> Leito: <b style="color:var(--text-primary);">${hosp.bed}</b></div>` : '';
+  const drHtml = hosp.doctor_name ? `<div style="font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-user-doctor" style="width:14px; text-align:center;"></i> Dr(a). ${hosp.doctor_name}</div>` : '';
 
   // Safe escape for name if it contains single quotes
   const safeName = (hosp.patientName || '').replace(/'/g, "\\'");
 
   return `
-    <div class="kanban-card" onclick="if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${hosp.patient_id}', '${safeName}');" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--bg-card); border:1px solid var(--border-color); border-left:4px solid ${statusColor}; border-radius:10px; padding:14px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease; display:flex; flex-direction:column; gap:12px;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.25)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';">
+    <div class="kanban-card" onclick="if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${hosp.patient_id}', '${safeName}');" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--bg-card); border:1px solid var(--border-color); border-left:4px solid ${statusColor}; border-radius:12px; padding:18px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease; display:flex; flex-direction:column; gap:16px;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.25)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';">
       
       <!-- Top: User Info & ID -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
         <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-          <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,${col.color}44,${col.color}88); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:${col.color}; flex-shrink:0; border: 1px solid ${col.color}44;">${initials}</div>
-          <strong style="font-size:0.95rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${hosp.patientName}">${hosp.patientName}</strong>
+          <div style="width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,${col.color}44,${col.color}88); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:${col.color}; flex-shrink:0; border: 1px solid ${col.color}44;">${initials}</div>
+          <strong style="font-size:1.1rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${hosp.patientName}">${hosp.patientName}</strong>
         </div>
         <div style="display:flex; align-items:center; flex-shrink:0;">
-          <span style="font-size:0.65rem; padding:3px 6px; border-radius:6px; font-weight:600; background:var(--bg-secondary); color:var(--text-muted); border: 1px solid var(--border-color);">${(hosp.patient_id||'').substring(0,6)}</span>
+          <span style="font-size:0.75rem; padding:4px 8px; border-radius:6px; font-weight:600; background:var(--bg-secondary); color:var(--text-muted); border: 1px solid var(--border-color);">${(hosp.patient_id||'').substring(0,6)}</span>
         </div>
       </div>
       
@@ -227,8 +227,8 @@ function renderCard(hosp, col) {
       <!-- Progress/Sector bar -->
       <div style="background: rgba(0,0,0,0.1); padding: 8px 10px; border-radius: 8px;">
         <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:center;">
-          <span style="font-size:0.7rem; color:var(--text-muted);"><i class="fa-regular fa-clock" style="margin-right:4px;"></i>Setor: <b style="color:var(--text-primary);">${timeStr}</b></span>
-          <span style="font-size:0.7rem; font-weight:700; color:${statusColor};">${statusText}</span>
+          <span style="font-size:0.82rem; color:var(--text-muted);"><i class="fa-regular fa-clock" style="margin-right:4px;"></i>Setor: <b style="color:var(--text-primary);">${timeStr}</b></span>
+          <span style="font-size:0.82rem; font-weight:700; color:${statusColor};">${statusText}</span>
         </div>
         <div style="height:6px; background:var(--border-color); border-radius:3px; overflow:hidden;">
           <div style="height:100%; width:${pct}%; background:${statusColor}; border-radius:3px; box-shadow: 0 0 6px ${statusColor};"></div>
@@ -237,10 +237,10 @@ function renderCard(hosp, col) {
       
       <!-- Action Buttons Row 1: Interactions -->
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-        <button onclick="openPatientHistoryModal('${hosp.patient_id}', '${safeName}')" style="background:var(--color-primary); color:#fff; border:none; border-radius:6px; padding:6px; font-size:0.75rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.1);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" title="Acessar Prontuário, Consultas e Histórico">
+        <button onclick="openPatientHistoryModal('${hosp.patient_id}', '${safeName}')" style="background:var(--color-primary); color:#fff; border:none; border-radius:6px; padding:8px; font-size:0.85rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.1);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" title="Acessar Prontuário, Consultas e Histórico">
           <i class="fa-solid fa-notes-medical"></i> Prontuário
         </button>
-        <button onclick="viewKanbanNotes('${hosp.id}')" style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px; padding:6px; font-size:0.75rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'" title="Evoluções e Anotações">
+        <button onclick="viewKanbanNotes('${hosp.id}')" style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px; padding:8px; font-size:0.85rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'" title="Evoluções e Anotações">
           <i class="fa-regular fa-note-sticky" style="color:var(--color-primary);"></i> Evolução
           ${(hosp.evolutions?.length > 0 || hosp.notes) ? '<span style="width:6px;height:6px;background:#ef4444;border-radius:50%;margin-left:2px;" title="Há anotações recentes"></span>' : ''}
         </button>
