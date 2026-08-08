@@ -357,7 +357,7 @@ function loadAndRenderKanban() {
     if (isFilteredOut) return ''; // Completely hide unselected columns
 
     return `
-      <div class="kanban-col" data-col="${col.id}" style="background: rgba(${rgb}, ${isSelected ? '0.1' : '0.04'}); border-radius:14px; display:flex; flex-direction:column; border:1.5px solid rgba(${rgb}, ${isSelected ? '0.7' : '0.3'}); box-shadow:${isSelected ? `0 8px 24px rgba(${rgb}, 0.25)` : `0 4px 12px rgba(${rgb}, 0.05)`}; overflow:hidden; transition: all 0.3s ease; width: ${isSelected ? '100%' : 'auto'}; max-width: ${isSelected ? '800px' : 'none'};">
+      <div class="kanban-col" data-col="${col.id}" style="background: rgba(${rgb}, ${isSelected ? '0.1' : '0.04'}); border-radius:14px; display:flex; flex-direction:column; border:1.5px solid rgba(${rgb}, ${isSelected ? '0.7' : '0.3'}); box-shadow:${isSelected ? `0 8px 24px rgba(${rgb}, 0.25)` : `0 4px 12px rgba(${rgb}, 0.05)`}; overflow:hidden; transition: all 0.3s ease; width: ${isSelected ? '100%' : 'auto'}; max-width: none;">
         <div style="padding:14px 16px; border-bottom:1px solid rgba(${rgb}, 0.2); background: rgba(${rgb}, ${isSelected ? '0.2' : '0.08'}); display:flex; justify-content:space-between; align-items:center;">
           <h3 style="margin:0; font-size:0.95rem; font-weight:700; color:${col.color}; display:flex; align-items:center; gap:8px;">
             <span style="width:12px; height:12px; border-radius:50%; background:${col.color}; display:inline-block; flex-shrink:0; box-shadow: 0 0 8px ${col.color};"></span>
@@ -368,7 +368,7 @@ function loadAndRenderKanban() {
             <span style="background: ${col.color}; color:#fff; font-size:0.75rem; padding:2px 10px; border-radius:12px; font-weight:800; box-shadow: 0 2px 6px rgba(${rgb}, 0.4);">${cards.length}</span>
           </div>
         </div>
-        <div class="kanban-col-body" style="padding:14px; flex-grow:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px; min-height:200px; max-height:calc(100vh - 350px);">
+        <div class="kanban-col-body" style="padding:14px; flex-grow:1; overflow-y:auto; display:${isSelected ? 'grid' : 'flex'}; grid-template-columns: ${isSelected ? 'repeat(auto-fill, minmax(350px, 1fr))' : 'none'}; flex-direction:${isSelected ? 'row' : 'column'}; align-content: start; gap:14px; min-height:200px; max-height:calc(100vh - 350px);">
           ${cards.map(h => renderCard(h, col)).join('')}
           ${cards.length === 0 ? `<div onclick="openAddPatientKanbanModal('${col.id}')" style="text-align:center;padding:40px 10px;color:rgba(${rgb},0.9);font-size:0.85rem; font-weight:500; cursor:pointer; transition:all 0.2s; border-radius:10px;" onmouseover="this.style.background='rgba(${rgb},0.15)';this.style.color='rgba(${rgb},1)'" onmouseout="this.style.background='transparent';this.style.color='rgba(${rgb},0.9)'" title="Clique para adicionar paciente neste setor"><i class="fa-regular fa-circle-check" style="font-size:2.2rem;margin-bottom:12px;display:block;opacity:0.85;color:${col.color}"></i>${currentSlaFilter !== 'all' ? 'Nenhum paciente neste filtro SLA' : 'Clique para adicionar'}</div>` : ''}
         </div>
