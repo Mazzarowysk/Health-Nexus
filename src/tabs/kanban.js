@@ -28,16 +28,16 @@ export async function renderKanbanTab() {
   ];
 
   const filtersHtml = FILTER_CARDS.map(f => `
-    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(${f.rgb},0.4)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: rgba(30,41,59,0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 18px 22px; cursor: pointer; transition: all 0.25s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 110px;" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(${f.rgb},0.4)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='rgba(255,255,255,0.06)'; }">
       <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px;">
-        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.05rem;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.25rem;">
           <i class="fa-solid ${f.icon}"></i>
         </div>
         <span class="card-status-badge" style="display: none; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: rgba(${f.rgb}, 0.2); color: ${f.color}; border: 1px solid rgba(${f.rgb}, 0.4); letter-spacing: 0.5px;">ATIVO</span>
       </div>
       <div>
-        <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin: 0 0 2px 0;">${f.label}</h4>
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; font-weight: 600;"><span id="count-${f.id}">0</span> pacientes</p>
+        <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0; font-size: 1rem;">${f.label}</h4>
+        <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin: 0; font-weight: 600;"><span id="count-${f.id}">0</span> pacientes</p>
       </div>
     </div>
   `).join('');
@@ -71,7 +71,7 @@ export async function renderKanbanTab() {
       <div style="display:flex; gap: 14px; margin-bottom: 14px; flex-shrink:0; flex-wrap:wrap; align-items:stretch;">
         
         <!-- Chart 1: Distribuição por Setor (Interativo) -->
-        <div class="kanban-chart-card" onclick="openKanbanSectorBreakdownModal()" style="flex: 1; min-width: 200px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s ease;" onmouseenter="this.style.borderColor='rgba(99,102,241,0.5)'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.borderColor='var(--border-color)'; this.style.transform='none';" title="Clique para ver detalhamento de pacientes por setor">
+        <div class="kanban-chart-card" onclick="openKanbanSectorBreakdownModal()" style="flex: 1; min-width: 200px; background: rgba(30, 41, 59, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s ease;" onmouseenter="this.style.borderColor='rgba(99,102,241,0.5)'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.borderColor='var(--border-color)'; this.style.transform='none';" title="Clique para ver detalhamento de pacientes por setor">
           <h4 style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0 0 8px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
             <i class="fa-solid fa-chart-pie" style="color: #6366f1;"></i> Distribuição por Setor
             <i class="fa-solid fa-arrow-pointer" style="font-size:0.65rem; color:var(--text-muted); opacity:0.7;"></i>
@@ -87,7 +87,7 @@ export async function renderKanbanTab() {
         </div>
 
         <!-- Chart 2: SLA & Metas de Tempo (Interativo) -->
-        <div class="kanban-chart-card" onclick="openKanbanSlaAuditModal()" style="flex: 1; min-width: 200px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s ease;" onmouseenter="this.style.borderColor='rgba(245,158,11,0.5)'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.borderColor='var(--border-color)'; this.style.transform='none';" title="Clique para ver auditoria detalhada de SLAs e atrasos">
+        <div class="kanban-chart-card" onclick="openKanbanSlaAuditModal()" style="flex: 1; min-width: 200px; background: rgba(30, 41, 59, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s ease;" onmouseenter="this.style.borderColor='rgba(245,158,11,0.5)'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.borderColor='var(--border-color)'; this.style.transform='none';" title="Clique para ver auditoria detalhada de SLAs e atrasos">
           <h4 style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0 0 8px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
             <i class="fa-solid fa-hourglass-half" style="color: #f59e0b;"></i> Metas de Tempo (SLA)
             <i class="fa-solid fa-arrow-pointer" style="font-size:0.65rem; color:var(--text-muted); opacity:0.7;"></i>
@@ -103,7 +103,7 @@ export async function renderKanbanTab() {
         </div>
 
         <!-- Funil da Jornada de Internação (Interativo) -->
-        <div style="flex: 1.6; min-width: 260px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="flex: 1.6; min-width: 260px; background: rgba(30, 41, 59, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); display: flex; flex-direction: column; justify-content: space-between;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <h4 style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0; display:flex; align-items:center; gap:6px; cursor:pointer;" onclick="openKanbanFunnelDetailModal()" title="Clique para ver detalhes do fluxo do funil">
               <i class="fa-solid fa-filter" style="color: #3b82f6;"></i> Funil da Jornada Hospitalar
@@ -124,7 +124,7 @@ export async function renderKanbanTab() {
         <div id="kanban-scroll-wrapper" style="min-width: 1400px; display:flex; flex-direction:column; gap:14px; flex-grow:1;">
           
           <!-- Sector Cards Row (5 Columns) -->
-          <div id="kanban-filters-row" style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 14px; flex-shrink:0;">
+          <div id="kanban-filters-row" style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 16px; flex-shrink:0;">
             ${filtersHtml}
           </div>
 
@@ -145,21 +145,7 @@ export async function renderKanbanTab() {
 window.setKanbanFilter = function(filterId) {
   currentFilter = filterId;
   
-  // Style 'Todos os Setores' button
-  const kfAll = document.getElementById('kf-all');
-  if (kfAll) {
-    if (filterId === 'all') {
-      kfAll.style.background = 'rgba(99,102,241,0.2)';
-      kfAll.style.borderColor = 'rgba(99,102,241,0.6)';
-      kfAll.style.boxShadow = '0 4px 14px rgba(99,102,241,0.3)';
-    } else {
-      kfAll.style.background = 'var(--bg-secondary)';
-      kfAll.style.borderColor = 'var(--border-color)';
-      kfAll.style.boxShadow = 'none';
-    }
-  }
-
-  // Style the 5 sector cards
+  // Style all 6 sector cards
   document.querySelectorAll('.kanban-filter-card').forEach(card => {
     const id = card.id.replace('kf-', '');
     const isActive = id === filterId;
@@ -174,8 +160,8 @@ window.setKanbanFilter = function(filterId) {
       card.style.transform = 'translateY(-2px)';
       if (badge) badge.style.display = 'inline-block';
     } else {
-      card.style.background = 'var(--bg-secondary)';
-      card.style.borderColor = 'var(--border-color)';
+      card.style.background = 'rgba(30,41,59,0.5)';
+      card.style.borderColor = 'rgba(255,255,255,0.06)';
       card.style.borderWidth = '1px';
       card.style.boxShadow = 'none';
       card.style.transform = 'none';
