@@ -19,7 +19,6 @@ export async function renderKanbanTab() {
   if (!contentArea) return;
 
   const FILTER_CARDS = [
-    { id: 'all', label: 'Todos Setores', icon: 'fa-hospital-user', color: '#6366f1', rgb: '99,102,241' },
     { id: 'pronto_socorro', label: 'Pronto Socorro', icon: 'fa-truck-medical', color: '#3b82f6', rgb: '59,130,246' },
     { id: 'corredor_internacao', label: 'Corredor', icon: 'fa-bed-pulse', color: '#f59e0b', rgb: '245,158,11' },
     { id: 'clinica_cirurgica', label: 'Cirurgica', icon: 'fa-scalpel', color: '#8b5cf6', rgb: '139,92,246' },
@@ -28,15 +27,15 @@ export async function renderKanbanTab() {
   ];
 
   const filtersHtml = FILTER_CARDS.map(f => `
-    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(${f.rgb},0.4)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
-        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.1rem;">
+    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(${f.rgb},0.4)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.05rem;">
           <i class="fa-solid ${f.icon}"></i>
         </div>
         <span class="card-status-badge" style="display: none; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: rgba(${f.rgb}, 0.2); color: ${f.color}; border: 1px solid rgba(${f.rgb}, 0.4); letter-spacing: 0.5px;">ATIVO</span>
       </div>
       <div>
-        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">${f.label}</h4>
+        <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin: 0 0 2px 0;">${f.label}</h4>
         <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; font-weight: 600;"><span id="count-${f.id}">0</span> pacientes</p>
       </div>
     </div>
@@ -44,14 +43,19 @@ export async function renderKanbanTab() {
 
   contentArea.innerHTML = `
     <div class="tab-section active" id="kanban-root" style="display:flex; flex-direction:column; height: calc(100vh - 60px); overflow:hidden;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; flex-shrink:0;">
+      
+      <!-- Top Action Bar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:12px; flex-shrink:0;">
         <div>
-          <h2 style="font-family:'Outfit'; font-weight:700; font-size:1.4rem; margin:0; color:var(--text-primary);">
+          <h2 style="font-family:'Outfit'; font-weight:700; font-size:1.35rem; margin:0; color:var(--text-primary);">
             <i class="fa-solid fa-table-columns" style="color:var(--color-primary);"></i> Kanban de Internação
           </h2>
-          <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">Gestão visual do fluxo de pacientes e acompanhamento de metas evolutivas.</p>
+          <p style="margin:2px 0 0; font-size:0.8rem; color:var(--text-muted);">Gestão visual do fluxo de pacientes e acompanhamento de metas evolutivas.</p>
         </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button onclick="setKanbanFilter('all')" id="kf-all" style="padding:9px 16px; border-radius:10px; font-size:0.85rem; font-weight:700; display:flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.2s; background:rgba(99,102,241,0.12); border:1.5px solid rgba(99,102,241,0.4); color:#ffffff; box-shadow:0 4px 12px rgba(99,102,241,0.15);">
+            <i class="fa-solid fa-layer-group" style="color:#818cf8;"></i> Todos os Setores (<span id="count-all">0</span>)
+          </button>
           <button onclick="openAddPatientKanbanModal()" class="btn-primary" style="padding:10px 18px; border-radius:10px; font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:8px; box-shadow: 0 4px 14px rgba(99,102,241,0.3);">
             <i class="fa-solid fa-plus"></i> Adicionar Paciente
           </button>
@@ -59,73 +63,95 @@ export async function renderKanbanTab() {
       </div>
 
       <!-- Analytics Header Dashboard -->
-      <div style="display:flex; gap: 16px; margin-bottom: 16px; flex-shrink:0; flex-wrap:wrap; align-items:stretch;">
+      <div style="display:flex; gap: 14px; margin-bottom: 14px; flex-shrink:0; flex-wrap:wrap; align-items:stretch;">
         
         <!-- Chart 1: Distribuição por Setor -->
-        <div class="kanban-chart-card" style="flex: 1; min-width: 220px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative;">
-          <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 0 0 10px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
+        <div class="kanban-chart-card" style="flex: 1; min-width: 200px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative;">
+          <h4 style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0 0 8px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
             <i class="fa-solid fa-chart-pie" style="color: #6366f1;"></i> Distribuição por Setor
           </h4>
-          <div style="flex-grow: 1; position: relative; height: 140px;">
+          <div style="flex-grow: 1; position: relative; height: 125px;">
             <canvas id="kanbanSectorChart"></canvas>
             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
-              <span id="kanban-chart-center-val" style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary);">0</span>
+              <span id="kanban-chart-center-val" style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary);">0</span>
               <br>
-              <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Pacientes</span>
+              <span style="font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Pacientes</span>
             </div>
           </div>
         </div>
 
         <!-- Chart 2: SLA & Metas de Tempo -->
-        <div class="kanban-chart-card" style="flex: 1; min-width: 220px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative;">
-          <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 0 0 10px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
+        <div class="kanban-chart-card" style="flex: 1; min-width: 200px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative;">
+          <h4 style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0 0 8px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
             <i class="fa-solid fa-hourglass-half" style="color: #f59e0b;"></i> Metas de Tempo (SLA)
           </h4>
-          <div style="flex-grow: 1; position: relative; height: 140px;">
+          <div style="flex-grow: 1; position: relative; height: 125px;">
             <canvas id="kanbanSlaChart"></canvas>
             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
-              <span id="kanban-sla-center-val" style="font-size: 1.3rem; font-weight: 800; color: #10b981;">0%</span>
+              <span id="kanban-sla-center-val" style="font-size: 1.2rem; font-weight: 800; color: #10b981;">0%</span>
               <br>
-              <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">No Prazo</span>
+              <span style="font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">No Prazo</span>
             </div>
           </div>
         </div>
 
         <!-- Funil da Jornada de Internação -->
-        <div style="flex: 1.6; min-width: 280px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 0; display:flex; align-items:center; gap:6px;">
+        <div style="flex: 1.6; min-width: 260px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h4 style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0; display:flex; align-items:center; gap:6px;">
               <i class="fa-solid fa-filter" style="color: #3b82f6;"></i> Funil da Jornada Hospitalar
             </h4>
-            <span id="kanban-resolutividade-tag" style="font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);">
+            <span id="kanban-resolutividade-tag" style="font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);">
               Carregando...
             </span>
           </div>
-
-          <!-- Progress / Funnel Bars -->
-          <div id="kanban-funnel-container" style="display:flex; flex-direction:column; gap:6px; justify-content:center; flex-grow:1;">
+          <div id="kanban-funnel-container" style="display:flex; flex-direction:column; gap:5px; justify-content:center; flex-grow:1;">
           </div>
         </div>
 
       </div>
 
-      <!-- Filters Grid -->
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; flex-shrink:0;">
-        ${filtersHtml}
+      <!-- Synchronized Scrollable Board Container (Sector Header Cards + Kanban Columns 1-to-1 Grid) -->
+      <div style="overflow-x:auto; flex-grow:1; display:flex; flex-direction:column; padding-bottom:12px;">
+        <div style="min-width: 1400px; display:flex; flex-direction:column; gap:14px; flex-grow:1;">
+          
+          <!-- Sector Cards Row (5 Columns) -->
+          <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 14px; flex-shrink:0;">
+            ${filtersHtml}
+          </div>
+
+          <!-- Kanban Columns Row (5 Columns - Directly aligned below Sector Cards) -->
+          <div class="kanban-board" id="kanban-board" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:14px; flex-grow:1; align-items:stretch;">
+          </div>
+
+        </div>
       </div>
 
-      <div class="kanban-board" id="kanban-board" style="display:flex; gap:16px; overflow-x:auto; flex-grow:1; padding-bottom:16px; align-items:flex-start;">
-      </div>
     </div>
   `;
 
   loadAndRenderKanban();
-  // Ensure the correct filter styling is applied initially
   setTimeout(() => setKanbanFilter(currentFilter), 10);
 }
 
 window.setKanbanFilter = function(filterId) {
   currentFilter = filterId;
+  
+  // Style 'Todos os Setores' button
+  const kfAll = document.getElementById('kf-all');
+  if (kfAll) {
+    if (filterId === 'all') {
+      kfAll.style.background = 'rgba(99,102,241,0.2)';
+      kfAll.style.borderColor = 'rgba(99,102,241,0.6)';
+      kfAll.style.boxShadow = '0 4px 14px rgba(99,102,241,0.3)';
+    } else {
+      kfAll.style.background = 'var(--bg-secondary)';
+      kfAll.style.borderColor = 'var(--border-color)';
+      kfAll.style.boxShadow = 'none';
+    }
+  }
+
+  // Style the 5 sector cards
   document.querySelectorAll('.kanban-filter-card').forEach(card => {
     const id = card.id.replace('kf-', '');
     const isActive = id === filterId;
@@ -133,10 +159,10 @@ window.setKanbanFilter = function(filterId) {
     const badge = card.querySelector('.card-status-badge');
     
     if (isActive) {
-      card.style.background = `rgba(${rgb}, 0.08)`;
-      card.style.borderColor = `rgba(${rgb}, 0.5)`;
+      card.style.background = `rgba(${rgb}, 0.12)`;
+      card.style.borderColor = `rgba(${rgb}, 0.7)`;
       card.style.borderWidth = '1.5px';
-      card.style.boxShadow = `0 6px 20px rgba(${rgb}, 0.15)`;
+      card.style.boxShadow = `0 6px 20px rgba(${rgb}, 0.25)`;
       card.style.transform = 'translateY(-2px)';
       if (badge) badge.style.display = 'inline-block';
     } else {
@@ -148,6 +174,7 @@ window.setKanbanFilter = function(filterId) {
       if (badge) badge.style.display = 'none';
     }
   });
+  
   loadAndRenderKanban();
 };
 
@@ -249,7 +276,7 @@ function loadAndRenderKanban() {
     return { ...h, patientName: pat.fullName || pat.name || 'Desconhecido' };
   });
 
-  // Atualizar os contadores nos filtros
+  // Update filter counters
   const cAll = document.getElementById('count-all'); if(cAll) cAll.textContent = active.length;
   const cPs = document.getElementById('count-pronto_socorro'); if(cPs) cPs.textContent = active.filter(h => h.current_sector === 'pronto_socorro').length;
   const cCor = document.getElementById('count-corredor_internacao'); if(cCor) cCor.textContent = active.filter(h => h.current_sector === 'corredor_internacao').length;
@@ -257,21 +284,21 @@ function loadAndRenderKanban() {
   const cMed = document.getElementById('count-clinica_medica'); if(cMed) cMed.textContent = active.filter(h => h.current_sector === 'clinica_medica').length;
   const cUti = document.getElementById('count-uti'); if(cUti) cUti.textContent = active.filter(h => h.current_sector === 'uti').length;
 
-  const cols = currentFilter === 'all' ? KANBAN_COLUMNS : KANBAN_COLUMNS.filter(c => c.id === currentFilter);
-  const w = currentFilter === 'all' ? '290px' : '360px'; // Colunas mais largas
-
   function hexToRgb(hex) {
     const bigint = parseInt(hex.slice(1), 16);
     return `${(bigint >> 16) & 255}, ${(bigint >> 8) & 255}, ${bigint & 255}`;
   }
 
-  board.innerHTML = cols.map(col => {
+  // Always render all 5 columns so each column is physically aligned directly under its header card
+  board.innerHTML = KANBAN_COLUMNS.map(col => {
     const cards = active.filter(h => h.current_sector === col.id).sort((a,b) => new Date(a.sector_entry_date)-new Date(b.sector_entry_date));
     const rgb = hexToRgb(col.color);
-    
+    const isSelected = currentFilter === col.id;
+    const isFilteredOut = currentFilter !== 'all' && !isSelected;
+
     return `
-      <div class="kanban-col" data-col="${col.id}" style="min-width:${w}; width:${w}; background: rgba(${rgb}, 0.05); border-radius:14px; display:flex; flex-direction:column; border:1.5px solid rgba(${rgb}, 0.3); box-shadow:0 6px 16px rgba(${rgb}, 0.08); flex-shrink:0; overflow:hidden;">
-        <div style="padding:16px; border-bottom:1px solid rgba(${rgb}, 0.2); background: rgba(${rgb}, 0.1); display:flex; justify-content:space-between; align-items:center;">
+      <div class="kanban-col" data-col="${col.id}" style="background: rgba(${rgb}, ${isSelected ? '0.1' : '0.04'}); border-radius:14px; display:flex; flex-direction:column; border:1.5px solid rgba(${rgb}, ${isSelected ? '0.7' : isFilteredOut ? '0.15' : '0.3'}); box-shadow:${isSelected ? `0 8px 24px rgba(${rgb}, 0.25)` : `0 4px 12px rgba(${rgb}, 0.05)`}; overflow:hidden; transition: all 0.3s ease; opacity: ${isFilteredOut ? '0.35' : '1'}; filter: ${isFilteredOut ? 'grayscale(40%)' : 'none'};">
+        <div style="padding:14px 16px; border-bottom:1px solid rgba(${rgb}, 0.2); background: rgba(${rgb}, ${isSelected ? '0.2' : '0.08'}); display:flex; justify-content:space-between; align-items:center;">
           <h3 style="margin:0; font-size:0.95rem; font-weight:700; color:${col.color}; display:flex; align-items:center; gap:8px;">
             <span style="width:12px; height:12px; border-radius:50%; background:${col.color}; display:inline-block; flex-shrink:0; box-shadow: 0 0 8px ${col.color};"></span>
             ${col.label}
