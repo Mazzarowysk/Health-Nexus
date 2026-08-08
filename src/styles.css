@@ -170,6 +170,13 @@ body {
   position: relative;
   z-index: 1000;
   overflow: hidden;
+
+  /* Force light text for the login screen because its background is always dark */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: rgba(148, 163, 184, 0.2);
+  --bg-card: #1e293b;
 }
 
 /* === PAINEL ESQUERDO: BRANDING IMERSIVO COM ANIMAÇÕES AMBIENTAIS === */
