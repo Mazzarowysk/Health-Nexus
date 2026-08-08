@@ -136,15 +136,49 @@ O sistema monitora a permanência do paciente em observação no Pronto-Socorro:
 
 ---
 
-## 🛠️ 7. Guia de Solução de Problemas & Dúvidas Frequentes (FAQ)
+## 📊 7. Kanban de Internação — Grade Síncrona 1-para-1 & 5 Setores
 
-| Problema | Causa Provável | Solução Recomendada |
-|---|---|---|
-| **Tela de login demorando a carregar** | Inicialização do servidor ou backend ocupado | Atualize com `Ctrl + F5`. O sistema possui timeout automático de 2 segundos. |
-| **TV sem som na chamada de paciente** | Permissão de áudio silenciada no Chrome | Clique em qualquer área da tela da TV para ativar a Web Speech API. |
-| **Erro de CPF duplicado na admissão** | Paciente já cadastrado anteriormente | Use a busca de pacientes para re-admitir sem criar duplicidade. |
-| **Alerta de leito bloqueado** | Leito em higienização pós-alta | A equipe de enfermagem deve alterar o status do leito para "Livre" na aba Leitos. |
+O **Kanban de Internação** organiza visualmente os pacientes hospitalizados em 5 setores estratégicos:
+
+1. 🔵 **Pronto Socorro (Obs)** *(Capacidade rápida, limite 24h)*
+2. 🟠 **Corredor de Internação** *(Alocação de transição, limite 1 dia)*
+3. 🟣 **Clínica Cirúrgica** *(Pós-operatório, limite 7 dias)*
+4. 🟢 **Clínica Médica (SUS)** *(Internação longa, limite 10 dias)*
+5. 🔴 **UTI** *(Cuidados intensivos, limite 5 dias)*
+
+### 📐 Alinhamento Visual Síncrono (Grade 1-para-1)
+Os 5 Cards do topo funcionam como a **cabeça das colunas**. Ao selecionar qualquer card (ex: *Cirúrgica*), a coluna **permanece exatamente no seu lugar (3ª coluna)**, sendo destacada em neon colorido, enquanto as outras 4 colunas continuam nos seus locais sem mudar a ordem ou serem empurradas para a borda esquerda.
 
 ---
 
-*Manual produzido e homologado pela equipe Health Nexus.*
+## 📄 8. Prontuário Eletrônico (PEP) — PDF Real & Anexo de Exames
+
+Na janela do Prontuário do Paciente, o profissional conta com duas ações principais de alto impacto:
+
+- **📄 Gerar PDF:** Compila automaticamente todo o histórico assistencial (Internações, Evoluções, Urgência/PS, Consultas e Anotações) e gera o download direto de um relatório PDF oficial A4 (jsPDF + autoTable).
+- **📎 Anexar Exame:** Permite selecionar qualquer arquivo de laudo ou imagem do computador. O sistema registra no histórico com data, hora, nome e tamanho do anexo.
+
+---
+
+## 💳 9. Gestão Financeira & Baixa Manual de Parcela
+
+No módulo de **Relatórios / Financeiro**:
+- A Recepcionista ou Administrador visualiza a lista de faturas e títulos em aberto.
+- Clique no botão **Dar Baixa Manual** para quitar uma parcela individual preenchendo o valor pago, forma de pagamento (Pix, Cartão, Dinheiro) e observações.
+- É possível selecionar múltiplas parcelas e realizar **Baixa Manual em Lote**.
+
+---
+
+## 🛠️ 10. Guia de Solução de Problemas & Dúvidas Frequentes (FAQ)
+
+| Problema | Causa Provável | Solução Recomendada |
+|---|---|---|
+| **Como emitir PDF do prontuário?** | Impressão ou download de histórico | Clique em **Prontuário** no card do paciente e selecione **📄 Gerar PDF**. |
+| **TV sem som na chamada de paciente** | Permissão de áudio silenciada no Chrome | Clique em qualquer área da tela da TV para ativar a Web Speech API. |
+| **Sincronização Turso com aviso vermelho** | Falha de internet ou token pendente | Vá em **Configurações → Turso**, clique em **Testar Conexão** e em seguida **Sincronizar Agora**. |
+| **Dificuldade de leitura em formulários** | Visual escuro ou contraste | Todos os formulários possuem fundo `#0f172a`, texto branco `#ffffff` e rótulos `#f1f5f9` em negrito. |
+| **Erro de CPF duplicado na admissão** | Paciente já cadastrado anteriormente | Use a busca de pacientes para re-admitir sem criar duplicidade. |
+
+---
+
+*Manual operacional produzido e homologado pela equipe Health Nexus (v2.2.0).*

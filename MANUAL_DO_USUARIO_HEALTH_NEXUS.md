@@ -1,46 +1,46 @@
-# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v1.3.0)
+# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.2.0)
 
-> **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletrônico**  
-> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.
+> **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletrônico (Versão Atualizada — Agosto/2026)**  
+> Guia operacional exaustivo, intuitivo e ilustrado cobrindo navegação, modais de alto contraste, prontuário com exportação real em PDF, anexação de exames, Kanban síncrono 1-para-1 em 5 setores, sincronização Turso Cloud e faturamento financeiro.
 
 ---
 
 ## 📋 Sumário Executivo
 - 1. [Visão Geral & Arquitetura do Fluxo Hospitalar](#sec-1)
-- 2. [Central de Atendimentos & Painel Kanban](#sec-2)
+- 2. [Central de Atendimentos & Painel Kanban PS](#sec-2)
   - 2.1. [Cards Métricos e Filtros de Fila](#sec-2-1)
   - 2.2. [Fila 1: Aguardando Triagem (Protocolo de Manchester)](#sec-2-2)
   - 2.3. [Fila 2: Aguardando Médico (Chamada de Consultório)](#sec-2-3)
   - 2.4. [Fila 3: Em Atendimento (Ações do Médico)](#sec-2-4)
-- 3. [Prontuário Eletrônico do Paciente (PEP — Método SOAP)](#sec-3)
-  - 3.1. [Estrutura SOAP](#sec-3-1)
-  - 3.2. [Autocomplete CID-10](#sec-3-2)
-  - 3.3. [Assinatura Eletrônica e Exportação PDF](#sec-3-3)
-- 4. [Guia Completo de Todos os Modais do Sistema](#sec-4)
-  - 4.1. [Modal de Triagem de Manchester](#sec-4-1)
-  - 4.2. [Modal de Prescrição & Receituário Médico](#sec-4-2)
-  - 4.3. [Modal de Transferência & Alocação de Leito](#sec-4-3)
-  - 4.4. [Modal de Nova Admissão & Entrada de Paciente](#sec-4-4)
-  - 4.5. [Modal de Direcionamento & Reatribuição de Fila](#sec-4-5)
-  - 4.6. [Modal de Histórico Pós-Alta & Prontuário Consolidado](#sec-4-6)
-  - 4.7. [Modal de Aprovação de Acesso Master](#sec-4-7)
-  - 4.8. [Modal de Gestão de Usuários & Troca de Perfil](#sec-4-8)
-- 5. [Gestão de Pacientes & Histórico Clínico](#sec-5)
+- 3. [Prontuário Eletrônico do Paciente (PEP — Método SOAP & Geração PDF Real)](#sec-3)
+  - 3.1. [Estrutura SOAP & Autocomplete CID-10](#sec-3-1)
+  - 3.2. [Motor Real de Geração de Relatórios em PDF (jsPDF + autoTable)](#sec-3-2)
+  - 3.3. [Anexação e Importação de Exames / Laudos Médicos](#sec-3-3)
+- 4. [Guia Completo de Todos os Modais do Sistema (Alto Contraste & Usabilidade)](#sec-4)
+  - 4.1. [Modal de Admissão ao Kanban de Internação](#sec-4-1)
+  - 4.2. [Modal de Triagem de Manchester](#sec-4-2)
+  - 4.3. [Modal de Prescrição & Receituário Médico](#sec-4-3)
+  - 4.4. [Modal de Transferência & Alocação de Leito](#sec-4-4)
+  - 4.5. [Modal de Evolução Clínica & Anotações Rápidas](#sec-4-5)
+  - 4.6. [Modal de Baixa Manual Financeira](#sec-4-6)
+  - 4.7. [Modal de Aprovação de Acesso Master & Usuários](#sec-4-7)
+- 5. [Gestão de Pacientes & Histórico Clínico Unificado](#sec-5)
 - 6. [Gestão da Equipe Médica & Corpo Clínico](#sec-6)
 - 7. [Gestão de Consultórios & Salas de Atendimento](#sec-7)
 - 8. [Gestão de Leitos & Hospitalização](#sec-8)
 - 9. [Agenda, Escala Médica & Consultas Eletivas](#sec-9)
 - 10. [Farmácia & Dispensação de Medicamentos](#sec-10)
-- 11. [Faturamento, Guias TISS & Gestão Financeira](#sec-11)
+- 11. [Faturamento, Guias TISS & Baixa Manual de Títulos](#sec-11)
 - 12. [Relatórios Analytics & Indicadores Hospitalares](#sec-12)
-- 13. [Painel de Chamada TV (Recepção)](#sec-13)
+- 13. [Painel de Chamada TV & Voz Sintetizada em Português](#sec-13)
 - 14. [Central de Estagnação & Aprovações Master](#sec-14)
-- 15. [Configurações, Backup e Sincronização em Nuvem](#sec-15)
-- 16. [Sistema de Avisos, Notificações & Toasts](#sec-16)
-- 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
-- 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
-- 19. [🆕 Kanban de Internação — Guia Completo](#sec-19)
+- 15. [Configurações, Backup & Sincronização Automática com Turso LibSQL](#sec-15)
+- 16. [Gerador de Dados de Teste & Simulação 300 Registros](#sec-16)
+- 17. [Sistema de Avisos, Notificações & Toasts](#sec-17)
+- 18. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-18)
+- 19. [🆕 Kanban de Internação — Grade Síncrona 1-para-1 & 5 Setores](#sec-19)
 - 20. [🆕 Histórico de Sessões de Usuários (Master)](#sec-20)
+- 21. [❓ Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-21)
 
 ---
 
@@ -497,46 +497,24 @@ O card é dividido em **dois grupos de ações**:
 | 🚶 (pessoa saindo) | **Alta Hospitalar** — solicita confirmação e remove o paciente do Kanban |
 
 ### 📝 Painel de Evolução Clínica
+### 📐 Alinhamento Síncrono 1-para-1 (Grade Vertical de 5 Setores)
 
-Ao clicar em **📝 Evolução**, um painel completo é aberto com:
+No topo do Kanban, os setores são organizados em uma **Grade de 5 Cards Interativos** perfeitamente alinhados na mesma posição vertical que as colunas do tabuleiro logo abaixo:
 
-1. **Campo de nova anotação** — textarea com destaque de foco ao digitar
-2. **Timestamp automático** — data e hora exatas da anotação
-3. **Botão Prontuário** — acesso direto ao histórico completo sem fechar o painel
-4. **Botão Salvar** — persiste a evolução com nome do profissional logado e data/hora
-5. **Timeline de histórico** — todas as evoluções anteriores em ordem cronológica reversa (mais recente primeiro), exibindo autor e data de cada entrada
+```
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ Pronto Socorro  │ │    Corredor     │ │    Cirúrgica    │ │ Clínica Médica  │ │       UTI       │
+└────────┬────────┘ └────────┬────────┘ └────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+         │                   │                   │                   │                   │
+         ▼                   ▼                   ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│  COLUNA 1 (PS)  │ │COLUNA 2(CORREDOR)│ │COLUNA 3 (CIRURG)│ │ COLUNA 4 (MED)  │ │  COLUNA 5 (UTI) │
+└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
+```
 
-> 💡 **Migração automática:** Anotações antigas (campo `notes`) são automaticamente reconhecidas e exibidas no histórico como entradas legadas.
-
-**Para registrar uma evolução clínica:**
-1. Clique em **📝 Evolução** no card do paciente.
-2. Digite a evolução no campo de texto.
-3. Clique em **Salvar** — a anotação fica registrada com seu nome e horário.
-4. O ponto vermelho aparecerá no botão do card, indicando que há registros.
-
-### 🖱️ Drag & Drop
-
-Além dos botões, é possível **arrastar e soltar** os cards entre as colunas:
-1. Clique e segure o card.
-2. Arraste até a coluna de destino.
-3. Solte — o paciente será movido e o tempo no setor será reiniciado automaticamente.
-
-### ➕ Adicionar Paciente em Setor Vazio
-
-Se uma coluna não tiver pacientes, você pode **clicar diretamente no aviso central da coluna** ("Clique para adicionar"). O sistema abrirá o formulário de internação com aquele setor já pré-selecionado automaticamente.
-
-### 🔍 Filtros em Formato de Card (Dashboard)
-
-No topo do Kanban, os setores são exibidos em um moderno **grid de Cards interativos**:
-- Cada card representa um setor e mostra a **contagem em tempo real** de pacientes internados (ex: *Todos*, *Pronto Socorro*, *UTI*).
-- Ao clicar em um card, o sistema filtra a tela para focar exclusivamente na respectiva coluna (expandindo sua largura para melhor visualização).
-- O card selecionado ganha destaque visual (sombra e borda acentuadas) com um selo `ATIVO`.
-- Clique no card **Todos Setores** para retornar à visão geral com todas as colunas lado a lado.
-
-### 🎨 Design Premium das Colunas e Pacientes
-
-- **Colunas *Tinted*:** As colunas do Kanban possuem fundo transparente (*tinted*) e bordas estilizadas de acordo com a cor do setor, conferindo um layout visual limpo e de alto padrão.
-- **Cards Premium:** Avatar colorido com iniciais, informações alinhadas com ícones, barra de progresso com glow colorido e painel de ações bem delimitado.
+#### 🔘 Filtros e Comportamento Visual:
+- **Botão "Todos os Setores" (Topo):** Exibe todas as 5 colunas simultaneamente com iluminação normal.
+- **Clique em um Card de Setor (ex: *Cirúrgica*):** O card selecionado acende com o selo `ATIVO` e neon colorido. A coluna **Cirúrgica** (Coluna 3) ganha destaque total e borda brilhante. As outras 4 colunas permanecem **exatamente nos seus lugares físicos** na grade, prevenindo pulo ou deslocamento para a esquerda!
 
 ---
 
@@ -544,41 +522,9 @@ No topo do Kanban, os setores são exibidos em um moderno **grid de Cards intera
 
 O **Histórico de Sessões** registra automaticamente cada entrada e saída de todos os usuários do sistema.
 
-### 📍 Como Acessar
-
+### 📍 Como Acessar:
 > ⚠️ Este recurso é **exclusivo para o perfil Master**.
 
-1. Faça login com uma conta Master.
-2. Acesse a aba **Gestão de Usuários** no menu lateral.
-3. Clique no botão **📊 Histórico de Sessões** disponível no painel.
-
-### 📊 Informações do Relatório
-
-O relatório exibe, para cada usuário:
-- Data e hora de **login** (entrada no sistema)
-- Data e hora de **logout** (saída ou encerramento de sessão)
-- **Tempo de uso** total da sessão
-- Gráfico visual de tempo de uso por período
-
-### 🔒 Privacidade e Segurança
-
-- Os registros são armazenados localmente e sincronizados via Turso Cloud quando configurado.
-- Apenas usuários com perfil **Master** têm acesso a esses dados.
-- Os dados de sessão **não podem ser apagados** por usuários comuns.
-
----
-*Health Nexus — Manual do Usuário v1.3.0 | Sistema de Gestão Hospitalar de Alta Performance*  
-*Atualizado em Agosto 2026 — @mazzarowysk & @_coltri_*
-
-
-
-## Nova Atualização: Painel de Gráficos Analíticos, Interatividade e Simulação de Dados
-- **Dashboard Principal**: Agora conta com visualização completa de ocupação através de gráficos interativos.
-- **Kanban Interativo & Painel Analítico**: 
-  - **Gráfico de Distribuição por Setor:** Donut futurista com totalizador central para análise rápida da alocação de leitos.
-  - **Gráfico de Metas de Tempo (SLA):** Donut analítico de acompanhamento de permanência hospitalar dividida em *No Prazo (🟢)*, *Atenção (🟡)* e *Meta Excedida (🔴)*.
-  - **Funil da Jornada Hospitalar:** Visualizador dinâmico estilo funil de barras com percentual e contagem de evolução entre setores (*Pronto Socorro → Corredor → Cirúrgica → Médica → UTI*).
-  - **Acesso ao Prontuário:** Cartões de pacientes são **clicáveis** e contêm o botão **Prontuário**, abrindo o modal completo do histórico clínico do paciente.
   - **Prontuário Interativo:**
     - Registro direto de **Nova Evolução / Anotação Clínica** pela janela do histórico.
     - Exportação de relatório consolidado em **PDF**.
