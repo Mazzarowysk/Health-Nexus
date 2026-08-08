@@ -129,11 +129,9 @@ const toggleTheme = () => {
 const updateThemeIcon = () => {
   const icon = document.getElementById('theme-icon');
   if (!icon) return;
-  if (document.body.classList.contains('light-theme')) {
-    icon.className = 'fa-solid fa-moon';
-  } else {
-    icon.className = 'fa-solid fa-sun';
-  }
+  // O ícone fa-circle-half-stroke é universalmente reconhecido para contraste/tema, 
+  // evitando que o fa-sun pareça uma engrenagem.
+  icon.className = 'fa-solid fa-circle-half-stroke';
 };
 
 // --- SISTEMA DE SINCRONIZAÇÃO LOCAL-NUVEM// Helper para formatação de datas pt-BR (ex: 20/07/2026, 16:06:49)
@@ -3007,7 +3005,7 @@ function renderAppStructure() {
             <i class="fa-solid fa-compress" id="density-icon"></i> <span id="density-label">Modo Compacto</span>
           </button>
           <button id="btn-theme-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; padding: 0; font-size: 1.15rem; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Tema Claro/Escuro">
-            <i class="fa-solid fa-sun" id="theme-icon"></i>
+            <i class="fa-solid fa-circle-half-stroke" id="theme-icon"></i>
           </button>
         </div>
       </header>
