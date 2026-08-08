@@ -725,10 +725,12 @@ function initKanbanChart(activePatients) {
         labels: KANBAN_COLUMNS.map(c => c.shortLabel),
         datasets: [{
           data: KANBAN_COLUMNS.map(c => dataMap[c.id]),
-          backgroundColor: KANBAN_COLUMNS.map(c => c.color),
+          backgroundColor: KANBAN_COLUMNS.map(c => window.createChartGradient(ctxSector, c.color, 'ee', '33')),
           borderWidth: 2,
-          borderColor: 'rgba(18, 14, 34, 0.95)',
-          hoverOffset: 6
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: 8,
+          spacing: 4,
+          hoverOffset: 8
         }]
       },
       options: {
@@ -773,10 +775,12 @@ function initKanbanChart(activePatients) {
         labels: ['No Prazo', 'Atenção', 'Meta Excedida'],
         datasets: [{
           data: [onTime, warning, exceeded],
-          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'].map(c => window.createChartGradient(ctxSla, c, 'ee', '33')),
           borderWidth: 2,
-          borderColor: 'rgba(18, 14, 34, 0.95)',
-          hoverOffset: 6
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: 8,
+          spacing: 4,
+          hoverOffset: 8
         }]
       },
       options: {

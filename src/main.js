@@ -156,6 +156,14 @@ const formatSyncDate = (isoOrDate) => {
 };
 
 // --- HELPER COMPONENTE DE SELEÇÃO CUSTOMIZADA E PESQUISÁVEL ---
+window.createChartGradient = function(ctx, colorHex, alpha1 = 'ff', alpha2 = '11', height = 200) {
+  const g = ctx.createLinearGradient(0, 0, 0, height);
+  const base = colorHex.length >= 7 ? colorHex.substring(0, 7) : colorHex;
+  g.addColorStop(0, base + alpha1);
+  g.addColorStop(1, base + alpha2);
+  return g;
+};
+
 const setupCustomSelect = (container, hiddenInput, items, placeholder, onSelect) => {
   if (!container || !hiddenInput) return null;
   
@@ -465,7 +473,7 @@ const showUserSessionsHistory = (userId, userName) => {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay open';
   overlay.id = 'hn-sessions-modal';
-  overlay.style.zIndex = '10002'; // Acima do user management
+  overlay.style.cssText = 'z-index: 100005; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);';
   
   const sessions = localDB.list('user_sessions', s => s.user_id === userId).sort((a, b) => new Date(b.login_time) - new Date(a.login_time));
   
@@ -500,17 +508,17 @@ const showUserSessionsHistory = (userId, userName) => {
   }
 
   overlay.innerHTML = `
-    <div class="modal-content" style="max-width: 600px; padding: 0;">
-      <div class="modal-header" style="padding: 18px 24px;">
-        <h3 class="modal-title" style="font-size: 1.15rem;">
+    <div class="sync-modal-card" style="max-width: 650px; width: 92%; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="sync-header-banner purple" style="padding: 18px 24px; flex-shrink: 0;">
+        <h3 class="sync-header-title" style="display: flex; align-items: center; gap: 10px;">
           <i class="fa-solid fa-clock-rotate-left"></i> Histórico de Sessões: ${userName}
         </h3>
         <button id="btn-sessions-modal-close" class="modal-close" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+      <div class="sync-modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto;">
+        <table class="patients-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
           <thead>
-            <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); color: var(--text-secondary);">
+            <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary);">
               <th style="padding: 10px; font-weight: 600;">Entrada</th>
               <th style="padding: 10px; font-weight: 600;">Saída</th>
               <th style="padding: 10px; font-weight: 600;">Tempo de Uso</th>
@@ -5568,12 +5576,12 @@ function initDashboardCharts(data) {
         labels: occupancyData.map(item => item.label),
         datasets: [{
           data: occupancyData.map(item => item.value),
-          backgroundColor: occupancyData.map((item, idx) => item.color || neonColors[idx % neonColors.length]),
-          borderWidth: 3,
-          borderColor: 'rgba(11, 8, 22, 0.95)',
-          borderRadius: 6,
-          spacing: 3,
-          hoverOffset: 8
+          backgroundColor: occupancyData.map((item, idx) => window.createChartGradient(ctx, item.color || neonColors[idx % neonColors.length], 'ee', '33')),
+          borderWidth: 2,
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: 8,
+          spacing: 4,
+          hoverOffset: 10
         }]
       },
       options: {
@@ -5747,11 +5755,12 @@ function initDashboardCharts(data) {
         labels: ['Vermelho (Emergência)', 'Laranja (Muito Urgente)', 'Amarelo (Urgente)', 'Verde (Pouco Urgente)', 'Azul (Não Urgente)'],
         datasets: [{
           data: [8, 18, 42, 24, 8],
-          backgroundColor: ['#ef4444', '#f97316', '#eab308', '#10b981', '#3b82f6'],
-          borderWidth: 3,
-          borderColor: 'rgba(11, 8, 22, 0.95)',
-          borderRadius: 6,
-          spacing: 3
+          backgroundColor: ['#ef4444', '#f97316', '#eab308', '#10b981', '#3b82f6'].map(c => window.createChartGradient(ctxM, c, 'ee', '33')),
+          borderWidth: 2,
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: 8,
+          spacing: 4,
+          hoverOffset: 8
         }]
       },
       options: {
@@ -5813,9 +5822,12 @@ function initDashboardCharts(data) {
         datasets: [{
           label: 'Pacientes no Kanban',
           data: sectorCounts,
-          backgroundColor: sectors.map(s => s.color),
+          backgroundColor: sectors.map(s => window.createChartGradient(dashboardKanbanCtx.getContext('2d'), s.color, 'ff', '44', 300)),
+          borderColor: sectors.map(s => s.color),
+          borderWidth: 1,
           borderRadius: 6,
-          borderSkipped: false
+          borderSkipped: false,
+          hoverBackgroundColor: sectors.map(s => window.createChartGradient(dashboardKanbanCtx.getContext('2d'), s.color, 'ff', '88', 300))
         }]
       },
       options: {
