@@ -712,6 +712,29 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+.app-sidebar nav {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-right: -8px;
+  padding-right: 8px;
+  min-height: 0; /* Ensures flex container can scroll */
+}
+
+/* Scrollbar styles for the sidebar */
+.app-sidebar nav::-webkit-scrollbar {
+  width: 6px;
+}
+.app-sidebar nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app-sidebar nav::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+.app-sidebar nav::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
 
 .nav-menu {
   list-style: none;
