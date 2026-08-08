@@ -565,6 +565,99 @@ function renderReportsTab(contentArea) {
     setTimeout(() => {
       document.querySelectorAll('#fin-status-progress-list .ward-bar-fill').forEach(fill => {
         const target = fill.dataset.target || '0';
+        fill.style.width = `${target}%`;
+      });
+    }, 80);
+
+    // 1. Gráfico de Rosca Neon Glass (Sem legenda interna pois a lista lateral atua como legenda ativa)
+    finPieChartInstance = new ChartClass(pieCtx.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: quantities,
+          backgroundColor: colors,
+          borderWidth: 3,
+          borderColor: 'rgba(11, 8, 22, 0.95)',
+          borderRadius: 6,
+          spacing: 3,
+          hoverOffset: 14
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '76%',
+        animation: { animateScale: true, animateRotate: true, duration: 1100 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#00f2fe',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(0, 242, 254, 0.35)',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: function(context) {
+                const idx = context.dataIndex;
+                const count = context.parsed;
+                const valor = valuesR$[idx] || 0;
+                const totalQtd = quantities.reduce((a, b) => a + b, 0);
+                const pct = totalQtd > 0 ? ((count / totalQtd) * 100).toFixed(1) : '0.0';
+                const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+                return [
+                  ` Quantidade: ${count} parcelas (${pct}%)`,
+                  ` Valor Total: ${valorFormatado}`
+                ];
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Interatividade Hover Lista -> Anel
+    document.querySelectorAll('.fin-progress-row').forEach(row => {
+      row.addEventListener('mouseenter', () => {
+        const idx = parseInt(row.dataset.idx, 10);
+        if (finPieChartInstance && finPieChartInstance.setActiveElements) {
+          finPieChartInstance.setActiveElements([{ datasetIndex: 0, index: idx }]);
+          finPieChartInstance.update();
+        }
+      });
+      row.addEventListener('mouseleave', () => {
+        if (finPieChartInstance && finPieChartInstance.setActiveElements) {
+          finPieChartInstance.setActiveElements([]);
+          finPieChartInstance.update();
+        }
+      });
+    });
+
+    // 2. Gráfico de Barras Neon Glass ("Comparativo Financeiro (R$)")
+    const c2dBar = barCtx.getContext('2d');
+    const barGradients = colors.map(c => {
+      const grad = c2dBar.createLinearGradient(0, 0, 0, 180);
+      grad.addColorStop(0, c);
+      grad.addColorStop(1, 'rgba(11, 8, 22, 0.4)');
+      return grad;
+    });
+
+    finBarChartInstance = new ChartClass(c2dBar, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Valor (R$)',
+          data: valuesR$,
+          backgroundColor: barGradients,
+          borderColor: colors,
+          borderWidth: 1.5,
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
         responsive: true,
         maintainAspectRatio: false,
         animation: { duration: 1100, easing: 'easeOutQuart' },
