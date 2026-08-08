@@ -218,8 +218,10 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 - ✅ **Painel 📝 Evolução Clínica:** registro de novas evoluções com timestamp + timeline de histórico
 - ✅ **Migração automática:** notas legadas convertidas para o novo formato de array de evoluções
 - ✅ **Indicador visual:** ponto vermelho no botão Evolução quando há anotações registradas
-- ✅ **Histórico de Sessões:** relatório de login/logout com tempo de uso (exclusivo Master)
+- ✅ **Histórico de Sessões:** relatório de login/logout com tempo de uso, layout moderno atualizado e correção de z-index (exclusivo Master)
 - ✅ **Filtros por setor** no Kanban com cards KPI interativos e contagem em tempo real
+- ✅ **Painel Financeiro Imersivo:** Janela dedicada com gráficos Donut & Bar modernos (estilo glassmorphism) e novos cards de KPI para filtro avançado.
+- ✅ **Melhorias de UI/UX e Acessibilidade:** Scrollbar nativa no menu lateral, correção de contrastes no Light Mode, novo ícone para troca de temas, e correção de artefatos de codificação (mojibake) em relatórios.
 
 ### v1.2.1 — Julho 2026
 - Cards KPI interativos em todas as abas principais
