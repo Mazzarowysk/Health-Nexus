@@ -21,6 +21,7 @@ export async function renderKanbanTab() {
 
   const FILTER_CARDS = [
     { id: 'all', label: 'Visão Geral', icon: 'fa-layer-group', color: '#818cf8', rgb: '129,140,248' },
+    { id: 'all', label: 'Visão Geral', icon: 'fa-layer-group', color: '#818cf8', rgb: '129,140,248' },
     { id: 'pronto_socorro', label: 'Pronto Socorro', icon: 'fa-truck-medical', color: '#3b82f6', rgb: '59,130,246' },
     { id: 'corredor_internacao', label: 'Corredor', icon: 'fa-bed-pulse', color: '#f59e0b', rgb: '245,158,11' },
     { id: 'clinica_cirurgica', label: 'Cirurgica', icon: 'fa-scalpel', color: '#8b5cf6', rgb: '139,92,246' },
@@ -29,17 +30,14 @@ export async function renderKanbanTab() {
   ];
 
   const filtersHtml = FILTER_CARDS.map(f => `
-    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 22px 24px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 125px; box-shadow: 0 10px 25px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(${f.rgb},0.4)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='rgba(255,255,255,0.06)'; }">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px;">
-        <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.4rem; box-shadow: 0 4px 12px rgba(${f.rgb}, 0.2);">
-          <i class="fa-solid ${f.icon}"></i>
-        </div>
-        <span class="card-status-badge" style="display: none; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: rgba(${f.rgb}, 0.2); color: ${f.color}; border: 1px solid rgba(${f.rgb}, 0.4); letter-spacing: 0.5px;">ATIVO</span>
+    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: rgba(18, 20, 32, 0.9); border: 1.5px solid rgba(${f.rgb}, 0.4); border-radius: 12px; padding: 24px 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 140px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-4px)'; this.style.borderColor='${f.color}'; this.style.boxShadow='0 8px 24px rgba(${f.rgb}, 0.2)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='rgba(${f.rgb}, 0.4)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'; }">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.3rem; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(${f.rgb}, 0.15);">
+        <i class="fa-solid ${f.icon}"></i>
       </div>
-      <div>
-        <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px 0; font-size: 1.15rem; letter-spacing: 0.3px;">${f.label}</h4>
-        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin: 0; font-weight: 600;"><span id="count-${f.id}">0</span> pacientes</p>
-      </div>
+      <h4 style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin: 0 0 8px 0; text-align: center; line-height: 1.2;">${f.label}</h4>
+      <p style="font-size: 1.5rem; color: ${f.color}; margin: 0; font-weight: 800; text-align: center;"><span id="count-${f.id}">0</span></p>
+      <p style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin: 2px 0 0 0; font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 0.5px;">pacientes</p>
+      <span class="card-status-badge" style="display: none; position: absolute; top: 10px; right: 10px; font-size: 0.6rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; background: rgba(${f.rgb}, 0.2); color: ${f.color}; border: 1px solid rgba(${f.rgb}, 0.5); letter-spacing: 0.5px;">ATIVO</span>
     </div>
   `).join('');
 
@@ -123,7 +121,7 @@ export async function renderKanbanTab() {
         <div id="kanban-scroll-wrapper" style="min-width: 1400px; display:flex; flex-direction:column; gap:14px; flex-grow:1;">
           
           <!-- Sector Cards Row (5 Columns) -->
-          <div id="kanban-filters-row" style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 16px; flex-shrink:0;">
+          <div id="kanban-filters-row" style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 16px; flex-shrink:0; margin-top: 24px;">
             ${filtersHtml}
           </div>
 
@@ -149,31 +147,11 @@ window.setKanbanFilter = function(filterId) {
     const id = card.id.replace('kf-', '');
     const isActive = id === filterId;
     const rgb = card.getAttribute('data-rgb');
+    const color = card.getAttribute('data-color');
     const badge = card.querySelector('.card-status-badge');
     
     if (isActive) {
       card.style.background = `rgba(${rgb}, 0.15)`;
-      card.style.backdropFilter = 'blur(16px)';
-      card.style.borderColor = `rgba(${rgb}, 0.7)`;
-      card.style.borderWidth = '1.5px';
-      card.style.boxShadow = `0 12px 30px rgba(${rgb}, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)`;
-      card.style.transform = 'translateY(-2px)';
-      if (badge) badge.style.display = 'inline-block';
-    } else {
-      card.style.background = 'rgba(30, 41, 59, 0.4)';
-      card.style.backdropFilter = 'blur(12px)';
-      card.style.borderWidth = '1.5px';
-      card.style.borderColor = 'rgba(255,255,255,0.06)';
-      card.style.borderWidth = '1px';
-      card.style.boxShadow = 'none';
-      card.style.transform = 'none';
-      if (badge) badge.style.display = 'none';
-    }
-  });
-  
-  loadAndRenderKanban();
-};
-
 function calcStatus(hosp, col) {
   const now = new Date();
   const entry = new Date(hosp.sector_entry_date);
