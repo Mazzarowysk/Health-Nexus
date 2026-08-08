@@ -20,6 +20,7 @@ export async function renderKanbanTab() {
   if (!contentArea) return;
 
   const FILTER_CARDS = [
+    { id: 'all', label: 'Visão Geral', icon: 'fa-layer-group', color: '#818cf8', rgb: '129,140,248' },
     { id: 'pronto_socorro', label: 'Pronto Socorro', icon: 'fa-truck-medical', color: '#3b82f6', rgb: '59,130,246' },
     { id: 'corredor_internacao', label: 'Corredor', icon: 'fa-bed-pulse', color: '#f59e0b', rgb: '245,158,11' },
     { id: 'clinica_cirurgica', label: 'Cirurgica', icon: 'fa-scalpel', color: '#8b5cf6', rgb: '139,92,246' },
@@ -28,16 +29,16 @@ export async function renderKanbanTab() {
   ];
 
   const filtersHtml = FILTER_CARDS.map(f => `
-    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: rgba(30,41,59,0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 18px 22px; cursor: pointer; transition: all 0.25s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 110px;" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(${f.rgb},0.4)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='rgba(255,255,255,0.06)'; }">
+    <div onclick="setKanbanFilter('${f.id}')" id="kf-${f.id}" class="kanban-filter-card" data-color="${f.color}" data-rgb="${f.rgb}" style="background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 22px 24px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 125px; box-shadow: 0 10px 25px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);" onmouseenter="if(currentFilter !== '${f.id}') { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(${f.rgb},0.4)'; }" onmouseleave="if(currentFilter !== '${f.id}') { this.style.transform='none'; this.style.borderColor='rgba(255,255,255,0.06)'; }">
       <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.25rem;">
+        <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(${f.rgb}, 0.15); border: 1px solid rgba(${f.rgb}, 0.3); display: flex; align-items: center; justify-content: center; color: ${f.color}; font-size: 1.4rem; box-shadow: 0 4px 12px rgba(${f.rgb}, 0.2);">
           <i class="fa-solid ${f.icon}"></i>
         </div>
         <span class="card-status-badge" style="display: none; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: rgba(${f.rgb}, 0.2); color: ${f.color}; border: 1px solid rgba(${f.rgb}, 0.4); letter-spacing: 0.5px;">ATIVO</span>
       </div>
       <div>
-        <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0; font-size: 1rem;">${f.label}</h4>
-        <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin: 0; font-weight: 600;"><span id="count-${f.id}">0</span> pacientes</p>
+        <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px 0; font-size: 1.15rem; letter-spacing: 0.3px;">${f.label}</h4>
+        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin: 0; font-weight: 600;"><span id="count-${f.id}">0</span> pacientes</p>
       </div>
     </div>
   `).join('');
@@ -58,9 +59,7 @@ export async function renderKanbanTab() {
             <i class="fa-solid fa-filter"></i> <span id="kanban-filter-label">Filtro Ativo</span>
             <button onclick="resetKanbanAllFilters()" style="background:none; border:none; color:#f59e0b; cursor:pointer; font-size:0.85rem; margin-left:4px; padding:0;" title="Limpar todos os filtros"><i class="fa-solid fa-xmark"></i></button>
           </div>
-          <button onclick="resetKanbanAllFilters()" id="kf-all" style="padding:9px 16px; border-radius:10px; font-size:0.85rem; font-weight:700; display:flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.2s; background:rgba(99,102,241,0.12); border:1.5px solid rgba(99,102,241,0.4); color:#ffffff; box-shadow:0 4px 12px rgba(99,102,241,0.15);">
-            <i class="fa-solid fa-layer-group" style="color:#818cf8;"></i> Todos os Setores (<span id="count-all">0</span>)
-          </button>
+          
           <button onclick="openAddPatientKanbanModal()" class="btn-primary" style="padding:10px 18px; border-radius:10px; font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:8px; box-shadow: 0 4px 14px rgba(99,102,241,0.3);">
             <i class="fa-solid fa-plus"></i> Adicionar Paciente
           </button>
@@ -129,7 +128,7 @@ export async function renderKanbanTab() {
           </div>
 
           <!-- Kanban Columns Row (5 Columns - Directly aligned below Sector Cards) -->
-          <div class="kanban-board" id="kanban-board" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:14px; flex-grow:1; align-items:stretch;">
+          <div class="kanban-board" id="kanban-board" style="display:grid; grid-template-columns: repeat(6, 1fr); gap:14px; flex-grow:1; align-items:stretch;">
           </div>
 
         </div>
@@ -153,14 +152,17 @@ window.setKanbanFilter = function(filterId) {
     const badge = card.querySelector('.card-status-badge');
     
     if (isActive) {
-      card.style.background = `rgba(${rgb}, 0.12)`;
+      card.style.background = `rgba(${rgb}, 0.15)`;
+      card.style.backdropFilter = 'blur(16px)';
       card.style.borderColor = `rgba(${rgb}, 0.7)`;
       card.style.borderWidth = '1.5px';
-      card.style.boxShadow = `0 6px 20px rgba(${rgb}, 0.25)`;
+      card.style.boxShadow = `0 12px 30px rgba(${rgb}, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)`;
       card.style.transform = 'translateY(-2px)';
       if (badge) badge.style.display = 'inline-block';
     } else {
-      card.style.background = 'rgba(30,41,59,0.5)';
+      card.style.background = 'rgba(30, 41, 59, 0.4)';
+      card.style.backdropFilter = 'blur(12px)';
+      card.style.borderWidth = '1.5px';
       card.style.borderColor = 'rgba(255,255,255,0.06)';
       card.style.borderWidth = '1px';
       card.style.boxShadow = 'none';
@@ -206,7 +208,7 @@ function renderCard(hosp, col) {
   const safeName = (hosp.patientName || '').replace(/'/g, "\\'");
 
   return `
-    <div class="kanban-card" onclick="if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${hosp.patient_id}', '${safeName}');" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--bg-card); border:1px solid var(--border-color); border-left:4px solid ${statusColor}; border-radius:12px; padding:18px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease; display:flex; flex-direction:column; gap:16px;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.25)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';">
+    <div class="kanban-card" onclick="if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${hosp.patient_id}', '${safeName}');" draggable="true" data-hosp-id="${hosp.id}" style="background:rgba(30, 41, 59, 0.5); border:1px solid rgba(255,255,255,0.08); border-left:4px solid ${statusColor}; border-radius:12px; padding:18px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease; display:flex; flex-direction:column; gap:16px;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.25)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';">
       
       <!-- Top: User Info & ID -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -250,7 +252,7 @@ function renderCard(hosp, col) {
       <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:12px;">
         <span style="font-size:0.7rem; color:var(--text-muted);"><i class="fa-solid fa-hospital" style="width:12px;"></i> Total: <b style="color:var(--text-primary);">${totalStr}</b></span>
         <div style="display:flex; gap:6px;">
-          <button onclick="openEditKanbanCard('${hosp.id}')" style="background:var(--bg-secondary); border:1px solid var(--border-color); cursor:pointer; color:var(--text-primary); font-size:0.8rem; padding:4px 8px; border-radius:6px; transition: 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'" title="Editar"><i class="fa-regular fa-pen-to-square"></i></button>
+          <button onclick="openEditKanbanCard('${hosp.id}')" style="background:rgba(15, 23, 42, 0.5); border:1px solid rgba(255,255,255,0.05); cursor:pointer; color:var(--text-primary); font-size:0.8rem; padding:4px 8px; border-radius:6px; transition: 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'" title="Editar"><i class="fa-regular fa-pen-to-square"></i></button>
           <button onclick="moveKanbanCard('${hosp.id}')" style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.3); cursor:pointer; color:var(--color-primary); font-size:0.8rem; padding:4px 8px; border-radius:6px; transition: 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'" title="Mover setor"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
           <button onclick="dischargePatient('${hosp.id}')" style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); cursor:pointer; color:#10b981; font-size:0.8rem; padding:4px 8px; border-radius:6px; transition: 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'" title="Alta"><i class="fa-solid fa-person-walking-arrow-right"></i></button>
         </div>
@@ -850,7 +852,7 @@ window.openKanbanSectorBreakdownModal = function() {
     const pct = total > 0 ? Math.round((sectorPatients.length / total) * 100) : 0;
     
     const listHtml = sectorPatients.map(p => `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--bg-secondary); border-radius:8px; border:1px solid var(--border-color); font-size:0.8rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(15, 23, 42, 0.5); border-radius:8px; border:1px solid rgba(255,255,255,0.05); border:1px solid var(--border-color); font-size:0.8rem;">
         <span style="font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user" style="margin-right:6px; color:${col.color};"></i>${p.patientName}</span>
         <div style="display:flex; gap:10px; align-items:center;">
           <span style="font-size:0.72rem; color:var(--text-muted);">${p.bed ? `Leito ${p.bed}` : 'Sem leito'}</span>
@@ -860,7 +862,7 @@ window.openKanbanSectorBreakdownModal = function() {
     `).join('');
 
     return `
-      <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-bottom:12px;">
+      <div style="background:rgba(30, 41, 59, 0.5); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; margin-bottom:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <h4 style="margin:0; font-size:0.9rem; font-weight:700; color:${col.color}; display:flex; align-items:center; gap:8px;">
             <span style="width:10px; height:10px; border-radius:50%; background:${col.color};"></span>
@@ -876,9 +878,9 @@ window.openKanbanSectorBreakdownModal = function() {
   }).join('');
 
   document.body.insertAdjacentHTML('beforeend', `
-    <div id="kanban-sector-modal" style="display:flex; justify-content:center; align-items:center; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:99999; backdrop-filter:blur(6px);">
-      <div style="background:var(--bg-primary); border:1px solid var(--border-color); width:90%; max-width:650px; max-height:85vh; border-radius:16px; display:flex; flex-direction:column; box-shadow:0 20px 40px rgba(0,0,0,0.5); overflow:hidden;">
-        <div style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:var(--bg-card);">
+    <div id="kanban-sector-modal" style="display:flex; justify-content:center; align-items:center; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; backdrop-filter:blur(12px);">
+      <div style="background:var(--bg-primary); border:1px solid var(--border-color); width:90%; max-width:650px; max-height:85vh; border-radius:24px; display:flex; flex-direction:column; box-shadow:0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); overflow:hidden; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.1);">
+        <div style="padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; background:rgba(30, 41, 59, 0.5);">
           <h3 style="margin:0; font-size:1.1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
             <i class="fa-solid fa-chart-pie" style="color:#6366f1;"></i> Detalhamento por Setor (${total} Pacientes)
           </h3>
@@ -887,7 +889,7 @@ window.openKanbanSectorBreakdownModal = function() {
         <div style="padding:20px; overflow-y:auto; flex-grow:1;">
           ${sectorRowsHtml}
         </div>
-        <div style="padding:14px 20px; border-top:1px solid var(--border-color); background:var(--bg-card); display:flex; justify-content:flex-end;">
+        <div style="padding:16px 24px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(30, 41, 59, 0.5); display:flex; justify-content:flex-end;">
           <button onclick="document.getElementById('kanban-sector-modal').remove()" class="btn-primary" style="padding:8px 18px; border-radius:8px; font-weight:600; font-size:0.85rem;">Fechar</button>
         </div>
       </div>
@@ -916,13 +918,13 @@ window.openKanbanSlaAuditModal = function() {
   const onTimeList = audited.filter(a => a.statusText === 'No prazo');
 
   const renderGroup = (title, icon, color, list) => `
-    <div style="margin-bottom:16px; background:var(--bg-card); border:1px solid var(--border-color); border-left:4px solid ${color}; border-radius:12px; padding:14px;">
+    <div style="margin-bottom:16px; background:rgba(30, 41, 59, 0.5); border:1px solid rgba(255,255,255,0.08); border-left:4px solid ${color}; border-radius:12px; padding:14px;">
       <h4 style="margin:0 0 10px 0; font-size:0.9rem; font-weight:700; color:${color}; display:flex; align-items:center; gap:8px;">
         <i class="fa-solid ${icon}"></i> ${title} (${list.length})
       </h4>
       <div style="display:flex; flex-direction:column; gap:6px; max-height:160px; overflow-y:auto;">
         ${list.map(p => `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--bg-secondary); border-radius:8px; font-size:0.8rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(15, 23, 42, 0.5); border-radius:8px; border:1px solid rgba(255,255,255,0.05); font-size:0.8rem;">
             <div>
               <strong style="color:var(--text-primary);">${p.patientName}</strong>
               <span style="font-size:0.7rem; color:var(--text-muted); margin-left:8px;">Setor: ${p.col.shortLabel}</span>
@@ -939,9 +941,9 @@ window.openKanbanSlaAuditModal = function() {
   `;
 
   document.body.insertAdjacentHTML('beforeend', `
-    <div id="kanban-sla-modal" style="display:flex; justify-content:center; align-items:center; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:99999; backdrop-filter:blur(6px);">
-      <div style="background:var(--bg-primary); border:1px solid var(--border-color); width:90%; max-width:680px; max-height:85vh; border-radius:16px; display:flex; flex-direction:column; box-shadow:0 20px 40px rgba(0,0,0,0.5); overflow:hidden;">
-        <div style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:var(--bg-card);">
+    <div id="kanban-sla-modal" style="display:flex; justify-content:center; align-items:center; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; backdrop-filter:blur(12px);">
+      <div style="background:var(--bg-primary); border:1px solid var(--border-color); width:90%; max-width:680px; max-height:85vh; border-radius:24px; display:flex; flex-direction:column; box-shadow:0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); overflow:hidden; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.1);">
+        <div style="padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; background:rgba(30, 41, 59, 0.5);">
           <h3 style="margin:0; font-size:1.1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
             <i class="fa-solid fa-hourglass-half" style="color:#f59e0b;"></i> Auditoria de SLAs & Metas de Permanência
           </h3>
@@ -952,10 +954,10 @@ window.openKanbanSlaAuditModal = function() {
           ${renderGroup('Atenção (Próximos do Limite)', 'fa-triangle-exclamation', '#f59e0b', warningList)}
           ${renderGroup('No Prazo', 'fa-circle-check', '#10b981', onTimeList)}
         </div>
-        <div style="padding:14px 20px; border-top:1px solid var(--border-color); background:var(--bg-card); display:flex; justify-content:space-between; align-items:center;">
+        <div style="padding:16px 24px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(30, 41, 59, 0.5); display:flex; justify-content:space-between; align-items:center;">
           <div style="display:flex; gap:8px;">
             <button onclick="setKanbanSlaFilter('exceeded'); document.getElementById('kanban-sla-modal').remove();" style="padding:6px 12px; border-radius:8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444; font-size:0.75rem; font-weight:700; cursor:pointer;">Filtrar Atrasados</button>
-            <button onclick="resetKanbanAllFilters(); document.getElementById('kanban-sla-modal').remove();" style="padding:6px 12px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-muted); font-size:0.75rem; font-weight:700; cursor:pointer;">Ver Todos</button>
+            <button onclick="resetKanbanAllFilters(); document.getElementById('kanban-sla-modal').remove();" style="padding:6px 12px; border-radius:8px; background:rgba(15, 23, 42, 0.5); border:1px solid rgba(255,255,255,0.05); color:var(--text-muted); font-size:0.75rem; font-weight:700; cursor:pointer;">Ver Todos</button>
           </div>
           <button onclick="document.getElementById('kanban-sla-modal').remove()" class="btn-primary" style="padding:8px 18px; border-radius:8px; font-weight:600; font-size:0.85rem;">Fechar</button>
         </div>
@@ -974,7 +976,7 @@ window.openKanbanFunnelDetailModal = function() {
     const count = active.filter(h => h.current_sector === col.id).length;
     const pct = Math.round((count / total) * 100);
     return `
-      <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+      <div style="background:rgba(30, 41, 59, 0.5); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="width:12px; height:12px; border-radius:50%; background:${col.color};"></span>
           <strong style="color:var(--text-primary); font-size:0.88rem;">${col.label}</strong>
