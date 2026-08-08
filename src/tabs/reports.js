@@ -2086,32 +2086,32 @@ function renderReportsTab(contentArea) {
 
         <!-- KPI CARDS RESUMO -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 18px 0;">
-          <div style="background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)); border: 1px solid rgba(52,211,153,0.35); border-radius: 14px; padding: 14px 16px;">
+          <div class="fin-kpi-card" data-filter="Pagas" style="background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)); border: 1px solid rgba(52,211,153,0.35); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="font-size: 0.7rem; color: #34d399; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-circle-check"></i> Pagas</div>
             <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #34d399;">${fmt(pagasVal)}</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${pagasC} parcelas</div>
           </div>
-          <div style="background: linear-gradient(135deg, rgba(0,242,254,0.12), rgba(0,242,254,0.04)); border: 1px solid rgba(0,242,254,0.35); border-radius: 14px; padding: 14px 16px;">
+          <div class="fin-kpi-card" data-filter="A Vencer" style="background: linear-gradient(135deg, rgba(0,242,254,0.12), rgba(0,242,254,0.04)); border: 1px solid rgba(0,242,254,0.35); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="font-size: 0.7rem; color: #00f2fe; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-clock"></i> A Vencer</div>
             <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #00f2fe;">${fmt(aVencerVal)}</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${aVencerC} parcelas</div>
           </div>
-          <div style="background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(244,63,94,0.04)); border: 1px solid rgba(244,63,94,0.35); border-radius: 14px; padding: 14px 16px;">
+          <div class="fin-kpi-card" data-filter="Vencidas" style="background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(244,63,94,0.04)); border: 1px solid rgba(244,63,94,0.35); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="font-size: 0.7rem; color: #f43f5e; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-circle-exclamation"></i> Vencidas</div>
             <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #f43f5e;">${fmt(vencidasVal)}</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${vencidasC} parcelas</div>
           </div>
-          <div style="background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(244,63,94,0.08)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 16px;">
+          <div class="fin-kpi-card" data-filter="All" style="background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(244,63,94,0.08)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" title="Ver Todos (Saldo Líquido)">
             <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-scale-balanced"></i> Saldo Líquido</div>
             <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: ${saldoLiquido >= 0 ? '#34d399' : '#f43f5e'};">${fmt(saldoLiquido)}</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Receitas âˆ’ Despesas</div>
           </div>
-          <div style="background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.04)); border: 1px solid rgba(251,191,36,0.25); border-radius: 14px; padding: 14px 16px;">
+          <div class="fin-kpi-card" data-filter="Bonificadas" style="background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.04)); border: 1px solid rgba(251,191,36,0.25); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="font-size: 0.7rem; color: #fbbf24; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-award"></i> Bonificadas</div>
             <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #fbbf24;">${fmt(bonificadasVal)}</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${bonificadasC} parcelas</div>
           </div>
-          <div style="background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.04)); border: 1px solid rgba(248,113,113,0.2); border-radius: 14px; padding: 14px 16px;">
+          <div class="fin-kpi-card" data-filter="Outras" style="background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.04)); border: 1px solid rgba(248,113,113,0.2); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="font-size: 0.7rem; color: #f87171; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;"><i class="fa-solid fa-ban"></i> Outras</div>
             <div style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 800; color: #f87171;">${fmt(suspensasVal + canceladasVal + excluidasVal)}</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${suspensasC + canceladasC + excluidasC} parcelas</div>
@@ -2159,12 +2159,12 @@ function renderReportsTab(contentArea) {
             </thead>
             <tbody>
               ${installmentsList.length === 0 ? `
-                <tr><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum título financeiro encontrado para os filtros selecionados.</td></tr>
-              ` : installmentsList.map(t => {
+                <tr id="modal-fin-empty-row"><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum título financeiro encontrado para os filtros selecionados.</td></tr>
+              ` : `<tr id="modal-fin-empty-row" style="display:none;"><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum título financeiro nesta categoria.</td></tr>` + installmentsList.map(t => {
                 const instStr = (t.installmentNumber && t.totalInstallments) ? `${t.installmentNumber}/${t.totalInstallments}` : '1/1';
                 const clientName = hasPEP ? t.client : (typeof abbreviateName === 'function' ? abbreviateName(t.client) : t.client);
                 return `
-                  <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                  <tr class="fin-row-item" data-status="${t.status}" style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
                     <td style="padding: 10px 12px; text-align: center;"><input type="checkbox" class="modal-fin-row-check" data-id="${t.id}" style="cursor:pointer;"></td>
                     <td style="padding: 10px 12px; font-family: monospace; font-weight: 700; color: var(--color-primary); font-size: 0.84rem;">${t.id}</td>
                     <td style="padding: 10px 12px; font-weight: 600; color: var(--text-primary); font-size: 0.86rem;">${clientName}</td>
