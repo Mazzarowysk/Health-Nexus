@@ -1178,9 +1178,10 @@ window.openPEPModal = async function(encounterId) {
           <textarea id="pep-objective" class="form-input" style="width:100%; min-height:70px; resize:vertical;" placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || ''}</textarea>
         </div>
 
-        <div>
+        <div class="autocomplete-container" style="position:relative;">
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Avaliação (Diagnóstico / CID-10):</label>
-          <textarea id="pep-assessment" class="form-input" style="width:100%; min-height:60px; resize:vertical;" placeholder="Hipótese diagnóstica ou CID-10...">${notes.assessmentContent || ''}</textarea>
+          <textarea id="pep-assessment" class="form-input pep-cid-input" style="width:100%; min-height:60px; resize:vertical;" placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || ''}</textarea>
+          <div id="pep-cid-dropdown" class="autocomplete-dropdown"></div>
         </div>
 
         <div>
@@ -1207,6 +1208,10 @@ window.openPEPModal = async function(encounterId) {
       e.preventDefault();
       await savePEPData(encounterId, true);
     });
+
+    if (typeof window.setupCidAutocomplete === 'function') {
+      window.setupCidAutocomplete();
+    }
 
   } catch (e) {
     document.getElementById('pep-modal-body').innerHTML = `

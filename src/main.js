@@ -6055,7 +6055,7 @@ let currentPEPEncounterId = null;
 let cidCatalog = [];
 
 // Configurar Autocomplete do CID
-async function setupCidAutocomplete() {
+window.setupCidAutocomplete = async function setupCidAutocomplete() {
   const input = document.getElementById('pep-assessment');
   const dropdown = document.getElementById('pep-cid-dropdown');
   
@@ -6076,7 +6076,9 @@ async function setupCidAutocomplete() {
   }
   
   input.addEventListener('input', (e) => {
-    const term = removeAccents(e.target.value.toLowerCase());
+    const lines = e.target.value.split('\n');
+    const lastLine = lines[lines.length - 1];
+    const term = removeAccents(lastLine.toLowerCase().trim());
     dropdown.innerHTML = '';
     
     if (term.length < 2) {
@@ -6097,8 +6099,10 @@ async function setupCidAutocomplete() {
         div.className = 'autocomplete-item';
         div.textContent = `${cid.code} - ${cid.description}`;
         div.addEventListener('click', () => {
-          input.value = `${cid.code} - ${cid.description}`;
+          lines[lines.length - 1] = `${cid.code} - ${cid.description}`;
+          input.value = lines.join('\n') + '\n';
           dropdown.classList.remove('active');
+          input.focus();
         });
         dropdown.appendChild(div);
       });
