@@ -60,8 +60,6 @@ function ensureTable(db, table) {
   // Seed padrão garantido para usuários essenciais do sistema
   if (table === 'users') {
     const hasMazz = db[table].some(u => u.username === 'mazzarowysk');
-    const hasBcoltri = db[table].some(u => u.username === 'bcoltri');
-    const hasSilvia = db[table].some(u => u.username === 'silviacwb');
 
     if (!hasMazz) {
       db[table].push({
@@ -69,30 +67,6 @@ function ensureTable(db, table) {
         name: 'Marcelo Mazaro',
         username: 'mazzarowysk',
         role: 'Master',
-        status: 'Ativo',
-        created_at: new Date().toISOString()
-      });
-      modified = true;
-    }
-
-    if (!hasBcoltri) {
-      db[table].push({
-        id: 'USR-BCOLTRI',
-        name: 'Breno Coltri',
-        username: 'bcoltri',
-        role: 'Desenvolvedor',
-        status: 'Ativo',
-        created_at: new Date().toISOString()
-      });
-      modified = true;
-    }
-
-    if (!hasSilvia) {
-      db[table].push({
-        id: 'USR-SILVIACWB',
-        name: 'Enf. Sílvia',
-        username: 'silviacwb',
-        role: 'Enfermeiro',
         status: 'Ativo',
         created_at: new Date().toISOString()
       });
