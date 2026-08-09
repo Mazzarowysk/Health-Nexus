@@ -98,7 +98,13 @@ async function renderDoctorsTab() {
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
             <div class="form-group">
               <label for="doc-crm">CRM *</label>
-              <input type="text" id="doc-crm" class="form-input" placeholder="123456-SP" required>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <input type="text" id="doc-crm" class="form-input" placeholder="123456-SP" required style="flex: 1;">
+                <button type="button" id="btn-verify-crm" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: #818cf8; padding: 0 12px; border-radius: 8px; cursor: pointer; height: 40px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 5px;" title="Verificar CRM no CFM">
+                  <i class="fa-solid fa-shield-halved"></i> Verificar
+                </button>
+              </div>
+              <div id="crm-verify-status" style="margin-top: 6px; font-size: 0.75rem; display: none;"></div>
             </div>
             <div class="form-group">
               <label for="doc-specialty">Especialidade *</label>
@@ -134,6 +140,74 @@ async function renderDoctorsTab() {
   let allDoctorsCache = [];
   // Track current active filter: 'all' | 'Ativo' | specialty string
   if (!window.currentDocFilter) window.currentDocFilter = 'all';
+
+  // ---- CFM CRM Verification Logic ----
+  const verifyCrmBtn = document.getElementById('btn-verify-crm');
+  const crmInput = document.getElementById('doc-crm');
+  const crmStatus = document.getElementById('crm-verify-status');
+
+  const doVerifyCRM = async () => {
+    const crmVal = crmInput?.value?.trim();
+    if (!crmVal) { showToast('Digite o CRM antes de verificar.', 'warning'); return; }
+
+    verifyCrmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    verifyCrmBtn.disabled = true;
+    crmStatus.style.display = 'flex';
+    crmStatus.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:5px;"></i> Consultando CFM...';
+    crmStatus.style.color = 'var(--text-muted)';
+
+    try {
+      const resp = await fetch(`/api/cfm/verificar?crm=${encodeURIComponent(crmVal)}`);
+      const data = await resp.json();
+
+      if (!data.success) {
+        crmStatus.innerHTML = `<i class="fa-solid fa-xmark-circle" style="color:#ef4444;margin-right:5px;"></i> <span style="color:#ef4444;">${data.error || 'Erro ao verificar CRM.'}</span>`;
+      } else if (data.status === 'ATIVO' || data.fonte === 'CFM Portal') {
+        crmStatus.innerHTML = `
+          <i class="fa-solid fa-circle-check" style="color:#10b981;margin-right:5px;"></i>
+          <span style="color:#10b981;font-weight:700;">CRM Verificado no CFM</span>
+          ${data.nome ? ` · <span style="color:var(--text-secondary);">${data.nome}</span>` : ''}
+          ${data.especialidade ? ` · <span style="color:#818cf8;">${data.especialidade}</span>` : ''}
+          <a href="${data.portalCfm || 'https://portal.cfm.org.br/busca-medicos/?q=' + encodeURIComponent(crmVal)}" target="_blank" style="color:#6366f1;margin-left:8px;font-size:0.72rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver no CFM</a>`;
+        verifyCrmBtn.style.background = 'rgba(16,185,129,0.15)';
+        verifyCrmBtn.style.borderColor = 'rgba(16,185,129,0.4)';
+        verifyCrmBtn.style.color = '#10b981';
+        verifyCrmBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+      } else if (data.status === 'FORMATO_VALIDO') {
+        crmStatus.innerHTML = `
+          <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;margin-right:5px;"></i>
+          <span style="color:#f59e0b;font-weight:600;">${data.mensagem}</span>
+          <a href="${data.portalCfm}" target="_blank" style="color:#6366f1;margin-left:8px;font-size:0.72rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Verificar no CFM</a>`;
+        verifyCrmBtn.style.background = 'rgba(245,158,11,0.12)';
+        verifyCrmBtn.style.borderColor = 'rgba(245,158,11,0.4)';
+        verifyCrmBtn.style.color = '#f59e0b';
+        verifyCrmBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+      } else {
+        crmStatus.innerHTML = `<i class="fa-solid fa-xmark-circle" style="color:#ef4444;margin-right:5px;"></i> <span style="color:#ef4444;">Formato de CRM inválido. Use: 123456-SP ou 123456/SP</span>`;
+        verifyCrmBtn.style.borderColor = 'rgba(239,68,68,0.5)';
+        verifyCrmBtn.style.color = '#ef4444';
+        verifyCrmBtn.innerHTML = '<i class="fa-solid fa-xmark-circle"></i>';
+      }
+    } catch (err) {
+      crmStatus.innerHTML = '<i class="fa-solid fa-xmark-circle" style="color:#ef4444;margin-right:5px;"></i> <span style="color:#ef4444;">Erro de conexão.</span>';
+    } finally {
+      if (verifyCrmBtn.innerHTML.includes('spinner') || verifyCrmBtn.innerHTML.includes('Verificar')) {
+        verifyCrmBtn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Verificar';
+      }
+      verifyCrmBtn.disabled = false;
+    }
+  };
+
+  verifyCrmBtn?.addEventListener('click', doVerifyCRM);
+  crmInput?.addEventListener('input', () => {
+    // Reset badge when user types
+    crmStatus.style.display = 'none';
+    verifyCrmBtn.style.background = 'rgba(99,102,241,0.15)';
+    verifyCrmBtn.style.borderColor = 'rgba(99,102,241,0.4)';
+    verifyCrmBtn.style.color = '#818cf8';
+    verifyCrmBtn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Verificar';
+  });
+  // ---- End CFM Verification ----
 
   const updateCardStyles = () => {
     const curFilter = window.currentDocFilter;
@@ -270,7 +344,12 @@ async function renderDoctorsTab() {
               </div>
               <div>
                 <strong style="font-size: 0.95rem; color: var(--text-primary); display: block;">${d.name}</strong>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">CRM: ${d.crm}</span>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">
+                  CRM: ${d.crm}
+                  <a href="https://portal.cfm.org.br/busca-medicos/?q=${encodeURIComponent((d.crm || '').replace(/[^0-9]/g,''))}&uf=${encodeURIComponent((d.crm || '').replace(/[^a-zA-Z]/g,'').toUpperCase() || 'SP')}" target="_blank" title="Verificar CRM no portal CFM" style="margin-left: 5px; color: #6366f1; text-decoration: none; font-size: 0.72rem;" onclick="event.stopPropagation()">
+                    <i class="fa-solid fa-shield-halved"></i>
+                  </a>
+                </span>
               </div>
             </div>
           </td>

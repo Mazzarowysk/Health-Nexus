@@ -327,11 +327,29 @@ function openAddPharmModal(itemToEdit = null) {
 
         <form id="form-add-pharm-item" style="padding: 24px;">
           <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+
+            <!-- ANVISA Search Block -->
+            <div style="background: rgba(99,102,241,0.07); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 14px 16px;">
+              <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #818cf8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
+                <i class="fa-solid fa-magnifying-glass-plus" style="margin-right: 6px;"></i>Buscar na Base de Medicamentos (ANVISA / OpenFDA)
+              </label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="pharm-anvisa-search" class="form-input" placeholder="Ex: Amoxicilina, Dipirona, Metformina..." style="flex: 1; height: 40px;">
+                <button type="button" id="btn-anvisa-lookup" style="background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; color: #fff; padding: 0 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: all 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                  <i class="fa-solid fa-search"></i> Buscar
+                </button>
+              </div>
+              <div id="pharm-anvisa-results" style="margin-top: 10px; display: none;"></div>
+            </div>
+
             <div>
               <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                 Nome do Medicamento *
               </label>
-              <input type="text" id="pharm-input-name" class="form-input" required value="${itemToEdit?.name || ''}" placeholder="Ex: Amoxicilina + Clavulanato" style="width: 100%; box-sizing: border-box;">
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="pharm-input-name" class="form-input" required value="${itemToEdit?.name || ''}" placeholder="Ex: Amoxicilina + Clavulanato" style="flex: 1; box-sizing: border-box;">
+                <span id="pharm-anvisa-badge" style="display: none; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap;"></span>
+              </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -407,6 +425,77 @@ function openAddPharmModal(itemToEdit = null) {
 
   document.getElementById('btn-close-pharm-add-modal')?.addEventListener('click', closeModal);
   document.getElementById('btn-cancel-pharm-add')?.addEventListener('click', closeModal);
+
+  // ANVISA Lookup Logic
+  const anvisaBtn = document.getElementById('btn-anvisa-lookup');
+  const anvisaSearch = document.getElementById('pharm-anvisa-search');
+  const anvisaResults = document.getElementById('pharm-anvisa-results');
+  const anvisaBadge = document.getElementById('pharm-anvisa-badge');
+
+  const doAnvisaSearch = async () => {
+    const term = anvisaSearch?.value?.trim();
+    if (!term || term.length < 2) return;
+    anvisaBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando...';
+    anvisaBtn.disabled = true;
+    anvisaResults.style.display = 'block';
+    anvisaResults.innerHTML = '<div style="color: var(--text-muted); font-size: 0.82rem;"><i class="fa-solid fa-circle-notch fa-spin"></i> Consultando base ANVISA/OpenFDA...</div>';
+
+    try {
+      const resp = await fetch(`/api/anvisa/buscar?q=${encodeURIComponent(term)}`);
+      const data = await resp.json();
+
+      if (!data.success || data.resultados.length === 0) {
+        anvisaResults.innerHTML = `<div style="color: #f59e0b; font-size: 0.82rem;"><i class="fa-solid fa-triangle-exclamation"></i> Nenhum medicamento encontrado para "${term}". Verifique a grafia ou preencha manualmente.</div>`;
+      } else {
+        anvisaResults.innerHTML = `
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">${data.total} resultado(s) encontrado(s) — Clique para preencher:</div>
+          <div style="display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto;">
+            ${data.resultados.map((med, i) => `
+              <div class="anvisa-result-item" data-idx="${i}" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='rgba(99,102,241,0.6)'; this.style.background='rgba(99,102,241,0.1)';" onmouseout="this.style.borderColor='rgba(99,102,241,0.2)'; this.style.background='rgba(0,0,0,0.25)';">
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">${med.nome}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                  <span style="color: #10b981;">⚗️ ${med.principioAtivo}</span>
+                  ${med.formaFarmaceutica !== 'N/D' ? ` · <span>💊 ${med.formaFarmaceutica}</span>` : ''}
+                  ${med.fabricante !== 'N/D' ? ` · <span>🏭 ${med.fabricante}</span>` : ''}
+                </div>
+                ${med.categoria !== 'N/D' ? `<div style="font-size: 0.7rem; color: #818cf8; margin-top: 3px;">📋 ${med.categoria}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        // Click to fill form
+        anvisaResults.querySelectorAll('.anvisa-result-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const med = data.resultados[parseInt(el.dataset.idx)];
+            const nameInput = document.getElementById('pharm-input-name');
+            const dosageInput = document.getElementById('pharm-input-dosage');
+            const formInput = document.getElementById('pharm-input-form');
+            if (nameInput) nameInput.value = med.principioAtivo !== 'N/D' ? med.principioAtivo : med.nome;
+            if (dosageInput && dosageInput.value === '') dosageInput.value = '';
+            if (formInput && med.formaFarmaceutica !== 'N/D') formInput.value = med.formaFarmaceutica;
+            // Show verified badge
+            if (anvisaBadge) {
+              anvisaBadge.style.display = 'inline-flex';
+              anvisaBadge.style.background = 'rgba(16,185,129,0.15)';
+              anvisaBadge.style.color = '#10b981';
+              anvisaBadge.style.border = '1px solid rgba(16,185,129,0.4)';
+              anvisaBadge.innerHTML = '<i class="fa-solid fa-shield-halved" style="margin-right:4px;"></i> ANVISA Verificado';
+            }
+            anvisaResults.innerHTML = `<div style="color: #10b981; font-size: 0.8rem;"><i class="fa-solid fa-circle-check"></i> <strong>${med.nome}</strong> selecionado. Campos preenchidos automaticamente.</div>`;
+          });
+        });
+      }
+    } catch (err) {
+      anvisaResults.innerHTML = '<div style="color: #ef4444; font-size: 0.82rem;"><i class="fa-solid fa-xmark-circle"></i> Erro ao consultar. Verifique sua conexão.</div>';
+    } finally {
+      anvisaBtn.innerHTML = '<i class="fa-solid fa-search"></i> Buscar';
+      anvisaBtn.disabled = false;
+    }
+  };
+
+  anvisaBtn?.addEventListener('click', doAnvisaSearch);
+  anvisaSearch?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doAnvisaSearch(); } });
 
   document.getElementById('form-add-pharm-item')?.addEventListener('submit', async (e) => {
     e.preventDefault();

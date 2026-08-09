@@ -96,7 +96,202 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ token: 'offline-token', user: { id: 'USR-ADMIN', role: 'Administrador' } });
 });
 
+// =========================================================
+// 💊 ANVISA — Busca de Medicamentos via OpenFDA (gratuito)
+// =========================================================
+app.get('/api/anvisa/buscar', async (req, res) => {
+  const { q } = req.query;
+  if (!q || q.trim().length < 2) {
+    return res.status(400).json({ error: 'Termo de busca muito curto.' });
+  }
+
+  const term = q.trim().toLowerCase();
+
+  try {
+    // 1. OpenFDA Drug Label search (works reliably, no auth required)
+    const { default: fetch } = await import('node-fetch').catch(() => ({ default: null }));
+    const fetchFn = fetch || (await import('node:https').then(() => null));
+
+    const makeRequest = (url) => {
+      return new Promise((resolve) => {
+        import('node:https').then(({ default: https }) => {
+          const req = https.get(url, {
+            headers: { 'User-Agent': 'HealthNexus/1.3.0 (hospital-system)' }
+          }, (r) => {
+            let data = '';
+            r.on('data', c => data += c);
+            r.on('end', () => {
+              try { resolve({ ok: r.statusCode < 400, data: JSON.parse(data) }); }
+              catch { resolve({ ok: false, data: null }); }
+            });
+          });
+          req.on('error', () => resolve({ ok: false, data: null }));
+          req.setTimeout(8000, () => { req.destroy(); resolve({ ok: false, data: null }); });
+        });
+      });
+    };
+
+    // Search OpenFDA by generic name
+    const encodedTerm = encodeURIComponent(term);
+    const result = await makeRequest(
+      `https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodedTerm}"&limit=5`
+    );
+
+    let medications = [];
+
+    if (result.ok && result.data?.results) {
+      medications = result.data.results.map(item => {
+        const openfda = item.openfda || {};
+        return {
+          nome: openfda.brand_name?.[0] || openfda.generic_name?.[0] || 'N/D',
+          principioAtivo: openfda.generic_name?.[0] || 'N/D',
+          fabricante: openfda.manufacturer_name?.[0] || 'N/D',
+          categoria: openfda.pharm_class_epc?.[0] || 'N/D',
+          formaFarmaceutica: openfda.dosage_form?.[0] || 'N/D',
+          viaAdministracao: openfda.route?.[0] || 'N/D',
+          rxcui: openfda.rxcui?.[0] || null,
+          fonte: 'OpenFDA'
+        };
+      });
+    }
+
+    // If no results, try by brand name
+    if (medications.length === 0) {
+      const result2 = await makeRequest(
+        `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodedTerm}"&limit=5`
+      );
+      if (result2.ok && result2.data?.results) {
+        medications = result2.data.results.map(item => {
+          const openfda = item.openfda || {};
+          return {
+            nome: openfda.brand_name?.[0] || openfda.generic_name?.[0] || 'N/D',
+            principioAtivo: openfda.generic_name?.[0] || 'N/D',
+            fabricante: openfda.manufacturer_name?.[0] || 'N/D',
+            categoria: openfda.pharm_class_epc?.[0] || 'N/D',
+            formaFarmaceutica: openfda.dosage_form?.[0] || 'N/D',
+            viaAdministracao: openfda.route?.[0] || 'N/D',
+            rxcui: openfda.rxcui?.[0] || null,
+            fonte: 'OpenFDA'
+          };
+        });
+      }
+    }
+
+    return res.json({ success: true, resultados: medications, total: medications.length });
+
+  } catch (err) {
+    console.error('[ANVISA] Erro:', err);
+    return res.status(500).json({ error: 'Erro ao consultar base de medicamentos.' });
+  }
+});
+
+// =========================================================
+// 🩺 CFM — Verificação de CRM Médico
+// =========================================================
+app.get('/api/cfm/verificar', async (req, res) => {
+  const { crm, uf } = req.query;
+
+  if (!crm) return res.status(400).json({ error: 'CRM é obrigatório.' });
+
+  // Parse CRM: accept formats like "123456-SP", "SP123456", "123456/SP", "123456"
+  let crmNum = crm.replace(/[^0-9]/g, '').trim();
+  let crmUF = uf || crm.replace(/[^a-zA-Z]/g, '').toUpperCase().trim() || 'SP';
+
+  if (!crmNum || crmNum.length < 3) {
+    return res.status(400).json({ error: 'Número de CRM inválido.' });
+  }
+
+  const ESTADOS_VALIDOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
+    'MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+
+  if (crmUF && !ESTADOS_VALIDOS.includes(crmUF)) {
+    return res.status(400).json({ error: `UF "${crmUF}" inválida.` });
+  }
+
+  try {
+    const makeRequest = (url) => {
+      return new Promise((resolve) => {
+        import('node:https').then(({ default: https }) => {
+          const req = https.get(url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+              'Accept': 'text/html,application/xhtml+xml,*/*',
+              'Accept-Language': 'pt-BR,pt;q=0.9',
+              'Referer': 'https://portal.cfm.org.br/'
+            }
+          }, (r) => {
+            let data = '';
+            r.on('data', c => data += c);
+            r.on('end', () => resolve({ status: r.statusCode, body: data }));
+          });
+          req.on('error', e => resolve({ status: 0, error: e.message }));
+          req.setTimeout(8000, () => { req.destroy(); resolve({ status: 0, error: 'timeout' }); });
+        });
+      });
+    };
+
+    // Try CFM search portal
+    const searchUrl = `https://portal.cfm.org.br/busca-medicos/?q=${crmNum}&uf=${crmUF}`;
+    const result = await makeRequest(searchUrl);
+
+    let dadosMedico = null;
+
+    if (result.status === 200 && result.body) {
+      // Parse HTML for doctor data
+      const body = result.body;
+
+      // Look for CRM match in the page
+      const crmPattern = new RegExp(`CRM[\\s/]*${crmNum}`, 'i');
+      const found = crmPattern.test(body);
+
+      if (found) {
+        // Try to extract name from common patterns
+        const nameMatch = body.match(/class="[^"]*nome[^"]*"[^>]*>([^<]+)</i) ||
+                          body.match(/<h[23][^>]*>([A-ZÁÉÍÓÚÂÊÔÃÕÀÇ][^<]{5,60})<\/h/);
+        const specMatch = body.match(/class="[^"]*especialidade[^"]*"[^>]*>([^<]+)</i) ||
+                          body.match(/Especialidade[^:]*:\s*([A-Za-záéíóúç\s]+)/i);
+
+        dadosMedico = {
+          crm: `${crmNum}/${crmUF}`,
+          status: 'ATIVO',
+          nome: nameMatch ? nameMatch[1].trim() : null,
+          especialidade: specMatch ? specMatch[1].trim() : null,
+          uf: crmUF,
+          fonte: 'CFM Portal'
+        };
+      }
+    }
+
+    // Fallback: return format validation result
+    if (!dadosMedico) {
+      // CRM is considered valid by format if it follows: 1-6 digits + valid UF
+      const isValidFormat = crmNum.length >= 4 && crmNum.length <= 7 && ESTADOS_VALIDOS.includes(crmUF);
+
+      return res.json({
+        success: true,
+        validoFormato: isValidFormat,
+        crm: `${crmNum}/${crmUF}`,
+        uf: crmUF,
+        numero: crmNum,
+        status: isValidFormat ? 'FORMATO_VALIDO' : 'FORMATO_INVALIDO',
+        mensagem: isValidFormat
+          ? `CRM ${crmNum}/${crmUF} possui formato válido. Verifique no portal do CFM para confirmação completa.`
+          : 'Formato de CRM inválido.',
+        portalCfm: `https://portal.cfm.org.br/busca-medicos/?q=${crmNum}&uf=${crmUF}`,
+        fonte: 'Validação de Formato'
+      });
+    }
+
+    return res.json({ success: true, validoFormato: true, ...dadosMedico });
+
+  } catch (err) {
+    console.error('[CFM] Erro:', err);
+    return res.status(500).json({ error: 'Erro ao verificar CRM.' });
+  }
+});
+
 // Catch-all
+
 app.use((req, res) => {
   res.status(404).json({ error: 'Rota relacional legada não existe mais. Use offline-first architecture.' });
 });
