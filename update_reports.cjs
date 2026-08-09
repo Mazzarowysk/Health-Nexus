@@ -1,115 +1,54 @@
 const fs = require('fs');
-const path = 'c:/Health Nexus/src/tabs/reports.js';
-let content = fs.readFileSync(path, 'utf8');
+let code = fs.readFileSync('src/tabs/reports.js', 'utf8');
 
-// 1. KPI Cards
-content = content.replace(
-  '<div style="background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)); border: 1px solid rgba(52,211,153,0.35); border-radius: 14px; padding: 14px 16px;">',
-  '<div class="fin-kpi-card" data-filter="Pagas" style="background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)); border: 1px solid rgba(52,211,153,0.35); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'
-);
+// 1. Finance Section (Button added next to Lançar Nova Parcela)
+const targetFinance = `<div class="filter-group" style="grid-column: 1 / -1; margin-top: 8px;">
+              <button id="btn-open-fin-window-top"`;
+const repFinance = `<div class="filter-group" style="grid-column: 1 / -1; margin-top: 8px; display: flex; gap: 12px;">
+              <button type="button" onclick="document.getElementById('filter-date-start-fin').value=''; document.getElementById('filter-date-end-fin').value=''; document.getElementById('filter-fin-type').value='Todos'; document.getElementById('filter-fin-search').value=''; document.querySelectorAll('.filter-fin-item, .filter-fin-cat-item, .filter-fin-method-item').forEach(c=>c.checked=true); typeof filterAndRender==='function' && filterAndRender();" class="btn" style="flex: 1; max-width: 160px; height: 44px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Limpar Filtros"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar</button>
+              <button id="btn-open-fin-window-top"`;
 
-content = content.replace(
-  '<div style="background: linear-gradient(135deg, rgba(0,242,254,0.12), rgba(0,242,254,0.04)); border: 1px solid rgba(0,242,254,0.35); border-radius: 14px; padding: 14px 16px;">',
-  '<div class="fin-kpi-card" data-filter="A Vencer" style="background: linear-gradient(135deg, rgba(0,242,254,0.12), rgba(0,242,254,0.04)); border: 1px solid rgba(0,242,254,0.35); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'
-);
+code = code.replace(targetFinance, repFinance);
 
-content = content.replace(
-  '<div style="background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(244,63,94,0.04)); border: 1px solid rgba(244,63,94,0.35); border-radius: 14px; padding: 14px 16px;">',
-  '<div class="fin-kpi-card" data-filter="Vencidas" style="background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(244,63,94,0.04)); border: 1px solid rgba(244,63,94,0.35); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'
-);
+// 2. Encounters Section (Added to Médico Responsável block)
+const targetEncounters = `<div class="filter-group" style="min-width: 180px;">
+              <label>Médico Responsável</label>
+              <select id="filter-doctor-name"`;
+const repEncounters = `<div class="filter-group" style="min-width: 180px;">
+              <label>Médico Responsável</label>
+              <div style="display: flex; gap: 8px;">
+              <select id="filter-doctor-name" style="flex: 1;"`;
 
-content = content.replace(
-  '<div style="background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(244,63,94,0.08)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 16px;">',
-  '<div class="fin-kpi-card" data-filter="All" style="background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(244,63,94,0.08)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'translateY(0)\'" title="Ver Todos (Saldo Líquido)">'
-);
+// Need to match the end of the select tag
+const targetEncountersBtn = `</select>
+          </div>
+        </div>`;
+const repEncountersBtn = `</select>
+            <button type="button" onclick="document.getElementById('filter-date-start').value=''; document.getElementById('filter-date-end').value=''; document.getElementById('filter-doctor-name').value=''; document.querySelectorAll('.filter-status-item, .filter-manchester-item, .filter-type-item').forEach(c=>c.checked=true); typeof filterAndRender==='function' && filterAndRender();" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px; padding: 0 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Limpar Filtros"><i class="fa-solid fa-filter-circle-xmark"></i></button>
+            </div>
+          </div>
+        </div>`;
 
-content = content.replace(
-  '<div style="background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.04)); border: 1px solid rgba(251,191,36,0.25); border-radius: 14px; padding: 14px 16px;">',
-  '<div class="fin-kpi-card" data-filter="Bonificadas" style="background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.04)); border: 1px solid rgba(251,191,36,0.25); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'
-);
+if(code.indexOf(targetEncounters) !== -1) {
+    code = code.replace(targetEncounters, repEncounters);
+    // Be careful with replacing end tags
+    // A regex might be better for finding the specific select end
+    code = code.replace(/<\/select>\s*<\/div>\s*<\/div>\s*(?=<div id="rep-encounters-container")/, repEncountersBtn + '\n        ');
+}
 
-content = content.replace(
-  '<div style="background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.04)); border: 1px solid rgba(248,113,113,0.2); border-radius: 14px; padding: 14px 16px;">',
-  '<div class="fin-kpi-card" data-filter="Outras" style="background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.04)); border: 1px solid rgba(248,113,113,0.2); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'
-);
+// 3. Patients Section (Added to Faturamento Mínimo block)
+const targetPatients = `<div class="filter-group">
+              <label>Faturamento Mínimo (R$)</label>
+              <input type="number" id="filter-billing-min"`;
+const repPatients = `<div class="filter-group">
+              <label>Faturamento Mínimo (R$)</label>
+              <div style="display: flex; gap: 8px;">
+              <input type="number" id="filter-billing-min" style="flex: 1;"`;
 
-// 2. Table Rows (Empty row)
-content = content.replace(
-  '<tr><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum título financeiro encontrado para os filtros selecionados.</td></tr>',
-  '<tr id="modal-fin-empty-row"><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum título financeiro encontrado para os filtros selecionados.</td></tr>'
-);
-// Modify map replacement correctly to include the empty row if needed for filter logic
-content = content.replace(
-  ' : installmentsList.map(t => {',
-  ' ` : `<tr id="modal-fin-empty-row" style="display:none;"><td colspan="10" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum título financeiro nesta categoria.</td></tr>` + installmentsList.map(t => {'
-);
+if(code.indexOf(targetPatients) !== -1) {
+    code = code.replace(targetPatients, repPatients);
+    code = code.replace(/placeholder="0,00">\s*<\/div>\s*<\/div>\s*(?=<div id="rep-patients-container")/, 'placeholder="0,00">\n              <button type="button" onclick="document.getElementById(\'filter-date-start\').value=\'\'; document.getElementById(\'filter-date-end\').value=\'\'; document.getElementById(\'filter-billing-min\').value=\'\'; document.querySelectorAll(\'.filter-city-item\').forEach(c=>c.checked=true); typeof filterAndRender===\'function\' && filterAndRender();" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px; padding: 0 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px;" title="Limpar Filtros"><i class="fa-solid fa-filter-circle-xmark"></i></button>\n            </div>\n          </div>\n        </div>\n        ');
+}
 
-// 3. Table Rows (Actual data rows)
-content = content.replace(
-  '<tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseout="this.style.background=\'\'">',
-  '<tr class="fin-row-item" data-status="${t.status}" style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseout="this.style.background=\'\'">'
-);
-
-// 4. JS Logic at the end of openDedicatedFinanceModal
-const scriptToInsert = `    const closeModal = () => { modal.style.display = 'none'; };
-    document.getElementById('close-modal-fin-window')?.addEventListener('click', closeModal);
-
-    // Sistema de Filtro via KPI Cards
-    const filterCards = document.querySelectorAll('.fin-kpi-card');
-    const tableRows = document.querySelectorAll('.fin-row-item');
-    let currentFilter = 'All';
-
-    const updateFilterDisplay = () => {
-      filterCards.forEach(c => {
-        const f = c.getAttribute('data-filter');
-        if (currentFilter === 'All') {
-          c.style.opacity = '1';
-        } else {
-          c.style.opacity = (f === currentFilter || f === 'All') ? '1' : '0.35';
-        }
-      });
-      
-      let visibleCount = 0;
-      tableRows.forEach(row => {
-        const status = row.getAttribute('data-status');
-        const isSelectedAll = currentFilter === 'All';
-        const isSelectedOutras = currentFilter === 'Outras' && ['Canceladas', 'Suspensas', 'Excluídas'].includes(status);
-        const isSelectedExact = status === currentFilter;
-        
-        if (isSelectedAll || isSelectedOutras || isSelectedExact) {
-          row.style.display = 'table-row';
-          visibleCount++;
-        } else {
-          row.style.display = 'none';
-        }
-      });
-      
-      const emptyRow = document.getElementById('modal-fin-empty-row');
-      if (emptyRow) {
-        emptyRow.style.display = visibleCount === 0 ? 'table-row' : 'none';
-      }
-    };
-
-    filterCards.forEach(card => {
-      card.addEventListener('click', () => {
-        const filter = card.getAttribute('data-filter');
-        if (currentFilter === filter) {
-          currentFilter = 'All';
-        } else {
-          currentFilter = filter;
-        }
-        updateFilterDisplay();
-      });
-    });`;
-
-content = content.replace(
-  '    const closeModal = () => { modal.style.display = \'none\'; };\r\n    document.getElementById(\'close-modal-fin-window\')?.addEventListener(\'click\', closeModal);',
-  scriptToInsert
-);
-content = content.replace(
-  '    const closeModal = () => { modal.style.display = \'none\'; };\n    document.getElementById(\'close-modal-fin-window\')?.addEventListener(\'click\', closeModal);',
-  scriptToInsert
-);
-
-fs.writeFileSync(path, content, 'utf8');
-console.log('Update complete');
+fs.writeFileSync('src/tabs/reports.js', code, 'utf8');
+console.log('reports.js updated successfully.');

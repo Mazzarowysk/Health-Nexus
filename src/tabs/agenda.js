@@ -72,9 +72,12 @@ async function renderAgendaTab() {
       <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 20px; margin-bottom: 24px; backdrop-filter: var(--glass-blur);">
         <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; flex: 1; min-width: 280px;">
           <!-- Busca -->
-          <div style="position: relative; flex: 1; min-width: 220px;">
-            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem;"></i>
+          <div style="position: relative; flex: 1; min-width: 220px; display: flex; align-items: center; gap: 8px;">
+            <div style="position: relative; flex: 1;">
+              <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem;"></i>
             <input type="text" id="filter-agenda-search" placeholder="Buscar paciente ou notas..." style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 9px 14px 9px 38px; color: var(--text-primary); font-size: 0.85rem; outline: none;">
+            </div>
+            <button onclick="document.getElementById('filter-agenda-search').value=''; document.getElementById('filter-agenda-doctor').value=''; document.getElementById('filter-agenda-search').dispatchEvent(new Event('input'));" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 100%;" title="Limpar Filtros"><i class="fa-solid fa-filter-circle-xmark"></i></button>
           </div>
           <!-- Data -->
           <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px;">

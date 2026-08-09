@@ -1,4 +1,71 @@
-<!DOCTYPE html>
+const fs = require('fs');
+const { marked } = require('marked');
+
+// 1. Read Markdown file (handle encoding)
+let mdContent = '';
+try {
+  mdContent = fs.readFileSync('MANUAL_DO_USUARIO_HEALTH_NEXUS.md', 'utf8');
+} catch (e) {
+  console.error("Error reading MD file", e);
+  process.exit(1);
+}
+
+// Fix broken encoding characters if they exist in the MD file
+const fixes = {
+  '': 'ç', '': 'ã', '': 'á', '': 'é', '': 'í', '': 'ó', '': 'ú',
+  '': 'ç', '': 'ã', '': 'õ', '': 'â', '': 'ê', '': 'ô',
+  'ǭ': 'á', '?"': '-'
+};
+for (const [bad, good] of Object.entries(fixes)) {
+  mdContent = mdContent.split(bad).join(good);
+}
+
+// 2. Append the new updates if not already there
+const updateSection = `
+---
+
+<h2 id="sec-22">22. 🆕 Atualizações Recentes (Agosto/2026)</h2>
+
+O Health Nexus recebeu uma série de melhorias para otimizar o fluxo de trabalho e garantir a segurança das informações operacionais:
+
+### 22.1. Controle de Acesso e Permissões (Roles)
+A aba de **Configurações Globais** agora conta com um controle de acesso rigoroso:
+- **MASTER:** Possui acesso integral a todos os painéis, incluindo "Gerenciamento de Usuários", "Simulação de Dados" e demais configurações avançadas (identificadas em vermelho).
+- **Desenvolvedor:** Recebe acesso apenas aos agrupamentos técnicos essenciais (destacados em vermelho), permitindo realizar sincronização de banco de dados (Turso) e operações técnicas, mantendo restrições de gerenciamento de equipe.
+- **Demais perfis:** Acesso bloqueado à aba de Configurações para garantir a segurança dos dados.
+
+### 22.2. Botões de Limpeza de Filtros ("Limpar Filtros")
+Visando aumentar a agilidade operacional, foram incluídos botões dedicados com o ícone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em **todas as abas principais**:
+- **Pacientes, Médicos, Agenda, Farmácia e Relatórios.**
+- Um único clique zera instantaneamente todas as buscas de texto e recoloca os *checkboxes* de filtro em seus estados padrão, permitindo buscas fluídas.
+
+### 22.3. Busca de Pacientes Aprimorada (Nome e CPF)
+O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em modais de admissão, prescrição e financeiro) foi reescrito. Agora:
+- A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do **CPF**.
+- O **CPF** é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de homônimos na hora do atendimento.
+
+### 22.4. Ícones Visuais de Forma de Pagamento 💵💳
+A interface da seção de Relatórios Financeiros foi enriquecida com representações gráficas (Emojis):
+- Pix (💠)
+- Dinheiro (💵)
+- Cartão de Crédito (💳)
+- Cartão de Débito (💳)
+- Boleto (📄)
+Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.
+
+---
+`;
+
+if (!mdContent.includes('22. 🆕 Atualizações Recentes')) {
+  mdContent += updateSection;
+  fs.writeFileSync('MANUAL_DO_USUARIO_HEALTH_NEXUS.md', mdContent, 'utf8');
+}
+
+// 3. Convert Markdown to HTML
+const htmlContent = marked.parse(mdContent);
+
+// 4. Build a beautiful Premium HTML wrapper
+const htmlTemplate = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -152,8 +219,11 @@
   </nav>
 
   <main class="main-content">
-    ${htmlContent}
+    \${htmlContent}
   </main>
   
 </body>
-</html>
+</html>`;
+
+fs.writeFileSync('manual_do_usuario.html', htmlTemplate, 'utf8');
+console.log('manual_do_usuario.html successfully generated!');
