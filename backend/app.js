@@ -99,6 +99,23 @@ app.post('/api/auth/login', (req, res) => {
 // =========================================================
 // 💊 ANVISA — Busca de Medicamentos via OpenFDA (gratuito)
 // =========================================================
+
+// Mock de medicamentos brasileiros comuns (fallback/autocomplete offline)
+const mockBrazilianDrugs = [
+  { nome: 'Dipirona Sódica', principioAtivo: 'Dipirona', fabricante: 'Medley / EMS', categoria: 'Analgésico e Antipirético', formaFarmaceutica: 'Comprimido / Gotas / Injetável', viaAdministracao: 'Oral / IV / IM' },
+  { nome: 'Paracetamol', principioAtivo: 'Paracetamol', fabricante: 'Neo Química', categoria: 'Analgésico e Antipirético', formaFarmaceutica: 'Comprimido / Gotas', viaAdministracao: 'Oral' },
+  { nome: 'Amoxicilina', principioAtivo: 'Amoxicilina', fabricante: 'Eurofarma', categoria: 'Antimicrobiano (Penicilina)', formaFarmaceutica: 'Cápsula / Suspensão', viaAdministracao: 'Oral' },
+  { nome: 'Amoxicilina + Clavulanato de Potássio', principioAtivo: 'Amoxicilina + Clavulanato', fabricante: 'Aché', categoria: 'Antimicrobiano de Amplo Espectro', formaFarmaceutica: 'Comprimido Revestido / Suspensão', viaAdministracao: 'Oral' },
+  { nome: 'Ibuprofeno', principioAtivo: 'Ibuprofeno', fabricante: 'Medley', categoria: 'AINEs (Anti-inflamatório Não Esteroide)', formaFarmaceutica: 'Comprimido / Gotas', viaAdministracao: 'Oral' },
+  { nome: 'Omeprazol', principioAtivo: 'Omeprazol', fabricante: 'EMS', categoria: 'Inibidor de Bomba de Prótons', formaFarmaceutica: 'Cápsula', viaAdministracao: 'Oral' },
+  { nome: 'Losartana Potássica', principioAtivo: 'Losartana', fabricante: 'Prati-Donaduzzi', categoria: 'Anti-hipertensivo (BRA)', formaFarmaceutica: 'Comprimido', viaAdministracao: 'Oral' },
+  { nome: 'Simeticona', principioAtivo: 'Simeticona', fabricante: 'Bayer (Luftal)', categoria: 'Antiflatulento', formaFarmaceutica: 'Comprimido / Gotas', viaAdministracao: 'Oral' },
+  { nome: 'Clonazepam', principioAtivo: 'Clonazepam', fabricante: 'Roche (Rivotril)', categoria: 'Benzodiazepínico', formaFarmaceutica: 'Comprimido / Gotas', viaAdministracao: 'Oral' },
+  { nome: 'Azitromicina', principioAtivo: 'Azitromicina', fabricante: 'Eurofarma', categoria: 'Antimicrobiano (Macrolídeo)', formaFarmaceutica: 'Comprimido / Suspensão', viaAdministracao: 'Oral' },
+  { nome: 'Metformina', principioAtivo: 'Cloridrato de Metformina', fabricante: 'Merck (Glifage)', categoria: 'Antidiabético Oral', formaFarmaceutica: 'Comprimido', viaAdministracao: 'Oral' },
+  { nome: 'Loratadina', principioAtivo: 'Loratadina', fabricante: 'Cimed', categoria: 'Anti-histamínico (Antialérgico)', formaFarmaceutica: 'Comprimido / Xarope', viaAdministracao: 'Oral' }
+];
+
 app.get('/api/anvisa/buscar', async (req, res) => {
   const { q } = req.query;
   if (!q || q.trim().length < 2) {
@@ -108,60 +125,50 @@ app.get('/api/anvisa/buscar', async (req, res) => {
   const term = q.trim().toLowerCase();
 
   try {
-    // 1. OpenFDA Drug Label search (works reliably, no auth required)
-    const { default: fetch } = await import('node-fetch').catch(() => ({ default: null }));
-    const fetchFn = fetch || (await import('node:https').then(() => null));
-
-    const makeRequest = (url) => {
-      return new Promise((resolve) => {
-        import('node:https').then(({ default: https }) => {
-          const req = https.get(url, {
-            headers: { 'User-Agent': 'HealthNexus/1.3.0 (hospital-system)' }
-          }, (r) => {
-            let data = '';
-            r.on('data', c => data += c);
-            r.on('end', () => {
-              try { resolve({ ok: r.statusCode < 400, data: JSON.parse(data) }); }
-              catch { resolve({ ok: false, data: null }); }
-            });
-          });
-          req.on('error', () => resolve({ ok: false, data: null }));
-          req.setTimeout(8000, () => { req.destroy(); resolve({ ok: false, data: null }); });
-        });
-      });
-    };
-
-    // Search OpenFDA by generic name
-    const encodedTerm = encodeURIComponent(term);
-    const result = await makeRequest(
-      `https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodedTerm}"&limit=5`
-    );
-
     let medications = [];
 
-    if (result.ok && result.data?.results) {
-      medications = result.data.results.map(item => {
-        const openfda = item.openfda || {};
-        return {
-          nome: openfda.brand_name?.[0] || openfda.generic_name?.[0] || 'N/D',
-          principioAtivo: openfda.generic_name?.[0] || 'N/D',
-          fabricante: openfda.manufacturer_name?.[0] || 'N/D',
-          categoria: openfda.pharm_class_epc?.[0] || 'N/D',
-          formaFarmaceutica: openfda.dosage_form?.[0] || 'N/D',
-          viaAdministracao: openfda.route?.[0] || 'N/D',
-          rxcui: openfda.rxcui?.[0] || null,
-          fonte: 'OpenFDA'
-        };
-      });
-    }
+    // 1. Busca Local (Medicamentos Brasileiros)
+    const localMatches = mockBrazilianDrugs.filter(d => 
+      d.nome.toLowerCase().includes(term) || d.principioAtivo.toLowerCase().includes(term)
+    );
 
-    // If no results, try by brand name
-    if (medications.length === 0) {
-      const result2 = await makeRequest(
-        `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodedTerm}"&limit=5`
-      );
-      if (result2.ok && result2.data?.results) {
-        medications = result2.data.results.map(item => {
+    if (localMatches.length > 0) {
+      medications = localMatches.map(m => ({ ...m, fonte: 'ANVISA (Mock Local)' }));
+    } else {
+      // 2. OpenFDA Drug Label search (fallback para busca internacional)
+      const { default: fetch } = await import('node-fetch').catch(() => ({ default: null }));
+      const fetchFn = fetch || (await import('node:https').then(() => null));
+
+      const makeRequest = (url) => {
+        return new Promise((resolve) => {
+          import('node:https').then(({ default: https }) => {
+            const req = https.get(url, {
+              headers: { 'User-Agent': 'HealthNexus/1.3.0 (hospital-system)' }
+            }, (r) => {
+              let data = '';
+              r.on('data', c => data += c);
+              r.on('end', () => {
+                try { resolve({ ok: r.statusCode < 400, data: JSON.parse(data) }); }
+                catch { resolve({ ok: false, data: null }); }
+              });
+            });
+            req.on('error', () => resolve({ ok: false, data: null }));
+            req.setTimeout(8000, () => { req.destroy(); resolve({ ok: false, data: null }); });
+          });
+        });
+      };
+
+      const encodedTerm = encodeURIComponent(term);
+      // Search OpenFDA by generic name
+      let result = await makeRequest(`https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodedTerm}"&limit=5`);
+
+      if (!result.ok || !result.data?.results) {
+        // Fallback to brand name
+        result = await makeRequest(`https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodedTerm}"&limit=5`);
+      }
+
+      if (result.ok && result.data?.results) {
+        medications = result.data.results.map(item => {
           const openfda = item.openfda || {};
           return {
             nome: openfda.brand_name?.[0] || openfda.generic_name?.[0] || 'N/D',
@@ -176,7 +183,6 @@ app.get('/api/anvisa/buscar', async (req, res) => {
         });
       }
     }
-
     return res.json({ success: true, resultados: medications, total: medications.length });
 
   } catch (err) {
