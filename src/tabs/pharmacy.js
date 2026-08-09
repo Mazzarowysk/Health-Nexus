@@ -67,7 +67,12 @@ async function renderPharmacyTab() {
       <div class="card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
           <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Estoque Central de Medicamentos &amp; Insumos</h3>
-          <input type="text" id="pharm-search-input" class="form-input" placeholder="Buscar medicamento ou lote..." style="max-width: 280px;">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="pharm-search-input" class="form-input" placeholder="Buscar medicamento ou lote..." style="max-width: 240px;">
+            <button type="button" id="btn-clear-pharm-filter" style="background: var(--bg-tertiary, var(--bg-secondary)); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 40px; gap: 6px; font-size: 0.82rem; font-weight: 600; transition: all 0.2s ease; white-space: nowrap;" title="Limpar Filtro" onmouseover="this.style.background='rgba(99,102,241,0.15)'" onmouseout="this.style.background='var(--bg-tertiary, var(--bg-secondary))'">
+              <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
+            </button>
+          </div>
         </div>
 
         <div class="table-responsive">
@@ -110,6 +115,19 @@ async function renderPharmacyTab() {
       const txt = r.getAttribute('data-search') || '';
       r.style.display = txt.includes(term) ? '' : 'none';
     });
+  });
+
+  document.getElementById('btn-clear-pharm-filter')?.addEventListener('click', () => {
+    const inp = document.getElementById('pharm-search-input');
+    if (inp) { inp.value = ''; inp.dispatchEvent(new Event('input')); }
+    window.currentPharmFilter = 'ALL';
+    ['kpi-card-pharm-all', 'kpi-card-pharm-critical', 'kpi-card-pharm-units'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.border = '1px solid var(--border-color)'; el.style.transform = 'none'; el.style.boxShadow = 'none'; }
+    });
+    const allCard = document.getElementById('kpi-card-pharm-all');
+    if (allCard) allCard.style.border = '1px solid var(--color-primary)';
+    renderPharmacyTable(currentPharmacyItems);
   });
 
   // KPI Filter click listeners

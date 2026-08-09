@@ -42,6 +42,16 @@ async function renderStagnationTab(container) {
       </div>
 
       <div class="table-container" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+          <div style="position: relative; flex: 1; min-width: 200px; max-width: 340px;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem;"></i>
+            <input type="text" id="stag-search-input" class="form-input" placeholder="Buscar paciente ou alerta..." style="width: 100%; padding-left: 36px; height: 40px;">
+          </div>
+          <button type="button" id="btn-clear-stag-filter" style="background: var(--bg-tertiary, var(--bg-secondary)); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; height: 40px; transition: all 0.2s ease; white-space: nowrap;" title="Limpar Filtros" onmouseover="this.style.background='rgba(99,102,241,0.15)'" onmouseout="this.style.background='var(--bg-tertiary, var(--bg-secondary))'">
+            <i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros
+          </button>
+          <span id="stag-result-count" style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;"></span>
+        </div>
         <div id="stagnation-list-wrapper">
           <div style="text-align: center; color: var(--text-muted); padding: 40px;">
             <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 12px;"></i>
@@ -344,6 +354,45 @@ async function loadAndRenderStagnationData() {
     }
 
     window.renderStagnationTable();
+
+  // Search input live filter
+  const stagSearch = document.getElementById('stag-search-input');
+  const clearStagBtn = document.getElementById('btn-clear-stag-filter');
+
+  if (stagSearch) {
+    stagSearch.addEventListener('input', () => {
+      const term = stagSearch.value.toLowerCase().trim();
+      const wrap = document.getElementById('stagnation-list-wrapper');
+      if (!wrap) return;
+      const rows = wrap.querySelectorAll('.stag-alert-row, tr[data-patient-name]');
+      let visible = 0;
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const show = !term || text.includes(term);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      const countEl = document.getElementById('stag-result-count');
+      if (countEl) countEl.textContent = term ? visible + ' resultado(s) encontrado(s)' : '';
+    });
+  }
+
+  if (clearStagBtn) {
+    clearStagBtn.addEventListener('click', () => {
+      // Reset text filter
+      const inp = document.getElementById('stag-search-input');
+      if (inp) { inp.value = ''; inp.dispatchEvent(new Event('input')); }
+      // Reset KPI filter
+      window.currentStagnationFilter = 'ALL';
+      document.querySelectorAll('.kpi-card').forEach(c => {
+        c.style.transform = 'scale(1)';
+        c.style.boxShadow = 'none';
+      });
+      window.renderStagnationTable();
+      const countEl = document.getElementById('stag-result-count');
+      if (countEl) countEl.textContent = '';
+    });
+  }
 
   } catch (e) {
     console.error('Erro ao carregar dados de estagnação:', e);

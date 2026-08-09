@@ -51,6 +51,9 @@ async function renderLeitosTab() {
           <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Enfermaria">Enfermaria</button>
           <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Pediatria">Pediatria</button>
           <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Maternidade">Maternidade</button>
+          <button type="button" id="btn-clear-leitos-filter" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 4px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; transition: all 0.2s ease; margin-left: auto;" title="Limpar Filtros" onmouseover="this.style.color='var(--text-primary)'; this.style.borderColor='var(--color-primary)'" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='var(--border-color)'">
+            <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
+          </button>
         </div>
       </div>
 
@@ -264,6 +267,19 @@ async function renderLeitosTab() {
   };
 
   // Eventos de Filtro por Setor
+  document.getElementById('btn-clear-leitos-filter')?.addEventListener('click', () => {
+    // Reset status filter
+    document.querySelectorAll('.kpi-leitos-filter').forEach(c => c.classList.remove('active'));
+    const allCard = document.querySelector('.kpi-leitos-filter[data-status="Todos"]');
+    if (allCard) allCard.classList.add('active');
+    window.currentLeitosStatusFilter = 'Todos';
+    // Reset sector filter
+    document.querySelectorAll('.bed-sector-filter').forEach(b => b.classList.remove('active', 'btn-primary'));
+    const allBtn = document.querySelector('.bed-sector-filter[data-sector="Todos"]');
+    if(allBtn) { allBtn.classList.add('active', 'btn-primary'); }
+    window.currentLeitorSectorFilter = 'Todos';
+    if (window.renderBedsGrid) window.renderBedsGrid();
+  });
   document.querySelectorAll('.bed-sector-filter').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.bed-sector-filter').forEach(b => {
