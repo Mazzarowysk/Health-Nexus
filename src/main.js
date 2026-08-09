@@ -12,6 +12,10 @@ import './tabs/pharmacy.js';
 import './tabs/tv.js';
 import './tabs/kanban.js';
 import { generateMockData } from './mockDataGenerator.js';
+import { inject } from '@vercel/analytics';
+
+// Inicia o Vercel Analytics
+inject();
 
 window.updateAppointmentStatus = async function(aptId, newStatus) {
   try {
