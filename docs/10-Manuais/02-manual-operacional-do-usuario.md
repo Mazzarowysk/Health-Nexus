@@ -1,8 +1,8 @@
 # 📘 Health Nexus — Manual Operacional do Usuário (Completo & Ilustrado)
 
-> **Versão:** 2.0.0 (Fase 2 Concluída)  
+> **Versão:** 2.3.0 — Agosto/2026  
 > **Público-Alvo:** Recepcionistas, Enfermeiros, Médicos, Farmacêuticos, Gestores Financeiros e Administradores Hospitalares  
-> **Sistema:** Health Nexus — Gestão Hospitalar & Pronto-Socorro  
+> **Sistema:** Health Nexus — Gestão Hospitalar & Pronto-Socorro
 
 ---
 
@@ -34,7 +34,7 @@ O **Health Nexus** utiliza Controle de Acesso Baseado em Perfis (RBAC — Role-B
 
 | Perfil | Acesso Visual às Abas | Prontuário (PEP) | Triagem Manchester | Prescrição Planilha | Gestão de Leitos | Financeiro | Lixeira / Sync |
 |---|---|---|---|---|---|---|---|
-| **👑 Master / Admin** | Todas as 13 Abas | Total | Total | Total | Total | Total | Exclusivo |
+| **👑 Master / Admin** | Todas as abas | Total | Total | Total | Total | Total | Exclusivo |
 | **🩺 Médico** | Dashboard, Pacientes, Atendimento, Leitos, Farmácia, Relatórios | Assinatura SOAPE | Consulta | Criação de Planilha | Solicitação | Bloqueado | Bloqueado |
 | **🩺 Enfermeiro(a)** | Dashboard, Pacientes, Atendimento, Leitos, Farmácia | Leitura | Execução Manchester | Checagem de Doses | Gestão / Transferência | Bloqueado | Bloqueado |
 | **📋 Recepcionista** | Dashboard, Pacientes, Agenda, Atendimento, Painel TV, Caixa | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Apenas Entradas | Bloqueado |
@@ -46,7 +46,7 @@ O **Health Nexus** utiliza Controle de Acesso Baseado em Perfis (RBAC — Role-B
 
 ```mermaid
 flowchart TD
-    A[Recepção: Admissão 11 Campos SUS] -->|Validação de Responsável se <18 ou >65| B[Coluna 1: Aguardando Triagem]
+    A[Recepção: Admissão 11 Campos SUS] -->|Validação de Responsável se menor ou idoso| B[Coluna 1: Aguardando Triagem]
     B --> C[Enfermagem: Triagem Manchester & Vitais]
     C --> D[Coluna 2: Aguardando Médico - Sorting Gravidade]
     D --> E[Chamada com Voz Sintetizada no Painel TV]
@@ -56,9 +56,12 @@ flowchart TD
     H --> I{Decisão Clínica}
     I -->|Alta| J[Emissão de Receituário A4 PDF]
     I -->|Observação| K[Atendimento: Em Observação PS]
-    K --> L[Timer PS 12h: Azul <10h | Amarelo 10-12h | Vermelho >12h]
+    K --> L[Timer PS 12h: Azul menor 10h / Amarelo 10-12h / Vermelho maior 12h]
     L --> M[Ação: Subir para Internação]
     M --> N[Seleção de Leito Vago: UTI / Enfermaria]
+    N --> O[Kanban de Internação: 5 Setores com SLA]
+    O --> P{Alta Hospitalar}
+    P -->|Leito liberado| Q[Leito vai para Higienização automaticamente]
 ```
 
 ---
@@ -77,7 +80,7 @@ Na aba **Pacientes**, a Recepção realiza a admissão cadastral com **11 Campos
 | **Cartão SUS** | 15 dígitos | Validação de formato SUS |
 | **Telefone / Celular** | DDD + Número | Aplicação de máscara automática |
 | **CEP (ViaCEP)** | 8 dígitos | Consulta automática e preenchimento de Rua, Bairro e Cidade |
-| **Responsável Legal** | Obrigatório se &lt; 18 ou &gt; 65 anos | Exige **Nome, CPF, Telefone e Parentesco** do responsável legal |
+| **Responsável Legal** | Obrigatório se < 18 ou > 65 anos | Exige **Nome, CPF, Telefone e Parentesco** do responsável legal |
 
 ---
 
@@ -91,21 +94,21 @@ gantt
     dateFormat  X
     axisFormat %s min
 
-    section 🔴 Emergência
+    section Emergência
     Atendimento Imediato (0 min) : active, 0, 1
-    section 🟠 Muito Urgente
+    section Muito Urgente
     Atendimento em até 10 min    : critical, 0, 10
-    section 🟡 Urgente
+    section Urgente
     Atendimento em até 60 min    : 0, 60
-    section 🟢 Pouco Urgente
+    section Pouco Urgente
     Atendimento em até 120 min   : 0, 120
-    section 🔵 Não Urgente
+    section Não Urgente
     Atendimento em até 240 min   : 0, 240
 ```
 
 ---
 
-## 💊 5. Prescrição em Planilha & Matriz da Enfermagem (Fase 2)
+## 💊 5. Prescrição em Planilha & Matriz da Enfermagem
 
 O médico monta a prescrição em formato de tabela. A equipe de enfermagem visualiza a matriz de horários e clica em **"Checar/Administrar"** para gravar o profissional e o horário exato da aplicação.
 
@@ -136,31 +139,73 @@ O sistema monitora a permanência do paciente em observação no Pronto-Socorro:
 
 ---
 
-## 📊 7. Kanban de Internação — Grade Síncrona 1-para-1 & 5 Setores
+## 📊 7. Kanban de Internação — Grade Síncrona & 5 Setores
 
-O **Kanban de Internação** organiza visualmente os pacientes hospitalizados em 5 setores estratégicos:
+O **Kanban de Internação** organiza visualmente os pacientes hospitalizados em 5 setores estratégicos com metas de permanência (SLA) individuais:
 
-1. 🔵 **Pronto Socorro (Obs)** *(Capacidade rápida, limite 24h)*
-2. 🟠 **Corredor de Internação** *(Alocação de transição, limite 1 dia)*
-3. 🟣 **Clínica Cirúrgica** *(Pós-operatório, limite 7 dias)*
-4. 🟢 **Clínica Médica (SUS)** *(Internação longa, limite 10 dias)*
-5. 🔴 **UTI** *(Cuidados intensivos, limite 5 dias)*
+| # | Setor | Cor | Meta de Permanência |
+|---|---|---|---|
+| 1 | 🔵 **Pronto Socorro (Obs)** | Azul Índigo | 24 horas |
+| 2 | 🟠 **Corredor de Internação** | Âmbar | 1 dia |
+| 3 | 🟣 **Clínica Cirúrgica** | Roxo | 7 dias |
+| 4 | 🟢 **Clínica Médica (SUS)** | Verde | 10 dias |
+| 5 | 🔴 **UTI** | Vermelho | 5 dias |
 
-### 📐 Alinhamento Visual Síncrono (Grade 1-para-1)
-Os 5 Cards do topo funcionam como a **cabeça das colunas**. Ao selecionar qualquer card (ex: *Cirúrgica*), a coluna **permanece exatamente no seu lugar (3ª coluna)**, sendo destacada em neon colorido, enquanto as outras 4 colunas continuam nos seus locais sem mudar a ordem ou serem empurradas para a borda esquerda.
+### 📐 Seletores de Setor (Visão Geral)
+Os 6 cards superiores funcionam como filtros interativos: **"Visão Geral"** exibe todos os setores lado a lado; clicar em um setor específico expande aquela coluna em grid de múltiplos cartões (largura total).
+
+### 🎨 Design dos Cards de Paciente
+Cada card exibe:
+- **Avatar com iniciais** do paciente (cor do setor)
+- **Nome, Diagnóstico, Leito e Médico responsável**
+- **Barra de progresso SLA** colorida dinamicamente (verde → âmbar → rosê)
+- **Botões de ação:** Prontuário, Evolução, Editar, Mover Setor, Alta
+- **Borda superior colorida** indicando status do SLA de relance
+
+### 📊 Cards Analíticos do Topo
+- **Distribuição por Setor:** Clique nas fatias do gráfico Donut para filtrar o Kanban instantaneamente. Clique no número central para o **Modal de Detalhamento por Setor** (lista pacientes por ala e leito).
+- **Metas de Tempo (SLA):** Clique nas fatias verde/âmbar/vermelho para filtrar pacientes por status de SLA. Clique no percentual central para o **Modal de Auditoria de SLAs** (lista completa com botão "Prontuário" e filtro "Filtrar Atrasados").
+- **Funil da Jornada Hospitalar:** Barras horizontais mostrando a distribuição de pacientes por setor em percentual.
 
 ---
 
-## 📄 8. Prontuário Eletrônico (PEP) — PDF Real & Anexo de Exames
+## 🛏️ 8. Gestão de Leitos — Mapa Interativo
 
-Na janela do Prontuário do Paciente, o profissional conta com duas ações principais de alto impacto:
+O **Mapa de Leitos** apresenta todos os leitos da instituição em grid de cards visuais.
+
+### Status dos Leitos
+
+| Status | Cor da Borda Superior | Descrição |
+|---|---|---|
+| **Vago** | 🟢 Verde | Leito disponível para internação |
+| **Ocupado** | 🔴 Rosê/Vinho | Leito com paciente internado |
+| **Higienização** | 🟡 Âmbar | Leito em processo de limpeza pós-alta |
+
+### Ações por Leito
+- **Leito Vago:** Botão **"Internar Neste Leito"** (azul índigo) — abre seleção de paciente.
+- **Leito Ocupado:** Botão **"Alta Hospitalar"** (vinho/rosê suavizado) — abre modal de confirmação e automaticamente envia o leito para higienização.
+- **Em Higienização:** Botão **"Liberar Leito"** (verde) — retorna o leito ao status vago.
+
+### Modal de Confirmação de Alta
+O modal "Confirmar Alta" apresenta:
+- Acento colorido no topo (gradiente rosê)
+- Ícone representativo da ação
+- Mensagem de confirmação
+- Badge informativo: *"O leito será marcado como Em Higienização automaticamente"*
+- Botões com espaçamento confortável: **Cancelar** (neutro) e **Sim, Confirmar** (rosê vinho)
+
+---
+
+## 📄 9. Prontuário Eletrônico (PEP) — PDF Real & Anexo de Exames
+
+Na janela do Prontuário do Paciente, o profissional conta com duas ações principais:
 
 - **📄 Gerar PDF:** Compila automaticamente todo o histórico assistencial (Internações, Evoluções, Urgência/PS, Consultas e Anotações) e gera o download direto de um relatório PDF oficial A4 (jsPDF + autoTable).
 - **📎 Anexar Exame:** Permite selecionar qualquer arquivo de laudo ou imagem do computador. O sistema registra no histórico com data, hora, nome e tamanho do anexo.
 
 ---
 
-## 💳 9. Gestão Financeira & Baixa Manual de Parcela
+## 💳 10. Gestão Financeira & Baixa Manual de Parcela
 
 No módulo de **Relatórios / Financeiro**:
 - A Recepcionista ou Administrador visualiza a lista de faturas e títulos em aberto.
@@ -169,16 +214,29 @@ No módulo de **Relatórios / Financeiro**:
 
 ---
 
-## 🛠️ 10. Guia de Solução de Problemas & Dúvidas Frequentes (FAQ)
+## 🌗 11. Modo Claro & Modo Escuro
+
+O sistema suporta dois temas visuais que podem ser alternados pelo botão ☀️/🌙 no canto superior direito:
+
+- **Modo Escuro (padrão):** Fundo azul escuro (`#0f172a`), cards em vidro translúcido escuro, ideal para ambientes com pouca luz.
+- **Modo Claro:** Fundo cinza slate suave (`#e2e8f0`), cards em vidro translúcido claro, ideal para ambientes iluminados.
+
+> **Importante:** Todos os modais, janelas e componentes respeitam automaticamente o tema ativo — não há mais divergência de cores entre modais e o restante da interface.
+
+---
+
+## 🛠️ 12. Guia de Solução de Problemas & Dúvidas Frequentes (FAQ)
 
 | Problema | Causa Provável | Solução Recomendada |
 |---|---|---|
 | **Como emitir PDF do prontuário?** | Impressão ou download de histórico | Clique em **Prontuário** no card do paciente e selecione **📄 Gerar PDF**. |
 | **TV sem som na chamada de paciente** | Permissão de áudio silenciada no Chrome | Clique em qualquer área da tela da TV para ativar a Web Speech API. |
 | **Sincronização Turso com aviso vermelho** | Falha de internet ou token pendente | Vá em **Configurações → Turso**, clique em **Testar Conexão** e em seguida **Sincronizar Agora**. |
-| **Dificuldade de leitura em formulários** | Visual escuro ou contraste | Todos os formulários possuem fundo `#0f172a`, texto branco `#ffffff` e rótulos `#f1f5f9` em negrito. |
+| **Modal aparece escuro no modo claro** | Componente com rgba hardcoded | Verificar se o componente usa variáveis CSS de tema (`var(--bg-secondary)`). |
+| **Botão Prontuário não funciona no modal SLA** | Atributo onclick malformado | Atualizar o sistema para a versão 2.3.0+ que corrige este bug. |
 | **Erro de CPF duplicado na admissão** | Paciente já cadastrado anteriormente | Use a busca de pacientes para re-admitir sem criar duplicidade. |
+| **Cards do Kanban sem destaque de cor** | Cache do navegador | Pressione `Ctrl+Shift+R` para recarregar o sistema sem cache. |
 
 ---
 
-*Manual operacional produzido e homologado pela equipe Health Nexus (v2.2.0).*
+*Manual operacional produzido e homologado pela equipe Health Nexus (v2.3.0) — Agosto/2026.*

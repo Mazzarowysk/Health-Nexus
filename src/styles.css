@@ -3126,76 +3126,76 @@ body {
   --accent-l: 40%;
   --color-accent: #0d9488;
 
-  /* Background system */
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f1f5f9;
+  /* Background system - Mais cinza para destacar os cards */
+  --bg-primary: #e2e8f0; /* Slate 200 - Cinza mais perceptível */
+  --bg-secondary: #ffffff; /* Branco puro para os cards saltarem */
+  --bg-tertiary: #cbd5e1; /* Slate 300 */
   --bg-solid: #ffffff;
 
   /* Glass effect - light version */
-  --glass-bg: rgba(255, 255, 255, 0.9);
-  --glass-border: rgba(148, 163, 184, 0.3);
-  --glass-highlight: rgba(255, 255, 255, 0.7);
-  --glass-blur: blur(16px);
+  --glass-bg: rgba(255, 255, 255, 0.85); /* Leve transparência */
+  --glass-border: rgba(100, 116, 139, 0.35); /* Borda mais acinzentada */
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-blur: blur(12px);
 
   /* Text - high contrast for accessibility */
-  --text-primary: #020617; /* Quase preto */
+  --text-primary: #0f172a; /* Slate 900 - Quase preto */
   --text-secondary: #334155; /* Slate 700 */
-  --text-muted: #64748b; /* Slate 500, contraste mais forte que o original */
+  --text-muted: #475569; /* Slate 600 - Mais legível */
 
   /* Borders & shadows */
-  --border-color: rgba(71, 85, 105, 0.25); /* Borda mais visível e elegante */
+  --border-color: rgba(71, 85, 105, 0.3); /* Borda cinza mais visível */
   --border-focus: #2563eb;
-  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.07), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.08); /* Sombra levemente mais presente */
+  --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.1), 0 4px 10px rgba(15, 23, 42, 0.06);
 }
 
 /* Body */
 body.light-theme {
-  background: #f1f5f9;
+  background: #e2e8f0;
   background-image:
-    radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 85% 30%, rgba(13, 148, 136, 0.04) 0%, transparent 40%);
+    radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(13, 148, 136, 0.06) 0%, transparent 40%);
   background-attachment: fixed;
   color: var(--text-primary);
 }
 
 /* Sidebar */
 .light-theme .app-sidebar {
-  background: rgba(255, 255, 255, 0.85);
-  border-right: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(248, 250, 252, 0.9); /* Slate 50 com transparência */
+  border-right: 1px solid rgba(148, 163, 184, 0.35);
 }
 
 /* Brand logo */
 .light-theme .brand-logo span {
-  background: linear-gradient(135deg, #0f172a, #475569);
+  background: linear-gradient(135deg, #0f172a, #334155);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 /* Nav items */
 .light-theme .nav-item {
-  color: #475569;
+  color: #334155;
 }
 .light-theme .nav-item:hover {
-  background-color: rgba(37, 99, 235, 0.07);
+  background-color: rgba(37, 99, 235, 0.1);
   color: #2563eb;
 }
 .light-theme .nav-item.active {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(37, 99, 235, 0.03));
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.05));
   color: #2563eb;
   border-left: 3px solid #2563eb;
 }
 
 /* Header */
 .light-theme .app-header {
-  background: rgba(255, 255, 255, 0.8);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(248, 250, 252, 0.85);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
 }
 
 /* Content area */
 .light-theme .app-content {
-  background: #f1f5f9;
+  background: #e2e8f0;
 }
 
 /* Forms */

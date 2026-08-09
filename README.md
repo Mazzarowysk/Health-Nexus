@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.2.0`  
+**Versão:** `2.3.0`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -79,18 +79,18 @@
    - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo).  
    - Alocação e alta de pacientes com atualização em tempo real.
 
-10. **🆕 Kanban de Internação Interativo** *(v2.2.0)*  
+10. **🆕 Kanban de Internação Interativo** *(v2.3.0)*  
     Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas e alta interatividade:  
     - **5 colunas de setor:** Pronto Socorro (PS), Corredor de Internação, Clínica Cirúrgica, Clínica Médica (SUS) e UTI.  
     - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
-    - **Barra de progresso visual** (verde → amarelo → vermelho) por card.  
-    - **Admissão completa:** leito, diagnóstico, médico responsável, data e notas iniciais.  
-    - **🩺 Prontuário direto do card:** clicar num card abre o histórico clínico detalhado do paciente.
-    - **📝 Prontuário Interativo:** Permite lançar uma **Nova Evolução**, exportar **Relatório em PDF** e **Importar Exames** diretamente pela janela do Kanban.
-    - **Ações de gerenciamento por card:** ✏️ Editar dados, 🔄 Mover setor, 🚶 Alta hospitalar.  
-    - **Colunas Interativas:** Clique em áreas vazias de uma coluna para abrir o modal de adição de paciente com aquele setor já pré-selecionado.
-    - **Drag & Drop** para mover pacientes entre colunas (setor reiniciado automaticamente).  
-    - **Cards e Gráficos KPI Interativos:** Gráficos de distribuição por setor e funil de jornada hospitalar com drill-down e modais de auditoria ao clicar nas fatias e barras.
+    - **Cards com Glassmorphism:** borda superior colorida (indicador de SLA), avatar com iniciais, barra de progresso dinâmica verde→âmbar→rosê.  
+    - **Seletores de setor no topo:** "Visão Geral" exibe todos os setores em grid; clique em um setor expande sua coluna em largura total.  
+    - **🩺 Prontuário direto do card:** acesso ao histórico clínico completo do paciente.  
+    - **📝 Evolução Clínica:** registro de novas evoluções com timestamp + timeline de histórico.  
+    - **Ações de gerenciamento por card:** ✏️ Editar, 🔄 Mover setor, 🚶 Alta hospitalar.  
+    - **Gráficos KPI interativos:** clique nas fatias do Donut (Distribuição por Setor) para filtrar o Kanban instantaneamente; clique nas fatias do gráfico SLA para filtrar por status de permanência.  
+    - **Modal de Auditoria de SLAs:** lista completa de pacientes por grupo (Meta Excedida / Atenção / No Prazo) com botão **Prontuário** funcional e filtro "Filtrar Atrasados".  
+    - **Modal de Detalhamento por Setor:** lista pacientes por setor com leito e acesso rápido ao card.
 
 11. **Farmácia & Estoque**  
     - Gerenciamento de medicamentos e insumos.  
@@ -146,10 +146,22 @@
 
 ---
 
-## 🎨 Design System
+## 🎨 Design System — Glassmorphism
 
-- **Modo Escuro (padrão):** Glassmorphism com fundo roxo profundo, acentos neon magenta/ciano
-- **Modo Claro:** Branco clínico profissional (azul médico `#2563eb` + verde teal `#0d9488`)
+O Health Nexus implementa um design system completo baseado em **Glassmorphism** com tokens CSS (`--variáveis`) para dois temas:
+
+- **Modo Escuro (padrão):** Fundo azul profundo (`#0f172a`), cards em vidro translúcido escuro com `backdrop-filter: blur`, acentos neon em índigo/ciano.
+- **Modo Claro:** Fundo cinza slate suave (`#e2e8f0`), cards em vidro translúcido claro — todos os modais, colunas e componentes respeitam as variáveis de tema sem divergências.
+
+### Paleta de Cores Semânticas
+
+| Cor | Hex | Uso |
+|---|---|---|
+| Primário (Índigo) | `#6366f1` | Ações principais, KPIs neutros |
+| Sucesso (Esmeralda) | `#10b981` | No Prazo, leito disponível |
+| Atenção (Âmbar) | `#f59e0b` | Próximo do Limite, SLA em risco |
+| Perigo Suavizado (Rosê) | `#be5a6e` | Ações destrutivas (Alta Hospitalar) |
+| Urgência Clínica | `#ef4444` | Setor UTI, alertas críticos clínicos |
 
 ---
 
@@ -210,7 +222,17 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 
 ## 📅 Changelog
 
-### v1.3.0 — Agosto 2026 (atual)
+### v2.3.0 — Agosto 2026 (atual)
+- ✅ **Glassmorphism completo no Kanban:** colunas, cabeçalhos e cards modernizados com `backdrop-filter: blur`, bordas translúcidas e sombras dinâmicas coloridas.
+- ✅ **Seletor de setor reformulado:** cards do topo com cores destacadas, borda superior colorida por setor; "Visão Geral" exibe todos sem filtrar.
+- ✅ **Modal Confirmar Alta redesenhado:** acento decorativo no topo, ícone temático, badge informativo e botões com espaçamento generoso (sem colapso nas margens).
+- ✅ **Botão Alta Hospitalar suavizado:** cor vermelho puro substituída por vinho/rosê (`#be5a6e → #9e3a52`) para não conflitar com alertas clínicos.
+- ✅ **Modais de Setor e SLA com suporte a Modo Claro:** todos os `rgba` hardcoded substituídos por variáveis CSS de tema (`var(--bg-secondary)`, `var(--glass-border)`, etc.).
+- ✅ **Botão Prontuário corrigido** no Modal de Auditoria de SLAs (atributo `onclick` malformado corrigido).
+- ✅ **Tab Leitos modernizada:** cards com Glassmorphism, borda superior por status, grid responsivo e botões de ação redesenhados.
+- ✅ **Modo Claro acinzentado:** `--bg-primary: #e2e8f0` no `styles.css` para evitar interface totalmente branca.
+
+### v2.2.0 — Agosto 2026
 - ✅ **Kanban de Internação:** 5 setores, metas de tempo por setor, drag & drop, barra de progresso visual
 - ✅ **Admissão Kanban completa:** leito, diagnóstico, médico responsável, data e observações iniciais
 - ✅ **Cards interativos com alinhamento premium:** avatar colorido, diagnóstico, leito, médico e tempos

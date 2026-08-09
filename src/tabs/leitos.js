@@ -20,23 +20,23 @@ async function renderLeitosTab() {
 
       <!-- Cards de Métricas de Leitos -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card kpi-leitos-filter active" data-status="Todos" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--color-primary); background: rgba(99, 102, 241, 0.05);">
+        <div class="card kpi-leitos-filter active" data-status="Todos" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border-top: 4px solid var(--color-primary); background: var(--glass-bg, rgba(255,255,255,0.9)); backdrop-filter: var(--glass-blur, blur(12px)); border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); box-shadow: var(--shadow-sm);" onmouseenter="this.style.transform='translateY(-2px)';" onmouseleave="this.style.transform='none';">
           <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Total de Leitos</div>
           <div id="kpi-beds-total" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 4px;">-</div>
         </div>
-        <div class="card kpi-leitos-filter" data-status="Vago" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent;">
+        <div class="card kpi-leitos-filter" data-status="Vago" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border-top: 4px solid #4ade80; background: var(--glass-bg, rgba(255,255,255,0.9)); backdrop-filter: var(--glass-blur, blur(12px)); border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); box-shadow: var(--shadow-sm);" onmouseenter="this.style.transform='translateY(-2px)';" onmouseleave="this.style.transform='none';">
           <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Leitos Vagos</div>
           <div id="kpi-beds-vago" style="font-size: 1.8rem; font-weight: 700; color: #4ade80; margin-top: 4px;">-</div>
         </div>
-        <div class="card kpi-leitos-filter" data-status="Ocupado" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent;">
+        <div class="card kpi-leitos-filter" data-status="Ocupado" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border-top: 4px solid #f87171; background: var(--glass-bg, rgba(255,255,255,0.9)); backdrop-filter: var(--glass-blur, blur(12px)); border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); box-shadow: var(--shadow-sm);" onmouseenter="this.style.transform='translateY(-2px)';" onmouseleave="this.style.transform='none';">
           <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Leitos Ocupados</div>
           <div id="kpi-beds-ocupado" style="font-size: 1.8rem; font-weight: 700; color: #f87171; margin-top: 4px;">-</div>
         </div>
-        <div class="card kpi-leitos-filter" data-status="Higienizacao" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent;">
+        <div class="card kpi-leitos-filter" data-status="Higienizacao" style="padding: 20px; cursor: pointer; transition: all 0.2s ease; border-top: 4px solid #facc15; background: var(--glass-bg, rgba(255,255,255,0.9)); backdrop-filter: var(--glass-blur, blur(12px)); border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); box-shadow: var(--shadow-sm);" onmouseenter="this.style.transform='translateY(-2px)';" onmouseleave="this.style.transform='none';">
           <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Em Higienização</div>
           <div id="kpi-beds-clean" style="font-size: 1.8rem; font-weight: 700; color: #facc15; margin-top: 4px;">-</div>
         </div>
-        <div class="card" style="padding: 20px;">
+        <div class="card" style="padding: 20px; border-top: 4px solid var(--color-primary); background: var(--glass-bg, rgba(255,255,255,0.9)); backdrop-filter: var(--glass-blur, blur(12px)); border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); box-shadow: var(--shadow-sm);">
           <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Taxa de Ocupação</div>
           <div id="kpi-beds-occupancy" style="font-size: 1.8rem; font-weight: 700; color: var(--color-primary); margin-top: 4px;">-%</div>
         </div>
@@ -125,15 +125,15 @@ async function renderLeitosTab() {
         if (queue.length > 0) {
           queueContainer.style.display = 'block';
           queueList.innerHTML = queue.map(q => `
-            <div style="background: var(--bg-secondary); border-left: 4px solid var(--danger); padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="background: var(--glass-bg); border-top: 4px solid var(--danger); border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); backdrop-filter: var(--glass-blur); padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease;" onmouseenter="this.style.transform='translateY(-2px)';" onmouseleave="this.style.transform='none';">
               <div>
                 <div style="font-weight: 700; color: var(--text-primary); font-size: 1.05rem;">${q.patientName}</div>
                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
                   <i class="fa-solid fa-clock"></i> Aguardando Leito (${q.room || '-'})
                 </div>
               </div>
-              <button class="btn btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                <i class="fa-solid fa-bed-pulse"></i> Alocar Leito a Paciente
+              <button class="btn btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.transform='scale(1.02)';" onmouseleave="this.style.transform='none';">
+                <i class="fa-solid fa-bed-pulse"></i> Alocar
               </button>
             </div>
           `).join('');
@@ -183,51 +183,51 @@ async function renderLeitosTab() {
 
       grid.innerHTML = filtered.map(b => {
         let statusColor = '#4ade80';
-        let statusBg = 'rgba(74,222,128,0.1)';
-        let borderLeft = '4px solid #4ade80';
+        let statusBg = 'rgba(74,222,128,0.15)';
+        let borderTop = '4px solid #4ade80';
         if (b.status === 'Ocupado') {
           statusColor = '#f87171';
-          statusBg = 'rgba(248,113,113,0.1)';
-          borderLeft = '4px solid #f87171';
+          statusBg = 'rgba(248,113,113,0.15)';
+          borderTop = '4px solid #f87171';
         } else if (b.status === 'Higienizacao') {
           statusColor = '#facc15';
-          statusBg = 'rgba(250,204,21,0.1)';
-          borderLeft = '4px solid #facc15';
+          statusBg = 'rgba(250,204,21,0.15)';
+          borderTop = '4px solid #facc15';
         }
 
         return `
-          <div class="card" style="padding: 16px; border-left: ${borderLeft}; display: flex; flex-direction: column; justify-content: space-between;">
+          <div class="card" style="padding: 20px; border-top: ${borderTop}; border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
             <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);"><i class="fa-solid fa-bed"></i> ${b.bedNumber}</span>
-                <span class="badge" style="background: ${statusBg}; color: ${statusColor};">${b.status}</span>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); display:flex; align-items:center; gap: 6px;"><i class="fa-solid fa-bed" style="color: var(--text-muted); font-size:1.1rem;"></i> ${b.bedNumber}</span>
+                <span class="badge" style="background: ${statusBg}; color: ${statusColor}; font-weight:700; border: 1px solid ${statusBg.replace('0.15', '0.3')}; border-radius: 12px; padding: 4px 10px;">${b.status}</span>
               </div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+              <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 16px;">
                 <i class="fa-solid fa-building-user"></i> ${b.sector}
               </div>
               ${b.status === 'Ocupado' ? `
-                <div style="background: var(--bg-tertiary); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 12px;">
-                  <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${b.patientName || 'Paciente Inominado'}</div>
-                  <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
-                    Internado em: ${b.admittedAt ? new Date(b.admittedAt).toLocaleDateString() : '-'}
+                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--glass-border);">
+                  <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-user-injured" style="margin-right:4px;"></i> ${b.patientName || 'Paciente Inominado'}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
+                    <i class="fa-solid fa-calendar-check"></i> Int: ${b.admittedAt ? new Date(b.admittedAt).toLocaleDateString() : '-'}
                   </div>
                 </div>
-              ` : ''}
+              ` : '<div style="margin-bottom: 16px;"></div>'}
             </div>
 
-            <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end;">
+            <div style="display: flex; gap: 8px; margin-top: auto; justify-content: flex-end;">
               ${b.status === 'Vago' ? `
-                <button class="btn btn-sm btn-primary" onclick="quickAdmitBed('${b.id}')" style="width: 100%;">
+                <button class="btn btn-sm btn-primary" onclick="quickAdmitBed('${b.id}')" style="width: 100%; border-radius: 8px; font-weight:600;">
                   <i class="fa-solid fa-bed"></i> Internar Neste Leito
                 </button>
               ` : ''}
               ${b.status === 'Ocupado' ? `
-                <button class="btn btn-sm btn-danger" onclick="dischargeBed('${b.id}')" style="width: 100%;">
+                <button class="btn btn-sm btn-danger" onclick="dischargeBed('${b.id}')" style="width: 100%; border-radius: 8px; font-weight:600; background: linear-gradient(135deg, #be5a6e, #9e3a52); border:none; box-shadow: 0 4px 10px rgba(158,58,82,0.3);">
                   <i class="fa-solid fa-door-open"></i> Alta Hospitalar
                 </button>
               ` : ''}
               ${b.status === 'Higienizacao' ? `
-                <button class="btn btn-sm btn-success" onclick="updateBedStatus('${b.id}', 'Vago')" style="width: 100%; background: #22c55e; color: #fff;">
+                <button class="btn btn-sm btn-success" onclick="updateBedStatus('${b.id}', 'Vago')" style="width: 100%; border-radius: 8px; font-weight:600; background: linear-gradient(135deg, #22c55e, #16a34a); border:none; color: #fff; box-shadow: 0 4px 10px rgba(34,197,94,0.25);">
                   <i class="fa-solid fa-sparkles"></i> Liberar Leito
                 </button>
               ` : ''}
@@ -399,18 +399,45 @@ window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
 
 window.dischargeBed = (bedId) => {
   const modalHtml = `
-    <div id="discharge-confirm-modal" class="modal-overlay" style="z-index: 9999;">
-      <div class="modal-content" style="max-width: 450px; text-align: center;">
-        <div style="margin-bottom: 20px;">
-          <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 16px;">
-            <i class="fa-solid fa-bed-pulse"></i>
-          </div>
-          <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Confirmar Alta</h3>
-          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">Confirma a alta do paciente e o envio do leito para higienização?</p>
+    <div id="discharge-confirm-modal" class="modal-overlay" style="z-index: 9999; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px);">
+      <div class="modal-content" style="max-width: 420px; width: 90%; text-align: center; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 24px; padding: 40px 36px 32px; box-shadow: 0 24px 60px rgba(0,0,0,0.25); position: relative; overflow: hidden;">
+        
+        <!-- Decorative top accent -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #be5a6e, #9e3a52);"></div>
+        
+        <!-- Icon -->
+        <div style="width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, rgba(190,90,110,0.15), rgba(158,58,82,0.08)); border: 1px solid rgba(190,90,110,0.25); color: #be5a6e; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 24px; box-shadow: 0 8px 20px rgba(190,90,110,0.15);">
+          <i class="fa-solid fa-person-walking-arrow-right"></i>
         </div>
+        
+        <!-- Title -->
+        <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0 0 10px;">Confirmar Alta</h3>
+        
+        <!-- Description -->
+        <p style="font-size: 0.92rem; color: var(--text-muted); line-height: 1.65; margin: 0 0 28px; padding: 0 8px;">
+          Confirma a <strong style="color: var(--text-secondary);">alta do paciente</strong> e o envio do leito para <strong style="color: var(--text-secondary);">higienização</strong>?
+        </p>
+
+        <!-- Info badge -->
+        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; margin-bottom: 28px; display: flex; align-items: center; gap: 10px; text-align: left;">
+          <i class="fa-solid fa-circle-info" style="color: #6366f1; font-size: 1rem; flex-shrink: 0;"></i>
+          <span style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">O leito será marcado como <em>Em Higienização</em> automaticamente após a confirmação.</span>
+        </div>
+
+        <!-- Buttons -->
         <div style="display: flex; gap: 12px; justify-content: center;">
-          <button class="btn btn-secondary" onclick="document.getElementById('discharge-confirm-modal').remove()">Cancelar</button>
-          <button class="btn btn-primary" onclick="window.executeDischarge('${bedId}')">Sim, Confirmar</button>
+          <button onclick="document.getElementById('discharge-confirm-modal').remove()" 
+            style="flex: 1; padding: 12px 20px; border-radius: 12px; font-size: 0.9rem; font-weight: 700; cursor: pointer; background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); transition: all 0.2s;"
+            onmouseover="this.style.background='var(--bg-hover)'; this.style.borderColor='var(--text-muted)';"
+            onmouseout="this.style.background='var(--bg-tertiary)'; this.style.borderColor='var(--border-color)';">
+            <i class="fa-solid fa-xmark" style="margin-right: 6px;"></i>Cancelar
+          </button>
+          <button onclick="window.executeDischarge('${bedId}')" 
+            style="flex: 1; padding: 12px 20px; border-radius: 12px; font-size: 0.9rem; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, #be5a6e, #9e3a52); color: #fff; border: none; box-shadow: 0 6px 20px rgba(158,58,82,0.35); transition: all 0.2s;"
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 10px 28px rgba(158,58,82,0.45)';"
+            onmouseout="this.style.transform='none'; this.style.boxShadow='0 6px 20px rgba(158,58,82,0.35)';">
+            <i class="fa-solid fa-check" style="margin-right: 6px;"></i>Sim, Confirmar
+          </button>
         </div>
       </div>
     </div>

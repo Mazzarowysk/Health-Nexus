@@ -1,6 +1,7 @@
 # Health Nexus — Guia de UI/UX e Interfaces
 
-Este documento define os padrões de experiência do usuário (UX) e as especificações de interface visual (UI) para o desenvolvimento do frontend do **Health Nexus**.
+> **Versão:** 2.3.0 — Agosto/2026  
+> Documento de referência para padrões de experiência do usuário (UX) e especificações de interface visual (UI) do **Health Nexus**.
 
 ---
 
@@ -12,40 +13,104 @@ Para atender aos diferentes dispositivos da instituição (monitores de mesa na 
 *   **Desktop / Monitores Grandes (>= 1200px)**: Exibição completa de duas colunas (Ex: Menu lateral fixo com 260px de largura e área de trabalho de conteúdo com grid em 3 colunas para os widgets).
 *   **Laptops / Telas Médias (992px a 1199px)**: O menu lateral é recolhido para uma barra de ícones compacta (70px) sob hover, maximizando o espaço horizontal para tabelas clínicas.
 *   **Tablets (768px a 991px)**: O menu lateral torna-se uma gaveta deslizante (*drawer*) acionada por um botão de hambúrguer no header. Os cards de estatísticas passam para grid de 2 colunas.
-*   **Smartphones (< 768px)**: Layout de coluna única. Tabelas de dados longas habilitam rolagem horizontal interna (`overflow-x: auto`) com cabeçalho fixo para evitar a quebra do layout visual.
+*   **Smartphones (< 768px)**: Layout de coluna único. Tabelas de dados longas habilitam rolagem horizontal interna (`overflow-x: auto`) com cabeçalho fixo para evitar a quebra do layout visual.
 
 ---
 
-## 2. Comportamento de Componentes Críticos
+## 2. Design System — Glassmorphism & Temas
+
+O sistema utiliza um **Design System** duplo (dark/light) baseado em **Glassmorphism** como linguagem visual principal.
+
+### Variáveis CSS de Tema
+
+| Variável | Dark Mode | Light Mode |
+|---|---|---|
+| `--bg-primary` | `#0f172a` | `#e2e8f0` |
+| `--bg-secondary` | `#1e293b` | `#f1f5f9` |
+| `--bg-tertiary` | `#334155` | `#e2e8f0` |
+| `--glass-bg` | `rgba(30,41,59,0.7)` | `rgba(248,250,252,0.85)` |
+| `--glass-border` | `rgba(255,255,255,0.08)` | `rgba(203,213,225,0.8)` |
+| `--glass-blur` | `blur(16px)` | `blur(16px)` |
+| `--shadow-sm` | `0 4px 16px rgba(0,0,0,0.3)` | `0 2px 8px rgba(0,0,0,0.08)` |
+| `--shadow-lg` | `0 8px 32px rgba(0,0,0,0.5)` | `0 8px 24px rgba(0,0,0,0.12)` |
+
+### Princípios de Aplicação Glassmorphism
+
+- Todo **card de conteúdo** (Leitos, Kanban, KPIs) deve usar `background: var(--glass-bg)` + `backdrop-filter: var(--glass-blur)` + `border: 1px solid var(--glass-border)`.
+- A **borda superior colorida** (`border-top: 4-6px solid <cor-do-setor>`) é o elemento de identidade visual de cada card.
+- **Nunca** usar valores `rgba` hardcoded de escuro em componentes dinâmicos — sempre usar variáveis CSS para garantir compatibilidade com o modo claro.
+
+---
+
+## 3. Paleta de Cores Semânticas
+
+| Cor | Hex | Uso |
+|---|---|---|
+| **Primário (Índigo)** | `#6366f1` | Ações principais, links ativos, KPIs neutros |
+| **Sucesso (Esmeralda)** | `#10b981` | "No Prazo", alta de leito livre, sucesso |
+| **Atenção (Âmbar)** | `#f59e0b` | "Próximo do Limite", avisos de SLA |
+| **Perigo Suavizado (Rosê)** | `#be5a6e / #9e3a52` | Alta Hospitalar, Meta Excedida, ações destrutivas |
+| **UTI / Urgência** | `#ef4444` | Exclusivo para setor UTI e alertas críticos clínicos |
+| **Cirúrgica (Roxo)** | `#a855f7` | Setor Clínica Cirúrgica |
+| **Clínica Médica (Verde)** | `#22c55e` | Setor Clínica Médica |
+
+> **Nota:** A cor vermelha `#ef4444` é reservada para indicadores clínicos de urgência (UTI, SLA excedido no gráfico). Para botões destrutivos administrativos (ex: "Alta Hospitalar"), usa-se o rosê suavizado `#be5a6e → #9e3a52`.
+
+---
+
+## 4. Comportamento de Componentes Críticos
 
 ### Modais e Overlays
-As janelas modais (utilizadas para abertura de receitas rápidas, confirmação de triagem e buscas de pacientes) devem seguir as diretrizes:
-1.  **Bloqueio de Foco (Focus Trap)**: Ao abrir o modal, o foco do teclado (`Tab`) deve ser mantido estritamente dentro dos inputs e botões do próprio modal, impedindo o usuário de navegar por elementos do fundo invisível.
-2.  **Fechamento Acessível**: Um modal deve fechar ao clicar no botão de fechar (ícone "X" no canto superior direito), ao clicar na área escura de fundo (backdrop) ou ao pressionar a tecla `ESC` no teclado.
-3.  **Animação de Entrada**: Abertura suave em `200ms` usando transição de opacidade e escala (`transform: scale(0.95)` para `scale(1)`).
 
-### Notificações Flutuantes (Toast Notifications)
-Utilizadas para feedbacks imediatos de sucesso, erro ou alertas de tempo real:
-*   **Localização**: Exibidas sempre no canto superior direito da tela, sem bloquear a navegação central.
-*   **Codificação por Cor**:
-    *   *Sucesso (Esmeralda)*: Ex: "Prescrição assinada com sucesso!". Desaparece automaticamente após 4 segundos.
-    *   *Atenção (Âmbar)*: Ex: "Medicamento com validade próxima". Desaparece após 6 segundos.
-    *   *Erro (Coral)*: Ex: "Falha na comunicação com o banco de dados". Exige clique do usuário para fechar (não possui auto-dismiss).
-*   **Micro-Animações**: Transição de entrada da direita para a esquerda (`translate-x`) e saída suave.
+As janelas modais seguem o padrão **Glassmorphism Temático** — obrigatoriamente respeitam as variáveis de tema:
 
----
+1. **Container do Modal:** `background: var(--bg-secondary)` + `border: 1px solid var(--glass-border)` + `border-radius: 24px`.
+2. **Cabeçalho e Rodapé:** `background: var(--bg-tertiary)` + `border: 1px solid var(--border-color)`.
+3. **Itens de Lista:** `background: var(--bg-tertiary)` + `border: 1px solid var(--border-color)`.
+4. **Overlay de Fundo:** `background: rgba(0,0,0,0.45)` + `backdrop-filter: blur(8px)`.
+5. **Acento Decorativo:** Faixa colorida de 4px no topo do modal via `div` com `position: absolute; top: 0`.
+6. **Ícone Central:** Formato quadrado arredondado (`border-radius: 16-20px`) com background levemente colorido.
+7. **Fechamento Acessível:** "X" no canto, backdrop, ou tecla `ESC`.
+8. **Animação de Entrada:** `200ms` com `transform: scale(0.95 → 1)` + `opacity: 0 → 1`.
 
-## 3. Elementos Gráficos e Gráficos de BI
-
-Para a representação dos dados da Dashboard e Relatórios, as bibliotecas utilizadas devem ser leves e estilizadas no padrão de cores do design system:
-*   **Gráficos de Linha/Área (Fluxo de pacientes, evolução de faturamento)**: Utilização de curvas com suavização (*monotone spline*), preenchimento com gradiente de opacidade decrescente sob a linha.
-*   **Gráficos de Pizza/Rosca (Distribuição de atendimentos por convênio)**: Uso de anel fino (donut) em vez de pizza cheia, com legenda centralizada exibindo o valor total em fonte de destaque.
-*   **Estado de Carregamento (Skeleton Loaders)**: Durante a busca de dados assíncrona, as tabelas e cards não devem exibir um spinner simples. Em vez disso, exibe-se uma réplica esmaecida do layout final com animação de pulsação de opacidade cinza suave (gradiente brilhante simulando carregamento ativo).
+### Notificações Flutuantes (Toast)
+*   **Localização:** Canto superior direito, sem bloquear navegação.
+*   **Sucesso (Esmeralda):** Auto-dismiss após 4s.
+*   **Atenção (Âmbar):** Auto-dismiss após 6s.
+*   **Erro (Rosê/Coral):** Requer clique do usuário para fechar.
 
 ---
 
-## 4. Diretrizes de Micro-Interações
+## 5. Elementos Gráficos e Gráficos de BI
 
-1.  **Feedback Visual de Botão**: Ao passar o mouse sobre botões principais, o fundo deve receber um acréscimo de 10% de luminosidade no HSL, a borda deve acentuar-se levemente e o cursor deve mudar para `pointer`. Ao clicar, o botão reduz em `scale(0.98)` para simular clique físico.
-2.  **Inputs Interativos**: Ao focar em um campo de texto, o label correspondente deve flutuar para o topo em fonte reduzida e a borda do input deve iluminar-se em azul (`--border-focus`) em uma transição linear de `150ms`.
-3.  **Efeito de Hover em Cards**: Cards da dashboard e censo hospitalar devem se elevar levemente no eixo Y (`transform: translateY(-2px)`) e a sombra projetada deve expandir-se suavemente para criar uma ilusão de flutuação tridimensional.
+- **Gráficos de Linha/Área:** Curvas *monotone spline* com preenchimento de gradiente decrescente.
+- **Gráficos Donut:** Anel fino com legenda centralizada; as fatias são **interativas** — clique em uma fatia filtra o Kanban pelo setor correspondente.
+- **Gráfico de Funil (Kanban):** Barras horizontais por setor com percentual relativo ao total de internações.
+- **Skeleton Loaders:** Durante carregamento assíncrono, replica o layout final com animação de pulsação cinza suave.
+
+---
+
+## 6. Diretrizes de Micro-Interações
+
+1. **Hover em Cards:** `transform: translateY(-2px)` + expansão de sombra. Nos cards do Kanban e Leitos, `translateY(-4px)` com `box-shadow: var(--shadow-lg)`.
+2. **Hover em Botões de Ação:** Aumento de luminosidade e mudança de `box-shadow` em `0.2s ease`.
+3. **Botões Destrutivos (Alta, Excluir):** `transform: translateY(-1px)` no hover.
+4. **Inputs Interativos:** Label flutua ao focar, borda ilumina em `--color-primary` em `150ms`.
+5. **Kanban Card Selecionado:** Card ativo ganha `translateY(-4px)`, `box-shadow` intensa colorida e `border-top` reforçado.
+
+---
+
+## 7. Kanban de Internação — Padrões Visuais
+
+### Colunas
+- **Fundo:** `background: var(--glass-bg)` com `backdrop-filter: var(--glass-blur)`.
+- **Borda Superior:** `border-top: 5px solid <cor-do-setor>` como identificador visual primário.
+- **Cabeçalho da Coluna:** Fundo `rgba(<rgb-setor>, 0.06)`, separado por `border-bottom: 1px solid var(--glass-border)`.
+- **Badge de Contagem:** Pílula com `background: <cor-do-setor>` + sombra colorida.
+- **Badge de Meta:** Pílula outline (`border-radius: 100px`) com `background: rgba(<rgb>, 0.15)`.
+
+### Cards de Paciente
+- **Borda Superior Colorida:** `border-top: 6px solid <statusColor>` comunica o SLA de relance.
+- **Avatar Inicial:** Círculo com gradiente suave na cor do setor, exibe as iniciais do nome.
+- **Barra de Progresso SLA:** Cor dinâmica: verde → âmbar → rosê conforme proximidade do limite.
+- **Botões de Ação:** Grid 2 colunas para "Prontuário" e "Evolução"; linha de rodapé para ações de gestão (Editar, Mover, Alta).

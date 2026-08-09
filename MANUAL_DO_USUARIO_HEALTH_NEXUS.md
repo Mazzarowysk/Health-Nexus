@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.2.0)
+# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.3.0)
 
 > **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletrônico (Versão Atualizada — Agosto/2026)**  
-> Guia operacional exaustivo, intuitivo e ilustrado cobrindo navegação, modais de alto contraste, prontuário com exportação real em PDF, anexação de exames, Kanban síncrono 1-para-1 em 5 setores, sincronização Turso Cloud e faturamento financeiro.
+> Guia operacional exaustivo, intuitivo e ilustrado cobrindo navegação, modais com Glassmorphism dinâmico e suporte a modo claro/escuro, prontuário com exportação real em PDF, anexação de exames, Kanban síncrono 1-para-1 em 5 setores, sincronização Turso Cloud e faturamento financeiro.
 
 ---
 
@@ -38,7 +38,7 @@
 - 16. [Gerador de Dados de Teste & Simulação 300 Registros](#sec-16)
 - 17. [Sistema de Avisos, Notificações & Toasts](#sec-17)
 - 18. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-18)
-- 19. [🆕 Kanban de Internação — Grade Síncrona 1-para-1 & 5 Setores](#sec-19)
+- 19. [🆕 Kanban de Internação — Glassmorphism, Grade Síncrona & Auditoria de SLAs](#sec-19)
 - 20. [🆕 Histórico de Sessões de Usuários (Master)](#sec-20)
 - 21. [❓ Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-21)
 
