@@ -1930,7 +1930,7 @@ const apiFetch = async (url, options = {}) => {
       if (uid) {
         const u = localDB.get('users', uid);
         if (u) {
-          const newRole = body?.action === 'approve' ? 'Master' : (u.role || 'Médico');
+          const newRole = u.role || 'Médico';
           const updated = {
             ...u,
             role: newRole,
@@ -2843,7 +2843,7 @@ function getRolePermissions(user) {
       role: 'Enfermeiro',
       label: '🩺 Enfermeiro(a)',
       badgeColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2857,7 +2857,7 @@ function getRolePermissions(user) {
       role: 'Recepcionista',
       label: '📋 Recepcionista',
       badgeColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-      allowedTabs: ['dashboard', 'pacientes', 'agenda', 'atendimento', 'consultorios', 'tv_panel', 'financeiro'],
+      allowedTabs: ['dashboard', 'pacientes', 'agenda', 'atendimento', 'consultorios', 'tv_panel', 'financeiro', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2871,7 +2871,7 @@ function getRolePermissions(user) {
       role: 'Farmacêutico',
       label: '💊 Farmacêutico(a)',
       badgeColor: 'linear-gradient(135deg, #ec4899, #db2777)',
-      allowedTabs: ['dashboard', 'pacientes', 'farmacia', 'atendimento', 'financeiro', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'farmacia', 'atendimento', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2885,7 +2885,7 @@ function getRolePermissions(user) {
       role: 'Biomédico',
       label: '🧪 Biomédico(a)',
       badgeColor: 'linear-gradient(135deg, #14b8a6, #0d9488)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'financeiro', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2899,7 +2899,7 @@ function getRolePermissions(user) {
       role: 'Gestor Financeiro',
       label: '📊 Gestor Financeiro',
       badgeColor: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-      allowedTabs: ['dashboard', 'pacientes', 'financeiro', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2913,7 +2913,7 @@ function getRolePermissions(user) {
       role: 'Auxiliar de Enfermagem',
       label: '🏥 Aux. de Enfermagem',
       badgeColor: 'linear-gradient(135deg, #64748b, #475569)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'leitos', 'kanban'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'leitos', 'kanban', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2927,7 +2927,7 @@ function getRolePermissions(user) {
     role: 'Médico',
     label: '🩺 Médico',
     badgeColor: 'linear-gradient(135deg, #10b981, #059669)',
-    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro', 'relatorios'],
+    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
     canApproveUsers: false,
     canManageUsers: false,
     canDeleteRecords: false,
