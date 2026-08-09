@@ -13,7 +13,9 @@
   - 2.3. [Fila 2: Aguardando Médico (Chamada de Consultório)](#sec-2-3)
   - 2.4. [Fila 3: Em Atendimento (Ações do Médico)](#sec-2-4)
 - 3. [Prontuário Eletrônico do Paciente (PEP — Método SOAP & Geração PDF Real)](#sec-3)
-  - 3.1. [Estrutura SOAP & Autocomplete CID-10](#sec-3-1)
+  - 3.1. [Estrutura SOAP & Autocomplete CID-10
+
+> ℹ️ **Nota de Atualização:** O Autocomplete de CID-10 foi otimizado para lidar com grandes volumes de dados (2.5MB), exibindo agora um indicador visual ("Carregando banco de dados CID-10...") até estar pronto para uso, e garantindo codificação UTF-8 rigorosa para prevenir quebras de acentuação.](#sec-3-1)
   - 3.2. [Motor Real de Geração de Relatórios em PDF (jsPDF + autoTable)](#sec-3-2)
   - 3.3. [Anexação e Importação de Exames / Laudos Médicos](#sec-3-3)
 - 4. [Guia Completo de Todos os Modais do Sistema (Alto Contraste & Usabilidade)](#sec-4)
@@ -404,7 +406,7 @@ Na aba **Estagnação**, o sistema monitora gargalos e pendências de acesso de 
 
 <h2 id="sec-15">15. Configurações, Backup e Sincronização em Nuvem</h2>
 
-Na aba **Configurações**, realiza-se a manutenção do banco de dados local e nuvem.
+Na aba **Configurações**, realiza-se a manutenção do banco de dados local e nuvem.\n\n> 🔒 **Controle de Acesso (RBAC):** O acesso completo à aba de Configurações, incluindo o **Gerenciamento de Usuários**, **Geração de Dados de Teste** e **Centro de Documentação**, é restrito ao perfil **Master**. Usuários com o perfil de **Desenvolvedor** possuem um acesso restrito nesta aba, podendo apenas realizar operações de **Sincronização com Banco Turso Cloud** e **Exportar / Importar JSON (Backup)**.
 
 ### ⚙️ Tabela de Operações de Configuração
 | Operação | Botão | Ação / Quando Utilizar |
