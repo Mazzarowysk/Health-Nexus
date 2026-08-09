@@ -804,6 +804,94 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 
   modal.style.display = 'flex';
 
+  // Autocomplete de Medicamentos (ANVISA/RENAME)
+  if (!window.medicationsCatalog) {
+    fetch('/assets/medicamentos.json')
+      .then(res => res.json())
+      .then(data => window.medicationsCatalog = data)
+      .catch(err => console.error('Erro ao carregar medicamentos', err));
+  }
+  
+  setTimeout(() => {
+    const medNameInput = document.getElementById('rx-med-name');
+    let acDropdown = document.getElementById('rx-med-autocomplete');
+    if (!acDropdown) {
+      acDropdown = document.createElement('div');
+      acDropdown.id = 'rx-med-autocomplete';
+      acDropdown.style.position = 'absolute';
+      acDropdown.style.background = 'var(--bg-secondary)';
+      acDropdown.style.border = '1px solid var(--border-color)';
+      acDropdown.style.borderRadius = '8px';
+      acDropdown.style.maxHeight = '200px';
+      acDropdown.style.overflowY = 'auto';
+      acDropdown.style.zIndex = '3600';
+      acDropdown.style.width = '100%';
+      acDropdown.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      acDropdown.style.display = 'none';
+      
+      if (medNameInput && medNameInput.parentElement) {
+        medNameInput.parentElement.style.position = 'relative';
+        medNameInput.parentElement.appendChild(acDropdown);
+      }
+    }
+
+    if (medNameInput) {
+      const removeAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      medNameInput.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        const cleanVal = removeAccents(val);
+        if (val.length < 2 || !window.medicationsCatalog) {
+          acDropdown.style.display = 'none';
+          return;
+        }
+        
+        const matches = window.medicationsCatalog.filter(m => {
+          return removeAccents(m.nome.toLowerCase()).includes(cleanVal);
+        }).slice(0, 30);
+        
+        if (matches.length === 0) {
+          acDropdown.style.display = 'none';
+          return;
+        }
+        
+        acDropdown.innerHTML = '';
+        matches.forEach(m => {
+          const item = document.createElement('div');
+          item.style.padding = '8px 12px';
+          item.style.cursor = 'pointer';
+          item.style.borderBottom = '1px solid var(--border-color)';
+          item.style.fontSize = '0.8rem';
+          item.style.color = 'var(--text-primary)';
+          item.innerHTML = `<strong>${m.nome}</strong> <span style="color:var(--text-muted); font-size:0.75rem;">- ${m.dose} (${m.via})</span>`;
+          
+          item.addEventListener('mouseover', () => item.style.background = 'var(--bg-tertiary)');
+          item.addEventListener('mouseout', () => item.style.background = 'transparent');
+          
+          item.addEventListener('click', () => {
+            medNameInput.value = m.nome;
+            const doseInput = document.getElementById('rx-med-dose');
+            const routeSelect = document.getElementById('rx-med-route');
+            if (doseInput && !doseInput.value) doseInput.value = m.dose;
+            if (routeSelect) {
+              const opt = Array.from(routeSelect.options).find(o => o.value === m.via);
+              if (opt) routeSelect.value = m.via;
+            }
+            acDropdown.style.display = 'none';
+          });
+          acDropdown.appendChild(item);
+        });
+        acDropdown.style.display = 'block';
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (e.target !== medNameInput && e.target !== acDropdown && !acDropdown.contains(e.target)) {
+          acDropdown.style.display = 'none';
+        }
+      });
+    }
+  }, 100);
+
   let draftItems = [];
 
   const updateDraftTable = () => {

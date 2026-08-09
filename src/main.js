@@ -705,7 +705,7 @@ const showUserManagementModal = async () => {
               body: JSON.stringify({ action: 'approve' })
             });
             if (aprRes.ok) {
-              showToast('Acesso Total (Master) APROVADO!');
+              showToast('Acesso Aprovado com Sucesso!');
               loadUsersList();
             } else {
               showCustomAlert({ title: 'Erro', message: 'Falha ao aprovar usuário.', type: 'danger' });
@@ -2798,7 +2798,7 @@ function getRolePermissions(user) {
   if (username === 'mazzarowysk' || username === 'bcoltri' || role === 'Desenvolvedor' || role === 'Dev') {
     return {
       role: 'Desenvolvedor',
-      label: '💻 Desenvolvedor (Master)',
+      label: '💻 Desenvolvedor',
       badgeColor: 'linear-gradient(135deg, #a855f7, #7e22ce)',
       allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
@@ -6063,22 +6063,39 @@ window.setupCidAutocomplete = async function setupCidAutocomplete() {
   
   // Buscar os CIDs apenas uma vez
   if (cidCatalog.length === 0) {
+    const originalPlaceholder = input.placeholder;
+    input.placeholder = "Carregando banco de dados CID-10...";
+    input.disabled = true;
     try {
       const res = await fetch('/assets/cid10.json');
       if (res.ok) {
-        cidCatalog = await res.json();
+        // Forçar decodificação UTF-8 para evitar caracteres estranhos
+        const buffer = await res.arrayBuffer();
+        const text = new TextDecoder('utf-8').decode(buffer);
+        cidCatalog = JSON.parse(text);
       } else {
         console.warn('Falha ao carregar o CID-10:', res.status);
+        input.placeholder = "Erro ao carregar CID-10";
       }
     } catch (e) {
       console.warn('Erro na requisição do CID-10:', e);
+      input.placeholder = "Erro de conexão CID-10";
     }
+    if (cidCatalog.length > 0) {
+      input.placeholder = originalPlaceholder;
+    }
+    input.disabled = false;
+  }
+
+  function removeAccents(str) {
+    return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
   
+  input.setAttribute('autocomplete', 'new-password'); // Forçar o navegador a ignorar o autocomplete nativo
+
   input.addEventListener('input', (e) => {
-    const lines = e.target.value.split('\n');
-    const lastLine = lines[lines.length - 1];
-    const term = removeAccents(lastLine.toLowerCase().trim());
+    const val = e.target.value;
+    const term = removeAccents(val.trim());
     dropdown.innerHTML = '';
     
     if (term.length < 2) {
@@ -6086,10 +6103,11 @@ window.setupCidAutocomplete = async function setupCidAutocomplete() {
       return;
     }
     
+    // cid10.json now has a 'search' field which is pre-normalized
     const matches = cidCatalog.filter(cid => 
-      removeAccents(cid.code.toLowerCase()).includes(term) || 
-      removeAccents(cid.description.toLowerCase()).includes(term)
+      cid.search && cid.search.includes(term)
     );
+    
     
     if (matches.length > 0) {
       // Limitar a 50 resultados para evitar travamento da UI
@@ -6099,8 +6117,7 @@ window.setupCidAutocomplete = async function setupCidAutocomplete() {
         div.className = 'autocomplete-item';
         div.textContent = `${cid.code} - ${cid.description}`;
         div.addEventListener('click', () => {
-          lines[lines.length - 1] = `${cid.code} - ${cid.description}`;
-          input.value = lines.join('\n') + '\n';
+          input.value = `${cid.code} - ${cid.description}`;
           dropdown.classList.remove('active');
           input.focus();
         });
