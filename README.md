@@ -39,8 +39,8 @@
 
 1. **Autenticação & Controle de Acesso (RBAC)**  
    Login com JWT e gestão de papéis: `Master`, `Médico`, `Enfermeiro`, `Recepcionista`.  
-   - Aprovação de novos usuários pelo Master via Painel de Estagnação.
-   - Solicitação de acesso Master via chave secreta.
+   - Aprovação de todos os novos usuários pelo Master via Painel de Estagnação.
+   - Liberação automática de acesso através da Chave Master secreta.
 
 2. **Dashboard (Health Nexus)**  
    KPIs e gráficos gerenciais em tempo real via Chart.js:  
@@ -73,7 +73,7 @@
 8. **Alertas & Estagnação**  
    - Monitoramento proativo de gargalos.  
    - **Cards KPI clicáveis** com filtro instantâneo da tabela.  
-   - Painel exclusivo de aprovação de usuários Master.
+   - Painel exclusivo de aprovação de novos acessos e monitoramento de gargalos.
 
 9. **Leitos (Censo Hospitalar)**  
    - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo).  
@@ -297,8 +297,8 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 
 1. **Autenticação & Controle de Acesso (RBAC)**  
    Login com JWT e gestão de papéis: `Master`, `Médico`, `Enfermeiro`, `Recepcionista`.  
-   - Aprovação de novos usuários pelo Master via Painel de Estagnação.
-   - Solicitação de acesso Master via chave secreta.
+   - Aprovação de todos os novos usuários pelo Master via Painel de Estagnação.
+   - Liberação automática de acesso através da Chave Master secreta.
 
 2. **Dashboard (Health Nexus)**  
    KPIs e gráficos gerenciais em tempo real via Chart.js:  
@@ -333,7 +333,7 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 8. **Alertas & Estagnação**  
    - Monitoramento proativo de gargalos (pacientes há muito tempo em triagem/atendimento).  
    - **Cards KPI clicáveis** (Críticos, Alertas de Espera, Total Estagnados) com filtro instantâneo da tabela.  
-   - Painel exclusivo de aprovação de usuários Master.  
+   - Painel exclusivo de aprovação de novos acessos e monitoramento de gargalos.  
    - Badge no menu lateral com contagem de alertas + aprovações pendentes.
 
 9. **Leitos (Censo Hospitalar)**  

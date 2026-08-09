@@ -23,7 +23,7 @@
   - 4.4. [Modal de Nova Admissão & Entrada de Paciente](#sec-4-4)
   - 4.5. [Modal de Direcionamento & Reatribuição de Fila](#sec-4-5)
   - 4.6. [Modal de Histórico Pós-Alta & Prontuário Consolidado](#sec-4-6)
-  - 4.7. [Modal de Aprovação de Acesso Master](#sec-4-7)
+  - 4.7. [Modal de Aprovação de Acesso de Usuários](#sec-4-7)
   - 4.8. [Modal de Gestão de Usuários & Troca de Perfil](#sec-4-8)
 - 5. [Gestão de Pacientes & Histórico Clínico](#sec-5)
 - 6. [Gestão da Equipe Médica & Corpo Clínico](#sec-6)
@@ -34,7 +34,7 @@
 - 11. [Faturamento, Guias TISS & Gestão Financeira](#sec-11)
 - 12. [Relatórios Analytics & Indicadores Hospitalares](#sec-12)
 - 13. [Painel de Chamada TV (Recepção)](#sec-13)
-- 14. [Central de Estagnação & Aprovações Master](#sec-14)
+- 14. [Central de Estagnação & Aprovações de Acesso](#sec-14)
 - 15. [Configurações, Backup e Sincronização em Nuvem](#sec-15)
 - 16. [Sistema de Avisos, Notificações & Toasts](#sec-16)
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
@@ -217,12 +217,12 @@ Abaixo encontra-se o detalhamento técnico de cada janela modal presente no sist
 | **🖨️ Imprimir PDF Consolidado**| Gera o prontuário impresso em PDF | Baixa o relatório PDF completo com todas as consultas do histórico. |
 | **Fechar** | Fecha a exibição do histórico | Retorna à navegação normal. |
 
-<h3 id="sec-4-7">4.7. Modal de Aprovação de Acesso Master</h3>
+<h3 id="sec-4-7">4.7. Modal de Aprovação de Acesso de Usuários</h3>
 - **Como Acessar:** Exclusivo para o perfil **Administrador Master** na aba *Estagnação*.
 
 | Botão do Modal | Ação | Resultado |
 | :--- | :--- | :--- |
-| **🛡️ Aprovar Acesso Total** | Concede o perfil `Master` | Libera todas as permissões administrativas para o usuário. |
+| **🛡️ Aprovar Acesso** | Concede o perfil solicitado | Libera as permissões de acordo com o cargo cadastrado. |
 | **❌ Recusar Solicitação** | Define o perfil como `Médico` padrão | Nega privilégios de administrador mantendo acesso de médico. |
 
 <h3 id="sec-4-8">4.8. Modal de Gestão de Usuários & Troca de Perfil</h3>
@@ -360,9 +360,9 @@ Na aba **Painel TV**, a recepção gerencia as chamadas na televisão da sala de
 
 ---
 
-<h2 id="sec-14">14. Central de Estagnação & Aprovações Master</h2>
+<h2 id="sec-14">14. Central de Estagnação & Aprovações de Acesso</h2>
 
-Na aba **Estagnação**, o sistema monitora gargalos e aprovações de acesso Master.
+Na aba **Estagnação**, o sistema monitora gargalos e pendências de acesso de novos usuários. Todo novo usuário cadastrado sem a chave master precisará de aprovação.
 
 ### 🚨 Tabela de Alertas de Estagnação & Aprovações
 | Tipo de Alerta | Critério de Disparo | Cor do Badge | Ação Recomendada |
@@ -370,7 +370,7 @@ Na aba **Estagnação**, o sistema monitora gargalos e aprovações de acesso Ma
 | **Alerta de Espera** | Tempo de espera > **15 min** | 🟡 Amarelo | Acionar o médico da sala ou agilizar a triagem. |
 | **Alerta Crítico** | Tempo de espera > **30 min** | 🔴 Vermelho | Remanejar paciente para consultório vago. |
 | **Observação Excedida** | Permaneceu > **12h em Obs no PS** | 🔴 Piscando | Solicitar internação imediata em leito de enfermaria. |
-| **Solicitação Master** | Usuário solicitou acesso Total | 🟠 Laranja | Botão `Aprovar Acesso Total` exclusivo do Administrador Master. |
+| **Solicitação de Acesso** | Usuário realizou cadastro pendente | 🟠 Laranja | Botão `Aprovar Acesso` exclusivo do Administrador Master. |
 
 ---
 
