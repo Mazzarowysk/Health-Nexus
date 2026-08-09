@@ -1042,13 +1042,7 @@ const checkCloudStatusAfterLogin = async () => {
     if (!cloudData || !cloudData.cloudConfigured || !cloudData.hasData) return;
 
     if (cloudData.isVercel) {
-      const approvedTs = Number(localStorage.getItem('hn_vercel_approved_cloud_ts') || 0);
-      const cloudTs = Number(cloudData.lastUpdateTime || 0);
-
-      // No Vercel, se a nuvem possui atualizações mais recentes do que a última aprovação neste navegador:
-      if (cloudTs > approvedTs) {
-        showCloudDataFoundModal(cloudData, approvedTs);
-      }
+      showCloudDataFoundModal(cloudData, 0);
       return;
     }
 
@@ -1350,7 +1344,7 @@ class SyncManager {
         if (force) {
           if (hasNewData || statusData.conflict) {
             showSyncComparisonModal(statusData);
-          } else if (statusData.local_updates > 0 && !statusData.isVercel) {
+          } else if (statusData.local_updates > 0) {
             showSyncPromptModal(statusData);
           } else {
             showToast('Banco local já está atualizado com a nuvem.');
@@ -1359,7 +1353,7 @@ class SyncManager {
           // Checagem em background
           if (hasNewData) {
             showSyncComparisonModal(statusData);
-          } else if (statusData.local_updates > 0 && !statusData.isVercel) {
+          } else if (statusData.local_updates > 0) {
             syncManager.pushToCloud(false);
           }
         }
@@ -1491,10 +1485,6 @@ const requestSyncPromptIfConfigured = async () => {
     
     if (cloudMax.time > localMax.time) {
       showSyncComparisonModal(statusData);
-    } else if (statusData.isVercel) {
-      // No Vercel, se a nuvem NÃO é mais recente, não mostrar nenhum modal de upload.
-      // O Vercel não tem banco local persistente, então não faz sentido pedir upload.
-      showToast('Dados sincronizados com a nuvem.');
     } else if (hasLocalUpdates) {
       showSyncPromptModal(statusData);
     } else {
@@ -1674,7 +1664,7 @@ const initializeApp = async () => {
               state.syncInfo.lastCloudBackup = cloudMax.str;
               if (cloudMax.time > localMax.time) {
                 showSyncComparisonModal(state.syncInfo);
-              } else if (localMax.time > cloudMax.time && !state.syncInfo.isVercel) {
+              } else if (localMax.time > cloudMax.time) {
                 showSyncPromptModal(state.syncInfo);
               } else {
                 showToast('Banco local já está perfeitamente sincronizado com a nuvem.');
@@ -1773,10 +1763,7 @@ const cachedApiGet = async (url, cacheKey = null) => {
 };
 
 
-
 const scheduleSyncUpload = async () => {
-  // No Vercel, não agendar upload automático — o banco local não persiste
-  if (state.syncInfo && state.syncInfo.isVercel) return;
 
   if (getSyncUploadTimeout()) clearTimeout(getSyncUploadTimeout());
   

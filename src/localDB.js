@@ -16,10 +16,12 @@ export function getFullDB() {
 }
 
 // Função para salvar todo o banco
-export function saveFullDB(dbData) {
+export function saveFullDB(dbData, silent = false) {
   try {
     localStorage.setItem(DB_KEY, JSON.stringify(dbData));
-    localStorage.setItem(UPDATED_AT_KEY, Date.now().toString());
+    if (!silent) {
+      localStorage.setItem(UPDATED_AT_KEY, Date.now().toString());
+    }
   } catch (e) {
     console.error('Erro ao salvar DB local. Possível limite de quota do localStorage atingido.', e);
   }
@@ -137,7 +139,8 @@ export function insert(table, data) {
   };
   
   db[table].push(newItem);
-  saveFullDB(db);
+  const isSilent = (table === 'user_sessions' || table === 'settings');
+  saveFullDB(db, isSilent);
   return newItem;
 }
 
@@ -155,7 +158,8 @@ export function update(table, id, data) {
   };
   
   db[table][index] = updatedItem;
-  saveFullDB(db);
+  const isSilent = (table === 'user_sessions' || table === 'settings');
+  saveFullDB(db, isSilent);
   return updatedItem;
 }
 
@@ -167,7 +171,8 @@ export function remove(table, id) {
   if (index === -1) return false;
   
   db[table].splice(index, 1);
-  saveFullDB(db);
+  const isSilent = (table === 'user_sessions' || table === 'settings');
+  saveFullDB(db, isSilent);
   return true;
 }
 
