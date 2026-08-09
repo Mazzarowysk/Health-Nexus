@@ -97,6 +97,11 @@ async function loadAndRenderStagnationData() {
       } catch (e) {
         console.error('Erro ao buscar usuários pendentes:', e);
       }
+      
+      if (pendingUsers.length > 0 && !sessionStorage.getItem('hn_notified_pending')) {
+        showToast(`⚠️ Atenção: Você possui ${pendingUsers.length} solicitação(ões) de acesso pendente(s). Verifique a aba de Alertas e Estagnação.`);
+        sessionStorage.setItem('hn_notified_pending', 'true');
+      }
     }
 
     const masterArea = document.getElementById('stagnation-master-approval-area');
@@ -111,7 +116,7 @@ async function loadAndRenderStagnationData() {
                 </div>
                 <div>
                   <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
-                    Solicitações de Acesso Total (Master) Pendentes
+                    Solicitações de Acesso Pendentes
                   </h3>
                   <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">
                     Somente você como Administrador Master pode aprovar ou recusar estas solicitações de acesso.
@@ -136,7 +141,7 @@ async function loadAndRenderStagnationData() {
                   </div>
                   <div style="display: flex; gap: 10px;">
                     <button class="btn btn-stag-approve" data-id="${u.id}" data-name="${u.name}" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; font-size: 0.82rem; font-weight: 700; padding: 9px 18px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
-                      <i class="fa-solid fa-shield-check"></i> Aprovar Acesso Total
+                      <i class="fa-solid fa-shield-check"></i> Aprovar Acesso
                     </button>
                     <button class="btn btn-stag-reject" data-id="${u.id}" data-name="${u.name}" style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); font-size: 0.82rem; font-weight: 600; padding: 9px 16px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                       <i class="fa-solid fa-xmark"></i> Recusar

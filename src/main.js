@@ -605,7 +605,7 @@ const showUserManagementModal = async () => {
           <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fde047; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;">
             <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: #fbbf24;">
               <i class="fa-solid fa-user-clock" style="font-size: 1.1rem;"></i>
-              Solicitações de Acesso Total Pendentes (${pendingUsers.length}):
+              Solicitações de Acesso Pendentes (${pendingUsers.length}):
             </div>
             ${pendingUsers.map(pu => `
               <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; margin-top: 8px; flex-wrap: wrap; gap: 8px;">
@@ -614,7 +614,7 @@ const showUserManagementModal = async () => {
                 </div>
                 <div style="display: flex; gap: 8px;">
                   <button class="btn-approve-master" data-id="${pu.id}" style="background: #10b981; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-shield-halved"></i> Aprovar Acesso Total
+                    <i class="fa-solid fa-shield-halved"></i> Aprovar Acesso
                   </button>
                   <button class="btn-reject-master" data-id="${pu.id}" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
                     <i class="fa-solid fa-xmark"></i> Recusar
@@ -1805,12 +1805,11 @@ const apiFetch = async (url, options = {}) => {
       if (existingUser) {
         status = 400; responseData = { message: 'Nome de usuário já existe' };
       } else {
-        const isMasterReq = body.role === 'Master' || body.role === 'Desenvolvedor';
         const isAdminKeyValid = body.masterKey === 'admin123' || body.masterKey === 'healthnexus2026';
-        let statusStr = 'Ativo';
+        let statusStr = 'Pendente';
         
-        if (isMasterReq && !isAdminKeyValid) {
-          statusStr = 'Pendente';
+        if (isAdminKeyValid) {
+          statusStr = 'Ativo';
         }
         
         const newUser = {
@@ -2437,13 +2436,13 @@ function renderAuthScreen() {
                   <option value="Desenvolvedor">💻 Solicitar Acesso Desenvolvedor</option>
                 </select>
               </div>
-              <div id="auth-master-key-box" class="form-group" style="display: none; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+              <div id="auth-master-key-box" class="form-group" style="display: block; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
                 <label class="form-label" for="auth-master-key" style="color: #a5b4fc; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                  <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Chave Master (Opcional se pendente):
+                  <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Chave Master (Opcional):
                 </label>
-                <input type="password" id="auth-master-key" class="form-input" placeholder="Digite a chave master se possuir">
+                <input type="password" id="auth-master-key" class="form-input" placeholder="Digite a chave se possuir">
                 <small style="color: var(--text-secondary); display: block; margin-top: 4px; font-size: 0.75rem; line-height: 1.3;">
-                  * Se você não possuir a Chave Master, sua solicitação de Acesso Total ficará <strong>Pendente de Aprovação</strong> pelo Usuário Master principal.
+                  * Todo novo cadastro fica <strong>Pendente de Aprovação</strong> pelo Usuário Master principal, exceto se você possuir a Chave Master.
                 </small>
               </div>
             ` : ''}
@@ -2488,17 +2487,7 @@ function renderAuthScreen() {
     });
 
     if (!isLogin) {
-      const authRoleSelect = document.getElementById('auth-role');
-      const authMasterBox = document.getElementById('auth-master-key-box');
-      if (authRoleSelect && authMasterBox) {
-        authRoleSelect.addEventListener('change', () => {
-          if (authRoleSelect.value === 'Master' || authRoleSelect.value === 'Desenvolvedor') {
-            authMasterBox.style.display = 'block';
-          } else {
-            authMasterBox.style.display = 'none';
-          }
-        });
-      }
+      // The box is now always visible because all registrations need approval
     }
 
     const passInput = document.getElementById('auth-password');
