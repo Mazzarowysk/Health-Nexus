@@ -961,7 +961,7 @@ const showSyncPromptModal = (syncData = {}) => {
         <div class="modal-header">
           <h3 style="display:flex; align-items:center; gap:10px;">
             <i class="fa-solid fa-cloud-arrow-up" style="color: var(--warning);"></i>
-            Sincronização Pendente!
+            Enviar Dados para a Nuvem
           </h3>
           <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
             <i class="fa-solid fa-times"></i>
@@ -972,8 +972,8 @@ const showSyncPromptModal = (syncData = {}) => {
           <!-- Mensagem Principal -->
           <div style="margin-bottom: 20px; color: var(--text-primary); font-size: 0.95rem;">
             ${isVercel 
-              ? 'Você está operando no <strong>Vercel</strong>. Foram detectadas alterações locais. Deseja enviar para a nuvem?' 
-              : 'Você fez alterações que ainda não foram enviadas para a nuvem.<br><br><strong>Deseja salvar tudo no Turso agora?</strong>'}
+              ? 'Você está operando no <strong>Vercel</strong>. Há novos dados locais. Deseja <strong>ENVIAR</strong> esses dados para a nuvem?' 
+              : 'Você fez alterações locais que ainda não foram enviadas para a nuvem.<br><br>Deseja <strong>ENVIAR</strong> todos os dados locais para a nuvem agora?'}
           </div>
 
           <!-- Caixa de Detalhes de Versões -->
@@ -1112,8 +1112,8 @@ const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
     <div class="modal-content" style="max-width: 500px; width: 90%;">
       <div class="modal-header">
         <h3 style="display:flex; align-items:center; gap:10px;">
-          <i class="fa-solid fa-cloud-arrow-down" style="color: var(--primary);"></i>
-          Dados Encontrados na Nuvem!
+          <i class="fa-solid fa-cloud-arrow-down" style="color: #a78bfa;"></i>
+          Baixar Dados da Nuvem
         </h3>
         <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
           <i class="fa-solid fa-times"></i>
@@ -1122,7 +1122,7 @@ const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
 
       <div class="modal-body" style="padding-top: 16px;">
         <p style="margin-bottom: 16px; color: var(--text-secondary); font-size: 0.95rem;">
-          Foi realizada uma varredura e encontramos dados no servidor em nuvem.
+          Existem dados disponíveis no servidor da nuvem. Deseja <strong>BAIXAR</strong> esses dados para o seu sistema?
         </p>
 
         <!-- COMPARAÇÃO LOCAL vs NUVEM -->
@@ -1798,6 +1798,39 @@ const apiFetch = async (url, options = {}) => {
         status = 401; responseData = { message: 'Usuário não encontrado' };
       }
     } 
+    else if (url.includes('/api/auth/register')) {
+      const users = localDB.list('users') || [];
+      const existingUser = users.find(u => u.username === body.username);
+      
+      if (existingUser) {
+        status = 400; responseData = { message: 'Nome de usuário já existe' };
+      } else {
+        const isMasterReq = body.role === 'Master' || body.role === 'Desenvolvedor';
+        const isAdminKeyValid = body.masterKey === 'admin123' || body.masterKey === 'healthnexus2026';
+        let statusStr = 'Ativo';
+        
+        if (isMasterReq && !isAdminKeyValid) {
+          statusStr = 'Pendente';
+        }
+        
+        const newUser = {
+          name: body.name,
+          username: body.username,
+          role: body.role,
+          password: body.password,
+          status: statusStr,
+          master_key_requested: statusStr === 'Pendente' ? 1 : 0
+        };
+        
+        const inserted = localDB.insert('users', newUser);
+        
+        if (statusStr === 'Pendente') {
+          status = 403; responseData = { message: 'Aguardando Aprovação' };
+        } else {
+          responseData = { message: 'Cadastro realizado com sucesso!', user: inserted };
+        }
+      }
+    }
     else if (url.includes('/api/auth/me')) {
       const storedUser = JSON.parse(sessionStorage.getItem('hn_user') || 'null');
       if (storedUser) {
