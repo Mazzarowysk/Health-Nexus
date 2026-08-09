@@ -1,6 +1,6 @@
 # Health Nexus — Guia de UI/UX e Interfaces
 
-> **Versão:** 2.3.0 — Agosto/2026  
+> **Versão:** 1.3.0 — Agosto/2026  
 > Documento de referência para padrões de experiência do usuário (UX) e especificações de interface visual (UI) do **Health Nexus**.
 
 ---
@@ -114,3 +114,43 @@ As janelas modais seguem o padrão **Glassmorphism Temático** — obrigatoriame
 - **Avatar Inicial:** Círculo com gradiente suave na cor do setor, exibe as iniciais do nome.
 - **Barra de Progresso SLA:** Cor dinâmica: verde → âmbar → rosê conforme proximidade do limite.
 - **Botões de Ação:** Grid 2 colunas para "Prontuário" e "Evolução"; linha de rodapé para ações de gestão (Editar, Mover, Alta).
+
+---
+
+## 8. Padrões de UX — Funcionalidades Recentes (Agosto/2026)
+
+### 8.1 Botões Limpar Filtros
+
+Todas as abas com campos de filtro ou busca possuem botão **"Limpar Filtros"** padronizado:
+
+- **Ícone:** `fa-solid fa-filter-circle-xmark` (Font Awesome)
+- **Label:** `Limpar` ou `Limpar Filtros`
+- **Posicionamento:** Ao lado do campo de busca principal, alinhado à direita
+- **Comportamento:** Reseta todos os inputs de filtro da aba para o estado inicial + recarrega a listagem
+- **Estilo:** `background: var(--bg-tertiary)` + `border: 1px solid var(--border-color)` + hover com `rgba(99,102,241,0.15)`
+
+**Abas cobertas:** Médicos · Agenda · Farmácia · Leitos · Estagnação · Relatórios Financeiro/Atendimentos/Pacientes · Kanban
+
+### 8.2 Elementos Gráficos de Métodos de Pagamento
+
+O módulo Financeiro utiliza emojis como elementos gráficos nos seletores e badges de método de pagamento:
+
+| Método | Emoji | Cor de identificação |
+|--------|-------|---------------------|
+| Dinheiro | 💵 | `#10b981` (esmeralda) |
+| Cartão de Crédito/Débito | 💳 | `#6366f1` (índigo) |
+| PIX | 📱 | `#0ea5e9` (céu) |
+| Convênio/Plano de Saúde | 🏦 | `#8b5cf6` (violeta) |
+| Boleto Bancário | 📋 | `#f59e0b` (âmbar) |
+| Transferência Bancária | 🔄 | `#64748b` (slate) |
+
+### 8.3 Badges de Validação de APIs Externas
+
+Quando dados são preenchidos via integração com API externa, um badge visual confirma a origem:
+
+- **ANVISA Verificado** `🛡` — verde `#10b981` — aparece no campo Nome do Medicamento ao selecionar resultado da busca OpenFDA.
+- **CRM Verificado** `✅` — verde `#10b981` — aparece abaixo do campo CRM ao verificar via CFM Portal.
+- **Formato Válido** `⚠️` — âmbar `#f59e0b` — quando o CRM tem formato correto mas não foi localizado no CFM Portal.
+- **CRM Inválido** `❌` — vermelho `#ef4444` — formato não reconhecido.
+
+Os badges de CRM também aparecem na **tabela do Corpo Clínico** como ícone 🛡 clicável que abre o portal do CFM com busca pré-preenchida.

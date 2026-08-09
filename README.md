@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.3.0`  
+**Versão:** `1.3.0`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -21,6 +21,10 @@
 | 🐙 **GitHub** | ✅ Ativo | Branch `main` · Commits disparam deploys automáticos |
 | ▲ **Vercel** | ✅ Ativo | Hospeda Frontend (Vite) + Backend (Express API serverless) |
 | 🗄️ **Turso (LibSQL)** | ✅ Ativo | Banco de dados edge distribuído — Pacientes, Atendimentos, PEP |
+| 📊 **OpenFDA / ANVISA** | ✅ Ativo | Busca de medicamentos por nome genérico ou comercial — gratuito |
+| 🧠 **CFM Portal** | ✅ Ativo | Verificação de CRM médico via portal oficial CFM |
+| 📍 **ViaCEP** | ✅ Ativo | Autopreenchimento de endereço por CEP |
+| 🏥 **CID-10** | ✅ Ativo | Base completa embarcada localmente (offline-first) |
 
 ---
 

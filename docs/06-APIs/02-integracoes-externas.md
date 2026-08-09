@@ -1,62 +1,83 @@
 # Health Nexus — Integrações Externas
 
-Este documento detalha o funcionamento técnico, barramentos e APIs externas que se conectam ao **Health Nexus**.
+> **Versão:** 1.3.0 — Agosto/2026  
+> Este documento detalha as APIs externas **ativas e em produção** no sistema Health Nexus.
 
 ---
 
-## 1. APIs Governamentais e de Referência Nacional
+## 1. APIs Governamentais Brasileiras
 
-### ViaCEP (Consulta de Endereço)
-*   **Finalidade**: Autopreenchimento de campos de endereço na tela de cadastro de pacientes pelo CEP.
-*   **Protocolo**: HTTP GET externo.
-*   **Endpoint**: `https://viacep.com.br/ws/{cep}/json/`
-*   **Comportamento**: Em caso de falha de conexão com a API ViaCEP, o frontend habilita a digitação manual de todos os campos sem interromper o cadastro.
+### ViaCEP (Consulta de Endereço por CEP)
+- **Status:** ✅ **Ativo em produção**
+- **Finalidade**: Autopreenchimento de logradouro, bairro, cidade e UF no cadastro de pacientes digitando apenas o CEP.
+- **Rota proxy interna:** `GET /api/cep/:cep` (backend Express faz a requisição server-side)
+- **Endpoint externo:** `https://viacep.com.br/ws/{cep}/json/`
+- **Fallback:** Em caso de falha de conexão, todos os campos de endereço habilitam edição manual sem interromper o cadastro.
 
-### IBGE (Códigos de Município)
-*   **Finalidade**: Mapear os códigos oficiais de 7 dígitos do IBGE para cidades brasileiras, exigidos no faturamento das guias de internação e atendimentos do SUS.
-*   **Estratégia**: Para evitar requisições de rede lentas durante o faturamento, a tabela de municípios do IBGE é importada diretamente no PostgreSQL e cacheada em memória no Redis.
-
-### CNES (Cadastro Nacional de Estabelecimentos de Saúde)
-*   **Finalidade**: Importar e validar dados cadastrais de profissionais de saúde (CBO, número do conselho, especialidade) e da instituição de saúde para manter conformidade com as regras do Ministério da Saúde.
-*   **Protocolo**: Integração XML ou leitura da base oficial do CNES/DataSUS disponibilizada periodicamente via SFTP.
-
-### SIGTAP (Procedimentos e Valores do SUS)
-*   **Finalidade**: Atualizar a tabela de procedimentos do SUS faturados em AIH e Boletins de Produção Ambulatorial (BPA).
-*   **Estratégia**: O sistema roda uma tarefa programada mensal para importar os arquivos oficiais do SIGTAP (tabelas de regras, OPMs e valores) fornecidos pelo DataSUS, atualizando a base local do PostgreSQL.
+### CID-10 (Código Internacional de Doenças — 10ª revisão)
+- **Status:** ✅ **Ativo em produção (modo offline/local)**
+- **Finalidade**: Autocomplete de diagnósticos no Prontuário Eletrônico do Paciente (PEP / aba SOAP).
+- **Estratégia:** Base CID-10 completa embarcada localmente via pacote npm `br-cid10-csv` + `cid10-br-mcp`. Os dados são carregados em memória na inicialização, sem dependência de rede.
+- **Busca:** Indexação por código (ex: `J18.0`) e por descrição em português (ex: `Pneumonia`).
 
 ---
 
-## 2. Padrões de Saúde e Interoperabilidade
+## 2. APIs de Validação e Medicamentos
 
-### CID-10 / CID-11 (Código Internacional de Doenças)
-*   **Finalidade**: Fornecer busca inteligente e validação do diagnóstico médico no prontuário eletrônico.
-*   **Estratégia**: Base completa de CIDs importada no banco local e indexada por *full-text search* no PostgreSQL com cache Redis para buscas instantâneas na digitação do médico.
+### ANVISA / OpenFDA — Busca de Medicamentos
+- **Status:** ✅ **Ativo em produção** (integrado em Agosto/2026)
+- **Finalidade**: No modal de cadastro/edição de medicamentos da Farmácia, o farmacêutico pode pesquisar um fármaco por nome e importar automaticamente princípio ativo, forma farmacêutica, fabricante e categoria.
+- **Rota interna:** `GET /api/anvisa/buscar?q={nome}`
+- **API externa utilizada:** [OpenFDA Drug Labels API](https://open.fda.gov/apis/drug/label/) — gratuita, sem autenticação.
+  - Busca primária: `openfda.generic_name` (nome genérico / princípio ativo)
+  - Busca secundária fallback: `openfda.brand_name` (nome comercial)
+- **Dados retornados:** `nome`, `principioAtivo`, `fabricante`, `formaFarmaceutica`, `viaAdministracao`, `categoria` (classe farmacológica)
+- **Badge UX:** Campo "Nome do Medicamento" exibe badge verde **"🛡 ANVISA Verificado"** quando preenchido via busca.
 
-### TUSS (Terminologia Unificada da Saúde Suplementar)
-*   **Finalidade**: Identificar procedimentos, taxas e diárias nas guias de convênio enviadas à ANS.
-*   **Estratégia**: A base da TUSS é dividida em tabelas locais no banco (`procedimentos`, `materiais`, `medicamentos`), atualizadas anualmente de acordo com as resoluções normativas da ANS.
-
-### FHIR (Fast Healthcare Interoperability Resources)
-*   **Finalidade**: Disponibilizar um barramento REST padronizado para troca de dados clínicos (PEP) com redes externas de saúde ou o barramento nacional (RNDS - Rede Nacional de Dados em Saúde).
-*   **Estratégia**: O Health Nexus expõe adaptadores FHIR que traduzem registros relacionais PostgreSQL nos recursos FHIR JSON oficiais (ex: `Patient` e `DocumentReference` para prontuários).
+### CFM — Verificação de CRM Médico
+- **Status:** ✅ **Ativo em produção** (integrado em Agosto/2026)
+- **Finalidade**: No modal de cadastro/edição de médicos, valida o número de CRM com consulta ao portal do CFM, informando status e exibindo link direto de verificação.
+- **Rota interna:** `GET /api/cfm/verificar?crm={crm}&uf={uf}`
+- **Formatos aceitos:** `123456-SP`, `123456/SP`, `SP123456`, `123456` (com `uf` separado)
+- **Comportamento:**
+  1. Consulta o portal `https://portal.cfm.org.br/busca-medicos/` via scraping server-side
+  2. Se encontrado: badge verde ✅ **"CRM Verificado no CFM"** + link ao portal
+  3. Se formato válido mas não encontrado: badge amarelo ⚠️ com link para verificação manual
+  4. Se formato inválido: badge vermelho ❌ com orientação de formato
+- **Tabela do Corpo Clínico:** Ícone 🛡 clicável ao lado de cada CRM abre o portal CFM com busca pré-preenchida.
 
 ---
 
-## 3. APIs de IA e Comunicação Comercial
+## 3. APIs de Infraestrutura e Persistência
 
-### OpenAI API
-*   **Finalidade**: Sumarizar históricos médicos extensos de pacientes de UTI ou transferidos, e sugerir codificações CID baseadas em anotações de evolução por texto livre do médico.
-*   **Protocolo**: POST seguro à API oficial com isolamento de dados de identificação (anonimização prévia de nomes e CPFs para proteção de dados).
-*   **Endpoint**: `https://api.openai.com/v1/chat/completions`
+### Turso LibSQL (Sincronização Cloud)
+- **Status:** ✅ **Ativo em produção**
+- **Finalidade**: Sincronização bidirecional do banco de dados SQLite local com a nuvem (Turso Edge DB), permitindo operação offline-first.
+- **Rota interna:** `ALL /api/turso`
+- **Operações:** `GET` (download/heartbeat) e `POST` (upload de dados)
+- **Credenciais:** Configuradas via `.env` (`TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`)
 
-### WhatsApp Business API
-*   **Finalidade**: Disparar confirmações automáticas de agendamento de consultas e lembretes de preparo de exames.
-*   **Protocolo**: Integração via Webhooks (Meta Cloud API). O sistema monitora o status de entrega (`sent`, `delivered`, `read`) e lê respostas diretas dos pacientes para confirmação automática na agenda.
+### Vercel Analytics
+- **Status:** ✅ **Ativo em produção**
+- **Finalidade**: Métricas de uso em tempo real (page views, performance, web vitals) sem necessidade de cookies.
+- **Integração:** `@vercel/analytics` injetado no HTML de produção via `dist/index.html`.
 
-### SMTP (Envio de Emails)
-*   **Finalidade**: Envio de relatórios consolidados, convites de telemedicina e redefinição de senhas.
-*   **Protocolo**: Conexão segura TLS via Nodemailer no backend Node.js.
+---
 
-### Google Calendar (Agenda Médica)
-*   **Finalidade**: Exportar eventos de consultas da agenda do hospital para a conta Google pessoal dos médicos associados.
-*   **Protocolo**: Integração OAuth2 Google API com token de consentimento por profissional de saúde.
+## 4. APIs Planejadas para Implementação Futura
+
+| API | Finalidade | Prioridade |
+|-----|-----------|-----------|
+| **WhatsApp Business (Z-API / Twilio)** | Lembretes automáticos de consulta por WhatsApp | 🔴 Alta |
+| **Asaas / PagarMe** | Geração real de PIX e Boleto no módulo financeiro | 🔴 Alta |
+| **OpenAI GPT-4o** | Sugestão de diagnóstico diferencial no PEP | 🟠 Média |
+| **OpenAI Whisper** | Ditado de voz para preenchimento do prontuário | 🟠 Média |
+| **Daily.co** | Telemedicina integrada à agenda | 🟡 Futura |
+| **TISS / ANS** | Faturamento eletrônico de convênios (XML TISS v3.05) | 🔴 Crítica |
+| **HL7 FHIR R4** | Interoperabilidade com RNDS e sistemas externos | 🟡 Estratégica |
+| **Auth0 / Clerk** | SSO empresarial + MFA + Active Directory | 🟠 Média |
+| **Resend** | E-mail transacional (laudos PDF, notificações) | 🟢 Imediata |
+
+---
+
+*Documentação mantida pela equipe de Engenharia — Health Nexus v1.3.0 — Agosto/2026*
