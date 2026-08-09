@@ -972,7 +972,7 @@ const showSyncPromptModal = (syncData = {}) => {
           <!-- Mensagem Principal -->
           <div style="margin-bottom: 20px; color: var(--text-primary); font-size: 0.95rem;">
             ${isVercel 
-              ? 'Você está operando no <strong>Vercel</strong>. Deseja registrar a versão com a data e horário atual na nuvem?' 
+              ? 'Você está operando no <strong>Vercel</strong>. Foram detectadas alterações locais. Deseja enviar para a nuvem?' 
               : 'Você fez alterações que ainda não foram enviadas para a nuvem.<br><br><strong>Deseja salvar tudo no Turso agora?</strong>'}
           </div>
 
@@ -1491,7 +1491,11 @@ const requestSyncPromptIfConfigured = async () => {
     
     if (cloudMax.time > localMax.time) {
       showSyncComparisonModal(statusData);
-    } else if (hasLocalUpdates || statusData.isVercel) {
+    } else if (statusData.isVercel) {
+      // No Vercel, se a nuvem NÃO é mais recente, não mostrar nenhum modal de upload.
+      // O Vercel não tem banco local persistente, então não faz sentido pedir upload.
+      showToast('Dados sincronizados com a nuvem.');
+    } else if (hasLocalUpdates) {
       showSyncPromptModal(statusData);
     } else {
       showToast('Banco local já está perfeitamente sincronizado com a nuvem.');
@@ -1771,6 +1775,9 @@ const cachedApiGet = async (url, cacheKey = null) => {
 
 
 const scheduleSyncUpload = async () => {
+  // No Vercel, não agendar upload automático — o banco local não persiste
+  if (state.syncInfo && state.syncInfo.isVercel) return;
+
   if (getSyncUploadTimeout()) clearTimeout(getSyncUploadTimeout());
   
   setSyncUploadTimeout(setTimeout(() => {
