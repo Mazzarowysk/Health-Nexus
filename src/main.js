@@ -1350,7 +1350,7 @@ class SyncManager {
         if (force) {
           if (hasNewData || statusData.conflict) {
             showSyncComparisonModal(statusData);
-          } else if (statusData.local_updates > 0) {
+          } else if (statusData.local_updates > 0 && !statusData.isVercel) {
             showSyncPromptModal(statusData);
           } else {
             showToast('Banco local já está atualizado com a nuvem.');
@@ -1672,10 +1672,10 @@ const initializeApp = async () => {
               const cloudMax = getMaxTimestamp(state.syncInfo.cloudTimestamps);
               state.syncInfo.lastLocalBackup = localMax.str;
               state.syncInfo.lastCloudBackup = cloudMax.str;
-              if (localMax.time > cloudMax.time) {
-                showSyncPromptModal(state.syncInfo);
-              } else if (cloudMax.time > localMax.time) {
+              if (cloudMax.time > localMax.time) {
                 showSyncComparisonModal(state.syncInfo);
+              } else if (localMax.time > cloudMax.time && !state.syncInfo.isVercel) {
+                showSyncPromptModal(state.syncInfo);
               } else {
                 showToast('Banco local já está perfeitamente sincronizado com a nuvem.');
               }
