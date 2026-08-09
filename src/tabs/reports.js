@@ -1932,12 +1932,12 @@ function renderReportsTab(contentArea) {
             <div>
               <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px;">Forma de Pagamento Efetiva *</label>
               <select id="pay-method-input" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.86rem;">
-                <option value="Pix" ${installment.paymentMethod === 'Pix' ? 'selected' : ''}>Pix (Transferência Instantânea)</option>
-                <option value="Boleto" ${installment.paymentMethod === 'Boleto' ? 'selected' : ''}>Boleto Bancário</option>
-                <option value="Cartão de Crédito" ${installment.paymentMethod === 'Cartão de Crédito' ? 'selected' : ''}>Cartão de Crédito</option>
-                <option value="Cartão de Débito" ${installment.paymentMethod === 'Cartão de Débito' ? 'selected' : ''}>Cartão de Débito</option>
-                <option value="Dinheiro" ${installment.paymentMethod === 'Dinheiro' ? 'selected' : ''}>Dinheiro / Espécie</option>
-                <option value="Convênio" ${installment.paymentMethod === 'Convênio' ? 'selected' : ''}>Faturamento Convênio</option>
+                <option value="Pix" ${installment.paymentMethod === 'Pix' ? 'selected' : ''}>💠 Pix (Transferência Instantânea)</option>
+                <option value="Boleto" ${installment.paymentMethod === 'Boleto' ? 'selected' : ''}>📄 Boleto Bancário</option>
+                <option value="Cartão de Crédito" ${installment.paymentMethod === 'Cartão de Crédito' ? 'selected' : ''}>💳 Cartão de Crédito</option>
+                <option value="Cartão de Débito" ${installment.paymentMethod === 'Cartão de Débito' ? 'selected' : ''}>💳 Cartão de Débito</option>
+                <option value="Dinheiro" ${installment.paymentMethod === 'Dinheiro' ? 'selected' : ''}>💵 Dinheiro / Espécie</option>
+                <option value="Convênio" ${installment.paymentMethod === 'Convênio' ? 'selected' : ''}>🏥 Faturamento Convênio</option>
               </select>
             </div>
           </div>
