@@ -993,7 +993,7 @@ const showSyncPromptModal = (syncData = {}) => {
 
       <div class="modal-footer" style="flex-direction: column; gap: 10px;">
         <button id="btn-sync-confirm" class="btn btn-primary" style="width: 100%; justify-content: center;">
-          <i class="fa-solid fa-cloud-arrow-up"></i> ${isVercel ? 'Sim, Confirmar Sincronização' : 'Sim, Enviar para Nuvem'}
+          <i class="fa-solid fa-cloud-arrow-up"></i> Sim, Enviar para a Nuvem
         </button>
         <button id="btn-sync-cancel" class="btn btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
           Lembrar mais tarde
@@ -1155,18 +1155,12 @@ const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
       </div>
 
       <div class="modal-footer" style="flex-direction: column; gap: 10px;">
-        ${cloudStatus.isVercel ? `
-          <button id="btn-cloud-scan-ok" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            <i class="fa-solid fa-check"></i> Entendido — Usar Dados da Nuvem
-          </button>
-        ` : `
-          <button id="btn-cloud-scan-download" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            <i class="fa-solid fa-cloud-arrow-down"></i> Baixar Dados da Nuvem Agora
-          </button>
-          <button id="btn-cloud-scan-skip" class="btn btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
-            Usar apenas banco local por enquanto
-          </button>
-        `}
+        <button id="btn-cloud-scan-download" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-cloud-arrow-down"></i> Sim, Baixar da Nuvem Agora
+        </button>
+        <button id="btn-cloud-scan-skip" class="btn btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
+          Lembrar mais tarde
+        </button>
       </div>
     </div>
   `;
@@ -1179,12 +1173,7 @@ const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
 
   if (okBtn) {
     okBtn.addEventListener('click', () => {
-      const cloudTs = Number(cloudStatus.lastUpdateTime) || Date.now();
-      localStorage.setItem('hn_vercel_approved_cloud_ts', cloudTs.toString());
-      sessionStorage.setItem('hn_reloading_after_sync', 'true');
       overlay.remove();
-      showToast('✅ Dados da nuvem confirmados!');
-      setTimeout(() => location.reload(), 500);
     });
   }
 
