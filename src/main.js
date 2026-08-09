@@ -6051,28 +6051,29 @@ window.addEventListener('beforeunload', () => {
 
 let currentPEPEncounterId = null;
 
-// Catálogo Mock de CID-10
-const mockCidCatalog = [
-  { code: 'A09', description: 'Diarreia e gastroenterite de origem infecciosa presumível' },
-  { code: 'I10', description: 'Hipertensão essencial (primária)' },
-  { code: 'J01', description: 'Sinusite aguda' },
-  { code: 'J02', description: 'Faringite aguda' },
-  { code: 'J03', description: 'Amigdalite aguda' },
-  { code: 'J06', description: 'Infecções agudas das vias aéreas superiores de localizações múltiplas e não especificadas' },
-  { code: 'J20', description: 'Bronquite aguda' },
-  { code: 'N39.0', description: 'Infecção do trato urinário de localização não especificada' },
-  { code: 'R07.4', description: 'Dor no peito, não especificada' },
-  { code: 'R10', description: 'Dor abdominal e pélvica' },
-  { code: 'R50', description: 'Febre de origem desconhecida e de outras origens' },
-  { code: 'R51', description: 'Cefaleia' }
-];
+// Catálogo de CID-10
+let cidCatalog = [];
 
 // Configurar Autocomplete do CID
-function setupCidAutocomplete() {
+async function setupCidAutocomplete() {
   const input = document.getElementById('pep-assessment');
   const dropdown = document.getElementById('pep-cid-dropdown');
   
   if (!input || !dropdown) return;
+  
+  // Buscar os CIDs apenas uma vez
+  if (cidCatalog.length === 0) {
+    try {
+      const res = await fetch('/assets/cid10.json');
+      if (res.ok) {
+        cidCatalog = await res.json();
+      } else {
+        console.warn('Falha ao carregar o CID-10:', res.status);
+      }
+    } catch (e) {
+      console.warn('Erro na requisição do CID-10:', e);
+    }
+  }
   
   input.addEventListener('input', (e) => {
     const term = removeAccents(e.target.value.toLowerCase());
@@ -6083,13 +6084,15 @@ function setupCidAutocomplete() {
       return;
     }
     
-    const matches = mockCidCatalog.filter(cid => 
+    const matches = cidCatalog.filter(cid => 
       removeAccents(cid.code.toLowerCase()).includes(term) || 
       removeAccents(cid.description.toLowerCase()).includes(term)
     );
     
     if (matches.length > 0) {
-      matches.forEach(cid => {
+      // Limitar a 50 resultados para evitar travamento da UI
+      const maxResults = matches.slice(0, 50);
+      maxResults.forEach(cid => {
         const div = document.createElement('div');
         div.className = 'autocomplete-item';
         div.textContent = `${cid.code} - ${cid.description}`;
