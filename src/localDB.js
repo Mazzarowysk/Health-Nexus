@@ -182,10 +182,20 @@ export function remove(table, id) {
   const db = getFullDB();
   ensureTable(db, table);
   
-  const index = db[table].findIndex(item => item.id === id);
-  if (index === -1) return false;
+  if (!db[table] || !Array.isArray(db[table])) return false;
   
-  db[table].splice(index, 1);
+  const initialLength = db[table].length;
+  
+  if (table === 'users') {
+    const targetUser = db[table].find(u => u.id === id || u.username === id);
+    const targetUsername = targetUser ? targetUser.username : id;
+    db[table] = db[table].filter(u => u.id !== id && u.username !== id && u.username !== targetUsername);
+  } else {
+    db[table] = db[table].filter(item => item.id !== id);
+  }
+
+  if (db[table].length === initialLength) return false;
+
   const isSilent = (table === 'user_sessions' || table === 'settings');
   saveFullDB(db, isSilent);
   return true;
