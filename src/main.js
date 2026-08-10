@@ -11,7 +11,9 @@ import './tabs/stagnation.js';
 import './tabs/pharmacy.js';
 import './tabs/tv.js';
 import './tabs/kanban.js';
+import { renderSchedulesTab } from './tabs/escalas.js';
 import { generateMockData } from './mockDataGenerator.js';
+
 import { inject } from '@vercel/analytics';
 
 // Inicia o Vercel Analytics
@@ -2814,7 +2816,7 @@ function getRolePermissions(user) {
       role: 'Master',
       label: '👑 Master (Acesso Total)',
       badgeColor: 'linear-gradient(135deg, #f59e0b, #d97706)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -2829,7 +2831,7 @@ function getRolePermissions(user) {
       role: 'Desenvolvedor',
       label: '💻 Desenvolvedor',
       badgeColor: 'linear-gradient(135deg, #a855f7, #7e22ce)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2843,7 +2845,7 @@ function getRolePermissions(user) {
       role: 'Administrador',
       label: '🛠️ Administrador',
       badgeColor: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -2857,7 +2859,7 @@ function getRolePermissions(user) {
       role: 'Enfermeiro',
       label: '🩺 Enfermeiro(a)',
       badgeColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro'],
+      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2871,7 +2873,7 @@ function getRolePermissions(user) {
       role: 'Recepcionista',
       label: '📋 Recepcionista',
       badgeColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-      allowedTabs: ['dashboard', 'pacientes', 'agenda', 'atendimento', 'consultorios', 'tv_panel', 'financeiro'],
+      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'agenda', 'atendimento', 'consultorios', 'tv_panel', 'financeiro'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2927,7 +2929,7 @@ function getRolePermissions(user) {
       role: 'Auxiliar de Enfermagem',
       label: '🏥 Aux. de Enfermagem',
       badgeColor: 'linear-gradient(135deg, #64748b, #475569)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'leitos', 'kanban'],
+      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'atendimento', 'consultorios', 'leitos', 'kanban'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -2941,7 +2943,7 @@ function getRolePermissions(user) {
     role: 'Médico',
     label: '🩺 Médico',
     badgeColor: 'linear-gradient(135deg, #10b981, #059669)',
-    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios'],
+    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios'],
     canApproveUsers: false,
     canManageUsers: false,
     canDeleteRecords: false,
@@ -2957,6 +2959,7 @@ function renderAppStructure() {
 
   const allNavItems = [
     { id: 'dashboard', label: 'Health Nexus', icon: 'fa-chart-line' },
+    { id: 'escalas', label: 'Escalas de Trabalho', icon: 'fa-user-clock' },
     { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-check' },
     { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
     { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
@@ -2971,6 +2974,7 @@ function renderAppStructure() {
     { id: 'relatorios', label: 'Relatórios', icon: 'fa-file-contract' },
     { id: 'configuracoes', label: 'Configurações', icon: 'fa-gear' }
   ];
+
 
   const visibleNavItems = allNavItems.filter(item => perms.allowedTabs.includes(item.id));
 
@@ -4277,7 +4281,10 @@ async function renderTabContent() {
 
   } else if (state.activeTab === 'medicos') {
     renderDoctorsTab();
+  } else if (state.activeTab === 'escalas') {
+    renderSchedulesTab();
   } else if (state.activeTab === 'consultorios') {
+
     renderConsultingRoomsTab();
   } else if (state.activeTab === 'farmacia') {
     renderPharmacyTab();

@@ -239,4 +239,24 @@ O sistema suporta dois temas visuais que podem ser alternados pelo botão ☀️
 
 ---
 
+## ⏰ 13. Módulo de Escalas de Trabalho (Médicos e Enfermeiros)
+
+O módulo de **Escalas de Trabalho & Plantões** (aba <i class="fa-solid fa-user-clock"></i>) permite a gestão operacional completa da equipe hospitalar:
+
+### 13.1. Navegação por Orelhas
+- **🩺 Escala de Médicos:** Visualização dos plantões por médico, CRM, especialidade, turno (Manhã, Tarde, Noite, Plantão 24h), consultório/setor e horas de carga horária.
+- **💉 Escala de Enfermeiros:** Visualização dos plantões por enfermeiro, COREN, setor/função (Triagem Manchester, Enfermaria Geral, UTI Adulto, Medicação, Centro Cirúrgico) e turnos (6h, 12h, Escala 12x36).
+
+### 13.2. Controle de Contas e Logins por Perfil
+- Cada Médico e Enfermeiro possui login de acesso cadastrado (ex: `dr.carloseduard`, `silviacwb`).
+- Ao logar com perfil Médico ou Enfermeiro, o profissional tem acesso às abas assistenciais e escalas, mantendo **bloqueado** o acesso a configurações avançadas de sistema e gestão de usuários.
+
+### 13.3. Filtros, Cadastro de Plantão e Impressão
+- **Filtros:** Busca rápida por nome/registro/setor, filtro por período (Hoje, Esta Semana, Este Mês, Todos) e filtro por turno.
+- **Cadastrar Plantão:** Botão **"+ Novo Plantão"** para alocação direta de profissionais.
+- **Impressão:** Botão **"Imprimir Escala"** gera relatório formatado para fixação física nos setores.
+
+---
+
 *Manual operacional produzido e homologado pela equipe Health Nexus (v2.3.0) — Agosto/2026.*
+

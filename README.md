@@ -114,11 +114,19 @@
 14. **Relatórios & Exportação**  
     - Exportação para PDF, XLSX e CSV (padronizados e estabilizados).
 
-15. **Configurações, Simulador & Nuvem (Turso Cloud)**  
+15. **⏰ 🆕 Escalas de Trabalho & Plantões (Médicos e Enfermeiros)** *(v2.4.0)*  
+    Gestão operacional completa de turnos de trabalho com orelhas dedicadas e permissões RBAC por perfil:  
+    - **Orelha 🩺 Escala de Médicos:** Plantões ordenados por data, CRM, especialidade, turnos (Manhã, Tarde, Noite, Plantão 24h), consultórios/setores e horas.  
+    - **Orelha 💉 Escala de Enfermeiros:** Escalas operacionais com COREN, função (Triagem Manchester, Enfermaria Geral, UTI, Medicação, Centro Cirúrgico) e turnos (6h, 12h, Escala 12x36).  
+    - **Logins Restritos:** Contas de usuário individuais para Médicos e Enfermeiros, com acesso restrito às abas operacionais e bloqueio automático de configurações administrativas.  
+    - **Cards KPI & Filtros:** Total de plantões, médicos/enfermeiros escalados hoje, busca por texto, filtro por período e turno.  
+    - **Modal de Plantão & Impressão:** Criação, edição e exclusão de plantões + relatório de impressão formatado.
+
+16. **Configurações, Simulador & Nuvem (Turso Cloud)**  
     - Sincronização SQLite ↔ Turso.
     - **Gerador de Dados de Teste:** O sistema conta com um algoritmo inteligente de simulação de dados que gera centenas de registros fictícios de uma vez (pacientes, agendas, PEPs, internações) para testes locais.
 
-16. **🆕 Histórico de Sessões** *(v1.3.0 · Exclusivo Master)*  
+17. **🆕 Histórico de Sessões** *(v1.3.0 · Exclusivo Master)*  
     - Registro automático de login e logout de cada usuário.  
     - Relatório com gráfico de tempo de uso (exclusivo para o perfil Master).  
     - Disponível na aba **Gestão de Usuários** → botão "Histórico de Sessões".

@@ -287,10 +287,13 @@ erDiagram
 | `patients` | `id`, `fullName`, `cpf`, `birthDate`, `responsibleName`, `deleted_at` | Cadastros SUS |
 | `encounters` | `id`, `patientId`, `status`, `observation_started_at`, `transfer_bed_id` | Atendimentos |
 | `prescriptions` | `id`, `encounterId`, `medicationName`, `dosage`, `route`, `frequency` | Prescrições médicas |
-| `doctors` | `id`, `name`, `crm`, `specialty`, `phone`, `email`, `status` | Corpo clínico |
+| `doctors` | `id`, `name`, `crm`, `specialty`, `phone`, `email`, `status` | Corpo clínico médico |
+| `nurses` | `id`, `name`, `coren`, `roleFunction`, `phone`, `email`, `status` | Corpo clínico enfermagem |
+| `duty_schedules` | `id`, `category`, `professionalId`, `professionalName`, `crm_coren`, `shiftDate`, `shiftType`, `roomName`, `status` | Escalas de trabalho |
 | `appointments` | `id`, `patientId`, `doctorId`, `date`, `time`, `status`, `consultingRoomId` | Agenda |
 | `beds` | `id`, `roomName`, `sector`, `status`, `patientId` | Mapa de leitos |
 | `pharmacy_items` | `id`, `name`, `dosage`, `form`, `stockQuantity`, `minStock`, `lotNumber`, `expirationDate` | Estoque farmácia |
+
 
 ---
 

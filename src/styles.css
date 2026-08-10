@@ -4586,7 +4586,21 @@ body.compact-mode .modal-content {
   background-color: rgba(0, 0, 0, 0.02);
 }
 
+/* --- ESTILOS PARA ESCALAS DE TRABALHO & ORELHAS --- */
+.subtab-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
 
+.subtab-btn.active {
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
 
+.animate-scale-up {
+  animation: scaleUp 0.2s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
 
-
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

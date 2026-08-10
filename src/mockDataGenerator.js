@@ -194,17 +194,47 @@ function generateDoctors() {
     { name: 'Dra. Renata Carvalho', specialty: 'Reumatologia', crm: 'CRM-SP 11235' },
     { name: 'Dr. Thiago Martins', specialty: 'Clínica Médica', crm: 'CRM-SP 22346' },
   ];
-  return doctorDefs.map((d, i) => ({
-    id: `DOC-${String(i + 1).padStart(3, '0')}`,
-    ...d,
+  return doctorDefs.map((d, i) => {
+    const username = d.name.toLowerCase()
+      .normalize('NFD').replace(/[^a-z]/g, '')
+      .replace(/^(dr|dra)/, '')
+      .slice(0, 12);
+    return {
+      id: `DOC-${String(i + 1).padStart(3, '0')}`,
+      ...d,
+      username: username ? `dr.${username}` : `dr.medico${i+1}`,
+      phone: randomPhone(),
+      email: randomEmail(d.name),
+      status: 'Ativo',
+      roomName: pick(CONSULTÓRIOS),
+      created_at: new Date('2024-01-15').toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  });
+}
+
+function generateNurses() {
+  const nurseDefs = [
+    { name: 'Enf. Sílvia Regina Santos', coren: 'COREN-SP 123456-ENF', roleFunction: 'Supervisão / UTI', username: 'silviacwb' },
+    { name: 'Enf. Patrícia Oliveira Lima', coren: 'COREN-SP 234567-ENF', roleFunction: 'Triagem Manchester', username: 'enf.patricia' },
+    { name: 'Enf. Marcos Vinícius Souza', coren: 'COREN-SP 345678-ENF', roleFunction: 'Pronto Socorro / Emergência', username: 'enf.marcos' },
+    { name: 'Enf. Juliana Ferreira Costa', coren: 'COREN-SP 456789-ENF', roleFunction: 'Enfermaria Geral', username: 'enf.juliana' },
+    { name: 'Enf. Rodrigo Alves Ribeiro', coren: 'COREN-SP 567890-ENF', roleFunction: 'Centro Cirúrgico', username: 'enf.rodrigo' },
+    { name: 'Enf. Camila Rocha Silva', coren: 'COREN-SP 678901-ENF', roleFunction: 'Medicação / Procedimentos', username: 'enf.camila' },
+    { name: 'Enf. Lucas Mendes Freitas', coren: 'COREN-SP 789012-ENF', roleFunction: 'Pediatria', username: 'enf.lucas' },
+    { name: 'Enf. Tatiane Barbosa Cruz', coren: 'COREN-SP 890123-ENF', roleFunction: 'UTI Adulto', username: 'enf.tatiane' },
+  ];
+  return nurseDefs.map((n, i) => ({
+    id: `NUR-${String(i + 1).padStart(3, '0')}`,
+    ...n,
     phone: randomPhone(),
-    email: randomEmail(d.name),
+    email: randomEmail(n.name),
     status: 'Ativo',
-    roomName: pick(CONSULTÓRIOS),
     created_at: new Date('2024-01-15').toISOString(),
     updated_at: new Date().toISOString()
   }));
 }
+
 
 function generateAppointments(patients, doctors, count = 60) {
   const appointments = [];
@@ -566,38 +596,102 @@ function generateMedications() {
   });
 }
 
-function generateDutySchedules(doctors) {
+function generateDutySchedules(doctors, nurses) {
   const schedules = [];
-  const shifts = ['Manhã', 'Tarde', 'Noite', 'Plantão 24h'];
-  const todayStr = new Date().toISOString().split('T')[0];
-  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const today = new Date();
+  
+  const dates = [];
+  for (let offset = -1; offset <= 7; offset++) {
+    const d = new Date(today.getTime() + offset * 86400000);
+    dates.push(d.toISOString().split('T')[0]);
+  }
 
-  const configs = [
-    { doctor: doctors[0], date: todayStr, shift: 'Manhã', room: 'Consultório 01' },
-    { doctor: doctors[1], date: todayStr, shift: 'Manhã', room: 'Consultório 02' },
-    { doctor: doctors[2], date: todayStr, shift: 'Tarde', room: 'Consultório 01' },
-    { doctor: doctors[3], date: todayStr, shift: 'Tarde', room: 'Consultório 03' },
-    { doctor: doctors[4], date: todayStr, shift: 'Noite', room: 'Sala de Emergência' },
-    { doctor: doctors[5], date: todayStr, shift: 'Plantão 24h', room: 'Sala de Procedimentos' },
-    { doctor: doctors[6], date: tomorrowStr, shift: 'Manhã', room: 'Consultório 02' },
-    { doctor: doctors[7], date: tomorrowStr, shift: 'Tarde', room: 'Consultório 04' },
-    { doctor: doctors[8], date: tomorrowStr, shift: 'Noite', room: 'Sala de Emergência' },
-    { doctor: doctors[9], date: tomorrowStr, shift: 'Plantão 24h', room: 'Consultório 05' },
+  const doctorShifts = [
+    { type: 'Manhã (07:00 - 13:00)', hours: 6, start: '07:00', end: '13:00' },
+    { type: 'Tarde (13:00 - 19:00)', hours: 6, start: '13:00', end: '19:00' },
+    { type: 'Noite (19:00 - 07:00)', hours: 12, start: '19:00', end: '07:00' },
+    { type: 'Plantão 24h (07:00 - 07:00)', hours: 24, start: '07:00', end: '07:00' },
   ];
 
-  configs.forEach((cfg, i) => {
-    schedules.push({
-      id: `DS-${String(i + 1).padStart(3, '0')}`,
-      doctorId: cfg.doctor.id,
-      doctorName: cfg.doctor.name,
-      specialty: cfg.doctor.specialty,
-      shiftDate: cfg.date,
-      shiftType: cfg.shift,
-      roomName: cfg.room,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+  const nurseShifts = [
+    { type: 'Turno A (07:00 - 13:00)', hours: 6, start: '07:00', end: '13:00' },
+    { type: 'Turno B (13:00 - 19:00)', hours: 6, start: '13:00', end: '19:00' },
+    { type: 'Noturno SD (19:00 - 07:00)', hours: 12, start: '19:00', end: '07:00' },
+    { type: 'Escala 12x36 (07:00 - 19:00)', hours: 12, start: '07:00', end: '19:00' },
+  ];
+
+  const docSectors = ['Consultório 01', 'Consultório 02', 'Consultório 03', 'Consultório 04', 'Consultório 05', 'Sala de Emergência', 'UTI Adulto', 'Centro Cirúrgico'];
+  const nurseSectors = ['Triagem Manchester', 'Enfermaria Geral', 'UTI Adulto', 'Pronto Socorro', 'Centro Cirúrgico', 'Sala de Medicação', 'Pediatria'];
+
+  let idCounter = 1;
+
+  // 1. Escalas para Médicos
+  dates.forEach(dateStr => {
+    doctors.forEach((doc, idx) => {
+      // 70% chance de ter plantão no dia
+      if (Math.random() < 0.70) {
+        const shift = doctorShifts[(idx + dates.indexOf(dateStr)) % doctorShifts.length];
+        const sector = docSectors[(idx + idCounter) % docSectors.length];
+        const isToday = dateStr === today.toISOString().split('T')[0];
+        const isPast = dateStr < today.toISOString().split('T')[0];
+        const status = isPast ? 'Concluído' : isToday ? 'Em Andamento' : pick(['Confirmado', 'Confirmado', 'Troca Solicitada']);
+
+        schedules.push({
+          id: `DS-MED-${String(idCounter++).padStart(3, '0')}`,
+          category: 'medico',
+          professionalId: doc.id,
+          professionalName: doc.name,
+          crm_coren: doc.crm,
+          specialty_role: doc.specialty,
+          shiftDate: dateStr,
+          shiftType: shift.type,
+          startTime: shift.start,
+          endTime: shift.end,
+          workloadHours: shift.hours,
+          roomName: sector,
+          sector: sector,
+          status,
+          notes: pick(['', 'Plantão presencial', 'Sobreaviso cirúrgico', 'Cobertura de leitos', '']),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
     });
   });
+
+  // 2. Escalas para Enfermeiros
+  dates.forEach(dateStr => {
+    nurses.forEach((nurse, idx) => {
+      if (Math.random() < 0.75) {
+        const shift = nurseShifts[(idx + dates.indexOf(dateStr)) % nurseShifts.length];
+        const sector = nurseSectors[(idx + idCounter) % nurseSectors.length];
+        const isToday = dateStr === today.toISOString().split('T')[0];
+        const isPast = dateStr < today.toISOString().split('T')[0];
+        const status = isPast ? 'Concluído' : isToday ? 'Em Andamento' : pick(['Confirmado', 'Confirmado', 'Troca Solicitada']);
+
+        schedules.push({
+          id: `DS-ENF-${String(idCounter++).padStart(3, '0')}`,
+          category: 'enfermeiro',
+          professionalId: nurse.id,
+          professionalName: nurse.name,
+          crm_coren: nurse.coren,
+          specialty_role: nurse.roleFunction,
+          shiftDate: dateStr,
+          shiftType: shift.type,
+          startTime: shift.start,
+          endTime: shift.end,
+          workloadHours: shift.hours,
+          roomName: sector,
+          sector: sector,
+          status,
+          notes: pick(['', 'Supervisão de equipe', 'Triagem Manchester', 'Escala 12x36', '']),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+    });
+  });
+
   return schedules;
 }
 
@@ -620,42 +714,52 @@ function generateConsultorios(doctors) {
 // FUNÇÃO PRINCIPAL
 // ──────────────────────────────────────────────
 export async function generateMockData() {
-  // ── 1. Limpar banco (preservar usuários) ──
+  // ── 1. Limpar banco (preservar usuários master e dev) ──
   const currentDB = (() => {
     try { return JSON.parse(localStorage.getItem('healthNexusDados') || '{}'); } catch { return {}; }
   })();
 
-  // Preservar todos os usuários cadastrados e essenciais do sistema (nunca podem ser apagados ao regerar dados)
-  const preservedUsers = (currentDB.users && Array.isArray(currentDB.users) && currentDB.users.length > 0)
-    ? [...currentDB.users]
-    : [];
+  const preservedUsers = [
+    { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', status: 'Ativo', created_at: new Date().toISOString() },
+    { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString() },
+    { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', status: 'Ativo', created_at: new Date().toISOString() }
+  ];
 
-  if (!preservedUsers.find(u => u.username === 'mazzarowysk')) {
-    preservedUsers.push({
-      id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk',
-      role: 'Master', status: 'Ativo', created_at: new Date().toISOString()
-    });
-  }
-  if (!preservedUsers.find(u => u.username === 'bcoltri')) {
-    preservedUsers.push({
-      id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri',
-      role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString()
-    });
-  }
-  if (!preservedUsers.find(u => u.username === 'silviacwb')) {
-    preservedUsers.push({
-      id: 'USR-SILVIACWB', name: 'Enf. Sílvia', username: 'silviacwb',
-      role: 'Enfermeiro', status: 'Ativo', created_at: new Date().toISOString()
-    });
-  }
+  // ── 2. Gerar Médicos e Enfermeiros com Logins ──
+  console.log('[MockGen] Gerando médicos e enfermeiros...');
+  const doctors = generateDoctors();
+  const nurses = generateNurses();
 
+  // Adicionar logins automáticos de Médicos ao banco de usuários
+  doctors.forEach(doc => {
+    if (!preservedUsers.find(u => u.username === doc.username)) {
+      preservedUsers.push({
+        id: `USR-${doc.id}`,
+        name: doc.name,
+        username: doc.username,
+        role: 'Médico',
+        status: 'Ativo',
+        created_at: doc.created_at
+      });
+    }
+  });
 
-  // ── 2. Gerar todos os dados ──
+  // Adicionar logins automáticos de Enfermeiros ao banco de usuários
+  nurses.forEach(nurse => {
+    if (!preservedUsers.find(u => u.username === nurse.username)) {
+      preservedUsers.push({
+        id: `USR-${nurse.id}`,
+        name: nurse.name,
+        username: nurse.username,
+        role: 'Enfermeiro',
+        status: 'Ativo',
+        created_at: nurse.created_at
+      });
+    }
+  });
+
   console.log('[MockGen] Gerando pacientes...');
   const patients = generatePatients(80);
-
-  console.log('[MockGen] Gerando médicos...');
-  const doctors = generateDoctors();
 
   console.log('[MockGen] Gerando agendamentos...');
   const appointments = generateAppointments(patients, doctors, 60);
@@ -663,13 +767,11 @@ export async function generateMockData() {
   console.log('[MockGen] Gerando atendimentos e triagens...');
   const { encounters, triages } = generateEncountersAndTriages(patients, doctors, 45);
 
-
   console.log('[MockGen] Gerando leitos...');
   const beds = generateBeds(encounters);
 
   console.log('[MockGen] Gerando internações (Kanban)...');
   const hospitalizations = generateHospitalizations(patients, doctors, 25);
-
 
   console.log('[MockGen] Gerando financeiro...');
   const financial_installments = generateFinancial(patients, encounters, 90);
@@ -680,8 +782,8 @@ export async function generateMockData() {
   console.log('[MockGen] Gerando farmácia...');
   const medications = generateMedications();
 
-  console.log('[MockGen] Gerando escalas de plantão...');
-  const duty_schedules = generateDutySchedules(doctors);
+  console.log('[MockGen] Gerando escalas de plantão (Médicos e Enfermeiros)...');
+  const duty_schedules = generateDutySchedules(doctors, nurses);
 
   console.log('[MockGen] Gerando consultórios...');
   const consultorios = generateConsultorios(doctors);
@@ -692,6 +794,7 @@ export async function generateMockData() {
     users: preservedUsers,
     patients,
     doctors,
+    nurses,
     appointments,
     encounters,
     triages,
@@ -709,14 +812,16 @@ export async function generateMockData() {
 
   console.log('[MockGen] ✅ Simulação completa gerada!');
   console.log(`  → ${patients.length} pacientes`);
-  console.log(`  → ${doctors.length} médicos`);
+  console.log(`  → ${doctors.length} médicos | ${nurses.length} enfermeiros`);
+  console.log(`  → ${preservedUsers.length} usuários com login`);
   console.log(`  → ${appointments.length} agendamentos`);
   console.log(`  → ${encounters.length} atendimentos | ${triages.length} triagens`);
   console.log(`  → ${beds.filter(b => b.status === 'Ocupado').length}/${beds.length} leitos ocupados`);
   console.log(`  → ${financial_installments.length} títulos financeiros`);
   console.log(`  → ${tv_calls.length} chamadas TV`);
   console.log(`  → ${medications.length} medicamentos`);
-  console.log(`  → ${duty_schedules.length} escalas de plantão`);
+  console.log(`  → ${duty_schedules.length} escalas de plantão (Médicos + Enfermeiros)`);
 
-  return { patients, doctors, appointments, encounters, triages, beds, hospitalizations, financial_installments, tv_calls, medications, duty_schedules };
+  return { patients, doctors, nurses, users: preservedUsers, appointments, encounters, triages, beds, hospitalizations, financial_installments, tv_calls, medications, duty_schedules };
 }
+
