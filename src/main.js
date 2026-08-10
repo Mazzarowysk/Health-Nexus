@@ -2532,11 +2532,19 @@ function renderAuthScreen() {
           </div>
 
           <div class="auth-brand-content">
+            <div class="auth-hero-badge">
+              <i class="fa-solid fa-hospital" style="color: #fbbf24;"></i> PLATAFORMA OFICIAL &bull; GESTÃO HOSPITALAR
+            </div>
+
             <div class="auth-brand-logo-wrap">
-              <img src="/assets/logo.png" alt="Health Nexus" class="auth-brand-logo-img">
+              <div class="auth-brand-logo-box">
+                <img src="/assets/logo.png" alt="Health Nexus" class="auth-brand-logo-img">
+              </div>
               <div class="auth-brand-name">
                 Health Nexus
-                <span>Sistema de Gestão Hospitalar</span>
+                <span class="auth-brand-subtag">
+                  <i class="fa-solid fa-shield-halved" style="color: #818cf8; margin-right: 5px;"></i> Sistema de Gestão Hospitalar
+                </span>
               </div>
             </div>
 

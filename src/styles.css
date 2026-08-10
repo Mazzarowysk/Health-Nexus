@@ -368,38 +368,106 @@ body {
   to   { opacity: 1; transform: translateX(0); }
 }
 
+/* === TOPO DO BRANDING: BADGE DE CAPA DO SISTEMA === */
+.auth-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.18);
+  border: 1px solid rgba(129, 140, 248, 0.4);
+  color: #a5b4fc;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+}
+
 .auth-brand-logo-wrap {
   display: flex;
   align-items: center;
-  gap: 18px;
-  margin-bottom: 52px;
+  gap: 22px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+/* Caixa com a Logomarca em Evidência Máxima */
+.auth-brand-logo-box {
+  position: relative;
+  width: 105px;
+  height: 105px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 15px 35px rgba(99, 102, 241, 0.5),
+    0 0 70px rgba(168, 85, 247, 0.4),
+    inset 0 0 15px rgba(255, 255, 255, 0.9);
+  border: 2.5px solid rgba(129, 140, 248, 0.6);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: logoPulseGlow 4s ease-in-out infinite alternate;
+  flex-shrink: 0;
+}
+
+.auth-brand-logo-box:hover {
+  transform: scale(1.06) rotate(-2deg);
+  box-shadow: 
+    0 20px 45px rgba(99, 102, 241, 0.7),
+    0 0 90px rgba(168, 85, 247, 0.6);
 }
 
 .auth-brand-logo-img {
-  width: 72px;
-  height: 72px;
-  border-radius: 20px;
-  box-shadow: 0 0 40px rgba(200, 50, 255, 0.45), 0 0 80px rgba(0, 220, 255, 0.2);
-  border: 1px solid rgba(255,255,255,0.12);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+}
+
+@keyframes logoPulseGlow {
+  0% {
+    box-shadow: 0 12px 35px rgba(99, 102, 241, 0.45), 0 0 50px rgba(168, 85, 247, 0.3);
+    border-color: rgba(129, 140, 248, 0.5);
+  }
+  100% {
+    box-shadow: 0 18px 45px rgba(99, 102, 241, 0.75), 0 0 85px rgba(6, 182, 212, 0.5);
+    border-color: rgba(129, 140, 248, 0.85);
+  }
 }
 
 .auth-brand-name {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.75rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #ffffff;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.15;
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 60%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.auth-brand-name span {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: 400;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
+.auth-brand-subtag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #c7d2fe;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-top: 4px;
+  margin-top: 6px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  padding: 4px 12px;
+  border-radius: 14px;
+  -webkit-text-fill-color: initial;
 }
 
 .auth-brand-headline {
