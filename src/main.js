@@ -5662,6 +5662,9 @@ function initDashboardCharts(data) {
           }
           if (typeof switchTab === 'function') switchTab('leitos');
         },
+        onHover: (event) => {
+          if (event.native && event.native.target) event.native.target.style.cursor = 'pointer';
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -5756,6 +5759,9 @@ function initDashboardCharts(data) {
         onClick: () => {
           if (typeof switchTab === 'function') switchTab('atendimento');
         },
+        onHover: (event) => {
+          if (event.native && event.native.target) event.native.target.style.cursor = 'pointer';
+        },
         plugins: {
           legend: {
             display: true,
@@ -5836,6 +5842,9 @@ function initDashboardCharts(data) {
         onClick: () => {
           if (typeof switchTab === 'function') switchTab('estagnacao');
         },
+        onHover: (event) => {
+          if (event.native && event.native.target) event.native.target.style.cursor = 'pointer';
+        },
         plugins: {
           legend: {
             display: true,
@@ -5899,6 +5908,9 @@ function initDashboardCharts(data) {
         responsive: true,
         maintainAspectRatio: false,
         onClick: () => { if (typeof switchTab === 'function') switchTab('kanban'); },
+        onHover: (event) => {
+          if (event.native && event.native.target) event.native.target.style.cursor = 'pointer';
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
