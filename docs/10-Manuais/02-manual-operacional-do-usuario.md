@@ -258,5 +258,16 @@ O módulo de **Escalas de Trabalho & Plantões** (aba <i class="fa-solid fa-user
 
 ---
 
-*Manual operacional produzido e homologado pela equipe Health Nexus (v2.3.0) — Agosto/2026.*
+## 🛡️ 14. Gerenciamento de Usuários & Auditoria de Acessos
+
+O painel de **Gerenciamento de Usuários & Permissões** conta com recursos avançados de auditoria e controle:
+- **Gestão de Exclusão de Contas:** Liberação de lixeira para contas operacionais e de desenvolvimento (incluindo `Breno Coltri` / `@bcoltri`), garantindo que apenas a conta root Master (`@mazzarowysk`) permaneça imutável.
+- **Histórico dos 5 Últimos Acessos:** Exibição imediata dos 5 acessos mais recentes do usuário selecionado, com registro de entrada, saída e tempo total de uso.
+- **Verificação Completa de Acessos:** Botão interativo que alterna para a auditoria estendida de segurança, detalhando endereço IP de origem, dispositivo/navegador, módulos assistenciais acessados e validação de segurança RBAC.
+- **Fechamento e Interação Fluida:** Botões de fechar (X superior e botão 'Fechar' no rodapé) e clique no backdrop com evento otimizado de remoção do modal.
+
+---
+
+*Manual operacional produzido e homologado pela equipe Health Nexus (v2.4.0) — Agosto/2026.*
+
 
