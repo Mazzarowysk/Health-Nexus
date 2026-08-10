@@ -5597,7 +5597,14 @@ function initDashboardCharts(data) {
         const wardItem = document.createElement('div');
         wardItem.className = 'ward-progress-item';
         wardItem.style.cursor = 'pointer';
-        wardItem.onclick = () => { if (typeof switchTab === 'function') switchTab('leitos'); };
+        wardItem.onclick = () => {
+          if (item.label === 'Disponíveis') {
+            window.currentLeitosStatusFilter = 'Vago';
+          } else {
+            window.currentLeitosStatusFilter = 'Ocupado';
+          }
+          if (typeof switchTab === 'function') switchTab('leitos'); 
+        };
 
         wardItem.innerHTML = `
           <div class="ward-progress-header">
@@ -5641,7 +5648,18 @@ function initDashboardCharts(data) {
           duration: 1200,
           easing: 'easeOutQuart'
         },
-        onClick: () => {
+        onClick: (e, elements) => {
+          if (elements && elements.length > 0) {
+            const index = elements[0].index;
+            const label = occupancyData[index].label;
+            if (label === 'Disponíveis') {
+              window.currentLeitosStatusFilter = 'Vago';
+            } else {
+              window.currentLeitosStatusFilter = 'Ocupado';
+            }
+          } else {
+            window.currentLeitosStatusFilter = 'Todos';
+          }
           if (typeof switchTab === 'function') switchTab('leitos');
         },
         plugins: {

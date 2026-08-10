@@ -103,8 +103,32 @@ async function renderLeitosTab() {
     </div>
   `;
 
-  let currentSector = 'Todos';
-  let currentStatus = 'Todos';
+  let currentSector = window.currentLeitosSectorFilter || 'Todos';
+  let currentStatus = window.currentLeitosStatusFilter || 'Todos';
+
+  setTimeout(() => {
+    if (currentStatus !== 'Todos') {
+      document.querySelectorAll('.kpi-leitos-filter').forEach(c => {
+        c.classList.remove('active');
+        c.style.border = '1px solid transparent';
+        c.style.background = '';
+      });
+      const targetCard = document.querySelector(`.kpi-leitos-filter[data-status="${currentStatus}"]`);
+      if (targetCard) {
+        targetCard.classList.add('active');
+        let color = 'var(--color-primary)';
+        if (currentStatus === 'Vago') color = '#4ade80';
+        if (currentStatus === 'Ocupado') color = '#f87171';
+        if (currentStatus === 'Higienizacao') color = '#facc15';
+        targetCard.style.border = `1px solid ${color}`;
+        targetCard.style.background = 'rgba(99, 102, 241, 0.05)'; // Base active bg
+      }
+    }
+  }, 100);
+
+  // Limpar os filtros globais após ler para não afetar navegação futura a menos que clicado novamente
+  window.currentLeitosSectorFilter = 'Todos';
+  window.currentLeitosStatusFilter = 'Todos';
 
   const loadBeds = async () => {
     try {
