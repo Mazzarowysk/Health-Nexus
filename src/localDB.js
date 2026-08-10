@@ -59,12 +59,14 @@ function ensureTable(db, table) {
   
   // Seed padrão garantido para usuários essenciais do sistema e corpo clínico
   if (table === 'users') {
-    const requiredUsers = [
+    const coreSystemUsers = [
       { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', status: 'Ativo' },
       { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', status: 'Ativo' },
       { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', status: 'Ativo' },
-      { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', status: 'Ativo' },
-      
+      { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', status: 'Ativo' }
+    ];
+
+    const defaultClinicalUsers = [
       // Médicos (Corpo Clínico)
       { id: 'USR-DOC-001', name: 'Dr. Carlos Eduardo Silva', username: 'dr.carloseduard', role: 'Médico', status: 'Ativo' },
       { id: 'USR-DOC-002', name: 'Dra. Ana Maria Costa', username: 'dra.anamaria', role: 'Médico', status: 'Ativo' },
@@ -88,21 +90,30 @@ function ensureTable(db, table) {
       { id: 'USR-NUR-006', name: 'Enf. Camila Rocha Silva', username: 'enf.camila', role: 'Enfermeiro', status: 'Ativo' },
       { id: 'USR-NUR-007', name: 'Enf. Lucas Mendes Freitas', username: 'enf.lucas', role: 'Enfermeiro', status: 'Ativo' },
       { id: 'USR-NUR-008', name: 'Enf. Tatiane Barbosa Cruz', username: 'enf.tatiane', role: 'Enfermeiro', status: 'Ativo' },
-      
-      // Cadastro Adicional Solicitado
       { id: 'USR-PFORTE', name: 'Dra. Paula Forte', username: 'pforte', role: 'Médico', status: 'Ativo' }
     ];
 
-    requiredUsers.forEach(reqUser => {
-      const exists = db[table].some(u => u.username === reqUser.username);
-      if (!exists) {
+    if (db[table].length === 0) {
+      const initialUsers = [...coreSystemUsers, ...defaultClinicalUsers];
+      initialUsers.forEach(reqUser => {
         db[table].push({
           ...reqUser,
           created_at: new Date().toISOString()
         });
-        modified = true;
-      }
-    });
+      });
+      modified = true;
+    } else {
+      coreSystemUsers.forEach(coreUser => {
+        const exists = db[table].some(u => u.username === coreUser.username);
+        if (!exists) {
+          db[table].push({
+            ...coreUser,
+            created_at: new Date().toISOString()
+          });
+          modified = true;
+        }
+      });
+    }
   }
 
   if (modified) {

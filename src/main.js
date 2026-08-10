@@ -944,8 +944,8 @@ const showUserManagementModal = async () => {
                 const delRes = await apiFetch(`/api/users/${uid}`, { method: 'DELETE' });
                 if (delRes.ok) {
                   showToast('Usuário removido com sucesso!');
-                  syncManager.pushToCloud(false);
-                  loadUsersList();
+                  await syncManager.pushToCloud(false);
+                  await loadUsersList();
                 } else {
                   const errData = await delRes.json().catch(() => ({}));
                   showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao excluir usuário.', type: 'danger' });
