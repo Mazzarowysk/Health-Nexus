@@ -709,7 +709,13 @@ const showUserManagementModal = async () => {
           </button>
         </div>
 
-        <div id="users-table-container" style="margin-top: 10px;">
+        <!-- Campo de Busca por Usuário no Modal -->
+        <div style="position: relative; margin-top: 6px;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.9rem; pointer-events: none;"></i>
+          <input type="text" id="modal-user-search-input" class="input-field" placeholder="Buscar usuário por nome, @login ou função (ex: pforte, Paula, Médico)..." style="width: 100%; height: 42px; padding-left: 42px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.88rem; box-sizing: border-box;">
+        </div>
+
+        <div id="users-table-container" style="margin-top: 6px;">
           <div style="text-align: center; padding: 30px 0; color: var(--text-secondary);">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 8px;"></i>
             <p>Carregando usuários...</p>
@@ -732,106 +738,133 @@ const showUserManagementModal = async () => {
       const res = await apiFetch('/api/users');
       if (!res.ok) throw new Error('Falha ao buscar usuários');
       const payload = await res.json();
-      const usersList = payload.data || [];
+      const rawUsersList = payload.data || [];
 
-      if (usersList.length === 0) {
+      if (rawUsersList.length === 0) {
         container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhum usuário cadastrado.</div>`;
         return;
       }
 
-      const pendingUsers = usersList.filter(u => u.status === 'Pendente' || u.master_key_requested == 1);
+      const renderTable = () => {
+        const searchVal = (document.getElementById('modal-user-search-input')?.value || '').toLowerCase().trim();
+        const usersList = rawUsersList.filter(u => {
+          if (!searchVal) return true;
+          const nameMatch = (u.name || '').toLowerCase().includes(searchVal);
+          const userMatch = (u.username || '').toLowerCase().includes(searchVal);
+          const roleMatch = (u.role || '').toLowerCase().includes(searchVal);
+          return nameMatch || userMatch || roleMatch;
+        });
 
-      let pendingHtml = '';
-      if (pendingUsers.length > 0) {
-        pendingHtml = `
-          <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fde047; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;">
-            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: #fbbf24;">
-              <i class="fa-solid fa-user-clock" style="font-size: 1.1rem;"></i>
-              Solicitações de Acesso Pendentes (${pendingUsers.length}):
-            </div>
-            ${pendingUsers.map(pu => `
-              <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; margin-top: 8px; flex-wrap: wrap; gap: 8px;">
-                <div>
-                  <strong style="color: #fff;">${pu.name}</strong> (@${pu.username}) — <span style="color: #a5b4fc;">Solicitou Acesso ${pu.role}</span>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                  <button class="btn-approve-master" data-id="${pu.id}" style="background: #10b981; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-shield-halved"></i> Aprovar Acesso
-                  </button>
-                  <button class="btn-reject-master" data-id="${pu.id}" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
-                    <i class="fa-solid fa-xmark"></i> Recusar
-                  </button>
-                </div>
+        const pendingUsers = rawUsersList.filter(u => u.status === 'Pendente' || u.master_key_requested == 1);
+
+        let pendingHtml = '';
+        if (pendingUsers.length > 0) {
+          pendingHtml = `
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fde047; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;">
+              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: #fbbf24;">
+                <i class="fa-solid fa-user-clock" style="font-size: 1.1rem;"></i>
+                Solicitações de Acesso Pendentes (${pendingUsers.length}):
               </div>
-            `).join('')}
-          </div>
-        `;
-      }
-      const isCurrentMaster = state.user && (state.user.role === 'Master' || state.user.role === 'Administrador' || state.user.username === 'mazzarowysk');
-
-      container.innerHTML = `
-        ${pendingHtml}
-        <table class="patients-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
-          <thead>
-            <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-secondary);">
-              <th style="padding: 10px;">Nome</th>
-              <th style="padding: 10px;">Usuário</th>
-              <th style="padding: 10px;">Função / Cargo</th>
-              <th style="padding: 10px; text-align: right;">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${usersList.map(u => {
-              let roleBadgeColor = 'rgba(99, 102, 241, 0.2)';
-              let roleTextColor = '#818cf8';
-              if (u.status === 'Pendente') {
-                roleBadgeColor = 'rgba(245, 158, 11, 0.25)';
-                roleTextColor = '#fbbf24';
-              } else if (u.role === 'Master' || u.role === 'Administrador' || u.username === 'mazzarowysk') {
-                roleBadgeColor = 'rgba(16, 185, 129, 0.2)';
-                roleTextColor = '#34d399';
-              } else if (u.role === 'Enfermeiro') {
-                roleBadgeColor = 'rgba(14, 165, 233, 0.2)';
-                roleTextColor = '#38bdf8';
-              } else if (u.role === 'Recepcionista') {
-                roleBadgeColor = 'rgba(245, 158, 11, 0.2)';
-                roleTextColor = '#fbbf24';
-              }
-
-              // Apenas o usuário root Master (mazzarowysk) é imutável
-              const isSystemUser = u.username === 'mazzarowysk';
-
-
-              return `
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-                  <td style="padding: 12px 10px; font-weight: 600; color: var(--text-primary);">${u.name}</td>
-                  <td style="padding: 12px 10px; font-family: monospace; color: var(--text-secondary);">@${u.username}</td>
-                  <td style="padding: 12px 10px;">
-                    <span style="font-size: 0.76rem; font-weight: 700; background: ${roleBadgeColor}; color: ${roleTextColor}; padding: 3px 10px; border-radius: 10px;">
-                      ${u.status === 'Pendente' ? '⚠️ PENDENTE DE APROVAÇÃO' : (u.username === 'mazzarowysk' ? 'MASTER' : u.role)}
-                    </span>
-                  </td>
-                  <td style="padding: 12px 10px; text-align: right;">
-                    ${isCurrentMaster ? `
-                    <button class="btn-icon btn-history-user" data-uid="${u.id}" data-name="${u.name}" title="Histórico de Sessões" style="color: #8b5cf6; margin-right: 6px;">
-                      <i class="fa-solid fa-clock-rotate-left"></i>
+              ${pendingUsers.map(pu => `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; margin-top: 8px; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <strong style="color: #fff;">${pu.name}</strong> (@${pu.username}) — <span style="color: #a5b4fc;">Solicitou Acesso ${pu.role}</span>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <button class="btn-approve-master" data-id="${pu.id}" style="background: #10b981; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-shield-halved"></i> Aprovar Acesso
                     </button>
-                    ` : ''}
-                    <button class="btn-icon btn-edit-user" data-user='${JSON.stringify(u)}' title="Editar Usuário" style="margin-right: 6px;">
-                      <i class="fa-solid fa-pen"></i>
+                    <button class="btn-reject-master" data-id="${pu.id}" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
+                      <i class="fa-solid fa-xmark"></i> Recusar
                     </button>
-                    ${!isSystemUser ? `
-                      <button class="btn-icon btn-del-user" data-id="${u.id}" data-name="${u.name}" title="Excluir Usuário" style="color: var(--color-danger);">
-                        <i class="fa-solid fa-trash"></i>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+        const isCurrentMaster = state.user && (state.user.role === 'Master' || state.user.role === 'Administrador' || state.user.username === 'mazzarowysk');
+
+        if (usersList.length === 0) {
+          container.innerHTML = `
+            ${pendingHtml}
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+              Nenhum usuário encontrado para "${searchVal}".
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          ${pendingHtml}
+          <table class="patients-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-secondary);">
+                <th style="padding: 10px;">Nome</th>
+                <th style="padding: 10px;">Usuário</th>
+                <th style="padding: 10px;">Função / Cargo</th>
+                <th style="padding: 10px; text-align: right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${usersList.map(u => {
+                let roleBadgeColor = 'rgba(99, 102, 241, 0.2)';
+                let roleTextColor = '#818cf8';
+                if (u.status === 'Pendente') {
+                  roleBadgeColor = 'rgba(245, 158, 11, 0.25)';
+                  roleTextColor = '#fbbf24';
+                } else if (u.role === 'Master' || u.role === 'Administrador' || u.username === 'mazzarowysk') {
+                  roleBadgeColor = 'rgba(16, 185, 129, 0.2)';
+                  roleTextColor = '#34d399';
+                } else if (u.role === 'Enfermeiro') {
+                  roleBadgeColor = 'rgba(14, 165, 233, 0.2)';
+                  roleTextColor = '#38bdf8';
+                } else if (u.role === 'Recepcionista') {
+                  roleBadgeColor = 'rgba(245, 158, 11, 0.2)';
+                  roleTextColor = '#fbbf24';
+                }
+
+                // Apenas o usuário root Master (mazzarowysk) é imutável
+                const isSystemUser = u.username === 'mazzarowysk';
+
+                return `
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                    <td style="padding: 12px 10px; font-weight: 600; color: var(--text-primary);">${u.name}</td>
+                    <td style="padding: 12px 10px; font-family: monospace; color: var(--text-secondary);">@${u.username}</td>
+                    <td style="padding: 12px 10px;">
+                      <span style="font-size: 0.76rem; font-weight: 700; background: ${roleBadgeColor}; color: ${roleTextColor}; padding: 3px 10px; border-radius: 10px;">
+                        ${u.status === 'Pendente' ? '⚠️ PENDENTE DE APROVAÇÃO' : (u.username === 'mazzarowysk' ? 'MASTER' : u.role)}
+                      </span>
+                    </td>
+                    <td style="padding: 12px 10px; text-align: right;">
+                      ${isCurrentMaster ? `
+                      <button class="btn-icon btn-history-user" data-uid="${u.id}" data-name="${u.name}" title="Histórico de Sessões" style="color: #8b5cf6; margin-right: 6px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
                       </button>
-                    ` : ''}
-                  </td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      `;
+                      ` : ''}
+                      <button class="btn-icon btn-edit-user" data-user='${JSON.stringify(u)}' title="Editar Usuário" style="margin-right: 6px;">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      ${!isSystemUser ? `
+                        <button class="btn-icon btn-del-user" data-id="${u.id}" data-name="${u.name}" title="Excluir Usuário" style="color: var(--color-danger);">
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      ` : ''}
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      };
+
+      renderTable();
+
+      const searchInputEl = document.getElementById('modal-user-search-input');
+      if (searchInputEl) {
+        searchInputEl.oninput = () => renderTable();
+      }
 
       // Eventos dos botões de aprovação master
       container.querySelectorAll('.btn-approve-master').forEach(btn => {
@@ -1062,6 +1095,7 @@ const showUserFormModal = (userToEdit = null, onSaved = null) => {
       const payload = await res.json();
       if (res.ok) {
         showToast(payload.message || 'Operação realizada com sucesso!');
+        syncManager.pushToCloud(false);
         close();
         if (onSaved) onSaved();
       } else {
@@ -1931,9 +1965,9 @@ const apiFetch = async (url, options = {}) => {
         }
       }
 
-      const users = localDB.list('users');
-
-      const user = users.find(u => u.username === body.username);
+      const users = localDB.list('users') || [];
+      const cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+      const user = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
       // In local mode, we assume the password check is bypassed or checked locally if plain
       if (user) {
         responseData = { token: 'mock-jwt-token', user };

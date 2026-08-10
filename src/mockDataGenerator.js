@@ -731,7 +731,8 @@ export async function generateMockData() {
     { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', status: 'Ativo', created_at: new Date().toISOString() },
     { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString() },
     { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', status: 'Ativo', created_at: new Date().toISOString() },
-    { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString() }
+    { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString() },
+    { id: 'USR-PFORTE', name: 'Dra. Paula Forte', username: 'pforte', role: 'Médico', status: 'Ativo', created_at: new Date().toISOString() }
   ];
 
   defaultSystemUsers.forEach(sysUser => {

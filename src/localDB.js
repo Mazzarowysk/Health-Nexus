@@ -87,7 +87,10 @@ function ensureTable(db, table) {
       { id: 'USR-NUR-005', name: 'Enf. Rodrigo Alves Ribeiro', username: 'enf.rodrigo', role: 'Enfermeiro', status: 'Ativo' },
       { id: 'USR-NUR-006', name: 'Enf. Camila Rocha Silva', username: 'enf.camila', role: 'Enfermeiro', status: 'Ativo' },
       { id: 'USR-NUR-007', name: 'Enf. Lucas Mendes Freitas', username: 'enf.lucas', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-NUR-008', name: 'Enf. Tatiane Barbosa Cruz', username: 'enf.tatiane', role: 'Enfermeiro', status: 'Ativo' }
+      { id: 'USR-NUR-008', name: 'Enf. Tatiane Barbosa Cruz', username: 'enf.tatiane', role: 'Enfermeiro', status: 'Ativo' },
+      
+      // Cadastro Adicional Solicitado
+      { id: 'USR-PFORTE', name: 'Dra. Paula Forte', username: 'pforte', role: 'Médico', status: 'Ativo' }
     ];
 
     requiredUsers.forEach(reqUser => {

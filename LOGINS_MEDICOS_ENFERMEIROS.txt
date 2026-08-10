@@ -32,8 +32,9 @@ Dr. Fábio Rodrigues            | @dr.fabio         | CRM-SP 78901      | Dermat
 Dr. André Mendes               | @dr.andre         | CRM-SP 89012      | Psiquiatria
 Dra. Cristina Souza            | @dra.cristina     | CRM-SP 90123      | Endocrinologia
 Dr. Marcelo Andrade            | @dr.marcelo       | CRM-SP 01234      | Urologia
-Dra. Renata Carvalho           | @dra.renata       | CRM-SP 11235      | Reumatologia
-Dr. Thiago Martins             | @dr.thiago        | CRM-SP 22346      | Clínica Médica
+Dra. Renata Carvalho            | @dra.renata       | CRM-SP 11223      | Infectologia
+Dr. Thiago Martins             | @dr.thiago        | CRM-SP 22334      | Psiquiatria
+Dra. Paula Forte               | @pforte           | CRM-SP 98765 (Senha: pfortesantos / Health@2026) | Pronto-Socorro / Emergência Médica
 
 --------------------------------------------------------------------------------
 3. CORPO CLÍNICO ENFERMAGEM (LOGINS ENFERMEIROS)
