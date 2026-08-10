@@ -719,23 +719,33 @@ function generateConsultorios(doctors) {
 // FUNÇÃO PRINCIPAL
 // ──────────────────────────────────────────────
 export async function generateMockData() {
-  // ── 1. Limpar banco (preservar usuários master e dev) ──
+  // ── 1. Limpar banco (PRESERVAR TODOS OS USUÁRIOS EXISTENTES + SISTEMA + CORPO CLÍNICO) ──
   const currentDB = (() => {
     try { return JSON.parse(localStorage.getItem('healthNexusDados') || '{}'); } catch { return {}; }
   })();
 
-  const preservedUsers = [
+  const existingUsers = Array.isArray(currentDB.users) ? currentDB.users : [];
+  const preservedUsers = [...existingUsers];
+
+  const defaultSystemUsers = [
     { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', status: 'Ativo', created_at: new Date().toISOString() },
     { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString() },
-    { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', status: 'Ativo', created_at: new Date().toISOString() }
+    { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', status: 'Ativo', created_at: new Date().toISOString() },
+    { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', status: 'Ativo', created_at: new Date().toISOString() }
   ];
+
+  defaultSystemUsers.forEach(sysUser => {
+    if (!preservedUsers.find(u => u.username === sysUser.username)) {
+      preservedUsers.push(sysUser);
+    }
+  });
 
   // ── 2. Gerar Médicos e Enfermeiros com Logins ──
   console.log('[MockGen] Gerando médicos e enfermeiros...');
   const doctors = generateDoctors();
   const nurses = generateNurses();
 
-  // Adicionar logins automáticos de Médicos ao banco de usuários
+  // Adicionar logins automáticos de Médicos ao banco de usuários se ainda não existirem
   doctors.forEach(doc => {
     if (!preservedUsers.find(u => u.username === doc.username)) {
       preservedUsers.push({
@@ -749,7 +759,7 @@ export async function generateMockData() {
     }
   });
 
-  // Adicionar logins automáticos de Enfermeiros ao banco de usuários
+  // Adicionar logins automáticos de Enfermeiros ao banco de usuários se ainda não existirem
   nurses.forEach(nurse => {
     if (!preservedUsers.find(u => u.username === nurse.username)) {
       preservedUsers.push({

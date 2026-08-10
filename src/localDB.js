@@ -57,25 +57,52 @@ function ensureTable(db, table) {
     modified = true;
   }
   
-  // Seed padrão garantido para usuários essenciais do sistema
+  // Seed padrão garantido para usuários essenciais do sistema e corpo clínico
   if (table === 'users') {
-    const hasMazz = db[table].some(u => u.username === 'mazzarowysk');
+    const requiredUsers = [
+      { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', status: 'Ativo' },
+      { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', status: 'Ativo' },
+      { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', status: 'Ativo' },
+      { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', status: 'Ativo' },
+      
+      // Médicos (Corpo Clínico)
+      { id: 'USR-DOC-001', name: 'Dr. Carlos Eduardo Silva', username: 'dr.carloseduard', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-002', name: 'Dra. Ana Maria Costa', username: 'dra.anamaria', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-003', name: 'Dr. João Pedro Santos', username: 'dr.joaopedro', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-004', name: 'Dra. Beatriz Oliveira', username: 'dra.beatriz', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-005', name: 'Dr. Roberto Fernandes', username: 'dr.roberto', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-006', name: 'Dra. Mariana Lima', username: 'dra.mariana', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-007', name: 'Dr. Fábio Rodrigues', username: 'dr.fabio', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-008', name: 'Dr. André Mendes', username: 'dr.andre', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-009', name: 'Dra. Cristina Souza', username: 'dra.cristina', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-010', name: 'Dr. Marcelo Andrade', username: 'dr.marcelo', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-011', name: 'Dra. Renata Carvalho', username: 'dra.renata', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-012', name: 'Dr. Thiago Martins', username: 'dr.thiago', role: 'Médico', status: 'Ativo' },
 
-    if (!hasMazz) {
-      db[table].push({
-        id: 'USR-MAZZAROWYSK',
-        name: 'Marcelo Mazaro',
-        username: 'mazzarowysk',
-        role: 'Master',
-        status: 'Ativo',
-        created_at: new Date().toISOString()
-      });
-      modified = true;
-    }
+      // Enfermeiros (Equipe Enfermagem)
+      { id: 'USR-NUR-001', name: 'Enf. Sílvia Regina Santos', username: 'silviacwb', role: 'Enfermeiro', status: 'Ativo' },
+      { id: 'USR-NUR-002', name: 'Enf. Patrícia Oliveira Lima', username: 'enf.patricia', role: 'Enfermeiro', status: 'Ativo' },
+      { id: 'USR-NUR-003', name: 'Enf. Marcos Vinícius Souza', username: 'enf.marcos', role: 'Enfermeiro', status: 'Ativo' },
+      { id: 'USR-NUR-004', name: 'Enf. Juliana Ferreira Costa', username: 'enf.juliana', role: 'Enfermeiro', status: 'Ativo' },
+      { id: 'USR-NUR-005', name: 'Enf. Rodrigo Alves Ribeiro', username: 'enf.rodrigo', role: 'Enfermeiro', status: 'Ativo' },
+      { id: 'USR-NUR-006', name: 'Enf. Camila Rocha Silva', username: 'enf.camila', role: 'Enfermeiro', status: 'Ativo' },
+      { id: 'USR-NUR-007', name: 'Enf. Lucas Mendes Freitas', username: 'enf.lucas', role: 'Enfermeiro', status: 'Ativo' },
+      { id: 'USR-NUR-008', name: 'Enf. Tatiane Barbosa Cruz', username: 'enf.tatiane', role: 'Enfermeiro', status: 'Ativo' }
+    ];
+
+    requiredUsers.forEach(reqUser => {
+      const exists = db[table].some(u => u.username === reqUser.username);
+      if (!exists) {
+        db[table].push({
+          ...reqUser,
+          created_at: new Date().toISOString()
+        });
+        modified = true;
+      }
+    });
   }
-  
+
   if (modified) {
-    // Only safely save if we actually modified something fundamental like table initialization
     try {
       localStorage.setItem(DB_KEY, JSON.stringify(db));
     } catch(e) {}
