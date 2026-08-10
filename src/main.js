@@ -495,6 +495,11 @@ const showUserSessionsHistory = (userId, userName) => {
   overlay.id = 'hn-sessions-modal';
   overlay.style.cssText = 'z-index: 100005; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);';
 
+  // Fechar ao clicar no backdrop (fora do modal)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
   // Buscar sessões do usuário
   let sessions = localDB.list('user_sessions', s => s.user_id === userId).sort((a, b) => new Date(b.login_time) - new Date(a.login_time));
 
@@ -602,7 +607,7 @@ const showUserSessionsHistory = (userId, userName) => {
               ${showFullAudit ? '🔍 Verificação Completa de Segurança & Auditoria de Acessos' : '📜 Exibindo os últimos 5 acessos registrados no sistema'}
             </div>
           </div>
-          <button id="btn-sessions-modal-close" class="modal-close" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+          <button id="btn-sessions-modal-close" class="modal-close" aria-label="Fechar" style="cursor: pointer; position: relative; z-index: 10;"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <!-- Toolbar de Ações -->
@@ -641,25 +646,38 @@ const showUserSessionsHistory = (userId, userName) => {
         <!-- Footer Info -->
         <div style="padding: 12px 24px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary);">
           <span><i class="fa-solid fa-lock" style="color: #10b981; margin-right: 4px;"></i> Auditoria de acessos encriptada e enforçada pelo protocolo RBAC</span>
-          <button id="btn-close-sessions-footer" class="btn btn-sm" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">Fechar</button>
+          <button id="btn-close-sessions-footer" class="btn btn-sm" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); cursor: pointer; padding: 6px 16px; font-weight: 600;">Fechar</button>
         </div>
 
       </div>
     `;
 
-    // Re-associar eventos após renderização
-    document.getElementById('btn-sessions-modal-close')?.addEventListener('click', () => overlay.remove());
-    document.getElementById('btn-close-sessions-footer')?.addEventListener('click', () => overlay.remove());
+    // Re-associar eventos buscando no próprio overlay
+    const closeHeader = overlay.querySelector('#btn-sessions-modal-close');
+    const closeFooter = overlay.querySelector('#btn-close-sessions-footer');
+    const toggleBtn = overlay.querySelector('#btn-toggle-full-audit');
 
-    document.getElementById('btn-toggle-full-audit')?.addEventListener('click', () => {
+    closeHeader?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      overlay.remove();
+    });
+
+    closeFooter?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      overlay.remove();
+    });
+
+    toggleBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
       showFullAudit = !showFullAudit;
       renderModalContent();
     });
   };
 
-  renderModalContent();
   document.body.appendChild(overlay);
+  renderModalContent();
 };
+
 
 
 // --- MODAL FLUTUANTE DE GERENCIAMENTO DE USUÁRIOS E PERMISSÕES ---
