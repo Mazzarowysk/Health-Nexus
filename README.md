@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `1.3.0`  
+**Versão:** `2.4.0`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -10,7 +10,8 @@
 
 - 🌐 **Portal Web Interativo (Redesenhado):** [manual_do_usuario.html](file:///c:/Health%20Nexus/manual_do_usuario.html) *(acessível no botão `📖 Manual do Usuário` no topo do sistema)*
 - 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
-- 📄 **Manual Completo em Markdown (Com Fluxograma):** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
+- 📄 **Manual Completo em Markdown (Com Fluxogramas):** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
+- 🔑 **Lista de Logins & Credenciais de Médicos/Enfermeiros:** [LOGINS_MEDICOS_ENFERMEIROS.txt](file:///c:/Health%20Nexus/LOGINS_MEDICOS_ENFERMEIROS.txt)
 
 ---
 
@@ -20,7 +21,7 @@
 |---|---|---|
 | 🐙 **GitHub** | ✅ Ativo | Branch `main` · Commits disparam deploys automáticos |
 | ▲ **Vercel** | ✅ Ativo | Hospeda Frontend (Vite) + Backend (Express API serverless) |
-| 🗄️ **Turso (LibSQL)** | ✅ Ativo | Banco de dados edge distribuído — Pacientes, Atendimentos, PEP |
+| 🗄️ **Turso (LibSQL)** | ✅ Ativo | Banco de dados edge distribuído — Pacientes, Atendimentos, PEP, Escalas |
 | 📊 **OpenFDA / ANVISA** | ✅ Ativo | Busca de medicamentos por nome genérico ou comercial — gratuito |
 | 🧠 **CFM Portal** | ✅ Ativo | Verificação de CRM médico via portal oficial CFM |
 | 📍 **ViaCEP** | ✅ Ativo | Autopreenchimento de endereço por CEP |
@@ -42,9 +43,10 @@
 ## 🧩 Módulos Implementados (Visão Geral 360º)
 
 1. **Autenticação & Controle de Acesso (RBAC)**  
-   Login com JWT e gestão de papéis: `Master`, `Médico`, `Enfermeiro`, `Recepcionista`.  
-   - Aprovação de todos os novos usuários pelo Master via Painel de Estagnação.
-   - Liberação automática de acesso através da Chave Master secreta.
+   Login com JWT e gestão de papéis: `Master`, `Médico`, `Enfermeiro`, `Recepcionista`, `Desenvolvedor`.  
+   - Liberação de logins para 12 médicos e 8 enfermeiros com acessos operacionais restritos.
+   - Auditoria de segurança de acessos (últimos 5 acessos e modal de auditoria até 100 acessos por usuário).
+   - Preservação inteligente de usuários durante a limpeza/geração de dados de teste.
 
 2. **Dashboard (Health Nexus)**  
    KPIs e gráficos gerenciais em tempo real via Chart.js:  
@@ -72,32 +74,38 @@
    - Anuncia paciente com voz sintetizada (Web Speech API) e exibe nome em destaque.
 
 7. **Prontuário Eletrônico (PEP SOAP)**  
-   - Autosave, assinatura digital, prescrições médicas.  
-   - Histórico completo por paciente.
+   - Autosave, assinatura digital, prescrições médicas em planilha.  
+   - Histórico completo assistencial por paciente.
 
 8. **Alertas & Estagnação**  
-   - Monitoramento proativo de gargalos.  
+   - Monitoramento proativo de gargalos assistenciais.  
    - **Cards KPI clicáveis** com filtro instantâneo da tabela.  
    - Painel exclusivo de aprovação de novos acessos e monitoramento de gargalos.
 
 9. **Leitos (Censo Hospitalar)**  
    - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo).  
-   - Alocação e alta de pacientes com atualização em tempo real.
+   - Alocação e alta de pacientes com atualização automática para higienização.
 
-10. **🆕 Kanban de Internação Interativo** *(v2.3.0)*  
-    Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas e alta interatividade:  
+10. **Kanban de Internação Interativo**  
+    Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas (SLA):  
     - **5 colunas de setor:** Pronto Socorro (PS), Corredor de Internação, Clínica Cirúrgica, Clínica Médica (SUS) e UTI.  
     - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
-    - **Cards com Glassmorphism:** borda superior colorida (indicador de SLA), avatar com iniciais, barra de progresso dinâmica verde→âmbar→rosê.  
-    - **Seletores de setor no topo:** "Visão Geral" exibe todos os setores em grid; clique em um setor expande sua coluna em largura total.  
-    - **🩺 Prontuário direto do card:** acesso ao histórico clínico completo do paciente.  
-    - **📝 Evolução Clínica:** registro de novas evoluções com timestamp + timeline de histórico.  
-    - **Ações de gerenciamento por card:** ✏️ Editar, 🔄 Mover setor, 🚶 Alta hospitalar.  
-    - **Gráficos KPI interativos:** clique nas fatias do Donut (Distribuição por Setor) para filtrar o Kanban instantaneamente; clique nas fatias do gráfico SLA para filtrar por status de permanência.  
-    - **Modal de Auditoria de SLAs:** lista completa de pacientes por grupo (Meta Excedida / Atenção / No Prazo) com botão **Prontuário** funcional e filtro "Filtrar Atrasados".  
-    - **Modal de Detalhamento por Setor:** lista pacientes por setor com leito e acesso rápido ao card.
+    - **Evolução Clínica & Auditoria de SLAs.**
 
-11. **Farmácia & Estoque**  
+11. **🆕 Escalas de Trabalho & Plantões (Médicos e Enfermeiros)** *(v2.4.0)*  
+    Aba dedicada à gestão de plantões operacionais da equipe médica e de enfermagem:  
+    - **Orelhas / Sub-abas dedicadas:** Escala de Médicos vs. Escala de Enfermeiros.  
+    - **Indicadores KPI:** Plantões Registrados, Médicos de Plantão Hoje, Enfermeiros de Plantão Hoje e Cobertura de Setores.  
+    - **Turnos:** Manhã (07h-13h), Tarde (13h-19h), Noite (19h-07h), Plantão 24h e Escala 12x36.  
+    - **Barra de pesquisa e filtros padronizados:** busca por Nome, CRM/COREN ou Setor + Filtros de período e turno.  
+    - **Modal de Cadastro e Edição de Plantão.**
+
+12. **🆕 Relatórios de Escalas & Exportações Multiformato** *(v2.4.0)*  
+    5º card especializado no módulo de Relatórios:  
+    - Filtros por categoria, período, turno e status.  
+    - Preview dinâmico em tabela.  
+    - Exportação relatorial em **PDF**, **Excel (XLSX)** e **CSV**.
+
      - Gerenciamento de medicamentos e insumos com **pesquisa em tempo real via APIs globais (RxNav, NLM, OpenFDA)**.  
      - Preenchimento automático de dados (fabricante, tarja, dosagem).
      - Notificações automáticas de estoque baixo.
