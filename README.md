@@ -49,6 +49,7 @@
 2. **Dashboard (Health Nexus)**  
    KPIs e gráficos gerenciais em tempo real via Chart.js:  
    - Atendimentos por período, taxa de ocupação de leitos, receita mensal e evolução de pacientes.
+   - **Gráficos e Funis Interativos:** Gráficos funcionam como botões e filtros dinâmicos que redirecionam para as listas com os dados já filtrados.
 
 3. **Agenda de Consultas**  
    - Agendamento inteligente com seleção de médico e consultório dinâmicos.  
@@ -97,8 +98,9 @@
     - **Modal de Detalhamento por Setor:** lista pacientes por setor com leito e acesso rápido ao card.
 
 11. **Farmácia & Estoque**  
-    - Gerenciamento de medicamentos e insumos.  
-    - Notificações automáticas de estoque baixo.
+     - Gerenciamento de medicamentos e insumos com **pesquisa em tempo real via APIs globais (RxNav, NLM, OpenFDA)**.  
+     - Preenchimento automático de dados (fabricante, tarja, dosagem).
+     - Notificações automáticas de estoque baixo.
 
 12. **Financeiro (Títulos & Parcelas)**  
     - Faturamento, recebimentos (Pix/Cartão/Dinheiro) e contas a pagar.

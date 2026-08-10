@@ -1,6 +1,6 @@
 #ô ô�ô�ô ôMôaônôuôaôlô ôdôoô ôUôsôuôáôrôiôoô ôCôoômôpôlôeôtôoô ô&ô ôGôuôiôaô ôOôpôeôrôaôcôiôoônôaôlô ôDôeôfôiônôiôtôiôvôoô ô—ô ôHôeôaôlôtôhô ôNôeôxôuôsô ô(ôvô2ô.ô3ô.ô0ô)ôô
 ôô
-ô>ô ô*ô*ôHôeôaôlôtôhô ôNôeôxôuôsô ô—ô ôSôiôsôtôeômôaô ôdôeô ôGôeôsôtôãôoô ôHôoôsôpôiôtôaôlôaôrô ô&ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô ô(ôVôeôrôsôãôoô ôAôtôuôaôlôiôzôaôdôaô ô—ô ôAôgôoôsôtôoô/ô2ô0ô2ô6ô)ô*ô*ô ô ôô
+ô>ô ô*ô*ôHôeôaôlôtôhô ôNôeôxôuôsô ô—ô ôSôiôsôtôeômôaô ôdôeô ôGôeôsôtôãôoô ôHôoôsôpôiôtôaôlôaôrô ô&ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrônôiôcôoô ô(ôVôeôrôsôãôoô ôAôtôuôaôlôiôzôaôdôaô ô—ô ôAôgôoôsôtôoô/ô2ô0ô2ô6ô)ô*ô*ô ô ôô
 ô>ô ôGôuôiôaô ôoôpôeôrôaôcôiôoônôaôlô ôeôxôaôuôsôtôiôvôoô,ô ôiônôtôuôiôtôiôvôoô ôeô ôiôlôuôsôtôrôaôdôoô ôcôoôbôrôiônôdôoô ônôaôvôeôgôaôçôãôoô,ô ômôoôdôaôiôsô ôcôoômô ôGôlôaôsôsômôoôrôpôhôiôsômô ôdôiônôâômôiôcôoô ôeô ôsôuôpôoôrôtôeô ôaô ômôoôdôoô ôcôlôaôrôoô/ôeôsôcôuôrôoô,ô ôpôrôoônôtôuôáôrôiôoô ôcôoômô ôeôxôpôoôrôtôaôçôãôoô ôrôeôaôlô ôeômô ôPôDôFô,ô ôaônôeôxôaôçôãôoô ôdôeô ôeôxôaômôeôsô,ô ôKôaônôbôaônô ôsôíônôcôrôoônôoô ô1ô-ôpôaôrôaô-ô1ô ôeômô ô5ô ôsôeôtôoôrôeôsô,ô ôsôiônôcôrôoônôiôzôaôçôãôoô ôTôuôrôsôoô ôCôlôoôuôdô ôeô ôfôaôtôuôrôaômôeônôtôoô ôfôiônôaônôcôeôiôrôoô.ôô
 ôô
 ô-ô-ô-ôô
@@ -12,7 +12,7 @@
 ô ô ô-ô ô2ô.ô2ô.ô ô[ôFôiôlôaô ô1ô:ô ôAôgôuôaôrôdôaônôdôoô ôTôrôiôaôgôeômô ô(ôPôrôoôtôoôcôoôlôoô ôdôeô ôMôaônôcôhôeôsôtôeôrô)ô]ô(ô#ôsôeôcô-ô2ô-ô2ô)ôô
 ô ô ô-ô ô2ô.ô3ô.ô ô[ôFôiôlôaô ô2ô:ô ôAôgôuôaôrôdôaônôdôoô ôMôéôdôiôcôoô ô(ôCôhôaômôaôdôaô ôdôeô ôCôoônôsôuôlôtôóôrôiôoô)ô]ô(ô#ôsôeôcô-ô2ô-ô3ô)ôô
 ô ô ô-ô ô2ô.ô4ô.ô ô[ôFôiôlôaô ô3ô:ô ôEômô ôAôtôeônôdôiômôeônôtôoô ô(ôAôçôõôeôsô ôdôoô ôMôéôdôiôcôoô)ô]ô(ô#ôsôeôcô-ô2ô-ô4ô)ôô
-ô-ô ô3ô.ô ô[ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô ôdôoô ôPôaôcôiôeônôtôeô ô(ôPôEôPô ô—ô ôMôéôtôoôdôoô ôSôOôAôPô ô&ô ôGôeôrôaôçôãôoô ôPôDôFô ôRôeôaôlô)ô]ô(ô#ôsôeôcô-ô3ô)ôô
+ô-ô ô3ô.ô ô[ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrônôiôcôoô ôdôoô ôPôaôcôiôeônôtôeô ô(ôPôEôPô ô—ô ôMôéôtôoôdôoô ôSôOôAôPô ô&ô ôGôeôrôaôçôãôoô ôPôDôFô ôRôeôaôlô)ô]ô(ô#ôsôeôcô-ô3ô)ôô
 ô ô ô-ô ô3ô.ô1ô.ô ô[ôEôsôtôrôuôtôuôrôaô ôSôOôAôPô
 ô
 ô>ô ôℹô️ô ô*ô*ôNôoôtôaô ôdôeô ôAôtôuôaôlôiôzôaôçôãôoô:ô*ô*ô ôOô ôAôuôtôoôcôoômôpôlôeôtôeô ôdôeô ôCôIôDô-ô1ô0ô ôfôoôiô ôoôtôiômôiôzôaôdôoô ôpôaôrôaô ôlôiôdôaôrô ôcôoômô ôgôrôaônôdôeôsô ôvôoôlôuômôeôsô ôdôeô ôdôaôdôoôsô ô(ô2ô.ô5ôMôBô)ô,ô ôeôxôiôbôiônôdôoô ôaôgôoôrôaô ôuômô ôiônôdôiôcôaôdôoôrô ôvôiôsôuôaôlô ô(ô"ôCôaôrôrôeôgôaônôdôoô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ôCôIôDô-ô1ô0ô.ô.ô.ô"ô)ô ôaôtôéô ôeôsôtôaôrô ôpôrôoônôtôoô ôpôaôrôaô ôuôsôoô,ô ôeô ôgôaôrôaônôtôiônôdôoô ôcôoôdôiôfôiôcôaôçôãôoô ôUôTôFô-ô8ô ôrôiôgôoôrôoôsôaô ôpôaôrôaô ôpôrôeôvôeônôiôrô ôqôuôeôbôrôaôsô ôdôeô ôaôcôeônôtôuôaôçôãôoô.ô ô&ô ôAôuôtôoôcôoômôpôlôeôtôeô ôCôIôDô-ô1ô0ô]ô(ô#ôsôeôcô-ô3ô-ô1ô)ôô
@@ -61,12 +61,12 @@
 ô ô ô ô-ô ô*ô*ôEôxôaômôeôsô ô&ô ôLôaôuôdôoôsô*ô*ô:ô ôAôtôrôeôlôaôdôoô ôaôoô ôPôrôoônôtôuôáôrôiôoô ôpôaôrôaô ôaônôeôxôaôçôãôoô ôdôeô ôrôeôsôuôlôtôaôdôoôsô ôlôaôbôoôrôaôtôoôrôiôaôiôsô ôeô ôiômôaôgôeônôsô ôDôIôCôOôMô.ôô
 ô ô ô ô-ô ô*ô*ôCôoôrôpôoô ôCôlôíônôiôcôoô ô&ô ôEôsôcôaôlôaôsô*ô*ô:ô ôAôtôrôeôlôaôdôoô ôaôoô ôCôoônôsôuôlôtôóôrôiôoô ôeô ôCôeônôtôrôoô ôCôiôrôúôrôgôiôcôoô ôpôaôrôaô ôvôiônôcôuôlôaôçôãôoô ôdôeô ôrôeôsôpôoônôsôaôbôiôlôiôdôaôdôeô ômôéôdôiôcôaô ôeô ôCôRôMô.ôô
 ô ô ô ô-ô ô*ô*ôTôuôrôsôoô ôCôlôoôuôdô ôSôyônôcô*ô*ô:ô ôAôtôrôeôlôaôdôoô ôaô ôtôoôdôaôsô ôaôsô ômôuôtôaôçôõôeôsô ônôoô ôbôaônôcôoô ôlôoôcôaôlô ôpôaôrôaô ôrôéôpôlôiôcôaô ôsôíônôcôrôoônôaô ôcôoômô ôLôiôbôSôQôLô.ôô
-ô3ô.ô ô*ô*ôMôóôdôuôlôoôsô ôIôsôoôlôaôdôoôsô ô/ô ôAôuôtôôônôoômôoôsô ô(ôFôeôrôrôaômôeônôtôaôsô ôIônôdôeôpôeônôdôeônôtôeôsô)ô*ô*ô:ôô
+ô3ô.ô ô*ô*ôMôóôdôuôlôoôsô ôIôsôoôlôaôdôoôsô ô/ô ôAôuôtônôoômôoôsô ô(ôFôeôrôrôaômôeônôtôaôsô ôIônôdôeôpôeônôdôeônôtôeôsô)ô*ô*ô:ôô
 ô ô ô ô-ô ô*ô*ôCôoônôfôiôgôuôrôaôçôõôeôsô ôGôlôoôbôaôiôsô*ô*ô:ô ôMôóôdôuôlôoô ôaôdômôiônôiôsôtôrôaôtôiôvôoô ôiôsôoôlôaôdôoô ôpôaôrôaô ôaôlôtôeôrôaôçôãôoô ôdôeô ôpôaôrôâômôeôtôrôoôsô ôeô ôpôeôrôsôoônôaôlôiôzôaôçôãôoô.ôô
-ô ô ô ô-ô ô*ô*ôBôaôcôkôuôpô ô&ô ôEôxôpôoôrôtôaôçôãôoô ôJôSôOôNô*ô*ô:ô ôUôtôiôlôiôtôáôrôiôoô ôaôuôtôôônôoômôoô ôpôaôrôaô ôgôeôrôaôçôãôoô ôeô ôrôeôsôtôaôuôrôaôçôãôoô ôdôeô ôsônôaôpôsôhôoôtôsô ôdôeô ôdôaôdôoôsô.ôô
-ô ô ô ô-ô ô*ô*ôHôiôsôtôóôrôiôcôoô ôdôeô ôSôeôsôsôõôeôsô ôMôaôsôtôeôrô*ô*ô:ô ôPôaôiônôeôlô ôaôuôtôôônôoômôoô ôdôeô ôaôuôdôiôtôoôrôiôaô ôdôeô ôlôoôgôiônôsô ôeô ôaôcôeôsôsôoôsô ôdôeô ôaôdômôiônôiôsôtôrôaôdôoôrôeôsô.ôô
+ô ô ô ô-ô ô*ô*ôBôaôcôkôuôpô ô&ô ôEôxôpôoôrôtôaôçôãôoô ôJôSôOôNô*ô*ô:ô ôUôtôiôlôiôtôáôrôiôoô ôaôuôtônôoômôoô ôpôaôrôaô ôgôeôrôaôçôãôoô ôeô ôrôeôsôtôaôuôrôaôçôãôoô ôdôeô ôsônôaôpôsôhôoôtôsô ôdôeô ôdôaôdôoôsô.ôô
+ô ô ô ô-ô ô*ô*ôHôiôsôtôóôrôiôcôoô ôdôeô ôSôeôsôsôõôeôsô ôMôaôsôtôeôrô*ô*ô:ô ôPôaôiônôeôlô ôaôuôtônôoômôoô ôdôeô ôaôuôdôiôtôoôrôiôaô ôdôeô ôlôoôgôiônôsô ôeô ôaôcôeôsôsôoôsô ôdôeô ôaôdômôiônôiôsôtôrôaôdôoôrôeôsô.ôô
 ô ô ô ô-ô ô*ô*ôSôiômôuôlôaôdôoôrô ôdôeô ôDôaôdôoôsô ô3ô0ô0ô*ô*ô:ô ôFôeôrôrôaômôeônôtôaô ôiôsôoôlôaôdôaô ôdôeô ôeôsôtôrôeôsôsôeô ôeô ôcôaôrôgôaô ôfôiôcôtôíôcôiôaô ôdôeô ôrôeôgôiôsôtôrôoôsô ôpôaôrôaô ôtôeôsôtôeôsô.ôô
-ô ô ô ô-ô ô*ô*ôTôeôlôeômôeôdôiôcôiônôaô ôRôeômôoôtôeô*ô*ô:ô ôPôlôaôtôaôfôoôrômôaô ôdôeô ôvôiôdôeôoôaôtôeônôdôiômôeônôtôoô ôaôuôtôôônôoômôaô ôcôoômô ôsôiônôcôrôoônôiôzôaôçôãôoô ôoôpôcôiôoônôaôlô ôvôiôaô ôAôPôIô.ôô
+ô ô ô ô-ô ô*ô*ôTôeôlôeômôeôdôiôcôiônôaô ôRôeômôoôtôeô*ô*ô:ô ôPôlôaôtôaôfôoôrômôaô ôdôeô ôvôiôdôeôoôaôtôeônôdôiômôeônôtôoô ôaôuôtônôoômôaô ôcôoômô ôsôiônôcôrôoônôiôzôaôçôãôoô ôoôpôcôiôoônôaôlô ôvôiôaô ôAôPôIô.ôô
 ôô
 ô-ô-ô-ôô
 ôô
@@ -84,7 +84,7 @@
 ô ô ô ô ôEô ô-ô-ô>ô ôFô[ô"ô�ô�ô ôAôtôeônôdôiômôeônôtôoô ôMôéôdôiôcôoô ô(ôPôEôPô ôSôOôAôPô)ô"ô]ôô
 ô ô ô ô ôFô ô-ô-ô>ô ôGô{ô"ôCôoônôdôuôtôaô ôFôiônôaôlô"ô}ôô
 ô ô ô ô ôGô ô-ô-ô>ô|ô"ôAôlôtôaô ôMôéôdôiôcôaô"ô|ô ôHô[ô"ô✅ô ôCôoônôcôlôuôsôãôoô ô&ô ôRôeôcôeôiôtôaô"ô]ôô
-ô ô ô ô ôGô ô-ô-ô>ô|ô"ôOôbôsôeôrôvôaôçôãôoô ôPôSô ô(ô1ô2ôhô ômôaôxô)ô"ô|ô ôIô[ô"ô�ô�ô ôCôaôrôdô ôdôeô ôOôbôsôeôrôvôaôçôãôoô ôcôoômô ôCôrôoônôôômôeôtôrôoô"ô]ôô
+ô ô ô ô ôGô ô-ô-ô>ô|ô"ôOôbôsôeôrôvôaôçôãôoô ôPôSô ô(ô1ô2ôhô ômôaôxô)ô"ô|ô ôIô[ô"ô�ô�ô ôCôaôrôdô ôdôeô ôOôbôsôeôrôvôaôçôãôoô ôcôoômô ôCôrôoônômôeôtôrôoô"ô]ôô
 ô ô ô ô ôGô ô-ô-ô>ô|ô"ôNôeôcôeôsôsôiôdôaôdôeô ôdôeô ôLôeôiôtôoô"ô|ô ôJô[ô"ô�ô�ô️ô ôTôrôaônôsôfôeôrôêônôcôiôaô ôpôaôrôaô ôEônôfôeôrômôaôrôiôaô ô/ô ôUôTôIô"ô]ôô
 ô`ô`ô`ôô
 ôô
@@ -127,7 +127,7 @@
 ô|ô ô�ô�ô ô*ô*ôLôaôrôaônôjôaô*ô*ô ô|ô ôMôuôiôtôoô ôUôrôgôeônôtôeô ô|ô ô*ô*ô1ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôLôaôrôaônôjôaô ô|ô ôRôiôsôcôoô ôsôiôgônôiôfôiôcôaôtôiôvôoô ôdôeô ôpôeôrôdôaô ôdôeô ôfôuônôçôãôoô/ôvôiôdôaô.ô ôAôtôeônôdôiômôeônôtôoô ôrôáôpôiôdôoô.ô ô|ôô
 ô|ô ô�ô�ô ô*ô*ôAômôaôrôeôlôoô*ô*ô ô|ô ôUôrôgôeônôtôeô ô|ô ô*ô*ô6ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôAômôaôrôeôlôoô ô|ô ôCôoônôdôiôçôãôoô ôeôsôtôáôvôeôlô ôcôoômô ônôeôcôeôsôsôiôdôaôdôeô ôdôeô ôaôvôaôlôiôaôçôãôoô ômôéôdôiôcôaô ôeômô ôaôtôéô ô1ôhô.ô ô|ôô
 ô|ô ô�ô�ô ô*ô*ôVôeôrôdôeô*ô*ô ô|ô ôPôoôuôcôoô ôUôrôgôeônôtôeô ô|ô ô*ô*ô1ô2ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôVôeôrôdôeô ô|ô ôQôuôaôdôrôoô ôlôeôvôeô ôsôeômô ôrôiôsôcôoô ôdôeô ôaôgôrôaôvôaômôeônôtôoô ôrôáôpôiôdôoô.ô ôFôiôlôaô ôrôeôgôuôlôaôrô.ô ô|ôô
-ô|ô ô�ô�ô ô*ô*ôAôzôuôlô*ô*ô ô|ô ôNôãôoô ôUôrôgôeônôtôeô ô|ô ô*ô*ô2ô4ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôAôzôuôlô ô|ô ôQôuôeôiôxôaô ôcôrôôônôiôcôaô ôoôuô ôcôoônôsôuôlôtôaô ôsôiômôpôlôeôsô.ô ôAôtôeônôdôiômôeônôtôoô ôeôlôeôtôiôvôoô.ô ô|ôô
+ô|ô ô�ô�ô ô*ô*ôAôzôuôlô*ô*ô ô|ô ôNôãôoô ôUôrôgôeônôtôeô ô|ô ô*ô*ô2ô4ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôAôzôuôlô ô|ô ôQôuôeôiôxôaô ôcôrônôiôcôaô ôoôuô ôcôoônôsôuôlôtôaô ôsôiômôpôlôeôsô.ô ôAôtôeônôdôiômôeônôtôoô ôeôlôeôtôiôvôoô.ô ô|ôô
 ôô
 ô-ô-ô-ôô
 ôô
@@ -147,15 +147,15 @@
 ô#ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôCôoômôpôlôeôtôaô ôdôeô ôBôoôtôõôeôsô ôdôoô ôMôéôdôiôcôoôô
 ô|ô ôBôoôtôãôoô ô|ô ôÍôcôoônôeô ô|ô ôFôuônôçôãôoô ôdôoô ôBôoôtôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ôaôoô ôCôlôiôcôaôrô ô|ôô
 ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
-ô|ô ô*ô*ôPôEôPô*ô*ô ô|ô ô�ô�ô ô|ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô ô|ô ôAôbôrôeô ôaô ôjôaônôeôlôaô ômôoôdôaôlô ôdôoô ôPôrôoônôtôuôáôrôiôoô ô(ôSôOôAôPô,ô ôsôiônôaôiôsô ôvôiôtôaôiôsô,ô ôCôIôDô-ô1ô0ô,ô ôhôiôsôtôóôrôiôcôoô ôeô ôaôsôsôiônôaôtôuôrôaô)ô.ô ô|ôô
+ô|ô ô*ô*ôPôEôPô*ô*ô ô|ô ô�ô�ô ô|ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrônôiôcôoô ô|ô ôAôbôrôeô ôaô ôjôaônôeôlôaô ômôoôdôaôlô ôdôoô ôPôrôoônôtôuôáôrôiôoô ô(ôSôOôAôPô,ô ôsôiônôaôiôsô ôvôiôtôaôiôsô,ô ôCôIôDô-ô1ô0ô,ô ôhôiôsôtôóôrôiôcôoô ôeô ôaôsôsôiônôaôtôuôrôaô)ô.ô ô|ôô
 ô|ô ô*ô*ôPôrôeôsôcôrôiôçôãôoô*ô*ô ô|ô ô�ô�ô ô|ô ôRôeôcôeôiôtôuôáôrôiôoô ôMôéôdôiôcôoô ô|ô ôAôbôrôeô ôaô ôtôeôlôaô ôpôaôrôaô ôpôrôeôsôcôrôeôvôeôrô ômôeôdôiôcôaômôeônôtôoôsô,ô ôpôoôsôoôlôoôgôiôaôsô,ô ôvôiôaô ôdôeô ôaôdômôiônôiôsôtôrôaôçôãôoô ôeô ôoôrôiôeônôtôaôçôõôeôsô.ô ô|ôô
-ô|ô ô*ô*ôOôbôsôeôrôvôaôçôãôoô*ô*ô ô|ô ô�ô�ô ô|ô ôOôbôsôeôrôvôaôçôãôoô ônôoô ôPôSô ô(ô1ô2ôhô ômôaôxô)ô ô|ô ôIônôiôcôiôaô ôaô ôcôoônôtôaôgôeômô ôdôoô ôcôrôoônôôômôeôtôrôoô ôdôeô ôpôeôrômôaônôêônôcôiôaô ôcôoônôtôíônôuôaô ôeô ôeôxôiôbôeô ôbôaôdôgôeô ôdôeô ôtôeômôpôoô ônôoô ôcôaôrôdô.ô ô|ôô
+ô|ô ô*ô*ôOôbôsôeôrôvôaôçôãôoô*ô*ô ô|ô ô�ô�ô ô|ô ôOôbôsôeôrôvôaôçôãôoô ônôoô ôPôSô ô(ô1ô2ôhô ômôaôxô)ô ô|ô ôIônôiôcôiôaô ôaô ôcôoônôtôaôgôeômô ôdôoô ôcôrôoônômôeôtôrôoô ôdôeô ôpôeôrômôaônôêônôcôiôaô ôcôoônôtôíônôuôaô ôeô ôeôxôiôbôeô ôbôaôdôgôeô ôdôeô ôtôeômôpôoô ônôoô ôcôaôrôdô.ô ô|ôô
 ô|ô ô*ô*ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô*ô*ô ô|ô ô�ô�ô️ô ô|ô ôIônôtôeôrônôaôçôãôoô ô/ô ôLôeôiôtôoô ô|ô ôAôbôrôeô ôoô ômôoôdôaôlô ôpôaôrôaô ôsôeôlôeôcôiôoônôaôrô ôeô ôaôlôoôcôaôrô ôoô ôpôaôcôiôeônôtôeô ôeômô ôuômô ôlôeôiôtôoô ôlôiôvôrôeô ôdôaô ôEônôfôeôrômôaôrôiôaô ôoôuô ôUôTôIô.ô ô|ôô
 ô|ô ô*ô*ôFôiônôaôlôiôzôaôrô*ô*ô ô|ô ô✅ô ô|ô ôAôlôtôaô ôMôéôdôiôcôaô ô/ô ôCôoônôcôlôuôsôãôoô ô|ô ôEônôcôeôrôrôaô ôaô ôcôoônôsôuôlôtôaô,ô ôgôrôaôvôaô ôaô ôaôlôtôaô ônôoô ôsôiôsôtôeômôaô ôeô ômôoôvôeô ôoô ôaôtôeônôdôiômôeônôtôoô ôpôaôrôaô ôoô ôHôiôsôtôóôrôiôcôoô ôPôóôsô-ôAôlôtôaô.ô ô|ôô
 ôô
 ô-ô-ô-ôô
 ôô
-ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô3ô"ô>ô3ô.ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô ôdôoô ôPôaôcôiôeônôtôeô ô(ôPôEôPô ô—ô ôMôéôtôoôdôoô ôSôOôAôPô)ô<ô/ôhô2ô>ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô3ô"ô>ô3ô.ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrônôiôcôoô ôdôoô ôPôaôcôiôeônôtôeô ô(ôPôEôPô ô—ô ôMôéôtôoôdôoô ôSôOôAôPô)ô<ô/ôhô2ô>ôô
 ôô
 ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô3ô-ô1ô"ô>ô3ô.ô1ô.ô ôEôsôtôrôuôtôuôrôaô ôSôOôAôPô<ô/ôhô3ô>ôô
 ô|ô ôBôlôoôcôoô ôSôOôAôPô ô|ô ôEôlôeômôeônôtôoô ô|ô ôDôeôsôcôrôiôçôãôoô ôdôoô ôPôrôeôeônôcôhôiômôeônôtôoô ô|ô ôEôxôeômôpôlôoô ôdôeô ôPôrôeôeônôcôhôiômôeônôtôoô ô|ôô
@@ -168,7 +168,7 @@
 ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô3ô-ô2ô"ô>ô3ô.ô2ô.ô ôAôuôtôoôcôoômôpôlôeôtôeô ôCôIôDô-ô1ô0ô<ô/ôhô3ô>ôô
 ôNôoô ôcôaômôpôoô ô*ô*ôAôvôaôlôiôaôçôãôoô*ô*ô,ô ôaôoô ôdôiôgôiôtôaôrô ôoô ôcôóôdôiôgôoô ôoôuô ônôoômôeô ôdôaô ôdôoôeônôçôaô,ô ôoô ôsôiôsôtôeômôaô ôlôiôsôtôaô ôsôuôgôeôsôtôõôeôsô ôoôfôiôcôiôaôiôsô.ôô
 ôô
-ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô3ô-ô3ô"ô>ô3ô.ô3ô.ô ôAôsôsôiônôaôtôuôrôaô ôEôlôeôtôrôôônôiôcôaô ôeô ôEôxôpôoôrôtôaôçôãôoô ôPôDôFô<ô/ôhô3ô>ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô3ô-ô3ô"ô>ô3ô.ô3ô.ô ôAôsôsôiônôaôtôuôrôaô ôEôlôeôtôrônôiôcôaô ôeô ôEôxôpôoôrôtôaôçôãôoô ôPôDôFô<ô/ôhô3ô>ôô
 ôRôeôcôuôrôsôoôsô ôdôeô ôrôaôsôcôuônôhôoô,ô ôaôsôsôiônôaôtôuôrôaô ômôéôdôiôcôaô ôcôoômô ôsôeônôhôaô ôeô ôgôeôrôaôçôãôoô ôdôeô ôlôaôuôdôoô ôPôDôFô.ôô
 ôô
 ô-ô-ô-ôô
@@ -326,7 +326,7 @@
 ôô
 ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô0ô"ô>ô1ô0ô.ô ôFôaôrômôáôcôiôaô ô&ô ôDôiôsôpôeônôsôaôçôãôoô ôdôeô ôMôeôdôiôcôaômôeônôtôoôsô<ô/ôhô2ô>ôô
 ôô
-ôNôaô ôaôbôaô ô*ô*ôFôaôrômôáôcôiôaô*ô*ô,ô ôfôaôzô-ôsôeô ôaô ôgôeôsôtôãôoô ôdôeô ôeôsôtôoôqôuôeô ôeô ôrôaôsôtôrôeôaôbôiôlôiôdôaôdôeô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô.ôô
+ôNôaô ôaôbôaô ô*ô*ôFôaôrômôáôcôiôaô*ô*ô,ô ôfôaôzô-ôsôeô ôaô ôgôeôsôtôãôoô ôdôeô ôeôsôtôoôqôuôeô ôeô ôrôaôsôtôrôeôaôbôiôlôiôdôaôdôeô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô,ô ôcôoômô ôsôuôpôoôrôtôeô ôaô ô*ô*ôpôeôsôqôuôiôsôaô ôeômô ôtôeômôpôoô ôrôeôaôlô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô ôiônôtôeôgôrôaôdôaôsô ôaô ôAôPôIôsô ôgôlôoôbôaôiôsô ô(ôRôxôNôaôvô,ô ôNôLôMô,ô ôFôDôAô)ô*ô*ô,ô ôpôeôrômôiôtôiônôdôoô ôoô ôpôrôeôeônôcôhôiômôeônôtôoô ôaôuôtôoômôáôtôiôcôoô ôiônôtôeôlôiôgôeônôtôeô ôeô ôiônôsôtôaônôtôâônôeôoô ôdôeô ôlôaôbôoôrôaôtôóôrôiôoôsô ôeô ôdôoôsôaôgôeônôsô.ôô
 ôô
 ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôCôoônôtôrôoôlôeô ôdôeô ôFôaôrômôáôcôiôaô ôeô ôEôsôtôoôqôuôeôô
 ô|ô ôMôeôdôiôcôaômôeônôtôoô ô|ô ôAôpôrôeôsôeônôtôaôçôãôoô ô/ô ôVôiôaô ô|ô ôLôoôtôeô ô|ô ôDôaôtôaô ôVôaôlôiôdôaôdôeô ô|ô ôEôsôtôoôqôuôeô ôAôtôuôaôlô ô|ô ôEôsôtôoôqôuôeô ôMôíônô.ô ô|ô ôSôtôaôtôuôsô ôEôsôtôoôqôuôeô ô|ôô
@@ -365,7 +365,8 @@
 ôô
 ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô2ô"ô>ô1ô2ô.ô ôRôeôlôaôtôóôrôiôoôsô ôAônôaôlôyôtôiôcôsô ô&ô ôIônôdôiôcôaôdôoôrôeôsô ôHôoôsôpôiôtôaôlôaôrôeôsô<ô/ôhô2ô>ôô
 ôô
-ôNôaô ôaôbôaô ô*ô*ôRôeôlôaôtôóôrôiôoôsô*ô*ô,ô ôoô ôgôeôsôtôoôrô ôvôiôsôuôaôlôiôzôaô ôoôsô ôgôrôáôfôiôcôoôsô ôeô ôiônôdôiôcôaôdôoôrôeôsô ôdôeô ôdôeôsôeômôpôeônôhôoô.ôô
+ôNôaô ôaôbôaô ô*ô*ôRôeôlôaôtôóôrôiôoôsô*ô*ô ôeô ô*ô*ôDôaôsôhôbôoôaôrôdô ôPôrôiônôcôiôpôaôlô*ô*ô,ô ôoô ôgôeôsôtôoôrô ôvôiôsôuôaôlôiôzôaô ôoôsô ôgôrôáôfôiôcôoôsô ôeô ôiônôdôiôcôaôdôoôrôeôsô ôdôeô ôdôeôsôeômôpôeônôhôoô ô(ôcôoômôoô ôOôcôuôpôaôçôãôoô ôdôeô ôLôeôiôtôoôsô,ô ôFôuônôiôlô ôdôeô ôAôtôeônôdôiômôeônôtôoô ôeô ôDôiôsôtôrôiôbôuôiôçôãôoô ôKôaônôbôaônô)ô.ô ô ô
+ô*ô*ôIônôtôeôrôaôtôiôvôiôdôaôdôeô ôAôvôaônôçôaôdôaô:ô*ô*ô ôTôoôdôoôsô ôoôsô ôgôrôáôfôiôcôoôsô ôdôoô ôsôiôsôtôeômôaô ô(ôlôiônôhôaôsô,ô ôbôaôrôrôaôsô,ô ôdôoônôuôtôsô ôeô ôfôuônôiôlô)ô ôfôuônôcôiôoônôaômô ôcôoômôoô ôfôiôlôtôrôoôsô ôiônôtôeôrôaôtôiôvôoôsô;ô ôbôaôsôtôaô ôcôlôiôcôaôrô ônôeôlôeôsô ôpôaôrôaô ôsôeôrô ôrôeôdôiôrôeôcôiôoônôaôdôoô ôàôsô ôtôaôbôeôlôaôsô ôcôoôrôrôeôsôpôoônôdôeônôtôeôsô ôcôoômô ôoôsô ôdôaôdôoôsô ôjôáô ôfôiôlôtôrôaôdôoôsô.ôô
 ôô
 ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôIônôdôiôcôaôdôoôrôeôsô ôGôeôrôeônôcôiôaôiôsôô
 ô|ô ôRôeôlôaôtôóôrôiôoô ô/ô ôMôéôtôrôiôcôaô ô|ô ôIônôdôiôcôaôdôoôrô ôAônôaôlôiôsôaôdôoô ô|ô ôPôeôrôíôoôdôoô ôSôeôlôeôcôiôoônôáôvôeôlô ô|ô ôFôoôrômôaôtôoô ôdôeô ôEôxôpôoôrôtôaôçôãôoô ô|ôô
@@ -426,7 +427,7 @@
 ô|ô ôTôiôpôoô ôdôeô ôNôoôtôiôfôiôcôaôçôãôoô ô|ô ôCôoôrô ôdôoô ôTôoôaôsôtô ô|ô ôDôuôrôaôçôãôoô ônôaô ôTôeôlôaô ô|ô ôEôxôeômôpôlôoô ôdôeô ôMôeônôsôaôgôeômô ô|ôô
 ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ôô
 ô|ô ô*ô*ôSôuôcôeôsôsôoô*ô*ô ô|ô ô�ô�ô ôVôeôrôdôeô ô|ô ô3ô ôsôeôgôuônôdôoôsô ô|ô ô`ô✅ô ôPôrôoônôtôuôáôrôiôoô ôaôsôsôiônôaôdôoô ôcôoômô ôsôuôcôeôsôsôoô!ô`ô ô|ôô
-ô|ô ô*ô*ôAôlôeôrôtôaô ô/ô ôAôvôiôsôoô*ô*ô ô|ô ô�ô�ô ôAômôaôrôeôlôoô ô|ô ô4ô ôsôeôgôuônôdôoôsô ô|ô ô`ô⏱ô️ô ôPôaôcôiôeônôtôeô ôcôoôlôoôcôaôdôoô ôeômô ôOôbôsôeôrôvôaôçôãôoô ôMôéôdôiôcôaô ô(ôCôrôoônôôômôeôtôrôoô ô1ô2ôhô ôiônôiôcôiôaôdôoô)ô`ô ô|ôô
+ô|ô ô*ô*ôAôlôeôrôtôaô ô/ô ôAôvôiôsôoô*ô*ô ô|ô ô�ô�ô ôAômôaôrôeôlôoô ô|ô ô4ô ôsôeôgôuônôdôoôsô ô|ô ô`ô⏱ô️ô ôPôaôcôiôeônôtôeô ôcôoôlôoôcôaôdôoô ôeômô ôOôbôsôeôrôvôaôçôãôoô ôMôéôdôiôcôaô ô(ôCôrôoônômôeôtôrôoô ô1ô2ôhô ôiônôiôcôiôaôdôoô)ô`ô ô|ôô
 ô|ô ô*ô*ôEôrôrôoô ô/ô ôFôaôlôhôaô*ô*ô ô|ô ô�ô�ô ôVôeôrômôeôlôhôoô ô|ô ô5ô ôsôeôgôuônôdôoôsô ô|ô ô`ô❌ô ôSôeôlôeôcôiôoônôeô ôaô ôcôlôaôsôsôiôfôiôcôaôçôãôoô ôdôeô ôrôiôsôcôoô ôoôbôrôiôgôaôtôóôrôiôaô.ô`ô ô|ôô
 ôô
 ô-ô-ô-ôô
@@ -452,7 +453,7 @@
 ô|ô ô*ô*ôAôoô ôcôlôiôcôaôrô ônôoô ôPôEôPô ôeôxôiôbôeô ôeôrôrôoô ônôoô ôcôoônôsôoôlôeô*ô*ô ô|ô ôOô ôaôtôeônôdôiômôeônôtôoô ônôãôoô ôfôoôiô ôiônôiôcôiôaôlôiôzôaôdôoô ô|ô ôVôeôrôiôfôiôqôuôeô ôsôeô ôoô ôaôtôeônôdôiômôeônôtôoô ôeôsôtôáô ônôaô ôcôoôlôuônôaô ô*ôEômô ôCôoônôsôuôlôtôaô*ô ôaônôtôeôsô ôdôeô ôaôbôrôiôrô ôoô ôPôEôPô.ô ô|ôô
 ô|ô ô*ô*ôPôrôoônôtôuôáôrôiôoô ôgôeôrôaôdôoô ôeômô ôPôDôFô ôcôoômô ôcôaômôpôoôsô ôvôaôzôiôoôsô*ô*ô ô|ô ôPôaôcôiôeônôtôeô ôsôeômô ôCôPôFô/ôdôaôdôoôsô ôcôaôdôaôsôtôrôaôiôsô ô|ô ôAôcôeôsôsôeô ôaô ôaôbôaô ô*ôPôaôcôiôeônôtôeôsô*ô,ô ôcôoômôpôlôeôtôeô ôoô ôcôaôdôaôsôtôrôoô ôdôoô ôpôaôcôiôeônôtôeô ôeô ôtôeônôtôeô ôgôeôrôaôrô ônôoôvôaômôeônôtôeô.ô ô|ôô
 ô|ô ô*ô*ôHôiôsôtôóôrôiôcôoô ôeôxôiôbôeô ô"ôNôeônôhôuômô ôaôtôeônôdôiômôeônôtôoô ôrôeôgôiôsôtôrôaôdôoô"ô*ô*ô ô|ô ôCôoônôsôuôlôtôaô ôrôeôcôéômô-ôcôrôiôaôdôaô ôsôeômô ôtôrôiôaôgôeômô ô|ô ôCôeôrôtôiôfôiôqôuôeô-ôsôeô ôdôeô ôrôeôaôlôiôzôaôrô ôaô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô ôaônôtôeôsô ôdôeô ôbôuôsôcôaôrô ôoô ôhôiôsôtôóôrôiôcôoô.ô ô|ôô
-ô|ô ô*ô*ôOô ôcôrôoônôôômôeôtôrôoô ôdôoô ôcôaôrôdô ônôãôoô ôeôsôtôáô ôaôtôuôaôlôiôzôaônôdôoô*ô*ô ô|ô ôIônôtôeôrôvôaôlôoô ôdôeô ôaôtôuôaôlôiôzôaôçôãôoô ôpôaôuôsôaôdôoô ô|ô ôCôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô`ôAôtôuôaôlôiôzôaôrô`ô ônôaô ôbôaôrôrôaô ôsôuôpôeôrôiôoôrô ôoôuô ôrôeôcôaôrôrôeôgôuôeô ôaô ôaôbôaô ô*ôAôtôeônôdôiômôeônôtôoôsô*ô.ô ô|ôô
+ô|ô ô*ô*ôOô ôcôrôoônômôeôtôrôoô ôdôoô ôcôaôrôdô ônôãôoô ôeôsôtôáô ôaôtôuôaôlôiôzôaônôdôoô*ô*ô ô|ô ôIônôtôeôrôvôaôlôoô ôdôeô ôaôtôuôaôlôiôzôaôçôãôoô ôpôaôuôsôaôdôoô ô|ô ôCôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô`ôAôtôuôaôlôiôzôaôrô`ô ônôaô ôbôaôrôrôaô ôsôuôpôeôrôiôoôrô ôoôuô ôrôeôcôaôrôrôeôgôuôeô ôaô ôaôbôaô ô*ôAôtôeônôdôiômôeônôtôoôsô*ô.ô ô|ôô
 ô|ô ô*ô*ôPôaôcôiôeônôtôeô ôaôdôiôcôiôoônôaôdôoô ôaôoô ôKôaônôbôaônô ônôãôoô ôaôpôaôrôeôcôeô*ô*ô ô|ô ôFôiôlôtôrôoô ôdôeô ôsôeôtôoôrô ôaôtôiôvôoô ôdôiôfôeôrôeônôtôeô ôdôoô ôsôeôtôoôrô ôeôsôcôoôlôhôiôdôoô ô|ô ôCôlôiôqôuôeô ôeômô ô*ô*ôTôoôdôoôsô*ô*ô ônôoôsô ôfôiôlôtôrôoôsô ôrôáôpôiôdôoôsô ôdôoô ôKôaônôbôaônô ôpôaôrôaô ôeôxôiôbôiôrô ôtôoôdôoôsô ôoôsô ôsôeôtôoôrôeôsô.ô ô|ôô
 ô|ô ô*ô*ôBôaôrôrôaô ôdôeô ôpôrôoôgôrôeôsôsôoô ôdôoô ôcôaôrôdô ôKôaônôbôaônô ôeôsôtôáô ôvôeôrômôeôlôhôaô*ô*ô ô|ô ôMôeôtôaô ôdôeô ôtôeômôpôoô ôdôoô ôsôeôtôoôrô ôeôxôcôeôdôiôdôaô ô|ô ôRôeôvôiôsôeô ôaô ôcôoônôdôuôtôaô ôcôlôíônôiôcôaô ôdôoô ôpôaôcôiôeônôtôeô ôeô ôaôvôaôlôiôeô ôaôlôtôaô ôoôuô ôtôrôaônôsôfôeôrôêônôcôiôaô ôdôeô ôsôeôtôoôrô.ô ô|ôô
 ô|ô ô*ô*ôHôiôsôtôóôrôiôcôoô ôdôeô ôSôeôsôsôõôeôsô ônôãôoô ôaôpôaôrôeôcôeô ônôoô ômôeônôuô*ô*ô ô|ô ôUôsôuôáôrôiôoô ôsôeômô ôpôeôrôfôiôlô ôMôaôsôtôeôrô ô|ô ôOô ôHôiôsôtôóôrôiôcôoô ôdôeô ôSôeôsôsôõôeôsô ôéô ôeôxôcôlôuôsôiôvôoô ôpôaôrôaô ôoô ôpôeôrôfôiôlô ô*ô*ôMôaôsôtôeôrô*ô*ô.ô ôFôaôçôaô ôlôoôgôiônô ôcôoômô ôuômôaô ôcôoônôtôaô ôMôaôsôtôeôrô.ô ô|ôô
@@ -562,6 +563,39 @@
 ô ô ô-ô ôÁôrôeôaôsô ôvôaôzôiôaôsô ôdôeô ôcôoôlôuônôaôsô ôpôeôrômôiôtôeômô ôoô ôrôáôpôiôdôoô ôcôaôdôaôsôtôrôoô ôdôeô ôaôdômôiôsôsôãôoô ônôoô ôsôeôtôoôrô.ôô
 ô-ô ô*ô*ôRôeôlôaôtôóôrôiôoôsô*ô*ô:ô ôAô ôsôeôsôsôãôoô ôdôeô ôRôeôlôaôtôóôrôiôoôsô ôeô ôEôxôpôoôrôtôaôçôãôoô ôfôoôiô ôrôeôfôiônôaôdôaô ôeô ôpôaôdôrôoônôiôzôaôdôaô.ôô
 ô-ô ô*ô*ôGôeôrôaôdôoôrô ôdôeô ôDôaôdôoôsô ôdôeô ôTôeôsôtôeô:ô*ô*ô ôNôoô ôpôaôiônôeôlô ôMôaôsôtôeôrô ô(ôCôoônôfôiôgôuôrôaôçôõôeôsô)ô,ô ôoô ô"ôGôeôrôaôrô ô3ô0ô0ô ôRôeôgôiôsôtôrôoôsô ôdôeô ôTôeôsôtôeô"ô ôiônôcôlôuôiô ôiônôtôeôrônôaôçôõôeôsô ôeô ôdôiôsôtôrôiôbôuôiô ôoôsô ôpôaôcôiôeônôtôeôsô ôaôuôtôoômôaôtôiôcôaômôeônôtôeô ônôaôsô ôcôoôlôuônôaôsô ôdôoô ôKôaônôbôaônô.ôô
+ô
+ô-ô-ô-ô
+ô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô2ô2ô"ô>ô2ô2ô.ô ô�ô�ô ôAôtôuôaôlôiôzôaôçôõôeôsô ôRôeôcôeônôtôeôsô ô(ôAôgôoôsôtôoô/ô2ô0ô2ô6ô)ô<ô/ôhô2ô>ô
+ô
+ôOô ôHôeôaôlôtôhô ôNôeôxôuôsô ôrôeôcôeôbôeôuô ôuômôaô ôsôéôrôiôeô ôdôeô ômôeôlôhôoôrôiôaôsô ôpôaôrôaô ôoôtôiômôiôzôaôrô ôoô ôfôlôuôxôoô ôdôeô ôtôrôaôbôaôlôhôoô ôeô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôçôaô ôdôaôsô ôiônôfôoôrômôaôçôõôeôsô ôoôpôeôrôaôcôiôoônôaôiôsô:ô
+ô
+ô#ô#ô#ô ô2ô2ô.ô1ô.ô ôCôoônôtôrôoôlôeô ôdôeô ôAôcôeôsôsôoô ôeô ôPôeôrômôiôsôsôõôeôsô ô(ôRôoôlôeôsô)ô
+ôAô ôaôbôaô ôdôeô ô*ô*ôCôoônôfôiôgôuôrôaôçôõôeôsô ôGôlôoôbôaôiôsô*ô*ô ôaôgôoôrôaô ôcôoônôtôaô ôcôoômô ôuômô ôcôoônôtôrôoôlôeô ôdôeô ôaôcôeôsôsôoô ôrôiôgôoôrôoôsôoô:ô
+ô-ô ô*ô*ôMôAôSôTôEôRô:ô*ô*ô ôPôoôsôsôuôiô ôaôcôeôsôsôoô ôiônôtôeôgôrôaôlô ôaô ôtôoôdôoôsô ôoôsô ôpôaôiônôéôiôsô,ô ôiônôcôlôuôiônôdôoô ô"ôGôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôUôsôuôáôrôiôoôsô"ô,ô ô"ôSôiômôuôlôaôçôãôoô ôdôeô ôDôaôdôoôsô"ô ôeô ôdôeômôaôiôsô ôcôoônôfôiôgôuôrôaôçôõôeôsô ôaôvôaônôçôaôdôaôsô ô(ôiôdôeônôtôiôfôiôcôaôdôaôsô ôeômô ôvôeôrômôeôlôhôoô)ô.ô
+ô-ô ô*ô*ôDôeôsôeônôvôoôlôvôeôdôoôrô:ô*ô*ô ôRôeôcôeôbôeô ôaôcôeôsôsôoô ôaôpôeônôaôsô ôaôoôsô ôaôgôrôuôpôaômôeônôtôoôsô ôtôéôcônôiôcôoôsô ôeôsôsôeônôcôiôaôiôsô ô(ôdôeôsôtôaôcôaôdôoôsô ôeômô ôvôeôrômôeôlôhôoô)ô,ô ôpôeôrômôiôtôiônôdôoô ôrôeôaôlôiôzôaôrô ôsôiônôcôrôoônôiôzôaôçôãôoô ôdôeô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ô(ôTôuôrôsôoô)ô ôeô ôoôpôeôrôaôçôõôeôsô ôtôéôcônôiôcôaôsô,ô ômôaônôtôeônôdôoô ôrôeôsôtôrôiôçôõôeôsô ôdôeô ôgôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôeôqôuôiôpôeô.ô
+ô-ô ô*ô*ôDôeômôaôiôsô ôpôeôrôfôiôsô:ô*ô*ô ôAôcôeôsôsôoô ôbôlôoôqôuôeôaôdôoô ôàô ôaôbôaô ôdôeô ôCôoônôfôiôgôuôrôaôçôõôeôsô ôpôaôrôaô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôçôaô ôdôoôsô ôdôaôdôoôsô.ô
+ô
+ô#ô#ô#ô ô2ô2ô.ô2ô.ô ôBôoôtôõôeôsô ôdôeô ôLôiômôpôeôzôaô ôdôeô ôFôiôlôtôrôoôsô ô(ô"ôLôiômôpôaôrô ôFôiôlôtôrôoôsô"ô)ô
+ôVôiôsôaônôdôoô ôaôuômôeônôtôaôrô ôaô ôaôgôiôlôiôdôaôdôeô ôoôpôeôrôaôcôiôoônôaôlô,ô ôfôoôrôaômô ôiônôcôlôuôíôdôoôsô ôbôoôtôõôeôsô ôdôeôdôiôcôaôdôoôsô ôcôoômô ôoô ôíôcôoônôeô ô<ôiô ôcôlôaôsôsô=ô"ôfôaô-ôsôoôlôiôdô ôfôaô-ôfôiôlôtôeôrô-ôcôiôrôcôlôeô-ôxômôaôrôkô"ô>ô<ô/ôiô>ô ô(ôLôiômôpôaôrô ôFôiôlôtôrôoôsô)ô ôeômô ô*ô*ôtôoôdôaôsô ôaôsô ôaôbôaôsô ôpôrôiônôcôiôpôaôiôsô*ô*ô:ô
+ô-ô ô*ô*ôPôaôcôiôeônôtôeôsô,ô ôMôéôdôiôcôoôsô,ô ôAôgôeônôdôaô,ô ôFôaôrômôáôcôiôaô ôeô ôRôeôlôaôtôóôrôiôoôsô.ô*ô*ô
+ô-ô ôUômô ôúônôiôcôoô ôcôlôiôqôuôeô ôzôeôrôaô ôiônôsôtôaônôtôaônôeôaômôeônôtôeô ôtôoôdôaôsô ôaôsô ôbôuôsôcôaôsô ôdôeô ôtôeôxôtôoô ôeô ôrôeôcôoôlôoôcôaô ôoôsô ô*ôcôhôeôcôkôbôoôxôeôsô*ô ôdôeô ôfôiôlôtôrôoô ôeômô ôsôeôuôsô ôeôsôtôaôdôoôsô ôpôaôdôrôãôoô,ô ôpôeôrômôiôtôiônôdôoô ôbôuôsôcôaôsô ôfôlôuôíôdôaôsô.ô
+ô
+ô#ô#ô#ô ô2ô2ô.ô3ô.ô ôBôuôsôcôaô ôdôeô ôPôaôcôiôeônôtôeôsô ôAôpôrôiômôoôrôaôdôaô ô(ôNôoômôeô ôeô ôCôPôFô)ô
+ôOô ôcôoômôpôoônôeônôtôeô ôuônôiôfôiôcôaôdôoô ôdôeô ôbôuôsôcôaô ôdôeô ôpôaôcôiôeônôtôeôsô ô(ôDôrôoôpôdôoôwônô ôdôiônôâômôiôcôoô ôuôtôiôlôiôzôaôdôoô ôeômô ômôoôdôaôiôsô ôdôeô ôaôdômôiôsôsôãôoô,ô ôpôrôeôsôcôrôiôçôãôoô ôeô ôfôiônôaônôcôeôiôrôoô)ô ôfôoôiô ôrôeôeôsôcôrôiôtôoô.ô ôAôgôoôrôaô:ô
+ô-ô ôAô ôpôeôsôqôuôiôsôaô ôpôrôoôcôuôrôaô ônôãôoô ôaôpôeônôaôsô ôpôeôlôoô ôNôoômôeô ôdôoô ôPôaôcôiôeônôtôeô,ô ômôaôsô ôtôaômôbôéômô ôvôeôrôiôfôiôcôaô ôoôcôoôrôrôêônôcôiôaôsô ôdôoô ô*ô*ôCôPôFô*ô*ô.ô
+ô-ô ôOô ô*ô*ôCôPôFô*ô*ô ôéô ôeôxôiôbôiôdôoô ôdôiôrôeôtôaômôeônôtôeô ônôaô ôlôiôsôtôaô ôdôeô ôoôpôçôõôeôsô ô(ôfôoôrômôaôtôoô ôrôeôdôuôzôiôdôoô)ô,ô ôfôaôcôiôlôiôtôaônôdôoô ôaô ôiôdôeônôtôiôfôiôcôaôçôãôoô ôdôeô ôhôoômônôiômôoôsô ônôaô ôhôoôrôaô ôdôoô ôaôtôeônôdôiômôeônôtôoô.ô
+ô
+ô#ô#ô#ô ô2ô2ô.ô4ô.ô ôÍôcôoônôeôsô ôVôiôsôuôaôiôsô ôdôeô ôFôoôrômôaô ôdôeô ôPôaôgôaômôeônôtôoô ô�ô�ô�ô�ô
+ôAô ôiônôtôeôrôfôaôcôeô ôdôaô ôsôeôçôãôoô ôdôeô ôRôeôlôaôtôóôrôiôoôsô ôFôiônôaônôcôeôiôrôoôsô ôfôoôiô ôeônôrôiôqôuôeôcôiôdôaô ôcôoômô ôrôeôpôrôeôsôeônôtôaôçôõôeôsô ôgôrôáôfôiôcôaôsô ô(ôEômôoôjôiôsô)ô:ô
+ô-ô ôPôiôxô ô(ô�ô�ô)ô
+ô-ô ôDôiônôhôeôiôrôoô ô(ô�ô�ô)ô
+ô-ô ôCôaôrôtôãôoô ôdôeô ôCôrôéôdôiôtôoô ô(ô�ô�ô)ô
+ô-ô ôCôaôrôtôãôoô ôdôeô ôDôéôbôiôtôoô ô(ô�ô�ô)ô
+ô-ô ôBôoôlôeôtôoô ô(ô�ô�ô)ô
+ôIôsôsôoô ôrôeôdôuôzô ôoô ôtôeômôpôoô ôdôeô ôrôeôcôoônôhôeôcôiômôeônôtôoô ôvôiôsôuôaôlô ôdôoô ôaôtôeônôdôeônôtôeô ôdôuôrôaônôtôeô ôoô ôfôeôcôhôaômôeônôtôoô ôdôeô ôcôaôiôxôaô.ô
+ô
+ô-ô-ô-ô
 
 ---
 
