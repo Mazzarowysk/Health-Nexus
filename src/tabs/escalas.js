@@ -102,18 +102,18 @@ export function renderSchedulesTab() {
         </button>
       </div>
 
-      <!-- Barra de Filtros e Busca -->
-      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; background: var(--bg-secondary); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
+      <!-- Barra de Filtros e Busca Padronizada -->
+      <div style="display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; background: var(--bg-secondary); padding: 18px 20px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         
-        <!-- Busca -->
-        <div style="flex: 1; min-width: 220px; position: relative;">
-          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
-          <input type="text" id="schedule-search" class="input-field" placeholder="Buscar por nome, CRM/COREN ou setor..." value="${currentSearchTerm}" style="padding-left: 36px; width: 100%;">
+        <!-- Busca por Nome, CRM/COREN ou Setor -->
+        <div style="flex: 1; min-width: 280px; position: relative;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.95rem; pointer-events: none;"></i>
+          <input type="text" id="schedule-search" class="input-field" placeholder="Buscar por nome, CRM/COREN ou setor..." value="${currentSearchTerm}" style="padding-left: 42px; width: 100%; height: 44px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.9rem; box-sizing: border-box;">
         </div>
 
-        <!-- Filtro Data -->
-        <div>
-          <select id="schedule-filter-date" class="input-field" style="min-width: 140px;">
+        <!-- Filtro Período / Data -->
+        <div style="min-width: 160px;">
+          <select id="schedule-filter-date" class="input-field" style="width: 100%; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.9rem; cursor: pointer; box-sizing: border-box;">
             <option value="today" ${currentDateFilter === 'today' ? 'selected' : ''}>📅 Hoje</option>
             <option value="week" ${currentDateFilter === 'week' ? 'selected' : ''}>📆 Esta Semana</option>
             <option value="month" ${currentDateFilter === 'month' ? 'selected' : ''}>🗓️ Este Mês</option>
@@ -122,8 +122,8 @@ export function renderSchedulesTab() {
         </div>
 
         <!-- Filtro Turno -->
-        <div>
-          <select id="schedule-filter-shift" class="input-field" style="min-width: 150px;">
+        <div style="min-width: 170px;">
+          <select id="schedule-filter-shift" class="input-field" style="width: 100%; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.9rem; cursor: pointer; box-sizing: border-box;">
             <option value="all" ${currentShiftFilter === 'all' ? 'selected' : ''}>⏱️ Todos os Turnos</option>
             <option value="Manhã" ${currentShiftFilter === 'Manhã' ? 'selected' : ''}>🌅 Manhã</option>
             <option value="Tarde" ${currentShiftFilter === 'Tarde' ? 'selected' : ''}>☀️ Tarde</option>
