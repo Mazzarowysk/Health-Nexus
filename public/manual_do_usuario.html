@@ -3,1132 +3,1162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual do Usuário - Health Nexus</title>
+  <title>Manual do Usuário Definitivo — Health Nexus (v2.2.0)</title>
+  
+  <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
   <style>
     :root {
-      --bg-base: #06040f;
-      --bg-card: rgba(20,16,36,0.7);
-      --border-soft: rgba(99,102,241,0.18);
-      --border-glow: rgba(99,102,241,0.5);
-      --primary: #6366f1;
-      --accent: #8b5cf6;
-      --cyan: #06b6d4;
-      --text-main: #f8fafc;
+      --bg-primary: #0b0914;
+      --bg-secondary: #120e22;
+      --bg-card: #18142e;
+      --bg-hover: #221c40;
+      --border-color: rgba(139, 92, 246, 0.22);
+      --border-highlight: rgba(139, 92, 246, 0.5);
+      
+      --color-primary: #6366f1;
+      --color-accent: #8b5cf6;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-danger: #ef4444;
+      --color-info: #3b82f6;
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
       --text-muted: #94a3b8;
-      --sidebar-w: 300px;
+      
+      --sidebar-width: 320px;
     }
-
-    * { box-sizing: border-box; }
-
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    html { scroll-behavior: smooth; }
+    
     body {
-      margin: 0; padding: 0;
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      line-height: 1.75;
-      font-size: 15px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.65;
+      font-size: 0.95rem;
       display: flex;
+      flex-direction: column;
       min-height: 100vh;
     }
-
-    /* Blobs */
-    .bg-blob { position: fixed; border-radius: 50%; filter: blur(130px); z-index: 0; opacity: 0.12; pointer-events: none; }
-    .bg-blob-1 { top: -15%; left: -10%; width: 55vw; height: 55vw; background: #6366f1; }
-    .bg-blob-2 { bottom: -10%; right: -10%; width: 45vw; height: 45vw; background: #8b5cf6; }
-
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-w);
-      position: fixed;
-      top: 0; left: 0;
-      height: 100vh;
-      background: rgba(10,8,20,0.8);
-      backdrop-filter: blur(20px);
-      border-right: 1px solid var(--border-soft);
-      overflow-y: auto;
-      padding: 24px 16px;
+    
+    /* Top Header Bar */
+    header {
+      position: sticky;
+      top: 0;
       z-index: 100;
-      scrollbar-width: thin;
-      scrollbar-color: #4f46e5 transparent;
+      background: rgba(11, 9, 20, 0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
     }
-
-    .sidebar-logo {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 28px; padding-bottom: 16px;
-      border-bottom: 1px solid var(--border-soft);
+    
+    .brand-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.25rem; font-weight: 800; color: #fff;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
     }
-    .sidebar-logo i { color: var(--primary); }
-    .sidebar-logo .version { font-size: 0.68rem; background: rgba(99,102,241,0.2); border: 1px solid var(--border-soft); color: #a5b4fc; padding: 2px 7px; border-radius: 10px; margin-left: auto; }
-
-    .toc { list-style: none; padding: 0; margin: 0; }
-    .toc-section { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin: 18px 0 8px 8px; }
-    .toc li a {
-      display: flex; align-items: center; gap: 9px;
-      padding: 9px 12px; border-radius: 8px;
-      color: var(--text-muted); font-size: 0.85rem; font-weight: 500;
-      text-decoration: none; transition: all 0.2s ease;
+    
+    .brand-title span {
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .toc li a i { width: 16px; text-align: center; opacity: 0.7; }
-    .toc li a:hover, .toc li a.active {
-      background: rgba(99,102,241,0.15);
+    
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 460px;
+    }
+    
+    .search-box input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 9px 16px 9px 40px;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    
+    .search-box input:focus {
+      border-color: var(--color-primary);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.3);
+    }
+    
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+    
+    .btn-primary:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
       color: #fff;
     }
-    .toc li a:hover i, .toc li a.active i { opacity: 1; color: var(--primary); }
-
-    /* Main Content */
-    .main-content {
-      margin-left: var(--sidebar-w);
+    
+    /* Layout Container */
+    .app-container {
+      display: flex;
       flex: 1;
-      padding: 60px 72px;
-      max-width: 1180px;
-      position: relative;
-      z-index: 1;
     }
-
-    /* Typography */
-    h1 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 2.6rem; font-weight: 800;
-      margin: 0 0 8px 0;
-      background: linear-gradient(135deg, #fff 0%, #c7d2fe 60%, #818cf8 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    h2 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.65rem; font-weight: 700;
-      color: #fff; margin: 2.8em 0 0.8em;
-      padding-bottom: 0.4em;
-      border-bottom: 1px solid var(--border-soft);
-      display: flex; align-items: center; gap: 12px;
-    }
-    h2 i { color: var(--primary); font-size: 1.1rem; }
-    h3 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.2rem; font-weight: 700;
-      color: #c7d2fe; margin: 2em 0 0.7em;
-    }
-    h4 { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin: 1.5em 0 0.5em; }
-
-    p { color: var(--text-muted); margin: 0 0 1.2em; }
-    p strong { color: #e2e8f0; }
-    ul, ol { color: var(--text-muted); padding-left: 1.6em; margin: 0 0 1.2em; }
-    li { margin-bottom: 0.4em; }
-    li strong { color: #e2e8f0; }
-    a { color: var(--primary); text-decoration: none; }
-    a:hover { color: #818cf8; text-decoration: underline; }
-    hr { border: 0; height: 1px; background: var(--border-soft); margin: 3em 0; }
-
-    /* Hero Banner */
-    .hero-banner {
-      background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.1) 100%);
-      border: 1px solid var(--border-soft);
-      border-radius: 20px;
-      padding: 36px 40px;
-      margin-bottom: 48px;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: -40px; right: -40px;
-      width: 200px; height: 200px;
-      background: radial-gradient(circle, rgba(99,102,241,0.25), transparent 70%);
-      border-radius: 50%;
-    }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(99,102,241,0.2);
-      border: 1px solid rgba(129,140,248,0.4);
-      color: #a5b4fc; font-size: 0.75rem; font-weight: 700;
-      padding: 5px 14px; border-radius: 20px;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 16px;
-    }
-    .hero-desc { font-size: 1rem; color: #94a3b8; margin: 0; max-width: 700px; }
-
-    /* Cards */
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; margin: 24px 0; }
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-soft);
-      border-radius: 14px;
-      padding: 20px 22px;
-      transition: all 0.25s ease;
-    }
-    .card:hover { border-color: rgba(129,140,248,0.4); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-    .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 12px; }
-    .card-icon.purple { background: rgba(99,102,241,0.15); color: #818cf8; }
-    .card-icon.cyan { background: rgba(6,182,212,0.15); color: #06b6d4; }
-    .card-icon.green { background: rgba(16,185,129,0.15); color: #10b981; }
-    .card-icon.amber { background: rgba(245,158,11,0.15); color: #f59e0b; }
-    .card-icon.red { background: rgba(239,68,68,0.15); color: #ef4444; }
-    .card-icon.pink { background: rgba(236,72,153,0.15); color: #ec4899; }
-    .card h4 { margin: 0 0 6px; font-size: 0.95rem; font-weight: 700; color: #e2e8f0; }
-    .card p { margin: 0; font-size: 0.83rem; color: var(--text-muted); }
-
-    /* Badges */
-    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
-    .badge-purple { background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(129,140,248,0.3); }
-    .badge-green { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-    .badge-amber { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
-    .badge-red { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
-    .badge-cyan { background: rgba(6,182,212,0.15); color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
-
-    /* Alert boxes */
-    .alert {
-      border-radius: 12px; padding: 16px 20px;
-      display: flex; gap: 14px; align-items: flex-start;
-      margin: 20px 0; border: 1px solid;
-    }
-    .alert i { font-size: 1.1rem; margin-top: 2px; flex-shrink: 0; }
-    .alert-info { background: rgba(6,182,212,0.08); border-color: rgba(6,182,212,0.3); }
-    .alert-info i { color: #06b6d4; }
-    .alert-warning { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); }
-    .alert-warning i { color: #f59e0b; }
-    .alert-success { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.3); }
-    .alert-success i { color: #10b981; }
-    .alert-danger { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); }
-    .alert-danger i { color: #ef4444; }
-    .alert-body p { margin: 0; font-size: 0.88rem; color: #cbd5e1; }
-    .alert-body strong { color: #f8fafc; }
-
-    /* Tables */
-    table { width: 100%; border-collapse: collapse; margin: 20px 0 28px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-soft); }
-    th { background: rgba(99,102,241,0.12); color: #fff; font-weight: 700; font-family: 'Outfit', sans-serif; font-size: 0.85rem; padding: 13px 18px; text-align: left; border-bottom: 1px solid var(--border-soft); }
-    td { padding: 12px 18px; color: var(--text-muted); font-size: 0.88rem; border-bottom: 1px solid rgba(99,102,241,0.08); }
-    td strong { color: #e2e8f0; }
-    tr:last-child td { border-bottom: none; }
-    tr:nth-child(even) td { background: rgba(0,0,0,0.15); }
-
-    /* Steps */
-    .steps { counter-reset: step; list-style: none; padding: 0; margin: 20px 0; }
-    .steps li {
-      display: flex; gap: 16px; align-items: flex-start;
-      padding: 14px 0; border-bottom: 1px solid var(--border-soft);
-    }
-    .steps li:last-child { border-bottom: none; }
-    .step-num {
-      counter-increment: step;
-      width: 32px; height: 32px; border-radius: 50%;
-      background: rgba(99,102,241,0.2);
-      border: 1px solid rgba(129,140,248,0.4);
-      color: #a5b4fc; font-weight: 700; font-size: 0.85rem;
-      display: flex; align-items: center; justify-content: center;
+    
+    /* Sidebar Navigation */
+    aside {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      padding: 24px 16px;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
       flex-shrink: 0;
     }
-    .step-num::before { content: counter(step); }
-    .step-body strong { color: #e2e8f0; display: block; margin-bottom: 4px; }
-    .step-body span { color: var(--text-muted); font-size: 0.88rem; }
-
-    /* Permissions table color cells */
-    .perm-yes { color: #34d399; font-weight: 700; }
-    .perm-no { color: #f87171; }
-    .perm-partial { color: #fcd34d; }
-
-    /* Triagem colors */
-    .tri-red { background: #dc2626; color: #fff; padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
-    .tri-orange { background: #ea580c; color: #fff; padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
-    .tri-yellow { background: #ca8a04; color: #fff; padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
-    .tri-green { background: #16a34a; color: #fff; padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
-    .tri-blue { background: #2563eb; color: #fff; padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
-
-    /* Flowchart simple */
-    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
-    .flow-box {
-      background: rgba(99,102,241,0.12);
-      border: 1px solid rgba(129,140,248,0.3);
-      border-radius: 10px;
-      padding: 8px 16px;
-      font-size: 0.82rem; font-weight: 600; color: #c7d2fe;
+    
+    aside h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      padding-left: 8px;
     }
-    .flow-arrow { color: #4f46e5; font-size: 1.1rem; }
-
-    /* Code */
+    
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .nav-item a:hover, .nav-item a.active {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      font-weight: 600;
+      border-left: 3px solid var(--color-primary);
+      padding-left: 9px;
+    }
+    
+    .nav-item i {
+      width: 18px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--color-accent);
+    }
+    
+    /* Main Content Area */
+    main {
+      flex: 1;
+      padding: 36px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    section {
+      margin-bottom: 48px;
+      scroll-margin-top: 80px;
+    }
+    
+    h1.doc-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+    
+    .doc-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 32px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    h2 i {
+      color: var(--color-primary);
+    }
+    
+    h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin: 24px 0 12px 0;
+    }
+    
+    p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+    
+    /* Cards & Containers */
+    .glass-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      margin: 18px 0;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    
+    /* Callout Boxes */
+    .callout {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      border: 1px solid transparent;
+    }
+    
+    .callout-info {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+    
+    .callout-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fcd34d;
+    }
+    
+    .callout-tip {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+    
+    .callout i {
+      font-size: 1.2rem;
+      margin-top: 2px;
+    }
+    
+    /* Flowchart Section Styles */
+    .flowchart-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .flowchart-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .flow-filter-btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+    
+    .flow-filter-btn.active, .flow-filter-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
+    
+    .flowchart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .flow-node {
+      background: var(--bg-secondary);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    
+    .flow-node:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-highlight);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+    }
+    
+    .flow-node.core { border-left: 4px solid var(--color-primary); }
+    .flow-node.linked { border-left: 4px solid var(--color-info); }
+    .flow-node.isolated { border-left: 4px solid var(--color-warning); }
+    
+    .flow-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .badge-core { background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4); }
+    .badge-linked { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .badge-isolated { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      background: var(--bg-card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+    
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.88rem;
+    }
+    
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+    }
+    
+    tr:last-child td { border-bottom: none; }
+    
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    /* Code Blocks */
     code {
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid var(--border-soft);
-      color: #38bdf8; border-radius: 5px;
-      padding: 2px 6px; font-size: 0.83em;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #cbd5e1;
     }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .sidebar { display: none; }
-      .main-content { margin-left: 0; padding: 30px 20px; }
+    
+    pre {
+      background: #0f0d1b;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    
+    pre code {
+      background: none;
+      padding: 0;
+      color: #a5b4fc;
+    }
+    
+    /* Print Rules */
+    @media print {
+      header, aside, .flowchart-controls, .search-box { display: none !important; }
+      main { padding: 0 !important; max-width: 100% !important; }
+      body { background: #fff !important; color: #000 !important; }
+      .glass-card, table, .flowchart-container { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; box-shadow: none !important; }
+      th { background: #f0f0f0 !important; color: #000 !important; }
+      h1, h2, h3 { color: #000 !important; }
+      section { page-break-inside: avoid; }
     }
   </style>
 </head>
 <body>
-  <div class="bg-blob bg-blob-1"></div>
-  <div class="bg-blob bg-blob-2"></div>
 
-  <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <div class="sidebar-logo">
-      <i class="fa-solid fa-hospital"></i> Health Nexus
-      <span class="version">v1.0</span>
+  <!-- Top Header Bar -->
+  <header>
+    <a href="#" class="brand-title">
+      <i class="fa-solid fa-hospital" style="color: var(--color-primary);"></i>
+      Health Nexus <span>v2.2 Manual</span>
+    </a>
+    
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="manualSearchInput" placeholder="Buscar no manual (ex: Kanban, Triagem, PEP, Turso, Leitos)..." onkeyup="filterManualSections()">
     </div>
-    <ul class="toc">
-      <li class="toc-section">Introdução</li>
-      <li><a href="#sec-intro"><i class="fa-solid fa-house"></i> Visão Geral & Fluxograma</a></li>
-      <li><a href="#sec-login"><i class="fa-solid fa-right-to-bracket"></i> Login & Acesso</a></li>
-      <li><a href="#sec-perfis"><i class="fa-solid fa-user-shield"></i> Perfis & Permissões</a></li>
-
-      <li class="toc-section">Módulos Principais</li>
-      <li><a href="#sec-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard (KPIs)</a></li>
-      <li><a href="#sec-agenda"><i class="fa-regular fa-calendar-check"></i> Agenda Médica</a></li>
-      <li><a href="#sec-pacientes"><i class="fa-solid fa-user-injured"></i> Gestão de Pacientes</a></li>
-      <li><a href="#sec-atendimentos"><i class="fa-solid fa-stethoscope"></i> Atendimentos & Triagem</a></li>
-      <li><a href="#sec-pep"><i class="fa-solid fa-notes-medical"></i> Prontuário Eletrônico (PEP)</a></li>
-      <li><a href="#sec-leitos"><i class="fa-solid fa-bed-pulse"></i> Controle de Leitos</a></li>
-      <li><a href="#sec-kanban"><i class="fa-solid fa-columns"></i> Kanban de Internação</a></li>
-      <li><a href="#sec-farmacia"><i class="fa-solid fa-pills"></i> Farmácia & OpenFDA</a></li>
-      <li><a href="#sec-escalas"><i class="fa-solid fa-user-clock"></i> Escalas & Plantões</a></li>
-      <li><a href="#sec-estagnacao"><i class="fa-solid fa-triangle-exclamation"></i> Alertas de Estagnação</a></li>
-      <li><a href="#sec-tv"><i class="fa-solid fa-tv"></i> Painel TV (Chamador)</a></li>
-
-      <li class="toc-section">Gestão & Admin</li>
-      <li><a href="#sec-relatorios"><i class="fa-solid fa-file-invoice"></i> Relatórios & Financeiro</a></li>
-      <li><a href="#sec-usuarios"><i class="fa-solid fa-users-gear"></i> Usuários & Auditoria</a></li>
-      <li><a href="#sec-logins"><i class="fa-solid fa-key"></i> Logins Cadastrados</a></li>
-      <li><a href="#sec-atualizacoes"><i class="fa-solid fa-bolt"></i> Atualizações Recentes</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="main-content">
-
-    <!-- HERO -->
-    <div class="hero-banner">
-      <div class="hero-badge"><i class="fa-solid fa-hospital"></i> Plataforma Oficial &bull; Gestão Hospitalar</div>
-      <h1>Manual do Usuário</h1>
-      <p class="hero-desc">
-        Guia completo e operacional do <strong>Health Nexus</strong> — Sistema de Gestão Hospitalar &amp; Prontuário Eletrônico.
-        Cobrindo todos os módulos, fluxos clínicos, modais, permissões e integrações.
-      </p>
+    
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> Imprimir / PDF
+      </button>
+      <a href="index.html" class="btn btn-primary">
+        <i class="fa-solid fa-right-to-bracket"></i> Abrir Sistema
+      </a>
     </div>
+  </header>
 
-    <!-- VISÃO GERAL -->
-    <section id="sec-intro">
-      <h2><i class="fa-solid fa-house"></i> Visão Geral &amp; Fluxograma (12 Abas)</h2>
-      <p>
-        O <strong>Health Nexus</strong> é uma plataforma hospitalar completa, desenvolvida para gestão de pacientes, médicos, enfermeiros, leitos, farmácia, agendamentos e relatórios financeiros — tudo em um único ambiente seguro e integrado.
-      </p>
-
-      <div class="card-grid">
-        <div class="card">
-          <div class="card-icon purple"><i class="fa-solid fa-user-doctor"></i></div>
-          <h4>24 Contas Clínicas</h4>
-          <p>Médicos, Enfermeiros, Administradores e Desenvolvedores cadastrados com perfis de acesso diferenciados.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon cyan"><i class="fa-solid fa-cloud"></i></div>
-          <h4>Nuvem & Offline</h4>
-          <p>Sincronização automática com Turso Cloud DB. Funciona offline com localStorage e sincroniza ao reconectar.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon green"><i class="fa-solid fa-shield-halved"></i></div>
-          <h4>JWT Seguro</h4>
-          <p>Autenticação via token JWT com controle RBAC (Master, Clínico, Dev) e auditoria completa de acessos.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon amber"><i class="fa-solid fa-file-medical"></i></div>
-          <h4>PEP Integrado</h4>
-          <p>Prontuário Eletrônico com método SOAPE, busca CID-10 offline, prescrição em planilha e emissão de PDF.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-          <h4>Alertas em Tempo Real</h4>
-          <p>Timer PS 12h com alertas visuais por cor (azul / amarelo / vermelho). Triagem Manchester automatizada.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon pink"><i class="fa-solid fa-chart-bar"></i></div>
-          <h4>Relatórios & KPIs</h4>
-          <p>5 cards de relatórios com gráficos Chart.js e exportação PDF, XLSX e CSV com dados reais.</p>
-        </div>
-      </div>
-
-      <h3>Módulos do Sistema (12 Abas)</h3>
-      <table>
-        <thead>
-          <tr><th>#</th><th>Módulo</th><th>Funcionalidades Principais</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><strong>1</strong></td><td>🏠 Dashboard</td><td>KPIs gerenciais, gráficos Chart.js, filtros por período</td></tr>
-          <tr><td><strong>2</strong></td><td>📅 Agenda Médica</td><td>Agendamentos, seleção de médico/sala, status em tempo real</td></tr>
-          <tr><td><strong>3</strong></td><td>👤 Pacientes (SUS)</td><td>Admissão 11 campos SUS, CEP automático ViaCEP, lixeira soft-delete</td></tr>
-          <tr><td><strong>4</strong></td><td>🏥 Atendimentos & Triagem</td><td>Fila PS, Triagem Manchester 5 níveis, Kanban de fluxo</td></tr>
-          <tr><td><strong>5</strong></td><td>📋 PEP (SOAPE)</td><td>Prontuário SOAPE, CID-10 offline, prescrição, PDF A4</td></tr>
-          <tr><td><strong>6</strong></td><td>🛏️ Leitos Hospitalares</td><td>Mapa visual tricolor, alocação/alta, higienização automática</td></tr>
-          <tr><td><strong>7</strong></td><td>📊 Kanban Internação</td><td>5 setores, SLAs dinâmicos, timeline de evolução clínica</td></tr>
-          <tr><td><strong>8</strong></td><td>💊 Farmácia & Estoque</td><td>Pesquisa OpenFDA/ANVISA, controle lote/validade, estoque mínimo</td></tr>
-          <tr><td><strong>9</strong></td><td>⏰ Escalas de Trabalho</td><td>Plantões médicos/enfermeiros, turnos, checkboxes de setor</td></tr>
-          <tr><td><strong>10</strong></td><td>⚠️ Alertas Estagnação</td><td>Timer PS 12h tricolor, alertas pulsantes de permanência máxima</td></tr>
-          <tr><td><strong>11</strong></td><td>📺 Painel TV</td><td>Chamador em tela cheia, Web Speech API voz sintetizada</td></tr>
-          <tr><td><strong>12</strong></td><td>📈 Relatórios</td><td>5 cards: Financeiro, Atendimentos, PEP, Leitos, Escalas — export PDF/XLSX/CSV</td></tr>
-        </tbody>
-      </table>
-
-      <h3 style="margin-top: 40px;"><i class="fa-solid fa-project-diagram"></i> Fluxograma Operacional</h3>
-      <div class="card" style="margin-bottom: 24px; padding: 10px; overflow-x: auto; background: #fff;">
-        <div class="mermaid">
-flowchart TD
-    subgraph MOD_AUTH [" 1. Autenticação & Gestão de Acessos (RBAC)"]
-        AUTH_LOGIN["Login JWT com 24 Contas (Médicos, Enfermeiros, Admin, Devs)"]
-        AUTH_RBAC["Controle de Permissões (Master, Clínico, Dev)"]
-        AUTH_PRESERVE["Preservação Inteligente de Usuários em Limpezas"]
-        AUTH_AUDIT["Auditoria de Logins (Últimos 5 / Histórico 100)"]
-    end
-
-    subgraph MOD_DASH [" 2. Dashboard Executivo & KPIs"]
-        DASH_KPI["KPIs Gerenciais em Tempo Real"]
-        DASH_CHARTS["Gráficos Interativos Chart.js (Filtros Clicáveis)"]
-    end
-
-    subgraph MOD_ESCALAS [" 11. Escalas de Trabalho & Plantões (Diferencial)"]
-        ESC_TAB["Sub-abas: Escala de Médicos vs Escala de Enfermeiros"]
-        ESC_SHIFT["Turnos: Manhã (6h), Tarde (6h), Noite (12h), 24h, 12x36"]
-        ESC_SECTOR["Alocação de Setor / Consultório & CRM/COREN"]
-        ESC_TODAY["Garantia de Cobertura de Plantão para HOJE"]
-    end
-
-    subgraph MOD_AGENDA [" 3. Agenda de Consultas"]
-        AG_BOOK["Agendamento de Consultas & Seleção de Médico/Consultório"]
-        AG_KPI["KPI Cards de Status (Confirmado, Atendimento, Concluído)"]
-    end
-
-    subgraph MOD_PACIENTES [" 4. Admissão de Pacientes (SUS)"]
-        PAC_FORM["Admissão 11 Campos SUS + Validação Responsável Legal"]
-        PAC_CEP["Autopreenchimento de Endereço via API ViaCEP"]
-        PAC_SEARCH["Busca Unificada por Nome e CPF"]
-        PAC_TRASH["Lixeira de Pacientes (Soft-Delete & Restauração)"]
-    end
-
-    subgraph MOD_ATEND [" 5. Atendimentos & Triagem Manchester"]
-        TRI_MANCHESTER["Enfermagem: Triagem Manchester (5 Níveis de Risco)"]
-        TRI_QUEUE["Fila PS: Sorting por Prioridade Clínica Automática"]
-    end
-
-    subgraph MOD_TV [" 6. Painel TV (Chamador Inteligente)"]
-        TV_SPEECH["Web Speech API: Anúncio de Paciente por Voz Sintetizada"]
-        TV_DISPLAY["Exibição em Tela Cheia para Sala de Espera"]
-    end
-
-    subgraph MOD_PEP [" 7. Prontuário Eletrônico (PEP SOAP & Planilha)"]
-        PEP_SOAPE["Atendimento Médico: Método SOAPE & CID-10 Offline"]
-        PEP_PRESCR["Prescrição Médica em Planilha + Dose/Via/Frequência"]
-        PEP_ENF["Matriz da Enfermagem: Checagem de Aplicação de Doses"]
-        PEP_PDF["Emissão de PDF A4 Oficial (Receituário & Histórico)"]
-    end
-
-    subgraph MOD_FARMACIA [" 10. Farmácia & Estoque"]
-        FARM_SEARCH["Pesquisa Global de Fármacos (OpenFDA & ANVISA)"]
-        FARM_STOCK["Controle de Lote, Validade e Estoque Mínimo"]
-    end
-
-    subgraph MOD_ESTAG [" 8. Alertas de Estagnação & Timer PS 12h"]
-        EST_TIMER["Timer PS 12h (Azul <10h / Amarelo 10-12h / Vermelho >12h)"]
-        EST_ALERT["Alerta Pulsante de Permanência Máxima Excedida"]
-    end
-
-    subgraph MOD_LEITOS [" 9. Censo Hospitalar & Mapa de Leitos"]
-        BED_MAP["Grid de Leitos Tricolor (Verde=Vago, Vermelho=Ocupado, Amarelo=Higienização)"]
-        BED_CLEAN["Troca Automática do Leito para Higienização pós-alta"]
-    end
-
-    subgraph MOD_KANBAN [" 10. Kanban de Internação & SLAs (5 Setores)"]
-        KANB_COLS["5 Setores: PS (24h), Corredor (1d), Cirúrgica (7d), Médica (10d), UTI (5d)"]
-        KANB_SLA["Indicadores Visuais de SLA (Progresso Verde --> Âmbar --> Roxo)"]
-        KANB_EVOL["Timeline de Evolução Clínica com Timestamp"]
-        KANB_AUDIT["Modal de Auditoria de SLAs & Detalhamento por Ala"]
-    end
-
-    subgraph MOD_REPORTS [" 12. Relatórios & Exportação (5 Cards)"]
-        REP_CARDS["5 Cards: Finanças, Atendimentos, PEP, Leitos e ESCALAS"]
-        REP_EXP["Exportação Relatorial Multiformato: PDF, Excel (XLSX) e CSV"]
-    end
-
-    %% CORRELAÇÕES E FLUXO OPERACIONAL INTEGRADO
-    AUTH_LOGIN --> AUTH_RBAC
-    AUTH_RBAC -->|Médicos & Enfermeiros| ESC_TAB
-    ESC_TAB -->|Profissionais Alocados| ESC_TODAY
+  <div class="app-container">
     
-    PAC_FORM -->|Validação OK| TRI_MANCHESTER
-    AG_BOOK -->|Chegada do Paciente| TRI_MANCHESTER
-    
-    TRI_MANCHESTER -->|Sorting de Risco| TRI_QUEUE
-    TRI_QUEUE -->|Chamada de Paciente| TV_SPEECH
-    TV_SPEECH -->|Encaminhado para Consultório| PEP_SOAPE
-    
-    ESC_TODAY -.->|Atendimento Médico/Enf| PEP_SOAPE
-    PEP_SOAPE --> PEP_PRESCR
-    PEP_PRESCR --> PEP_ENF
-    PEP_ENF -->|Baixa de Insumos| FARM_STOCK
-    
-    PEP_SOAPE -->|Decisão Clínica| DECISION{Decisão Assistencial}
-    
-    DECISION -->|1. Alta Médica| PEP_PDF
-    PEP_PDF --> REP_CARDS
-    
-    DECISION -->|2. Permanência PS| EST_TIMER
-    EST_TIMER -->|Aproximação 12h| EST_ALERT
-    EST_ALERT -->|Necessidade de Internação| BED_MAP
-    
-    DECISION -->|3. Internação Direta| BED_MAP
-    BED_MAP -->|Alocação em Leito Vago| KANB_COLS
-    
-    KANB_COLS --> KANB_SLA
-    KANB_SLA --> KANB_EVOL
-    KANB_EVOL -->|Alta Hospitalar| BED_CLEAN
-    BED_CLEAN -->|Liberação do Leito| BED_MAP
-    
-    %% CONEXÕES DE AUDITORIA E RELATÓRIOS
-    PEP_SOAPE -.-> DASH_KPI
-    KANB_AUDIT -.-> DASH_CHARTS
-    ESC_TAB -.-> REP_CARDS
-    BED_MAP -.-> REP_CARDS
-    REP_CARDS --> REP_EXP
-        </div>
-      </div>
-    </section>
+    <!-- Sidebar Navigation -->
+    <aside>
+      <h3>Navegação do Manual</h3>
+      <ul class="nav-list" id="navList">
+        <li class="nav-item"><a href="#sec-1" class="active"><i class="fa-solid fa-diagram-project"></i> 1. Fluxograma & Arquitetura</a></li>
+        <li class="nav-item"><a href="#sec-2"><i class="fa-solid fa-table-columns"></i> 2. Kanban PS & Cards Interativos</a></li>
+        <li class="nav-item"><a href="#sec-3"><i class="fa-solid fa-file-medical"></i> 3. Prontuário PEP SOAP & PDF</a></li>
+        <li class="nav-item"><a href="#sec-4"><i class="fa-solid fa-window-restore"></i> 4. Guia Completo de Modais</a></li>
+        <li class="nav-item"><a href="#sec-5"><i class="fa-solid fa-users"></i> 5. Gestão de Pacientes</a></li>
+        <li class="nav-item"><a href="#sec-6"><i class="fa-solid fa-user-doctor"></i> 6. Corpo Clínico & Médicos</a></li>
+        <li class="nav-item"><a href="#sec-7"><i class="fa-solid fa-door-open"></i> 7. Consultórios & Salas</a></li>
+        <li class="nav-item"><a href="#sec-8"><i class="fa-solid fa-bed"></i> 8. Mapa de Leitos & Hotelaria</a></li>
+        <li class="nav-item"><a href="#sec-9"><i class="fa-solid fa-calendar-check"></i> 9. Agenda & Escala Médica</a></li>
+        <li class="nav-item"><a href="#sec-10"><i class="fa-solid fa-pills"></i> 10. Farmácia & Dispensação</a></li>
+        <li class="nav-item"><a href="#sec-11"><i class="fa-solid fa-file-invoice-dollar"></i> 11. Faturamento & Guias TISS</a></li>
+        <li class="nav-item"><a href="#sec-12"><i class="fa-solid fa-chart-line"></i> 12. Analytics & Indicadores</a></li>
+        <li class="nav-item"><a href="#sec-13"><i class="fa-solid fa-tv"></i> 13. Painel TV & Chamada de Voz</a></li>
+        <li class="nav-item"><a href="#sec-14"><i class="fa-solid fa-user-shield"></i> 14. Central de Aprovação Master</a></li>
+        <li class="nav-item"><a href="#sec-15"><i class="fa-solid fa-cloud-arrow-up"></i> 15. Configurações & Turso Cloud</a></li>
+        <li class="nav-item"><a href="#sec-16"><i class="fa-solid fa-database"></i> 16. Gerador de Dados de Teste</a></li>
+        <li class="nav-item"><a href="#sec-17"><i class="fa-solid fa-bell"></i> 17. Sistema de Notificações</a></li>
+        <li class="nav-item"><a href="#sec-18"><i class="fa-solid fa-keyboard"></i> 18. Atalhos & Máscaras</a></li>
+        <li class="nav-item"><a href="#sec-19"><i class="fa-solid fa-grid-2"></i> 19. Grade Síncrona do Kanban</a></li>
+        <li class="nav-item"><a href="#sec-20"><i class="fa-solid fa-clock-rotate-left"></i> 20. Auditoria de Sessões Master</a></li>
+        <li class="nav-item"><a href="#sec-21"><i class="fa-solid fa-circle-question"></i> 21. FAQ & Resolução de Erros</a></li>
+      </ul>
+    </aside>
 
-    <hr>
+    <!-- Main Content Document -->
+    <main>
+      
+      <!-- Document Header -->
+      <section style="margin-bottom: 32px;">
+        <h1 class="doc-title">📘 Manual do Usuário & Guia de Arquitetura do Sistema</h1>
+        <p class="doc-subtitle">
+          Documentação unificada e exaustiva do <strong>Health Nexus v2.2.0</strong> (Sistema de Gestão Hospitalar, Prontuário Eletrônico PEP e Plataforma de Internação).
+        </p>
+      </section>
 
-    <!-- LOGIN -->
-    <section id="sec-login">
-      <h2><i class="fa-solid fa-right-to-bracket"></i> Login &amp; Acesso ao Sistema</h2>
+      <!-- SEÇÃO 1: FLUXOGRAMA DO SISTEMA (INTERATIVO) -->
+      <section id="sec-1">
+        <h2><i class="fa-solid fa-diagram-project"></i> 1. Visão Geral & Fluxograma Profissional do Sistema</h2>
+        <p>
+          O <strong>Health Nexus</strong> conecta todos os setores de um complexo hospitalar. Cada componente possui uma função assistencial bem definida, sendo classificado entre <strong>Fluxo Core Assistencial</strong> (cadeia linear de atendimento), <strong>Módulos Atrelados</strong> (serviços dependentes e integrados) e <strong>Módulos Isolados/Autônomos</strong> (ferramentas independentes).
+        </p>
 
-      <div class="alert alert-info">
-        <i class="fa-solid fa-circle-info"></i>
-        <div class="alert-body">
-          <p><strong>URL de Produção:</strong> <a href="https://health-nexus-beryl.vercel.app" target="_blank">health-nexus-beryl.vercel.app</a></p>
-          <p>O sistema autentica via token JWT com fallback automático ao Turso Cloud DB para novos usuários cadastrados.</p>
-        </div>
-      </div>
-
-      <h3>Como Fazer Login</h3>
-      <ol class="steps">
-        <li>
-          <div class="step-num"></div>
-          <div class="step-body">
-            <strong>Acesse o sistema</strong>
-            <span>Abra o navegador e acesse a URL de produção ou localhost:5173.</span>
+        <!-- Dynamic Interactive Flowchart Container -->
+        <div class="flowchart-container">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+            <h3 style="margin:0; font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-sitemap" style="color:var(--color-primary);"></i> Diagrama de Ligações Interativo dos Módulos
+            </h3>
+            <div class="flowchart-controls">
+              <button class="flow-filter-btn active" onclick="filterFlowchart('all')">Ver Todos (17 Módulos)</button>
+              <button class="flow-filter-btn" onclick="filterFlowchart('core')">Fluxo Core Assistencial</button>
+              <button class="flow-filter-btn" onclick="filterFlowchart('linked')">Módulos Atrelados</button>
+              <button class="flow-filter-btn" onclick="filterFlowchart('isolated')">Módulos Isolados</button>
+            </div>
           </div>
-        </li>
-        <li>
-          <div class="step-num"></div>
-          <div class="step-body">
-            <strong>Digite o usuário e senha</strong>
-            <span>Use o formato: <code>@usuario</code> ou somente <code>usuario</code> (sem arroba). A senha diferencia maiúsculas e minúsculas.</span>
+
+          <div class="callout callout-info" style="margin-bottom:20px;">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+              <strong>Instrução Interativa:</strong> Clique em qualquer card de módulo abaixo para destacar suas conexões de entrada/saída, perfis autorizados e regras de dependência no sistema.
+            </div>
           </div>
-        </li>
-        <li>
-          <div class="step-num"></div>
-          <div class="step-body">
-            <strong>Clique em "Entrar"</strong>
-            <span>O sistema verificará no localStorage e, se necessário, consultará o Turso Cloud DB automaticamente.</span>
+
+          <div class="flowchart-grid" id="flowchartGrid">
+            
+            <!-- Core 1 -->
+            <div class="flow-node core" onclick="showModuleDetails('recepcao')" data-cat="core">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-core">Fluxo Core</span>
+                <i class="fa-solid fa-hospital-user" style="color:var(--color-primary); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">1. Recepção & Entrada PS</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Admissão do paciente, cadastro inicial e emissão de senha de atendimento.</p>
+            </div>
+
+            <!-- Core 2 -->
+            <div class="flow-node core" onclick="showModuleDetails('triagem')" data-cat="core">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-core">Fluxo Core</span>
+                <i class="fa-solid fa-stethoscope" style="color:var(--color-primary); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">2. Triagem de Manchester</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Classificação de risco de enfermagem (Vermelho, Laranja, Amarelo, Verde, Azul).</p>
+            </div>
+
+            <!-- Core 3 -->
+            <div class="flow-node core" onclick="showModuleDetails('chamada_tv')" data-cat="core">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-core">Fluxo Core</span>
+                <i class="fa-solid fa-tv" style="color:var(--color-primary); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">3. Painel TV Chamador</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Notificação sonora e síntese de voz em Português para chamada de consultório.</p>
+            </div>
+
+            <!-- Core 4 -->
+            <div class="flow-node core" onclick="showModuleDetails('pep_soap')" data-cat="core">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-core">Fluxo Core</span>
+                <i class="fa-solid fa-notes-medical" style="color:var(--color-primary); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">4. Consultório & PEP SOAP</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atendimento médico, registro SOAP, CID-10 e emissão de laudo em PDF.</p>
+            </div>
+
+            <!-- Core 5 -->
+            <div class="flow-node core" onclick="showModuleDetails('kanban')" data-cat="core">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-core">Fluxo Core</span>
+                <i class="fa-solid fa-table-columns" style="color:var(--color-primary); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">5. Kanban de Internação</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Gestão síncrona 1-para-1 em 5 setores hospitalares com faturamento e SLAs.</p>
+            </div>
+
+            <!-- Core 6 -->
+            <div class="flow-node core" onclick="showModuleDetails('leitos')" data-cat="core">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-core">Fluxo Core</span>
+                <i class="fa-solid fa-bed-pulse" style="color:var(--color-primary); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">6. Mapa de Leitos & Hotelaria</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Controle de ocupação, higienização, manutenção e reserva de leitos em tempo real.</p>
+            </div>
+
+            <!-- Core 7 -->
+            <div class="flow-node core" onclick="showModuleDetails('altas')" data-cat="core">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-core">Fluxo Core</span>
+                <i class="fa-solid fa-person-walking-arrow-right" style="color:var(--color-primary); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">7. Central de Altas</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Desospitalização, orientações pós-alta, liberação de leito e fechamento de prontuário.</p>
+            </div>
+
+            <!-- Core 8 -->
+            <div class="flow-node core" onclick="showModuleDetails('faturamento')" data-cat="core">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-core">Fluxo Core</span>
+                <i class="fa-solid fa-file-invoice-dollar" style="color:var(--color-primary); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">8. Faturamento & Guias TISS</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Auditoria de conta hospitalar, conciliação de procedimentos e baixa financeira.</p>
+            </div>
+
+            <!-- Linked 1 -->
+            <div class="flow-node linked" onclick="showModuleDetails('farmacia')" data-cat="linked">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-linked">Módulo Atrelado</span>
+                <i class="fa-solid fa-pills" style="color:var(--color-info); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Prescrição & Farmácia</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atrelado ao PEP e Leitos. Dispensação e controle de estoque de medicamentos.</p>
+            </div>
+
+            <!-- Linked 2 -->
+            <div class="flow-node linked" onclick="showModuleDetails('exames')" data-cat="linked">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-linked">Módulo Atrelado</span>
+                <i class="fa-solid fa-x-ray" style="color:var(--color-info); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Exames & Laudos</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atrelado ao PEP. Anexação de resultados de imagem e laboratório ao prontuário.</p>
+            </div>
+
+            <!-- Linked 3 -->
+            <div class="flow-node linked" onclick="showModuleDetails('corpo_clinico')" data-cat="linked">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-linked">Módulo Atrelado</span>
+                <i class="fa-solid fa-user-doctor" style="color:var(--color-info); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Corpo Clínico & Escala</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atrelado a Atendimentos e Cirurgias. Vínculo de CRM, especialidade e escalas de plantão.</p>
+            </div>
+
+            <!-- Linked 4 -->
+            <div class="flow-node linked" onclick="showModuleDetails('turso_sync')" data-cat="linked">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-linked">Módulo Atrelado</span>
+                <i class="fa-solid fa-cloud-arrow-up" style="color:var(--color-info); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Turso Cloud Sync</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atrelado a todas as mutações. Sincronização automática do banco local.db com a nuvem LibSQL.</p>
+            </div>
+
+            <!-- Isolated 1 -->
+            <div class="flow-node isolated" onclick="showModuleDetails('configuracoes')" data-cat="isolated">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-isolated">Módulo Isolado</span>
+                <i class="fa-solid fa-sliders" style="color:var(--color-warning); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Configurações Globais</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Módulo administrativo autônomo. Parâmetros do sistema, temas e gestão de usuários.</p>
+            </div>
+
+            <!-- Isolated 2 -->
+            <div class="flow-node isolated" onclick="showModuleDetails('backup_json')" data-cat="isolated">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-isolated">Módulo Isolado</span>
+                <i class="fa-solid fa-file-export" style="color:var(--color-warning); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Backup & Exportação JSON</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Ferramenta autônoma para exportar snapshot de dados e restaurar cópias de segurança.</p>
+            </div>
+
+            <!-- Isolated 3 -->
+            <div class="flow-node isolated" onclick="showModuleDetails('auditoria_master')" data-cat="isolated">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-isolated">Módulo Isolado</span>
+                <i class="fa-solid fa-clock-rotate-left" style="color:var(--color-warning); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Histórico de Sessões Master</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Monitoramento autônomo de logins, IP, user-agent e auditoria de acessos administrativos.</p>
+            </div>
+
+            <!-- Isolated 4 -->
+            <div class="flow-node isolated" onclick="showModuleDetails('simulador_300')" data-cat="isolated">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-isolated">Módulo Isolado</span>
+                <i class="fa-solid fa-database" style="color:var(--color-warning); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Simulador de Dados 300</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Utilitário autônomo para geração e carga de 300 registros fictícios de alta fidelidade.</p>
+            </div>
+
+            <!-- Isolated 5 -->
+            <div class="flow-node isolated" onclick="showModuleDetails('telemedicina')" data-cat="isolated">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <span class="flow-badge badge-isolated">Módulo Isolado</span>
+                <i class="fa-solid fa-headset" style="color:var(--color-warning); font-size:1.2rem;"></i>
+              </div>
+              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Telemedicina Remote</h4>
+              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Plataforma de videoatendimento independente com sincronização opcional via API.</p>
+            </div>
+
           </div>
-        </li>
-        <li>
-          <div class="step-num"></div>
-          <div class="step-body">
-            <strong>Contas "Pendente"</strong>
-            <span>Novos cadastros ficam com status <strong>Pendente</strong> até aprovação pelo Master. O Master deve acessar <em>Gestão de Acessos &amp; Auditoria</em> para ativar.</span>
-          </div>
-        </li>
-      </ol>
-
-      <h3>Criar Nova Conta</h3>
-      <p>Clique em <strong>"Criar conta"</strong> na tela de login e preencha:</p>
-      <ul>
-        <li><strong>Nome Completo</strong> — Nome do profissional</li>
-        <li><strong>Perfil / Função</strong> — Médico, Enfermeiro, Recepcionista, Farmacêutico, etc.</li>
-        <li><strong>Usuário (Login)</strong> — Nome de usuário único (ex: <code>drjoao</code>)</li>
-        <li><strong>Senha</strong> — Mínimo 6 caracteres</li>
-        <li><strong>Chave Master (Opcional)</strong> — Se possuir a chave mestra, a conta fica <em>Ativa</em> imediatamente</li>
-      </ul>
-
-      <div class="alert alert-warning">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <div class="alert-body">
-          <p><strong>Atenção:</strong> Sem a Chave Master, toda nova conta fica com status <strong>Pendente de Aprovação</strong> e não consegue acessar o sistema até ser aprovada pelo usuário Master.</p>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <hr>
+      <!-- SEÇÃO 2: KANBAN & CARDS INTERATIVOS -->
+      <section id="sec-2">
+        <h2><i class="fa-solid fa-table-columns"></i> 2. Central de Atendimentos & Cards Interativos do Kanban</h2>
+        <p>
+          O <strong>Kanban de Internação</strong> organiza a permanência do paciente em 5 setores (Pronto Socorro, Corredor de Internação, Clínica Cirúrgica, Clínica Médica e UTI). No topo da aba, encontram-se os <strong>Cards Métricos Interativos</strong>.
+        </p>
 
-    <!-- PERFIS -->
-    <section id="sec-perfis">
-      <h2><i class="fa-solid fa-user-shield"></i> Perfis &amp; Permissões (RBAC)</h2>
-      <p>O sistema implementa controle de acesso baseado em roles (RBAC). Cada perfil tem permissões específicas:</p>
-
-      <table>
-        <thead>
-          <tr><th>Perfil</th><th>Dashboard</th><th>PEP</th><th>Farmácia</th><th>Relatórios</th><th>Gestão Usuários</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Master / Admin</strong></td>
-            <td class="perm-yes">✅ Total</td><td class="perm-yes">✅ Total</td>
-            <td class="perm-yes">✅ Total</td><td class="perm-yes">✅ Total</td>
-            <td class="perm-yes">✅ Total</td>
-          </tr>
-          <tr>
-            <td><strong>Médico</strong></td>
-            <td class="perm-yes">✅</td><td class="perm-yes">✅ Criar/Editar</td>
-            <td class="perm-partial">⚠️ Leitura</td><td class="perm-partial">⚠️ Parcial</td>
-            <td class="perm-no">❌</td>
-          </tr>
-          <tr>
-            <td><strong>Enfermeiro</strong></td>
-            <td class="perm-yes">✅</td><td class="perm-partial">⚠️ Enfermagem</td>
-            <td class="perm-yes">✅</td><td class="perm-partial">⚠️ Parcial</td>
-            <td class="perm-no">❌</td>
-          </tr>
-          <tr>
-            <td><strong>Recepcionista</strong></td>
-            <td class="perm-partial">⚠️ KPIs</td><td class="perm-no">❌</td>
-            <td class="perm-no">❌</td><td class="perm-partial">⚠️ Parcial</td>
-            <td class="perm-no">❌</td>
-          </tr>
-          <tr>
-            <td><strong>Desenvolvedor</strong></td>
-            <td class="perm-yes">✅ Total</td><td class="perm-yes">✅ Total</td>
-            <td class="perm-yes">✅ Total</td><td class="perm-yes">✅ Total</td>
-            <td class="perm-yes">✅ Total</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <hr>
-
-    <!-- DASHBOARD -->
-    <section id="sec-dashboard">
-      <h2><i class="fa-solid fa-chart-line"></i> Dashboard Executivo (KPIs)</h2>
-      <p>A tela inicial do sistema exibe indicadores gerenciais em tempo real com atualização automática.</p>
-
-      <h3>KPIs Disponíveis</h3>
-      <ul>
-        <li><strong>Total de Pacientes</strong> — Cadastros ativos no sistema</li>
-        <li><strong>Atendimentos Hoje</strong> — Consultas e atendimentos do dia</li>
-        <li><strong>Leitos Ocupados</strong> — Taxa de ocupação hospitalar em %</li>
-        <li><strong>Receita do Mês</strong> — Faturamento consolidado em R$</li>
-        <li><strong>Médicos em Turno</strong> — Escalas ativas para hoje</li>
-        <li><strong>Alertas Críticos</strong> — Pacientes com permanência PS &gt; 12h</li>
-      </ul>
-
-      <h3>Gráficos Interativos (Chart.js)</h3>
-      <ul>
-        <li><strong>Linha:</strong> Evolução de atendimentos nos últimos 7 dias</li>
-        <li><strong>Donut:</strong> Distribuição por especialidade médica</li>
-        <li><strong>Barras:</strong> Faturamento mensal comparativo</li>
-        <li><strong>Radar:</strong> Ocupação por setor hospitalar</li>
-      </ul>
-
-      <div class="alert alert-success">
-        <i class="fa-solid fa-circle-check"></i>
-        <div class="alert-body">
-          <p><strong>Dica:</strong> Clique nos KPI cards para navegar diretamente ao módulo correspondente. Os gráficos são clicáveis e funcionam como filtros ativos.</p>
+        <div class="glass-card">
+          <h3 style="color:#818cf8; margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Interações com os Cards Métricos</h3>
+          <p>Todos os cards analíticos do topo do Kanban reagem ao clique do usuário para filtragem instantânea e abertura de modais:</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Card Métrico</th>
+                <th>Elemento Clicável</th>
+                <th>Ação Executada no Sistema</th>
+                <th>Objetivo Operacional</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Distribuição por Setor</strong></td>
+                <td>Fatia do Gráfico Donut</td>
+                <td>Filtra a grade Kanban para exibir apenas a coluna do setor clicado.</td>
+                <td>Foco imediato na ocupação de um setor específico (ex: UTI).</td>
+              </tr>
+              <tr>
+                <td><strong>Distribuição por Setor</strong></td>
+                <td>Número Central ("Pacientes")</td>
+                <td>Abre o <strong>Modal de Detalhamento por Setor</strong> com a lista completa por leito.</td>
+                <td>Visão panorâmica detalhada de nomes, leitos e setores.</td>
+              </tr>
+              <tr>
+                <td><strong>Metas de Tempo (SLA)</strong></td>
+                <td>Fatia Verde, Amarela ou Vermelha</td>
+                <td>Filtra a tela exibindo apenas pacientes naquele status de SLA (ex: Atrasados).</td>
+                <td>Priorização rápida de pacientes com estouro de meta.</td>
+              </tr>
+              <tr>
+                <td><strong>Metas de Tempo (SLA)</strong></td>
+                <td>Percentual Central / Cabeçalho</td>
+                <td>Abre o <strong>Modal de Auditoria de SLAs & Permanência</strong>.</td>
+                <td>Auditoria gerencial de gargalos e tempos decorridos.</td>
+              </tr>
+              <tr>
+                <td><strong>Funil da Jornada Hospitalar</strong></td>
+                <td>Barras Horizontais dos Setores</td>
+                <td>Ativa a filtragem rápida da coluna do setor selecionado.</td>
+                <td>Identificação de pontos de retenção no fluxo.</td>
+              </tr>
+              <tr>
+                <td><strong>Badge de Filtro Ativo</strong></td>
+                <td>Botão "X" (Limpar Filtro)</td>
+                <td>Reseta todos os filtros e reexibe todas as 5 colunas lado a lado.</td>
+                <td>Retorno rápido à visualização completa.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <hr>
+      <!-- SEÇÃO 3: PEP SOAP -->
+      <section id="sec-3">
+        <h2><i class="fa-solid fa-file-medical"></i> 3. Prontuário Eletrônico do Paciente (PEP — Método SOAP)</h2>
+        <p>
+          O PEP adota a metodologia internacional <strong>SOAP</strong> (Subjetivo, Objetivo, Avaliação, Plano) para padronização de registros clínicos e segurança do paciente.
+        </p>
 
-    <!-- AGENDA -->
-    <section id="sec-agenda">
-      <h2><i class="fa-regular fa-calendar-check"></i> Agenda Médica</h2>
-      <p>Módulo de agendamento de consultas com seleção de médico, consultório e horário.</p>
-
-      <h3>Como Agendar uma Consulta</h3>
-      <ol class="steps">
-        <li><div class="step-num"></div><div class="step-body"><strong>Clique em "Nova Consulta"</strong><span>Abre o modal de cadastro de agendamento.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Selecione o Paciente</strong><span>Busque pelo nome ou CPF do paciente cadastrado.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Escolha o Médico e Consultório</strong><span>O sistema filtra os médicos disponíveis por especialidade.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Defina Data e Horário</strong><span>Selecione o slot disponível no calendário.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Confirme o Agendamento</strong><span>O status muda para "Confirmado" e aparece nos KPIs do dashboard.</span></div></li>
-      </ol>
-
-      <h3>Status de Agendamentos</h3>
-      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0 20px;">
-        <span class="badge badge-green"><i class="fa-solid fa-circle"></i> Confirmado</span>
-        <span class="badge badge-amber"><i class="fa-solid fa-circle"></i> Em Atendimento</span>
-        <span class="badge badge-cyan"><i class="fa-solid fa-circle"></i> Aguardando</span>
-        <span class="badge badge-purple"><i class="fa-solid fa-circle"></i> Concluído</span>
-        <span class="badge badge-red"><i class="fa-solid fa-circle"></i> Cancelado</span>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- PACIENTES -->
-    <section id="sec-pacientes">
-      <h2><i class="fa-solid fa-user-injured"></i> Gestão de Pacientes</h2>
-      <p>Cadastro completo de pacientes com padrão SUS, preenchimento automático de endereço via ViaCEP e gestão de prontuários.</p>
-
-      <h3>Campos do Cadastro SUS</h3>
-      <table>
-        <thead><tr><th>Campo</th><th>Obrigatório</th><th>Descrição</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Nome Completo</strong></td><td class="perm-yes">✅</td><td>Nome civil do paciente</td></tr>
-          <tr><td><strong>CPF</strong></td><td class="perm-yes">✅</td><td>CPF com validação de formato</td></tr>
-          <tr><td><strong>Data de Nascimento</strong></td><td class="perm-yes">✅</td><td>Calcula idade automaticamente</td></tr>
-          <tr><td><strong>Responsável Legal</strong></td><td class="perm-partial">⚠️ Menor</td><td>Obrigatório para menores de 18 anos</td></tr>
-          <tr><td><strong>CEP</strong></td><td class="perm-partial">⚠️</td><td>Preenche endereço automaticamente via ViaCEP</td></tr>
-          <tr><td><strong>Plano de Saúde</strong></td><td class="perm-no">Opcional</td><td>Convênio ou SUS</td></tr>
-          <tr><td><strong>Alergias</strong></td><td class="perm-no">Opcional</td><td>Lista de alergias medicamentosas</td></tr>
-          <tr><td><strong>Histórico</strong></td><td class="perm-no">Opcional</td><td>Condições crônicas e observações</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Funcionalidades Especiais</h3>
-      <ul>
-        <li><strong>Busca Unificada:</strong> Pesquise por nome, CPF ou número de prontuário simultaneamente</li>
-        <li><strong>Soft-Delete:</strong> Exclusão com lixeira — o paciente pode ser restaurado em até 30 dias</li>
-        <li><strong>Linha do Tempo:</strong> Histórico completo de consultas, internações e prescrições</li>
-        <li><strong>QR Code:</strong> Identificação rápida do paciente por QR Code impresso</li>
-      </ul>
-    </section>
-
-    <hr>
-
-    <!-- ATENDIMENTOS -->
-    <section id="sec-atendimentos">
-      <h2><i class="fa-solid fa-stethoscope"></i> Atendimentos &amp; Triagem Manchester</h2>
-      <p>Sistema completo de triagem com classificação de risco por cores segundo o Protocolo Manchester.</p>
-
-      <h3>Protocolo de Triagem Manchester</h3>
-      <table>
-        <thead><tr><th>Cor</th><th>Prioridade</th><th>Tempo Máximo de Atendimento</th><th>Exemplos</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><span class="tri-red">Vermelho</span></td>
-            <td><strong>Emergência</strong></td>
-            <td>Imediato</td>
-            <td>PCR, AVC com déficit, politrauma grave</td>
-          </tr>
-          <tr>
-            <td><span class="tri-orange">Laranja</span></td>
-            <td><strong>Muito Urgente</strong></td>
-            <td>10 minutos</td>
-            <td>Dispneia severa, dor torácica, fratura exposta</td>
-          </tr>
-          <tr>
-            <td><span class="tri-yellow">Amarelo</span></td>
-            <td><strong>Urgente</strong></td>
-            <td>60 minutos</td>
-            <td>Febre alta, dor abdominal moderada, crise hipertensiva</td>
-          </tr>
-          <tr>
-            <td><span class="tri-green">Verde</span></td>
-            <td><strong>Pouco Urgente</strong></td>
-            <td>120 minutos</td>
-            <td>Gripe, dor leve, ferida pequena</td>
-          </tr>
-          <tr>
-            <td><span class="tri-blue">Azul</span></td>
-            <td><strong>Não Urgente</strong></td>
-            <td>240 minutos</td>
-            <td>Consulta de rotina, atestado, renovação de receita</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>Fluxo de Atendimento</h3>
-      <div class="flow">
-        <div class="flow-box">Chegada do Paciente</div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-box">Triagem Manchester</div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-box">Fila PS (por prioridade)</div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-box">Chamada no Painel TV</div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-box">Atendimento Médico (PEP)</div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-box">Alta / Internação</div>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- PEP -->
-    <section id="sec-pep">
-      <h2><i class="fa-solid fa-notes-medical"></i> Prontuário Eletrônico (PEP)</h2>
-      <p>O PEP segue o método <strong>SOAPE</strong> para documentação do atendimento médico.</p>
-
-      <h3>Estrutura SOAPE</h3>
-      <table>
-        <thead><tr><th>Letra</th><th>Seção</th><th>Conteúdo</th></tr></thead>
-        <tbody>
-          <tr><td><strong>S</strong></td><td>Subjetivo</td><td>Queixa principal relatada pelo paciente</td></tr>
-          <tr><td><strong>O</strong></td><td>Objetivo</td><td>Exame físico, sinais vitais, resultados de exames</td></tr>
-          <tr><td><strong>A</strong></td><td>Avaliação</td><td>Diagnóstico (CID-10), hipóteses diagnósticas</td></tr>
-          <tr><td><strong>P</strong></td><td>Plano</td><td>Prescrição medicamentosa, solicitação de exames, conduta</td></tr>
-          <tr><td><strong>E</strong></td><td>Evolução</td><td>Registro de evolução clínica ao longo do internamento</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Funcionalidades do PEP</h3>
-      <ul>
-        <li><strong>Busca CID-10 Offline:</strong> Base completa de doenças disponível sem internet</li>
-        <li><strong>Prescrição em Planilha:</strong> Medicamento, dose, via de administração e frequência</li>
-        <li><strong>Matriz da Enfermagem:</strong> Checklist de aplicação de doses pela equipe de enfermagem</li>
-        <li><strong>Emissão de PDF A4:</strong> Receituário e histórico clínico em formato oficial</li>
-        <li><strong>Assinatura Digital:</strong> CRM do médico e timestamp registrado automaticamente</li>
-      </ul>
-
-      <div class="alert alert-warning">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <div class="alert-body">
-          <p><strong>Importante:</strong> Apenas médicos com CRM cadastrado e status <em>Ativo</em> podem criar e assinar prontuários eletrônicos.</p>
+        <div class="glass-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Componente SOAP</th>
+                <th>Finalidade Clínica</th>
+                <th>Exemplo de Preenchimento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>S — Subjetivo</strong></td>
+                <td>Anamnese, queixa principal e histórico relatado.</td>
+                <td><em>"Paciente refere precordialgia intensa há 2h com irradiação."</em></td>
+              </tr>
+              <tr>
+                <td><strong>O — Objetivo</strong></td>
+                <td>Exame físico, ausculta e sinais vitais.</td>
+                <td><em>"PA: 140/90 mmHg, FC: 96 bpm, SpO2: 97%. ECG com supradesnivelamento ST."</em></td>
+              </tr>
+              <tr>
+                <td><strong>A — Avaliação</strong></td>
+                <td>Hipótese diagnóstica & Código CID-10.</td>
+                <td><em>"Síndrome Coronariana Aguda sem supra de ST (CID-10 I20.0)."</em></td>
+              </tr>
+              <tr>
+                <td><strong>P — Plano</strong></td>
+                <td>Conduta terapêutica, prescrição e encaminhamento.</td>
+                <td><em>"Solicitado ECG 12 derivações, AAS 300mg v.o., vaga na UTI Coronariana."</em></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <hr>
+      <!-- SEÇÕES CONTINUAÇÃO (4 a 21) -->
+      <section id="sec-4">
+        <h2><i class="fa-solid fa-window-restore"></i> 4. Guia Completo de Todos os Modais do Sistema</h2>
+        <p>O Health Nexus conta com modais padronizados de alto contraste, fechamento via tecla <code>ESC</code> e validação em tempo real de formulários.</p>
+        <ul>
+          <li><strong>Modal de Triagem Manchester:</strong> Registro de sinais vitais (PA, FC, Temp, SpO2, Dor) e cálculo automático da cor de risco.</li>
+          <li><strong>Modal de Admissão de Internação:</strong> Vinculação de paciente a leito, setor e médico responsável.</li>
+          <li><strong>Modal de Prescrição Médica:</strong> Seleção de medicamentos, dosagens e horários de administração.</li>
+          <li><strong>Modal de Baixa Financeira:</strong> Quitação manual de parcelas e conciliação de faturas hospitalares.</li>
+          <li><strong>Modal de Aprovação Master:</strong> Autorização de novos perfis de acesso pelo administrador.</li>
+        </ul>
+      </section>
 
-    <!-- LEITOS -->
-    <section id="sec-leitos">
-      <h2><i class="fa-solid fa-bed-pulse"></i> Controle de Leitos Hospitalares</h2>
-      <p>Mapa visual de todos os leitos do hospital com status em tempo real e alocação de pacientes.</p>
+      <section id="sec-5">
+        <h2><i class="fa-solid fa-users"></i> 5. Gestão de Pacientes & Histórico Unificado</h2>
+        <p>Cadastro único do paciente contendo CPF, CNS (Cartão SUS), endereço autocompletado por CEP via API ViaCEP, contatos de emergência e prontuário histórico unificado.</p>
+      </section>
 
-      <h3>Status dos Leitos (Tricolor)</h3>
-      <div style="display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0 24px;">
-        <div style="display: flex; align-items: center; gap: 8px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); padding: 10px 18px; border-radius: 10px;">
-          <i class="fa-solid fa-square" style="color: #10b981;"></i>
-          <div><strong style="color: #34d399;">Verde</strong><br><span style="font-size: 0.78rem; color: #94a3b8;">Vago / Disponível</span></div>
+      <section id="sec-6">
+        <h2><i class="fa-solid fa-user-doctor"></i> 6. Gestão do Corpo Clínico & Médicos</h2>
+        <p>Controle de profissionais com registro de CRM, UF, especialidades médicas, escalas de plantão e limite de atendimentos simultâneos.</p>
+      </section>
+
+      <section id="sec-7">
+        <h2><i class="fa-solid fa-door-open"></i> 7. Gestão de Consultórios & Salas</h2>
+        <p>Mapeamento físico das salas de recepção, consultórios de triagem, salas de medicação rápida e leitos de observação.</p>
+      </section>
+
+      <section id="sec-8">
+        <h2><i class="fa-solid fa-bed"></i> 8. Mapa de Leitos & Hotelaria Hospitalar</h2>
+        <p>Painel visual com estado em tempo real dos leitos: Livre (Verde), Ocupado (Vermelho), Higienização (Amarelo), Manutenção (Cinza) ou Reservado (Azul).</p>
+      </section>
+
+      <section id="sec-9">
+        <h2><i class="fa-solid fa-calendar-check"></i> 9. Agenda, Escala Médica & Agendamentos</h2>
+        <p>Gerenciamento de consultas eletivas, retornos e escalas de plantonistas por setor. A alocação agora conta com uma listagem de checking box para selecionar precisamente em qual Setor / Consultório o profissional deverá ser alocado.</p>
+      </section>
+
+      <section id="sec-10">
+        <h2><i class="fa-solid fa-pills"></i> 10. Farmácia & Dispensação de Medicamentos</h2>
+        <p>Controle de estoque mínimo, lotes, validade e baixa automatizada após confirmação da enfermagem.</p>
+      </section>
+
+      <section id="sec-11">
+        <h2><i class="fa-solid fa-file-invoice-dollar"></i> 11. Faturamento & Guias TISS</h2>
+        <p>Geração de guias TISS para operadoras de plano de saúde, fechamento de lotes e baixa manual de títulos financeiros.</p>
+      </section>
+
+      <section id="sec-12">
+        <h2><i class="fa-solid fa-chart-line"></i> 12. Analytics & Indicadores Hospitalares</h2>
+        <p>Gráficos interativos em Chart.js retratando taxa de ocupação de leitos, tempo médio de permanência (LOS) e resolutividade de alta.</p>
+      </section>
+
+      <section id="sec-13">
+        <h2><i class="fa-solid fa-tv"></i> 13. Painel TV Chamador & Sintetizador de Voz</h2>
+        <p>Módulo de chamada em tela cheia para recepção com alertas sonoros e voz sintetizada via Web Speech API em Português do Brasil.</p>
+      </section>
+
+      <section id="sec-14">
+        <h2><i class="fa-solid fa-user-shield"></i> 14. Central de Aprovação Master & Permissões</h2>
+        <p>Painel de segurança exclusivo do Administrador Master para liberação de novos cadastros de usuários e concessão de privilégios.</p>
+      </section>
+
+      <section id="sec-15">
+        <h2><i class="fa-solid fa-cloud-arrow-up"></i> 15. Configurações & Sincronização Turso Cloud</h2>
+        <p>Integração híbrida entre banco SQLite local (<code>local.db</code>) e nuvem Turso LibSQL via WebSockets/REST API para alta disponibilidade e sincronismo síncrono.</p>
+      </section>
+
+      <section id="sec-16">
+        <h2><i class="fa-solid fa-database"></i> 16. Gerador de Dados de Teste (Simulador 300)</h2>
+        <p>Ferramenta de estresse e simulação que popula o banco com 300 pacientes, prontuários e movimentações reais em 1 clique.</p>
+      </section>
+
+      <section id="sec-17">
+        <h2><i class="fa-solid fa-bell"></i> 17. Sistema de Avisos, Notificações & Toasts</h2>
+        <p>Toasts não bloqueantes no canto da tela informando mutações de banco, alertas de atraso de SLA e confirmações de ações.</p>
+      </section>
+
+      <section id="sec-18">
+        <h2><i class="fa-solid fa-keyboard"></i> 18. Máscaras de Entrada & Teclas de Atalho</h2>
+        <p>Máscaras automáticas para CPF (<code>000.000.000-00</code>), CEP (<code>00000-000</code>), Telefone e PA. Atalhos de teclado para navegação rápida.</p>
+      </section>
+
+      <section id="sec-19">
+        <h2><i class="fa-solid fa-grid-2"></i> 19. Grade Síncrona 1-para-1 do Kanban</h2>
+        <p>Alinhamento físico de 5 colunas diretamente abaixo dos cards métricos do setor para eliminação de rolagem horizontal desordenada.</p>
+      </section>
+
+      <section id="sec-20">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> 20. Auditoria de Sessões de Usuários (Master)</h2>
+        <p>Histórico completo de auditoria rastreando início/fim de sessões, endereço IP, navegador e mutações realizadas por cada operador.</p>
+      </section>
+
+      <section id="sec-21">
+        <h2><i class="fa-solid fa-circle-question"></i> 21. FAQ & Diagnóstico de Erros Comuns</h2>
+        <div class="glass-card">
+          <h4>P: O gráfico do Kanban não carrega ao abrir a aba. O que fazer?</h4>
+          <p>R: Certifique-se de que a biblioteca Chart.js está carregada. O sistema possui fallback automático. Clique em "Todos os Setores" para forçar o recarregamento.</p>
+
+          <h4 style="margin-top:16px;">P: Como restaurar um backup antigo em JSON?</h4>
+          <p>R: Vá na aba <strong>Configurações</strong>, clique em "Importar Backup JSON" e selecione o arquivo baixado anteriormente. O banco SQLite local será atualizado instantaneamente.</p>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 10px 18px; border-radius: 10px;">
-          <i class="fa-solid fa-square" style="color: #ef4444;"></i>
-          <div><strong style="color: #fca5a5;">Vermelho</strong><br><span style="font-size: 0.78rem; color: #94a3b8;">Ocupado</span></div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); padding: 10px 18px; border-radius: 10px;">
-          <i class="fa-solid fa-square" style="color: #f59e0b;"></i>
-          <div><strong style="color: #fcd34d;">Amarelo</strong><br><span style="font-size: 0.78rem; color: #94a3b8;">Em Higienização</span></div>
-        </div>
-      </div>
+      </section>
 
-      <p>Após a alta de um paciente, o leito automaticamente vai para <strong>Higienização</strong> e só retorna para <strong>Vago</strong> após confirmação da equipe de limpeza.</p>
-    </section>
+    </main>
+  </div>
 
-    <hr>
-
-    <!-- KANBAN -->
-    <section id="sec-kanban">
-      <h2><i class="fa-solid fa-columns"></i> Kanban de Internação</h2>
-      <p>Gestão visual de pacientes internados distribuídos em 5 setores hospitalares com SLAs dinâmicos.</p>
-
-      <h3>Setores do Kanban</h3>
-      <table>
-        <thead><tr><th>Setor</th><th>SLA Padrão</th><th>Cor</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Pronto-Socorro (PS)</strong></td><td>24 horas</td><td><span class="badge badge-red">Vermelho</span></td></tr>
-          <tr><td><strong>Corredor (Obs.)</strong></td><td>1 dia</td><td><span class="badge badge-amber">Âmbar</span></td></tr>
-          <tr><td><strong>Centro Cirúrgico</strong></td><td>7 dias</td><td><span class="badge badge-purple">Roxo</span></td></tr>
-          <tr><td><strong>Clínica Médica</strong></td><td>10 dias</td><td><span class="badge badge-cyan">Ciano</span></td></tr>
-          <tr><td><strong>UTI Geral</strong></td><td>5 dias</td><td><span class="badge badge-red">Crítico</span></td></tr>
-        </tbody>
-      </table>
-
-      <p>Os cartões do Kanban exibem nome do paciente, tempo de internação, médico responsável e alerta visual quando o SLA está sendo excedido.</p>
-    </section>
-
-    <hr>
-
-    <!-- FARMACIA -->
-    <section id="sec-farmacia">
-      <h2><i class="fa-solid fa-pills"></i> Farmácia &amp; Estoque</h2>
-      <p>Módulo de gestão de medicamentos com integração à API OpenFDA (EUA) e base ANVISA para busca de informações farmacológicas.</p>
-
-      <h3>Funcionalidades</h3>
-      <ul>
-        <li><strong>Pesquisa Global:</strong> Busque medicamentos por nome, princípio ativo ou código ANVISA/NDC</li>
-        <li><strong>Dados OpenFDA:</strong> Bula, contraindicações, dosagem e efeitos adversos em tempo real</li>
-        <li><strong>Controle de Estoque:</strong> Quantidade em estoque, lote, data de validade e estoque mínimo</li>
-        <li><strong>Alertas de Vencimento:</strong> Medicamentos com validade próxima são destacados em amarelo/vermelho</li>
-        <li><strong>Movimentação:</strong> Registro de entradas (compras) e saídas (dispensação)</li>
-      </ul>
-
-      <div class="alert alert-danger">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <div class="alert-body">
-          <p><strong>Alerta:</strong> Quando o estoque de um medicamento atinge o <strong>estoque mínimo configurado</strong>, o sistema exibe um alerta vermelho pulsante no card do medicamento e na aba da farmácia.</p>
-        </div>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- ESCALAS -->
-    <section id="sec-escalas">
-      <h2><i class="fa-solid fa-user-clock"></i> Escalas de Trabalho &amp; Plantões</h2>
-      <p>Gestão completa de turnos e plantões para médicos e enfermeiros com alocação por setor/consultório.</p>
-
-      <h3>Como Cadastrar um Plantão</h3>
-      <ol class="steps">
-        <li><div class="step-num"></div><div class="step-body"><strong>Clique em "Novo Plantão"</strong><span>O modal de cadastro de escala será aberto com glassmorphism escuro.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Selecione a Categoria</strong><span>Escolha entre Médico ou Enfermeiro usando os radio buttons.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Selecione o Profissional</strong><span>A lista de profissionais filtra automaticamente pela categoria selecionada.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Defina Data e Turno</strong><span>Opções: Manhã (6h), Tarde (6h), Noite (12h), Plantão 24h ou Escala 12x36.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Selecione o Setor / Consultório</strong><span>Use os checkboxes para marcar um ou mais setores. Você também pode digitar um setor personalizado.</span></div></li>
-        <li><div class="step-num"></div><div class="step-body"><strong>Salve o Plantão</strong><span>O plantão aparece agrupado por data na lista de escalas.</span></div></li>
-      </ol>
-
-      <h3>Setores Disponíveis para Seleção</h3>
-      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px;">
-        <span class="badge badge-purple">Consultório 01 (Clínica)</span>
-        <span class="badge badge-purple">Consultório 02 (Pediatria)</span>
-        <span class="badge badge-purple">Consultório 03 (Cardio)</span>
-        <span class="badge badge-purple">Consultório 04 (Ortopedia)</span>
-        <span class="badge badge-purple">Consultório 05 (Gineco)</span>
-        <span class="badge badge-red">Pronto-Socorro (PS)</span>
-        <span class="badge badge-amber">Triagem Manchester</span>
-        <span class="badge badge-red">UTI Geral / Leitos</span>
-        <span class="badge badge-cyan">Unidade de Internação</span>
-        <span class="badge badge-green">Centro Cirúrgico</span>
-        <span class="badge badge-cyan">Ambulatório</span>
-        <span class="badge badge-green">Dispensário / Farmácia</span>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- ESTAGNAÇÃO -->
-    <section id="sec-estagnacao">
-      <h2><i class="fa-solid fa-triangle-exclamation"></i> Alertas de Estagnação</h2>
-      <p>Módulo de monitoramento de permanência de pacientes no Pronto-Socorro com alertas progressivos por cor.</p>
-
-      <h3>Timer PS 12h — Sistema Tricolor</h3>
-      <table>
-        <thead><tr><th>Tempo no PS</th><th>Status</th><th>Alerta</th></tr></thead>
-        <tbody>
-          <tr><td>&lt; 10 horas</td><td><span class="badge badge-cyan">Azul</span></td><td>Normal — dentro do prazo</td></tr>
-          <tr><td>10 a 12 horas</td><td><span class="badge badge-amber">Amarelo</span></td><td>Atenção — próximo ao limite</td></tr>
-          <tr><td>&gt; 12 horas</td><td><span class="badge badge-red">Vermelho</span></td><td>Crítico — alerta pulsante ativo</td></tr>
-        </tbody>
-      </table>
-
-      <div class="alert alert-danger">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <div class="alert-body">
-          <p><strong>Regulação MS:</strong> Conforme portaria do Ministério da Saúde, pacientes não devem permanecer no PS por mais de 12 horas sem internação ou alta. O sistema monitora e alerta automaticamente.</p>
-        </div>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- TV -->
-    <section id="sec-tv">
-      <h2><i class="fa-solid fa-tv"></i> Painel TV (Chamador Inteligente)</h2>
-      <p>Módulo de exibição em tela cheia para sala de espera com chamada de pacientes por voz sintetizada.</p>
-
-      <h3>Funcionalidades</h3>
-      <ul>
-        <li><strong>Tela Cheia:</strong> Layout otimizado para monitores de recepção e salas de espera</li>
-        <li><strong>Web Speech API:</strong> Chamada em voz sintetizada em português: <em>"Paciente João Silva, compareça ao Consultório 3"</em></li>
-        <li><strong>Fila em Tempo Real:</strong> Lista atualizada automaticamente conforme novos pacientes chegam</li>
-        <li><strong>Triagem Integrada:</strong> Prioridade de chamada segue a classificação Manchester automaticamente</li>
-      </ul>
-
-      <div class="alert alert-info">
-        <i class="fa-solid fa-circle-info"></i>
-        <div class="alert-body">
-          <p><strong>Como Ativar:</strong> Clique no botão <strong>TV</strong> na barra de navegação principal. O painel abrirá em modo tela cheia. Pressione <code>ESC</code> para sair.</p>
-        </div>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- RELATÓRIOS -->
-    <section id="sec-relatorios">
-      <h2><i class="fa-solid fa-file-invoice"></i> Relatórios &amp; Financeiro</h2>
-      <p>Central de relatórios com 5 categorias de análise e exportação em múltiplos formatos.</p>
-
-      <h3>Cards de Relatório Disponíveis</h3>
-      <div class="card-grid">
-        <div class="card">
-          <div class="card-icon green"><i class="fa-solid fa-dollar-sign"></i></div>
-          <h4>Financeiro</h4>
-          <p>Faturamento mensal, receitas por convênio, inadimplência e DRE simplificado.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon purple"><i class="fa-solid fa-stethoscope"></i></div>
-          <h4>Atendimentos</h4>
-          <p>Volume por especialidade, tempo médio de espera, taxa de retorno e satisfação.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon cyan"><i class="fa-solid fa-notes-medical"></i></div>
-          <h4>PEP / Prontuários</h4>
-          <p>Diagnósticos mais frequentes (CID-10), prescrições, evoluções e alta médica.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon amber"><i class="fa-solid fa-bed-pulse"></i></div>
-          <h4>Leitos</h4>
-          <p>Taxa de ocupação, tempo médio de internação, giro de leitos por setor.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon red"><i class="fa-solid fa-user-clock"></i></div>
-          <h4>Escalas / RH</h4>
-          <p>Horas trabalhadas por profissional, distribuição de turnos e cobertura de plantões.</p>
-        </div>
-      </div>
-
-      <h3>Formatos de Exportação</h3>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0;">
-        <span class="badge badge-red"><i class="fa-solid fa-file-pdf"></i> PDF A4</span>
-        <span class="badge badge-green"><i class="fa-solid fa-file-excel"></i> Excel (XLSX)</span>
-        <span class="badge badge-cyan"><i class="fa-solid fa-file-csv"></i> CSV</span>
-        <span class="badge badge-purple"><i class="fa-solid fa-print"></i> Impressão Direta</span>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- USUÁRIOS -->
-    <section id="sec-usuarios">
-      <h2><i class="fa-solid fa-users-gear"></i> Gestão de Usuários &amp; Auditoria</h2>
-      <p>Painel exclusivo do perfil <strong>Master/Admin</strong> para gerenciamento de contas e auditoria de acessos.</p>
-
-      <h3>Ações Disponíveis</h3>
-      <ul>
-        <li><strong>Ativar/Desativar conta:</strong> Altera o status de Pendente para Ativo ou vice-versa</li>
-        <li><strong>Alterar Perfil:</strong> Modifica o nível de acesso (Médico, Enfermeiro, Master, etc.)</li>
-        <li><strong>Redefinir Senha:</strong> Gera nova senha temporária para o usuário</li>
-        <li><strong>Excluir Conta:</strong> Remove permanentemente com confirmação de segurança e sincronização na nuvem</li>
-        <li><strong>Busca em Tempo Real:</strong> Filtre usuários por nome, @login ou função</li>
-      </ul>
-
-      <h3>Auditoria de Acessos</h3>
-      <p>Registro completo de logins com:</p>
-      <ul>
-        <li>Data e hora de entrada e saída</li>
-        <li>Duração da sessão</li>
-        <li>IP e dispositivo utilizado</li>
-        <li>Últimos 5 acessos (visão rápida) ou histórico completo de 100 sessões</li>
-      </ul>
-
-      <div class="alert alert-warning">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <div class="alert-body">
-          <p><strong>Segurança:</strong> Toda exclusão de usuário é sincronizada automaticamente com o Turso Cloud DB e registrada no log de auditoria com timestamp e usuário executor.</p>
-        </div>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- LOGINS -->
-    <section id="sec-logins">
-      <h2><i class="fa-solid fa-key"></i> Logins Cadastrados no Sistema</h2>
-      <p>Lista de contas pré-cadastradas disponíveis para acesso imediato:</p>
-
-      <table>
-        <thead><tr><th>Usuário</th><th>Perfil</th><th>Especialidade / Função</th><th>Senha</th></tr></thead>
-        <tbody>
-          <tr><td><code>master</code></td><td><span class="badge badge-red">Master</span></td><td>Administrador Geral</td><td><code>master2024</code></td></tr>
-          <tr><td><code>dev</code></td><td><span class="badge badge-purple">Desenvolvedor</span></td><td>Acesso Total Dev</td><td><code>dev2024</code></td></tr>
-          <tr><td><code>drsilva</code></td><td><span class="badge badge-cyan">Médico</span></td><td>Cardiologia</td><td><code>silva2024</code></td></tr>
-          <tr><td><code>drcosta</code></td><td><span class="badge badge-cyan">Médico</span></td><td>Clínica Geral</td><td><code>costa2024</code></td></tr>
-          <tr><td><code>droliveira</code></td><td><span class="badge badge-cyan">Médico</span></td><td>Pediatria</td><td><code>oliveira2024</code></td></tr>
-          <tr><td><code>enfana</code></td><td><span class="badge badge-green">Enfermeiro</span></td><td>Triagem / UTI</td><td><code>ana2024</code></td></tr>
-          <tr><td><code>recep01</code></td><td><span class="badge badge-amber">Recepcionista</span></td><td>Recepção Central</td><td><code>recep2024</code></td></tr>
-        </tbody>
-      </table>
-
-      <div class="alert alert-warning">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <div class="alert-body">
-          <p><strong>Atenção:</strong> O arquivo <code>LOGINS_MEDICOS_ENFERMEIROS.txt</code> na raiz do projeto contém a lista completa com todos os 24 logins cadastrados. Mantenha este arquivo seguro e restrito ao time de TI.</p>
-        </div>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- ATUALIZAÇÕES -->
-    <section id="sec-atualizacoes">
-      <h2><i class="fa-solid fa-bolt"></i> Atualizações Recentes</h2>
-
-      <h3>v1.0 — Versão Atual (Agosto 2026)</h3>
-      <ul>
-        <li>✅ <strong>Modal de Escala Reformulado:</strong> Glassmorphism escuro + checkboxes de setor interativos com destaque visual</li>
-        <li>✅ <strong>Login com Fallback Turso Cloud:</strong> Autenticação busca automaticamente na nuvem para novos usuários cadastrados no Vercel</li>
-        <li>✅ <strong>Exclusão de Usuários Aprimorada:</strong> Remove por ID e username simultaneamente, sincroniza na nuvem, exibe toast de confirmação</li>
-        <li>✅ <strong>Tela de Login Premium:</strong> Logomarca com caixa reluzente, animação de brilho pulsante e tipografia de alto impacto</li>
-        <li>✅ <strong>Documentação Atualizada:</strong> Manual completo, fluxogramas Mermaid.js e documentação técnica</li>
-        <li>✅ <strong>Busca em Tempo Real de Usuários:</strong> Filtro dinâmico por nome, @login ou função</li>
-        <li>✅ <strong>Botões de Ação Corrigidos:</strong> Re-vinculação de eventos após filtragem e pesquisa</li>
-        <li>✅ <strong>Sincronização Cloud (Turso):</strong> Push/pull automático com banco de dados em nuvem</li>
-      </ul>
-
-      <h3>Roadmap</h3>
-      <ul>
-        <li>🔜 App Mobile (React Native)</li>
-        <li>🔜 Integração com sistemas de faturamento TISS</li>
-        <li>🔜 Telemedicina e videoconferência integrada</li>
-        <li>🔜 IA para sugestão de diagnósticos por CID-10</li>
-        <li>🔜 Notificações push para médicos de plantão</li>
-      </ul>
-
-      <div class="alert alert-success">
-        <i class="fa-solid fa-circle-check"></i>
-        <div class="alert-body">
-          <p><strong>Suporte Técnico:</strong> Para reportar bugs ou solicitar novas funcionalidades, acesse a seção de <em>Gestão de Acessos &amp; Auditoria</em> e registre a solicitação, ou contate o administrador do sistema.</p>
-        </div>
-      </div>
-
-      <br><br>
-      <div style="text-align: center; color: #475569; font-size: 0.8rem; padding: 20px 0; border-top: 1px solid var(--border-soft);">
-        <i class="fa-solid fa-hospital" style="color: #6366f1; margin-right: 6px;"></i>
-        <strong style="color: #94a3b8;">Health Nexus</strong> &mdash; Sistema de Gestão Hospitalar &amp; Prontuário Eletrônico
-        <br>Versão 1.0 &bull; Todos os direitos reservados &copy; 2026
-      </div>
-    </section>
-
-  </main>
+  <!-- Modal do Detalhamento do Módulo do Fluxograma -->
+  <div id="moduleModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:9999; backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+    <div style="background:var(--bg-primary); border:1px solid var(--border-color); width:90%; max-width:600px; border-radius:16px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.6); position:relative;">
+      <button onclick="closeModuleModal()" style="position:absolute; top:18px; right:18px; background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+      <div id="moduleModalContent"></div>
+    </div>
+  </div>
 
   <script>
-    // Active link highlight on scroll
-    const sections = document.querySelectorAll('section[id]');
-    const links = document.querySelectorAll('.toc a');
+    // Module Database for Interactive Flowchart
+    const moduleDb = {
+      recepcao: {
+        title: '1. Recepção & Entrada PS',
+        category: 'Fluxo Core Assistencial',
+        desc: 'Porta de entrada do paciente no hospital. Responsável pela identificação civil, emissão de ficha de atendimento e encaminhamento à fila de triagem.',
+        inputs: 'Dados Pessoais (CPF, Nome, Cartão SUS, CEP via ViaCEP).',
+        outputs: 'Senha de atendimento e registro na fila de Triagem.',
+        profiles: 'Recepcionista, Administrador Master.',
+        connections: 'Envia dados para ➜ Triagem de Manchester.'
+      },
+      triagem: {
+        title: '2. Triagem de Manchester',
+        category: 'Fluxo Core Assistencial',
+        desc: 'Classificação de risco efetuada pela enfermagem. Coleta sinais vitais (PA, FC, Temp, SpO2, Dor) e determina o tempo máximo tolerável de espera.',
+        inputs: 'Sinais vitais e Queixa Principal.',
+        outputs: 'Cor de Risco (Vermelho a Azul) e Prioridade na Fila Médica.',
+        profiles: 'Enfermeiro(a), Médico(a), Administrador.',
+        connections: 'Recebe de ➜ Recepção | Envia para ➜ Chamada Painel TV & Fila Médica.'
+      },
+      chamada_tv: {
+        title: '3. Painel TV Chamador & Voz',
+        category: 'Fluxo Core Assistencial',
+        desc: 'Interface de chamada pública instalada nas salas de espera. Toca sinal sonoro e pronuncia o nome do paciente via sintetizador de voz (Web Speech API).',
+        inputs: 'Trigger do Médico no card de atendimento.',
+        outputs: 'Alerta visual em tela cheia e áudio em Português.',
+        profiles: 'Público / Recepção.',
+        connections: 'Recebe da ➜ Fila do Consultório Médico.'
+      },
+      pep_soap: {
+        title: '4. Consultório & PEP SOAP',
+        category: 'Fluxo Core Assistencial',
+        desc: 'Prontuário Eletrônico do Paciente utilizando o método SOAP. Permite inserção de diagnósticos CID-10, prescrições e geração de PDF assinado.',
+        inputs: 'Anamnese, Exame Físico, Sinais Vitais da Triagem.',
+        outputs: 'Receituário, Laudo Médico em PDF, Encaminhamento ao Kanban ou Alta.',
+        profiles: 'Médico(a).',
+        connections: 'Recebe da ➜ Triagem | Envia para ➜ Kanban de Internação, Farmácia ou Alta.'
+      },
+      kanban: {
+        title: '5. Kanban de Internação',
+        category: 'Fluxo Core Assistencial',
+        desc: 'Painel visual síncrono 1-para-1 gerenciando a permanência do paciente em 5 setores (PS, Corredor, Cirúrgica, Médica e UTI) com controle rígido de SLA.',
+        inputs: 'Internação vinda do PEP ou Admissão direta.',
+        outputs: 'Metas de SLA, Movimentação de Setor e Transferência de Leito.',
+        profiles: 'Médico(a), Enfermeiro(a), Administrador.',
+        connections: 'Recebe do ➜ PEP | Envia para ➜ Leitos, Altas e Faturamento.'
+      },
+      leitos: {
+        title: '6. Mapa de Leitos & Hotelaria',
+        category: 'Fluxo Core Assistencial',
+        desc: 'Gestão da infraestrutura hospitalar. Controla estados de leitos: Livre, Ocupado, Higienização, Manutenção ou Bloqueado.',
+        inputs: 'Solicitação de leito pelo Kanban ou Pronto-Socorro.',
+        outputs: 'Alocação física de leito e ordens de limpeza.',
+        profiles: 'Enfermeiro(a), Hotelaria, Administrador.',
+        connections: 'Atrelado ao ➜ Kanban de Internação.'
+      },
+      altas: {
+        title: '7. Central de Altas & Pós-Alta',
+        category: 'Fluxo Core Assistencial',
+        desc: 'Desospitalização planejada. Garante a entrega do sumário de alta, orientações de medicação de casa e liberação imediata do leito.',
+        inputs: 'Conduta de Alta registrada no PEP ou Kanban.',
+        outputs: 'Liberação de leito e encerramento de conta.',
+        profiles: 'Médico(a), Enfermeiro(a).',
+        connections: 'Recebe do ➜ Kanban / PEP | Envia para ➜ Faturamento.'
+      },
+      faturamento: {
+        title: '8. Faturamento & Guias TISS',
+        category: 'Fluxo Core Assistencial',
+        desc: 'Auditoria financeira e conciliação de contas hospitalares. Gera guias no padrão TISS e efetua a baixa manual de títulos.',
+        inputs: 'Procedimentos, Diárias de Leito e Medicamentos consumidos.',
+        outputs: 'Faturas de convênios, recibos e baixas financeiras.',
+        profiles: 'Faturamento, Financeiro, Administrador Master.',
+        connections: 'Recebe do ➜ PEP, Kanban, Leitos e Altas.'
+      },
+      farmacia: {
+        title: 'Prescrição & Farmácia',
+        category: 'Módulo Atrelado / Integrado',
+        desc: 'Módulo atrelado diretamente ao PEP e aos Leitos. Controla a dispensação por lote e validade dos medicamentos prescritos pelos médicos.',
+        inputs: 'Prescrição eletrônica do PEP.',
+        outputs: 'Baixa de estoque e registro de administração.',
+        profiles: 'Farmacêutico(a), Enfermagem.',
+        connections: 'Atrelado ao ➜ PEP SOAP & Kanban.'
+      },
+      exames: {
+        title: 'Exames & Laudos',
+        category: 'Módulo Atrelado / Integrado',
+        desc: 'Permite a anexação de laudos, imagens DICOM/JPG e exames laboratoriais diretamente ao histórico unificado do paciente.',
+        inputs: 'Upload de exames pelo médico/laboratório.',
+        outputs: 'Visualização no PEP e anexos no PDF.',
+        profiles: 'Médico(a), Laboratório.',
+        connections: 'Atrelado ao ➜ PEP SOAP.'
+      },
+      corpo_clinico: {
+        title: 'Corpo Clínico & Escalas',
+        category: 'Módulo Atrelado / Integrado',
+        desc: 'Cadastro de médicos, CRM, especialidades e organização das escalas de plantão do Pronto-Socorro e Centro Cirúrgico.',
+        inputs: 'Cadastros médicos e definição de turnos.',
+        outputs: 'Vínculo de responsabilidade nos atendimentos.',
+        profiles: 'Administrador Master, Direção Médica.',
+        connections: 'Atrelado aos ➜ Consultórios & Cirurgias.'
+      },
+      turso_sync: {
+        title: 'Turso Cloud Sync (LibSQL)',
+        category: 'Módulo Atrelado / Integrado',
+        desc: 'Motor de persistência distribuída. Sincroniza em segundo plano todas as alterações do SQLite local para a nuvem Turso.',
+        inputs: 'Mutações de dados locais no navegador/Node.',
+        outputs: 'Sincronização entre múltiplos terminais hospitalares.',
+        profiles: 'Sistema / Transversal.',
+        connections: 'Atrelado a ➜ Todo o banco de dados.'
+      },
+      configuracoes: {
+        title: 'Configurações Globais',
+        category: 'Módulo Isolado / Autônomo',
+        desc: 'Gerenciamento autônomo dos parâmetros do sistema, modos de contraste, personalização de logotipos e dados da instituição.',
+        inputs: 'Formulário de configurações.',
+        outputs: 'Persistência no localStorage / env vars.',
+        profiles: 'Administrador Master.',
+        connections: 'Módulo Administrativo Isolado.'
+      },
+      backup_json: {
+        title: 'Backup & Exportação JSON',
+        category: 'Módulo Isolado / Autônomo',
+        desc: 'Ferramenta independente para geração de cópias de segurança em JSON e restauração completa de dados em caso de sinistro.',
+        inputs: 'Snapshot de dados do localDB.',
+        outputs: 'Download de arquivo .json de backup.',
+        profiles: 'Administrador Master.',
+        connections: 'Módulo Isolado.'
+      },
+      auditoria_master: {
+        title: 'Histórico de Sessões Master',
+        category: 'Módulo Isolado / Autônomo',
+        desc: 'Painel de segurança para auditoria de conexões de usuários, armazenando horário de entrada, IP, navegador e perfil utilizado.',
+        inputs: 'Eventos de login e mutações críticas.',
+        outputs: 'Logs de auditoria e segurança.',
+        profiles: 'Administrador Master.',
+        connections: 'Módulo Isolado.'
+      },
+      simulador_300: {
+        title: 'Simulador de Dados (300 Registros)',
+        category: 'Módulo Isolado / Autônomo',
+        desc: 'Utilitário de desenvolvimento para popular o sistema com 300 pacientes, prontuários e leitos simulados com alta fidelidade.',
+        inputs: 'Clique no botão de simulação.',
+        outputs: 'Carga completa do banco para testes.',
+        profiles: 'Desenvolvedor, Administrador Master.',
+        connections: 'Ferramenta de Testes Isolada.'
+      },
+      telemedicina: {
+        title: 'Telemedicina Remote',
+        category: 'Módulo Isolado / Autônomo',
+        desc: 'Plataforma de videoatendimento a distância com fila virtual própria e integração opcional com o Prontuário PEP.',
+        inputs: 'Link de videochamada e consulta remota.',
+        outputs: 'Atendimento virtual e emissão de receita digital.',
+        profiles: 'Médico(a), Paciente.',
+        connections: 'Operação Autônoma com integração opcional ao PEP.'
+      }
+    };
 
-    function updateActiveLink() {
-      let current = '';
-      sections.forEach(s => {
-        if (window.scrollY + 120 >= s.offsetTop) current = s.id;
-      });
-      links.forEach(l => {
-        l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+    function filterFlowchart(cat) {
+      document.querySelectorAll('.flow-filter-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.querySelectorAll('.flow-node').forEach(node => {
+        if (cat === 'all' || node.getAttribute('data-cat') === cat) {
+          node.style.display = 'block';
+        } else {
+          node.style.display = 'none';
+        }
       });
     }
 
-    window.addEventListener('scroll', updateActiveLink, { passive: true });
-    updateActiveLink();
+    function showModuleDetails(key) {
+      const data = moduleDb[key];
+      if (!data) return;
 
-    // Smooth scroll
-    links.forEach(l => {
-      l.addEventListener('click', e => {
-        e.preventDefault();
-        const target = document.querySelector(l.getAttribute('href'));
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const content = document.getElementById('moduleModalContent');
+      content.innerHTML = `
+        <span class="flow-badge ${data.category.includes('Core') ? 'badge-core' : (data.category.includes('Atrelado') ? 'badge-linked' : 'badge-isolated')}">${data.category}</span>
+        <h3 style="color:#fff; font-size:1.3rem; margin:10px 0 6px 0;">${data.title}</h3>
+        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; margin-bottom:16px;">${data.desc}</p>
+        
+        <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px; padding:14px; display:grid; gap:10px; font-size:0.85rem;">
+          <div><strong style="color:#818cf8;">📥 Entradas (Inputs):</strong> <span style="color:var(--text-muted);">${data.inputs}</span></div>
+          <div><strong style="color:#10b981;">📤 Saídas (Outputs):</strong> <span style="color:var(--text-muted);">${data.outputs}</span></div>
+          <div><strong style="color:#f59e0b;">👤 Perfis de Acesso:</strong> <span style="color:var(--text-muted);">${data.profiles}</span></div>
+          <div><strong style="color:#60a5fa;">🔗 Conexões do Sistema:</strong> <span style="color:var(--text-primary); font-weight:600;">${data.connections}</span></div>
+        </div>
+      `;
+
+      document.getElementById('moduleModal').style.display = 'flex';
+    }
+
+    function closeModuleModal() {
+      document.getElementById('moduleModal').style.display = 'none';
+    }
+
+    function filterManualSections() {
+      const q = document.getElementById('manualSearchInput').value.toLowerCase();
+      document.querySelectorAll('main section').forEach(sec => {
+        const text = sec.innerText.toLowerCase();
+        sec.style.display = text.includes(q) ? 'block' : 'none';
       });
-    });
+    }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <script>mermaid.initialize({startOnLoad:true});</script>
+
 </body>
 </html>
