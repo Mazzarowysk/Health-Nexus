@@ -1123,11 +1123,11 @@ body {
 }
 
 .brand-logo-img {
-  max-height: 36px;
+  max-height: 64px;
   width: auto;
   border-radius: var(--radius-sm);
   background-color: #fff;
-  padding: 3px 5px;
+  padding: 4px 6px;
   box-shadow: var(--shadow-sm);
 }
 
