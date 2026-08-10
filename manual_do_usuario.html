@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -279,7 +279,7 @@
     </div>
     <ul class="toc">
       <li class="toc-section">Introdução</li>
-      <li><a href="#sec-intro"><i class="fa-solid fa-house"></i> Visão Geral do Sistema</a></li>
+      <li><a href="#sec-intro"><i class="fa-solid fa-house"></i> Visão Geral & Fluxograma</a></li>
       <li><a href="#sec-login"><i class="fa-solid fa-right-to-bracket"></i> Login & Acesso</a></li>
       <li><a href="#sec-perfis"><i class="fa-solid fa-user-shield"></i> Perfis & Permissões</a></li>
 
@@ -319,7 +319,7 @@
 
     <!-- VISÃO GERAL -->
     <section id="sec-intro">
-      <h2><i class="fa-solid fa-house"></i> Visão Geral do Sistema</h2>
+      <h2><i class="fa-solid fa-house"></i> Visão Geral &amp; Fluxograma (12 Abas)</h2>
       <p>
         O <strong>Health Nexus</strong> é uma plataforma hospitalar completa, desenvolvida para gestão de pacientes, médicos, enfermeiros, leitos, farmácia, agendamentos e relatórios financeiros — tudo em um único ambiente seguro e integrado.
       </p>
@@ -377,6 +377,128 @@
           <tr><td><strong>12</strong></td><td>📈 Relatórios</td><td>5 cards: Financeiro, Atendimentos, PEP, Leitos, Escalas — export PDF/XLSX/CSV</td></tr>
         </tbody>
       </table>
+
+      <h3 style="margin-top: 40px;"><i class="fa-solid fa-project-diagram"></i> Fluxograma Operacional</h3>
+      <div class="card" style="margin-bottom: 24px; padding: 10px; overflow-x: auto; background: #fff;">
+        <div class="mermaid">
+flowchart TD
+    subgraph MOD_AUTH [" 1. Autenticação & Gestão de Acessos (RBAC)"]
+        AUTH_LOGIN["Login JWT com 24 Contas (Médicos, Enfermeiros, Admin, Devs)"]
+        AUTH_RBAC["Controle de Permissões (Master, Clínico, Dev)"]
+        AUTH_PRESERVE["Preservação Inteligente de Usuários em Limpezas"]
+        AUTH_AUDIT["Auditoria de Logins (Últimos 5 / Histórico 100)"]
+    end
+
+    subgraph MOD_DASH [" 2. Dashboard Executivo & KPIs"]
+        DASH_KPI["KPIs Gerenciais em Tempo Real"]
+        DASH_CHARTS["Gráficos Interativos Chart.js (Filtros Clicáveis)"]
+    end
+
+    subgraph MOD_ESCALAS [" 11. Escalas de Trabalho & Plantões (Diferencial)"]
+        ESC_TAB["Sub-abas: Escala de Médicos vs Escala de Enfermeiros"]
+        ESC_SHIFT["Turnos: Manhã (6h), Tarde (6h), Noite (12h), 24h, 12x36"]
+        ESC_SECTOR["Alocação de Setor / Consultório & CRM/COREN"]
+        ESC_TODAY["Garantia de Cobertura de Plantão para HOJE"]
+    end
+
+    subgraph MOD_AGENDA [" 3. Agenda de Consultas"]
+        AG_BOOK["Agendamento de Consultas & Seleção de Médico/Consultório"]
+        AG_KPI["KPI Cards de Status (Confirmado, Atendimento, Concluído)"]
+    end
+
+    subgraph MOD_PACIENTES [" 4. Admissão de Pacientes (SUS)"]
+        PAC_FORM["Admissão 11 Campos SUS + Validação Responsável Legal"]
+        PAC_CEP["Autopreenchimento de Endereço via API ViaCEP"]
+        PAC_SEARCH["Busca Unificada por Nome e CPF"]
+        PAC_TRASH["Lixeira de Pacientes (Soft-Delete & Restauração)"]
+    end
+
+    subgraph MOD_ATEND [" 5. Atendimentos & Triagem Manchester"]
+        TRI_MANCHESTER["Enfermagem: Triagem Manchester (5 Níveis de Risco)"]
+        TRI_QUEUE["Fila PS: Sorting por Prioridade Clínica Automática"]
+    end
+
+    subgraph MOD_TV [" 6. Painel TV (Chamador Inteligente)"]
+        TV_SPEECH["Web Speech API: Anúncio de Paciente por Voz Sintetizada"]
+        TV_DISPLAY["Exibição em Tela Cheia para Sala de Espera"]
+    end
+
+    subgraph MOD_PEP [" 7. Prontuário Eletrônico (PEP SOAP & Planilha)"]
+        PEP_SOAPE["Atendimento Médico: Método SOAPE & CID-10 Offline"]
+        PEP_PRESCR["Prescrição Médica em Planilha + Dose/Via/Frequência"]
+        PEP_ENF["Matriz da Enfermagem: Checagem de Aplicação de Doses"]
+        PEP_PDF["Emissão de PDF A4 Oficial (Receituário & Histórico)"]
+    end
+
+    subgraph MOD_FARMACIA [" 10. Farmácia & Estoque"]
+        FARM_SEARCH["Pesquisa Global de Fármacos (OpenFDA & ANVISA)"]
+        FARM_STOCK["Controle de Lote, Validade e Estoque Mínimo"]
+    end
+
+    subgraph MOD_ESTAG [" 8. Alertas de Estagnação & Timer PS 12h"]
+        EST_TIMER["Timer PS 12h (Azul <10h / Amarelo 10-12h / Vermelho >12h)"]
+        EST_ALERT["Alerta Pulsante de Permanência Máxima Excedida"]
+    end
+
+    subgraph MOD_LEITOS [" 9. Censo Hospitalar & Mapa de Leitos"]
+        BED_MAP["Grid de Leitos Tricolor (Verde=Vago, Vermelho=Ocupado, Amarelo=Higienização)"]
+        BED_CLEAN["Troca Automática do Leito para Higienização pós-alta"]
+    end
+
+    subgraph MOD_KANBAN [" 10. Kanban de Internação & SLAs (5 Setores)"]
+        KANB_COLS["5 Setores: PS (24h), Corredor (1d), Cirúrgica (7d), Médica (10d), UTI (5d)"]
+        KANB_SLA["Indicadores Visuais de SLA (Progresso Verde --> Âmbar --> Roxo)"]
+        KANB_EVOL["Timeline de Evolução Clínica com Timestamp"]
+        KANB_AUDIT["Modal de Auditoria de SLAs & Detalhamento por Ala"]
+    end
+
+    subgraph MOD_REPORTS [" 12. Relatórios & Exportação (5 Cards)"]
+        REP_CARDS["5 Cards: Finanças, Atendimentos, PEP, Leitos e ESCALAS"]
+        REP_EXP["Exportação Relatorial Multiformato: PDF, Excel (XLSX) e CSV"]
+    end
+
+    %% CORRELAÇÕES E FLUXO OPERACIONAL INTEGRADO
+    AUTH_LOGIN --> AUTH_RBAC
+    AUTH_RBAC -->|Médicos & Enfermeiros| ESC_TAB
+    ESC_TAB -->|Profissionais Alocados| ESC_TODAY
+    
+    PAC_FORM -->|Validação OK| TRI_MANCHESTER
+    AG_BOOK -->|Chegada do Paciente| TRI_MANCHESTER
+    
+    TRI_MANCHESTER -->|Sorting de Risco| TRI_QUEUE
+    TRI_QUEUE -->|Chamada de Paciente| TV_SPEECH
+    TV_SPEECH -->|Encaminhado para Consultório| PEP_SOAPE
+    
+    ESC_TODAY -.->|Atendimento Médico/Enf| PEP_SOAPE
+    PEP_SOAPE --> PEP_PRESCR
+    PEP_PRESCR --> PEP_ENF
+    PEP_ENF -->|Baixa de Insumos| FARM_STOCK
+    
+    PEP_SOAPE -->|Decisão Clínica| DECISION{Decisão Assistencial}
+    
+    DECISION -->|1. Alta Médica| PEP_PDF
+    PEP_PDF --> REP_CARDS
+    
+    DECISION -->|2. Permanência PS| EST_TIMER
+    EST_TIMER -->|Aproximação 12h| EST_ALERT
+    EST_ALERT -->|Necessidade de Internação| BED_MAP
+    
+    DECISION -->|3. Internação Direta| BED_MAP
+    BED_MAP -->|Alocação em Leito Vago| KANB_COLS
+    
+    KANB_COLS --> KANB_SLA
+    KANB_SLA --> KANB_EVOL
+    KANB_EVOL -->|Alta Hospitalar| BED_CLEAN
+    BED_CLEAN -->|Liberação do Leito| BED_MAP
+    
+    %% CONEXÕES DE AUDITORIA E RELATÓRIOS
+    PEP_SOAPE -.-> DASH_KPI
+    KANB_AUDIT -.-> DASH_CHARTS
+    ESC_TAB -.-> REP_CARDS
+    BED_MAP -.-> REP_CARDS
+    REP_CARDS --> REP_EXP
+        </div>
+      </div>
     </section>
 
     <hr>
@@ -1006,5 +1128,7 @@
       });
     });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true});</script>
 </body>
 </html>
