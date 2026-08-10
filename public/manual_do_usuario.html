@@ -3,1176 +3,646 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual do Usuário Definitivo — Health Nexus (v2.3.0)</title>
+  <title>Manual do Usuário - Health Nexus</title>
   
-  <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
     :root {
-      --bg-primary: #0b0914;
-      --bg-secondary: #120e22;
-      --bg-card: #18142e;
-      --bg-hover: #221c40;
-      --border-color: rgba(139, 92, 246, 0.22);
-      --border-highlight: rgba(139, 92, 246, 0.5);
-      
-      --color-primary: #6366f1;
-      --color-accent: #8b5cf6;
-      --color-success: #10b981;
-      --color-warning: #f59e0b;
-      --color-danger: #ef4444;
-      --color-info: #3b82f6;
-      
-      --text-primary: #f8fafc;
-      --text-secondary: #cbd5e1;
+      --bg-base: #06040f;
+      --bg-card: rgba(20, 16, 36, 0.6);
+      --border-soft: rgba(99, 102, 241, 0.15);
+      --border-glow: rgba(99, 102, 241, 0.4);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #8b5cf6;
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      
-      --sidebar-width: 320px;
     }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    html { scroll-behavior: smooth; }
-    
+
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.65;
-      font-size: 0.95rem;
+      margin: 0; padding: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      line-height: 1.7;
+      font-size: 16px;
       display: flex;
-      flex-direction: column;
-      min-height: 100vh;
     }
-    
-    /* Top Header Bar */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(11, 9, 20, 0.85);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border-color);
-      padding: 12px 28px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
+
+    /* Animated background blobs */
+    .bg-blob-1, .bg-blob-2 {
+      position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.15;
     }
-    
-    .brand-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-    }
-    
-    .brand-title span {
-      background: linear-gradient(135deg, #818cf8, #c084fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .search-box {
-      position: relative;
-      flex: 1;
-      max-width: 460px;
-    }
-    
-    .search-box input {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 9px 16px 9px 40px;
-      color: #fff;
-      font-size: 0.88rem;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-    
-    .search-box input:focus {
-      border-color: var(--color-primary);
-      background: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 16px rgba(99, 102, 241, 0.3);
-    }
-    
-    .search-box i {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-    
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    
-    .btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-      border: none;
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
-    }
-    
-    .btn-primary:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
-    }
-    
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-secondary);
-      border: 1px solid var(--border-color);
-    }
-    
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
-    }
-    
-    /* Layout Container */
-    .app-container {
-      display: flex;
-      flex: 1;
-    }
-    
-    /* Sidebar Navigation */
-    aside {
-      width: var(--sidebar-width);
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border-color);
-      padding: 24px 16px;
-      position: sticky;
-      top: 60px;
-      height: calc(100vh - 60px);
+    .bg-blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--primary); }
+    .bg-blob-2 { bottom: -10%; right: -10%; width: 40vw; height: 40vw; background: var(--accent); }
+
+    /* Layout */
+    .sidebar {
+      width: 320px;
+      height: 100vh;
+      position: fixed;
+      top: 0; left: 0;
+      background: rgba(12, 9, 23, 0.7);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-soft);
       overflow-y: auto;
-      flex-shrink: 0;
-    }
-    
-    aside h3 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      margin-bottom: 14px;
-      padding-left: 8px;
-    }
-    
-    .nav-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    
-    .nav-item a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.86rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-    
-    .nav-item a:hover, .nav-item a.active {
-      background: rgba(99, 102, 241, 0.15);
-      color: #818cf8;
-      font-weight: 600;
-      border-left: 3px solid var(--color-primary);
-      padding-left: 9px;
-    }
-    
-    .nav-item i {
-      width: 18px;
-      text-align: center;
-      font-size: 0.9rem;
-      color: var(--color-accent);
-    }
-    
-    /* Main Content Area */
-    main {
-      flex: 1;
-      padding: 36px 48px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    section {
-      margin-bottom: 48px;
-      scroll-margin-top: 80px;
-    }
-    
-    h1.doc-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 2rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 12px;
-      line-height: 1.25;
-    }
-    
-    .doc-subtitle {
-      font-size: 1.05rem;
-      color: var(--text-secondary);
-      margin-bottom: 24px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    
-    h2 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.45rem;
-      font-weight: 700;
-      color: #fff;
-      margin: 32px 0 16px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    h2 i {
-      color: var(--color-primary);
-    }
-    
-    h3 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 600;
-      color: #e2e8f0;
-      margin: 24px 0 12px 0;
-    }
-    
-    p {
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-    
-    /* Cards & Containers */
-    .glass-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 20px;
-      margin: 18px 0;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    }
-    
-    /* Callout Boxes */
-    .callout {
-      padding: 16px 20px;
-      border-radius: 12px;
-      margin: 18px 0;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      border: 1px solid transparent;
-    }
-    
-    .callout-info {
-      background: rgba(59, 130, 246, 0.1);
-      border-color: rgba(59, 130, 246, 0.3);
-      color: #93c5fd;
-    }
-    
-    .callout-warning {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: rgba(245, 158, 11, 0.3);
-      color: #fcd34d;
-    }
-    
-    .callout-tip {
-      background: rgba(16, 185, 129, 0.1);
-      border-color: rgba(16, 185, 129, 0.3);
-      color: #6ee7b7;
-    }
-    
-    .callout i {
-      font-size: 1.2rem;
-      margin-top: 2px;
-    }
-    
-    /* Flowchart Section Styles */
-    .flowchart-container {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
       padding: 24px;
-      margin: 24px 0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
-    
-    .flowchart-controls {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+
+    .main-content {
+      margin-left: 320px;
+      flex: 1;
+      padding: 60px 80px;
+      max-width: 1100px;
     }
+
+    /* Typography & Markdown styling */
+    h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; color: #fff; margin-top: 2.5em; margin-bottom: 0.8em; font-weight: 700; }
+    h1 { font-size: 2.5rem; margin-top: 0; background: linear-gradient(135deg, #fff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    h2 { font-size: 1.8rem; border-bottom: 1px solid var(--border-soft); padding-bottom: 0.3em; }
+    h3 { font-size: 1.3rem; color: #c7d2fe; }
     
-    .flow-filter-btn {
-      padding: 7px 14px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: 1px solid var(--border-color);
-      background: var(--bg-secondary);
-      color: var(--text-secondary);
+    p { margin-bottom: 1.2em; color: var(--text-muted); }
+    ul, ol { margin-bottom: 1.2em; padding-left: 1.5em; color: var(--text-muted); }
+    li { margin-bottom: 0.4em; }
+    
+    a { color: var(--primary); text-decoration: none; transition: 0.2s ease; }
+    a:hover { color: #818cf8; text-decoration: underline; }
+
+    strong { color: #e2e8f0; font-weight: 600; }
+
+    hr { border: 0; height: 1px; background: var(--border-soft); margin: 3em 0; }
+
+    /* Code blocks */
+    pre, code {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 6px;
+      border: 1px solid var(--border-soft);
+      color: #38bdf8;
+    }
+    code { padding: 0.2em 0.4em; font-size: 0.85em; }
+    pre { padding: 16px; overflow-x: auto; margin-bottom: 1.5em; }
+    pre code { background: none; border: none; padding: 0; color: #e2e8f0; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 2em; background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-soft); }
+    th, td { padding: 14px 20px; text-align: left; border-bottom: 1px solid var(--border-soft); }
+    th { background: rgba(99, 102, 241, 0.1); color: #fff; font-weight: 600; font-family: 'Outfit', sans-serif; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) { background: rgba(0, 0, 0, 0.2); }
+
+    /* Blockquotes (Alerts) */
+      padding: 40px 60px;
+      width: calc(100% - 320px);
+      max-width: 1200px;
+      box-sizing: border-box;
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 32px; padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-soft);
+      font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; color: #fff;
+    }
+    .sidebar-logo i { color: var(--primary); font-size: 1.6rem; }
+    
+    .toc { list-style: none; padding: 0; }
+    .toc li { margin-bottom: 8px; }
+    .toc a {
+      display: block; padding: 10px 14px; border-radius: 8px;
+      color: var(--text-muted); font-size: 0.9rem; font-weight: 500;
       transition: all 0.2s ease;
     }
-    
-    .flow-filter-btn.active, .flow-filter-btn:hover {
-      background: rgba(99, 102, 241, 0.2);
-      border-color: var(--color-primary);
-      color: #fff;
-    }
-    
-    .flowchart-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
-    }
-    
-    .flow-node {
-      background: var(--bg-secondary);
-      border: 1.5px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      position: relative;
-    }
-    
-    .flow-node:hover {
-      transform: translateY(-3px);
-      border-color: var(--border-highlight);
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
-    }
-    
-    .flow-node.core { border-left: 4px solid var(--color-primary); }
-    .flow-node.linked { border-left: 4px solid var(--color-info); }
-    .flow-node.isolated { border-left: 4px solid var(--color-warning); }
-    
-    .flow-badge {
-      font-size: 0.65rem;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .badge-core { background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4); }
-    .badge-linked { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
-    .badge-isolated { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-    
-    /* Tables */
+    .toc a:hover { background: rgba(99, 102, 241, 0.15); color: #fff; }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 18px 0;
-      background: var(--bg-card);
+      margin: 24px 0;
+      background: rgba(15, 23, 42, 0.6);
       border-radius: 12px;
       overflow: hidden;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-soft);
     }
-    
     th, td {
-      padding: 12px 16px;
+      padding: 14px 18px;
       text-align: left;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.88rem;
+      border-bottom: 1px solid var(--border-soft);
     }
-    
     th {
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-primary);
+      background: rgba(99, 102, 241, 0.15);
+      color: #fff;
       font-weight: 700;
-      font-family: 'Outfit', sans-serif;
     }
     
-    tr:last-child td { border-bottom: none; }
-    
-    tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-    }
-    
-    /* Code Blocks */
-    code {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-family: monospace;
-      font-size: 0.85rem;
-      color: #cbd5e1;
-    }
-    
-    pre {
-      background: #0f0d1b;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 16px;
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-    
-    pre code {
-      background: none;
-      padding: 0;
-      color: #a5b4fc;
-    }
-    
-    /* Print Rules */
-    @media print {
-      header, aside, .flowchart-controls, .search-box { display: none !important; }
-      main { padding: 0 !important; max-width: 100% !important; }
-      body { background: #fff !important; color: #000 !important; }
-      .glass-card, table, .flowchart-container { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; box-shadow: none !important; }
-      th { background: #f0f0f0 !important; color: #000 !important; }
-      h1, h2, h3 { color: #000 !important; }
-      section { page-break-inside: avoid; }
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; padding: 30px 20px; width: 100%; }
     }
   </style>
 </head>
 <body>
+  <div class="bg-blob-1"></div>
+  <div class="bg-blob-2"></div>
 
-  <!-- Top Header Bar -->
-  <header>
-    <a href="#" class="brand-title">
-      <i class="fa-solid fa-hospital" style="color: var(--color-primary);"></i>
-      Health Nexus <span>v2.2 Manual</span>
-    </a>
-    
-    <div class="search-box">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="manualSearchInput" placeholder="Buscar no manual (ex: Kanban, Triagem, PEP, Turso, Leitos)..." onkeyup="filterManualSections()">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-hospital"></i> Health Nexus
     </div>
-    
-    <div class="header-actions">
-      <button class="btn btn-secondary" onclick="window.print()">
-        <i class="fa-solid fa-print"></i> Imprimir / PDF
-      </button>
-      <a href="index.html" class="btn btn-primary">
-        <i class="fa-solid fa-right-to-bracket"></i> Abrir Sistema
-      </a>
-    </div>
-  </header>
+    <ul class="toc">
+      <li><a href="#sec-1"><i class="fa-solid fa-network-wired"></i> 1. Visão Geral & Fluxograma 12 Abas</a></li>
+      <li><a href="#sec-2"><i class="fa-solid fa-users"></i> 2. Central de Atendimentos</a></li>
+      <li><a href="#sec-3"><i class="fa-solid fa-notes-medical"></i> 3. Prontuário Eletrônico (PEP)</a></li>
+      <li><a href="#sec-4"><i class="fa-solid fa-window-restore"></i> 4. Guia de Modais</a></li>
+      <li><a href="#sec-5"><i class="fa-solid fa-user-injured"></i> 5. Gestão de Pacientes</a></li>
+      <li><a href="#sec-9"><i class="fa-regular fa-calendar-check"></i> 9. Agenda Médica</a></li>
+      <li><a href="#sec-10"><i class="fa-solid fa-pills"></i> 10. Farmácia & OpenFDA</a></li>
+      <li><a href="#sec-11"><i class="fa-solid fa-file-invoice-dollar"></i> 11. Faturamento & Financeiro</a></li>
+      <li><a href="#sec-13"><i class="fa-solid fa-user-clock"></i> 13. Escalas de Trabalho (Médicos/Enf)</a></li>
+      <li><a href="#sec-14"><i class="fa-solid fa-shield-halved"></i> 14. Gestão de Acessos & Auditoria</a></li>
+      <li><a href="#sec-15"><i class="fa-solid fa-gear"></i> 15. Configurações Globais</a></li>
+      <li><a href="#sec-23"><i class="fa-solid fa-bolt"></i> 23. Atualizações Recentes v2.4.0</a></li>
+    </ul>
+  </nav>
 
-  <div class="app-container">
-    
-    <!-- Sidebar Navigation -->
-    <aside>
-      <h3>Navegação do Manual</h3>
-      <ul class="nav-list" id="navList">
-        <li class="nav-item"><a href="#sec-1" class="active"><i class="fa-solid fa-diagram-project"></i> 1. Fluxograma & Arquitetura</a></li>
-        <li class="nav-item"><a href="#sec-2"><i class="fa-solid fa-table-columns"></i> 2. Kanban PS & Cards Interativos</a></li>
-        <li class="nav-item"><a href="#sec-3"><i class="fa-solid fa-file-medical"></i> 3. Prontuário PEP SOAP & PDF</a></li>
-        <li class="nav-item"><a href="#sec-4"><i class="fa-solid fa-window-restore"></i> 4. Guia Completo de Modais</a></li>
-        <li class="nav-item"><a href="#sec-5"><i class="fa-solid fa-users"></i> 5. Gestão de Pacientes</a></li>
-        <li class="nav-item"><a href="#sec-6"><i class="fa-solid fa-user-doctor"></i> 6. Corpo Clínico & Médicos</a></li>
-        <li class="nav-item"><a href="#sec-7"><i class="fa-solid fa-door-open"></i> 7. Consultórios & Salas</a></li>
-        <li class="nav-item"><a href="#sec-8"><i class="fa-solid fa-bed"></i> 8. Mapa de Leitos & Hotelaria</a></li>
-        <li class="nav-item"><a href="#sec-9"><i class="fa-solid fa-calendar-check"></i> 9. Agenda & Escala Médica</a></li>
-        <li class="nav-item"><a href="#sec-10"><i class="fa-solid fa-pills"></i> 10. Farmácia & Dispensação</a></li>
-        <li class="nav-item"><a href="#sec-11"><i class="fa-solid fa-file-invoice-dollar"></i> 11. Faturamento & Guias TISS</a></li>
-        <li class="nav-item"><a href="#sec-12"><i class="fa-solid fa-chart-line"></i> 12. Analytics & Indicadores</a></li>
-        <li class="nav-item"><a href="#sec-13"><i class="fa-solid fa-tv"></i> 13. Painel TV & Chamada de Voz</a></li>
-        <li class="nav-item"><a href="#sec-14"><i class="fa-solid fa-user-shield"></i> 14. Central de Aprovação Master</a></li>
-        <li class="nav-item"><a href="#sec-15"><i class="fa-solid fa-cloud-arrow-up"></i> 15. Configurações & Turso Cloud</a></li>
-        <li class="nav-item"><a href="#sec-16"><i class="fa-solid fa-database"></i> 16. Gerador de Dados de Teste</a></li>
-        <li class="nav-item"><a href="#sec-17"><i class="fa-solid fa-bell"></i> 17. Sistema de Notificações</a></li>
-        <li class="nav-item"><a href="#sec-18"><i class="fa-solid fa-keyboard"></i> 18. Atalhos & Máscaras</a></li>
-        <li class="nav-item"><a href="#sec-19"><i class="fa-solid fa-grid-2"></i> 19. Grade Síncrona do Kanban</a></li>
-        <li class="nav-item"><a href="#sec-20"><i class="fa-solid fa-clock-rotate-left"></i> 20. Auditoria de Sessões Master</a></li>
-        <li class="nav-item"><a href="#sec-21"><i class="fa-solid fa-circle-question"></i> 21. FAQ & Resolução de Erros</a></li>
-      </ul>
-    </aside>
+  <main class="main-content">
+    <p>#ô ô�ô�ô ôMôaônôuôaôlô ôdôoô ôUôsôuôáôrôiôoô ôCôoômôpôlôeôtôoô ô&amp;ô ôGôuôiôaô ôOôpôeôrôaôcôiôoônôaôlô ôDôeôfôiônôiôtôiôvôoô ô—ô ôHôeôaôlôtôhô ôNôeôxôuôsô ô(ôvô1ô.ô0ô)ô
+ô
+ô&gt;ô ô<em>ô</em>ôHôeôaôlôtôhô ôNôeôxôuôsô ô—ô ôSôiôsôtôeômôaô ôdôeô ôGôeôsôtôãôoô ôHôoôsôpôiôtôaôlôaôrô ô&amp;ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô<em>ô</em>ô ô ô
+ô&gt;ô ôGôuôiôaô ôcôoômôpôlôeôtôoô,ô ôeôxôaôuôsôtôiôvôoô ôeô ôpôuôbôlôiôcôaôçôãôoô-ôgôrôaôdôeô ôdôeô ônôaôvôeôgôaôçôãôoô,ô ômôoôdôaôiôsô,ô ôfôoôrômôuôlôáôrôiôoôsô,ô ôbôoôtôõôeôsô,ô ômôáôsôcôaôrôaôsô ôdôeô ôeônôtôrôaôdôaô,ô ôfôlôuôxôoôsô ôoôpôeôrôaôcôiôoônôaôiôsô ôeô ôpôrôoôtôoôcôoôlôoôsô ôcôlôíônôiôcôoôsô.ô
+ô
+ô-ô-ô-ô
+ô
+ô#ô#ô ô�ô�ô ô2ô.ô ôFôlôuôxôoôgôrôaômôaô ôGôeôrôaôlô ôIônôtôeôgôrôaôdôoô ôdôeô ôTôoôdôaôsô ôaôsô ôAôbôaôsô ôeô ôCôoôrôrôeôlôaôçôõôeôsô ô(ôvô2ô.ô4ô.ô0ô)ô
+ô
+ôOô ôfôlôuôxôoôgôrôaômôaô ôaôbôaôiôxôoô ômôaôpôeôiôaô ôaô ôcôoôrôrôeôlôaôçôãôoô ôcôoômôpôlôeôtôaô ôeônôtôrôeô ôtôoôdôaôsô ôaôsô ô1ô2ô ôaôbôaôsô ôdôoô ôsôiôsôtôeômôaô,ô ôdôeôsôtôaôcôaônôdôoô ôoôsô ôdôiôfôeôrôeônôcôiôaôiôsô ôoôpôeôrôaôcôiôoônôaôiôsô ôeô ôpôaôrôtôiôcôuôlôaôrôiôdôaôdôeôsô ôdôeô ôcôaôdôaô ômôóôdôuôlôoô:ô
+ô
+ô<code>ô</code>ô<code>ômôeôrômôaôiôdô ôfôlôoôwôcôhôaôrôtô ôTôDô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôAôUôTôHô ô[ô&quot;ô�ô�ô ô1ô.ô ôAôuôtôeônôtôiôcôaôçôãôoô ô&amp;ô ôGôeôsôtôãôoô ôdôeô ôAôcôeôsôsôoôsô ô(ôRôBôAôCô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôAôUôTôHô_ôLôOôGôIôNô[ô&quot;ôLôoôgôiônô ôJôWôTô ôcôoômô ô2ô4ô ôCôoônôtôaôsô ô(ôMôéôdôiôcôoôsô,ô ôEônôfôeôrômôeôiôrôoôsô,ô ôAôdômôiônô,ô ôDôeôvôsô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôAôUôTôHô_ôRôBôAôCô[ô&quot;ôCôoônôtôrôoôlôeô ôdôeô ôPôeôrômôiôsôsôõôeôsô ô(ôMôaôsôtôeôrô,ô ôCôlôíônôiôcôoô,ô ôDôeôvô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôAôUôTôHô_ôPôRôEôSôEôRôVôEô[ô&quot;ôPôrôeôsôeôrôvôaôçôãôoô ôIônôtôeôlôiôgôeônôtôeô ôdôeô ôUôsôuôáôrôiôoôsô ôeômô ôLôiômôpôeôzôaôsô&quot;ô]ô ô ô ô ô ô ô ô ô ôAôUôTôHô_ôAôUôDôIôTô[ô&quot;ôAôuôdôiôtôoôrôiôaô ôdôeô ôLôoôgôiônôsô ô(ôÚôlôtôiômôoôsô ô5ô ô/ô ôHôiôsôtôóôrôiôcôoô ô1ô0ô0ô)ô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôDôAôSôHô ô[ô&quot;ô�ô�ô ô2ô.ô ôDôaôsôhôbôoôaôrôdô ôEôxôeôcôuôtôiôvôoô ô&amp;ô ôKôPôIôsô&quot;ô]ô ô ô ô ô ô ô ô ô ôDôAôSôHô_ôKôPôIô[ô&quot;ôKôPôIôsô ôGôeôrôeônôcôiôaôiôsô ôeômô ôTôeômôpôoô ôRôeôaôlô&quot;ô]ô ô ô ô ô ô ô ô ô ôDôAôSôHô_ôCôHôAôRôTôSô[ô&quot;ôGôrôáôfôiôcôoôsô ôIônôtôeôrôaôtôiôvôoôsô ôCôhôaôrôtô.ôjôsô ô(ôFôiôlôtôrôoôsô ôCôlôiôcôáôvôeôiôsô)ô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôEôSôCôAôLôAôSô ô[ô&quot;ô�ô�ô ô1ô1ô.ô ôEôsôcôaôlôaôsô ôdôeô ôTôrôaôbôaôlôhôoô ô&amp;ô ôPôlôaônôtôõôeôsô ô(ôDôiôfôeôrôeônôcôiôaôlô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôEôSôCô_ôTôAôBô[ô&quot;ôSôuôbô-ôaôbôaôsô:ô ôEôsôcôaôlôaô ôdôeô ôMôéôdôiôcôoôsô ôvôsô ôEôsôcôaôlôaô ôdôeô ôEônôfôeôrômôeôiôrôoôsô&quot;ô]ô ô ô ô ô ô ô ô ô ôEôSôCô_ôSôHôIôFôTô[ô&quot;ôTôuôrônôoôsô:ô ôMôaônôhôãô ô(ô6ôhô)ô,ô ôTôaôrôdôeô ô(ô6ôhô)ô,ô ôNôoôiôtôeô ô(ô1ô2ôhô)ô,ô ô2ô4ôhô,ô ô1ô2ôxô3ô6ô&quot;ô]ô ô ô ô ô ô ô ô ô ôEôSôCô_ôSôEôCôTôOôRô[ô&quot;ôAôlôoôcôaôçôãôoô ôdôeô ôSôeôtôoôrô ô/ô ôCôoônôsôuôlôtôóôrôiôoô ô&amp;ô ôCôRôMô/ôCôOôRôEôNô&quot;ô]ô ô ô ô ô ô ô ô ô ôEôSôCô_ôTôOôDôAôYô[ô&quot;ôGôaôrôaônôtôiôaô ôdôeô ôCôoôbôeôrôtôuôrôaô ôdôeô ôPôlôaônôtôãôoô ôpôaôrôaô ôHôOôJôEô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôAôGôEôNôDôAô ô[ô&quot;ô�ô�ô️ô ô3ô.ô ôAôgôeônôdôaô ôdôeô ôCôoônôsôuôlôtôaôsô&quot;ô]ô ô ô ô ô ô ô ô ô ôAôGô_ôBôOôOôKô[ô&quot;ôAôgôeônôdôaômôeônôtôoô ôdôeô ôCôoônôsôuôlôtôaôsô ô&amp;ô ôSôeôlôeôçôãôoô ôdôeô ôMôéôdôiôcôoô/ôCôoônôsôuôlôtôóôrôiôoô&quot;ô]ô ô ô ô ô ô ô ô ô ôAôGô_ôKôPôIô[ô&quot;ôKôPôIô ôCôaôrôdôsô ôdôeô ôSôtôaôtôuôsô ô(ôCôoônôfôiôrômôaôdôoô,ô ôAôtôeônôdôiômôeônôtôoô,ô ôCôoônôcôlôuôíôdôoô)ô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôPôAôCôIôEôNôTôEôSô ô[ô&quot;ô�ô�ô ô4ô.ô ôAôdômôiôsôsôãôoô ôdôeô ôPôaôcôiôeônôtôeôsô ô(ôSôUôSô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôPôAôCô_ôFôOôRôMô[ô&quot;ôAôdômôiôsôsôãôoô ô1ô1ô ôCôaômôpôoôsô ôSôUôSô ô+ô ôVôaôlôiôdôaôçôãôoô ôRôeôsôpôoônôsôáôvôeôlô ôLôeôgôaôlô&quot;ô]ô ô ô ô ô ô ô ô ô ôPôAôCô_ôCôEôPô[ô&quot;ôAôuôtôoôpôrôeôeônôcôhôiômôeônôtôoô ôdôeô ôEônôdôeôrôeôçôoô ôvôiôaô ôAôPôIô ôVôiôaôCôEôPô&quot;ô]ô ô ô ô ô ô ô ô ô ôPôAôCô_ôSôEôAôRôCôHô[ô&quot;ôBôuôsôcôaô ôUônôiôfôiôcôaôdôaô ôpôoôrô ôNôoômôeô ôeô ôCôPôFô&quot;ô]ô ô ô ô ô ô ô ô ô ôPôAôCô_ôTôRôAôSôHô[ô&quot;ôLôiôxôeôiôrôaô ôdôeô ôPôaôcôiôeônôtôeôsô ô(ôSôoôfôtô-ôDôeôlôeôtôeô ô&amp;ô ôRôeôsôtôaôuôrôaôçôãôoô)ô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôAôTôEôNôDô ô[ô&quot;ô�ô�ô ô5ô.ô ôAôtôeônôdôiômôeônôtôoôsô ô&amp;ô ôTôrôiôaôgôeômô ôMôaônôcôhôeôsôtôeôrô&quot;ô]ô ô ô ô ô ô ô ô ô ôTôRôIô_ôMôAôNôCôHôEôSôTôEôRô[ô&quot;ôEônôfôeôrômôaôgôeômô:ô ôTôrôiôaôgôeômô ôMôaônôcôhôeôsôtôeôrô ô(ô5ô ôNôíôvôeôiôsô ôdôeô ôRôiôsôcôoô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôTôRôIô_ôQôUôEôUôEô[ô&quot;ôFôiôlôaô ôPôSô:ô ôSôoôrôtôiônôgô ôpôoôrô ôPôrôiôoôrôiôdôaôdôeô ôCôlôíônôiôcôaô ôAôuôtôoômôáôtôiôcôaô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôTôVô ô[ô&quot;ô�ô�ô ô6ô.ô ôPôaôiônôeôlô ôTôVô ô(ôCôhôaômôaôdôoôrô ôIônôtôeôlôiôgôeônôtôeô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôTôVô_ôSôPôEôEôCôHô[ô&quot;ôWôeôbô ôSôpôeôeôcôhô ôAôPôIô:ô ôAônôúônôcôiôoô ôdôeô ôPôaôcôiôeônôtôeô ôpôoôrô ôVôoôzô ôSôiônôtôeôtôiôzôaôdôaô&quot;ô]ô ô ô ô ô ô ô ô ô ôTôVô_ôDôIôSôPôLôAôYô[ô&quot;ôEôxôiôbôiôçôãôoô ôeômô ôTôeôlôaô ôCôhôeôiôaô ôpôaôrôaô ôSôaôlôaô ôdôeô ôEôsôpôeôrôaô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôPôEôPô ô[ô&quot;ô�ô�ô ô7ô.ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô ô(ôPôEôPô ôSôOôAôPô ô&amp;ô ôPôlôaônôiôlôhôaô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôPôEôPô_ôSôOôAôPôEô[ô&quot;ôAôtôeônôdôiômôeônôtôoô ôMôéôdôiôcôoô:ô ôMôéôtôoôdôoô ôSôOôAôPôEô ô&amp;ô ôCôIôDô-ô1ô0ô ôOôfôfôlôiônôeô&quot;ô]ô ô ô ô ô ô ô ô ô ôPôEôPô_ôPôRôEôSôCôRô[ô&quot;ôPôrôeôsôcôrôiôçôãôoô ôMôéôdôiôcôaô ôeômô ôPôlôaônôiôlôhôaô ô+ô ôDôoôsôeô/ôVôiôaô/ôFôrôeôqôuôêônôcôiôaô&quot;ô]ô ô ô ô ô ô ô ô ô ôPôEôPô_ôEôNôFô[ô&quot;ôMôaôtôrôiôzô ôdôaô ôEônôfôeôrômôaôgôeômô:ô ôCôhôeôcôaôgôeômô ôdôeô ôAôpôlôiôcôaôçôãôoô ôdôeô ôDôoôsôeôsô&quot;ô]ô ô ô ô ô ô ô ô ô ôPôEôPô_ôPôDôFô[ô&quot;ôEômôiôsôsôãôoô ôdôeô ôPôDôFô ôAô4ô ôOôfôiôcôiôaôlô ô(ôRôeôcôeôiôtôuôáôrôiôoô ô&amp;ô ôHôiôsôtôóôrôiôcôoô)ô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôFôAôRôMôAôCôIôAô ô[ô&quot;ô�ô�ô ô1ô0ô.ô ôFôaôrômôáôcôiôaô ô&amp;ô ôEôsôtôoôqôuôeô&quot;ô]ô ô ô ô ô ô ô ô ô ôFôAôRôMô_ôSôEôAôRôCôHô[ô&quot;ôPôeôsôqôuôiôsôaô ôGôlôoôbôaôlô ôdôeô ôFôáôrômôaôcôoôsô ô(ôOôpôeônôFôDôAô ô&amp;ô ôAôNôVôIôSôAô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôFôAôRôMô_ôSôTôOôCôKô[ô&quot;ôCôoônôtôrôoôlôeô ôdôeô ôLôoôtôeô,ô ôVôaôlôiôdôaôdôeô ôeô ôEôsôtôoôqôuôeô ôMôíônôiômôoô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôEôSôTôAôGô ô[ô&quot;ô⏱ô️ô ô8ô.ô ôAôlôeôrôtôaôsô ôdôeô ôEôsôtôaôgônôaôçôãôoô ô&amp;ô ôTôiômôeôrô ôPôSô ô1ô2ôhô&quot;ô]ô ô ô ô ô ô ô ô ô ôEôSôTô_ôTôIôMôEôRô[ô&quot;ôTôiômôeôrô ôPôSô ô1ô2ôhô ô(ôAôzôuôlô ô&lt;ô1ô0ôhô ô/ô ôAômôaôrôeôlôoô ô1ô0ô-ô1ô2ôhô ô/ô ôVôeôrômôeôlôhôoô ô&gt;ô1ô2ôhô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôEôSôTô_ôAôLôEôRôTô[ô&quot;ôAôlôeôrôtôaô ôPôuôlôsôaônôtôeô ôdôeô ôPôeôrômôaônôêônôcôiôaô ôMôáôxôiômôaô ôEôxôcôeôdôiôdôaô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôLôEôIôTôOôSô ô[ô&quot;ô�ô�ô️ô ô9ô.ô ôCôeônôsôoô ôHôoôsôpôiôtôaôlôaôrô ô&amp;ô ôMôaôpôaô ôdôeô ôLôeôiôtôoôsô&quot;ô]ô ô ô ô ô ô ô ô ô ôBôEôDô_ôMôAôPô[ô&quot;ôGôrôiôdô ôdôeô ôLôeôiôtôoôsô ôTôrôiôcôoôlôoôrô ô(ôVôeôrôdôeô=ôVôaôgôoô,ô ôVôeôrômôeôlôhôoô=ôOôcôuôpôaôdôoô,ô ôAômôaôrôeôlôoô=ôHôiôgôiôeônôiôzôaôçôãôoô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôBôEôDô_ôCôLôEôAôNô[ô&quot;ôTôrôoôcôaô ôAôuôtôoômôáôtôiôcôaô ôdôoô ôLôeôiôtôoô ôpôaôrôaô ôHôiôgôiôeônôiôzôaôçôãôoô ôpôóôsô-ôaôlôtôaô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôKôAôNôBôAôNô ô[ô&quot;ô�ô�ô ô1ô0ô.ô ôKôaônôbôaônô ôdôeô ôIônôtôeôrônôaôçôãôoô ô&amp;ô ôSôLôAôsô ô(ô5ô ôSôeôtôoôrôeôsô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôKôAôNôBô_ôCôOôLôSô[ô&quot;ô5ô ôSôeôtôoôrôeôsô:ô ôPôSô ô(ô2ô4ôhô)ô,ô ôCôoôrôrôeôdôoôrô ô(ô1ôdô)ô,ô ôCôiôrôúôrôgôiôcôaô ô(ô7ôdô)ô,ô ôMôéôdôiôcôaô ô(ô1ô0ôdô)ô,ô ôUôTôIô ô(ô5ôdô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôKôAôNôBô_ôSôLôAô[ô&quot;ôIônôdôiôcôaôdôoôrôeôsô ôVôiôsôuôaôiôsô ôdôeô ôSôLôAô ô(ôPôrôoôgôrôeôsôsôoô ôVôeôrôdôeô ô-ô&gt;ô ôÂômôbôaôrô ô-ô&gt;ô ôRôoôsôêô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôKôAôNôBô_ôEôVôOôLô[ô&quot;ôTôiômôeôlôiônôeô ôdôeô ôEôvôoôlôuôçôãôoô ôCôlôíônôiôcôaô ôcôoômô ôTôiômôeôsôtôaômôpô&quot;ô]ô ô ô ô ô ô ô ô ô ôKôAôNôBô_ôAôUôDôIôTô[ô&quot;ôMôoôdôaôlô ôdôeô ôAôuôdôiôtôoôrôiôaô ôdôeô ôSôLôAôsô ô&amp;ô ôDôeôtôaôlôhôaômôeônôtôoô ôpôoôrô ôAôlôaô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôRôEôPôOôRôTôSô ô[ô&quot;ô�ô�ô ô1ô2ô.ô ôRôeôlôaôtôóôrôiôoôsô ô&amp;ô ôEôxôpôoôrôtôaôçôãôoô ô(ô5ô ôCôaôrôdôsô)ô&quot;ô]ô ô ô ô ô ô ô ô ô ôRôEôPô_ôCôAôRôDôSô[ô&quot;ô5ô ôCôaôrôdôsô:ô ôFôiônôaônôçôaôsô,ô ôAôtôeônôdôiômôeônôtôoôsô,ô ôPôEôPô,ô ôLôeôiôtôoôsô ôeô ôEôSôCôAôLôAôSô&quot;ô]ô ô ô ô ô ô ô ô ô ôRôEôPô_ôEôXôPô[ô&quot;ôEôxôpôoôrôtôaôçôãôoô ôRôeôlôaôtôoôrôiôaôlô ôMôuôlôtôiôfôoôrômôaôtôoô:ô ôPôDôFô,ô ôEôxôcôeôlô ô(ôXôLôSôXô)ô ôeô ôCôSôVô&quot;ô]ô ô ô ô ô ôeônôdô ô ô ô ô ô ô%ô%ô ôCôOôRôRôEôLôAôÇôÕôEôSô ôEô ôFôLôUôXôOô ôOôPôEôRôAôCôIôOôNôAôLô ôIôNôTôEôGôRôAôDôOô ô ô ô ô ôAôUôTôHô_ôLôOôGôIôNô ô-ô-ô&gt;ô ôAôUôTôHô_ôRôBôAôCô ô ô ô ô ôAôUôTôHô_ôRôBôAôCô ô-ô-ô&gt;ô|ôMôéôdôiôcôoôsô ô&amp;ô ôEônôfôeôrômôeôiôrôoôsô|ô ôEôSôCô_ôTôAôBô ô ô ô ô ôEôSôCô_ôTôAôBô ô-ô-ô&gt;ô|ôPôrôoôfôiôsôsôiôoônôaôiôsô ôAôlôoôcôaôdôoôsô|ô ôEôSôCô_ôTôOôDôAôYô ô ô ô ô ô ô ô ô ô ôPôAôCô_ôFôOôRôMô ô-ô-ô&gt;ô|ôVôaôlôiôdôaôçôãôoô ôOôKô|ô ôTôRôIô_ôMôAôNôCôHôEôSôTôEôRô ô ô ô ô ôAôGô_ôBôOôOôKô ô-ô-ô&gt;ô|ôCôhôeôgôaôdôaô ôdôoô ôPôaôcôiôeônôtôeô|ô ôTôRôIô_ôMôAôNôCôHôEôSôTôEôRô ô ô ô ô ô ô ô ô ô ôTôRôIô_ôMôAôNôCôHôEôSôTôEôRô ô-ô-ô&gt;ô|ôSôoôrôtôiônôgô ôdôeô ôRôiôsôcôoô|ô ôTôRôIô_ôQôUôEôUôEô ô ô ô ô ôTôRôIô_ôQôUôEôUôEô ô-ô-ô&gt;ô|ôCôhôaômôaôdôaô ôdôeô ôPôaôcôiôeônôtôeô|ô ôTôVô_ôSôPôEôEôCôHô ô ô ô ô ôTôVô_ôSôPôEôEôCôHô ô-ô-ô&gt;ô|ôEônôcôaômôiônôhôaôdôoô ôpôaôrôaô ôCôoônôsôuôlôtôóôrôiôoô|ô ôPôEôPô_ôSôOôAôPôEô ô ô ô ô ô ô ô ô ô ôEôSôCô_ôTôOôDôAôYô ô-ô.ô-ô&gt;ô|ôAôtôeônôdôiômôeônôtôoô ôMôéôdôiôcôoô/ôEônôfô|ô ôPôEôPô_ôSôOôAôPôEô ô ô ô ô ôPôEôPô_ôSôOôAôPôEô ô-ô-ô&gt;ô ôPôEôPô_ôPôRôEôSôCôRô ô ô ô ô ôPôEôPô_ôPôRôEôSôCôRô ô-ô-ô&gt;ô ôPôEôPô_ôEôNôFô ô ô ô ô ôPôEôPô_ôEôNôFô ô-ô-ô&gt;ô|ôBôaôiôxôaô ôdôeô ôIônôsôuômôoôsô|ô ôFôAôRôMô_ôSôTôOôCôKô ô ô ô ô ô ô ô ô ô ôPôEôPô_ôSôOôAôPôEô ô-ô-ô&gt;ô|ôDôeôcôiôsôãôoô ôCôlôíônôiôcôaô|ô ôDôEôCôIôSôIôOôNô{ôDôeôcôiôsôãôoô ôAôsôsôiôsôtôeônôcôiôaôlô}ô ô ô ô ô ô ô ô ô ô ôDôEôCôIôSôIôOôNô ô-ô-ô&gt;ô|ô1ô.ô ôAôlôtôaô ôMôéôdôiôcôaô|ô ôPôEôPô_ôPôDôFô ô ô ô ô ôPôEôPô_ôPôDôFô ô-ô-ô&gt;ô ôRôEôPô_ôCôAôRôDôSô ô ô ô ô ô ô ô ô ô ôDôEôCôIôSôIôOôNô ô-ô-ô&gt;ô|ô2ô.ô ôPôeôrômôaônôêônôcôiôaô ôPôSô|ô ôEôSôTô_ôTôIôMôEôRô ô ô ô ô ôEôSôTô_ôTôIôMôEôRô ô-ô-ô&gt;ô|ôAôpôrôoôxôiômôaôçôãôoô ô1ô2ôhô|ô ôEôSôTô_ôAôLôEôRôTô ô ô ô ô ôEôSôTô_ôAôLôEôRôTô ô-ô-ô&gt;ô|ôNôeôcôeôsôsôiôdôaôdôeô ôdôeô ôIônôtôeôrônôaôçôãôoô|ô ôBôEôDô_ôMôAôPô ô ô ô ô ô ô ô ô ô ôDôEôCôIôSôIôOôNô ô-ô-ô&gt;ô|ô3ô.ô ôIônôtôeôrônôaôçôãôoô ôDôiôrôeôtôaô|ô ôBôEôDô_ôMôAôPô ô ô ô ô ôBôEôDô_ôMôAôPô ô-ô-ô&gt;ô|ôAôlôoôcôaôçôãôoô ôeômô ôLôeôiôtôoô ôVôaôgôoô|ô ôKôAôNôBô_ôCôOôLôSô ô ô ô ô ô ô ô ô ô ôKôAôNôBô_ôCôOôLôSô ô-ô-ô&gt;ô ôKôAôNôBô_ôSôLôAô ô ô ô ô ôKôAôNôBô_ôSôLôAô ô-ô-ô&gt;ô ôKôAôNôBô_ôEôVôOôLô ô ô ô ô ôKôAôNôBô_ôEôVôOôLô ô-ô-ô&gt;ô|ôAôlôtôaô ôHôoôsôpôiôtôaôlôaôrô|ô ôBôEôDô_ôCôLôEôAôNô ô ô ô ô ôBôEôDô_ôCôLôEôAôNô ô-ô-ô&gt;ô|ôLôiôbôeôrôaôçôãôoô ôdôoô ôLôeôiôtôoô|ô ôBôEôDô_ôMôAôPô ô ô ô ô ô ô ô ô ô ô%ô%ô ôCôOôNôEôXôÕôEôSô ôDôEô ôAôUôDôIôTôOôRôIôAô ôEô ôRôEôLôAôTôÓôRôIôOôSô ô ô ô ô ôPôEôPô_ôSôOôAôPôEô ô-ô.ô-ô&gt;ô ôDôAôSôHô_ôKôPôIô ô ô ô ô ôKôAôNôBô_ôAôUôDôIôTô ô-ô.ô-ô&gt;ô ôDôAôSôHô_ôCôHôAôRôTôSô ô ô ô ô ôEôSôCô_ôTôAôBô ô-ô.ô-ô&gt;ô ôRôEôPô_ôCôAôRôDôSô ô ô ô ô ôBôEôDô_ôMôAôPô ô-ô.ô-ô&gt;ô ôRôEôPô_ôCôAôRôDôSô ô ô ô ô ôRôEôPô_ôCôAôRôDôSô ô-ô-ô&gt;ô ôRôEôPô_ôEôXôPô ô ô</code>ô<code>ô</code>ô
+ô
+ô#ô#ô#ô ô�ô�ô ôPôaôrôtôiôcôuôlôaôrôiôdôaôdôeôsô ôeô ôDôiôfôeôrôeônôcôiôaôiôsô ôdôaôsô ôAôbôaôsô ôdôoô ôHôeôaôlôtôhô ôNôeôxôuôsô
+ô
+ô|ô ô#ô ô|ô ôAôbôaô ô/ô ôMôóôdôuôlôoô ô|ô ôFôuônôcôiôoônôaôlôiôdôaôdôeôsô ôPôrôiônôcôiôpôaôiôsô ô|ô ôDôiôfôeôrôeônôcôiôaôlô ô&amp;ô ôPôaôrôtôiôcôuôlôaôrôiôdôaôdôeôsô ô|ô
+ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ô
+ô|ô ô<em>ô</em>ô1ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôAôuôtôeônôtôiôcôaôçôãôoô ô&amp;ô ôRôBôAôCô<em>ô</em>ô ô|ô ôLôoôgôiônô ôJôWôTô,ô ô2ô4ô ôcôoônôtôaôsô ôcôlôíônôiôcôaôsô/ôdôeôvôsô,ô ôpôeôrôfôiôsô ôdôeô ôaôcôeôsôsôoô ô|ô ôPôrôeôsôeôrôvôaôçôãôoô ôdôeô ôuôsôuôáôrôiôoôsô ôeômô ôlôiômôpôeôzôaôsô,ô ôlôiôxôeôiôrôaô ôcôoômô ôcôoônôfôiôrômôaôçôãôoô,ô ôaôuôdôiôtôoôrôiôaô ôdôeô ôaôcôeôsôsôoôsô ô(ô5ô/ô1ô0ô0ô)ô.ô ô|ô
+ô|ô ô<em>ô</em>ô2ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôDôaôsôhôbôoôaôrôdô ôEôxôeôcôuôtôiôvôoô<em>ô</em>ô ô|ô ôKôPôIôsô ôeômô ôtôeômôpôoô ôrôeôaôlô,ô ôrôeôcôeôiôtôaô,ô ôvôoôlôuômôeô ôdôeô ôaôtôeônôdôiômôeônôtôoôsô ô|ô ôGôrôáôfôiôcôoôsô ôCôhôaôrôtô.ôjôsô ôcôlôiôcôáôvôeôiôsô ôcôoômôoô ôbôoôtôõôeôsô ôdôeô ôfôiôlôtôrôoô ôaôtôiôvôoô ôqôuôeô ôdôiôrôeôcôiôoônôaômô ôpôaôrôaô ôaôsô ôaôbôaôsô.ô ô|ô
+ô|ô ô<em>ô</em>ô3ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô️ô ôAôgôeônôdôaô ôdôeô ôCôoônôsôuôlôtôaôsô<em>ô</em>ô ô|ô ôMôaôrôcôaôçôãôoô ôdôeô ôcôoônôsôuôlôtôaôsô,ô ôsôeôlôeôçôãôoô ôdôeô ômôéôdôiôcôoô ôeô ôsôaôlôaô ô|ô ôKôPôIô ôcôaôrôdôsô ôcôlôiôcôáôvôeôiôsô ôpôoôrô ôsôtôaôtôuôsô ô(ôCôoônôfôiôrômôaôdôoô,ô ôAôtôeônôdôiômôeônôtôoô,ô ôCôoônôcôlôuôíôdôoô)ô.ô ô|ô
+ô|ô ô<em>ô</em>ô4ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôPôaôcôiôeônôtôeôsô ô(ôSôUôSô)ô<em>ô</em>ô ô|ô ôAôdômôiôsôsôãôoô ô1ô1ô ôcôaômôpôoôsô ôSôUôSô,ô ôCôEôPô ôaôuôtôoômôáôtôiôcôoô ôVôiôaôCôEôPô ô|ô ôVôaôlôiôdôaôçôãôoô ôrôiôgôoôrôoôsôaô ôdôeô ôrôeôsôpôoônôsôáôvôeôlô ôlôeôgôaôlô ô(ô&lt;ô1ô8ô/ô&gt;ô6ô5ô)ô,ô ôbôuôsôcôaô ôpôoôrô ôNôoômôeô/ôCôPôFô,ô ôLôiôxôeôiôrôaô ôsôoôfôtô-ôdôeôlôeôtôeô.ô ô|ô
+ô|ô ô<em>ô</em>ô5ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôAôtôeônôdôiômôeônôtôoôsô ô&amp;ô ôTôrôiôaôgôeômô<em>ô</em>ô ô|ô ôFôiôlôaô ôvôiôsôuôaôlô ôKôaônôbôaônô,ô ôcôlôaôsôsôiôfôiôcôaôçôãôoô ôdôeô ôrôiôsôcôoô ôMôaônôcôhôeôsôtôeôrô ô|ô ôSôoôrôtôiônôgô ôdôeô ôpôrôiôoôrôiôdôaôdôeô ôpôoôrô ôcôoôrô ôdôeô ôrôiôsôcôoô ôaôuôtôoômôáôtôiôcôoô ô+ô ôcôhôaômôaôdôaô ônôoô ôPôaôiônôeôlô ôTôVô.ô ô|ô
+ô|ô ô<em>ô</em>ô6ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôPôaôiônôeôlô ôTôVô ô(ôCôhôaômôaôdôoôrô)ô<em>ô</em>ô ô|ô ôAônôúônôcôiôoô ôpôaôrôaô ôsôaôlôaô ôdôeô ôeôsôpôeôrôaô ôeômô ôtôeôlôaô ôcôhôeôiôaô ô|ô ô<em>ô</em>ôWôeôbô ôSôpôeôeôcôhô ôAôPôIô<em>ô</em>ô:ô ôcôhôaômôaôdôaô ôeômô ôvôiôvôaô ôvôoôzô ôsôiônôtôeôtôiôzôaôdôaô ôeômô ôpôoôrôtôuôgôuôêôsô.ô ô|ô
+ô|ô ô<em>ô</em>ô7ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôPôrôoônôtôuôáôrôiôoô ôPôEôPô ô(ôSôOôAôPôEô)ô<em>ô</em>ô ô|ô ôAôtôeônôdôiômôeônôtôoô ômôéôdôiôcôoô,ô ôCôIôDô-ô1ô0ô,ô ôpôrôeôsôcôrôiôçôõôeôsô ôeô ôeôvôoôlôuôçôõôeôsô ô|ô ôBôuôsôcôaô ôCôIôDô-ô1ô0ô ôoôfôfôlôiônôeô,ô ôpôrôeôsôcôrôiôçôãôoô ôeômô ôpôlôaônôiôlôhôaô,ô ôMôaôtôrôiôzô ôdôaô ôEônôfôeôrômôaôgôeômô ôpôaôrôaô ôcôhôeôcôaôgôeômô,ô ôPôDôFô ôAô4ô.ô ô|ô
+ô|ô ô<em>ô</em>ô8ô<em>ô</em>ô ô|ô ô<em>ô</em>ô⏱ô️ô ôAôlôeôrôtôaôsô ô&amp;ô ôEôsôtôaôgônôaôçôãôoô<em>ô</em>ô ô|ô ôMôoônôiôtôoôrôaômôeônôtôoô ôdôeô ôgôaôrôgôaôlôoôsô ôeô ôpôeôrômôaônôêônôcôiôaô ôPôSô ô|ô ôTôiômôeôrô ôPôSô ô1ô2ôhô ô(ôAôzôuôlô ô&lt;ô1ô0ôhô ô/ô ôAômôaôrôeôlôoô ô1ô0ô-ô1ô2ôhô ô/ô ôVôeôrômôeôlôhôoô ô&gt;ô1ô2ôhô ôpôuôlôsôaônôtôeô)ô.ô ô|ô
+ô|ô ô<em>ô</em>ô9ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô️ô ôCôeônôsôoô ôdôeô ôLôeôiôtôoôsô<em>ô</em>ô ô|ô ôMôaôpôaô ôvôiôsôuôaôlô ôdôeô ôlôeôiôtôoôsô ôhôoôsôpôiôtôaôlôaôrôeôsô ô|ô ôCôaôrôdôsô ôtôrôiôcôoôlôoôrôeôsô ô(ôVôeôrôdôeô=ôVôaôgôoô,ô ôVôeôrômôeôlôhôoô=ôOôcôuôpôaôdôoô,ô ôAômôaôrôeôlôoô=ôHôiôgôiôeônôiôzôaôçôãôoô ôaôuôtôoômôáôtôiôcôaô ôpôóôsô-ôaôlôtôaô)ô.ô ô|ô
+ô|ô ô<em>ô</em>ô1ô0ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôKôaônôbôaônô ôdôeô ôIônôtôeôrônôaôçôãôoô<em>ô</em>ô ô|ô ôGôeôsôtôãôoô ôdôeô ôiônôtôeôrônôaôdôoôsô ôpôoôrô ô5ô ôsôeôtôoôrôeôsô ô|ô ôMôeôtôaôsô ôdôeô ôpôeôrômôaônôêônôcôiôaô ô(ôSôLôAô)ô ôdôiônôâômôiôcôaôsô,ô ôtôiômôeôlôiônôeô ôdôeô ôeôvôoôlôuôçôãôoô ôcôlôíônôiôcôaô,ô ôaôuôdôiôtôoôrôiôaô ôdôeô ôaôtôrôaôsôoôsô.ô ô|ô
+ô|ô ô<em>ô</em>ô1ô1ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôEôsôcôaôlôaôsô ôdôeô ôTôrôaôbôaôlôhôoô<em>ô</em>ô ô|ô ôGôeôsôtôãôoô ôdôeô ôpôlôaônôtôõôeôsô ôdôeô ôMôéôdôiôcôoôsô ôeô ôEônôfôeôrômôeôiôrôoôsô ô|ô ôOôrôeôlôhôaôsô/ôsôuôbô-ôaôbôaôsô ôdôeôdôiôcôaôdôaôsô,ô ôtôuôrônôoôsô ô(ô6ôhô,ô ô1ô2ôhô,ô ô2ô4ôhô,ô ô1ô2ôxô3ô6ô)ô,ô ôgôaôrôaônôtôiôaô ôdôeô ôpôlôaônôtôãôoô ôaôtôiôvôaôdôoô ôpôaôrôaô ôHôOôJôEô.ô ô|ô
+ô|ô ô<em>ô</em>ô1ô2ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôFôaôrômôáôcôiôaô ô&amp;ô ôEôsôtôoôqôuôeô<em>ô</em>ô ô|ô ôCôoônôtôrôoôlôeô ôdôeô ôeôsôtôoôqôuôeô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô ôeô ôiônôsôuômôoôsô ô|ô ôPôeôsôqôuôiôsôaô ôgôlôoôbôaôlô ôdôeô ôfôáôrômôaôcôoôsô ôeômô ôtôeômôpôoô ôrôeôaôlô ôvôiôaô ôOôpôeônôFôDôAô ô/ô ôAôNôVôIôSôAô ôpôoôrô ôpôrôiônôcôíôpôiôoô ôaôtôiôvôoô.ô ô|ô
+ô|ô ô<em>ô</em>ô1ô3ô<em>ô</em>ô ô|ô ô<em>ô</em>ô�ô�ô ôRôeôlôaôtôóôrôiôoôsô ô&amp;ô ôEôxôpôoôrôtôaôçôãôoô<em>ô</em>ô|ô ô5ô ôcôaôrôdôsô ôeôsôpôeôcôiôaôlôiôzôaôdôoôsô ôdôeô ôeômôiôsôsôãôoô ôrôeôlôaôtôoôrôiôaôlô ô|ô ôEôxôpôoôrôtôaôçôãôoô ômôuôlôtôiôfôoôrômôaôtôoô ô(ô<em>ô</em>ôPôDôFô<em>ô</em>ô,ô ô<em>ô</em>ôEôxôcôeôlô ôXôLôSôXô<em>ô</em>ô,ô ô<em>ô</em>ôCôSôVô<em>ô</em>ô)ô ôpôaôrôaô ôFôiônôaônôçôaôsô,ô ôAôtôeônôdôiômôeônôtôoôsô,ô ôPôEôPô,ô ôLôeôiôtôoôsô ôeô ôEôsôcôaôlôaôsô.ô ô|ô
+ô
+ô
+ô-ô-ô-ô
+ô
+ô#ô#ô ô�ô�ô ôSôuômôáôrôiôoô ôEôxôeôcôuôtôiôvôoô
+ô-ô ô1ô.ô ô[ôVôiôsôãôoô ôGôeôrôaôlô ô&amp;ô ôAôrôqôuôiôtôeôtôuôrôaô ôdôoô ôFôlôuôxôoô ôHôoôsôpôiôtôaôlôaôrô]ô(ô#ôsôeôcô-ô1ô)ô
+ô-ô ô2ô.ô ô[ôCôeônôtôrôaôlô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô ô&amp;ô ôPôaôiônôeôlô ôKôaônôbôaônô]ô(ô#ôsôeôcô-ô2ô)ô
+ô ô ô-ô ô2ô.ô1ô.ô ô[ôCôaôrôdôsô ôMôéôtôrôiôcôoôsô ôeô ôFôiôlôtôrôoôsô ôdôeô ôFôiôlôaô]ô(ô#ôsôeôcô-ô2ô-ô1ô)ô
+ô ô ô-ô ô2ô.ô2ô.ô ô[ôFôiôlôaô ô1ô:ô ôAôgôuôaôrôdôaônôdôoô ôTôrôiôaôgôeômô ô(ôPôrôoôtôoôcôoôlôoô ôdôeô ôMôaônôcôhôeôsôtôeôrô)ô]ô(ô#ôsôeôcô-ô2ô-ô2ô)ô
+ô ô ô-ô ô2ô.ô3ô.ô ô[ôFôiôlôaô ô2ô:ô ôAôgôuôaôrôdôaônôdôoô ôMôéôdôiôcôoô ô(ôCôhôaômôaôdôaô ôdôeô ôCôoônôsôuôlôtôóôrôiôoô)ô]ô(ô#ôsôeôcô-ô2ô-ô3ô)ô
+ô ô ô-ô ô2ô.ô4ô.ô ô[ôFôiôlôaô ô3ô:ô ôEômô ôAôtôeônôdôiômôeônôtôoô ô(ôAôçôõôeôsô ôdôoô ôMôéôdôiôcôoô)ô]ô(ô#ôsôeôcô-ô2ô-ô4ô)ô
+ô-ô ô3ô.ô ô[ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô ôdôoô ôPôaôcôiôeônôtôeô ô(ôPôEôPô ô—ô ôMôéôtôoôdôoô ôSôOôAôPô)ô]ô(ô#ôsôeôcô-ô3ô)ô
+ô ô ô-ô ô3ô.ô1ô.ô ô[ôEôsôtôrôuôtôuôrôaô ôSôOôAôPô]ô(ô#ôsôeôcô-ô3ô-ô1ô)ô
+ô ô ô-ô ô3ô.ô2ô.ô ô[ôAôuôtôoôcôoômôpôlôeôtôeô ôCôIôDô-ô1ô0ô]ô(ô#ôsôeôcô-ô3ô-ô2ô)ô
+ô ô ô-ô ô3ô.ô3ô.ô ô[ôAôsôsôiônôaôtôuôrôaô ôEôlôeôtôrôôônôiôcôaô ôeô ôEôxôpôoôrôtôaôçôãôoô ôPôDôFô]ô(ô#ôsôeôcô-ô3ô-ô3ô)ô
+ô-ô ô4ô.ô ô[ôGôuôiôaô ôCôoômôpôlôeôtôoô ôdôeô ôTôoôdôoôsô ôoôsô ôMôoôdôaôiôsô ôdôoô ôSôiôsôtôeômôaô]ô(ô#ôsôeôcô-ô4ô)ô
+ô ô ô-ô ô4ô.ô1ô.ô ô[ôMôoôdôaôlô ôdôeô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô]ô(ô#ôsôeôcô-ô4ô-ô1ô)ô
+ô ô ô-ô ô4ô.ô2ô.ô ô[ôMôoôdôaôlô ôdôeô ôPôrôeôsôcôrôiôçôãôoô ô&amp;ô ôRôeôcôeôiôtôuôáôrôiôoô ôMôéôdôiôcôoô]ô(ô#ôsôeôcô-ô4ô-ô2ô)ô
+ô ô ô-ô ô4ô.ô3ô.ô ô[ôMôoôdôaôlô ôdôeô ôTôrôaônôsôfôeôrôêônôcôiôaô ô&amp;ô ôAôlôoôcôaôçôãôoô ôdôeô ôLôeôiôtôoô]ô(ô#ôsôeôcô-ô4ô-ô3ô)ô
+ô ô ô-ô ô4ô.ô4ô.ô ô[ôMôoôdôaôlô ôdôeô ôNôoôvôaô ôAôdômôiôsôsôãôoô ô&amp;ô ôEônôtôrôaôdôaô ôdôeô ôPôaôcôiôeônôtôeô]ô(ô#ôsôeôcô-ô4ô-ô4ô)ô
+ô ô ô-ô ô4ô.ô5ô.ô ô[ôMôoôdôaôlô ôdôeô ôDôiôrôeôcôiôoônôaômôeônôtôoô ô&amp;ô ôRôeôaôtôrôiôbôuôiôçôãôoô ôdôeô ôFôiôlôaô]ô(ô#ôsôeôcô-ô4ô-ô5ô)ô
+ô ô ô-ô ô4ô.ô6ô.ô ô[ôMôoôdôaôlô ôdôeô ôHôiôsôtôóôrôiôcôoô ôPôóôsô-ôAôlôtôaô ô&amp;ô ôPôrôoônôtôuôáôrôiôoô ôCôoônôsôoôlôiôdôaôdôoô]ô(ô#ôsôeôcô-ô4ô-ô6ô)ô
+ô ô ô-ô ô4ô.ô7ô.ô ô[ôMôoôdôaôlô ôdôeô ôAôpôrôoôvôaôçôãôoô ôdôeô ôAôcôeôsôsôoô ôdôeô ôUôsôuôáôrôiôoôsô]ô(ô#ôsôeôcô-ô4ô-ô7ô)ô
+ô ô ô-ô ô4ô.ô8ô.ô ô[ôMôoôdôaôlô ôdôeô ôGôeôsôtôãôoô ôdôeô ôUôsôuôáôrôiôoôsô ô&amp;ô ôTôrôoôcôaô ôdôeô ôPôeôrôfôiôlô]ô(ô#ôsôeôcô-ô4ô-ô8ô)ô
+ô-ô ô5ô.ô ô[ôGôeôsôtôãôoô ôdôeô ôPôaôcôiôeônôtôeôsô ô&amp;ô ôHôiôsôtôóôrôiôcôoô ôCôlôíônôiôcôoô]ô(ô#ôsôeôcô-ô5ô)ô
+ô-ô ô6ô.ô ô[ôGôeôsôtôãôoô ôdôaô ôEôqôuôiôpôeô ôMôéôdôiôcôaô ô&amp;ô ôCôoôrôpôoô ôCôlôíônôiôcôoô]ô(ô#ôsôeôcô-ô6ô)ô
+ô-ô ô7ô.ô ô[ôGôeôsôtôãôoô ôdôeô ôCôoônôsôuôlôtôóôrôiôoôsô ô&amp;ô ôSôaôlôaôsô ôdôeô ôAôtôeônôdôiômôeônôtôoô]ô(ô#ôsôeôcô-ô7ô)ô
+ô-ô ô8ô.ô ô[ôGôeôsôtôãôoô ôdôeô ôLôeôiôtôoôsô ô&amp;ô ôHôoôsôpôiôtôaôlôiôzôaôçôãôoô]ô(ô#ôsôeôcô-ô8ô)ô
+ô-ô ô9ô.ô ô[ôAôgôeônôdôaô,ô ôEôsôcôaôlôaô ôMôéôdôiôcôaô ô&amp;ô ôCôoônôsôuôlôtôaôsô ôEôlôeôtôiôvôaôsô]ô(ô#ôsôeôcô-ô9ô)ô
+ô-ô ô1ô0ô.ô ô[ôFôaôrômôáôcôiôaô ô&amp;ô ôDôiôsôpôeônôsôaôçôãôoô ôdôeô ôMôeôdôiôcôaômôeônôtôoôsô]ô(ô#ôsôeôcô-ô1ô0ô)ô
+ô-ô ô1ô1ô.ô ô[ôFôaôtôuôrôaômôeônôtôoô,ô ôGôuôiôaôsô ôTôIôSôSô ô&amp;ô ôGôeôsôtôãôoô ôFôiônôaônôcôeôiôrôaô]ô(ô#ôsôeôcô-ô1ô1ô)ô
+ô-ô ô1ô2ô.ô ô[ôRôeôlôaôtôóôrôiôoôsô ôAônôaôlôyôtôiôcôsô ô&amp;ô ôIônôdôiôcôaôdôoôrôeôsô ôHôoôsôpôiôtôaôlôaôrôeôsô]ô(ô#ôsôeôcô-ô1ô2ô)ô
+ô-ô ô1ô3ô.ô ô[ôPôaôiônôeôlô ôdôeô ôCôhôaômôaôdôaô ôTôVô ô(ôRôeôcôeôpôçôãôoô)ô]ô(ô#ôsôeôcô-ô1ô3ô)ô
+ô-ô ô1ô4ô.ô ô[ôCôeônôtôrôaôlô ôdôeô ôEôsôtôaôgônôaôçôãôoô ô&amp;ô ôAôpôrôoôvôaôçôõôeôsô ôdôeô ôAôcôeôsôsôoô]ô(ô#ôsôeôcô-ô1ô4ô)ô
+ô-ô ô1ô5ô.ô ô[ôCôoônôfôiôgôuôrôaôçôõôeôsô,ô ôBôaôcôkôuôpô ôeô ôSôiônôcôrôoônôiôzôaôçôãôoô ôeômô ôNôuôvôeômô]ô(ô#ôsôeôcô-ô1ô5ô)ô
+ô-ô ô1ô6ô.ô ô[ôSôiôsôtôeômôaô ôdôeô ôAôvôiôsôoôsô,ô ôNôoôtôiôfôiôcôaôçôõôeôsô ô&amp;ô ôTôoôaôsôtôsô]ô(ô#ôsôeôcô-ô1ô6ô)ô
+ô-ô ô1ô7ô.ô ô[ôTôaôbôeôlôaô ôdôeô ôMôáôsôcôaôrôaôsô,ô ôAôtôaôlôhôoôsô ô&amp;ô ôTôeôcôlôaôsô ôdôeô ôAôtôaôlôhôoô]ô(ô#ôsôeôcô-ô1ô7ô)ô
+ô-ô ô1ô8ô.ô ô[ôSôoôlôuôçôãôoô ôdôeô ôDôúôvôiôdôaôsô ôFôrôeôqôuôeônôtôeôsô ô&amp;ô ôEôrôrôoôsô ôCôoômôuônôsô ô(ôFôAôQô)ô]ô(ô#ôsôeôcô-ô1ô8ô)ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô&quot;ô&gt;ô1ô.ô ôVôiôsôãôoô ôGôeôrôaôlô ô&amp;ô ôAôrôqôuôiôtôeôtôuôrôaô ôdôoô ôFôlôuôxôoô ôHôoôsôpôiôtôaôlôaôrô&lt;ô/ôhô2ô&gt;ô
+ô
+ôOô ô<em>ô</em>ôHôeôaôlôtôhô ôNôeôxôuôsô<em>ô</em>ô ôoôrôgôaônôiôzôaô ôaô ôjôoôrônôaôdôaô ôaôsôsôiôsôtôeônôcôiôaôlô ôdôoô ôpôaôcôiôeônôtôeô ôdôeôsôdôeô ôaô ôrôeôcôeôpôçôãôoô ôaôtôéô ôaô ôaôlôtôaô ôdôeôfôiônôiôtôiôvôaô ôoôuô ôiônôtôeôrônôaôçôãôoô ôeômô ôUôTôIô/ôEônôfôeôrômôaôrôiôaô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôDôiôaôgôrôaômôaô ôdôeô ôFôlôuôxôoô ôdôaô ôJôoôrônôaôdôaô ôAôsôsôiôsôtôeônôcôiôaôlô
+ô<code>ô</code>ô<code>ômôeôrômôaôiôdô ôgôrôaôpôhô ôTôDô ô ô ô ô ôAô[ô&quot;ô�ô�ô ôRôeôcôeôpôçôãôoô ô/ô ôAôdômôiôsôsôãôoô&quot;ô]ô ô-ô-ô&gt;ô ôBô[ô&quot;ô�ô�ô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô&quot;ô]ô ô ô ô ô ôBô ô-ô-ô&gt;ô ôCô{ô&quot;ôCôlôaôsôsôiôfôiôcôaôçôãôoô ôdôeô ôRôiôsôcôoô&quot;ô}ô ô ô ô ô ôCô ô-ô-ô&gt;ô|ô&quot;ô�ô�ô ôVôeôrômôeôlôhôoô ô(ô0ômô)ô&quot;ô|ô ôDô1ô[ô&quot;ô�ô�ô ôSôaôlôaô ôVôeôrômôeôlôhôaô ô(ôEômôeôrôgôêônôcôiôaô)ô&quot;ô]ô ô ô ô ô ôCô ô-ô-ô&gt;ô|ô&quot;ô�ô�ô ôLôaôrôaônôjôaô ô(ô1ô0ômô)ô&quot;ô|ô ôDô2ô[ô&quot;ô⚡ô ôAôtôeônôdôiômôeônôtôoô ôIômôeôdôiôaôtôoô&quot;ô]ô ô ô ô ô ôCô ô-ô-ô&gt;ô|ô&quot;ô�ô�ô ôAômôaôrôeôlôoô ô(ô6ô0ômô)ô&quot;ô|ô ôDô3ô[ô&quot;ô⏳ô ôFôiôlôaô ôUôrôgôeônôtôeô&quot;ô]ô ô ô ô ô ôCô ô-ô-ô&gt;ô|ô&quot;ô�ô�ô ôVôeôrôdôeô ô(ô1ô2ô0ômô)ô&quot;ô|ô ôDô4ô[ô&quot;ô⏳ô ôFôiôlôaô ôPôoôuôcôoô ôUôrôgôeônôtôeô&quot;ô]ô ô ô ô ô ôCô ô-ô-ô&gt;ô|ô&quot;ô�ô�ô ôAôzôuôlô ô(ô2ô4ô0ômô)ô&quot;ô|ô ôDô5ô[ô&quot;ô⏳ô ôFôiôlôaô ôNôãôoô ôUôrôgôeônôtôeô&quot;ô]ô ô ô ô ô ôDô1ô ô&amp;ô ôDô2ô ô&amp;ô ôDô3ô ô&amp;ô ôDô4ô ô&amp;ô ôDô5ô ô-ô-ô&gt;ô ôEô[ô&quot;ô�ô�ô ôCôhôaômôaôdôaô ôPôaôiônôeôlô ôTôVô ô/ô ôCôoônôsôuôlôtôóôrôiôoô&quot;ô]ô ô ô ô ô ôEô ô-ô-ô&gt;ô ôFô[ô&quot;ô�ô�ô ôAôtôeônôdôiômôeônôtôoô ôMôéôdôiôcôoô ô(ôPôEôPô ôSôOôAôPô)ô&quot;ô]ô ô ô ô ô ôFô ô-ô-ô&gt;ô ôGô{ô&quot;ôCôoônôdôuôtôaô ôFôiônôaôlô&quot;ô}ô ô ô ô ô ôGô ô-ô-ô&gt;ô|ô&quot;ôAôlôtôaô ôMôéôdôiôcôaô&quot;ô|ô ôHô[ô&quot;ô✅ô ôCôoônôcôlôuôsôãôoô ô&amp;ô ôRôeôcôeôiôtôaô&quot;ô]ô ô ô ô ô ôGô ô-ô-ô&gt;ô|ô&quot;ôOôbôsôeôrôvôaôçôãôoô ôPôSô ô(ô1ô2ôhô ômôaôxô)ô&quot;ô|ô ôIô[ô&quot;ô�ô�ô ôCôaôrôdô ôdôeô ôOôbôsôeôrôvôaôçôãôoô ôcôoômô ôCôrôoônôôômôeôtôrôoô&quot;ô]ô ô ô ô ô ôGô ô-ô-ô&gt;ô|ô&quot;ôNôeôcôeôsôsôiôdôaôdôeô ôdôeô ôLôeôiôtôoô&quot;ô|ô ôJô[ô&quot;ô�ô�ô️ô ôTôrôaônôsôfôeôrôêônôcôiôaô ôpôaôrôaô ôEônôfôeôrômôaôrôiôaô ô/ô ôUôTôIô&quot;ô]ô ô</code>ô<code>ô</code>ô
+ô
+ô#ô#ô#ô ô�ô�ô ôPôeôrôfôiôsô ôdôeô ôAôcôeôsôsôoô ô&amp;ô ôMôaôtôrôiôzô ôdôeô ôPôeôrômôiôsôsôõôeôsô
+ô|ô ôPôeôrôfôiôlô ô|ô ôAôcôeôsôsôoô ôPôrôiônôcôiôpôaôlô ô|ô ôMôóôdôuôlôoôsô ôLôiôbôeôrôaôdôoôsô ô|ô ôAôçôõôeôsô ôPôeôrômôiôtôiôdôaôsô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôAôdômôiônôiôsôtôrôaôdôoôrô ôMôaôsôtôeôrô<em>ô</em>ô ô|ô ôTôoôdôoô ôoô ôsôiôsôtôeômôaô ô|ô ôTôoôdôaôsô ôaôsô ôaôbôaôsô ô+ô ôPôaôiônôeôlô ôMôaôsôtôeôrô ô|ô ôAôpôrôoôvôaôrô ôsôoôlôiôcôiôtôaôçôõôeôsô ôdôeô ôaôcôeôsôsôoô ôMôaôsôtôeôrô,ô ôgôeôrôeônôcôiôaôrô ôuôsôuôáôrôiôoôsô,ô ôiômôpôoôrôtôaôrô/ôeôxôpôoôrôtôaôrô ôbôaôcôkôuôpôsô ôJôSôOôNô,ô ôrôeôsôeôtôaôrô ôbôaônôcôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôMôéôdôiôcôoô<em>ô</em>ô ô|ô ôAôtôeônôdôiômôeônôtôoôsô,ô ôPôEôPô,ô ôLôeôiôtôoôsô ô|ô ôAôtôeônôdôiômôeônôtôoôsô,ô ôPôaôcôiôeônôtôeôsô,ô ôLôeôiôtôoôsô,ô ôAôgôeônôdôaô ô|ô ôRôeôaôlôiôzôaôrô ôaôtôeônôdôiômôeônôtôoô ômôéôdôiôcôoô,ô ôaôsôsôiônôaôrô ôPôEôPô ô(ôSôOôAôPô)ô,ô ôpôrôeôsôcôrôeôvôeôrô ômôeôdôiôcôaômôeônôtôoôsô,ô ôcôoôlôoôcôaôrô ôeômô ôoôbôsôeôrôvôaôçôãôoô,ô ôsôoôlôiôcôiôtôaôrô ôlôeôiôtôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôEônôfôeôrômôeôiôrôoô(ôaô)ô<em>ô</em>ô ô|ô ôAôtôeônôdôiômôeônôtôoôsô,ô ôTôrôiôaôgôeômô ô|ô ôAôtôeônôdôiômôeônôtôoôsô,ô ôPôaôcôiôeônôtôeôsô,ô ôFôaôrômôáôcôiôaô ô|ô ôRôeôaôlôiôzôaôrô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô,ô ôcôoôlôeôtôaôrô ôsôiônôaôiôsô ôvôiôtôaôiôsô ô(ôPôAô,ô ôFôCô,ô ôTôeômôpô,ô ôSôpôOô2ô,ô ôDôoôrô)ô,ô ôaôdômôiônôiôsôtôrôaôrô ômôeôdôiôcôaôçôãôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôRôeôcôeôpôcôiôoônôiôsôtôaô<em>ô</em>ô ô|ô ôPôaôcôiôeônôtôeôsô,ô ôAôgôeônôdôaô ô|ô ôPôaôcôiôeônôtôeôsô,ô ôAôgôeônôdôaô,ô ôAôtôeônôdôiômôeônôtôoôsô ô(ôAôdômôiôsôsôãôoô)ô ô|ô ôCôaôdôaôsôtôrôaôrô ônôoôvôoôsô ôpôaôcôiôeônôtôeôsô,ô ôaôgôeônôdôaôrô ôcôoônôsôuôlôtôaôsô ôeôlôeôtôiôvôaôsô,ô ôdôaôrô ôeônôtôrôaôdôaô ônôaô ôrôeôcôeôpôçôãôoô ôdôoô ôPôSô,ô ôeômôiôtôiôrô ôsôeônôhôaôsô.ô ô|ô
+ô|ô ô<em>ô</em>ôFôaôrômôaôcôêôuôtôiôcôoô(ôaô)ô<em>ô</em>ô ô|ô ôFôaôrômôáôcôiôaô ô|ô ôFôaôrômôáôcôiôaô,ô ôEôsôtôoôqôuôeô ô|ô ôCôoônôtôrôoôlôeô ôdôeô ôlôoôtôeô/ôvôaôlôiôdôaôdôeô,ô ôdôaôrô ôbôaôiôxôaô ôeômô ôrôeôcôeôiôtôaôsô ôdôiôsôpôeônôsôaôdôaôsô,ô ôdôeôfôiônôiôrô ôeôsôtôoôqôuôeô ômôíônôiômôoô ôdôeô ôsôeôgôuôrôaônôçôaô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô2ô&quot;ô&gt;ô2ô.ô ôCôeônôtôrôaôlô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô ô&amp;ô ôPôaôiônôeôlô ôKôaônôbôaônô&lt;ô/ôhô2ô&gt;ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô2ô-ô1ô&quot;ô&gt;ô2ô.ô1ô.ô ôCôaôrôdôsô ôMôéôtôrôiôcôoôsô ôeô ôFôiôlôtôrôoôsô ôdôeô ôFôiôlôaô&lt;ô/ôhô3ô&gt;ô
+ôNôoô ôtôoôpôoô ôdôaô ôaôbôaô ô<em>ô</em>ôAôtôeônôdôiômôeônôtôoôsô<em>ô</em>ô,ô ôeônôcôoônôtôrôaômô-ôsôeô ôoôsô ô4ô ô<em>ô</em>ôCôaôrôdôsô ôMôéôtôrôiôcôoôsô ôCôlôiôcôáôvôeôiôsô<em>ô</em>ô ôpôaôrôaô ôcôoônôtôrôoôlôeô ôiômôeôdôiôaôtôoô ôdôoô ôfôlôuôxôoô:ô
+ô
+ô|ô ôCôaôrôdô ô|ô ôÍôcôoônôeô ô|ô ôCôoôrô ôTôeômôaô ô|ô ôAôçôãôoô ôaôoô ôCôlôiôcôaôrô ô|ô ôDôeôsôcôrôiôçôãôoô ô/ô ôOôbôjôeôtôiôvôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôTôrôiôaôgôeômô<em>ô</em>ô ô|ô ô�ô�ô ô|ô ôRôoôxôoô ô(ô<code>ô#ô8ôbô5ôcôfô6ô</code>ô)ô ô|ô ô<code>ôfôiôlôtôeôrôKôaônôbôaônôCôoôlôuômônô(ô&#39;ôtôrôiôaôgôeô&#39;ô)ô</code>ô ô|ô ôFôiôlôtôrôaô ôaô ôtôeôlôaô ôpôaôrôaô ôeôxôiôbôiôrô ôeôxôcôlôuôsôiôvôaômôeônôtôeô ôaô ôcôoôlôuônôaô ôdôeô ôpôaôcôiôeônôtôeôsô ôaôgôuôaôrôdôaônôdôoô ôtôrôiôaôgôeômô ôdôaô ôeônôfôeôrômôaôgôeômô.ô ô|ô
+ô|ô ô<em>ô</em>ôAôgô.ô ôMôéôdôiôcôoô<em>ô</em>ô ô|ô ô⌛ô ô|ô ôAômôaôrôeôlôoô ô(ô<code>ô#ôfô5ô9ôeô0ôbô</code>ô)ô ô|ô ô<code>ôfôiôlôtôeôrôKôaônôbôaônôCôoôlôuômônô(ô&#39;ôwôaôiôtôiônôgô&#39;ô)ô</code>ô ô|ô ôFôiôlôtôrôaô ôaô ôtôeôlôaô ôpôaôrôaô ôeôxôiôbôiôrô ôaôpôeônôaôsô ôoôsô ôpôaôcôiôeônôtôeôsô ôtôrôiôaôdôoôsô ôaôgôuôaôrôdôaônôdôoô ôcôhôaômôaôdôaô ôdôoô ômôéôdôiôcôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôEômô ôCôoônôsôuôlôtôaô<em>ô</em>ô ô|ô ô�ô�ô ô|ô ôVôeôrôdôeô ô(ô<code>ô#ô1ô0ôbô9ô8ô1ô</code>ô)ô ô|ô ô<code>ôfôiôlôtôeôrôKôaônôbôaônôCôoôlôuômônô(ô&#39;ôaôcôtôiôvôeô&#39;ô)ô</code>ô ô|ô ôFôiôlôtôrôaô ôaô ôtôeôlôaô ôpôaôrôaô ôfôoôcôaôrô ônôoôsô ôaôtôeônôdôiômôeônôtôoôsô ôeômô ôaônôdôaômôeônôtôoô ôeô ôeômô ôoôbôsôeôrôvôaôçôãôoô ônôoô ôPôSô.ô ô|ô
+ô|ô ô<em>ô</em>ôVôeôrô ôTôoôdôoôsô<em>ô</em>ô ô|ô ô�ô�ô ô|ô ôNôeôuôtôrôoô ô(ô<code>ô#ô9ô4ôaô3ôbô8ô</code>ô)ô ô|ô ô<code>ôfôiôlôtôeôrôKôaônôbôaônôCôoôlôuômônô(ô&#39;ôaôlôlô&#39;ô)ô</code>ô ô|ô ôRôeôsôeôtôaô ôoôsô ôfôiôlôtôrôoôsô ôeô ôeôxôiôbôeô ôaôsô ô3ô ôcôoôlôuônôaôsô ôlôaôdôoô ôaô ôlôaôdôoô ônôoô ôpôaôiônôeôlô ôKôaônôbôaônô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô2ô-ô2ô&quot;ô&gt;ô2ô.ô2ô.ô ôFôiôlôaô ô1ô:ô ôAôgôuôaôrôdôaônôdôoô ôTôrôiôaôgôeômô ô(ôPôrôoôtôoôcôoôlôoô ôdôeô ôMôaônôcôhôeôsôtôeôrô)ô&lt;ô/ôhô3ô&gt;ô
+ôPôaôcôiôeônôtôeôsô ôaôdômôiôtôiôdôoôsô ônôaô ôrôeôcôeôpôçôãôoô ôdôãôoô ôeônôtôrôaôdôaô ônôeôsôtôaô ôfôiôlôaô ôpôaôrôaô ôcôlôaôsôsôiôfôiôcôaôçôãôoô ôdôeô ôrôiôsôcôoô ôpôeôlôaô ôeônôfôeôrômôaôgôeômô.ô
+ô
+ô#ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôCôaômôpôoôsô ôdôoô ôMôoôdôaôlô ôdôeô ôTôrôiôaôgôeômô
+ô|ô ôCôaômôpôoô ôdôoô ôFôoôrômôuôlôáôrôiôoô ô|ô ôTôiôpôoô ôdôeô ôEônôtôrôaôdôaô ô|ô ôVôaôlôoôrôeôsô ôdôeô ôRôeôfôeôrôêônôcôiôaô ô/ô ôVôaôlôiôdôaôçôãôoô ô|ô ôFôuônôçôãôoô ôCôlôíônôiôcôaô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôPôrôeôsôsôãôoô ôAôrôtôeôrôiôaôlô ô(ôPôAô)ô<em>ô</em>ô ô|ô ôTôeôxôtôoô ô(ôeôxô:ô ô<code>ô1ô2ô0ô/ô8ô0ô</code>ô)ô ô|ô ôNôOôRôMôOôTôEôNôSôOô:ô ô1ô2ô0ô/ô8ô0ô ômômôHôgô ô|ô ôAôvôaôlôiôaôçôãôoô ôhôeômôoôdôiônôâômôiôcôaô ôiônôiôcôiôaôlô ô(ômôáôsôcôaôrôaô ôaôuôtôoôcôoômôpôlôeôtôáôvôeôlô)ô.ô ô|ô
+ô|ô ô<em>ô</em>ôFôrôeôqôuôêônôcôiôaô ôCôaôrôdôíôaôcôaô ô(ôFôCô)ô<em>ô</em>ô ô|ô ôNôúômôeôrôoô ô(ôbôpômô)ô ô|ô ôNôOôRôMôOôFôAôGôIôAô:ô ô6ô0ô ô-ô ô1ô0ô0ô ôbôpômô ô|ô ôDôeôtôeôcôçôãôoô ôdôeô ôtôaôqôuôiôcôaôrôdôiôaô ôoôuô ôbôrôaôdôiôcôaôrôdôiôaô.ô ô|ô
+ô|ô ô<em>ô</em>ôTôeômôpôeôrôaôtôuôrôaô ô(ô°ôCô)ô<em>ô</em>ô ô|ô ôNôúômôeôrôoô ô(ô°ôCô)ô ô|ô ôAôFôEôBôRôIôLô:ô ô3ô6ô.ô1ô°ôCô ô-ô ô3ô7ô.ô2ô°ôCô ô(ôFôeôbôrôeô:ô ô&gt;ô=ô ô3ô7ô.ô8ô°ôCô)ô ô|ô ôIôdôeônôtôiôfôiôcôaôçôãôoô ôdôeô ôfôeôbôrôeô ôoôuô ôhôiôpôoôtôeôrômôiôaô.ô ô|ô
+ô|ô ô<em>ô</em>ôPôeôsôoô ô(ôkôgô)ô<em>ô</em>ô ô|ô ôNôúômôeôrôoô ô(ôkôgô)ô ô|ô ôEôxôeômôpôlôoô:ô ô7ô0ô.ô5ô ôkôgô ô|ô ôCôáôlôcôuôlôoô ôdôeô ôdôoôsôaôgôeômô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô ôeô ôaônôeôsôtôéôsôiôcôoôsô.ô ô|ô
+ô|ô ô<em>ô</em>ôSôaôtôuôrôaôçôãôoô ôdôeô ôOô2ô ô(ôSôpôOô2ô)ô<em>ô</em>ô ô|ô ôNôúômôeôrôoô ô(ô%ô)ô ô|ô ôNôOôRôMôAôLô:ô ô&gt;ô=ô ô9ô5ô%ô ô(ôHôiôpôóôxôiôaô:ô ô&lt;ô ô9ô2ô%ô)ô ô|ô ôAôvôaôlôiôaôçôãôoô ôdôeô ôiônôsôuôfôiôcôiôêônôcôiôaô ôrôeôsôpôiôrôaôtôóôrôiôaô.ô ô|ô
+ô|ô ô<em>ô</em>ôEôsôcôaôlôaô ôdôeô ôDôoôrô<em>ô</em>ô ô|ô ôSôeôlôeôtôoôrô ô(ô0ô ôaô ô1ô0ô)ô ô|ô ô0ô:ô ôSôeômô ôdôoôrô ô/ô ô1ô0ô:ô ôPôiôoôrô ôdôoôrô ôiômôaôgôiônôáôvôeôlô ô|ô ôEôsôcôaôlôaô ôaônôaôlôóôgôiôcôaô ôvôiôsôuôaôlô ôdôeô ôdôoôrô.ô ô|ô
+ô|ô ô<em>ô</em>ôQôuôeôiôxôaô ôPôrôiônôcôiôpôaôlô<em>ô</em>ô ô|ô ôÁôrôeôaô ôdôeô ôTôeôxôtôoô ô|ô ôMôíônôiômôoô ô5ô ôcôaôrôaôcôtôeôrôeôsô ô|ô ôRôeôgôiôsôtôrôoô ônôaôrôrôaôtôiôvôoô ôdôoôsô ôsôiônôtôoômôaôsô ôdôoô ôpôaôcôiôeônôtôeô.ô ô|ô
+ô
+ô#ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôCôlôaôsôsôiôfôiôcôaôçôãôoô ôdôeô ôRôiôsôcôoô ô(ôMôaônôcôhôeôsôtôeôrô)ô
+ô|ô ôCôoôrô ôdôeô ôRôiôsôcôoô ô|ô ôNôíôvôeôlô ôdôeô ôGôrôaôvôiôdôaôdôeô ô|ô ôTôeômôpôoô ôMôáôxôiômôoô ôdôeô ôEôsôpôeôrôaô ô|ô ôSôiônôaôlôiôzôaôçôãôoô ôVôiôsôuôaôlô ô|ô ôAôçôãôoô ôRôeôcôoômôeônôdôaôdôaô ô|ô
+ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô�ô�ô ô<em>ô</em>ôVôeôrômôeôlôhôoô<em>ô</em>ô ô|ô ôEômôeôrôgôêônôcôiôaô ôAôbôsôoôlôuôtôaô ô|ô ô<em>ô</em>ô0ô ômôiônôuôtôoôsô<em>ô</em>ô ô(ôIômôeôdôiôaôtôoô)ô ô|ô ôCôaôrôdô ôVôeôrômôeôlôhôoô ôPôiôsôcôaônôdôoô ô|ô ôPôaôcôiôeônôtôeô ôeômô ôrôiôsôcôoô ôiômôiônôeônôtôeô ôdôeô ômôoôrôtôeô.ô ôSôaôlôaô ôVôeôrômôeôlôhôaô ôiômôeôdôiôaôtôaô.ô ô|ô
+ô|ô ô�ô�ô ô<em>ô</em>ôLôaôrôaônôjôaô<em>ô</em>ô ô|ô ôMôuôiôtôoô ôUôrôgôeônôtôeô ô|ô ô<em>ô</em>ô1ô0ô ômôiônôuôtôoôsô<em>ô</em>ô ô|ô ôBôoôrôdôeôrô ôLôaôrôaônôjôaô ô|ô ôRôiôsôcôoô ôsôiôgônôiôfôiôcôaôtôiôvôoô ôdôeô ôpôeôrôdôaô ôdôeô ôfôuônôçôãôoô/ôvôiôdôaô.ô ôAôtôeônôdôiômôeônôtôoô ôrôáôpôiôdôoô.ô ô|ô
+ô|ô ô�ô�ô ô<em>ô</em>ôAômôaôrôeôlôoô<em>ô</em>ô ô|ô ôUôrôgôeônôtôeô ô|ô ô<em>ô</em>ô6ô0ô ômôiônôuôtôoôsô<em>ô</em>ô ô|ô ôBôoôrôdôeôrô ôAômôaôrôeôlôoô ô|ô ôCôoônôdôiôçôãôoô ôeôsôtôáôvôeôlô ôcôoômô ônôeôcôeôsôsôiôdôaôdôeô ôdôeô ôaôvôaôlôiôaôçôãôoô ômôéôdôiôcôaô ôeômô ôaôtôéô ô1ôhô.ô ô|ô
+ô|ô ô�ô�ô ô<em>ô</em>ôVôeôrôdôeô<em>ô</em>ô ô|ô ôPôoôuôcôoô ôUôrôgôeônôtôeô ô|ô ô<em>ô</em>ô1ô2ô0ô ômôiônôuôtôoôsô<em>ô</em>ô ô|ô ôBôoôrôdôeôrô ôVôeôrôdôeô ô|ô ôQôuôaôdôrôoô ôlôeôvôeô ôsôeômô ôrôiôsôcôoô ôdôeô ôaôgôrôaôvôaômôeônôtôoô ôrôáôpôiôdôoô.ô ôFôiôlôaô ôrôeôgôuôlôaôrô.ô ô|ô
+ô|ô ô�ô�ô ô<em>ô</em>ôAôzôuôlô<em>ô</em>ô ô|ô ôNôãôoô ôUôrôgôeônôtôeô ô|ô ô<em>ô</em>ô2ô4ô0ô ômôiônôuôtôoôsô<em>ô</em>ô ô|ô ôBôoôrôdôeôrô ôAôzôuôlô ô|ô ôQôuôeôiôxôaô ôcôrôôônôiôcôaô ôoôuô ôcôoônôsôuôlôtôaô ôsôiômôpôlôeôsô.ô ôAôtôeônôdôiômôeônôtôoô ôeôlôeôtôiôvôoô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô2ô-ô3ô&quot;ô&gt;ô2ô.ô3ô.ô ôFôiôlôaô ô2ô:ô ôAôgôuôaôrôdôaônôdôoô ôMôéôdôiôcôoô ô(ôCôhôaômôaôdôaô ôdôeô ôCôoônôsôuôlôtôóôrôiôoô)ô&lt;ô/ôhô3ô&gt;ô
+ôNôeôsôtôaô ôcôoôlôuônôaô,ô ôoôsô ôpôaôcôiôeônôtôeôsô ôsôãôoô ôoôrôdôeônôaôdôoôsô ôpôoôrô ô<em>ô</em>ôGôrôaôvôiôdôaôdôeô ôMôaônôcôhôeôsôtôeôrô<em>ô</em>ô ôeô ô<em>ô</em>ôTôeômôpôoô ôdôeô ôEôsôpôeôrôaô<em>ô</em>ô.ô
+ô
+ô#ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôAôçôõôeôsô ôdôoô ôCôaôrôdô ôdôeô ôEôsôpôeôrôaô ôMôéôdôiôcôaô
+ô|ô ôAôçôãôoô ônôoô ôCôaôrôdô ô|ô ôÍôcôoônôeô ô|ô ôFôuônôçôãôoô ôTôéôcônôiôcôaô ô|ô ôRôeôsôuôlôtôaôdôoô ônôoô ôSôiôsôtôeômôaô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôCôhôaômôaôrô ôpôaôrôaô ôCôoônôsôuôlôtôaô<em>ô</em>ô ô|ô ô�ô�ô ô|ô ôDôiôsôpôaôrôaô ôwôeôbôsôoôcôkôeôtôsô/ôeôvôeônôtôoôsô ôlôoôcôaôiôsô ôpôaôrôaô ôaô ôrôeôcôeôpôçôãôoô.ô ô|ô ô1ô.ô ôTôoôcôaô ôsôiônôaôlô ôsôoônôoôrôoô ônôoô ôPôaôiônôeôlô ôTôVô.ô&lt;ôbôrô&gt;ô2ô.ô ôEôxôiôbôeô ôoô ônôoômôeô ôdôoô ôpôaôcôiôeônôtôeô ônôoô ôpôaôiônôeôlô ôcôeônôtôrôaôlô.ô&lt;ôbôrô&gt;ô3ô.ô ôMôoôvôeô ôoô ôaôtôeônôdôiômôeônôtôoô ôpôaôrôaô ôaô ôcôoôlôuônôaô ô<em>ôEômô ôAôtôeônôdôiômôeônôtôoô</em>ô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô2ô-ô4ô&quot;ô&gt;ô2ô.ô4ô.ô ôFôiôlôaô ô3ô:ô ôEômô ôAôtôeônôdôiômôeônôtôoô ô(ôAôçôõôeôsô ôdôoô ôMôéôdôiôcôoô)ô&lt;ô/ôhô3ô&gt;ô
+ôCôoôlôuônôaô ôoônôdôeô ôoô ômôéôdôiôcôoô ôrôeôaôlôiôzôaô ôoô ôaôtôeônôdôiômôeônôtôoô ôaôtôiôvôoô.ô ôCôaôdôaô ôcôaôrôdô ôcôoônôtôéômô ô5ô ôbôoôtôõôeôsô ôdôeô ôaôçôãôoô:ô
+ô
+ô#ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôCôoômôpôlôeôtôaô ôdôeô ôBôoôtôõôeôsô ôdôoô ôMôéôdôiôcôoô
+ô|ô ôBôoôtôãôoô ô|ô ôÍôcôoônôeô ô|ô ôFôuônôçôãôoô ôdôoô ôBôoôtôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ôaôoô ôCôlôiôcôaôrô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôPôEôPô<em>ô</em>ô ô|ô ô�ô�ô ô|ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô ô|ô ôAôbôrôeô ôaô ôjôaônôeôlôaô ômôoôdôaôlô ôdôoô ôPôrôoônôtôuôáôrôiôoô ô(ôSôOôAôPô,ô ôsôiônôaôiôsô ôvôiôtôaôiôsô,ô ôCôIôDô-ô1ô0ô,ô ôhôiôsôtôóôrôiôcôoô ôeô ôaôsôsôiônôaôtôuôrôaô)ô.ô ô|ô
+ô|ô ô<em>ô</em>ôPôrôeôsôcôrôiôçôãôoô<em>ô</em>ô ô|ô ô�ô�ô ô|ô ôRôeôcôeôiôtôuôáôrôiôoô ôMôéôdôiôcôoô ô|ô ôAôbôrôeô ôaô ôtôeôlôaô ôpôaôrôaô ôpôrôeôsôcôrôeôvôeôrô ômôeôdôiôcôaômôeônôtôoôsô,ô ôpôoôsôoôlôoôgôiôaôsô,ô ôvôiôaô ôdôeô ôaôdômôiônôiôsôtôrôaôçôãôoô ôeô ôoôrôiôeônôtôaôçôõôeôsô.ô ô|ô
+ô|ô ô<em>ô</em>ôOôbôsôeôrôvôaôçôãôoô<em>ô</em>ô ô|ô ô�ô�ô ô|ô ôOôbôsôeôrôvôaôçôãôoô ônôoô ôPôSô ô(ô1ô2ôhô ômôaôxô)ô ô|ô ôIônôiôcôiôaô ôaô ôcôoônôtôaôgôeômô ôdôoô ôcôrôoônôôômôeôtôrôoô ôdôeô ôpôeôrômôaônôêônôcôiôaô ôcôoônôtôíônôuôaô ôeô ôeôxôiôbôeô ôbôaôdôgôeô ôdôeô ôtôeômôpôoô ônôoô ôcôaôrôdô.ô ô|ô
+ô|ô ô<em>ô</em>ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô<em>ô</em>ô ô|ô ô�ô�ô️ô ô|ô ôIônôtôeôrônôaôçôãôoô ô/ô ôLôeôiôtôoô ô|ô ôAôbôrôeô ôoô ômôoôdôaôlô ôpôaôrôaô ôsôeôlôeôcôiôoônôaôrô ôeô ôaôlôoôcôaôrô ôoô ôpôaôcôiôeônôtôeô ôeômô ôuômô ôlôeôiôtôoô ôlôiôvôrôeô ôdôaô ôEônôfôeôrômôaôrôiôaô ôoôuô ôUôTôIô.ô ô|ô
+ô|ô ô<em>ô</em>ôFôiônôaôlôiôzôaôrô<em>ô</em>ô ô|ô ô✅ô ô|ô ôAôlôtôaô ôMôéôdôiôcôaô ô/ô ôCôoônôcôlôuôsôãôoô ô|ô ôEônôcôeôrôrôaô ôaô ôcôoônôsôuôlôtôaô,ô ôgôrôaôvôaô ôaô ôaôlôtôaô ônôoô ôsôiôsôtôeômôaô ôeô ômôoôvôeô ôoô ôaôtôeônôdôiômôeônôtôoô ôpôaôrôaô ôoô ôHôiôsôtôóôrôiôcôoô ôPôóôsô-ôAôlôtôaô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô3ô&quot;ô&gt;ô3ô.ô ôPôrôoônôtôuôáôrôiôoô ôEôlôeôtôrôôônôiôcôoô ôdôoô ôPôaôcôiôeônôtôeô ô(ôPôEôPô ô—ô ôMôéôtôoôdôoô ôSôOôAôPô)ô&lt;ô/ôhô2ô&gt;ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô3ô-ô1ô&quot;ô&gt;ô3ô.ô1ô.ô ôEôsôtôrôuôtôuôrôaô ôSôOôAôPô&lt;ô/ôhô3ô&gt;ô
+ô|ô ôBôlôoôcôoô ôSôOôAôPô ô|ô ôEôlôeômôeônôtôoô ô|ô ôDôeôsôcôrôiôçôãôoô ôdôoô ôPôrôeôeônôcôhôiômôeônôtôoô ô|ô ôEôxôeômôpôlôoô ôdôeô ôPôrôeôeônôcôhôiômôeônôtôoô ô|ô
+ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôSô<em>ô</em>ô ô|ô ô<em>ô</em>ôSôuôbôjôeôtôiôvôoô<em>ô</em>ô ô|ô ôAônôaômônôeôsôeô,ô ôqôuôeôiôxôaô ôpôrôiônôcôiôpôaôlô,ô ôtôeômôpôoô ôdôeô ôeôvôoôlôuôçôãôoô ôdôoôsô ôsôiônôtôoômôaôsô ôeô ôhôiôsôtôóôrôiôcôoô.ô ô|ô ô<em>ô&quot;ôPôaôcôiôeônôtôeô ôrôeôlôaôtôaô ôdôoôrô ôtôoôrôáôcôiôcôaô ôhôáô ô2ô ôhôoôrôaôsô ôcôoômô ôiôrôrôaôdôiôaôçôãôoô ôpôaôrôaô ôbôrôaôçôoô ôeôsôqôuôeôrôdôoô.ô&quot;ô</em>ô ô|ô
+ô|ô ô<em>ô</em>ôOô<em>ô</em>ô ô|ô ô<em>ô</em>ôOôbôjôeôtôiôvôoô<em>ô</em>ô ô|ô ôEôxôaômôeô ôfôíôsôiôcôoô,ô ôaôuôsôcôuôlôtôaô ôcôaôrôdôíôaôcôaô/ôpôuôlômôoônôaôrô,ô ôsôiônôaôiôsô ôvôiôtôaôiôsô ôeô ôeôxôaômôeôsô ôcôoômôpôlôeômôeônôtôaôrôeôsô.ô ô|ô ô<em>ô&quot;ôPôAô:ô ô1ô4ô0ô/ô9ô0ô,ô ôFôCô:ô ô9ô8ôbôpômô,ô ôaôuôsôcôuôlôtôaô ôcôaôrôdôíôaôcôaô ôsôeômô ôsôoôpôrôoôsô.ô ôEôCôGô ôcôoômô ôeôlôeôvôaôçôãôoô ôSôTô.ô&quot;ô</em>ô ô|ô
+ô|ô ô<em>ô</em>ôAô<em>ô</em>ô ô|ô ô<em>ô</em>ôAôvôaôlôiôaôçôãôoô<em>ô</em>ô ô|ô ôHôiôpôóôtôeôsôeô ôdôiôaôgônôóôsôtôiôcôaô ôpôrôiônôcôiôpôaôlô ôeô ôbôuôsôcôaô ôdôoô ôcôóôdôiôgôoô ô<em>ô</em>ôCôIôDô-ô1ô0ô<em>ô</em>ô.ô ô|ô ô<em>ô&quot;ôIô2ô1ô.ô9ô ô—ô ôIônôfôaôrôtôoô ôaôgôuôdôoô ôdôoô ômôiôoôcôáôrôdôiôoô ônôãôoô ôeôsôpôeôcôiôfôiôcôaôdôoô.ô&quot;ô</em>ô ô|ô
+ô|ô ô<em>ô</em>ôPô<em>ô</em>ô ô|ô ô<em>ô</em>ôPôlôaônôoô<em>ô</em>ô ô|ô ôCôoônôdôuôtôaô ôtôeôrôaôpôêôuôtôiôcôaô,ô ôpôrôeôsôcôrôiôçôãôoô ôfôaôrômôaôcôoôlôóôgôiôcôaô,ô ôsôoôlôiôcôiôtôaôçôõôeôsô ôdôeô ôeôxôaômôeôsô ôeô ôrôeôcôoômôeônôdôaôçôõôeôsô ôdôeô ôaôlôtôaô/ôrôeôtôoôrônôoô.ô ô|ô ô<em>ô&quot;ôAôdômôiônôiôsôtôrôaôdôoô ôAôAôSô ô3ô0ô0ômôgô ô+ô ôCôlôoôpôiôdôoôgôrôeôlô ô3ô0ô0ômôgô.ô ôSôoôlôiôcôiôtôaôdôaô ôVôaôgôaô ônôaô ôUôTôIô ôCôoôrôoônôaôrôiôaônôaô.ô&quot;ô</em>ô ô|ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô3ô-ô2ô&quot;ô&gt;ô3ô.ô2ô.ô ôAôuôtôoôcôoômôpôlôeôtôeô ôCôIôDô-ô1ô0ô&lt;ô/ôhô3ô&gt;ô
+ôNôoô ôcôaômôpôoô ô<em>ô</em>ôAôvôaôlôiôaôçôãôoô<em>ô</em>ô,ô ôaôoô ôdôiôgôiôtôaôrô ôoô ôcôóôdôiôgôoô ôoôuô ônôoômôeô ôdôaô ôdôoôeônôçôaô,ô ôoô ôsôiôsôtôeômôaô ôlôiôsôtôaô ôsôuôgôeôsôtôõôeôsô ôoôfôiôcôiôaôiôsô.ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô3ô-ô3ô&quot;ô&gt;ô3ô.ô3ô.ô ôAôsôsôiônôaôtôuôrôaô ôEôlôeôtôrôôônôiôcôaô ôeô ôEôxôpôoôrôtôaôçôãôoô ôPôDôFô&lt;ô/ôhô3ô&gt;ô
+ôRôeôcôuôrôsôoôsô ôdôeô ôrôaôsôcôuônôhôoô,ô ôaôsôsôiônôaôtôuôrôaô ômôéôdôiôcôaô ôcôoômô ôsôeônôhôaô ôeô ôgôeôrôaôçôãôoô ôdôeô ôlôaôuôdôoô ôPôDôFô.ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô4ô&quot;ô&gt;ô4ô.ô ôGôuôiôaô ôCôoômôpôlôeôtôoô ôdôeô ôTôoôdôoôsô ôoôsô ôMôoôdôaôiôsô ôdôoô ôSôiôsôtôeômôaô&lt;ô/ôhô2ô&gt;ô
+ô
+ôAôbôaôiôxôoô ôeônôcôoônôtôrôaô-ôsôeô ôoô ôdôeôtôaôlôhôaômôeônôtôoô ôtôéôcônôiôcôoô ôdôeô ôcôaôdôaô ôjôaônôeôlôaô ômôoôdôaôlô ôpôrôeôsôeônôtôeô ônôoô ôsôiôsôtôeômôaô,ô ôsôeôuôsô ôbôoôtôõôeôsô,ô ôvôaôlôiôdôaôçôõôeôsô ôeô ôcôoômôpôoôrôtôaômôeônôtôoôsô.ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô4ô-ô1ô&quot;ô&gt;ô4ô.ô1ô.ô ôMôoôdôaôlô ôdôeô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô&lt;ô/ôhô3ô&gt;ô
+ô-ô ô<em>ô</em>ôCôoômôoô ôAôcôeôsôsôaôrô:ô<em>ô</em>ô ôCôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô<code>ô�ô�ô ôRôeôaôlôiôzôaôrô ôTôrôiôaôgôeômô</code>ô ônôaô ôpôrôiômôeôiôrôaô ôcôoôlôuônôaô ôdôoô ôKôaônôbôaônô.ô
+ô-ô ô<em>ô</em>ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô<em>ô</em>ô ô<code>ôtôrôiôaôgôeô-ôpôaô</code>ô,ô ô<code>ôtôrôiôaôgôeô-ôfôcô</code>ô,ô ô<code>ôtôrôiôaôgôeô-ôtôeômôpô</code>ô,ô ô<code>ôtôrôiôaôgôeô-ôpôeôsôoô</code>ô,ô ô<code>ôtôrôiôaôgôeô-ôsôpôoô2ô</code>ô,ô ô<code>ôtôrôiôaôgôeô-ôdôoôrô</code>ô,ô ô<code>ômôaônôcôhôeôsôtôeôrôCôoôlôoôrô</code>ô,ô ô<code>ôtôrôiôaôgôeô-ôqôuôeôiôxôaô</code>ô.ô
+ô
+ô|ô ôBôoôtôãôoô ôdôoô ôMôoôdôaôlô ô|ô ôCôlôaôsôsôeô ô/ô ôIôDô ô|ô ôCôoômôpôoôrôtôaômôeônôtôoô ôaôoô ôCôlôiôcôaôrô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôfôiôrômôaôrô ôTôrôiôaôgôeômô<em>ô</em>ô ô|ô ô<code>ôbôuôtôtôoônô[ôtôyôpôeô=ô&quot;ôsôuôbômôiôtô&quot;ô]ô</code>ô ô|ô ôVôaôlôiôdôaô ôcôoôrô ôoôbôrôiôgôaôtôóôrôiôaô ôeô ôqôuôeôiôxôaô.ô ôAôlôtôeôrôaô ôsôtôaôtôuôsô ôpôaôrôaô ô<code>ôAôgôuôaôrôdôaônôdôoô_ôAôtôeônôdôiômôeônôtôoô</code>ô ôeô ôfôeôcôhôaô ômôoôdôaôlô.ô ô|ô
+ô|ô ô<em>ô</em>ôCôaônôcôeôlôaôrô<em>ô</em>ô ô|ô ô<code>ô#ôbôtônô-ôcôaônôcôeôlô-ôtôrôiôaôgôeô</code>ô ô|ô ôCôaônôcôeôlôaô ôaô ôoôpôeôrôaôçôãôoô,ô ôlôiômôpôaô ôoô ôfôoôrômôuôlôáôrôiôoô ôeô ôfôeôcôhôaô ôaô ôjôaônôeôlôaô ôsôeômô ôaôlôtôeôrôaôrô ôoô ôpôaôcôiôeônôtôeô.ô ô|ô
+ô|ô ô<em>ô</em>ôFôeôcôhôaôrô ô(ôXô)ô<em>ô</em>ô ô|ô ô<code>ô#ôcôlôoôsôeô-ôtôrôiôaôgôeô-ômôoôdôaôlô</code>ô ô|ô ôFôeôcôhôaô ôaô ôjôaônôeôlôaô ômôoôdôaôlô ôiômôeôdôiôaôtôaômôeônôtôeô.ô ô|ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô4ô-ô2ô&quot;ô&gt;ô4ô.ô2ô.ô ôMôoôdôaôlô ôdôeô ôPôrôeôsôcôrôiôçôãôoô ô&amp;ô ôRôeôcôeôiôtôuôáôrôiôoô ôMôéôdôiôcôoô&lt;ô/ôhô3ô&gt;ô
+ô-ô ô<em>ô</em>ôCôoômôoô ôAôcôeôsôsôaôrô:ô<em>ô</em>ô ôCôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô<code>ô�ô�ô ôPôrôeôsôcôrôiôçôãôoô</code>ô ônôaô ô3ôªô ôcôoôlôuônôaô ôdôoô ôKôaônôbôaônô ô(ô<em>ôEômô ôAôtôeônôdôiômôeônôtôoô</em>ô)ô.ô
+ô-ô ô<em>ô</em>ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô<em>ô</em>ô ô<code>ôrôxô-ômôeôdô-ônôaômôeô</code>ô,ô ô<code>ôrôxô-ôdôoôsôaôgôeô</code>ô,ô ô<code>ôrôxô-ôrôoôuôtôeô</code>ô,ô ô<code>ôrôxô-ôfôrôeôqôuôeônôcôyô</code>ô,ô ô<code>ôrôxô-ônôoôtôeôsô</code>ô.ô
+ô
+ô|ô ôBôoôtôãôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôçôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ô➕ô ôAôdôiôcôiôoônôaôrô ôIôtôeômô<em>ô</em>ô ô|ô ôIônôsôeôrôeô ôoô ômôeôdôiôcôaômôeônôtôoô ônôaô ôlôiôsôtôaô ôtôeômôpôoôrôáôrôiôaô ôdôaô ôrôeôcôeôiôtôaô ô|ô ôAôtôuôaôlôiôzôaô ôaô ôtôaôbôeôlôaô ôiônôtôeôrônôaô ôdôoô ôrôeôcôeôiôtôuôáôrôiôoô.ô ô|ô
+ô|ô ô<em>ô</em>ô�ô�ô️ô ôRôeômôoôvôeôrô ôIôtôeômô<em>ô</em>ô ô|ô ôEôxôcôlôuôiô ôoô ôiôtôeômô ôsôeôlôeôcôiôoônôaôdôoô ôdôaô ôlôiôsôtôaô ôdôaô ôrôeôcôeôiôtôaô ô|ô ôRôeômôoôvôeô ôoô ôfôáôrômôaôcôoô ôdôaô ôlôiôsôtôaô ôaôtôuôaôlô.ô ô|ô
+ô|ô ô<em>ô</em>ô�ô�ô ôSôaôlôvôaôrô ô&amp;ô ôDôiôsôpôeônôsôaôrô<em>ô</em>ô|ô ôRôeôgôiôsôtôrôaô ôaô ôrôeôcôeôiôtôaô ôeô ôcôoônôeôcôtôaô ôcôoômô ôaô ôfôaôrômôáôcôiôaô ô|ô ôEônôvôiôaô ôpôeôdôiôdôoô ôdôeô ôbôaôiôxôaô ôpôaôrôaô ôoô ôeôsôtôoôqôuôeô ôdôaô ôfôaôrômôáôcôiôaô.ô ô|ô
+ô|ô ô<em>ô</em>ô�ô�ô️ô ôIômôpôrôiômôiôrô ôPôDôFô<em>ô</em>ô ô|ô ôGôeôrôaô ôaô ôrôeôcôeôiôtôaô ômôéôdôiôcôaô ôfôoôrômôaôtôaôdôaô ôeômô ôPôDôFô ô|ô ôBôaôiôxôaô ôoô ôaôrôqôuôiôvôoô ôdôeô ôrôeôcôeôiôtôaô ôcôoômô ôcôaôbôeôçôaôlôhôoô ômôéôdôiôcôoô.ô ô|ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô4ô-ô3ô&quot;ô&gt;ô4ô.ô3ô.ô ôMôoôdôaôlô ôdôeô ôTôrôaônôsôfôeôrôêônôcôiôaô ô&amp;ô ôAôlôoôcôaôçôãôoô ôdôeô ôLôeôiôtôoô&lt;ô/ôhô3ô&gt;ô
+ô-ô ô<em>ô</em>ôCôoômôoô ôAôcôeôsôsôaôrô:ô<em>ô</em>ô ôCôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô<code>ô�ô�ô️ô ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô</code>ô ônôoô ôcôaôrôdô ôdôoô ôpôaôcôiôeônôtôeô ôeômô ôcôoônôsôuôlôtôaô.ô
+ô-ô ô<em>ô</em>ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô<em>ô</em>ô ô<code>ôbôeôdô-ôsôeôcôtôoôrô</code>ô,ô ô<code>ôbôeôdô-ôtôaôrôgôeôtô</code>ô,ô ô<code>ôbôeôdô-ônôoôtôeôsô</code>ô.ô
+ô
+ô|ô ôBôoôtôãôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôçôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôfôiôrômôaôrô ôTôrôaônôsôfôeôrôêônôcôiôaô<em>ô</em>ô|ô ôAôsôsôoôcôiôaô ôoô ôpôaôcôiôeônôtôeô ôaôoô ôlôeôiôtôoô ôeôsôcôoôlôhôiôdôoô ô|ô ôAôlôtôeôrôaô ôoô ôsôtôaôtôuôsô ôdôoô ôlôeôiôtôoô ôpôaôrôaô ô<code>ôOôcôuôpôaôdôoô</code>ô ôeô ôaôtôuôaôlôiôzôaô ôaô ôaôbôaô ô<em>ôLôeôiôtôoôsô</em>ô.ô ô|ô
+ô|ô ô<em>ô</em>ôSôoôlôiôcôiôtôaôrô ôHôiôgôiôeônôiôzôaôçôãôoô<em>ô</em>ô ô|ô ôMôaôrôcôaô ôoô ôlôeôiôtôoô ôdôeô ôoôrôiôgôeômô ôpôaôrôaô ôlôiômôpôeôzôaô ô|ô ôAôlôtôeôrôaô ôoô ôlôeôiôtôoô ôaônôtôeôrôiôoôrô ôpôaôrôaô ôsôtôaôtôuôsô ô<code>ôHôiôgôiôeônôiôzôaôçôãôoô</code>ô.ô ô|ô
+ô|ô ô<em>ô</em>ôCôaônôcôeôlôaôrô<em>ô</em>ô ô|ô ôCôaônôcôeôlôaô ôoô ôpôrôoôcôeôdôiômôeônôtôoô ô|ô ôFôeôcôhôaô ôoô ômôoôdôaôlô ôsôeômô ôaôlôtôeôrôaôrô ôoô ôlôoôcôaôlô ôdôoô ôpôaôcôiôeônôtôeô.ô ô|ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô4ô-ô4ô&quot;ô&gt;ô4ô.ô4ô.ô ôMôoôdôaôlô ôdôeô ôNôoôvôaô ôAôdômôiôsôsôãôoô ô&amp;ô ôEônôtôrôaôdôaô ôdôeô ôPôaôcôiôeônôtôeô&lt;ô/ôhô3ô&gt;ô
+ô-ô ô<em>ô</em>ôCôoômôoô ôAôcôeôsôsôaôrô:ô<em>ô</em>ô ôCôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô<code>ô+ô ôNôoôvôaô ôAôdômôiôsôsôãôoô</code>ô ônôoô ôtôoôpôoô ôdôaô ôCôeônôtôrôaôlô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô.ô
+ô-ô ô<em>ô</em>ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô<em>ô</em>ô ô<code>ôaôdômôiôsôsôiôoônô-ôpôaôtôiôeônôtô-ôiôdô</code>ô,ô ô<code>ôaôdômôiôsôsôiôoônô-ôtôyôpôeô</code>ô,ô ô<code>ôaôdômôiôsôsôiôoônô-ôsôpôeôcôiôaôlôtôyô</code>ô,ô ô<code>ôaôdômôiôsôsôiôoônô-ôpôrôiôoôrôiôtôyô</code>ô.ô
+ô
+ô|ô ôBôoôtôãôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôçôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôfôiôrômôaôrô ôAôdômôiôsôsôãôoô<em>ô</em>ô ô|ô ôCôrôiôaô ôoô ônôoôvôoô ôaôtôeônôdôiômôeônôtôoô ô|ô ôIônôsôeôrôeô ôoô ôpôaôcôiôeônôtôeô ônôaô ô1ôªô ôcôoôlôuônôaô ôdôoô ôKôaônôbôaônô ô(ô<em>ôAôgôuôaôrôdôaônôdôoô ôTôrôiôaôgôeômô</em>ô)ô.ô ô|ô
+ô|ô ô<em>ô</em>ô+ô ôCôaôdôaôsôtôrôaôrô ôNôoôvôoô ôPôaôcôiôeônôtôeô<em>ô</em>ô|ô ôAôbôrôeô ôeômôbôuôtôiôdôoô ôoô ôcôaôdôaôsôtôrôoô ôrôáôpôiôdôoô ô|ô ôPôeôrômôiôtôeô ôcôrôiôaôrô ôoô ôcôaôdôaôsôtôrôoô ôcôaôsôoô ôoô ôpôaôcôiôeônôtôeô ônôuônôcôaô ôtôeônôhôaô ôvôiônôdôoô ôaôoô ôhôoôsôpôiôtôaôlô.ô ô|ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô4ô-ô5ô&quot;ô&gt;ô4ô.ô5ô.ô ôMôoôdôaôlô ôdôeô ôDôiôrôeôcôiôoônôaômôeônôtôoô ô&amp;ô ôRôeôaôtôrôiôbôuôiôçôãôoô ôdôeô ôFôiôlôaô&lt;ô/ôhô3ô&gt;ô
+ô-ô ô<em>ô</em>ôCôoômôoô ôAôcôeôsôsôaôrô:ô<em>ô</em>ô ôNôaô ôaôbôaô ô<em>ô</em>ôEôsôtôaôgônôaôçôãôoô<em>ô</em>ô,ô ôcôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô<code>ôDôiôrôeôcôiôoônôaôrô</code>ô ôaôoô ôlôaôdôoô ôdôeô ôuômô ôpôaôcôiôeônôtôeô ôcôoômô ôaôtôrôaôsôoô.ô
+ô-ô ô<em>ô</em>ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô<em>ô</em>ô ô<code>ôrôeôaôsôsôiôgônô-ôrôoôoômô</code>ô,ô ô<code>ôrôeôaôsôsôiôgônô-ôsôtôaôtôuôsô</code>ô.ô
+ô
+ô|ô ôBôoôtôãôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôçôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôfôiôrômôaôrô ôDôiôrôeôcôiôoônôaômôeônôtôoô<em>ô</em>ô|ô ôAôtôuôaôlôiôzôaô ôcôoônôsôuôlôtôóôrôiôoô ôeô ôsôtôaôtôuôsô ô|ô ôMôoôvôeô ôoô ôpôaôcôiôeônôtôeô ôiômôeôdôiôaôtôaômôeônôtôeô ônôoô ôKôaônôbôaônô ôdôeôsôoôbôsôtôrôuôiônôdôoô ôoô ôgôaôrôgôaôlôoô.ô ô|ô
+ô|ô ô<em>ô</em>ô�ô�ô️ô ôSôoôlôiôcôiôtôaôrô ôIônôtôeôrônôaôçôãôoô<em>ô</em>ô ô|ô ôSôoôlôiôcôiôtôaôçôãôoô ôdôiôrôeôtôaô ôdôeô ôlôeôiôtôoô ô|ô ôDôeôfôiônôeô ôoô ôsôtôaôtôuôsô ôpôaôrôaô ô<code>ôAôgôuôaôrôdôaônôdôoô_ôLôeôiôtôoô</code>ô ôeô ôeônôvôiôaô ôaôlôeôrôtôaô ôpôaôrôaô ôaô ôCôeônôtôrôaôlô ôdôeô ôLôeôiôtôoôsô.ô ô|ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô4ô-ô6ô&quot;ô&gt;ô4ô.ô6ô.ô ôMôoôdôaôlô ôdôeô ôHôiôsôtôóôrôiôcôoô ôPôóôsô-ôAôlôtôaô ô&amp;ô ôPôrôoônôtôuôáôrôiôoô ôCôoônôsôoôlôiôdôaôdôoô&lt;ô/ôhô3ô&gt;ô
+ô-ô ô<em>ô</em>ôCôoômôoô ôAôcôeôsôsôaôrô:ô<em>ô</em>ô ôCôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô<code>ôHôiôsôtôóôrôiôcôoô</code>ô ônôoô ôtôoôpôoô ôdôaô ôCôeônôtôrôaôlô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô ôoôuô ônôaô ôaôbôaô ô<em>ôPôaôcôiôeônôtôeôsô</em>ô.ô
+ô
+ô|ô ôBôoôtôãôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôçôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ô�ô�ô️ô ôIômôpôrôiômôiôrô ôPôDôFô ôCôoônôsôoôlôiôdôaôdôoô<em>ô</em>ô|ô ôGôeôrôaô ôoô ôpôrôoônôtôuôáôrôiôoô ôiômôpôrôeôsôsôoô ôeômô ôPôDôFô ô|ô ôBôaôiôxôaô ôoô ôrôeôlôaôtôóôrôiôoô ôPôDôFô ôcôoômôpôlôeôtôoô ôcôoômô ôtôoôdôaôsô ôaôsô ôcôoônôsôuôlôtôaôsô ôdôoô ôhôiôsôtôóôrôiôcôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôFôeôcôhôaôrô<em>ô</em>ô ô|ô ôFôeôcôhôaô ôaô ôeôxôiôbôiôçôãôoô ôdôoô ôhôiôsôtôóôrôiôcôoô ô|ô ôRôeôtôoôrônôaô ôàô ônôaôvôeôgôaôçôãôoô ônôoôrômôaôlô.ô ô|ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô4ô-ô7ô&quot;ô&gt;ô4ô.ô7ô.ô ôMôoôdôaôlô ôdôeô ôAôpôrôoôvôaôçôãôoô ôdôeô ôAôcôeôsôsôoô ôdôeô ôUôsôuôáôrôiôoôsô&lt;ô/ôhô3ô&gt;ô
+ô-ô ô<em>ô</em>ôCôoômôoô ôAôcôeôsôsôaôrô:ô<em>ô</em>ô ôEôxôcôlôuôsôiôvôoô ôpôaôrôaô ôoô ôpôeôrôfôiôlô ô<em>ô</em>ôAôdômôiônôiôsôtôrôaôdôoôrô ôMôaôsôtôeôrô<em>ô</em>ô ônôaô ôaôbôaô ô<em>ôEôsôtôaôgônôaôçôãôoô</em>ô.ô
+ô
+ô|ô ôBôoôtôãôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôçôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ô�ô�ô️ô ôAôpôrôoôvôaôrô ôAôcôeôsôsôoô<em>ô</em>ô ô|ô ôCôoônôcôeôdôeô ôoô ôpôeôrôfôiôlô ôsôoôlôiôcôiôtôaôdôoô ô|ô ôLôiôbôeôrôaô ôaôsô ôpôeôrômôiôsôsôõôeôsô ôdôeô ôaôcôoôrôdôoô ôcôoômô ôoô ôcôaôrôgôoô ôcôaôdôaôsôtôrôaôdôoô.ô ô|ô
+ô|ô ô<em>ô</em>ô❌ô ôRôeôcôuôsôaôrô ôSôoôlôiôcôiôtôaôçôãôoô<em>ô</em>ô ô|ô ôDôeôfôiônôeô ôoô ôpôeôrôfôiôlô ôcôoômôoô ô<code>ôMôéôdôiôcôoô</code>ô ôpôaôdôrôãôoô ô|ô ôNôeôgôaô ôpôrôiôvôiôlôéôgôiôoôsô ôdôeô ôaôdômôiônôiôsôtôrôaôdôoôrô ômôaônôtôeônôdôoô ôaôcôeôsôsôoô ôdôeô ômôéôdôiôcôoô.ô ô|ô
+ô
+ô&lt;ôhô3ô ôiôdô=ô&quot;ôsôeôcô-ô4ô-ô8ô&quot;ô&gt;ô4ô.ô8ô.ô ôMôoôdôaôlô ôdôeô ôGôeôsôtôãôoô ôdôeô ôUôsôuôáôrôiôoôsô ô&amp;ô ôTôrôoôcôaô ôdôeô ôPôeôrôfôiôlô&lt;ô/ôhô3ô&gt;ô
+ô-ô ô<em>ô</em>ôCôoômôoô ôAôcôeôsôsôaôrô:ô<em>ô</em>ô ôCôlôiôqôuôeô ônôoô ônôoômôeô ôdôoô ôuôsôuôáôrôiôoô ôlôoôgôaôdôoô ônôoô ôcôaônôtôoô ôsôuôpôeôrôiôoôrô ôdôiôrôeôiôtôoô ôdôoô ômôeônôuô.ô
+ô
+ô|ô ôBôoôtôãôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôçôãôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôSôaôlôvôaôrô ôAôlôtôeôrôaôçôõôeôsô<em>ô</em>ô ô|ô ôAôtôuôaôlôiôzôaô ôaô ôsôeônôhôaô ôeô ôdôaôdôoôsô ôdôoô ôoôpôeôrôaôdôoôrô ô|ô ôGôrôaôvôaô ônôoô ôbôaônôcôoô ôeô ôeômôiôtôeô ôtôoôaôsôtô ôdôeô ôcôoônôfôiôrômôaôçôãôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôSôaôiôrô ô/ô ôLôoôgôoôuôtô<em>ô</em>ô ô|ô ôEônôcôeôrôrôaô ôaô ôsôeôsôsôãôoô ôaôtôuôaôlô ô|ô ôRôeôdôiôrôeôcôiôoônôaô ôpôaôrôaô ôaô ôtôeôlôaô ôdôeô ôLôoôgôiônô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô5ô&quot;ô&gt;ô5ô.ô ôGôeôsôtôãôoô ôdôeô ôPôaôcôiôeônôtôeôsô ô&amp;ô ôHôiôsôtôóôrôiôcôoô ôCôlôíônôiôcôoô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôPôaôcôiôeônôtôeôsô<em>ô</em>ô,ô ôoô ôhôoôsôpôiôtôaôlô ômôaônôtôéômô ôoô ôcôaôdôaôsôtôrôoô ôcôeônôtôrôaôlôiôzôaôdôoô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôCôaômôpôoôsô ôCôaôdôaôsôtôrôaôiôsô ôdôoô ôPôaôcôiôeônôtôeô
+ô|ô ôCôaômôpôoô ô|ô ôTôiôpôoô ôdôeô ôDôaôdôoô ô|ô ôRôeôgôrôaô ôdôeô ôVôaôlôiôdôaôçôãôoô ô|ô ôEôxôeômôpôlôoô ôdôeô ôPôrôeôeônôcôhôiômôeônôtôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôNôoômôeô ôCôoômôpôlôeôtôoô<em>ô</em>ô ô|ô ôTôeôxôtôoô ô|ô ôMôíônôiômôoô ôdôeô ô3ô ôcôaôrôaôcôtôeôrôeôsô ô|ô ô<code>ôRôeônôaôtôoô ôRôaômôoôsô ôMôaôcôhôaôdôoô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôCôPôFô<em>ô</em>ô ô|ô ôNôúômôeôrôoô ô/ô ôTôeôxôtôoô ô|ô ôVôaôlôiôdôaôçôãôoô ôdôeô ôaôlôgôoôrôiôtômôoô ôdôeô ô1ô1ô ôdôíôgôiôtôoôsô ô|ô ô<code>ô1ô2ô3ô.ô4ô5ô6ô.ô7ô8ô9ô-ô0ô0ô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôDôaôtôaô ôdôeô ôNôaôsôcôiômôeônôtôoô<em>ô</em>ô ô|ô ôDôaôtôaô ô(ôAôAôAôAô-ôMôMô-ôDôDô)ô ô|ô ôNôãôoô ôpôoôdôeô ôsôeôrô ôdôaôtôaô ôfôuôtôuôrôaô ô|ô ô<code>ô1ô9ô8ô5ô-ô0ô4ô-ô1ô2ô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôTôeôlôeôfôoônôeô ô/ô ôWôhôaôtôsôAôpôpô<em>ô</em>ô|ô ôTôeôxôtôoô ô|ô ôDôDôDô ô+ô ôNôúômôeôrôoô ô|ô ô<code>ô(ô1ô1ô)ô ô9ô8ô7ô6ô5ô-ô4ô3ô2ô1ô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôEônôdôeôrôeôçôoô ôCôoômôpôlôeôtôoô<em>ô</em>ô ô|ô ôTôeôxôtôoô ô|ô ôLôoôgôrôaôdôoôuôrôoô,ô ôNôúômôeôrôoô,ô ôBôaôiôrôrôoô,ô ôCôiôdôaôdôeô ô|ô ô<code>ôAôvô.ô ôPôaôuôlôiôsôtôaô,ô ô1ô0ô0ô0ô ô—ô ôSôãôoô ôPôaôuôlôoô/ôSôPô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôvôêônôiôoô ô/ô ôPôlôaônôoô<em>ô</em>ô ô|ô ôSôeôlôeôtôoôrô ô|ô ôSôUôSô,ô ôPôaôrôtôiôcôuôlôaôrô ôoôuô ôNôoômôeô ôdôoô ôCôoônôvôêônôiôoô ô|ô ô<code>ôBôrôaôdôeôsôcôoô ôSôaôúôdôeô</code>ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô6ô&quot;ô&gt;ô6ô.ô ôGôeôsôtôãôoô ôdôaô ôEôqôuôiôpôeô ôMôéôdôiôcôaô ô&amp;ô ôCôoôrôpôoô ôCôlôíônôiôcôoô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôMôéôdôiôcôoôsô<em>ô</em>ô,ô ôgôeôrôeônôcôiôaô-ôsôeô ôoô ôcôoôrôpôoô ôcôlôíônôiôcôoô ôdôoô ôhôoôsôpôiôtôaôlô.ô
+ô
+ô#ô#ô#ô ô�ô�ô‍ô⚕ô️ô ôTôaôbôeôlôaô ôdôeô ôCôaômôpôoôsô ôeô ôAôçôõôeôsô ôdôoôsô ôMôéôdôiôcôoôsô
+ô|ô ôCôaômôpôoô ô/ô ôAôçôãôoô ô|ô ôTôiôpôoô ô|ô ôDôeôsôcôrôiôçôãôoô ô/ô ôEôxôeômôpôlôoô ô|ô ôFôuônôçôãôoô ônôoô ôSôiôsôtôeômôaô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôNôoômôeô ôdôoô ôMôéôdôiôcôoô<em>ô</em>ô ô|ô ôTôeôxôtôoô ô|ô ô<code>ôDôrô.ô ôCôaôrôlôoôsô ôEôdôuôaôrôdôoô ôSôiôlôvôaô</code>ô ô|ô ôEôxôiôbôiôdôoô ônôoôsô ôlôaôuôdôoôsô,ô ôrôeôcôeôiôtôaôsô ôeô ôcôhôaômôaôdôaôsô ôdôeô ôTôVô.ô ô|ô
+ô|ô ô<em>ô</em>ôCôRôMô ô/ô ôUôFô<em>ô</em>ô ô|ô ôTôeôxôtôoô ô|ô ô<code>ô1ô2ô3ô4ô5ô6ô/ôSôPô</code>ô ô|ô ôRôeôgôiôsôtôrôoô ôpôrôoôfôiôsôsôiôoônôaôlô ôdôeô ôcôlôaôsôsôeô ônôoô ôcôoônôsôeôlôhôoô ômôéôdôiôcôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôEôsôpôeôcôiôaôlôiôdôaôdôeô<em>ô</em>ô ô|ô ôSôeôlôeôtôoôrô ô|ô ô<code>ôCôaôrôdôiôoôlôoôgôiôaô</code>ô,ô ô<code>ôPôeôdôiôaôtôrôiôaô</code>ô,ô ô<code>ôOôrôtôoôpôeôdôiôaô</code>ô ô|ô ôVôiônôcôuôlôaô ôaô ôfôiôlôaô ôdôeô ôaôtôeônôdôiômôeônôtôoô ôdôaô ôeôsôpôeôcôiôaôlôiôdôaôdôeô.ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôsôuôlôtôóôrôiôoô ôAôlôoôcôaôdôoô<em>ô</em>ô|ô ôSôeôlôeôtôoôrô ô|ô ô<code>ôCôoônôsôuôlôtôóôrôiôoô ô0ô3ô</code>ô ô|ô ôDôeôfôiônôeô ôeômô ôqôuôaôlô ôsôaôlôaô ôoô ômôéôdôiôcôoô ôaôtôeônôdôeô ônôoô ôdôiôaô.ô ô|ô
+ô|ô ô<em>ô</em>ôSôtôaôtôuôsô ôdôaô ôEôsôcôaôlôaô<em>ô</em>ô ô|ô ôBôaôdôgôeô ô|ô ô�ô�ô ô<code>ôEômô ôPôlôaônôtôãôoô</code>ô ô/ô ô⚪ô ô<code>ôFôoôlôgôaô</code>ô ô|ô ôCôoônôtôrôoôlôaô ôsôeô ôoô ômôéôdôiôcôoô ôeôsôtôáô ôdôiôsôpôoônôíôvôeôlô ôpôaôrôaô ôcôhôaômôaôdôaôsô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô7ô&quot;ô&gt;ô7ô.ô ôGôeôsôtôãôoô ôdôeô ôCôoônôsôuôlôtôóôrôiôoôsô ô&amp;ô ôSôaôlôaôsô ôdôeô ôAôtôeônôdôiômôeônôtôoô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôCôoônôsôuôlôtôóôrôiôoôsô<em>ô</em>ô,ô ôcôoônôtôrôoôlôaô-ôsôeô ôaô ôoôcôuôpôaôçôãôoô ôdôaôsô ôsôaôlôaôsô ômôéôdôiôcôaôsô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôSôtôaôtôuôsô ôeô ôGôeôsôtôãôoô ôdôaôsô ôSôaôlôaôsô
+ô|ô ôSôaôlôaô ô/ô ôCôoônôsôuôlôtôóôrôiôoô ô|ô ôAôlôaô ô|ô ôEôsôpôeôcôiôaôlôiôdôaôdôeô ôVôiônôcôuôlôaôdôaô ô|ô ôMôéôdôiôcôoô ôAôlôoôcôaôdôoô ô|ô ôSôtôaôtôuôsô ôAôtôuôaôlô ô|ô ôAôçôõôeôsô ôRôáôpôiôdôaôsô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôsôuôlôtôóôrôiôoô ô0ô1ô<em>ô</em>ô ô|ô ôTôéôrôrôeôoô ô|ô ôCôlôiônôiôcôaô ôGôeôrôaôlô ô|ô ôDôrô.ô ôCôaôrôlôoôsô ôSôiôlôvôaô ô|ô ô�ô�ô ô<code>ôDôiôsôpôoônôíôvôeôlô</code>ô ô|ô ô<code>ôAôlôoôcôaôrô ôMôéôdôiôcôoô</code>ô,ô ô<code>ôCôhôaômôaôrô ôPôrôóôxôiômôoô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôsôuôlôtôóôrôiôoô ô0ô2ô<em>ô</em>ô ô|ô ôTôéôrôrôeôoô ô|ô ôPôeôdôiôaôtôrôiôaô ô|ô ôDôrôaô.ô ôMôaôrôiôaônôaô ôCôoôsôtôaô ô|ô ô�ô�ô ô<code>ôEômô ôCôoônôsôuôlôtôaô</code>ô ô|ô ô<code>ôVôeôrô ôAôtôeônôdôiômôeônôtôoô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôCôoônôsôuôlôtôóôrôiôoô ô0ô3ô<em>ô</em>ô ô|ô ô1ôºô ôAônôdôaôrô ô|ô ôOôrôtôoôpôeôdôiôaô ô|ô ôDôrô.ô ôRôoôbôeôrôtôoô ôAôlôvôeôsô ô|ô ô�ô�ô ô<code>ôHôiôgôiôeônôiôzôaôçôãôoô</code>ô ô|ô ô<code>ôLôiôbôeôrôaôrô ôSôaôlôaô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôSôaôlôaô ôAômôaôrôeôlôaô<em>ô</em>ô ô|ô ôUôrôgôêônôcôiôaô ô|ô ôEômôeôrôgôêônôcôiôaô ô/ô ôPôSô ô|ô ôDôrôaô.ô ôFôeôrônôaônôdôaô ôLôiômôaô ô|ô ô�ô�ô ô<code>ôEômô ôCôoônôsôuôlôtôaô</code>ô ô|ô ô<code>ôTôrôaônôsôfôeôrôiôrô ôPôaôcôiôeônôtôeô</code>ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô8ô&quot;ô&gt;ô8ô.ô ôGôeôsôtôãôoô ôdôeô ôLôeôiôtôoôsô ô&amp;ô ôHôoôsôpôiôtôaôlôiôzôaôçôãôoô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôLôeôiôtôoôsô<em>ô</em>ô,ô ôaô ôeôqôuôiôpôeô ôgôeôrôeônôcôiôaô ôaô ôoôcôuôpôaôçôãôoô ôdôaôsô ôaôlôaôsô ôhôoôsôpôiôtôaôlôaôrôeôsô.ô
+ô
+ô#ô#ô#ô ô�ô�ô️ô ôTôaôbôeôlôaô ôdôeô ôGôeôsôtôãôoô ôdôeô ôLôeôiôtôoôsô
+ô|ô ôLôeôiôtôoô ôIôDô ô|ô ôAôlôaô ô/ô ôSôeôtôoôrô ô|ô ôPôaôcôiôeônôtôeô ôIônôtôeôrônôaôdôoô ô|ô ôTôeômôpôoô ôdôeô ôIônôtôeôrônôaôçôãôoô ô|ô ôSôtôaôtôuôsô ôdôoô ôLôeôiôtôoô ô|ô ôAôçôõôeôsô ôPôeôrômôiôtôiôdôaôsô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôEônôfôeôrômôaôrôiôaô ô1ô0ô1ô-ôAô<em>ô</em>ô|ô ôEônôfôeôrômôaôrôiôaô ôGôeôrôaôlô ô|ô ôMôaôrôiôaô ôEôdôuôaôrôdôaô ôSôoôuôzôaô ô|ô ô3ô ôdôiôaôsô ô|ô ô�ô�ô ô<code>ôOôcôuôpôaôdôoô</code>ô ô|ô ô<code>ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô</code>ô,ô ô<code>ôDôaôrô ôAôlôtôaô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôEônôfôeôrômôaôrôiôaô ô1ô0ô1ô-ôBô<em>ô</em>ô|ô ôEônôfôeôrômôaôrôiôaô ôGôeôrôaôlô ô|ô ô—ô ô|ô ô—ô ô|ô ô�ô�ô ô<code>ôDôiôsôpôoônôíôvôeôlô</code>ô ô|ô ô<code>ôIônôtôeôrônôaôrô ôPôaôcôiôeônôtôeô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôUôTôIô-ô0ô1ô<em>ô</em>ô ô|ô ôUôTôIô ôAôdôuôlôtôoô ô|ô ôJôoôsôéô ôRôaômôoôsô ôFôeôrôrôeôiôrôaô ô|ô ô7ô ôdôiôaôsô ô|ô ô�ô�ô ô<code>ôOôcôuôpôaôdôoô</code>ô ô|ô ô<code>ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô</code>ô,ô ô<code>ôEôvôoôlôuôçôãôoô ôUôTôIô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôIôsôoôlôaômôeônôtôoô-ô0ô2ô<em>ô</em>ô ô|ô ôIôsôoôlôaômôeônôtôoô ô|ô ô—ô ô|ô ô—ô ô|ô ô�ô�ô ô<code>ôHôiôgôiôeônôiôzôaôçôãôoô</code>ô ô|ô ô<code>ôLôiôbôeôrôaôrô ôpôaôrôaô ôUôsôoô</code>ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô9ô&quot;ô&gt;ô9ô.ô ôAôgôeônôdôaô,ô ôEôsôcôaôlôaô ôMôéôdôiôcôaô ô&amp;ô ôCôoônôsôuôlôtôaôsô ôEôlôeôtôiôvôaôsô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôAôgôeônôdôaô<em>ô</em>ô,ô ôrôeôaôlôiôzôaô-ôsôeô ôaô ômôaôrôcôaôçôãôoô ôeô ôcôoônôtôrôoôlôeô ôdôeô ôhôoôrôáôrôiôoôsô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôOôpôeôrôaôçôõôeôsô ôdôaô ôAôgôeônôdôaô
+ô|ô ôOôpôeôrôaôçôãôoô ô|ô ôPôaôrôâômôeôtôrôoôsô ôNôeôcôeôsôsôáôrôiôoôsô ô|ô ôAôçôãôoô ôdôoô ôSôiôsôtôeômôaô ô|ô ôRôeôsôuôlôtôaôdôoô ôGôeôrôaôdôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôNôoôvôoô ôAôgôeônôdôaômôeônôtôoô<em>ô</em>ô ô|ô ôPôaôcôiôeônôtôeô,ô ôMôéôdôiôcôoô,ô ôDôaôtôaô,ô ôHôoôrôáôrôiôoô ô|ô ôGôrôaôvôaô ôaô ôcôoônôsôuôlôtôaô ônôaô ôgôrôaôdôeô.ô ô|ô ôIônôsôeôrôeô ônôaô ôaôgôeônôdôaô ôeô ôhôaôbôiôlôiôtôaô ôeômôiôsôsôãôoô ôdôeô ôPôDôFô.ô ô|ô
+ô|ô ô<em>ô</em>ôIômôpôrôiômôiôrô ôCôoômôpôrôoôvôaônôtôeô<em>ô</em>ô|ô ôIôDô ôdôoô ôAôgôeônôdôaômôeônôtôoô ô|ô ôGôeôrôaô ôdôoôcôuômôeônôtôoô ôPôDôFô ôfôoôrômôaôtôaôdôoô.ô ô|ô ôBôaôiôxôaô ôoô ôtôiôcôkôeôtô ôiômôpôrôeôsôsôoô ôpôaôrôaô ôeônôtôrôeôgôaô ôaôoô ôpôaôcôiôeônôtôeô.ô ô|ô
+ô|ô ô<em>ô</em>ôCôaônôcôeôlôaôrô ôHôoôrôáôrôiôoô<em>ô</em>ô ô|ô ôMôoôtôiôvôoô ôdôoô ôcôaônôcôeôlôaômôeônôtôoô ô|ô ôAôlôtôeôrôaô ôsôtôaôtôuôsô ôpôaôrôaô ô<code>ôCôaônôcôeôlôaôdôoô</code>ô.ô ô|ô ôLôiôbôeôrôaô ôaô ôvôaôgôaô ônôoô ôhôoôrôáôrôiôoô ôpôaôrôaô ônôoôvôaô ômôaôrôcôaôçôãôoô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô0ô&quot;ô&gt;ô1ô0ô.ô ôFôaôrômôáôcôiôaô ô&amp;ô ôDôiôsôpôeônôsôaôçôãôoô ôdôeô ôMôeôdôiôcôaômôeônôtôoôsô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôFôaôrômôáôcôiôaô<em>ô</em>ô,ô ôfôaôzô-ôsôeô ôaô ôgôeôsôtôãôoô ôdôeô ôeôsôtôoôqôuôeô ôeô ôrôaôsôtôrôeôaôbôiôlôiôdôaôdôeô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôCôoônôtôrôoôlôeô ôdôeô ôFôaôrômôáôcôiôaô ôeô ôEôsôtôoôqôuôeô
+ô|ô ôMôeôdôiôcôaômôeônôtôoô ô|ô ôAôpôrôeôsôeônôtôaôçôãôoô ô/ô ôVôiôaô ô|ô ôLôoôtôeô ô|ô ôDôaôtôaô ôVôaôlôiôdôaôdôeô ô|ô ôEôsôtôoôqôuôeô ôAôtôuôaôlô ô|ô ôEôsôtôoôqôuôeô ôMôíônô.ô ô|ô ôSôtôaôtôuôsô ôEôsôtôoôqôuôeô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô
+ô|ô ô<em>ô</em>ôDôiôpôiôrôoônôaô ôSôóôdôiôcôaô<em>ô</em>ô ô|ô ôAômôpôoôlôaô ô5ô0ô0ômôgô/ômôlô ô(ôEôVô/ôIôMô)ô|ô ô<code>ôLô-ô9ô8ô2ô1ô</code>ô ô|ô ô2ô0ô2ô7ô-ô1ô2ô-ô3ô1ô ô|ô ô4ô5ô0ô ôuônô ô|ô ô1ô0ô0ô ôuônô ô|ô ô�ô�ô ôOôKô ô|ô
+ô|ô ô<em>ô</em>ôAômôoôxôiôcôiôlôiônôaô ô5ô0ô0ômôgô<em>ô</em>ô ô|ô ôCôoômôpôrôiômôiôdôoô ô(ôVôOô)ô ô|ô ô<code>ôLô-ô4ô4ô1ô0ô</code>ô ô|ô ô2ô0ô2ô6ô-ô0ô9ô-ô1ô5ô ô|ô ô8ô5ô ôuônô ô|ô ô1ô0ô0ô ôuônô ô|ô ô�ô�ô ôAôbôaôiôxôoô ôMôíônôiômôoô ô|ô
+ô|ô ô<em>ô</em>ôFôeônôtôaônôiôlô ô0ô.ô0ô5ômôgô/ômôlô<em>ô</em>ô|ô ôAômôpôoôlôaô ô(ôEôVô)ô ô|ô ô<code>ôLô-ô1ô1ô0ô2ô</code>ô ô|ô ô2ô0ô2ô6ô-ô0ô8ô-ô2ô0ô ô|ô ô1ô2ô ôuônô ô|ô ô2ô0ô ôuônô ô|ô ô�ô�ô ôAôlôeôrôtôaô ôVôaôlôiôdôaôdôeô/ôEôsôtôoôqôuôeô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô1ô&quot;ô&gt;ô1ô1ô.ô ôFôaôtôuôrôaômôeônôtôoô,ô ôGôuôiôaôsô ôTôIôSôSô ô&amp;ô ôGôeôsôtôãôoô ôFôiônôaônôcôeôiôrôaô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôFôaôtôuôrôaômôeônôtôoô<em>ô</em>ô,ô ôaôcôoômôpôaônôhôaô-ôsôeô ôaô ôrôeôcôeôiôtôaô ôeô ôoôsô ôrôeôpôaôsôsôeôsô ôdôoôsô ôcôoônôvôêônôiôoôsô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôLôaônôçôaômôeônôtôoôsô ôFôiônôaônôcôeôiôrôoôsô
+ô|ô ôCôóôdôiôgôoô ôAôtôeônôdôiômôeônôtôoô ô|ô ôPôaôcôiôeônôtôeô ô|ô ôCôoônôvôêônôiôoô ô/ô ôPôlôaônôoô ô|ô ôVôaôlôoôrô ôdôoôsô ôSôeôrôvôiôçôoôsô ô|ô ôVôaôlôoôrô ôTôaôxôaôsô/ôEôxôaômôeôsô ô|ô ôSôtôaôtôuôsô ôFôiônôaônôcôeôiôrôoô ô|ô ôAôçôõôeôsô ôDôiôsôpôoônôíôvôeôiôsô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<code>ô#ôAôTôDô-ô2ô0ô2ô6ô-ô0ô8ô1ô</code>ô ô|ô ôRôeônôaôtôoô ôRôaômôoôsô ô|ô ôUônôiômôeôdô ôSôaôúôdôeô ô|ô ôRô$ô ô3ô5ô0ô,ô0ô0ô ô|ô ôRô$ô ô1ô2ô0ô,ô0ô0ô ô|ô ô�ô�ô ô<code>ôPôeônôdôeônôtôeô</code>ô ô|ô ô<code>ôDôaôrô ôBôaôiôxôaô</code>ô,ô ô<code>ôEôdôiôtôaôrô</code>ô ô|ô
+ô|ô ô<code>ô#ôAôTôDô-ô2ô0ô2ô6ô-ô0ô8ô2ô</code>ô ô|ô ôCôaômôiôlôaô ôFôeôrôrôeôiôrôaô ô|ô ôSôUôSô ô/ô ôPôúôbôlôiôcôoô ô|ô ôRô$ô ô1ô8ô0ô,ô0ô0ô ô|ô ôRô$ô ô0ô,ô0ô0ô ô|ô ô�ô�ô ô<code>ôFôaôtôuôrôaôdôoô</code>ô ô|ô ô<code>ôVôeôrô ôDôeôtôaôlôhôeôsô</code>ô ô|ô
+ô|ô ô<code>ô#ôAôTôDô-ô2ô0ô2ô6ô-ô0ô8ô3ô</code>ô ô|ô ôLôuôcôaôsô ôMôeônôdôeôsô ô|ô ôPôaôrôtôiôcôuôlôaôrô ô|ô ôRô$ô ô4ô5ô0ô,ô0ô0ô ô|ô ôRô$ô ô2ô0ô0ô,ô0ô0ô ô|ô ô�ô�ô ô<code>ôPôaôgôoô</code>ô ô|ô ô<code>ôIômôpôrôiômôiôrô ôRôeôcôiôbôoô</code>ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô2ô&quot;ô&gt;ô1ô2ô.ô ôRôeôlôaôtôóôrôiôoôsô ôAônôaôlôyôtôiôcôsô ô&amp;ô ôIônôdôiôcôaôdôoôrôeôsô ôHôoôsôpôiôtôaôlôaôrôeôsô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôRôeôlôaôtôóôrôiôoôsô<em>ô</em>ô,ô ôoô ôgôeôsôtôoôrô ôvôiôsôuôaôlôiôzôaô ôoôsô ôgôrôáôfôiôcôoôsô ôeô ôiônôdôiôcôaôdôoôrôeôsô ôdôeô ôdôeôsôeômôpôeônôhôoô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôIônôdôiôcôaôdôoôrôeôsô ôGôeôrôeônôcôiôaôiôsô
+ô|ô ôRôeôlôaôtôóôrôiôoô ô/ô ôMôéôtôrôiôcôaô ô|ô ôIônôdôiôcôaôdôoôrô ôAônôaôlôiôsôaôdôoô ô|ô ôPôeôrôíôoôdôoô ôSôeôlôeôcôiôoônôáôvôeôlô ô|ô ôFôoôrômôaôtôoô ôdôeô ôEôxôpôoôrôtôaôçôãôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô
+ô|ô ô<em>ô</em>ôTôaôxôaô ôdôeô ôOôcôuôpôaôçôãôoô ôdôeô ôLôeôiôtôoôsô<em>ô</em>ô ô|ô ô%ô ôdôeô ôlôeôiôtôoôsô ôoôcôuôpôaôdôoôsô ôvôsô ôlôeôiôtôoôsô ôtôoôtôaôiôsô ô|ô ôHôoôjôeô ô/ô ô7ô ôdôiôaôsô ô/ô ô3ô0ô ôdôiôaôsô ô|ô ôPôDôFô ô/ô ôEôxôcôeôlô ô|ô
+ô|ô ô<em>ô</em>ôTôeômôpôoô ôMôéôdôiôoô ôdôeô ôEôsôpôeôrôaô ô(ôSôLôAô)ô<em>ô</em>ô ô|ô ôMôiônôuôtôoôsô ômôéôdôiôoôsô ôdôeô ôeôsôpôeôrôaô ôpôoôrô ôMôaônôcôhôeôsôtôeôrô ô|ô ôHôoôjôeô ô/ô ôMôeônôsôaôlô ô|ô ôPôDôFô ô/ô ôEôxôcôeôlô ô|ô
+ô|ô ô<em>ô</em>ôVôoôlôuômôeô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô<em>ô</em>ô ô|ô ôQôuôaônôtôiôdôaôdôeô ôdôeô ôpôaôcôiôeônôtôeôsô ôaôtôeônôdôiôdôoôsô ôpôoôrô ôeôsôpôeôcôiôaôlôiôdôaôdôeô ô|ô ôMôeônôsôaôlô ô/ô ôAônôuôaôlô ô|ô ôEôxôcôeôlô ô/ô ôCôSôVô ô|ô
+ô|ô ô<em>ô</em>ôFôaôtôuôrôaômôeônôtôoô ôPôoôrô ôCôoônôvôêônôiôoô<em>ô</em>ô ô|ô ôTôoôtôaôlô ôaôrôrôeôcôaôdôaôdôoô ôdôiôsôcôrôiômôiônôaôdôoô ôpôoôrô ôpôlôaônôoô ôdôeô ôsôaôúôdôeô ô|ô ôMôeônôsôaôlô ô|ô ôEôxôcôeôlô ô/ô ôPôDôFô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô3ô&quot;ô&gt;ô1ô3ô.ô ôPôaôiônôeôlô ôdôeô ôCôhôaômôaôdôaô ôTôVô ô(ôRôeôcôeôpôçôãôoô)ô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôPôaôiônôeôlô ôTôVô<em>ô</em>ô,ô ôaô ôrôeôcôeôpôçôãôoô ôgôeôrôeônôcôiôaô ôaôsô ôcôhôaômôaôdôaôsô ônôaô ôtôeôlôeôvôiôsôãôoô ôdôaô ôsôaôlôaô ôdôeô ôeôsôpôeôrôaô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôRôeôcôuôrôsôoôsô ôdôoô ôPôaôiônôeôlô ôTôVô
+ô|ô ôRôeôcôuôrôsôoô ô|ô ôDôeôsôcôrôiôçôãôoô ôTôéôcônôiôcôaô ô|ô ôRôeôsôuôlôtôaôdôoô ôVôiôsôuôaôlô ô/ô ôSôoônôoôrôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôCôhôaômôaôdôaô ôSôoônôoôrôaô ô(ôCôhôiômôeô)ô<em>ô</em>ô ô|ô ôRôeôpôrôoôdôuôzô ôoô ôsôiônôaôlô ôdôeô ôáôuôdôiôoô ôsôiônôtôeôtôiôzôaôdôoô ôeômô ôaôlôtôoô-ôfôaôlôaônôtôeô.ô ô|ô ôAôtôrôaôiô ôaô ôaôtôeônôçôãôoô ôdôoôsô ôpôaôcôiôeônôtôeôsô ônôaô ôrôeôcôeôpôçôãôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôPôlôaôcôaô ôVôiôsôuôaôlô ôPôrôiônôcôiôpôaôlô<em>ô</em>ô ô|ô ôEôxôiôbôeô ôoô ôNôoômôeô ôdôoô ôPôaôcôiôeônôtôeô ôeô ôoô ôCôoônôsôuôlôtôóôrôiôoô ôeômô ôfôoônôtôeô ôgôiôgôaônôtôeô.ô ô|ô ôPôiôsôcôaô ôeômô ôcôoôrô ôdôeô ôaôlôtôoô ôcôoônôtôrôaôsôtôeô ônôaô ôtôeôlôaô ôdôaô ôTôVô.ô ô|ô
+ô|ô ô<em>ô</em>ôLôiôsôtôaô ôdôeô ôCôhôaômôaôdôaôsô ôRôeôcôeônôtôeôsô<em>ô</em>ô ô|ô ôHôiôsôtôóôrôiôcôoô ôdôaôsô ôúôlôtôiômôaôsô ô5ô ôcôhôaômôaôdôaôsô ônôoô ôcôaônôtôoô ôdôaô ôtôeôlôaô.ô ô|ô ôPôeôrômôiôtôeô ôaôoô ôpôaôcôiôeônôtôeô ôvôeôrôiôfôiôcôaôrô ôsôeô ôsôeôuô ônôoômôeô ôfôoôiô ôcôhôaômôaôdôoô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô4ô&quot;ô&gt;ô1ô4ô.ô ôCôeônôtôrôaôlô ôdôeô ôEôsôtôaôgônôaôçôãôoô ô&amp;ô ôAôpôrôoôvôaôçôõôeôsô ôdôeô ôAôcôeôsôsôoô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôEôsôtôaôgônôaôçôãôoô<em>ô</em>ô,ô ôoô ôsôiôsôtôeômôaô ômôoônôiôtôoôrôaô ôgôaôrôgôaôlôoôsô ôeô ôpôeônôdôêônôcôiôaôsô ôdôeô ôaôcôeôsôsôoô ôdôeô ônôoôvôoôsô ôuôsôuôáôrôiôoôsô.ô ôTôoôdôoô ônôoôvôoô ôuôsôuôáôrôiôoô ôcôaôdôaôsôtôrôaôdôoô ôsôeômô ôaô ôcôhôaôvôeô ômôaôsôtôeôrô ôpôrôeôcôiôsôaôrôáô ôdôeô ôaôpôrôoôvôaôçôãôoô.ô
+ô
+ô#ô#ô#ô ô�ô�ô ôTôaôbôeôlôaô ôdôeô ôAôlôeôrôtôaôsô ôdôeô ôEôsôtôaôgônôaôçôãôoô ô&amp;ô ôAôpôrôoôvôaôçôõôeôsô
+ô|ô ôTôiôpôoô ôdôeô ôAôlôeôrôtôaô ô|ô ôCôrôiôtôéôrôiôoô ôdôeô ôDôiôsôpôaôrôoô ô|ô ôCôoôrô ôdôoô ôBôaôdôgôeô ô|ô ôAôçôãôoô ôRôeôcôoômôeônôdôaôdôaô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôAôlôeôrôtôaô ôdôeô ôEôsôpôeôrôaô<em>ô</em>ô ô|ô ôTôeômôpôoô ôdôeô ôeôsôpôeôrôaô ô&gt;ô ô<em>ô</em>ô1ô5ô ômôiônô<em>ô</em>ô ô|ô ô�ô�ô ôAômôaôrôeôlôoô ô|ô ôAôcôiôoônôaôrô ôoô ômôéôdôiôcôoô ôdôaô ôsôaôlôaô ôoôuô ôaôgôiôlôiôzôaôrô ôaô ôtôrôiôaôgôeômô.ô ô|ô
+ô|ô ô<em>ô</em>ôAôlôeôrôtôaô ôCôrôíôtôiôcôoô<em>ô</em>ô ô|ô ôTôeômôpôoô ôdôeô ôeôsôpôeôrôaô ô&gt;ô ô<em>ô</em>ô3ô0ô ômôiônô<em>ô</em>ô ô|ô ô�ô�ô ôVôeôrômôeôlôhôoô ô|ô ôRôeômôaônôeôjôaôrô ôpôaôcôiôeônôtôeô ôpôaôrôaô ôcôoônôsôuôlôtôóôrôiôoô ôvôaôgôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôOôbôsôeôrôvôaôçôãôoô ôEôxôcôeôdôiôdôaô<em>ô</em>ô ô|ô ôPôeôrômôaônôeôcôeôuô ô&gt;ô ô<em>ô</em>ô1ô2ôhô ôeômô ôOôbôsô ônôoô ôPôSô<em>ô</em>ô ô|ô ô�ô�ô ôPôiôsôcôaônôdôoô ô|ô ôSôoôlôiôcôiôtôaôrô ôiônôtôeôrônôaôçôãôoô ôiômôeôdôiôaôtôaô ôeômô ôlôeôiôtôoô ôdôeô ôeônôfôeôrômôaôrôiôaô.ô ô|ô
+ô|ô ô<em>ô</em>ôSôoôlôiôcôiôtôaôçôãôoô ôdôeô ôAôcôeôsôsôoô<em>ô</em>ô ô|ô ôUôsôuôáôrôiôoô ôrôeôaôlôiôzôoôuô ôcôaôdôaôsôtôrôoô ôpôeônôdôeônôtôeô ô|ô ô�ô�ô ôLôaôrôaônôjôaô ô|ô ôBôoôtôãôoô ô<code>ôAôpôrôoôvôaôrô ôAôcôeôsôsôoô</code>ô ôeôxôcôlôuôsôiôvôoô ôdôoô ôAôdômôiônôiôsôtôrôaôdôoôrô ôMôaôsôtôeôrô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô5ô&quot;ô&gt;ô1ô5ô.ô ôCôoônôfôiôgôuôrôaôçôõôeôsô,ô ôBôaôcôkôuôpô ôeô ôSôiônôcôrôoônôiôzôaôçôãôoô ôeômô ôNôuôvôeômô&lt;ô/ôhô2ô&gt;ô
+ô
+ôNôaô ôaôbôaô ô<em>ô</em>ôCôoônôfôiôgôuôrôaôçôõôeôsô<em>ô</em>ô,ô ôrôeôaôlôiôzôaô-ôsôeô ôaô ômôaônôuôtôeônôçôãôoô ôdôoô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ôlôoôcôaôlô ôeô ônôuôvôeômô.ô
+ô
+ô#ô#ô#ô ô⚙ô️ô ôTôaôbôeôlôaô ôdôeô ôOôpôeôrôaôçôõôeôsô ôdôeô ôCôoônôfôiôgôuôrôaôçôãôoô
+ô|ô ôOôpôeôrôaôçôãôoô ô|ô ôBôoôtôãôoô ô|ô ôAôçôãôoô ô/ô ôQôuôaônôdôoô ôUôtôiôlôiôzôaôrô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôSôiônôcôrôoônôiôzôaôçôãôoô ôNôuôvôeômô<em>ô</em>ô ô|ô ô<code>ôSôiônôcôrôoônôiôzôaôrô</code>ô ô|ô ôCôoônôeôcôtôaô ôaôoô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ôTôuôrôsôoô/ôSôQôLôiôtôeô ônôaô ônôuôvôeômô ôpôaôrôaô ôsôiônôcôrôoônôiôzôaôçôãôoô ôeômô ôtôeômôpôoô ôrôeôaôlô.ô ô|ô
+ô|ô ô<em>ô</em>ôEôxôpôoôrôtôaôrô ôBôaôcôkôuôpô ôJôSôOôNô<em>ô</em>ô ô|ô ô<code>ôEôxôpôoôrôtôaôrô ôJôSôOôNô</code>ô ô|ô ôBôaôiôxôaô ôoô ôaôrôqôuôiôvôoô ôcôoômôpôlôeôtôoô ôdôeô ôbôaôcôkôuôpô ôdôoô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ôpôaôrôaô ôsôeôgôuôrôaônôçôaô ôeôxôtôeôrônôaô.ô ô|ô
+ô|ô ô<em>ô</em>ôIômôpôoôrôtôaôrô ôBôaôcôkôuôpô ôJôSôOôNô<em>ô</em>ô ô|ô ô<code>ôIômôpôoôrôtôaôrô ôJôSôOôNô</code>ô ô|ô ôRôeôsôtôaôuôrôaô ôaô ôbôaôsôeô ôdôeô ôdôaôdôoôsô ôaô ôpôaôrôtôiôrô ôdôeô ôuômô ôaôrôqôuôiôvôoô ôdôeô ôbôaôcôkôuôpô ôpôrôeôvôiôaômôeônôtôeô ôsôaôlôvôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôPôoôpôuôlôaôrô ôBôaônôcôoô ô(ôSôeôeôdô)ô<em>ô</em>ô ô|ô ô<code>ôGôeôrôaôrô ôDôaôdôoôsô ôTôeôsôtôeô</code>ô ô|ô ôCôrôiôaô ôpôaôcôiôeônôtôeôsô ôeô ôaôtôeônôdôiômôeônôtôoôsô ôfôiôcôtôíôcôiôoôsô ôpôaôrôaô ôtôrôeôiônôaômôeônôtôoôsô ôoôuô ôtôeôsôtôeôsô.ô ô|ô
+ô|ô ô<em>ô</em>ôRôeôsôeôtôaôrô ôBôaônôcôoô<em>ô</em>ô ô|ô ô<code>ôLôiômôpôaôrô ôDôaôdôoôsô</code>ô ô|ô ôAôpôaôgôaô ôoôsô ôdôaôdôoôsô ôlôoôcôaôiôsô ô(ôrôeôqôuôeôrô ôcôoônôfôiôrômôaôçôãôoô ôdôaô ôsôeônôhôaô ôMôaôsôtôeôrô)ô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô6ô&quot;ô&gt;ô1ô6ô.ô ôSôiôsôtôeômôaô ôdôeô ôAôvôiôsôoôsô,ô ôNôoôtôiôfôiôcôaôçôõôeôsô ô&amp;ô ôTôoôaôsôtôsô&lt;ô/ôhô2ô&gt;ô
+ô
+ô|ô ôTôiôpôoô ôdôeô ôNôoôtôiôfôiôcôaôçôãôoô ô|ô ôCôoôrô ôdôoô ôTôoôaôsôtô ô|ô ôDôuôrôaôçôãôoô ônôaô ôTôeôlôaô ô|ô ôEôxôeômôpôlôoô ôdôeô ôMôeônôsôaôgôeômô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôSôuôcôeôsôsôoô<em>ô</em>ô ô|ô ô�ô�ô ôVôeôrôdôeô ô|ô ô3ô ôsôeôgôuônôdôoôsô ô|ô ô<code>ô✅ô ôPôrôoônôtôuôáôrôiôoô ôaôsôsôiônôaôdôoô ôcôoômô ôsôuôcôeôsôsôoô!ô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôAôlôeôrôtôaô ô/ô ôAôvôiôsôoô<em>ô</em>ô ô|ô ô�ô�ô ôAômôaôrôeôlôoô ô|ô ô4ô ôsôeôgôuônôdôoôsô ô|ô ô<code>ô⏱ô️ô ôPôaôcôiôeônôtôeô ôcôoôlôoôcôaôdôoô ôeômô ôOôbôsôeôrôvôaôçôãôoô ôMôéôdôiôcôaô ô(ôCôrôoônôôômôeôtôrôoô ô1ô2ôhô ôiônôiôcôiôaôdôoô)ô</code>ô ô|ô
+ô|ô ô<em>ô</em>ôEôrôrôoô ô/ô ôFôaôlôhôaô<em>ô</em>ô ô|ô ô�ô�ô ôVôeôrômôeôlôhôoô ô|ô ô5ô ôsôeôgôuônôdôoôsô ô|ô ô<code>ô❌ô ôSôeôlôeôcôiôoônôeô ôaô ôcôlôaôsôsôiôfôiôcôaôçôãôoô ôdôeô ôrôiôsôcôoô ôoôbôrôiôgôaôtôóôrôiôaô.ô</code>ô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô7ô&quot;ô&gt;ô1ô7ô.ô ôTôaôbôeôlôaô ôdôeô ôMôáôsôcôaôrôaôsô,ô ôAôtôaôlôhôoôsô ô&amp;ô ôTôeôcôlôaôsô ôdôeô ôAôtôaôlôhôoô&lt;ô/ôhô2ô&gt;ô
+ô
+ô|ô ôAôtôaôlôhôoô ô/ô ôCôlôiôqôuôeô ô|ô ôFôuônôçôãôoô ô|ô ôOônôdôeô ôFôuônôcôiôoônôaô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<code>ôMôaôsôcôaôrôaô ôPôAô ô(ô1ô2ô0ô/ô8ô0ô)ô</code>ô ô|ô ôFôoôrômôaôtôaô ônôúômôeôrôoôsô ôeômô ôfôoôrômôaôtôoô ôsôiôsôtôóôlôiôcôaô/ôdôiôaôsôtôóôlôiôcôaô ô|ô ôCôaômôpôoô ôPôrôeôsôsôãôoô ôAôrôtôeôrôiôaôlô ônôaô ôTôrôiôaôgôeômô ô|ô
+ô|ô ô<code>ôMôaôsôcôaôrôaô ôCôPôFô ô(ô0ô0ô0ô.ô0ô0ô0ô.ô0ô0ô0ô-ô0ô0ô)ô</code>ô ô|ô ôFôoôrômôaôtôaô ô1ô1ô ôdôíôgôiôtôoôsô ôcôoômô ôpôoônôtôoôsô ôeô ôhôíôfôeônô ô|ô ôCôaôdôaôsôtôrôoô ôdôeô ôPôaôcôiôeônôtôeô ô|ô
+ô|ô ô<code>ôCôlôiôqôuôeô ônôoô ôCôaôrôdô ôTôrôiôaôgôeômô</code>ô ô|ô ôFôiôlôtôrôaô ôpôaôrôaô ôvôeôrô ôaôpôeônôaôsô ôaô ôfôiôlôaô ôdôeô ôTôrôiôaôgôeômô ô|ô ôAôbôaô ôAôtôeônôdôiômôeônôtôoôsô ô|ô
+ô|ô ô<code>ôCôlôiôqôuôeô ônôoô ôCôaôrôdô ôAôgô.ô ôMôéôdôiôcôoô</code>ô|ô ôFôiôlôtôrôaô ôpôaôrôaô ôvôeôrô ôaôpôeônôaôsô ôoôsô ôpôaôcôiôeônôtôeôsô ôaôgôuôaôrôdôaônôdôoô ômôéôdôiôcôoô ô|ô ôAôbôaô ôAôtôeônôdôiômôeônôtôoôsô ô|ô
+ô|ô ô<code>ôCôlôiôqôuôeô ônôoô ôCôaôrôdô ôEômô ôCôoônôsôuôlôtôaô</code>ô|ô ôFôiôlôtôrôaô ôpôaôrôaô ôvôeôrô ôoôsô ôaôtôeônôdôiômôeônôtôoôsô ôaôtôiôvôoôsô ô|ô ôAôbôaô ôAôtôeônôdôiômôeônôtôoôsô ô|ô
+ô|ô ô<code>ôCôlôiôqôuôeô ôeômô ôVôeôrô ôTôoôdôoôsô</code>ô ô|ô ôEôxôiôbôeô ôaôsô ô3ô ôcôoôlôuônôaôsô ôdôoô ôKôaônôbôaônô ôlôaôdôoô ôaô ôlôaôdôoô ô|ô ôAôbôaô ôAôtôeônôdôiômôeônôtôoôsô ô|ô
+ô|ô ô<code>ôBôoôtôãôoô ôIômôpôrôiômôiôrô ô/ô ôPôDôFô</code>ô ô|ô ôIômôpôrôiômôeô ôlôaôuôdôoô ôoôfôiôcôiôaôlô ôeômô ôPôDôFô ôdôoô ôPôEôPô ô|ô ôMôoôdôaôlô ôdôoô ôPôEôPô ô|ô
+ô
+ô-ô-ô-ô
+ô
+ô&lt;ôhô2ô ôiôdô=ô&quot;ôsôeôcô-ô1ô8ô&quot;ô&gt;ô1ô8ô.ô ôSôoôlôuôçôãôoô ôdôeô ôDôúôvôiôdôaôsô ôFôrôeôqôuôeônôtôeôsô ô&amp;ô ôEôrôrôoôsô ôCôoômôuônôsô ô(ôFôAôQô)ô&lt;ô/ôhô2ô&gt;ô
+ô
+ô|ô ôPôrôoôbôlôeômôaô ôEônôcôoônôtôrôaôdôoô ô|ô ôCôaôuôsôaô ôPôrôoôvôáôvôeôlô ô|ô ôSôoôlôuôçôãôoô ôPôaôsôsôoô ôaô ôPôaôsôsôoô ô|ô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô
+ô|ô ô<em>ô</em>ôAôoô ôcôlôiôcôaôrô ônôoô ôPôEôPô ôeôxôiôbôeô ôeôrôrôoô ônôoô ôcôoônôsôoôlôeô<em>ô</em>ô ô|ô ôOô ôaôtôeônôdôiômôeônôtôoô ônôãôoô ôfôoôiô ôiônôiôcôiôaôlôiôzôaôdôoô ô|ô ôVôeôrôiôfôiôqôuôeô ôsôeô ôoô ôaôtôeônôdôiômôeônôtôoô ôeôsôtôáô ônôaô ôcôoôlôuônôaô ô<em>ôEômô ôCôoônôsôuôlôtôaô</em>ô ôaônôtôeôsô ôdôeô ôaôbôrôiôrô ôoô ôPôEôPô.ô ô|ô
+ô|ô ô<em>ô</em>ôPôrôoônôtôuôáôrôiôoô ôgôeôrôaôdôoô ôeômô ôPôDôFô ôcôoômô ôcôaômôpôoôsô ôvôaôzôiôoôsô<em>ô</em>ô ô|ô ôPôaôcôiôeônôtôeô ôsôeômô ôCôPôFô/ôdôaôdôoôsô ôcôaôdôaôsôtôrôaôiôsô ô|ô ôAôcôeôsôsôeô ôaô ôaôbôaô ô<em>ôPôaôcôiôeônôtôeôsô</em>ô,ô ôcôoômôpôlôeôtôeô ôoô ôcôaôdôaôsôtôrôoô ôdôoô ôpôaôcôiôeônôtôeô ôeô ôtôeônôtôeô ôgôeôrôaôrô ônôoôvôaômôeônôtôeô.ô ô|ô
+ô|ô ô<em>ô</em>ôHôiôsôtôóôrôiôcôoô ôeôxôiôbôeô ô&quot;ôNôeônôhôuômô ôaôtôeônôdôiômôeônôtôoô ôrôeôgôiôsôtôrôaôdôoô&quot;ô<em>ô</em>ô ô|ô ôCôoônôsôuôlôtôaô ôrôeôcôéômô-ôcôrôiôaôdôaô ôsôeômô ôtôrôiôaôgôeômô ô|ô ôCôeôrôtôiôfôiôqôuôeô-ôsôeô ôdôeô ôrôeôaôlôiôzôaôrô ôaô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô ôaônôtôeôsô ôdôeô ôbôuôsôcôaôrô ôoô ôhôiôsôtôóôrôiôcôoô.ô ô|ô
+ô|ô ô<em>ô</em>ôOô ôcôrôoônôôômôeôtôrôoô ôdôoô ôcôaôrôdô ônôãôoô ôeôsôtôáô ôaôtôuôaôlôiôzôaônôdôoô<em>ô</em>ô ô|ô ôIônôtôeôrôvôaôlôoô ôdôeô ôaôtôuôaôlôiôzôaôçôãôoô ôpôaôuôsôaôdôoô ô|ô ôCôlôiôqôuôeô ônôoô ôbôoôtôãôoô ô<code>ôAôtôuôaôlôiôzôaôrô</code>ô ônôaô ôbôaôrôrôaô ôsôuôpôeôrôiôoôrô ôoôuô ôrôeôcôaôrôrôeôgôuôeô ôaô ôaôbôaô ô<em>ôAôtôeônôdôiômôeônôtôoôsô</em>ô.ô ô|ô
+ô
+ô-ô-ô-ô
+ô<em>ôHôeôaôlôtôhô ôNôeôxôuôsô ô—ô ôMôaônôuôaôlô ôdôoô ôUôsôuôáôrôiôoô ôvô1ô.ô0ô ô|ô ôSôiôsôtôeômôaô ôdôeô ôGôeôsôtôãôoô ôHôoôsôpôiôtôaôlôaôrô ôdôeô ôAôlôtôaô ôPôeôrôfôoôrômôaônôcôeô</em>ô</p>
+<hr>
+<h2 id="sec-22">22. 🆕 Atualizações Recentes (Agosto/2026)</h2><p>O Health Nexus recebeu uma série de melhorias para otimizar o fluxo de trabalho e garantir a segurança das informações operacionais:</p>
+<h3>22.1. Controle de Acesso e Permissões (Roles)</h3>
+<p>A aba de <strong>Configurações Globais</strong> agora conta com um controle de acesso rigoroso:</p>
+<ul>
+<li><strong>MASTER:</strong> Possui acesso integral a todos os painéis, incluindo &quot;Gerenciamento de Usuários&quot;, &quot;Simulação de Dados&quot; e demais configurações avançadas (identificadas em vermelho).</li>
+<li><strong>Desenvolvedor:</strong> Recebe acesso apenas aos agrupamentos técnicos essenciais (destacados em vermelho), permitindo realizar sincronização de banco de dados (Turso) e operações técnicas, mantendo restrições de gerenciamento de equipe.</li>
+<li><strong>Demais perfis:</strong> Acesso bloqueado à aba de Configurações para garantir a segurança dos dados.</li>
+</ul>
+<h3>22.2. Botões de Limpeza de Filtros (&quot;Limpar Filtros&quot;)</h3>
+<p>Visando aumentar a agilidade operacional, foram incluídos botões dedicados com o ícone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em <strong>todas as abas principais</strong>:</p>
+<ul>
+<li><strong>Pacientes, Médicos, Agenda, Farmácia e Relatórios.</strong></li>
+<li>Um único clique zera instantaneamente todas as buscas de texto e recoloca os <em>checkboxes</em> de filtro em seus estados padrão, permitindo buscas fluídas.</li>
+</ul>
+<h3>22.3. Busca de Pacientes Aprimorada (Nome e CPF)</h3>
+<p>O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em modais de admissão, prescrição e financeiro) foi reescrito. Agora:</p>
+<ul>
+<li>A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do <strong>CPF</strong>.</li>
+<li>O <strong>CPF</strong> é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de homônimos na hora do atendimento.</li>
+</ul>
+<h3>22.4. Ícones Visuais de Forma de Pagamento 💵💳</h3>
+<p>A interface da seção de Relatórios Financeiros foi enriquecida com representações gráficas (Emojis):</p>
+<ul>
+<li>Pix (💠)</li>
+<li>Dinheiro (💵)</li>
+<li>Cartão de Crédito (💳)</li>
+<li>Cartão de Débito (💳)</li>
+<li>Boleto (📄)
+Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.</li>
+</ul>
+<hr>
 
-    <!-- Main Content Document -->
-    <main>
-      
-      <!-- Document Header -->
-      <section style="margin-bottom: 32px;">
-        <h1 class="doc-title">📘 Manual do Usuário & Guia de Arquitetura do Sistema</h1>
-        <p class="doc-subtitle">
-          Documentação unificada e exaustiva do <strong>Health Nexus v2.3.0</strong> (Sistema de Gestão Hospitalar, Prontuário Eletrônico PEP e Plataforma de Internação).
-        </p>
-      </section>
-
-      <!-- SEÇÃO 1: FLUXOGRAMA DO SISTEMA (INTERATIVO) -->
-      <section id="sec-1">
-        <h2><i class="fa-solid fa-diagram-project"></i> 1. Visão Geral & Fluxograma Profissional do Sistema</h2>
-        <p>
-          O <strong>Health Nexus</strong> conecta todos os setores de um complexo hospitalar. Cada componente possui uma função assistencial bem definida, sendo classificado entre <strong>Fluxo Core Assistencial</strong> (cadeia linear de atendimento), <strong>Módulos Atrelados</strong> (serviços dependentes e integrados) e <strong>Módulos Isolados/Autônomos</strong> (ferramentas independentes).
-        </p>
-
-        <!-- Dynamic Interactive Flowchart Container -->
-        <div class="flowchart-container">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
-            <h3 style="margin:0; font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:8px;">
-              <i class="fa-solid fa-sitemap" style="color:var(--color-primary);"></i> Diagrama de Ligações Interativo dos Módulos
-            </h3>
-            <div class="flowchart-controls">
-              <button class="flow-filter-btn active" onclick="filterFlowchart('all')">Ver Todos (17 Módulos)</button>
-              <button class="flow-filter-btn" onclick="filterFlowchart('core')">Fluxo Core Assistencial</button>
-              <button class="flow-filter-btn" onclick="filterFlowchart('linked')">Módulos Atrelados</button>
-              <button class="flow-filter-btn" onclick="filterFlowchart('isolated')">Módulos Isolados</button>
-            </div>
-          </div>
-
-          <div class="callout callout-info" style="margin-bottom:20px;">
-            <i class="fa-solid fa-circle-info"></i>
-            <div>
-              <strong>Instrução Interativa:</strong> Clique em qualquer card de módulo abaixo para destacar suas conexões de entrada/saída, perfis autorizados e regras de dependência no sistema.
-            </div>
-          </div>
-
-          <div class="flowchart-grid" id="flowchartGrid">
-            
-            <!-- Core 1 -->
-            <div class="flow-node core" onclick="showModuleDetails('recepcao')" data-cat="core">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-core">Fluxo Core</span>
-                <i class="fa-solid fa-hospital-user" style="color:var(--color-primary); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">1. Recepção & Entrada PS</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Admissão do paciente, cadastro inicial e emissão de senha de atendimento.</p>
-            </div>
-
-            <!-- Core 2 -->
-            <div class="flow-node core" onclick="showModuleDetails('triagem')" data-cat="core">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-core">Fluxo Core</span>
-                <i class="fa-solid fa-stethoscope" style="color:var(--color-primary); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">2. Triagem de Manchester</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Classificação de risco de enfermagem (Vermelho, Laranja, Amarelo, Verde, Azul).</p>
-            </div>
-
-            <!-- Core 3 -->
-            <div class="flow-node core" onclick="showModuleDetails('chamada_tv')" data-cat="core">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-core">Fluxo Core</span>
-                <i class="fa-solid fa-tv" style="color:var(--color-primary); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">3. Painel TV Chamador</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Notificação sonora e síntese de voz em Português para chamada de consultório.</p>
-            </div>
-
-            <!-- Core 4 -->
-            <div class="flow-node core" onclick="showModuleDetails('pep_soap')" data-cat="core">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-core">Fluxo Core</span>
-                <i class="fa-solid fa-notes-medical" style="color:var(--color-primary); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">4. Consultório & PEP SOAP</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atendimento médico, registro SOAP, CID-10 e emissão de laudo em PDF.</p>
-              <div style="background-color: #e0f2fe; border-left: 4px solid #0284c7; padding: 0.8rem; margin-top: 0.5rem; border-radius: 4px; font-size: 0.8rem; color: #000;">
-              <strong>ℹ️ Nota de Atualização:</strong> Autocomplete de CID-10 otimizado (2.5MB), com indicador de carregamento e parsing UTF-8 rigoroso para prevenir quebras de acentuação.
-              </div>
-            </div>
-
-            <!-- Core 5 -->
-            <div class="flow-node core" onclick="showModuleDetails('kanban')" data-cat="core">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-core">Fluxo Core</span>
-                <i class="fa-solid fa-table-columns" style="color:var(--color-primary); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">5. Kanban de Internação</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Gestão síncrona 1-para-1 em 5 setores hospitalares com faturamento e SLAs.</p>
-            </div>
-
-            <!-- Core 6 -->
-            <div class="flow-node core" onclick="showModuleDetails('leitos')" data-cat="core">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-core">Fluxo Core</span>
-                <i class="fa-solid fa-bed-pulse" style="color:var(--color-primary); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">6. Mapa de Leitos & Hotelaria</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Controle de ocupação, higienização, manutenção e reserva de leitos em tempo real.</p>
-            </div>
-
-            <!-- Core 7 -->
-            <div class="flow-node core" onclick="showModuleDetails('altas')" data-cat="core">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-core">Fluxo Core</span>
-                <i class="fa-solid fa-person-walking-arrow-right" style="color:var(--color-primary); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">7. Central de Altas</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Desospitalização, orientações pós-alta, liberação de leito e fechamento de prontuário.</p>
-            </div>
-
-            <!-- Core 8 -->
-            <div class="flow-node core" onclick="showModuleDetails('faturamento')" data-cat="core">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-core">Fluxo Core</span>
-                <i class="fa-solid fa-file-invoice-dollar" style="color:var(--color-primary); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">8. Faturamento & Guias TISS</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Auditoria de conta hospitalar, conciliação de procedimentos e baixa financeira.</p>
-            </div>
-
-            <!-- Linked 1 -->
-            <div class="flow-node linked" onclick="showModuleDetails('farmacia')" data-cat="linked">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-linked">Módulo Atrelado</span>
-                <i class="fa-solid fa-pills" style="color:var(--color-info); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Prescrição & Farmácia</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atrelado ao PEP e Leitos. Dispensação e controle de estoque de medicamentos.</p>
-            </div>
-
-            <!-- Linked 2 -->
-            <div class="flow-node linked" onclick="showModuleDetails('exames')" data-cat="linked">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-linked">Módulo Atrelado</span>
-                <i class="fa-solid fa-x-ray" style="color:var(--color-info); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Exames & Laudos</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atrelado ao PEP. Anexação de resultados de imagem e laboratório ao prontuário.</p>
-            </div>
-
-            <!-- Linked 3 -->
-            <div class="flow-node linked" onclick="showModuleDetails('corpo_clinico')" data-cat="linked">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-linked">Módulo Atrelado</span>
-                <i class="fa-solid fa-user-doctor" style="color:var(--color-info); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Corpo Clínico & Escala</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atrelado a Atendimentos e Cirurgias. Vínculo de CRM, especialidade e escalas de plantão.</p>
-            </div>
-
-            <!-- Linked 4 -->
-            <div class="flow-node linked" onclick="showModuleDetails('turso_sync')" data-cat="linked">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-linked">Módulo Atrelado</span>
-                <i class="fa-solid fa-cloud-arrow-up" style="color:var(--color-info); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Turso Cloud Sync</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Atrelado a todas as mutações. Sincronização automática do banco local.db com a nuvem LibSQL.</p>
-            </div>
-
-            <!-- Isolated 1 -->
-            <div class="flow-node isolated" onclick="showModuleDetails('configuracoes')" data-cat="isolated">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-isolated">Módulo Isolado</span>
-                <i class="fa-solid fa-sliders" style="color:var(--color-warning); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Configurações Globais</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Módulo administrativo autônomo. Parâmetros do sistema, temas e gestão de usuários.</p>
-            </div>
-
-            <!-- Isolated 2 -->
-            <div class="flow-node isolated" onclick="showModuleDetails('backup_json')" data-cat="isolated">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-isolated">Módulo Isolado</span>
-                <i class="fa-solid fa-file-export" style="color:var(--color-warning); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Backup & Exportação JSON</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Ferramenta independente para geração de cópias de segurança em JSON e restauração completa de dados em caso de sinistro.</p>
-            </div>
-
-            <!-- Isolated 3 -->
-            <div class="flow-node isolated" onclick="showModuleDetails('auditoria_master')" data-cat="isolated">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-isolated">Módulo Isolado</span>
-                <i class="fa-solid fa-clock-rotate-left" style="color:var(--color-warning); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Histórico de Sessões Master</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Monitoramento autônomo de logins, IP, user-agent e auditoria de acessos administrativos.</p>
-            </div>
-
-            <!-- Isolated 4 -->
-            <div class="flow-node isolated" onclick="showModuleDetails('simulador_300')" data-cat="isolated">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-isolated">Módulo Isolado</span>
-                <i class="fa-solid fa-database" style="color:var(--color-warning); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Simulador de Dados 300</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Utilitário autônomo para geração e carga de 300 registros fictícios de alta fidelidade.</p>
-            </div>
-
-            <!-- Isolated 5 -->
-            <div class="flow-node isolated" onclick="showModuleDetails('telemedicina')" data-cat="isolated">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <span class="flow-badge badge-isolated">Módulo Isolado</span>
-                <i class="fa-solid fa-headset" style="color:var(--color-warning); font-size:1.2rem;"></i>
-              </div>
-              <h4 style="color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:4px;">Telemedicina Remote</h4>
-              <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Plataforma de videoatendimento independente com sincronização opcional via API.</p>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <!-- SEÇÃO 2: KANBAN & CARDS INTERATIVOS -->
-      <section id="sec-2">
-        <h2><i class="fa-solid fa-table-columns"></i> 2. Central de Atendimentos & Cards Interativos do Kanban</h2>
-        <p>
-          O <strong>Kanban de Internação</strong> organiza a permanência do paciente em 5 setores (Pronto Socorro, Corredor de Internação, Clínica Cirúrgica, Clínica Médica e UTI). No topo da aba, encontram-se os <strong>Cards Métricos Interativos</strong>.
-        </p>
-
-        <div class="glass-card">
-          <h3 style="color:#818cf8; margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Interações com os Cards Métricos</h3>
-          <p>Todos os cards analíticos do topo do Kanban reagem ao clique do usuário para filtragem instantânea e abertura de modais:</p>
-          
-          <table>
-            <thead>
-              <tr>
-                <th>Card Métrico</th>
-                <th>Elemento Clicável</th>
-                <th>Ação Executada no Sistema</th>
-                <th>Objetivo Operacional</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Distribuição por Setor</strong></td>
-                <td>Fatia do Gráfico Donut</td>
-                <td>Filtra a grade Kanban para exibir apenas a coluna do setor clicado.</td>
-                <td>Foco imediato na ocupação de um setor específico (ex: UTI).</td>
-              </tr>
-              <tr>
-                <td><strong>Distribuição por Setor</strong></td>
-                <td>Número Central ("Pacientes")</td>
-                <td>Abre o <strong>Modal de Detalhamento por Setor</strong> com a lista completa por leito.</td>
-                <td>Visão panorâmica detalhada de nomes, leitos e setores.</td>
-              </tr>
-              <tr>
-                <td><strong>Metas de Tempo (SLA)</strong></td>
-                <td>Fatia Verde, Amarela ou Vermelha</td>
-                <td>Filtra a tela exibindo apenas pacientes naquele status de SLA (ex: Atrasados).</td>
-                <td>Priorização rápida de pacientes com estouro de meta.</td>
-              </tr>
-              <tr>
-                <td><strong>Metas de Tempo (SLA)</strong></td>
-                <td>Percentual Central / Cabeçalho</td>
-                <td>Abre o <strong>Modal de Auditoria de SLAs & Permanência</strong>.</td>
-                <td>Auditoria gerencial de gargalos e tempos decorridos.</td>
-              </tr>
-              <tr>
-                <td><strong>Funil da Jornada Hospitalar</strong></td>
-                <td>Barras Horizontais dos Setores</td>
-                <td>Ativa a filtragem rápida da coluna do setor selecionado.</td>
-                <td>Identificação de pontos de retenção no fluxo.</td>
-              </tr>
-              <tr>
-                <td><strong>Badge de Filtro Ativo</strong></td>
-                <td>Botão "X" (Limpar Filtro)</td>
-                <td>Reseta todos os filtros e reexibe todas as 5 colunas lado a lado.</td>
-                <td>Retorno rápido à visualização completa.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- SEÇÃO 3: PEP SOAP -->
-      <section id="sec-3">
-        <h2><i class="fa-solid fa-file-medical"></i> 3. Prontuário Eletrônico do Paciente (PEP — Método SOAP)</h2>
-        <p>
-          O PEP adota a metodologia internacional <strong>SOAP</strong> (Subjetivo, Objetivo, Avaliação, Plano) para padronização de registros clínicos e segurança do paciente.
-        </p>
-
-        <div class="glass-card">
-          <table>
-            <thead>
-              <tr>
-                <th>Componente SOAP</th>
-                <th>Finalidade Clínica</th>
-                <th>Exemplo de Preenchimento</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>S — Subjetivo</strong></td>
-                <td>Anamnese, queixa principal e histórico relatado.</td>
-                <td><em>"Paciente refere precordialgia intensa há 2h com irradiação."</em></td>
-              </tr>
-              <tr>
-                <td><strong>O — Objetivo</strong></td>
-                <td>Exame físico, ausculta e sinais vitais.</td>
-                <td><em>"PA: 140/90 mmHg, FC: 96 bpm, SpO2: 97%. ECG com supradesnivelamento ST."</em></td>
-              </tr>
-              <tr>
-                <td><strong>A — Avaliação</strong></td>
-                <td>Hipótese diagnóstica & Código CID-10.</td>
-                <td><em>"Síndrome Coronariana Aguda sem supra de ST (CID-10 I20.0)."</em></td>
-              </tr>
-              <tr>
-                <td><strong>P — Plano</strong></td>
-                <td>Conduta terapêutica, prescrição e encaminhamento.</td>
-                <td><em>"Solicitado ECG 12 derivações, AAS 300mg v.o., vaga na UTI Coronariana."</em></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- SEÇÕES CONTINUAÇÃO (4 a 21) -->
-      <section id="sec-4">
-        <h2><i class="fa-solid fa-window-restore"></i> 4. Guia Completo de Todos os Modais do Sistema</h2>
-        <p>O Health Nexus conta com modais padronizados de alto contraste, fechamento via tecla <code>ESC</code> e validação em tempo real de formulários.</p>
-        <ul>
-          <li><strong>Modal de Triagem Manchester:</strong> Registro de sinais vitais (PA, FC, Temp, SpO2, Dor) e cálculo automático da cor de risco.</li>
-          <li><strong>Modal de Admissão de Internação:</strong> Vinculação de paciente a leito, setor e médico responsável.</li>
-          <li><strong>Modal de Prescrição Médica:</strong> Seleção de medicamentos, dosagens e horários de administração.</li>
-          <li><strong>Modal de Baixa Financeira:</strong> Quitação manual de parcelas e conciliação de faturas hospitalares.</li>
-          <li><strong>Modal de Aprovação Master:</strong> Autorização de novos perfis de acesso pelo administrador.</li>
-        </ul>
-      </section>
-
-      <section id="sec-5">
-        <h2><i class="fa-solid fa-users"></i> 5. Gestão de Pacientes & Histórico Unificado</h2>
-        <p>Cadastro único do paciente contendo CPF, CNS (Cartão SUS), endereço autocompletado por CEP via API ViaCEP, contatos de emergência e prontuário histórico unificado.</p>
-      </section>
-
-      <section id="sec-6">
-        <h2><i class="fa-solid fa-user-doctor"></i> 6. Gestão do Corpo Clínico & Médicos</h2>
-        <div style="background-color: rgba(30, 64, 175, 0.1); border-left: 4px solid #1e40af; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
-          <h4 style="color: #1e40af; margin-top: 0; margin-bottom: 0.5rem;"><i class="fa-solid fa-shield-halved"></i> Integração CFM (Validação de CRM)</h4>
-          <p style="margin: 0; font-size: 0.9rem;">O cadastro de médicos agora conta com validação automática junto ao Conselho Federal de Medicina (CFM). Na listagem do Corpo Clínico, clique no botão azul com o ícone de escudo para garantir que o CRM do médico esteja ativo e regular.</p>
-        </div>
-        <p>Controle de profissionais com registro de CRM, UF, especialidades médicas, escalas de plantão e limite de atendimentos simultâneos.</p>
-      </section>
-
-      <section id="sec-7">
-        <h2><i class="fa-solid fa-door-open"></i> 7. Gestão de Consultórios & Salas</h2>
-        <p>Mapeamento físico das salas de recepção, consultórios de triagem, salas de medicação rápida e leitos de observação.</p>
-      </section>
-
-      <section id="sec-8">
-        <h2><i class="fa-solid fa-bed"></i> 8. Mapa de Leitos & Hotelaria Hospitalar</h2>
-        <p>Painel visual com estado em tempo real dos leitos: Livre (Verde), Ocupado (Vermelho), Higienização (Amarelo), Manutenção (Cinza) ou Reservado (Azul).</p>
-      </section>
-
-      <section id="sec-9">
-        <h2><i class="fa-solid fa-calendar-check"></i> 9. Agenda, Escala Médica & Agendamentos</h2>
-        <p>Gerenciamento de consultas eletivas, retornos e escalas de plantonistas por setor.</p>
-      </section>
-
-      <section id="sec-10">
-        <h2><i class="fa-solid fa-pills"></i> 10. Farmácia & Dispensação de Medicamentos</h2>
-        <div style="background-color: rgba(30, 64, 175, 0.1); border-left: 4px solid #1e40af; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
-          <h4 style="color: #1e40af; margin-top: 0; margin-bottom: 0.5rem;"><i class="fa-solid fa-magnifying-glass-plus"></i> Consulta ANVISA (Bula e Princípio Ativo)</h4>
-          <p style="margin: 0; font-size: 0.9rem;">A aba de farmácia agora possui integração direta com a ANVISA e OpenFDA. Ao cadastrar um novo medicamento, digite no campo de <strong>"Buscar na Base de Medicamentos"</strong> para ter o auto-completar e buscar em tempo real os dados oficiais sobre qualquer medicamento, incluindo indicações e informações atualizadas sobre a bula.</p>
-        </div>
-        <p>Controle de estoque mínimo, lotes, validade e baixa automatizada após confirmação da enfermagem.</p>
-      </section>
-
-      <section id="sec-11">
-        <h2><i class="fa-solid fa-file-invoice-dollar"></i> 11. Faturamento & Guias TISS</h2>
-        <p>Geração de guias TISS para operadoras de plano de saúde, fechamento de lotes e baixa manual de títulos financeiros.</p>
-      </section>
-
-      <section id="sec-12">
-        <h2><i class="fa-solid fa-chart-line"></i> 12. Analytics & Indicadores Hospitalares</h2>
-        <p>Gráficos interativos em Chart.js retratando taxa de ocupação de leitos, tempo médio de permanência (LOS) e resolutividade de alta.</p>
-      </section>
-
-      <section id="sec-13">
-        <h2><i class="fa-solid fa-tv"></i> 13. Painel TV Chamador & Sintetizador de Voz</h2>
-        <p>Módulo de chamada em tela cheia para recepção com alertas sonoros e voz sintetizada via Web Speech API em Português do Brasil.</p>
-      </section>
-
-      <section id="sec-14">
-        <h2><i class="fa-solid fa-user-shield"></i> 14. Central de Aprovação Master & Permissões</h2>
-        <p>Painel de segurança exclusivo do Administrador Master para liberação de novos cadastros de usuários e concessão de privilégios.</p>
-      </section>
-
-      <section id="sec-15">
-        <h2><i class="fa-solid fa-cloud-arrow-up"></i> 15. Configurações & Sincronização Turso Cloud</h2>
-        <div style="background-color: #fee2e2; border-left: 4px solid #dc2626; padding: 1rem; margin-top: 1rem; margin-bottom: 1rem; border-radius: 4px; font-size: 0.9rem; color: #000;">
-        <strong>🔒 Controle de Acesso (RBAC):</strong> O acesso completo à aba de Configurações, incluindo o <strong>Gerenciamento de Usuários</strong>, <strong>Geração de Dados de Teste</strong> e <strong>Centro de Documentação</strong>, é restrito ao perfil <strong>Master</strong>. Usuários com o perfil de <strong>Desenvolvedor</strong> possuem um acesso restrito nesta aba, podendo apenas realizar operações de <strong>Sincronização com Banco Turso Cloud</strong> e <strong>Exportar / Importar JSON (Backup)</strong>.
-        </div>
-        <p>Integração híbrida entre banco SQLite local (<code>local.db</code>) e nuvem Turso LibSQL via WebSockets/REST API para alta disponibilidade e sincronismo síncrono.</p>
-      </section>
-
-      <section id="sec-16">
-        <h2><i class="fa-solid fa-database"></i> 16. Gerador de Dados de Teste (Simulador 300)</h2>
-        <p>Ferramenta de estresse e simulação que popula o banco com 300 pacientes, prontuários e movimentações reais em 1 clique.</p>
-      </section>
-
-      <section id="sec-17">
-        <h2><i class="fa-solid fa-bell"></i> 17. Sistema de Avisos, Notificações & Toasts</h2>
-        <p>Toasts não bloqueantes no canto da tela informando mutações de banco, alertas de atraso de SLA e confirmações de ações.</p>
-      </section>
-
-      <section id="sec-18">
-        <h2><i class="fa-solid fa-keyboard"></i> 18. Máscaras de Entrada & Teclas de Atalho</h2>
-        <p>Máscaras automáticas para CPF (<code>000.000.000-00</code>), CEP (<code>00000-000</code>), Telefone e PA. Atalhos de teclado para navegação rápida.</p>
-      </section>
-
-      <section id="sec-19">
-        <h2><i class="fa-solid fa-grid-2"></i> 19. Grade Síncrona do Kanban</h2>
-        <p>Alinhamento físico de 5 colunas diretamente abaixo dos cards métricos do setor para eliminação de rolagem horizontal desordenada.</p>
-      </section>
-
-      <section id="sec-20">
-        <h2><i class="fa-solid fa-clock-rotate-left"></i> 20. Auditoria de Sessões de Usuários (Master)</h2>
-        <p>Histórico completo de auditoria rastreando início/fim de sessões, endereço IP, navegador e mutações realizadas por cada operador.</p>
-      </section>
-
-      <section id="sec-21">
-        <h2><i class="fa-solid fa-circle-question"></i> 21. FAQ & Diagnóstico de Erros Comuns</h2>
-        <div class="glass-card">
-          <h4>P: O gráfico do Kanban não carrega ao abrir a aba. O que fazer?</h4>
-          <p>R: Certifique-se de que a biblioteca Chart.js está carregada. O sistema possui fallback automático. Clique em "Todos os Setores" para forçar o recarregamento.</p>
-
-          <h4 style="margin-top:16px;">P: Como restaurar um backup antigo em JSON?</h4>
-          <p>R: Vá na aba <strong>Configurações</strong>, clique em "Importar Backup JSON" e selecione o arquivo baixado anteriormente. O banco SQLite local será atualizado instantaneamente.</p>
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <!-- Modal do Detalhamento do Módulo do Fluxograma -->
-  <div id="moduleModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:9999; backdrop-filter:blur(6px); align-items:center; justify-content:center;">
-    <div style="background:var(--bg-primary); border:1px solid var(--border-color); width:90%; max-width:600px; border-radius:16px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.6); position:relative;">
-      <button onclick="closeModuleModal()" style="position:absolute; top:18px; right:18px; background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
-      <div id="moduleModalContent"></div>
-    </div>
-  </div>
-
-  <script>
-    // Module Database for Interactive Flowchart
-    const moduleDb = {
-      recepcao: {
-        title: '1. Recepção & Entrada PS',
-        category: 'Fluxo Core Assistencial',
-        desc: 'Porta de entrada do paciente no hospital. Responsável pela identificação civil, emissão de ficha de atendimento e encaminhamento à fila de triagem.',
-        inputs: 'Dados Pessoais (CPF, Nome, Cartão SUS, CEP via ViaCEP).',
-        outputs: 'Senha de atendimento e registro na fila de Triagem.',
-        profiles: 'Recepcionista, Administrador Master.',
-        connections: 'Envia dados para ➜ Triagem de Manchester.'
-      },
-      triagem: {
-        title: '2. Triagem de Manchester',
-        category: 'Fluxo Core Assistencial',
-        desc: 'Classificação de risco efetuada pela enfermagem. Coleta sinais vitais (PA, FC, Temp, SpO2, Dor) e determina o tempo máximo tolerável de espera.',
-        inputs: 'Sinais vitais e Queixa Principal.',
-        outputs: 'Cor de Risco (Vermelho a Azul) e Prioridade na Fila Médica.',
-        profiles: 'Enfermeiro(a), Médico(a), Administrador.',
-        connections: 'Recebe de ➜ Recepção | Envia para ➜ Chamada Painel TV & Fila Médica.'
-      },
-      chamada_tv: {
-        title: '3. Painel TV Chamador & Voz',
-        category: 'Fluxo Core Assistencial',
-        desc: 'Interface de chamada pública instalada nas salas de espera. Toca sinal sonoro e pronuncia o nome do paciente via sintetizador de voz (Web Speech API).',
-        inputs: 'Trigger do Médico no card de atendimento.',
-        outputs: 'Alerta visual em tela cheia e áudio em Português.',
-        profiles: 'Público / Recepção.',
-        connections: 'Recebe da ➜ Fila do Consultório Médico.'
-      },
-      pep_soap: {
-        title: '4. Consultório & PEP SOAP',
-        category: 'Fluxo Core Assistencial',
-        desc: 'Prontuário Eletrônico do Paciente utilizando o método SOAP. Permite inserção de diagnósticos CID-10, prescrições e geração de PDF assinado.',
-        inputs: 'Anamnese, Exame Físico, Sinais Vitais da Triagem.',
-        outputs: 'Receituário, Laudo Médico em PDF, Encaminhamento ao Kanban ou Alta.',
-        profiles: 'Médico(a).',
-        connections: 'Recebe da ➜ Triagem | Envia para ➜ Kanban de Internação, Farmácia ou Alta.'
-      },
-      kanban: {
-        title: '5. Kanban de Internação',
-        category: 'Fluxo Core Assistencial',
-        desc: 'Painel visual síncrono 1-para-1 gerenciando a permanência do paciente em 5 setores (PS, Corredor, Cirúrgica, Médica e UTI) com controle rígido de SLA.',
-        inputs: 'Internação vinda do PEP ou Admissão direta.',
-        outputs: 'Metas de SLA, Movimentação de Setor e Transferência de Leito.',
-        profiles: 'Médico(a), Enfermeiro(a), Administrador.',
-        connections: 'Recebe do ➜ PEP | Envia para ➜ Leitos, Altas e Faturamento.'
-      },
-      leitos: {
-        title: '6. Mapa de Leitos & Hotelaria',
-        category: 'Fluxo Core Assistencial',
-        desc: 'Gestão da infraestrutura hospitalar. Controla estados de leitos: Livre, Ocupado, Higienização, Manutenção ou Bloqueado.',
-        inputs: 'Solicitação de leito pelo Kanban ou Pronto-Socorro.',
-        outputs: 'Alocação física de leito e ordens de limpeza.',
-        profiles: 'Enfermeiro(a), Hotelaria, Administrador.',
-        connections: 'Atrelado ao ➜ Kanban de Internação.'
-      },
-      altas: {
-        title: '7. Central de Altas & Pós-Alta',
-        category: 'Fluxo Core Assistencial',
-        desc: 'Desospitalização planejada. Garante a entrega do sumário de alta, orientações de medicação de casa e liberação imediata do leito.',
-        inputs: 'Conduta de Alta registrada no PEP ou Kanban.',
-        outputs: 'Liberação de leito e encerramento de conta.',
-        profiles: 'Médico(a), Enfermeiro(a).',
-        connections: 'Recebe do ➜ Kanban / PEP | Envia para ➜ Faturamento.'
-      },
-      faturamento: {
-        title: '8. Faturamento & Guias TISS',
-        category: 'Fluxo Core Assistencial',
-        desc: 'Auditoria financeira e conciliação de contas hospitalares. Gera guias no padrão TISS e efetua a baixa manual de títulos.',
-        inputs: 'Procedimentos, Diárias de Leito e Medicamentos consumidos.',
-        outputs: 'Faturas de convênios, recibos e baixas financeiras.',
-        profiles: 'Faturamento, Financeiro, Administrador Master.',
-        connections: 'Recebe do ➜ PEP, Kanban, Leitos e Altas.'
-      },
-      farmacia: {
-        title: 'Prescrição & Farmácia',
-        category: 'Módulo Atrelado / Integrado',
-        desc: 'Módulo atrelado diretamente ao PEP e aos Leitos. Controla a dispensação por lote e validade dos medicamentos prescritos pelos médicos.',
-        inputs: 'Prescrição eletrônica do PEP.',
-        outputs: 'Baixa de estoque e registro de administração.',
-        profiles: 'Farmacêutico(a), Enfermagem.',
-        connections: 'Atrelado ao ➜ PEP SOAP & Kanban.'
-      },
-      exames: {
-        title: 'Exames & Laudos',
-        category: 'Módulo Atrelado / Integrado',
-        desc: 'Permite a anexação de laudos, imagens DICOM/JPG e exames laboratoriais diretamente ao histórico unificado do paciente.',
-        inputs: 'Upload de exames pelo médico/laboratório.',
-        outputs: 'Visualização no PEP e anexos no PDF.',
-        profiles: 'Médico(a), Laboratório.',
-        connections: 'Atrelado ao ➜ PEP SOAP.'
-      },
-      corpo_clinico: {
-        title: 'Corpo Clínico & Escalas',
-        category: 'Módulo Atrelado / Integrado',
-        desc: 'Cadastro de médicos, CRM, especialidades e organização das escalas de plantão do Pronto-Socorro e Centro Cirúrgico.',
-        inputs: 'Cadastros médicos e definição de turnos.',
-        outputs: 'Vínculo de responsabilidade nos atendimentos.',
-        profiles: 'Administrador Master, Direção Médica.',
-        connections: 'Atrelado aos ➜ Consultórios & Cirurgias.'
-      },
-      turso_sync: {
-        title: 'Turso Cloud Sync (LibSQL)',
-        category: 'Módulo Atrelado / Integrado',
-        desc: 'Motor de persistência distribuída. Sincroniza em segundo plano todas as alterações do SQLite local para a nuvem Turso.',
-        inputs: 'Mutações de dados locais no navegador/Node.',
-        outputs: 'Sincronização entre múltiplos terminais hospitalares.',
-        profiles: 'Sistema / Transversal.',
-        connections: 'Atrelado a ➜ Todo o banco de dados.'
-      },
-      configuracoes: {
-        title: 'Configurações Globais',
-        category: 'Módulo Isolado / Autônomo',
-        desc: 'Gerenciamento autônomo dos parâmetros do sistema, modos de contraste, personalização de logotipos e dados da instituição.',
-        inputs: 'Formulário de configurações.',
-        outputs: 'Persistência no localStorage / env vars.',
-        profiles: 'Administrador Master.',
-        connections: 'Módulo Administrativo Isolado.'
-      },
-      backup_json: {
-        title: 'Backup & Exportação JSON',
-        category: 'Módulo Isolado / Autônomo',
-        desc: 'Ferramenta independente para geração de cópias de segurança em JSON e restauração completa de dados em caso de sinistro.',
-        inputs: 'Snapshot de dados do localDB.',
-        outputs: 'Download de arquivo .json de backup.',
-        profiles: 'Administrador Master.',
-        connections: 'Módulo Isolado.'
-      },
-      auditoria_master: {
-        title: 'Histórico de Sessões Master',
-        category: 'Módulo Isolado / Autônomo',
-        desc: 'Painel de segurança para auditoria de conexões de usuários, armazenando horário de entrada, IP, navegador e perfil utilizado.',
-        inputs: 'Eventos de login e mutações críticas.',
-        outputs: 'Logs de auditoria e segurança.',
-        profiles: 'Administrador Master.',
-        connections: 'Módulo Isolado.'
-      },
-      simulador_300: {
-        title: 'Simulador de Dados (300 Registros)',
-        category: 'Módulo Isolado / Autônomo',
-        desc: 'Utilitário de desenvolvimento para popular o sistema com 300 pacientes, prontuários e leitos simulados com alta fidelidade.',
-        inputs: 'Clique no botão de simulação.',
-        outputs: 'Carga completa do banco para testes.',
-        profiles: 'Desenvolvedor, Administrador Master.',
-        connections: 'Ferramenta de Testes Isolada.'
-      },
-      telemedicina: {
-        title: 'Telemedicina Remote',
-        category: 'Módulo Isolado / Autônomo',
-        desc: 'Plataforma de videoatendimento a distância com fila virtual própria e integração opcional com o Prontuário PEP.',
-        inputs: 'Link de videochamada e consulta remota.',
-        outputs: 'Atendimento virtual e emissão de receita digital.',
-        profiles: 'Médico(a), Paciente.',
-        connections: 'Operação Autônoma com integração opcional ao PEP.'
-      }
-    };
-
-    function filterFlowchart(cat) {
-      document.querySelectorAll('.flow-filter-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-
-      document.querySelectorAll('.flow-node').forEach(node => {
-        if (cat === 'all' || node.getAttribute('data-cat') === cat) {
-          node.style.display = 'block';
-        } else {
-          node.style.display = 'none';
-        }
-      });
-    }
-
-    function showModuleDetails(key) {
-      const data = moduleDb[key];
-      if (!data) return;
-
-      const content = document.getElementById('moduleModalContent');
-      content.innerHTML = `
-        <span class="flow-badge ${data.category.includes('Core') ? 'badge-core' : (data.category.includes('Atrelado') ? 'badge-linked' : 'badge-isolated')}">${data.category}</span>
-        <h3 style="color:#fff; font-size:1.3rem; margin:10px 0 6px 0;">${data.title}</h3>
-        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; margin-bottom:16px;">${data.desc}</p>
-        
-        <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px; padding:14px; display:grid; gap:10px; font-size:0.85rem;">
-          <div><strong style="color:#818cf8;">📥 Entradas (Inputs):</strong> <span style="color:var(--text-muted);">${data.inputs}</span></div>
-          <div><strong style="color:#10b981;">📤 Saídas (Outputs):</strong> <span style="color:var(--text-muted);">${data.outputs}</span></div>
-          <div><strong style="color:#f59e0b;">👤 Perfis de Acesso:</strong> <span style="color:var(--text-muted);">${data.profiles}</span></div>
-          <div><strong style="color:#60a5fa;">🔗 Conexões do Sistema:</strong> <span style="color:var(--text-primary); font-weight:600;">${data.connections}</span></div>
-        </div>
-      `;
-
-      document.getElementById('moduleModal').style.display = 'flex';
-    }
-
-    function closeModuleModal() {
-      document.getElementById('moduleModal').style.display = 'none';
-    }
-
-    function filterManualSections() {
-      const q = document.getElementById('manualSearchInput').value.toLowerCase();
-      document.querySelectorAll('main section').forEach(sec => {
-        const text = sec.innerText.toLowerCase();
-        sec.style.display = text.includes(q) ? 'block' : 'none';
-      });
-    }
-  </script>
-
+  </main>
+  
 </body>
 </html>

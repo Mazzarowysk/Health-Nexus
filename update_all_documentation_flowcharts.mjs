@@ -153,9 +153,11 @@ fs.writeFileSync('docs/10-Manuais/02-manual-operacional-do-usuario.md', doc02, '
 
 // 2. Update MANUAL_DO_USUARIO_HEALTH_NEXUS.md
 let manualMd = fs.readFileSync('MANUAL_DO_USUARIO_HEALTH_NEXUS.md', 'utf8');
-if (!manualMd.includes('Fluxograma Geral Integrado de Todas as Abas')) {
+if (manualMd.includes('## 🔄 2. Fluxograma Geral Integrado de Todas as Abas')) {
+  manualMd = manualMd.replace(/## 🔄 2\. Fluxograma Geral Integrado de Todas as Abas[\s\S]*?---/m, doc02FlowchartSection + '\n\n---');
+} else {
   manualMd = manualMd.replace(/---/, '---\n\n' + doc02FlowchartSection + '\n\n---');
-  fs.writeFileSync('MANUAL_DO_USUARIO_HEALTH_NEXUS.md', manualMd, 'utf8');
 }
+fs.writeFileSync('MANUAL_DO_USUARIO_HEALTH_NEXUS.md', manualMd, 'utf8');
 
 console.log("✅ All documentation flowcharts updated!");
