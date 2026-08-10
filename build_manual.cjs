@@ -164,19 +164,16 @@ const htmlTemplate = `<!DOCTYPE html>
     tr:nth-child(even) { background: rgba(0, 0, 0, 0.2); }
 
     /* Blockquotes (Alerts) */
-    blockquote {
-      background: rgba(99, 102, 241, 0.08);
-      border-left: 4px solid var(--primary);
-      padding: 16px 20px;
-      margin: 1.5em 0;
-      border-radius: 0 12px 12px 0;
-      color: #cbd5e1;
+      padding: 40px 60px;
+      width: calc(100% - 320px);
+      max-width: 1200px;
+      box-sizing: border-box;
     }
-    blockquote p { margin-bottom: 0; color: inherit; }
 
-    /* Sidebar Logo & Menu */
     .sidebar-logo {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 40px;
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 32px; padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-soft);
       font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; color: #fff;
     }
     .sidebar-logo i { color: var(--primary); font-size: 1.6rem; }
@@ -189,10 +186,30 @@ const htmlTemplate = `<!DOCTYPE html>
       transition: all 0.2s ease;
     }
     .toc a:hover { background: rgba(99, 102, 241, 0.15); color: #fff; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-soft);
+    }
+    th, td {
+      padding: 14px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    th {
+      background: rgba(99, 102, 241, 0.15);
+      color: #fff;
+      font-weight: 700;
+    }
     
     @media (max-width: 900px) {
       .sidebar { display: none; }
-      .main-content { margin-left: 0; padding: 30px 20px; }
+      .main-content { margin-left: 0; padding: 30px 20px; width: 100%; }
     }
   </style>
 </head>
@@ -205,21 +222,23 @@ const htmlTemplate = `<!DOCTYPE html>
       <i class="fa-solid fa-hospital"></i> Health Nexus
     </div>
     <ul class="toc">
-      <li><a href="#sec-1"><i class="fa-solid fa-network-wired"></i> 1. Visão Geral & Fluxo</a></li>
+      <li><a href="#sec-1"><i class="fa-solid fa-network-wired"></i> 1. Visão Geral & Fluxograma 12 Abas</a></li>
       <li><a href="#sec-2"><i class="fa-solid fa-users"></i> 2. Central de Atendimentos</a></li>
       <li><a href="#sec-3"><i class="fa-solid fa-notes-medical"></i> 3. Prontuário Eletrônico (PEP)</a></li>
       <li><a href="#sec-4"><i class="fa-solid fa-window-restore"></i> 4. Guia de Modais</a></li>
       <li><a href="#sec-5"><i class="fa-solid fa-user-injured"></i> 5. Gestão de Pacientes</a></li>
       <li><a href="#sec-9"><i class="fa-regular fa-calendar-check"></i> 9. Agenda Médica</a></li>
-      <li><a href="#sec-10"><i class="fa-solid fa-pills"></i> 10. Farmácia</a></li>
-      <li><a href="#sec-11"><i class="fa-solid fa-file-invoice-dollar"></i> 11. Faturamento Financeiro</a></li>
-      <li><a href="#sec-15"><i class="fa-solid fa-gear"></i> 15. Configurações</a></li>
-      <li><a href="#sec-22"><i class="fa-solid fa-bolt"></i> 22. Atualizações Recentes</a></li>
+      <li><a href="#sec-10"><i class="fa-solid fa-pills"></i> 10. Farmácia & OpenFDA</a></li>
+      <li><a href="#sec-11"><i class="fa-solid fa-file-invoice-dollar"></i> 11. Faturamento & Financeiro</a></li>
+      <li><a href="#sec-13"><i class="fa-solid fa-user-clock"></i> 13. Escalas de Trabalho (Médicos/Enf)</a></li>
+      <li><a href="#sec-14"><i class="fa-solid fa-shield-halved"></i> 14. Gestão de Acessos & Auditoria</a></li>
+      <li><a href="#sec-15"><i class="fa-solid fa-gear"></i> 15. Configurações Globais</a></li>
+      <li><a href="#sec-23"><i class="fa-solid fa-bolt"></i> 23. Atualizações Recentes v2.4.0</a></li>
     </ul>
   </nav>
 
   <main class="main-content">
-    \${htmlContent}
+    ${htmlContent}
   </main>
   
 </body>
