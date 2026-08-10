@@ -857,6 +857,105 @@ const showUserManagementModal = async () => {
             </tbody>
           </table>
         `;
+
+        // Eventos dos botões de aprovação master
+        container.querySelectorAll('.btn-approve-master').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.dataset.id;
+            try {
+              const aprRes = await apiFetch(`/api/users/${uid}/approve-master`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'approve' })
+              });
+              if (aprRes.ok) {
+                showToast('Acesso Aprovado com Sucesso!');
+                loadUsersList();
+              } else {
+                showCustomAlert({ title: 'Erro', message: 'Falha ao aprovar usuário.', type: 'danger' });
+              }
+            } catch (e) {
+              showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'danger' });
+            }
+          });
+        });
+
+        container.querySelectorAll('.btn-reject-master').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.dataset.id;
+            try {
+              const rejRes = await apiFetch(`/api/users/${uid}/approve-master`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'reject' })
+              });
+              if (rejRes.ok) {
+                showToast('Solicitação recusada. Definido perfil básico.');
+                loadUsersList();
+              }
+            } catch (e) {}
+          });
+        });
+
+        container.querySelectorAll('.btn-history-user').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const uid = btn.dataset.uid;
+            const uname = btn.dataset.name;
+            showUserSessionsHistory(uid, uname);
+          });
+        });
+
+        container.querySelectorAll('.btn-edit-user').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const userObj = JSON.parse(btn.dataset.user);
+            const currentUser = state.user || {};
+            
+            // Regra de Segurança: Proteção de Perfis Master
+            const isTargetMaster = userObj.role === 'Master' || userObj.role === 'Administrador' || userObj.username === 'mazzarowysk';
+            const isCurrentMaster = currentUser.role === 'Master' || currentUser.role === 'Administrador' || currentUser.username === 'mazzarowysk';
+            
+            if (isTargetMaster && !isCurrentMaster && currentUser.username !== userObj.username) {
+              showCustomAlert({ 
+                title: 'Acesso Negado', 
+                message: 'Você não tem permissão para editar este perfil. Apenas um usuário MASTER pode autorizar ou realizar mudanças em contas Master.', 
+                type: 'danger' 
+              });
+              return;
+            }
+
+            showUserFormModal(userObj, loadUsersList);
+          });
+        });
+
+        container.querySelectorAll('.btn-del-user').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.dataset.id;
+            const uname = btn.dataset.name;
+            const confirmed = await showCustomConfirm({
+              title: 'Excluir Usuário',
+              message: `Tem certeza que deseja excluir o usuário <strong>${uname}</strong>?`,
+              confirmText: 'Sim, Excluir',
+              cancelText: 'Cancelar',
+              type: 'danger'
+            });
+
+            if (confirmed) {
+              try {
+                const delRes = await apiFetch(`/api/users/${uid}`, { method: 'DELETE' });
+                if (delRes.ok) {
+                  showToast('Usuário removido com sucesso!');
+                  syncManager.pushToCloud(false);
+                  loadUsersList();
+                } else {
+                  const errData = await delRes.json().catch(() => ({}));
+                  showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao excluir usuário.', type: 'danger' });
+                }
+              } catch (e) {
+                showCustomAlert({ title: 'Erro', message: 'Erro de conexão ao excluir usuário.', type: 'danger' });
+              }
+            }
+          });
+        });
       };
 
       renderTable();
@@ -865,104 +964,6 @@ const showUserManagementModal = async () => {
       if (searchInputEl) {
         searchInputEl.oninput = () => renderTable();
       }
-
-      // Eventos dos botões de aprovação master
-      container.querySelectorAll('.btn-approve-master').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const uid = btn.dataset.id;
-          try {
-            const aprRes = await apiFetch(`/api/users/${uid}/approve-master`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'approve' })
-            });
-            if (aprRes.ok) {
-              showToast('Acesso Aprovado com Sucesso!');
-              loadUsersList();
-            } else {
-              showCustomAlert({ title: 'Erro', message: 'Falha ao aprovar usuário.', type: 'danger' });
-            }
-          } catch (e) {
-            showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'danger' });
-          }
-        });
-      });
-
-      container.querySelectorAll('.btn-reject-master').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const uid = btn.dataset.id;
-          try {
-            const rejRes = await apiFetch(`/api/users/${uid}/approve-master`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'reject' })
-            });
-            if (rejRes.ok) {
-              showToast('Solicitação recusada. Definido perfil básico.');
-              loadUsersList();
-            }
-          } catch (e) {}
-        });
-      });
-
-      container.querySelectorAll('.btn-history-user').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const uid = btn.dataset.uid;
-          const uname = btn.dataset.name;
-          showUserSessionsHistory(uid, uname);
-        });
-      });
-
-      container.querySelectorAll('.btn-edit-user').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const userObj = JSON.parse(btn.dataset.user);
-          const currentUser = state.user || {};
-          
-          // Regra de Segurança: Proteção de Perfis Master
-          const isTargetMaster = userObj.role === 'Master' || userObj.role === 'Administrador' || userObj.username === 'mazzarowysk';
-          const isCurrentMaster = currentUser.role === 'Master' || currentUser.role === 'Administrador' || currentUser.username === 'mazzarowysk';
-          
-          if (isTargetMaster && !isCurrentMaster && currentUser.username !== userObj.username) {
-            showCustomAlert({ 
-              title: 'Acesso Negado', 
-              message: 'Você não tem permissão para editar este perfil. Apenas um usuário MASTER pode autorizar ou realizar mudanças em contas Master.', 
-              type: 'danger' 
-            });
-            return;
-          }
-
-          showUserFormModal(userObj, loadUsersList);
-        });
-      });
-
-      container.querySelectorAll('.btn-del-user').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const uid = btn.dataset.id;
-          const uname = btn.dataset.name;
-          const confirmed = await showCustomConfirm({
-            title: 'Excluir Usuário',
-            message: `Tem certeza que deseja excluir o usuário <strong>${uname}</strong>?`,
-            confirmText: 'Sim, Excluir',
-            cancelText: 'Cancelar',
-            type: 'danger'
-          });
-
-          if (confirmed) {
-            try {
-              const delRes = await apiFetch(`/api/users/${uid}`, { method: 'DELETE' });
-              if (delRes.ok) {
-                showToast('Usuário removido com sucesso!');
-                loadUsersList();
-              } else {
-                const errData = await delRes.json().catch(() => ({}));
-                showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao excluir usuário.', type: 'danger' });
-              }
-            } catch (e) {
-              showCustomAlert({ title: 'Erro', message: 'Erro de conexão ao excluir usuário.', type: 'danger' });
-            }
-          }
-        });
-      });
 
     } catch (e) {
       container.innerHTML = `<div style="text-align: center; color: var(--color-danger); padding: 20px;">Erro ao carregar lista de usuários.</div>`;
