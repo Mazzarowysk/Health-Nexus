@@ -600,10 +600,14 @@ function generateDutySchedules(doctors, nurses) {
   const schedules = [];
   const today = new Date();
   
+  // Format data local (YYYY-MM-DD)
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
   const dates = [];
-  for (let offset = -1; offset <= 7; offset++) {
+  for (let offset = -2; offset <= 7; offset++) {
     const d = new Date(today.getTime() + offset * 86400000);
-    dates.push(d.toISOString().split('T')[0]);
+    const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    dates.push(dStr);
   }
 
   const doctorShifts = [
@@ -628,12 +632,12 @@ function generateDutySchedules(doctors, nurses) {
   // 1. Escalas para Médicos
   dates.forEach(dateStr => {
     doctors.forEach((doc, idx) => {
-      // 70% chance de ter plantão no dia
-      if (Math.random() < 0.70) {
+      const isToday = dateStr === todayStr;
+      // Garante plantão para HOJE (100%), e 70% de chance nos outros dias
+      if (isToday || Math.random() < 0.70) {
         const shift = doctorShifts[(idx + dates.indexOf(dateStr)) % doctorShifts.length];
         const sector = docSectors[(idx + idCounter) % docSectors.length];
-        const isToday = dateStr === today.toISOString().split('T')[0];
-        const isPast = dateStr < today.toISOString().split('T')[0];
+        const isPast = dateStr < todayStr;
         const status = isPast ? 'Concluído' : isToday ? 'Em Andamento' : pick(['Confirmado', 'Confirmado', 'Troca Solicitada']);
 
         schedules.push({
@@ -662,11 +666,12 @@ function generateDutySchedules(doctors, nurses) {
   // 2. Escalas para Enfermeiros
   dates.forEach(dateStr => {
     nurses.forEach((nurse, idx) => {
-      if (Math.random() < 0.75) {
+      const isToday = dateStr === todayStr;
+      // Garante plantão para HOJE (100%), e 75% de chance nos outros dias
+      if (isToday || Math.random() < 0.75) {
         const shift = nurseShifts[(idx + dates.indexOf(dateStr)) % nurseShifts.length];
         const sector = nurseSectors[(idx + idCounter) % nurseSectors.length];
-        const isToday = dateStr === today.toISOString().split('T')[0];
-        const isPast = dateStr < today.toISOString().split('T')[0];
+        const isPast = dateStr < todayStr;
         const status = isPast ? 'Concluído' : isToday ? 'Em Andamento' : pick(['Confirmado', 'Confirmado', 'Troca Solicitada']);
 
         schedules.push({

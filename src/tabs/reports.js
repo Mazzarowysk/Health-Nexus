@@ -12,8 +12,8 @@ function renderReportsTab(contentArea) {
         <p>Gere e exporte relatórios filtrados por período, status, departamento ou classificação.</p>
       </div>
 
-      <!-- Seletor em formato de Cards Interativos Lado a Lado (4 colunas) -->
-      <div class="report-tabs-selector" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; width: 100%; box-sizing: border-box; margin-bottom: 24px;">
+      <!-- Seletor em formato de Cards Interativos Lado a Lado (5 colunas) -->
+      <div class="report-tabs-selector" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; width: 100%; box-sizing: border-box; margin-bottom: 24px;">
         
         <!-- CARD 1: PACIENTES -->
         <div id="tab-btn-patients" class="report-tab-card active" style="background: rgba(99,102,241,0.08); border: 1.5px solid rgba(99,102,241,0.5); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; box-shadow: 0 4px 20px rgba(99,102,241,0.15); display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(99,102,241,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
@@ -38,7 +38,7 @@ function renderReportsTab(contentArea) {
             <span class="card-status-badge" style="display: none; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(236,72,153,0.2); color: #f472b6; border: 1px solid rgba(236,72,153,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
           </div>
           <div>
-            <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Atendimentos & PEP</h4>
+            <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Atendimentos &amp; PEP</h4>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Triagem Manchester, situação clínica e médico responsável.</p>
           </div>
         </div>
@@ -68,6 +68,20 @@ function renderReportsTab(contentArea) {
           <div>
             <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Por Médico</h4>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Produtividade do corpo clínico e gráficos analíticos.</p>
+          </div>
+        </div>
+
+        <!-- CARD 5: ESCALAS & PLANTÕES -->
+        <div id="tab-btn-schedules" class="report-tab-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(167,139,250,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); display: flex; align-items: center; justify-content: center; color: #a78bfa; font-size: 1.25rem;">
+              <i class="fa-solid fa-user-clock"></i>
+            </div>
+            <span class="card-status-badge" style="display: none; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(167,139,250,0.2); color: #a78bfa; border: 1px solid rgba(167,139,250,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
+          </div>
+          <div>
+            <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Escalas &amp; Plantões</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Alocação de Médicos e Enfermeiros por turno e setor.</p>
           </div>
         </div>
 
@@ -128,6 +142,7 @@ function renderReportsTab(contentArea) {
   const btnEncountersTab = document.getElementById('tab-btn-encounters');
   const btnFinancialTab = document.getElementById('tab-btn-financial');
   const btnDoctorsTab = document.getElementById('tab-btn-doctors');
+  const btnSchedulesTab = document.getElementById('tab-btn-schedules');
   const filtersContainer = document.getElementById('filters-container');
   const previewStatus = document.getElementById('preview-status');
   const tableHead = document.getElementById('preview-table-head');
@@ -145,7 +160,8 @@ function renderReportsTab(contentArea) {
       { id: 'tab-btn-patients', tab: 'patients', border: 'rgba(99,102,241,0.5)', bg: 'rgba(99,102,241,0.08)', shadow: 'rgba(99,102,241,0.15)' },
       { id: 'tab-btn-encounters', tab: 'encounters', border: 'rgba(236,72,153,0.5)', bg: 'rgba(236,72,153,0.08)', shadow: 'rgba(236,72,153,0.15)' },
       { id: 'tab-btn-financial', tab: 'financial', border: 'rgba(34,211,238,0.5)', bg: 'rgba(34,211,238,0.08)', shadow: 'rgba(34,211,238,0.15)' },
-      { id: 'tab-btn-doctors', tab: 'doctors', border: 'rgba(52,211,153,0.5)', bg: 'rgba(52,211,153,0.08)', shadow: 'rgba(52,211,153,0.15)' }
+      { id: 'tab-btn-doctors', tab: 'doctors', border: 'rgba(52,211,153,0.5)', bg: 'rgba(52,211,153,0.08)', shadow: 'rgba(52,211,153,0.15)' },
+      { id: 'tab-btn-schedules', tab: 'schedules', border: 'rgba(167,139,250,0.5)', bg: 'rgba(167,139,250,0.08)', shadow: 'rgba(167,139,250,0.15)' }
     ];
 
     cards.forEach(item => {
@@ -194,6 +210,13 @@ function renderReportsTab(contentArea) {
     updateReportCardSelection('doctors');
     renderDoctorReport();
   });
+
+  btnSchedulesTab?.addEventListener('click', () => {
+    activeTab = 'schedules';
+    updateReportCardSelection('schedules');
+    renderFilters();
+  });
+
 
   window.toggleFilterDropdown = function(id, event) {
     if (event) event.stopPropagation();
@@ -496,7 +519,43 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
       `;
+    } else if (activeTab === 'schedules') {
+      filtersContainer.innerHTML = `
+        <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; align-items: flex-end;">
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Data Inicial</label>
+            <input type="date" id="filter-date-start-sched" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Data Final</label>
+            <input type="date" id="filter-date-end-sched" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Categoria Profissional</label>
+            <select id="filter-sched-cat" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
+              <option value="Todos">Todas (Médicos &amp; Enfermeiros)</option>
+              <option value="medico">Médicos (Corpo Clínico)</option>
+              <option value="enfermeiro">Enfermeiros (Equipe Enfermagem)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Status do Plantão</label>
+            <select id="filter-sched-status" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
+              <option value="Todos">Todos os Status</option>
+              <option value="Em Andamento">Em Andamento (Hoje)</option>
+              <option value="Confirmado">Confirmado / Agendado</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Troca Solicitada">Troca Solicitada</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Busca Livre</label>
+            <input type="text" id="filter-sched-search" placeholder="Nome, CRM/COREN ou Setor..." style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
+          </div>
+        </div>
+      `;
     }
+
 
     // Registrar event listeners nos campos de texto/data/select
     const textInputs = filtersContainer.querySelectorAll('input[type="date"], input[type="text"], input[type="number"], select');
@@ -1165,7 +1224,7 @@ function renderReportsTab(contentArea) {
         }).join('');
       }
 
-    } else {
+    } else if (activeTab === 'encounters') {
       const dateStart = document.getElementById('filter-date-start')?.value || '';
       const dateEnd = document.getElementById('filter-date-end')?.value || '';
 
@@ -1268,7 +1327,70 @@ function renderReportsTab(contentArea) {
           btn.addEventListener('click', (ev) => { ev.stopPropagation(); if (typeof window.openPEPModal === 'function') window.openPEPModal(btn.dataset.encId); });
         });
       }
+    } else if (activeTab === 'schedules') {
+      const dateStart = document.getElementById('filter-date-start-sched')?.value || '';
+      const dateEnd = document.getElementById('filter-date-end-sched')?.value || '';
+      const filterCat = document.getElementById('filter-sched-cat')?.value || 'Todos';
+      const filterStatus = document.getElementById('filter-sched-status')?.value || 'Todos';
+      const search = (document.getElementById('filter-sched-search')?.value || '').toLowerCase().trim();
+
+      const allSchedules = state.dutySchedules || [];
+
+      currentFilteredList = allSchedules.filter(s => {
+        if (dateStart && s.shiftDate < dateStart) return false;
+        if (dateEnd && s.shiftDate > dateEnd) return false;
+        if (filterCat !== 'Todos' && s.category !== filterCat) return false;
+        if (filterStatus !== 'Todos' && s.status !== filterStatus) return false;
+        if (search) {
+          const matchName = (s.professionalName || '').toLowerCase().includes(search);
+          const matchCrm = (s.crm_coren || '').toLowerCase().includes(search);
+          const matchSector = (s.sector || s.roomName || '').toLowerCase().includes(search);
+          if (!matchName && !matchCrm && !matchSector) return false;
+        }
+        return true;
+      });
+
+      if (dynTableHead) dynTableHead.innerHTML = `
+        <tr>
+          <th class="col-checkbox"><input type="checkbox" id="select-all-records" checked></th>
+          <th>ID</th>
+          <th>Profissional</th>
+          <th>Registro</th>
+          <th>Categoria &amp; Função</th>
+          <th>Data Plantão</th>
+          <th>Turno / Duração</th>
+          <th>Setor</th>
+          <th>Status</th>
+        </tr>
+      `;
+
+      if (currentFilteredList.length === 0) {
+        if (dynTableBody) dynTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhum plantão ou escala encontrado com os filtros atuais.</td></tr>`;
+      } else {
+        if (dynTableBody) dynTableBody.innerHTML = currentFilteredList.map(s => {
+          const isMed = s.category === 'medico' || (s.crm_coren && s.crm_coren.includes('CRM'));
+          const dateStr = s.shiftDate ? new Date(s.shiftDate + 'T00:00:00').toLocaleDateString('pt-BR') : '-';
+          const statusColors = { 'Em Andamento': '#fbbf24', 'Confirmado': '#38bdf8', 'Concluído': '#34d399', 'Troca Solicitada': '#f472b6' };
+          const stColor = statusColors[s.status] || '#94a3b8';
+          const catBadge = isMed ? `<span style="padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:700;background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3);">Médico</span>` : `<span style="padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:700;background:rgba(236,72,153,0.15);color:#f472b6;border:1px solid rgba(236,72,153,0.3);">Enfermeiro</span>`;
+
+          return `
+            <tr style="border-bottom:1px solid var(--border-color);">
+              <td class="col-checkbox"><input type="checkbox" class="record-checkbox" data-id="${s.id}" checked></td>
+              <td style="font-family:monospace;font-weight:700;color:var(--color-primary);font-size:0.83rem;">${s.id}</td>
+              <td style="font-weight:600;color:var(--text-primary);">${s.professionalName}</td>
+              <td style="font-family:monospace;font-size:0.82rem;">${s.crm_coren || '-'}</td>
+              <td>${catBadge} <span style="font-size:0.8rem;color:var(--text-secondary);">${s.specialty_role || '-'}</span></td>
+              <td style="font-size:0.83rem;color:var(--text-primary);font-weight:600;">${dateStr}</td>
+              <td style="font-size:0.8rem;color:var(--text-secondary);">${s.shiftType || 'Plantão'} (${s.workloadHours || 12}h)</td>
+              <td style="font-size:0.83rem;color:var(--text-primary);">${s.roomName || s.sector || 'Geral'}</td>
+              <td><span style="font-size:0.75rem;font-weight:700;padding:3px 9px;border-radius:20px;background:${stColor}1a;color:${stColor};border:1px solid ${stColor}44;">${s.status}</span></td>
+            </tr>
+          `;
+        }).join('');
+      }
     }
+
 
     setupCheckboxEvents();
     updatePreviewStatusText();
@@ -2909,8 +3031,27 @@ function renderReportsTab(contentArea) {
           dateStr
         ];
       });
+    } else if (activeTab === 'schedules') {
+      title = 'Relatório de Escalas de Trabalho & Plantões (Médicos e Enfermeiros)';
+      filename = 'escalas_e_plantoes';
+      columns = ['ID', 'Profissional', 'Registro (CRM/COREN)', 'Categoria & Função', 'Data Plantão', 'Turno / Duração', 'Setor', 'Status'];
+      rows = recordsToExport.map(s => {
+        const isMed = s.category === 'medico' || (s.crm_coren && s.crm_coren.includes('CRM'));
+        const dateStr = s.shiftDate ? new Date(s.shiftDate + 'T00:00:00').toLocaleDateString('pt-BR') : '-';
+        return [
+          s.id,
+          s.professionalName,
+          s.crm_coren || '-',
+          (isMed ? 'Médico' : 'Enfermeiro') + ' - ' + (s.specialty_role || '-'),
+          dateStr,
+          `${s.shiftType || 'Plantão'} (${s.workloadHours || 12}h)`,
+          s.roomName || s.sector || 'Geral',
+          s.status
+        ];
+      });
     } else {
       // ---- ABA FINANCEIRO: usa dados reais da janela dedicada ----
+
       const activeFinStatus = window._activeFinStatusFilter || 'Todos';
       title = activeFinStatus === 'Todos'
         ? 'Relatório Financeiro de Títulos (Todos os Status)'

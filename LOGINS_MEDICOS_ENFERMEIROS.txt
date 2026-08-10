@@ -1,0 +1,60 @@
+================================================================================
+          HEALTH NEXUS — RELAÇÃO DE CREDENCIAIS & LOGINS DE ACESSO
+================================================================================
+Sistema de Gestão Hospitalar & Atendimento Médico-Hospitalar (v2.4.0)
+Data de Atualização: Agosto/2026
+
+SENHA PADRÃO PARA TODOS OS USUÁRIOS: Health@2026 (ou 123456)
+================================================================================
+
+--------------------------------------------------------------------------------
+1. GESTÃO E ADMINISTRAÇÃO MASTER / DEV
+--------------------------------------------------------------------------------
+Nome                           | Usuário           | Perfil / Role
+--------------------------------------------------------------------------------
+Marcelo Mazaro                 | @mazzarowysk      | Master (Acesso Total)
+Breno Coltri                   | @bcoltri          | Desenvolvedor
+Administrador Hospitalar       | @admin            | Administrador
+Franciele Facco de Carvalho    | @ffacco           | Desenvolvedor
+
+--------------------------------------------------------------------------------
+2. CORPO CLÍNICO MÉDICO (LOGINS MÉDICOS)
+--------------------------------------------------------------------------------
+Nome                           | Usuário           | Registro / CRM    | Especialidade
+--------------------------------------------------------------------------------
+Dr. Carlos Eduardo Silva       | @dr.carloseduard  | CRM-SP 12345      | Clínica Médica
+Dra. Ana Maria Costa           | @dra.anamaria     | CRM-SP 23456      | Cardiologia
+Dr. João Pedro Santos          | @dr.joaopedro     | CRM-SP 34567      | Pediatria
+Dra. Beatriz Oliveira          | @dra.beatriz      | CRM-SP 45678      | Ortopedia
+Dr. Roberto Fernandes          | @dr.roberto       | CRM-SP 56789      | Neurologia
+Dra. Mariana Lima              | @dra.mariana      | CRM-SP 67890      | Ginecologia
+Dr. Fábio Rodrigues            | @dr.fabio         | CRM-SP 78901      | Dermatologia
+Dr. André Mendes               | @dr.andre         | CRM-SP 89012      | Psiquiatria
+Dra. Cristina Souza            | @dra.cristina     | CRM-SP 90123      | Endocrinologia
+Dr. Marcelo Andrade            | @dr.marcelo       | CRM-SP 01234      | Urologia
+Dra. Renata Carvalho           | @dra.renata       | CRM-SP 11235      | Reumatologia
+Dr. Thiago Martins             | @dr.thiago        | CRM-SP 22346      | Clínica Médica
+
+--------------------------------------------------------------------------------
+3. CORPO CLÍNICO ENFERMAGEM (LOGINS ENFERMEIROS)
+--------------------------------------------------------------------------------
+Nome                           | Usuário           | Registro / COREN  | Setor / Função
+--------------------------------------------------------------------------------
+Enf. Sílvia Regina Santos      | @silviacwb        | COREN-SP 123456-ENF| Supervisão / UTI
+Enf. Patrícia Oliveira Lima    | @enf.patricia     | COREN-SP 234567-ENF| Triagem Manchester
+Enf. Marcos Vinícius Souza     | @enf.marcos       | COREN-SP 345678-ENF| Pronto Socorro / Emergência
+Enf. Juliana Ferreira Costa    | @enf.juliana      | COREN-SP 456789-ENF| Enfermaria Geral
+Enf. Rodrigo Alves Ribeiro     | @enf.rodrigo      | COREN-SP 567890-ENF| Centro Cirúrgico
+Enf. Camila Rocha Silva        | @enf.camila       | COREN-SP 678901-ENF| Medicação / Procedimentos
+Enf. Lucas Mendes Freitas      | @enf.lucas        | COREN-SP 789012-ENF| Pediatria
+Enf. Tatiane Barbosa Cruz      | @enf.tatiane      | COREN-SP 890123-ENF| UTI Adulto
+
+--------------------------------------------------------------------------------
+OBSERVAÇÕES DE SEGURANÇA E ACESSO:
+- Todos os médicos e enfermeiros listados possuem acesso habilitado ao sistema.
+- Médicos e Enfermeiros possuem acesso restrito às rotinas operacionais (Escalas,
+  Pacientes, Atendimentos, PEP, Leitos, Farmácia, Agenda), com bloqueio de 
+  configurações globais administrativas (RBAC).
+- Para restaurar ou simular novamente a base do sistema, utilize a opção 
+  "Simular Dados" na aba de Configurações Global ou execute a reinicialização.
+================================================================================
