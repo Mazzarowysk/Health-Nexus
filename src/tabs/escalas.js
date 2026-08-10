@@ -384,35 +384,60 @@ function openScheduleModal(scheduleId = null) {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay active';
   overlay.id = 'hn-schedule-modal';
+  overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 20, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center; z-index: 99999; animation: fadeIn 0.25s ease-out;';
 
   const todayStr = new Date().toISOString().split('T')[0];
 
+  const availableSectors = [
+    'Consultório 01 (Clínica)',
+    'Consultório 02 (Pediatria)',
+    'Consultório 03 (Cardio)',
+    'Consultório 04 (Ortopedia)',
+    'Consultório 05 (Gineco)',
+    'Pronto-Socorro (PS)',
+    'Triagem Manchester',
+    'UTI Geral / Leitos',
+    'Unidade de Internação',
+    'Centro Cirúrgico',
+    'Ambulatório',
+    'Dispensário / Farmácia'
+  ];
+
+  const itemRoom = item?.roomName || item?.sector || '';
+  const currentRooms = itemRoom.split(',').map(r => r.trim());
+  const customRooms = currentRooms.filter(r => r && !availableSectors.some(s => s.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(s.toLowerCase())));
+  const customRoomVal = customRooms.join(', ');
+
   overlay.innerHTML = `
-    <div class="modal-card animate-scale-up" style="max-width: 540px; width: 90%;">
-      <div class="modal-header">
-        <h3 style="margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-calendar-plus" style="color: #6366f1;"></i>
+    <div class="modal-card animate-scale-up" style="max-width: 620px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid rgba(129, 140, 248, 0.4); border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.85); color: #f8fafc; overflow: hidden;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.15); flex-shrink: 0;">
+        <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.15rem; color: #ffffff; display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-calendar-plus" style="color: #fbbf24; font-size: 1.25rem;"></i>
           ${isEdit ? 'Editar Plantão de Escala' : 'Cadastrar Novo Plantão de Escala'}
         </h3>
-        <button id="btn-close-schedule-modal" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        <button id="btn-close-schedule-modal" class="modal-close" style="background: rgba(255,255,255,0.15); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: background 0.2s;"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <form id="form-schedule" style="padding: 20px;">
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.88rem;">Categoria do Profissional:</label>
-          <div style="display: flex; gap: 12px;">
-            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="radio" name="modal-category" value="medico" ${activeCategory === 'medico' ? 'checked' : ''}> 🩺 Médico
+      <form id="form-schedule" style="padding: 22px 26px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.88rem; color: #e2e8f0;">
+            <i class="fa-solid fa-users" style="color: #818cf8; margin-right: 6px;"></i> Categoria do Profissional:
+          </label>
+          <div style="display: flex; gap: 16px; background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(129, 140, 248, 0.2);">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 0.9rem; font-weight: 500;">
+              <input type="radio" name="modal-category" value="medico" ${activeCategory === 'medico' ? 'checked' : ''} style="accent-color: #6366f1; width: 16px; height: 16px;"> 🩺 Médico
             </label>
-            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="radio" name="modal-category" value="enfermeiro" ${activeCategory === 'enfermeiro' ? 'checked' : ''}> 💉 Enfermeiro
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 0.9rem; font-weight: 500;">
+              <input type="radio" name="modal-category" value="enfermeiro" ${activeCategory === 'enfermeiro' ? 'checked' : ''} style="accent-color: #06b6d4; width: 16px; height: 16px;"> 💉 Enfermeiro
             </label>
           </div>
         </div>
 
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.88rem;">Profissional:</label>
-          <select id="modal-prof-id" class="input-field" required style="width: 100%;">
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.88rem; color: #e2e8f0;">
+            <i class="fa-solid fa-user-doctor" style="color: #818cf8; margin-right: 6px;"></i> Profissional:
+          </label>
+          <select id="modal-prof-id" class="input-field" required style="width: 100%; height: 42px; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.3); color: #fff; border-radius: 10px; padding: 0 12px; font-size: 0.9rem;">
             <option value="">-- Selecione o Profissional --</option>
             ${professionals.map(p => `
               <option value="${p.id}" ${item && (item.professionalId === p.id || item.doctorId === p.id) ? 'selected' : ''}>
@@ -422,15 +447,19 @@ function openScheduleModal(scheduleId = null) {
           </select>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
           <div>
-            <label style="display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.88rem;">Data do Plantão:</label>
-            <input type="date" id="modal-shift-date" class="input-field" required value="${item?.shiftDate || todayStr}" style="width: 100%;">
+            <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.88rem; color: #e2e8f0;">
+              <i class="fa-solid fa-calendar-day" style="color: #818cf8; margin-right: 6px;"></i> Data do Plantão:
+            </label>
+            <input type="date" id="modal-shift-date" class="input-field" required value="${item?.shiftDate || todayStr}" style="width: 100%; height: 42px; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.3); color: #fff; border-radius: 10px; padding: 0 12px; font-size: 0.9rem;">
           </div>
 
           <div>
-            <label style="display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.88rem;">Tipo de Turno:</label>
-            <select id="modal-shift-type" class="input-field" required style="width: 100%;">
+            <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.88rem; color: #e2e8f0;">
+              <i class="fa-solid fa-clock" style="color: #818cf8; margin-right: 6px;"></i> Tipo de Turno:
+            </label>
+            <select id="modal-shift-type" class="input-field" required style="width: 100%; height: 42px; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.3); color: #fff; border-radius: 10px; padding: 0 12px; font-size: 0.9rem;">
               <option value="Manhã (07:00 - 13:00)" ${item?.shiftType?.includes('Manhã') ? 'selected' : ''}>🌅 Manhã (07:00 - 13:00)</option>
               <option value="Tarde (13:00 - 19:00)" ${item?.shiftType?.includes('Tarde') ? 'selected' : ''}>☀️ Tarde (13:00 - 19:00)</option>
               <option value="Noite (19:00 - 07:00)" ${item?.shiftType?.includes('Noite') ? 'selected' : ''}>🌙 Noite (19:00 - 07:00)</option>
@@ -440,34 +469,50 @@ function openScheduleModal(scheduleId = null) {
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-          <div>
-            <label style="display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.88rem;">Setor / Consultório:</label>
-            <input type="text" id="modal-room-name" class="input-field" placeholder="Ex: Consultório 01, UTI, PS..." required value="${item?.roomName || item?.sector || ''}" style="width: 100%;">
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.88rem; color: #e2e8f0;">
+            <i class="fa-solid fa-location-dot" style="color: #818cf8; margin-right: 6px;"></i> Setor / Consultório (Selecione um ou mais):
+          </label>
+          <div id="modal-rooms-checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(129, 140, 248, 0.3); border-radius: 12px; padding: 12px; max-height: 160px; overflow-y: auto;">
+            ${availableSectors.map(sec => {
+              const isChecked = currentRooms.some(r => r.toLowerCase().trim() === sec.toLowerCase().trim() || (item && (item.roomName || item.sector || '').toLowerCase().includes(sec.toLowerCase())));
+              return `
+                <label class="sector-checkbox-card" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #f8fafc; cursor: pointer; padding: 7px 10px; background: ${isChecked ? 'rgba(99, 102, 241, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isChecked ? '#818cf8' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; user-select: none; transition: all 0.2s;">
+                  <input type="checkbox" name="modal-room-checkbox" value="${sec}" ${isChecked ? 'checked' : ''} style="accent-color: #6366f1; width: 16px; height: 16px; cursor: pointer;">
+                  <span>${sec}</span>
+                </label>
+              `;
+            }).join('')}
           </div>
-
-          <div>
-            <label style="display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.88rem;">Status do Plantão:</label>
-            <select id="modal-status" class="input-field" style="width: 100%;">
-              <option value="Confirmado" ${item?.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
-              <option value="Em Andamento" ${item?.status === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option>
-              <option value="Troca Solicitada" ${item?.status === 'Troca Solicitada' ? 'selected' : ''}>Troca Solicitada</option>
-              <option value="Concluído" ${item?.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
-              <option value="Ausente" ${item?.status === 'Ausente' ? 'selected' : ''}>Ausente / Falta</option>
-            </select>
-          </div>
+          <input type="text" id="modal-room-custom" class="input-field" placeholder="Outro setor ou consultório específico (opcional)..." value="${customRoomVal}" style="margin-top: 8px; width: 100%; height: 38px; font-size: 0.82rem; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.25); color: #fff; border-radius: 8px; padding-left: 10px;">
         </div>
 
-        <div style="margin-bottom: 20px;">
-          <label style="display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.88rem;">Observações / Instruções:</label>
-          <textarea id="modal-notes" class="input-field" rows="2" placeholder="Notas adicionais sobre o plantão..." style="width: 100%; resize: vertical;">${item?.notes || ''}</textarea>
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.88rem; color: #e2e8f0;">
+            <i class="fa-solid fa-signal" style="color: #818cf8; margin-right: 6px;"></i> Status do Plantão:
+          </label>
+          <select id="modal-status" class="input-field" style="width: 100%; height: 42px; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.3); color: #fff; border-radius: 10px; padding: 0 12px; font-size: 0.9rem;">
+            <option value="Confirmado" ${item?.status === 'Confirmado' ? 'selected' : ''}>✅ Confirmado</option>
+            <option value="Em Andamento" ${item?.status === 'Em Andamento' ? 'selected' : ''}>⏳ Em Andamento</option>
+            <option value="Troca Solicitada" ${item?.status === 'Troca Solicitada' ? 'selected' : ''}>🔄 Troca Solicitada</option>
+            <option value="Concluído" ${item?.status === 'Concluído' ? 'selected' : ''}>🎉 Concluído</option>
+            <option value="Ausente" ${item?.status === 'Ausente' ? 'selected' : ''}>⚠️ Ausente / Falta</option>
+          </select>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button type="button" id="btn-cancel-modal" class="btn" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.88rem; color: #e2e8f0;">
+            <i class="fa-solid fa-note-sticky" style="color: #818cf8; margin-right: 6px;"></i> Observações / Instruções:
+          </label>
+          <textarea id="modal-notes" class="input-field" rows="2" placeholder="Notas adicionais sobre o plantão..." style="width: 100%; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.3); color: #fff; border-radius: 10px; padding: 10px; font-size: 0.88rem; resize: vertical;">${item?.notes || ''}</textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
+          <button type="button" id="btn-cancel-modal" class="btn" style="background: rgba(255,255,255,0.06); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer;">
             Cancelar
           </button>
-          <button type="submit" class="btn btn-primary" style="background: #6366f1; color: #fff;">
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; border-radius: 10px; padding: 10px 22px; font-weight: 600; font-size: 0.92rem; cursor: pointer; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
+            <i class="fa-solid fa-floppy-disk" style="margin-right: 6px;"></i>
             ${isEdit ? 'Salvar Alterações' : 'Cadastrar Plantão'}
           </button>
         </div>
@@ -481,6 +526,22 @@ function openScheduleModal(scheduleId = null) {
   const close = () => overlay.remove();
   document.getElementById('btn-close-schedule-modal')?.addEventListener('click', close);
   document.getElementById('btn-cancel-modal')?.addEventListener('click', close);
+
+  // Destaque visual dos cards de checkbox do setor ao clicar
+  overlay.querySelectorAll('input[name="modal-room-checkbox"]').forEach(chk => {
+    chk.addEventListener('change', (e) => {
+      const parent = e.target.closest('.sector-checkbox-card');
+      if (parent) {
+        if (e.target.checked) {
+          parent.style.background = 'rgba(99, 102, 241, 0.25)';
+          parent.style.borderColor = '#818cf8';
+        } else {
+          parent.style.background = 'rgba(255,255,255,0.03)';
+          parent.style.borderColor = 'rgba(255,255,255,0.1)';
+        }
+      }
+    });
+  });
 
   // Mudança de categoria no modal atualiza a lista de profissionais
   const categoryRadios = overlay.querySelectorAll('input[name="modal-category"]');
@@ -506,12 +567,24 @@ function openScheduleModal(scheduleId = null) {
     const profId = document.getElementById('modal-prof-id')?.value;
     const shiftDate = document.getElementById('modal-shift-date')?.value;
     const shiftType = document.getElementById('modal-shift-type')?.value;
-    const roomName = document.getElementById('modal-room-name')?.value;
+    
+    // Coleta dos checkboxes de Setor/Consultório selecionados
+    const checkedBoxes = Array.from(overlay.querySelectorAll('input[name="modal-room-checkbox"]:checked')).map(cb => cb.value);
+    const customRoom = document.getElementById('modal-room-custom')?.value.trim();
+    if (customRoom) checkedBoxes.push(customRoom);
+
+    const roomName = checkedBoxes.length > 0 ? checkedBoxes.join(', ') : 'Consultório 01';
+
     const status = document.getElementById('modal-status')?.value;
     const notes = document.getElementById('modal-notes')?.value;
 
     if (!profId) {
       showToast('Por favor, selecione um profissional.', 'error');
+      return;
+    }
+
+    if (checkedBoxes.length === 0) {
+      showToast('Por favor, selecione ao menos um Setor / Consultório.', 'warning');
       return;
     }
 
