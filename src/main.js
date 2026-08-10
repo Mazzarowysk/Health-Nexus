@@ -1951,34 +1951,43 @@ const apiFetch = async (url, options = {}) => {
   try {
     // Route matching for localDB
     if (url.includes('/api/auth/login')) {
-      let isFirstTime = Object.keys(localDB.getFullDB()).length === 0;
+      const cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+      let users = localDB.list('users') || [];
+      let user = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
       
-      // Se for o primeiro acesso, tenta puxar da nuvem silenciosamente
-      if (isFirstTime) {
+      // Se não encontrou o usuário localmente, tenta puxar a versão atualizada do Turso Cloud DB
+      if (!user) {
         try {
           const res = await fetch('/api/turso');
           if (res.ok) {
-            const body = await res.json();
-            localDB.overwriteLocal(body);
+            const cloudPayload = await res.json();
+            if (cloudPayload && cloudPayload.dados_json && cloudPayload.dados_json !== '{}') {
+              localDB.overwriteLocal(cloudPayload);
+              users = localDB.list('users') || [];
+              user = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
+            }
           }
         } catch (e) {
-          console.error('Erro ao buscar dados iniciais para login:', e);
+          console.error('[Login] Erro ao buscar credenciais na nuvem:', e);
         }
       }
 
-      const users = localDB.list('users') || [];
-      const cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
-      const user = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
-      // In local mode, we assume the password check is bypassed or checked locally if plain
       if (user) {
-        responseData = { token: 'mock-jwt-token', user };
+        if (user.status === 'Pendente') {
+          status = 403;
+          responseData = { message: 'Cadastro pendente de aprovação pelo Usuário Master.' };
+        } else {
+          responseData = { token: 'mock-jwt-token', user };
+        }
       } else {
-        status = 401; responseData = { message: 'Usuário não encontrado' };
+        status = 401;
+        responseData = { message: 'Usuário não encontrado' };
       }
     } 
     else if (url.includes('/api/auth/register')) {
       const users = localDB.list('users') || [];
-      const existingUser = users.find(u => u.username === body.username);
+      const cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+      const existingUser = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
       
       if (existingUser) {
         status = 400; responseData = { message: 'Nome de usuário já existe' };
@@ -2000,6 +2009,7 @@ const apiFetch = async (url, options = {}) => {
         };
         
         const inserted = localDB.insert('users', newUser);
+        syncManager.pushToCloud(false);
         
         if (statusStr === 'Pendente') {
           status = 403; responseData = { message: 'Aguardando Aprovação' };
