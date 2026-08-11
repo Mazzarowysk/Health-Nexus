@@ -2661,11 +2661,11 @@ function showGoogleDriveAuthModal(defaultEmail = 'usuario.hospitalar@gmail.com')
 // --- FUNÇÃO REAL DE UPLOAD PARA O GOOGLE DRIVE API V3 ---
 async function uploadBackupToGoogleDrive(snapshotData, customFileName) {
   const gdriveSync = document.getElementById('cfg-gdrive-sync-enable')?.checked;
-  const gdriveUser = localStorage.getItem('hn_gdrive_user');
+  const gdriveUser = localStorage.getItem('hn_gdrive_user') || 'mazzarowysk@gmail.com';
   const clientId = localStorage.getItem('hn_gdrive_client_id');
   const accessToken = localStorage.getItem('hn_gdrive_access_token');
 
-  if (!gdriveSync || !gdriveUser) return null;
+  if (gdriveSync === false) return null;
 
   const nowStr = new Date().toISOString();
   const fileName = customFileName || `Health_Nexus_Backup_${nowStr.slice(0,10)}_${nowStr.slice(11,19).replace(/:/g,'-')}.json`;
@@ -2732,6 +2732,13 @@ async function uploadBackupToGoogleDrive(snapshotData, customFileName) {
         resolve(null);
       }
     });
+  } else if (!clientId) {
+    showCustomAlert({
+      title: '🔑 Client ID Necessário',
+      message: 'Para o Google enviar os arquivos para o seu Drive, insira o seu <strong>Client ID do Google Cloud</strong> no campo abaixo e clique em <strong>Salvar Credenciais</strong>.',
+      type: 'warning'
+    });
+    return null;
   }
 
   showToast('☁️ Backup vinculado registrado para ' + gdriveUser);
