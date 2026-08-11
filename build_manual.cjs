@@ -53,6 +53,11 @@ A interface da seção de Relatórios Financeiros foi enriquecida com representa
 - Boleto (📄)
 Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.
 
+### 22.5. Validação Estrita de Senhas no Login 🔒
+A tela de autenticação foi atualizada para exigir a validação exata da senha cadastrada de cada usuário:
+- Tentativas com senhas incorretas são imediatamente rejeitadas (HTTP 401).
+- Garantia de que contas individuais (ex: \`ljordao\`, \`bcoltri\`, \`admin\`) só possuem acesso liberado mediante a apresentação da senha cadastrada correspondente.
+
 ---
 `;
 

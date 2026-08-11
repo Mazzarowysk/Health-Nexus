@@ -60,37 +60,37 @@ function ensureTable(db, table) {
   // Seed padrão garantido para usuários essenciais do sistema e corpo clínico
   if (table === 'users') {
     const coreSystemUsers = [
-      { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', status: 'Ativo' },
-      { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', status: 'Ativo' },
-      { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', status: 'Ativo' },
-      { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', status: 'Ativo' }
+      { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', password: 'bcoltritupa', status: 'Ativo' },
+      { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', password: 'admin123', status: 'Ativo' },
+      { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', password: 'caliope', status: 'Ativo' }
     ];
 
     const defaultClinicalUsers = [
       // Médicos (Corpo Clínico)
-      { id: 'USR-DOC-001', name: 'Dr. Carlos Eduardo Silva', username: 'dr.carloseduard', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-002', name: 'Dra. Ana Maria Costa', username: 'dra.anamaria', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-003', name: 'Dr. João Pedro Santos', username: 'dr.joaopedro', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-004', name: 'Dra. Beatriz Oliveira', username: 'dra.beatriz', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-005', name: 'Dr. Roberto Fernandes', username: 'dr.roberto', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-006', name: 'Dra. Mariana Lima', username: 'dra.mariana', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-007', name: 'Dr. Fábio Rodrigues', username: 'dr.fabio', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-008', name: 'Dr. André Mendes', username: 'dr.andre', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-009', name: 'Dra. Cristina Souza', username: 'dra.cristina', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-010', name: 'Dr. Marcelo Andrade', username: 'dr.marcelo', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-011', name: 'Dra. Renata Carvalho', username: 'dra.renata', role: 'Médico', status: 'Ativo' },
-      { id: 'USR-DOC-012', name: 'Dr. Thiago Martins', username: 'dr.thiago', role: 'Médico', status: 'Ativo' },
+      { id: 'USR-DOC-001', name: 'Dr. Carlos Eduardo Silva', username: 'dr.carloseduard', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-002', name: 'Dra. Ana Maria Costa', username: 'dra.anamaria', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-003', name: 'Dr. João Pedro Santos', username: 'dr.joaopedro', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-004', name: 'Dra. Beatriz Oliveira', username: 'dra.beatriz', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-005', name: 'Dr. Roberto Fernandes', username: 'dr.roberto', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-006', name: 'Dra. Mariana Lima', username: 'dra.mariana', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-007', name: 'Dr. Fábio Rodrigues', username: 'dr.fabio', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-008', name: 'Dr. André Mendes', username: 'dr.andre', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-009', name: 'Dra. Cristina Souza', username: 'dra.cristina', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-010', name: 'Dr. Marcelo Andrade', username: 'dr.marcelo', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-011', name: 'Dra. Renata Carvalho', username: 'dra.renata', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-DOC-012', name: 'Dr. Thiago Martins', username: 'dr.thiago', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
 
       // Enfermeiros (Equipe Enfermagem)
-      { id: 'USR-NUR-001', name: 'Enf. Sílvia Regina Santos', username: 'silviacwb', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-NUR-002', name: 'Enf. Patrícia Oliveira Lima', username: 'enf.patricia', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-NUR-003', name: 'Enf. Marcos Vinícius Souza', username: 'enf.marcos', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-NUR-004', name: 'Enf. Juliana Ferreira Costa', username: 'enf.juliana', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-NUR-005', name: 'Enf. Rodrigo Alves Ribeiro', username: 'enf.rodrigo', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-NUR-006', name: 'Enf. Camila Rocha Silva', username: 'enf.camila', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-NUR-007', name: 'Enf. Lucas Mendes Freitas', username: 'enf.lucas', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-NUR-008', name: 'Enf. Tatiane Barbosa Cruz', username: 'enf.tatiane', role: 'Enfermeiro', status: 'Ativo' },
-      { id: 'USR-PFORTE', name: 'Dra. Paula Forte', username: 'pforte', role: 'Médico', status: 'Ativo' }
+      { id: 'USR-NUR-001', name: 'Enf. Sílvia Regina Santos', username: 'silviacwb', role: 'Enfermeiro', password: 'silvia2013', status: 'Ativo' },
+      { id: 'USR-NUR-002', name: 'Enf. Patrícia Oliveira Lima', username: 'enf.patricia', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-NUR-003', name: 'Enf. Marcos Vinícius Souza', username: 'enf.marcos', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-NUR-004', name: 'Enf. Juliana Ferreira Costa', username: 'enf.juliana', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-NUR-005', name: 'Enf. Rodrigo Alves Ribeiro', username: 'enf.rodrigo', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-NUR-006', name: 'Enf. Camila Rocha Silva', username: 'enf.camila', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-NUR-007', name: 'Enf. Lucas Mendes Freitas', username: 'enf.lucas', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-NUR-008', name: 'Enf. Tatiane Barbosa Cruz', username: 'enf.tatiane', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-PFORTE', name: 'Dra. Paula Forte', username: 'pforte', role: 'Médico', password: 'pfortesantos', status: 'Ativo' }
     ];
 
     if (db[table].length === 0) {

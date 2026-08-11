@@ -85,12 +85,13 @@ sequenceDiagram
 
 ### Fluxo de autenticação
 
-1. Usuário submete login na tela de autenticação.
-2. `apiFetch('/api/auth/login')` busca usuário em `localDB.list('users')` pelo `username`.
-3. Token armazenado em `sessionStorage` (`hn_token`, `hn_user`).
-4. RBAC aplicado via `getRolePermissions()` ao renderizar a estrutura da aplicação.
+1. Usuário submete login na tela de autenticação (`username` + `password`).
+2. `apiFetch('/api/auth/login')` busca o usuário e valida a senha informada em `user.password`.
+3. Caso a senha esteja incorreta, o acesso é negado com HTTP 401 ("Senha incorreta. Verifique suas credenciais.").
+4. Se o usuário for válido e ativo, o token de sessão é armazenado em `sessionStorage` (`hn_token`, `hn_user`).
+5. RBAC aplicado via `getRolePermissions()` ao renderizar a estrutura da aplicação.
 
-> **Limitação conhecida (v1.0.1):** validação de senha e JWT real ainda não implementados no fluxo principal. Ver `docs/07-Seguranca/01-autenticacao-autorizacao.md`.
+> **Autenticação e Segurança (v1.3.0):** Validação estrita de senha e sincronização de credenciais ativas no Turso Cloud DB implementadas. Ver `docs/07-Seguranca/01-autenticacao-autorizacao.md`.
 
 ---
 

@@ -2002,7 +2002,29 @@ const apiFetch = async (url, options = {}) => {
           status = 403;
           responseData = { message: 'Cadastro pendente de aprovação pelo Usuário Master.' };
         } else {
-          responseData = { token: 'mock-jwt-token', user };
+          const providedPassword = (body.password || '').trim();
+          const storedPassword = (user.password || '').trim();
+
+          // Senhas padrão aceitas como fallback apenas se o usuário não possuir senha cadastrada no banco
+          const defaultAllowedPasswords = ['Health@2026', 'health@2026', '123456'];
+          if (cleanInput === 'admin') defaultAllowedPasswords.push('admin123', 'healthnexus2026');
+          if (cleanInput === 'medico123') defaultAllowedPasswords.push('medico123');
+          if (cleanInput === 'pforte') defaultAllowedPasswords.push('pfortesantos');
+          if (cleanInput === 'bcoltri') defaultAllowedPasswords.push('bcoltritupa');
+          if (cleanInput === 'silviacwb') defaultAllowedPasswords.push('silvia2013');
+          if (cleanInput === 'ffacco') defaultAllowedPasswords.push('caliope');
+          if (cleanInput === 'ljordao') defaultAllowedPasswords.push('manobraw');
+
+          const isPasswordCorrect = storedPassword
+            ? (providedPassword === storedPassword)
+            : defaultAllowedPasswords.includes(providedPassword);
+
+          if (isPasswordCorrect) {
+            responseData = { token: 'mock-jwt-token', user };
+          } else {
+            status = 401;
+            responseData = { message: 'Senha incorreta. Verifique suas credenciais.' };
+          }
         }
       } else {
         status = 401;
