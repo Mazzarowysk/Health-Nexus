@@ -1932,9 +1932,6 @@ function renderReportsTab(contentArea) {
         <style>
           @page { size: A4 portrait; margin: 15mm; }
           body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; margin: 0; padding: 15px; font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6366f1; padding-bottom: 12px; margin-bottom: 18px; }
-          .logo { font-size: 18pt; font-weight: bold; color: #4f46e5; }
-          .sublogo { font-size: 8.5pt; color: #64748b; }
           .meta { text-align: right; font-size: 8.5pt; color: #64748b; }
           h1 { font-size: 15pt; color: #0f172a; margin-top: 0; margin-bottom: 12px; }
           table { width: 100%; border-collapse: collapse; margin-top: 12px; }
@@ -1953,10 +1950,15 @@ function renderReportsTab(contentArea) {
         </style>
       </head>
       <body>
-        <div class="header">
-          <div>
-            <div class="logo">ðŸ¥ HEALTH NEXUS</div>
-            <div class="sublogo">Gestão Hospitalar & Inteligência Médica</div>
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6366f1; padding-bottom: 14px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="background: #ffffff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: center;">
+              <img src="/assets/logo.png" alt="Health Nexus" style="height: 42px; width: auto; object-fit: contain;">
+            </div>
+            <div>
+              <div style="font-family: 'Outfit', sans-serif; font-size: 16pt; font-weight: 800; color: #1e1b4b; margin: 0; line-height: 1.1;">HEALTH NEXUS</div>
+              <div style="font-size: 8.5pt; color: #64748b; font-weight: 500; margin-top: 2px;">Gestão Hospitalar &amp; Inteligência Médica</div>
+            </div>
           </div>
           <div class="meta">
             <div>Data de Emissão: <strong>${dateNow}</strong></div>
@@ -2583,8 +2585,8 @@ function renderReportsTab(contentArea) {
             <div style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 6px;">
               <!-- LOGO BRANDED HEALTH NEXUS -->
               <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 1.05rem; box-shadow: 0 2px 6px rgba(79,70,229,0.3);">
-                  <i class="fa-solid fa-heart-pulse"></i>
+                <div style="background: #ffffff; padding: 4px 10px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: inline-flex; align-items: center; justify-content: center;">
+                  <img src="/assets/logo.png" alt="Health Nexus" style="height: 32px; width: auto; object-fit: contain;">
                 </div>
                 <div>
                   <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
@@ -2647,9 +2649,9 @@ function renderReportsTab(contentArea) {
             <!-- CABEÇALHO DO BANCO COM LOGO -->
             <div style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 4px;">
               <!-- LOGO BRANDED HEALTH NEXUS -->
-              <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 1.05rem; box-shadow: 0 2px 6px rgba(79,70,229,0.3);">
-                  <i class="fa-solid fa-heart-pulse"></i>
+              <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                <div style="background: #ffffff; padding: 4px 10px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: inline-flex; align-items: center; justify-content: center;">
+                  <img src="/assets/logo.png" alt="Health Nexus" style="height: 32px; width: auto; object-fit: contain;">
                 </div>
                 <div>
                   <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
@@ -3784,10 +3786,12 @@ async function openEncounterReportDetail(encId) {
       .sc{font-size:9pt;color:#1e293b;line-height:1.6;}
       .ftr{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:7.5pt;color:#94a3b8;}
       @media print{body{padding:14px 18px;}}</style></head><body>
-      <div class="hdr">
-        <div class="logo">+</div>
+      <div class="hdr" style="display: flex; gap: 14px; align-items: center; padding-bottom: 14px; border-bottom: 3px solid #6366f1; margin-bottom: 18px;">
+        <div style="background: #ffffff; padding: 6px 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <img src="/assets/logo.png" alt="Health Nexus" style="height: 38px; width: auto; object-fit: contain;">
+        </div>
         <div style="flex:1;">
-          <div style="font-size:7pt;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Health Nexus — Resumo do Atendimento</div>
+          <div style="font-size:7.5pt;color:#6366f1;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Health Nexus — Resumo do Atendimento</div>
           <h1 style="font-size:15pt;font-weight:800;color:#0f172a;margin:3px 0;">${enc.patientName||'Paciente'}</h1>
           <div style="margin-top:5px;">
             ${mc?`<span class="badge" style="background:${manchColor}18;color:${manchColor};border:1px solid ${manchColor}40;">${mc.toUpperCase()}</span>`:''}

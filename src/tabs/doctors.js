@@ -1459,10 +1459,23 @@ window.generateHistoryReport = async function(patientId, patientName) {
     } else if (window.jspdf) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      doc.setFontSize(16);
-      doc.text(title, 14, 20);
-      doc.setFontSize(9);
-      doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 26);
+      const loadLogo = () => new Promise(resolve => {
+        const img = new Image(); img.src = '/assets/logo.png';
+        img.onload = () => resolve(img); img.onerror = () => resolve(null);
+      });
+      const logoImg = await loadLogo();
+      if (logoImg) {
+        doc.addImage(logoImg, 'PNG', 14, 10, 16, 16);
+        doc.setFontSize(16);
+        doc.text(title, 34, 20);
+        doc.setFontSize(9);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 34, 26);
+      } else {
+        doc.setFontSize(16);
+        doc.text(title, 14, 20);
+        doc.setFontSize(9);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 26);
+      }
       if (doc.autoTable) {
         doc.autoTable({ startY: 32, head: [columns], body: rows });
       }
