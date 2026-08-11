@@ -3504,13 +3504,13 @@ function renderAppStructure() {
 
         <!-- CAMPO DE BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND PALETTE) -->
         <div class="global-search-wrapper" style="position: relative; flex: 1; max-width: 440px; margin: 0 16px;">
-          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #818cf8; font-size: 0.88rem; pointer-events: none; z-index: 2;"></i>
-          <input type="text" id="global-system-search" placeholder="🔍 Buscar no sistema (ex: Controle de Perfis, RBAC, Paciente)..." style="
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #818cf8; font-size: 0.88rem; pointer-events: none; z-index: 3;"></i>
+          <input type="text" id="global-system-search" placeholder="Buscar no sistema (ex: RBAC, Paciente)..." style="
             width: 100%; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(129, 140, 248, 0.4);
-            color: #f8fafc; padding: 9px 16px 9px 38px; border-radius: 20px; font-size: 0.83rem;
+            color: #f8fafc; padding: 9px 68px 9px 38px; border-radius: 20px; font-size: 0.83rem;
             outline: none; transition: all 0.25s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
           " onfocus="this.style.borderColor='#818cf8'; this.style.boxShadow='0 0 18px rgba(129, 140, 248, 0.45)';" autocomplete="off">
-          <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.68rem; background: rgba(255,255,255,0.08); color: #94a3b8; padding: 2px 7px; border-radius: 6px; pointer-events: none; border: 1px solid rgba(255,255,255,0.12);">
+          <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.68rem; font-weight: 700; background: rgba(129, 140, 248, 0.15); color: #a5b4fc; padding: 2px 8px; border-radius: 6px; pointer-events: none; border: 1px solid rgba(129, 140, 248, 0.3); z-index: 3;">
             Ctrl K
           </span>
 
