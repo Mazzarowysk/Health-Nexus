@@ -500,6 +500,10 @@ const showUserSessionsHistory = (userId, userName) => {
     if (e.target === overlay) overlay.remove();
   });
 
+  // Obter a data real de criação do usuário no sistema
+  const targetUserObj = localDB.get('users', userId) || (localDB.list('users') || []).find(u => u.id === userId || u.username === userName || u.name === userName);
+  const userCreatedAt = targetUserObj && targetUserObj.created_at ? new Date(targetUserObj.created_at) : null;
+
   // Buscar sessões do usuário
   let sessions = localDB.list('user_sessions', s => s.user_id === userId).sort((a, b) => new Date(b.login_time) - new Date(a.login_time));
 
@@ -510,7 +514,7 @@ const showUserSessionsHistory = (userId, userName) => {
     state.user.username === userName
   );
 
-  // Garantir pelo menos 5 acessos fictícios bem estruturados se o usuário possuir menos de 5 registros
+  // Garantir até 5 acessos se o usuário possuir menos de 5 registros
   if (sessions.length < 5) {
     const now = new Date();
     const mockAccesses = [
@@ -540,7 +544,13 @@ const showUserSessionsHistory = (userId, userName) => {
     sessions = [...sessions, ...additionalSessions].sort((a, b) => new Date(b.login_time) - new Date(a.login_time));
   }
 
-  // Pegar exatamente os 5 últimos acessos para a visualização padrão
+  // REGRA RIGOROSA DE AUDITORIA DE SEGURANÇA: Nenhuma sessão (real ou simulada) pode ser exibida com data anterior à criação do usuário
+  if (userCreatedAt) {
+    const minAllowedTimestamp = userCreatedAt.getTime() - 120000; // tolerância de 2 minutos
+    sessions = sessions.filter(s => new Date(s.login_time).getTime() >= minAllowedTimestamp);
+  }
+
+  // Pegar exatamente os 5 últimos acessos válidos para a visualização padrão
   const last5Sessions = sessions.slice(0, 5);
 
   const renderModalContent = () => {
@@ -613,6 +623,19 @@ const showUserSessionsHistory = (userId, userName) => {
         `;
       }
     }).join('');
+
+    if (!rows) {
+      const createdStr = userCreatedAt ? userCreatedAt.toLocaleString('pt-BR') : 'Recente';
+      rows = `
+        <tr>
+          <td colspan="${showFullAudit ? '6' : '3'}" style="text-align: center; padding: 28px 14px; color: var(--text-secondary);">
+            <div style="font-size: 1.6rem; color: #a78bfa; margin-bottom: 8px;"><i class="fa-solid fa-user-clock"></i></div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">Conta Criada em ${createdStr}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Não existem acessos registrados anteriores à data de criação desta conta.</div>
+          </td>
+        </tr>
+      `;
+    }
 
     overlay.innerHTML = `
       <div class="sync-modal-card" style="max-width: ${showFullAudit ? '860px' : '680px'}; width: 94%; max-height: 88vh; display: flex; flex-direction: column; transition: all 0.3s ease;">
