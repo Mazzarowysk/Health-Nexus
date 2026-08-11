@@ -5509,15 +5509,21 @@ async function renderTabContent() {
                     <span>Sincronizar backup automaticamente com Google Drive</span>
                   </label>
 
-                  <div>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                     <button id="btn-gdrive-connect" class="gdrive-connect-btn" type="button">
                       <i class="fa-brands fa-google-drive"></i>
                       <span id="gdrive-btn-text">Conectar</span>
+                    </button>
+                    <button id="btn-gdrive-open" type="button" style="background: rgba(2, 132, 199, 0.12); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.3); font-size: 0.8rem; font-weight: 600; padding: 7px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='rgba(2, 132, 199, 0.25)'" onmouseleave="this.style.background='rgba(2, 132, 199, 0.12)'">
+                      <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Meu Google Drive
                     </button>
                     <div id="gdrive-status-indicator" class="gdrive-status-indicator">
                       <i class="fa-solid fa-circle-dot" style="font-size: 0.65rem;"></i>
                       <span id="gdrive-status-label">Não conectado</span>
                     </div>
+                  </div>
+                  <div style="margin-top: 10px; font-size: 0.76rem; color: #0284c7; opacity: 0.9; line-height: 1.4;">
+                    💡 <strong>Nota:</strong> Se a opção <em>"Baixar automaticamente quando criar backup"</em> acima estiver marcada, o navegador também baixará uma cópia local para a sua pasta <strong>Downloads</strong>. Para manter o backup apenas na nuvem sem baixar arquivos no computador, basta desmarcar a caixa acima.
                   </div>
                 </div>
 
@@ -5957,6 +5963,13 @@ async function renderTabContent() {
             }, 800);
           }
         }
+      });
+    }
+
+    const btnGDriveOpen = document.getElementById('btn-gdrive-open');
+    if (btnGDriveOpen) {
+      btnGDriveOpen.addEventListener('click', () => {
+        window.open('https://drive.google.com/drive/u/0/my-drive', '_blank');
       });
     }
 
