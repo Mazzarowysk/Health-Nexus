@@ -5160,10 +5160,8 @@ async function renderTabContent() {
           <details class="settings-accordion" open>
             <summary class="settings-accordion-header">
               <i class="fa-solid fa-book-medical" style="color: #a5b4fc;"></i> Centro de Documentação &amp; Manuais do Usuário
-              ${getRolePermissions(state.user).canManageUsers ? '' : '<span class="status-badge" style="margin-left:auto; background:rgba(255,0,0,0.1);"><i class="fa-solid fa-lock"></i> BLOQUEADO</span>'}
             </summary>
             <div class="settings-accordion-body">
-              ${getRolePermissions(state.user).canManageUsers ? `
               <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
                 Acesse a documentação unificada e exaustiva do <strong>Health Nexus v1.2.1</strong>. Disponível em portal web interativo com navegação rápida e em documento PDF corporativo para download ou impressão.
               </p>
@@ -5178,12 +5176,6 @@ async function renderTabContent() {
                   <i class="fa-solid fa-file-code"></i> Código Fonte (Markdown)
                 </a>
               </div>
-              ` : `
-                <div style="text-align: center; padding: 20px 0; color: var(--color-danger); opacity: 0.8;">
-                  <i class="fa-solid fa-shield-halved" style="font-size: 2rem; margin-bottom: 12px;"></i>
-                  <p>Acesso negado. Apenas o usuário master (<strong>mazzarowysk</strong>) possui acesso a esta seção.</p>
-                </div>
-              `}
             </div>
           </details>
 
