@@ -987,9 +987,16 @@ const showUserManagementModal = async () => {
               try {
                 const delRes = await apiFetch(`/api/users/${uid}`, { method: 'DELETE' });
                 if (delRes.ok) {
-                  showToast('Usuário removido com sucesso!');
-                  await syncManager.pushToCloud(false);
+                  // Limpa a busca para retornar imediatamente à listagem geral de todos os usuários
+                  const searchInput = document.getElementById('modal-user-search-input');
+                  if (searchInput) searchInput.value = '';
+
+                  // Atualiza a listagem local instantaneamente
                   await loadUsersList();
+                  showToast('Usuário removido com sucesso!');
+
+                  // Sincroniza com a nuvem em segundo plano
+                  syncManager.pushToCloud(false);
                 } else {
                   const errData = await delRes.json().catch(() => ({}));
                   showCustomAlert({ title: 'Erro', message: errData.message || 'Falha ao excluir usuário.', type: 'danger' });
