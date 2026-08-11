@@ -16,7 +16,38 @@ export const manualData = [
         color: '#6366f1',
         description: 'Gerencia permissões em tempo real. Cada usuário possui acesso restrito estritamente às telas autorizadas pelo seu papel.',
         shortcut: 'Sem atalho',
-        rules: 'Apenas usuários Master (mazzarowysk) podem alterar perfis de outros usuários.'
+        rules: 'Apenas usuários Master (mazzarowysk) podem alterar perfis de outros usuários.',
+        keywords: ['rbac', 'controle de perfis', 'permissões', 'papéis', 'acesso', 'segurança', 'cargos', 'master', 'médico', 'enfermeiro', 'recepcionista', 'farmacêutico']
+      },
+      {
+        icon: 'fa-chart-filter',
+        name: 'Funil de Atendimento Hospitalar',
+        type: 'Gráfico & Métrica',
+        color: '#3b82f6',
+        description: 'Exibe a taxa de conversão em tempo real das etapas do paciente: Recepção ➔ Triagem ➔ Consultório ➔ Exames/Medicação ➔ Alta.',
+        shortcut: 'Topo do Dashboard',
+        rules: 'Métrica calculada automaticamente com base nos atendimentos do dia, semana ou mês.',
+        keywords: ['funil', 'gráfico de funil', 'etapas do atendimento', 'conversão', 'dashboard', 'estatística', 'indicadores']
+      },
+      {
+        icon: 'fa-chart-pie',
+        name: 'Ocupação de Leitos por Ala (Gráfico Donut)',
+        type: 'Gráfico & Ocupação',
+        color: '#10b981',
+        description: 'Visualização percentual em gráfico de rosca da taxa de ocupação dos leitos hospitalares entre ocupados e disponíveis.',
+        shortcut: 'Painel Superior Direito',
+        rules: 'Atualiza em tempo real com mudanças na Central de Leitos.',
+        keywords: ['gráfico de leitos', 'ocupação de leitos', 'donut', 'rosca', 'capacidade hospitalar', 'leitos vagos', 'porcentagem leitos']
+      },
+      {
+        icon: 'fa-chart-simple',
+        name: 'Histórico de Atendimentos Mensais (Linhas)',
+        type: 'Gráfico Analítico',
+        color: '#ec4899',
+        description: 'Gráfico comparativo de tendência de consultas totais vs urgência (PS) ao longo dos dias do mês.',
+        shortcut: 'Painel Inferior do Dashboard',
+        rules: 'Permite identificar picos de demanda hospitalar por dia da semana.',
+        keywords: ['gráfico de linhas', 'histórico mensal', 'evolução de atendimentos', 'tendência', 'volume de consultas']
       },
       {
         icon: 'fa-cloud-check',
@@ -25,7 +56,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Exibe no cabeçalho o status de conexão com o banco na nuvem Turso DB. Verde indica dados sincronizados em tempo real.',
         shortcut: 'Clique no badge no topo',
-        rules: 'Funciona em modo Offline-First. Se a internet cair, o sistema grava localmente e sincroniza automaticamente ao reconectar.'
+        rules: 'Funciona em modo Offline-First. Se a internet cair, o sistema grava localmente e sincroniza automaticamente ao reconectar.',
+        keywords: ['sincronização', 'turso', 'nuvem', 'cloud', 'offline', 'banco de dados', 'status conexão']
       },
       {
         icon: 'fa-moon-sun',
@@ -34,7 +66,8 @@ export const manualData = [
         color: '#f59e0b',
         description: 'Alterna a paleta visual entre o modo Dark Glassmorphism e Light Mode para conforto visual em plantões noturnos.',
         shortcut: 'Botão no topo direito',
-        rules: 'A preferência visual é salva no localStorage do navegador do usuário.'
+        rules: 'A preferência visual é salva no localStorage do navegador do usuário.',
+        keywords: ['tema escuro', 'tema claro', 'dark mode', 'light mode', 'mudar cor', 'glassmorphism', 'aparência']
       }
     ],
     workflow: [
@@ -63,7 +96,8 @@ export const manualData = [
         color: '#3b82f6',
         description: 'Reserva horário na agenda de um médico específico para um paciente cadastrado.',
         shortcut: 'Botão Azul no topo da Agenda',
-        rules: 'Impede agendamentos duplicados no mesmo horário para o mesmo médico.'
+        rules: 'Impede agendamentos duplicados no mesmo horário para o mesmo médico.',
+        keywords: ['agendar', 'novo agendamento', 'marcar consulta', 'reserva', 'horário médico']
       },
       {
         icon: 'fa-filter',
@@ -72,7 +106,8 @@ export const manualData = [
         color: '#818cf8',
         description: 'Filtra os compromissos exibidos na tela por profissional ou por especialidade médica.',
         shortcut: 'Select no topo da página',
-        rules: 'Permite selecionar "Todos os Médicos" para visão geral do dia.'
+        rules: 'Permite selecionar "Todos os Médicos" para visão geral do dia.',
+        keywords: ['filtrar médico', 'especialidade', 'agenda médico', 'consultório']
       },
       {
         icon: 'fa-check-double',
@@ -81,7 +116,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Altera o status do agendamento para "Aguardando Atendimento" quando o paciente chega à clínica.',
         shortcut: 'Botão Check no item da agenda',
-        rules: 'Notifica automaticamente o painel do médico responsável.'
+        rules: 'Notifica automaticamente o painel do médico responsável.',
+        keywords: ['check-in', 'confirmar presença', 'paciente chegou', 'aguardando atendimento']
       },
       {
         icon: 'fa-clock-rotate-left',
@@ -90,7 +126,8 @@ export const manualData = [
         color: '#f59e0b',
         description: 'Muda a data ou horário da consulta preservando as observações e histórico do paciente.',
         shortcut: 'Ícone de Relógio',
-        rules: 'Exige confirmação da nova data escolhida.'
+        rules: 'Exige confirmação da nova data escolhida.',
+        keywords: ['reagendar', 'mudar data consulta', 'remarcar', 'trocar horário']
       },
       {
         icon: 'fa-ban',
@@ -99,7 +136,8 @@ export const manualData = [
         color: '#ef4444',
         description: 'Cancela a consulta informando a justificativa (Desistência, Falta, Imprevisto).',
         shortcut: 'Ícone de Lixeira / X',
-        rules: 'O registro não é apagado fisicamente; permanece no histórico como "Cancelado".'
+        rules: 'O registro não é apagado fisicamente; permanece no histórico como "Cancelado".',
+        keywords: ['cancelar agendamento', 'cancelar consulta', 'faltou', 'desistiu', 'deletar agendamento']
       }
     ],
     workflow: [
@@ -126,7 +164,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Abre o formulário modal para registro de novos pacientes. Exige validação rigorosa de CPF com algoritmo de dígitos verificadores.',
         shortcut: 'Alt + N',
-        rules: 'Campos obrigatórios: Nome Completo, CPF válido, Data de Nascimento e Telefone.'
+        rules: 'Campos obrigatórios: Nome Completo, CPF válido, Data de Nascimento e Telefone.',
+        keywords: ['novo paciente', 'cadastrar paciente', 'adicionar paciente', 'registro paciente', 'cpf']
       },
       {
         icon: 'fa-search',
@@ -135,7 +174,8 @@ export const manualData = [
         color: '#38bdf8',
         description: 'Realiza busca instantânea no banco de dados local e remoto à medida que o usuário digita o CPF ou Nome do paciente.',
         shortcut: 'Campo no topo da lista',
-        rules: 'Aceita CPF com ou sem pontuação (ex: 123.456.789-00 ou 12345678900).'
+        rules: 'Aceita CPF com ou sem pontuação (ex: 123.456.789-00 ou 12345678900).',
+        keywords: ['buscar paciente', 'procurar paciente', 'encontrar cpf', 'lista pacientes']
       },
       {
         icon: 'fa-user-gear',
@@ -144,7 +184,8 @@ export const manualData = [
         color: '#f59e0b',
         description: 'Permite atualizar dados cadastrais, endereço, convênio de saúde ou telefone de contato do paciente.',
         shortcut: 'Ícone de Lápis no card do paciente',
-        rules: 'Alterações são sincronizadas imediatamente com a nuvem.'
+        rules: 'Alterações são sincronizadas imediatamente com a nuvem.',
+        keywords: ['editar paciente', 'alterar cadastro', 'mudar telefone', 'mudar convênio']
       },
       {
         icon: 'fa-right-to-bracket',
@@ -153,7 +194,8 @@ export const manualData = [
         color: '#6366f1',
         description: 'Insere o paciente na Fila de Espera ativa para a Triagem de Enfermagem ou Consultório Médico direto.',
         shortcut: 'Botão Verde no card',
-        rules: 'Define o horário exato de entrada para acompanhamento do Tempo de Espera (Estagnação).'
+        rules: 'Define o horário exato de entrada para acompanhamento do Tempo de Espera (Estagnação).',
+        keywords: ['enviar para fila', 'fila de espera', 'encaminhar triagem', 'entrada ps']
       },
       {
         icon: 'fa-print',
@@ -162,7 +204,8 @@ export const manualData = [
         color: '#8b5cf6',
         description: 'Gera documento PDF formatado com dados cadastrais e espaço para assinatura física do paciente.',
         shortcut: 'Ícone de Impressora',
-        rules: 'Disponível para qualquer cadastro existente.'
+        rules: 'Disponível para qualquer cadastro existente.',
+        keywords: ['imprimir ficha', 'pdf paciente', 'gerar ficha', 'impressão recepção']
       }
     ],
     workflow: [
@@ -190,7 +233,8 @@ export const manualData = [
         color: '#ef4444',
         description: 'Registra os sinais vitais (PA, FC, Temp, SpO2, Glicemia) e atribui a cor de gravidade: Vermelho (0m), Laranja (10m), Amarelo (60m), Verde (120m), Azul (240m).',
         shortcut: 'Aba Triagem',
-        rules: 'Calcula automaticamente alertas de taquicardia, febre ou hipóxia.'
+        rules: 'Calcula automaticamente alertas de taquicardia, febre ou hipóxia.',
+        keywords: ['triagem manchester', 'classificação de risco', 'sinais vitais', 'pressão alta', 'febre', 'spo2', 'dor']
       },
       {
         icon: 'fa-notes-medical',
@@ -199,7 +243,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Abre a ficha clínica do paciente selecionado na fila, iniciando o cronômetro do atendimento.',
         shortcut: 'Botão Verde na lista de esperados',
-        rules: 'Altera o status do paciente na TV para "Em Atendimento".'
+        rules: 'Altera o status do paciente na TV para "Em Atendimento".',
+        keywords: ['iniciar atendimento', 'abrir prontuário', 'chamar consultório', 'pep']
       },
       {
         icon: 'fa-pills',
@@ -208,7 +253,8 @@ export const manualData = [
         color: '#3b82f6',
         description: 'Busca medicamentos cadastrados no estoque da farmácia interna, adicionando posologia, dosagem e via de administração.',
         shortcut: 'Aba Prescrição no Prontuário',
-        rules: 'Permite salvar receitas para impressão imediata em formato corporativo.'
+        rules: 'Permite salvar receitas para impressão imediata em formato corporativo.',
+        keywords: ['prescrição eletrônica', 'receita médica', 'prescrever remédio', 'posologia', 'medicamento']
       },
       {
         icon: 'fa-book-diagnostic',
@@ -217,7 +263,8 @@ export const manualData = [
         color: '#8b5cf6',
         description: 'Campo inteligente com autocompletar para busca de código internacional de doenças (ex: J06.9, E11, I10).',
         shortcut: 'Campo CID-10',
-        rules: 'Busca por código numérico ou palavra-chave do diagnóstico.'
+        rules: 'Busca por código numérico ou palavra-chave do diagnóstico.',
+        keywords: ['cid-10', 'diagnóstico', 'código doença', 'cid', 'hipótese diagnóstica']
       },
       {
         icon: 'fa-file-signature',
@@ -226,7 +273,8 @@ export const manualData = [
         color: '#ec4899',
         description: 'Gera atestado médico configurável (dias de afastamento, repouso ou declaração de comparecimento) com validação de CRM.',
         shortcut: 'Botão Atestado',
-        rules: 'Preenche automaticamente os dados do médico logado.'
+        rules: 'Preenche automaticamente os dados do médico logado.',
+        keywords: ['emitir atestado', 'atestado médico', 'afastamento', 'declaração de comparecimento', 'imprimir atestado']
       },
       {
         icon: 'fa-bed-pulse',
@@ -235,7 +283,8 @@ export const manualData = [
         color: '#f59e0b',
         description: 'Encaminha a ordem de internação do paciente direto para a Central de Leitos com a hipótese diagnóstica.',
         shortcut: 'Botão Solicitar Leito',
-        rules: 'Insere o paciente na Fila de Alocação de Leitos.'
+        rules: 'Insere o paciente na Fila de Alocação de Leitos.',
+        keywords: ['solicitar internação', 'pedir leito', 'internar paciente', 'encaminhar UTI']
       },
       {
         icon: 'fa-circle-check',
@@ -244,7 +293,8 @@ export const manualData = [
         color: '#059669',
         description: 'Salva todas as informações no prontuário definitivo e conclui o atendimento do paciente.',
         shortcut: 'Botão Concluir no rodape',
-        rules: 'Libera o médico para chamar o próximo paciente na TV.'
+        rules: 'Libera o médico para chamar o próximo paciente na TV.',
+        keywords: ['finalizar consulta', 'concluir atendimento', 'fechar prontuário', 'dar alta médica']
       }
     ],
     workflow: [
@@ -272,7 +322,8 @@ export const manualData = [
         color: '#8b5cf6',
         description: 'Dispara o alarme sonoro e pronuncia o nome do paciente via sintetizador de voz (ex: "Paciente Marcelo Mazaro, favor dirigir-se ao Consultório 01").',
         shortcut: 'Botão Chamada na Agenda/Prontuário',
-        rules: 'Exibe a chamada em tela cheia na TV da recepção.'
+        rules: 'Exibe a chamada em tela cheia na TV da recepção.',
+        keywords: ['chamar paciente', 'tv', 'painel tv', 'chamar no consultório', 'megafone', 'alarme sonoro', 'voz']
       },
       {
         icon: 'fa-rotate-right',
@@ -281,7 +332,8 @@ export const manualData = [
         color: '#f59e0b',
         description: 'Re-executa o aviso sonoro e faz o nome do paciente piscar em destaque na tela da sala de espera.',
         shortcut: 'Botão Rechamar',
-        rules: 'Atualiza o horário da última chamada na lista.'
+        rules: 'Atualiza o horário da última chamada na lista.',
+        keywords: ['rechamar', 'chamar de novo', 'repete chamada', 'aviso sonoro', 'piscar tv']
       },
       {
         icon: 'fa-volume-high',
@@ -290,7 +342,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Testa os alto-falantes e a síntese de voz gTTS integrada ao navegador.',
         shortcut: 'Botão de Som no topo da TV',
-        rules: 'Exige que o navegador tenha permissão de reprodução de áudio ativada.'
+        rules: 'Exige que o navegador tenha permissão de reprodução de áudio ativada.',
+        keywords: ['testar som', 'áudio tv', 'sem som', 'voz não sai', 'volume', 'alto falantes']
       },
       {
         icon: 'fa-expand',
@@ -299,7 +352,8 @@ export const manualData = [
         color: '#3b82f6',
         description: 'Ajusta o layout para exibição dedicada em smart TVs ou monitores de parede na recepção.',
         shortcut: 'F11',
-        rules: 'Oculta menus de navegação do sistema para foco exclusivo nas chamadas.'
+        rules: 'Oculta menus de navegação do sistema para foco exclusivo nas chamadas.',
+        keywords: ['tela cheia', 'f11', 'smart tv', 'monitor recepção', 'full screen']
       }
     ],
     workflow: [
@@ -326,7 +380,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Aloca um paciente da fila de solicitação de leitos em uma acomodação livre.',
         shortcut: 'Botão Internar no leito vago',
-        rules: 'Apenas leitos com status "Livre" podem receber pacientes.'
+        rules: 'Apenas leitos com status "Livre" podem receber pacientes.',
+        keywords: ['internar', 'alocar leito', 'colocar no leito', 'internação', 'quarto']
       },
       {
         icon: 'fa-arrows-left-right',
@@ -335,7 +390,8 @@ export const manualData = [
         color: '#3b82f6',
         description: 'Muda a acomodação do paciente internado (ex: Enfermaria A -> UTI Leito 02).',
         shortcut: 'Ícone de Troca no card do leito',
-        rules: 'Registra a data, hora e motivo da transferência no histórico do leito.'
+        rules: 'Registra a data, hora e motivo da transferência no histórico do leito.',
+        keywords: ['transferir leito', 'trocar de leito', 'mudar de quarto', 'transferência uti']
       },
       {
         icon: 'fa-clipboard-check',
@@ -344,7 +400,8 @@ export const manualData = [
         color: '#8b5cf6',
         description: 'Permite à enfermagem checar e dar baixa nas medicações administradas por horário.',
         shortcut: 'Aba Aprazamento',
-        rules: 'Exibe a lista de medicamentos prescritos pelo médico assistente.'
+        rules: 'Exibe a lista de medicamentos prescritos pelo médico assistente.',
+        keywords: ['aprazamento', 'checagem de enfermagem', 'dar medicação', 'horário remédio', 'enfermagem']
       },
       {
         icon: 'fa-door-open',
@@ -353,7 +410,8 @@ export const manualData = [
         color: '#ef4444',
         description: 'Registra a alta do paciente e altera o status do leito para "Em Higienização".',
         shortcut: 'Botão Dar Alta',
-        rules: 'O leito fica bloqueado para novas internações até que a higienização seja concluída.'
+        rules: 'O leito fica bloqueado para novas internações até que a higienização seja concluída.',
+        keywords: ['alta hospitalar', 'dar alta', 'liberar leito', 'desocupar leito', 'alta']
       },
       {
         icon: 'fa-broom',
@@ -362,7 +420,8 @@ export const manualData = [
         color: '#f59e0b',
         description: 'Informa que a equipe de limpeza concluiu a sanitização do leito, retornando o status para "Livre".',
         shortcut: 'Botão Limpeza Concluída',
-        rules: 'Retorna a cor do leito para verde no Mapa Geral.'
+        rules: 'Retorna a cor do leito para verde no Mapa Geral.',
+        keywords: ['higienização', 'limpeza leito', 'sanitização', 'leito livre', 'concluir limpeza']
       }
     ],
     workflow: [
@@ -389,7 +448,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Localiza as prescrições médicas ativas e realiza a saída automatizada dos itens entregues.',
         shortcut: 'Botão Dispensar',
-        rules: 'Subtrai a quantidade do estoque da farmácia e registra o lote utilizado.'
+        rules: 'Subtrai a quantidade do estoque da farmácia e registra o lote utilizado.',
+        keywords: ['dispensar', 'entregar remédio', 'baixa de estoque', 'prescrição farmácia']
       },
       {
         icon: 'fa-box-archive',
@@ -398,7 +458,8 @@ export const manualData = [
         color: '#3b82f6',
         description: 'Insere novos medicamentos ou insumos hospitalares na base de dados.',
         shortcut: 'Botão Novo Item',
-        rules: 'Campos obrigatórios: Nome Comercial, Princípio Ativo, Forma e Estoque Mínimo.'
+        rules: 'Campos obrigatórios: Nome Comercial, Princípio Ativo, Forma e Estoque Mínimo.',
+        keywords: ['cadastrar medicamento', 'novo remédio', 'adicionar insumo', 'estoque mínimo']
       },
       {
         icon: 'fa-file-invoice-dollar',
@@ -407,7 +468,8 @@ export const manualData = [
         color: '#8b5cf6',
         description: 'Registra a entrada de novas caixas/lotes com data de validade e fornecedor.',
         shortcut: 'Botão Dar Entrada',
-        rules: 'Soma a quantidade ao saldo do estoque existente.'
+        rules: 'Soma a quantidade ao saldo do estoque existente.',
+        keywords: ['entrada de estoque', 'nota fiscal', 'fornecedor', 'lote', 'validade']
       },
       {
         icon: 'fa-triangle-exclamation',
@@ -416,7 +478,8 @@ export const manualData = [
         color: '#ef4444',
         description: 'Painel que lista medicamentos com saldo abaixo do estoque mínimo ou com validade próxima ao vencimento.',
         shortcut: 'Aba Alertas',
-        rules: 'Destaca itens com menos de 30 dias para vencer.'
+        rules: 'Destaca itens com menos de 30 dias para vencer.',
+        keywords: ['estoque crítico', 'remédio vencendo', 'estoque baixo', 'validade', 'alerta farmácia']
       }
     ],
     workflow: [
@@ -443,7 +506,8 @@ export const manualData = [
         color: '#ef4444',
         description: 'Sinaliza automaticamente pacientes que excederam 30 minutos na fila sem atendimento.',
         shortcut: 'Aba Estagnação',
-        rules: 'Destaca itens em vermelho para intervenção imediata da gestão.'
+        rules: 'Destaca itens em vermelho para intervenção imediata da gestão.',
+        keywords: ['estagnação', 'paciente esperando', 'gargalo', 'alerta de demora', 'tempo excedido']
       },
       {
         icon: 'fa-chart-column',
@@ -452,7 +516,8 @@ export const manualData = [
         color: '#3b82f6',
         description: 'Exibe o volume de consultas concluídas por médico, tempo médio de atendimento e diagnósticos mais frequentes.',
         shortcut: 'Aba Relatórios',
-        rules: 'Permite filtrar por dia, semana ou mês.'
+        rules: 'Permite filtrar por dia, semana ou mês.',
+        keywords: ['produtividade médica', 'relatório de consultas', 'desempenho médico', 'métricas']
       },
       {
         icon: 'fa-file-pdf',
@@ -461,7 +526,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Gera documento gerencial impresso com gráficos e tabelas consolidadas.',
         shortcut: 'Botão Exportar PDF',
-        rules: 'Gera arquivo formatado com cabeçalho oficial do hospital.'
+        rules: 'Gera arquivo formatado com cabeçalho oficial do hospital.',
+        keywords: ['exportar pdf', 'imprimir relatório', 'baixar pdf', 'relatório impresso']
       }
     ],
     workflow: [

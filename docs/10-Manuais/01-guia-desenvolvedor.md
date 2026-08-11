@@ -297,7 +297,36 @@ erDiagram
 
 ---
 
-## 🔍 7. Funcionalidades de UX implementadas (Agosto/2026)
+## 🔍 7. Funcionalidades de UX & Busca Spotlight Global (Agosto/2026)
+
+### 🚀 Motor de Busca Global Spotlight (`Ctrl + K`)
+Localizado no cabeçalho superior (`header.app-header`), o `initGlobalSystemSearch()` atua como um *Copilot / Knowledge Engine* síncrono:
+- **Normalização de Diacríticos (NFD):** Remove acentos e caracteres especiais (`normalizeStr`) para buscas insensíveis a acentos (ex: `excluir usuario` encontra `🗑️ Excluir Usuário`).
+- **Algoritmo de Pontuação de Relevância:**
+  - Título / Nome exato: **+300 pts**
+  - Palavras-chave exatas (keywords array): **+250 pts** / parciais: **+180 pts**
+  - Token match exato: **+160 pts**
+  - Tipo da funcionalidade / Descrição: **+60 / +30 pts**
+  - FAQs e Dúvidas operacionais: **+200 pts** para pergunta exata
+- **Indexação Multicategoria:** Retorna em tempo real:
+  1. `⚙️ Funcionalidades & Ações Relevantes`
+  2. `📌 Módulos & Abas`
+  3. `👤 Pacientes Cadastrados`
+  4. `❓ Dúvidas Operacionais & Respostas (FAQ)`
+
+### 📖 Manual do Usuário Interativo por Abas (`src/manualTabbed.js`)
+- Mapeamento em 9 módulos sincronizados com a ordem exata da sidebar do sistema:
+  1. 🏥 Geral & Visão Geral (expandido por padrão)
+  2. 📅 Agenda & Consultas
+  3. 👥 Recepção & Pacientes
+  4. 🩺 Prontuário & Atendimento
+  5. 📺 Painel TV & Sala de Espera
+  6. 🛏️ Gestão de Leitos & Internação
+  7. 💊 Farmácia & Estoque
+  8. 📊 Relatórios & Estagnação
+  9. ⚙️ Configurações & Turso DB (recolhido por padrão com toggle manual)
+- **Navegação Inteligente por Setas:** Botões `Anterior` / `Próximo` com limites dinâmicos de início/fim (`disabled`).
+- **Lightbox Visual de Imagens:** Modal lightbox com animação `hnPopIn` e fundo `backdrop-filter: blur(12px)`.
 
 ### Botões Limpar Filtros — Cobertura Total
 Todas as abas com campos de filtro possuem botão **"Limpar Filtros"** (`fa-filter-circle-xmark`):

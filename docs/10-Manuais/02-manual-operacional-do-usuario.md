@@ -379,13 +379,33 @@ O módulo de **Escalas de Trabalho & Plantões** (aba <i class="fa-solid fa-user
 
 ---
 
-## 🛡️ 14. Gerenciamento de Usuários & Auditoria de Acessos
+## 🔍 15. Busca Global no Topo (`Ctrl + K`) & Manual Interativo por Abas
 
-O painel de **Gerenciamento de Usuários & Permissões** conta com recursos avançados de auditoria e controle:
-- **Gestão de Exclusão de Contas:** Liberação de lixeira para contas operacionais e de desenvolvimento (incluindo `Breno Coltri` / `@bcoltri`), garantindo que apenas a conta root Master (`@mazzarowysk`) permaneça imutável.
-- **Histórico dos 5 Últimos Acessos:** Exibição imediata dos 5 acessos mais recentes do usuário selecionado, com registro de entrada, saída e tempo total de uso.
-- **Verificação Completa de Acessos:** Botão interativo que alterna para a auditoria estendida de segurança, detalhando endereço IP de origem, dispositivo/navegador, módulos assistenciais acessados e validação de segurança RBAC.
-- **Fechamento e Interação Fluida:** Botões de fechar (X superior e botão 'Fechar' no rodapé) e clique no backdrop com evento otimizado de remoção do modal.
+O Health Nexus conta com um motor de inteligência e busca instantânea síncrona no cabeçalho da aplicação (`app-header`):
+
+### 15.1. Barra de Busca Global Spotlight (`Ctrl + K`)
+- **Atalho do Teclado:** Pressione `Ctrl + K` (ou `Cmd + K` no Mac) em qualquer lugar do sistema para focar a barra de busca instantaneamente.
+- **Normalização Inteligente NFD:** Ignore acentos e maiúsculas/minúsculas. Digitar `excluir usuario`, `atestado`, `cid10` ou `turso` encontra exatamente o recurso desejado.
+- **Categorias de Resultados:**
+  1. **⚙️ Funcionalidades & Ações Relevantes:** Redireciona diretamente para a tela e abre o card/modal da ação (ex: *Controle de Perfis RBAC*, *Excluir Usuário (Lixeira)*, *Nova Prescrição*, *Triagem Manchester*).
+  2. **📌 Módulos & Abas:** Navega instantaneamente para qualquer uma das 12 abas do sistema.
+  3. **👤 Pacientes Cadastrados:** Busca por nome ou dígitos do CPF e abre o prontuário.
+  4. **❓ Dúvidas Operacionais & Respostas (FAQ):** Responde dúvidas frequentes diretamente no menu suspenso ou abre o manual no módulo correspondente.
+
+### 15.2. Manual do Usuário Interativo por Abas (`📖 Manual do Usuário`)
+Acessível pelo botão no topo do sistema:
+- **9 Módulos Sincronizados com a Sidebar:**
+  1. 🏥 Geral & Visão Geral (expandido por padrão)
+  2. 📅 Agenda & Consultas
+  3. 👥 Recepção & Pacientes
+  4. 🩺 Prontuário & Atendimento
+  5. 📺 Painel TV & Sala de Espera
+  6. 🛏️ Gestão de Leitos & Internação
+  7. 💊 Farmácia & Estoque
+  8. 📊 Relatórios & Estagnação
+  9. ⚙️ Configurações & Turso DB (recolhido por padrão com botão de expansão)
+- **Navegação por Setas:** Botões `Anterior` e `Próximo` com desabilitação automática nos limites (1ª e última aba).
+- **Lightbox de Imagens:** Clique em qualquer imagem das demonstrações para visualizar em alta resolução com efeito suave de abertura.
 
 ---
 

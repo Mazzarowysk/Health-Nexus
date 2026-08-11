@@ -92,12 +92,18 @@
     - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
     - **Evolução Clínica & Auditoria de SLAs.**
 
-11. **🆕 Escalas de Trabalho & Plantões (Médicos e Enfermeiros)** *(v2.4.0)*  
-    Aba dedicada à gestão de plantões operacionais da equipe médica e de enfermagem:  
-    - **Orelhas / Sub-abas dedicadas:** Escala de Médicos vs. Escala de Enfermeiros.  
-    - **Indicadores KPI:** Plantões Registrados, Médicos de Plantão Hoje, Enfermeiros de Plantão Hoje e Cobertura de Setores.  
-    - **Turnos:** Manhã (07h-13h), Tarde (13h-19h), Noite (19h-07h), Plantão 24h e Escala 12x36.  
-    - **Barra de pesquisa e filtros padronizados:** busca por Nome, CRM/COREN ou Setor + Filtros de período e turno.  
+12. **🔍 Busca Global Spotlight (`Ctrl + K`) & Copilot de Conhecimento** *(v2.4.0)*  
+    Barra de busca inteligente integrada no topo da aplicação (`app-header`):  
+    - **Normalização NFD:** Busca insensível a acentos (ex: `excluir usuario` localiza `🗑️ Excluir Usuário`).  
+    - **Algoritmo de Relevância:** Pontua títulos (+300), palavras-chave (+250), tokens (+160) e descrições (+30).  
+    - **4 Categorias de Resultados:** Ações & Funcionalidades, Módulos & Abas, Pacientes e Dúvidas Frequentes (FAQ).
+
+13. **📖 Manual do Usuário Interativo por Abas** *(v2.4.0)*  
+    Modal interativo completo (`src/manualTabbed.js`) acessível pelo cabeçalho:  
+    - 9 módulos na ordem exata da sidebar do sistema.  
+    - Aba *Geral* expandida por padrão; aba *Configurações* recolhida por padrão com expansão sob demanda.  
+    - Navegação fluida por setas (`Anterior` / `Próximo`) com desativação automática nos limites da lista.  
+    - Lightbox visual para ampliação de capturas de tela com animação `hnPopIn`.
     - **Modal de Cadastro e Edição de Plantão.**
 
 12. **🆕 Relatórios de Escalas & Exportações Multiformato** *(v2.4.0)*  

@@ -3878,11 +3878,36 @@ function initGlobalSystemSearch() {
       });
     }
 
-    if (buttonMatches.length === 0 && tabMatches.length === 0 && patientMatches.length === 0) {
+    // 4. Pesquisar Perguntas Frequentes & Dúvidas Operacionais (FAQ)
+    const faqMatches = [];
+    if (typeof manualData !== 'undefined' && Array.isArray(manualData)) {
+      manualData.forEach(mod => {
+        if (mod.faq && Array.isArray(mod.faq)) {
+          mod.faq.forEach(item => {
+            const qNormStr = normalizeStr(item.q);
+            const aNormStr = normalizeStr(item.a);
+
+            let score = 0;
+            if (qNormStr.includes(qNorm)) score += 200;
+            queryTokens.forEach(t => {
+              if (qNormStr.includes(t)) score += 40;
+              if (aNormStr.includes(t)) score += 15;
+            });
+
+            if (score > 35) {
+              faqMatches.push({ item, mod, score });
+            }
+          });
+        }
+      });
+    }
+    faqMatches.sort((a, b) => b.score - a.score);
+
+    if (buttonMatches.length === 0 && tabMatches.length === 0 && patientMatches.length === 0 && faqMatches.length === 0) {
       searchResultsContainer.innerHTML = `
         <div style="padding: 18px; text-align: center; color: #94a3b8; font-size: 0.84rem;">
           <i class="fa-solid fa-magnifying-glass" style="font-size: 1.5rem; opacity: 0.4; margin-bottom: 8px; display: block; color: #818cf8;"></i>
-          Nenhuma funcionalidade, ação ou paciente encontrado para "<strong>${escapeHtml(rawQuery)}</strong>".
+          Nenhuma funcionalidade, ação ou dúvida encontrada para "<strong>${escapeHtml(rawQuery)}</strong>".
         </div>
       `;
       searchResultsContainer.style.display = 'block';
@@ -3958,6 +3983,32 @@ function initGlobalSystemSearch() {
       });
     }
 
+    // Renderizar Dúvidas Operacionais / FAQ Encontradas
+    if (faqMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #f59e0b; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">❓ Dúvidas Operacionais & Respostas (${faqMatches.length})</div>`;
+      faqMatches.slice(0, 3).forEach(f => {
+        const { item, mod } = f;
+        html += `
+          <div class="search-result-item" data-type="faq" data-mod-id="${mod.id}" style="
+            padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(245, 158, 11, 0.08); margin-bottom: 5px; border: 1px solid rgba(245, 158, 11, 0.25);
+          " onmouseover="this.style.background='rgba(245, 158, 11, 0.2)'; this.style.borderColor='#f59e0b'" onmouseout="this.style.background='rgba(245, 158, 11, 0.08)'; this.style.borderColor='rgba(245, 158, 11, 0.25)'">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+              <strong style="color: #fbbf24; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-circle-question"></i> ${item.q}
+              </strong>
+              <span style="font-size: 0.65rem; background: rgba(245, 158, 11, 0.2); color: #fcd34d; padding: 2px 7px; border-radius: 8px; font-weight: 700;">
+                ${mod.title}
+              </span>
+            </div>
+            <p style="color: #cbd5e1; font-size: 0.78rem; margin: 0; line-height: 1.35;">
+              ${item.a}
+            </p>
+          </div>
+        `;
+      });
+    }
+
     searchResultsContainer.innerHTML = html;
     searchResultsContainer.style.display = 'block';
 
@@ -3992,6 +4043,11 @@ function initGlobalSystemSearch() {
           }
         } else if (itemType === 'patient') {
           switchTab('pacientes');
+        } else if (itemType === 'faq') {
+          const modId = item.dataset.modId;
+          if (typeof showInteractiveManualModal === 'function') {
+            showInteractiveManualModal(modId);
+          }
         }
 
         searchResultsContainer.style.display = 'none';
