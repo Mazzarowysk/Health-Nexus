@@ -492,6 +492,103 @@ export const manualData = [
     ]
   },
   {
+    id: 'medicos',
+    title: 'Corpo Clínico & Médicos',
+    icon: 'fa-user-doctor',
+    color: '#818cf8',
+    summary: 'Gestão completa do corpo clínico hospitalar, inclusão/cadastro de médicos, acompanhamento de especialidades e validação de CRM no CFM.',
+    roles: ['Master', 'Médico', 'Recepcionista'],
+    buttons: [
+      {
+        icon: 'fa-user-plus',
+        name: '➕ Cadastrar / Incluir Novo Médico',
+        type: 'Cadastro / Corpo Clínico',
+        color: '#10b981',
+        description: 'Cadastra um novo médico no corpo clínico da instituição. Preencha Nome Completo, CRM, UF, Especialidade, Telefone e E-mail com validação em tempo real.',
+        shortcut: 'Botão "+ Novo Médico" na aba Corpo Clínico',
+        rules: 'Exige CRM e Nome Completo válidos. O CRM é verificado contra a base oficial do CFM.',
+        keywords: ['incluir médico', 'cadastrar médico', 'novo médico', 'adicionar médico', 'registro médico', 'corpo clínico', 'crm', 'especialista', 'contratar médico', 'incluir clinico', 'cadastrar clinico', 'médico', 'medico', 'incluir medico', 'cadastrar medico']
+      },
+      {
+        icon: 'fa-user-pen',
+        name: '📝 Editar Cadastro de Médico',
+        type: 'Edição',
+        color: '#3b82f6',
+        description: 'Altera especialidade, telefone de contato, e-mail ou dados cadastrais do profissional médico.',
+        shortcut: 'Ícone de Lápis no card do médico',
+        rules: 'Permite atualizar os dados a qualquer momento.',
+        keywords: ['editar médico', 'alterar médico', 'mudar especialidade', 'atualizar crm']
+      },
+      {
+        icon: 'fa-calendar-days',
+        name: '📅 Alocar Plantão de Médico (Escala)',
+        type: 'Escala de Trabalho',
+        color: '#8b5cf6',
+        description: 'Insere o médico na escala de plantão do dia, definindo consultório, turno e horário.',
+        shortcut: 'Botão "Escala de Plantão"',
+        rules: 'Atualiza o banner de plantonistas do dia na recepção e dashboard.',
+        keywords: ['escala médico', 'plantão médico', 'alocar plantão', 'horário médico', 'escala de trabalho']
+      },
+      {
+        icon: 'fa-trash-can',
+        name: '🗑️ Lixeira de Médicos (Desativar)',
+        type: 'Remoção / Inativação',
+        color: '#ef4444',
+        description: 'Inativa um médico do corpo clínico enviando para a lixeira. Registros históricos de consultas permanecem preservados.',
+        shortcut: 'Botão Lixeira na aba Médicos',
+        rules: 'Permite restaurar o médico a qualquer momento.',
+        keywords: ['excluir médico', 'desativar médico', 'deletar médico', 'remover médico', 'lixeira médico']
+      }
+    ],
+    workflow: [
+      { step: 1, title: 'Acesse Corpo Clínico', desc: 'Clique na aba "Corpo Clínico" no menu lateral.' },
+      { step: 2, title: 'Clique em Novo Médico', desc: 'Clique no botão "+ Novo Médico" no canto superior direito.' },
+      { step: 3, title: 'Preencha os Dados', desc: 'Informe o Nome, CRM, Especialidade, Telefone e E-mail, e clique em Salvar.' }
+    ],
+    faq: [
+      { q: 'Como incluir ou cadastrar um novo médico no sistema?', a: 'Acesse a aba "Corpo Clínico & Médicos" no menu lateral, clique no botão "+ Novo Médico", preencha Nome, CRM e Especialidade, e clique em Salvar.' },
+      { q: 'Como validar o CRM do médico junto ao CFM?', a: 'O sistema realiza a checagem automática com o portal do Conselho Federal de Medicina (CFM) ao digitar o CRM.' }
+    ]
+  },
+  {
+    id: 'escalas',
+    title: 'Escalas de Trabalho & Plantões',
+    icon: 'fa-calendar-check',
+    color: '#a855f7',
+    summary: 'Gerenciamento de turnos e plantões para médicos e enfermeiros com relatórios impressos e aviso de cobertura.',
+    roles: ['Master', 'Médico', 'Enfermeiro'],
+    buttons: [
+      {
+        icon: 'fa-calendar-plus',
+        name: '➕ Cadastrar Novo Plantão / Escala',
+        type: 'Escalas',
+        color: '#10b981',
+        description: 'Cadastra um plantão de trabalho para médicos ou enfermeiros indicando data, turno (6h, 12h, 24h) e consultório/setor.',
+        shortcut: 'Botão "+ Novo Plantão"',
+        rules: 'Avisa automaticamente caso o profissional já possua outro plantão no mesmo horário.',
+        keywords: ['cadastrar plantão', 'novo plantão', 'escala de trabalho', 'incluir plantão', 'escala médica', 'escala enfermagem']
+      },
+      {
+        icon: 'fa-print',
+        name: '🖨️ Imprimir Escala Mensal',
+        type: 'Impressão / Relatório',
+        color: '#3b82f6',
+        description: 'Gera relatório formatado da escala de plantão para afixação nos quadros do hospital.',
+        shortcut: 'Botão Imprimir Escala',
+        rules: 'Exibe nome do profissional, registro CRM/COREN, setor e horários.',
+        keywords: ['imprimir escala', 'relatório escala', 'quadro de plantão', 'pdf escala']
+      }
+    ],
+    workflow: [
+      { step: 1, title: 'Selecione a Categoria', desc: 'Escolha entre Escala de Médicos ou Escala de Enfermeiros.' },
+      { step: 2, title: 'Clique em Novo Plantão', desc: 'Informe a data, o profissional, o turno e a sala alocada.' },
+      { step: 3, title: 'Confirme a Escala', desc: 'Salve o plantão e visualize o status atualizado no banner superior.' }
+    ],
+    faq: [
+      { q: 'Como verificar os médicos de plantão hoje?', a: 'No topo da aba Corpo Clínico ou Escalas, consulte o banner "Médicos de Plantão Hoje".' }
+    ]
+  },
+  {
     id: 'relatorios',
     title: 'Relatórios & Estagnação',
     icon: 'fa-chart-pie',
