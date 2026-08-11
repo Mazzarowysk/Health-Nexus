@@ -60,7 +60,7 @@ function ensureTable(db, table) {
   // Seed padrão garantido para usuários essenciais do sistema e corpo clínico
   if (table === 'users') {
     const coreSystemUsers = [
-      { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', password: 'T@zm4n1c0054180', status: 'Ativo' },
       { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', password: 'bcoltritupa', status: 'Ativo' },
       { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', password: 'admin123', status: 'Ativo' },
       { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', password: 'caliope', status: 'Ativo' }

