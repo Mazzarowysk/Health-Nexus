@@ -2534,6 +2534,106 @@ function openLoginInstructionsModal() {
   });
 }
 
+// --- MODAL DE AUTENTICAÇÃO DO GOOGLE DRIVE (PADRÃO VISUAL DO SISTEMA) ---
+function showGoogleDriveAuthModal(defaultEmail = 'usuario.hospitalar@gmail.com') {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('gdrive-auth-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'gdrive-auth-modal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,8,22,0.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:999999;animation:fadeIn 0.25s ease-out;';
+
+    modal.innerHTML = `
+      <div style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 24px; width: 90%; max-width: 480px; padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 50px rgba(14, 165, 233, 0.2); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
+        <!-- Botão Fechar -->
+        <button id="close-gdrive-modal" type="button" style="position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.color='#fff'; this.style.background='rgba(255,255,255,0.15)'" onmouseleave="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.05)'">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Cabeçalho com Ícone do Google Drive -->
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(2, 132, 199, 0.15); border: 1.5px solid rgba(56, 189, 248, 0.5); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.6rem; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);">
+            <i class="fa-brands fa-google-drive"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.25rem; color: #ffffff;">Conectar Google Drive</h3>
+            <span style="font-size: 0.82rem; color: #38bdf8; font-weight: 500;">Sincronização &amp; Redundância de Backups</span>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.55; margin-bottom: 20px; background: rgba(14, 165, 233, 0.08); padding: 14px 16px; border-radius: 12px; border-left: 4px solid #0284c7;">
+          Informe o e-mail da sua conta Google para autorizar o salvamento de cópias de segurança na nuvem (pasta <strong>Health Nexus Backups</strong>).
+        </p>
+
+        <!-- Form Input -->
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            E-mail da Conta Google
+          </label>
+          <div style="position: relative;">
+            <i class="fa-solid fa-envelope" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.95rem;"></i>
+            <input type="email" id="gdrive-email-input" value="${defaultEmail}" placeholder="seu-email@gmail.com" style="width: 100%; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #ffffff; padding: 12px 14px 12px 40px; border-radius: 12px; font-size: 0.95rem; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 0 0 3px rgba(56, 189, 248, 0.2)'" onblur="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.boxShadow='none'">
+          </div>
+          <small id="gdrive-email-error" style="color: #f87171; font-size: 0.78rem; display: none; margin-top: 6px; font-weight: 500;">Por favor, digite um e-mail válido.</small>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button id="btn-cancel-gdrive-modal" type="button" style="background: rgba(255,255,255,0.06); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.15); padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.12)'" onmouseleave="this.style.background='rgba(255,255,255,0.06)'">
+            Cancelar
+          </button>
+          <button id="btn-confirm-gdrive-modal" type="button" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4); display: flex; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='scale(1.02)'" onmouseleave="this.style.transform='scale(1)'">
+            <i class="fa-brands fa-google-drive"></i> Conectar Conta
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const input = document.getElementById('gdrive-email-input');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+
+    const closeModal = (value = null) => {
+      modal.style.opacity = '0';
+      modal.style.transition = 'opacity 0.2s ease';
+      setTimeout(() => {
+        modal.remove();
+        resolve(value);
+      }, 200);
+    };
+
+    document.getElementById('close-gdrive-modal').addEventListener('click', () => closeModal(null));
+    document.getElementById('btn-cancel-gdrive-modal').addEventListener('click', () => closeModal(null));
+
+    const submit = () => {
+      const emailVal = input ? input.value.trim() : '';
+      if (!emailVal || !emailVal.includes('@')) {
+        const errEl = document.getElementById('gdrive-email-error');
+        if (errEl) errEl.style.display = 'block';
+        return;
+      }
+      closeModal(emailVal);
+    };
+
+    document.getElementById('btn-confirm-gdrive-modal').addEventListener('click', submit);
+    if (input) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submit();
+        }
+      });
+    }
+  });
+}
+
 // --- ESTRUTURA DE AUTENTICAÇÃO ---
 function renderAuthScreen() {
   const root = document.getElementById('app');
@@ -5840,8 +5940,8 @@ async function renderTabContent() {
             showToast('Google Drive desconectado.');
           }
         } else {
-          // Modal de Conexão com Google Drive
-          const userEmail = prompt('Digite seu e-mail do Google (Google Drive) para autenticar a sincronização de backup:', 'usuario.hospitalar@gmail.com');
+          // Modal de Conexão com Google Drive Personalizado do Sistema
+          const userEmail = await showGoogleDriveAuthModal('usuario.hospitalar@gmail.com');
           if (userEmail && userEmail.includes('@')) {
             showLoadingModal('🔐 Autenticando e conectando com o Google Drive...');
             setTimeout(() => {
