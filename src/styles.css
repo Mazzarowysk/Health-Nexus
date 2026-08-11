@@ -4819,4 +4819,190 @@ body.compact-mode .modal-content {
   transform: translateY(-2px) !important;
 }
 
+/* ==========================================================================
+   PAINEL DE BACKUP E RESTAURAÇÃO (INTEGRAÇÃO GOOGLE DRIVE & AUTO BACKUP)
+   ========================================================================== */
+.backup-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.backup-action-card {
+  background: var(--bg-tertiary, rgba(30, 41, 59, 0.7));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.backup-action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.backup-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary, #ffffff);
+}
+
+.backup-card-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.backup-status-banner {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #94a3b8);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backup-auto-card {
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.backup-auto-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin-bottom: 18px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.backup-auto-field {
+  margin-bottom: 16px;
+}
+
+.backup-auto-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  user-select: none;
+}
+
+.backup-auto-select-group {
+  margin-top: 8px;
+}
+
+.backup-auto-select-group label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.backup-auto-select {
+  width: 100%;
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+}
+
+.gdrive-sync-box {
+  background: #e0f2fe;
+  border: 1.5px solid #7dd3fc;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-top: 20px;
+  transition: all 0.25s ease;
+}
+
+.gdrive-sync-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0369a1;
+  margin-bottom: 12px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.gdrive-sync-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.gdrive-connect-btn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 0.84rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+  transition: all 0.2s ease;
+}
+
+.gdrive-connect-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.gdrive-status-indicator {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.gdrive-status-indicator.connected {
+  color: #059669;
+  font-weight: 700;
+}
+
 
