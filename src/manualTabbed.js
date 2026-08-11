@@ -49,6 +49,69 @@ export const manualData = [
     ]
   },
   {
+    id: 'agenda',
+    title: 'Agenda & Consultas',
+    icon: 'fa-calendar-check',
+    color: '#93c5fd',
+    summary: 'Gerenciamento completo de agendamentos eletivos, controle de horários por médico e status de presença.',
+    roles: ['Recepcionista', 'Médico', 'Master'],
+    buttons: [
+      {
+        icon: 'fa-calendar-plus',
+        name: '📅 Novo Agendamento',
+        type: 'Escrita',
+        color: '#3b82f6',
+        description: 'Reserva horário na agenda de um médico específico para um paciente cadastrado.',
+        shortcut: 'Botão Azul no topo da Agenda',
+        rules: 'Impede agendamentos duplicados no mesmo horário para o mesmo médico.'
+      },
+      {
+        icon: 'fa-filter',
+        name: '🔍 Filtro por Médico / Especialidade',
+        type: 'Visualização',
+        color: '#818cf8',
+        description: 'Filtra os compromissos exibidos na tela por profissional ou por especialidade médica.',
+        shortcut: 'Select no topo da página',
+        rules: 'Permite selecionar "Todos os Médicos" para visão geral do dia.'
+      },
+      {
+        icon: 'fa-check-double',
+        name: '✅ Confirmar Presença (Check-in)',
+        type: 'Status',
+        color: '#10b981',
+        description: 'Altera o status do agendamento para "Aguardando Atendimento" quando o paciente chega à clínica.',
+        shortcut: 'Botão Check no item da agenda',
+        rules: 'Notifica automaticamente o painel do médico responsável.'
+      },
+      {
+        icon: 'fa-clock-rotate-left',
+        name: '🔄 Reagendar Consulta',
+        type: 'Edição',
+        color: '#f59e0b',
+        description: 'Muda a data ou horário da consulta preservando as observações e histórico do paciente.',
+        shortcut: 'Ícone de Relógio',
+        rules: 'Exige confirmação da nova data escolhida.'
+      },
+      {
+        icon: 'fa-ban',
+        name: '❌ Cancelar Agendamento',
+        type: 'Ação Crítica',
+        color: '#ef4444',
+        description: 'Cancela a consulta informando a justificativa (Desistência, Falta, Imprevisto).',
+        shortcut: 'Ícone de Lixeira / X',
+        rules: 'O registro não é apagado fisicamente; permanece no histórico como "Cancelado".'
+      }
+    ],
+    workflow: [
+      { step: 1, title: 'Seleção da Data', desc: 'Escolha a data no calendário e o médico correspondente.' },
+      { step: 2, title: 'Agendamento', desc: 'Selecione o horário livre, busque o paciente e confirme o agendamento.' },
+      { step: 3, title: 'Check-in no Dia', desc: 'No dia da consulta, quando o paciente chegar, clique em "Confirmar Presença".' }
+    ],
+    faq: [
+      { q: 'Como visualizar horários livres de um médico?', a: 'Selecione o médico no filtro superior. O sistema destacará os slots de horário disponíveis na cor verde.' }
+    ]
+  },
+  {
     id: 'recepcao',
     title: 'Recepção & Pacientes',
     icon: 'fa-user-nurse',
@@ -110,69 +173,6 @@ export const manualData = [
     faq: [
       { q: 'O que fazer se o sistema informar "CPF Já Cadastrado"?', a: 'Utilize a barra de busca por CPF para localizar o cadastro pré-existente e apenas atualize os dados do paciente se necessário.' },
       { q: 'Posso cadastrar pacientes estrangeiros sem CPF?', a: 'Para estrangeiros sem CPF, o sistema aceita código temporário emitido com autorização do perfil Master.' }
-    ]
-  },
-  {
-    id: 'agenda',
-    title: 'Agenda & Consultas',
-    icon: 'fa-calendar-check',
-    color: '#93c5fd',
-    summary: 'Gerenciamento completo de agendamentos eletivos, controle de horários por médico e status de presença.',
-    roles: ['Recepcionista', 'Médico', 'Master'],
-    buttons: [
-      {
-        icon: 'fa-calendar-plus',
-        name: '📅 Novo Agendamento',
-        type: 'Escrita',
-        color: '#3b82f6',
-        description: 'Reserva horário na agenda de um médico específico para um paciente cadastrado.',
-        shortcut: 'Botão Azul no topo da Agenda',
-        rules: 'Impede agendamentos duplicados no mesmo horário para o mesmo médico.'
-      },
-      {
-        icon: 'fa-filter',
-        name: '🔍 Filtro por Médico / Especialidade',
-        type: 'Visualização',
-        color: '#818cf8',
-        description: 'Filtra os compromissos exibidos na tela por profissional ou por especialidade médica.',
-        shortcut: 'Select no topo da página',
-        rules: 'Permite selecionar "Todos os Médicos" para visão geral do dia.'
-      },
-      {
-        icon: 'fa-check-double',
-        name: '✅ Confirmar Presença (Check-in)',
-        type: 'Status',
-        color: '#10b981',
-        description: 'Altera o status do agendamento para "Aguardando Atendimento" quando o paciente chega à clínica.',
-        shortcut: 'Botão Check no item da agenda',
-        rules: 'Notifica automaticamente o painel do médico responsável.'
-      },
-      {
-        icon: 'fa-clock-rotate-left',
-        name: '🔄 Reagendar Consulta',
-        type: 'Edição',
-        color: '#f59e0b',
-        description: 'Muda a data ou horário da consulta preservando as observações e histórico do paciente.',
-        shortcut: 'Ícone de Relógio',
-        rules: 'Exige confirmação da nova data escolhida.'
-      },
-      {
-        icon: 'fa-ban',
-        name: '❌ Cancelar Agendamento',
-        type: 'Ação Crítica',
-        color: '#ef4444',
-        description: 'Cancela a consulta informando a justificativa (Desistência, Falta, Imprevisto).',
-        shortcut: 'Ícone de Lixeira / X',
-        rules: 'O registro não é apagado fisicamente; permanece no histórico como "Cancelado".'
-      }
-    ],
-    workflow: [
-      { step: 1, title: 'Seleção da Data', desc: 'Escolha a data no calendário e o médico correspondente.' },
-      { step: 2, title: 'Agendamento', desc: 'Selecione o horário livre, busque o paciente e confirme o agendamento.' },
-      { step: 3, title: 'Check-in no Dia', desc: 'No dia da consulta, quando o paciente chegar, clique em "Confirmar Presença".' }
-    ],
-    faq: [
-      { q: 'Como visualizar horários livres de um médico?', a: 'Selecione o médico no filtro superior. O sistema destacará os slots de horário disponíveis na cor verde.' }
     ]
   },
   {
@@ -255,6 +255,60 @@ export const manualData = [
     ],
     faq: [
       { q: 'Como consultar o histórico anterior do paciente?', a: 'No lado direito do prontuário, há a aba "Histórico de Atendimentos" com todas as consultas passadas registradas no sistema.' }
+    ]
+  },
+  {
+    id: 'tv',
+    title: 'Painel TV & Sala de Espera',
+    icon: 'fa-tv',
+    color: '#a78bfa',
+    summary: 'Sistema audiovisual interativo para chamada de pacientes na sala de espera com síntese de voz nativa.',
+    roles: ['Recepcionista', 'Médico', 'Enfermeiro', 'Master'],
+    buttons: [
+      {
+        icon: 'fa-bullhorn',
+        name: '📢 Chamar Paciente na TV',
+        type: 'Notificação',
+        color: '#8b5cf6',
+        description: 'Dispara o alarme sonoro e pronuncia o nome do paciente via sintetizador de voz (ex: "Paciente Marcelo Mazaro, favor dirigir-se ao Consultório 01").',
+        shortcut: 'Botão Chamada na Agenda/Prontuário',
+        rules: 'Exibe a chamada em tela cheia na TV da recepção.'
+      },
+      {
+        icon: 'fa-rotate-right',
+        name: '🔁 Rechamar Paciente',
+        type: 'Re-notificação',
+        color: '#f59e0b',
+        description: 'Re-executa o aviso sonoro e faz o nome do paciente piscar em destaque na tela da sala de espera.',
+        shortcut: 'Botão Rechamar',
+        rules: 'Atualiza o horário da última chamada na lista.'
+      },
+      {
+        icon: 'fa-volume-high',
+        name: '🔊 Ativar / Testar Áudio Voz',
+        type: 'Configuração de Som',
+        color: '#10b981',
+        description: 'Testa os alto-falantes e a síntese de voz gTTS integrada ao navegador.',
+        shortcut: 'Botão de Som no topo da TV',
+        rules: 'Exige que o navegador tenha permissão de reprodução de áudio ativada.'
+      },
+      {
+        icon: 'fa-expand',
+        name: '📺 Modo Tela Cheia (F11)',
+        type: 'Exibição',
+        color: '#3b82f6',
+        description: 'Ajusta o layout para exibição dedicada em smart TVs ou monitores de parede na recepção.',
+        shortcut: 'F11',
+        rules: 'Oculta menus de navegação do sistema para foco exclusivo nas chamadas.'
+      }
+    ],
+    workflow: [
+      { step: 1, title: 'Abertura da TV', desc: 'Abra a aba Painel TV no monitor/TV da sala de espera.' },
+      { step: 2, title: 'Chamada no Consultório', desc: 'O médico ou recepcionista clica no ícone de Megafone ao lado do paciente.' },
+      { step: 3, title: 'Exibição na Tela', desc: 'A TV emite o som, pronuncia a frase de chamada e exibe o histórico na tela.' }
+    ],
+    faq: [
+      { q: 'Por que a voz não saiu na TV?', a: 'Certifique-se de que o volume do computador/TV está ligado e que você clicou ao menos uma vez na tela da TV para liberar o áudio do navegador.' }
     ]
   },
   {
@@ -375,60 +429,6 @@ export const manualData = [
     ]
   },
   {
-    id: 'tv',
-    title: 'Painel TV & Sala de Espera',
-    icon: 'fa-tv',
-    color: '#a78bfa',
-    summary: 'Sistema audiovisual interativo para chamada de pacientes na sala de espera com síntese de voz nativa.',
-    roles: ['Recepcionista', 'Médico', 'Enfermeiro', 'Master'],
-    buttons: [
-      {
-        icon: 'fa-bullhorn',
-        name: '📢 Chamar Paciente na TV',
-        type: 'Notificação',
-        color: '#8b5cf6',
-        description: 'Dispara o alarme sonoro e pronuncia o nome do paciente via sintetizador de voz (ex: "Paciente Marcelo Mazaro, favor dirigir-se ao Consultório 01").',
-        shortcut: 'Botão Chamada na Agenda/Prontuário',
-        rules: 'Exibe a chamada em tela cheia na TV da recepção.'
-      },
-      {
-        icon: 'fa-rotate-right',
-        name: '🔁 Rechamar Paciente',
-        type: 'Re-notificação',
-        color: '#f59e0b',
-        description: 'Re-executa o aviso sonoro e faz o nome do paciente piscar em destaque na tela da sala de espera.',
-        shortcut: 'Botão Rechamar',
-        rules: 'Atualiza o horário da última chamada na lista.'
-      },
-      {
-        icon: 'fa-volume-high',
-        name: '🔊 Ativar / Testar Áudio Voz',
-        type: 'Configuração de Som',
-        color: '#10b981',
-        description: 'Testa os alto-falantes e a síntese de voz gTTS integrada ao navegador.',
-        shortcut: 'Botão de Som no topo da TV',
-        rules: 'Exige que o navegador tenha permissão de reprodução de áudio ativada.'
-      },
-      {
-        icon: 'fa-expand',
-        name: '📺 Modo Tela Cheia (F11)',
-        type: 'Exibição',
-        color: '#3b82f6',
-        description: 'Ajusta o layout para exibição dedicada em smart TVs ou monitores de parede na recepção.',
-        shortcut: 'F11',
-        rules: 'Oculta menus de navegação do sistema para foco exclusivo nas chamadas.'
-      }
-    ],
-    workflow: [
-      { step: 1, title: 'Abertura da TV', desc: 'Abra a aba Painel TV no monitor/TV da sala de espera.' },
-      { step: 2, title: 'Chamada no Consultório', desc: 'O médico ou recepcionista clica no ícone de Megafone ao lado do paciente.' },
-      { step: 3, title: 'Exibição na Tela', desc: 'A TV emite o som, pronuncia a frase de chamada e exibe o histórico na tela.' }
-    ],
-    faq: [
-      { q: 'Por que a voz não saiu na TV?', a: 'Certifique-se de que o volume do computador/TV está ligado e que você clicou ao menos uma vez na tela da TV para liberar o áudio do navegador.' }
-    ]
-  },
-  {
     id: 'relatorios',
     title: 'Relatórios & Estagnação',
     icon: 'fa-chart-pie',
@@ -470,7 +470,7 @@ export const manualData = [
       { step: 3, title: 'Exportação', desc: 'Baixe o relatório gerencial em PDF para reuniões de acompanhamento.' }
     ],
     faq: [
-      { q: 'Como é calculado o tempo de estagnação?', a: 'É a diferença entre o horário de check-in/recepção e o momento atual sem que tenha havido inicio de atendimento médico.' }
+      { q: 'Como é calculated o tempo de estagnação?', a: 'É a diferença entre o horário de check-in/recepção e o momento atual sem que tenha havido inicio de atendimento médico.' }
     ]
   },
   {
@@ -525,12 +525,6 @@ export const manualData = [
         description: 'Exibe o registro histórico de logins de cada usuário com validação da data de criação da conta.',
         shortcut: 'Ícone de Escudo / Log',
         rules: 'Filtra e exclui acessos simulados anteriores à data de criação do cadastro.'
-      },
-      {
-        icon: 'fa-flask',
-        name: '💡 Treinamento',
-        description: 'Ideal para treinamento da equipe médica e receptores.',
-        rules: 'Ideal para treinamento da equipe médica e receptores.'
       }
     ],
     workflow: [
