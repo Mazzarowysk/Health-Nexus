@@ -107,9 +107,9 @@ export function renderSchedulesTab() {
       <!-- Navegação por Orelhas Destacadas (Sub-abas Interativas com Sombreamento Colorido) -->
       <div style="display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; gap: 14px; padding-bottom: 0; align-items: flex-end;">
         <button id="subtab-medicos" class="subtab-orelha subtab-orelha-medicos ${currentSubTab === 'medicos' ? 'active' : ''}" title="Aba Interativa: Clique para alternar para a Escala Médica">
-          <i class="fa-solid fa-user-doctor" style="font-size: 1.15rem; color: ${currentSubTab === 'medicos' ? '#a5b4fc' : '#818cf8'};"></i> 
+          <i class="fa-solid fa-user-doctor" style="font-size: 1.15rem; color: ${currentSubTab === 'medicos' ? '#f472b6' : '#fbcfe8'};"></i> 
           <span>🩺 Escala de Médicos (${rawSchedules.filter(s => s.category === 'medico' || s.crm_coren?.includes('CRM') || !s.category).length})</span>
-          ${currentSubTab === 'medicos' ? '<span style="font-size: 0.68rem; font-weight: 800; background: #6366f1; color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(99,102,241,0.4);">ATIVA</span>' : ''}
+          ${currentSubTab === 'medicos' ? '<span style="font-size: 0.68rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #db2777); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(236,72,153,0.35);">ATIVA</span>' : ''}
         </button>
 
         <button id="subtab-enfermeiros" class="subtab-orelha subtab-orelha-enfermeiros ${currentSubTab === 'enfermeiros' ? 'active' : ''}" title="Aba Interativa: Clique para alternar para a Escala de Enfermagem">
