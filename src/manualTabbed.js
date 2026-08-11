@@ -528,11 +528,6 @@ export const manualData = [
       },
       {
         icon: 'fa-flask',
-        name: '🧪 Gerar Simulação de Dados (80 Pacientes)',
-        type: 'Treinamento',
-        color: '#06b6d4',
-        description: 'Popula o sistema com 80 pacientes, 12 médicos, agendamentos, atendimentos e leitos para simulação completa de plantão.',
-        shortcut: 'Botão Simulação Completa',
         rules: 'Ideal para treinamento da equipe médica e receptores.'
       }
     ],
@@ -546,6 +541,155 @@ export const manualData = [
     ]
   }
 ];
+
+// ─── MODAL DE DETALHES DO CARD (EXPANSÃO LIGHTBOX) ──────────────────────────
+
+export const showCardDetailModal = (buttonItem, moduleItem) => {
+  const existing = document.getElementById('hn-card-detail-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hn-card-detail-modal';
+  overlay.style.cssText = `
+    position: fixed; inset: 0; background: rgba(3, 5, 12, 0.88);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    z-index: 1000000; display: flex; align-items: center; justify-content: center;
+    padding: 20px; font-family: system-ui, -apple-system, sans-serif;
+    animation: hnFadeIn 0.25s ease-out;
+  `;
+
+  overlay.innerHTML = `
+    <style>
+      @keyframes hnPopIn {
+        from { opacity: 0; transform: scale(0.9) translateY(14px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+      @keyframes hnFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    </style>
+    <div style="
+      background: linear-gradient(145deg, #0f172a, #090d16);
+      border: 2px solid ${buttonItem.color}; border-radius: 20px;
+      width: 92%; max-width: 680px; max-height: 85vh; overflow-y: auto;
+      padding: 28px; display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 0 45px ${buttonItem.color}55, 0 25px 50px -12px rgba(0,0,0,0.85);
+      animation: hnPopIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative; scrollbar-width: thin;
+    ">
+      <!-- BOTÃO FECHAR -->
+      <button id="card-detail-close-btn" style="
+        position: absolute; top: 20px; right: 20px;
+        background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+        color: #94a3b8; width: 38px; height: 38px; border-radius: 10px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        transition: all 0.2s;
+      " onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- CABEÇALHO DO CARD EXPANDIDO -->
+      <div style="display: flex; align-items: center; gap: 16px; padding-right: 40px;">
+        <div style="
+          width: 58px; height: 58px; border-radius: 14px; background: ${buttonItem.color}22;
+          border: 2px solid ${buttonItem.color}; display: flex; align-items: center;
+          justify-content: center; font-size: 1.8rem; color: ${buttonItem.color};
+          box-shadow: 0 0 20px ${buttonItem.color}66; flex-shrink: 0;
+        ">
+          <i class="fa-solid ${buttonItem.icon}"></i>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+            <span style="background: ${buttonItem.color}; color: #0f172a; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 800; text-transform: uppercase;">
+              ${buttonItem.type}
+            </span>
+            <span style="background: rgba(255,255,255,0.08); color: #94a3b8; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600;">
+              📌 Aba: ${moduleItem ? moduleItem.title : 'Sistema'}
+            </span>
+          </div>
+          <h3 style="color: #f8fafc; font-size: 1.35rem; font-weight: 800; margin: 0; line-height: 1.3;">
+            ${buttonItem.name}
+          </h3>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 1: DESCRIÇÃO DETALHADA -->
+      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+        <h4 style="color: #38bdf8; font-size: 0.92rem; font-weight: 700; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-circle-info"></i> O que esta funcionalidade faz em detalhes:
+        </h4>
+        <p style="color: #cbd5e1; font-size: 0.98rem; line-height: 1.6; margin: 0;">
+          ${buttonItem.description}
+        </p>
+      </div>
+
+      <!-- SEÇÃO 2: ATALHO & REGRAS DE NEGÓCIO -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px;">
+          <h5 style="color: #a5b4fc; font-size: 0.85rem; font-weight: 700; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-keyboard"></i> Atalho / Onde Clicar
+          </h5>
+          <p style="color: #f8fafc; font-size: 0.9rem; font-weight: 600; margin: 0;">${buttonItem.shortcut || 'Disponível na barra principal'}</p>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px;">
+          <h5 style="color: #f59e0b; font-size: 0.85rem; font-weight: 700; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-shield-halved"></i> Regras & Segurança
+          </h5>
+          <p style="color: #f8fafc; font-size: 0.88rem; margin: 0;">${buttonItem.rules || 'Validação padrão de permissões.'}</p>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 3: PERFIS PERMITIDOS -->
+      ${moduleItem && moduleItem.roles ? `
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px;">
+          <h5 style="color: #94a3b8; font-size: 0.85rem; font-weight: 700; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-user-gear"></i> Perfis Autorizados a Usar:
+          </h5>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            ${moduleItem.roles.map(r => `<span style="font-size: 0.78rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 3px 12px; border-radius: 12px; font-weight: 700;">${r}</span>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- SEÇÃO 4: FLUXO DE EXECUÇÃO EM TEMPO REAL -->
+      <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 14px;">
+        <h5 style="color: #34d399; font-size: 0.85rem; font-weight: 700; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-cloud-check"></i> Sincronização & Tempo Real:
+        </h5>
+        <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0; line-height: 1.5;">
+          Ao clicar no botão <strong>${buttonItem.name}</strong> no módulo <strong>${moduleItem ? moduleItem.title : 'Sistema'}</strong>, as informações são imediatamente gravadas no banco de dados local e replicadas via Turso Cloud na nuvem.
+        </p>
+      </div>
+
+      <!-- RODAPÉ -->
+      <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+        <button id="card-detail-close-btn-footer" style="padding: 10px 24px; border-radius: 10px; background: #6366f1; color: #fff; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none;">
+          <i class="fa-solid fa-check"></i> Fechar Detalhes
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const handleClose = (e) => {
+    if (e.target.id === 'card-detail-close-btn' || e.target.closest('#card-detail-close-btn') || e.target.id === 'card-detail-close-btn-footer' || e.target === overlay) {
+      overlay.remove();
+      document.removeEventListener('keydown', handleEsc);
+    }
+  };
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      overlay.remove();
+      document.removeEventListener('keydown', handleEsc);
+    }
+  };
+
+  overlay.addEventListener('click', handleClose);
+  document.addEventListener('keydown', handleEsc);
+};
 
 // ─── COMPONENTE MODAL / RENDERIZADOR DO MANUAL INTERATIVO ────────────────────
 
@@ -629,24 +773,30 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     }).join('');
 
     const buttonsCardsHtml = filteredButtons.length > 0 ? filteredButtons.map(b => `
-      <div style="
+      <div class="manual-button-card" data-btn-name="${encodeURIComponent(b.name)}" style="
         background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
-        transition: transform 0.2s, border-color 0.2s; position: relative; overflow: hidden;
-      " onmouseover="this.style.borderColor='${b.color}'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.transform='none'">
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; cursor: pointer;
+      " onmouseover="this.style.borderColor='${b.color}'; this.style.transform='translateY(-3px) scale(1.008)'; this.style.boxShadow='0 8px 24px ${b.color}33'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.transform='none'; this.style.boxShadow='none'">
         
         <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: ${b.color};"></div>
         
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-left: 8px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">
-              <i class="fa-solid ${b.icon}" style="color: ${b.color}; font-size: 1.1rem;"></i>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: ${b.color}22; border: 1px solid ${b.color}44; display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid ${b.icon}" style="color: ${b.color}; font-size: 1.15rem;"></i>
             </div>
-            <strong style="color: #f8fafc; font-size: 1rem;">${b.name}</strong>
+            <strong style="color: #f8fafc; font-size: 1.02rem;">${b.name}</strong>
           </div>
-          <span style="background: rgba(255,255,255,0.08); color: ${b.color}; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; text-transform: uppercase;">
-            ${b.type}
-          </span>
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="background: rgba(255,255,255,0.08); color: ${b.color}; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; text-transform: uppercase;">
+              ${b.type}
+            </span>
+            <span style="font-size: 0.72rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); padding: 3px 10px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">
+              <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Ampliar
+            </span>
+          </div>
         </div>
 
         <p style="color: #cbd5e1; font-size: 0.88rem; line-height: 1.5; margin: 0; padding-left: 8px;">
@@ -930,8 +1080,21 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     }
   }, 50);
 
-  // EVENT DELEGATION PARA MUDANÇA DE ABAS, BUSCA E ROLAGEM
+  // EVENT DELEGATION PARA MUDANÇA DE ABAS, BUSCA, AMPLIAR CARD E ROLAGEM
   overlay.addEventListener('click', (e) => {
+    // Clique para Ampliar Card
+    const btnCard = e.target.closest('.manual-button-card');
+    if (btnCard) {
+      const btnName = decodeURIComponent(btnCard.dataset.btnName || '');
+      const currentIndex = manualData.findIndex(m => m.id === activeTabId);
+      const activeData = manualData[currentIndex >= 0 ? currentIndex : 0];
+      const foundBtn = activeData ? activeData.buttons.find(b => b.name === btnName) : null;
+      if (foundBtn) {
+        showCardDetailModal(foundBtn, activeData);
+        return;
+      }
+    }
+
     const tabBtn = e.target.closest('.manual-nav-tab');
     if (tabBtn) {
       activeTabId = tabBtn.dataset.tab;
@@ -1034,18 +1197,24 @@ export const renderEmbeddedTabbedManual = (containerId) => {
     }).join('');
 
     const buttonsListHtml = active.buttons.map(b => `
-      <div style="
+      <div class="emb-manual-card" data-btn-name="${encodeURIComponent(b.name)}" style="
         background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
-      ">
+        border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer;
+        transition: all 0.2s ease; position: relative;
+      " onmouseover="this.style.borderColor='${b.color}'; this.style.transform='translateY(-2px)'; this.style.background='rgba(15, 23, 42, 0.75)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)'; this.style.transform='none'; this.style.background='rgba(15, 23, 42, 0.5)'">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
           <strong style="color: #f8fafc; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid ${b.icon}" style="color: ${b.color};"></i>
             ${b.name}
           </strong>
-          <span style="font-size: 0.68rem; background: rgba(255,255,255,0.08); color: ${b.color}; padding: 2px 8px; border-radius: 10px; font-weight: 600;">
-            ${b.type}
-          </span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 0.68rem; background: rgba(255,255,255,0.08); color: ${b.color}; padding: 2px 8px; border-radius: 10px; font-weight: 600;">
+              ${b.type}
+            </span>
+            <span style="font-size: 0.66rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); padding: 1px 6px; border-radius: 6px;">
+              <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+            </span>
+          </div>
         </div>
         <p style="color: #cbd5e1; font-size: 0.82rem; line-height: 1.4; margin: 0 0 6px 0;">${b.description}</p>
         <div style="font-size: 0.74rem; color: #94a3b8; display: flex; gap: 12px;">
@@ -1115,6 +1284,16 @@ export const renderEmbeddedTabbedManual = (containerId) => {
         if (target) {
           currentTabId = target;
           updateEmbeddedView();
+        }
+      });
+    });
+
+    container.querySelectorAll('.emb-manual-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        const btnName = decodeURIComponent(card.dataset.btnName || '');
+        const foundBtn = active.buttons.find(b => b.name === btnName);
+        if (foundBtn) {
+          showCardDetailModal(foundBtn, active);
         }
       });
     });
