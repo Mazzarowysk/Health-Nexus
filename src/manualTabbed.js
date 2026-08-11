@@ -567,7 +567,14 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
   `;
 
   const renderModalContent = () => {
-    const activeData = manualData.find(m => m.id === activeTabId) || manualData[0];
+    const currentIndex = manualData.findIndex(m => m.id === activeTabId);
+    const validIndex = currentIndex >= 0 ? currentIndex : 0;
+    const activeData = manualData[validIndex];
+
+    const prevIndex = (validIndex - 1 + manualData.length) % manualData.length;
+    const nextIndex = (validIndex + 1) % manualData.length;
+    const prevTab = manualData[prevIndex];
+    const nextTab = manualData[nextIndex];
 
     // Filtrar conteúdo por busca se houver query
     const filteredButtons = activeData.buttons.filter(b => {
@@ -579,16 +586,18 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
              (b.rules && b.rules.toLowerCase().includes(q));
     });
 
-    const navTabsHtml = manualData.map(m => {
+    const navTabsHtml = manualData.map((m, idx) => {
       const isActive = m.id === activeTabId;
       return `
         <button class="manual-nav-tab ${isActive ? 'active' : ''}" data-tab="${m.id}" style="
           display: flex; align-items: center; gap: 9px; padding: 10px 16px;
           border-radius: 10px; border: 1px solid ${isActive ? m.color : 'rgba(255,255,255,0.08)'};
-          background: ${isActive ? `rgba(99, 102, 241, 0.18)` : 'rgba(255,255,255,0.03)'};
+          background: ${isActive ? `rgba(99, 102, 241, 0.22)` : 'rgba(255,255,255,0.03)'};
           color: ${isActive ? '#ffffff' : '#94a3b8'}; font-weight: ${isActive ? '600' : '500'};
           cursor: pointer; transition: all 0.2s ease; white-space: nowrap; font-size: 0.88rem;
+          box-shadow: ${isActive ? `0 0 12px ${m.color}44` : 'none'};
         ">
+          <span style="font-size: 0.72rem; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 6px; color: ${m.color}; font-weight: 700;">${idx + 1}</span>
           <i class="fa-solid ${m.icon}" style="color: ${m.color}; font-size: 1rem;"></i>
           <span>${m.title}</span>
         </button>
@@ -662,7 +671,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     overlay.innerHTML = `
       <div style="
         background: #090d16; border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 16px; width: 95%; max-width: 1100px; height: 88vh;
+        border-radius: 16px; width: 95%; max-width: 1150px; height: 90vh;
         display: flex; flex-direction: column; overflow: hidden;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
       ">
@@ -711,13 +720,42 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
           </div>
         </div>
 
-        <!-- BARRA DE NA VEGAÇÃO DE ABAS HORIZONTAL -->
+        <!-- BARRA DE NAVEGAÇÃO DE ABAS COM BOTÕES EXPLICITOS DE AVANÇO -->
         <div style="
-          padding: 12px 24px; background: rgba(15, 23, 42, 0.5);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin;
+          padding: 10px 18px; background: rgba(15, 23, 42, 0.7);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          display: flex; align-items: center; gap: 8px; position: relative;
         ">
-          ${navTabsHtml}
+          <!-- BOTÃO ROLAGEM / ABA ANTERIOR -->
+          <button id="manual-tab-prev-btn" title="Voltar para: ${prevTab.title}" style="
+            background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #a5b4fc; border-radius: 8px; padding: 8px 12px; display: flex;
+            align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; font-size: 0.82rem;
+            font-weight: 600; transition: all 0.2s;
+          " onmouseover="this.style.background='rgba(99, 102, 241, 0.3)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.15)'">
+            <i class="fa-solid fa-chevron-left"></i>
+            <span>Anterior</span>
+          </button>
+
+          <!-- CONTAINER DAS ABAS COM ROLAGEM SUAVE -->
+          <div id="manual-tabs-nav-container" style="
+            flex: 1; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin;
+            scroll-behavior: smooth; padding: 2px 0;
+          ">
+            ${navTabsHtml}
+          </div>
+
+          <!-- BOTÃO ROLAGEM / PRÓXIMA ABA -->
+          <button id="manual-tab-next-btn" title="Avançar para: ${nextTab.title}" style="
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.3));
+            border: 1px solid rgba(168, 85, 247, 0.5); color: #f3e8ff; border-radius: 8px;
+            padding: 8px 14px; display: flex; align-items: center; gap: 6px;
+            cursor: pointer; flex-shrink: 0; font-weight: 600; font-size: 0.82rem; transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+          " onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='none'">
+            <span>Próxima Aba</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
         </div>
 
         <!-- CORPO PRINCIPAL DO MANUAL -->
@@ -755,7 +793,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
               <h5 style="color: #e2e8f0; font-size: 0.95rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-sliders" style="color: ${activeData.color};"></i>
-                Mapeamento Completo de Botões & Accões (${filteredButtons.length})
+                Mapeamento Completo de Botões & Ações (${filteredButtons.length})
               </h5>
               <span style="font-size: 0.78rem; color: #64748b;">Passe o mouse para destacar</span>
             </div>
@@ -813,6 +851,39 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
             </div>
           </div>
         </div>
+
+        <!-- RODAPÉ DE NAVEGAÇÃO SEQUENCIAL ENTRE ABAS -->
+        <div style="
+          padding: 12px 24px; background: rgba(15, 23, 42, 0.85);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        ">
+          <button id="manual-footer-prev-btn" style="
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+            color: #cbd5e1; border-radius: 8px; padding: 8px 16px; cursor: pointer;
+            display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500;
+            transition: all 0.2s;
+          " onmouseover="this.style.borderColor='rgba(99, 102, 241, 0.5)'; this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)'; this.style.color='#cbd5e1'">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Aba Anterior: <strong style="color: ${prevTab.color};">${prevTab.title}</strong></span>
+          </button>
+
+          <div style="font-size: 0.82rem; color: #94a3b8; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+            <span>Seção <strong>${validIndex + 1}</strong> de <strong>${manualData.length}</strong></span>
+            <span style="opacity: 0.4;">|</span>
+            <span style="color: ${activeData.color}; font-weight: 600;">${activeData.title}</span>
+          </div>
+
+          <button id="manual-footer-next-btn" style="
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.3));
+            border: 1px solid rgba(168, 85, 247, 0.5); color: #fff; border-radius: 8px;
+            padding: 8px 18px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            font-size: 0.85rem; font-weight: 600; transition: all 0.2s; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+          " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='none'">
+            <span>Próxima Aba: <strong style="color: #f3e8ff;">${nextTab.title}</strong></span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
       </div>
     `;
   };
@@ -820,11 +891,25 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
   renderModalContent();
   document.body.appendChild(overlay);
 
-  // EVENT DELEGATION PARA MUDANÇA DE ABAS E BUSCA
+  // EVENT DELEGATION PARA MUDANÇA DE ABAS, BUSCA E ROLAGEM
   overlay.addEventListener('click', (e) => {
     const tabBtn = e.target.closest('.manual-nav-tab');
     if (tabBtn) {
       activeTabId = tabBtn.dataset.tab;
+      renderModalContent();
+    }
+
+    if (e.target.id === 'manual-tab-prev-btn' || e.target.closest('#manual-tab-prev-btn') || e.target.id === 'manual-footer-prev-btn' || e.target.closest('#manual-footer-prev-btn')) {
+      const idx = manualData.findIndex(m => m.id === activeTabId);
+      const prevIdx = (idx - 1 + manualData.length) % manualData.length;
+      activeTabId = manualData[prevIdx].id;
+      renderModalContent();
+    }
+
+    if (e.target.id === 'manual-tab-next-btn' || e.target.closest('#manual-tab-next-btn') || e.target.id === 'manual-footer-next-btn' || e.target.closest('#manual-footer-next-btn')) {
+      const idx = manualData.findIndex(m => m.id === activeTabId);
+      const nextIdx = (idx + 1) % manualData.length;
+      activeTabId = manualData[nextIdx].id;
       renderModalContent();
     }
 
@@ -855,7 +940,14 @@ export const renderEmbeddedTabbedManual = (containerId) => {
   let currentTabId = 'geral';
 
   const updateEmbeddedView = () => {
-    const active = manualData.find(m => m.id === currentTabId) || manualData[0];
+    const currentIndex = manualData.findIndex(m => m.id === currentTabId);
+    const validIndex = currentIndex >= 0 ? currentIndex : 0;
+    const active = manualData[validIndex];
+
+    const prevIndex = (validIndex - 1 + manualData.length) % manualData.length;
+    const nextIndex = (validIndex + 1) % manualData.length;
+    const prevTab = manualData[prevIndex];
+    const nextTab = manualData[nextIndex];
 
     const tabsHeaderHtml = manualData.map(m => {
       const activeStyle = m.id === currentTabId ? `background: rgba(99, 102, 241, 0.2); border-color: ${m.color}; color: #fff;` : `background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); color: #94a3b8;`;
@@ -904,12 +996,44 @@ export const renderEmbeddedTabbedManual = (containerId) => {
           </button>
         </div>
 
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: thin;">
-          ${tabsHeaderHtml}
+        <!-- BARRA DE ABAS EMBUTIDA COM BOTÕES DE NAVEGAÇÃO ILUMINADOS -->
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <button id="emb-prev-btn" title="Voltar para: ${prevTab.title}" style="
+            padding: 8px 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #a5b4fc; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; flex-shrink: 0;
+          ">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+
+          <div style="flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; scroll-behavior: smooth;">
+            ${tabsHeaderHtml}
+          </div>
+
+          <button id="emb-next-btn" title="Avançar para: ${nextTab.title}" style="
+            padding: 8px 14px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.25));
+            border: 1px solid rgba(168, 85, 247, 0.5); color: #f3e8ff; border-radius: 8px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 600; flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+          ">
+            <span>Próxima</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
         </div>
 
         <div style="max-height: 380px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin;">
           ${buttonsListHtml}
+        </div>
+
+        <!-- BARRA INFERIOR DA ABA EMBUTIDA -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.8rem;">
+          <button id="emb-foot-prev" style="background: none; border: none; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
+            <i class="fa-solid fa-arrow-left"></i> ${prevTab.title}
+          </button>
+
+          <span style="color: #64748b;">${validIndex + 1} de ${manualData.length}</span>
+
+          <button id="emb-foot-next" style="background: none; border: none; color: #a5b4fc; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 600;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#a5b4fc'">
+            ${nextTab.title} <i class="fa-solid fa-arrow-right"></i>
+          </button>
         </div>
       </div>
     `;
@@ -923,6 +1047,16 @@ export const renderEmbeddedTabbedManual = (containerId) => {
         }
       });
     });
+
+    const btnPrev = container.querySelector('#emb-prev-btn');
+    const btnFootPrev = container.querySelector('#emb-foot-prev');
+    if (btnPrev) btnPrev.addEventListener('click', () => { currentTabId = prevTab.id; updateEmbeddedView(); });
+    if (btnFootPrev) btnFootPrev.addEventListener('click', () => { currentTabId = prevTab.id; updateEmbeddedView(); });
+
+    const btnNext = container.querySelector('#emb-next-btn');
+    const btnFootNext = container.querySelector('#emb-foot-next');
+    if (btnNext) btnNext.addEventListener('click', () => { currentTabId = nextTab.id; updateEmbeddedView(); });
+    if (btnFootNext) btnFootNext.addEventListener('click', () => { currentTabId = nextTab.id; updateEmbeddedView(); });
 
     const btnFull = container.querySelector('#btn-open-full-manual-modal');
     if (btnFull) {
