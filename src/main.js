@@ -2580,13 +2580,23 @@ function showGoogleDriveAuthModal(defaultEmail = 'usuario.hospitalar@gmail.com')
           <small id="gdrive-email-error" style="color: #f87171; font-size: 0.78rem; display: none; margin-top: 6px; font-weight: 500;">Por favor, digite um e-mail válido.</small>
         </div>
 
-        <div style="margin-bottom: 24px;">
+        <div style="margin-bottom: 14px;">
           <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
-            Client ID do Google Cloud (Opcional - Para Envio Direct API)
+            Client ID do Google Cloud
           </label>
           <div style="position: relative;">
             <i class="fa-solid fa-key" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.95rem;"></i>
             <input type="text" id="gdrive-clientid-input" value="${localStorage.getItem('hn_gdrive_client_id') || ''}" placeholder="931151048551-xxx.apps.googleusercontent.com" style="width: 100%; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #ffffff; padding: 12px 14px 12px 40px; border-radius: 12px; font-size: 0.82rem; outline: none; font-family: monospace; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 0 0 3px rgba(56, 189, 248, 0.2)'" onblur="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.boxShadow='none'">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            Chave Secreta do Cliente (Client Secret)
+          </label>
+          <div style="position: relative;">
+            <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.95rem;"></i>
+            <input type="password" id="gdrive-clientsecret-input" value="${localStorage.getItem('hn_gdrive_client_secret') || ''}" placeholder="GOCSPX-xxx" style="width: 100%; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #ffffff; padding: 12px 14px 12px 40px; border-radius: 12px; font-size: 0.82rem; outline: none; font-family: monospace; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 0 0 3px rgba(56, 189, 248, 0.2)'" onblur="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.boxShadow='none'">
           </div>
         </div>
 
@@ -5536,15 +5546,23 @@ async function renderTabContent() {
                       <span id="gdrive-status-label">Não conectado</span>
                     </div>
                   </div>
-                  <!-- Campo Direto de Inserção do Client ID do Google Cloud -->
-                  <div style="margin-top: 12px; background: rgba(255,255,255,0.7); padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(2, 132, 199, 0.25); box-shadow: 0 2px 8px rgba(2,132,199,0.06);">
-                    <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
-                      🔑 Client ID da API do Google Cloud (OAuth 2.0)
-                    </label>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                      <input type="text" id="cfg-gdrive-client-id-direct" placeholder="Cole seu Client ID aqui (ex: 931151048551-xxx.apps.googleusercontent.com)" style="flex: 1; min-width: 260px; background: #ffffff; border: 1px solid #94a3b8; color: #0f172a; padding: 8px 12px; border-radius: 8px; font-size: 0.82rem; font-family: monospace; outline: none;">
-                      <button id="btn-save-gdrive-client-id-direct" type="button" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3);">
-                        <i class="fa-solid fa-floppy-disk"></i> Salvar Chave
+                  <!-- Campo Direto de Inserção do Client ID e Chave Secreta do Google Cloud -->
+                  <div style="margin-top: 12px; background: rgba(255,255,255,0.75); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(2, 132, 199, 0.3); box-shadow: 0 2px 8px rgba(2,132,199,0.06);">
+                    <div style="margin-bottom: 10px;">
+                      <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
+                        🔑 Client ID da API do Google Cloud (OAuth 2.0)
+                      </label>
+                      <input type="text" id="cfg-gdrive-client-id-direct" placeholder="Cole seu Client ID aqui (ex: 931151048551-xxx.apps.googleusercontent.com)" style="width: 100%; background: #ffffff; border: 1px solid #94a3b8; color: #0f172a; padding: 8px 12px; border-radius: 8px; font-size: 0.82rem; font-family: monospace; outline: none;">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                      <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
+                        🔐 Chave Secreta do Cliente (Client Secret)
+                      </label>
+                      <input type="password" id="cfg-gdrive-client-secret-direct" placeholder="Cole sua Chave Secreta aqui (ex: GOCSPX-xxx)" style="width: 100%; background: #ffffff; border: 1px solid #94a3b8; color: #0f172a; padding: 8px 12px; border-radius: 8px; font-size: 0.82rem; font-family: monospace; outline: none;">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end;">
+                      <button id="btn-save-gdrive-client-id-direct" type="button" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; padding: 8px 20px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3);">
+                        <i class="fa-solid fa-floppy-disk"></i> Salvar Credenciais Google Cloud
                       </button>
                     </div>
                   </div>
@@ -6001,21 +6019,27 @@ async function renderTabContent() {
     }
 
     const clientIdInput = document.getElementById('cfg-gdrive-client-id-direct');
+    const clientSecretInput = document.getElementById('cfg-gdrive-client-secret-direct');
     const btnSaveClientId = document.getElementById('btn-save-gdrive-client-id-direct');
     if (clientIdInput) {
       clientIdInput.value = localStorage.getItem('hn_gdrive_client_id') || '';
     }
-    if (btnSaveClientId && clientIdInput) {
+    if (clientSecretInput) {
+      clientSecretInput.value = localStorage.getItem('hn_gdrive_client_secret') || '';
+    }
+    if (btnSaveClientId) {
       btnSaveClientId.addEventListener('click', () => {
-        const val = clientIdInput.value.trim();
-        if (!val) {
-          showToast('Por favor, informe a chave Client ID do Google Cloud.');
+        const idVal = clientIdInput ? clientIdInput.value.trim() : '';
+        const secretVal = clientSecretInput ? clientSecretInput.value.trim() : '';
+        if (!idVal && !secretVal) {
+          showToast('Por favor, informe o Client ID ou a Chave Secreta.');
           return;
         }
-        localStorage.setItem('hn_gdrive_client_id', val);
+        if (idVal) localStorage.setItem('hn_gdrive_client_id', idVal);
+        if (secretVal) localStorage.setItem('hn_gdrive_client_secret', secretVal);
         showCustomAlert({
-          title: '🔑 Chave Salva com Sucesso',
-          message: `O ID do Cliente OAuth do Google Cloud (<strong>${val.substring(0, 20)}...</strong>) foi salvo e configurado no sistema!`,
+          title: '🔐 Credenciais Google Cloud Salvas',
+          message: `As credenciais da API do Google Cloud foram salvas e vinculadas com sucesso no sistema!`,
           type: 'success'
         });
       });
