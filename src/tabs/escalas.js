@@ -113,9 +113,9 @@ export function renderSchedulesTab() {
         </button>
 
         <button id="subtab-enfermeiros" class="subtab-orelha subtab-orelha-enfermeiros ${currentSubTab === 'enfermeiros' ? 'active' : ''}" title="Aba Interativa: Clique para alternar para a Escala de Enfermagem">
-          <i class="fa-solid fa-user-nurse" style="font-size: 1.15rem; color: ${currentSubTab === 'enfermeiros' ? '#67e8f9' : '#38bdf8'};"></i> 
+          <i class="fa-solid fa-user-nurse" style="font-size: 1.15rem; color: ${currentSubTab === 'enfermeiros' ? '#f472b6' : '#fbcfe8'};"></i> 
           <span>💉 Escala de Enfermeiros (${rawSchedules.filter(s => s.category === 'enfermeiro' || s.crm_coren?.includes('COREN')).length})</span>
-          ${currentSubTab === 'enfermeiros' ? '<span style="font-size: 0.68rem; font-weight: 800; background: #06b6d4; color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(6,182,212,0.4);">ATIVA</span>' : ''}
+          ${currentSubTab === 'enfermeiros' ? '<span style="font-size: 0.68rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #db2777); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(236,72,153,0.35);">ATIVA</span>' : ''}
         </button>
       </div>
 

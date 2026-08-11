@@ -3199,7 +3199,9 @@ function renderAppStructure() {
       <!-- Sidebar de Navegação -->
       <aside class="app-sidebar">
         <div class="brand-logo">
-          <img src="/assets/logo.png" alt="Health Nexus" class="brand-logo-img">
+          <div class="brand-logo-card">
+            <img src="/assets/logo.png" alt="Health Nexus" class="brand-logo-img">
+          </div>
         </div>
         <nav>
           <ul class="nav-menu">
