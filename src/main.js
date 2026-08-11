@@ -1622,13 +1622,18 @@ const syncManager = new SyncManager();
 const getSyncStatus = async () => {
   const isVercel = window.location.hostname.includes('vercel.app');
   try {
-    const res = await fetch('/api/turso?status=1');
-    if (!res.ok) {
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 3500) : null;
+
+    const res = await fetch('/api/turso?status=1', { signal: controller?.signal }).catch(() => null);
+    if (timeoutId) clearTimeout(timeoutId);
+
+    if (!res || !res.ok) {
       state.syncInfo = { cloudConfigured: isVercel, cloudReachable: false, isVercel: isVercel, synchronized: true, local_updates: 0, lastLocalBackup: localDB.getLocalUpdatedAt() };
       updateSyncBadge();
       return state.syncInfo;
     }
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     const localUpdated = localDB.getLocalUpdatedAt();
     const cloudUpdated = data.updated_at || 0;
     

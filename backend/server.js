@@ -5,6 +5,14 @@ dns.setDefaultResultOrder('ipv4first');
 
 const PORT = process.env.PORT || 3001;
 
+process.on('unhandledRejection', (reason) => {
+  console.warn('[Backend] Rejeição de Promise não tratada evitada:', reason?.message || reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.warn('[Backend] Exceção não tratada evitada:', err?.message || err);
+});
+
 const start = async () => {
   app.listen(PORT, () => {
     console.log(`=========================================`);
@@ -18,7 +26,7 @@ const start = async () => {
   init().then(() => {
     console.log('[INIT] Banco de dados inicializado com sucesso.');
   }).catch((err) => {
-    console.error('[INIT] Erro na inicialização do banco:', err);
+    console.warn('[INIT] Aviso na inicialização do banco local/nuvem:', err?.message || err);
   });
 };
 
