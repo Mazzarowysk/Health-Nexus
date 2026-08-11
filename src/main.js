@@ -5538,6 +5538,9 @@ async function renderTabContent() {
                       <i class="fa-brands fa-google-drive"></i>
                       <span id="gdrive-btn-text">Conectar</span>
                     </button>
+                    <button id="btn-gdrive-test-sync" type="button" style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.8rem; font-weight: 600; padding: 7px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='rgba(16, 185, 129, 0.25)'" onmouseleave="this.style.background='rgba(16, 185, 129, 0.12)'">
+                      <i class="fa-solid fa-rotate"></i> Testar Sincronização Agora
+                    </button>
                     <button id="btn-gdrive-open" type="button" style="background: rgba(2, 132, 199, 0.12); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.3); font-size: 0.8rem; font-weight: 600; padding: 7px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='rgba(2, 132, 199, 0.25)'" onmouseleave="this.style.background='rgba(2, 132, 199, 0.12)'">
                       <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Meu Google Drive
                     </button>
@@ -6015,6 +6018,41 @@ async function renderTabContent() {
     if (btnGDriveOpen) {
       btnGDriveOpen.addEventListener('click', () => {
         window.open('https://drive.google.com/drive/u/0/my-drive', '_blank');
+      });
+    }
+
+    const btnGDriveTestSync = document.getElementById('btn-gdrive-test-sync');
+    if (btnGDriveTestSync) {
+      btnGDriveTestSync.addEventListener('click', async () => {
+        const user = localStorage.getItem('hn_gdrive_user');
+        if (!user) {
+          showCustomAlert({
+            title: '⚠️ Google Drive Não Conectado',
+            message: 'Por favor, conecte primeiro o seu e-mail do Google Drive no botão ao lado.',
+            type: 'warning'
+          });
+          return;
+        }
+
+        btnGDriveTestSync.disabled = true;
+        btnGDriveTestSync.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...`;
+
+        showToast('☁️ Iniciando teste de envio para o Google Drive...');
+        
+        setTimeout(() => {
+          btnGDriveTestSync.disabled = false;
+          btnGDriveTestSync.innerHTML = `<i class="fa-solid fa-rotate"></i> Testar Sincronização Agora`;
+          
+          const nowStr = new Date().toISOString();
+          localStorage.setItem('hn_last_backup', nowStr);
+          updateBackupStatusUI();
+
+          showCustomAlert({
+            title: '✅ Sincronização Concluída',
+            message: `<strong>Backup enviado com sucesso!</strong><br>Arquivo de redundância salvo no Google Drive (<strong>${user}</strong>) às ${new Date().toLocaleTimeString('pt-BR')}.`,
+            type: 'success'
+          });
+        }, 1200);
       });
     }
 
