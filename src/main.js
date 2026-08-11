@@ -503,11 +503,18 @@ const showUserSessionsHistory = (userId, userName) => {
   // Buscar sessões do usuário
   let sessions = localDB.list('user_sessions', s => s.user_id === userId).sort((a, b) => new Date(b.login_time) - new Date(a.login_time));
 
+  // Verificar se o usuário da sessão auditada é quem está atualmente logado
+  const isTargetUserActive = state.user && (
+    String(state.user.id) === String(userId) || 
+    state.user.name === userName || 
+    state.user.username === userName
+  );
+
   // Garantir pelo menos 5 acessos fictícios bem estruturados se o usuário possuir menos de 5 registros
   if (sessions.length < 5) {
     const now = new Date();
     const mockAccesses = [
-      { offsetHours: 0, durationMins: 29, ip: '192.168.1.104', browser: 'Chrome / Win11', modules: 'Atendimentos, Escalas, Leitos', status: 'Online' },
+      { offsetHours: 0, durationMins: 35, ip: '192.168.1.104', browser: 'Chrome / Win11', modules: 'Atendimentos, Escalas, Leitos', status: isTargetUserActive ? 'Online' : 'Encerrado' },
       { offsetHours: 24, durationMins: 205, ip: '192.168.1.104', browser: 'Chrome / Win11', modules: 'Kanban, Prontuário (PEP)', status: 'Encerrado' },
       { offsetHours: 48, durationMins: 210, ip: '192.168.1.104', browser: 'Edge / Win11', modules: 'Agenda, Pacientes', status: 'Encerrado' },
       { offsetHours: 72, durationMins: 210, ip: '192.168.1.104', browser: 'Chrome / Win11', modules: 'Triagem Manchester, Consultórios', status: 'Encerrado' },
@@ -543,8 +550,10 @@ const showUserSessionsHistory = (userId, userName) => {
       const loginDate = new Date(s.login_time);
       const loginStr = loginDate.toLocaleString('pt-BR');
 
-      let logoutStr = '<span style="color: #10b981; font-weight: 700;"><i class="fa-solid fa-circle" style="font-size:0.6rem; margin-right:4px;"></i> Online</span>';
+      let logoutStr = '';
       let durationStr = '-';
+
+      const isSessionOnline = isTargetUserActive && !s.logout_time && s.status === 'Online';
 
       if (s.logout_time) {
         const logoutDate = new Date(s.logout_time);
@@ -552,6 +561,17 @@ const showUserSessionsHistory = (userId, userName) => {
         const durMins = s.duration_minutes || Math.round((logoutDate - loginDate) / 60000) || 1;
         const h = Math.floor(durMins / 60);
         const m = durMins % 60;
+        durationStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+      } else if (isSessionOnline) {
+        logoutStr = '<span style="color: #10b981; font-weight: 700;"><i class="fa-solid fa-circle" style="font-size:0.6rem; margin-right:4px;"></i> Online</span>';
+        durationStr = '-';
+      } else {
+        // Se a sessão não tem logout registrado e não é o usuário atualmente ativo na tela, estima a saída
+        const estMins = s.duration_minutes || 35;
+        const estimatedLogoutDate = new Date(loginDate.getTime() + estMins * 60000);
+        logoutStr = estimatedLogoutDate.toLocaleString('pt-BR');
+        const h = Math.floor(estMins / 60);
+        const m = estMins % 60;
         durationStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
       }
 
