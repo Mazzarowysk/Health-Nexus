@@ -45,60 +45,77 @@ export function renderSchedulesTab() {
         </div>
       </div>
 
-      <!-- KPI Grid -->
-      <div class="kpi-grid" style="margin-bottom: 24px;">
-        <div class="kpi-card">
+      <!-- KPI Grid Interativo -->
+      <div class="kpi-grid" style="margin-bottom: 26px;">
+        <div id="kpi-card-plantoes" class="kpi-card kpi-card-escalas-interactive" title="Clique para ver todos os plantões registrados no sistema">
           <div class="kpi-header">
             <span>Plantões Registrados</span>
             <div class="kpi-icon primary"><i class="fa-solid fa-calendar-check"></i></div>
           </div>
           <div class="kpi-value">${rawSchedules.length}</div>
-          <div class="kpi-trend trend-up">
-            <i class="fa-solid fa-chart-simple"></i> Total no Sistema
+          <div class="kpi-trend trend-up" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <span><i class="fa-solid fa-chart-simple"></i> Total no Sistema</span>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #818cf8; background: rgba(99,102,241,0.15); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(99,102,241,0.3);">
+              <i class="fa-solid fa-arrow-pointer" style="margin-right: 3px;"></i> Filtrar Todos
+            </span>
           </div>
         </div>
 
-        <div class="kpi-card">
+        <div id="kpi-card-medicos-hoje" class="kpi-card kpi-card-escalas-interactive" title="Clique para ver a Escala dos Médicos de Plantão Hoje">
           <div class="kpi-header">
             <span>Médicos de Plantão Hoje</span>
             <div class="kpi-icon success"><i class="fa-solid fa-user-doctor"></i></div>
           </div>
           <div class="kpi-value">${todayMedicos.length}</div>
-          <div class="kpi-trend trend-up">
-            <i class="fa-solid fa-check"></i> ${todayStr}
+          <div class="kpi-trend trend-up" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <span><i class="fa-solid fa-check"></i> ${todayStr}</span>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #34d399; background: rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(16,185,129,0.3);">
+              <i class="fa-solid fa-arrow-pointer" style="margin-right: 3px;"></i> Ver Médicos
+            </span>
           </div>
         </div>
 
-        <div class="kpi-card">
+        <div id="kpi-card-enfermeiros-hoje" class="kpi-card kpi-card-escalas-interactive" title="Clique para ver a Escala dos Enfermeiros de Plantão Hoje">
           <div class="kpi-header">
             <span>Enfermeiros de Plantão Hoje</span>
             <div class="kpi-icon accent"><i class="fa-solid fa-user-nurse"></i></div>
           </div>
           <div class="kpi-value">${todayEnfermeiros.length}</div>
-          <div class="kpi-trend trend-up">
-            <i class="fa-solid fa-check"></i> ${todayStr}
+          <div class="kpi-trend trend-up" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <span><i class="fa-solid fa-check"></i> ${todayStr}</span>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #38bdf8; background: rgba(6,182,212,0.15); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(6,182,212,0.3);">
+              <i class="fa-solid fa-arrow-pointer" style="margin-right: 3px;"></i> Ver Enfermeiros
+            </span>
           </div>
         </div>
 
-        <div class="kpi-card">
+        <div id="kpi-card-cobertura" class="kpi-card kpi-card-escalas-interactive" title="Clique para pesquisar setores e consultórios da escala">
           <div class="kpi-header">
             <span>Cobertura de Setores</span>
             <div class="kpi-icon warning"><i class="fa-solid fa-hospital"></i></div>
           </div>
           <div class="kpi-value">100%</div>
-          <div class="kpi-trend trend-up">
-            <i class="fa-solid fa-shield-halved"></i> Todos os setores cobertos
+          <div class="kpi-trend trend-up" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <span><i class="fa-solid fa-shield-halved"></i> Todos os setores cobertos</span>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #fbbf24; background: rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(245,158,11,0.3);">
+              <i class="fa-solid fa-magnifying-glass" style="margin-right: 3px;"></i> Buscar Setor
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- Navegação por Orelhas (Sub-abas) -->
-      <div style="display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 20px; gap: 8px;">
-        <button id="subtab-medicos" class="subtab-btn ${currentSubTab === 'medicos' ? 'active' : ''}" style="padding: 10px 20px; font-weight: 700; font-size: 0.95rem; border: none; background: none; cursor: pointer; color: ${currentSubTab === 'medicos' ? '#6366f1' : 'var(--text-secondary)'}; border-bottom: 3px solid ${currentSubTab === 'medicos' ? '#6366f1' : 'transparent'}; transition: all 0.2s;">
-          <i class="fa-solid fa-user-doctor" style="margin-right: 8px;"></i> 🩺 Escala de Médicos (${rawSchedules.filter(s => s.category === 'medico' || s.crm_coren?.includes('CRM')).length})
+      <!-- Navegação por Orelhas Destacadas (Sub-abas Interativas com Sombreamento Colorido) -->
+      <div style="display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; gap: 14px; padding-bottom: 0; align-items: flex-end;">
+        <button id="subtab-medicos" class="subtab-orelha subtab-orelha-medicos ${currentSubTab === 'medicos' ? 'active' : ''}" title="Aba Interativa: Clique para alternar para a Escala Médica">
+          <i class="fa-solid fa-user-doctor" style="font-size: 1.15rem; color: ${currentSubTab === 'medicos' ? '#a5b4fc' : '#818cf8'};"></i> 
+          <span>🩺 Escala de Médicos (${rawSchedules.filter(s => s.category === 'medico' || s.crm_coren?.includes('CRM') || !s.category).length})</span>
+          ${currentSubTab === 'medicos' ? '<span style="font-size: 0.68rem; font-weight: 800; background: #6366f1; color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(99,102,241,0.4);">ATIVA</span>' : ''}
         </button>
-        <button id="subtab-enfermeiros" class="subtab-btn ${currentSubTab === 'enfermeiros' ? 'active' : ''}" style="padding: 10px 20px; font-weight: 700; font-size: 0.95rem; border: none; background: none; cursor: pointer; color: ${currentSubTab === 'enfermeiros' ? '#06b6d4' : 'var(--text-secondary)'}; border-bottom: 3px solid ${currentSubTab === 'enfermeiros' ? '#06b6d4' : 'transparent'}; transition: all 0.2s;">
-          <i class="fa-solid fa-user-nurse" style="margin-right: 8px;"></i> 💉 Escala de Enfermeiros (${rawSchedules.filter(s => s.category === 'enfermeiro' || s.crm_coren?.includes('COREN')).length})
+
+        <button id="subtab-enfermeiros" class="subtab-orelha subtab-orelha-enfermeiros ${currentSubTab === 'enfermeiros' ? 'active' : ''}" title="Aba Interativa: Clique para alternar para a Escala de Enfermagem">
+          <i class="fa-solid fa-user-nurse" style="font-size: 1.15rem; color: ${currentSubTab === 'enfermeiros' ? '#67e8f9' : '#38bdf8'};"></i> 
+          <span>💉 Escala de Enfermeiros (${rawSchedules.filter(s => s.category === 'enfermeiro' || s.crm_coren?.includes('COREN')).length})</span>
+          ${currentSubTab === 'enfermeiros' ? '<span style="font-size: 0.68rem; font-weight: 800; background: #06b6d4; color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(6,182,212,0.4);">ATIVA</span>' : ''}
         </button>
       </div>
 
@@ -300,6 +317,41 @@ function renderScheduleCards(allSchedules, doctors, nurses) {
 }
 
 function attachEventListeners() {
+  // Interatividade nos 4 Cards de KPI
+  document.getElementById('kpi-card-plantoes')?.addEventListener('click', () => {
+    currentDateFilter = 'all';
+    currentShiftFilter = 'all';
+    currentSearchTerm = '';
+    renderSchedulesTab();
+    showToast('Exibindo todos os plantões registrados no sistema!');
+  });
+
+  document.getElementById('kpi-card-medicos-hoje')?.addEventListener('click', () => {
+    currentSubTab = 'medicos';
+    currentDateFilter = 'today';
+    currentShiftFilter = 'all';
+    currentSearchTerm = '';
+    renderSchedulesTab();
+    showToast('Filtrando Médicos de Plantão Hoje!');
+  });
+
+  document.getElementById('kpi-card-enfermeiros-hoje')?.addEventListener('click', () => {
+    currentSubTab = 'enfermeiros';
+    currentDateFilter = 'today';
+    currentShiftFilter = 'all';
+    currentSearchTerm = '';
+    renderSchedulesTab();
+    showToast('Filtrando Enfermeiros de Plantão Hoje!');
+  });
+
+  document.getElementById('kpi-card-cobertura')?.addEventListener('click', () => {
+    const input = document.getElementById('schedule-search');
+    if (input) {
+      input.focus();
+      showToast('Digite o nome de um setor ou consultório no campo de busca!');
+    }
+  });
+
   // Troca de Orelhas
   document.getElementById('subtab-medicos')?.addEventListener('click', () => {
     currentSubTab = 'medicos';
