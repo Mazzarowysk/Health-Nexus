@@ -4056,9 +4056,10 @@ function initGlobalSystemSearch() {
       }
 
       // ── DEFAULT ──────────────────────────────────────────────────────────
+      const safeRaw = String(raw).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       return {
         title: 'Nexus AI Copilot',
-        summary: `Analisei sua busca por "<strong>${escapeHtml(raw)}</strong>". Confira abaixo as funcionalidades e guias correspondentes encontrados no sistema:`,
+        summary: `Analisei sua busca por "<strong>${safeRaw}</strong>". Confira abaixo as funcionalidades e guias correspondentes encontrados no sistema:`,
         actionText: '📖 Abrir Manual Interativo',
         actionType: 'openManual',
         actionTarget: 'geral'
