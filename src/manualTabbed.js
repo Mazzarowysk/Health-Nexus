@@ -588,20 +588,44 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
 
     const navTabsHtml = manualData.map((m, idx) => {
       const isActive = m.id === activeTabId;
-      return `
-        <button class="manual-nav-tab ${isActive ? 'active' : ''}" data-tab="${m.id}" style="
-          display: flex; align-items: center; gap: 9px; padding: 10px 16px;
-          border-radius: 10px; border: 1px solid ${isActive ? m.color : 'rgba(255,255,255,0.08)'};
-          background: ${isActive ? `rgba(99, 102, 241, 0.22)` : 'rgba(255,255,255,0.03)'};
-          color: ${isActive ? '#ffffff' : '#94a3b8'}; font-weight: ${isActive ? '600' : '500'};
-          cursor: pointer; transition: all 0.2s ease; white-space: nowrap; font-size: 0.88rem;
-          box-shadow: ${isActive ? `0 0 12px ${m.color}44` : 'none'};
-        ">
-          <span style="font-size: 0.72rem; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 6px; color: ${m.color}; font-weight: 700;">${idx + 1}</span>
-          <i class="fa-solid ${m.icon}" style="color: ${m.color}; font-size: 1rem;"></i>
-          <span>${m.title}</span>
-        </button>
-      `;
+      if (isActive) {
+        return `
+          <button class="manual-nav-tab active" data-tab="${m.id}" style="
+            display: flex; align-items: center; gap: 9px; padding: 10px 18px;
+            border-radius: 12px; border: 2px solid ${m.color};
+            background: linear-gradient(135deg, ${m.color}EE, #4f46e5);
+            color: #ffffff; font-weight: 700; cursor: pointer; transition: all 0.25s ease;
+            white-space: nowrap; font-size: 0.9rem;
+            box-shadow: 0 0 20px ${m.color}77, inset 0 1px 0 rgba(255,255,255,0.4);
+            transform: translateY(-1px); flex-shrink: 0;
+          ">
+            <span style="font-size: 0.75rem; background: #ffffff; color: #0f172a; padding: 2px 8px; border-radius: 10px; font-weight: 800;">
+              ${idx + 1}
+            </span>
+            <i class="fa-solid ${m.icon}" style="color: #ffffff; font-size: 1.05rem;"></i>
+            <span style="letter-spacing: 0.3px;">${m.title}</span>
+            <span style="font-size: 0.65rem; background: rgba(0,0,0,0.35); color: #fff; padding: 2px 7px; border-radius: 12px; font-weight: 700; text-transform: uppercase; margin-left: 4px; border: 1px solid rgba(255,255,255,0.3);">
+              ● ATIVO
+            </span>
+          </button>
+        `;
+      } else {
+        return `
+          <button class="manual-nav-tab" data-tab="${m.id}" style="
+            display: flex; align-items: center; gap: 8px; padding: 9px 14px;
+            border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03); color: #94a3b8; font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease; white-space: nowrap; font-size: 0.86rem;
+            opacity: 0.82; flex-shrink: 0;
+          " onmouseover="this.style.opacity='1'; this.style.borderColor='${m.color}'; this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.opacity='0.82'; this.style.borderColor='rgba(255,255,255,0.08)'; this.style.background='rgba(255,255,255,0.03)'">
+            <span style="font-size: 0.7rem; background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 6px; color: ${m.color}; font-weight: 600;">
+              ${idx + 1}
+            </span>
+            <i class="fa-solid ${m.icon}" style="color: ${m.color}; font-size: 0.95rem;"></i>
+            <span>${m.title}</span>
+          </button>
+        `;
+      }
     }).join('');
 
     const buttonsCardsHtml = filteredButtons.length > 0 ? filteredButtons.map(b => `
@@ -740,7 +764,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
           <!-- CONTAINER DAS ABAS COM ROLAGEM SUAVE -->
           <div id="manual-tabs-nav-container" style="
             flex: 1; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin;
-            scroll-behavior: smooth; padding: 2px 0;
+            scroll-behavior: smooth; padding: 4px 0;
           ">
             ${navTabsHtml}
           </div>
@@ -765,27 +789,32 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
         ">
           <!-- COLUNA ESQUERDA: LISTA DE BOTÕES & FUNCIONALIDADES -->
           <div style="display: flex; flex-direction: column; gap: 16px;">
-            <!-- BANNER DA ABA -->
+            <!-- BANNER DA ABA COM TAG DE DESTAQUE DA ABA ATIVA -->
             <div style="
-              background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
-              border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 18px;
+              background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.95));
+              border: 2px solid ${activeData.color}; border-radius: 14px; padding: 18px;
               display: flex; align-items: center; gap: 16px; position: relative;
+              box-shadow: 0 0 20px ${activeData.color}33;
             ">
               <div style="
-                width: 52px; height: 52px; border-radius: 12px; background: ${activeData.color}22;
-                border: 1px solid ${activeData.color}44; display: flex; align-items: center;
-                justify-content: center; font-size: 1.6rem; color: ${activeData.color};
+                width: 54px; height: 54px; border-radius: 12px; background: ${activeData.color};
+                display: flex; align-items: center; justify-content: center; font-size: 1.7rem; color: #0f172a;
+                box-shadow: 0 0 14px ${activeData.color}aa; font-weight: 700;
               ">
                 <i class="fa-solid ${activeData.icon}"></i>
               </div>
               <div style="flex: 1;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                  <h4 style="color: #f8fafc; font-size: 1.15rem; font-weight: 700; margin: 0;">${activeData.title}</h4>
-                  <div style="display: flex; gap: 6px;">
-                    ${activeData.roles.map(r => `<span style="font-size: 0.68rem; background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 2px 8px; border-radius: 10px; font-weight: 600;">${r}</span>`).join('')}
-                  </div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+                  <span style="font-size: 0.72rem; background: ${activeData.color}; color: #0f172a; padding: 3px 10px; border-radius: 20px; font-weight: 800; text-transform: uppercase;">
+                    📌 MÓDULO ${validIndex + 1} DE ${manualData.length} (EM CONSULTA)
+                  </span>
+                  <h4 style="color: #f8fafc; font-size: 1.2rem; font-weight: 800; margin: 0;">${activeData.title}</h4>
                 </div>
-                <p style="color: #94a3b8; font-size: 0.88rem; margin: 0; line-height: 1.4;">${activeData.summary}</p>
+                <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0 0 8px 0; line-height: 1.4;">${activeData.summary}</p>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <span style="font-size: 0.7rem; color: #94a3b8; font-weight: 600;">Perfis Autorizados:</span>
+                  ${activeData.roles.map(r => `<span style="font-size: 0.68rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 10px; font-weight: 600;">${r}</span>`).join('')}
+                </div>
               </div>
             </div>
 
@@ -871,7 +900,9 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
           <div style="font-size: 0.82rem; color: #94a3b8; font-weight: 500; display: flex; align-items: center; gap: 8px;">
             <span>Seção <strong>${validIndex + 1}</strong> de <strong>${manualData.length}</strong></span>
             <span style="opacity: 0.4;">|</span>
-            <span style="color: ${activeData.color}; font-weight: 600;">${activeData.title}</span>
+            <span style="color: ${activeData.color}; font-weight: 700; background: ${activeData.color}22; padding: 2px 10px; border-radius: 12px; border: 1px solid ${activeData.color}44;">
+              ${activeData.title}
+            </span>
           </div>
 
           <button id="manual-footer-next-btn" style="
@@ -891,12 +922,24 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
   renderModalContent();
   document.body.appendChild(overlay);
 
+  // AUTO SCROLL PARA MANTER A ABA ATIVA SEMPRE CENTRALIZADA NO MENU SUPERIOR
+  setTimeout(() => {
+    const activeTabEl = overlay.querySelector('.manual-nav-tab.active');
+    if (activeTabEl) {
+      activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, 50);
+
   // EVENT DELEGATION PARA MUDANÇA DE ABAS, BUSCA E ROLAGEM
   overlay.addEventListener('click', (e) => {
     const tabBtn = e.target.closest('.manual-nav-tab');
     if (tabBtn) {
       activeTabId = tabBtn.dataset.tab;
       renderModalContent();
+      setTimeout(() => {
+        const activeTabEl = overlay.querySelector('.manual-nav-tab.active');
+        if (activeTabEl) activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 50);
     }
 
     if (e.target.id === 'manual-tab-prev-btn' || e.target.closest('#manual-tab-prev-btn') || e.target.id === 'manual-footer-prev-btn' || e.target.closest('#manual-footer-prev-btn')) {
@@ -904,6 +947,10 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
       const prevIdx = (idx - 1 + manualData.length) % manualData.length;
       activeTabId = manualData[prevIdx].id;
       renderModalContent();
+      setTimeout(() => {
+        const activeTabEl = overlay.querySelector('.manual-nav-tab.active');
+        if (activeTabEl) activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 50);
     }
 
     if (e.target.id === 'manual-tab-next-btn' || e.target.closest('#manual-tab-next-btn') || e.target.id === 'manual-footer-next-btn' || e.target.closest('#manual-footer-next-btn')) {
@@ -911,6 +958,10 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
       const nextIdx = (idx + 1) % manualData.length;
       activeTabId = manualData[nextIdx].id;
       renderModalContent();
+      setTimeout(() => {
+        const activeTabEl = overlay.querySelector('.manual-nav-tab.active');
+        if (activeTabEl) activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 50);
     }
 
     if (e.target.id === 'manual-modal-close' || e.target.closest('#manual-modal-close') || e.target === overlay) {
@@ -949,17 +1000,37 @@ export const renderEmbeddedTabbedManual = (containerId) => {
     const prevTab = manualData[prevIndex];
     const nextTab = manualData[nextIndex];
 
-    const tabsHeaderHtml = manualData.map(m => {
-      const activeStyle = m.id === currentTabId ? `background: rgba(99, 102, 241, 0.2); border-color: ${m.color}; color: #fff;` : `background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); color: #94a3b8;`;
-      return `
-        <button class="emb-tab-btn" data-tab="${m.id}" style="
-          padding: 8px 14px; border-radius: 8px; border: 1px solid; ${activeStyle}
-          font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; transition: all 0.2s;
-        ">
-          <i class="fa-solid ${m.icon}" style="color: ${m.color};"></i>
-          <span>${m.title}</span>
-        </button>
-      `;
+    const tabsHeaderHtml = manualData.map((m, idx) => {
+      const isActive = m.id === currentTabId;
+      if (isActive) {
+        return `
+          <button class="emb-tab-btn active" data-tab="${m.id}" style="
+            padding: 8px 16px; border-radius: 8px; border: 2px solid ${m.color};
+            background: linear-gradient(135deg, ${m.color}DD, #4f46e5); color: #fff;
+            font-size: 0.84rem; font-weight: 700; cursor: pointer; display: inline-flex;
+            align-items: center; gap: 6px; white-space: nowrap; transition: all 0.2s;
+            box-shadow: 0 0 12px ${m.color}66; flex-shrink: 0;
+          ">
+            <span style="font-size: 0.7rem; background: #fff; color: #0f172a; padding: 1px 6px; border-radius: 6px; font-weight: 800;">${idx + 1}</span>
+            <i class="fa-solid ${m.icon}"></i>
+            <span>${m.title}</span>
+            <span style="font-size: 0.6rem; background: rgba(0,0,0,0.3); color: #fff; padding: 1px 5px; border-radius: 8px; font-weight: 700;">● ATIVO</span>
+          </button>
+        `;
+      } else {
+        return `
+          <button class="emb-tab-btn" data-tab="${m.id}" style="
+            padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03); color: #94a3b8; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+            transition: all 0.2s; opacity: 0.85; flex-shrink: 0;
+          ">
+            <span style="font-size: 0.68rem; color: ${m.color}; font-weight: 700;">${idx + 1}</span>
+            <i class="fa-solid ${m.icon}" style="color: ${m.color};"></i>
+            <span>${m.title}</span>
+          </button>
+        `;
+      }
     }).join('');
 
     const buttonsListHtml = active.buttons.map(b => `
