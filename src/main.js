@@ -5447,7 +5447,7 @@ async function renderTabContent() {
           </details>
 
           <!-- Accordion de Centro de Documentação & Manuais -->
-          <details class="settings-accordion" open>
+          <details class="settings-accordion">
             <summary class="settings-accordion-header">
               <i class="fa-solid fa-book-medical" style="color: #a5b4fc;"></i> Centro de Documentação &amp; Manuais do Usuário
             </summary>
@@ -5550,7 +5550,7 @@ async function renderTabContent() {
           </details>
 
           <!-- Accordion de Backup e Restauração (Com Suporte ao Google Drive & Redundância) -->
-          <details class="settings-accordion" open style="border: 1px solid rgba(129, 140, 248, 0.35);">
+          <details class="settings-accordion" style="border: 1px solid rgba(129, 140, 248, 0.35);">
             <summary class="settings-accordion-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(219, 39, 119, 0.15)); font-weight: 700;">
               <i class="fa-solid fa-box-archive" style="color: #f472b6;"></i> Backup e Restauração
               <span class="status-badge" style="margin-left: auto; background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3);">
