@@ -2568,8 +2568,8 @@ function showGoogleDriveAuthModal(defaultEmail = 'usuario.hospitalar@gmail.com')
           Informe o e-mail da sua conta Google para autorizar o salvamento de cópias de segurança na nuvem (pasta <strong>Health Nexus Backups</strong>).
         </p>
 
-        <!-- Form Input -->
-        <div style="margin-bottom: 24px;">
+        <!-- Form Inputs -->
+        <div style="margin-bottom: 16px;">
           <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
             E-mail da Conta Google
           </label>
@@ -2578,6 +2578,16 @@ function showGoogleDriveAuthModal(defaultEmail = 'usuario.hospitalar@gmail.com')
             <input type="email" id="gdrive-email-input" value="${defaultEmail}" placeholder="seu-email@gmail.com" style="width: 100%; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #ffffff; padding: 12px 14px 12px 40px; border-radius: 12px; font-size: 0.95rem; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 0 0 3px rgba(56, 189, 248, 0.2)'" onblur="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.boxShadow='none'">
           </div>
           <small id="gdrive-email-error" style="color: #f87171; font-size: 0.78rem; display: none; margin-top: 6px; font-weight: 500;">Por favor, digite um e-mail válido.</small>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            Client ID do Google Cloud (Opcional - Para Envio Direct API)
+          </label>
+          <div style="position: relative;">
+            <i class="fa-solid fa-key" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.95rem;"></i>
+            <input type="text" id="gdrive-clientid-input" value="${localStorage.getItem('hn_gdrive_client_id') || ''}" placeholder="931151048551-xxx.apps.googleusercontent.com" style="width: 100%; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #ffffff; padding: 12px 14px 12px 40px; border-radius: 12px; font-size: 0.82rem; outline: none; font-family: monospace; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 0 0 3px rgba(56, 189, 248, 0.2)'" onblur="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.boxShadow='none'">
+          </div>
         </div>
 
         <!-- Botões de Ação -->
@@ -2614,10 +2624,14 @@ function showGoogleDriveAuthModal(defaultEmail = 'usuario.hospitalar@gmail.com')
 
     const submit = () => {
       const emailVal = input ? input.value.trim() : '';
+      const clientVal = document.getElementById('gdrive-clientid-input')?.value?.trim() || '';
       if (!emailVal || !emailVal.includes('@')) {
         const errEl = document.getElementById('gdrive-email-error');
         if (errEl) errEl.style.display = 'block';
         return;
+      }
+      if (clientVal) {
+        localStorage.setItem('hn_gdrive_client_id', clientVal);
       }
       closeModal(emailVal);
     };
