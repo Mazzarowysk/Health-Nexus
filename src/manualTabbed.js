@@ -528,6 +528,8 @@ export const manualData = [
       },
       {
         icon: 'fa-flask',
+        name: '💡 Treinamento',
+        description: 'Ideal para treinamento da equipe médica e receptores.',
         rules: 'Ideal para treinamento da equipe médica e receptores.'
       }
     ],
@@ -715,10 +717,8 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     const validIndex = currentIndex >= 0 ? currentIndex : 0;
     const activeData = manualData[validIndex];
 
-    const prevIndex = (validIndex - 1 + manualData.length) % manualData.length;
-    const nextIndex = (validIndex + 1) % manualData.length;
-    const prevTab = manualData[prevIndex];
-    const nextTab = manualData[nextIndex];
+    const prevIndex = validIndex > 0 ? validIndex - 1 : -1;
+    const nextIndex = validIndex < manualData.length - 1 ? validIndex + 1 : -1;
 
     // Filtrar conteúdo por busca se houver query
     const filteredButtons = activeData.buttons.filter(b => {
@@ -873,7 +873,6 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
             </div>
           </div>
 
-          <!-- BUSCA RÁPIDA -->
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="position: relative; width: 260px;">
               <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.85rem;"></i>
@@ -900,18 +899,10 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           display: flex; align-items: center; gap: 8px; position: relative;
         ">
-          <!-- BOTÃO ROLAGEM / ABA ANTERIOR -->
-          <button id="manual-tab-prev-btn" title="Voltar para: ${prevTab.title}" style="
-            background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35);
-            color: #a5b4fc; border-radius: 8px; padding: 8px 12px; display: flex;
-            align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; font-size: 0.82rem;
-            font-weight: 600; transition: all 0.2s;
-          " onmouseover="this.style.background='rgba(99, 102, 241, 0.3)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.15)'">
-            <i class="fa-solid fa-chevron-left"></i>
-            <span>Anterior</span>
+          <button id="manual-tab-prev-btn" ${prevIndex === -1 ? 'disabled style="opacity:0.4; cursor:not-allowed; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#94a3b8; border-radius:8px; padding:8px 12px; font-size:0.8rem;"' : 'style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.35); color:#a5b4fc; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.82rem; font-weight:600;"'}>
+            <i class="fa-solid fa-chevron-left"></i> Anterior
           </button>
 
-          <!-- CONTAINER DAS ABAS COM ROLAGEM SUAVE -->
           <div id="manual-tabs-nav-container" style="
             flex: 1; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin;
             scroll-behavior: smooth; padding: 4px 0;
@@ -919,16 +910,8 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
             ${navTabsHtml}
           </div>
 
-          <!-- BOTÃO ROLAGEM / PRÓXIMA ABA -->
-          <button id="manual-tab-next-btn" title="Avançar para: ${nextTab.title}" style="
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.3));
-            border: 1px solid rgba(168, 85, 247, 0.5); color: #f3e8ff; border-radius: 8px;
-            padding: 8px 14px; display: flex; align-items: center; gap: 6px;
-            cursor: pointer; flex-shrink: 0; font-weight: 600; font-size: 0.82rem; transition: all 0.2s;
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
-          " onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='none'">
-            <span>Próxima Aba</span>
-            <i class="fa-solid fa-chevron-right"></i>
+          <button id="manual-tab-next-btn" ${nextIndex === -1 ? 'disabled style="opacity:0.4; cursor:not-allowed; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#94a3b8; border-radius:8px; padding:8px 12px; font-size:0.8rem;"' : 'style="background:linear-gradient(135deg, rgba(99,102,241,0.35), rgba(168,85,247,0.3)); border:1px solid rgba(168,85,247,0.5); color:#f3e8ff; border-radius:8px; padding:8px 14px; display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; font-size:0.82rem;"'}>
+            Próxima <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
 
@@ -1012,58 +995,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
                 ${faqHtml}
               </div>
             ` : ''}
-
-            <!-- CARD DE DOWNLOAD DO MANUAL COMPLETO -->
-            <div style="
-              background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(59, 130, 246, 0.08));
-              border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 16px; text-align: center;
-            ">
-              <i class="fa-solid fa-file-pdf" style="font-size: 1.8rem; color: #a5b4fc; margin-bottom: 8px;"></i>
-              <h6 style="color: #f8fafc; font-size: 0.9rem; font-weight: 600; margin: 0 0 4px 0;">Manual Corporativo em PDF</h6>
-              <p style="color: #94a3b8; font-size: 0.78rem; margin: 0 0 12px 0;">Baixe a versão para impressão com 22 seções organizadas.</p>
-              <a href="Manual_do_Usuario_Health_Nexus.pdf" target="_blank" class="btn btn-primary" style="
-                display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
-                font-size: 0.8rem; font-weight: 600; padding: 8px 14px; border-radius: 6px; width: 100%; justify-content: center;
-              ">
-                <i class="fa-solid fa-download"></i> Baixar PDF Oficial
-              </a>
-            </div>
           </div>
-        </div>
-
-        <!-- RODAPÉ DE NAVEGAÇÃO SEQUENCIAL ENTRE ABAS -->
-        <div style="
-          padding: 12px 24px; background: rgba(15, 23, 42, 0.85);
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-          display: flex; align-items: center; justify-content: space-between; gap: 16px;
-        ">
-          <button id="manual-footer-prev-btn" style="
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
-            color: #cbd5e1; border-radius: 8px; padding: 8px 16px; cursor: pointer;
-            display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500;
-            transition: all 0.2s;
-          " onmouseover="this.style.borderColor='rgba(99, 102, 241, 0.5)'; this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)'; this.style.color='#cbd5e1'">
-            <i class="fa-solid fa-arrow-left"></i>
-            <span>Aba Anterior: <strong style="color: ${prevTab.color};">${prevTab.title}</strong></span>
-          </button>
-
-          <div style="font-size: 0.82rem; color: #94a3b8; font-weight: 500; display: flex; align-items: center; gap: 8px;">
-            <span>Seção <strong>${validIndex + 1}</strong> de <strong>${manualData.length}</strong></span>
-            <span style="opacity: 0.4;">|</span>
-            <span style="color: ${activeData.color}; font-weight: 700; background: ${activeData.color}22; padding: 2px 10px; border-radius: 12px; border: 1px solid ${activeData.color}44;">
-              ${activeData.title}
-            </span>
-          </div>
-
-          <button id="manual-footer-next-btn" style="
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.3));
-            border: 1px solid rgba(168, 85, 247, 0.5); color: #fff; border-radius: 8px;
-            padding: 8px 18px; cursor: pointer; display: flex; align-items: center; gap: 8px;
-            font-size: 0.85rem; font-weight: 600; transition: all 0.2s; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
-          " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='none'">
-            <span>Próxima Aba: <strong style="color: #f3e8ff;">${nextTab.title}</strong></span>
-            <i class="fa-solid fa-arrow-right"></i>
-          </button>
         </div>
       </div>
     `;
@@ -1099,32 +1031,22 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     if (tabBtn) {
       activeTabId = tabBtn.dataset.tab;
       renderModalContent();
-      setTimeout(() => {
-        const activeTabEl = overlay.querySelector('.manual-nav-tab.active');
-        if (activeTabEl) activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }, 50);
     }
 
-    if (e.target.id === 'manual-tab-prev-btn' || e.target.closest('#manual-tab-prev-btn') || e.target.id === 'manual-footer-prev-btn' || e.target.closest('#manual-footer-prev-btn')) {
+    if (e.target.id === 'manual-tab-prev-btn' || e.target.closest('#manual-tab-prev-btn')) {
       const idx = manualData.findIndex(m => m.id === activeTabId);
-      const prevIdx = (idx - 1 + manualData.length) % manualData.length;
-      activeTabId = manualData[prevIdx].id;
-      renderModalContent();
-      setTimeout(() => {
-        const activeTabEl = overlay.querySelector('.manual-nav-tab.active');
-        if (activeTabEl) activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }, 50);
+      if (idx > 0) {
+        activeTabId = manualData[idx - 1].id;
+        renderModalContent();
+      }
     }
 
-    if (e.target.id === 'manual-tab-next-btn' || e.target.closest('#manual-tab-next-btn') || e.target.id === 'manual-footer-next-btn' || e.target.closest('#manual-footer-next-btn')) {
+    if (e.target.id === 'manual-tab-next-btn' || e.target.closest('#manual-tab-next-btn')) {
       const idx = manualData.findIndex(m => m.id === activeTabId);
-      const nextIdx = (idx + 1) % manualData.length;
-      activeTabId = manualData[nextIdx].id;
-      renderModalContent();
-      setTimeout(() => {
-        const activeTabEl = overlay.querySelector('.manual-nav-tab.active');
-        if (activeTabEl) activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }, 50);
+      if (idx < manualData.length - 1) {
+        activeTabId = manualData[idx + 1].id;
+        renderModalContent();
+      }
     }
 
     if (e.target.id === 'manual-modal-close' || e.target.closest('#manual-modal-close') || e.target === overlay) {
@@ -1136,11 +1058,6 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     if (e.target.id === 'manual-modal-search') {
       searchQuery = e.target.value;
       renderModalContent();
-      const input = document.getElementById('manual-modal-search');
-      if (input) {
-        input.focus();
-        input.setSelectionRange(searchQuery.length, searchQuery.length);
-      }
     }
   });
 };
@@ -1158,10 +1075,10 @@ export const renderEmbeddedTabbedManual = (containerId) => {
     const validIndex = currentIndex >= 0 ? currentIndex : 0;
     const active = manualData[validIndex];
 
-    const prevIndex = (validIndex - 1 + manualData.length) % manualData.length;
-    const nextIndex = (validIndex + 1) % manualData.length;
-    const prevTab = manualData[prevIndex];
-    const nextTab = manualData[nextIndex];
+    const prevIndex = validIndex > 0 ? validIndex - 1 : -1;
+    const nextIndex = validIndex < manualData.length - 1 ? validIndex + 1 : -1;
+    const prevTab = prevIndex !== -1 ? manualData[prevIndex] : null;
+    const nextTab = nextIndex !== -1 ? manualData[nextIndex] : null;
 
     const tabsHeaderHtml = manualData.map((m, idx) => {
       const isActive = m.id === currentTabId;
@@ -1211,9 +1128,6 @@ export const renderEmbeddedTabbedManual = (containerId) => {
             <span style="font-size: 0.68rem; background: rgba(255,255,255,0.08); color: ${b.color}; padding: 2px 8px; border-radius: 10px; font-weight: 600;">
               ${b.type}
             </span>
-            <span style="font-size: 0.66rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); padding: 1px 6px; border-radius: 6px;">
-              <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
-            </span>
           </div>
         </div>
         <p style="color: #cbd5e1; font-size: 0.82rem; line-height: 1.4; margin: 0 0 6px 0;">${b.description}</p>
@@ -1236,12 +1150,8 @@ export const renderEmbeddedTabbedManual = (containerId) => {
           </button>
         </div>
 
-        <!-- BARRA DE ABAS EMBUTIDA COM BOTÕES DE NAVEGAÇÃO ILUMINADOS -->
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-          <button id="emb-prev-btn" title="Voltar para: ${prevTab.title}" style="
-            padding: 8px 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35);
-            color: #a5b4fc; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; flex-shrink: 0;
-          ">
+          <button id="emb-prev-btn" ${prevIndex === -1 ? 'disabled style="padding:8px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#64748b; border-radius:8px; cursor:not-allowed; font-size:0.8rem; font-weight:600; flex-shrink:0; opacity:0.4;"' : 'style="padding:8px 12px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.35); color:#a5b4fc; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:600; flex-shrink:0;"'}>
             <i class="fa-solid fa-chevron-left"></i>
           </button>
 
@@ -1249,31 +1159,13 @@ export const renderEmbeddedTabbedManual = (containerId) => {
             ${tabsHeaderHtml}
           </div>
 
-          <button id="emb-next-btn" title="Avançar para: ${nextTab.title}" style="
-            padding: 8px 14px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.25));
-            border: 1px solid rgba(168, 85, 247, 0.5); color: #f3e8ff; border-radius: 8px; cursor: pointer;
-            font-size: 0.8rem; font-weight: 600; flex-shrink: 0; display: flex; align-items: center; gap: 6px;
-          ">
-            <span>Próxima</span>
+          <button id="emb-next-btn" ${nextIndex === -1 ? 'disabled style="padding:8px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#64748b; border-radius:8px; cursor:not-allowed; font-size:0.8rem; font-weight:600; flex-shrink:0; opacity:0.4;"' : 'style="padding:8px 12px; background:linear-gradient(135deg, rgba(99,102,241,0.3), rgba(168,85,247,0.25)); border:1px solid rgba(168,85,247,0.5); color:#f3e8ff; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:600; flex-shrink:0;"'}>
             <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
 
         <div style="max-height: 380px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin;">
           ${buttonsListHtml}
-        </div>
-
-        <!-- BARRA INFERIOR DA ABA EMBUTIDA -->
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.8rem;">
-          <button id="emb-foot-prev" style="background: none; border: none; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
-            <i class="fa-solid fa-arrow-left"></i> ${prevTab.title}
-          </button>
-
-          <span style="color: #64748b;">${validIndex + 1} de ${manualData.length}</span>
-
-          <button id="emb-foot-next" style="background: none; border: none; color: #a5b4fc; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 600;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#a5b4fc'">
-            ${nextTab.title} <i class="fa-solid fa-arrow-right"></i>
-          </button>
         </div>
       </div>
     `;
@@ -1288,24 +1180,10 @@ export const renderEmbeddedTabbedManual = (containerId) => {
       });
     });
 
-    container.querySelectorAll('.emb-manual-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        const btnName = decodeURIComponent(card.dataset.btnName || '');
-        const foundBtn = active.buttons.find(b => b.name === btnName);
-        if (foundBtn) {
-          showCardDetailModal(foundBtn, active);
-        }
-      });
-    });
-
     const btnPrev = container.querySelector('#emb-prev-btn');
-    const btnFootPrev = container.querySelector('#emb-foot-prev');
-    if (btnPrev) btnPrev.addEventListener('click', () => { currentTabId = prevTab.id; updateEmbeddedView(); });
-    if (btnFootPrev) btnFootPrev.addEventListener('click', () => { currentTabId = prevTab.id; updateEmbeddedView(); });
+    if (btnPrev && prevIndex !== -1) btnPrev.addEventListener('click', () => { currentTabId = manualData[prevIndex].id; updateEmbeddedView(); });
 
     const btnNext = container.querySelector('#emb-next-btn');
-    const btnFootNext = container.querySelector('#emb-foot-next');
-    if (btnNext) btnNext.addEventListener('click', () => { currentTabId = nextTab.id; updateEmbeddedView(); });
     if (btnFootNext) btnFootNext.addEventListener('click', () => { currentTabId = nextTab.id; updateEmbeddedView(); });
 
     const btnFull = container.querySelector('#btn-open-full-manual-modal');
