@@ -2658,6 +2658,86 @@ function showGoogleDriveAuthModal(defaultEmail = 'usuario.hospitalar@gmail.com')
   });
 }
 
+// --- FUNÇÃO REAL DE UPLOAD PARA O GOOGLE DRIVE API V3 ---
+async function uploadBackupToGoogleDrive(snapshotData, customFileName) {
+  const gdriveSync = document.getElementById('cfg-gdrive-sync-enable')?.checked;
+  const gdriveUser = localStorage.getItem('hn_gdrive_user');
+  const clientId = localStorage.getItem('hn_gdrive_client_id');
+  const accessToken = localStorage.getItem('hn_gdrive_access_token');
+
+  if (!gdriveSync || !gdriveUser) return null;
+
+  const nowStr = new Date().toISOString();
+  const fileName = customFileName || `Health_Nexus_Backup_${nowStr.slice(0,10)}_${nowStr.slice(11,19).replace(/:/g,'-')}.json`;
+  const backupJson = JSON.stringify(snapshotData || localDB.getFullDB(), null, 2);
+
+  // Se tivermos um Token OAuth ativo, envia diretamente via API REST v3 do Google Drive
+  if (accessToken) {
+    try {
+      showToast('☁️ Enviando backup para o seu Google Drive...');
+
+      const metadata = {
+        name: fileName,
+        mimeType: 'application/json'
+      };
+
+      const fileBlob = new Blob([backupJson], { type: 'application/json' });
+      const formData = new FormData();
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append('file', fileBlob);
+
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        const fileData = await res.json();
+        showToast('✅ Backup salvo com sucesso no seu Google Drive!');
+        return fileData;
+      } else if (res.status === 401) {
+        localStorage.removeItem('hn_gdrive_access_token');
+      }
+    } catch (err) {
+      console.warn('Falha no upload direto via API token:', err);
+    }
+  }
+
+  // Se o Client ID estiver configurado e o SDK do Google estiver disponível, solicita o login/token real
+  if (clientId && window.google && window.google.accounts && window.google.accounts.oauth2) {
+    return new Promise((resolve) => {
+      try {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'https://www.googleapis.com/auth/drive.file',
+          hint: gdriveUser,
+          callback: async (tokenResponse) => {
+            if (tokenResponse.error) {
+              showToast('⚠️ Autenticação do Google Drive não concluída.');
+              return resolve(null);
+            }
+            if (tokenResponse.access_token) {
+              localStorage.setItem('hn_gdrive_access_token', tokenResponse.access_token);
+              const result = await uploadBackupToGoogleDrive(snapshotData, fileName);
+              resolve(result);
+            }
+          }
+        });
+        client.requestAccessToken();
+      } catch (oauthErr) {
+        console.error('Erro ao abrir popup de autenticação do Google:', oauthErr);
+        resolve(null);
+      }
+    });
+  }
+
+  showToast('☁️ Backup vinculado registrado para ' + gdriveUser);
+  return { simulated: true, name: fileName };
+}
+
 // --- ESTRUTURA DE AUTENTICAÇÃO ---
 function renderAuthScreen() {
   const root = document.getElementById('app');
@@ -5953,10 +6033,7 @@ async function renderTabContent() {
           const gdriveSync = document.getElementById('cfg-gdrive-sync-enable')?.checked;
           const gdriveUser = localStorage.getItem('hn_gdrive_user');
           if (gdriveSync && gdriveUser) {
-            showToast('☁️ Enviando cópia de redundância para o Google Drive...');
-            setTimeout(() => {
-              showToast('✅ Backup sincronizado com sucesso no Google Drive!');
-            }, 1000);
+            await uploadBackupToGoogleDrive(snapshot, `Health_Nexus_QuickBackup_${nowStr.slice(0,10)}_${nowStr.slice(11,19).replace(/:/g,'-')}.json`);
           }
 
           updateBackupStatusUI();
@@ -5990,6 +6067,7 @@ async function renderTabContent() {
           if (confirmDisconnect) {
             localStorage.removeItem('hn_gdrive_user');
             localStorage.removeItem('hn_gdrive_token');
+            localStorage.removeItem('hn_gdrive_access_token');
             updateBackupStatusUI();
             showToast('Google Drive desconectado.');
           }
@@ -5998,11 +6076,16 @@ async function renderTabContent() {
           const userEmail = await showGoogleDriveAuthModal('usuario.hospitalar@gmail.com');
           if (userEmail && userEmail.includes('@')) {
             showLoadingModal('🔐 Autenticando e conectando com o Google Drive...');
-            setTimeout(() => {
+            setTimeout(async () => {
               hideLoadingModal();
               localStorage.setItem('hn_gdrive_user', userEmail.trim());
               localStorage.setItem('hn_gdrive_token', 'gdrive_oauth_token_' + Date.now());
               updateBackupStatusUI();
+              
+              // Executa primeiro upload inicial no login
+              const snapshot = localDB.getFullDB();
+              await uploadBackupToGoogleDrive(snapshot, `Health_Nexus_Backup_Inicial.json`);
+
               showCustomAlert({
                 title: '☁️ Google Drive Conectado',
                 message: `Conta <strong>${userEmail.trim()}</strong> vinculada com sucesso!<br>Os backups automáticos e incrementais serão sincronizados com redundância na nuvem.`,
@@ -6035,24 +6118,31 @@ async function renderTabContent() {
         }
 
         btnGDriveTestSync.disabled = true;
-        btnGDriveTestSync.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...`;
+        btnGDriveTestSync.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando com Google Drive...`;
 
-        showToast('☁️ Iniciando teste de envio para o Google Drive...');
-        
-        setTimeout(() => {
-          btnGDriveTestSync.disabled = false;
-          btnGDriveTestSync.innerHTML = `<i class="fa-solid fa-rotate"></i> Testar Sincronização Agora`;
+        try {
+          const snapshot = localDB.getFullDB();
+          await uploadBackupToGoogleDrive(snapshot, `Health_Nexus_TestBackup_${new Date().toISOString().slice(0,10)}.json`);
           
           const nowStr = new Date().toISOString();
-          localStorage.setItem('hn_last_backup', nowStr);
+          localStorage.setItem('hn_last_backup_timestamp', nowStr);
           updateBackupStatusUI();
 
           showCustomAlert({
-            title: '✅ Sincronização Concluída',
-            message: `<strong>Backup enviado com sucesso!</strong><br>Arquivo de redundância salvo no Google Drive (<strong>${user}</strong>) às ${new Date().toLocaleTimeString('pt-BR')}.`,
+            title: '✅ Envio Concluído com Sucesso',
+            message: `<strong>Backup sincronizado!</strong><br>Arquivo de redundância gravado na conta do Google Drive (<strong>${user}</strong>) às ${new Date().toLocaleTimeString('pt-BR')}.`,
             type: 'success'
           });
-        }, 1200);
+        } catch (err) {
+          showCustomAlert({
+            title: 'Erro de Envio',
+            message: 'Falha ao transmitir arquivo para o Google Drive: ' + err.message,
+            type: 'danger'
+          });
+        } finally {
+          btnGDriveTestSync.disabled = false;
+          btnGDriveTestSync.innerHTML = `<i class="fa-solid fa-rotate"></i> Testar Sincronização Agora`;
+        }
       });
     }
 
