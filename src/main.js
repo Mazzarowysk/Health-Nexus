@@ -5536,6 +5536,19 @@ async function renderTabContent() {
                       <span id="gdrive-status-label">Não conectado</span>
                     </div>
                   </div>
+                  <!-- Campo Direto de Inserção do Client ID do Google Cloud -->
+                  <div style="margin-top: 12px; background: rgba(255,255,255,0.7); padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(2, 132, 199, 0.25); box-shadow: 0 2px 8px rgba(2,132,199,0.06);">
+                    <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
+                      🔑 Client ID da API do Google Cloud (OAuth 2.0)
+                    </label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                      <input type="text" id="cfg-gdrive-client-id-direct" placeholder="Cole seu Client ID aqui (ex: 931151048551-xxx.apps.googleusercontent.com)" style="flex: 1; min-width: 260px; background: #ffffff; border: 1px solid #94a3b8; color: #0f172a; padding: 8px 12px; border-radius: 8px; font-size: 0.82rem; font-family: monospace; outline: none;">
+                      <button id="btn-save-gdrive-client-id-direct" type="button" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3);">
+                        <i class="fa-solid fa-floppy-disk"></i> Salvar Chave
+                      </button>
+                    </div>
+                  </div>
+
                   <div style="margin-top: 10px; font-size: 0.76rem; color: #0284c7; opacity: 0.9; line-height: 1.4;">
                     💡 <strong>Nota:</strong> Se a opção <em>"Baixar automaticamente quando criar backup"</em> acima estiver marcada, o navegador também baixará uma cópia local para a sua pasta <strong>Downloads</strong>. Para manter o backup apenas na nuvem sem baixar arquivos no computador, basta desmarcar a caixa acima.
                   </div>
@@ -5984,6 +5997,27 @@ async function renderTabContent() {
     if (btnGDriveOpen) {
       btnGDriveOpen.addEventListener('click', () => {
         window.open('https://drive.google.com/drive/u/0/my-drive', '_blank');
+      });
+    }
+
+    const clientIdInput = document.getElementById('cfg-gdrive-client-id-direct');
+    const btnSaveClientId = document.getElementById('btn-save-gdrive-client-id-direct');
+    if (clientIdInput) {
+      clientIdInput.value = localStorage.getItem('hn_gdrive_client_id') || '';
+    }
+    if (btnSaveClientId && clientIdInput) {
+      btnSaveClientId.addEventListener('click', () => {
+        const val = clientIdInput.value.trim();
+        if (!val) {
+          showToast('Por favor, informe a chave Client ID do Google Cloud.');
+          return;
+        }
+        localStorage.setItem('hn_gdrive_client_id', val);
+        showCustomAlert({
+          title: '🔑 Chave Salva com Sucesso',
+          message: `O ID do Cliente OAuth do Google Cloud (<strong>${val.substring(0, 20)}...</strong>) foi salvo e configurado no sistema!`,
+          type: 'success'
+        });
       });
     }
 
