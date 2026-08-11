@@ -13,6 +13,7 @@ import './tabs/tv.js';
 import './tabs/kanban.js';
 import { renderSchedulesTab } from './tabs/escalas.js';
 import { generateMockData } from './mockDataGenerator.js';
+import { renderEmbeddedTabbedManual, showInteractiveManualModal } from './manualTabbed.js';
 
 import { inject } from '@vercel/analytics';
 
@@ -5448,16 +5449,22 @@ async function renderTabContent() {
                 Acesse a documentação unificada e exaustiva do <strong>Health Nexus v1.2.1</strong>. Disponível em portal web interativo com navegação rápida e em documento PDF corporativo para download ou impressão.
               </p>
               <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px;">
+                <button id="btn-open-tabbed-manual-modal" class="btn" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 18px; border-radius: 8px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.28)); border: 1px solid rgba(168, 85, 247, 0.5); color: #f3e8ff; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='none'">
+                  <i class="fa-solid fa-layer-group" style="color: #c084fc;"></i> Abrir Manual Interativo por Abas
+                </button>
                 <a href="manual_do_usuario.html" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; padding: 10px 18px; border-radius: 8px;">
-                  <i class="fa-solid fa-globe"></i> Abrir Portal Web Interativo (HTML)
+                  <i class="fa-solid fa-globe"></i> Portal Web Interativo (HTML)
                 </a>
                 <a href="Manual_do_Usuario_Health_Nexus.pdf" target="_blank" class="btn" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; padding: 10px 18px; border-radius: 8px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc;">
-                  <i class="fa-solid fa-file-pdf"></i> Baixar Manual Oficial (PDF)
+                  <i class="fa-solid fa-file-pdf"></i> Manual Oficial (PDF)
                 </a>
                 <a href="MANUAL_DO_USUARIO_HEALTH_NEXUS.md" target="_blank" class="btn" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 500; padding: 10px 18px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: #cbd5e1;">
-                  <i class="fa-solid fa-file-code"></i> Código Fonte (Markdown)
+                  <i class="fa-solid fa-file-code"></i> Código Fonte (MD)
                 </a>
               </div>
+
+              <!-- NAVEGADOR DE MANUAL POR ABAS EMBUTIDO -->
+              <div id="embedded-tabbed-manual-container"></div>
             </div>
           </details>
 
@@ -5750,6 +5757,15 @@ async function renderTabContent() {
     if (btnEditPerms) {
       btnEditPerms.addEventListener('click', () => {
         showUserManagementModal();
+      });
+    }
+
+    // Inicializa o Manual Interativo por Abas Embutido
+    renderEmbeddedTabbedManual('embedded-tabbed-manual-container');
+    const btnTabbedModal = document.getElementById('btn-open-tabbed-manual-modal');
+    if (btnTabbedModal) {
+      btnTabbedModal.addEventListener('click', () => {
+        showInteractiveManualModal('geral');
       });
     }
 
