@@ -5447,7 +5447,7 @@ async function renderTabContent() {
           </details>
 
           <!-- Accordion de Centro de Documentação & Manuais -->
-          <details class="settings-accordion">
+          <details class="settings-accordion" open>
             <summary class="settings-accordion-header">
               <i class="fa-solid fa-book-medical" style="color: #a5b4fc;"></i> Centro de Documentação &amp; Manuais do Usuário
             </summary>
