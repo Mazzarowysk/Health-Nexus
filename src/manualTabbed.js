@@ -482,13 +482,24 @@ export const manualData = [
     roles: ['Master'],
     buttons: [
       {
+        icon: 'fa-user-xmark',
+        name: '🗑️ Excluir Usuário (Lixeira)',
+        type: 'Ação Crítica / Administração',
+        color: '#ef4444',
+        description: 'Remove um usuário do sistema através do ícone da Lixeira na lista de usuários. O sistema confirma a exclusão, remove do banco local e sincroniza a remoção com a nuvem Turso Cloud DB, retornando automaticamente à listagem geral de usuários.',
+        shortcut: 'Ícone de Lixeira na lista de usuários (Configurações)',
+        rules: 'Disponível apenas para o usuário Master. Não permite excluir o próprio usuário logado.',
+        keywords: ['excluir usuário', 'deletar usuário', 'remover usuário', 'apagar usuário', 'lixeira', 'excluir usuario', 'deletar usuario', 'remover usuario', 'exclusao']
+      },
+      {
         icon: 'fa-users-gear',
         name: '👥 Gerenciar Usuários & Permissões',
         type: 'Administração',
         color: '#6366f1',
         description: 'Abre o painel de criação e edição de usuários da clínica (Master, Médico, Enf, Rec, Farm).',
         shortcut: 'Botão Gerenciar Usuários',
-        rules: 'Apenas acessível pelo usuário Master (mazzarowysk).'
+        rules: 'Apenas acessível pelo usuário Master (mazzarowysk).',
+        keywords: ['gerenciar usuários', 'criar usuário', 'novo usuário', 'perfis', 'rbac', 'permissões', 'funções', 'cargo', 'adicionar usuário']
       },
       {
         icon: 'fa-key',
@@ -497,7 +508,8 @@ export const manualData = [
         color: '#ec4899',
         description: 'Permite redefinir a senha de acesso de qualquer funcionário cadastrado no sistema.',
         shortcut: 'Ícone de Chave na lista de usuários',
-        rules: 'A senha é criptografada e salva localmente e na nuvem Turso.'
+        rules: 'A senha é criptografada e salva localmente e na nuvem Turso.',
+        keywords: ['reset senha', 'alterar senha', 'mudar senha', 'esqueci a senha', 'redefinir senha', 'senha']
       },
       {
         icon: 'fa-cloud-arrow-up',
@@ -506,7 +518,8 @@ export const manualData = [
         color: '#10b981',
         description: 'Força o envio imediato de todas as tabelas locais (pacientes, atendimentos, leitos) para a nuvem Turso DB.',
         shortcut: 'Botão Sincronizar Agora',
-        rules: 'Grava log da data e hora da última sincronização.'
+        rules: 'Grava log da data e hora da última sincronização.',
+        keywords: ['sincronizar', 'turso', 'nuvem', 'cloud', 'sync', 'enviar dados', 'salvar nuvem']
       },
       {
         icon: 'fa-cloud-arrow-down',
@@ -515,7 +528,8 @@ export const manualData = [
         color: '#f59e0b',
         description: 'Baixa o estado completo armazenado no Turso Cloud DB e substitui o banco local.',
         shortcut: 'Botão Restaurar do Banco',
-        rules: 'Requer confirmação prévia para evitar perda de dados não sincronizados.'
+        rules: 'Requer confirmação prévia para evitar perda de dados não sincronizados.',
+        keywords: ['restaurar', 'backup', 'baixar nuvem', 'recuperar banco', 'reset banco']
       },
       {
         icon: 'fa-clock-rotate-left',
@@ -524,7 +538,8 @@ export const manualData = [
         color: '#8b5cf6',
         description: 'Exibe o registro histórico de logins de cada usuário com validação da data de criação da conta.',
         shortcut: 'Ícone de Escudo / Log',
-        rules: 'Filtra e exclui acessos simulados anteriores à data de criação do cadastro.'
+        rules: 'Filtra e exclui acessos simulados anteriores à data de criação do cadastro.',
+        keywords: ['auditoria', 'logs', 'acessos', 'histórico de login', 'auditar']
       }
     ],
     workflow: [

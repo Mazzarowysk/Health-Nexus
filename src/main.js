@@ -3503,13 +3503,13 @@ function renderAppStructure() {
         </div>
 
         <!-- CAMPO DE BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND PALETTE) -->
-        <div class="global-search-wrapper" style="position: relative; flex: 1; max-width: 440px; margin: 0 16px;">
+        <div class="global-search-wrapper" style="position: relative; flex: 1; max-width: 540px; margin: 0 16px; transition: max-width 0.3s ease;">
           <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #818cf8; font-size: 0.88rem; pointer-events: none; z-index: 3;"></i>
-          <input type="text" id="global-system-search" placeholder="Buscar no sistema (ex: RBAC, Paciente)..." style="
-            width: 100%; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(129, 140, 248, 0.4);
-            color: #f8fafc; padding: 9px 68px 9px 38px; border-radius: 20px; font-size: 0.83rem;
+          <input type="text" id="global-system-search" placeholder="Buscar no sistema (ex: Excluir Usuário, RBAC, Novo Paciente)..." style="
+            width: 100%; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(129, 140, 248, 0.4);
+            color: #f8fafc; padding: 9px 68px 9px 38px; border-radius: 20px; font-size: 0.84rem;
             outline: none; transition: all 0.25s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-          " onfocus="this.style.borderColor='#818cf8'; this.style.boxShadow='0 0 18px rgba(129, 140, 248, 0.45)';" autocomplete="off">
+          " onfocus="this.style.borderColor='#818cf8'; this.style.boxShadow='0 0 20px rgba(129, 140, 248, 0.5)';" autocomplete="off">
           <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.68rem; font-weight: 700; background: rgba(129, 140, 248, 0.15); color: #a5b4fc; padding: 2px 8px; border-radius: 6px; pointer-events: none; border: 1px solid rgba(129, 140, 248, 0.3); z-index: 3;">
             Ctrl K
           </span>
@@ -3519,8 +3519,8 @@ function renderAppStructure() {
             display: none; position: absolute; top: 46px; left: 0; right: 0;
             background: #0b0f19; border: 1px solid rgba(129, 140, 248, 0.5);
             border-radius: 14px; box-shadow: 0 20px 45px rgba(0,0,0,0.85), 0 0 30px rgba(99, 102, 241, 0.25);
-            z-index: 100000; max-height: 440px; overflow-y: auto; scrollbar-width: thin;
-            padding: 8px; font-family: system-ui, -apple-system, sans-serif;
+            z-index: 100000; max-height: 480px; overflow-y: auto; scrollbar-width: thin;
+            padding: 10px; font-family: system-ui, -apple-system, sans-serif;
           "></div>
         </div>
 
@@ -3763,32 +3763,81 @@ function initGlobalSystemSearch() {
   const searchResultsContainer = document.getElementById('global-search-results');
   if (!searchInput || !searchResultsContainer) return;
 
+  const normalizeStr = (str) => {
+    if (!str) return '';
+    return String(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
   const performSearch = () => {
-    const query = searchInput.value.trim().toLowerCase();
-    if (!query) {
+    const rawQuery = searchInput.value.trim();
+    if (!rawQuery) {
       searchResultsContainer.style.display = 'none';
       searchResultsContainer.innerHTML = '';
       return;
     }
 
-    // 1. Pesquisar botões e funcionalidades do manual (manualData)
+    const qNorm = normalizeStr(rawQuery);
+    const queryTokens = qNorm.split(/\s+/).filter(Boolean);
+
+    // 1. Pesquisar botões e funcionalidades com pontuação de relevância (Relevance Scoring)
     const buttonMatches = [];
     if (typeof manualData !== 'undefined' && Array.isArray(manualData)) {
       manualData.forEach(mod => {
         if (mod.buttons && Array.isArray(mod.buttons)) {
           mod.buttons.forEach(btn => {
-            const nameMatch = btn.name.toLowerCase().includes(query);
-            const descMatch = btn.description.toLowerCase().includes(query);
-            const typeMatch = btn.type.toLowerCase().includes(query);
-            const ruleMatch = btn.rules && btn.rules.toLowerCase().includes(query);
+            const nameNorm = normalizeStr(btn.name);
+            const descNorm = normalizeStr(btn.description);
+            const typeNorm = normalizeStr(btn.type);
+            const rulesNorm = normalizeStr(btn.rules || '');
+            const keywordsNorm = (btn.keywords || []).map(normalizeStr);
 
-            if (nameMatch || descMatch || typeMatch || ruleMatch) {
-              buttonMatches.push({ btn, mod });
+            let score = 0;
+
+            // Match Exato no Nome
+            if (nameNorm === qNorm) score += 300;
+            else if (nameNorm.includes(qNorm)) score += 200;
+
+            // Match em Palavras-chave / Sinônimos
+            keywordsNorm.forEach(kw => {
+              if (kw === qNorm) score += 250;
+              else if (kw.includes(qNorm) || qNorm.includes(kw)) score += 180;
+            });
+
+            // Match de todos os tokens da busca no Nome ou Palavras-chave
+            let nameOrKwHits = 0;
+            queryTokens.forEach(t => {
+              if (nameNorm.includes(t) || keywordsNorm.some(k => k.includes(t))) {
+                nameOrKwHits++;
+              }
+            });
+
+            if (queryTokens.length > 0 && nameOrKwHits === queryTokens.length) {
+              score += 160;
+            } else {
+              score += nameOrKwHits * 45;
+            }
+
+            // Match no Tipo da Funcionalidade
+            if (typeNorm.includes(qNorm)) score += 60;
+
+            // Match de frase completa na Descrição
+            if (descNorm.includes(qNorm)) score += 30;
+            
+            // Tokens na Descrição
+            queryTokens.forEach(t => {
+              if (descNorm.includes(t)) score += 5;
+            });
+
+            if (score > 0) {
+              buttonMatches.push({ btn, mod, score });
             }
           });
         }
       });
     }
+
+    // Ordenar resultados de funcionalidades por pontuação decrecente (mais relevante no topo)
+    buttonMatches.sort((a, b) => b.score - a.score);
 
     // 2. Pesquisar abas da aplicação
     const allNavItems = [
@@ -3809,15 +3858,21 @@ function initGlobalSystemSearch() {
       { id: 'configuracoes', label: 'Configurações & Turso Cloud DB', icon: 'fa-gear', tabColor: '#a5b4fc' }
     ];
 
-    const tabMatches = allNavItems.filter(item => 
-      item.label.toLowerCase().includes(query) || item.id.toLowerCase().includes(query)
-    );
+    const tabMatches = allNavItems.filter(item => {
+      const lbl = normalizeStr(item.label);
+      const id = normalizeStr(item.id);
+      return lbl.includes(qNorm) || id.includes(qNorm) || queryTokens.every(t => lbl.includes(t));
+    });
 
     // 3. Pesquisar Pacientes cadastrados
     const patientMatches = [];
     if (state.patients && Array.isArray(state.patients)) {
       state.patients.forEach(p => {
-        if ((p.name && p.name.toLowerCase().includes(query)) || (p.cpf && p.cpf.includes(query))) {
+        const pName = normalizeStr(p.name);
+        const pCpf = (p.cpf || '').replace(/\D/g, '');
+        const qDigits = rawQuery.replace(/\D/g, '');
+
+        if (pName.includes(qNorm) || queryTokens.every(t => pName.includes(t)) || (qDigits && pCpf.includes(qDigits))) {
           patientMatches.push(p);
         }
       });
@@ -3825,9 +3880,9 @@ function initGlobalSystemSearch() {
 
     if (buttonMatches.length === 0 && tabMatches.length === 0 && patientMatches.length === 0) {
       searchResultsContainer.innerHTML = `
-        <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 0.82rem;">
-          <i class="fa-solid fa-magnifying-glass" style="font-size: 1.4rem; opacity: 0.5; margin-bottom: 6px; display: block;"></i>
-          Nenhuma funcionalidade, botão ou paciente encontrado para "<strong>${escapeHtml(query)}</strong>".
+        <div style="padding: 18px; text-align: center; color: #94a3b8; font-size: 0.84rem;">
+          <i class="fa-solid fa-magnifying-glass" style="font-size: 1.5rem; opacity: 0.4; margin-bottom: 8px; display: block; color: #818cf8;"></i>
+          Nenhuma funcionalidade, ação ou paciente encontrado para "<strong>${escapeHtml(rawQuery)}</strong>".
         </div>
       `;
       searchResultsContainer.style.display = 'block';
@@ -3836,46 +3891,26 @@ function initGlobalSystemSearch() {
 
     let html = '';
 
-    // Renderizar Abas Encontradas
-    if (tabMatches.length > 0) {
-      html += `<div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #818cf8; letter-spacing: 0.5px; padding: 6px 8px 4px 8px;">📌 Módulos & Abas (${tabMatches.length})</div>`;
-      tabMatches.slice(0, 4).forEach(t => {
-        html += `
-          <div class="search-result-item" data-type="tab" data-tab-id="${t.id}" style="
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
-            background: rgba(255,255,255,0.03); margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.05);
-          " onmouseover="this.style.background='rgba(99, 102, 241, 0.25)'; this.style.borderColor='rgba(129, 140, 248, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <i class="fa-solid ${t.icon}" style="color: ${t.tabColor}; font-size: 0.95rem;"></i>
-              <span style="font-weight: 700; color: #f8fafc; font-size: 0.85rem;">${t.label}</span>
-            </div>
-            <span style="font-size: 0.68rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 2px 8px; border-radius: 10px;">Navegar ➔</span>
-          </div>
-        `;
-      });
-    }
-
-    // Renderizar Funcionalidades & Botões Encontrados
+    // Renderizar Funcionalidades & Botões Encontrados (Ordenados por Relevância)
     if (buttonMatches.length > 0) {
-      html += `<div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #10b981; letter-spacing: 0.5px; padding: 8px 8px 4px 8px;">⚙️ Funcionalidades & Ações (${buttonMatches.length})</div>`;
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #10b981; letter-spacing: 0.5px; padding: 6px 8px 4px 8px;">⚙️ Funcionalidades & Ações Relevantes (${buttonMatches.length})</div>`;
       buttonMatches.slice(0, 8).forEach(item => {
         const { btn, mod } = item;
         html += `
           <div class="search-result-item" data-type="btn" data-mod-id="${mod.id}" data-btn-name="${encodeURIComponent(btn.name)}" style="
-            padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
-            background: rgba(15, 23, 42, 0.7); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.06);
-          " onmouseover="this.style.background='rgba(16, 185, 129, 0.2)'; this.style.borderColor='${btn.color}'" onmouseout="this.style.background='rgba(15, 23, 42, 0.7)'; this.style.borderColor='rgba(255,255,255,0.06)'">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
-              <strong style="color: #ffffff; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid ${btn.icon}" style="color: ${btn.color};"></i>
+            padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(15, 23, 42, 0.75); margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.07);
+          " onmouseover="this.style.background='rgba(16, 185, 129, 0.22)'; this.style.borderColor='${btn.color}'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'; this.style.borderColor='rgba(255,255,255,0.07)'">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <strong style="color: #ffffff; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid ${btn.icon}" style="color: ${btn.color}; font-size: 0.95rem;"></i>
                 ${btn.name}
               </strong>
-              <span style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: ${mod.color}; padding: 2px 7px; border-radius: 8px; font-weight: 700;">
+              <span style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: ${mod.color}; padding: 3px 8px; border-radius: 8px; font-weight: 700;">
                 ${mod.title}
               </span>
             </div>
-            <p style="color: #cbd5e1; font-size: 0.76rem; margin: 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            <p style="color: #cbd5e1; font-size: 0.78rem; margin: 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
               ${btn.description}
             </p>
           </div>
@@ -3883,21 +3918,41 @@ function initGlobalSystemSearch() {
       });
     }
 
+    // Renderizar Abas Encontradas
+    if (tabMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #818cf8; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">📌 Módulos & Abas (${tabMatches.length})</div>`;
+      tabMatches.slice(0, 4).forEach(t => {
+        html += `
+          <div class="search-result-item" data-type="tab" data-tab-id="${t.id}" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(99, 102, 241, 0.25)'; this.style.borderColor='rgba(129, 140, 248, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i class="fa-solid ${t.icon}" style="color: ${t.tabColor}; font-size: 0.95rem;"></i>
+              <span style="font-weight: 700; color: #f8fafc; font-size: 0.86rem;">${t.label}</span>
+            </div>
+            <span style="font-size: 0.68rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Navegar ➔</span>
+          </div>
+        `;
+      });
+    }
+
     // Renderizar Pacientes Encontrados (se houver)
     if (patientMatches.length > 0) {
-      html += `<div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.5px; padding: 8px 8px 4px 8px;">👤 Pacientes Cadastrados (${patientMatches.length})</div>`;
-      patientMatches.slice(0, 3).forEach(p => {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">👤 Pacientes Cadastrados (${patientMatches.length})</div>`;
+      patientMatches.slice(0, 4).forEach(p => {
         html += `
           <div class="search-result-item" data-type="patient" data-patient-id="${p.id}" style="
             display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
-            background: rgba(255,255,255,0.03); margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.05);
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
           " onmouseover="this.style.background='rgba(56, 189, 248, 0.2)'; this.style.borderColor='rgba(56, 189, 248, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
             <div>
-              <strong style="color: #f8fafc; font-size: 0.84rem; display: block;">${p.name}</strong>
-              <small style="color: #94a3b8; font-size: 0.74rem;">CPF: ${p.cpf || 'Não informado'}</small>
+              <strong style="color: #f8fafc; font-size: 0.86rem; display: block;">${p.name}</strong>
+              <small style="color: #94a3b8; font-size: 0.75rem;">CPF: ${p.cpf || 'Não informado'}</small>
             </div>
-            <span style="font-size: 0.68rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 10px;">Ver Prontuário ➔</span>
+            <span style="font-size: 0.68rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Ver Prontuário ➔</span>
           </div>
         `;
       });
