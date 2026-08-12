@@ -2005,14 +2005,19 @@ const apiFetch = async (url, options = {}) => {
   try {
     // Route matching for localDB
     if (url.includes('/api/auth/login')) {
-      const cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+      let cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+      if (cleanInput === 'mazzarowyk') cleanInput = 'mazzarowysk';
+
       let users = localDB.list('users') || [];
       let user = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
       
-      // Se não encontrou o usuário localmente, tenta puxar a versão atualizada do Turso Cloud DB
+      // Se não encontrou o usuário localmente, tenta puxar a versão atualizada do Turso Cloud DB com timeout estrito de 1.2s
       if (!user) {
         try {
-          const res = await fetch('/api/turso');
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 1200);
+          const res = await fetch('/api/turso', { signal: controller.signal });
+          clearTimeout(timeoutId);
           if (res.ok) {
             const cloudPayload = await res.json();
             if (cloudPayload && cloudPayload.dados_json && cloudPayload.dados_json !== '{}') {
@@ -2022,7 +2027,7 @@ const apiFetch = async (url, options = {}) => {
             }
           }
         } catch (e) {
-          console.error('[Login] Erro ao buscar credenciais na nuvem:', e);
+          console.warn('[Login] Consulta à nuvem cancelada por timeout de segurança (1.2s):', e);
         }
       }
 
@@ -5803,6 +5808,15 @@ async function renderTabContent() {
             });
             if (res.ok) {
               showToast('⏱️ Paciente colocado em Observação Médica (Cronômetro 12h iniciado)');
+              if (typeof window.showFlowCompletionNotification === 'function') {
+                window.showFlowCompletionNotification({
+                  actionTitle: '⏱️ Observação Médica PS Iniciada',
+                  message: `O paciente <strong>${e.patientName}</strong> foi colocado em observação médica. O tempo de permanência de 12 horas está ativo na coluna 'Em Atendimento'.`,
+                  targetTab: 'atendimento',
+                  targetTabLabel: 'Atendimentos (Observação 12h PS)',
+                  persistent: true
+                });
+              }
               await loadAndRenderKanban();
             }
           } catch(err) { showToast('Erro ao iniciar observação.', true); }
