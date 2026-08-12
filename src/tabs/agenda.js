@@ -264,23 +264,26 @@ async function renderAgendaTab() {
     const container = document.getElementById('agenda-list-container');
     const statsEl = document.getElementById('agenda-stats');
 
-    let filtered = appointments || [];
-    if (currentStatusFilter !== 'all') {
-      filtered = filtered.filter(a => a.status === currentStatusFilter);
-    }
+    let searchFiltered = appointments || [];
     if (currentSearchQuery.trim()) {
-      const q = currentSearchQuery.toLowerCase();
-      filtered = filtered.filter(a => 
-        (a.patientName || '').toLowerCase().includes(q) ||
-        (a.doctorName || '').toLowerCase().includes(q) ||
-        (a.notes || '').toLowerCase().includes(q)
+      const normalize = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const q = normalize(currentSearchQuery);
+      searchFiltered = searchFiltered.filter(a => 
+        normalize(a.patientName).includes(q) ||
+        normalize(a.doctorName).includes(q) ||
+        normalize(a.notes).includes(q)
       );
     }
 
-    const total = appointments.length;
-    const confirmados = appointments.filter(a => a.status === 'Confirmado').length;
-    const emAtendimento = appointments.filter(a => a.status === 'Em Atendimento').length;
-    const concluidos = appointments.filter(a => a.status === 'Concluído').length;
+    let filtered = searchFiltered;
+    if (currentStatusFilter !== 'all') {
+      filtered = searchFiltered.filter(a => a.status === currentStatusFilter);
+    }
+
+    const total = searchFiltered.length;
+    const confirmados = searchFiltered.filter(a => a.status === 'Confirmado').length;
+    const emAtendimento = searchFiltered.filter(a => a.status === 'Em Atendimento').length;
+    const concluidos = searchFiltered.filter(a => a.status === 'Concluído').length;
 
     if (statsEl) {
       statsEl.innerHTML = `

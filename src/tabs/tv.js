@@ -972,7 +972,16 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
         body: JSON.stringify({ patientId: patientId || 'P-' + Date.now(), patientName, doctorName, medications: draftItems })
       });
       if (res.ok) {
-        showToast(' Prescrição médica salva com sucesso!');
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Prescrição Eletrônica Emitida',
+            message: `A prescrição de ${patientName || 'paciente'} foi emitida. Os medicamentos foram encaminhados para a Fila de Dispensação da Farmácia.`,
+            targetTab: 'farmacia',
+            targetTabLabel: 'Farmácia & Estoque'
+          });
+        } else {
+          showToast('💊 Prescrição médica salva! Encaminhada para a Farmácia.');
+        }
         draftItems = [];
         updateDraftTable();
         loadActivePrescriptions();

@@ -718,7 +718,7 @@ function generateConsultorios(doctors) {
 // ──────────────────────────────────────────────
 // FUNÇÃO PRINCIPAL
 // ──────────────────────────────────────────────
-export async function generateMockData() {
+export async function generateMockData(baseAmount = 300) {
   // ── 1. Limpar banco (PRESERVAR TODOS OS USUÁRIOS EXISTENTES + SISTEMA + CORPO CLÍNICO) ──
   const currentDB = (() => {
     try { return JSON.parse(localStorage.getItem('healthNexusDados') || '{}'); } catch { return {}; }
@@ -742,6 +742,13 @@ export async function generateMockData() {
   });
 
   // ── 2. Gerar Médicos e Enfermeiros com Logins ──
+  const numPatients = Math.max(1, Math.floor(baseAmount * (80 / 315)));
+  const numAppts = Math.floor(baseAmount * (60 / 315));
+  const numEncounters = Math.floor(baseAmount * (45 / 315));
+  const numHosp = Math.floor(baseAmount * (25 / 315));
+  const numFin = Math.floor(baseAmount * (90 / 315));
+  const numTv = Math.floor(baseAmount * (15 / 315));
+
   console.log('[MockGen] Gerando médicos e enfermeiros...');
   const doctors = generateDoctors();
   const nurses = generateNurses();
@@ -774,26 +781,27 @@ export async function generateMockData() {
     }
   });
 
+
   console.log('[MockGen] Gerando pacientes...');
-  const patients = generatePatients(80);
+  const patients = generatePatients(numPatients);
 
   console.log('[MockGen] Gerando agendamentos...');
-  const appointments = generateAppointments(patients, doctors, 60);
+  const appointments = generateAppointments(patients, doctors, numAppts);
 
   console.log('[MockGen] Gerando atendimentos e triagens...');
-  const { encounters, triages } = generateEncountersAndTriages(patients, doctors, 45);
+  const { encounters, triages } = generateEncountersAndTriages(patients, doctors, numEncounters);
 
   console.log('[MockGen] Gerando leitos...');
   const beds = generateBeds(encounters);
 
   console.log('[MockGen] Gerando internações (Kanban)...');
-  const hospitalizations = generateHospitalizations(patients, doctors, 25);
+  const hospitalizations = generateHospitalizations(patients, doctors, numHosp);
 
   console.log('[MockGen] Gerando financeiro...');
-  const financial_installments = generateFinancial(patients, encounters, 90);
+  const financial_installments = generateFinancial(patients, encounters, numFin);
 
   console.log('[MockGen] Gerando chamadas TV...');
-  const tv_calls = generateTvCalls(patients, 15);
+  const tv_calls = generateTvCalls(patients, numTv);
 
   console.log('[MockGen] Gerando farmácia...');
   const medications = generateMedications();

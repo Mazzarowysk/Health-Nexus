@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.4.0`  
+**Versão:** `2.5.0`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -92,22 +92,23 @@
     - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
     - **Evolução Clínica & Auditoria de SLAs.**
 
-12. **🔍 Busca Global Spotlight (`Ctrl + K`) & Copilot de Conhecimento** *(v2.4.0)*  
-    Barra de busca inteligente integrada no topo da aplicação (`app-header`):  
+11. **🔍 Busca Global Spotlight (`Ctrl + K`) & Copilot de Conhecimento** *(v2.5.0)*  
+    Barra de busca inteligente integrada no topo da aplicação (`app-header`) e sincronizada no **Manual Interativo por Abas**:  
     - **Normalização NFD:** Busca insensível a acentos (ex: `excluir usuario` localiza `🗑️ Excluir Usuário`).  
-    - **Algoritmo de Relevância:** Pontua títulos (+300), palavras-chave (+250), tokens (+160) e descrições (+30).  
-    - **4 Categorias de Resultados:** Ações & Funcionalidades, Módulos & Abas, Pacientes e Dúvidas Frequentes (FAQ).
+    - **Algoritmo de Relevância por Tokens:** Pontua títulos (+300), palavras-chave (+250), tokens (+160) e descrições (+30).  
+    - **Dropdown Suspenso em Tempo Real:** Exibe resultados agrupados por Funcionalidades, Módulos e Dúvidas Frequentes (FAQ) com navegação ao clicar.
 
-13. **📖 Manual do Usuário Interativo por Abas** *(v2.4.0)*  
+12. **🔔 Notificações Visuais de Conclusão e Direcionamento de Fluxo** *(v2.5.0)*  
+    Sistema inteligente de feedback de fluxo (`showFlowCompletionNotification`):  
+    - Notifica o usuário com confirmação visual (`✅ Ação Concluída`) após cada transição de etapa (Admissão, Triagem, Prescrição, Internação, Alta).  
+    - Indica explicitamente o setor de destino (ex: `➡️ Direcionado para: Atendimentos & Prontuário Médico`).  
+    - Oferece o botão **"Ir para a Aba ➔"** para navegação assistida e direta até o módulo de destino.
+
+13. **📖 Manual do Usuário Interativo por Abas** *(v2.5.0)*  
     Modal interativo completo (`src/manualTabbed.js`) acessível pelo cabeçalho:  
-    - 9 módulos na ordem exata da sidebar do sistema.  
-    - Aba *Geral* expandida por padrão; aba *Configurações* recolhida por padrão com expansão sob demanda.  
-    - Navegação fluida por setas (`Anterior` / `Próximo`) com desativação automática nos limites da lista.  
-    - Lightbox visual para ampliação de capturas de tela com animação `hnPopIn`.
-    - **Modal de Cadastro e Edição de Plantão.**
-
-12. **🆕 Relatórios de Escalas & Exportações Multiformato** *(v2.4.0)*  
-    5º card especializado no módulo de Relatórios:  
+    - 11 módulos completos na ordem exata da sidebar do sistema.  
+    - Busca unificada por relevância com menu dropdown suspenso em tempo real.  
+    - Navegação fluida por setas com suporte a ampliação visual lightbox dos cards.  
     - Filtros por categoria, período, turno e status.  
     - Preview dinâmico em tabela.  
     - Exportação relatorial em **PDF**, **Excel (XLSX)** e **CSV**.

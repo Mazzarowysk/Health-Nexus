@@ -2520,6 +2520,148 @@ function showToast(message) {
   }, 3500);
 }
 
+// --- NOTIFICAÇÃO VISUAL DE CONCLUSÃO E DIRECIONAMENTO DE FLUXO ---
+function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com Sucesso', message = '', targetTab = null, targetTabLabel = null, autoSwitch = false }) {
+  let container = document.getElementById('flow-notification-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'flow-notification-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 76px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 1000000;
+      pointer-events: none;
+      width: 400px;
+      max-width: 90vw;
+    `;
+    document.body.appendChild(container);
+  }
+
+  const tabLabelsMap = {
+    dashboard:     'Visão Geral (Health Nexus)',
+    pacientes:     'Recepção & Pacientes',
+    medicos:        'Corpo Clínico & Médicos',
+    consultorios:  'Salas & Consultórios',
+    farmacia:      'Farmácia & Estoque',
+    tv_panel:      'Painel TV (Chamador)',
+    agenda:        'Agenda & Consultas',
+    atendimento:   'Atendimentos & Prontuário Médico',
+    estagnacao:    'Alertas & Estagnação',
+    leitos:        'Gestão de Leitos & Internação',
+    kanban:        'Kanban Hospitalar',
+    financeiro:    'Faturamento & Financeiro',
+    relatorios:    'Relatórios & Métricas',
+    configuracoes: 'Configurações & Turso DB'
+  };
+
+  const finalDestinationLabel = targetTabLabel || (targetTab ? tabLabelsMap[targetTab] : null);
+
+  const card = document.createElement('div');
+  card.style.cssText = `
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.98));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: #f8fafc;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-left: 5px solid #10b981;
+    padding: 16px;
+    border-radius: 14px;
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 20px rgba(16, 185, 129, 0.15);
+    pointer-events: auto;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  `;
+
+  card.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <strong style="color: #34d399; font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-circle-check" style="font-size: 1.1rem; color: #10b981;"></i>
+        ${actionTitle}
+      </strong>
+      <button class="flow-toast-close" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.9rem; padding: 2px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    
+    <p style="color: #e2e8f0; font-size: 0.86rem; margin: 0; line-height: 1.45;">
+      ${message}
+    </p>
+
+    ${finalDestinationLabel ? `
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <span style="font-size: 0.76rem; color: #a78bfa; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+          <i class="fa-solid fa-right-long" style="color: #38bdf8;"></i> Direcionado para: <strong style="color: #38bdf8;">${finalDestinationLabel}</strong>
+        </span>
+        ${targetTab ? `
+          <button class="btn-goto-flow-tab" style="
+            background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none;
+            padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            Ir para a Aba <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        ` : ''}
+      </div>
+    ` : ''}
+  `;
+
+  container.appendChild(card);
+
+  setTimeout(() => {
+    card.style.transform = 'translateX(0)';
+    card.style.opacity = '1';
+  }, 20);
+
+  const closeBtn = card.querySelector('.flow-toast-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      card.style.transform = 'translateX(120%)';
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 300);
+    });
+  }
+
+  const gotoBtn = card.querySelector('.btn-goto-flow-tab');
+  if (gotoBtn && targetTab) {
+    gotoBtn.addEventListener('click', () => {
+      if (typeof switchTab === 'function') {
+        switchTab(targetTab);
+      }
+      card.style.transform = 'translateX(120%)';
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 300);
+    });
+  }
+
+  if (autoSwitch && targetTab && typeof switchTab === 'function') {
+    setTimeout(() => {
+      switchTab(targetTab);
+    }, 1200);
+  }
+
+  setTimeout(() => {
+    if (card.parentNode) {
+      card.style.transform = 'translateX(120%)';
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 300);
+    }
+  }, 6500);
+}
+
+if (typeof window !== 'undefined') {
+  window.showFlowCompletionNotification = showFlowCompletionNotification;
+}
+
 // --- MODAL DE INSTRUÇÕES DE LOGIN E SENHA ("Pequena Janela") ---
 function openLoginInstructionsModal() {
   const existing = document.getElementById('login-instructions-modal');
@@ -5818,7 +5960,16 @@ async function renderTabContent() {
             complaints: document.getElementById('triage-complaints').value
           })
         });
-        if (res.ok) { closeTriageModal(); showToast('✅ Triagem salva! Paciente na fila médica.'); await loadAndRenderKanban(); }
+        if (res.ok) {
+          closeTriageModal();
+          showFlowCompletionNotification({
+            actionTitle: 'Triagem Manchester Concluída',
+            message: 'Classificação de risco registrada com sucesso. O paciente foi direcionado para a Fila de Atendimento Médico.',
+            targetTab: 'atendimento',
+            targetTabLabel: 'Atendimentos & Prontuário Médico'
+          });
+          await loadAndRenderKanban();
+        }
         else { const d=await res.json(); showToast(`❌ ${d.message||'Erro ao salvar triagem.'}`,true); }
       } catch { showToast('❌ Erro de conexão.',true); }
       finally { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Salvar Triagem'; }
@@ -6001,11 +6152,21 @@ async function renderTabContent() {
               <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
                 Utilize os botões abaixo para simular a carga de dados fictícios para testes rápidos ou zerar o banco de dados completamente.
               </p>
-              <div class="settings-actions">
-                <button id="btn-seed-300" class="btn btn-primary" style="margin-left: 8px;">
-                  <i class="fa-solid fa-users"></i> Gerar 300 Registros de Teste
+              <div class="settings-actions" style="display: flex; align-items: center; gap: 8px;">
+                <select id="seed-amount" class="input" style="width: auto; padding-right: 32px; height: 42px;">
+                  <option value="5">5 Registros</option>
+                  <option value="10">10 Registros</option>
+                  <option value="50">50 Registros</option>
+                  <option value="100">100 Registros</option>
+                  <option value="150">150 Registros</option>
+                  <option value="200">200 Registros</option>
+                  <option value="250">250 Registros</option>
+                  <option value="300" selected>300 Registros</option>
+                </select>
+                <button id="btn-seed-custom" class="btn btn-primary">
+                  <i class="fa-solid fa-users"></i> Gerar Registros
                 </button>
-                <button id="btn-reset" class="btn" style="background-color: rgba(255, 50, 80, 0.15); border-color: var(--color-danger); color: var(--color-danger); margin-left: 8px;">
+                <button id="btn-reset" class="btn" style="background-color: rgba(255, 50, 80, 0.15); border-color: var(--color-danger); color: var(--color-danger);">
                   <i class="fa-solid fa-trash-can"></i> Limpar Banco de Dados
                 </button>
               </div>

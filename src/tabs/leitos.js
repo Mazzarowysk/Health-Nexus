@@ -496,7 +496,16 @@ window.executeDischarge = async (bedId) => {
       body: JSON.stringify({ bedId })
     });
     if (res.ok) {
-      showToast('Alta concedida com sucesso! Leito encaminhado para limpeza.');
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: 'Alta Hospitalar Concluída',
+          message: 'O paciente recebeu alta e o leito foi direcionado automaticamente para a Fila de Higienização & Limpeza.',
+          targetTab: 'leitos',
+          targetTabLabel: 'Gestão de Leitos & Internação'
+        });
+      } else {
+        showToast('Alta concedida com sucesso! Leito encaminhado para limpeza.');
+      }
       if (typeof renderLeitosTab === 'function') {
         renderLeitosTab();
       } else {

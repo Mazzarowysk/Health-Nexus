@@ -1152,10 +1152,15 @@
     }
 
     function filterManualSections() {
-      const q = document.getElementById('manualSearchInput').value.toLowerCase();
+      const normalizeStr = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const rawQuery = document.getElementById('manualSearchInput').value;
+      const qNorm = normalizeStr(rawQuery);
+      const tokens = qNorm.split(/\s+/).filter(Boolean);
+
       document.querySelectorAll('main section').forEach(sec => {
-        const text = sec.innerText.toLowerCase();
-        sec.style.display = text.includes(q) ? 'block' : 'none';
+        const text = normalizeStr(sec.innerText);
+        const matches = tokens.length === 0 || tokens.every(t => text.includes(t));
+        sec.style.display = matches ? 'block' : 'none';
       });
     }
   </script>

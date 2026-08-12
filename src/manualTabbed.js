@@ -896,25 +896,77 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     const prevIndex = validIndex > 0 ? validIndex - 1 : -1;
     const nextIndex = validIndex < manualData.length - 1 ? validIndex + 1 : -1;
 
-    // Filtrar conteúdo por busca se houver query
+    // Filtrar conteúdo por busca com o mesmo algoritmo de Relevance Scoring / Tokens do Menu Principal
     let filteredButtons = [];
     const isSearching = searchQuery.trim().length > 0;
     
     if (isSearching) {
-      const q = removeAccents(searchQuery);
+      const qNorm = removeAccents(searchQuery);
+      const queryTokens = qNorm.split(/\s+/).filter(Boolean);
+
+      const buttonMatches = [];
       manualData.forEach(module => {
-        module.buttons.forEach(b => {
-          const match = removeAccents(b.name).includes(q) ||
-                 removeAccents(b.description).includes(q) ||
-                 removeAccents(b.type).includes(q) ||
-                 (b.rules && removeAccents(b.rules).includes(q)) ||
-                 (b.keywords && b.keywords.some(k => removeAccents(k).includes(q)));
-                 
-          if (match) {
-             filteredButtons.push({ ...b, _moduleTitle: module.title, _moduleId: module.id });
-          }
-        });
+        if (module.buttons && Array.isArray(module.buttons)) {
+          module.buttons.forEach(btn => {
+            const nameNorm = removeAccents(btn.name);
+            const descNorm = removeAccents(btn.description);
+            const typeNorm = removeAccents(btn.type);
+            const rulesNorm = btn.rules ? removeAccents(btn.rules) : '';
+            const keywordsNorm = (btn.keywords || []).map(removeAccents);
+
+            let score = 0;
+
+            // Match Exato no Nome
+            if (nameNorm === qNorm) score += 300;
+            else if (nameNorm.includes(qNorm)) score += 200;
+
+            // Match em Palavras-chave / Sinônimos
+            keywordsNorm.forEach(kw => {
+              if (kw === qNorm) score += 250;
+              else if (kw.includes(qNorm) || qNorm.includes(kw)) score += 180;
+            });
+
+            // Match de tokens da busca no Nome ou Palavras-chave
+            let nameOrKwHits = 0;
+            queryTokens.forEach(t => {
+              if (nameNorm.includes(t) || keywordsNorm.some(k => k.includes(t))) {
+                nameOrKwHits++;
+              }
+            });
+
+            if (queryTokens.length > 0 && nameOrKwHits === queryTokens.length) {
+              score += 160;
+            } else {
+              score += nameOrKwHits * 45;
+            }
+
+            // Match no Tipo da Funcionalidade
+            if (typeNorm.includes(qNorm)) score += 60;
+
+            // Match de frase completa na Descrição / Regras
+            if (descNorm.includes(qNorm)) score += 30;
+            if (rulesNorm.includes(qNorm)) score += 30;
+
+            // Tokens na Descrição / Regras
+            queryTokens.forEach(t => {
+              if (descNorm.includes(t)) score += 5;
+              if (rulesNorm.includes(t)) score += 5;
+            });
+
+            if (score > 0) {
+              buttonMatches.push({
+                ...btn,
+                _moduleTitle: module.title,
+                _moduleId: module.id,
+                _score: score
+              });
+            }
+          });
+        }
       });
+
+      buttonMatches.sort((a, b) => b._score - a._score);
+      filteredButtons = buttonMatches;
     } else {
       filteredButtons = activeData.buttons;
     }
@@ -1273,13 +1325,23 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="position: relative; width: 260px;">
-            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.85rem;"></i>
-            <input type="text" id="manual-modal-search" placeholder="Buscar botão ou ação..." value="${searchQuery}" style="
+          <div style="position: relative; width: 340px;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.85rem; z-index: 2;"></i>
+            <input type="text" id="manual-modal-search" placeholder="Buscar no manual (ex: Excluir Usuário, RBAC, Novo Paciente)..." value="${searchQuery}" autocomplete="off" style="
               width: 100%; padding: 8px 12px 8px 34px; background: rgba(255,255,255,0.05);
               border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #f8fafc;
               font-size: 0.85rem; outline: none; transition: border-color 0.2s;
             " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+            
+            <!-- Dropdown de Resultados da Busca em Tempo Real (igual ao menu principal) -->
+            <div id="manual-search-dropdown-results" style="
+              position: absolute; top: calc(100% + 8px); right: 0; width: 440px; max-width: 90vw;
+              background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+              border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 14px; max-height: 440px;
+              overflow-y: auto; z-index: 1000005; display: none; padding: 12px;
+              box-shadow: 0 20px 45px rgba(0,0,0,0.85); scrollbar-width: thin;
+            ">
+            </div>
           </div>
           <button id="manual-modal-close" style="
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
@@ -1311,11 +1373,195 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
 
   document.body.appendChild(overlay);
 
+  const updateManualSearchDropdown = () => {
+    const searchDropdown = overlay.querySelector('#manual-search-dropdown-results');
+    if (!searchDropdown) return;
+
+    const rawQuery = searchQuery.trim();
+    if (!rawQuery) {
+      searchDropdown.style.display = 'none';
+      searchDropdown.innerHTML = '';
+      return;
+    }
+
+    const qNorm = removeAccents(rawQuery);
+    const queryTokens = qNorm.split(/\s+/).filter(Boolean);
+
+    // 1. Pesquisar Botões & Ações
+    const buttonMatches = [];
+    manualData.forEach(module => {
+      if (module.buttons && Array.isArray(module.buttons)) {
+        module.buttons.forEach(btn => {
+          const nameNorm = removeAccents(btn.name);
+          const descNorm = removeAccents(btn.description);
+          const typeNorm = removeAccents(btn.type);
+          const rulesNorm = btn.rules ? removeAccents(btn.rules) : '';
+          const keywordsNorm = (btn.keywords || []).map(removeAccents);
+
+          let score = 0;
+          if (nameNorm === qNorm) score += 300;
+          else if (nameNorm.includes(qNorm)) score += 200;
+
+          keywordsNorm.forEach(kw => {
+            if (kw === qNorm) score += 250;
+            else if (kw.includes(qNorm) || qNorm.includes(kw)) score += 180;
+          });
+
+          let nameOrKwHits = 0;
+          queryTokens.forEach(t => {
+            if (nameNorm.includes(t) || keywordsNorm.some(k => k.includes(t))) {
+              nameOrKwHits++;
+            }
+          });
+
+          if (queryTokens.length > 0 && nameOrKwHits === queryTokens.length) {
+            score += 160;
+          } else {
+            score += nameOrKwHits * 45;
+          }
+
+          if (typeNorm.includes(qNorm)) score += 60;
+          if (descNorm.includes(qNorm)) score += 30;
+          if (rulesNorm.includes(qNorm)) score += 30;
+
+          queryTokens.forEach(t => {
+            if (descNorm.includes(t)) score += 5;
+            if (rulesNorm.includes(t)) score += 5;
+          });
+
+          if (score > 0) {
+            buttonMatches.push({ btn, module, score });
+          }
+        });
+      }
+    });
+
+    buttonMatches.sort((a, b) => b.score - a.score);
+
+    // 2. Pesquisar Abas / Módulos
+    const tabMatches = manualData.filter(m => {
+      const titleNorm = removeAccents(m.title);
+      const idNorm = removeAccents(m.id);
+      return titleNorm.includes(qNorm) || idNorm.includes(qNorm) || queryTokens.every(t => titleNorm.includes(t));
+    });
+
+    // 3. Pesquisar FAQ / Dúvidas
+    const faqMatches = [];
+    manualData.forEach(module => {
+      if (module.faq && Array.isArray(module.faq)) {
+        module.faq.forEach(item => {
+          const qNormStr = removeAccents(item.q);
+          const aNormStr = removeAccents(item.a);
+
+          let score = 0;
+          if (qNormStr.includes(qNorm)) score += 200;
+          queryTokens.forEach(t => {
+            if (qNormStr.includes(t)) score += 40;
+            if (aNormStr.includes(t)) score += 15;
+          });
+
+          if (score > 35) {
+            faqMatches.push({ item, module, score });
+          }
+        });
+      }
+    });
+    faqMatches.sort((a, b) => b.score - a.score);
+
+    if (buttonMatches.length === 0 && tabMatches.length === 0 && faqMatches.length === 0) {
+      searchDropdown.innerHTML = `
+        <div style="text-align: center; padding: 20px 10px; color: #94a3b8;">
+          <i class="fa-solid fa-magnifying-glass" style="font-size: 1.6rem; margin-bottom: 8px; opacity: 0.5;"></i>
+          <p style="font-size: 0.84rem; margin: 0;">Nenhuma correspondência direta para "<strong>${rawQuery}</strong>".</p>
+        </div>
+      `;
+      searchDropdown.style.display = 'block';
+      return;
+    }
+
+    let html = '';
+
+    // Renderizar Funcionalidades
+    if (buttonMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #10b981; letter-spacing: 0.5px; padding: 4px 8px 6px 8px; display: flex; align-items: center; justify-content: space-between;">
+        <span>⚙️ Funcionalidades Correspondentes (${buttonMatches.length})</span>
+        <span style="font-size: 0.65rem; color: #64748b; font-weight: 500;">Relevância Alta</span>
+      </div>`;
+
+      buttonMatches.slice(0, 8).forEach(({ btn, module }) => {
+        html += `
+          <div class="manual-dropdown-item" data-type="btn" data-module-id="${module.id}" data-btn-name="${encodeURIComponent(btn.name)}" style="
+            padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(15, 23, 42, 0.75); margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.08);
+          " onmouseover="this.style.background='rgba(16, 185, 129, 0.22)'; this.style.borderColor='${btn.color}'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'; this.style.borderColor='rgba(255,255,255,0.08)'">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <strong style="color: #ffffff; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid ${btn.icon}" style="color: ${btn.color}; font-size: 0.95rem;"></i>
+                ${btn.name}
+              </strong>
+              <span style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: ${module.color}; padding: 3px 8px; border-radius: 8px; font-weight: 700;">
+                ${module.title}
+              </span>
+            </div>
+            <p style="color: #cbd5e1; font-size: 0.78rem; margin: 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${btn.description}
+            </p>
+          </div>
+        `;
+      });
+    }
+
+    // Renderizar Módulos
+    if (tabMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #818cf8; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">📌 Módulos (${tabMatches.length})</div>`;
+      tabMatches.forEach(mod => {
+        html += `
+          <div class="manual-dropdown-item" data-type="tab" data-module-id="${mod.id}" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(99, 102, 241, 0.25)'; this.style.borderColor='rgba(129, 140, 248, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i class="fa-solid ${mod.icon}" style="color: ${mod.color}; font-size: 0.95rem;"></i>
+              <span style="font-weight: 700; color: #f8fafc; font-size: 0.86rem;">${mod.title}</span>
+            </div>
+            <span style="font-size: 0.68rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Ver Módulo ➔</span>
+          </div>
+        `;
+      });
+    }
+
+    // Renderizar Dúvidas FAQ
+    if (faqMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #f59e0b; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">❓ Dúvidas Frequentes (${faqMatches.length})</div>`;
+      faqMatches.slice(0, 3).forEach(({ item, module }) => {
+        html += `
+          <div class="manual-dropdown-item" data-type="faq" data-module-id="${module.id}" style="
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(245, 158, 11, 0.2)'; this.style.borderColor='rgba(245, 158, 11, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <strong style="color: #f8fafc; font-size: 0.84rem; display: block; margin-bottom: 2px;">❓ ${item.q}</strong>
+            <p style="color: #94a3b8; font-size: 0.76rem; margin: 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.a}</p>
+          </div>
+        `;
+      });
+    }
+
+    searchDropdown.innerHTML = html;
+    searchDropdown.style.display = 'block';
+  };
+
   const searchInputEl = overlay.querySelector('#manual-modal-search');
   if (searchInputEl) {
     searchInputEl.addEventListener('input', (e) => {
       searchQuery = e.target.value;
+      updateManualSearchDropdown();
       renderModalContent();
+    });
+    searchInputEl.addEventListener('focus', () => {
+      if (searchQuery.trim().length > 0) {
+        updateManualSearchDropdown();
+      }
     });
   }
 
@@ -1331,6 +1577,33 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
 
   // EVENT DELEGATION PARA MUDANÇA DE ABAS, BUSCA, AMPLIAR CARD E ROLAGEM
   overlay.addEventListener('click', (e) => {
+    const dropdownItem = e.target.closest('.manual-dropdown-item');
+    if (dropdownItem) {
+      const type = dropdownItem.dataset.type;
+      const moduleId = dropdownItem.dataset.moduleId;
+      const dropdownEl = overlay.querySelector('#manual-search-dropdown-results');
+      if (dropdownEl) dropdownEl.style.display = 'none';
+
+      if (type === 'btn') {
+        const btnName = decodeURIComponent(dropdownItem.dataset.btnName || '');
+        const modData = manualData.find(m => m.id === moduleId);
+        const foundBtn = modData ? modData.buttons.find(b => b.name === btnName) : null;
+        if (foundBtn) {
+          showCardDetailModal(foundBtn, modData);
+        }
+      } else if (type === 'tab' || type === 'faq') {
+        activeTabId = moduleId;
+        renderModalContent();
+      }
+      return;
+    }
+
+    // Fechar dropdown se clicar fora da busca
+    if (!e.target.closest('.manual-search-wrapper')) {
+      const dropdownEl = overlay.querySelector('#manual-search-dropdown-results');
+      if (dropdownEl) dropdownEl.style.display = 'none';
+    }
+
     const btnCard = e.target.closest('.manual-button-card');
     if (btnCard) {
       const btnName = decodeURIComponent(btnCard.dataset.btnName || '');
