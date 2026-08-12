@@ -1190,8 +1190,7 @@ window.openTransferBedModal = async function(encounterId, patientName) {
 
   // Carregar leitos vagos
   try {
-    const res = await apiFetch('/api/beds');
-    const beds = await res.json();
+    const beds = await cachedApiGet('/api/beds', 'beds');
     const vagoBeds = (beds || []).filter(b => b.status === 'Vago');
     const select = document.getElementById('transfer-bed-select');
 

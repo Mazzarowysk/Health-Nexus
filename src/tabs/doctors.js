@@ -1539,8 +1539,8 @@ async function savePEPData(encounterId, shouldFinalize) {
           window.showFlowCompletionNotification({
             actionTitle: 'Solicitação de Internação',
             message: `O prontuário foi assinado. O paciente <strong>${patientName}</strong> requer internação. Selecione o Leito Vago a seguir para concluir a transferência.`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Prontuário (Transferência de Leito)',
+            targetTab: 'leitos',
+            targetTabLabel: 'Gestão de Leitos (Transferência)',
             persistent: true
           });
         }
