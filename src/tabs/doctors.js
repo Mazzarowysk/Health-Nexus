@@ -109,7 +109,29 @@ async function renderDoctorsTab() {
             </div>
             <div class="form-group">
               <label for="doc-specialty">Especialidade / Setor *</label>
-              <input type="text" id="doc-specialty" class="form-input" placeholder="Ex: Cardiologia, UTI, Recepção" required>
+              <input type="text" id="doc-specialty" class="form-input" list="sector-options" placeholder="Ex: Cardiologia, UTI, Recepção" autocomplete="off" required>
+              <datalist id="sector-options">
+                <option value="Administrativo">
+                <option value="Cardiologia">
+                <option value="Centro Cirúrgico">
+                <option value="Clínica Médica">
+                <option value="Farmácia">
+                <option value="Financeiro">
+                <option value="Fisioterapia">
+                <option value="Limpeza / Higienização">
+                <option value="Manutenção">
+                <option value="Neurologia">
+                <option value="Nutrição">
+                <option value="Ortopedia">
+                <option value="Pediatria">
+                <option value="Pronto Socorro (PS)">
+                <option value="Psicologia">
+                <option value="Recepção">
+                <option value="Recursos Humanos (RH)">
+                <option value="Segurança / Portaria">
+                <option value="TI / Tecnologia">
+                <option value="UTI">
+              </datalist>
             </div>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;" id="doc-registry-container">
