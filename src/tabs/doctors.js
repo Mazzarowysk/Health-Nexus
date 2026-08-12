@@ -1072,30 +1072,39 @@ window.openDoctorActivityModal = async function(doctorName, specialty, crm) {
 // ATALHO E PRONTUÁRIO DE PACIENTES PARA ATENDIMENTOS E HISTÓRICO
 // =========================================================
 window.admitPatientFromPatientsTab = function(patientId, fullName, cpf) {
-  showToast('⚡ Acessando Atendimentos para ' + fullName + '...');
-  switchTab('atendimento');
-
-  setTimeout(() => {
-    const searchInput = document.getElementById('adm-search-input');
-    if (searchInput) {
-      searchInput.value = fullName;
-      searchInput.dispatchEvent(new Event('input'));
-    }
-    const selectedIdInput = document.getElementById('selected-patient-id');
-    const preview = document.getElementById('selected-patient-preview');
-    const actionsContainer = document.getElementById('adm-actions-container');
-    
-    if (selectedIdInput && preview && actionsContainer) {
-      selectedIdInput.value = patientId;
-      preview.innerHTML = `
-        <div style="font-weight:700; color: var(--color-primary); font-size:1.05rem;">${fullName}</div>
-        <div style="font-size:0.78rem; color: var(--text-secondary); margin-top:4px;">CPF: ${cpf || 'Não informado'} · Paciente selecionado</div>
-      `;
-      actionsContainer.style.display = 'flex';
-      actionsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, 150);
-};
+    showToast('⏳ Acessando Admissão para ' + fullName + '...');
+    switchTab('atendimento');
+  
+    setTimeout(() => {
+      // Abre o painel lateral de Nova Admissão
+      const openBtn = document.getElementById('btn-open-admission-panel');
+      if (openBtn) openBtn.click();
+      
+      // Preenche e filtra a busca
+      const searchInput = document.getElementById('adm-search-input');
+      if (searchInput) {
+        searchInput.value = fullName;
+        searchInput.dispatchEvent(new Event('input'));
+      }
+      
+      // Simula a seleção direta do paciente no painel
+      const selectedIdInput = document.getElementById('selected-patient-id');
+      const infoBox = document.getElementById('adm-selected-info');
+      const nameEl = document.getElementById('adm-selected-name');
+      const cpfEl = document.getElementById('adm-selected-cpf');
+      const btnUrg = document.getElementById('btn-admit-urgencia');
+      const btnAmb = document.getElementById('btn-admit-ambulatorio');
+      
+      if (selectedIdInput && infoBox && nameEl) {
+        selectedIdInput.value = patientId;
+        nameEl.textContent = fullName;
+        if (cpfEl) cpfEl.textContent = cpf ? 'CPF: ' + cpf : 'CPF Não Informado';
+        infoBox.style.display = 'block';
+        if (btnUrg) btnUrg.disabled = false;
+        if (btnAmb) btnAmb.disabled = false;
+      }
+    }, 250);
+  };
 
 window.openPatientHistoryModal = async function(patientId, patientName) {
   const existing = document.getElementById('patient-history-modal');
