@@ -1,6 +1,6 @@
 # 📘 Health Nexus — Manual Operacional do Usuário (Completo & Ilustrado)
 
-> **Versão:** 2.3.0 — Agosto/2026  
+> **Versão:** 2.6.0 — Agosto/2026  
 > **Público-Alvo:** Recepcionistas, Enfermeiros, Médicos, Farmacêuticos, Gestores Financeiros e Administradores Hospitalares  
 > **Sistema:** Health Nexus — Gestão Hospitalar & Pronto-Socorro
 

@@ -1,4 +1,4 @@
-// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v1.2.1) ────────────────────────
+// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.6.0) ────────────────────────
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 export const manualData = [
   {
@@ -18,6 +18,26 @@ export const manualData = [
         shortcut: 'Sem atalho',
         rules: 'Apenas usuários Master (mazzarowysk) podem alterar perfis de outros usuários.',
         keywords: ['rbac', 'controle de perfis', 'permissões', 'papéis', 'acesso', 'segurança', 'cargos', 'master', 'médico', 'enfermeiro', 'recepcionista', 'farmacêutico']
+      },
+      {
+        icon: 'fa-route',
+        name: 'Notificações Persistentes de Fluxo',
+        type: 'Assistente de Navegação',
+        color: '#10b981',
+        description: 'Notificação flutuante no topo direito (✅ Ação Concluída) exibindo o setor de destino (➡️ Direcionado para: [Aba]) com botão "Ir para a Aba ➔". Permanecem fixas até a ação do usuário.',
+        shortcut: 'Modais de conclusão de fluxo',
+        rules: 'Permanece visível na tela até que o usuário clique no botão de navegação, feche no ícone X ou mude para a aba indicada.',
+        keywords: ['notificação de fluxo', 'direcionamento', 'ir para a aba', 'fluxo concluído', 'aviso persistente', 'redirecionamento']
+      },
+      {
+        icon: 'fa-magnifying-glass-chart',
+        name: 'Busca Spotlight Unificada no Manual',
+        type: 'Navegação & Ajuda',
+        color: '#38bdf8',
+        description: 'Mecanismo de busca inteligente por Relevance Scoring no campo de pesquisa do Manual Interativo com dropdown suspenso em tempo real.',
+        shortcut: 'Digitar no campo de busca do manual',
+        rules: 'Calcula relevância por títulos, palavras-chave e tokens com normalização de acentos (NFD). Permite abrir detalhes ou mudar de aba clicando no dropdown.',
+        keywords: ['busca no manual', 'pesquisa manual', 'spotlight manual', 'relevance scoring', 'dropdown manual', 'pesquisar botões']
       },
       {
         icon: 'fa-chart-filter',

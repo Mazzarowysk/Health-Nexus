@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.5.0`  
+**Versão:** `2.6.0`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -145,6 +145,11 @@
     - Registro automático de login e logout de cada usuário.  
     - Relatório com gráfico de tempo de uso (exclusivo para o perfil Master).  
     - Disponível na aba **Gestão de Usuários** → botão "Histórico de Sessões".
+
+18. **🆕 Notificações de Fluxo Persistentes, Busca Spotlight no Manual & Reset Seguro** *(v2.6.0)*  
+    - **Notificações de Fluxo Persistentes:** O assistente de fluxo do sistema exibe um card flutuante no topo direito (`✅ Ação Concluída`) indicando o setor de destino (`➡️ Direcionado para: [Aba]`) e o botão `Ir para a Aba ➔`. O aviso permanece fixo na tela até a interação do usuário ou até que ele navegue para a aba.  
+    - **Busca Spotlight Unificada no Manual:** O modal do Manual Interativo agora possui o mesmo motor de busca por Relevância (Relevance Scoring Engine) com autocomplete e menu dropdown suspenso em tempo real.  
+    - **Reset Seguro & Sincronizado do Banco de Dados:** O botão `🗑️ Limpar Banco de Dados` na aba Configurações zera todas as tabelas hospitalares mantendo as contas de usuário e perfis, limpa os caches em memória, sincroniza o estado zerado com o Turso Cloud DB e recarrega a aplicação.
 
 ---
 
