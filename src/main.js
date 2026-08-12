@@ -2521,7 +2521,7 @@ function showToast(message) {
 }
 
 // --- NOTIFICAÇÃO VISUAL DE CONCLUSÃO E DIRECIONAMENTO DE FLUXO ---
-function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com Sucesso', message = '', targetTab = null, targetTabLabel = null, autoSwitch = false }) {
+function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com Sucesso', message = '', targetTab = null, targetTabLabel = null, autoSwitch = false, persistent = true }) {
   let container = document.getElementById('flow-notification-container');
   if (!container) {
     container = document.createElement('div');
@@ -2561,17 +2561,20 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
   const finalDestinationLabel = targetTabLabel || (targetTab ? tabLabelsMap[targetTab] : null);
 
   const card = document.createElement('div');
+  if (targetTab) {
+    card.setAttribute('data-flow-target-tab', targetTab);
+  }
   card.style.cssText = `
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.98));
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.99));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     color: #f8fafc;
-    border: 1px solid rgba(16, 185, 129, 0.4);
-    border-left: 5px solid #10b981;
+    border: 1.5px solid rgba(16, 185, 129, 0.5);
+    border-left: 6px solid #10b981;
     padding: 16px;
     border-radius: 14px;
     font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 20px rgba(16, 185, 129, 0.15);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(16, 185, 129, 0.25);
     pointer-events: auto;
     transform: translateX(120%);
     opacity: 0;
@@ -2579,6 +2582,7 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
     display: flex;
     flex-direction: column;
     gap: 8px;
+    position: relative;
   `;
 
   card.innerHTML = `
@@ -2587,7 +2591,7 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
         <i class="fa-solid fa-circle-check" style="font-size: 1.1rem; color: #10b981;"></i>
         ${actionTitle}
       </strong>
-      <button class="flow-toast-close" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.9rem; padding: 2px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
+      <button class="flow-toast-close" title="Fechar notificação" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.85rem; padding: 3px 7px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
@@ -2597,17 +2601,17 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
     </p>
 
     ${finalDestinationLabel ? `
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
-        <span style="font-size: 0.76rem; color: #a78bfa; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; gap: 8px;">
+        <span style="font-size: 0.78rem; color: #a78bfa; font-weight: 600; display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-right-long" style="color: #38bdf8;"></i> Direcionado para: <strong style="color: #38bdf8;">${finalDestinationLabel}</strong>
         </span>
         ${targetTab ? `
           <button class="btn-goto-flow-tab" style="
             background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none;
-            padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700;
-            cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;
-            box-shadow: 0 2px 8px rgba(99,102,241,0.3);
-          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+          " onmouseover="this.style.transform='scale(1.05)'; this.style.background='#4338ca';" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #6366f1, #4f46e5)';">
             Ir para a Aba <i class="fa-solid fa-chevron-right"></i>
           </button>
         ` : ''}
@@ -2649,13 +2653,16 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
     }, 1200);
   }
 
-  setTimeout(() => {
-    if (card.parentNode) {
-      card.style.transform = 'translateX(120%)';
-      card.style.opacity = '0';
-      setTimeout(() => card.remove(), 300);
-    }
-  }, 6500);
+  // Se NÃO for persistente e NÃO tiver uma aba de destino, remove automaticamente após 8 segundos
+  if (!persistent && !targetTab) {
+    setTimeout(() => {
+      if (card.parentNode) {
+        card.style.transform = 'translateX(120%)';
+        card.style.opacity = '0';
+        setTimeout(() => card.remove(), 300);
+      }
+    }, 8000);
+  }
 }
 
 if (typeof window !== 'undefined') {
@@ -4350,6 +4357,14 @@ function switchTab(tabName, isBack = false) {
 
   state.activeTab = tabName;
   updateGlobalBackButton();
+
+  // Remover notificação de fluxo pendente para esta aba de destino se houver
+  const existingFlowToast = document.querySelector(`[data-flow-target-tab="${tabName}"]`);
+  if (existingFlowToast) {
+    existingFlowToast.style.transform = 'translateX(120%)';
+    existingFlowToast.style.opacity = '0';
+    setTimeout(() => existingFlowToast.remove(), 300);
+  }
   
   // Mapa de nomes de exibição por aba
   const tabLabels = {
