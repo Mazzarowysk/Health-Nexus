@@ -1080,13 +1080,6 @@ window.admitPatientFromPatientsTab = function(patientId, fullName, cpf) {
       const openBtn = document.getElementById('btn-open-admission-panel');
       if (openBtn) openBtn.click();
       
-      // Preenche e filtra a busca
-      const searchInput = document.getElementById('adm-search-input');
-      if (searchInput) {
-        searchInput.value = fullName;
-        searchInput.dispatchEvent(new Event('input'));
-      }
-      
       // Simula a seleção direta do paciente no painel
       const selectedIdInput = document.getElementById('selected-patient-id');
       const infoBox = document.getElementById('adm-selected-info');
@@ -1094,6 +1087,8 @@ window.admitPatientFromPatientsTab = function(patientId, fullName, cpf) {
       const cpfEl = document.getElementById('adm-selected-cpf');
       const btnUrg = document.getElementById('btn-admit-urgencia');
       const btnAmb = document.getElementById('btn-admit-ambulatorio');
+      const patientList = document.getElementById('adm-patient-list');
+      const searchWrapper = document.querySelector('.search-wrapper');
       
       if (selectedIdInput && infoBox && nameEl) {
         selectedIdInput.value = patientId;
@@ -1102,6 +1097,14 @@ window.admitPatientFromPatientsTab = function(patientId, fullName, cpf) {
         infoBox.style.display = 'block';
         if (btnUrg) btnUrg.disabled = false;
         if (btnAmb) btnAmb.disabled = false;
+        
+        // Hide the default list and search to prevent confusion (like "Nenhum paciente encontrado")
+        if (searchWrapper) searchWrapper.style.display = 'none';
+        if (patientList) {
+          patientList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--color-primary);font-weight:600;"><i class="fa-solid fa-check-circle" style="font-size:1.5rem;display:block;margin-bottom:8px;"></i> Paciente pré-selecionado com sucesso! Escolha o destino abaixo.</div>';
+          // Ensure it's not hidden
+          patientList.style.display = 'block';
+        }
       }
     }, 250);
   };

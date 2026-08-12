@@ -5401,6 +5401,12 @@ async function renderTabContent() {
       p.style.display = 'flex';
       o.style.display = 'block';
       setTimeout(() => { p.style.transform = 'translateX(0)'; }, 10);
+      
+      const searchWrapper = document.querySelector('#admission-panel .search-wrapper');
+      if (searchWrapper) searchWrapper.style.display = 'block';
+      const searchInput = document.getElementById('adm-search-input');
+      if (searchInput) searchInput.value = '';
+      
       loadAdmissionPatients();
     };
     const closeAdmissionPanel = () => {
