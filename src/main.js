@@ -6173,10 +6173,10 @@ async function renderTabContent() {
           <details class="settings-accordion">
             <summary class="settings-accordion-header">
               <i class="fa-solid fa-database"></i> Gerenciamento de Dados de Teste
-              ${getRolePermissions(state.user).canManageUsers ? '' : '<span class="status-badge" style="margin-left:auto; background:rgba(255,0,0,0.1);"><i class="fa-solid fa-lock"></i> BLOQUEADO</span>'}
+              ${(getRolePermissions(state.user).canManageUsers || getRolePermissions(state.user).role === 'Desenvolvedor') ? '' : '<span class="status-badge" style="margin-left:auto; background:rgba(255,0,0,0.1);"><i class="fa-solid fa-lock"></i> BLOQUEADO</span>'}
             </summary>
             <div class="settings-accordion-body">
-              ${getRolePermissions(state.user).canManageUsers ? `
+              ${(getRolePermissions(state.user).canManageUsers || getRolePermissions(state.user).role === 'Desenvolvedor') ? `
               <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
                 Utilize os botões abaixo para simular a carga de dados fictícios para testes rápidos ou zerar o banco de dados completamente.
               </p>
@@ -6201,7 +6201,7 @@ async function renderTabContent() {
               ` : `
                 <div style="text-align: center; padding: 20px 0; color: var(--color-danger); opacity: 0.8;">
                   <i class="fa-solid fa-shield-halved" style="font-size: 2rem; margin-bottom: 12px;"></i>
-                  <p>Acesso negado. Apenas o usuário master (<strong>mazzarowysk</strong>) possui acesso a esta seção.</p>
+                  <p>Acesso negado. Apenas o usuário master (<strong>mazzarowysk</strong>) e Desenvolvedores possuem acesso a esta seção.</p>
                 </div>
               `}
             </div>
