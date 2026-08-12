@@ -261,7 +261,13 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 
 ## 📅 Changelog
 
-### v2.4.0 — Agosto 2026 (atual)
+### v2.6.0 — Agosto 2026 (atual)
+- ✅ **Notificações Visuais de Sequência de Fluxo Aprimoradas:** Cartão flutuante no topo direito com rastreador de próxima etapa (`📍 Sequência do Fluxo &bull; Próximo Passo`), destaque de setor de destino e botão esmeralda `IR PARA A ABA ➔`.
+- ✅ **Navegação Inteligente & Rolagem Suave (`scrollIntoView`):** Ao clicar no botão de direcionamento, o sistema rola a tela suavemente até a coluna exata do paciente (ex: *Coluna Em Atendimento*).
+- ✅ **Destaque Luminoso Pulsante (`Glow Animation`):** A coluna de destino pisca com moldura verde brilhante (`box-shadow: 0 0 45px #10b981`) por 3 segundos para identificação visual instantânea.
+- ✅ **Cronômetro de 15 Minutos no Header Badge:** Exibição da contagem regressiva ao vivo (`🟢 Sincronizado &bull; 14:59`) no topo superior, realizando verificações automáticas com o Turso Cloud sem interromper a navegação a cada ação individual.
+
+### v2.4.0 — Agosto 2026
 - ✅ **Integração IA Copilot no Manual Interativo:** Pesquisa avançada em tempo real no manual usando inteligência artificial que entende as permissões do usuário (RBAC) e sugere ações automáticas ou bloqueia conteúdo sensível baseado no cargo do usuário logado.
 
 ### v2.3.0 — Agosto 2026

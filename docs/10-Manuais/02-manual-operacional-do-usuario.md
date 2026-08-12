@@ -427,10 +427,19 @@ Acessível pelo botão no topo do sistema:
   8. 📊 Relatórios & Estagnação
   9. ⚙️ Configurações & Turso DB (recolhido por padrão com botão de expansão)
 - **Navegação por Setas:** Botões `Anterior` e `Próximo` com desabilitação automática nos limites (1ª e última aba).
-- **Lightbox de Imagens:** Clique em qualquer imagem das demonstrações para visualizar em alta resolução com efeito suave de abertura.
+### 15.3. Notificações Visuais de Sequência de Fluxo Aprimoradas & Rolagem Suave
+O sistema inclui um assistente visual de direcionamento de fluxo em tempo real:
+- **Badge de Sequência:** Exibe `📍 SEQUÊNCIA DO FLUXO • PRÓXIMO PASSO` indicando a próxima etapa assistencial (ex: chamada de consultório, triagem manchester, observação 12h, internação).
+- **Botão Esmeralda "IR PARA A ABA ➔":** Ao clicar, o sistema navega para a aba de destino e realiza uma **rolagem suave (`scrollIntoView`)** até a coluna do paciente (ex: *Coluna Em Atendimento*).
+- **Destaque Luminoso Pulsante (`Glow Animation`):** A coluna alvo pisca por 3 segundos com uma moldura verde brilhante (`0 0 45px #10b981`), permitindo a localização visual instantânea pelo operador.
+
+### 15.4. Cronômetro de Sincronização de 15 Minutos (Header Badge)
+- **Status ao Vivo:** O badge no topo superior exibe a contagem regressiva ao vivo: `🟢 Sincronizado • 14:59`.
+- **Verificação Automática:** A cada 15 minutos (`00:00`), o sistema faz a comparação silenciosa com o Turso Cloud.
+- **Operação Não Interruptiva:** Não são exibidos modais de sincronização durante ações individuais. O modal só é exibido ao atingir os 15 minutos caso existam dados locais pendentes de envio.
 
 ---
 
-*Manual operacional produzido e homologado pela equipe Health Nexus (v2.4.0) — Agosto/2026.*
+*Manual operacional produzido e homologado pela equipe Health Nexus (v2.6.0) — Agosto/2026.*
 
 

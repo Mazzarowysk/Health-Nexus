@@ -24,10 +24,10 @@ export const manualData = [
         name: 'Notificações Persistentes de Fluxo',
         type: 'Assistente de Navegação',
         color: '#10b981',
-        description: 'Notificação flutuante no topo direito (✅ Ação Concluída) exibindo o setor de destino (➡️ Direcionado para: [Aba]) com botão "Ir para a Aba ➔". Permanecem fixas até a ação do usuário.',
+        description: 'Notificação flutuante no topo direito com rastreador de próxima etapa (📍 Sequência do Fluxo) e botão esmeralda "Ir para a Aba ➔". Ao clicar, o sistema rola a tela suavemente até a coluna exata do paciente e ativa um destaque luminoso pulsante por 3 segundos.',
         shortcut: 'Modais de conclusão de fluxo',
-        rules: 'Permanece visível na tela até que o usuário clique no botão de navegação, feche no ícone X ou mude para a aba indicada.',
-        keywords: ['notificação de fluxo', 'direcionamento', 'ir para a aba', 'fluxo concluído', 'aviso persistente', 'redirecionamento']
+        rules: 'Permanece fixa na tela até que o usuário clique no botão de navegação, feche no ícone X ou mude para a aba indicada. Se o usuário já estiver na aba, o botão realiza a rolagem e iluminação da coluna alvo.',
+        keywords: ['notificação de fluxo', 'direcionamento', 'ir para a aba', 'fluxo concluído', 'aviso persistente', 'redirecionamento', 'rolagem suave', 'destaque luminoso', 'coluna alvo']
       },
       {
         icon: 'fa-magnifying-glass-chart',
