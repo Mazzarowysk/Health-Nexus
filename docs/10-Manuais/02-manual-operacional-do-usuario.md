@@ -341,7 +341,23 @@ No módulo de **Relatórios / Financeiro**:
 
 ---
 
-## 🌗 11. Modo Claro & Modo Escuro
+## ⏱️ 11. Notificações de Fluxo & Cronômetro de Sincronização de 15 Minutos
+
+### Notificações de Fluxo com Botão de Direcionamento Persistente
+Toda ação executada sobre um paciente (chamar para consultório, salvar triagem, iniciar observação 12h no PS, internar em leito ou finalizar atendimento) gera um aviso fixo no topo direito da tela com:
+- **Status & Setor de Destino Explicito**: Ex: `📢 Marcelo Mazaro Chamado para o Consultório 01 (Coluna Em Atendimento)`.
+- **Navegação em 1 Clique**: Botão **`Ir para a Aba [Nome da Aba] ➔`** que conduz o usuário diretamente para a aba e coluna onde o paciente se encontra.
+- **Persistência**: O aviso permanece visível na tela até que o usuário clique para navegar ou feche no botão de confirmação.
+
+### Cronômetro de Auto-Sync de 15 Minutos
+- No cabeçalho superior do sistema, o badge de sincronização exibe a contagem regressiva de **15 minutos** (ex: `⏱️ 14:59`, `14:58`...).
+- Ao término dos 15 minutos (`00:00`), o sistema faz a comparação automática dos dados locais com o Turso Cloud DB:
+  - **Se houver alterações pendentes**: Abre o modal solicitando autorização para envio (`Sim, Enviar para a Nuvem` ou `Lembrar em 15 min`).
+  - **Se não houver alterações**: O temporizador é reiniciado em silêncio sem abrir pop-ups incômodos.
+
+---
+
+## 🌗 12. Modo Claro & Modo Escuro
 
 O sistema suporta dois temas visuais que podem ser alternados pelo botão ☀️/🌙 no canto superior direito:
 

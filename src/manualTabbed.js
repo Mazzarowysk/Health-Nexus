@@ -80,6 +80,16 @@ export const manualData = [
         keywords: ['sincronização', 'turso', 'nuvem', 'cloud', 'offline', 'banco de dados', 'status conexão']
       },
       {
+        icon: 'fa-stopwatch-20',
+        name: 'Cronômetro de Auto-Sync 15 Minutos',
+        type: 'Sincronização & Nuvem',
+        color: '#f59e0b',
+        description: 'Verifica a cada 15 minutos se existem alterações no banco de dados local. Se houver mudanças pendentes, solicita confirmação para enviar à nuvem. Se não houver, reinicia o temporizador silenciosamente.',
+        shortcut: 'Cronômetro ativo no badge de status',
+        rules: 'Executa automaticamente a cada 15 minutos. Exibe modal de confirmação apenas se houver alterações no banco de dados local.',
+        keywords: ['15 minutos', 'cronômetro', 'auto-sync', 'comparativo', 'banco de dados', 'alterações pendentes', 'temporizador', 'sincronizar']
+      },
+      {
         icon: 'fa-moon-sun',
         name: 'Alternar Tema (Escuro / Claro)',
         type: 'Interface',

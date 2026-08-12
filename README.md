@@ -98,19 +98,24 @@
     - **Algoritmo de Relevância por Tokens:** Pontua títulos (+300), palavras-chave (+250), tokens (+160) e descrições (+30).  
     - **Dropdown Suspenso em Tempo Real:** Exibe resultados agrupados por Funcionalidades, Módulos e Dúvidas Frequentes (FAQ) com navegação ao clicar.
 
-12. **🔔 Notificações Visuais de Conclusão e Direcionamento de Fluxo** *(v2.5.0)*  
+12. **🔔 Notificações Visuais de Conclusão e Direcionamento de Fluxo** *(v2.6.0)*  
     Sistema inteligente de feedback de fluxo (`showFlowCompletionNotification`):  
-    - Notifica o usuário com confirmação visual (`✅ Ação Concluída`) após cada transição de etapa (Admissão, Triagem, Prescrição, Internação, Alta).  
-    - Indica explicitamente o setor de destino (ex: `➡️ Direcionado para: Atendimentos & Prontuário Médico`).  
-    - Oferece o botão **"Ir para a Aba ➔"** para navegação assistida e direta até o módulo de destino.
+    - Notifica o usuário com confirmação visual (`✅ Ação Concluída`) após cada transição de etapa (Admissão, Triagem, Chamada de Consultório, Prescrição, Internação, Alta).  
+    - Indica explicitamente o setor de destino (ex: `📢 Paciente Chamado para Consultório 01 — Coluna Em Atendimento`).  
+    - Oferece o botão **"Ir para a Aba ➔"** com persistência visual até a interação do usuário.
 
-13. **📖 Manual do Usuário Interativo por Abas** *(v2.5.0)*  
+13. **⏱️ Cronômetro de Auto-Sync 15 Minutos & Comparativo** *(v2.6.0)*  
+    Temporizador contínuo no cabeçalho superior do sistema:  
+    - Realiza um comparativo automático a cada **15 minutos** entre a base local e a nuvem Turso DB.  
+    - Se houver alterações pendentes, solicita permissão para sincronizar (`Sim, Enviar para a Nuvem`).  
+    - Se não houver alterações no período, reinicia o temporizador silenciosamente sem incomodar o usuário.
+
+14. **📖 Manual do Usuário Interativo por Abas & Busca Spotlight** *(v2.6.0)*  
     Modal interativo completo (`src/manualTabbed.js`) acessível pelo cabeçalho:  
     - 11 módulos completos na ordem exata da sidebar do sistema.  
     - Busca unificada por relevância com menu dropdown suspenso em tempo real.  
+    - Rastreamento da **Localização Atual dos Pacientes em Tempo Real** na barra de busca (Ctrl+K).  
     - Navegação fluida por setas com suporte a ampliação visual lightbox dos cards.  
-    - Filtros por categoria, período, turno e status.  
-    - Preview dinâmico em tabela.  
     - Exportação relatorial em **PDF**, **Excel (XLSX)** e **CSV**.
 
      - Gerenciamento de medicamentos e insumos com **pesquisa em tempo real via APIs globais (RxNav, NLM, OpenFDA)**.  
