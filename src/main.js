@@ -1264,11 +1264,16 @@ const checkCloudStatusAfterLogin = async () => {
       return;
     }
 
-    const cloudRes = await apiFetch('/api/sync/cloud-status');
-    if (!cloudRes || !cloudRes.ok) return;
+    const cloudData = await getSyncStatus();
+    if (!cloudData || !cloudData.cloudConfigured) return;
 
-    const cloudData = await cloudRes.json().catch(() => null);
-    if (!cloudData || !cloudData.cloudConfigured || !cloudData.hasData) return;
+    const cloudMax = getMaxTimestamp(cloudData.cloudTimestamps);
+    const localMax = getMaxTimestamp(cloudData.localTimestamps);
+    
+    const hasData = cloudMax.time > 0;
+    const isDifferent = cloudMax.time > localMax.time;
+    
+    if (!hasData) return;
 
     if (cloudData.isVercel) {
       showCloudDataFoundModal(cloudData, 0);
@@ -1282,8 +1287,8 @@ const checkCloudStatusAfterLogin = async () => {
       return;
     }
     
-    if (cloudData.isDifferent) {
-      showCloudDataFoundModal(cloudData, cloudData.localLastUpdate || 0);
+    if (isDifferent) {
+      showCloudDataFoundModal(cloudData, localMax.time || 0);
     }
   } catch (e) {
     console.warn('[Sync] Varredura pós-login falhou silenciosamente:', e.message);
@@ -1661,6 +1666,8 @@ const syncManager = new SyncManager();
 
 const getSyncStatus = async () => {
   const isVercel = window.location.hostname.includes('vercel.app');
+  const localUpdated = localDB.getLocalUpdatedAt();
+  
   try {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timeoutId = controller ? setTimeout(() => controller.abort(), 3500) : null;
@@ -1668,35 +1675,26 @@ const getSyncStatus = async () => {
     const res = await fetch('/api/turso?status=1', { signal: controller?.signal }).catch(() => null);
     if (timeoutId) clearTimeout(timeoutId);
 
+    let cloudUpdated = 0;
+    let cloudOffline = true;
+    
     if (res && res.ok) {
-      const data = await res.json();
-      state.syncInfo = {
-        cloudConfigured: data.cloud_configured,
-        localTimestamps: data.local_timestamps,
-        cloudTimestamps: data.cloud_timestamps,
-        local_updates: data.local_updates || 0,
-        cloudReachable: true,
-        synchronized: true,
-        local_updates: 0,
-        lastLocalBackup: localUpdated || Date.now(),
-        lastCloudBackup: localUpdated || Date.now(),
-        isVercel
-      };
-      updateSyncBadge();
-      return state.syncInfo;
+      const data = await res.json().catch(() => ({}));
+      cloudOffline = !!data.offline;
+      if (data.updated_at !== undefined) {
+        cloudUpdated = Number(data.updated_at);
+      } else if (data.cloud_timestamps && data.cloud_timestamps.main_data) {
+        cloudUpdated = Number(data.cloud_timestamps.main_data);
+      }
     }
-
-    const data = await res.json().catch(() => ({}));
-    let cloudUpdated = Number(data.updated_at) || 0;
-    if (cloudUpdated === 0) cloudUpdated = localUpdated || Date.now();
 
     const local_updates = (localUpdated > cloudUpdated && cloudUpdated > 0) ? 1 : 0;
     const synchronized = (localUpdated === cloudUpdated) || (local_updates === 0);
 
     state.syncInfo = {
-      cloudConfigured: true,
-      cloudReachable: true,
-      synchronized: true,
+      cloudConfigured: !cloudOffline,
+      cloudReachable: !cloudOffline,
+      synchronized: synchronized,
       local_updates: local_updates,
       localTimestamps: { main_data: localUpdated || cloudUpdated },
       cloudTimestamps: { main_data: cloudUpdated },
@@ -1708,16 +1706,18 @@ const getSyncStatus = async () => {
     updateSyncBadge();
     return state.syncInfo;
   } catch (err) {
-    console.error('Erro ao obter status de sincronização:', err);
-    const localUpdated = localDB.getLocalUpdatedAt();
+    console.warn('[Sync] Erro ao obter status:', err.message);
     state.syncInfo = {
-      cloudConfigured: true,
-      cloudReachable: true,
+      cloudConfigured: false,
+      cloudReachable: false,
       synchronized: true,
       local_updates: 0,
+      localTimestamps: { main_data: localUpdated || Date.now() },
+      cloudTimestamps: { main_data: 0 },
       lastLocalBackup: localUpdated || Date.now(),
-      lastCloudBackup: localUpdated || Date.now(),
-      isVercel
+      lastCloudBackup: 0,
+      isVercel: isVercel,
+      conflict: false
     };
     updateSyncBadge();
     return null;
@@ -8868,3 +8868,5 @@ window.openConsultorioDetailsModal = openConsultorioDetailsModal;
 // --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---
 // Start app immediately (module execution is already deferred until DOM is parsed)
 initializeApp();
+
+
