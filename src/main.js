@@ -2717,16 +2717,16 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
         return false;
       };
 
-      // Tenta destacar imediatamente, mas se a tela ainda estiver renderizando (ex: mudança de aba), tenta novamente em 300ms e 600ms
-      setTimeout(() => {
-        if (!highlightTarget()) {
-          setTimeout(() => {
-            if (!highlightTarget()) {
-              setTimeout(highlightTarget, 300);
-            }
-          }, 300);
+      // Tenta destacar com polling caso a rede demore para carregar a aba alvo (ex: Kanban)
+      const attempts = [50, 200, 500, 1000, 1500, 2500, 3500];
+      let attemptIndex = 0;
+      
+      const tryHighlight = () => {
+        if (!highlightTarget() && attemptIndex < attempts.length) {
+          setTimeout(tryHighlight, attempts[attemptIndex++]);
         }
-      }, 50);
+      };
+      tryHighlight();
     });
   }
 
@@ -8687,7 +8687,7 @@ async function openConsultorioDetailsModal(roomName) {
                 <strong style="margin-top: 6px; display: inline-block;">Horário:</strong> ${inProgress.time || 'N/A'}
                 
                 <div style="display:flex; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid rgba(99,102,241,0.2);">
-                  <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${inProgress.id}" data-patient-id="${inProgress.patientId}" data-patient-name="${(inProgress.patientName||'').replace(/"/g, '&quot;')}" style="flex:1; display:flex; justify-content:center; align-items:center; gap:6px;">
+                  <button class="btn btn-secondary btn-open-pep-direct" onclick="document.getElementById('consultorio-details-modal').remove(); window.openPEPModal('${inProgress.id}')" style="flex:1; display:flex; justify-content:center; align-items:center; gap:6px;">
                     <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
                   </button>
                   <button class="btn btn-primary" onclick="finishConsultation('${inProgress.id}', '${roomName}')" style="flex:1; display:flex; justify-content:center; align-items:center; gap:6px;">
