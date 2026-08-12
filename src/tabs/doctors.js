@@ -97,15 +97,23 @@ async function renderDoctorsTab() {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
               <label for="doc-role">Função / Cargo *</label>
-              <select id="doc-role" class="form-input" required>
-                <option value="Médico(a)">Médico(a)</option>
-                <option value="Enfermeiro(a)">Enfermeiro(a)</option>
-                <option value="Técnico(a) Enfermagem">Técnico(a) Enfermagem</option>
-                <option value="Fisioterapeuta">Fisioterapeuta</option>
-                <option value="Nutricionista">Nutricionista</option>
-                <option value="Psicólogo(a)">Psicólogo(a)</option>
-                <option value="Administrativo">Administrativo / Outros</option>
-              </select>
+              <input type="text" id="doc-role" class="form-input" list="role-options" placeholder="Ex: Médico(a), Biomédico(a)" autocomplete="off" required>
+              <datalist id="role-options">
+                <option value="Médico(a)">
+                <option value="Enfermeiro(a)">
+                <option value="Técnico(a) Enfermagem">
+                <option value="Fisioterapeuta">
+                <option value="Nutricionista">
+                <option value="Psicólogo(a)">
+                <option value="Farmacêutico(a)">
+                <option value="Biomédico(a)">
+                <option value="Fonoaudiólogo(a)">
+                <option value="Assistente Social">
+                <option value="Administrativo">
+                <option value="Recepcionista">
+                <option value="Auxiliar de Limpeza">
+                <option value="Segurança">
+              </datalist>
             </div>
             <div class="form-group">
               <label for="doc-specialty">Especialidade / Setor *</label>
@@ -594,7 +602,7 @@ async function renderDoctorsTab() {
   const docCrmInput = document.getElementById('doc-crm');
   
   if (docRoleInput) {
-    docRoleInput.addEventListener('change', (e) => {
+    const handleRoleChange = (e) => {
       const val = e.target.value;
       let label = 'CRM';
       let placeholder = '123456-SP';
@@ -610,7 +618,10 @@ async function renderDoctorsTab() {
       if (labelDocCrm) labelDocCrm.innerHTML = label + ' *';
       if (docCrmInput) docCrmInput.placeholder = placeholder;
       if (btnVerifyCrm) btnVerifyCrm.style.display = showVerifyBtn ? 'flex' : 'none';
-    });
+    };
+
+    docRoleInput.addEventListener('change', handleRoleChange);
+    docRoleInput.addEventListener('input', handleRoleChange);
   }
 
   const modal = document.getElementById('modal-doctor');
