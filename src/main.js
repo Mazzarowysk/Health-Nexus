@@ -1757,8 +1757,12 @@ const updateSyncBadge = () => {
     });
   }
 
+  const mins = Math.floor((syncManager.timerCountdownSeconds || 900) / 60);
+  const secs = (syncManager.timerCountdownSeconds || 900) % 60;
+  const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
   if (!data) {
-    badge.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Conectando ao Turso...`;
+    badge.innerHTML = `<i class="fa-solid fa-clock" style="margin-right:6px; color: #818cf8;"></i> Verificação em ${timeStr}`;
     badge.style.background = 'rgba(99,102,241,0.12)';
     badge.style.borderColor = 'rgba(99,102,241,0.3)';
     badge.style.color = '#818cf8';
@@ -1766,7 +1770,7 @@ const updateSyncBadge = () => {
   }
 
   if (data.cloudReachable === false) {
-    badge.innerHTML = `<i class="fa-solid fa-cloud" style="margin-right:6px; color: #38bdf8;"></i> Turso Cloud Ativo`;
+    badge.innerHTML = `<i class="fa-solid fa-cloud" style="margin-right:6px; color: #38bdf8;"></i> Turso Cloud &bull; ${timeStr}`;
     badge.style.background = 'rgba(16, 185, 129, 0.15)';
     badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
     badge.style.color = '#34d399';
@@ -1774,12 +1778,12 @@ const updateSyncBadge = () => {
   }
 
   if (data.local_updates > 0) {
-    badge.innerHTML = `<i class="fa-solid fa-arrows-rotate" style="margin-right:6px;"></i> Sincronização Pendente (${data.local_updates})`;
-    badge.style.background = 'rgba(239,68,68,0.15)';
-    badge.style.borderColor = 'rgba(239,68,68,0.4)';
-    badge.style.color = '#f87171';
+    badge.innerHTML = `<i class="fa-solid fa-arrows-rotate" style="margin-right:6px;"></i> Mudanças no banco (${data.local_updates}) &bull; ${timeStr}`;
+    badge.style.background = 'rgba(245,158,11,0.15)';
+    badge.style.borderColor = 'rgba(245,158,11,0.4)';
+    badge.style.color = '#fbbf24';
   } else {
-    badge.innerHTML = `<i class="fa-solid fa-cloud-check" style="margin-right:6px; color: #34d399;"></i> Sincronizado com Turso Cloud`;
+    badge.innerHTML = `<i class="fa-solid fa-cloud-check" style="margin-right:6px; color: #34d399;"></i> Sincronizado &bull; ${timeStr}`;
     badge.style.background = 'rgba(16, 185, 129, 0.15)';
     badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
     badge.style.color = '#34d399';
@@ -1991,15 +1995,9 @@ const cachedApiGet = async (url, cacheKey = null) => {
 
 
 const scheduleSyncUpload = async () => {
-
+  // Desativado: a janela de sincronização não é exibida a cada ação individual.
+  // A verificação ocorre estritamente a cada 15 minutos pelo cronômetro.
   if (getSyncUploadTimeout()) clearTimeout(getSyncUploadTimeout());
-  
-  setSyncUploadTimeout(setTimeout(() => {
-    if (document.getElementById('sync-prompt-modal')) return;
-    
-    // Mostra o modal de sincronização usando o padrão centralizado
-    showSyncPromptModal(state.syncInfo || { lastLocalBackup: new Date().toISOString() });
-  }, 1000));
 };
 
 const apiFetch = async (url, options = {}) => {
