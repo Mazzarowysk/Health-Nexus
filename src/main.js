@@ -5463,7 +5463,15 @@ async function renderTabContent() {
       const btn = document.getElementById(type === 'Urgencia' ? 'btn-admit-urgencia' : 'btn-admit-ambulatorio');
       btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Admitindo...';
       try {
-        const res = await apiFetch(`${API_URL}/encounters`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ patientId, type }) });
+        const patientName = document.getElementById('adm-selected-name')?.textContent || (typeof selectedPatient !== 'undefined' ? selectedPatient?.fullName : null) || 'Paciente';
+        const bodyData = { 
+          patientId, 
+          patientName,
+          type, 
+          status: 'Aguardando_Triagem',
+          admitted_at: new Date().toISOString()
+        };
+        const res = await apiFetch(`${API_URL}/encounters`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(bodyData) });
         const d = await res.json();
         if (res.ok) {
           showToast(`✅ ${selectedPatient?.fullName || 'Paciente'} admitido(a)!`);
