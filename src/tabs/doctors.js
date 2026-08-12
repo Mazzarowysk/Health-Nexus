@@ -97,7 +97,12 @@ async function renderDoctorsTab() {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
               <label for="doc-role">Função / Cargo *</label>
-              <input type="text" id="doc-role" class="form-input" list="role-options" placeholder="Ex: Médico(a), Biomédico(a)" autocomplete="off" required>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="doc-role" class="form-input" list="role-options" placeholder="Ex: Médico(a), Biomédico(a)" autocomplete="off" required style="flex: 1;">
+                <button type="button" id="btn-add-role" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; width: 40px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Adicionar nova Função/Cargo" onmouseenter="this.style.background='var(--bg-secondary)';this.style.color='var(--color-primary)'" onmouseleave="this.style.background='var(--bg-tertiary)';this.style.color='var(--text-secondary)'">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
               <datalist id="role-options">
                 <option value="Médico(a)">
                 <option value="Enfermeiro(a)">
@@ -117,7 +122,12 @@ async function renderDoctorsTab() {
             </div>
             <div class="form-group">
               <label for="doc-specialty">Especialidade / Setor *</label>
-              <input type="text" id="doc-specialty" class="form-input" list="sector-options" placeholder="Ex: Cardiologia, UTI, Recepção" autocomplete="off" required>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="doc-specialty" class="form-input" list="sector-options" placeholder="Ex: Cardiologia, UTI, Recepção" autocomplete="off" required style="flex: 1;">
+                <button type="button" id="btn-add-specialty" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; width: 40px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Adicionar nova Especialidade/Setor" onmouseenter="this.style.background='var(--bg-secondary)';this.style.color='var(--color-primary)'" onmouseleave="this.style.background='var(--bg-tertiary)';this.style.color='var(--text-secondary)'">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
               <datalist id="sector-options">
                 <option value="Administrativo">
                 <option value="Cardiologia">
@@ -623,6 +633,27 @@ async function renderDoctorsTab() {
     docRoleInput.addEventListener('change', handleRoleChange);
     docRoleInput.addEventListener('input', handleRoleChange);
   }
+
+  const handleAddNewOption = (inputId, datalistId, label) => {
+    const newVal = prompt(`Digite a nova ${label}:`);
+    if (newVal && newVal.trim() !== '') {
+      const datalist = document.getElementById(datalistId);
+      const input = document.getElementById(inputId);
+      if (datalist && input) {
+        const option = document.createElement('option');
+        option.value = newVal.trim();
+        datalist.appendChild(option);
+        input.value = newVal.trim();
+        input.dispatchEvent(new Event('change'));
+      }
+    }
+  };
+
+  const btnAddRole = document.getElementById('btn-add-role');
+  if (btnAddRole) btnAddRole.addEventListener('click', () => handleAddNewOption('doc-role', 'role-options', 'Função / Cargo'));
+
+  const btnAddSpecialty = document.getElementById('btn-add-specialty');
+  if (btnAddSpecialty) btnAddSpecialty.addEventListener('click', () => handleAddNewOption('doc-specialty', 'sector-options', 'Especialidade / Setor'));
 
   const modal = document.getElementById('modal-doctor');
   document.getElementById('btn-open-doctor-modal').addEventListener('click', () => {
