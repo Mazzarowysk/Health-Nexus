@@ -1255,182 +1255,6 @@ const showSyncPromptModal = (syncData = {}) => {
   });
 };
 
-// --- VARREDURA PÓS-LOGIN: Verifica dados na nuvem e exibe modal para baixar ---
-const checkCloudStatusAfterLogin = async () => {
-  try {
-    // Se acabou de sincronizar e recarregar, limpa a flag e evita abrir o modal novamente
-    if (sessionStorage.getItem('hn_reloading_after_sync') === 'true') {
-      sessionStorage.removeItem('hn_reloading_after_sync');
-      return;
-    }
-
-    const cloudData = await getSyncStatus();
-    if (!cloudData || !cloudData.cloudConfigured) return;
-
-    const cloudMax = getMaxTimestamp(cloudData.cloudTimestamps);
-    const localMax = getMaxTimestamp(cloudData.localTimestamps);
-    
-    const hasData = cloudMax.time > 0;
-    const isDifferent = cloudMax.time > localMax.time;
-    
-    if (!hasData) return;
-
-    if (cloudData.isVercel) {
-      showCloudDataFoundModal(cloudData, 0);
-      return;
-    }
-
-    // No Notebook (Local): se o banco local e a nuvem forem diferentes (contagem ou data)
-    const pendingUpdates = Number(cloudData.local_updates) || 0;
-    if (pendingUpdates > 0) {
-      // Não peça para baixar, pois há dados locais a serem enviados (que serão sincronizados automaticamente)
-      return;
-    }
-    
-    if (isDifferent) {
-      showCloudDataFoundModal(cloudData, localMax.time || 0);
-    }
-  } catch (e) {
-    console.warn('[Sync] Varredura pós-login falhou silenciosamente:', e.message);
-  }
-};
-
-const showCloudDataFoundModal = (cloudStatus, localLastUpdate = 0) => {
-  const existing = document.getElementById('cloud-scan-modal');
-  if (existing) existing.remove();
-
-  const formatDate = (ts) => {
-    if (!ts || ts === 0) return 'Sem dados';
-    let t = ts;
-    if (typeof t === 'string' && /^\d+$/.test(t.trim())) t = parseInt(t.trim(), 10);
-    const d = new Date(t);
-    if (isNaN(d.getTime())) return 'Sem dados';
-    return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
-
-  const cloudTs = Number(cloudStatus.lastUpdateTime) || 0;
-  const localTs = Number(localLastUpdate) || 0;
-  const cloudNewer = cloudTs > localTs;
-
-  const counts = cloudStatus.counts || {};
-  const tableLabels = {
-    patients: { label: 'Pacientes', icon: 'fa-user-injured', color: '#6ee7b7' },
-    appointments: { label: 'Agendamentos', icon: 'fa-calendar-check', color: '#93c5fd' },
-    encounters: { label: 'Atendimentos', icon: 'fa-stethoscope', color: '#fcd34d' },
-    doctors: { label: 'Médicos', icon: 'fa-user-doctor', color: '#a5b4fc' },
-    beds: { label: 'Leitos', icon: 'fa-bed-pulse', color: '#f9a8d4' },
-    prescriptions: { label: 'Prescrições', icon: 'fa-pills', color: '#86efac' },
-    pharmacy_items: { label: 'Farmácia', icon: 'fa-capsules', color: '#fbbf24' }
-  };
-
-  const tableRows = Object.entries(counts)
-    .filter(([, c]) => c > 0)
-    .map(([table, count]) => {
-      const info = tableLabels[table] || { label: table, icon: 'fa-database', color: '#94a3b8' };
-      return `
-        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-          <i class="fa-solid ${info.icon}" style="color:${info.color};width:18px;text-align:center;font-size:0.85rem;"></i>
-          <span style="flex:1;color:#cbd5e1;font-size:0.83rem;">${info.label}</span>
-          <strong style="color:${info.color};font-size:0.9rem;">${count}</strong>
-        </div>`;
-    }).join('');
-
-  const overlay = document.createElement('div');
-  overlay.id = 'cloud-scan-modal';
-  overlay.style.cssText = `
-    position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(8px);
-    z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;
-  `;
-
-  overlay.innerHTML = `
-    <div class="modal-content" style="max-width: 500px; width: 90%;">
-      <div class="modal-header">
-        <h3 style="display:flex; align-items:center; gap:10px;">
-          <i class="fa-solid fa-cloud-arrow-down" style="color: #a78bfa;"></i>
-          Baixar Dados da Nuvem
-        </h3>
-        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
-          <i class="fa-solid fa-times"></i>
-        </button>
-      </div>
-
-      <div class="modal-body" style="padding-top: 16px;">
-        <p style="margin-bottom: 16px; color: var(--text-secondary); font-size: 0.95rem;">
-          Existem dados disponíveis no servidor da nuvem. Deseja <strong>BAIXAR</strong> esses dados para o seu sistema?
-        </p>
-
-        <!-- COMPARAÇÃO LOCAL vs NUVEM -->
-        <div style="background:var(--bg-tertiary);border-radius:10px;padding:12px 14px;margin-bottom:16px;border:1px solid var(--border-color);">
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
-            <i class="fa-solid fa-desktop" style="color:var(--text-secondary);width:18px;text-align:center;font-size:1rem;"></i>
-            <span style="flex:1;color:var(--text-secondary);font-size:1rem;">Último Backup Local:</span>
-            <strong style="color:var(--text-primary);font-size:1rem;">${formatDate(localTs)}</strong>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
-            <i class="fa-solid fa-cloud" style="color:var(--primary);width:18px;text-align:center;font-size:1rem;"></i>
-            <span style="flex:1;color:var(--text-secondary);font-size:1rem;">Versão na Nuvem:</span>
-            <span style="display:flex;align-items:center;gap:6px;">
-              <strong style="color:var(--text-primary);font-size:1rem;">${formatDate(cloudTs)}</strong>
-              ${cloudNewer ? '<span style="background:rgba(16, 185, 129, 0.1);color:#10b981;font-size:0.75rem;padding:2px 6px;border-radius:6px;font-weight:700;">MAIS RECENTE</span>' : ''}
-            </span>
-          </div>
-        </div>
-
-        <!-- Resumo por tabela -->
-        <details style="margin-bottom:8px;">
-          <summary style="cursor:pointer;color:var(--primary);font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:6px;padding:6px 0;">
-            <i class="fa-solid fa-table-list"></i>
-            Ver detalhes — ${cloudStatus.totalRecords} registros
-          </summary>
-          <div style="background:var(--bg-tertiary);border-radius:8px;padding:8px;margin-top:8px;border:1px solid var(--border-color);">
-            ${tableRows || '<div style="color:var(--text-secondary);text-align:center;padding:8px;font-size:0.95rem;">Sem dados detalhados</div>'}
-          </div>
-        </details>
-      </div>
-
-      <div class="modal-footer" style="flex-direction: column; gap: 10px;">
-        <button id="btn-cloud-scan-download" class="btn btn-primary" style="width: 100%; justify-content: center;">
-          <i class="fa-solid fa-cloud-arrow-down"></i> Sim, Baixar da Nuvem Agora
-        </button>
-        <button id="btn-cloud-scan-skip" class="btn btn-secondary" style="width: 100%; justify-content: center; background: transparent; border: none; color: var(--text-secondary);">
-          Lembrar mais tarde
-        </button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-
-  const okBtn = document.getElementById('btn-cloud-scan-ok');
-  const dlBtn = document.getElementById('btn-cloud-scan-download');
-  const skipBtn = document.getElementById('btn-cloud-scan-skip');
-
-  if (okBtn) {
-    okBtn.addEventListener('click', () => {
-      overlay.remove();
-    });
-  }
-
-  if (dlBtn) {
-    dlBtn.addEventListener('click', async () => {
-      dlBtn.disabled = true;
-      if (skipBtn) skipBtn.disabled = true;
-      dlBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
-      try {
-        sessionStorage.setItem('hn_reloading_after_sync', 'true');
-        await syncManager.pullFromCloud();
-        showToast('✅ Dados baixados da nuvem com sucesso!');
-        setTimeout(() => location.reload(), 1000);
-      } catch (e) {
-        showToast('❌ Erro ao baixar: ' + (e.message || e));
-        overlay.remove();
-      }
-    });
-  }
-
-  if (skipBtn) skipBtn.addEventListener('click', () => overlay.remove());
-};
-
 // --- MODAL ROXO: "Dados Novos na Nuvem!" (Disparado em Login/Início) ---
 const showSyncComparisonModal = (syncData = {}) => {
   const existing = document.getElementById('sync-comparison-modal');
@@ -1914,7 +1738,7 @@ const initializeApp = async () => {
         updateSyncBadge();
       }, 120);
       checkInitialSync();
-      setTimeout(() => checkCloudStatusAfterLogin(), 1500);
+      
     } else {
       logout();
     }
@@ -6315,6 +6139,7 @@ async function renderTabContent() {
                 <input type="password" id="turso-cfg-token" class="form-input" style="width: 100%;" placeholder="ey...">
                 <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block;">Deixe em branco para não alterar se já estiver configurado.</small>
               </div>
+                            ${getRolePermissions(state.user).role === 'Desenvolvedor' ? `
               <div class="settings-form-group" style="margin-bottom: 16px; margin-top: 16px;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                   <input type="checkbox" id="turso-cfg-manual-sync" style="width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;">
@@ -6322,6 +6147,7 @@ async function renderTabContent() {
                 </label>
                 <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block; margin-left: 26px;">Desativa a verificação automática e sincroniza apenas pelos botões.</small>
               </div>
+              ` : ''}
               <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
                 <button id="btn-save-turso-cfg" style="background-color: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                   <i class="fa-solid fa-save"></i> Salvar Credenciais
@@ -8868,5 +8694,7 @@ window.openConsultorioDetailsModal = openConsultorioDetailsModal;
 // --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---
 // Start app immediately (module execution is already deferred until DOM is parsed)
 initializeApp();
+
+
 
 
