@@ -1446,12 +1446,23 @@ window.openPEPModal = async function(encounterId) {
           <textarea id="pep-plan" class="form-input" style="width:100%; min-height:70px; resize:vertical;" placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || ''}</textarea>
         </div>
 
+        <div style="margin-top: 10px; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">
+            <i class="fa-solid fa-route" style="color: #6366f1; margin-right: 6px;"></i> Desfecho do Atendimento:
+          </label>
+          <select id="pep-outcome" class="form-input" style="width:100%;">
+            <option value="alta" selected>Alta Médica (Encerrar Consulta)</option>
+            <option value="observacao">Manter em Observação Médica (PS)</option>
+            <option value="internacao">Solicitar Internação (Transferência de Leito)</option>
+          </select>
+        </div>
+
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:10px;">
           <button type="button" id="btn-save-pep" class="btn" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 20px;">
             <i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Salvar Rascunho
           </button>
-          <button type="submit" class="btn btn-primary" style="padding:10px 22px; background:linear-gradient(135deg, #10b981, #059669);">
-            <i class="fa-solid fa-file-signature" style="margin-right:6px;"></i> Assinar & Finalizar Consulta
+          <button type="submit" class="btn btn-primary" style="padding:10px 22px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
+            <i class="fa-solid fa-file-signature" style="margin-right:6px;"></i> Assinar & Encaminhar
           </button>
         </div>
       </form>
@@ -1482,6 +1493,8 @@ async function savePEPData(encounterId, shouldFinalize) {
   const objectiveContent = document.getElementById('pep-objective').value;
   const assessmentContent = document.getElementById('pep-assessment').value;
   const planContent = document.getElementById('pep-plan').value;
+  const outcomeElement = document.getElementById('pep-outcome');
+  const outcome = outcomeElement ? outcomeElement.value : 'alta';
 
   try {
     await apiFetch('/api/encounters/' + encounterId + '/notes', {
@@ -1497,25 +1510,63 @@ async function savePEPData(encounterId, shouldFinalize) {
     });
 
     if (shouldFinalize) {
-      await apiFetch('/api/encounters/' + encounterId + '/status', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Finalizado' })
-      });
-      
       const encounters = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('encounters') : [];
       const enc = encounters.find(e => e.id === encounterId) || {};
       const patientName = enc.patientName || 'Paciente';
 
-      if (typeof window.showFlowCompletionNotification === 'function') {
-        window.showFlowCompletionNotification({
-          actionTitle: 'Atendimento Finalizado',
-          message: `O prontuário foi assinado e a consulta de ${patientName} foi concluída com sucesso.`,
-          targetTab: 'atendimento',
-          targetTabLabel: 'Atendimentos Médicos'
+      if (outcome === 'observacao') {
+        // Colocar em observação
+        await apiFetch(`/api/encounters/${encounterId}/start-observation`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes: 'Encaminhado para observação após evolução.' })
         });
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Encaminhado para Observação',
+            message: `O prontuário foi assinado e o paciente <strong>${patientName}</strong> foi colocado em observação médica (12h).`,
+            targetTab: 'atendimento',
+            targetTabLabel: 'Atendimentos Médicos (Observação)',
+            targetPatientName: patientName
+          });
+        }
+      } else if (outcome === 'internacao') {
+        // Abrir modal de internação (não muda o status finalizado direto, pois depende da escolha do leito)
+        const modal = document.getElementById('pep-modal');
+        if (modal) modal.remove();
+        
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Solicitação de Internação',
+            message: `O prontuário foi assinado. O paciente <strong>${patientName}</strong> requer internação. Selecione o Leito Vago a seguir para concluir a transferência.`,
+            targetTab: 'atendimento',
+            targetTabLabel: 'Prontuário (Transferência de Leito)',
+            persistent: true
+          });
+        }
+        if (typeof window.openTransferBedModal === 'function') {
+          // O openTransferBedModal mudará o status para internado depois que confirmar
+          window.openTransferBedModal(encounterId, patientName);
+        }
+        return; // Sai cedo, modal de transferencia cuida do resto
       } else {
-        showToast('⚡ Prontuário assinado e atendimento finalizado com Alta Médica!');
+        // Padrão: Alta Médica
+        await apiFetch('/api/encounters/' + encounterId + '/status', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'Finalizado' })
+        });
+        
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Alta Médica (Atendimento Finalizado)',
+            message: `O prontuário foi assinado e a consulta de ${patientName} foi concluída (Alta).`,
+            targetTab: 'atendimento',
+            targetTabLabel: 'Atendimentos Médicos'
+          });
+        } else {
+          showToast('⚡ Prontuário assinado e atendimento finalizado com Alta Médica!');
+        }
       }
 
       const modal = document.getElementById('pep-modal');
