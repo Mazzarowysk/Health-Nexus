@@ -893,14 +893,85 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     const nextIndex = validIndex < manualData.length - 1 ? validIndex + 1 : -1;
 
     // Filtrar conteúdo por busca se houver query
-    const filteredButtons = activeData.buttons.filter(b => {
-      if (!searchQuery.trim()) return true;
+    let filteredButtons = [];
+    const isSearching = searchQuery.trim().length > 0;
+    
+    if (isSearching) {
       const q = searchQuery.toLowerCase();
-      return b.name.toLowerCase().includes(q) ||
-             b.description.toLowerCase().includes(q) ||
-             b.type.toLowerCase().includes(q) ||
-             (b.rules && b.rules.toLowerCase().includes(q));
-    });
+      manualData.forEach(module => {
+        module.buttons.forEach(b => {
+          const match = b.name.toLowerCase().includes(q) ||
+                 b.description.toLowerCase().includes(q) ||
+                 b.type.toLowerCase().includes(q) ||
+                 (b.rules && b.rules.toLowerCase().includes(q)) ||
+                 (b.keywords && b.keywords.some(k => k.toLowerCase().includes(q)));
+                 
+          if (match) {
+             filteredButtons.push({ ...b, _moduleTitle: module.title, _moduleId: module.id });
+          }
+        });
+      });
+    } else {
+      filteredButtons = activeData.buttons;
+    }
+    
+    let aiResponseHtml = '';
+    if (isSearching) {
+      const isQuestion = searchQuery.trim().endsWith('?') || /^(como|onde|qual|o que|quem|quando|por que|posso|tem como|adicionar)/i.test(searchQuery.trim());
+      if (isQuestion && filteredButtons.length > 0) {
+        const bestMatch = filteredButtons[0];
+        
+        // Verificação RBAC do Assistente
+        let currentUserRole = 'Desconhecido';
+        try {
+          const storedUser = JSON.parse(sessionStorage.getItem('hn_user'));
+          if (storedUser && storedUser.role) currentUserRole = storedUser.role;
+        } catch(e) {}
+        
+        // Verifica se o usuário tem permissão para a aba onde o botão reside
+        const targetRoles = manualData.find(m => m.id === (bestMatch._moduleId || activeTabId))?.roles || [];
+        const isMaster = currentUserRole === 'Master' || currentUserRole === 'Administrador';
+        const hasAccess = isMaster || targetRoles.includes(currentUserRole);
+
+        if (hasAccess) {
+          aiResponseHtml = `
+            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.4s ease;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);">
+                <i class="fa-solid fa-robot"></i>
+              </div>
+              <div>
+                <h5 style="color: #34d399; font-size: 0.95rem; font-weight: 700; margin: 0 0 6px 0;">Assistente IA do Health Nexus</h5>
+                <p style="color: #e2e8f0; font-size: 0.9rem; margin: 0; line-height: 1.5;">
+                  Com base na sua busca <em>"${searchQuery}"</em>, recomendo que você acesse o módulo <strong style="color: ${bestMatch.color || '#3b82f6'};">${bestMatch._moduleTitle || activeData.title}</strong> e utilize a funcionalidade <strong>${bestMatch.name}</strong>.
+                </p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: #94a3b8; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #10b981;">
+                  💡 <strong>Dica da IA:</strong> ${bestMatch.description}
+                  ${bestMatch.rules ? `<br><br>⚠️ <strong>Atenção:</strong> ${bestMatch.rules}` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          // Resposta Restrita (Sem Permissão)
+          aiResponseHtml = `
+            <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.4s ease;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: #ef4444; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+              <div>
+                <h5 style="color: #f87171; font-size: 0.95rem; font-weight: 700; margin: 0 0 6px 0;">Acesso Restrito - Assistente IA</h5>
+                <p style="color: #e2e8f0; font-size: 0.9rem; margin: 0; line-height: 1.5;">
+                  A funcionalidade <strong>${bestMatch.name}</strong> resolve a sua busca <em>"${searchQuery}"</em>. No entanto, ela faz parte do módulo <strong style="color: ${bestMatch.color || '#3b82f6'};">${bestMatch._moduleTitle || activeData.title}</strong>, que exige um perfil de acesso diferente do seu.
+                </p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: #94a3b8; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #ef4444;">
+                  ⚠️ <strong>Atenção:</strong> Seu perfil atual <strong>(${currentUserRole})</strong> não possui permissão. Ação reservada para: <strong>${targetRoles.join(', ')}</strong>. Se precisar executar esta ação, contate um gestor.
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
 
     const navTabsHtml = manualData.map((m, idx) => {
       const isActive = m.id === activeTabId;
@@ -945,7 +1016,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     }).join('');
 
     const buttonsCardsHtml = filteredButtons.length > 0 ? filteredButtons.map(b => `
-      <div class="manual-button-card" data-btn-name="${encodeURIComponent(b.name)}" style="
+      <div class="manual-button-card" data-btn-name="${encodeURIComponent(b.name)}" data-module-id="${b._moduleId || activeTabId}" style="
         background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
         transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; cursor: pointer;
@@ -979,6 +1050,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
           <div><i class="fa-solid fa-keyboard" style="color: #a5b4fc; margin-right: 5px;"></i> <strong>Atalho:</strong> ${b.shortcut}</div>
           ${b.rules ? `<div><i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b; margin-right: 5px;"></i> <strong>Regra:</strong> ${b.rules}</div>` : ''}
         </div>
+        ${isSearching && b._moduleTitle ? `<div style="padding-left: 8px; margin-top: 4px; color: ${b.color}; font-size: 0.78rem; font-weight: 600;"><i class="fa-solid fa-folder-open" style="margin-right: 4px;"></i> Encontrado em: ${b._moduleTitle}</div>` : ''}
       </div>
     `).join('') : `
       <div style="text-align: center; padding: 30px; color: #94a3b8; width: 100%;">
@@ -1134,6 +1206,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
 
             <!-- CARDS DE BOTÕES -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
+              ${aiResponseHtml}
               ${buttonsCardsHtml}
             </div>
           </div>
@@ -1186,15 +1259,14 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
 
   // EVENT DELEGATION PARA MUDANÇA DE ABAS, BUSCA, AMPLIAR CARD E ROLAGEM
   overlay.addEventListener('click', (e) => {
-    // Clique para Ampliar Card
     const btnCard = e.target.closest('.manual-button-card');
     if (btnCard) {
       const btnName = decodeURIComponent(btnCard.dataset.btnName || '');
-      const currentIndex = manualData.findIndex(m => m.id === activeTabId);
-      const activeData = manualData[currentIndex >= 0 ? currentIndex : 0];
-      const foundBtn = activeData ? activeData.buttons.find(b => b.name === btnName) : null;
+      const moduleId = btnCard.dataset.moduleId || activeTabId;
+      const modData = manualData.find(m => m.id === moduleId);
+      const foundBtn = modData ? modData.buttons.find(b => b.name === btnName) : null;
       if (foundBtn) {
-        showCardDetailModal(foundBtn, activeData);
+        showCardDetailModal(foundBtn, modData);
         return;
       }
     }
@@ -1230,6 +1302,12 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     if (e.target.id === 'manual-modal-search') {
       searchQuery = e.target.value;
       renderModalContent();
+      const searchInput = document.getElementById('manual-modal-search');
+      if (searchInput) {
+        searchInput.focus();
+        const len = searchInput.value.length;
+        searchInput.setSelectionRange(len, len);
+      }
     }
   });
 };
