@@ -8685,6 +8685,15 @@ async function openConsultorioDetailsModal(roomName) {
                 <strong>Paciente:</strong> ${inProgress.patientName} <br/>
                 <strong style="margin-top: 6px; display: inline-block;">Médico:</strong> ${inProgress.doctorName || 'Não atribuído'} <br/>
                 <strong style="margin-top: 6px; display: inline-block;">Horário:</strong> ${inProgress.time || 'N/A'}
+                
+                <div style="display:flex; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid rgba(99,102,241,0.2);">
+                  <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${inProgress.id}" data-patient-id="${inProgress.patientId}" data-patient-name="${(inProgress.patientName||'').replace(/"/g, '&quot;')}" style="flex:1; display:flex; justify-content:center; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
+                  </button>
+                  <button class="btn btn-primary" onclick="finishConsultation('${inProgress.id}', '${roomName}')" style="flex:1; display:flex; justify-content:center; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check"></i> Finalizar Consulta
+                  </button>
+                </div>
               </div>
             ` : '<div style="color: var(--text-muted); margin-bottom: 24px; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">Nenhum atendimento em andamento no momento.</div>'}
 
@@ -8731,6 +8740,38 @@ async function openConsultorioDetailsModal(roomName) {
     showCustomAlert({ title: 'Erro', message: 'Erro ao carregar detalhes do consultório.', type: 'error' });
   }
 }
+
+window.finishConsultation = async function(appointmentId, roomName) {
+  if (!confirm(`Deseja concluir o atendimento atual no ${roomName}?`)) return;
+  try {
+    const res = await apiFetch(`/api/appointments/${appointmentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'Concluído' })
+    });
+    
+    if (res.ok) {
+      document.getElementById('consultorio-details-modal')?.remove();
+      
+      showFlowCompletionNotification({
+        title: 'CONSULTA FINALIZADA',
+        patientName: '',
+        targetTab: 'consultorios',
+        targetColumn: null,
+        message: `O atendimento foi marcado como <strong>Concluído</strong> e o ${roomName} está livre para o próximo paciente.`,
+        icon: '<i class="fa-solid fa-check-double" style="color: #10b981;"></i>',
+        btnText: 'FECHAR'
+      });
+      
+      loadConsultingRooms();
+      loadKanbanData(); // Atualiza também o Kanban para tirar do 'Em Atendimento'
+    } else {
+      showCustomAlert({ title: 'Erro', message: 'Falha ao concluir atendimento.', type: 'error' });
+    }
+  } catch (e) {
+    showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'error' });
+  }
+};
 
 window.populateFakeDatabase = async function() {
   showToast('⚙️ Executando simulação completa... aguarde.');
