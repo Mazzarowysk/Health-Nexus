@@ -462,6 +462,15 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
 
       overlay.remove();
       showCustomAlert({ title: 'Chamada Emitida!', message: `&#128266; ${patientName} &rarr; ${roomName}`, type: 'success' });
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: `📢 Chamada Emitida no Painel TV`,
+          message: `Paciente <strong>${patientName}</strong> chamado(a) para <strong>${roomName}</strong>. Acompanhe o atendimento na coluna 'Em Atendimento'.`,
+          targetTab: 'atendimento',
+          targetTabLabel: 'Atendimentos (Coluna Em Atendimento)',
+          persistent: true
+        });
+      }
       loadTVCalls();
       if (typeof loadTVWaitingQueue === 'function') loadTVWaitingQueue();
     } catch (e) {

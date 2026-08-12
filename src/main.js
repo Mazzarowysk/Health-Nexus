@@ -4204,8 +4204,23 @@ function initGlobalSystemSearch() {
 
     // Renderizar Pacientes Encontrados (se houver)
     if (patientMatches.length > 0) {
-      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">👤 Pacientes Cadastrados (${patientMatches.length})</div>`;
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">👤 Pacientes Cadastrados & Localização Atual (${patientMatches.length})</div>`;
       patientMatches.slice(0, 4).forEach(p => {
+        let statusBadge = '<span style="font-size: 0.68rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Ver Prontuário ➔</span>';
+        if (state.encounters && Array.isArray(state.encounters)) {
+          const activeEnc = state.encounters.find(e => (e.patientId === p.id || e.patientName === p.name) && e.status !== 'Finalizado' && e.status !== 'Cancelado');
+          if (activeEnc) {
+            if (activeEnc.status === 'Em_Atendimento') {
+              statusBadge = '<span style="font-size: 0.68rem; background: rgba(16, 185, 129, 0.25); color: #10b981; border: 1px solid #10b981; padding: 3px 9px; border-radius: 10px; font-weight: 700;">🩺 Consultório 01 (Em Atendimento) ➔</span>';
+            } else if (activeEnc.status === 'Aguardando_Atendimento') {
+              statusBadge = '<span style="font-size: 0.68rem; background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid #f59e0b; padding: 3px 9px; border-radius: 10px; font-weight: 700;">⏳ Aguardando Médico (Atendimentos) ➔</span>';
+            } else if (activeEnc.status === 'Aguardando_Triagem') {
+              statusBadge = '<span style="font-size: 0.68rem; background: rgba(139, 92, 246, 0.25); color: #c084fc; border: 1px solid #8b5cf6; padding: 3px 9px; border-radius: 10px; font-weight: 700;">🩺 Aguardando Triagem ➔</span>';
+            } else if (activeEnc.status === 'Em_Observacao') {
+              statusBadge = '<span style="font-size: 0.68rem; background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid #ef4444; padding: 3px 9px; border-radius: 10px; font-weight: 700;">⏱️ Observação PS ➔</span>';
+            }
+          }
+        }
         html += `
           <div class="search-result-item" data-type="patient" data-patient-id="${p.id}" style="
             display: flex; align-items: center; justify-content: space-between;
@@ -4216,7 +4231,7 @@ function initGlobalSystemSearch() {
               <strong style="color: #f8fafc; font-size: 0.86rem; display: block;">${p.name}</strong>
               <small style="color: #94a3b8; font-size: 0.75rem;">CPF: ${p.cpf || 'Não informado'}</small>
             </div>
-            <span style="font-size: 0.68rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Ver Prontuário ➔</span>
+            ${statusBadge}
           </div>
         `;
       });
@@ -5932,6 +5947,26 @@ async function renderTabContent() {
               utterance.lang = 'pt-BR';
               utterance.rate = 0.9;
               window.speechSynthesis.speak(utterance);
+            }
+
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: `📢 Paciente Chamado para Consultório 01`,
+                message: `O paciente <strong>${patientName}</strong> foi chamado para o <strong>Consultório 01</strong> e movido da lista 'Aguardando Médico' para a coluna <strong>'Em Atendimento'</strong>.`,
+                targetTab: 'atendimento',
+                targetTabLabel: 'Atendimentos (Coluna Em Atendimento)',
+                persistent: true
+              });
+            }
+          } else if (status === 'Finalizado') {
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: `✅ Atendimento Finalizado`,
+                message: `O atendimento de <strong>${patientName}</strong> foi concluído com sucesso. O histórico foi salvo no prontuário.`,
+                targetTab: 'atendimento',
+                targetTabLabel: 'Atendimentos & Relatórios',
+                persistent: true
+              });
             }
           }
           const msgs = { 'Em_Atendimento': `📣 ${patientName} chamado(a) para consulta!`, 'Finalizado': `✅ Atendimento de ${patientName} finalizado.` };
