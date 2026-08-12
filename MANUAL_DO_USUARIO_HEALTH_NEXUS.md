@@ -908,3 +908,6 @@ A tela de autentica√ß√£o foi atualizada para exigir a valida√ß√£o exata da senha
 - Garantia de que contas individuais (ex: `ljordao`, `bcoltri`, `admin`) s√≥ possuem acesso liberado mediante a apresenta√ß√£o da senha cadastrada correspondente.
 
 ---
+# # #   2 2 . 6 .   S i n c r o n i z a Á „ o   M a n u a l   c o m   T u r s o   C l o u d 
+ F o i   a d i c i o n a d a   a   o p Á „ o   d e   a t i v a r   a   S i n c r o n i z a Á „ o   M a n u a l   n a s   c o n f i g u r a Á ı e s   d e   B a n c o   d e   D a d o s .   I s s o   d e s a t i v a   a   v e r i f i c a Á „ o   a u t o m · t i c a   a   c a d a   1 5   m i n u t o s ,   p e r m i t i n d o   q u e   a   s i n c r o n i z a Á „ o   o c o r r a   a p e n a s   a o   c l i c a r   n o   b o t „ o   ' S i n c r o n i z a r   A g o r a '   o u   a t r a v È s   d o   b o t „ o   n a   b a r r a   s u p e r i o r   ( q u e   e x i b i r ·   a   e t i q u e t a   ' M A N U A L ' ) .  
+ 
