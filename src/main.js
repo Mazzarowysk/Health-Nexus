@@ -2271,6 +2271,10 @@ const apiFetch = async (url, options = {}) => {
         } else {
           responseData = { data: localDB.insert('settings', body), message: 'Configuração do Turso criada com sucesso' };
         }
+        try { await fetch(url, options); } catch(e) { console.warn('Sync to backend failed', e); }
+      } else if (url.includes('/api/settings/turso/test')) {
+        const res = await fetch(url, options);
+        return res;
       } else if (url.includes('/activity') && url.includes('/doctors/')) {
         const match = url.match(/\/doctors\/([^\/]+)\/activity/);
         const rawDoctorParam = match ? decodeURIComponent(match[1]) : '';
