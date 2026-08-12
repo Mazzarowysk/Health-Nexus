@@ -1568,11 +1568,15 @@ class SyncManager {
             showToast('Banco local já está atualizado com a nuvem.');
           }
         } else {
-          // Checagem em background
-          if (hasNewData) {
+          // Checagem automática em background a cada 15 minutos
+          const hasLocalChanges = statusData.local_updates > 0 || (statusData.localTimestamps.main_data > statusData.cloudTimestamps.main_data);
+          
+          if (hasNewData || statusData.conflict) {
             showSyncComparisonModal(statusData);
-          } else if (statusData.local_updates > 0) {
-            syncManager.pushToCloud(false);
+          } else if (hasLocalChanges) {
+            showSyncPromptModal(statusData);
+          } else {
+            console.log('[SyncManager] Nenhuma alteração detectada no comparativo de 15 minutos. Cronômetro reiniciado.');
           }
         }
         
@@ -1659,11 +1663,13 @@ const getSyncStatus = async () => {
     const res = await fetch('/api/turso?status=1', { signal: controller?.signal }).catch(() => null);
     if (timeoutId) clearTimeout(timeoutId);
 
-    const localUpdated = localDB.getLocalUpdatedAt();
-
-    if (!res || !res.ok) {
+    if (res && res.ok) {
+      const data = await res.json();
       state.syncInfo = {
-        cloudConfigured: true,
+        cloudConfigured: data.cloud_configured,
+        localTimestamps: data.local_timestamps,
+        cloudTimestamps: data.cloud_timestamps,
+        local_updates: data.local_updates || 0,
         cloudReachable: true,
         synchronized: true,
         local_updates: 0,
