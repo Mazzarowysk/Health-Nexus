@@ -250,7 +250,10 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 
 ## 📅 Changelog
 
-### v2.3.0 — Agosto 2026 (atual)
+### v2.4.0 — Agosto 2026 (atual)
+- ✅ **Integração IA Copilot no Manual Interativo:** Pesquisa avançada em tempo real no manual usando inteligência artificial que entende as permissões do usuário (RBAC) e sugere ações automáticas ou bloqueia conteúdo sensível baseado no cargo do usuário logado.
+
+### v2.3.0 — Agosto 2026
 - ✅ **Glassmorphism completo no Kanban:** colunas, cabeçalhos e cards modernizados com `backdrop-filter: blur`, bordas translúcidas e sombras dinâmicas coloridas.
 - ✅ **Seletor de setor reformulado:** cards do topo com cores destacadas, borda superior colorida por setor; "Visão Geral" exibe todos sem filtrar.
 - ✅ **Modal Confirmar Alta redesenhado:** acento decorativo no topo, ícone temático, badge informativo e botões com espaçamento generoso (sem colapso nas margens).

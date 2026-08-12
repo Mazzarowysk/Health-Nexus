@@ -1,5 +1,5 @@
 // ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v1.2.1) ────────────────────────
-
+import { getNexusAICopilotResponse } from './aiCopilot.js';
 export const manualData = [
   {
     id: 'geral',
@@ -917,16 +917,66 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     
     let aiResponseHtml = '';
     if (isSearching) {
-      const isQuestion = searchQuery.trim().endsWith('?') || /^(como|onde|qual|o que|quem|quando|por que|posso|tem como|adicionar)/i.test(searchQuery.trim());
-      if (isQuestion && filteredButtons.length > 0) {
-        const bestMatch = filteredButtons[0];
+      const aiCopilot = getNexusAICopilotResponse(searchQuery, searchQuery);
+      const isDefault = aiCopilot.summary.includes('Analisei sua busca');
+      
+      const isQuestion = searchQuery.trim().endsWith('?') || /^(como|onde|qual|o que|quem|quando|por que|posso|tem como|adicionar|incluir)/i.test(searchQuery.trim());
+      
+      // Verificação RBAC do Assistente
+      let currentUserRole = 'Desconhecido';
+      try {
+        const storedUser = JSON.parse(sessionStorage.getItem('hn_user'));
+        if (storedUser && storedUser.role) currentUserRole = storedUser.role;
+      } catch(e) {}
+
+      if (!isDefault) {
+        // Encontra a aba destino do manual e os papéis associados
+        const targetTab = manualData.find(m => m.id === aiCopilot.actionTarget) || manualData[0];
+        const targetRoles = targetTab.roles || [];
         
-        // Verificação RBAC do Assistente
-        let currentUserRole = 'Desconhecido';
-        try {
-          const storedUser = JSON.parse(sessionStorage.getItem('hn_user'));
-          if (storedUser && storedUser.role) currentUserRole = storedUser.role;
-        } catch(e) {}
+        const isMaster = currentUserRole === 'Master' || currentUserRole === 'Administrador';
+        const hasAccess = isMaster || targetRoles.includes(currentUserRole);
+
+        if (hasAccess) {
+          aiResponseHtml = `
+            <div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(79, 70, 229, 0.05)); border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 12px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.4s ease; margin-bottom: 16px;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: #7c3aed; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+              </div>
+              <div>
+                <h5 style="color: #a78bfa; font-size: 0.95rem; font-weight: 700; margin: 0 0 6px 0;">${aiCopilot.title}</h5>
+                <p style="color: #e2e8f0; font-size: 0.9rem; margin: 0; line-height: 1.5;">
+                  ${aiCopilot.summary}
+                </p>
+                <div style="margin-top: 10px;">
+                  <button class="manual-nav-tab" data-tab="${aiCopilot.actionTarget}" style="background: #7c3aed; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+                    ${aiCopilot.actionText}
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          // Sem Permissão para o copilot resolver a ação
+          aiResponseHtml = `
+            <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.4s ease; margin-bottom: 16px;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: #ef4444; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+              <div>
+                <h5 style="color: #f87171; font-size: 0.95rem; font-weight: 700; margin: 0 0 6px 0;">Acesso Restrito - Assistente IA</h5>
+                <p style="color: #e2e8f0; font-size: 0.9rem; margin: 0; line-height: 1.5;">
+                  A IA encontrou uma funcionalidade para a sua busca <em>"${searchQuery}"</em>. No entanto, ela exige um perfil de acesso diferente do seu.
+                </p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: #94a3b8; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #ef4444;">
+                  ⚠️ Seu perfil atual <strong>(${currentUserRole})</strong> não possui permissão. Ação reservada para: <strong>${targetRoles.join(', ')}</strong>.
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      } else if (isQuestion && filteredButtons.length > 0) {
+        const bestMatch = filteredButtons[0];
         
         // Verifica se o usuário tem permissão para a aba onde o botão reside
         const targetRoles = manualData.find(m => m.id === (bestMatch._moduleId || activeTabId))?.roles || [];
@@ -935,7 +985,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
 
         if (hasAccess) {
           aiResponseHtml = `
-            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.4s ease;">
+            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.4s ease; margin-bottom: 16px;">
               <div style="width: 40px; height: 40px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);">
                 <i class="fa-solid fa-robot"></i>
               </div>
@@ -954,7 +1004,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
         } else {
           // Resposta Restrita (Sem Permissão)
           aiResponseHtml = `
-            <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.4s ease;">
+            <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.4s ease; margin-bottom: 16px;">
               <div style="width: 40px; height: 40px; border-radius: 50%; background: #ef4444; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">
                 <i class="fa-solid fa-shield-halved"></i>
               </div>
@@ -1086,168 +1136,177 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
       </details>
     `).join('') : '';
 
-    overlay.innerHTML = `
-      <div style="
-        background: #090d16; border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 16px; width: 95%; max-width: 1150px; height: 90vh;
-        display: flex; flex-direction: column; overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    const tabsHeaderHtml = `
+      <button id="manual-tab-prev-btn" ${prevIndex === -1 ? 'disabled style="opacity:0.4; cursor:not-allowed; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#94a3b8; border-radius:8px; padding:8px 12px; font-size:0.8rem;"' : 'style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.35); color:#a5b4fc; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.82rem; font-weight:600;"'}>
+        <i class="fa-solid fa-chevron-left"></i> Anterior
+      </button>
+
+      <div id="manual-tabs-nav-container" style="
+        flex: 1; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin;
+        scroll-behavior: smooth; padding: 4px 0;
       ">
-        <!-- HEADER DO MODAL -->
+        ${navTabsHtml}
+      </div>
+
+      <button id="manual-tab-next-btn" ${nextIndex === -1 ? 'disabled style="opacity:0.4; cursor:not-allowed; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#94a3b8; border-radius:8px; padding:8px 12px; font-size:0.8rem;"' : 'style="background:linear-gradient(135deg, rgba(99,102,241,0.35), rgba(168,85,247,0.3)); border:1px solid rgba(168,85,247,0.5); color:#f3e8ff; border-radius:8px; padding:8px 14px; display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; font-size:0.82rem;"'}>
+        Próxima <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    `;
+
+    const bodyHtml = `
+      <!-- COLUNA ESQUERDA: LISTA DE BOTÕES & FUNCIONALIDADES -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- BANNER DA ABA COM TAG DE DESTAQUE DA ABA ATIVA -->
         <div style="
-          padding: 18px 24px; background: rgba(15, 23, 42, 0.8);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          display: flex; align-items: center; justify-content: space-between; gap: 16px;
+          background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.95));
+          border: 2px solid ${activeData.color}; border-radius: 14px; padding: 18px;
+          display: flex; align-items: center; gap: 16px; position: relative;
+          box-shadow: 0 0 20px ${activeData.color}33;
         ">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="
-              width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #3b82f6);
-              display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.3rem;
-            ">
-              <i class="fa-solid fa-book-bookmark"></i>
-            </div>
-            <div>
-              <h3 style="color: #f8fafc; font-size: 1.25rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
-                Manual Interativo do Usuário
-                <span style="font-size: 0.75rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 2px 8px; border-radius: 12px;">v1.2.1 Por Abas</span>
-              </h3>
-              <p style="color: #94a3b8; font-size: 0.82rem; margin: 2px 0 0 0;">
-                Documentação exaustiva de cada funcionalidade, botão e regra de negócio por módulo
-              </p>
-            </div>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="position: relative; width: 260px;">
-              <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.85rem;"></i>
-              <input type="text" id="manual-modal-search" placeholder="Buscar botão ou ação..." value="${searchQuery}" style="
-                width: 100%; padding: 8px 12px 8px 34px; background: rgba(255,255,255,0.05);
-                border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #f8fafc;
-                font-size: 0.85rem; outline: none; transition: border-color 0.2s;
-              " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
-            </div>
-            <button id="manual-modal-close" style="
-              background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-              color: #94a3b8; width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
-              display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-              transition: all 0.2s;
-            " onmouseover="this.style.color='#fff'; this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- BARRA DE NAVEGAÇÃO DE ABAS COM BOTÕES EXPLICITOS DE AVANÇO -->
-        <div style="
-          padding: 10px 18px; background: rgba(15, 23, 42, 0.7);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          display: flex; align-items: center; gap: 8px; position: relative;
-        ">
-          <button id="manual-tab-prev-btn" ${prevIndex === -1 ? 'disabled style="opacity:0.4; cursor:not-allowed; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#94a3b8; border-radius:8px; padding:8px 12px; font-size:0.8rem;"' : 'style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.35); color:#a5b4fc; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.82rem; font-weight:600;"'}>
-            <i class="fa-solid fa-chevron-left"></i> Anterior
-          </button>
-
-          <div id="manual-tabs-nav-container" style="
-            flex: 1; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin;
-            scroll-behavior: smooth; padding: 4px 0;
+          <div style="
+            width: 54px; height: 54px; border-radius: 12px; background: ${activeData.color};
+            display: flex; align-items: center; justify-content: center; font-size: 1.7rem; color: #0f172a;
+            box-shadow: 0 0 14px ${activeData.color}aa; font-weight: 700;
           ">
-            ${navTabsHtml}
+            <i class="fa-solid ${activeData.icon}"></i>
           </div>
-
-          <button id="manual-tab-next-btn" ${nextIndex === -1 ? 'disabled style="opacity:0.4; cursor:not-allowed; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:#94a3b8; border-radius:8px; padding:8px 12px; font-size:0.8rem;"' : 'style="background:linear-gradient(135deg, rgba(99,102,241,0.35), rgba(168,85,247,0.3)); border:1px solid rgba(168,85,247,0.5); color:#f3e8ff; border-radius:8px; padding:8px 14px; display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; font-size:0.82rem;"'}>
-            Próxima <i class="fa-solid fa-chevron-right"></i>
-          </button>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+              <span style="font-size: 0.72rem; background: ${activeData.color}; color: #0f172a; padding: 3px 10px; border-radius: 20px; font-weight: 800; text-transform: uppercase;">
+                📌 MÓDULO ${validIndex + 1} DE ${manualData.length} (EM CONSULTA)
+              </span>
+              <h4 style="color: #f8fafc; font-size: 1.2rem; font-weight: 800; margin: 0;">${activeData.title}</h4>
+            </div>
+            <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0 0 8px 0; line-height: 1.4;">${activeData.summary}</p>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span style="font-size: 0.7rem; color: #94a3b8; font-weight: 600;">Perfis Autorizados:</span>
+              ${activeData.roles.map(r => `<span style="font-size: 0.68rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 10px; font-weight: 600;">${r}</span>`).join('')}
+            </div>
+          </div>
         </div>
 
-        <!-- CORPO PRINCIPAL DO MANUAL -->
-        <div style="
-          flex: 1; overflow-y: auto; padding: 24px; display: grid;
-          grid-template-columns: 2.2fr 1fr; gap: 24px; scrollbar-width: thin;
-        ">
-          <!-- COLUNA ESQUERDA: LISTA DE BOTÕES & FUNCIONALIDADES -->
-          <div style="display: flex; flex-direction: column; gap: 16px;">
-            <!-- BANNER DA ABA COM TAG DE DESTAQUE DA ABA ATIVA -->
-            <div style="
-              background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.95));
-              border: 2px solid ${activeData.color}; border-radius: 14px; padding: 18px;
-              display: flex; align-items: center; gap: 16px; position: relative;
-              box-shadow: 0 0 20px ${activeData.color}33;
-            ">
-              <div style="
-                width: 54px; height: 54px; border-radius: 12px; background: ${activeData.color};
-                display: flex; align-items: center; justify-content: center; font-size: 1.7rem; color: #0f172a;
-                box-shadow: 0 0 14px ${activeData.color}aa; font-weight: 700;
-              ">
-                <i class="fa-solid ${activeData.icon}"></i>
-              </div>
-              <div style="flex: 1;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
-                  <span style="font-size: 0.72rem; background: ${activeData.color}; color: #0f172a; padding: 3px 10px; border-radius: 20px; font-weight: 800; text-transform: uppercase;">
-                    📌 MÓDULO ${validIndex + 1} DE ${manualData.length} (EM CONSULTA)
-                  </span>
-                  <h4 style="color: #f8fafc; font-size: 1.2rem; font-weight: 800; margin: 0;">${activeData.title}</h4>
-                </div>
-                <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0 0 8px 0; line-height: 1.4;">${activeData.summary}</p>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                  <span style="font-size: 0.7rem; color: #94a3b8; font-weight: 600;">Perfis Autorizados:</span>
-                  ${activeData.roles.map(r => `<span style="font-size: 0.68rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 10px; font-weight: 600;">${r}</span>`).join('')}
-                </div>
-              </div>
-            </div>
+        <!-- TÍTULO DA SEÇÃO DE BOTÕES -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+          <h5 style="color: #e2e8f0; font-size: 0.95rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-sliders" style="color: ${activeData.color};"></i>
+            Mapeamento Completo de Botões & Ações (${filteredButtons.length})
+          </h5>
+          <span style="font-size: 0.78rem; color: #64748b;">Passe o mouse para destacar</span>
+        </div>
 
-            <!-- TÍTULO DA SEÇÃO DE BOTÕES -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
-              <h5 style="color: #e2e8f0; font-size: 0.95rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-sliders" style="color: ${activeData.color};"></i>
-                Mapeamento Completo de Botões & Ações (${filteredButtons.length})
-              </h5>
-              <span style="font-size: 0.78rem; color: #64748b;">Passe o mouse para destacar</span>
-            </div>
-
-            <!-- CARDS DE BOTÕES -->
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              ${aiResponseHtml}
-              ${buttonsCardsHtml}
-            </div>
-          </div>
-
-          <!-- COLUNA DIREITA: FLUXO PASSO A PASSO & FAQ -->
-          <div style="display: flex; flex-direction: column; gap: 20px;">
-            <!-- CARD DE FLUXO RECOMENDADO -->
-            <div style="
-              background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08);
-              border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px;
-            ">
-              <h5 style="color: #f8fafc; font-size: 0.95rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-diagram-project" style="color: #38bdf8;"></i>
-                Fluxo Operacional Passo a Passo
-              </h5>
-              <div style="display: flex; flex-direction: column; gap: 14px;">
-                ${workflowStepsHtml}
-              </div>
-            </div>
-
-            <!-- CARD DE FAQ DA ABA -->
-            ${faqHtml ? `
-              <div style="
-                background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
-              ">
-                <h5 style="color: #f8fafc; font-size: 0.95rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
-                  <i class="fa-solid fa-circle-question" style="color: #f59e0b;"></i>
-                  Dúvidas Frequentes do Módulo
-                </h5>
-                ${faqHtml}
-              </div>
-            ` : ''}
-          </div>
+        <!-- CARDS DE BOTÕES -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${aiResponseHtml}
+          ${buttonsCardsHtml}
         </div>
       </div>
+
+      <!-- COLUNA DIREITA: FLUXO PASSO A PASSO & FAQ -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- CARD DE FLUXO RECOMENDADO -->
+        <div style="
+          background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px;
+        ">
+          <h5 style="color: #f8fafc; font-size: 0.95rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-diagram-project" style="color: #38bdf8;"></i>
+            Fluxo Operacional Passo a Passo
+          </h5>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            ${workflowStepsHtml}
+          </div>
+        </div>
+
+        <!-- CARD DE FAQ DA ABA -->
+        ${faqHtml ? `
+          <div style="
+            background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+          ">
+            <h5 style="color: #f8fafc; font-size: 0.95rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-circle-question" style="color: #f59e0b;"></i>
+              Dúvidas Frequentes do Módulo
+            </h5>
+            ${faqHtml}
+          </div>
+        ` : ''}
+      </div>
     `;
+
+    document.getElementById('manual-tabs-header-container').innerHTML = tabsHeaderHtml;
+    document.getElementById('manual-content-body-container').innerHTML = bodyHtml;
   };
 
-  renderModalContent();
+  overlay.innerHTML = `
+    <div style="
+      background: #090d16; border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px; width: 95%; max-width: 1150px; height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    ">
+      <!-- HEADER DO MODAL -->
+      <div style="
+        padding: 18px 24px; background: rgba(15, 23, 42, 0.8);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      ">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="
+            width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #3b82f6);
+            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.3rem;
+          ">
+            <i class="fa-solid fa-book-bookmark"></i>
+          </div>
+          <div>
+            <h3 style="color: #f8fafc; font-size: 1.25rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+              Manual Interativo do Usuário
+              <span style="font-size: 0.75rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 2px 8px; border-radius: 12px;">v1.2.1 Por Abas</span>
+            </h3>
+            <p style="color: #94a3b8; font-size: 0.82rem; margin: 2px 0 0 0;">
+              Documentação exaustiva de cada funcionalidade, botão e regra de negócio por módulo
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="position: relative; width: 260px;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.85rem;"></i>
+            <input type="text" id="manual-modal-search" placeholder="Buscar botão ou ação..." value="${searchQuery}" style="
+              width: 100%; padding: 8px 12px 8px 34px; background: rgba(255,255,255,0.05);
+              border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #f8fafc;
+              font-size: 0.85rem; outline: none; transition: border-color 0.2s;
+            " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+          </div>
+          <button id="manual-modal-close" style="
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8; width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+            transition: all 0.2s;
+          " onmouseover="this.style.color='#fff'; this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- BARRA DE NAVEGAÇÃO DE ABAS COM BOTÕES EXPLICITOS DE AVANÇO -->
+      <div id="manual-tabs-header-container" style="
+        padding: 10px 18px; background: rgba(15, 23, 42, 0.7);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex; align-items: center; gap: 8px; position: relative;
+      ">
+      </div>
+
+      <!-- CORPO PRINCIPAL DO MANUAL -->
+      <div id="manual-content-body-container" style="
+        flex: 1; overflow-y: auto; padding: 24px; display: grid;
+        grid-template-columns: 2.2fr 1fr; gap: 24px; scrollbar-width: thin;
+      ">
+      </div>
+    </div>
+  `;
+
   document.body.appendChild(overlay);
+  renderModalContent();
 
   // AUTO SCROLL PARA MANTER A ABA ATIVA SEMPRE CENTRALIZADA NO MENU SUPERIOR
   setTimeout(() => {
@@ -1302,12 +1361,6 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     if (e.target.id === 'manual-modal-search') {
       searchQuery = e.target.value;
       renderModalContent();
-      const searchInput = document.getElementById('manual-modal-search');
-      if (searchInput) {
-        searchInput.focus();
-        const len = searchInput.value.length;
-        searchInput.setSelectionRange(len, len);
-      }
     }
   });
 };

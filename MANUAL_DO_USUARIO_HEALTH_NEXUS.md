@@ -1,686 +1,727 @@
-# ï¿½ï¿½ Manual do UsuÃ¡rio Completo & Guia Operacional Definitivo â€” Health Nexus (v1.0)
-
-> **Health Nexus â€” Sistema de GestÃ£o Hospitalar & ProntuÃ¡rio Eletrnico**  
-> Guia completo, exaustivo e publicaÃ§Ã£o-grade de navegaÃ§Ã£o, modais, formulÃ¡rios, botÃµes, mÃ¡scaras de entrada, fluxos operacionais e protocolos clÃ­nicos.
+#ô ôïô¿ô½ôïô¿ô½ô ôMôaônôuôaôlô ôdôoô ôUôsôuôÃô¡ôrôiôoô ôCôoômôpôlôeôtôoô ô&ô ôGôuôiôaô ôOôpôeôrôaôcôiôoônôaôlô ôDôeôfôiônôiôtôiôvôoô ôâô€ô”ô ôHôeôaôlôtôhô ôNôeôxôuôsô ô(ôvô1ô.ô0ô)ôô
+ôô
+ô>ô ô*ô*ôHôeôaôlôtôhô ôNôeôxôuôsô ôâô€ô”ô ôSôiôsôtôeômôaô ôdôeô ôGôeôsôtôÃô£ôoô ôHôoôsôpôiôtôaôlôaôrô ô&ô ôPôrôoônôtôuôÃô¡ôrôiôoô ôEôlôeôtôrônôiôcôoô*ô*ô ô ôô
+ô>ô ôGôuôiôaô ôcôoômôpôlôeôtôoô,ô ôeôxôaôuôsôtôiôvôoô ôeô ôpôuôbôlôiôcôaôÃô§ôÃô£ôoô-ôgôrôaôdôeô ôdôeô ônôaôvôeôgôaôÃô§ôÃô£ôoô,ô ômôoôdôaôiôsô,ô ôfôoôrômôuôlôÃô¡ôrôiôoôsô,ô ôbôoôtôÃôµôeôsô,ô ômôÃô¡ôsôcôaôrôaôsô ôdôeô ôeônôtôrôaôdôaô,ô ôfôlôuôxôoôsô ôoôpôeôrôaôcôiôoônôaôiôsô ôeô ôpôrôoôtôoôcôoôlôoôsô ôcôlôÃô­ônôiôcôoôsô.ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô#ô#ô ôïô¿ô½ôïô¿ô½ô ô2ô.ô ôFôlôuôxôoôgôrôaômôaô ôGôeôrôaôlô ôIônôtôeôgôrôaôdôoô ôdôeô ôTôoôdôaôsô ôaôsô ôAôbôaôsô ôeô ôCôoôrôrôeôlôaôÃô§ôÃôµôeôsô ô(ôvô2ô.ô4ô.ô0ô)ôô
+ôô
+ôOô ôfôlôuôxôoôgôrôaômôaô ôaôbôaôiôxôoô ômôaôpôeôiôaô ôaô ôcôoôrôrôeôlôaôÃô§ôÃô£ôoô ôcôoômôpôlôeôtôaô ôeônôtôrôeô ôtôoôdôaôsô ôaôsô ô1ô2ô ôaôbôaôsô ôdôoô ôsôiôsôtôeômôaô,ô ôdôeôsôtôaôcôaônôdôoô ôoôsô ôdôiôfôeôrôeônôcôiôaôiôsô ôoôpôeôrôaôcôiôoônôaôiôsô ôeô ôpôaôrôtôiôcôuôlôaôrôiôdôaôdôeôsô ôdôeô ôcôaôdôaô ômôÃô³ôdôuôlôoô:ôô
+ôô
+ô`ô`ô`ômôeôrômôaôiôdôô
+ôfôlôoôwôcôhôaôrôtô ôTôDôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôAôUôTôHô ô[ô"ôïô¿ô½ôïô¿ô½ô ô1ô.ô ôAôuôtôeônôtôiôcôaôÃô§ôÃô£ôoô ô&ô ôGôeôsôtôÃô£ôoô ôdôeô ôAôcôeôsôsôoôsô ô(ôRôBôAôCô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôAôUôTôHô_ôLôOôGôIôNô[ô"ôLôoôgôiônô ôJôWôTô ôcôoômô ô2ô4ô ôCôoônôtôaôsô ô(ôMôÃô©ôdôiôcôoôsô,ô ôEônôfôeôrômôeôiôrôoôsô,ô ôAôdômôiônô,ô ôDôeôvôsô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôAôUôTôHô_ôRôBôAôCô[ô"ôCôoônôtôrôoôlôeô ôdôeô ôPôeôrômôiôsôsôÃôµôeôsô ô(ôMôaôsôtôeôrô,ô ôCôlôÃô­ônôiôcôoô,ô ôDôeôvô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôAôUôTôHô_ôPôRôEôSôEôRôVôEô[ô"ôPôrôeôsôeôrôvôaôÃô§ôÃô£ôoô ôIônôtôeôlôiôgôeônôtôeô ôdôeô ôUôsôuôÃô¡ôrôiôoôsô ôeômô ôLôiômôpôeôzôaôsô"ô]ôô
+ô ô ô ô ô ô ô ô ôAôUôTôHô_ôAôUôDôIôTô[ô"ôAôuôdôiôtôoôrôiôaô ôdôeô ôLôoôgôiônôsô ô(ôÃôšôlôtôiômôoôsô ô5ô ô/ô ôHôiôsôtôÃô³ôrôiôcôoô ô1ô0ô0ô)ô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôDôAôSôHô ô[ô"ôïô¿ô½ôïô¿ô½ô ô2ô.ô ôDôaôsôhôbôoôaôrôdô ôEôxôeôcôuôtôiôvôoô ô&ô ôKôPôIôsô"ô]ôô
+ô ô ô ô ô ô ô ô ôDôAôSôHô_ôKôPôIô[ô"ôKôPôIôsô ôGôeôrôeônôcôiôaôiôsô ôeômô ôTôeômôpôoô ôRôeôaôlô"ô]ôô
+ô ô ô ô ô ô ô ô ôDôAôSôHô_ôCôHôAôRôTôSô[ô"ôGôrôÃô¡ôfôiôcôoôsô ôIônôtôeôrôaôtôiôvôoôsô ôCôhôaôrôtô.ôjôsô ô(ôFôiôlôtôrôoôsô ôCôlôiôcôÃô¡ôvôeôiôsô)ô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôEôSôCôAôLôAôSô ô[ô"ôïô¿ô½ôïô¿ô½ô ô1ô1ô.ô ôEôsôcôaôlôaôsô ôdôeô ôTôrôaôbôaôlôhôoô ô&ô ôPôlôaônôtôÃôµôeôsô ô(ôDôiôfôeôrôeônôcôiôaôlô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôEôSôCô_ôTôAôBô[ô"ôSôuôbô-ôaôbôaôsô:ô ôEôsôcôaôlôaô ôdôeô ôMôÃô©ôdôiôcôoôsô ôvôsô ôEôsôcôaôlôaô ôdôeô ôEônôfôeôrômôeôiôrôoôsô"ô]ôô
+ô ô ô ô ô ô ô ô ôEôSôCô_ôSôHôIôFôTô[ô"ôTôuôrônôoôsô:ô ôMôaônôhôÃô£ô ô(ô6ôhô)ô,ô ôTôaôrôdôeô ô(ô6ôhô)ô,ô ôNôoôiôtôeô ô(ô1ô2ôhô)ô,ô ô2ô4ôhô,ô ô1ô2ôxô3ô6ô"ô]ôô
+ô ô ô ô ô ô ô ô ôEôSôCô_ôSôEôCôTôOôRô[ô"ôAôlôoôcôaôÃô§ôÃô£ôoô ôdôeô ôSôeôtôoôrô ô/ô ôCôoônôsôuôlôtôÃô³ôrôiôoô ô&ô ôCôRôMô/ôCôOôRôEôNô"ô]ôô
+ô ô ô ô ô ô ô ô ôEôSôCô_ôTôOôDôAôYô[ô"ôGôaôrôaônôtôiôaô ôdôeô ôCôoôbôeôrôtôuôrôaô ôdôeô ôPôlôaônôtôÃô£ôoô ôpôaôrôaô ôHôOôJôEô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôAôGôEôNôDôAô ô[ô"ôïô¿ô½ôïô¿ô½ôïô¸ôô ô3ô.ô ôAôgôeônôdôaô ôdôeô ôCôoônôsôuôlôtôaôsô"ô]ôô
+ô ô ô ô ô ô ô ô ôAôGô_ôBôOôOôKô[ô"ôAôgôeônôdôaômôeônôtôoô ôdôeô ôCôoônôsôuôlôtôaôsô ô&ô ôSôeôlôeôÃô§ôÃô£ôoô ôdôeô ôMôÃô©ôdôiôcôoô/ôCôoônôsôuôlôtôÃô³ôrôiôoô"ô]ôô
+ô ô ô ô ô ô ô ô ôAôGô_ôKôPôIô[ô"ôKôPôIô ôCôaôrôdôsô ôdôeô ôSôtôaôtôuôsô ô(ôCôoônôfôiôrômôaôdôoô,ô ôAôtôeônôdôiômôeônôtôoô,ô ôCôoônôcôlôuôÃô­ôdôoô)ô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôPôAôCôIôEôNôTôEôSô ô[ô"ôïô¿ô½ôïô¿ô½ô ô4ô.ô ôAôdômôiôsôsôÃô£ôoô ôdôeô ôPôaôcôiôeônôtôeôsô ô(ôSôUôSô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôPôAôCô_ôFôOôRôMô[ô"ôAôdômôiôsôsôÃô£ôoô ô1ô1ô ôCôaômôpôoôsô ôSôUôSô ô+ô ôVôaôlôiôdôaôÃô§ôÃô£ôoô ôRôeôsôpôoônôsôÃô¡ôvôeôlô ôLôeôgôaôlô"ô]ôô
+ô ô ô ô ô ô ô ô ôPôAôCô_ôCôEôPô[ô"ôAôuôtôoôpôrôeôeônôcôhôiômôeônôtôoô ôdôeô ôEônôdôeôrôeôÃô§ôoô ôvôiôaô ôAôPôIô ôVôiôaôCôEôPô"ô]ôô
+ô ô ô ô ô ô ô ô ôPôAôCô_ôSôEôAôRôCôHô[ô"ôBôuôsôcôaô ôUônôiôfôiôcôaôdôaô ôpôoôrô ôNôoômôeô ôeô ôCôPôFô"ô]ôô
+ô ô ô ô ô ô ô ô ôPôAôCô_ôTôRôAôSôHô[ô"ôLôiôxôeôiôrôaô ôdôeô ôPôaôcôiôeônôtôeôsô ô(ôSôoôfôtô-ôDôeôlôeôtôeô ô&ô ôRôeôsôtôaôuôrôaôÃô§ôÃô£ôoô)ô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôAôTôEôNôDô ô[ô"ôïô¿ô½ôïô¿ô½ô ô5ô.ô ôAôtôeônôdôiômôeônôtôoôsô ô&ô ôTôrôiôaôgôeômô ôMôaônôcôhôeôsôtôeôrô"ô]ôô
+ô ô ô ô ô ô ô ô ôTôRôIô_ôMôAôNôCôHôEôSôTôEôRô[ô"ôEônôfôeôrômôaôgôeômô:ô ôTôrôiôaôgôeômô ôMôaônôcôhôeôsôtôeôrô ô(ô5ô ôNôÃô­ôvôeôiôsô ôdôeô ôRôiôsôcôoô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôTôRôIô_ôQôUôEôUôEô[ô"ôFôiôlôaô ôPôSô:ô ôSôoôrôtôiônôgô ôpôoôrô ôPôrôiôoôrôiôdôaôdôeô ôCôlôÃô­ônôiôcôaô ôAôuôtôoômôÃô¡ôtôiôcôaô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôTôVô ô[ô"ôïô¿ô½ôïô¿ô½ô ô6ô.ô ôPôaôiônôeôlô ôTôVô ô(ôCôhôaômôaôdôoôrô ôIônôtôeôlôiôgôeônôtôeô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôTôVô_ôSôPôEôEôCôHô[ô"ôWôeôbô ôSôpôeôeôcôhô ôAôPôIô:ô ôAônôÃôºônôcôiôoô ôdôeô ôPôaôcôiôeônôtôeô ôpôoôrô ôVôoôzô ôSôiônôtôeôtôiôzôaôdôaô"ô]ôô
+ô ô ô ô ô ô ô ô ôTôVô_ôDôIôSôPôLôAôYô[ô"ôEôxôiôbôiôÃô§ôÃô£ôoô ôeômô ôTôeôlôaô ôCôhôeôiôaô ôpôaôrôaô ôSôaôlôaô ôdôeô ôEôsôpôeôrôaô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôPôEôPô ô[ô"ôïô¿ô½ôïô¿ô½ô ô7ô.ô ôPôrôoônôtôuôÃô¡ôrôiôoô ôEôlôeôtôrônôiôcôoô ô(ôPôEôPô ôSôOôAôPô ô&ô ôPôlôaônôiôlôhôaô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôPôEôPô_ôSôOôAôPôEô[ô"ôAôtôeônôdôiômôeônôtôoô ôMôÃô©ôdôiôcôoô:ô ôMôÃô©ôtôoôdôoô ôSôOôAôPôEô ô&ô ôCôIôDô-ô1ô0ô ôOôfôfôlôiônôeô"ô]ôô
+ô ô ô ô ô ô ô ô ôPôEôPô_ôPôRôEôSôCôRô[ô"ôPôrôeôsôcôrôiôÃô§ôÃô£ôoô ôMôÃô©ôdôiôcôaô ôeômô ôPôlôaônôiôlôhôaô ô+ô ôDôoôsôeô/ôVôiôaô/ôFôrôeôqôuôÃôªônôcôiôaô"ô]ôô
+ô ô ô ô ô ô ô ô ôPôEôPô_ôEôNôFô[ô"ôMôaôtôrôiôzô ôdôaô ôEônôfôeôrômôaôgôeômô:ô ôCôhôeôcôaôgôeômô ôdôeô ôAôpôlôiôcôaôÃô§ôÃô£ôoô ôdôeô ôDôoôsôeôsô"ô]ôô
+ô ô ô ô ô ô ô ô ôPôEôPô_ôPôDôFô[ô"ôEômôiôsôsôÃô£ôoô ôdôeô ôPôDôFô ôAô4ô ôOôfôiôcôiôaôlô ô(ôRôeôcôeôiôtôuôÃô¡ôrôiôoô ô&ô ôHôiôsôtôÃô³ôrôiôcôoô)ô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôFôAôRôMôAôCôIôAô ô[ô"ôïô¿ô½ôïô¿ô½ô ô1ô0ô.ô ôFôaôrômôÃô¡ôcôiôaô ô&ô ôEôsôtôoôqôuôeô"ô]ôô
+ô ô ô ô ô ô ô ô ôFôAôRôMô_ôSôEôAôRôCôHô[ô"ôPôeôsôqôuôiôsôaô ôGôlôoôbôaôlô ôdôeô ôFôÃô¡ôrômôaôcôoôsô ô(ôOôpôeônôFôDôAô ô&ô ôAôNôVôIôSôAô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôFôAôRôMô_ôSôTôOôCôKô[ô"ôCôoônôtôrôoôlôeô ôdôeô ôLôoôtôeô,ô ôVôaôlôiôdôaôdôeô ôeô ôEôsôtôoôqôuôeô ôMôÃô­ônôiômôoô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôEôSôTôAôGô ô[ô"ôâôô±ôïô¸ôô ô8ô.ô ôAôlôeôrôtôaôsô ôdôeô ôEôsôtôaôgônôaôÃô§ôÃô£ôoô ô&ô ôTôiômôeôrô ôPôSô ô1ô2ôhô"ô]ôô
+ô ô ô ô ô ô ô ô ôEôSôTô_ôTôIôMôEôRô[ô"ôTôiômôeôrô ôPôSô ô1ô2ôhô ô(ôAôzôuôlô ô<ô1ô0ôhô ô/ô ôAômôaôrôeôlôoô ô1ô0ô-ô1ô2ôhô ô/ô ôVôeôrômôeôlôhôoô ô>ô1ô2ôhô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôEôSôTô_ôAôLôEôRôTô[ô"ôAôlôeôrôtôaô ôPôuôlôsôaônôtôeô ôdôeô ôPôeôrômôaônôÃôªônôcôiôaô ôMôÃô¡ôxôiômôaô ôEôxôcôeôdôiôdôaô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôLôEôIôTôOôSô ô[ô"ôïô¿ô½ôïô¿ô½ôïô¸ôô ô9ô.ô ôCôeônôsôoô ôHôoôsôpôiôtôaôlôaôrô ô&ô ôMôaôpôaô ôdôeô ôLôeôiôtôoôsô"ô]ôô
+ô ô ô ô ô ô ô ô ôBôEôDô_ôMôAôPô[ô"ôGôrôiôdô ôdôeô ôLôeôiôtôoôsô ôTôrôiôcôoôlôoôrô ô(ôVôeôrôdôeô=ôVôaôgôoô,ô ôVôeôrômôeôlôhôoô=ôOôcôuôpôaôdôoô,ô ôAômôaôrôeôlôoô=ôHôiôgôiôeônôiôzôaôÃô§ôÃô£ôoô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôBôEôDô_ôCôLôEôAôNô[ô"ôTôrôoôcôaô ôAôuôtôoômôÃô¡ôtôiôcôaô ôdôoô ôLôeôiôtôoô ôpôaôrôaô ôHôiôgôiôeônôiôzôaôÃô§ôÃô£ôoô ôpôÃô³ôsô-ôaôlôtôaô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôKôAôNôBôAôNô ô[ô"ôïô¿ô½ôïô¿ô½ô ô1ô0ô.ô ôKôaônôbôaônô ôdôeô ôIônôtôeôrônôaôÃô§ôÃô£ôoô ô&ô ôSôLôAôsô ô(ô5ô ôSôeôtôoôrôeôsô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôKôAôNôBô_ôCôOôLôSô[ô"ô5ô ôSôeôtôoôrôeôsô:ô ôPôSô ô(ô2ô4ôhô)ô,ô ôCôoôrôrôeôdôoôrô ô(ô1ôdô)ô,ô ôCôiôrôÃôºôrôgôiôcôaô ô(ô7ôdô)ô,ô ôMôÃô©ôdôiôcôaô ô(ô1ô0ôdô)ô,ô ôUôTôIô ô(ô5ôdô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôKôAôNôBô_ôSôLôAô[ô"ôIônôdôiôcôaôdôoôrôeôsô ôVôiôsôuôaôiôsô ôdôeô ôSôLôAô ô(ôPôrôoôgôrôeôsôsôoô ôVôeôrôdôeô ô-ô>ô ôÃô‚ômôbôaôrô ô-ô>ô ôRôoôsôÃôªô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôKôAôNôBô_ôEôVôOôLô[ô"ôTôiômôeôlôiônôeô ôdôeô ôEôvôoôlôuôÃô§ôÃô£ôoô ôCôlôÃô­ônôiôcôaô ôcôoômô ôTôiômôeôsôtôaômôpô"ô]ôô
+ô ô ô ô ô ô ô ô ôKôAôNôBô_ôAôUôDôIôTô[ô"ôMôoôdôaôlô ôdôeô ôAôuôdôiôtôoôrôiôaô ôdôeô ôSôLôAôsô ô&ô ôDôeôtôaôlôhôaômôeônôtôoô ôpôoôrô ôAôlôaô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ôsôuôbôgôrôaôpôhô ôMôOôDô_ôRôEôPôOôRôTôSô ô[ô"ôïô¿ô½ôïô¿ô½ô ô1ô2ô.ô ôRôeôlôaôtôÃô³ôrôiôoôsô ô&ô ôEôxôpôoôrôtôaôÃô§ôÃô£ôoô ô(ô5ô ôCôaôrôdôsô)ô"ô]ôô
+ô ô ô ô ô ô ô ô ôRôEôPô_ôCôAôRôDôSô[ô"ô5ô ôCôaôrôdôsô:ô ôFôiônôaônôÃô§ôaôsô,ô ôAôtôeônôdôiômôeônôtôoôsô,ô ôPôEôPô,ô ôLôeôiôtôoôsô ôeô ôEôSôCôAôLôAôSô"ô]ôô
+ô ô ô ô ô ô ô ô ôRôEôPô_ôEôXôPô[ô"ôEôxôpôoôrôtôaôÃô§ôÃô£ôoô ôRôeôlôaôtôoôrôiôaôlô ôMôuôlôtôiôfôoôrômôaôtôoô:ô ôPôDôFô,ô ôEôxôcôeôlô ô(ôXôLôSôXô)ô ôeô ôCôSôVô"ô]ôô
+ô ô ô ô ôeônôdôô
+ôô
+ô ô ô ô ô%ô%ô ôCôOôRôRôEôLôAôÃô‡ôÃô•ôEôSô ôEô ôFôLôUôXôOô ôOôPôEôRôAôCôIôOôNôAôLô ôIôNôTôEôGôRôAôDôOôô
+ô ô ô ô ôAôUôTôHô_ôLôOôGôIôNô ô-ô-ô>ô ôAôUôTôHô_ôRôBôAôCôô
+ô ô ô ô ôAôUôTôHô_ôRôBôAôCô ô-ô-ô>ô|ôMôÃô©ôdôiôcôoôsô ô&ô ôEônôfôeôrômôeôiôrôoôsô|ô ôEôSôCô_ôTôAôBôô
+ô ô ô ô ôEôSôCô_ôTôAôBô ô-ô-ô>ô|ôPôrôoôfôiôsôsôiôoônôaôiôsô ôAôlôoôcôaôdôoôsô|ô ôEôSôCô_ôTôOôDôAôYôô
+ô ô ô ô ôô
+ô ô ô ô ôPôAôCô_ôFôOôRôMô ô-ô-ô>ô|ôVôaôlôiôdôaôÃô§ôÃô£ôoô ôOôKô|ô ôTôRôIô_ôMôAôNôCôHôEôSôTôEôRôô
+ô ô ô ô ôAôGô_ôBôOôOôKô ô-ô-ô>ô|ôCôhôeôgôaôdôaô ôdôoô ôPôaôcôiôeônôtôeô|ô ôTôRôIô_ôMôAôNôCôHôEôSôTôEôRôô
+ô ô ô ô ôô
+ô ô ô ô ôTôRôIô_ôMôAôNôCôHôEôSôTôEôRô ô-ô-ô>ô|ôSôoôrôtôiônôgô ôdôeô ôRôiôsôcôoô|ô ôTôRôIô_ôQôUôEôUôEôô
+ô ô ô ô ôTôRôIô_ôQôUôEôUôEô ô-ô-ô>ô|ôCôhôaômôaôdôaô ôdôeô ôPôaôcôiôeônôtôeô|ô ôTôVô_ôSôPôEôEôCôHôô
+ô ô ô ô ôTôVô_ôSôPôEôEôCôHô ô-ô-ô>ô|ôEônôcôaômôiônôhôaôdôoô ôpôaôrôaô ôCôoônôsôuôlôtôÃô³ôrôiôoô|ô ôPôEôPô_ôSôOôAôPôEôô
+ô ô ô ô ôô
+ô ô ô ô ôEôSôCô_ôTôOôDôAôYô ô-ô.ô-ô>ô|ôAôtôeônôdôiômôeônôtôoô ôMôÃô©ôdôiôcôoô/ôEônôfô|ô ôPôEôPô_ôSôOôAôPôEôô
+ô ô ô ô ôPôEôPô_ôSôOôAôPôEô ô-ô-ô>ô ôPôEôPô_ôPôRôEôSôCôRôô
+ô ô ô ô ôPôEôPô_ôPôRôEôSôCôRô ô-ô-ô>ô ôPôEôPô_ôEôNôFôô
+ô ô ô ô ôPôEôPô_ôEôNôFô ô-ô-ô>ô|ôBôaôiôxôaô ôdôeô ôIônôsôuômôoôsô|ô ôFôAôRôMô_ôSôTôOôCôKôô
+ô ô ô ô ôô
+ô ô ô ô ôPôEôPô_ôSôOôAôPôEô ô-ô-ô>ô|ôDôeôcôiôsôÃô£ôoô ôCôlôÃô­ônôiôcôaô|ô ôDôEôCôIôSôIôOôNô{ôDôeôcôiôsôÃô£ôoô ôAôsôsôiôsôtôeônôcôiôaôlô}ôô
+ô ô ô ô ôô
+ô ô ô ô ôDôEôCôIôSôIôOôNô ô-ô-ô>ô|ô1ô.ô ôAôlôtôaô ôMôÃô©ôdôiôcôaô|ô ôPôEôPô_ôPôDôFôô
+ô ô ô ô ôPôEôPô_ôPôDôFô ô-ô-ô>ô ôRôEôPô_ôCôAôRôDôSôô
+ô ô ô ô ôô
+ô ô ô ô ôDôEôCôIôSôIôOôNô ô-ô-ô>ô|ô2ô.ô ôPôeôrômôaônôÃôªônôcôiôaô ôPôSô|ô ôEôSôTô_ôTôIôMôEôRôô
+ô ô ô ô ôEôSôTô_ôTôIôMôEôRô ô-ô-ô>ô|ôAôpôrôoôxôiômôaôÃô§ôÃô£ôoô ô1ô2ôhô|ô ôEôSôTô_ôAôLôEôRôTôô
+ô ô ô ô ôEôSôTô_ôAôLôEôRôTô ô-ô-ô>ô|ôNôeôcôeôsôsôiôdôaôdôeô ôdôeô ôIônôtôeôrônôaôÃô§ôÃô£ôoô|ô ôBôEôDô_ôMôAôPôô
+ô ô ô ô ôô
+ô ô ô ô ôDôEôCôIôSôIôOôNô ô-ô-ô>ô|ô3ô.ô ôIônôtôeôrônôaôÃô§ôÃô£ôoô ôDôiôrôeôtôaô|ô ôBôEôDô_ôMôAôPôô
+ô ô ô ô ôBôEôDô_ôMôAôPô ô-ô-ô>ô|ôAôlôoôcôaôÃô§ôÃô£ôoô ôeômô ôLôeôiôtôoô ôVôaôgôoô|ô ôKôAôNôBô_ôCôOôLôSôô
+ô ô ô ô ôô
+ô ô ô ô ôKôAôNôBô_ôCôOôLôSô ô-ô-ô>ô ôKôAôNôBô_ôSôLôAôô
+ô ô ô ô ôKôAôNôBô_ôSôLôAô ô-ô-ô>ô ôKôAôNôBô_ôEôVôOôLôô
+ô ô ô ô ôKôAôNôBô_ôEôVôOôLô ô-ô-ô>ô|ôAôlôtôaô ôHôoôsôpôiôtôaôlôaôrô|ô ôBôEôDô_ôCôLôEôAôNôô
+ô ô ô ô ôBôEôDô_ôCôLôEôAôNô ô-ô-ô>ô|ôLôiôbôeôrôaôÃô§ôÃô£ôoô ôdôoô ôLôeôiôtôoô|ô ôBôEôDô_ôMôAôPôô
+ô ô ô ô ôô
+ô ô ô ô ô%ô%ô ôCôOôNôEôXôÃô•ôEôSô ôDôEô ôAôUôDôIôTôOôRôIôAô ôEô ôRôEôLôAôTôÃô“ôRôIôOôSôô
+ô ô ô ô ôPôEôPô_ôSôOôAôPôEô ô-ô.ô-ô>ô ôDôAôSôHô_ôKôPôIôô
+ô ô ô ô ôKôAôNôBô_ôAôUôDôIôTô ô-ô.ô-ô>ô ôDôAôSôHô_ôCôHôAôRôTôSôô
+ô ô ô ô ôEôSôCô_ôTôAôBô ô-ô.ô-ô>ô ôRôEôPô_ôCôAôRôDôSôô
+ô ô ô ô ôBôEôDô_ôMôAôPô ô-ô.ô-ô>ô ôRôEôPô_ôCôAôRôDôSôô
+ô ô ô ô ôRôEôPô_ôCôAôRôDôSô ô-ô-ô>ô ôRôEôPô_ôEôXôPôô
+ôô
+ô`ô`ô`ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôPôaôrôtôiôcôuôlôaôrôiôdôaôdôeôsô ôeô ôDôiôfôeôrôeônôcôiôaôiôsô ôdôaôsô ôAôbôaôsô ôdôoô ôHôeôaôlôtôhô ôNôeôxôuôsôô
+ôô
+ô|ô ô#ô ô|ô ôAôbôaô ô/ô ôMôÃô³ôdôuôlôoô ô|ô ôFôuônôcôiôoônôaôlôiôdôaôdôeôsô ôPôrôiônôcôiôpôaôiôsô ô|ô ôDôiôfôeôrôeônôcôiôaôlô ô&ô ôPôaôrôtôiôcôuôlôaôrôiôdôaôdôeôsô ô|ôô
+ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ôô
+ô|ô ô*ô*ô1ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôAôuôtôeônôtôiôcôaôÃô§ôÃô£ôoô ô&ô ôRôBôAôCô*ô*ô ô|ô ôLôoôgôiônô ôJôWôTô,ô ô2ô4ô ôcôoônôtôaôsô ôcôlôÃô­ônôiôcôaôsô/ôdôeôvôsô,ô ôpôeôrôfôiôsô ôdôeô ôaôcôeôsôsôoô ô|ô ôPôrôeôsôeôrôvôaôÃô§ôÃô£ôoô ôdôeô ôuôsôuôÃô¡ôrôiôoôsô ôeômô ôlôiômôpôeôzôaôsô,ô ôlôiôxôeôiôrôaô ôcôoômô ôcôoônôfôiôrômôaôÃô§ôÃô£ôoô,ô ôaôuôdôiôtôoôrôiôaô ôdôeô ôaôcôeôsôsôoôsô ô(ô5ô/ô1ô0ô0ô)ô.ô ô|ôô
+ô|ô ô*ô*ô2ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôDôaôsôhôbôoôaôrôdô ôEôxôeôcôuôtôiôvôoô*ô*ô ô|ô ôKôPôIôsô ôeômô ôtôeômôpôoô ôrôeôaôlô,ô ôrôeôcôeôiôtôaô,ô ôvôoôlôuômôeô ôdôeô ôaôtôeônôdôiômôeônôtôoôsô ô|ô ôGôrôÃô¡ôfôiôcôoôsô ôCôhôaôrôtô.ôjôsô ôcôlôiôcôÃô¡ôvôeôiôsô ôcôoômôoô ôbôoôtôÃôµôeôsô ôdôeô ôfôiôlôtôrôoô ôaôtôiôvôoô ôqôuôeô ôdôiôrôeôcôiôoônôaômô ôpôaôrôaô ôaôsô ôaôbôaôsô.ô ô|ôô
+ô|ô ô*ô*ô3ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ôïô¸ôô ôAôgôeônôdôaô ôdôeô ôCôoônôsôuôlôtôaôsô*ô*ô ô|ô ôMôaôrôcôaôÃô§ôÃô£ôoô ôdôeô ôcôoônôsôuôlôtôaôsô,ô ôsôeôlôeôÃô§ôÃô£ôoô ôdôeô ômôÃô©ôdôiôcôoô ôeô ôsôaôlôaô ô|ô ôKôPôIô ôcôaôrôdôsô ôcôlôiôcôÃô¡ôvôeôiôsô ôpôoôrô ôsôtôaôtôuôsô ô(ôCôoônôfôiôrômôaôdôoô,ô ôAôtôeônôdôiômôeônôtôoô,ô ôCôoônôcôlôuôÃô­ôdôoô)ô.ô ô|ôô
+ô|ô ô*ô*ô4ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôPôaôcôiôeônôtôeôsô ô(ôSôUôSô)ô*ô*ô ô|ô ôAôdômôiôsôsôÃô£ôoô ô1ô1ô ôcôaômôpôoôsô ôSôUôSô,ô ôCôEôPô ôaôuôtôoômôÃô¡ôtôiôcôoô ôVôiôaôCôEôPô ô|ô ôVôaôlôiôdôaôÃô§ôÃô£ôoô ôrôiôgôoôrôoôsôaô ôdôeô ôrôeôsôpôoônôsôÃô¡ôvôeôlô ôlôeôgôaôlô ô(ô<ô1ô8ô/ô>ô6ô5ô)ô,ô ôbôuôsôcôaô ôpôoôrô ôNôoômôeô/ôCôPôFô,ô ôLôiôxôeôiôrôaô ôsôoôfôtô-ôdôeôlôeôtôeô.ô ô|ôô
+ô|ô ô*ô*ô5ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôAôtôeônôdôiômôeônôtôoôsô ô&ô ôTôrôiôaôgôeômô*ô*ô ô|ô ôFôiôlôaô ôvôiôsôuôaôlô ôKôaônôbôaônô,ô ôcôlôaôsôsôiôfôiôcôaôÃô§ôÃô£ôoô ôdôeô ôrôiôsôcôoô ôMôaônôcôhôeôsôtôeôrô ô|ô ôSôoôrôtôiônôgô ôdôeô ôpôrôiôoôrôiôdôaôdôeô ôpôoôrô ôcôoôrô ôdôeô ôrôiôsôcôoô ôaôuôtôoômôÃô¡ôtôiôcôoô ô+ô ôcôhôaômôaôdôaô ônôoô ôPôaôiônôeôlô ôTôVô.ô ô|ôô
+ô|ô ô*ô*ô6ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôPôaôiônôeôlô ôTôVô ô(ôCôhôaômôaôdôoôrô)ô*ô*ô ô|ô ôAônôÃôºônôcôiôoô ôpôaôrôaô ôsôaôlôaô ôdôeô ôeôsôpôeôrôaô ôeômô ôtôeôlôaô ôcôhôeôiôaô ô|ô ô*ô*ôWôeôbô ôSôpôeôeôcôhô ôAôPôIô*ô*ô:ô ôcôhôaômôaôdôaô ôeômô ôvôiôvôaô ôvôoôzô ôsôiônôtôeôtôiôzôaôdôaô ôeômô ôpôoôrôtôuôgôuôÃôªôsô.ô ô|ôô
+ô|ô ô*ô*ô7ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôPôrôoônôtôuôÃô¡ôrôiôoô ôPôEôPô ô(ôSôOôAôPôEô)ô*ô*ô ô|ô ôAôtôeônôdôiômôeônôtôoô ômôÃô©ôdôiôcôoô,ô ôCôIôDô-ô1ô0ô,ô ôpôrôeôsôcôrôiôÃô§ôÃôµôeôsô ôeô ôeôvôoôlôuôÃô§ôÃôµôeôsô ô|ô ôBôuôsôcôaô ôCôIôDô-ô1ô0ô ôoôfôfôlôiônôeô,ô ôpôrôeôsôcôrôiôÃô§ôÃô£ôoô ôeômô ôpôlôaônôiôlôhôaô,ô ôMôaôtôrôiôzô ôdôaô ôEônôfôeôrômôaôgôeômô ôpôaôrôaô ôcôhôeôcôaôgôeômô,ô ôPôDôFô ôAô4ô.ô ô|ôô
+ô|ô ô*ô*ô8ô*ô*ô ô|ô ô*ô*ôâôô±ôïô¸ôô ôAôlôeôrôtôaôsô ô&ô ôEôsôtôaôgônôaôÃô§ôÃô£ôoô*ô*ô ô|ô ôMôoônôiôtôoôrôaômôeônôtôoô ôdôeô ôgôaôrôgôaôlôoôsô ôeô ôpôeôrômôaônôÃôªônôcôiôaô ôPôSô ô|ô ôTôiômôeôrô ôPôSô ô1ô2ôhô ô(ôAôzôuôlô ô<ô1ô0ôhô ô/ô ôAômôaôrôeôlôoô ô1ô0ô-ô1ô2ôhô ô/ô ôVôeôrômôeôlôhôoô ô>ô1ô2ôhô ôpôuôlôsôaônôtôeô)ô.ô ô|ôô
+ô|ô ô*ô*ô9ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ôïô¸ôô ôCôeônôsôoô ôdôeô ôLôeôiôtôoôsô*ô*ô ô|ô ôMôaôpôaô ôvôiôsôuôaôlô ôdôeô ôlôeôiôtôoôsô ôhôoôsôpôiôtôaôlôaôrôeôsô ô|ô ôCôaôrôdôsô ôtôrôiôcôoôlôoôrôeôsô ô(ôVôeôrôdôeô=ôVôaôgôoô,ô ôVôeôrômôeôlôhôoô=ôOôcôuôpôaôdôoô,ô ôAômôaôrôeôlôoô=ôHôiôgôiôeônôiôzôaôÃô§ôÃô£ôoô ôaôuôtôoômôÃô¡ôtôiôcôaô ôpôÃô³ôsô-ôaôlôtôaô)ô.ô ô|ôô
+ô|ô ô*ô*ô1ô0ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôKôaônôbôaônô ôdôeô ôIônôtôeôrônôaôÃô§ôÃô£ôoô*ô*ô ô|ô ôGôeôsôtôÃô£ôoô ôdôeô ôiônôtôeôrônôaôdôoôsô ôpôoôrô ô5ô ôsôeôtôoôrôeôsô ô|ô ôMôeôtôaôsô ôdôeô ôpôeôrômôaônôÃôªônôcôiôaô ô(ôSôLôAô)ô ôdôiônôÃô¢ômôiôcôaôsô,ô ôtôiômôeôlôiônôeô ôdôeô ôeôvôoôlôuôÃô§ôÃô£ôoô ôcôlôÃô­ônôiôcôaô,ô ôaôuôdôiôtôoôrôiôaô ôdôeô ôaôtôrôaôsôoôsô.ô ô|ôô
+ô|ô ô*ô*ô1ô1ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôEôsôcôaôlôaôsô ôdôeô ôTôrôaôbôaôlôhôoô*ô*ô ô|ô ôGôeôsôtôÃô£ôoô ôdôeô ôpôlôaônôtôÃôµôeôsô ôdôeô ôMôÃô©ôdôiôcôoôsô ôeô ôEônôfôeôrômôeôiôrôoôsô ô|ô ôOôrôeôlôhôaôsô/ôsôuôbô-ôaôbôaôsô ôdôeôdôiôcôaôdôaôsô,ô ôtôuôrônôoôsô ô(ô6ôhô,ô ô1ô2ôhô,ô ô2ô4ôhô,ô ô1ô2ôxô3ô6ô)ô,ô ôgôaôrôaônôtôiôaô ôdôeô ôpôlôaônôtôÃô£ôoô ôaôtôiôvôaôdôoô ôpôaôrôaô ôHôOôJôEô.ô ô|ôô
+ô|ô ô*ô*ô1ô2ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôFôaôrômôÃô¡ôcôiôaô ô&ô ôEôsôtôoôqôuôeô*ô*ô ô|ô ôCôoônôtôrôoôlôeô ôdôeô ôeôsôtôoôqôuôeô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô ôeô ôiônôsôuômôoôsô ô|ô ôPôeôsôqôuôiôsôaô ôgôlôoôbôaôlô ôdôeô ôfôÃô¡ôrômôaôcôoôsô ôeômô ôtôeômôpôoô ôrôeôaôlô ôvôiôaô ôOôpôeônôFôDôAô ô/ô ôAôNôVôIôSôAô ôpôoôrô ôpôrôiônôcôÃô­ôpôiôoô ôaôtôiôvôoô.ô ô|ôô
+ô|ô ô*ô*ô1ô3ô*ô*ô ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôRôeôlôaôtôÃô³ôrôiôoôsô ô&ô ôEôxôpôoôrôtôaôÃô§ôÃô£ôoô*ô*ô|ô ô5ô ôcôaôrôdôsô ôeôsôpôeôcôiôaôlôiôzôaôdôoôsô ôdôeô ôeômôiôsôsôÃô£ôoô ôrôeôlôaôtôoôrôiôaôlô ô|ô ôEôxôpôoôrôtôaôÃô§ôÃô£ôoô ômôuôlôtôiôfôoôrômôaôtôoô ô(ô*ô*ôPôDôFô*ô*ô,ô ô*ô*ôEôxôcôeôlô ôXôLôSôXô*ô*ô,ô ô*ô*ôCôSôVô*ô*ô)ô ôpôaôrôaô ôFôiônôaônôÃô§ôaôsô,ô ôAôtôeônôdôiômôeônôtôoôsô,ô ôPôEôPô,ô ôLôeôiôtôoôsô ôeô ôEôsôcôaôlôaôsô.ô ô|ôô
+ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôSôuômôÃô¡ôrôiôoô ôEôxôeôcôuôtôiôvôoôô
+ô-ô ô1ô.ô ô[ôVôiôsôÃô£ôoô ôGôeôrôaôlô ô&ô ôAôrôqôuôiôtôeôtôuôrôaô ôdôoô ôFôlôuôxôoô ôHôoôsôpôiôtôaôlôaôrô]ô(ô#ôsôeôcô-ô1ô)ôô
+ô-ô ô2ô.ô ô[ôCôeônôtôrôaôlô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô ô&ô ôPôaôiônôeôlô ôKôaônôbôaônô]ô(ô#ôsôeôcô-ô2ô)ôô
+ô ô ô-ô ô2ô.ô1ô.ô ô[ôCôaôrôdôsô ôMôÃô©ôtôrôiôcôoôsô ôeô ôFôiôlôtôrôoôsô ôdôeô ôFôiôlôaô]ô(ô#ôsôeôcô-ô2ô-ô1ô)ôô
+ô ô ô-ô ô2ô.ô2ô.ô ô[ôFôiôlôaô ô1ô:ô ôAôgôuôaôrôdôaônôdôoô ôTôrôiôaôgôeômô ô(ôPôrôoôtôoôcôoôlôoô ôdôeô ôMôaônôcôhôeôsôtôeôrô)ô]ô(ô#ôsôeôcô-ô2ô-ô2ô)ôô
+ô ô ô-ô ô2ô.ô3ô.ô ô[ôFôiôlôaô ô2ô:ô ôAôgôuôaôrôdôaônôdôoô ôMôÃô©ôdôiôcôoô ô(ôCôhôaômôaôdôaô ôdôeô ôCôoônôsôuôlôtôÃô³ôrôiôoô)ô]ô(ô#ôsôeôcô-ô2ô-ô3ô)ôô
+ô ô ô-ô ô2ô.ô4ô.ô ô[ôFôiôlôaô ô3ô:ô ôEômô ôAôtôeônôdôiômôeônôtôoô ô(ôAôÃô§ôÃôµôeôsô ôdôoô ôMôÃô©ôdôiôcôoô)ô]ô(ô#ôsôeôcô-ô2ô-ô4ô)ôô
+ô-ô ô3ô.ô ô[ôPôrôoônôtôuôÃô¡ôrôiôoô ôEôlôeôtôrônôiôcôoô ôdôoô ôPôaôcôiôeônôtôeô ô(ôPôEôPô ôâô€ô”ô ôMôÃô©ôtôoôdôoô ôSôOôAôPô)ô]ô(ô#ôsôeôcô-ô3ô)ôô
+ô ô ô-ô ô3ô.ô1ô.ô ô[ôEôsôtôrôuôtôuôrôaô ôSôOôAôPô]ô(ô#ôsôeôcô-ô3ô-ô1ô)ôô
+ô ô ô-ô ô3ô.ô2ô.ô ô[ôAôuôtôoôcôoômôpôlôeôtôeô ôCôIôDô-ô1ô0ô]ô(ô#ôsôeôcô-ô3ô-ô2ô)ôô
+ô ô ô-ô ô3ô.ô3ô.ô ô[ôAôsôsôiônôaôtôuôrôaô ôEôlôeôtôrônôiôcôaô ôeô ôEôxôpôoôrôtôaôÃô§ôÃô£ôoô ôPôDôFô]ô(ô#ôsôeôcô-ô3ô-ô3ô)ôô
+ô-ô ô4ô.ô ô[ôGôuôiôaô ôCôoômôpôlôeôtôoô ôdôeô ôTôoôdôoôsô ôoôsô ôMôoôdôaôiôsô ôdôoô ôSôiôsôtôeômôaô]ô(ô#ôsôeôcô-ô4ô)ôô
+ô ô ô-ô ô4ô.ô1ô.ô ô[ôMôoôdôaôlô ôdôeô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô]ô(ô#ôsôeôcô-ô4ô-ô1ô)ôô
+ô ô ô-ô ô4ô.ô2ô.ô ô[ôMôoôdôaôlô ôdôeô ôPôrôeôsôcôrôiôÃô§ôÃô£ôoô ô&ô ôRôeôcôeôiôtôuôÃô¡ôrôiôoô ôMôÃô©ôdôiôcôoô]ô(ô#ôsôeôcô-ô4ô-ô2ô)ôô
+ô ô ô-ô ô4ô.ô3ô.ô ô[ôMôoôdôaôlô ôdôeô ôTôrôaônôsôfôeôrôÃôªônôcôiôaô ô&ô ôAôlôoôcôaôÃô§ôÃô£ôoô ôdôeô ôLôeôiôtôoô]ô(ô#ôsôeôcô-ô4ô-ô3ô)ôô
+ô ô ô-ô ô4ô.ô4ô.ô ô[ôMôoôdôaôlô ôdôeô ôNôoôvôaô ôAôdômôiôsôsôÃô£ôoô ô&ô ôEônôtôrôaôdôaô ôdôeô ôPôaôcôiôeônôtôeô]ô(ô#ôsôeôcô-ô4ô-ô4ô)ôô
+ô ô ô-ô ô4ô.ô5ô.ô ô[ôMôoôdôaôlô ôdôeô ôDôiôrôeôcôiôoônôaômôeônôtôoô ô&ô ôRôeôaôtôrôiôbôuôiôÃô§ôÃô£ôoô ôdôeô ôFôiôlôaô]ô(ô#ôsôeôcô-ô4ô-ô5ô)ôô
+ô ô ô-ô ô4ô.ô6ô.ô ô[ôMôoôdôaôlô ôdôeô ôHôiôsôtôÃô³ôrôiôcôoô ôPôÃô³ôsô-ôAôlôtôaô ô&ô ôPôrôoônôtôuôÃô¡ôrôiôoô ôCôoônôsôoôlôiôdôaôdôoô]ô(ô#ôsôeôcô-ô4ô-ô6ô)ôô
+ô ô ô-ô ô4ô.ô7ô.ô ô[ôMôoôdôaôlô ôdôeô ôAôpôrôoôvôaôÃô§ôÃô£ôoô ôdôeô ôAôcôeôsôsôoô ôdôeô ôUôsôuôÃô¡ôrôiôoôsô]ô(ô#ôsôeôcô-ô4ô-ô7ô)ôô
+ô ô ô-ô ô4ô.ô8ô.ô ô[ôMôoôdôaôlô ôdôeô ôGôeôsôtôÃô£ôoô ôdôeô ôUôsôuôÃô¡ôrôiôoôsô ô&ô ôTôrôoôcôaô ôdôeô ôPôeôrôfôiôlô]ô(ô#ôsôeôcô-ô4ô-ô8ô)ôô
+ô-ô ô5ô.ô ô[ôGôeôsôtôÃô£ôoô ôdôeô ôPôaôcôiôeônôtôeôsô ô&ô ôHôiôsôtôÃô³ôrôiôcôoô ôCôlôÃô­ônôiôcôoô]ô(ô#ôsôeôcô-ô5ô)ôô
+ô-ô ô6ô.ô ô[ôGôeôsôtôÃô£ôoô ôdôaô ôEôqôuôiôpôeô ôMôÃô©ôdôiôcôaô ô&ô ôCôoôrôpôoô ôCôlôÃô­ônôiôcôoô]ô(ô#ôsôeôcô-ô6ô)ôô
+ô-ô ô7ô.ô ô[ôGôeôsôtôÃô£ôoô ôdôeô ôCôoônôsôuôlôtôÃô³ôrôiôoôsô ô&ô ôSôaôlôaôsô ôdôeô ôAôtôeônôdôiômôeônôtôoô]ô(ô#ôsôeôcô-ô7ô)ôô
+ô-ô ô8ô.ô ô[ôGôeôsôtôÃô£ôoô ôdôeô ôLôeôiôtôoôsô ô&ô ôHôoôsôpôiôtôaôlôiôzôaôÃô§ôÃô£ôoô]ô(ô#ôsôeôcô-ô8ô)ôô
+ô-ô ô9ô.ô ô[ôAôgôeônôdôaô,ô ôEôsôcôaôlôaô ôMôÃô©ôdôiôcôaô ô&ô ôCôoônôsôuôlôtôaôsô ôEôlôeôtôiôvôaôsô]ô(ô#ôsôeôcô-ô9ô)ôô
+ô-ô ô1ô0ô.ô ô[ôFôaôrômôÃô¡ôcôiôaô ô&ô ôDôiôsôpôeônôsôaôÃô§ôÃô£ôoô ôdôeô ôMôeôdôiôcôaômôeônôtôoôsô]ô(ô#ôsôeôcô-ô1ô0ô)ôô
+ô-ô ô1ô1ô.ô ô[ôFôaôtôuôrôaômôeônôtôoô,ô ôGôuôiôaôsô ôTôIôSôSô ô&ô ôGôeôsôtôÃô£ôoô ôFôiônôaônôcôeôiôrôaô]ô(ô#ôsôeôcô-ô1ô1ô)ôô
+ô-ô ô1ô2ô.ô ô[ôRôeôlôaôtôÃô³ôrôiôoôsô ôAônôaôlôyôtôiôcôsô ô&ô ôIônôdôiôcôaôdôoôrôeôsô ôHôoôsôpôiôtôaôlôaôrôeôsô]ô(ô#ôsôeôcô-ô1ô2ô)ôô
+ô-ô ô1ô3ô.ô ô[ôPôaôiônôeôlô ôdôeô ôCôhôaômôaôdôaô ôTôVô ô(ôRôeôcôeôpôÃô§ôÃô£ôoô)ô]ô(ô#ôsôeôcô-ô1ô3ô)ôô
+ô-ô ô1ô4ô.ô ô[ôCôeônôtôrôaôlô ôdôeô ôEôsôtôaôgônôaôÃô§ôÃô£ôoô ô&ô ôAôpôrôoôvôaôÃô§ôÃôµôeôsô ôdôeô ôAôcôeôsôsôoô]ô(ô#ôsôeôcô-ô1ô4ô)ôô
+ô-ô ô1ô5ô.ô ô[ôCôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô,ô ôBôaôcôkôuôpô ôeô ôSôiônôcôrôoônôiôzôaôÃô§ôÃô£ôoô ôeômô ôNôuôvôeômô]ô(ô#ôsôeôcô-ô1ô5ô)ôô
+ô-ô ô1ô6ô.ô ô[ôSôiôsôtôeômôaô ôdôeô ôAôvôiôsôoôsô,ô ôNôoôtôiôfôiôcôaôÃô§ôÃôµôeôsô ô&ô ôTôoôaôsôtôsô]ô(ô#ôsôeôcô-ô1ô6ô)ôô
+ô-ô ô1ô7ô.ô ô[ôTôaôbôeôlôaô ôdôeô ôMôÃô¡ôsôcôaôrôaôsô,ô ôAôtôaôlôhôoôsô ô&ô ôTôeôcôlôaôsô ôdôeô ôAôtôaôlôhôoô]ô(ô#ôsôeôcô-ô1ô7ô)ôô
+ô-ô ô1ô8ô.ô ô[ôSôoôlôuôÃô§ôÃô£ôoô ôdôeô ôDôÃôºôvôiôdôaôsô ôFôrôeôqôuôeônôtôeôsô ô&ô ôEôrôrôoôsô ôCôoômôuônôsô ô(ôFôAôQô)ô]ô(ô#ôsôeôcô-ô1ô8ô)ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô"ô>ô1ô.ô ôVôiôsôÃô£ôoô ôGôeôrôaôlô ô&ô ôAôrôqôuôiôtôeôtôuôrôaô ôdôoô ôFôlôuôxôoô ôHôoôsôpôiôtôaôlôaôrô<ô/ôhô2ô>ôô
+ôô
+ôOô ô*ô*ôHôeôaôlôtôhô ôNôeôxôuôsô*ô*ô ôoôrôgôaônôiôzôaô ôaô ôjôoôrônôaôdôaô ôaôsôsôiôsôtôeônôcôiôaôlô ôdôoô ôpôaôcôiôeônôtôeô ôdôeôsôdôeô ôaô ôrôeôcôeôpôÃô§ôÃô£ôoô ôaôtôÃô©ô ôaô ôaôlôtôaô ôdôeôfôiônôiôtôiôvôaô ôoôuô ôiônôtôeôrônôaôÃô§ôÃô£ôoô ôeômô ôUôTôIô/ôEônôfôeôrômôaôrôiôaô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôDôiôaôgôrôaômôaô ôdôeô ôFôlôuôxôoô ôdôaô ôJôoôrônôaôdôaô ôAôsôsôiôsôtôeônôcôiôaôlôô
+ô`ô`ô`ômôeôrômôaôiôdôô
+ôgôrôaôpôhô ôTôDôô
+ô ô ô ô ôAô[ô"ôïô¿ô½ôïô¿ô½ô ôRôeôcôeôpôÃô§ôÃô£ôoô ô/ô ôAôdômôiôsôsôÃô£ôoô"ô]ô ô-ô-ô>ô ôBô[ô"ôïô¿ô½ôïô¿ô½ô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô"ô]ôô
+ô ô ô ô ôBô ô-ô-ô>ô ôCô{ô"ôCôlôaôsôsôiôfôiôcôaôÃô§ôÃô£ôoô ôdôeô ôRôiôsôcôoô"ô}ôô
+ô ô ô ô ôCô ô-ô-ô>ô|ô"ôïô¿ô½ôïô¿ô½ô ôVôeôrômôeôlôhôoô ô(ô0ômô)ô"ô|ô ôDô1ô[ô"ôïô¿ô½ôïô¿ô½ô ôSôaôlôaô ôVôeôrômôeôlôhôaô ô(ôEômôeôrôgôÃôªônôcôiôaô)ô"ô]ôô
+ô ô ô ô ôCô ô-ô-ô>ô|ô"ôïô¿ô½ôïô¿ô½ô ôLôaôrôaônôjôaô ô(ô1ô0ômô)ô"ô|ô ôDô2ô[ô"ôâôšô¡ô ôAôtôeônôdôiômôeônôtôoô ôIômôeôdôiôaôtôoô"ô]ôô
+ô ô ô ô ôCô ô-ô-ô>ô|ô"ôïô¿ô½ôïô¿ô½ô ôAômôaôrôeôlôoô ô(ô6ô0ômô)ô"ô|ô ôDô3ô[ô"ôâôô³ô ôFôiôlôaô ôUôrôgôeônôtôeô"ô]ôô
+ô ô ô ô ôCô ô-ô-ô>ô|ô"ôïô¿ô½ôïô¿ô½ô ôVôeôrôdôeô ô(ô1ô2ô0ômô)ô"ô|ô ôDô4ô[ô"ôâôô³ô ôFôiôlôaô ôPôoôuôcôoô ôUôrôgôeônôtôeô"ô]ôô
+ô ô ô ô ôCô ô-ô-ô>ô|ô"ôïô¿ô½ôïô¿ô½ô ôAôzôuôlô ô(ô2ô4ô0ômô)ô"ô|ô ôDô5ô[ô"ôâôô³ô ôFôiôlôaô ôNôÃô£ôoô ôUôrôgôeônôtôeô"ô]ôô
+ô ô ô ô ôDô1ô ô&ô ôDô2ô ô&ô ôDô3ô ô&ô ôDô4ô ô&ô ôDô5ô ô-ô-ô>ô ôEô[ô"ôïô¿ô½ôïô¿ô½ô ôCôhôaômôaôdôaô ôPôaôiônôeôlô ôTôVô ô/ô ôCôoônôsôuôlôtôÃô³ôrôiôoô"ô]ôô
+ô ô ô ô ôEô ô-ô-ô>ô ôFô[ô"ôïô¿ô½ôïô¿ô½ô ôAôtôeônôdôiômôeônôtôoô ôMôÃô©ôdôiôcôoô ô(ôPôEôPô ôSôOôAôPô)ô"ô]ôô
+ô ô ô ô ôFô ô-ô-ô>ô ôGô{ô"ôCôoônôdôuôtôaô ôFôiônôaôlô"ô}ôô
+ô ô ô ô ôGô ô-ô-ô>ô|ô"ôAôlôtôaô ôMôÃô©ôdôiôcôaô"ô|ô ôHô[ô"ôâôœô…ô ôCôoônôcôlôuôsôÃô£ôoô ô&ô ôRôeôcôeôiôtôaô"ô]ôô
+ô ô ô ô ôGô ô-ô-ô>ô|ô"ôOôbôsôeôrôvôaôÃô§ôÃô£ôoô ôPôSô ô(ô1ô2ôhô ômôaôxô)ô"ô|ô ôIô[ô"ôïô¿ô½ôïô¿ô½ô ôCôaôrôdô ôdôeô ôOôbôsôeôrôvôaôÃô§ôÃô£ôoô ôcôoômô ôCôrôoônômôeôtôrôoô"ô]ôô
+ô ô ô ô ôGô ô-ô-ô>ô|ô"ôNôeôcôeôsôsôiôdôaôdôeô ôdôeô ôLôeôiôtôoô"ô|ô ôJô[ô"ôïô¿ô½ôïô¿ô½ôïô¸ôô ôTôrôaônôsôfôeôrôÃôªônôcôiôaô ôpôaôrôaô ôEônôfôeôrômôaôrôiôaô ô/ô ôUôTôIô"ô]ôô
+ô`ô`ô`ôô
+ôô
+ô#ô#ô#ô ô�ô�ô ôPôeôrôfôiôsô ôdôeô ôAôcôeôsôsôoô ô&ô ôMôaôtôrôiôzô ôdôeô ôPôeôrômôiôsôsôõôeôsôô
+ô|ô ôPôeôrôfôiôlô ô|ô ôAôcôeôsôsôoô ôVôiôsôuôaôlô ôàôsô ôAôbôaôsô ô|ô ôPôrôoônôtôuôáôrôiôoô ô(ôPôEôPô)ô ô|ô ôTôrôiôaôgôeômô ôMôaônôcôhôeôsôtôeôrô ô|ô ôPôrôeôsôcôrôiôçôãôoô ôPôlôaônôiôlôhôaô ô|ô ôGôeôsôtôãôoô ôdôeô ôLôeôiôtôoôsô ô|ô ôFôiônôaônôcôeôiôrôoô ô|ô ôLôiôxôeôiôrôaô ô/ô ôSôyônôcô ô|ôô
+ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ô-ô-ô-ô|ôô
+ô|ô ô*ô*ô�ô�ô ôMôaôsôtôeôrô ô/ô ôAôdômôiônô*ô*ô ô|ô ôTôoôdôaôsô ôaôsô ôaôbôaôsô ô|ô ôTôoôtôaôlô ô|ô ôTôoôtôaôlô ô|ô ôTôoôtôaôlô ô|ô ôTôoôtôaôlô ô|ô ôTôoôtôaôlô ô|ô ôEôxôcôlôuôsôiôvôoô ô|ôô
+ô|ô ô*ô*ô�ô�ô ôMôéôdôiôcôoô*ô*ô ô|ô ôDôaôsôhôbôoôaôrôdô,ô ôPôaôcôiôeônôtôeôsô,ô ôAôtôeônôdôiômôeônôtôoô,ô ôLôeôiôtôoôsô,ô ôFôaôrômôáôcôiôaô,ô ôRôeôlôaôtôóôrôiôoôsô ô|ô ôAôsôsôiônôaôtôuôrôaô ôSôOôAôPôEô ô|ô ôCôoônôsôuôlôtôaô ô|ô ôCôrôiôaôçôãôoô ôdôeô ôPôlôaônôiôlôhôaô ô|ô ôSôoôlôiôcôiôtôaôçôãôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ôô
+ô|ô ô*ô*ô�ô�ô ôEônôfôeôrômôeôiôrôoô(ôaô)ô*ô*ô ô|ô ôDôaôsôhôbôoôaôrôdô,ô ôPôaôcôiôeônôtôeôsô,ô ôAôtôeônôdôiômôeônôtôoô,ô ôLôeôiôtôoôsô,ô ôFôaôrômôáôcôiôaô ô|ô ôLôeôiôtôuôrôaô ô|ô ôEôxôeôcôuôçôãôoô ôMôaônôcôhôeôsôtôeôrô ô|ô ôCôhôeôcôaôgôeômô ôdôeô ôDôoôsôeôsô ô|ô ôGôeôsôtôãôoô ô/ô ôTôrôaônôsôfôeôrôêônôcôiôaô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ôô
+ô|ô ô*ô*ô�ô�ô ôRôeôcôeôpôcôiôoônôiôsôtôaô*ô*ô ô|ô ôDôaôsôhôbôoôaôrôdô,ô ôPôaôcôiôeônôtôeôsô,ô ôAôgôeônôdôaô,ô ôAôtôeônôdôiômôeônôtôoô,ô ôPôaôiônôeôlô ôTôVô,ô ôCôaôiôxôaô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôAôpôeônôaôsô ôEônôtôrôaôdôaôsô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ôô
+ô|ô ô*ô*ô�ô�ô ôFôaôrômôaôcôêôuôtôiôcôoô(ôaô)ô*ô*ô|ô ôDôaôsôhôbôoôaôrôdô,ô ôPôaôcôiôeônôtôeôsô,ô ôFôaôrômôáôcôiôaô,ô ôRôeôlôaôtôóôrôiôoôsô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ô ôBôlôoôqôuôeôaôdôoô ô|ôô
+ôô
+ô#ô#ô#ô ô�ô�ô ôAôsôsôiôsôtôeônôtôeô ôdôeô ôIôAô ôLôoôcôaôlô ô(ôMôaônôuôaôlô ôIônôtôeôrôaôtôiôvôoô)ôô
+ôô
+ôOô ôsôiôsôtôeômôaô ôpôoôsôsôuôiô ôuômô ô*ô*ôAôsôsôiôsôtôeônôtôeô ôIôAô ôIônôtôeôgôrôaôdôoô*ô*ô ônôaô ôbôuôsôcôaô ôdôoô ôMôaônôuôaôlô.ô ôAôoô ôfôaôzôeôrô ôpôeôrôgôuônôtôaôsô ôeômô ôlôiônôgôuôaôgôeômô ônôaôtôuôrôaôlô ô(ôeôxô:ô ô"ôcôoômôoô ôiônôcôlôuôiôrô ôuômô ôpôaôcôiôeônôtôeô?ô"ô)ô,ô ôaô ôIôAô ôcôoôrôrôeôlôaôcôiôoônôaô ôaô ôiônôtôeônôçôãôoô ôcôoômô ôoôsô ôbôoôtôõôeôsô ôeô ômôóôdôuôlôoôsô ôdôoô ôsôiôsôtôeômôaô.ôô
+ôô
+ô*ô*ôSôeôgôuôrôaônôçôaô ôRôBôAôCô ônôaô ôIôAô:ô*ô*ô ôAô ôIôAô ôtôeômô ôpôlôeônôaô ôcôoônôsôcôiôêônôcôiôaô ôdôoô ôpôeôrôfôiôlô ôdôeô ôaôcôeôsôsôoô ôdôoô ôuôsôuôáôrôiôoô.ô ôSôeô ôuômô ôuôsôuôáôrôiôoô ôpôeôsôqôuôiôsôaôrô ôpôoôrô ôuômôaô ôfôuônôcôiôoônôaôlôiôdôaôdôeô ôrôeôsôtôrôiôtôaô ôaô ôuômô ôpôeôrôfôiôlô ôsôuôpôeôrôiôoôrô ô(ôeôxô:ô ôuômô ôMôéôdôiôcôoô ôpôeôsôqôuôiôsôaônôdôoô ôsôoôbôrôeô ô"ôCôoônôtôrôoôlôeô ôdôeô ôPôeôrôfôiôsô"ô)ô,ô ôaô ôIôAô ônôãôoô ôiônôsôtôrôuôiôrôáô ôsôoôbôrôeô ôoô ômôóôdôuôlôoô;ô ôeômô ôvôeôzô ôdôiôsôsôoô,ô ôiônôfôoôrômôaôrôáô ôcôlôaôrôaômôeônôtôeô ôqôuôeô ôoô ôuôsôuôáôrôiôoô ôlôoôgôaôdôoô ônôãôoô ôpôoôsôsôuôiô ôpôeôrômôiôsôsôãôoô ôpôaôrôaô ôeôxôeôcôuôtôaôrô ôaô ôaôçôãôoô ôsôoôlôiôcôiôtôaôdôaô,ô ôcôiôtôaônôdôoô ôoôsô ôpôeôrôfôiôsô ôaôuôtôoôrôiôzôaôdôoôsô.ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô2ô"ô>ô2ô.ô ôCôeônôtôrôaôlô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô ô&ô ôPôaôiônôeôlô ôKôaônôbôaônô<ô/ôhô2ô>ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô2ô-ô1ô"ô>ô2ô.ô1ô.ô ôCôaôrôdôsô ôMôÃô©ôtôrôiôcôoôsô ôeô ôFôiôlôtôrôoôsô ôdôeô ôFôiôlôaô<ô/ôhô3ô>ôô
+ôNôoô ôtôoôpôoô ôdôaô ôaôbôaô ô*ô*ôAôtôeônôdôiômôeônôtôoôsô*ô*ô,ô ôeônôcôoônôtôrôaômô-ôsôeô ôoôsô ô4ô ô*ô*ôCôaôrôdôsô ôMôÃô©ôtôrôiôcôoôsô ôCôlôiôcôÃô¡ôvôeôiôsô*ô*ô ôpôaôrôaô ôcôoônôtôrôoôlôeô ôiômôeôdôiôaôtôoô ôdôoô ôfôlôuôxôoô:ôô
+ôô
+ô|ô ôCôaôrôdô ô|ô ôÃôôcôoônôeô ô|ô ôCôoôrô ôTôeômôaô ô|ô ôAôÃô§ôÃô£ôoô ôaôoô ôCôlôiôcôaôrô ô|ô ôDôeôsôcôrôiôÃô§ôÃô£ôoô ô/ô ôOôbôjôeôtôiôvôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôTôrôiôaôgôeômô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ô|ô ôRôoôxôoô ô(ô`ô#ô8ôbô5ôcôfô6ô`ô)ô ô|ô ô`ôfôiôlôtôeôrôKôaônôbôaônôCôoôlôuômônô(ô'ôtôrôiôaôgôeô'ô)ô`ô ô|ô ôFôiôlôtôrôaô ôaô ôtôeôlôaô ôpôaôrôaô ôeôxôiôbôiôrô ôeôxôcôlôuôsôiôvôaômôeônôtôeô ôaô ôcôoôlôuônôaô ôdôeô ôpôaôcôiôeônôtôeôsô ôaôgôuôaôrôdôaônôdôoô ôtôrôiôaôgôeômô ôdôaô ôeônôfôeôrômôaôgôeômô.ô ô|ôô
+ô|ô ô*ô*ôAôgô.ô ôMôÃô©ôdôiôcôoô*ô*ô ô|ô ôâôŒô›ô ô|ô ôAômôaôrôeôlôoô ô(ô`ô#ôfô5ô9ôeô0ôbô`ô)ô ô|ô ô`ôfôiôlôtôeôrôKôaônôbôaônôCôoôlôuômônô(ô'ôwôaôiôtôiônôgô'ô)ô`ô ô|ô ôFôiôlôtôrôaô ôaô ôtôeôlôaô ôpôaôrôaô ôeôxôiôbôiôrô ôaôpôeônôaôsô ôoôsô ôpôaôcôiôeônôtôeôsô ôtôrôiôaôdôoôsô ôaôgôuôaôrôdôaônôdôoô ôcôhôaômôaôdôaô ôdôoô ômôÃô©ôdôiôcôoô.ô ô|ôô
+ô|ô ô*ô*ôEômô ôCôoônôsôuôlôtôaô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ô|ô ôVôeôrôdôeô ô(ô`ô#ô1ô0ôbô9ô8ô1ô`ô)ô ô|ô ô`ôfôiôlôtôeôrôKôaônôbôaônôCôoôlôuômônô(ô'ôaôcôtôiôvôeô'ô)ô`ô ô|ô ôFôiôlôtôrôaô ôaô ôtôeôlôaô ôpôaôrôaô ôfôoôcôaôrô ônôoôsô ôaôtôeônôdôiômôeônôtôoôsô ôeômô ôaônôdôaômôeônôtôoô ôeô ôeômô ôoôbôsôeôrôvôaôÃô§ôÃô£ôoô ônôoô ôPôSô.ô ô|ôô
+ô|ô ô*ô*ôVôeôrô ôTôoôdôoôsô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ô|ô ôNôeôuôtôrôoô ô(ô`ô#ô9ô4ôaô3ôbô8ô`ô)ô ô|ô ô`ôfôiôlôtôeôrôKôaônôbôaônôCôoôlôuômônô(ô'ôaôlôlô'ô)ô`ô ô|ô ôRôeôsôeôtôaô ôoôsô ôfôiôlôtôrôoôsô ôeô ôeôxôiôbôeô ôaôsô ô3ô ôcôoôlôuônôaôsô ôlôaôdôoô ôaô ôlôaôdôoô ônôoô ôpôaôiônôeôlô ôKôaônôbôaônô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô2ô-ô2ô"ô>ô2ô.ô2ô.ô ôFôiôlôaô ô1ô:ô ôAôgôuôaôrôdôaônôdôoô ôTôrôiôaôgôeômô ô(ôPôrôoôtôoôcôoôlôoô ôdôeô ôMôaônôcôhôeôsôtôeôrô)ô<ô/ôhô3ô>ôô
+ôPôaôcôiôeônôtôeôsô ôaôdômôiôtôiôdôoôsô ônôaô ôrôeôcôeôpôÃô§ôÃô£ôoô ôdôÃô£ôoô ôeônôtôrôaôdôaô ônôeôsôtôaô ôfôiôlôaô ôpôaôrôaô ôcôlôaôsôsôiôfôiôcôaôÃô§ôÃô£ôoô ôdôeô ôrôiôsôcôoô ôpôeôlôaô ôeônôfôeôrômôaôgôeômô.ôô
+ôô
+ô#ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôCôaômôpôoôsô ôdôoô ôMôoôdôaôlô ôdôeô ôTôrôiôaôgôeômôô
+ô|ô ôCôaômôpôoô ôdôoô ôFôoôrômôuôlôÃô¡ôrôiôoô ô|ô ôTôiôpôoô ôdôeô ôEônôtôrôaôdôaô ô|ô ôVôaôlôoôrôeôsô ôdôeô ôRôeôfôeôrôÃôªônôcôiôaô ô/ô ôVôaôlôiôdôaôÃô§ôÃô£ôoô ô|ô ôFôuônôÃô§ôÃô£ôoô ôCôlôÃô­ônôiôcôaô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôPôrôeôsôsôÃô£ôoô ôAôrôtôeôrôiôaôlô ô(ôPôAô)ô*ô*ô ô|ô ôTôeôxôtôoô ô(ôeôxô:ô ô`ô1ô2ô0ô/ô8ô0ô`ô)ô ô|ô ôNôOôRôMôOôTôEôNôSôOô:ô ô1ô2ô0ô/ô8ô0ô ômômôHôgô ô|ô ôAôvôaôlôiôaôÃô§ôÃô£ôoô ôhôeômôoôdôiônôÃô¢ômôiôcôaô ôiônôiôcôiôaôlô ô(ômôÃô¡ôsôcôaôrôaô ôaôuôtôoôcôoômôpôlôeôtôÃô¡ôvôeôlô)ô.ô ô|ôô
+ô|ô ô*ô*ôFôrôeôqôuôÃôªônôcôiôaô ôCôaôrôdôÃô­ôaôcôaô ô(ôFôCô)ô*ô*ô ô|ô ôNôÃôºômôeôrôoô ô(ôbôpômô)ô ô|ô ôNôOôRôMôOôFôAôGôIôAô:ô ô6ô0ô ô-ô ô1ô0ô0ô ôbôpômô ô|ô ôDôeôtôeôcôÃô§ôÃô£ôoô ôdôeô ôtôaôqôuôiôcôaôrôdôiôaô ôoôuô ôbôrôaôdôiôcôaôrôdôiôaô.ô ô|ôô
+ô|ô ô*ô*ôTôeômôpôeôrôaôtôuôrôaô ô(ôÂô°ôCô)ô*ô*ô ô|ô ôNôÃôºômôeôrôoô ô(ôÂô°ôCô)ô ô|ô ôAôFôEôBôRôIôLô:ô ô3ô6ô.ô1ôÂô°ôCô ô-ô ô3ô7ô.ô2ôÂô°ôCô ô(ôFôeôbôrôeô:ô ô>ô=ô ô3ô7ô.ô8ôÂô°ôCô)ô ô|ô ôIôdôeônôtôiôfôiôcôaôÃô§ôÃô£ôoô ôdôeô ôfôeôbôrôeô ôoôuô ôhôiôpôoôtôeôrômôiôaô.ô ô|ôô
+ô|ô ô*ô*ôPôeôsôoô ô(ôkôgô)ô*ô*ô ô|ô ôNôÃôºômôeôrôoô ô(ôkôgô)ô ô|ô ôEôxôeômôpôlôoô:ô ô7ô0ô.ô5ô ôkôgô ô|ô ôCôÃô¡ôlôcôuôlôoô ôdôeô ôdôoôsôaôgôeômô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô ôeô ôaônôeôsôtôÃô©ôsôiôcôoôsô.ô ô|ôô
+ô|ô ô*ô*ôSôaôtôuôrôaôÃô§ôÃô£ôoô ôdôeô ôOô2ô ô(ôSôpôOô2ô)ô*ô*ô ô|ô ôNôÃôºômôeôrôoô ô(ô%ô)ô ô|ô ôNôOôRôMôAôLô:ô ô>ô=ô ô9ô5ô%ô ô(ôHôiôpôÃô³ôxôiôaô:ô ô<ô ô9ô2ô%ô)ô ô|ô ôAôvôaôlôiôaôÃô§ôÃô£ôoô ôdôeô ôiônôsôuôfôiôcôiôÃôªônôcôiôaô ôrôeôsôpôiôrôaôtôÃô³ôrôiôaô.ô ô|ôô
+ô|ô ô*ô*ôEôsôcôaôlôaô ôdôeô ôDôoôrô*ô*ô ô|ô ôSôeôlôeôtôoôrô ô(ô0ô ôaô ô1ô0ô)ô ô|ô ô0ô:ô ôSôeômô ôdôoôrô ô/ô ô1ô0ô:ô ôPôiôoôrô ôdôoôrô ôiômôaôgôiônôÃô¡ôvôeôlô ô|ô ôEôsôcôaôlôaô ôaônôaôlôÃô³ôgôiôcôaô ôvôiôsôuôaôlô ôdôeô ôdôoôrô.ô ô|ôô
+ô|ô ô*ô*ôQôuôeôiôxôaô ôPôrôiônôcôiôpôaôlô*ô*ô ô|ô ôÃôôrôeôaô ôdôeô ôTôeôxôtôoô ô|ô ôMôÃô­ônôiômôoô ô5ô ôcôaôrôaôcôtôeôrôeôsô ô|ô ôRôeôgôiôsôtôrôoô ônôaôrôrôaôtôiôvôoô ôdôoôsô ôsôiônôtôoômôaôsô ôdôoô ôpôaôcôiôeônôtôeô.ô ô|ôô
+ôô
+ô#ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôCôlôaôsôsôiôfôiôcôaôÃô§ôÃô£ôoô ôdôeô ôRôiôsôcôoô ô(ôMôaônôcôhôeôsôtôeôrô)ôô
+ô|ô ôCôoôrô ôdôeô ôRôiôsôcôoô ô|ô ôNôÃô­ôvôeôlô ôdôeô ôGôrôaôvôiôdôaôdôeô ô|ô ôTôeômôpôoô ôMôÃô¡ôxôiômôoô ôdôeô ôEôsôpôeôrôaô ô|ô ôSôiônôaôlôiôzôaôÃô§ôÃô£ôoô ôVôiôsôuôaôlô ô|ô ôAôÃô§ôÃô£ôoô ôRôeôcôoômôeônôdôaôdôaô ô|ôô
+ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ôïô¿ô½ôïô¿ô½ô ô*ô*ôVôeôrômôeôlôhôoô*ô*ô ô|ô ôEômôeôrôgôÃôªônôcôiôaô ôAôbôsôoôlôuôtôaô ô|ô ô*ô*ô0ô ômôiônôuôtôoôsô*ô*ô ô(ôIômôeôdôiôaôtôoô)ô ô|ô ôCôaôrôdô ôVôeôrômôeôlôhôoô ôPôiôsôcôaônôdôoô ô|ô ôPôaôcôiôeônôtôeô ôeômô ôrôiôsôcôoô ôiômôiônôeônôtôeô ôdôeô ômôoôrôtôeô.ô ôSôaôlôaô ôVôeôrômôeôlôhôaô ôiômôeôdôiôaôtôaô.ô ô|ôô
+ô|ô ôïô¿ô½ôïô¿ô½ô ô*ô*ôLôaôrôaônôjôaô*ô*ô ô|ô ôMôuôiôtôoô ôUôrôgôeônôtôeô ô|ô ô*ô*ô1ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôLôaôrôaônôjôaô ô|ô ôRôiôsôcôoô ôsôiôgônôiôfôiôcôaôtôiôvôoô ôdôeô ôpôeôrôdôaô ôdôeô ôfôuônôÃô§ôÃô£ôoô/ôvôiôdôaô.ô ôAôtôeônôdôiômôeônôtôoô ôrôÃô¡ôpôiôdôoô.ô ô|ôô
+ô|ô ôïô¿ô½ôïô¿ô½ô ô*ô*ôAômôaôrôeôlôoô*ô*ô ô|ô ôUôrôgôeônôtôeô ô|ô ô*ô*ô6ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôAômôaôrôeôlôoô ô|ô ôCôoônôdôiôÃô§ôÃô£ôoô ôeôsôtôÃô¡ôvôeôlô ôcôoômô ônôeôcôeôsôsôiôdôaôdôeô ôdôeô ôaôvôaôlôiôaôÃô§ôÃô£ôoô ômôÃô©ôdôiôcôaô ôeômô ôaôtôÃô©ô ô1ôhô.ô ô|ôô
+ô|ô ôïô¿ô½ôïô¿ô½ô ô*ô*ôVôeôrôdôeô*ô*ô ô|ô ôPôoôuôcôoô ôUôrôgôeônôtôeô ô|ô ô*ô*ô1ô2ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôVôeôrôdôeô ô|ô ôQôuôaôdôrôoô ôlôeôvôeô ôsôeômô ôrôiôsôcôoô ôdôeô ôaôgôrôaôvôaômôeônôtôoô ôrôÃô¡ôpôiôdôoô.ô ôFôiôlôaô ôrôeôgôuôlôaôrô.ô ô|ôô
+ô|ô ôïô¿ô½ôïô¿ô½ô ô*ô*ôAôzôuôlô*ô*ô ô|ô ôNôÃô£ôoô ôUôrôgôeônôtôeô ô|ô ô*ô*ô2ô4ô0ô ômôiônôuôtôoôsô*ô*ô ô|ô ôBôoôrôdôeôrô ôAôzôuôlô ô|ô ôQôuôeôiôxôaô ôcôrônôiôcôaô ôoôuô ôcôoônôsôuôlôtôaô ôsôiômôpôlôeôsô.ô ôAôtôeônôdôiômôeônôtôoô ôeôlôeôtôiôvôoô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô2ô-ô3ô"ô>ô2ô.ô3ô.ô ôFôiôlôaô ô2ô:ô ôAôgôuôaôrôdôaônôdôoô ôMôÃô©ôdôiôcôoô ô(ôCôhôaômôaôdôaô ôdôeô ôCôoônôsôuôlôtôÃô³ôrôiôoô)ô<ô/ôhô3ô>ôô
+ôNôeôsôtôaô ôcôoôlôuônôaô,ô ôoôsô ôpôaôcôiôeônôtôeôsô ôsôÃô£ôoô ôoôrôdôeônôaôdôoôsô ôpôoôrô ô*ô*ôGôrôaôvôiôdôaôdôeô ôMôaônôcôhôeôsôtôeôrô*ô*ô ôeô ô*ô*ôTôeômôpôoô ôdôeô ôEôsôpôeôrôaô*ô*ô.ôô
+ôô
+ô#ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôAôÃô§ôÃôµôeôsô ôdôoô ôCôaôrôdô ôdôeô ôEôsôpôeôrôaô ôMôÃô©ôdôiôcôaôô
+ô|ô ôAôÃô§ôÃô£ôoô ônôoô ôCôaôrôdô ô|ô ôÃôôcôoônôeô ô|ô ôFôuônôÃô§ôÃô£ôoô ôTôÃô©ôcônôiôcôaô ô|ô ôRôeôsôuôlôtôaôdôoô ônôoô ôSôiôsôtôeômôaô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôCôhôaômôaôrô ôpôaôrôaô ôCôoônôsôuôlôtôaô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ô|ô ôDôiôsôpôaôrôaô ôwôeôbôsôoôcôkôeôtôsô/ôeôvôeônôtôoôsô ôlôoôcôaôiôsô ôpôaôrôaô ôaô ôrôeôcôeôpôÃô§ôÃô£ôoô.ô ô|ô ô1ô.ô ôTôoôcôaô ôsôiônôaôlô ôsôoônôoôrôoô ônôoô ôPôaôiônôeôlô ôTôVô.ô<ôbôrô>ô2ô.ô ôEôxôiôbôeô ôoô ônôoômôeô ôdôoô ôpôaôcôiôeônôtôeô ônôoô ôpôaôiônôeôlô ôcôeônôtôrôaôlô.ô<ôbôrô>ô3ô.ô ôMôoôvôeô ôoô ôaôtôeônôdôiômôeônôtôoô ôpôaôrôaô ôaô ôcôoôlôuônôaô ô*ôEômô ôAôtôeônôdôiômôeônôtôoô*ô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô2ô-ô4ô"ô>ô2ô.ô4ô.ô ôFôiôlôaô ô3ô:ô ôEômô ôAôtôeônôdôiômôeônôtôoô ô(ôAôÃô§ôÃôµôeôsô ôdôoô ôMôÃô©ôdôiôcôoô)ô<ô/ôhô3ô>ôô
+ôCôoôlôuônôaô ôoônôdôeô ôoô ômôÃô©ôdôiôcôoô ôrôeôaôlôiôzôaô ôoô ôaôtôeônôdôiômôeônôtôoô ôaôtôiôvôoô.ô ôCôaôdôaô ôcôaôrôdô ôcôoônôtôÃô©ômô ô5ô ôbôoôtôÃôµôeôsô ôdôeô ôaôÃô§ôÃô£ôoô:ôô
+ôô
+ô#ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôCôoômôpôlôeôtôaô ôdôeô ôBôoôtôÃôµôeôsô ôdôoô ôMôÃô©ôdôiôcôoôô
+ô|ô ôBôoôtôÃô£ôoô ô|ô ôÃôôcôoônôeô ô|ô ôFôuônôÃô§ôÃô£ôoô ôdôoô ôBôoôtôÃô£ôoô ô|ô ôRôeôsôuôlôtôaôdôoô ôaôoô ôCôlôiôcôaôrô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôPôEôPô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ô|ô ôPôrôoônôtôuôÃô¡ôrôiôoô ôEôlôeôtôrônôiôcôoô ô|ô ôAôbôrôeô ôaô ôjôaônôeôlôaô ômôoôdôaôlô ôdôoô ôPôrôoônôtôuôÃô¡ôrôiôoô ô(ôSôOôAôPô,ô ôsôiônôaôiôsô ôvôiôtôaôiôsô,ô ôCôIôDô-ô1ô0ô,ô ôhôiôsôtôÃô³ôrôiôcôoô ôeô ôaôsôsôiônôaôtôuôrôaô)ô.ô ô|ôô
+ô|ô ô*ô*ôPôrôeôsôcôrôiôÃô§ôÃô£ôoô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ô|ô ôRôeôcôeôiôtôuôÃô¡ôrôiôoô ôMôÃô©ôdôiôcôoô ô|ô ôAôbôrôeô ôaô ôtôeôlôaô ôpôaôrôaô ôpôrôeôsôcôrôeôvôeôrô ômôeôdôiôcôaômôeônôtôoôsô,ô ôpôoôsôoôlôoôgôiôaôsô,ô ôvôiôaô ôdôeô ôaôdômôiônôiôsôtôrôaôÃô§ôÃô£ôoô ôeô ôoôrôiôeônôtôaôÃô§ôÃôµôeôsô.ô ô|ôô
+ô|ô ô*ô*ôOôbôsôeôrôvôaôÃô§ôÃô£ôoô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ô|ô ôOôbôsôeôrôvôaôÃô§ôÃô£ôoô ônôoô ôPôSô ô(ô1ô2ôhô ômôaôxô)ô ô|ô ôIônôiôcôiôaô ôaô ôcôoônôtôaôgôeômô ôdôoô ôcôrôoônômôeôtôrôoô ôdôeô ôpôeôrômôaônôÃôªônôcôiôaô ôcôoônôtôÃô­ônôuôaô ôeô ôeôxôiôbôeô ôbôaôdôgôeô ôdôeô ôtôeômôpôoô ônôoô ôcôaôrôdô.ô ô|ôô
+ô|ô ô*ô*ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ôïô¸ôô ô|ô ôIônôtôeôrônôaôÃô§ôÃô£ôoô ô/ô ôLôeôiôtôoô ô|ô ôAôbôrôeô ôoô ômôoôdôaôlô ôpôaôrôaô ôsôeôlôeôcôiôoônôaôrô ôeô ôaôlôoôcôaôrô ôoô ôpôaôcôiôeônôtôeô ôeômô ôuômô ôlôeôiôtôoô ôlôiôvôrôeô ôdôaô ôEônôfôeôrômôaôrôiôaô ôoôuô ôUôTôIô.ô ô|ôô
+ô|ô ô*ô*ôFôiônôaôlôiôzôaôrô*ô*ô ô|ô ôâôœô…ô ô|ô ôAôlôtôaô ôMôÃô©ôdôiôcôaô ô/ô ôCôoônôcôlôuôsôÃô£ôoô ô|ô ôEônôcôeôrôrôaô ôaô ôcôoônôsôuôlôtôaô,ô ôgôrôaôvôaô ôaô ôaôlôtôaô ônôoô ôsôiôsôtôeômôaô ôeô ômôoôvôeô ôoô ôaôtôeônôdôiômôeônôtôoô ôpôaôrôaô ôoô ôHôiôsôtôÃô³ôrôiôcôoô ôPôÃô³ôsô-ôAôlôtôaô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô3ô"ô>ô3ô.ô ôPôrôoônôtôuôÃô¡ôrôiôoô ôEôlôeôtôrônôiôcôoô ôdôoô ôPôaôcôiôeônôtôeô ô(ôPôEôPô ôâô€ô”ô ôMôÃô©ôtôoôdôoô ôSôOôAôPô)ô<ô/ôhô2ô>ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô3ô-ô1ô"ô>ô3ô.ô1ô.ô ôEôsôtôrôuôtôuôrôaô ôSôOôAôPô<ô/ôhô3ô>ôô
+ô|ô ôBôlôoôcôoô ôSôOôAôPô ô|ô ôEôlôeômôeônôtôoô ô|ô ôDôeôsôcôrôiôÃô§ôÃô£ôoô ôdôoô ôPôrôeôeônôcôhôiômôeônôtôoô ô|ô ôEôxôeômôpôlôoô ôdôeô ôPôrôeôeônôcôhôiômôeônôtôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôSô*ô*ô ô|ô ô*ô*ôSôuôbôjôeôtôiôvôoô*ô*ô ô|ô ôAônôaômônôeôsôeô,ô ôqôuôeôiôxôaô ôpôrôiônôcôiôpôaôlô,ô ôtôeômôpôoô ôdôeô ôeôvôoôlôuôÃô§ôÃô£ôoô ôdôoôsô ôsôiônôtôoômôaôsô ôeô ôhôiôsôtôÃô³ôrôiôcôoô.ô ô|ô ô*ô"ôPôaôcôiôeônôtôeô ôrôeôlôaôtôaô ôdôoôrô ôtôoôrôÃô¡ôcôiôcôaô ôhôÃô¡ô ô2ô ôhôoôrôaôsô ôcôoômô ôiôrôrôaôdôiôaôÃô§ôÃô£ôoô ôpôaôrôaô ôbôrôaôÃô§ôoô ôeôsôqôuôeôrôdôoô.ô"ô*ô ô|ôô
+ô|ô ô*ô*ôOô*ô*ô ô|ô ô*ô*ôOôbôjôeôtôiôvôoô*ô*ô ô|ô ôEôxôaômôeô ôfôÃô­ôsôiôcôoô,ô ôaôuôsôcôuôlôtôaô ôcôaôrôdôÃô­ôaôcôaô/ôpôuôlômôoônôaôrô,ô ôsôiônôaôiôsô ôvôiôtôaôiôsô ôeô ôeôxôaômôeôsô ôcôoômôpôlôeômôeônôtôaôrôeôsô.ô ô|ô ô*ô"ôPôAô:ô ô1ô4ô0ô/ô9ô0ô,ô ôFôCô:ô ô9ô8ôbôpômô,ô ôaôuôsôcôuôlôtôaô ôcôaôrôdôÃô­ôaôcôaô ôsôeômô ôsôoôpôrôoôsô.ô ôEôCôGô ôcôoômô ôeôlôeôvôaôÃô§ôÃô£ôoô ôSôTô.ô"ô*ô ô|ôô
+ô|ô ô*ô*ôAô*ô*ô ô|ô ô*ô*ôAôvôaôlôiôaôÃô§ôÃô£ôoô*ô*ô ô|ô ôHôiôpôÃô³ôtôeôsôeô ôdôiôaôgônôÃô³ôsôtôiôcôaô ôpôrôiônôcôiôpôaôlô ôeô ôbôuôsôcôaô ôdôoô ôcôÃô³ôdôiôgôoô ô*ô*ôCôIôDô-ô1ô0ô*ô*ô.ô ô|ô ô*ô"ôIô2ô1ô.ô9ô ôâô€ô”ô ôIônôfôaôrôtôoô ôaôgôuôdôoô ôdôoô ômôiôoôcôÃô¡ôrôdôiôoô ônôÃô£ôoô ôeôsôpôeôcôiôfôiôcôaôdôoô.ô"ô*ô ô|ôô
+ô|ô ô*ô*ôPô*ô*ô ô|ô ô*ô*ôPôlôaônôoô*ô*ô ô|ô ôCôoônôdôuôtôaô ôtôeôrôaôpôÃôªôuôtôiôcôaô,ô ôpôrôeôsôcôrôiôÃô§ôÃô£ôoô ôfôaôrômôaôcôoôlôÃô³ôgôiôcôaô,ô ôsôoôlôiôcôiôtôaôÃô§ôÃôµôeôsô ôdôeô ôeôxôaômôeôsô ôeô ôrôeôcôoômôeônôdôaôÃô§ôÃôµôeôsô ôdôeô ôaôlôtôaô/ôrôeôtôoôrônôoô.ô ô|ô ô*ô"ôAôdômôiônôiôsôtôrôaôdôoô ôAôAôSô ô3ô0ô0ômôgô ô+ô ôCôlôoôpôiôdôoôgôrôeôlô ô3ô0ô0ômôgô.ô ôSôoôlôiôcôiôtôaôdôaô ôVôaôgôaô ônôaô ôUôTôIô ôCôoôrôoônôaôrôiôaônôaô.ô"ô*ô ô|ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô3ô-ô2ô"ô>ô3ô.ô2ô.ô ôAôuôtôoôcôoômôpôlôeôtôeô ôCôIôDô-ô1ô0ô<ô/ôhô3ô>ôô
+ôNôoô ôcôaômôpôoô ô*ô*ôAôvôaôlôiôaôÃô§ôÃô£ôoô*ô*ô,ô ôaôoô ôdôiôgôiôtôaôrô ôoô ôcôÃô³ôdôiôgôoô ôoôuô ônôoômôeô ôdôaô ôdôoôeônôÃô§ôaô,ô ôoô ôsôiôsôtôeômôaô ôlôiôsôtôaô ôsôuôgôeôsôtôÃôµôeôsô ôoôfôiôcôiôaôiôsô.ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô3ô-ô3ô"ô>ô3ô.ô3ô.ô ôAôsôsôiônôaôtôuôrôaô ôEôlôeôtôrônôiôcôaô ôeô ôEôxôpôoôrôtôaôÃô§ôÃô£ôoô ôPôDôFô<ô/ôhô3ô>ôô
+ôRôeôcôuôrôsôoôsô ôdôeô ôrôaôsôcôuônôhôoô,ô ôaôsôsôiônôaôtôuôrôaô ômôÃô©ôdôiôcôaô ôcôoômô ôsôeônôhôaô ôeô ôgôeôrôaôÃô§ôÃô£ôoô ôdôeô ôlôaôuôdôoô ôPôDôFô.ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô4ô"ô>ô4ô.ô ôGôuôiôaô ôCôoômôpôlôeôtôoô ôdôeô ôTôoôdôoôsô ôoôsô ôMôoôdôaôiôsô ôdôoô ôSôiôsôtôeômôaô<ô/ôhô2ô>ôô
+ôô
+ôAôbôaôiôxôoô ôeônôcôoônôtôrôaô-ôsôeô ôoô ôdôeôtôaôlôhôaômôeônôtôoô ôtôÃô©ôcônôiôcôoô ôdôeô ôcôaôdôaô ôjôaônôeôlôaô ômôoôdôaôlô ôpôrôeôsôeônôtôeô ônôoô ôsôiôsôtôeômôaô,ô ôsôeôuôsô ôbôoôtôÃôµôeôsô,ô ôvôaôlôiôdôaôÃô§ôÃôµôeôsô ôeô ôcôoômôpôoôrôtôaômôeônôtôoôsô.ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô4ô-ô1ô"ô>ô4ô.ô1ô.ô ôMôoôdôaôlô ôdôeô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô<ô/ôhô3ô>ôô
+ô-ô ô*ô*ôCôoômôoô ôAôcôeôsôsôaôrô:ô*ô*ô ôCôlôiôqôuôeô ônôoô ôbôoôtôÃô£ôoô ô`ôïô¿ô½ôïô¿ô½ô ôRôeôaôlôiôzôaôrô ôTôrôiôaôgôeômô`ô ônôaô ôpôrôiômôeôiôrôaô ôcôoôlôuônôaô ôdôoô ôKôaônôbôaônô.ôô
+ô-ô ô*ô*ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô*ô*ô ô`ôtôrôiôaôgôeô-ôpôaô`ô,ô ô`ôtôrôiôaôgôeô-ôfôcô`ô,ô ô`ôtôrôiôaôgôeô-ôtôeômôpô`ô,ô ô`ôtôrôiôaôgôeô-ôpôeôsôoô`ô,ô ô`ôtôrôiôaôgôeô-ôsôpôoô2ô`ô,ô ô`ôtôrôiôaôgôeô-ôdôoôrô`ô,ô ô`ômôaônôcôhôeôsôtôeôrôCôoôlôoôrô`ô,ô ô`ôtôrôiôaôgôeô-ôqôuôeôiôxôaô`ô.ôô
+ôô
+ô|ô ôBôoôtôÃô£ôoô ôdôoô ôMôoôdôaôlô ô|ô ôCôlôaôsôsôeô ô/ô ôIôDô ô|ô ôCôoômôpôoôrôtôaômôeônôtôoô ôaôoô ôCôlôiôcôaôrô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôCôoônôfôiôrômôaôrô ôTôrôiôaôgôeômô*ô*ô ô|ô ô`ôbôuôtôtôoônô[ôtôyôpôeô=ô"ôsôuôbômôiôtô"ô]ô`ô ô|ô ôVôaôlôiôdôaô ôcôoôrô ôoôbôrôiôgôaôtôÃô³ôrôiôaô ôeô ôqôuôeôiôxôaô.ô ôAôlôtôeôrôaô ôsôtôaôtôuôsô ôpôaôrôaô ô`ôAôgôuôaôrôdôaônôdôoô_ôAôtôeônôdôiômôeônôtôoô`ô ôeô ôfôeôcôhôaô ômôoôdôaôlô.ô ô|ôô
+ô|ô ô*ô*ôCôaônôcôeôlôaôrô*ô*ô ô|ô ô`ô#ôbôtônô-ôcôaônôcôeôlô-ôtôrôiôaôgôeô`ô ô|ô ôCôaônôcôeôlôaô ôaô ôoôpôeôrôaôÃô§ôÃô£ôoô,ô ôlôiômôpôaô ôoô ôfôoôrômôuôlôÃô¡ôrôiôoô ôeô ôfôeôcôhôaô ôaô ôjôaônôeôlôaô ôsôeômô ôaôlôtôeôrôaôrô ôoô ôpôaôcôiôeônôtôeô.ô ô|ôô
+ô|ô ô*ô*ôFôeôcôhôaôrô ô(ôXô)ô*ô*ô ô|ô ô`ô#ôcôlôoôsôeô-ôtôrôiôaôgôeô-ômôoôdôaôlô`ô ô|ô ôFôeôcôhôaô ôaô ôjôaônôeôlôaô ômôoôdôaôlô ôiômôeôdôiôaôtôaômôeônôtôeô.ô ô|ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô4ô-ô2ô"ô>ô4ô.ô2ô.ô ôMôoôdôaôlô ôdôeô ôPôrôeôsôcôrôiôÃô§ôÃô£ôoô ô&ô ôRôeôcôeôiôtôuôÃô¡ôrôiôoô ôMôÃô©ôdôiôcôoô<ô/ôhô3ô>ôô
+ô-ô ô*ô*ôCôoômôoô ôAôcôeôsôsôaôrô:ô*ô*ô ôCôlôiôqôuôeô ônôoô ôbôoôtôÃô£ôoô ô`ôïô¿ô½ôïô¿ô½ô ôPôrôeôsôcôrôiôÃô§ôÃô£ôoô`ô ônôaô ô3ôÂôªô ôcôoôlôuônôaô ôdôoô ôKôaônôbôaônô ô(ô*ôEômô ôAôtôeônôdôiômôeônôtôoô*ô)ô.ôô
+ô-ô ô*ô*ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô*ô*ô ô`ôrôxô-ômôeôdô-ônôaômôeô`ô,ô ô`ôrôxô-ôdôoôsôaôgôeô`ô,ô ô`ôrôxô-ôrôoôuôtôeô`ô,ô ô`ôrôxô-ôfôrôeôqôuôeônôcôyô`ô,ô ô`ôrôxô-ônôoôtôeôsô`ô.ôô
+ôô
+ô|ô ôBôoôtôÃô£ôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôÃô§ôÃô£ôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôâôžô•ô ôAôdôiôcôiôoônôaôrô ôIôtôeômô*ô*ô ô|ô ôIônôsôeôrôeô ôoô ômôeôdôiôcôaômôeônôtôoô ônôaô ôlôiôsôtôaô ôtôeômôpôoôrôÃô¡ôrôiôaô ôdôaô ôrôeôcôeôiôtôaô ô|ô ôAôtôuôaôlôiôzôaô ôaô ôtôaôbôeôlôaô ôiônôtôeôrônôaô ôdôoô ôrôeôcôeôiôtôuôÃô¡ôrôiôoô.ô ô|ôô
+ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ôïô¸ôô ôRôeômôoôvôeôrô ôIôtôeômô*ô*ô ô|ô ôEôxôcôlôuôiô ôoô ôiôtôeômô ôsôeôlôeôcôiôoônôaôdôoô ôdôaô ôlôiôsôtôaô ôdôaô ôrôeôcôeôiôtôaô ô|ô ôRôeômôoôvôeô ôoô ôfôÃô¡ôrômôaôcôoô ôdôaô ôlôiôsôtôaô ôaôtôuôaôlô.ô ô|ôô
+ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ô ôSôaôlôvôaôrô ô&ô ôDôiôsôpôeônôsôaôrô*ô*ô|ô ôRôeôgôiôsôtôrôaô ôaô ôrôeôcôeôiôtôaô ôeô ôcôoônôeôcôtôaô ôcôoômô ôaô ôfôaôrômôÃô¡ôcôiôaô ô|ô ôEônôvôiôaô ôpôeôdôiôdôoô ôdôeô ôbôaôiôxôaô ôpôaôrôaô ôoô ôeôsôtôoôqôuôeô ôdôaô ôfôaôrômôÃô¡ôcôiôaô.ô ô|ôô
+ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ôïô¸ôô ôIômôpôrôiômôiôrô ôPôDôFô*ô*ô ô|ô ôGôeôrôaô ôaô ôrôeôcôeôiôtôaô ômôÃô©ôdôiôcôaô ôfôoôrômôaôtôaôdôaô ôeômô ôPôDôFô ô|ô ôBôaôiôxôaô ôoô ôaôrôqôuôiôvôoô ôdôeô ôrôeôcôeôiôtôaô ôcôoômô ôcôaôbôeôÃô§ôaôlôhôoô ômôÃô©ôdôiôcôoô.ô ô|ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô4ô-ô3ô"ô>ô4ô.ô3ô.ô ôMôoôdôaôlô ôdôeô ôTôrôaônôsôfôeôrôÃôªônôcôiôaô ô&ô ôAôlôoôcôaôÃô§ôÃô£ôoô ôdôeô ôLôeôiôtôoô<ô/ôhô3ô>ôô
+ô-ô ô*ô*ôCôoômôoô ôAôcôeôsôsôaôrô:ô*ô*ô ôCôlôiôqôuôeô ônôoô ôbôoôtôÃô£ôoô ô`ôïô¿ô½ôïô¿ô½ôïô¸ôô ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô`ô ônôoô ôcôaôrôdô ôdôoô ôpôaôcôiôeônôtôeô ôeômô ôcôoônôsôuôlôtôaô.ôô
+ô-ô ô*ô*ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô*ô*ô ô`ôbôeôdô-ôsôeôcôtôoôrô`ô,ô ô`ôbôeôdô-ôtôaôrôgôeôtô`ô,ô ô`ôbôeôdô-ônôoôtôeôsô`ô.ôô
+ôô
+ô|ô ôBôoôtôÃô£ôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôÃô§ôÃô£ôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôCôoônôfôiôrômôaôrô ôTôrôaônôsôfôeôrôÃôªônôcôiôaô*ô*ô|ô ôAôsôsôoôcôiôaô ôoô ôpôaôcôiôeônôtôeô ôaôoô ôlôeôiôtôoô ôeôsôcôoôlôhôiôdôoô ô|ô ôAôlôtôeôrôaô ôoô ôsôtôaôtôuôsô ôdôoô ôlôeôiôtôoô ôpôaôrôaô ô`ôOôcôuôpôaôdôoô`ô ôeô ôaôtôuôaôlôiôzôaô ôaô ôaôbôaô ô*ôLôeôiôtôoôsô*ô.ô ô|ôô
+ô|ô ô*ô*ôSôoôlôiôcôiôtôaôrô ôHôiôgôiôeônôiôzôaôÃô§ôÃô£ôoô*ô*ô ô|ô ôMôaôrôcôaô ôoô ôlôeôiôtôoô ôdôeô ôoôrôiôgôeômô ôpôaôrôaô ôlôiômôpôeôzôaô ô|ô ôAôlôtôeôrôaô ôoô ôlôeôiôtôoô ôaônôtôeôrôiôoôrô ôpôaôrôaô ôsôtôaôtôuôsô ô`ôHôiôgôiôeônôiôzôaôÃô§ôÃô£ôoô`ô.ô ô|ôô
+ô|ô ô*ô*ôCôaônôcôeôlôaôrô*ô*ô ô|ô ôCôaônôcôeôlôaô ôoô ôpôrôoôcôeôdôiômôeônôtôoô ô|ô ôFôeôcôhôaô ôoô ômôoôdôaôlô ôsôeômô ôaôlôtôeôrôaôrô ôoô ôlôoôcôaôlô ôdôoô ôpôaôcôiôeônôtôeô.ô ô|ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô4ô-ô4ô"ô>ô4ô.ô4ô.ô ôMôoôdôaôlô ôdôeô ôNôoôvôaô ôAôdômôiôsôsôÃô£ôoô ô&ô ôEônôtôrôaôdôaô ôdôeô ôPôaôcôiôeônôtôeô<ô/ôhô3ô>ôô
+ô-ô ô*ô*ôCôoômôoô ôAôcôeôsôsôaôrô:ô*ô*ô ôCôlôiôqôuôeô ônôoô ôbôoôtôÃô£ôoô ô`ô+ô ôNôoôvôaô ôAôdômôiôsôsôÃô£ôoô`ô ônôoô ôtôoôpôoô ôdôaô ôCôeônôtôrôaôlô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô.ôô
+ô-ô ô*ô*ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô*ô*ô ô`ôaôdômôiôsôsôiôoônô-ôpôaôtôiôeônôtô-ôiôdô`ô,ô ô`ôaôdômôiôsôsôiôoônô-ôtôyôpôeô`ô,ô ô`ôaôdômôiôsôsôiôoônô-ôsôpôeôcôiôaôlôtôyô`ô,ô ô`ôaôdômôiôsôsôiôoônô-ôpôrôiôoôrôiôtôyô`ô.ôô
+ôô
+ô|ô ôBôoôtôÃô£ôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôÃô§ôÃô£ôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôCôoônôfôiôrômôaôrô ôAôdômôiôsôsôÃô£ôoô*ô*ô ô|ô ôCôrôiôaô ôoô ônôoôvôoô ôaôtôeônôdôiômôeônôtôoô ô|ô ôIônôsôeôrôeô ôoô ôpôaôcôiôeônôtôeô ônôaô ô1ôÂôªô ôcôoôlôuônôaô ôdôoô ôKôaônôbôaônô ô(ô*ôAôgôuôaôrôdôaônôdôoô ôTôrôiôaôgôeômô*ô)ô.ô ô|ôô
+ô|ô ô*ô*ô+ô ôCôaôdôaôsôtôrôaôrô ôNôoôvôoô ôPôaôcôiôeônôtôeô*ô*ô|ô ôAôbôrôeô ôeômôbôuôtôiôdôoô ôoô ôcôaôdôaôsôtôrôoô ôrôÃô¡ôpôiôdôoô ô|ô ôPôeôrômôiôtôeô ôcôrôiôaôrô ôoô ôcôaôdôaôsôtôrôoô ôcôaôsôoô ôoô ôpôaôcôiôeônôtôeô ônôuônôcôaô ôtôeônôhôaô ôvôiônôdôoô ôaôoô ôhôoôsôpôiôtôaôlô.ô ô|ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô4ô-ô5ô"ô>ô4ô.ô5ô.ô ôMôoôdôaôlô ôdôeô ôDôiôrôeôcôiôoônôaômôeônôtôoô ô&ô ôRôeôaôtôrôiôbôuôiôÃô§ôÃô£ôoô ôdôeô ôFôiôlôaô<ô/ôhô3ô>ôô
+ô-ô ô*ô*ôCôoômôoô ôAôcôeôsôsôaôrô:ô*ô*ô ôNôaô ôaôbôaô ô*ô*ôEôsôtôaôgônôaôÃô§ôÃô£ôoô*ô*ô,ô ôcôlôiôqôuôeô ônôoô ôbôoôtôÃô£ôoô ô`ôDôiôrôeôcôiôoônôaôrô`ô ôaôoô ôlôaôdôoô ôdôeô ôuômô ôpôaôcôiôeônôtôeô ôcôoômô ôaôtôrôaôsôoô.ôô
+ô-ô ô*ô*ôCôaômôpôoôsô ôdôeô ôEônôtôrôaôdôaô:ô*ô*ô ô`ôrôeôaôsôsôiôgônô-ôrôoôoômô`ô,ô ô`ôrôeôaôsôsôiôgônô-ôsôtôaôtôuôsô`ô.ôô
+ôô
+ô|ô ôBôoôtôÃô£ôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôÃô§ôÃô£ôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôCôoônôfôiôrômôaôrô ôDôiôrôeôcôiôoônôaômôeônôtôoô*ô*ô|ô ôAôtôuôaôlôiôzôaô ôcôoônôsôuôlôtôÃô³ôrôiôoô ôeô ôsôtôaôtôuôsô ô|ô ôMôoôvôeô ôoô ôpôaôcôiôeônôtôeô ôiômôeôdôiôaôtôaômôeônôtôeô ônôoô ôKôaônôbôaônô ôdôeôsôoôbôsôtôrôuôiônôdôoô ôoô ôgôaôrôgôaôlôoô.ô ô|ôô
+ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ôïô¸ôô ôSôoôlôiôcôiôtôaôrô ôIônôtôeôrônôaôÃô§ôÃô£ôoô*ô*ô ô|ô ôSôoôlôiôcôiôtôaôÃô§ôÃô£ôoô ôdôiôrôeôtôaô ôdôeô ôlôeôiôtôoô ô|ô ôDôeôfôiônôeô ôoô ôsôtôaôtôuôsô ôpôaôrôaô ô`ôAôgôuôaôrôdôaônôdôoô_ôLôeôiôtôoô`ô ôeô ôeônôvôiôaô ôaôlôeôrôtôaô ôpôaôrôaô ôaô ôCôeônôtôrôaôlô ôdôeô ôLôeôiôtôoôsô.ô ô|ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô4ô-ô6ô"ô>ô4ô.ô6ô.ô ôMôoôdôaôlô ôdôeô ôHôiôsôtôÃô³ôrôiôcôoô ôPôÃô³ôsô-ôAôlôtôaô ô&ô ôPôrôoônôtôuôÃô¡ôrôiôoô ôCôoônôsôoôlôiôdôaôdôoô<ô/ôhô3ô>ôô
+ô-ô ô*ô*ôCôoômôoô ôAôcôeôsôsôaôrô:ô*ô*ô ôCôlôiôqôuôeô ônôoô ôbôoôtôÃô£ôoô ô`ôHôiôsôtôÃô³ôrôiôcôoô`ô ônôoô ôtôoôpôoô ôdôaô ôCôeônôtôrôaôlô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô ôoôuô ônôaô ôaôbôaô ô*ôPôaôcôiôeônôtôeôsô*ô.ôô
+ôô
+ô|ô ôBôoôtôÃô£ôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôÃô§ôÃô£ôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ôïô¸ôô ôIômôpôrôiômôiôrô ôPôDôFô ôCôoônôsôoôlôiôdôaôdôoô*ô*ô|ô ôGôeôrôaô ôoô ôpôrôoônôtôuôÃô¡ôrôiôoô ôiômôpôrôeôsôsôoô ôeômô ôPôDôFô ô|ô ôBôaôiôxôaô ôoô ôrôeôlôaôtôÃô³ôrôiôoô ôPôDôFô ôcôoômôpôlôeôtôoô ôcôoômô ôtôoôdôaôsô ôaôsô ôcôoônôsôuôlôtôaôsô ôdôoô ôhôiôsôtôÃô³ôrôiôcôoô.ô ô|ôô
+ô|ô ô*ô*ôFôeôcôhôaôrô*ô*ô ô|ô ôFôeôcôhôaô ôaô ôeôxôiôbôiôÃô§ôÃô£ôoô ôdôoô ôhôiôsôtôÃô³ôrôiôcôoô ô|ô ôRôeôtôoôrônôaô ôÃô ô ônôaôvôeôgôaôÃô§ôÃô£ôoô ônôoôrômôaôlô.ô ô|ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô4ô-ô7ô"ô>ô4ô.ô7ô.ô ôMôoôdôaôlô ôdôeô ôAôpôrôoôvôaôÃô§ôÃô£ôoô ôdôeô ôAôcôeôsôsôoô ôdôeô ôUôsôuôÃô¡ôrôiôoôsô<ô/ôhô3ô>ôô
+ô-ô ô*ô*ôCôoômôoô ôAôcôeôsôsôaôrô:ô*ô*ô ôEôxôcôlôuôsôiôvôoô ôpôaôrôaô ôoô ôpôeôrôfôiôlô ô*ô*ôAôdômôiônôiôsôtôrôaôdôoôrô ôMôaôsôtôeôrô*ô*ô ônôaô ôaôbôaô ô*ôEôsôtôaôgônôaôÃô§ôÃô£ôoô*ô.ôô
+ôô
+ô|ô ôBôoôtôÃô£ôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôÃô§ôÃô£ôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôïô¿ô½ôïô¿ô½ôïô¸ôô ôAôpôrôoôvôaôrô ôAôcôeôsôsôoô*ô*ô ô|ô ôCôoônôcôeôdôeô ôoô ôpôeôrôfôiôlô ôsôoôlôiôcôiôtôaôdôoô ô|ô ôLôiôbôeôrôaô ôaôsô ôpôeôrômôiôsôsôÃôµôeôsô ôdôeô ôaôcôoôrôdôoô ôcôoômô ôoô ôcôaôrôgôoô ôcôaôdôaôsôtôrôaôdôoô.ô ô|ôô
+ô|ô ô*ô*ôâôôŒô ôRôeôcôuôsôaôrô ôSôoôlôiôcôiôtôaôÃô§ôÃô£ôoô*ô*ô ô|ô ôDôeôfôiônôeô ôoô ôpôeôrôfôiôlô ôcôoômôoô ô`ôMôÃô©ôdôiôcôoô`ô ôpôaôdôrôÃô£ôoô ô|ô ôNôeôgôaô ôpôrôiôvôiôlôÃô©ôgôiôoôsô ôdôeô ôaôdômôiônôiôsôtôrôaôdôoôrô ômôaônôtôeônôdôoô ôaôcôeôsôsôoô ôdôeô ômôÃô©ôdôiôcôoô.ô ô|ôô
+ôô
+ô<ôhô3ô ôiôdô=ô"ôsôeôcô-ô4ô-ô8ô"ô>ô4ô.ô8ô.ô ôMôoôdôaôlô ôdôeô ôGôeôsôtôÃô£ôoô ôdôeô ôUôsôuôÃô¡ôrôiôoôsô ô&ô ôTôrôoôcôaô ôdôeô ôPôeôrôfôiôlô<ô/ôhô3ô>ôô
+ô-ô ô*ô*ôCôoômôoô ôAôcôeôsôsôaôrô:ô*ô*ô ôCôlôiôqôuôeô ônôoô ônôoômôeô ôdôoô ôuôsôuôÃô¡ôrôiôoô ôlôoôgôaôdôoô ônôoô ôcôaônôtôoô ôsôuôpôeôrôiôoôrô ôdôiôrôeôiôtôoô ôdôoô ômôeônôuô.ôô
+ôô
+ô|ô ôBôoôtôÃô£ôoô ôdôoô ôMôoôdôaôlô ô|ô ôAôÃô§ôÃô£ôoô ô|ô ôRôeôsôuôlôtôaôdôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôSôaôlôvôaôrô ôAôlôtôeôrôaôÃô§ôÃôµôeôsô*ô*ô ô|ô ôAôtôuôaôlôiôzôaô ôaô ôsôeônôhôaô ôeô ôdôaôdôoôsô ôdôoô ôoôpôeôrôaôdôoôrô ô|ô ôGôrôaôvôaô ônôoô ôbôaônôcôoô ôeô ôeômôiôtôeô ôtôoôaôsôtô ôdôeô ôcôoônôfôiôrômôaôÃô§ôÃô£ôoô.ô ô|ôô
+ô|ô ô*ô*ôSôaôiôrô ô/ô ôLôoôgôoôuôtô*ô*ô ô|ô ôEônôcôeôrôrôaô ôaô ôsôeôsôsôÃô£ôoô ôaôtôuôaôlô ô|ô ôRôeôdôiôrôeôcôiôoônôaô ôpôaôrôaô ôaô ôtôeôlôaô ôdôeô ôLôoôgôiônô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô5ô"ô>ô5ô.ô ôGôeôsôtôÃô£ôoô ôdôeô ôPôaôcôiôeônôtôeôsô ô&ô ôHôiôsôtôÃô³ôrôiôcôoô ôCôlôÃô­ônôiôcôoô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôPôaôcôiôeônôtôeôsô*ô*ô,ô ôoô ôhôoôsôpôiôtôaôlô ômôaônôtôÃô©ômô ôoô ôcôaôdôaôsôtôrôoô ôcôeônôtôrôaôlôiôzôaôdôoô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôCôaômôpôoôsô ôCôaôdôaôsôtôrôaôiôsô ôdôoô ôPôaôcôiôeônôtôeôô
+ô|ô ôCôaômôpôoô ô|ô ôTôiôpôoô ôdôeô ôDôaôdôoô ô|ô ôRôeôgôrôaô ôdôeô ôVôaôlôiôdôaôÃô§ôÃô£ôoô ô|ô ôEôxôeômôpôlôoô ôdôeô ôPôrôeôeônôcôhôiômôeônôtôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôNôoômôeô ôCôoômôpôlôeôtôoô*ô*ô ô|ô ôTôeôxôtôoô ô|ô ôMôÃô­ônôiômôoô ôdôeô ô3ô ôcôaôrôaôcôtôeôrôeôsô ô|ô ô`ôRôeônôaôtôoô ôRôaômôoôsô ôMôaôcôhôaôdôoô`ô ô|ôô
+ô|ô ô*ô*ôCôPôFô*ô*ô ô|ô ôNôÃôºômôeôrôoô ô/ô ôTôeôxôtôoô ô|ô ôVôaôlôiôdôaôÃô§ôÃô£ôoô ôdôeô ôaôlôgôoôrôiôtômôoô ôdôeô ô1ô1ô ôdôÃô­ôgôiôtôoôsô ô|ô ô`ô1ô2ô3ô.ô4ô5ô6ô.ô7ô8ô9ô-ô0ô0ô`ô ô|ôô
+ô|ô ô*ô*ôDôaôtôaô ôdôeô ôNôaôsôcôiômôeônôtôoô*ô*ô ô|ô ôDôaôtôaô ô(ôAôAôAôAô-ôMôMô-ôDôDô)ô ô|ô ôNôÃô£ôoô ôpôoôdôeô ôsôeôrô ôdôaôtôaô ôfôuôtôuôrôaô ô|ô ô`ô1ô9ô8ô5ô-ô0ô4ô-ô1ô2ô`ô ô|ôô
+ô|ô ô*ô*ôTôeôlôeôfôoônôeô ô/ô ôWôhôaôtôsôAôpôpô*ô*ô|ô ôTôeôxôtôoô ô|ô ôDôDôDô ô+ô ôNôÃôºômôeôrôoô ô|ô ô`ô(ô1ô1ô)ô ô9ô8ô7ô6ô5ô-ô4ô3ô2ô1ô`ô ô|ôô
+ô|ô ô*ô*ôEônôdôeôrôeôÃô§ôoô ôCôoômôpôlôeôtôoô*ô*ô ô|ô ôTôeôxôtôoô ô|ô ôLôoôgôrôaôdôoôuôrôoô,ô ôNôÃôºômôeôrôoô,ô ôBôaôiôrôrôoô,ô ôCôiôdôaôdôeô ô|ô ô`ôAôvô.ô ôPôaôuôlôiôsôtôaô,ô ô1ô0ô0ô0ô ôâô€ô”ô ôSôÃô£ôoô ôPôaôuôlôoô/ôSôPô`ô ô|ôô
+ô|ô ô*ô*ôCôoônôvôÃôªônôiôoô ô/ô ôPôlôaônôoô*ô*ô ô|ô ôSôeôlôeôtôoôrô ô|ô ôSôUôSô,ô ôPôaôrôtôiôcôuôlôaôrô ôoôuô ôNôoômôeô ôdôoô ôCôoônôvôÃôªônôiôoô ô|ô ô`ôBôrôaôdôeôsôcôoô ôSôaôÃôºôdôeô`ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô6ô"ô>ô6ô.ô ôGôeôsôtôÃô£ôoô ôdôaô ôEôqôuôiôpôeô ôMôÃô©ôdôiôcôaô ô&ô ôCôoôrôpôoô ôCôlôÃô­ônôiôcôoô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôMôÃô©ôdôiôcôoôsô*ô*ô,ô ôgôeôrôeônôcôiôaô-ôsôeô ôoô ôcôoôrôpôoô ôcôlôÃô­ônôiôcôoô ôdôoô ôhôoôsôpôiôtôaôlô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ôâô€ôôâôšô•ôïô¸ôô ôTôaôbôeôlôaô ôdôeô ôCôaômôpôoôsô ôeô ôAôÃô§ôÃôµôeôsô ôdôoôsô ôMôÃô©ôdôiôcôoôsôô
+ô|ô ôCôaômôpôoô ô/ô ôAôÃô§ôÃô£ôoô ô|ô ôTôiôpôoô ô|ô ôDôeôsôcôrôiôÃô§ôÃô£ôoô ô/ô ôEôxôeômôpôlôoô ô|ô ôFôuônôÃô§ôÃô£ôoô ônôoô ôSôiôsôtôeômôaô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôNôoômôeô ôdôoô ôMôÃô©ôdôiôcôoô*ô*ô ô|ô ôTôeôxôtôoô ô|ô ô`ôDôrô.ô ôCôaôrôlôoôsô ôEôdôuôaôrôdôoô ôSôiôlôvôaô`ô ô|ô ôEôxôiôbôiôdôoô ônôoôsô ôlôaôuôdôoôsô,ô ôrôeôcôeôiôtôaôsô ôeô ôcôhôaômôaôdôaôsô ôdôeô ôTôVô.ô ô|ôô
+ô|ô ô*ô*ôCôRôMô ô/ô ôUôFô*ô*ô ô|ô ôTôeôxôtôoô ô|ô ô`ô1ô2ô3ô4ô5ô6ô/ôSôPô`ô ô|ô ôRôeôgôiôsôtôrôoô ôpôrôoôfôiôsôsôiôoônôaôlô ôdôeô ôcôlôaôsôsôeô ônôoô ôcôoônôsôeôlôhôoô ômôÃô©ôdôiôcôoô.ô ô|ôô
+ô|ô ô*ô*ôEôsôpôeôcôiôaôlôiôdôaôdôeô*ô*ô ô|ô ôSôeôlôeôtôoôrô ô|ô ô`ôCôaôrôdôiôoôlôoôgôiôaô`ô,ô ô`ôPôeôdôiôaôtôrôiôaô`ô,ô ô`ôOôrôtôoôpôeôdôiôaô`ô ô|ô ôVôiônôcôuôlôaô ôaô ôfôiôlôaô ôdôeô ôaôtôeônôdôiômôeônôtôoô ôdôaô ôeôsôpôeôcôiôaôlôiôdôaôdôeô.ô ô|ôô
+ô|ô ô*ô*ôCôoônôsôuôlôtôÃô³ôrôiôoô ôAôlôoôcôaôdôoô*ô*ô|ô ôSôeôlôeôtôoôrô ô|ô ô`ôCôoônôsôuôlôtôÃô³ôrôiôoô ô0ô3ô`ô ô|ô ôDôeôfôiônôeô ôeômô ôqôuôaôlô ôsôaôlôaô ôoô ômôÃô©ôdôiôcôoô ôaôtôeônôdôeô ônôoô ôdôiôaô.ô ô|ôô
+ô|ô ô*ô*ôSôtôaôtôuôsô ôdôaô ôEôsôcôaôlôaô*ô*ô ô|ô ôBôaôdôgôeô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôEômô ôPôlôaônôtôÃô£ôoô`ô ô/ô ôâôšôªô ô`ôFôoôlôgôaô`ô ô|ô ôCôoônôtôrôoôlôaô ôsôeô ôoô ômôÃô©ôdôiôcôoô ôeôsôtôÃô¡ô ôdôiôsôpôoônôÃô­ôvôeôlô ôpôaôrôaô ôcôhôaômôaôdôaôsô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô7ô"ô>ô7ô.ô ôGôeôsôtôÃô£ôoô ôdôeô ôCôoônôsôuôlôtôÃô³ôrôiôoôsô ô&ô ôSôaôlôaôsô ôdôeô ôAôtôeônôdôiômôeônôtôoô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôCôoônôsôuôlôtôÃô³ôrôiôoôsô*ô*ô,ô ôcôoônôtôrôoôlôaô-ôsôeô ôaô ôoôcôuôpôaôÃô§ôÃô£ôoô ôdôaôsô ôsôaôlôaôsô ômôÃô©ôdôiôcôaôsô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôSôtôaôtôuôsô ôeô ôGôeôsôtôÃô£ôoô ôdôaôsô ôSôaôlôaôsôô
+ô|ô ôSôaôlôaô ô/ô ôCôoônôsôuôlôtôÃô³ôrôiôoô ô|ô ôAôlôaô ô|ô ôEôsôpôeôcôiôaôlôiôdôaôdôeô ôVôiônôcôuôlôaôdôaô ô|ô ôMôÃô©ôdôiôcôoô ôAôlôoôcôaôdôoô ô|ô ôSôtôaôtôuôsô ôAôtôuôaôlô ô|ô ôAôÃô§ôÃôµôeôsô ôRôÃô¡ôpôiôdôaôsô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôCôoônôsôuôlôtôÃô³ôrôiôoô ô0ô1ô*ô*ô ô|ô ôTôÃô©ôrôrôeôoô ô|ô ôCôlôiônôiôcôaô ôGôeôrôaôlô ô|ô ôDôrô.ô ôCôaôrôlôoôsô ôSôiôlôvôaô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôDôiôsôpôoônôÃô­ôvôeôlô`ô ô|ô ô`ôAôlôoôcôaôrô ôMôÃô©ôdôiôcôoô`ô,ô ô`ôCôhôaômôaôrô ôPôrôÃô³ôxôiômôoô`ô ô|ôô
+ô|ô ô*ô*ôCôoônôsôuôlôtôÃô³ôrôiôoô ô0ô2ô*ô*ô ô|ô ôTôÃô©ôrôrôeôoô ô|ô ôPôeôdôiôaôtôrôiôaô ô|ô ôDôrôaô.ô ôMôaôrôiôaônôaô ôCôoôsôtôaô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôEômô ôCôoônôsôuôlôtôaô`ô ô|ô ô`ôVôeôrô ôAôtôeônôdôiômôeônôtôoô`ô ô|ôô
+ô|ô ô*ô*ôCôoônôsôuôlôtôÃô³ôrôiôoô ô0ô3ô*ô*ô ô|ô ô1ôÂôºô ôAônôdôaôrô ô|ô ôOôrôtôoôpôeôdôiôaô ô|ô ôDôrô.ô ôRôoôbôeôrôtôoô ôAôlôvôeôsô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôHôiôgôiôeônôiôzôaôÃô§ôÃô£ôoô`ô ô|ô ô`ôLôiôbôeôrôaôrô ôSôaôlôaô`ô ô|ôô
+ô|ô ô*ô*ôSôaôlôaô ôAômôaôrôeôlôaô*ô*ô ô|ô ôUôrôgôÃôªônôcôiôaô ô|ô ôEômôeôrôgôÃôªônôcôiôaô ô/ô ôPôSô ô|ô ôDôrôaô.ô ôFôeôrônôaônôdôaô ôLôiômôaô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôEômô ôCôoônôsôuôlôtôaô`ô ô|ô ô`ôTôrôaônôsôfôeôrôiôrô ôPôaôcôiôeônôtôeô`ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô8ô"ô>ô8ô.ô ôGôeôsôtôÃô£ôoô ôdôeô ôLôeôiôtôoôsô ô&ô ôHôoôsôpôiôtôaôlôiôzôaôÃô§ôÃô£ôoô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôLôeôiôtôoôsô*ô*ô,ô ôaô ôeôqôuôiôpôeô ôgôeôrôeônôcôiôaô ôaô ôoôcôuôpôaôÃô§ôÃô£ôoô ôdôaôsô ôaôlôaôsô ôhôoôsôpôiôtôaôlôaôrôeôsô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ôïô¸ôô ôTôaôbôeôlôaô ôdôeô ôGôeôsôtôÃô£ôoô ôdôeô ôLôeôiôtôoôsôô
+ô|ô ôLôeôiôtôoô ôIôDô ô|ô ôAôlôaô ô/ô ôSôeôtôoôrô ô|ô ôPôaôcôiôeônôtôeô ôIônôtôeôrônôaôdôoô ô|ô ôTôeômôpôoô ôdôeô ôIônôtôeôrônôaôÃô§ôÃô£ôoô ô|ô ôSôtôaôtôuôsô ôdôoô ôLôeôiôtôoô ô|ô ôAôÃô§ôÃôµôeôsô ôPôeôrômôiôtôiôdôaôsô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôEônôfôeôrômôaôrôiôaô ô1ô0ô1ô-ôAô*ô*ô|ô ôEônôfôeôrômôaôrôiôaô ôGôeôrôaôlô ô|ô ôMôaôrôiôaô ôEôdôuôaôrôdôaô ôSôoôuôzôaô ô|ô ô3ô ôdôiôaôsô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôOôcôuôpôaôdôoô`ô ô|ô ô`ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô`ô,ô ô`ôDôaôrô ôAôlôtôaô`ô ô|ôô
+ô|ô ô*ô*ôEônôfôeôrômôaôrôiôaô ô1ô0ô1ô-ôBô*ô*ô|ô ôEônôfôeôrômôaôrôiôaô ôGôeôrôaôlô ô|ô ôâô€ô”ô ô|ô ôâô€ô”ô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôDôiôsôpôoônôÃô­ôvôeôlô`ô ô|ô ô`ôIônôtôeôrônôaôrô ôPôaôcôiôeônôtôeô`ô ô|ôô
+ô|ô ô*ô*ôUôTôIô-ô0ô1ô*ô*ô ô|ô ôUôTôIô ôAôdôuôlôtôoô ô|ô ôJôoôsôÃô©ô ôRôaômôoôsô ôFôeôrôrôeôiôrôaô ô|ô ô7ô ôdôiôaôsô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôOôcôuôpôaôdôoô`ô ô|ô ô`ôTôrôaônôsôfôeôrôiôrô ôLôeôiôtôoô`ô,ô ô`ôEôvôoôlôuôÃô§ôÃô£ôoô ôUôTôIô`ô ô|ôô
+ô|ô ô*ô*ôIôsôoôlôaômôeônôtôoô-ô0ô2ô*ô*ô ô|ô ôIôsôoôlôaômôeônôtôoô ô|ô ôâô€ô”ô ô|ô ôâô€ô”ô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôHôiôgôiôeônôiôzôaôÃô§ôÃô£ôoô`ô ô|ô ô`ôLôiôbôeôrôaôrô ôpôaôrôaô ôUôsôoô`ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô9ô"ô>ô9ô.ô ôAôgôeônôdôaô,ô ôEôsôcôaôlôaô ôMôÃô©ôdôiôcôaô ô&ô ôCôoônôsôuôlôtôaôsô ôEôlôeôtôiôvôaôsô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôAôgôeônôdôaô*ô*ô,ô ôrôeôaôlôiôzôaô-ôsôeô ôaô ômôaôrôcôaôÃô§ôÃô£ôoô ôeô ôcôoônôtôrôoôlôeô ôdôeô ôhôoôrôÃô¡ôrôiôoôsô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôOôpôeôrôaôÃô§ôÃôµôeôsô ôdôaô ôAôgôeônôdôaôô
+ô|ô ôOôpôeôrôaôÃô§ôÃô£ôoô ô|ô ôPôaôrôÃô¢ômôeôtôrôoôsô ôNôeôcôeôsôsôÃô¡ôrôiôoôsô ô|ô ôAôÃô§ôÃô£ôoô ôdôoô ôSôiôsôtôeômôaô ô|ô ôRôeôsôuôlôtôaôdôoô ôGôeôrôaôdôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôNôoôvôoô ôAôgôeônôdôaômôeônôtôoô*ô*ô ô|ô ôPôaôcôiôeônôtôeô,ô ôMôÃô©ôdôiôcôoô,ô ôDôaôtôaô,ô ôHôoôrôÃô¡ôrôiôoô ô|ô ôGôrôaôvôaô ôaô ôcôoônôsôuôlôtôaô ônôaô ôgôrôaôdôeô.ô ô|ô ôIônôsôeôrôeô ônôaô ôaôgôeônôdôaô ôeô ôhôaôbôiôlôiôtôaô ôeômôiôsôsôÃô£ôoô ôdôeô ôPôDôFô.ô ô|ôô
+ô|ô ô*ô*ôIômôpôrôiômôiôrô ôCôoômôpôrôoôvôaônôtôeô*ô*ô|ô ôIôDô ôdôoô ôAôgôeônôdôaômôeônôtôoô ô|ô ôGôeôrôaô ôdôoôcôuômôeônôtôoô ôPôDôFô ôfôoôrômôaôtôaôdôoô.ô ô|ô ôBôaôiôxôaô ôoô ôtôiôcôkôeôtô ôiômôpôrôeôsôsôoô ôpôaôrôaô ôeônôtôrôeôgôaô ôaôoô ôpôaôcôiôeônôtôeô.ô ô|ôô
+ô|ô ô*ô*ôCôaônôcôeôlôaôrô ôHôoôrôÃô¡ôrôiôoô*ô*ô ô|ô ôMôoôtôiôvôoô ôdôoô ôcôaônôcôeôlôaômôeônôtôoô ô|ô ôAôlôtôeôrôaô ôsôtôaôtôuôsô ôpôaôrôaô ô`ôCôaônôcôeôlôaôdôoô`ô.ô ô|ô ôLôiôbôeôrôaô ôaô ôvôaôgôaô ônôoô ôhôoôrôÃô¡ôrôiôoô ôpôaôrôaô ônôoôvôaô ômôaôrôcôaôÃô§ôÃô£ôoô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô0ô"ô>ô1ô0ô.ô ôFôaôrômôÃô¡ôcôiôaô ô&ô ôDôiôsôpôeônôsôaôÃô§ôÃô£ôoô ôdôeô ôMôeôdôiôcôaômôeônôtôoôsô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôFôaôrômôÃô¡ôcôiôaô*ô*ô,ô ôfôaôzô-ôsôeô ôaô ôgôeôsôtôÃô£ôoô ôdôeô ôeôsôtôoôqôuôeô ôeô ôrôaôsôtôrôeôaôbôiôlôiôdôaôdôeô ôdôeô ômôeôdôiôcôaômôeônôtôoôsô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôCôoônôtôrôoôlôeô ôdôeô ôFôaôrômôÃô¡ôcôiôaô ôeô ôEôsôtôoôqôuôeôô
+ô|ô ôMôeôdôiôcôaômôeônôtôoô ô|ô ôAôpôrôeôsôeônôtôaôÃô§ôÃô£ôoô ô/ô ôVôiôaô ô|ô ôLôoôtôeô ô|ô ôDôaôtôaô ôVôaôlôiôdôaôdôeô ô|ô ôEôsôtôoôqôuôeô ôAôtôuôaôlô ô|ô ôEôsôtôoôqôuôeô ôMôÃô­ônô.ô ô|ô ôSôtôaôtôuôsô ôEôsôtôoôqôuôeô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ôô
+ô|ô ô*ô*ôDôiôpôiôrôoônôaô ôSôÃô³ôdôiôcôaô*ô*ô ô|ô ôAômôpôoôlôaô ô5ô0ô0ômôgô/ômôlô ô(ôEôVô/ôIôMô)ô|ô ô`ôLô-ô9ô8ô2ô1ô`ô ô|ô ô2ô0ô2ô7ô-ô1ô2ô-ô3ô1ô ô|ô ô4ô5ô0ô ôuônô ô|ô ô1ô0ô0ô ôuônô ô|ô ôïô¿ô½ôïô¿ô½ô ôOôKô ô|ôô
+ô|ô ô*ô*ôAômôoôxôiôcôiôlôiônôaô ô5ô0ô0ômôgô*ô*ô ô|ô ôCôoômôpôrôiômôiôdôoô ô(ôVôOô)ô ô|ô ô`ôLô-ô4ô4ô1ô0ô`ô ô|ô ô2ô0ô2ô6ô-ô0ô9ô-ô1ô5ô ô|ô ô8ô5ô ôuônô ô|ô ô1ô0ô0ô ôuônô ô|ô ôïô¿ô½ôïô¿ô½ô ôAôbôaôiôxôoô ôMôÃô­ônôiômôoô ô|ôô
+ô|ô ô*ô*ôFôeônôtôaônôiôlô ô0ô.ô0ô5ômôgô/ômôlô*ô*ô|ô ôAômôpôoôlôaô ô(ôEôVô)ô ô|ô ô`ôLô-ô1ô1ô0ô2ô`ô ô|ô ô2ô0ô2ô6ô-ô0ô8ô-ô2ô0ô ô|ô ô1ô2ô ôuônô ô|ô ô2ô0ô ôuônô ô|ô ôïô¿ô½ôïô¿ô½ô ôAôlôeôrôtôaô ôVôaôlôiôdôaôdôeô/ôEôsôtôoôqôuôeô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô1ô"ô>ô1ô1ô.ô ôFôaôtôuôrôaômôeônôtôoô,ô ôGôuôiôaôsô ôTôIôSôSô ô&ô ôGôeôsôtôÃô£ôoô ôFôiônôaônôcôeôiôrôaô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôFôaôtôuôrôaômôeônôtôoô*ô*ô,ô ôaôcôoômôpôaônôhôaô-ôsôeô ôaô ôrôeôcôeôiôtôaô ôeô ôoôsô ôrôeôpôaôsôsôeôsô ôdôoôsô ôcôoônôvôÃôªônôiôoôsô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôLôaônôÃô§ôaômôeônôtôoôsô ôFôiônôaônôcôeôiôrôoôsôô
+ô|ô ôCôÃô³ôdôiôgôoô ôAôtôeônôdôiômôeônôtôoô ô|ô ôPôaôcôiôeônôtôeô ô|ô ôCôoônôvôÃôªônôiôoô ô/ô ôPôlôaônôoô ô|ô ôVôaôlôoôrô ôdôoôsô ôSôeôrôvôiôÃô§ôoôsô ô|ô ôVôaôlôoôrô ôTôaôxôaôsô/ôEôxôaômôeôsô ô|ô ôSôtôaôtôuôsô ôFôiônôaônôcôeôiôrôoô ô|ô ôAôÃô§ôÃôµôeôsô ôDôiôsôpôoônôÃô­ôvôeôiôsô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô`ô#ôAôTôDô-ô2ô0ô2ô6ô-ô0ô8ô1ô`ô ô|ô ôRôeônôaôtôoô ôRôaômôoôsô ô|ô ôUônôiômôeôdô ôSôaôÃôºôdôeô ô|ô ôRô$ô ô3ô5ô0ô,ô0ô0ô ô|ô ôRô$ô ô1ô2ô0ô,ô0ô0ô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôPôeônôdôeônôtôeô`ô ô|ô ô`ôDôaôrô ôBôaôiôxôaô`ô,ô ô`ôEôdôiôtôaôrô`ô ô|ôô
+ô|ô ô`ô#ôAôTôDô-ô2ô0ô2ô6ô-ô0ô8ô2ô`ô ô|ô ôCôaômôiôlôaô ôFôeôrôrôeôiôrôaô ô|ô ôSôUôSô ô/ô ôPôÃôºôbôlôiôcôoô ô|ô ôRô$ô ô1ô8ô0ô,ô0ô0ô ô|ô ôRô$ô ô0ô,ô0ô0ô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôFôaôtôuôrôaôdôoô`ô ô|ô ô`ôVôeôrô ôDôeôtôaôlôhôeôsô`ô ô|ôô
+ô|ô ô`ô#ôAôTôDô-ô2ô0ô2ô6ô-ô0ô8ô3ô`ô ô|ô ôLôuôcôaôsô ôMôeônôdôeôsô ô|ô ôPôaôrôtôiôcôuôlôaôrô ô|ô ôRô$ô ô4ô5ô0ô,ô0ô0ô ô|ô ôRô$ô ô2ô0ô0ô,ô0ô0ô ô|ô ôïô¿ô½ôïô¿ô½ô ô`ôPôaôgôoô`ô ô|ô ô`ôIômôpôrôiômôiôrô ôRôeôcôiôbôoô`ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô2ô"ô>ô1ô2ô.ô ôRôeôlôaôtôÃô³ôrôiôoôsô ôAônôaôlôyôtôiôcôsô ô&ô ôIônôdôiôcôaôdôoôrôeôsô ôHôoôsôpôiôtôaôlôaôrôeôsô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôRôeôlôaôtôÃô³ôrôiôoôsô*ô*ô,ô ôoô ôgôeôsôtôoôrô ôvôiôsôuôaôlôiôzôaô ôoôsô ôgôrôÃô¡ôfôiôcôoôsô ôeô ôiônôdôiôcôaôdôoôrôeôsô ôdôeô ôdôeôsôeômôpôeônôhôoô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôIônôdôiôcôaôdôoôrôeôsô ôGôeôrôeônôcôiôaôiôsôô
+ô|ô ôRôeôlôaôtôÃô³ôrôiôoô ô/ô ôMôÃô©ôtôrôiôcôaô ô|ô ôIônôdôiôcôaôdôoôrô ôAônôaôlôiôsôaôdôoô ô|ô ôPôeôrôÃô­ôoôdôoô ôSôeôlôeôcôiôoônôÃô¡ôvôeôlô ô|ô ôFôoôrômôaôtôoô ôdôeô ôEôxôpôoôrôtôaôÃô§ôÃô£ôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ôô
+ô|ô ô*ô*ôTôaôxôaô ôdôeô ôOôcôuôpôaôÃô§ôÃô£ôoô ôdôeô ôLôeôiôtôoôsô*ô*ô ô|ô ô%ô ôdôeô ôlôeôiôtôoôsô ôoôcôuôpôaôdôoôsô ôvôsô ôlôeôiôtôoôsô ôtôoôtôaôiôsô ô|ô ôHôoôjôeô ô/ô ô7ô ôdôiôaôsô ô/ô ô3ô0ô ôdôiôaôsô ô|ô ôPôDôFô ô/ô ôEôxôcôeôlô ô|ôô
+ô|ô ô*ô*ôTôeômôpôoô ôMôÃô©ôdôiôoô ôdôeô ôEôsôpôeôrôaô ô(ôSôLôAô)ô*ô*ô ô|ô ôMôiônôuôtôoôsô ômôÃô©ôdôiôoôsô ôdôeô ôeôsôpôeôrôaô ôpôoôrô ôMôaônôcôhôeôsôtôeôrô ô|ô ôHôoôjôeô ô/ô ôMôeônôsôaôlô ô|ô ôPôDôFô ô/ô ôEôxôcôeôlô ô|ôô
+ô|ô ô*ô*ôVôoôlôuômôeô ôdôeô ôAôtôeônôdôiômôeônôtôoôsô*ô*ô ô|ô ôQôuôaônôtôiôdôaôdôeô ôdôeô ôpôaôcôiôeônôtôeôsô ôaôtôeônôdôiôdôoôsô ôpôoôrô ôeôsôpôeôcôiôaôlôiôdôaôdôeô ô|ô ôMôeônôsôaôlô ô/ô ôAônôuôaôlô ô|ô ôEôxôcôeôlô ô/ô ôCôSôVô ô|ôô
+ô|ô ô*ô*ôFôaôtôuôrôaômôeônôtôoô ôPôoôrô ôCôoônôvôÃôªônôiôoô*ô*ô ô|ô ôTôoôtôaôlô ôaôrôrôeôcôaôdôaôdôoô ôdôiôsôcôrôiômôiônôaôdôoô ôpôoôrô ôpôlôaônôoô ôdôeô ôsôaôÃôºôdôeô ô|ô ôMôeônôsôaôlô ô|ô ôEôxôcôeôlô ô/ô ôPôDôFô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô3ô"ô>ô1ô3ô.ô ôPôaôiônôeôlô ôdôeô ôCôhôaômôaôdôaô ôTôVô ô(ôRôeôcôeôpôÃô§ôÃô£ôoô)ô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôPôaôiônôeôlô ôTôVô*ô*ô,ô ôaô ôrôeôcôeôpôÃô§ôÃô£ôoô ôgôeôrôeônôcôiôaô ôaôsô ôcôhôaômôaôdôaôsô ônôaô ôtôeôlôeôvôiôsôÃô£ôoô ôdôaô ôsôaôlôaô ôdôeô ôeôsôpôeôrôaô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôRôeôcôuôrôsôoôsô ôdôoô ôPôaôiônôeôlô ôTôVôô
+ô|ô ôRôeôcôuôrôsôoô ô|ô ôDôeôsôcôrôiôÃô§ôÃô£ôoô ôTôÃô©ôcônôiôcôaô ô|ô ôRôeôsôuôlôtôaôdôoô ôVôiôsôuôaôlô ô/ô ôSôoônôoôrôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôCôhôaômôaôdôaô ôSôoônôoôrôaô ô(ôCôhôiômôeô)ô*ô*ô ô|ô ôRôeôpôrôoôdôuôzô ôoô ôsôiônôaôlô ôdôeô ôÃô¡ôuôdôiôoô ôsôiônôtôeôtôiôzôaôdôoô ôeômô ôaôlôtôoô-ôfôaôlôaônôtôeô.ô ô|ô ôAôtôrôaôiô ôaô ôaôtôeônôÃô§ôÃô£ôoô ôdôoôsô ôpôaôcôiôeônôtôeôsô ônôaô ôrôeôcôeôpôÃô§ôÃô£ôoô.ô ô|ôô
+ô|ô ô*ô*ôPôlôaôcôaô ôVôiôsôuôaôlô ôPôrôiônôcôiôpôaôlô*ô*ô ô|ô ôEôxôiôbôeô ôoô ôNôoômôeô ôdôoô ôPôaôcôiôeônôtôeô ôeô ôoô ôCôoônôsôuôlôtôÃô³ôrôiôoô ôeômô ôfôoônôtôeô ôgôiôgôaônôtôeô.ô ô|ô ôPôiôsôcôaô ôeômô ôcôoôrô ôdôeô ôaôlôtôoô ôcôoônôtôrôaôsôtôeô ônôaô ôtôeôlôaô ôdôaô ôTôVô.ô ô|ôô
+ô|ô ô*ô*ôLôiôsôtôaô ôdôeô ôCôhôaômôaôdôaôsô ôRôeôcôeônôtôeôsô*ô*ô ô|ô ôHôiôsôtôÃô³ôrôiôcôoô ôdôaôsô ôÃôºôlôtôiômôaôsô ô5ô ôcôhôaômôaôdôaôsô ônôoô ôcôaônôtôoô ôdôaô ôtôeôlôaô.ô ô|ô ôPôeôrômôiôtôeô ôaôoô ôpôaôcôiôeônôtôeô ôvôeôrôiôfôiôcôaôrô ôsôeô ôsôeôuô ônôoômôeô ôfôoôiô ôcôhôaômôaôdôoô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô4ô"ô>ô1ô4ô.ô ôCôeônôtôrôaôlô ôdôeô ôEôsôtôaôgônôaôÃô§ôÃô£ôoô ô&ô ôAôpôrôoôvôaôÃô§ôÃôµôeôsô ôdôeô ôAôcôeôsôsôoô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôEôsôtôaôgônôaôÃô§ôÃô£ôoô*ô*ô,ô ôoô ôsôiôsôtôeômôaô ômôoônôiôtôoôrôaô ôgôaôrôgôaôlôoôsô ôeô ôpôeônôdôÃôªônôcôiôaôsô ôdôeô ôaôcôeôsôsôoô ôdôeô ônôoôvôoôsô ôuôsôuôÃô¡ôrôiôoôsô.ô ôTôoôdôoô ônôoôvôoô ôuôsôuôÃô¡ôrôiôoô ôcôaôdôaôsôtôrôaôdôoô ôsôeômô ôaô ôcôhôaôvôeô ômôaôsôtôeôrô ôpôrôeôcôiôsôaôrôÃô¡ô ôdôeô ôaôpôrôoôvôaôÃô§ôÃô£ôoô.ôô
+ôô
+ô#ô#ô#ô ôïô¿ô½ôïô¿ô½ô ôTôaôbôeôlôaô ôdôeô ôAôlôeôrôtôaôsô ôdôeô ôEôsôtôaôgônôaôÃô§ôÃô£ôoô ô&ô ôAôpôrôoôvôaôÃô§ôÃôµôeôsôô
+ô|ô ôTôiôpôoô ôdôeô ôAôlôeôrôtôaô ô|ô ôCôrôiôtôÃô©ôrôiôoô ôdôeô ôDôiôsôpôaôrôoô ô|ô ôCôoôrô ôdôoô ôBôaôdôgôeô ô|ô ôAôÃô§ôÃô£ôoô ôRôeôcôoômôeônôdôaôdôaô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôAôlôeôrôtôaô ôdôeô ôEôsôpôeôrôaô*ô*ô ô|ô ôTôeômôpôoô ôdôeô ôeôsôpôeôrôaô ô>ô ô*ô*ô1ô5ô ômôiônô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ôAômôaôrôeôlôoô ô|ô ôAôcôiôoônôaôrô ôoô ômôÃô©ôdôiôcôoô ôdôaô ôsôaôlôaô ôoôuô ôaôgôiôlôiôzôaôrô ôaô ôtôrôiôaôgôeômô.ô ô|ôô
+ô|ô ô*ô*ôAôlôeôrôtôaô ôCôrôÃô­ôtôiôcôoô*ô*ô ô|ô ôTôeômôpôoô ôdôeô ôeôsôpôeôrôaô ô>ô ô*ô*ô3ô0ô ômôiônô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ôVôeôrômôeôlôhôoô ô|ô ôRôeômôaônôeôjôaôrô ôpôaôcôiôeônôtôeô ôpôaôrôaô ôcôoônôsôuôlôtôÃô³ôrôiôoô ôvôaôgôoô.ô ô|ôô
+ô|ô ô*ô*ôOôbôsôeôrôvôaôÃô§ôÃô£ôoô ôEôxôcôeôdôiôdôaô*ô*ô ô|ô ôPôeôrômôaônôeôcôeôuô ô>ô ô*ô*ô1ô2ôhô ôeômô ôOôbôsô ônôoô ôPôSô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ôPôiôsôcôaônôdôoô ô|ô ôSôoôlôiôcôiôtôaôrô ôiônôtôeôrônôaôÃô§ôÃô£ôoô ôiômôeôdôiôaôtôaô ôeômô ôlôeôiôtôoô ôdôeô ôeônôfôeôrômôaôrôiôaô.ô ô|ôô
+ô|ô ô*ô*ôSôoôlôiôcôiôtôaôÃô§ôÃô£ôoô ôdôeô ôAôcôeôsôsôoô*ô*ô ô|ô ôUôsôuôÃô¡ôrôiôoô ôrôeôaôlôiôzôoôuô ôcôaôdôaôsôtôrôoô ôpôeônôdôeônôtôeô ô|ô ôïô¿ô½ôïô¿ô½ô ôLôaôrôaônôjôaô ô|ô ôBôoôtôÃô£ôoô ô`ôAôpôrôoôvôaôrô ôAôcôeôsôsôoô`ô ôeôxôcôlôuôsôiôvôoô ôdôoô ôAôdômôiônôiôsôtôrôaôdôoôrô ôMôaôsôtôeôrô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô5ô"ô>ô1ô5ô.ô ôCôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô,ô ôBôaôcôkôuôpô ôeô ôSôiônôcôrôoônôiôzôaôÃô§ôÃô£ôoô ôeômô ôNôuôvôeômô<ô/ôhô2ô>ôô
+ôô
+ôNôaô ôaôbôaô ô*ô*ôCôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô*ô*ô,ô ôrôeôaôlôiôzôaô-ôsôeô ôaô ômôaônôuôtôeônôÃô§ôÃô£ôoô ôdôoô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ôlôoôcôaôlô ôeô ônôuôvôeômô.ôô
+ôô
+ô#ô#ô#ô ôâôšô™ôïô¸ôô ôTôaôbôeôlôaô ôdôeô ôOôpôeôrôaôÃô§ôÃôµôeôsô ôdôeô ôCôoônôfôiôgôuôrôaôÃô§ôÃô£ôoôô
+ô|ô ôOôpôeôrôaôÃô§ôÃô£ôoô ô|ô ôBôoôtôÃô£ôoô ô|ô ôAôÃô§ôÃô£ôoô ô/ô ôQôuôaônôdôoô ôUôtôiôlôiôzôaôrô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôSôiônôcôrôoônôiôzôaôÃô§ôÃô£ôoô ôNôuôvôeômô*ô*ô ô|ô ô`ôSôiônôcôrôoônôiôzôaôrô`ô ô|ô ôCôoônôeôcôtôaô ôaôoô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ôTôuôrôsôoô/ôSôQôLôiôtôeô ônôaô ônôuôvôeômô ôpôaôrôaô ôsôiônôcôrôoônôiôzôaôÃô§ôÃô£ôoô ôeômô ôtôeômôpôoô ôrôeôaôlô.ô ô|ôô
+ô|ô ô*ô*ôEôxôpôoôrôtôaôrô ôBôaôcôkôuôpô ôJôSôOôNô*ô*ô ô|ô ô`ôEôxôpôoôrôtôaôrô ôJôSôOôNô`ô ô|ô ôBôaôiôxôaô ôoô ôaôrôqôuôiôvôoô ôcôoômôpôlôeôtôoô ôdôeô ôbôaôcôkôuôpô ôdôoô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ôpôaôrôaô ôsôeôgôuôrôaônôÃô§ôaô ôeôxôtôeôrônôaô.ô ô|ôô
+ô|ô ô*ô*ôIômôpôoôrôtôaôrô ôBôaôcôkôuôpô ôJôSôOôNô*ô*ô ô|ô ô`ôIômôpôoôrôtôaôrô ôJôSôOôNô`ô ô|ô ôRôeôsôtôaôuôrôaô ôaô ôbôaôsôeô ôdôeô ôdôaôdôoôsô ôaô ôpôaôrôtôiôrô ôdôeô ôuômô ôaôrôqôuôiôvôoô ôdôeô ôbôaôcôkôuôpô ôpôrôeôvôiôaômôeônôtôeô ôsôaôlôvôoô.ô ô|ôô
+ô|ô ô*ô*ôPôoôpôuôlôaôrô ôBôaônôcôoô ô(ôSôeôeôdô)ô*ô*ô ô|ô ô`ôGôeôrôaôrô ôDôaôdôoôsô ôTôeôsôtôeô`ô ô|ô ôCôrôiôaô ôpôaôcôiôeônôtôeôsô ôeô ôaôtôeônôdôiômôeônôtôoôsô ôfôiôcôtôÃô­ôcôiôoôsô ôpôaôrôaô ôtôrôeôiônôaômôeônôtôoôsô ôoôuô ôtôeôsôtôeôsô.ô ô|ôô
+ô|ô ô*ô*ôRôeôsôeôtôaôrô ôBôaônôcôoô*ô*ô ô|ô ô`ôLôiômôpôaôrô ôDôaôdôoôsô`ô ô|ô ôAôpôaôgôaô ôoôsô ôdôaôdôoôsô ôlôoôcôaôiôsô ô(ôrôeôqôuôeôrô ôcôoônôfôiôrômôaôÃô§ôÃô£ôoô ôdôaô ôsôeônôhôaô ôMôaôsôtôeôrô)ô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô6ô"ô>ô1ô6ô.ô ôSôiôsôtôeômôaô ôdôeô ôAôvôiôsôoôsô,ô ôNôoôtôiôfôiôcôaôÃô§ôÃôµôeôsô ô&ô ôTôoôaôsôtôsô<ô/ôhô2ô>ôô
+ôô
+ô|ô ôTôiôpôoô ôdôeô ôNôoôtôiôfôiôcôaôÃô§ôÃô£ôoô ô|ô ôCôoôrô ôdôoô ôTôoôaôsôtô ô|ô ôDôuôrôaôÃô§ôÃô£ôoô ônôaô ôTôeôlôaô ô|ô ôEôxôeômôpôlôoô ôdôeô ôMôeônôsôaôgôeômô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô:ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôSôuôcôeôsôsôoô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ôVôeôrôdôeô ô|ô ô3ô ôsôeôgôuônôdôoôsô ô|ô ô`ôâôœô…ô ôPôrôoônôtôuôÃô¡ôrôiôoô ôaôsôsôiônôaôdôoô ôcôoômô ôsôuôcôeôsôsôoô!ô`ô ô|ôô
+ô|ô ô*ô*ôAôlôeôrôtôaô ô/ô ôAôvôiôsôoô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ôAômôaôrôeôlôoô ô|ô ô4ô ôsôeôgôuônôdôoôsô ô|ô ô`ôâôô±ôïô¸ôô ôPôaôcôiôeônôtôeô ôcôoôlôoôcôaôdôoô ôeômô ôOôbôsôeôrôvôaôÃô§ôÃô£ôoô ôMôÃô©ôdôiôcôaô ô(ôCôrôoônômôeôtôrôoô ô1ô2ôhô ôiônôiôcôiôaôdôoô)ô`ô ô|ôô
+ô|ô ô*ô*ôEôrôrôoô ô/ô ôFôaôlôhôaô*ô*ô ô|ô ôïô¿ô½ôïô¿ô½ô ôVôeôrômôeôlôhôoô ô|ô ô5ô ôsôeôgôuônôdôoôsô ô|ô ô`ôâôôŒô ôSôeôlôeôcôiôoônôeô ôaô ôcôlôaôsôsôiôfôiôcôaôÃô§ôÃô£ôoô ôdôeô ôrôiôsôcôoô ôoôbôrôiôgôaôtôÃô³ôrôiôaô.ô`ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô7ô"ô>ô1ô7ô.ô ôTôaôbôeôlôaô ôdôeô ôMôÃô¡ôsôcôaôrôaôsô,ô ôAôtôaôlôhôoôsô ô&ô ôTôeôcôlôaôsô ôdôeô ôAôtôaôlôhôoô<ô/ôhô2ô>ôô
+ôô
+ô|ô ôAôtôaôlôhôoô ô/ô ôCôlôiôqôuôeô ô|ô ôFôuônôÃô§ôÃô£ôoô ô|ô ôOônôdôeô ôFôuônôcôiôoônôaô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô`ôMôaôsôcôaôrôaô ôPôAô ô(ô1ô2ô0ô/ô8ô0ô)ô`ô ô|ô ôFôoôrômôaôtôaô ônôÃôºômôeôrôoôsô ôeômô ôfôoôrômôaôtôoô ôsôiôsôtôÃô³ôlôiôcôaô/ôdôiôaôsôtôÃô³ôlôiôcôaô ô|ô ôCôaômôpôoô ôPôrôeôsôsôÃô£ôoô ôAôrôtôeôrôiôaôlô ônôaô ôTôrôiôaôgôeômô ô|ôô
+ô|ô ô`ôMôaôsôcôaôrôaô ôCôPôFô ô(ô0ô0ô0ô.ô0ô0ô0ô.ô0ô0ô0ô-ô0ô0ô)ô`ô ô|ô ôFôoôrômôaôtôaô ô1ô1ô ôdôÃô­ôgôiôtôoôsô ôcôoômô ôpôoônôtôoôsô ôeô ôhôÃô­ôfôeônô ô|ô ôCôaôdôaôsôtôrôoô ôdôeô ôPôaôcôiôeônôtôeô ô|ôô
+ô|ô ô`ôCôlôiôqôuôeô ônôoô ôCôaôrôdô ôTôrôiôaôgôeômô`ô ô|ô ôFôiôlôtôrôaô ôpôaôrôaô ôvôeôrô ôaôpôeônôaôsô ôaô ôfôiôlôaô ôdôeô ôTôrôiôaôgôeômô ô|ô ôAôbôaô ôAôtôeônôdôiômôeônôtôoôsô ô|ôô
+ô|ô ô`ôCôlôiôqôuôeô ônôoô ôCôaôrôdô ôAôgô.ô ôMôÃô©ôdôiôcôoô`ô|ô ôFôiôlôtôrôaô ôpôaôrôaô ôvôeôrô ôaôpôeônôaôsô ôoôsô ôpôaôcôiôeônôtôeôsô ôaôgôuôaôrôdôaônôdôoô ômôÃô©ôdôiôcôoô ô|ô ôAôbôaô ôAôtôeônôdôiômôeônôtôoôsô ô|ôô
+ô|ô ô`ôCôlôiôqôuôeô ônôoô ôCôaôrôdô ôEômô ôCôoônôsôuôlôtôaô`ô|ô ôFôiôlôtôrôaô ôpôaôrôaô ôvôeôrô ôoôsô ôaôtôeônôdôiômôeônôtôoôsô ôaôtôiôvôoôsô ô|ô ôAôbôaô ôAôtôeônôdôiômôeônôtôoôsô ô|ôô
+ô|ô ô`ôCôlôiôqôuôeô ôeômô ôVôeôrô ôTôoôdôoôsô`ô ô|ô ôEôxôiôbôeô ôaôsô ô3ô ôcôoôlôuônôaôsô ôdôoô ôKôaônôbôaônô ôlôaôdôoô ôaô ôlôaôdôoô ô|ô ôAôbôaô ôAôtôeônôdôiômôeônôtôoôsô ô|ôô
+ô|ô ô`ôBôoôtôÃô£ôoô ôIômôpôrôiômôiôrô ô/ô ôPôDôFô`ô ô|ô ôIômôpôrôiômôeô ôlôaôuôdôoô ôoôfôiôcôiôaôlô ôeômô ôPôDôFô ôdôoô ôPôEôPô ô|ô ôMôoôdôaôlô ôdôoô ôPôEôPô ô|ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô1ô8ô"ô>ô1ô8ô.ô ôSôoôlôuôÃô§ôÃô£ôoô ôdôeô ôDôÃôºôvôiôdôaôsô ôFôrôeôqôuôeônôtôeôsô ô&ô ôEôrôrôoôsô ôCôoômôuônôsô ô(ôFôAôQô)ô<ô/ôhô2ô>ôô
+ôô
+ô|ô ôPôrôoôbôlôeômôaô ôEônôcôoônôtôrôaôdôoô ô|ô ôCôaôuôsôaô ôPôrôoôvôÃô¡ôvôeôlô ô|ô ôSôoôlôuôÃô§ôÃô£ôoô ôPôaôsôsôoô ôaô ôPôaôsôsôoô ô|ôô
+ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ô ô:ô-ô-ô-ô ô|ôô
+ô|ô ô*ô*ôAôoô ôcôlôiôcôaôrô ônôoô ôPôEôPô ôeôxôiôbôeô ôeôrôrôoô ônôoô ôcôoônôsôoôlôeô*ô*ô ô|ô ôOô ôaôtôeônôdôiômôeônôtôoô ônôÃô£ôoô ôfôoôiô ôiônôiôcôiôaôlôiôzôaôdôoô ô|ô ôVôeôrôiôfôiôqôuôeô ôsôeô ôoô ôaôtôeônôdôiômôeônôtôoô ôeôsôtôÃô¡ô ônôaô ôcôoôlôuônôaô ô*ôEômô ôCôoônôsôuôlôtôaô*ô ôaônôtôeôsô ôdôeô ôaôbôrôiôrô ôoô ôPôEôPô.ô ô|ôô
+ô|ô ô*ô*ôPôrôoônôtôuôÃô¡ôrôiôoô ôgôeôrôaôdôoô ôeômô ôPôDôFô ôcôoômô ôcôaômôpôoôsô ôvôaôzôiôoôsô*ô*ô ô|ô ôPôaôcôiôeônôtôeô ôsôeômô ôCôPôFô/ôdôaôdôoôsô ôcôaôdôaôsôtôrôaôiôsô ô|ô ôAôcôeôsôsôeô ôaô ôaôbôaô ô*ôPôaôcôiôeônôtôeôsô*ô,ô ôcôoômôpôlôeôtôeô ôoô ôcôaôdôaôsôtôrôoô ôdôoô ôpôaôcôiôeônôtôeô ôeô ôtôeônôtôeô ôgôeôrôaôrô ônôoôvôaômôeônôtôeô.ô ô|ôô
+ô|ô ô*ô*ôHôiôsôtôÃô³ôrôiôcôoô ôeôxôiôbôeô ô"ôNôeônôhôuômô ôaôtôeônôdôiômôeônôtôoô ôrôeôgôiôsôtôrôaôdôoô"ô*ô*ô ô|ô ôCôoônôsôuôlôtôaô ôrôeôcôÃô©ômô-ôcôrôiôaôdôaô ôsôeômô ôtôrôiôaôgôeômô ô|ô ôCôeôrôtôiôfôiôqôuôeô-ôsôeô ôdôeô ôrôeôaôlôiôzôaôrô ôaô ôTôrôiôaôgôeômô ôdôeô ôMôaônôcôhôeôsôtôeôrô ôaônôtôeôsô ôdôeô ôbôuôsôcôaôrô ôoô ôhôiôsôtôÃô³ôrôiôcôoô.ô ô|ôô
+ô|ô ô*ô*ôOô ôcôrôoônômôeôtôrôoô ôdôoô ôcôaôrôdô ônôÃô£ôoô ôeôsôtôÃô¡ô ôaôtôuôaôlôiôzôaônôdôoô*ô*ô ô|ô ôIônôtôeôrôvôaôlôoô ôdôeô ôaôtôuôaôlôiôzôaôÃô§ôÃô£ôoô ôpôaôuôsôaôdôoô ô|ô ôCôlôiôqôuôeô ônôoô ôbôoôtôÃô£ôoô ô`ôAôtôuôaôlôiôzôaôrô`ô ônôaô ôbôaôrôrôaô ôsôuôpôeôrôiôoôrô ôoôuô ôrôeôcôaôrôrôeôgôuôeô ôaô ôaôbôaô ô*ôAôtôeônôdôiômôeônôtôoôsô*ô.ô ô|ôô
+ôô
+ô-ô-ô-ôô
+ô*ôHôeôaôlôtôhô ôNôeôxôuôsô ôâô€ô”ô ôMôaônôuôaôlô ôdôoô ôUôsôuôÃô¡ôrôiôoô ôvô1ô.ô0ô ô|ô ôSôiôsôtôeômôaô ôdôeô ôGôeôsôtôÃô£ôoô ôHôoôsôpôiôtôaôlôaôrô ôdôeô ôAôlôtôaô ôPôeôrôfôoôrômôaônôcôeô*ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô2ô2ô"ô>ô2ô2ô.ô ôïô¿ô½ôïô¿ô½ô ôAôtôuôaôlôiôzôaôÃô§ôÃôµôeôsô ôRôeôcôeônôtôeôsô ô(ôAôgôoôsôtôoô/ô2ô0ô2ô6ô)ô<ô/ôhô2ô>ôô
+ôô
+ôOô ôHôeôaôlôtôhô ôNôeôxôuôsô ôrôeôcôeôbôeôuô ôuômôaô ôsôÃô©ôrôiôeô ôdôeô ômôeôlôhôoôrôiôaôsô ôpôaôrôaô ôoôtôiômôiôzôaôrô ôoô ôfôlôuôxôoô ôdôeô ôtôrôaôbôaôlôhôoô ôeô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôÃô§ôaô ôdôaôsô ôiônôfôoôrômôaôÃô§ôÃôµôeôsô ôoôpôeôrôaôcôiôoônôaôiôsô:ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô1ô.ô ôCôoônôtôrôoôlôeô ôdôeô ôAôcôeôsôsôoô ôeô ôPôeôrômôiôsôsôÃôµôeôsô ô(ôRôoôlôeôsô)ôô
+ôAô ôaôbôaô ôdôeô ô*ô*ôCôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô ôGôlôoôbôaôiôsô*ô*ô ôaôgôoôrôaô ôcôoônôtôaô ôcôoômô ôuômô ôcôoônôtôrôoôlôeô ôdôeô ôaôcôeôsôsôoô ôrôiôgôoôrôoôsôoô:ôô
+ô-ô ô*ô*ôMôAôSôTôEôRô:ô*ô*ô ôPôoôsôsôuôiô ôaôcôeôsôsôoô ôiônôtôeôgôrôaôlô ôaô ôtôoôdôoôsô ôoôsô ôpôaôiônôÃô©ôiôsô,ô ôiônôcôlôuôiônôdôoô ô"ôGôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôUôsôuôÃô¡ôrôiôoôsô"ô,ô ô"ôSôiômôuôlôaôÃô§ôÃô£ôoô ôdôeô ôDôaôdôoôsô"ô ôeô ôdôeômôaôiôsô ôcôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô ôaôvôaônôÃô§ôaôdôaôsô ô(ôiôdôeônôtôiôfôiôcôaôdôaôsô ôeômô ôvôeôrômôeôlôhôoô)ô.ôô
+ô-ô ô*ô*ôDôeôsôeônôvôoôlôvôeôdôoôrô:ô*ô*ô ôRôeôcôeôbôeô ôaôcôeôsôsôoô ôaôpôeônôaôsô ôaôoôsô ôaôgôrôuôpôaômôeônôtôoôsô ôtôÃô©ôcônôiôcôoôsô ôeôsôsôeônôcôiôaôiôsô ô(ôdôeôsôtôaôcôaôdôoôsô ôeômô ôvôeôrômôeôlôhôoô)ô,ô ôpôeôrômôiôtôiônôdôoô ôrôeôaôlôiôzôaôrô ôsôiônôcôrôoônôiôzôaôÃô§ôÃô£ôoô ôdôeô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ô(ôTôuôrôsôoô)ô ôeô ôoôpôeôrôaôÃô§ôÃôµôeôsô ôtôÃô©ôcônôiôcôaôsô,ô ômôaônôtôeônôdôoô ôrôeôsôtôrôiôÃô§ôÃôµôeôsô ôdôeô ôgôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôeôqôuôiôpôeô.ôô
+ô-ô ô*ô*ôDôeômôaôiôsô ôpôeôrôfôiôsô:ô*ô*ô ôAôcôeôsôsôoô ôbôlôoôqôuôeôaôdôoô ôÃô ô ôaôbôaô ôdôeô ôCôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô ôpôaôrôaô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôÃô§ôaô ôdôoôsô ôdôaôdôoôsô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô2ô.ô ôBôoôtôÃôµôeôsô ôdôeô ôLôiômôpôeôzôaô ôdôeô ôFôiôlôtôrôoôsô ô(ô"ôLôiômôpôaôrô ôFôiôlôtôrôoôsô"ô)ôô
+ôVôiôsôaônôdôoô ôaôuômôeônôtôaôrô ôaô ôaôgôiôlôiôdôaôdôeô ôoôpôeôrôaôcôiôoônôaôlô,ô ôfôoôrôaômô ôiônôcôlôuôÃô­ôdôoôsô ôbôoôtôÃôµôeôsô ôdôeôdôiôcôaôdôoôsô ôcôoômô ôoô ôÃô­ôcôoônôeô ô<ôiô ôcôlôaôsôsô=ô"ôfôaô-ôsôoôlôiôdô ôfôaô-ôfôiôlôtôeôrô-ôcôiôrôcôlôeô-ôxômôaôrôkô"ô>ô<ô/ôiô>ô ô(ôLôiômôpôaôrô ôFôiôlôtôrôoôsô)ô ôeômô ô*ô*ôtôoôdôaôsô ôaôsô ôaôbôaôsô ôpôrôiônôcôiôpôaôiôsô*ô*ô:ôô
+ô-ô ô*ô*ôPôaôcôiôeônôtôeôsô,ô ôMôÃô©ôdôiôcôoôsô,ô ôAôgôeônôdôaô,ô ôFôaôrômôÃô¡ôcôiôaô ôeô ôRôeôlôaôtôÃô³ôrôiôoôsô.ô*ô*ôô
+ô-ô ôUômô ôÃôºônôiôcôoô ôcôlôiôqôuôeô ôzôeôrôaô ôiônôsôtôaônôtôaônôeôaômôeônôtôeô ôtôoôdôaôsô ôaôsô ôbôuôsôcôaôsô ôdôeô ôtôeôxôtôoô ôeô ôrôeôcôoôlôoôcôaô ôoôsô ô*ôcôhôeôcôkôbôoôxôeôsô*ô ôdôeô ôfôiôlôtôrôoô ôeômô ôsôeôuôsô ôeôsôtôaôdôoôsô ôpôaôdôrôÃô£ôoô,ô ôpôeôrômôiôtôiônôdôoô ôbôuôsôcôaôsô ôfôlôuôÃô­ôdôaôsô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô3ô.ô ôBôuôsôcôaô ôdôeô ôPôaôcôiôeônôtôeôsô ôAôpôrôiômôoôrôaôdôaô ô(ôNôoômôeô ôeô ôCôPôFô)ôô
+ôOô ôcôoômôpôoônôeônôtôeô ôuônôiôfôiôcôaôdôoô ôdôeô ôbôuôsôcôaô ôdôeô ôpôaôcôiôeônôtôeôsô ô(ôDôrôoôpôdôoôwônô ôdôiônôÃô¢ômôiôcôoô ôuôtôiôlôiôzôaôdôoô ôeômô ômôoôdôaôiôsô ôdôeô ôaôdômôiôsôsôÃô£ôoô,ô ôpôrôeôsôcôrôiôÃô§ôÃô£ôoô ôeô ôfôiônôaônôcôeôiôrôoô)ô ôfôoôiô ôrôeôeôsôcôrôiôtôoô.ô ôAôgôoôrôaô:ôô
+ô-ô ôAô ôpôeôsôqôuôiôsôaô ôpôrôoôcôuôrôaô ônôÃô£ôoô ôaôpôeônôaôsô ôpôeôlôoô ôNôoômôeô ôdôoô ôPôaôcôiôeônôtôeô,ô ômôaôsô ôtôaômôbôÃô©ômô ôvôeôrôiôfôiôcôaô ôoôcôoôrôrôÃôªônôcôiôaôsô ôdôoô ô*ô*ôCôPôFô*ô*ô.ôô
+ô-ô ôOô ô*ô*ôCôPôFô*ô*ô ôÃô©ô ôeôxôiôbôiôdôoô ôdôiôrôeôtôaômôeônôtôeô ônôaô ôlôiôsôtôaô ôdôeô ôoôpôÃô§ôÃôµôeôsô ô(ôfôoôrômôaôtôoô ôrôeôdôuôzôiôdôoô)ô,ô ôfôaôcôiôlôiôtôaônôdôoô ôaô ôiôdôeônôtôiôfôiôcôaôÃô§ôÃô£ôoô ôdôeô ôhôoômônôiômôoôsô ônôaô ôhôoôrôaô ôdôoô ôaôtôeônôdôiômôeônôtôoô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô4ô.ô ôÃôôcôoônôeôsô ôVôiôsôuôaôiôsô ôdôeô ôFôoôrômôaô ôdôeô ôPôaôgôaômôeônôtôoô ôïô¿ô½ôïô¿ô½ôïô¿ô½ôïô¿ô½ôô
+ôAô ôiônôtôeôrôfôaôcôeô ôdôaô ôsôeôÃô§ôÃô£ôoô ôdôeô ôRôeôlôaôtôÃô³ôrôiôoôsô ôFôiônôaônôcôeôiôrôoôsô ôfôoôiô ôeônôrôiôqôuôeôcôiôdôaô ôcôoômô ôrôeôpôrôeôsôeônôtôaôÃô§ôÃôµôeôsô ôgôrôÃô¡ôfôiôcôaôsô ô(ôEômôoôjôiôsô)ô:ôô
+ô-ô ôPôiôxô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ô-ô ôDôiônôhôeôiôrôoô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ô-ô ôCôaôrôtôÃô£ôoô ôdôeô ôCôrôÃô©ôdôiôtôoô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ô-ô ôCôaôrôtôÃô£ôoô ôdôeô ôDôÃô©ôbôiôtôoô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ô-ô ôBôoôlôeôtôoô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ôIôsôsôoô ôrôeôdôuôzô ôoô ôtôeômôpôoô ôdôeô ôrôeôcôoônôhôeôcôiômôeônôtôoô ôvôiôsôuôaôlô ôdôoô ôaôtôeônôdôeônôtôeô ôdôuôrôaônôtôeô ôoô ôfôeôcôhôaômôeônôtôoô ôdôeô ôcôaôiôxôaô.ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô2ô2ô"ô>ô2ô2ô.ô ôïô¿ô½ôïô¿ô½ô ôAôtôuôaôlôiôzôaôÃô§ôÃôµôeôsô ôRôeôcôeônôtôeôsô ô(ôAôgôoôsôtôoô/ô2ô0ô2ô6ô)ô<ô/ôhô2ô>ôô
+ôô
+ôOô ôHôeôaôlôtôhô ôNôeôxôuôsô ôrôeôcôeôbôeôuô ôuômôaô ôsôÃô©ôrôiôeô ôdôeô ômôeôlôhôoôrôiôaôsô ôpôaôrôaô ôoôtôiômôiôzôaôrô ôoô ôfôlôuôxôoô ôdôeô ôtôrôaôbôaôlôhôoô ôeô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôÃô§ôaô ôdôaôsô ôiônôfôoôrômôaôÃô§ôÃôµôeôsô ôoôpôeôrôaôcôiôoônôaôiôsô:ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô1ô.ô ôCôoônôtôrôoôlôeô ôdôeô ôAôcôeôsôsôoô ôeô ôPôeôrômôiôsôsôÃôµôeôsô ô(ôRôoôlôeôsô)ôô
+ôAô ôaôbôaô ôdôeô ô*ô*ôCôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô ôGôlôoôbôaôiôsô*ô*ô ôaôgôoôrôaô ôcôoônôtôaô ôcôoômô ôuômô ôcôoônôtôrôoôlôeô ôdôeô ôaôcôeôsôsôoô ôrôiôgôoôrôoôsôoô:ôô
+ô-ô ô*ô*ôMôAôSôTôEôRô:ô*ô*ô ôPôoôsôsôuôiô ôaôcôeôsôsôoô ôiônôtôeôgôrôaôlô ôaô ôtôoôdôoôsô ôoôsô ôpôaôiônôÃô©ôiôsô,ô ôiônôcôlôuôiônôdôoô ô"ôGôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôUôsôuôÃô¡ôrôiôoôsô"ô,ô ô"ôSôiômôuôlôaôÃô§ôÃô£ôoô ôdôeô ôDôaôdôoôsô"ô ôeô ôdôeômôaôiôsô ôcôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô ôaôvôaônôÃô§ôaôdôaôsô ô(ôiôdôeônôtôiôfôiôcôaôdôaôsô ôeômô ôvôeôrômôeôlôhôoô)ô.ôô
+ô-ô ô*ô*ôDôeôsôeônôvôoôlôvôeôdôoôrô:ô*ô*ô ôRôeôcôeôbôeô ôaôcôeôsôsôoô ôaôpôeônôaôsô ôaôoôsô ôaôgôrôuôpôaômôeônôtôoôsô ôtôÃô©ôcônôiôcôoôsô ôeôsôsôeônôcôiôaôiôsô ô(ôdôeôsôtôaôcôaôdôoôsô ôeômô ôvôeôrômôeôlôhôoô)ô,ô ôpôeôrômôiôtôiônôdôoô ôrôeôaôlôiôzôaôrô ôsôiônôcôrôoônôiôzôaôÃô§ôÃô£ôoô ôdôeô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ô(ôTôuôrôsôoô)ô ôeô ôoôpôeôrôaôÃô§ôÃôµôeôsô ôtôÃô©ôcônôiôcôaôsô,ô ômôaônôtôeônôdôoô ôrôeôsôtôrôiôÃô§ôÃôµôeôsô ôdôeô ôgôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôeôqôuôiôpôeô.ôô
+ô-ô ô*ô*ôDôeômôaôiôsô ôpôeôrôfôiôsô:ô*ô*ô ôAôcôeôsôsôoô ôbôlôoôqôuôeôaôdôoô ôÃô ô ôaôbôaô ôdôeô ôCôoônôfôiôgôuôrôaôÃô§ôÃôµôeôsô ôpôaôrôaô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôÃô§ôaô ôdôoôsô ôdôaôdôoôsô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô2ô.ô ôBôoôtôÃôµôeôsô ôdôeô ôLôiômôpôeôzôaô ôdôeô ôFôiôlôtôrôoôsô ô(ô"ôLôiômôpôaôrô ôFôiôlôtôrôoôsô"ô)ôô
+ôVôiôsôaônôdôoô ôaôuômôeônôtôaôrô ôaô ôaôgôiôlôiôdôaôdôeô ôoôpôeôrôaôcôiôoônôaôlô,ô ôfôoôrôaômô ôiônôcôlôuôÃô­ôdôoôsô ôbôoôtôÃôµôeôsô ôdôeôdôiôcôaôdôoôsô ôcôoômô ôoô ôÃô­ôcôoônôeô ô<ôiô ôcôlôaôsôsô=ô"ôfôaô-ôsôoôlôiôdô ôfôaô-ôfôiôlôtôeôrô-ôcôiôrôcôlôeô-ôxômôaôrôkô"ô>ô<ô/ôiô>ô ô(ôLôiômôpôaôrô ôFôiôlôtôrôoôsô)ô ôeômô ô*ô*ôtôoôdôaôsô ôaôsô ôaôbôaôsô ôpôrôiônôcôiôpôaôiôsô*ô*ô:ôô
+ô-ô ô*ô*ôPôaôcôiôeônôtôeôsô,ô ôMôÃô©ôdôiôcôoôsô,ô ôAôgôeônôdôaô,ô ôFôaôrômôÃô¡ôcôiôaô ôeô ôRôeôlôaôtôÃô³ôrôiôoôsô.ô*ô*ôô
+ô-ô ôUômô ôÃôºônôiôcôoô ôcôlôiôqôuôeô ôzôeôrôaô ôiônôsôtôaônôtôaônôeôaômôeônôtôeô ôtôoôdôaôsô ôaôsô ôbôuôsôcôaôsô ôdôeô ôtôeôxôtôoô ôeô ôrôeôcôoôlôoôcôaô ôoôsô ô*ôcôhôeôcôkôbôoôxôeôsô*ô ôdôeô ôfôiôlôtôrôoô ôeômô ôsôeôuôsô ôeôsôtôaôdôoôsô ôpôaôdôrôÃô£ôoô,ô ôpôeôrômôiôtôiônôdôoô ôbôuôsôcôaôsô ôfôlôuôÃô­ôdôaôsô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô3ô.ô ôBôuôsôcôaô ôdôeô ôPôaôcôiôeônôtôeôsô ôAôpôrôiômôoôrôaôdôaô ô(ôNôoômôeô ôeô ôCôPôFô)ôô
+ôOô ôcôoômôpôoônôeônôtôeô ôuônôiôfôiôcôaôdôoô ôdôeô ôbôuôsôcôaô ôdôeô ôpôaôcôiôeônôtôeôsô ô(ôDôrôoôpôdôoôwônô ôdôiônôÃô¢ômôiôcôoô ôuôtôiôlôiôzôaôdôoô ôeômô ômôoôdôaôiôsô ôdôeô ôaôdômôiôsôsôÃô£ôoô,ô ôpôrôeôsôcôrôiôÃô§ôÃô£ôoô ôeô ôfôiônôaônôcôeôiôrôoô)ô ôfôoôiô ôrôeôeôsôcôrôiôtôoô.ô ôAôgôoôrôaô:ôô
+ô-ô ôAô ôpôeôsôqôuôiôsôaô ôpôrôoôcôuôrôaô ônôÃô£ôoô ôaôpôeônôaôsô ôpôeôlôoô ôNôoômôeô ôdôoô ôPôaôcôiôeônôtôeô,ô ômôaôsô ôtôaômôbôÃô©ômô ôvôeôrôiôfôiôcôaô ôoôcôoôrôrôÃôªônôcôiôaôsô ôdôoô ô*ô*ôCôPôFô*ô*ô.ôô
+ô-ô ôOô ô*ô*ôCôPôFô*ô*ô ôÃô©ô ôeôxôiôbôiôdôoô ôdôiôrôeôtôaômôeônôtôeô ônôaô ôlôiôsôtôaô ôdôeô ôoôpôÃô§ôÃôµôeôsô ô(ôfôoôrômôaôtôoô ôrôeôdôuôzôiôdôoô)ô,ô ôfôaôcôiôlôiôtôaônôdôoô ôaô ôiôdôeônôtôiôfôiôcôaôÃô§ôÃô£ôoô ôdôeô ôhôoômônôiômôoôsô ônôaô ôhôoôrôaô ôdôoô ôaôtôeônôdôiômôeônôtôoô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô4ô.ô ôÃôôcôoônôeôsô ôVôiôsôuôaôiôsô ôdôeô ôFôoôrômôaô ôdôeô ôPôaôgôaômôeônôtôoô ôïô¿ô½ôïô¿ô½ôïô¿ô½ôïô¿ô½ôô
+ôAô ôiônôtôeôrôfôaôcôeô ôdôaô ôsôeôÃô§ôÃô£ôoô ôdôeô ôRôeôlôaôtôÃô³ôrôiôoôsô ôFôiônôaônôcôeôiôrôoôsô ôfôoôiô ôeônôrôiôqôuôeôcôiôdôaô ôcôoômô ôrôeôpôrôeôsôeônôtôaôÃô§ôÃôµôeôsô ôgôrôÃô¡ôfôiôcôaôsô ô(ôEômôoôjôiôsô)ô:ôô
+ô-ô ôPôiôxô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ô-ô ôDôiônôhôeôiôrôoô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ô-ô ôCôaôrôtôÃô£ôoô ôdôeô ôCôrôÃô©ôdôiôtôoô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ô-ô ôCôaôrôtôÃô£ôoô ôdôeô ôDôÃô©ôbôiôtôoô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ô-ô ôBôoôlôeôtôoô ô(ôïô¿ô½ôïô¿ô½ô)ôô
+ôIôsôsôoô ôrôeôdôuôzô ôoô ôtôeômôpôoô ôdôeô ôrôeôcôoônôhôeôcôiômôeônôtôoô ôvôiôsôuôaôlô ôdôoô ôaôtôeônôdôeônôtôeô ôdôuôrôaônôtôeô ôoô ôfôeôcôhôaômôeônôtôoô ôdôeô ôcôaôiôxôaô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô5ô.ô ôVôaôlôiôdôaôÃô§ôÃô£ôoô ôEôsôtôrôiôtôaô ôdôeô ôSôeônôhôaôsô ônôoô ôLôoôgôiônô ôïô¿ô½ôïô¿ô½ôô
+ôAô ôtôeôlôaô ôdôeô ôaôuôtôeônôtôiôcôaôÃô§ôÃô£ôoô ôfôoôiô ôaôtôuôaôlôiôzôaôdôaô ôpôaôrôaô ôeôxôiôgôiôrô ôaô ôvôaôlôiôdôaôÃô§ôÃô£ôoô ôeôxôaôtôaô ôdôaô ôsôeônôhôaô ôcôaôdôaôsôtôrôaôdôaô ôdôeô ôcôaôdôaô ôuôsôuôÃô¡ôrôiôoô:ôô
+ô-ô ôTôeônôtôaôtôiôvôaôsô ôcôoômô ôsôeônôhôaôsô ôiônôcôoôrôrôeôtôaôsô ôsôÃô£ôoô ôiômôeôdôiôaôtôaômôeônôtôeô ôrôeôjôeôiôtôaôdôaôsô ô(ôHôTôTôPô ô4ô0ô1ô)ô.ôô
+ô-ô ôGôaôrôaônôtôiôaô ôdôeô ôqôuôeô ôcôoônôtôaôsô ôiônôdôiôvôiôdôuôaôiôsô ô(ôeôxô:ô ô`ôlôjôoôrôdôaôoô`ô,ô ô`ôbôcôoôlôtôrôiô`ô,ô ô`ôaôdômôiônô`ô)ô ôsôÃô³ô ôpôoôsôsôuôeômô ôaôcôeôsôsôoô ôlôiôbôeôrôaôdôoô ômôeôdôiôaônôtôeô ôaô ôaôpôrôeôsôeônôtôaôÃô§ôÃô£ôoô ôdôaô ôsôeônôhôaô ôcôaôdôaôsôtôrôaôdôaô ôcôoôrôrôeôsôpôoônôdôeônôtôeô.ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô-ô-ô-ôô
+ôô
+ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô2ô2ô"ô>ô2ô2ô.ô ô�ô�ô ôAôtôuôaôlôiôzôaôçôõôeôsô ôRôeôcôeônôtôeôsô ô(ôAôgôoôsôtôoô/ô2ô0ô2ô6ô)ô<ô/ôhô2ô>ôô
+ôô
+ôOô ôHôeôaôlôtôhô ôNôeôxôuôsô ôrôeôcôeôbôeôuô ôuômôaô ôsôéôrôiôeô ôdôeô ômôeôlôhôoôrôiôaôsô ôpôaôrôaô ôoôtôiômôiôzôaôrô ôoô ôfôlôuôxôoô ôdôeô ôtôrôaôbôaôlôhôoô ôeô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôçôaô ôdôaôsô ôiônôfôoôrômôaôçôõôeôsô ôoôpôeôrôaôcôiôoônôaôiôsô:ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô1ô.ô ôCôoônôtôrôoôlôeô ôdôeô ôAôcôeôsôsôoô ôeô ôPôeôrômôiôsôsôõôeôsô ô(ôRôoôlôeôsô)ôô
+ôAô ôaôbôaô ôdôeô ô*ô*ôCôoônôfôiôgôuôrôaôçôõôeôsô ôGôlôoôbôaôiôsô*ô*ô ôaôgôoôrôaô ôcôoônôtôaô ôcôoômô ôuômô ôcôoônôtôrôoôlôeô ôdôeô ôaôcôeôsôsôoô ôrôiôgôoôrôoôsôoô:ôô
+ô-ô ô*ô*ôMôAôSôTôEôRô:ô*ô*ô ôPôoôsôsôuôiô ôaôcôeôsôsôoô ôiônôtôeôgôrôaôlô ôaô ôtôoôdôoôsô ôoôsô ôpôaôiônôéôiôsô,ô ôiônôcôlôuôiônôdôoô ô"ôGôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôUôsôuôáôrôiôoôsô"ô,ô ô"ôSôiômôuôlôaôçôãôoô ôdôeô ôDôaôdôoôsô"ô ôeô ôdôeômôaôiôsô ôcôoônôfôiôgôuôrôaôçôõôeôsô ôaôvôaônôçôaôdôaôsô ô(ôiôdôeônôtôiôfôiôcôaôdôaôsô ôeômô ôvôeôrômôeôlôhôoô)ô.ôô
+ô-ô ô*ô*ôDôeôsôeônôvôoôlôvôeôdôoôrô:ô*ô*ô ôRôeôcôeôbôeô ôaôcôeôsôsôoô ôaôpôeônôaôsô ôaôoôsô ôaôgôrôuôpôaômôeônôtôoôsô ôtôéôcônôiôcôoôsô ôeôsôsôeônôcôiôaôiôsô ô(ôdôeôsôtôaôcôaôdôoôsô ôeômô ôvôeôrômôeôlôhôoô)ô,ô ôpôeôrômôiôtôiônôdôoô ôrôeôaôlôiôzôaôrô ôsôiônôcôrôoônôiôzôaôçôãôoô ôdôeô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ô(ôTôuôrôsôoô)ô ôeô ôoôpôeôrôaôçôõôeôsô ôtôéôcônôiôcôaôsô,ô ômôaônôtôeônôdôoô ôrôeôsôtôrôiôçôõôeôsô ôdôeô ôgôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôeôqôuôiôpôeô.ôô
+ô-ô ô*ô*ôDôeômôaôiôsô ôpôeôrôfôiôsô:ô*ô*ô ôAôcôeôsôsôoô ôbôlôoôqôuôeôaôdôoô ôàô ôaôbôaô ôdôeô ôCôoônôfôiôgôuôrôaôçôõôeôsô ôpôaôrôaô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôçôaô ôdôoôsô ôdôaôdôoôsô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô2ô.ô ôBôoôtôõôeôsô ôdôeô ôLôiômôpôeôzôaô ôdôeô ôFôiôlôtôrôoôsô ô(ô"ôLôiômôpôaôrô ôFôiôlôtôrôoôsô"ô)ôô
+ôVôiôsôaônôdôoô ôaôuômôeônôtôaôrô ôaô ôaôgôiôlôiôdôaôdôeô ôoôpôeôrôaôcôiôoônôaôlô,ô ôfôoôrôaômô ôiônôcôlôuôíôdôoôsô ôbôoôtôõôeôsô ôdôeôdôiôcôaôdôoôsô ôcôoômô ôoô ôíôcôoônôeô ô<ôiô ôcôlôaôsôsô=ô"ôfôaô-ôsôoôlôiôdô ôfôaô-ôfôiôlôtôeôrô-ôcôiôrôcôlôeô-ôxômôaôrôkô"ô>ô<ô/ôiô>ô ô(ôLôiômôpôaôrô ôFôiôlôtôrôoôsô)ô ôeômô ô*ô*ôtôoôdôaôsô ôaôsô ôaôbôaôsô ôpôrôiônôcôiôpôaôiôsô*ô*ô:ôô
+ô-ô ô*ô*ôPôaôcôiôeônôtôeôsô,ô ôMôéôdôiôcôoôsô,ô ôAôgôeônôdôaô,ô ôFôaôrômôáôcôiôaô ôeô ôRôeôlôaôtôóôrôiôoôsô.ô*ô*ôô
+ô-ô ôUômô ôúônôiôcôoô ôcôlôiôqôuôeô ôzôeôrôaô ôiônôsôtôaônôtôaônôeôaômôeônôtôeô ôtôoôdôaôsô ôaôsô ôbôuôsôcôaôsô ôdôeô ôtôeôxôtôoô ôeô ôrôeôcôoôlôoôcôaô ôoôsô ô*ôcôhôeôcôkôbôoôxôeôsô*ô ôdôeô ôfôiôlôtôrôoô ôeômô ôsôeôuôsô ôeôsôtôaôdôoôsô ôpôaôdôrôãôoô,ô ôpôeôrômôiôtôiônôdôoô ôbôuôsôcôaôsô ôfôlôuôíôdôaôsô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô3ô.ô ôBôuôsôcôaô ôdôeô ôPôaôcôiôeônôtôeôsô ôAôpôrôiômôoôrôaôdôaô ô(ôNôoômôeô ôeô ôCôPôFô)ôô
+ôOô ôcôoômôpôoônôeônôtôeô ôuônôiôfôiôcôaôdôoô ôdôeô ôbôuôsôcôaô ôdôeô ôpôaôcôiôeônôtôeôsô ô(ôDôrôoôpôdôoôwônô ôdôiônôâômôiôcôoô ôuôtôiôlôiôzôaôdôoô ôeômô ômôoôdôaôiôsô ôdôeô ôaôdômôiôsôsôãôoô,ô ôpôrôeôsôcôrôiôçôãôoô ôeô ôfôiônôaônôcôeôiôrôoô)ô ôfôoôiô ôrôeôeôsôcôrôiôtôoô.ô ôAôgôoôrôaô:ôô
+ô-ô ôAô ôpôeôsôqôuôiôsôaô ôpôrôoôcôuôrôaô ônôãôoô ôaôpôeônôaôsô ôpôeôlôoô ôNôoômôeô ôdôoô ôPôaôcôiôeônôtôeô,ô ômôaôsô ôtôaômôbôéômô ôvôeôrôiôfôiôcôaô ôoôcôoôrôrôêônôcôiôaôsô ôdôoô ô*ô*ôCôPôFô*ô*ô.ôô
+ô-ô ôOô ô*ô*ôCôPôFô*ô*ô ôéô ôeôxôiôbôiôdôoô ôdôiôrôeôtôaômôeônôtôeô ônôaô ôlôiôsôtôaô ôdôeô ôoôpôçôõôeôsô ô(ôfôoôrômôaôtôoô ôrôeôdôuôzôiôdôoô)ô,ô ôfôaôcôiôlôiôtôaônôdôoô ôaô ôiôdôeônôtôiôfôiôcôaôçôãôoô ôdôeô ôhôoômôôônôiômôoôsô ônôaô ôhôoôrôaô ôdôoô ôaôtôeônôdôiômôeônôtôoô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô4ô.ô ôÍôcôoônôeôsô ôVôiôsôuôaôiôsô ôdôeô ôFôoôrômôaô ôdôeô ôPôaôgôaômôeônôtôoô ô�ô�ô�ô�ôô
+ôAô ôiônôtôeôrôfôaôcôeô ôdôaô ôsôeôçôãôoô ôdôeô ôRôeôlôaôtôóôrôiôoôsô ôFôiônôaônôcôeôiôrôoôsô ôfôoôiô ôeônôrôiôqôuôeôcôiôdôaô ôcôoômô ôrôeôpôrôeôsôeônôtôaôçôõôeôsô ôgôrôáôfôiôcôaôsô ô(ôEômôoôjôiôsô)ô:ôô
+ô-ô ôPôiôxô ô(ô�ô�ô)ôô
+ô-ô ôDôiônôhôeôiôrôoô ô(ô�ô�ô)ôô
+ô-ô ôCôaôrôtôãôoô ôdôeô ôCôrôéôdôiôtôoô ô(ô�ô�ô)ôô
+ô-ô ôCôaôrôtôãôoô ôdôeô ôDôéôbôiôtôoô ô(ô�ô�ô)ôô
+ô-ô ôBôoôlôeôtôoô ô(ô�ô�ô)ôô
+ôIôsôsôoô ôrôeôdôuôzô ôoô ôtôeômôpôoô ôdôeô ôrôeôcôoônôhôeôcôiômôeônôtôoô ôvôiôsôuôaôlô ôdôoô ôaôtôeônôdôeônôtôeô ôdôuôrôaônôtôeô ôoô ôfôeôcôhôaômôeônôtôoô ôdôeô ôcôaôiôxôaô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô5ô.ô ôVôaôlôiôdôaôçôãôoô ôEôsôtôrôiôtôaô ôdôeô ôSôeônôhôaôsô ônôoô ôLôoôgôiônô ô�ô�ôô
+ôAô ôtôeôlôaô ôdôeô ôaôuôtôeônôtôiôcôaôçôãôoô ôfôoôiô ôaôtôuôaôlôiôzôaôdôaô ôpôaôrôaô ôeôxôiôgôiôrô ôaô ôvôaôlôiôdôaôçôãôoô ôeôxôaôtôaô ôdôaô ôsôeônôhôaô ôcôaôdôaôsôtôrôaôdôaô ôdôeô ôcôaôdôaô ôuôsôuôáôrôiôoô:ôô
+ô-ô ôTôeônôtôaôtôiôvôaôsô ôcôoômô ôsôeônôhôaôsô ôiônôcôoôrôrôeôtôaôsô ôsôãôoô ôiômôeôdôiôaôtôaômôeônôtôeô ôrôeôjôeôiôtôaôdôaôsô ô(ôHôTôTôPô ô4ô0ô1ô)ô.ôô
+ô-ô ôGôaôrôaônôtôiôaô ôdôeô ôqôuôeô ôcôoônôtôaôsô ôiônôdôiôvôiôdôuôaôiôsô ô(ôeôxô:ô ô`ôlôjôoôrôdôaôoô`ô,ô ô`ôbôcôoôlôtôrôiô`ô,ô ô`ôaôdômôiônô`ô)ô ôsôóô ôpôoôsôsôuôeômô ôaôcôeôsôsôoô ôlôiôbôeôrôaôdôoô ômôeôdôiôaônôtôeô ôaô ôaôpôrôeôsôeônôtôaôçôãôoô ôdôaô ôsôeônôhôaô ôcôaôdôaôsôtôrôaôdôaô ôcôoôrôrôeôsôpôoônôdôeônôtôeô.ôô
+ôô
+ô#ô#ô#ô ô2ô2ô.ô6ô.ô ôIôAô ôCôoôpôiôlôoôtô ônôoô ôMôaônôuôaôlô ôIônôtôeôrôaôtôiôvôoô ôcôoômô ôRôBôAôCô ô�ô�ôô
+ôOô ôsôiôsôtôeômôaô ôdôeô ôpôeôsôqôuôiôsôaô ôdôoô ô*ô*ôMôaônôuôaôlô ôIônôtôeôrôaôtôiôvôoô*ô*ô ôfôoôiô ôiônôtôeôgôrôaôdôoô ôaôoô ômôoôtôoôrô ôdôeô ôIônôtôeôlôiôgôêônôcôiôaô ôAôrôtôiôfôiôcôiôaôlô ô*ô*ôCôoôpôiôlôoôtô*ô*ô.ôô
+ô-ô ô*ô*ôPôeôsôqôuôiôsôaô ôeômô ôTôeômôpôoô ôRôeôaôlô:ô*ô*ô ôAô ôpôeôsôqôuôiôsôaô ôaôgôoôrôaô ôéô ôpôrôoôcôeôsôsôaôdôaô ôiônôsôtôaônôtôaônôeôaômôeônôtôeô ôsôeômô ôaô ônôeôcôeôsôsôiôdôaôdôeô ôdôeô ômôúôlôtôiôpôlôoôsô ôcôlôiôqôuôeôsô.ôô
+ô-ô ô*ô*ôCôoônôsôcôiôêônôcôiôaô ôdôeô ôAôcôeôsôsôoô ô(ôRôBôAôCô)ô:ô*ô*ô ôOô ôaôsôsôiôsôtôeônôtôeô ôvôiôrôtôuôaôlô ôcôoômôpôrôeôeônôdôeô ôaôsô ôpôeôrômôiôsôsôõôeôsô ôdôoô ôuôsôuôáôrôiôoô ôlôoôgôaôdôoô ôeô ôeôxôiôbôeô ôbôoôtôõôeôsô ôdôeô ôaôçôãôoô ôcôoônôtôeôxôtôuôaôiôsô ôaôpôeônôaôsô ôpôaôrôaô ôfôuônôçôõôeôsô ôqôuôeô ôoô ôuôsôuôáôrôiôoô ôtôeômô ôaôuôtôoôrôiôzôaôçôãôoô.ô ôRôeôsôpôoôsôtôaôsô ôeô ôaôçôõôeôsô ôpôaôrôaô ôáôrôeôaôsô ôrôeôsôtôrôiôtôaôsô ôeôxôiôbôiôrôãôoô ômôeônôsôaôgôeônôsô ôdôeô ôbôlôoôqôuôeôiôoô,ô ôgôaôrôaônôtôiônôdôoô ômôáôxôiômôaô ôsôeôgôuôrôaônôçôaô.ôô
 
 ---
 
-## ï¿½ï¿½ 2. Fluxograma Geral Integrado de Todas as Abas e CorrelaÃ§Ãµes (v2.4.0)
-
-O fluxograma abaixo mapeia a correlaÃ§Ã£o completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada mÃ³dulo:
-
-```mermaid
-flowchart TD
-    subgraph MOD_AUTH ["ï¿½ï¿½ 1. AutenticaÃ§Ã£o & GestÃ£o de Acessos (RBAC)"]
-        AUTH_LOGIN["Login JWT com 24 Contas (MÃ©dicos, Enfermeiros, Admin, Devs)"]
-        AUTH_RBAC["Controle de PermissÃµes (Master, ClÃ­nico, Dev)"]
-        AUTH_PRESERVE["PreservaÃ§Ã£o Inteligente de UsuÃ¡rios em Limpezas"]
-        AUTH_AUDIT["Auditoria de Logins (Ãšltimos 5 / HistÃ³rico 100)"]
-    end
-
-    subgraph MOD_DASH ["ï¿½ï¿½ 2. Dashboard Executivo & KPIs"]
-        DASH_KPI["KPIs Gerenciais em Tempo Real"]
-        DASH_CHARTS["GrÃ¡ficos Interativos Chart.js (Filtros ClicÃ¡veis)"]
-    end
-
-    subgraph MOD_ESCALAS ["ï¿½ï¿½ 11. Escalas de Trabalho & PlantÃµes (Diferencial)"]
-        ESC_TAB["Sub-abas: Escala de MÃ©dicos vs Escala de Enfermeiros"]
-        ESC_SHIFT["Turnos: ManhÃ£ (6h), Tarde (6h), Noite (12h), 24h, 12x36"]
-        ESC_SECTOR["AlocaÃ§Ã£o de Setor / ConsultÃ³rio & CRM/COREN"]
-        ESC_TODAY["Garantia de Cobertura de PlantÃ£o para HOJE"]
-    end
-
-    subgraph MOD_AGENDA ["ï¿½ï¿½ï¸ 3. Agenda de Consultas"]
-        AG_BOOK["Agendamento de Consultas & SeleÃ§Ã£o de MÃ©dico/ConsultÃ³rio"]
-        AG_KPI["KPI Cards de Status (Confirmado, Atendimento, ConcluÃ­do)"]
-    end
-
-    subgraph MOD_PACIENTES ["ï¿½ï¿½ 4. AdmissÃ£o de Pacientes (SUS)"]
-        PAC_FORM["AdmissÃ£o 11 Campos SUS + ValidaÃ§Ã£o ResponsÃ¡vel Legal"]
-        PAC_CEP["Autopreenchimento de EndereÃ§o via API ViaCEP"]
-        PAC_SEARCH["Busca Unificada por Nome e CPF"]
-        PAC_TRASH["Lixeira de Pacientes (Soft-Delete & RestauraÃ§Ã£o)"]
-    end
-
-    subgraph MOD_ATEND ["ï¿½ï¿½ 5. Atendimentos & Triagem Manchester"]
-        TRI_MANCHESTER["Enfermagem: Triagem Manchester (5 NÃ­veis de Risco)"]
-        TRI_QUEUE["Fila PS: Sorting por Prioridade ClÃ­nica AutomÃ¡tica"]
-    end
-
-    subgraph MOD_TV ["ï¿½ï¿½ 6. Painel TV (Chamador Inteligente)"]
-        TV_SPEECH["Web Speech API: AnÃºncio de Paciente por Voz Sintetizada"]
-        TV_DISPLAY["ExibiÃ§Ã£o em Tela Cheia para Sala de Espera"]
-    end
-
-    subgraph MOD_PEP ["ï¿½ï¿½ 7. ProntuÃ¡rio Eletrnico (PEP SOAP & Planilha)"]
-        PEP_SOAPE["Atendimento MÃ©dico: MÃ©todo SOAPE & CID-10 Offline"]
-        PEP_PRESCR["PrescriÃ§Ã£o MÃ©dica em Planilha + Dose/Via/FrequÃªncia"]
-        PEP_ENF["Matriz da Enfermagem: Checagem de AplicaÃ§Ã£o de Doses"]
-        PEP_PDF["EmissÃ£o de PDF A4 Oficial (ReceituÃ¡rio & HistÃ³rico)"]
-    end
-
-    subgraph MOD_FARMACIA ["ï¿½ï¿½ 10. FarmÃ¡cia & Estoque"]
-        FARM_SEARCH["Pesquisa Global de FÃ¡rmacos (OpenFDA & ANVISA)"]
-        FARM_STOCK["Controle de Lote, Validade e Estoque MÃ­nimo"]
-    end
-
-    subgraph MOD_ESTAG ["â±ï¸ 8. Alertas de EstagnaÃ§Ã£o & Timer PS 12h"]
-        EST_TIMER["Timer PS 12h (Azul <10h / Amarelo 10-12h / Vermelho >12h)"]
-        EST_ALERT["Alerta Pulsante de PermanÃªncia MÃ¡xima Excedida"]
-    end
-
-    subgraph MOD_LEITOS ["ï¿½ï¿½ï¸ 9. Censo Hospitalar & Mapa de Leitos"]
-        BED_MAP["Grid de Leitos Tricolor (Verde=Vago, Vermelho=Ocupado, Amarelo=HigienizaÃ§Ã£o)"]
-        BED_CLEAN["Troca AutomÃ¡tica do Leito para HigienizaÃ§Ã£o pÃ³s-alta"]
-    end
-
-    subgraph MOD_KANBAN ["ï¿½ï¿½ 10. Kanban de InternaÃ§Ã£o & SLAs (5 Setores)"]
-        KANB_COLS["5 Setores: PS (24h), Corredor (1d), CirÃºrgica (7d), MÃ©dica (10d), UTI (5d)"]
-        KANB_SLA["Indicadores Visuais de SLA (Progresso Verde -> Ã‚mbar -> RosÃª)"]
-        KANB_EVOL["Timeline de EvoluÃ§Ã£o ClÃ­nica com Timestamp"]
-        KANB_AUDIT["Modal de Auditoria de SLAs & Detalhamento por Ala"]
-    end
-
-    subgraph MOD_REPORTS ["ï¿½ï¿½ 12. RelatÃ³rios & ExportaÃ§Ã£o (5 Cards)"]
-        REP_CARDS["5 Cards: FinanÃ§as, Atendimentos, PEP, Leitos e ESCALAS"]
-        REP_EXP["ExportaÃ§Ã£o Relatorial Multiformato: PDF, Excel (XLSX) e CSV"]
-    end
-
-    %% CORRELAÃ‡Ã•ES E FLUXO OPERACIONAL INTEGRADO
-    AUTH_LOGIN --> AUTH_RBAC
-    AUTH_RBAC -->|MÃ©dicos & Enfermeiros| ESC_TAB
-    ESC_TAB -->|Profissionais Alocados| ESC_TODAY
-    
-    PAC_FORM -->|ValidaÃ§Ã£o OK| TRI_MANCHESTER
-    AG_BOOK -->|Chegada do Paciente| TRI_MANCHESTER
-    
-    TRI_MANCHESTER -->|Sorting de Risco| TRI_QUEUE
-    TRI_QUEUE -->|Chamada de Paciente| TV_SPEECH
-    TV_SPEECH -->|Encaminhado para ConsultÃ³rio| PEP_SOAPE
-    
-    ESC_TODAY -.->|Atendimento MÃ©dico/Enf| PEP_SOAPE
-    PEP_SOAPE --> PEP_PRESCR
-    PEP_PRESCR --> PEP_ENF
-    PEP_ENF -->|Baixa de Insumos| FARM_STOCK
-    
-    PEP_SOAPE -->|DecisÃ£o ClÃ­nica| DECISION{DecisÃ£o Assistencial}
-    
-    DECISION -->|1. Alta MÃ©dica| PEP_PDF
-    PEP_PDF --> REP_CARDS
-    
-    DECISION -->|2. PermanÃªncia PS| EST_TIMER
-    EST_TIMER -->|AproximaÃ§Ã£o 12h| EST_ALERT
-    EST_ALERT -->|Necessidade de InternaÃ§Ã£o| BED_MAP
-    
-    DECISION -->|3. InternaÃ§Ã£o Direta| BED_MAP
-    BED_MAP -->|AlocaÃ§Ã£o em Leito Vago| KANB_COLS
-    
-    KANB_COLS --> KANB_SLA
-    KANB_SLA --> KANB_EVOL
-    KANB_EVOL -->|Alta Hospitalar| BED_CLEAN
-    BED_CLEAN -->|LiberaÃ§Ã£o do Leito| BED_MAP
-    
-    %% CONEXÃ•ES DE AUDITORIA E RELATÃ“RIOS
-    PEP_SOAPE -.-> DASH_KPI
-    KANB_AUDIT -.-> DASH_CHARTS
-    ESC_TAB -.-> REP_CARDS
-    BED_MAP -.-> REP_CARDS
-    REP_CARDS --> REP_EXP
-
-```
-
-### ï¿½ï¿½ Particularidades e Diferenciais das Abas do Health Nexus
-
-| # | Aba / MÃ³dulo | Funcionalidades Principais | Diferencial & Particularidades |
-|---|---|---|---|
-| **1** | **ï¿½ï¿½ AutenticaÃ§Ã£o & RBAC** | Login JWT, 24 contas clÃ­nicas/devs, perfis de acesso | PreservaÃ§Ã£o de usuÃ¡rios em limpezas, lixeira com confirmaÃ§Ã£o, auditoria de acessos (5/100). |
-| **2** | **ï¿½ï¿½ Dashboard Executivo** | KPIs em tempo real, receita, volume de atendimentos | GrÃ¡ficos Chart.js clicÃ¡veis como botÃµes de filtro ativo que direcionam para as abas. |
-| **3** | **ï¿½ï¿½ï¸ Agenda de Consultas** | MarcaÃ§Ã£o de consultas, seleÃ§Ã£o de mÃ©dico e sala | KPI cards clicÃ¡veis por status (Confirmado, Atendimento, ConcluÃ­do). |
-| **4** | **ï¿½ï¿½ Pacientes (SUS)** | AdmissÃ£o 11 campos SUS, CEP automÃ¡tico ViaCEP | ValidaÃ§Ã£o rigorosa de responsÃ¡vel legal (<18/>65), busca por Nome/CPF, Lixeira soft-delete. |
-| **5** | **ï¿½ï¿½ Atendimentos & Triagem** | Fila visual Kanban, classificaÃ§Ã£o de risco Manchester | Sorting de prioridade por cor de risco automÃ¡tico + chamada no Painel TV. |
-| **6** | **ï¿½ï¿½ Painel TV (Chamador)** | AnÃºncio para sala de espera em tela cheia | **Web Speech API**: chamada em viva voz sintetizada em portuguÃªs. |
-| **7** | **ï¿½ï¿½ ProntuÃ¡rio PEP (SOAPE)** | Atendimento mÃ©dico, CID-10, prescriÃ§Ãµes e evoluÃ§Ãµes | Busca CID-10 offline, prescriÃ§Ã£o em planilha, Matriz da Enfermagem para checagem, PDF A4. |
-| **8** | **â±ï¸ Alertas & EstagnaÃ§Ã£o** | Monitoramento de gargalos e permanÃªncia PS | Timer PS 12h (Azul <10h / Amarelo 10-12h / Vermelho >12h pulsante). |
-| **9** | **ï¿½ï¿½ï¸ Censo de Leitos** | Mapa visual de leitos hospitalares | Cards tricolores (Verde=Vago, Vermelho=Ocupado, Amarelo=HigienizaÃ§Ã£o automÃ¡tica pÃ³s-alta). |
-| **10** | **ï¿½ï¿½ Kanban de InternaÃ§Ã£o** | GestÃ£o de internados por 5 setores | Metas de permanÃªncia (SLA) dinÃ¢micas, timeline de evoluÃ§Ã£o clÃ­nica, auditoria de atrasos. |
-| **11** | **ï¿½ï¿½ Escalas de Trabalho** | GestÃ£o de plantÃµes de MÃ©dicos e Enfermeiros | Orelhas/sub-abas dedicadas, turnos (6h, 12h, 24h, 12x36), garantia de plantÃ£o ativado para HOJE. |
-| **12** | **ï¿½ï¿½ FarmÃ¡cia & Estoque** | Controle de estoque de medicamentos e insumos | Pesquisa global de fÃ¡rmacos em tempo real via OpenFDA / ANVISA por princÃ­pio ativo. |
-| **13** | **ï¿½ï¿½ RelatÃ³rios & ExportaÃ§Ã£o**| 5 cards especializados de emissÃ£o relatorial | ExportaÃ§Ã£o multiformato (**PDF**, **Excel XLSX**, **CSV**) para FinanÃ§as, Atendimentos, PEP, Leitos e Escalas. |
-
-
----
-
-## ï¿½ï¿½ SumÃ¡rio Executivo
-- 1. [VisÃ£o Geral & Arquitetura do Fluxo Hospitalar](#sec-1)
-- 2. [Central de Atendimentos & Painel Kanban](#sec-2)
-  - 2.1. [Cards MÃ©tricos e Filtros de Fila](#sec-2-1)
-  - 2.2. [Fila 1: Aguardando Triagem (Protocolo de Manchester)](#sec-2-2)
-  - 2.3. [Fila 2: Aguardando MÃ©dico (Chamada de ConsultÃ³rio)](#sec-2-3)
-  - 2.4. [Fila 3: Em Atendimento (AÃ§Ãµes do MÃ©dico)](#sec-2-4)
-- 3. [ProntuÃ¡rio Eletrnico do Paciente (PEP â€” MÃ©todo SOAP)](#sec-3)
-  - 3.1. [Estrutura SOAP](#sec-3-1)
-  - 3.2. [Autocomplete CID-10](#sec-3-2)
-  - 3.3. [Assinatura Eletrnica e ExportaÃ§Ã£o PDF](#sec-3-3)
-- 4. [Guia Completo de Todos os Modais do Sistema](#sec-4)
-  - 4.1. [Modal de Triagem de Manchester](#sec-4-1)
-  - 4.2. [Modal de PrescriÃ§Ã£o & ReceituÃ¡rio MÃ©dico](#sec-4-2)
-  - 4.3. [Modal de TransferÃªncia & AlocaÃ§Ã£o de Leito](#sec-4-3)
-  - 4.4. [Modal de Nova AdmissÃ£o & Entrada de Paciente](#sec-4-4)
-  - 4.5. [Modal de Direcionamento & ReatribuiÃ§Ã£o de Fila](#sec-4-5)
-  - 4.6. [Modal de HistÃ³rico PÃ³s-Alta & ProntuÃ¡rio Consolidado](#sec-4-6)
-  - 4.7. [Modal de AprovaÃ§Ã£o de Acesso de UsuÃ¡rios](#sec-4-7)
-  - 4.8. [Modal de GestÃ£o de UsuÃ¡rios & Troca de Perfil](#sec-4-8)
-- 5. [GestÃ£o de Pacientes & HistÃ³rico ClÃ­nico](#sec-5)
-- 6. [GestÃ£o da Equipe MÃ©dica & Corpo ClÃ­nico](#sec-6)
-- 7. [GestÃ£o de ConsultÃ³rios & Salas de Atendimento](#sec-7)
-- 8. [GestÃ£o de Leitos & HospitalizaÃ§Ã£o](#sec-8)
-- 9. [Agenda, Escala MÃ©dica & Consultas Eletivas](#sec-9)
-- 10. [FarmÃ¡cia & DispensaÃ§Ã£o de Medicamentos](#sec-10)
-- 11. [Faturamento, Guias TISS & GestÃ£o Financeira](#sec-11)
-- 12. [RelatÃ³rios Analytics & Indicadores Hospitalares](#sec-12)
-- 13. [Painel de Chamada TV (RecepÃ§Ã£o)](#sec-13)
-- 14. [Central de EstagnaÃ§Ã£o & AprovaÃ§Ãµes de Acesso](#sec-14)
-- 15. [ConfiguraÃ§Ãµes, Backup e SincronizaÃ§Ã£o em Nuvem](#sec-15)
-- 16. [Sistema de Avisos, NotificaÃ§Ãµes & Toasts](#sec-16)
-- 17. [Tabela de MÃ¡scaras, Atalhos & Teclas de Atalho](#sec-17)
-- 18. [SoluÃ§Ã£o de DÃºvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
-
----
-
-<h2 id="sec-1">1. VisÃ£o Geral & Arquitetura do Fluxo Hospitalar</h2>
-
-O **Health Nexus** organiza a jornada assistencial do paciente desde a recepÃ§Ã£o atÃ© a alta definitiva ou internaÃ§Ã£o em UTI/Enfermaria.
-
-### ï¿½ï¿½ Diagrama de Fluxo da Jornada Assistencial
-```mermaid
-graph TD
-    A["ï¿½ï¿½ RecepÃ§Ã£o / AdmissÃ£o"] --> B["ï¿½ï¿½ Triagem de Manchester"]
-    B --> C{"ClassificaÃ§Ã£o de Risco"}
-    C -->|"ï¿½ï¿½ Vermelho (0m)"| D1["ï¿½ï¿½ Sala Vermelha (EmergÃªncia)"]
-    C -->|"ï¿½ï¿½ Laranja (10m)"| D2["âš¡ Atendimento Imediato"]
-    C -->|"ï¿½ï¿½ Amarelo (60m)"| D3["â³ Fila Urgente"]
-    C -->|"ï¿½ï¿½ Verde (120m)"| D4["â³ Fila Pouco Urgente"]
-    C -->|"ï¿½ï¿½ Azul (240m)"| D5["â³ Fila NÃ£o Urgente"]
-    D1 & D2 & D3 & D4 & D5 --> E["ï¿½ï¿½ Chamada Painel TV / ConsultÃ³rio"]
-    E --> F["ï¿½ï¿½ Atendimento MÃ©dico (PEP SOAP)"]
-    F --> G{"Conduta Final"}
-    G -->|"Alta MÃ©dica"| H["âœ… ConclusÃ£o & Receita"]
-    G -->|"ObservaÃ§Ã£o PS (12h max)"| I["ï¿½ï¿½ Card de ObservaÃ§Ã£o com Cronmetro"]
-    G -->|"Necessidade de Leito"| J["ï¿½ï¿½ï¸ TransferÃªncia para Enfermaria / UTI"]
-```
-
-### 🔐 Perfis de Acesso & Matriz de Permissões
-| Perfil | Acesso Visual às Abas | Prontuário (PEP) | Triagem Manchester | Prescrição Planilha | Gestão de Leitos | Financeiro | Lixeira / Sync |
-|---|---|---|---|---|---|---|---|
-| **👑 Master / Admin** | Todas as abas | Total | Total | Total | Total | Total | Exclusivo |
-| **🩺 Médico** | Dashboard, Pacientes, Atendimento, Leitos, Farmácia, Relatórios | Assinatura SOAPE | Consulta | Criação de Planilha | Solicitação | Bloqueado | Bloqueado |
-| **🩺 Enfermeiro(a)** | Dashboard, Pacientes, Atendimento, Leitos, Farmácia | Leitura | Execução Manchester | Checagem de Doses | Gestão / Transferência | Bloqueado | Bloqueado |
-| **📋 Recepcionista** | Dashboard, Pacientes, Agenda, Atendimento, Painel TV, Caixa | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Apenas Entradas | Bloqueado |
-| **💊 Farmacêutico(a)**| Dashboard, Pacientes, Farmácia, Relatórios | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado |
-
-### 🤖 Assistente de IA Local (Manual Interativo)
-
-O sistema possui um **Assistente IA Integrado** na busca do Manual. Ao fazer perguntas em linguagem natural (ex: "como incluir um paciente?"), a IA correlaciona a intenção com os botões e módulos do sistema.
-
-**Segurança RBAC na IA:** A IA tem plena consciência do perfil de acesso do usuário. Se um usuário pesquisar por uma funcionalidade restrita a um perfil superior (ex: um Médico pesquisando sobre "Controle de Perfis"), a IA não instruirá sobre o módulo; em vez disso, informará claramente que o usuário logado não possui permissão para executar a ação solicitada, citando os perfis autorizados.
-
----
-
-<h2 id="sec-2">2. Central de Atendimentos & Painel Kanban</h2>
-
-<h3 id="sec-2-1">2.1. Cards MÃ©tricos e Filtros de Fila</h3>
-No topo da aba **Atendimentos**, encontram-se os 4 **Cards MÃ©tricos ClicÃ¡veis** para controle imediato do fluxo:
-
-| Card | Ãcone | Cor Tema | AÃ§Ã£o ao Clicar | DescriÃ§Ã£o / Objetivo |
-| :--- | :---: | :---: | :--- | :--- |
-| **Triagem** | ï¿½ï¿½ | Roxo (`#8b5cf6`) | `filterKanbanColumn('triage')` | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem da enfermagem. |
-| **Ag. MÃ©dico** | âŒ› | Amarelo (`#f59e0b`) | `filterKanbanColumn('waiting')` | Filtra a tela para exibir apenas os pacientes triados aguardando chamada do mÃ©dico. |
-| **Em Consulta** | ï¿½ï¿½ | Verde (`#10b981`) | `filterKanbanColumn('active')` | Filtra a tela para focar nos atendimentos em andamento e em observaÃ§Ã£o no PS. |
-| **Ver Todos** | ï¿½ï¿½ | Neutro (`#94a3b8`) | `filterKanbanColumn('all')` | Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban. |
-
----
-
-<h3 id="sec-2-2">2.2. Fila 1: Aguardando Triagem (Protocolo de Manchester)</h3>
-Pacientes admitidos na recepÃ§Ã£o dÃ£o entrada nesta fila para classificaÃ§Ã£o de risco pela enfermagem.
-
-#### ï¿½ï¿½ Tabela de Campos do Modal de Triagem
-| Campo do FormulÃ¡rio | Tipo de Entrada | Valores de ReferÃªncia / ValidaÃ§Ã£o | FunÃ§Ã£o ClÃ­nica |
-| :--- | :--- | :--- | :--- |
-| **PressÃ£o Arterial (PA)** | Texto (ex: `120/80`) | NORMOTENSO: 120/80 mmHg | AvaliaÃ§Ã£o hemodinÃ¢mica inicial (mÃ¡scara autocompletÃ¡vel). |
-| **FrequÃªncia CardÃ­aca (FC)** | NÃºmero (bpm) | NORMOFAGIA: 60 - 100 bpm | DetecÃ§Ã£o de taquicardia ou bradicardia. |
-| **Temperatura (Â°C)** | NÃºmero (Â°C) | AFEBRIL: 36.1Â°C - 37.2Â°C (Febre: >= 37.8Â°C) | IdentificaÃ§Ã£o de febre ou hipotermia. |
-| **Peso (kg)** | NÃºmero (kg) | Exemplo: 70.5 kg | CÃ¡lculo de dosagem de medicamentos e anestÃ©sicos. |
-| **SaturaÃ§Ã£o de O2 (SpO2)** | NÃºmero (%) | NORMAL: >= 95% (HipÃ³xia: < 92%) | AvaliaÃ§Ã£o de insuficiÃªncia respiratÃ³ria. |
-| **Escala de Dor** | Seletor (0 a 10) | 0: Sem dor / 10: Pior dor imaginÃ¡vel | Escala analÃ³gica visual de dor. |
-| **Queixa Principal** | Ãrea de Texto | MÃ­nimo 5 caracteres | Registro narrativo dos sintomas do paciente. |
-
-#### ï¿½ï¿½ Tabela de ClassificaÃ§Ã£o de Risco (Manchester)
-| Cor de Risco | NÃ­vel de Gravidade | Tempo MÃ¡ximo de Espera | SinalizaÃ§Ã£o Visual | AÃ§Ã£o Recomendada |
-| :---: | :--- | :---: | :---: | :--- |
-| ï¿½ï¿½ **Vermelho** | EmergÃªncia Absoluta | **0 minutos** (Imediato) | Card Vermelho Piscando | Paciente em risco iminente de morte. Sala Vermelha imediata. |
-| ï¿½ï¿½ **Laranja** | Muito Urgente | **10 minutos** | Border Laranja | Risco significativo de perda de funÃ§Ã£o/vida. Atendimento rÃ¡pido. |
-| ï¿½ï¿½ **Amarelo** | Urgente | **60 minutos** | Border Amarelo | CondiÃ§Ã£o estÃ¡vel com necessidade de avaliaÃ§Ã£o mÃ©dica em atÃ© 1h. |
-| ï¿½ï¿½ **Verde** | Pouco Urgente | **120 minutos** | Border Verde | Quadro leve sem risco de agravamento rÃ¡pido. Fila regular. |
-| ï¿½ï¿½ **Azul** | NÃ£o Urgente | **240 minutos** | Border Azul | Queixa crnica ou consulta simples. Atendimento eletivo. |
-
----
-
-<h3 id="sec-2-3">2.3. Fila 2: Aguardando MÃ©dico (Chamada de ConsultÃ³rio)</h3>
-Nesta coluna, os pacientes sÃ£o ordenados por **Gravidade Manchester** e **Tempo de Espera**.
-
-#### ï¿½ï¿½ Tabela de AÃ§Ãµes do Card de Espera MÃ©dica
-| AÃ§Ã£o no Card | Ãcone | FunÃ§Ã£o TÃ©cnica | Resultado no Sistema |
-| :--- | :---: | :--- | :--- |
-| **Chamar para Consulta** | ï¿½ï¿½ | Dispara websockets/eventos locais para a recepÃ§Ã£o. | 1. Toca sinal sonoro no Painel TV.<br>2. Exibe o nome do paciente no painel central.<br>3. Move o atendimento para a coluna *Em Atendimento*. |
-
----
-
-<h3 id="sec-2-4">2.4. Fila 3: Em Atendimento (AÃ§Ãµes do MÃ©dico)</h3>
-Coluna onde o mÃ©dico realiza o atendimento ativo. Cada card contÃ©m 5 botÃµes de aÃ§Ã£o:
-
-#### ï¿½ï¿½ Tabela Completa de BotÃµes do MÃ©dico
-| BotÃ£o | Ãcone | FunÃ§Ã£o do BotÃ£o | Resultado ao Clicar |
-| :--- | :---: | :--- | :--- |
-| **PEP** | ï¿½ï¿½ | ProntuÃ¡rio Eletrnico | Abre a janela modal do ProntuÃ¡rio (SOAP, sinais vitais, CID-10, histÃ³rico e assinatura). |
-| **PrescriÃ§Ã£o** | ï¿½ï¿½ | ReceituÃ¡rio MÃ©dico | Abre a tela para prescrever medicamentos, posologias, via de administraÃ§Ã£o e orientaÃ§Ãµes. |
-| **ObservaÃ§Ã£o** | ï¿½ï¿½ | ObservaÃ§Ã£o no PS (12h max) | Inicia a contagem do cronmetro de permanÃªncia contÃ­nua e exibe badge de tempo no card. |
-| **Transferir Leito** | ï¿½ï¿½ï¸ | InternaÃ§Ã£o / Leito | Abre o modal para selecionar e alocar o paciente em um leito livre da Enfermaria ou UTI. |
-| **Finalizar** | âœ… | Alta MÃ©dica / ConclusÃ£o | Encerra a consulta, grava a alta no sistema e move o atendimento para o HistÃ³rico PÃ³s-Alta. |
-
----
-
-<h2 id="sec-3">3. ProntuÃ¡rio Eletrnico do Paciente (PEP â€” MÃ©todo SOAP)</h2>
-
-<h3 id="sec-3-1">3.1. Estrutura SOAP</h3>
-| Bloco SOAP | Elemento | DescriÃ§Ã£o do Preenchimento | Exemplo de Preenchimento |
-| :---: | :--- | :--- | :--- |
-| **S** | **Subjetivo** | Anamnese, queixa principal, tempo de evoluÃ§Ã£o dos sintomas e histÃ³rico. | *"Paciente relata dor torÃ¡cica hÃ¡ 2 horas com irradiaÃ§Ã£o para braÃ§o esquerdo."* |
-| **O** | **Objetivo** | Exame fÃ­sico, ausculta cardÃ­aca/pulmonar, sinais vitais e exames complementares. | *"PA: 140/90, FC: 98bpm, ausculta cardÃ­aca sem sopros. ECG com elevaÃ§Ã£o ST."* |
-| **A** | **AvaliaÃ§Ã£o** | HipÃ³tese diagnÃ³stica principal e busca do cÃ³digo **CID-10**. | *"I21.9 â€” Infarto agudo do miocÃ¡rdio nÃ£o especificado."* |
-| **P** | **Plano** | Conduta terapÃªutica, prescriÃ§Ã£o farmacolÃ³gica, solicitaÃ§Ãµes de exames e recomendaÃ§Ãµes de alta/retorno. | *"Administrado AAS 300mg + Clopidogrel 300mg. Solicitada Vaga na UTI Coronariana."* |
-
-<h3 id="sec-3-2">3.2. Autocomplete CID-10</h3>
-No campo **AvaliaÃ§Ã£o**, ao digitar o cÃ³digo ou nome da doenÃ§a, o sistema lista sugestÃµes oficiais.
-
-<h3 id="sec-3-3">3.3. Assinatura Eletrnica e ExportaÃ§Ã£o PDF</h3>
-Recursos de rascunho, assinatura mÃ©dica com senha e geraÃ§Ã£o de laudo PDF.
-
----
-
-<h2 id="sec-4">4. Guia Completo de Todos os Modais do Sistema</h2>
-
-Abaixo encontra-se o detalhamento tÃ©cnico de cada janela modal presente no sistema, seus botÃµes, validaÃ§Ãµes e comportamentos.
-
-<h3 id="sec-4-1">4.1. Modal de Triagem de Manchester</h3>
-- **Como Acessar:** Clique no botÃ£o `ï¿½ï¿½ Realizar Triagem` na primeira coluna do Kanban.
-- **Campos de Entrada:** `triage-pa`, `triage-fc`, `triage-temp`, `triage-peso`, `triage-spo2`, `triage-dor`, `manchesterColor`, `triage-queixa`.
-
-| BotÃ£o do Modal | Classe / ID | Comportamento ao Clicar |
-| :--- | :--- | :--- |
-| **Confirmar Triagem** | `button[type="submit"]` | Valida cor obrigatÃ³ria e queixa. Altera status para `Aguardando_Atendimento` e fecha modal. |
-| **Cancelar** | `#btn-cancel-triage` | Cancela a operaÃ§Ã£o, limpa o formulÃ¡rio e fecha a janela sem alterar o paciente. |
-| **Fechar (X)** | `#close-triage-modal` | Fecha a janela modal imediatamente. |
-
-<h3 id="sec-4-2">4.2. Modal de PrescriÃ§Ã£o & ReceituÃ¡rio MÃ©dico</h3>
-- **Como Acessar:** Clique no botÃ£o `ï¿½ï¿½ PrescriÃ§Ã£o` na 3Âª coluna do Kanban (*Em Atendimento*).
-- **Campos de Entrada:** `rx-med-name`, `rx-dosage`, `rx-route`, `rx-frequency`, `rx-notes`.
-
-| BotÃ£o do Modal | AÃ§Ã£o | Resultado |
-| :--- | :--- | :--- |
-| **âž• Adicionar Item** | Insere o medicamento na lista temporÃ¡ria da receita | Atualiza a tabela interna do receituÃ¡rio. |
-| **ï¿½ï¿½ï¸ Remover Item** | Exclui o item selecionado da lista da receita | Remove o fÃ¡rmaco da lista atual. |
-| **ï¿½ï¿½ Salvar & Dispensar**| Registra a receita e conecta com a farmÃ¡cia | Envia pedido de baixa para o estoque da farmÃ¡cia. |
-| **ï¿½ï¿½ï¸ Imprimir PDF** | Gera a receita mÃ©dica formatada em PDF | Baixa o arquivo de receita com cabeÃ§alho mÃ©dico. |
-
-<h3 id="sec-4-3">4.3. Modal de TransferÃªncia & AlocaÃ§Ã£o de Leito</h3>
-- **Como Acessar:** Clique no botÃ£o `ï¿½ï¿½ï¸ Transferir Leito` no card do paciente em consulta.
-- **Campos de Entrada:** `bed-sector`, `bed-target`, `bed-notes`.
-
-| BotÃ£o do Modal | AÃ§Ã£o | Resultado |
-| :--- | :--- | :--- |
-| **Confirmar TransferÃªncia**| Associa o paciente ao leito escolhido | Altera o status do leito para `Ocupado` e atualiza a aba *Leitos*. |
-| **Solicitar HigienizaÃ§Ã£o** | Marca o leito de origem para limpeza | Altera o leito anterior para status `HigienizaÃ§Ã£o`. |
-| **Cancelar** | Cancela o procedimento | Fecha o modal sem alterar o local do paciente. |
-
-<h3 id="sec-4-4">4.4. Modal de Nova AdmissÃ£o & Entrada de Paciente</h3>
-- **Como Acessar:** Clique no botÃ£o `+ Nova AdmissÃ£o` no topo da Central de Atendimentos.
-- **Campos de Entrada:** `admission-patient-id`, `admission-type`, `admission-specialty`, `admission-priority`.
-
-| BotÃ£o do Modal | AÃ§Ã£o | Resultado |
-| :--- | :--- | :--- |
-| **Confirmar AdmissÃ£o** | Cria o novo atendimento | Insere o paciente na 1Âª coluna do Kanban (*Aguardando Triagem*). |
-| **+ Cadastrar Novo Paciente**| Abre embutido o cadastro rÃ¡pido | Permite criar o cadastro caso o paciente nunca tenha vindo ao hospital. |
-
-<h3 id="sec-4-5">4.5. Modal de Direcionamento & ReatribuiÃ§Ã£o de Fila</h3>
-- **Como Acessar:** Na aba **EstagnaÃ§Ã£o**, clique no botÃ£o `Direcionar` ao lado de um paciente com atraso.
-- **Campos de Entrada:** `reassign-room`, `reassign-status`.
-
-| BotÃ£o do Modal | AÃ§Ã£o | Resultado |
-| :--- | :--- | :--- |
-| **Confirmar Direcionamento**| Atualiza consultÃ³rio e status | Move o paciente imediatamente no Kanban desobstruindo o gargalo. |
-| **ï¿½ï¿½ï¸ Solicitar InternaÃ§Ã£o** | SolicitaÃ§Ã£o direta de leito | Define o status para `Aguardando_Leito` e envia alerta para a Central de Leitos. |
-
-<h3 id="sec-4-6">4.6. Modal de HistÃ³rico PÃ³s-Alta & ProntuÃ¡rio Consolidado</h3>
-- **Como Acessar:** Clique no botÃ£o `HistÃ³rico` no topo da Central de Atendimentos ou na aba *Pacientes*.
-
-| BotÃ£o do Modal | AÃ§Ã£o | Resultado |
-| :--- | :--- | :--- |
-| **ï¿½ï¿½ï¸ Imprimir PDF Consolidado**| Gera o prontuÃ¡rio impresso em PDF | Baixa o relatÃ³rio PDF completo com todas as consultas do histÃ³rico. |
-| **Fechar** | Fecha a exibiÃ§Ã£o do histÃ³rico | Retorna Ã  navegaÃ§Ã£o normal. |
-
-<h3 id="sec-4-7">4.7. Modal de AprovaÃ§Ã£o de Acesso de UsuÃ¡rios</h3>
-- **Como Acessar:** Exclusivo para o perfil **Administrador Master** na aba *EstagnaÃ§Ã£o*.
-
-| BotÃ£o do Modal | AÃ§Ã£o | Resultado |
-| :--- | :--- | :--- |
-| **ï¿½ï¿½ï¸ Aprovar Acesso** | Concede o perfil solicitado | Libera as permissÃµes de acordo com o cargo cadastrado. |
-| **âŒ Recusar SolicitaÃ§Ã£o** | Define o perfil como `MÃ©dico` padrÃ£o | Nega privilÃ©gios de administrador mantendo acesso de mÃ©dico. |
-
-<h3 id="sec-4-8">4.8. Modal de GestÃ£o de UsuÃ¡rios & Troca de Perfil</h3>
-- **Como Acessar:** Clique no nome do usuÃ¡rio logado no canto superior direito do menu.
-
-| BotÃ£o do Modal | AÃ§Ã£o | Resultado |
-| :--- | :--- | :--- |
-| **Salvar AlteraÃ§Ãµes** | Atualiza a senha e dados do operador | Grava no banco e emite toast de confirmaÃ§Ã£o. |
-| **Sair / Logout** | Encerra a sessÃ£o atual | Redireciona para a tela de Login. |
-
----
-
-<h2 id="sec-5">5. GestÃ£o de Pacientes & HistÃ³rico ClÃ­nico</h2>
-
-Na aba **Pacientes**, o hospital mantÃ©m o cadastro centralizado.
-
-### ï¿½ï¿½ Tabela de Campos Cadastrais do Paciente
-| Campo | Tipo de Dado | Regra de ValidaÃ§Ã£o | Exemplo de Preenchimento |
-| :--- | :--- | :--- | :--- |
-| **Nome Completo** | Texto | MÃ­nimo de 3 caracteres | `Renato Ramos Machado` |
-| **CPF** | NÃºmero / Texto | ValidaÃ§Ã£o de algoritmo de 11 dÃ­gitos | `123.456.789-00` |
-| **Data de Nascimento** | Data (AAAA-MM-DD) | NÃ£o pode ser data futura | `1985-04-12` |
-| **Telefone / WhatsApp**| Texto | DDD + NÃºmero | `(11) 98765-4321` |
-| **EndereÃ§o Completo** | Texto | Logradouro, NÃºmero, Bairro, Cidade | `Av. Paulista, 1000 â€” SÃ£o Paulo/SP` |
-| **ConvÃªnio / Plano** | Seletor | SUS, Particular ou Nome do ConvÃªnio | `Bradesco SaÃºde` |
-
----
-
-<h2 id="sec-6">6. GestÃ£o da Equipe MÃ©dica & Corpo ClÃ­nico</h2>
-
-Na aba **MÃ©dicos**, gerencia-se o corpo clÃ­nico do hospital.
-
-### ï¿½ï¿½â€âš•ï¸ Tabela de Campos e AÃ§Ãµes dos MÃ©dicos
-| Campo / AÃ§Ã£o | Tipo | DescriÃ§Ã£o / Exemplo | FunÃ§Ã£o no Sistema |
-| :--- | :--- | :--- | :--- |
-| **Nome do MÃ©dico** | Texto | `Dr. Carlos Eduardo Silva` | Exibido nos laudos, receitas e chamadas de TV. |
-| **CRM / UF** | Texto | `123456/SP` | Registro profissional de classe no conselho mÃ©dico. |
-| **Especialidade** | Seletor | `Cardiologia`, `Pediatria`, `Ortopedia` | Vincula a fila de atendimento da especialidade. |
-| **ConsultÃ³rio Alocado**| Seletor | `ConsultÃ³rio 03` | Define em qual sala o mÃ©dico atende no dia. |
-| **Status da Escala** | Badge | ï¿½ï¿½ `Em PlantÃ£o` / âšª `Folga` | Controla se o mÃ©dico estÃ¡ disponÃ­vel para chamadas. |
-
----
-
-<h2 id="sec-7">7. GestÃ£o de ConsultÃ³rios & Salas de Atendimento</h2>
-
-Na aba **ConsultÃ³rios**, controla-se a ocupaÃ§Ã£o das salas mÃ©dicas.
-
-### ï¿½ï¿½ Tabela de Status e GestÃ£o das Salas
-| Sala / ConsultÃ³rio | Ala | Especialidade Vinculada | MÃ©dico Alocado | Status Atual | AÃ§Ãµes RÃ¡pidas |
-| :--- | :--- | :--- | :--- | :---: | :--- |
-| **ConsultÃ³rio 01** | TÃ©rreo | Clinica Geral | Dr. Carlos Silva | ï¿½ï¿½ `DisponÃ­vel` | `Alocar MÃ©dico`, `Chamar PrÃ³ximo` |
-| **ConsultÃ³rio 02** | TÃ©rreo | Pediatria | Dra. Mariana Costa | ï¿½ï¿½ `Em Consulta` | `Ver Atendimento` |
-| **ConsultÃ³rio 03** | 1Âº Andar | Ortopedia | Dr. Roberto Alves | ï¿½ï¿½ `HigienizaÃ§Ã£o` | `Liberar Sala` |
-| **Sala Amarela** | UrgÃªncia | EmergÃªncia / PS | Dra. Fernanda Lima | ï¿½ï¿½ `Em Consulta` | `Transferir Paciente` |
-
----
-
-<h2 id="sec-8">8. GestÃ£o de Leitos & HospitalizaÃ§Ã£o</h2>
-
-Na aba **Leitos**, a equipe gerencia a ocupaÃ§Ã£o das alas hospitalares.
-
-### ï¿½ï¿½ï¸ Tabela de GestÃ£o de Leitos
-| Leito ID | Ala / Setor | Paciente Internado | Tempo de InternaÃ§Ã£o | Status do Leito | AÃ§Ãµes Permitidas |
-| :--- | :--- | :--- | :---: | :---: | :--- |
-| **Enfermaria 101-A**| Enfermaria Geral | Maria Eduarda Souza | 3 dias | ï¿½ï¿½ `Ocupado` | `Transferir Leito`, `Dar Alta` |
-| **Enfermaria 101-B**| Enfermaria Geral | â€” | â€” | ï¿½ï¿½ `DisponÃ­vel` | `Internar Paciente` |
-| **UTI-01** | UTI Adulto | JosÃ© Ramos Ferreira | 7 dias | ï¿½ï¿½ `Ocupado` | `Transferir Leito`, `EvoluÃ§Ã£o UTI` |
-| **Isolamento-02** | Isolamento | â€” | â€” | ï¿½ï¿½ `HigienizaÃ§Ã£o` | `Liberar para Uso` |
-
----
-
-<h2 id="sec-9">9. Agenda, Escala MÃ©dica & Consultas Eletivas</h2>
-
-Na aba **Agenda**, realiza-se a marcaÃ§Ã£o e controle de horÃ¡rios.
-
-### ï¿½ï¿½ Tabela de OperaÃ§Ãµes da Agenda
-| OperaÃ§Ã£o | ParÃ¢metros NecessÃ¡rios | AÃ§Ã£o do Sistema | Resultado Gerado |
-| :--- | :--- | :--- | :--- |
-| **Novo Agendamento** | Paciente, MÃ©dico, Data, HorÃ¡rio | Grava a consulta na grade. | Insere na agenda e habilita emissÃ£o de PDF. |
-| **Imprimir Comprovante**| ID do Agendamento | Gera documento PDF formatado. | Baixa o ticket impresso para entrega ao paciente. |
-| **Cancelar HorÃ¡rio** | Motivo do cancelamento | Altera status para `Cancelado`. | Libera a vaga no horÃ¡rio para nova marcaÃ§Ã£o. |
-
----
-
-<h2 id="sec-10">10. FarmÃ¡cia & DispensaÃ§Ã£o de Medicamentos</h2>
-
-Na aba **FarmÃ¡cia**, faz-se a gestÃ£o de estoque e rastreabilidade de medicamentos.
-
-### ï¿½ï¿½ Tabela de Controle de FarmÃ¡cia e Estoque
-| Medicamento | ApresentaÃ§Ã£o / Via | Lote | Data Validade | Estoque Atual | Estoque MÃ­n. | Status Estoque |
-| :--- | :--- | :--- | :---: | :---: | :---: | :---: |
-| **Dipirona SÃ³dica** | Ampola 500mg/ml (EV/IM)| `L-9821` | 2027-12-31 | 450 un | 100 un | ï¿½ï¿½ OK |
-| **Amoxicilina 500mg** | Comprimido (VO) | `L-4410` | 2026-09-15 | 85 un | 100 un | ï¿½ï¿½ Abaixo MÃ­nimo |
-| **Fentanil 0.05mg/ml**| Ampola (EV) | `L-1102` | 2026-08-20 | 12 un | 20 un | ï¿½ï¿½ Alerta Validade/Estoque |
-
----
-
-<h2 id="sec-11">11. Faturamento, Guias TISS & GestÃ£o Financeira</h2>
-
-Na aba **Faturamento**, acompanha-se a receita e os repasses dos convÃªnios.
-
-### ï¿½ï¿½ Tabela de LanÃ§amentos Financeiros
-| CÃ³digo Atendimento | Paciente | ConvÃªnio / Plano | Valor dos ServiÃ§os | Valor Taxas/Exames | Status Financeiro | AÃ§Ãµes DisponÃ­veis |
-| :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| `#ATD-2026-081` | Renato Ramos | Unimed SaÃºde | R$ 350,00 | R$ 120,00 | ï¿½ï¿½ `Pendente` | `Dar Baixa`, `Editar` |
-| `#ATD-2026-082` | Camila Ferreira | SUS / PÃºblico | R$ 180,00 | R$ 0,00 | ï¿½ï¿½ `Faturado` | `Ver Detalhes` |
-| `#ATD-2026-083` | Lucas Mendes | Particular | R$ 450,00 | R$ 200,00 | ï¿½ï¿½ `Pago` | `Imprimir Recibo` |
-
----
-
-<h2 id="sec-12">12. RelatÃ³rios Analytics & Indicadores Hospitalares</h2>
-
-Na aba **RelatÃ³rios**, o gestor visualiza os grÃ¡ficos e indicadores de desempenho.
-
-### ï¿½ï¿½ Tabela de Indicadores Gerenciais
-| RelatÃ³rio / MÃ©trica | Indicador Analisado | PerÃ­odo SelecionÃ¡vel | Formato de ExportaÃ§Ã£o |
-| :--- | :--- | :---: | :---: |
-| **Taxa de OcupaÃ§Ã£o de Leitos** | % de leitos ocupados vs leitos totais | Hoje / 7 dias / 30 dias | PDF / Excel |
-| **Tempo MÃ©dio de Espera (SLA)** | Minutos mÃ©dios de espera por Manchester | Hoje / Mensal | PDF / Excel |
-| **Volume de Atendimentos** | Quantidade de pacientes atendidos por especialidade | Mensal / Anual | Excel / CSV |
-| **Faturamento Por ConvÃªnio** | Total arrecadado discriminado por plano de saÃºde | Mensal | Excel / PDF |
-
----
-
-<h2 id="sec-13">13. Painel de Chamada TV (RecepÃ§Ã£o)</h2>
-
-Na aba **Painel TV**, a recepÃ§Ã£o gerencia as chamadas na televisÃ£o da sala de espera.
-
-### ï¿½ï¿½ Tabela de Recursos do Painel TV
-| Recurso | DescriÃ§Ã£o TÃ©cnica | Resultado Visual / Sonoro |
-| :--- | :--- | :--- |
-| **Chamada Sonora (Chime)** | Reproduz o sinal de Ã¡udio sintetizado em alto-falante. | Atrai a atenÃ§Ã£o dos pacientes na recepÃ§Ã£o. |
-| **Placa Visual Principal** | Exibe o Nome do Paciente e o ConsultÃ³rio em fonte gigante. | Pisca em cor de alto contraste na tela da TV. |
-| **Lista de Chamadas Recentes** | HistÃ³rico das Ãºltimas 5 chamadas no canto da tela. | Permite ao paciente verificar se seu nome foi chamado. |
-
----
-
-<h2 id="sec-14">14. Central de EstagnaÃ§Ã£o & AprovaÃ§Ãµes de Acesso</h2>
-
-Na aba **EstagnaÃ§Ã£o**, o sistema monitora gargalos e pendÃªncias de acesso de novos usuÃ¡rios. Todo novo usuÃ¡rio cadastrado sem a chave master precisarÃ¡ de aprovaÃ§Ã£o.
-
-### ï¿½ï¿½ Tabela de Alertas de EstagnaÃ§Ã£o & AprovaÃ§Ãµes
-| Tipo de Alerta | CritÃ©rio de Disparo | Cor do Badge | AÃ§Ã£o Recomendada |
-| :--- | :---: | :---: | :--- |
-| **Alerta de Espera** | Tempo de espera > **15 min** | ï¿½ï¿½ Amarelo | Acionar o mÃ©dico da sala ou agilizar a triagem. |
-| **Alerta CrÃ­tico** | Tempo de espera > **30 min** | ï¿½ï¿½ Vermelho | Remanejar paciente para consultÃ³rio vago. |
-| **ObservaÃ§Ã£o Excedida** | Permaneceu > **12h em Obs no PS** | ï¿½ï¿½ Piscando | Solicitar internaÃ§Ã£o imediata em leito de enfermaria. |
-| **SolicitaÃ§Ã£o de Acesso** | UsuÃ¡rio realizou cadastro pendente | ï¿½ï¿½ Laranja | BotÃ£o `Aprovar Acesso` exclusivo do Administrador Master. |
-
----
-
-<h2 id="sec-15">15. ConfiguraÃ§Ãµes, Backup e SincronizaÃ§Ã£o em Nuvem</h2>
-
-Na aba **ConfiguraÃ§Ãµes**, realiza-se a manutenÃ§Ã£o do banco de dados local e nuvem.
-
-### âš™ï¸ Tabela de OperaÃ§Ãµes de ConfiguraÃ§Ã£o
-| OperaÃ§Ã£o | BotÃ£o | AÃ§Ã£o / Quando Utilizar |
-| :--- | :---: | :--- |
-| **SincronizaÃ§Ã£o Nuvem** | `Sincronizar` | Conecta ao banco de dados Turso/SQLite na nuvem para sincronizaÃ§Ã£o em tempo real. |
-| **Exportar Backup JSON** | `Exportar JSON` | Baixa o arquivo completo de backup do banco de dados para seguranÃ§a externa. |
-| **Importar Backup JSON** | `Importar JSON` | Restaura a base de dados a partir de um arquivo de backup previamente salvo. |
-| **Popular Banco (Seed)** | `Gerar Dados Teste` | Cria pacientes e atendimentos fictÃ­cios para treinamentos ou testes. |
-| **Resetar Banco** | `Limpar Dados` | Apaga os dados locais (requer confirmaÃ§Ã£o da senha Master). |
-
----
-
-<h2 id="sec-16">16. Sistema de Avisos, NotificaÃ§Ãµes & Toasts</h2>
-
-| Tipo de NotificaÃ§Ã£o | Cor do Toast | DuraÃ§Ã£o na Tela | Exemplo de Mensagem |
-| :--- | :---: | :---: | :--- |
-| **Sucesso** | ï¿½ï¿½ Verde | 3 segundos | `âœ… ProntuÃ¡rio assinado com sucesso!` |
-| **Alerta / Aviso** | ï¿½ï¿½ Amarelo | 4 segundos | `â±ï¸ Paciente colocado em ObservaÃ§Ã£o MÃ©dica (Cronmetro 12h iniciado)` |
-| **Erro / Falha** | ï¿½ï¿½ Vermelho | 5 segundos | `âŒ Selecione a classificaÃ§Ã£o de risco obrigatÃ³ria.` |
-
----
-
-<h2 id="sec-17">17. Tabela de MÃ¡scaras, Atalhos & Teclas de Atalho</h2>
-
-| Atalho / Clique | FunÃ§Ã£o | Onde Funciona |
-| :--- | :--- | :--- |
-| `Mascara PA (120/80)` | Formata nÃºmeros em formato sistÃ³lica/diastÃ³lica | Campo PressÃ£o Arterial na Triagem |
-| `Mascara CPF (000.000.000-00)` | Formata 11 dÃ­gitos com pontos e hÃ­fen | Cadastro de Paciente |
-| `Clique no Card Triagem` | Filtra para ver apenas a fila de Triagem | Aba Atendimentos |
-| `Clique no Card Ag. MÃ©dico`| Filtra para ver apenas os pacientes aguardando mÃ©dico | Aba Atendimentos |
-| `Clique no Card Em Consulta`| Filtra para ver os atendimentos ativos | Aba Atendimentos |
-| `Clique em Ver Todos` | Exibe as 3 colunas do Kanban lado a lado | Aba Atendimentos |
-| `BotÃ£o Imprimir / PDF` | Imprime laudo oficial em PDF do PEP | Modal do PEP |
-
----
-
-<h2 id="sec-18">18. SoluÃ§Ã£o de DÃºvidas Frequentes & Erros Comuns (FAQ)</h2>
-
-| Problema Encontrado | Causa ProvÃ¡vel | SoluÃ§Ã£o Passo a Passo |
-| :--- | :--- | :--- |
-| **Ao clicar no PEP exibe erro no console** | O atendimento nÃ£o foi inicializado | Verifique se o atendimento estÃ¡ na coluna *Em Consulta* antes de abrir o PEP. |
-| **ProntuÃ¡rio gerado em PDF com campos vazios** | Paciente sem CPF/dados cadastrais | Acesse a aba *Pacientes*, complete o cadastro do paciente e tente gerar novamente. |
-| **HistÃ³rico exibe "Nenhum atendimento registrado"** | Consulta recÃ©m-criada sem triagem | Certifique-se de realizar a Triagem de Manchester antes de buscar o histÃ³rico. |
-| **O cronmetro do card nÃ£o estÃ¡ atualizando** | Intervalo de atualizaÃ§Ã£o pausado | Clique no botÃ£o `Atualizar` na barra superior ou recarregue a aba *Atendimentos*. |
-
----
-*Health Nexus â€” Manual do UsuÃ¡rio v1.0 | Sistema de GestÃ£o Hospitalar de Alta Performance*
-
----
-
-<h2 id="sec-22">22. ï¿½ï¿½ AtualizaÃ§Ãµes Recentes (Agosto/2026)</h2>
-
-O Health Nexus recebeu uma sÃ©rie de melhorias para otimizar o fluxo de trabalho e garantir a seguranÃ§a das informaÃ§Ãµes operacionais:
-
-### 22.1. Controle de Acesso e PermissÃµes (Roles)
-A aba de **ConfiguraÃ§Ãµes Globais** agora conta com um controle de acesso rigoroso:
-- **MASTER:** Possui acesso integral a todos os painÃ©is, incluindo "Gerenciamento de UsuÃ¡rios", "SimulaÃ§Ã£o de Dados" e demais configuraÃ§Ãµes avanÃ§adas (identificadas em vermelho).
-- **Desenvolvedor:** Recebe acesso apenas aos agrupamentos tÃ©cnicos essenciais (destacados em vermelho), permitindo realizar sincronizaÃ§Ã£o de banco de dados (Turso) e operaÃ§Ãµes tÃ©cnicas, mantendo restriÃ§Ãµes de gerenciamento de equipe.
-- **Demais perfis:** Acesso bloqueado Ã  aba de ConfiguraÃ§Ãµes para garantir a seguranÃ§a dos dados.
-
-### 22.2. BotÃµes de Limpeza de Filtros ("Limpar Filtros")
-Visando aumentar a agilidade operacional, foram incluÃ­dos botÃµes dedicados com o Ã­cone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em **todas as abas principais**:
-- **Pacientes, MÃ©dicos, Agenda, FarmÃ¡cia e RelatÃ³rios.**
-- Um Ãºnico clique zera instantaneamente todas as buscas de texto e recoloca os *checkboxes* de filtro em seus estados padrÃ£o, permitindo buscas fluÃ­das.
+<h2 id="sec-22">22. 🆕 Atualizações Recentes (Agosto/2026)</h2>
+
+O Health Nexus recebeu uma série de melhorias para otimizar o fluxo de trabalho e garantir a segurança das informações operacionais:
+
+### 22.1. Controle de Acesso e Permissões (Roles)
+A aba de **Configurações Globais** agora conta com um controle de acesso rigoroso:
+- **MASTER:** Possui acesso integral a todos os painéis, incluindo "Gerenciamento de Usuários", "Simulação de Dados" e demais configurações avançadas (identificadas em vermelho).
+- **Desenvolvedor:** Recebe acesso apenas aos agrupamentos técnicos essenciais (destacados em vermelho), permitindo realizar sincronização de banco de dados (Turso) e operações técnicas, mantendo restrições de gerenciamento de equipe.
+- **Demais perfis:** Acesso bloqueado à aba de Configurações para garantir a segurança dos dados.
+
+### 22.2. Botões de Limpeza de Filtros ("Limpar Filtros")
+Visando aumentar a agilidade operacional, foram incluídos botões dedicados com o ícone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em **todas as abas principais**:
+- **Pacientes, Médicos, Agenda, Farmácia e Relatórios.**
+- Um único clique zera instantaneamente todas as buscas de texto e recoloca os *checkboxes* de filtro em seus estados padrão, permitindo buscas fluídas.
 
 ### 22.3. Busca de Pacientes Aprimorada (Nome e CPF)
-O componente unificado de busca de pacientes (Dropdown dinÃ¢mico utilizado em modais de admissÃ£o, prescriÃ§Ã£o e financeiro) foi reescrito. Agora:
-- A pesquisa procura nÃ£o apenas pelo Nome do Paciente, mas tambÃ©m verifica ocorrÃªncias do **CPF**.
-- O **CPF** Ã© exibido diretamente na lista de opÃ§Ãµes (formato reduzido), facilitando a identificaÃ§Ã£o de homnimos na hora do atendimento.
+O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em modais de admissão, prescrição e financeiro) foi reescrito. Agora:
+- A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do **CPF**.
+- O **CPF** é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de homônimos na hora do atendimento.
 
-### 22.4. Ãcones Visuais de Forma de Pagamento ï¿½ï¿½ï¿½ï¿½
-A interface da seÃ§Ã£o de RelatÃ³rios Financeiros foi enriquecida com representaÃ§Ãµes grÃ¡ficas (Emojis):
-- Pix (ï¿½ï¿½)
-- Dinheiro (ï¿½ï¿½)
-- CartÃ£o de CrÃ©dito (ï¿½ï¿½)
-- CartÃ£o de DÃ©bito (ï¿½ï¿½)
-- Boleto (ï¿½ï¿½)
+### 22.4. Ícones Visuais de Forma de Pagamento 💵💳
+A interface da seção de Relatórios Financeiros foi enriquecida com representações gráficas (Emojis):
+- Pix (💠)
+- Dinheiro (💵)
+- Cartão de Crédito (💳)
+- Cartão de Débito (💳)
+- Boleto (📄)
 Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.
 
----
-
----
-
-<h2 id="sec-22">22. ï¿½ï¿½ AtualizaÃ§Ãµes Recentes (Agosto/2026)</h2>
-
-O Health Nexus recebeu uma sÃ©rie de melhorias para otimizar o fluxo de trabalho e garantir a seguranÃ§a das informaÃ§Ãµes operacionais:
-
-### 22.1. Controle de Acesso e PermissÃµes (Roles)
-A aba de **ConfiguraÃ§Ãµes Globais** agora conta com um controle de acesso rigoroso:
-- **MASTER:** Possui acesso integral a todos os painÃ©is, incluindo "Gerenciamento de UsuÃ¡rios", "SimulaÃ§Ã£o de Dados" e demais configuraÃ§Ãµes avanÃ§adas (identificadas em vermelho).
-- **Desenvolvedor:** Recebe acesso apenas aos agrupamentos tÃ©cnicos essenciais (destacados em vermelho), permitindo realizar sincronizaÃ§Ã£o de banco de dados (Turso) e operaÃ§Ãµes tÃ©cnicas, mantendo restriÃ§Ãµes de gerenciamento de equipe.
-- **Demais perfis:** Acesso bloqueado Ã  aba de ConfiguraÃ§Ãµes para garantir a seguranÃ§a dos dados.
-
-### 22.2. BotÃµes de Limpeza de Filtros ("Limpar Filtros")
-Visando aumentar a agilidade operacional, foram incluÃ­dos botÃµes dedicados com o Ã­cone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em **todas as abas principais**:
-- **Pacientes, MÃ©dicos, Agenda, FarmÃ¡cia e RelatÃ³rios.**
-- Um Ãºnico clique zera instantaneamente todas as buscas de texto e recoloca os *checkboxes* de filtro em seus estados padrÃ£o, permitindo buscas fluÃ­das.
-
-### 22.3. Busca de Pacientes Aprimorada (Nome e CPF)
-O componente unificado de busca de pacientes (Dropdown dinÃ¢mico utilizado em modais de admissÃ£o, prescriÃ§Ã£o e financeiro) foi reescrito. Agora:
-- A pesquisa procura nÃ£o apenas pelo Nome do Paciente, mas tambÃ©m verifica ocorrÃªncias do **CPF**.
-- O **CPF** Ã© exibido diretamente na lista de opÃ§Ãµes (formato reduzido), facilitando a identificaÃ§Ã£o de homnimos na hora do atendimento.
-
-### 22.4. Ãcones Visuais de Forma de Pagamento ï¿½ï¿½ï¿½ï¿½
-A interface da seÃ§Ã£o de RelatÃ³rios Financeiros foi enriquecida com representaÃ§Ãµes grÃ¡ficas (Emojis):
-- Pix (ï¿½ï¿½)
-- Dinheiro (ï¿½ï¿½)
-- CartÃ£o de CrÃ©dito (ï¿½ï¿½)
-- CartÃ£o de DÃ©bito (ï¿½ï¿½)
-- Boleto (ï¿½ï¿½)
-Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.
-
-### 22.5. ValidaÃ§Ã£o Estrita de Senhas no Login ï¿½ï¿½
-A tela de autenticaÃ§Ã£o foi atualizada para exigir a validaÃ§Ã£o exata da senha cadastrada de cada usuÃ¡rio:
-- Tentativas com senhas incorretas sÃ£o imediatamente rejeitadas (HTTP 401).
-- Garantia de que contas individuais (ex: `ljordao`, `bcoltri`, `admin`) sÃ³ possuem acesso liberado mediante a apresentaÃ§Ã£o da senha cadastrada correspondente.
-
----
-
----
-
-<h2 id="sec-22">22. ðŸ†• AtualizaÃ§Ãµes Recentes (Agosto/2026)</h2>
-
-O Health Nexus recebeu uma sÃ©rie de melhorias para otimizar o fluxo de trabalho e garantir a seguranÃ§a das informaÃ§Ãµes operacionais:
-
-### 22.1. Controle de Acesso e PermissÃµes (Roles)
-A aba de **ConfiguraÃ§Ãµes Globais** agora conta com um controle de acesso rigoroso:
-- **MASTER:** Possui acesso integral a todos os painÃ©is, incluindo "Gerenciamento de UsuÃ¡rios", "SimulaÃ§Ã£o de Dados" e demais configuraÃ§Ãµes avanÃ§adas (identificadas em vermelho).
-- **Desenvolvedor:** Recebe acesso apenas aos agrupamentos tÃ©cnicos essenciais (destacados em vermelho), permitindo realizar sincronizaÃ§Ã£o de banco de dados (Turso) e operaÃ§Ãµes tÃ©cnicas, mantendo restriÃ§Ãµes de gerenciamento de equipe.
-- **Demais perfis:** Acesso bloqueado Ã  aba de ConfiguraÃ§Ãµes para garantir a seguranÃ§a dos dados.
-
-### 22.2. BotÃµes de Limpeza de Filtros ("Limpar Filtros")
-Visando aumentar a agilidade operacional, foram incluÃ­dos botÃµes dedicados com o Ã­cone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em **todas as abas principais**:
-- **Pacientes, MÃ©dicos, Agenda, FarmÃ¡cia e RelatÃ³rios.**
-- Um Ãºnico clique zera instantaneamente todas as buscas de texto e recoloca os *checkboxes* de filtro em seus estados padrÃ£o, permitindo buscas fluÃ­das.
-
-### 22.3. Busca de Pacientes Aprimorada (Nome e CPF)
-O componente unificado de busca de pacientes (Dropdown dinÃ¢mico utilizado em modais de admissÃ£o, prescriÃ§Ã£o e financeiro) foi reescrito. Agora:
-- A pesquisa procura nÃ£o apenas pelo Nome do Paciente, mas tambÃ©m verifica ocorrÃªncias do **CPF**.
-- O **CPF** Ã© exibido diretamente na lista de opÃ§Ãµes (formato reduzido), facilitando a identificaÃ§Ã£o de homnimos na hora do atendimento.
-
-### 22.4. Ãcones Visuais de Forma de Pagamento ðŸ’µðŸ’³
-A interface da seÃ§Ã£o de RelatÃ³rios Financeiros foi enriquecida com representaÃ§Ãµes grÃ¡ficas (Emojis):
-- Pix (ðŸ’ )
-- Dinheiro (ðŸ’µ)
-- CartÃ£o de CrÃ©dito (ðŸ’³)
-- CartÃ£o de DÃ©bito (ðŸ’³)
-- Boleto (ðŸ“„)
-Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.
-
-### 22.5. ValidaÃ§Ã£o Estrita de Senhas no Login ðŸ”’
-A tela de autenticaÃ§Ã£o foi atualizada para exigir a validaÃ§Ã£o exata da senha cadastrada de cada usuÃ¡rio:
-- Tentativas com senhas incorretas sÃ£o imediatamente rejeitadas (HTTP 401).
-- Garantia de que contas individuais (ex: `ljordao`, `bcoltri`, `admin`) sÃ³ possuem acesso liberado mediante a apresentaÃ§Ã£o da senha cadastrada correspondente.
+### 22.5. Validação Estrita de Senhas no Login 🔒
+A tela de autenticação foi atualizada para exigir a validação exata da senha cadastrada de cada usuário:
+- Tentativas com senhas incorretas são imediatamente rejeitadas (HTTP 401).
+- Garantia de que contas individuais (ex: `ljordao`, `bcoltri`, `admin`) só possuem acesso liberado mediante a apresentação da senha cadastrada correspondente.
 
 ---
