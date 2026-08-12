@@ -5440,10 +5440,11 @@ async function renderTabContent() {
           if (!isEdit && typeof window.showFlowCompletionNotification === 'function') {
             window.showFlowCompletionNotification({
               actionTitle: 'Cadastro Concluído',
-              message: `O paciente ${fullName} foi registrado com sucesso e direcionado para a Fila de Triagem.`,
-              targetTab: 'atendimento',
-              targetTabLabel: 'Atendimentos / Triagem',
-              targetPatientName: fullName
+              message: `O paciente <strong>${fullName}</strong> foi registrado com sucesso.<br><br><strong>Próximo Passo:</strong> Vá até a coluna de <strong>Ações</strong> deste paciente na lista e clique no primeiro botão azul (Admitir Paciente) para direcioná-lo à Fila de Triagem.`,
+              targetTab: 'pacientes',
+              targetTabLabel: 'Lista de Pacientes',
+              targetPatientName: fullName,
+              persistent: true
             });
           } else {
             showToast(`✅ Paciente ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`);
