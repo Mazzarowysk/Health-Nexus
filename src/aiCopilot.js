@@ -1,6 +1,14 @@
 // 🤖 Nexus AI Knowledge Copilot Engine v2.0 — Expanded Pattern Matching
 export const getNexusAICopilotResponse = (q, raw) => {
-  const qNorm = q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  let qNorm = q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  // Normalização de Sinônimos Comuns para expandir a compreensão da IA
+  qNorm = qNorm.replace(/\b(enfermeiro|medico|recepcionista|fisioterapeuta|doutor|tecnico|auxiliar)\b/g, 'profissional');
+  qNorm = qNorm.replace(/\b(remedio|droga|pilula|injecao|comprimido)\b/g, 'medicamento');
+  qNorm = qNorm.replace(/\b(cliente|doente|internado)\b/g, 'paciente');
+  qNorm = qNorm.replace(/\b(marcar|agendar|reservar)\b/g, 'agendar');
+  qNorm = qNorm.replace(/\b(deletar|apagar|remover|desativar)\b/g, 'excluir');
+
   // Helper: check if query contains ANY of the given tokens
   const has = (...tokens) => tokens.some(t => qNorm.includes(t));
   // Helper: check if query contains ALL of the given tokens

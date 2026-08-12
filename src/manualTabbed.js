@@ -884,6 +884,10 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     padding: 20px; font-family: system-ui, -apple-system, sans-serif;
   `;
 
+  const removeAccents = (str) => {
+    return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  };
+
   const renderModalContent = () => {
     const currentIndex = manualData.findIndex(m => m.id === activeTabId);
     const validIndex = currentIndex >= 0 ? currentIndex : 0;
@@ -897,14 +901,14 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
     const isSearching = searchQuery.trim().length > 0;
     
     if (isSearching) {
-      const q = searchQuery.toLowerCase();
+      const q = removeAccents(searchQuery);
       manualData.forEach(module => {
         module.buttons.forEach(b => {
-          const match = b.name.toLowerCase().includes(q) ||
-                 b.description.toLowerCase().includes(q) ||
-                 b.type.toLowerCase().includes(q) ||
-                 (b.rules && b.rules.toLowerCase().includes(q)) ||
-                 (b.keywords && b.keywords.some(k => k.toLowerCase().includes(q)));
+          const match = removeAccents(b.name).includes(q) ||
+                 removeAccents(b.description).includes(q) ||
+                 removeAccents(b.type).includes(q) ||
+                 (b.rules && removeAccents(b.rules).includes(q)) ||
+                 (b.keywords && b.keywords.some(k => removeAccents(k).includes(q)));
                  
           if (match) {
              filteredButtons.push({ ...b, _moduleTitle: module.title, _moduleId: module.id });
@@ -1306,6 +1310,15 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
   `;
 
   document.body.appendChild(overlay);
+
+  const searchInputEl = overlay.querySelector('#manual-modal-search');
+  if (searchInputEl) {
+    searchInputEl.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderModalContent();
+    });
+  }
+
   renderModalContent();
 
   // AUTO SCROLL PARA MANTER A ABA ATIVA SEMPRE CENTRALIZADA NO MENU SUPERIOR
@@ -1354,13 +1367,6 @@ export const showInteractiveManualModal = (initialTabId = 'geral') => {
 
     if (e.target.id === 'manual-modal-close' || e.target.closest('#manual-modal-close') || e.target === overlay) {
       overlay.remove();
-    }
-  });
-
-  overlay.addEventListener('input', (e) => {
-    if (e.target.id === 'manual-modal-search') {
-      searchQuery = e.target.value;
-      renderModalContent();
     }
   });
 };
