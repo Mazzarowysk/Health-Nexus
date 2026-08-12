@@ -6133,12 +6133,14 @@ async function renderTabContent() {
           })
         });
         if (res.ok) {
+          const pName = document.getElementById('triage-patient-name').textContent || '';
           closeTriageModal();
           showFlowCompletionNotification({
             actionTitle: 'Triagem Manchester Concluída',
             message: 'Classificação de risco registrada com sucesso. O paciente foi direcionado para a Fila de Atendimento Médico.',
             targetTab: 'atendimento',
-            targetTabLabel: 'Atendimentos & Prontuário Médico'
+            targetTabLabel: 'Atendimentos & Prontuário Médico',
+            targetPatientName: pName
           });
           await loadAndRenderKanban();
         }

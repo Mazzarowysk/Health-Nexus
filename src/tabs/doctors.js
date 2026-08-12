@@ -1502,11 +1502,26 @@ async function savePEPData(encounterId, shouldFinalize) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Finalizado' })
       });
-      showToast('⚡ Prontuário assinado e atendimento finalizado com Alta Médica!');
+      
+      const encounters = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('encounters') : [];
+      const enc = encounters.find(e => e.id === encounterId) || {};
+      const patientName = enc.patientName || 'Paciente';
+
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: 'Atendimento Finalizado',
+          message: `O prontuário foi assinado e a consulta de ${patientName} foi concluída com sucesso.`,
+          targetTab: 'atendimento',
+          targetTabLabel: 'Atendimentos Médicos'
+        });
+      } else {
+        showToast('⚡ Prontuário assinado e atendimento finalizado com Alta Médica!');
+      }
+
       const modal = document.getElementById('pep-modal');
       if (modal) modal.remove();
       if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
-      if (state.activeTab === 'atendimento') renderTabContent();
+      if (typeof renderTabContent === 'function' && state.activeTab === 'atendimento') renderTabContent();
     } else {
       showToast('Prontuário salvo como rascunho com sucesso!');
     }
