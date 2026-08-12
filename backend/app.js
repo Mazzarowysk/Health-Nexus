@@ -308,6 +308,45 @@ app.get('/api/cfm/verificar', async (req, res) => {
   }
 });
 
+// --- CONFIGURAÇÕES DO BANCO E SISTEMA ---
+app.get('/api/settings/turso/test', async (req, res) => {
+  if (!tursoClient) {
+    return res.status(400).json({ message: 'Banco Turso não configurado no backend.' });
+  }
+  try {
+    await executeTursoWithTimeout(tursoClient.execute('SELECT 1'));
+    res.status(200).json({ message: 'Conexão com Turso Cloud bem sucedida!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Falha ao conectar no Turso Cloud: ' + (error?.message || error) });
+  }
+});
+
+app.get('/api/settings/turso', (req, res) => {
+  res.status(200).json({ url: process.env.TURSO_DATABASE_URL || 'Configurado' });
+});
+
+app.post('/api/settings/turso', async (req, res) => {
+  const { url, token } = req.body;
+  try {
+    tursoClient = createClient({ url, authToken: token });
+    res.status(200).json({ message: 'Credenciais atualizadas (apenas em memória no Vercel).' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao atualizar credenciais: ' + err.message });
+  }
+});
+
+app.post('/api/settings/reset', (req, res) => {
+  res.status(200).json({ message: 'Reset não implementado no Vercel (banco em nuvem).' });
+});
+
+app.get('/api/settings/export', (req, res) => {
+  res.status(200).json({ message: 'Export não implementado no Vercel.' });
+});
+
+app.post('/api/settings/import', (req, res) => {
+  res.status(200).json({ message: 'Import não implementado no Vercel.' });
+});
+
 // Catch-all
 
 app.use((req, res) => {
