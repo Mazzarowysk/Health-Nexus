@@ -6641,10 +6641,15 @@ async function renderTabContent() {
           if (res.ok) {
             dataCache.clear();
             dataCacheTimestamps.clear();
-            if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
-              await syncManager.pushToCloud(false);
-            }
             hideLoadingModal();
+
+            if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
+              Promise.race([
+                syncManager.pushToCloud(false),
+                new Promise(resolve => setTimeout(resolve, 2000))
+              ]).catch(() => null);
+            }
+
             await showCustomAlert({
               title: 'Banco de Dados Zerado',
               message: 'Todos os registros de pacientes, atendimentos, agendamentos, triagens e prescrições foram removidos com sucesso.',
