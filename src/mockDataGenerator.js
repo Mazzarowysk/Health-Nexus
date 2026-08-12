@@ -742,12 +742,12 @@ export async function generateMockData(baseAmount = 300) {
   });
 
   // ── 2. Gerar Médicos e Enfermeiros com Logins ──
-  const numPatients = Math.max(1, Math.floor(baseAmount * (80 / 315)));
-  const numAppts = Math.floor(baseAmount * (60 / 315));
-  const numEncounters = Math.floor(baseAmount * (45 / 315));
-  const numHosp = Math.floor(baseAmount * (25 / 315));
-  const numFin = Math.floor(baseAmount * (90 / 315));
-  const numTv = Math.floor(baseAmount * (15 / 315));
+  const numPatients = baseAmount;
+  const numAppts = Math.max(1, Math.round(baseAmount * 0.75));
+  const numEncounters = Math.max(1, Math.round(baseAmount * 0.60));
+  const numHosp = Math.max(1, Math.round(baseAmount * 0.30));
+  const numFin = Math.max(1, Math.round(baseAmount * 1.15));
+  const numTv = Math.max(1, Math.round(baseAmount * 0.25));
 
   console.log('[MockGen] Gerando médicos e enfermeiros...');
   const doctors = generateDoctors();
