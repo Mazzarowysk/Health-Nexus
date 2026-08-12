@@ -2364,6 +2364,35 @@ const apiFetch = async (url, options = {}) => {
             triages
           }
         };
+      } else if (url.includes('/triage') && url.includes('/encounters/') && method === 'POST') {
+        const match = url.match(/\/encounters\/([^\/]+)\/triage/);
+        const encId = match ? decodeURIComponent(match[1]) : null;
+        if (encId) {
+          const enc = localDB.get('encounters', encId);
+          if (enc) {
+            // Update encounter status and color
+            localDB.update('encounters', encId, {
+              ...enc,
+              status: 'Aguardando_Atendimento',
+              manchesterColor: body.manchesterColor,
+              updated_at: new Date().toISOString()
+            });
+            // Insert triage record
+            const triageRecord = {
+              encounterId: encId,
+              patientId: enc.patientId,
+              patientName: enc.patientName,
+              date: new Date().toISOString(),
+              ...body
+            };
+            const insertedTriage = localDB.insert('triages', triageRecord);
+            responseData = { message: 'Triagem salva com sucesso', data: insertedTriage };
+          } else {
+            status = 404; responseData = { message: 'Atendimento não encontrado' };
+          }
+        } else {
+          status = 400; responseData = { message: 'ID do atendimento não fornecido' };
+        }
       } else {
         // Extract table from URL: e.g. /api/patients/PAT-123 -> table: patients, id: PAT-123
         const parts = url.split('?')[0].replace('/api/', '').split('/');
