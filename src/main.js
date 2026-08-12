@@ -5437,7 +5437,17 @@ async function renderTabContent() {
           resetForm();
           dataCache.delete('patients');
           await loadAndRenderTable();
-          showToast(`✅ Paciente ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`);
+          if (!isEdit && typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: 'Cadastro Concluído',
+              message: `O paciente ${fullName} foi registrado com sucesso e direcionado para a Fila de Triagem.`,
+              targetTab: 'atendimento',
+              targetTabLabel: 'Atendimentos / Triagem',
+              targetPatientName: fullName
+            });
+          } else {
+            showToast(`✅ Paciente ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`);
+          }
           state.loading = true;
         } else {
           showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao salvar paciente.', type: 'danger' });
@@ -8081,7 +8091,16 @@ window.confirmSignPEP = async function() {
     
     const result = await res.json();
     if (res.ok) {
-      showToast('Prontuário assinado e finalizado com sucesso!');
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: 'Atendimento Finalizado',
+          message: 'O prontuário foi assinado eletronicamente e a consulta foi concluída.',
+          targetTab: 'atendimento',
+          targetTabLabel: 'Prontuário (Atendimentos Médicos)'
+        });
+      } else {
+        showToast('Prontuário assinado e finalizado com sucesso!');
+      }
       closeSignModal();
       closePEPModal();
       renderTabContent(); // Recarregar aba de atendimentos

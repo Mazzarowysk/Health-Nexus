@@ -1523,7 +1523,19 @@ async function savePEPData(encounterId, shouldFinalize) {
       if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
       if (typeof renderTabContent === 'function' && state.activeTab === 'atendimento') renderTabContent();
     } else {
-      showToast('Prontuário salvo como rascunho com sucesso!');
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: 'Rascunho do Prontuário Salvo',
+          message: 'O rascunho da evolução foi salvo. Você pode emitir Prescrições, iniciar Observação ou Finalizar o atendimento pelo card do Consultório.',
+          targetTab: 'consultorios',
+          targetTabLabel: 'Consultórios (Em Atendimento)',
+          targetPatientName: enc.patientName || 'Paciente'
+        });
+      } else {
+        showToast('Prontuário salvo como rascunho com sucesso!');
+      }
+      const modal = document.getElementById('pep-modal');
+      if (modal) modal.remove();
     }
   } catch (e) {
     showToast('Erro ao salvar prontuário.');

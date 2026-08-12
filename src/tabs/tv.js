@@ -1111,7 +1111,16 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
               body: JSON.stringify({ medicationName: medName, nurseName, notes: 'Medicação administrada em planilha' })
             });
             if (res.ok) {
-              showToast(`💉 Medicação ${medName} checada e administrada por ${nurseName}!`);
+              if (typeof window.showFlowCompletionNotification === 'function') {
+                window.showFlowCompletionNotification({
+                  actionTitle: 'Medicação Administrada',
+                  message: `A medicação <strong>${medName}</strong> foi checada e administrada por ${nurseName}.`,
+                  targetTab: 'atendimento',
+                  targetTabLabel: 'Atendimentos / Prontuário'
+                });
+              } else {
+                showToast(`💉 Medicação ${medName} checada e administrada por ${nurseName}!`);
+              }
               loadActivePrescriptions();
             }
           } catch(err) {
@@ -1208,7 +1217,17 @@ window.openTransferBedModal = async function(encounterId, patientName) {
         body: JSON.stringify({ bedId, patientName })
       });
       if (res.ok) {
-        showToast(`🛌 Paciente ${patientName} transferido(a) para internação hospitalar!`);
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Internação Iniciada',
+            message: `O paciente <strong>${patientName}</strong> foi transferido. O leito agora consta como Ocupado.`,
+            targetTab: 'leitos',
+            targetTabLabel: 'Gestão de Leitos',
+            targetPatientName: patientName
+          });
+        } else {
+          showToast(`🛌 Paciente ${patientName} transferido(a) para internação hospitalar!`);
+        }
         modal.style.display = 'none';
         if (state.activeTab === 'atendimento') {
           renderTabContent();
