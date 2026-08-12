@@ -303,7 +303,7 @@ async function loadAndRenderStagnationData() {
           const cleanStatus = (item.status || '').replace(/_/g, ' ');
 
           html += `
-            <tr style="border-bottom: 1px solid var(--border-color); ${isCritical ? 'background: rgba(239,68,68,0.03);' : ''} transition: background 0.2s ease;">
+            <tr class="stag-alert-row" style="border-bottom: 1px solid var(--border-color); ${isCritical ? 'background: rgba(239,68,68,0.03);' : ''} transition: background 0.2s ease;">
               <td style="padding: 18px 16px; vertical-align: middle;">
                 <div style="font-weight: 700; color: var(--text-primary); font-size: 0.98rem; margin-bottom: 4px; letter-spacing: -0.01em;">${item.patientName}</div>
                 <div style="font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 4px; opacity: 0.85;">
@@ -361,13 +361,16 @@ async function loadAndRenderStagnationData() {
 
   if (stagSearch) {
     stagSearch.addEventListener('input', () => {
-      const term = stagSearch.value.toLowerCase().trim();
+      const removeAccents = (str) => {
+        return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      };
+      const term = removeAccents(stagSearch.value.trim());
       const wrap = document.getElementById('stagnation-list-wrapper');
       if (!wrap) return;
       const rows = wrap.querySelectorAll('.stag-alert-row, tr[data-patient-name]');
       let visible = 0;
       rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
+        const text = removeAccents(row.textContent);
         const show = !term || text.includes(term);
         row.style.display = show ? '' : 'none';
         if (show) visible++;
