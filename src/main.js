@@ -1524,6 +1524,11 @@ class SyncManager {
 
   startAutoSyncTimer() {
     if (this.timerInterval) clearInterval(this.timerInterval);
+    if (localStorage.getItem('turso_manual_sync') === 'true') {
+      this.timerCountdownSeconds = 0;
+      this.updateTimerUI();
+      return;
+    }
     this.timerCountdownSeconds = 15 * 60;
 
     this.timerInterval = setInterval(() => {
@@ -1757,9 +1762,10 @@ const updateSyncBadge = () => {
     });
   }
 
+  const isManual = localStorage.getItem('turso_manual_sync') === 'true';
   const mins = Math.floor((syncManager.timerCountdownSeconds || 900) / 60);
   const secs = (syncManager.timerCountdownSeconds || 900) % 60;
-  const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  const timeStr = isManual ? 'MANUAL' : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
   if (!data) {
     badge.innerHTML = `<i class="fa-solid fa-clock" style="margin-right:6px; color: #818cf8;"></i> Verificação em ${timeStr}`;
@@ -6305,6 +6311,13 @@ async function renderTabContent() {
                 <input type="password" id="turso-cfg-token" class="form-input" style="width: 100%;" placeholder="ey...">
                 <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block;">Deixe em branco para não alterar se já estiver configurado.</small>
               </div>
+              <div class="settings-form-group" style="margin-bottom: 16px; margin-top: 16px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                  <input type="checkbox" id="turso-cfg-manual-sync" style="width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;">
+                  <span style="color: var(--text-primary); font-size: 14px; font-weight: 500;">Habilitar Sincronização Manual</span>
+                </label>
+                <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block; margin-left: 26px;">Desativa a verificação automática e sincroniza apenas pelos botões.</small>
+              </div>
               <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
                 <button id="btn-save-turso-cfg" style="background-color: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                   <i class="fa-solid fa-save"></i> Salvar Credenciais
@@ -6640,6 +6653,23 @@ async function renderTabContent() {
         console.warn('Erro ao carregar configuracoes Turso:', err);
       }
     })();
+
+    const manualSyncCheckbox = document.getElementById('turso-cfg-manual-sync');
+    if (manualSyncCheckbox) {
+      manualSyncCheckbox.checked = localStorage.getItem('turso_manual_sync') === 'true';
+      manualSyncCheckbox.addEventListener('change', (e) => {
+        localStorage.setItem('turso_manual_sync', e.target.checked);
+        if (e.target.checked) {
+          if (syncManager.timerInterval) clearInterval(syncManager.timerInterval);
+          syncManager.timerCountdownSeconds = 0;
+          syncManager.updateTimerUI();
+          showToast('Sincronização manual ativada.');
+        } else {
+          syncManager.startAutoSyncTimer();
+          showToast('Sincronização automática ativada.');
+        }
+      });
+    }
 
     const btnSaveTurso = document.getElementById('btn-save-turso-cfg');
     if (btnSaveTurso) {
