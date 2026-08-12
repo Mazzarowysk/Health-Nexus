@@ -641,18 +641,62 @@ async function renderDoctorsTab() {
   }
 
   const handleAddNewOption = (inputId, datalistId, label) => {
-    const newVal = prompt(`Digite a nova ${label}:`);
-    if (newVal && newVal.trim() !== '') {
-      const datalist = document.getElementById(datalistId);
-      const input = document.getElementById(inputId);
-      if (datalist && input) {
-        const option = document.createElement('option');
-        option.value = newVal.trim();
-        datalist.appendChild(option);
-        input.value = newVal.trim();
-        input.dispatchEvent(new Event('change'));
-      }
+    const modalId = 'custom-prompt-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = modalId;
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;';
+      modal.innerHTML = `
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:24px;width:100%;max-width:400px;box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+          <h3 id="cpm-title" style="margin-top:0;margin-bottom:16px;color:var(--text-primary);font-size:1.1rem;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-plus-circle" style="color:var(--color-primary);"></i> <span id="cpm-label">Adicionar</span></h3>
+          <input type="text" id="cpm-input" class="form-input" style="width:100%;margin-bottom:20px;box-sizing:border-box;" autocomplete="off">
+          <div style="display:flex;justify-content:flex-end;gap:12px;">
+            <button id="cpm-cancel" class="btn-cancel" style="padding:8px 16px;">Cancelar</button>
+            <button id="cpm-confirm" class="btn-primary" style="padding:8px 16px;">Adicionar</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
     }
+    
+    document.getElementById('cpm-label').textContent = `Nova ${label}`;
+    const inputField = document.getElementById('cpm-input');
+    inputField.placeholder = `Digite a nova ${label}...`;
+    inputField.value = '';
+    
+    modal.style.display = 'flex';
+    inputField.focus();
+
+    const cleanup = () => {
+      modal.style.display = 'none';
+      document.getElementById('cpm-confirm').onclick = null;
+      document.getElementById('cpm-cancel').onclick = null;
+      inputField.onkeydown = null;
+    };
+
+    const confirmAction = () => {
+      const newVal = inputField.value;
+      if (newVal && newVal.trim() !== '') {
+        const datalist = document.getElementById(datalistId);
+        const input = document.getElementById(inputId);
+        if (datalist && input) {
+          const option = document.createElement('option');
+          option.value = newVal.trim();
+          datalist.appendChild(option);
+          input.value = newVal.trim();
+          input.dispatchEvent(new Event('change'));
+        }
+      }
+      cleanup();
+    };
+
+    document.getElementById('cpm-confirm').onclick = confirmAction;
+    document.getElementById('cpm-cancel').onclick = cleanup;
+    inputField.onkeydown = (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); confirmAction(); }
+      if (e.key === 'Escape') cleanup();
+    };
   };
 
   const btnAddRole = document.getElementById('btn-add-role');
