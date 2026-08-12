@@ -3433,7 +3433,7 @@ function renderAppStructure() {
     { id: 'kanban', label: 'Kanban', icon: 'fa-table-columns' },
     { id: 'farmacia', label: 'Farmácia & Estoque', icon: 'fa-pills' },
     { id: 'financeiro', label: 'Financeiro', icon: 'fa-hand-holding-dollar' },
-    { id: 'medicos', label: 'Corpo Clínico', icon: 'fa-user-doctor' },
+    { id: 'medicos', label: 'Profissionais', icon: 'fa-user-nurse' },
     { id: 'consultorios', label: 'Consultórios', icon: 'fa-door-open' },
     { id: 'relatorios', label: 'Relatórios', icon: 'fa-file-contract' },
     { id: 'configuracoes', label: 'Configurações', icon: 'fa-gear' }
@@ -3852,7 +3852,7 @@ function initGlobalSystemSearch() {
       { id: 'kanban', label: 'Quadro Kanban Hospitalar', icon: 'fa-table-columns', tabColor: '#60a5fa' },
       { id: 'farmacia', label: 'Farmácia & Estoque', icon: 'fa-pills', tabColor: '#fbbf24' },
       { id: 'financeiro', label: 'Faturamento & Financeiro', icon: 'fa-hand-holding-dollar', tabColor: '#34d399' },
-      { id: 'medicos', label: 'Corpo Clínico & Médicos', icon: 'fa-user-doctor', tabColor: '#818cf8' },
+      { id: 'medicos', label: 'Profissionais & Equipe', icon: 'fa-user-nurse', tabColor: '#818cf8' },
       { id: 'consultorios', label: 'Salas & Consultórios', icon: 'fa-door-open', tabColor: '#c084fc' },
       { id: 'relatorios', label: 'Relatórios & Métricas', icon: 'fa-file-contract', tabColor: '#06b6d4' },
       { id: 'configuracoes', label: 'Configurações & Turso Cloud DB', icon: 'fa-gear', tabColor: '#a5b4fc' }
@@ -3910,22 +3910,22 @@ function initGlobalSystemSearch() {
       // Helper: check if query contains ALL of the given tokens
       const hasAll = (...tokens) => tokens.every(t => q.includes(t));
 
-      // ── MÉDICOS ──────────────────────────────────────────────────────────
-      if (hasAll('medico', 'incluir') || hasAll('medico', 'cadastrar') || hasAll('medico', 'novo') || hasAll('medico', 'adicionar') || hasAll('medico', 'criar') ||
-          has('incluir medico', 'cadastrar medico', 'novo medico', 'adicionar medico', 'corpo clinico', 'registrar medico')) {
-        return { title: 'Nexus AI Copilot', summary: 'Para <strong>incluir ou cadastrar um novo médico</strong>, acesse a aba 🩺 <strong>Corpo Clínico & Médicos</strong> e clique em <strong>+ Novo Médico</strong>. Preencha Nome, CRM, Especialidade e Telefone com validação automática no CFM.', actionText: '🩺 Cadastrar Novo Médico', actionType: 'openDoctorModal', actionTarget: 'medicos' };
+      // ── PROFISSIONAIS ──────────────────────────────────────────────────────────
+      if (hasAll('profissional', 'incluir') || hasAll('profissional', 'cadastrar') || hasAll('profissional', 'novo') || hasAll('profissional', 'adicionar') || hasAll('profissional', 'criar') ||
+          has('incluir profissional', 'cadastrar profissional', 'novo profissional', 'adicionar profissional', 'corpo clinico', 'registrar profissional')) {
+        return { title: 'Nexus AI Copilot', summary: 'Para <strong>incluir ou cadastrar um novo profissional</strong>, acesse a aba 🩺 <strong>Profissionais</strong> e clique em <strong>+ Novo Profissional</strong>. Preencha Nome, Registro/CRM, Especialidade e Telefone.', actionText: '🩺 Cadastrar Novo Profissional', actionType: 'openDoctorModal', actionTarget: 'medicos' };
       }
-      if (hasAll('medico', 'excluir') || hasAll('medico', 'desativar') || hasAll('medico', 'remover') || hasAll('medico', 'deletar') || hasAll('medico', 'lixeira')) {
-        return { title: 'Nexus AI Copilot', summary: 'Para <strong>desativar um médico</strong>, acesse 🩺 <strong>Corpo Clínico</strong>, localize o médico e clique no ícone de 🗑️ Lixeira. O histórico de consultas é preservado e o médico pode ser restaurado.', actionText: '🩺 Abrir Corpo Clínico', actionType: 'switchTab', actionTarget: 'medicos' };
+      if (hasAll('profissional', 'excluir') || hasAll('profissional', 'desativar') || hasAll('profissional', 'remover') || hasAll('profissional', 'deletar') || hasAll('profissional', 'lixeira')) {
+        return { title: 'Nexus AI Copilot', summary: 'Para <strong>desativar um profissional</strong>, acesse 🩺 <strong>Profissionais</strong>, localize-o e clique no ícone de 🗑️ Lixeira. O histórico de atendimentos é preservado.', actionText: '🩺 Abrir Profissionais', actionType: 'switchTab', actionTarget: 'medicos' };
       }
-      if (hasAll('medico', 'editar') || hasAll('medico', 'alterar') || hasAll('medico', 'atualizar') || hasAll('crm', 'alterar') || hasAll('crm', 'atualizar')) {
-        return { title: 'Nexus AI Copilot', summary: 'Para <strong>editar dados de um médico</strong>, acesse 🩺 <strong>Corpo Clínico</strong> e clique no ícone de ✏️ Lápis no card do médico para alterar especialidade, CRM, telefone ou e-mail.', actionText: '🩺 Ir para Corpo Clínico', actionType: 'switchTab', actionTarget: 'medicos' };
+      if (hasAll('profissional', 'editar') || hasAll('profissional', 'alterar') || hasAll('profissional', 'atualizar') || hasAll('crm', 'alterar') || hasAll('crm', 'atualizar')) {
+        return { title: 'Nexus AI Copilot', summary: 'Para <strong>editar dados de um profissional</strong>, acesse 🩺 <strong>Profissionais</strong> e clique no ícone de ✏️ Lápis no card para alterar especialidade, CRM, telefone ou e-mail.', actionText: '🩺 Ir para Profissionais', actionType: 'switchTab', actionTarget: 'medicos' };
       }
-      if (has('crm', 'cfm', 'validar crm', 'verificar crm', 'conselho medico')) {
-        return { title: 'Nexus AI Copilot', summary: 'O <strong>CRM é validado automaticamente</strong> pelo sistema ao digitar o número, consultando a base do CFM (Conselho Federal de Medicina) em tempo real.', actionText: '🩺 Ver Corpo Clínico', actionType: 'switchTab', actionTarget: 'medicos' };
+      if (has('registro', 'conselho', 'validar', 'verificar', 'conselho classe')) {
+        return { title: 'Nexus AI Copilot', summary: 'O <strong>Registro Profissional</strong> é validado automaticamente pelo sistema ao digitar o número.', actionText: '🩺 Ver Profissionais', actionType: 'switchTab', actionTarget: 'medicos' };
       }
-      if (has('plantao medico', 'escala medico', 'turno medico', 'horario medico', 'alocar plantao')) {
-        return { title: 'Nexus AI Copilot', summary: 'Para <strong>alocar um médico na escala de plantão</strong>, acesse 📅 <strong>Escalas de Trabalho</strong> ou clique no botão "Escala de Plantão" no card do médico em Corpo Clínico.', actionText: '📅 Abrir Escalas de Trabalho', actionType: 'switchTab', actionTarget: 'escalas' };
+      if (has('plantao', 'escala', 'turno', 'horario', 'alocar plantao')) {
+        return { title: 'Nexus AI Copilot', summary: 'Para <strong>alocar um profissional na escala de plantão</strong>, acesse 📅 <strong>Escalas de Trabalho</strong>.', actionText: '📅 Abrir Escalas de Trabalho', actionType: 'switchTab', actionTarget: 'escalas' };
       }
 
       // ── PACIENTES ────────────────────────────────────────────────────────
@@ -3945,7 +3945,7 @@ function initGlobalSystemSearch() {
 
       // ── AGENDA / CONSULTAS ───────────────────────────────────────────────
       if (has('agendar', 'novo agendamento', 'marcar consulta', 'marcar hora', 'reservar horario', 'agendamento consulta')) {
-        return { title: 'Nexus AI Copilot', summary: 'Para <strong>agendar uma consulta</strong>, acesse 📅 <strong>Agenda & Consultas</strong> e clique em <strong>Novo Agendamento</strong>. Selecione o médico, data, horário e paciente.', actionText: '📅 Abrir Agenda', actionType: 'switchTab', actionTarget: 'agenda' };
+        return { title: 'Nexus AI Copilot', summary: 'Para <strong>agendar uma consulta</strong>, acesse 📅 <strong>Agenda & Consultas</strong> e clique em <strong>Novo Agendamento</strong>. Selecione o profissional, data, horário e paciente.', actionText: '📅 Abrir Agenda', actionType: 'switchTab', actionTarget: 'agenda' };
       }
       if (has('cancelar agendamento', 'cancelar consulta', 'desmarcar consulta', 'desmarcar agendamento')) {
         return { title: 'Nexus AI Copilot', summary: 'Para <strong>cancelar um agendamento</strong>, localize a consulta na Agenda e clique no ícone ❌. O registro é mantido no histórico com status "Cancelado".', actionText: '📅 Abrir Agenda', actionType: 'switchTab', actionTarget: 'agenda' };
@@ -3968,7 +3968,7 @@ function initGlobalSystemSearch() {
         return { title: 'Nexus AI Copilot', summary: 'O <strong>CID-10</strong> é registrado no Prontuário Médico durante o atendimento. A busca de código é feita digitando o nome da doença ou o código direto no campo de diagnóstico.', actionText: '⚕️ Abrir Prontuário', actionType: 'switchTab', actionTarget: 'atendimento' };
       }
       if (has('atestado', 'declaracao medica', 'afastamento', 'laudo medico')) {
-        return { title: 'Nexus AI Copilot', summary: 'Os <strong>Atestados Médicos</strong> são emitidos pelo médico no Prontuário, aba "Atestado". É possível definir o número de dias de afastamento e gerar PDF imprimível.', actionText: '⚕️ Abrir Prontuário', actionType: 'switchTab', actionTarget: 'atendimento' };
+        return { title: 'Nexus AI Copilot', summary: 'Os <strong>Atestados Médicos</strong> são emitidos pelo profissional no Prontuário, aba "Atestado". É possível definir o número de dias de afastamento e gerar PDF imprimível.', actionText: '⚕️ Abrir Prontuário', actionType: 'switchTab', actionTarget: 'atendimento' };
       }
       if (has('triagem', 'manchester', 'sinais vitais', 'pressao arterial', 'temperatura', 'spo2', 'glicemia', 'saturacao')) {
         return { title: 'Nexus AI Copilot', summary: 'A <strong>Triagem Manchester</strong> é realizada na aba ⚕️ <strong>Atendimentos</strong>, registrando PA, FC, Temperatura, SpO2 e Glicemia. O sistema calcula automaticamente a cor de risco (Vermelho → Azul).', actionText: '⚕️ Abrir Triagem', actionType: 'switchTab', actionTarget: 'atendimento' };
@@ -3987,7 +3987,7 @@ function initGlobalSystemSearch() {
 
       // ── LEITOS / INTERNAÇÃO ──────────────────────────────────────────────
       if (has('internar paciente', 'internacao', 'abrir leito', 'alocar leito', 'admissao hospitalar')) {
-        return { title: 'Nexus AI Copilot', summary: 'Para <strong>internar um paciente</strong>, acesse 🛏️ <strong>Gestão de Leitos</strong> e clique em <strong>Internar Paciente</strong> no leito desejado. Informe diagnóstico, médico responsável e ala.', actionText: '🛏️ Abrir Central de Leitos', actionType: 'switchTab', actionTarget: 'leitos' };
+        return { title: 'Nexus AI Copilot', summary: 'Para <strong>internar um paciente</strong>, acesse 🛏️ <strong>Gestão de Leitos</strong> e clique em <strong>Internar Paciente</strong> no leito desejado. Informe diagnóstico, responsável e ala.', actionText: '🛏️ Abrir Central de Leitos', actionType: 'switchTab', actionTarget: 'leitos' };
       }
       if (has('dar alta', 'alta hospitalar', 'liberar leito', 'liberar internado', 'higienizacao leito')) {
         return { title: 'Nexus AI Copilot', summary: 'Para <strong>dar alta a um paciente</strong>, acesse 🛏️ <strong>Gestão de Leitos</strong> ou o Kanban e clique em <strong>"Dar Alta"</strong>. O leito vai para status "Higienização" antes de ser liberado.', actionText: '🛏️ Abrir Gestão de Leitos', actionType: 'switchTab', actionTarget: 'leitos' };
@@ -3998,7 +3998,7 @@ function initGlobalSystemSearch() {
 
       // ── ESCALAS DE TRABALHO ──────────────────────────────────────────────
       if (has('escala trabalho', 'escala plantao', 'plantao enfermeiro', 'plantao medico', 'turno trabalho', 'adicionar escala', 'nova escala')) {
-        return { title: 'Nexus AI Copilot', summary: 'Para <strong>gerenciar escalas de plantão</strong>, acesse 📅 <strong>Escalas de Trabalho</strong>. A aba possui sub-seções separadas para Médicos e Enfermeiros com controle de turno, data e consultório.', actionText: '📅 Abrir Escalas de Trabalho', actionType: 'switchTab', actionTarget: 'escalas' };
+        return { title: 'Nexus AI Copilot', summary: 'Para <strong>gerenciar escalas de plantão</strong>, acesse 📅 <strong>Escalas de Trabalho</strong>. A aba possui sub-seções separadas para Profissionais de saúde com controle de turno, data e consultório.', actionText: '📅 Abrir Escalas de Trabalho', actionType: 'switchTab', actionTarget: 'escalas' };
       }
 
       // ── USUÁRIOS / CONFIGURAÇÕES ─────────────────────────────────────────

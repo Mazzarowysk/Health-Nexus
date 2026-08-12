@@ -17,8 +17,8 @@ async function renderDoctorsTab() {
               <i class="fa-solid fa-user-doctor" style="font-size: 1.2rem;"></i>
             </div>
             <div>
-              <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.2;">Corpo Clínico</h2>
-              <span style="color: var(--text-muted); font-size: 0.85rem;">Gestão de Médicos e Especialistas Hospitalares</span>
+              <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.2;">Profissionais & Equipe</h2>
+              <span style="color: var(--text-muted); font-size: 0.85rem;">Gestão de Médicos, Enfermeiros, Fisioterapeutas e outros profissionais</span>
             </div>
           </div>
         </div>
@@ -31,7 +31,7 @@ async function renderDoctorsTab() {
             <i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i> Lixeira
           </button>
           <button id="btn-open-doctor-modal" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 0.88rem; font-weight: 600; border-radius: 10px; box-shadow: 0 4px 14px rgba(99,102,241,0.3); cursor: pointer;">
-            <i class="fa-solid fa-plus"></i> Novo Médico
+            <i class="fa-solid fa-plus"></i> Novo Profissional
           </button>
         </div>
       </div>
@@ -44,7 +44,7 @@ async function renderDoctorsTab() {
               <i class="fa-solid fa-calendar-check" style="font-size: 1.1rem;"></i>
             </div>
             <div>
-              <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">Médicos de Plantão Hoje</h3>
+              <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">Profissionais de Plantão Hoje</h3>
               <span id="duty-schedule-date" style="font-size: 0.78rem; color: var(--text-muted);"></span>
             </div>
           </div>
@@ -73,11 +73,10 @@ async function renderDoctorsTab() {
         </div>
       </div>
 
-      <!-- TABELA DE MÉDICOS CONTAINER -->
       <div id="doctors-list-container">
         <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
           <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.6rem; color: var(--color-primary); margin-bottom: 12px; display: block;"></i>
-          <span style="font-size: 0.9rem;">Carregando médicos...</span>
+          <span style="font-size: 0.9rem;">Carregando profissionais...</span>
         </div>
       </div>
     </div>
@@ -86,7 +85,7 @@ async function renderDoctorsTab() {
     <div id="modal-doctor" class="modal-overlay" style="display: none;">
       <div class="modal-content" style="max-width: 650px; width: 100%; padding: 24px;">
         <div class="modal-header" style="margin-bottom: 20px;">
-          <h3 id="modal-doctor-title"><i class="fa-solid fa-user-doctor" style="color: var(--color-primary);"></i> Cadastrar Médico</h3>
+          <h3 id="modal-doctor-title"><i class="fa-solid fa-user-nurse" style="color: var(--color-primary);"></i> Cadastrar Profissional</h3>
           <button class="btn-close" id="btn-close-doctor-modal"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <form id="form-doctor" class="modal-body">
@@ -95,20 +94,37 @@ async function renderDoctorsTab() {
             <label for="doc-name">Nome Completo *</label>
             <input type="text" id="doc-name" class="form-input" placeholder="Ex: Dr. Roberto Almeida" required>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
-              <label for="doc-crm">CRM *</label>
+              <label for="doc-role">Função / Cargo *</label>
+              <select id="doc-role" class="form-input" required>
+                <option value="Médico(a)">Médico(a)</option>
+                <option value="Enfermeiro(a)">Enfermeiro(a)</option>
+                <option value="Técnico(a) Enfermagem">Técnico(a) Enfermagem</option>
+                <option value="Fisioterapeuta">Fisioterapeuta</option>
+                <option value="Nutricionista">Nutricionista</option>
+                <option value="Psicólogo(a)">Psicólogo(a)</option>
+                <option value="Administrativo">Administrativo / Outros</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="doc-specialty">Especialidade / Setor *</label>
+              <input type="text" id="doc-specialty" class="form-input" placeholder="Ex: Cardiologia, UTI, Recepção" required>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;" id="doc-registry-container">
+            <div class="form-group">
+              <label for="doc-crm" id="label-doc-crm">CRM *</label>
               <div style="display: flex; gap: 6px; align-items: center;">
                 <input type="text" id="doc-crm" class="form-input" placeholder="123456-SP" required style="flex: 1;">
-                <button type="button" id="btn-verify-crm" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: #818cf8; padding: 0 12px; border-radius: 8px; cursor: pointer; height: 40px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 5px;" title="Verificar CRM no CFM">
+                <button type="button" id="btn-verify-crm" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: #818cf8; padding: 0 12px; border-radius: 8px; cursor: pointer; height: 40px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 5px;" title="Verificar no conselho">
                   <i class="fa-solid fa-shield-halved"></i> Verificar
                 </button>
               </div>
               <div id="crm-verify-status" style="margin-top: 6px; font-size: 0.75rem; display: none;"></div>
             </div>
-            <div class="form-group">
-              <label for="doc-specialty">Especialidade *</label>
-              <input type="text" id="doc-specialty" class="form-input" placeholder="Ex: Cardiologia" required>
+            <div class="form-group" style="visibility: hidden;">
+               <!-- Placeholder to maintain grid -->
             </div>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
@@ -130,7 +146,7 @@ async function renderDoctorsTab() {
           </div>
           <div class="modal-footer" style="padding-top: 16px;">
             <button type="button" class="btn btn-secondary" id="btn-cancel-doctor-modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary" id="btn-submit-doctor">Salvar Médico</button>
+            <button type="submit" class="btn btn-primary" id="btn-submit-doctor">Salvar Profissional</button>
           </div>
         </form>
       </div>
@@ -345,10 +361,10 @@ async function renderDoctorsTab() {
               <div>
                 <strong style="font-size: 0.95rem; color: var(--text-primary); display: block;">${d.name}</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">
-                  CRM: ${d.crm}
-                  <a href="https://portal.cfm.org.br/busca-medicos/?q=${encodeURIComponent((d.crm || '').replace(/[^0-9]/g,''))}&uf=${encodeURIComponent((d.crm || '').replace(/[^a-zA-Z]/g,'').toUpperCase() || 'SP')}" target="_blank" title="Verificar CRM no portal CFM" style="margin-left: 5px; color: #6366f1; text-decoration: none; font-size: 0.72rem;" onclick="event.stopPropagation()">
+                  ${!d.role || d.role === 'Médico(a)' ? 'CRM' : (d.role.includes('Enferm') ? 'COREN' : (d.role === 'Fisioterapeuta' ? 'CREFITO' : (d.role === 'Nutricionista' ? 'CRN' : (d.role.includes('Psic') ? 'CRP' : 'Registro'))))}: ${d.crm}
+                  ${(!d.role || d.role === 'Médico(a)') ? `<a href="https://portal.cfm.org.br/busca-medicos/?q=${encodeURIComponent((d.crm || '').replace(/[^0-9]/g,''))}&uf=${encodeURIComponent((d.crm || '').replace(/[^a-zA-Z]/g,'').toUpperCase() || 'SP')}" target="_blank" title="Verificar CRM no portal CFM" style="margin-left: 5px; color: #6366f1; text-decoration: none; font-size: 0.72rem;" onclick="event.stopPropagation()">
                     <i class="fa-solid fa-shield-halved"></i>
-                  </a>
+                  </a>` : ''}
                 </span>
               </div>
             </div>
@@ -389,7 +405,7 @@ async function renderDoctorsTab() {
         <table style="width: 100%; border-collapse: collapse; text-align: left;">
           <thead>
             <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-tertiary);">
-              <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Médico / CRM</th>
+              <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Profissional / Registro</th>
               <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Especialidade</th>
               <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Contato</th>
               <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status</th>
@@ -410,6 +426,10 @@ async function renderDoctorsTab() {
         if (doc) {
           document.getElementById('doc-id').value = doc.id;
           document.getElementById('doc-name').value = doc.name;
+          if (document.getElementById('doc-role')) {
+            document.getElementById('doc-role').value = doc.role || 'Médico(a)';
+            document.getElementById('doc-role').dispatchEvent(new Event('change'));
+          }
           document.getElementById('doc-crm').value = doc.crm;
           document.getElementById('doc-specialty').value = doc.specialty;
           document.getElementById('doc-phone').value = doc.phone || '';
@@ -546,11 +566,37 @@ async function renderDoctorsTab() {
     }, 100);
   }
 
+  const docRoleInput = document.getElementById('doc-role');
+  const labelDocCrm = document.getElementById('label-doc-crm');
+  const btnVerifyCrm = document.getElementById('btn-verify-crm');
+  const docCrmInput = document.getElementById('doc-crm');
+  
+  if (docRoleInput) {
+    docRoleInput.addEventListener('change', (e) => {
+      const val = e.target.value;
+      let label = 'CRM';
+      let placeholder = '123456-SP';
+      let showVerifyBtn = false;
+      
+      if (val.includes('Enferm')) { label = 'COREN'; placeholder = 'Ex: 123456-SP'; }
+      else if (val === 'Fisioterapeuta') { label = 'CREFITO'; placeholder = 'Ex: 123456-SP'; }
+      else if (val === 'Nutricionista') { label = 'CRN'; placeholder = 'Ex: 12345-SP'; }
+      else if (val.includes('Psic')) { label = 'CRP'; placeholder = 'Ex: 06/12345'; }
+      else if (val === 'Médico(a)') { label = 'CRM'; showVerifyBtn = true; }
+      else { label = 'Registro/Matrícula'; placeholder = 'Ex: 123456'; }
+      
+      if (labelDocCrm) labelDocCrm.innerHTML = label + ' *';
+      if (docCrmInput) docCrmInput.placeholder = placeholder;
+      if (btnVerifyCrm) btnVerifyCrm.style.display = showVerifyBtn ? 'flex' : 'none';
+    });
+  }
+
   const modal = document.getElementById('modal-doctor');
   document.getElementById('btn-open-doctor-modal').addEventListener('click', () => {
     document.getElementById('doc-id').value = '';
     document.getElementById('form-doctor').reset();
-    document.getElementById('modal-doctor-title').innerHTML = '<i class="fa-solid fa-user-doctor" style="color: var(--color-primary);"></i> Cadastrar Médico';
+    if (docRoleInput) docRoleInput.dispatchEvent(new Event('change'));
+    document.getElementById('modal-doctor-title').innerHTML = '<i class="fa-solid fa-user-nurse" style="color: var(--color-primary);"></i> Cadastrar Profissional';
     modal.style.display = 'flex';
   });
 
@@ -565,6 +611,7 @@ async function renderDoctorsTab() {
     e.preventDefault();
     const id = document.getElementById('doc-id').value;
     const name = document.getElementById('doc-name').value;
+    const role = document.getElementById('doc-role') ? document.getElementById('doc-role').value : 'Médico(a)';
     const crm = document.getElementById('doc-crm').value;
     const specialty = document.getElementById('doc-specialty').value;
     const phone = document.getElementById('doc-phone').value;
@@ -577,7 +624,7 @@ async function renderDoctorsTab() {
       const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, crm, specialty, phone, email, status })
+        body: JSON.stringify({ name, role, crm, specialty, phone, email, status })
       });
       if (res.ok) {
         showToast(id ? 'Cadastro de médico atualizado!' : 'Médico cadastrado com sucesso!');
