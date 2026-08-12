@@ -2529,8 +2529,8 @@ function showToast(message) {
   }, 3500);
 }
 
-// --- NOTIFICAÇÃO VISUAL DE CONCLUSÃO E DIRECIONAMENTO DE FLUXO ---
-function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com Sucesso', message = '', targetTab = null, targetTabLabel = null, autoSwitch = false, persistent = true }) {
+// --- NOTIFICAÇÃO VISUAL DE CONCLUSÃO E DIRECIONAMENTO DE FLUXO (ENHANCED v2.6.0) ---
+function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com Sucesso', message = '', targetTab = null, targetTabLabel = null, targetColumn = null, autoSwitch = false, persistent = true }) {
   let container = document.getElementById('flow-notification-container');
   if (!container) {
     container = document.createElement('div');
@@ -2541,11 +2541,11 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
       right: 24px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
       z-index: 1000000;
       pointer-events: none;
-      width: 400px;
-      max-width: 90vw;
+      width: 420px;
+      max-width: 92vw;
     `;
     document.body.appendChild(container);
   }
@@ -2575,53 +2575,63 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
   }
   card.style.cssText = `
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.99));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     color: #f8fafc;
-    border: 1.5px solid rgba(16, 185, 129, 0.5);
+    border: 1.5px solid rgba(16, 185, 129, 0.6);
     border-left: 6px solid #10b981;
-    padding: 16px;
-    border-radius: 14px;
+    padding: 16px 18px;
+    border-radius: 16px;
     font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(16, 185, 129, 0.35);
     pointer-events: auto;
     transform: translateX(120%);
     opacity: 0;
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.38s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     position: relative;
   `;
 
   card.innerHTML = `
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <strong style="color: #34d399; font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-circle-check" style="font-size: 1.1rem; color: #10b981;"></i>
-        ${actionTitle}
-      </strong>
-      <button class="flow-toast-close" title="Fechar notificação" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.85rem; padding: 3px 7px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.68rem; font-weight: 800; padding: 3px 9px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.35); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-route" style="color: #38bdf8;"></i> Sequência do Fluxo &bull; Próximo Passo
+      </span>
+      <button class="flow-toast-close" title="Fechar notificação" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.85rem; padding: 3px 8px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    
-    <p style="color: #e2e8f0; font-size: 0.86rem; margin: 0; line-height: 1.45;">
-      ${message}
-    </p>
+
+    <div style="display: flex; align-items: flex-start; gap: 12px;">
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+        <i class="fa-solid fa-bullhorn" style="font-size: 1.1rem; color: #10b981;"></i>
+      </div>
+      <div style="flex: 1; min-width: 0;">
+        <strong style="color: #ffffff; font-size: 0.95rem; display: block; font-weight: 700; margin-bottom: 2px;">
+          ${actionTitle}
+        </strong>
+        <p style="color: #cbd5e1; font-size: 0.85rem; margin: 0; line-height: 1.4;">
+          ${message}
+        </p>
+      </div>
+    </div>
 
     ${finalDestinationLabel ? `
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; gap: 8px;">
-        <span style="font-size: 0.78rem; color: #a78bfa; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-right-long" style="color: #38bdf8;"></i> Direcionado para: <strong style="color: #38bdf8;">${finalDestinationLabel}</strong>
+      <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 10px 14px; margin-top: 2px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 0.8rem; color: #a5b4fc; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-location-dot" style="color: #38bdf8; font-size: 0.9rem;"></i>
+          Destino: <strong style="color: #ffffff; font-weight: 800;">${finalDestinationLabel}</strong>
         </span>
         ${targetTab ? `
           <button class="btn-goto-flow-tab" style="
-            background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none;
-            padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 700;
+            background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none;
+            padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 800;
             cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
-            box-shadow: 0 4px 12px rgba(99,102,241,0.4);
-          " onmouseover="this.style.transform='scale(1.05)'; this.style.background='#4338ca';" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #6366f1, #4f46e5)';">
-            Ir para a Aba <i class="fa-solid fa-chevron-right"></i>
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.45); text-transform: uppercase; letter-spacing: 0.3px;
+          " onmouseover="this.style.transform='scale(1.05)'; this.style.background='#047857';" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #10b981, #059669)';">
+            Ir para a Aba <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem;"></i>
           </button>
         ` : ''}
       </div>
@@ -2650,6 +2660,29 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
       if (typeof switchTab === 'function') {
         switchTab(targetTab);
       }
+
+      // Rolar suavemente até a coluna de destino (ex: col-active) e aplicar destaque luminoso
+      const targetColId = targetColumn || (targetTab === 'atendimento' ? 'col-active' : null);
+      if (targetColId) {
+        setTimeout(() => {
+          const colEl = document.getElementById(targetColId) || (document.querySelector(`[data-enc-id="${targetColumn}"]`)?.closest('.kanban-column') || document.querySelector('.kanban-column'));
+          if (colEl) {
+            colEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            const origBorder = colEl.style.borderColor;
+            const origBoxShadow = colEl.style.boxShadow;
+            colEl.style.transition = 'all 0.4s ease-in-out';
+            colEl.style.borderColor = '#10b981';
+            colEl.style.boxShadow = '0 0 45px rgba(16, 185, 129, 0.95)';
+            colEl.style.transform = 'scale(1.015)';
+            setTimeout(() => {
+              colEl.style.borderColor = origBorder;
+              colEl.style.boxShadow = origBoxShadow;
+              colEl.style.transform = 'none';
+            }, 3000);
+          }
+        }, 150);
+      }
+
       card.style.transform = 'translateX(120%)';
       card.style.opacity = '0';
       setTimeout(() => card.remove(), 300);
