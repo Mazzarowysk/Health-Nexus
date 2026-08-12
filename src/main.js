@@ -6181,7 +6181,7 @@ async function renderTabContent() {
                 <button id="btn-seed-custom" class="btn btn-primary">
                   <i class="fa-solid fa-users"></i> Gerar Registros
                 </button>
-                <button id="btn-reset" class="btn" style="background-color: rgba(255, 50, 80, 0.15); border-color: var(--color-danger); color: var(--color-danger);">
+                <button id="btn-reset" class="btn btn-reset-db-action" style="background-color: rgba(255, 50, 80, 0.15); border-color: var(--color-danger); color: var(--color-danger);">
                   <i class="fa-solid fa-trash-can"></i> Limpar Banco de Dados
                 </button>
               </div>
@@ -6254,7 +6254,7 @@ async function renderTabContent() {
                     </div>
                     <p class="backup-card-desc">Remove todos os dados do sistema (pacientes, atendimentos, histórico).</p>
                   </div>
-                  <button id="btn-reset" class="btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; font-weight: 600; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                  <button id="btn-reset-card-backup" class="btn btn-reset-db-action" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; font-weight: 600; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
                     <i class="fa-solid fa-trash-can"></i> Limpar
                   </button>
                 </div>
@@ -6574,31 +6574,24 @@ async function renderTabContent() {
 
 
 
-    document.getElementById('btn-seed-300').addEventListener('click', async () => {
+    const handleSeedMockData = async () => {
+      const amountVal = parseInt(document.getElementById('seed-amount')?.value || '300', 10);
       const confirmAction = await showCustomConfirm({
         title: '🏥 Simulação Completa do Sistema',
         message: `<strong>Esta ação irá:</strong>
           <br>• Limpar todos os dados de simulação anteriores
-          <br>• Gerar <strong>80 pacientes</strong> com CPFs únicos
-          <br>• Gerar <strong>12 médicos</strong> com especialidades variadas
-          <br>• Gerar <strong>60 agendamentos</strong> (passados, hoje e futuros)
-          <br>• Gerar <strong>45 atendimentos</strong> com triagem Manchester completa
-          <br>• Gerar <strong>20 leitos</strong> (12 ocupados + fila de internação)
-          <br>• Gerar <strong>90 títulos financeiros</strong> (pagos, pendentes, vencidos)
-          <br>• Gerar <strong>15 chamadas TV</strong> com timestamps escalonados
-          <br>• Gerar <strong>30 medicamentos</strong> com alertas de estoque
-          <br>• Gerar <strong>10 escalas de plantão</strong> (hoje e amanhã)
+          <br>• Gerar <strong>${amountVal} registros de simulação</strong> (pacientes, médicos, agendamentos, triagens, leitos, finanças, escalas e estoque)
           <br><br><em>Usuários admin/mazzarowysk serão preservados.</em>`,
-        confirmText: '🚀 Executar Simulação Completa',
+        confirmText: '🚀 Executar Simulação',
         cancelText: 'Cancelar',
         type: 'warning'
       });
       if (!confirmAction) return;
 
-      showLoadingModal('⚙️ Executando simulação completa do sistema...');
+      showLoadingModal(`⚙️ Executando simulação completa do sistema (${amountVal} registros)...`);
       try {
         await new Promise(r => setTimeout(r, 200));
-        const result = await generateMockData();
+        const result = await generateMockData(amountVal);
         dataCache.clear();
         dataCacheTimestamps.clear();
         hideLoadingModal();
@@ -6626,9 +6619,12 @@ async function renderTabContent() {
         console.error('Erro ao gerar dados mockados:', e);
         showCustomAlert({ title: 'Erro ao Gerar Dados', message: 'Erro: ' + (e.message || e), type: 'danger' });
       }
-    });
+    };
 
-    document.getElementById('btn-reset').addEventListener('click', async () => {
+    document.getElementById('btn-seed-custom')?.addEventListener('click', handleSeedMockData);
+    document.getElementById('btn-seed-300')?.addEventListener('click', handleSeedMockData);
+
+    const handleResetDatabase = async () => {
       const confirmed = await showCustomConfirm({
         title: 'Limpar Banco de Dados',
         message: 'Tem certeza de que deseja APAGAR TODOS os pacientes, atendimentos, prontuários, agendamentos e escalas do banco de dados? Esta ação não pode ser desfeita.',
@@ -6664,9 +6660,13 @@ async function renderTabContent() {
           showCustomAlert({ title: 'Erro de Conexão', message: 'Erro ao conectar-se à API.', type: 'danger' });
         }
       }
+    };
+
+    document.querySelectorAll('.btn-reset-db-action, #btn-reset, #btn-reset-card-backup').forEach(btn => {
+      btn.addEventListener('click', handleResetDatabase);
     });
 
-    document.getElementById('btn-export-json').addEventListener('click', async () => {
+    document.getElementById('btn-export-json')?.addEventListener('click', async () => {
       try {
         const res = await apiFetch(`${API_URL}/settings/export`);
         const data = await res.json();
@@ -6689,8 +6689,8 @@ async function renderTabContent() {
       }
     });
 
-    document.getElementById('btn-import-json').addEventListener('click', () => {
-      document.getElementById('import-json-file').click();
+    document.getElementById('btn-import-json')?.addEventListener('click', () => {
+      document.getElementById('import-json-file')?.click();
     });
 
     // --- LÓGICA DE GERENCIAMENTO DE BACKUP E GOOGLE DRIVE ---
