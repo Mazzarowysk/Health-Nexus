@@ -24,10 +24,10 @@ export const manualData = [
         name: 'Notificações Persistentes de Fluxo',
         type: 'Assistente de Navegação',
         color: '#10b981',
-        description: 'Notificação flutuante no topo direito com rastreador de próxima etapa (📍 Sequência do Fluxo) e botão esmeralda "Ir para a Aba ➔". Ao clicar, o sistema rola a tela suavemente até a coluna exata do paciente e ativa um destaque luminoso pulsante por 3 segundos.',
+        description: 'Notificação flutuante no topo direito com rastreador de próxima etapa (📍 Sequência do Fluxo) e botão esmeralda "IR PARA A ABA ➔". Ao clicar, o card da notificação se fecha instantaneamente, o sistema redireciona para a aba correta (ex: Consultório 01) e pré-seleciona o card do paciente com animação verde pulsante por 4,5 segundos.',
         shortcut: 'Modais de conclusão de fluxo',
-        rules: 'Permanece fixa na tela até que o usuário clique no botão de navegação, feche no ícone X ou mude para a aba indicada. Se o usuário já estiver na aba, o botão realiza a rolagem e iluminação da coluna alvo.',
-        keywords: ['notificação de fluxo', 'direcionamento', 'ir para a aba', 'fluxo concluído', 'aviso persistente', 'redirecionamento', 'rolagem suave', 'destaque luminoso', 'coluna alvo']
+        rules: 'Permanece fixa na tela até que o usuário clique no botão de navegação, feche no ícone X ou mude para a aba indicada. Ao chamar o paciente para a consulta, direciona para Consultórios registrando o paciente no Consultório 01.',
+        keywords: ['notificação de fluxo', 'direcionamento', 'ir para a aba', 'fluxo concluído', 'aviso persistente', 'redirecionamento', 'rolagem suave', 'destaque luminoso', 'coluna alvo', 'consultório 01', 'pré-seleção pulsante']
       },
       {
         icon: 'fa-magnifying-glass-chart',

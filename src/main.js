@@ -2530,7 +2530,7 @@ function showToast(message) {
 }
 
 // --- NOTIFICAÇÃO VISUAL DE CONCLUSÃO E DIRECIONAMENTO DE FLUXO (ENHANCED v2.6.0) ---
-function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com Sucesso', message = '', targetTab = null, targetTabLabel = null, targetColumn = null, autoSwitch = false, persistent = true }) {
+function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com Sucesso', message = '', targetTab = null, targetTabLabel = null, targetColumn = null, targetPatientName = null, autoSwitch = false, persistent = true }) {
   let container = document.getElementById('flow-notification-container');
   if (!container) {
     container = document.createElement('div');
@@ -2657,35 +2657,43 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
   const gotoBtn = card.querySelector('.btn-goto-flow-tab');
   if (gotoBtn && targetTab) {
     gotoBtn.addEventListener('click', () => {
+      // 1. Fecha o card imediatamente
+      card.style.transform = 'translateX(120%)';
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 300);
+
+      // 2. Muda para a aba de destino
       if (typeof switchTab === 'function') {
         switchTab(targetTab);
       }
 
-      // Rolar suavemente até a coluna de destino (ex: col-active) e aplicar destaque luminoso
-      const targetColId = targetColumn || (targetTab === 'atendimento' ? 'col-active' : null);
-      if (targetColId) {
-        setTimeout(() => {
-          const colEl = document.getElementById(targetColId) || (document.querySelector(`[data-enc-id="${targetColumn}"]`)?.closest('.kanban-column') || document.querySelector('.kanban-column'));
-          if (colEl) {
-            colEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-            const origBorder = colEl.style.borderColor;
-            const origBoxShadow = colEl.style.boxShadow;
-            colEl.style.transition = 'all 0.4s ease-in-out';
-            colEl.style.borderColor = '#10b981';
-            colEl.style.boxShadow = '0 0 45px rgba(16, 185, 129, 0.95)';
-            colEl.style.transform = 'scale(1.015)';
-            setTimeout(() => {
-              colEl.style.borderColor = origBorder;
-              colEl.style.boxShadow = origBoxShadow;
-              colEl.style.transform = 'none';
-            }, 3000);
-          }
-        }, 150);
-      }
+      // 3. Procura o card do paciente pelo nome ou pela coluna e aplica a animação de pré-seleção pulsante
+      setTimeout(() => {
+        let targetEl = null;
 
-      card.style.transform = 'translateX(120%)';
-      card.style.opacity = '0';
-      setTimeout(() => card.remove(), 300);
+        if (targetPatientName) {
+          const cleanName = targetPatientName.trim().toLowerCase();
+          const candidateCards = Array.from(document.querySelectorAll('#main-content .tab-section.active div, #main-content .tab-section.active tr, #main-content .tab-section.active .interactive-card, #main-content .tab-section.active .kanban-column > div'));
+          
+          targetEl = candidateCards.find(el => {
+            const txt = (el.textContent || '').toLowerCase();
+            const isCard = el.classList.contains('interactive-card') || el.hasAttribute('data-enc-id') || (el.style && (el.style.background || el.style.backgroundColor)) || el.tagName === 'TR';
+            return txt.includes(cleanName) && isCard && el.children.length <= 15;
+          });
+        }
+
+        if (!targetEl && targetColumn) {
+          targetEl = document.getElementById(targetColumn) || (document.querySelector(`[data-enc-id="${targetColumn}"]`)?.closest('.kanban-column') || document.querySelector('.kanban-column'));
+        }
+
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+          targetEl.classList.add('patient-pulse-selected');
+          setTimeout(() => {
+            targetEl.classList.remove('patient-pulse-selected');
+          }, 4500);
+        }
+      }, 250);
     });
   }
 
@@ -5983,6 +5991,34 @@ async function renderTabContent() {
         const res = await apiFetch(`${API_URL}/encounters/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status }) });
         if (res.ok) {
           if (status === 'Em_Atendimento') {
+            // Sincroniza agendamento no Consultório 01 para o paciente chamado
+            try {
+              const todayIso = new Date().toISOString().split('T')[0];
+              const db = localDB.getFullDB();
+              const apts = db.appointments || [];
+              let existingApt = apts.find(a => (a.patientName && a.patientName.toLowerCase() === (patientName || '').toLowerCase()) && (a.date === todayIso || !a.date));
+              if (existingApt) {
+                localDB.update('appointments', existingApt.id, {
+                  ...existingApt,
+                  status: 'Em Atendimento',
+                  roomName: 'Consultório 01',
+                  room: 'Consultório 01'
+                });
+              } else {
+                localDB.insert('appointments', {
+                  id: 'apt-' + Date.now(),
+                  patientName: patientName,
+                  doctorName: (state.user && state.user.fullName) || 'Dr. Médico Plantonista',
+                  date: todayIso,
+                  time: new Date().toLocaleTimeString().slice(0, 5),
+                  status: 'Em Atendimento',
+                  roomName: 'Consultório 01',
+                  room: 'Consultório 01',
+                  specialty: 'Clínica Geral'
+                });
+              }
+            } catch (err) { console.error('Erro ao sync agendamento consultorio:', err); }
+
             apiFetch('/api/tv/call', {
               method: 'POST',
               body: JSON.stringify({
@@ -6003,9 +6039,11 @@ async function renderTabContent() {
             if (typeof window.showFlowCompletionNotification === 'function') {
               window.showFlowCompletionNotification({
                 actionTitle: `📢 Paciente Chamado para Consultório 01`,
-                message: `O paciente <strong>${patientName}</strong> foi chamado para o <strong>Consultório 01</strong> e movido da lista 'Aguardando Médico' para a coluna <strong>'Em Atendimento'</strong>.`,
-                targetTab: 'atendimento',
-                targetTabLabel: 'Atendimentos (Coluna Em Atendimento)',
+                message: `O paciente <strong>${patientName}</strong> foi chamado para o <strong>Consultório 01</strong>.`,
+                targetTab: 'consultorios',
+                targetTabLabel: 'Consultório 01 (Salas & Consultórios)',
+                targetColumn: 'Consultório 01',
+                targetPatientName: patientName,
                 persistent: true
               });
             }
@@ -8430,7 +8468,7 @@ async function loadConsultingRooms() {
       }
 
       dashboard.innerHTML = rooms.map(r => {
-        const roomApts = appointments.filter(a => a.roomName === r.name);
+        const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name));
         const waiting = roomApts.filter(a => a.status === 'Confirmado' || a.status === 'Agendado');
         const inProgress = roomApts.find(a => a.status === 'Em Atendimento');
         
@@ -8596,7 +8634,7 @@ async function openConsultorioDetailsModal(roomName) {
     const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
     const appointments = aptResult.data || [];
     
-    const roomApts = appointments.filter(a => a.roomName === roomName);
+    const roomApts = appointments.filter(a => (a.roomName === roomName || a.room === roomName));
     const inProgress = roomApts.find(a => a.status === 'Em Atendimento');
     const completed = roomApts.filter(a => a.status === 'Concluído');
     

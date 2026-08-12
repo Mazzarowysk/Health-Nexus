@@ -465,9 +465,11 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
       if (typeof window.showFlowCompletionNotification === 'function') {
         window.showFlowCompletionNotification({
           actionTitle: `📢 Chamada Emitida no Painel TV`,
-          message: `Paciente <strong>${patientName}</strong> chamado(a) para <strong>${roomName}</strong>. Acompanhe o atendimento na coluna 'Em Atendimento'.`,
-          targetTab: 'atendimento',
-          targetTabLabel: 'Atendimentos (Coluna Em Atendimento)',
+          message: `Paciente <strong>${patientName}</strong> chamado(a) para <strong>${roomName}</strong>.`,
+          targetTab: 'consultorios',
+          targetTabLabel: `${roomName} (Salas & Consultórios)`,
+          targetColumn: roomName,
+          targetPatientName: patientName,
           persistent: true
         });
       }

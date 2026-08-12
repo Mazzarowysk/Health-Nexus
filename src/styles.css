@@ -1054,11 +1054,23 @@ body {
   animation: pulse 1.5s infinite ease-in-out;
 }
 
-/* --- ANIMATIONS --- */
 @keyframes pulse {
   0% { opacity: 0.6; }
   50% { opacity: 0.3; }
   100% { opacity: 0.6; }
+}
+
+@keyframes patientCardPulse {
+  0% { transform: scale(1.02); box-shadow: 0 0 25px rgba(16, 185, 129, 0.85); border-color: #10b981; }
+  50% { transform: scale(1.045); box-shadow: 0 0 45px rgba(16, 185, 129, 1), inset 0 0 15px rgba(16, 185, 129, 0.4); border-color: #34d399; }
+  100% { transform: scale(1.02); box-shadow: 0 0 25px rgba(16, 185, 129, 0.85); border-color: #10b981; }
+}
+
+.patient-pulse-selected {
+  animation: patientCardPulse 1.2s infinite ease-in-out !important;
+  border: 2px solid #10b981 !important;
+  position: relative !important;
+  z-index: 99 !important;
 }
 
 @keyframes slideIn {
