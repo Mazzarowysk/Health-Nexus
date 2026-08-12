@@ -2668,18 +2668,29 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
       }
 
       // 3. Procura o card do paciente pelo nome ou pela coluna e aplica a animação de pré-seleção pulsante
-      setTimeout(() => {
+      const highlightTarget = () => {
         let targetEl = null;
 
         if (targetPatientName) {
           const cleanName = targetPatientName.trim().toLowerCase();
-          const candidateCards = Array.from(document.querySelectorAll('#main-content .tab-section.active div, #main-content .tab-section.active tr, #main-content .tab-section.active .interactive-card, #main-content .tab-section.active .kanban-column > div'));
           
-          targetEl = candidateCards.find(el => {
-            const txt = (el.textContent || '').toLowerCase();
-            const isCard = el.classList.contains('interactive-card') || el.hasAttribute('data-enc-id') || (el.style && (el.style.background || el.style.backgroundColor)) || el.tagName === 'TR';
-            return txt.includes(cleanName) && isCard && el.children.length <= 15;
-          });
+          // Tenta 1: por atributo exato data-patient-card-name (criado especialmente para os cards Kanban)
+          targetEl = document.querySelector(`[data-patient-card-name*="${cleanName.replace(/"/g, '')}"]`);
+          
+          // Tenta 2: por texto direto nos elementos de card do contêiner ativo
+          if (!targetEl) {
+            const candidateCards = Array.from(document.querySelectorAll('#main-content .tab-section.active .patient-card-item, #main-content .tab-section.active .interactive-card, #main-content .tab-section.active .kanban-column > div, #main-content .tab-section.active tr'));
+            targetEl = candidateCards.find(el => (el.textContent || '').toLowerCase().includes(cleanName));
+          }
+
+          // Tenta 3: fallback para qualquer elemento dentro da seção ativa contendo o nome (limite de filhos p/ não pegar o board todo)
+          if (!targetEl) {
+            const allElements = Array.from(document.querySelectorAll('#main-content .tab-section.active div'));
+            targetEl = allElements.find(el => {
+              const txt = (el.textContent || '').toLowerCase();
+              return txt.includes(cleanName) && el.children.length > 0 && el.children.length <= 15;
+            });
+          }
         }
 
         if (!targetEl && targetColumn) {
@@ -2689,11 +2700,33 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
         if (targetEl) {
           targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
           targetEl.classList.add('patient-pulse-selected');
+          
+          // Aplica estilos inline diretamente para garantir animação visível mesmo se o CSS principal demorar ou falhar
+          targetEl.style.animation = 'patientCardPulse 1.2s infinite ease-in-out';
+          targetEl.style.border = '2px solid #10b981';
+          targetEl.style.boxShadow = '0 0 35px rgba(16, 185, 129, 0.95), inset 0 0 15px rgba(16, 185, 129, 0.3)';
+
           setTimeout(() => {
             targetEl.classList.remove('patient-pulse-selected');
-          }, 4500);
+            targetEl.style.animation = '';
+            targetEl.style.border = '';
+            targetEl.style.boxShadow = '';
+          }, 5000);
+          return true;
         }
-      }, 250);
+        return false;
+      };
+
+      // Tenta destacar imediatamente, mas se a tela ainda estiver renderizando (ex: mudança de aba), tenta novamente em 300ms e 600ms
+      setTimeout(() => {
+        if (!highlightTarget()) {
+          setTimeout(() => {
+            if (!highlightTarget()) {
+              setTimeout(highlightTarget, 300);
+            }
+          }, 300);
+        }
+      }, 50);
     });
   }
 
@@ -5879,7 +5912,7 @@ async function renderTabContent() {
     };
 
     const buildTriageCard = (e) => `
-      <div style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-left:4px solid #8b5cf6;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
+      <div class="patient-card-item" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-left:4px solid #8b5cf6;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
           <span id="timer-${e.id}" style="font-size:0.7rem;color:#8b5cf6;font-family:monospace;background:rgba(139,92,246,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
@@ -5898,7 +5931,7 @@ async function renderTabContent() {
     const buildWaitCard = (e) => {
       const mc = getMC(e.manchesterColor);
       return `
-        <div style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
+        <div class="patient-card-item" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
             <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
             <span id="timer-${e.id}" style="font-size:0.7rem;color:${mc.text};font-family:monospace;background:${mc.bg};padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
@@ -5948,7 +5981,7 @@ async function renderTabContent() {
       }
 
       return `
-        <div style="background:var(--bg-tertiary);border:1px solid rgba(16,185,129,0.3);border-left:4px solid ${isObs ? '#f59e0b' : '#10b981'};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
+        <div class="patient-card-item" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:1px solid rgba(16,185,129,0.3);border-left:4px solid ${isObs ? '#f59e0b' : '#10b981'};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
             <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
             <span id="timer-${e.id}" style="font-size:0.7rem;color:#10b981;font-family:monospace;background:rgba(16,185,129,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
