@@ -6631,7 +6631,7 @@ async function renderTabContent() {
     document.getElementById('btn-reset').addEventListener('click', async () => {
       const confirmed = await showCustomConfirm({
         title: 'Limpar Banco de Dados',
-        message: 'Tem certeza de que deseja APAGAR TODOS os pacientes do banco Turso? Esta ação não pode ser desfeita.',
+        message: 'Tem certeza de que deseja APAGAR TODOS os pacientes, atendimentos, prontuários, agendamentos e escalas do banco de dados? Esta ação não pode ser desfeita.',
         confirmText: 'Sim, Apagar Tudo',
         cancelText: 'Cancelar',
         type: 'danger'
@@ -6639,15 +6639,28 @@ async function renderTabContent() {
 
       if (confirmed) {
         try {
+          showLoadingModal('Apagando todos os dados do banco de dados...');
           const res = await apiFetch(`${API_URL}/settings/reset`, { method: 'POST' });
           const data = await res.json();
           if (res.ok) {
-            showCustomAlert({ title: 'Sucesso', message: 'Todos os dados de pacientes foram removidos.', type: 'success' });
-            state.loading = true;
+            dataCache.clear();
+            dataCacheTimestamps.clear();
+            if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
+              await syncManager.pushToCloud(false);
+            }
+            hideLoadingModal();
+            await showCustomAlert({
+              title: 'Banco de Dados Zerado',
+              message: 'Todos os registros de pacientes, atendimentos, agendamentos, triagens e prescrições foram removidos com sucesso.',
+              type: 'success'
+            });
+            window.location.reload();
           } else {
+            hideLoadingModal();
             showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao resetar banco.', type: 'danger' });
           }
         } catch (err) {
+          hideLoadingModal();
           showCustomAlert({ title: 'Erro de Conexão', message: 'Erro ao conectar-se à API.', type: 'danger' });
         }
       }

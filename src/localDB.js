@@ -214,7 +214,26 @@ export function overwriteLocal(cloudPayload) {
 }
 
 export function clear() {
-  localStorage.removeItem(DB_KEY);
+  const db = getFullDB();
+  const savedUsers = db.users || [];
+  const savedSettings = db.settings || [];
+  const savedSessions = db.user_sessions || [];
+
+  const emptyDB = {
+    users: savedUsers,
+    user_sessions: savedSessions,
+    patients: [],
+    encounters: [],
+    appointments: [],
+    triages: [],
+    prescriptions: [],
+    duty_schedules: [],
+    stagnation_alerts: [],
+    beds: [],
+    settings: savedSettings
+  };
+
+  localStorage.setItem(DB_KEY, JSON.stringify(emptyDB));
   localStorage.setItem(UPDATED_AT_KEY, Date.now().toString());
 }
 
