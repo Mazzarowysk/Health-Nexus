@@ -2897,7 +2897,7 @@ window.generateAppointmentPDF = function(id, patientName, doctorName, date, time
       doc.text(label, 22, y + 2);
       doc.setFont('helvetica', isBold ? 'bold' : 'normal'); doc.setTextColor(30, 30, 50);
       doc.setFontSize(10.5);
-      doc.text(String(value || '—'), 22, y + 8);
+doc.text(String(value || '—'), 22, y + 8);
       y += 16;
     };
 
@@ -2905,7 +2905,7 @@ window.generateAppointmentPDF = function(id, patientName, doctorName, date, time
     addRow('MÉDICO RESPONSÁVEL', doctorName);
     addRow('ESPECIALIDADE', specialty);
     const fmtDate = date ? new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—';
-    addRow('DATA DA CONSULTA', fmtDate);
+addRow('DATA DA CONSULTA', fmtDate);
     addRow('HORÁRIO', time || '—');
     addRow('STATUS DA CONSULTA', status || 'Agendado');
 
@@ -2917,27 +2917,20 @@ window.generateAppointmentPDF = function(id, patientName, doctorName, date, time
       doc.text(splitNotes, 22, y + 8);
     }
 
-    // Informações de instrução
-    y = 190;
-    doc.setFillColor(241, 245, 249); doc.roundedRect(15, y, 180, 28, 3, 3, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(99, 102, 241);
-    doc.text('Instruções para o Paciente', 105, y + 7, { align: 'center' });
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(80, 80, 100);
-    doc.text('• Por favor, chegue com 15 minutos de antecedência.', 105, y + 14, { align: 'center' });
-    doc.text('• Apresente este comprovante e um documento oficial com foto na recepção.', 105, y + 21, { align: 'center' });
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+      doc.text('CONFIDENCIAL — Comprovante de Agendamento', 14, 289);
+      doc.text(`Página ${i} de ${pageCount}`, 180, 289);
+    }
 
-    // Footer
-    doc.setFontSize(8); doc.setTextColor(160, 160, 160);
-    doc.line(10, 283, 200, 283);
-    doc.text('Health Nexus — Sistema de Gestão Hospitalar | Documento gerado eletronicamente', 105, 288, { align: 'center' });
-
-    const safeName = (patientName || 'paciente').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 25);
-    doc.save(`comprovante_${safeName}_${date || 'data'}.pdf`);
+    const safeName = (patientName || 'comprovante').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+    doc.save(`agendamento_${safeName}_${id.substring(0, 4)}.pdf`);
   });
 };
 
-// --- ABA AGENDA MÉDICA ---
-// --- ABA CONSULTÓRIOS ---
+// --- ABA CONSULTÓRIOS & SALAS ---
 
 async function loadConsultingRooms() {
   const dashboard = document.getElementById('rooms-dashboard');
@@ -2945,82 +2938,233 @@ async function loadConsultingRooms() {
 
   try {
     const todayIso = new Date().toISOString().split('T')[0];
-    const [roomsRes, aptRes] = await Promise.all([
-      apiFetch('/api/consulting-rooms'),
-      apiFetch('/api/appointments?date=' + todayIso)
+    const [roomsRes, aptRes, encRes] = await Promise.all([
+      apiFetch('/api/consulting-rooms').catch(() => ({ ok: false })),
+      apiFetch('/api/appointments?date=' + todayIso).catch(() => ({ ok: false })),
+      apiFetch('/api/encounters').catch(() => ({ ok: false }))
     ]);
     
-    const roomsResult = await roomsRes.json();
+    const roomsResult = roomsRes.ok ? await roomsRes.json() : { data: [] };
     const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
+    const encResult = encRes.ok ? await encRes.json() : { data: [] };
     
-    if (roomsResult.data !== undefined || Array.isArray(roomsResult)) {
-      const rooms = Array.isArray(roomsResult) ? roomsResult : (roomsResult.data || []);
-      const appointments = aptResult.data || [];
+    let rooms = Array.isArray(roomsResult) ? roomsResult : (roomsResult.data || []);
+    const appointments = Array.isArray(aptResult) ? aptResult : (aptResult.data || []);
+    const encounters = Array.isArray(encResult) ? encResult : (encResult.data || []);
+
+    if (rooms.length === 0) {
+      rooms = [
+        { id: 'room-1', name: 'Consultório 01', specialty: 'Clínica Geral / Pronto Atendimento', currentDoctor: 'Dr. Carlos Silva', status: 'Disponível' },
+        { id: 'room-2', name: 'Consultório 02', specialty: 'Pediatria', currentDoctor: 'Dra. Beatriz Santos', status: 'Disponível' },
+        { id: 'room-3', name: 'Consultório 03', specialty: 'Ortopedia / Trauma', currentDoctor: 'Dr. Roberto Mendes', status: 'Disponível' },
+        { id: 'room-4', name: 'Consultório 04', specialty: 'Cardiologia', currentDoctor: 'Dra. Juliana Costa', status: 'Disponível' },
+      ];
+    }
+    
+    dashboard.innerHTML = rooms.map(r => {
+      const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name || (r.name === 'Consultório 01' && !a.roomName && !a.room)));
+      const roomEncs = encounters.filter(e => (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
       
-      if (rooms.length === 0) {
-        dashboard.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px;">Nenhum consultório cadastrado.</div>';
-        return;
-      }
+      const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
+      const inProgressApt = roomApts.find(a => a.status === 'Em Atendimento' || a.status === 'Em_Atendimento');
+      const inProgress = inProgressEnc || inProgressApt;
 
-      dashboard.innerHTML = rooms.map(r => {
-        const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name));
-        const waiting = roomApts.filter(a => a.status === 'Confirmado' || a.status === 'Agendado');
-        const inProgress = roomApts.find(a => a.status === 'Em Atendimento');
-        
-        const roomStatus = r.status || 'Disponível';
-        const isActive = roomStatus === 'Disponível' || roomStatus === 'Ativo';
-        const statusColor = isActive ? 'var(--success)' : 'var(--warning)';
-        const doctorDisplay = r.currentDoctor || r.doctorName || '';
-        
-        return `
-          <div class="interactive-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div>
-                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                  <i class="fa-solid fa-door-open" style="color: var(--color-primary);"></i> ${r.name}
-                </h3>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">${r.specialty || 'Uso Geral'}</div>
-              </div>
-              <div style="display: flex; gap: 6px;">
-                <button class="btn btn-icon btn-outline" style="width: 28px; height: 28px;" onclick="event.stopPropagation(); openRoomModal('${r.id}')" title="Editar"><i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i></button>
-              </div>
+      const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
+      const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
+      const waiting = [...waitingEncs, ...waitingApts];
+      
+      const hasPatient = !!inProgress;
+      const roomStatus = hasPatient ? 'Em Uso' : (r.status || 'Disponível');
+      const doctorDisplay = r.currentDoctor || r.doctorName || 'Dr. Carlos Silva';
+      const patientNameDisplay = inProgress ? (inProgress.patientName || inProgress.name || 'Paciente') : null;
+      
+      return `
+        <div class="interactive-card ${patientNameDisplay && patientNameDisplay.toLowerCase().includes('marcelo') ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">
+                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : 'var(--color-primary)'};"></i> ${r.name}
+              </h3>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">${r.specialty || 'Uso Geral / Pronto Atendimento'}</div>
             </div>
-            
-            <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
-              <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${statusColor}22; color: ${statusColor}; border: 1px solid ${statusColor}44;">
-                <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> ${r.status || 'Disponível'}
-              </span>
-              ${doctorDisplay ? `<span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);"><i class="fa-solid fa-user-doctor"></i> ${doctorDisplay}</span>` : ''}
-            </div>
-
-            <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
-              ${inProgress ? `
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-primary); background: rgba(99,102,241,0.1); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.2);">
-                  <i class="fa-solid fa-stethoscope" style="color: var(--color-primary);"></i>
-                  <span style="font-weight: 600;">${inProgress.patientName}</span>
-                </div>
-              ` : `
-                <div style="font-size: 0.85rem; color: var(--text-muted); padding: 8px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento agora</div>
-              `}
-              
-              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
-                <span style="color: var(--text-muted);">Próximos na Fila:</span>
-                <span style="font-weight: 700; color: var(--text-primary); background: var(--bg-tertiary); padding: 2px 8px; border-radius: 12px;">${waiting.length}</span>
-              </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-icon btn-outline" style="width: 28px; height: 28px;" onclick="event.stopPropagation(); openRoomModal('${r.id}')" title="Editar"><i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i></button>
             </div>
           </div>
-        `;
-      }).join('');
-      
-      state.consultingRooms = rooms;
-    } else {
-      dashboard.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: red;">${roomsResult.message || 'Erro ao carregar consultórios.'}</div>`;
-    }
+          
+          <div style="margin-top: 4px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; background: ${hasPatient ? 'rgba(99,102,241,0.2)' : 'rgba(16,185,129,0.15)'}; color: ${hasPatient ? '#a5b4fc' : '#34d399'}; border: 1px solid ${hasPatient ? 'rgba(99,102,241,0.4)' : 'rgba(16,185,129,0.3)'};">
+              <i class="fa-solid fa-circle" style="font-size: 0.45rem;"></i> ${roomStatus}
+            </span>
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-user-doctor" style="color: #38bdf8;"></i> ${doctorDisplay}
+            </span>
+          </div>
+
+          <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
+            ${patientNameDisplay ? `
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: #ffffff; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(79,70,229,0.15)); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(129,140,248,0.35);">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                  <i class="fa-solid fa-user-check" style="color: #38bdf8; font-size: 1rem;"></i>
+                  <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${patientNameDisplay}</strong>
+                </div>
+                <span style="font-size: 0.7rem; background: #6366f1; color: #fff; padding: 2px 7px; border-radius: 6px; font-weight: 700;">Em Consulta</span>
+              </div>
+            ` : `
+              <div style="font-size: 0.82rem; color: var(--text-muted); padding: 6px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento</div>
+            `}
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+              <span style="color: var(--text-muted);">Próximos na Fila:</span>
+              <span style="font-weight: 700; color: var(--text-primary); background: var(--bg-tertiary); padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border-color);">${waiting.length} paciente(s)</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    state.consultingRooms = rooms;
   } catch (err) {
     console.error(err);
-    dashboard.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: red;">Erro de conexão ao carregar consultórios.</div>';
+    dashboard.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: red;">Erro ao carregar consultórios.</div>';
   }
 }
+
+async function openConsultorioDetailsModal(roomName) {
+  const existing = document.getElementById('consultorio-details-modal');
+  if (existing) existing.remove();
+
+  const todayIso = new Date().toISOString().split('T')[0];
+  const [aptRes, encRes, tvRes] = await Promise.all([
+    apiFetch('/api/appointments?date=' + todayIso).catch(() => ({ ok: false })),
+    apiFetch('/api/encounters').catch(() => ({ ok: false })),
+    apiFetch('/api/tv/calls').catch(() => ({ ok: false }))
+  ]);
+
+  const apts = aptRes.ok ? (await aptRes.json()).data || [] : [];
+  const encs = encRes.ok ? (await encRes.json()).data || [] : [];
+  const tvCalls = tvRes.ok ? (await tvRes.json()).data || [] : [];
+
+  const roomApts = apts.filter(a => (a.roomName === roomName || a.room === roomName || (roomName === 'Consultório 01' && !a.roomName && !a.room)));
+  const roomEncs = encs.filter(e => (e.room === roomName || e.roomName === roomName || (roomName === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
+  
+  const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
+  const inProgressApt = roomApts.find(a => a.status === 'Em Atendimento' || a.status === 'Em_Atendimento');
+  const inProgress = inProgressEnc || inProgressApt;
+
+  const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
+  const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
+  const waiting = [...waitingEncs, ...waitingApts];
+
+  const recentCalls = tvCalls.filter(c => c.roomName === roomName || c.room === roomName).slice(0, 5);
+
+  const modalHtml = `
+    <div id="consultorio-details-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.85); backdrop-filter: blur(10px);">
+      <div class="modal-content" style="max-width: 680px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
+        
+        <div style="background: linear-gradient(135deg, #6366f1, #00f2fe); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-door-open" style="font-size: 1.3rem;"></i>
+            <div>
+              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Painel do ${roomName}</h3>
+              <small style="color: rgba(255,255,255,0.85);">Gestão de Atendimento em Tempo Real</small>
+            </div>
+          </div>
+          <button onclick="document.getElementById('consultorio-details-modal').remove()" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+          
+          <!-- Paciente em Atendimento -->
+          <div style="background: var(--bg-tertiary); border: 1.5px solid ${inProgress ? '#6366f1' : 'var(--border-color)'}; border-radius: 14px; padding: 16px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+              <span><i class="fa-solid fa-user-doctor" style="color: #6366f1;"></i> Paciente em Atendimento Agora</span>
+              ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">Ativo</span>' : ''}
+            </div>
+
+            ${inProgress ? `
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                  <h4 style="margin: 0; font-size: 1.1rem; color: #f8fafc;">${inProgress.patientName || inProgress.name || 'Paciente'}</h4>
+                  <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+                    ${inProgress.manchesterColor ? `Triagem: <strong style="color: #38bdf8;">${inProgress.manchesterColor}</strong> · ` : ''}
+                    Entrada: ${inProgress.admitted_at ? new Date(inProgress.admitted_at).toLocaleTimeString().slice(0,5) : (inProgress.time || 'Agora')}
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-primary" style="font-size: 0.8rem; padding: 8px 14px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.switchTab === 'function') window.switchTab('atendimento');">
+                    <i class="fa-solid fa-arrow-right"></i> Ver na Central de Atendimentos
+                  </button>
+                </div>
+              </div>
+            ` : `
+              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0; text-align: center;">
+                Nenhum paciente está sendo atendido nesta sala no momento.
+              </div>
+            `}
+          </div>
+
+          <!-- Pacientes Aguardando -->
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+              <span><i class="fa-solid fa-users" style="color: #f59e0b;"></i> Fila de Espera para ${roomName} (${waiting.length})</span>
+            </div>
+
+            ${waiting.length > 0 ? `
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${waiting.map((w, idx) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      <span style="width: 24px; height: 24px; border-radius: 50%; background: rgba(99,102,241,0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">${idx + 1}</span>
+                      <div>
+                        <strong style="color: #f8fafc; font-size: 0.85rem; display: block;">${w.patientName || w.name}</strong>
+                        <small style="color: var(--text-muted); font-size: 0.74rem;">${w.manchesterColor ? `Manchester: ${w.manchesterColor}` : (w.time ? `Horário: ${w.time}` : 'Aguardando Médico')}</small>
+                      </div>
+                    </div>
+                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 6px 10px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.switchTab === 'function') window.switchTab('atendimento');">
+                      Atender
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0; text-align: center;">
+                Nenhum paciente aguardando na fila desta sala.
+              </div>
+            `}
+          </div>
+
+          <!-- Chamadas Recentes no Painel de TV -->
+          ${recentCalls.length > 0 ? `
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+                <i class="fa-solid fa-tv" style="color: #38bdf8;"></i> Últimas Chamadas de TV
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                ${recentCalls.map(c => `
+                  <div style="font-size: 0.8rem; color: #cbd5e1; display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
+                    <span><strong style="color: #f8fafc;">${c.patientName}</strong> (${c.doctorName || 'Médico'})</span>
+                    <span style="color: #94a3b8; font-size: 0.75rem;">${c.calledAt ? new Date(c.calledAt).toLocaleTimeString().slice(0,5) : 'Recente'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+        </div>
+
+        <div style="padding: 14px 20px; background: var(--bg-tertiary); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-primary" onclick="document.getElementById('consultorio-details-modal').remove()">Fechar</button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+window.loadConsultingRooms = loadConsultingRooms;
+window.openConsultorioDetailsModal = openConsultorioDetailsModal;
 
 function openRoomModal(roomId = null) {
   let room = { id: '', name: '', specialty: '', currentDoctor: '', status: 'Disponível' };
@@ -3122,87 +3266,6 @@ async function deleteRoom(roomId) {
   }
 }
 
-async function openConsultorioDetailsModal(roomName) {
-  try {
-    const todayIso = new Date().toISOString().split('T')[0];
-    const aptRes = await apiFetch('/api/appointments?date=' + todayIso);
-    const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
-    const appointments = aptResult.data || [];
-    
-    const roomApts = appointments.filter(a => (a.roomName === roomName || a.room === roomName));
-    const inProgress = roomApts.find(a => a.status === 'Em Atendimento');
-    const completed = roomApts.filter(a => a.status === 'Concluído');
-    
-    let html = `
-      <div id="consultorio-details-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
-          <div class="modal-header">
-            <h3><i class="fa-solid fa-door-open" style="color: var(--color-primary);"></i> Detalhes: ${roomName}</h3>
-            <span class="close-modal" onclick="document.getElementById('consultorio-details-modal').remove()"><i class="fa-solid fa-xmark"></i></span>
-          </div>
-          <div class="modal-body">
-            <h4 style="margin-bottom: 12px; color: var(--text-primary); font-size: 1.05rem;"><i class="fa-solid fa-stethoscope" style="color: var(--color-primary);"></i> Em Realização</h4>
-            ${inProgress ? `
-              <div style="background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); padding: 14px; border-radius: 8px; margin-bottom: 24px; color: var(--text-primary);">
-                <strong>Paciente:</strong> ${inProgress.patientName} <br/>
-                <strong style="margin-top: 6px; display: inline-block;">Médico:</strong> ${inProgress.doctorName || 'Não atribuído'} <br/>
-                <strong style="margin-top: 6px; display: inline-block;">Horário:</strong> ${inProgress.time || 'N/A'}
-                
-                <div style="display:flex; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid rgba(99,102,241,0.2);">
-                  <button class="btn btn-secondary btn-open-pep-direct" onclick="document.getElementById('consultorio-details-modal').remove(); window.openPEPModal('${inProgress.id}')" style="flex:1; display:flex; justify-content:center; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
-                  </button>
-                  <button class="btn btn-primary" onclick="finishConsultation('${inProgress.id}', '${roomName}')" style="flex:1; display:flex; justify-content:center; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-check"></i> Finalizar Consulta
-                  </button>
-                </div>
-              </div>
-            ` : '<div style="color: var(--text-muted); margin-bottom: 24px; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">Nenhum atendimento em andamento no momento.</div>'}
-
-            <h4 style="margin-bottom: 12px; color: var(--text-primary); font-size: 1.05rem;"><i class="fa-solid fa-check-double" style="color: var(--success);"></i> Procedimentos Feitos (Hoje)</h4>
-            ${completed.length > 0 ? `
-              <ul style="list-style: none; padding: 0; margin-bottom: 24px; max-height: 250px; overflow-y: auto; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
-                ${completed.map((c, i) => `
-                  <li style="border-bottom: ${i === completed.length - 1 ? 'none' : '1px solid var(--border-color)'}; padding: 12px 14px; color: var(--text-primary);">
-                    <span style="color: var(--text-muted); font-size: 0.85rem; margin-right: 8px;">${c.time || '--:--'}</span>
-                    <strong>${c.patientName}</strong> <span style="color: var(--text-muted); font-size: 0.9rem;">(${c.doctorName ? 'Dr. ' + c.doctorName : 'N/A'})</span>
-                  </li>
-                `).join('')}
-              </ul>
-            ` : '<div style="color: var(--text-muted); margin-bottom: 24px; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">Nenhum procedimento concluído hoje neste consultório.</div>'}
-
-            <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;">
-              <button class="btn btn-outline" style="margin-right: auto;" onclick="document.getElementById('consultorio-details-modal').remove();"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
-              <button class="btn btn-outline" onclick="
-                window.pendingAgendaRoomFilter = '${roomName}';
-                window.returnToConsultorio = '${roomName}';
-                document.getElementById('consultorio-details-modal').remove();
-                switchTab('agenda');
-              "><i class="fa-solid fa-list"></i> Ver Agendamentos</button>
-              
-              <button class="btn btn-primary" onclick="
-                window.pendingAgendaRoomFilter = '${roomName}';
-                window.returnToConsultorio = '${roomName}';
-                document.getElementById('consultorio-details-modal').remove();
-                switchTab('agenda');
-                setTimeout(() => {
-                  const btn = document.getElementById('btn-open-new-appointment');
-                  if (btn) btn.click();
-                }, 100);
-              "><i class="fa-solid fa-calendar-plus"></i> Criar Agendamento</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', html);
-  } catch (err) {
-    console.error(err);
-    showCustomAlert({ title: 'Erro', message: 'Erro ao carregar detalhes do consultório.', type: 'error' });
-  }
-}
-
 window.finishConsultation = async function(appointmentId, roomName) {
   if (!confirm(`Deseja concluir o atendimento atual no ${roomName}?`)) return;
   try {
@@ -3226,7 +3289,7 @@ window.finishConsultation = async function(appointmentId, roomName) {
       });
       
       loadConsultingRooms();
-      loadKanbanData(); // Atualiza também o Kanban para tirar do 'Em Atendimento'
+      loadKanbanData();
     } else {
       showCustomAlert({ title: 'Erro', message: 'Falha ao concluir atendimento.', type: 'error' });
     }
@@ -3238,29 +3301,23 @@ window.finishConsultation = async function(appointmentId, roomName) {
 window.populateFakeDatabase = async function() {
   showToast('⚙️ Executando simulação completa... aguarde.');
   try {
-    await generateMockData();
-    showToast('✅ Banco de dados simulado com sucesso! Recarregando...');
-    setTimeout(() => window.location.reload(), 1500);
+    const result = await generateMockData();
+    const summary = [
+      `👤 ${(result.patients||[]).length} pacientes`,
+      `👨‍⚕️ ${(result.doctors||[]).length} médicos`,
+      `📅 ${(result.appointments||[]).length} agendamentos`,
+      `🏥 ${(result.encounters||[]).length} atendimentos`,
+      `💰 ${(result.financial_installments||[]).length} títulos`,
+      `🛏️ ${(result.beds||[]).filter(b=>b.status==='Ocupado').length} leitos`,
+      `📺 ${(result.tv_calls||[]).length} chamadas`,
+      `💊 ${(result.medications||[]).length} medicamentos`,
+    ].join(' | ');
+    showToast('✅ Simulação completa! ' + summary);
+    setTimeout(() => window.location.reload(), 2000);
   } catch (e) {
     console.error('[populateFakeDatabase] Erro:', e);
     showToast('❌ Erro ao simular banco: ' + (e.message || e));
   }
-};
-
-window.generateMockData = async function() {
-  const result = await generateMockData();
-  const summary = [
-    `👤 ${(result.patients||[]).length} pacientes`,
-    `👨‍⚕️ ${(result.doctors||[]).length} médicos`,
-    `📅 ${(result.appointments||[]).length} agendamentos`,
-    `🏥 ${(result.encounters||[]).length} atendimentos`,
-    `💰 ${(result.financial_installments||[]).length} títulos financeiros`,
-    `🛏️ ${(result.beds||[]).filter(b=>b.status==='Ocupado').length} leitos ocupados`,
-    `📺 ${(result.tv_calls||[]).length} chamadas TV`,
-    `💊 ${(result.medications||[]).length} medicamentos`,
-  ].join(' | ');
-  showToast('✅ Simulação completa! ' + summary);
-  setTimeout(() => window.location.reload(), 2000);
 };
 
 export {
@@ -3268,6 +3325,7 @@ export {
   exportToPDF,
   renderTabContent,
   loadConsultingRooms,
+  openConsultorioDetailsModal,
   openRoomModal,
   deleteRoom,
   saveRoom
@@ -3282,7 +3340,3 @@ window.openConsultorioDetailsModal = openConsultorioDetailsModal;
 // --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---
 // Start app immediately (module execution is already deferred until DOM is parsed)
 initializeApp();
-
-
-
-
