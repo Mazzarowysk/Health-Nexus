@@ -653,12 +653,30 @@ export function renderPatientsTab(contentArea) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        data = {};
+      }
+
       if (res.ok) {
         const savedPatientId = (data.data && data.data.id) || payload.id || editId;
-        resetForm();
-        dataCache.delete('patients');
-        await loadAndRenderTable();
+
+        try {
+          resetForm();
+        } catch (e) {
+          const modalOverlay = document.getElementById('patient-modal-overlay');
+          if (modalOverlay) modalOverlay.style.display = 'none';
+        }
+
+        try {
+          dataCache.delete('patients');
+          await loadAndRenderTable();
+        } catch (e) {
+          console.warn('Erro ao recarregar tabela:', e);
+        }
 
         if (shouldDirectlyAdmit && !isEdit) {
           shouldDirectlyAdmit = false;
@@ -694,30 +712,39 @@ export function renderPatientsTab(contentArea) {
           } catch (e) {
             console.error('Erro ao auto-admitir:', e);
           }
-        } else if (!isEdit && typeof window.showFlowCompletionNotification === 'function') {
-          window.showFlowCompletionNotification({
-            actionTitle: '✅ Cadastro de Paciente Concluído',
-            message: `O paciente <strong>${fullName}</strong> foi cadastrado com sucesso no sistema SUS.<br><br><strong>Próximo Passo:</strong> Clique no botão abaixo para abrir a <strong>Central de Atendimentos</strong> com <strong>${fullName}</strong> pré-selecionado para admissão imediata.`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Admitir para Triagem',
-            targetPatientId: savedPatientId,
-            targetPatientName: fullName,
-            targetPatientCpf: cpf,
-            actionType: 'admit_patient',
-            persistent: true
-          });
+        } else if (!isEdit) {
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: '✅ Cadastro de Paciente Concluído',
+              message: `O paciente <strong>${fullName}</strong> foi cadastrado com sucesso no sistema SUS.<br><br><strong>Próximo Passo:</strong> Clique no botão abaixo para abrir a <strong>Central de Atendimentos</strong> com <strong>${fullName}</strong> pré-selecionado para admissão imediata.`,
+              targetTab: 'atendimento',
+              targetTabLabel: 'Admitir para Triagem',
+              targetPatientId: savedPatientId,
+              targetPatientName: fullName,
+              targetPatientCpf: cpf,
+              actionType: 'admit_patient',
+              persistent: true
+            });
+          } else {
+            showToast(`✅ Paciente ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`);
+          }
         } else {
-          showToast(`✅ Paciente ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`);
+          showToast(`✅ Paciente atualizado com sucesso!`);
         }
-        if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
-          syncManager.pushToCloud(false).catch(() => null);
-        }
+
+        try {
+          if (typeof syncManager !== 'undefined' && syncManager && typeof syncManager.pushToCloud === 'function') {
+            syncManager.pushToCloud(false).catch(() => null);
+          }
+        } catch (e) {}
+
         state.loading = true;
       } else {
         showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao salvar paciente.', type: 'danger' });
       }
     } catch (err) {
-      showCustomAlert({ title: 'Erro', message: 'Erro ao conectar-se à API.', type: 'danger' });
+      console.error('Erro ao conectar-se à API:', err);
+      showCustomAlert({ title: 'Erro', message: 'Erro ao conectar-se à API: ' + (err.message || ''), type: 'danger' });
     } finally {
       shouldDirectlyAdmit = false;
       if (submitButton) {
