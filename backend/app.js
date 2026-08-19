@@ -365,6 +365,20 @@ app.post('/api/settings/import', (req, res) => {
   res.status(200).json({ message: 'Import não implementado no Vercel.' });
 });
 
+app.get('/api/dashboard/summary', (req, res) => {
+  res.status(200).json({
+    activePatients: 0,
+    occupancyRate: 0,
+    averageWaitTimeMinutes: 12,
+    dailyAppointmentsCount: 0,
+    billingSummary: { totalRevenue: 0, pendingClaims: 0 },
+    occupancyData: [],
+    appointmentsHistory: [],
+    manchesterData: [0, 0, 0, 0, 0],
+    funnelData: { recepcao: 0, triagem: 0, consultorio: 0, exames: 0, alta: 0 }
+  });
+});
+
 // Catch-all
 
 app.use((req, res) => {

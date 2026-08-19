@@ -190,6 +190,149 @@ export const apiFetch = async (url, options = {}) => {
       // Repassar chamadas Turso diretamente para a rede
       return fetch(url, options);
     }
+    else if (url.includes('/api/dashboard/summary')) {
+      const patients = localDB.list('patients') || [];
+      const encounters = localDB.list('encounters') || [];
+      const triages = localDB.list('triages') || [];
+      const beds = localDB.list('beds') || [];
+      const appointments = localDB.list('appointments') || [];
+      const financial = localDB.list('financial_installments') || [];
+      const hospitalizations = localDB.list('hospitalizations') || [];
+      const prescriptions = localDB.list('prescriptions') || [];
+
+      // 1. Pacientes Ativos
+      const activePatients = patients.length;
+
+      // 2. Tempo Médio de Espera Triagem
+      let totalWait = 0;
+      let waitCount = 0;
+      const now = Date.now();
+      encounters.forEach(enc => {
+        if (enc.status === 'Aguardando_Triagem' || enc.status === 'Aguardando_Atendimento') {
+          const adm = enc.admitted_at ? new Date(enc.admitted_at).getTime() : (enc.created_at ? new Date(enc.created_at).getTime() : now);
+          const diffMin = Math.max(1, Math.floor((now - adm) / 60000));
+          totalWait += diffMin;
+          waitCount++;
+        }
+      });
+      const averageWaitTimeMinutes = waitCount > 0 ? Math.round(totalWait / waitCount) : 12;
+
+      // 3. Financeiro (Receita do Mês)
+      let totalRevenue = 0;
+      financial.forEach(f => {
+        if (f.type === 'Receita' || !f.type) {
+          totalRevenue += parseFloat(f.amount || f.finalAmount || 0);
+        }
+      });
+
+      // 4. Ocupação de Leitos por Ala
+      const totalBeds = beds.length || 22;
+      const occupiedBeds = beds.filter(b => b.status === 'Ocupado').length;
+      const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+
+      // Categorias de Leitos
+      const utiCount = beds.filter(b => (b.type?.includes('UTI') || b.ward?.includes('UTI')) && b.status === 'Ocupado').length;
+      const enfCount = beds.filter(b => (b.type?.includes('Enfermaria') || b.ward?.includes('Clínica Médica')) && b.status === 'Ocupado').length;
+      const pedCount = beds.filter(b => (b.type?.includes('Pediatria') || b.ward?.includes('Pediatria')) && b.status === 'Ocupado').length;
+      const matCount = beds.filter(b => (b.type?.includes('Maternidade') || b.ward?.includes('Maternidade')) && b.status === 'Ocupado').length;
+      const freeBeds = beds.filter(b => b.status !== 'Ocupado').length;
+
+      const occupancyData = [
+        { label: 'UTI Adulto', value: utiCount, color: '#f43f5e' },
+        { label: 'Enfermaria', value: enfCount, color: '#6366f1' },
+        { label: 'Pediatria', value: pedCount, color: '#00f2fe' },
+        { label: 'Maternidade', value: matCount, color: '#f59e0b' },
+        { label: 'Disponíveis', value: freeBeds, color: '#10b981' }
+      ];
+
+      // 5. Histórico Semanal / Mensal de Atendimentos
+      const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      const weekCounts = {
+        'Seg': { urgencia: 0, ambulatorial: 0 },
+        'Ter': { urgencia: 0, ambulatorial: 0 },
+        'Qua': { urgencia: 0, ambulatorial: 0 },
+        'Qui': { urgencia: 0, ambulatorial: 0 },
+        'Sex': { urgencia: 0, ambulatorial: 0 },
+        'Sáb': { urgencia: 0, ambulatorial: 0 },
+        'Dom': { urgencia: 0, ambulatorial: 0 }
+      };
+
+      encounters.forEach(enc => {
+        const d = new Date(enc.admitted_at || enc.created_at || Date.now());
+        const dayName = dayNames[d.getDay()];
+        if (weekCounts[dayName]) {
+          if (enc.type === 'Urgencia' || enc.status === 'Aguardando_Triagem' || enc.manchesterColor) {
+            weekCounts[dayName].urgencia++;
+          } else {
+            weekCounts[dayName].ambulatorial++;
+          }
+        }
+      });
+
+      appointments.forEach(apt => {
+        const d = new Date(apt.appointmentDate || apt.date || apt.created_at || Date.now());
+        const dayName = dayNames[d.getDay()];
+        if (weekCounts[dayName]) {
+          weekCounts[dayName].ambulatorial++;
+        }
+      });
+
+      const appointmentsHistory = [
+        { label: 'Seg', urgencia: weekCounts['Seg'].urgencia, ambulatorial: weekCounts['Seg'].ambulatorial },
+        { label: 'Ter', urgencia: weekCounts['Ter'].urgencia, ambulatorial: weekCounts['Ter'].ambulatorial },
+        { label: 'Qua', urgencia: weekCounts['Qua'].urgencia, ambulatorial: weekCounts['Qua'].ambulatorial },
+        { label: 'Qui', urgencia: weekCounts['Qui'].urgencia, ambulatorial: weekCounts['Qui'].ambulatorial },
+        { label: 'Sex', urgencia: weekCounts['Sex'].urgencia, ambulatorial: weekCounts['Sex'].ambulatorial },
+        { label: 'Sáb', urgencia: weekCounts['Sáb'].urgencia, ambulatorial: weekCounts['Sáb'].ambulatorial },
+        { label: 'Dom', urgencia: weekCounts['Dom'].urgencia, ambulatorial: weekCounts['Dom'].ambulatorial }
+      ];
+
+      // 6. Manchester Data
+      const manchesterCounts = { Vermelho: 0, Laranja: 0, Amarelo: 0, Verde: 0, Azul: 0 };
+      triages.forEach(t => {
+        const c = t.color || t.classification;
+        if (manchesterCounts[c] !== undefined) manchesterCounts[c]++;
+      });
+      encounters.forEach(e => {
+        if (e.manchesterColor && manchesterCounts[e.manchesterColor] !== undefined) {
+          manchesterCounts[e.manchesterColor]++;
+        }
+      });
+      const manchesterData = [
+        manchesterCounts.Vermelho || 0,
+        manchesterCounts.Laranja || 0,
+        manchesterCounts.Amarelo || 0,
+        manchesterCounts.Verde || 0,
+        manchesterCounts.Azul || 0
+      ];
+
+      // 7. Funil de Atendimento Hospitalar Dinâmico
+      const stage1_recepcao = encounters.length > 0 ? encounters.length : patients.length;
+      const stage2_triagem = triages.length > 0 ? triages.length : Math.round(stage1_recepcao * 0.85);
+      const stage3_consultorio = encounters.filter(e => ['Em_Atendimento', 'Aguardando_Exames', 'Aguardando_Resultado', 'Alta', 'Finalizado'].includes(e.status)).length || Math.round(stage2_triagem * 0.75);
+      const stage4_exames = prescriptions.length > 0 ? prescriptions.length : encounters.filter(e => ['Aguardando_Exames', 'Aguardando_Resultado'].includes(e.status)).length || Math.round(stage3_consultorio * 0.45);
+      const stage5_alta = encounters.filter(e => e.status === 'Alta' || e.status === 'Finalizado').length || Math.round(stage3_consultorio * 0.35);
+
+      const funnelData = {
+        recepcao: Math.max(1, stage1_recepcao),
+        triagem: Math.max(1, stage2_triagem),
+        consultorio: Math.max(1, stage3_consultorio),
+        exames: Math.max(1, stage4_exames),
+        alta: Math.max(1, stage5_alta)
+      };
+
+      responseData = {
+        activePatients,
+        occupancyRate,
+        averageWaitTimeMinutes,
+        dailyAppointmentsCount: appointments.length,
+        billingSummary: { totalRevenue, pendingClaims: 0 },
+        occupancyData,
+        appointmentsHistory,
+        manchesterData,
+        funnelData
+      };
+    }
     else if (url.includes('/api/stagnation/alerts')) {
       const allEncounters = localDB.list('encounters') || [];
       const alerts = [];

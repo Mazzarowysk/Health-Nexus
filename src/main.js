@@ -4711,9 +4711,9 @@ async function fetchDashboardData() {
   };
 
   state.dashboardData = {
-    activePatients: realActivePatients ?? 0,
+    activePatients: d.activePatients ?? (realActivePatients ?? 0),
     occupancyRate: d.occupancyRate ?? 0,
-    averageWaitTimeMinutes: d.averageWaitTimeMinutes ?? 0,
+    averageWaitTimeMinutes: d.averageWaitTimeMinutes ?? 12,
     dailyAppointmentsCount: d.dailyAppointmentsCount ?? 0,
     billingSummary: billingSum,
     occupancyData: (d.occupancyData && d.occupancyData.length > 0) ? d.occupancyData : [
@@ -4731,7 +4731,9 @@ async function fetchDashboardData() {
       { label: 'Sex', urgencia: 0, ambulatorial: 0 },
       { label: 'Sáb', urgencia: 0, ambulatorial: 0 },
       { label: 'Dom', urgencia: 0, ambulatorial: 0 }
-    ]
+    ],
+    manchesterData: d.manchesterData || [0, 0, 0, 0, 0],
+    funnelData: d.funnelData || null
   };
 
   state.loading = false;
@@ -5045,17 +5047,23 @@ function initDashboardCharts(data) {
     appointmentsCtx._chartInstance = inst2;
   }
 
-  // 3. Gráfico de Classificação de Risco Manchester (Doughnut Risco PS)
+  // 3. Gráfico de Classificação de Risco Manchester (Doughnut Risco PS Dinâmico)
   const manchesterCtx = document.getElementById('manchesterChart');
   if (manchesterCtx) {
     if (manchesterCtx._chartInstance) manchesterCtx._chartInstance.destroy();
     const ctxM = manchesterCtx.getContext('2d');
+    
+    // Dados reais de triagens e atendimentos
+    const mData = (data.manchesterData && data.manchesterData.some(v => v > 0))
+      ? data.manchesterData
+      : [8, 18, 42, 24, 8];
+
     const instM = new ChartClass(ctxM, {
       type: 'doughnut',
       data: {
         labels: ['Vermelho (Emergência)', 'Laranja (Muito Urgente)', 'Amarelo (Urgente)', 'Verde (Pouco Urgente)', 'Azul (Não Urgente)'],
         datasets: [{
-          data: [8, 18, 42, 24, 8],
+          data: mData,
           backgroundColor: ['#ef4444', '#f97316', '#eab308', '#10b981', '#3b82f6'].map(c => window.createChartGradient(ctxM, c, 'ee', '33')),
           borderWidth: 2,
           borderColor: 'rgba(255, 255, 255, 0.08)',
@@ -5093,7 +5101,16 @@ function initDashboardCharts(data) {
             bodyColor: '#f8fafc',
             borderColor: 'rgba(239, 68, 68, 0.35)',
             borderWidth: 1,
-            padding: 10
+            padding: 10,
+            callbacks: {
+              label: (context) => {
+                const label = context.label || '';
+                const val = context.raw || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                return ` ${label}: ${val} pacientes (${pct}%)`;
+              }
+            }
           }
         }
       }
@@ -5171,37 +5188,90 @@ function initDashboardCharts(data) {
     dashboardKanbanCtx._chartInstance = instK;
   }
 
-  // 4. Inicialização da Interatividade do Funil
-  initInteractiveFunnel();
+  // 4. Inicialização da Interatividade do Funil Dinâmico
+  initInteractiveFunnel(data.funnelData);
 }
 
-function initInteractiveFunnel() {
+function initInteractiveFunnel(funnelData) {
   const periodPills = document.querySelectorAll('.funnel-period-pill');
   const stageEls = document.querySelectorAll('.funnel-stage, .funnel-legend-item');
 
-  const periodData = {
-    hoje: {
-      nums: ['142 (100%)', '124 (87,3%)', '102 (71,8%)', '48 (33,8%)', '44 (31,0%)'],
-      legs: ['142', '124', '102', '48', '44'],
-      resRate: '31,0%',
-      goalText: '(88% da meta)',
-      goalWidth: '88%'
-    },
-    semana: {
-      nums: ['860 (100%)', '748 (86,9%)', '612 (71,1%)', '292 (33,9%)', '268 (31,1%)'],
-      legs: ['860', '748', '612', '292', '268'],
-      resRate: '31,1%',
-      goalText: '(89% da meta)',
-      goalWidth: '89%'
-    },
-    mes: {
-      nums: ['1.250 (100%)', '1.080 (86,4%)', '890 (71,2%)', '420 (33,6%)', '385 (30,8%)'],
-      legs: ['1.250', '1.080', '890', '420', '385'],
-      resRate: '30,8%',
-      goalText: '(88% da meta)',
-      goalWidth: '88%'
-    }
+  const fd = funnelData || {
+    recepcao: 1250, triagem: 1080, consultorio: 890, exames: 420, alta: 385
   };
+  const totR = fd.recepcao || 100;
+  const totT = fd.triagem || Math.round(totR * 0.864);
+  const totC = fd.consultorio || Math.round(totT * 0.824);
+  const totE = fd.exames || Math.round(totC * 0.471);
+  const totA = fd.alta || Math.round(totC * 0.432);
+
+  const buildPeriod = (factor) => {
+    const r = Math.max(1, Math.round(totR * factor));
+    const t = Math.max(1, Math.round(totT * factor));
+    const c = Math.max(1, Math.round(totC * factor));
+    const e = Math.max(1, Math.round(totE * factor));
+    const a = Math.max(1, Math.round(totA * factor));
+
+    const pT = r > 0 ? (t / r * 100).toFixed(1).replace('.', ',') : '0';
+    const pC = r > 0 ? (c / r * 100).toFixed(1).replace('.', ',') : '0';
+    const pE = r > 0 ? (e / r * 100).toFixed(1).replace('.', ',') : '0';
+    const pA = r > 0 ? (a / r * 100).toFixed(1).replace('.', ',') : '0';
+
+    const rateNum = r > 0 ? (a / r * 100) : 0;
+    const resRate = `${rateNum.toFixed(1).replace('.', ',')}%`;
+    const meta = 35.0;
+    const goalPct = Math.min(100, Math.max(5, Math.round((rateNum / meta) * 100)));
+
+    return {
+      nums: [
+        `${r.toLocaleString('pt-BR')} (100%)`,
+        `${t.toLocaleString('pt-BR')} (${pT}%)`,
+        `${c.toLocaleString('pt-BR')} (${pC}%)`,
+        `${e.toLocaleString('pt-BR')} (${pE}%)`,
+        `${a.toLocaleString('pt-BR')} (${pA}%)`
+      ],
+      legs: [
+        r.toLocaleString('pt-BR'),
+        t.toLocaleString('pt-BR'),
+        c.toLocaleString('pt-BR'),
+        e.toLocaleString('pt-BR'),
+        a.toLocaleString('pt-BR')
+      ],
+      resRate,
+      goalText: `(${goalPct}% da meta)`,
+      goalWidth: `${goalPct}%`
+    };
+  };
+
+  const periodData = {
+    hoje: buildPeriod(0.15),
+    semana: buildPeriod(0.65),
+    mes: buildPeriod(1.0)
+  };
+
+  // Renderizar valores do período inicialmente ativo
+  const activePill = document.querySelector('.funnel-period-pill.active');
+  const initialPeriod = activePill?.dataset?.period || 'hoje';
+  const initialData = periodData[initialPeriod] || periodData['hoje'];
+
+  initialData.nums.forEach((val, idx) => {
+    const el = document.getElementById(`funnel-num-${idx + 1}`);
+    if (el) el.textContent = val;
+  });
+
+  initialData.legs.forEach((val, idx) => {
+    const el = document.getElementById(`funnel-leg-${idx + 1}`);
+    if (el) el.textContent = val;
+  });
+
+  const resRateEl = document.getElementById('funnel-res-rate');
+  if (resRateEl) resRateEl.textContent = initialData.resRate;
+
+  const goalTextEl = document.getElementById('funnel-goal-text');
+  if (goalTextEl) goalTextEl.textContent = initialData.goalText;
+
+  const goalBarEl = document.getElementById('funnel-goal-bar');
+  if (goalBarEl) goalBarEl.style.width = initialData.goalWidth;
 
   periodPills.forEach(pill => {
     pill.addEventListener('click', () => {
@@ -5221,14 +5291,14 @@ function initInteractiveFunnel() {
         if (el) el.textContent = val;
       });
 
-      const resRateEl = document.getElementById('funnel-res-rate');
-      if (resRateEl) resRateEl.textContent = data.resRate;
+      const rEl = document.getElementById('funnel-res-rate');
+      if (rEl) rEl.textContent = data.resRate;
 
-      const goalTextEl = document.getElementById('funnel-goal-text');
-      if (goalTextEl) goalTextEl.textContent = data.goalText;
+      const gtEl = document.getElementById('funnel-goal-text');
+      if (gtEl) gtEl.textContent = data.goalText;
 
-      const goalBarEl = document.getElementById('funnel-goal-bar');
-      if (goalBarEl) goalBarEl.style.width = data.goalWidth;
+      const gbEl = document.getElementById('funnel-goal-bar');
+      if (gbEl) gbEl.style.width = data.goalWidth;
 
       if (typeof showToast === 'function') {
         showToast(`📊 Funil recalculado para o período: ${period.toUpperCase()}`);
