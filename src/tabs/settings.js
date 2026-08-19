@@ -629,21 +629,21 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
   const overlay = document.createElement('div');
   overlay.id = 'hn-simulation-summary-modal';
   overlay.className = 'modal-overlay';
-  overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px);';
+  overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; display: flex !important; align-items: center !important; justify-content: center !important; background: rgba(5, 7, 20, 0.85) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;';
 
   overlay.innerHTML = `
-    <div class="modal-content" style="max-width: 640px; width: 95vw; background: var(--bg-secondary); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 18px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+    <div class="modal-content" style="max-width: 640px; width: 95vw; background: var(--bg-secondary, #131326); border: 1.5px solid rgba(99, 102, 241, 0.6); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 35px rgba(99, 102, 241, 0.3); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
       <div style="background: linear-gradient(135deg, #6366f1, #00f2fe); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #ffffff;">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
             <i class="fa-solid fa-server"></i>
           </div>
           <div>
-            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700;">Simulação de Dados Realizada!</h3>
-            <span style="font-size: 0.78rem; opacity: 0.9;">Carga de ${count} registros distribuídos pelo hospital</span>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #ffffff;">Simulação de Dados Realizada!</h3>
+            <span style="font-size: 0.78rem; color: rgba(255,255,255,0.9);">Carga de ${count} registros distribuídos pelo hospital</span>
           </div>
         </div>
-        <button id="btn-close-sim-summary" class="modal-close" style="background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+        <button id="btn-close-sim-summary" class="modal-close" style="background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div style="padding: 24px;">
@@ -717,5 +717,10 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
   document.getElementById('btn-close-sim-summary')?.addEventListener('click', close);
   document.getElementById('btn-confirm-sim-summary')?.addEventListener('click', close);
 }
+
+if (typeof window !== 'undefined') {
+  window.showSimulationSummaryModal = showSimulationSummaryModal;
+}
+
 
 
