@@ -614,101 +614,206 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
   const existing = document.getElementById('hn-simulation-summary-modal');
   if (existing) existing.remove();
 
-  const patientsCount = (result.patients || []).length;
-  const docsCount = (result.doctors || []).length;
-  const nursesCount = (result.nurses || []).length;
-  const apptsCount = (result.appointments || []).length;
-  const encsCount = (result.encounters || []).length;
-  const triagesCount = (result.triages || []).length;
-  const bedsOccupied = (result.beds || []).filter(b => b.status === 'Ocupado').length;
-  const bedsTotal = (result.beds || []).length;
-  const finCount = (result.financial_installments || []).length;
-  const tvCount = (result.tv_calls || []).length;
-  const medCount = (result.medications || []).length;
+  const patients = result.patients || [];
+  const doctors = result.doctors || [];
+  const nurses = result.nurses || [];
+  const appointments = result.appointments || [];
+  const encounters = result.encounters || [];
+  const triages = result.triages || [];
+  const beds = result.beds || [];
+  const bedsOccupied = beds.filter(b => b.status === 'Ocupado').length;
+  const financial = result.financial_installments || [];
+  const tvCalls = result.tv_calls || [];
+  const medications = result.medications || [];
 
   const overlay = document.createElement('div');
   overlay.id = 'hn-simulation-summary-modal';
   overlay.className = 'modal-overlay';
-  overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; display: flex !important; align-items: center !important; justify-content: center !important; background: rgba(5, 7, 20, 0.85) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;';
+  overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; display: flex !important; align-items: center !important; justify-content: center !important; background: rgba(5, 7, 20, 0.88) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important;';
 
   overlay.innerHTML = `
-    <div class="modal-content" style="max-width: 640px; width: 95vw; background: var(--bg-secondary, #131326); border: 1.5px solid rgba(99, 102, 241, 0.6); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 35px rgba(99, 102, 241, 0.3); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-      <div style="background: linear-gradient(135deg, #6366f1, #00f2fe); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #ffffff;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
-            <i class="fa-solid fa-server"></i>
+    <div class="modal-content" style="max-width: 820px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column; background: var(--bg-secondary, #131326); border: 1.5px solid rgba(99, 102, 241, 0.6); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 40px rgba(99, 102, 241, 0.35); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+      
+      <!-- Header do Modal -->
+      <div style="background: linear-gradient(135deg, #6366f1, #00f2fe); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; border: 1px solid rgba(255,255,255,0.3);">
+            <i class="fa-solid fa-list-check"></i>
           </div>
           <div>
-            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #ffffff;">Simulação de Dados Realizada!</h3>
-            <span style="font-size: 0.78rem; color: rgba(255,255,255,0.9);">Carga de ${count} registros distribuídos pelo hospital</span>
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff;">Checking de Simulação Realizada</h3>
+            <span style="font-size: 0.8rem; color: rgba(255,255,255,0.9); font-weight: 500;">
+              <i class="fa-solid fa-check-circle" style="color: #34d399;"></i> ${count} registros gerados e distribuídos com sucesso
+            </span>
           </div>
         </div>
-        <button id="btn-close-sim-summary" class="modal-close" style="background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+        <button id="btn-close-sim-summary" class="modal-close" style="background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div style="padding: 24px;">
-        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 20px; line-height: 1.5;">
-          Os dados de teste foram injetados em todos os módulos assistenciais e administrativos. Os dashboards e gráficos foram recalculados.
-        </p>
-
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;">
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.4rem; color: #6366f1;"><i class="fa-solid fa-users"></i></div>
-            <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">Pacientes Cadastrados</div>
-              <strong style="font-size: 1.1rem; color: var(--text-primary);">${patientsCount}</strong>
-            </div>
-          </div>
-
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.4rem; color: #10b981;"><i class="fa-solid fa-user-doctor"></i></div>
-            <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">Corpo Clínico Ativo</div>
-              <strong style="font-size: 1.1rem; color: var(--text-primary);">${docsCount} médicos / ${nursesCount} enf.</strong>
-            </div>
-          </div>
-
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.4rem; color: #f59e0b;"><i class="fa-solid fa-calendar-check"></i></div>
-            <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">Agendamentos & Consultas</div>
-              <strong style="font-size: 1.1rem; color: var(--text-primary);">${apptsCount}</strong>
-            </div>
-          </div>
-
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.4rem; color: #ef4444;"><i class="fa-solid fa-hospital-user"></i></div>
-            <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">Atendimentos & Triagens</div>
-              <strong style="font-size: 1.1rem; color: var(--text-primary);">${encsCount} / ${triagesCount}</strong>
-            </div>
-          </div>
-
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.4rem; color: #8b5cf6;"><i class="fa-solid fa-bed-pulse"></i></div>
-            <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">Censo Hospitalar (Leitos)</div>
-              <strong style="font-size: 1.1rem; color: var(--text-primary);">${bedsOccupied} ocupados / ${bedsTotal} total</strong>
-            </div>
-          </div>
-
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.4rem; color: #06b6d4;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-            <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">Títulos Financeiros</div>
-              <strong style="font-size: 1.1rem; color: var(--text-primary);">${finCount}</strong>
-            </div>
-          </div>
-        </div>
-
-        <button id="btn-confirm-sim-summary" class="btn" style="width: 100%; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <i class="fa-solid fa-check"></i> Entendido (Visualizar no Sistema)
+      <!-- Navegação de Abas do Modal -->
+      <div style="display: flex; gap: 8px; padding: 12px 24px 0; background: var(--bg-tertiary, #1a1a35); border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+        <button id="tab-btn-sim-check" class="btn" style="background: var(--bg-secondary, #131326); color: #00f2fe; border: 1px solid var(--border-color); border-bottom: 2px solid #00f2fe; padding: 8px 16px; font-size: 0.82rem; font-weight: 700; border-radius: 8px 8px 0 0; cursor: pointer;">
+          <i class="fa-solid fa-list-check"></i> Checklist & Checking dos Módulos
+        </button>
+        <button id="tab-btn-sim-patients" class="btn" style="background: transparent; color: var(--text-muted); border: 1px solid transparent; padding: 8px 16px; font-size: 0.82rem; font-weight: 600; border-radius: 8px 8px 0 0; cursor: pointer;">
+          <i class="fa-solid fa-hospital-user"></i> Listagem dos Registros Gerados (${patients.length})
         </button>
       </div>
+
+      <!-- Corpo com Rolagem -->
+      <div id="sim-modal-body-content" style="padding: 22px 24px; overflow-y: auto; flex: 1;">
+        
+        <!-- SEÇÃO 1: CHECKLIST DE MÓDULOS -->
+        <div id="sim-section-check">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-bottom: 20px;">
+            
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Pacientes (SUS)</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">${patients.length} cadastros completos com CPF</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Triagem Manchester</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">${triages.length} triagens e sinais vitais</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Atendimentos & PS</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">${encounters.length} atendimentos no Kanban</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Agenda de Consultórios</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">${appointments.length} consultas distribuídas</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Censo Hospitalar (Leitos)</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">${bedsOccupied} ocupados de ${beds.length} leitos</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Financeiro & Títulos</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">${financial.length} títulos gerados</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Card de Resumo de Distribuição de Manchester -->
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 12px; font-size: 0.88rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-heart-pulse" style="color: #ef4444;"></i> Distribuição das Triagens de Manchester
+            </h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <span style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #f87171; padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700;">🔴 Emergência: ${triages.filter(t => t.manchesterColor === 'Vermelho').length}</span>
+              <span style="background: rgba(249,115,22,0.15); border: 1px solid #f97316; color: #fb923c; padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700;">🟠 Muito Urgente: ${triages.filter(t => t.manchesterColor === 'Laranja').length}</span>
+              <span style="background: rgba(234,179,8,0.15); border: 1px solid #eab308; color: #facc15; padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700;">🟡 Urgente: ${triages.filter(t => t.manchesterColor === 'Amarelo').length}</span>
+              <span style="background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #34d399; padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700;">🟢 Pouco Urgente: ${triages.filter(t => t.manchesterColor === 'Verde').length}</span>
+              <span style="background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; color: #60a5fa; padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700;">🔵 Não Urgente: ${triages.filter(t => t.manchesterColor === 'Azul').length}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEÇÃO 2: LISTAGEM DE REGISTROS GERADOS -->
+        <div id="sim-section-patients" style="display: none;">
+          <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--bg-tertiary);">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+              <thead>
+                <tr style="background: rgba(255,255,255,0.04); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                  <th style="padding: 10px 12px;">Paciente</th>
+                  <th style="padding: 10px 12px;">CPF</th>
+                  <th style="padding: 10px 12px;">Idade / Sexo</th>
+                  <th style="padding: 10px 12px;">Classificação Manchester</th>
+                  <th style="padding: 10px 12px;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${patients.slice(0, 15).map(p => {
+                  const enc = encounters.find(e => e.patientId === p.id || e.patientName === p.fullName) || {};
+                  const mc = enc.manchesterColor || 'Verde';
+                  return `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                      <td style="padding: 10px 12px; font-weight: 700; color: var(--text-primary);">${p.fullName}</td>
+                      <td style="padding: 10px 12px; color: var(--text-secondary);">${p.cpf || '—'}</td>
+                      <td style="padding: 10px 12px; color: var(--text-secondary);">${p.age || '—'} anos (${p.gender || '—'})</td>
+                      <td style="padding: 10px 12px;"><span style="background: rgba(99,102,241,0.15); color: #a5b4fc; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700;">● ${mc}</span></td>
+                      <td style="padding: 10px 12px; color: #34d399; font-weight: 600;">${enc.status || 'Ativo'}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+            ${patients.length > 15 ? `<div style="padding: 8px 12px; text-align: center; color: var(--text-muted); font-size: 0.74rem;">Exibindo os primeiros 15 de ${patients.length} registros gerados.</div>` : ''}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer do Modal -->
+      <div style="padding: 16px 24px; background: var(--bg-tertiary, #1a1a35); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 12px;">
+        <span style="font-size: 0.78rem; color: var(--text-muted);">Status: <strong style="color: #34d399;">Sincronizado e Pronto para Navegação</strong></span>
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-goto-atendimentos" class="btn" style="background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+            <i class="fa-solid fa-hospital-user"></i> Ver Atendimentos
+          </button>
+          <button id="btn-confirm-sim-summary" class="btn btn-primary" style="padding: 8px 20px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+            <i class="fa-solid fa-check"></i> Concluir
+          </button>
+        </div>
+      </div>
+
     </div>
   `;
 
   document.body.appendChild(overlay);
+
+  // Tab switching logic inside modal
+  const btnCheck = document.getElementById('tab-btn-sim-check');
+  const btnPatients = document.getElementById('tab-btn-sim-patients');
+  const secCheck = document.getElementById('sim-section-check');
+  const secPatients = document.getElementById('sim-section-patients');
+
+  if (btnCheck && btnPatients && secCheck && secPatients) {
+    btnCheck.addEventListener('click', () => {
+      btnCheck.style.background = 'var(--bg-secondary, #131326)';
+      btnCheck.style.color = '#00f2fe';
+      btnCheck.style.borderBottom = '2px solid #00f2fe';
+      btnPatients.style.background = 'transparent';
+      btnPatients.style.color = 'var(--text-muted)';
+      btnPatients.style.borderBottom = '1px solid transparent';
+      secCheck.style.display = 'block';
+      secPatients.style.display = 'none';
+    });
+
+    btnPatients.addEventListener('click', () => {
+      btnPatients.style.background = 'var(--bg-secondary, #131326)';
+      btnPatients.style.color = '#00f2fe';
+      btnPatients.style.borderBottom = '2px solid #00f2fe';
+      btnCheck.style.background = 'transparent';
+      btnCheck.style.color = 'var(--text-muted)';
+      btnCheck.style.borderBottom = '1px solid transparent';
+      secCheck.style.display = 'none';
+      secPatients.style.display = 'block';
+    });
+  }
 
   const close = () => {
     overlay.remove();
@@ -716,11 +821,16 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
 
   document.getElementById('btn-close-sim-summary')?.addEventListener('click', close);
   document.getElementById('btn-confirm-sim-summary')?.addEventListener('click', close);
+  document.getElementById('btn-goto-atendimentos')?.addEventListener('click', () => {
+    close();
+    if (typeof window.switchTab === 'function') window.switchTab('atendimento');
+  });
 }
 
 if (typeof window !== 'undefined') {
   window.showSimulationSummaryModal = showSimulationSummaryModal;
 }
+
 
 
 
