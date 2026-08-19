@@ -428,6 +428,89 @@ export const apiFetch = async (url, options = {}) => {
       localDB.clear();
       responseData = { status: 'success', message: 'Banco de dados zerado com sucesso.' };
     }
+    else if (url.includes('/api/encounters/') && url.includes('/triage') && method === 'POST') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/triage/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        if (enc) {
+          const updatedEncounter = {
+            ...enc,
+            manchesterColor: body.manchesterColor || enc.manchesterColor || 'Verde',
+            bloodPressure: body.bloodPressure || enc.bloodPressure || '',
+            temperatureCelsius: body.temperatureCelsius || enc.temperatureCelsius || '',
+            heartRateBpm: body.heartRateBpm || enc.heartRateBpm || '',
+            weightKg: body.weightKg || enc.weightKg || '',
+            complaints: body.complaints || enc.complaints || '',
+            status: 'Aguardando_Atendimento', // Transita da coluna Triagem para Aguardando Atendimento
+            triaged_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+
+          localDB.insert('triages', {
+            id: `tri-${Date.now()}`,
+            encounterId: enc.id,
+            patientId: enc.patientId,
+            patientName: enc.patientName,
+            manchesterColor: body.manchesterColor || 'Verde',
+            bloodPressure: body.bloodPressure || '',
+            temperatureCelsius: body.temperatureCelsius || '',
+            heartRateBpm: body.heartRateBpm || '',
+            weightKg: body.weightKg || '',
+            complaints: body.complaints || '',
+            triaged_at: new Date().toISOString()
+          });
+
+          responseData = { status: 'success', data: updatedEncounter, message: 'Triagem registrada com sucesso.' };
+        } else {
+          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/status') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/status/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        if (enc) {
+          const newStatus = body.status || enc.status;
+          const updatedEncounter = {
+            ...enc,
+            status: newStatus,
+            lastStatusUpdate: new Date().toISOString(),
+            ...(newStatus === 'Finalizado' ? { completed_at: new Date().toISOString() } : {}),
+            ...(newStatus === 'Em_Atendimento' ? { called_at: new Date().toISOString() } : {})
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+          responseData = { status: 'success', data: updatedEncounter };
+        } else {
+          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/start-observation') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/start-observation/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        if (enc) {
+          const updatedEncounter = {
+            ...enc,
+            status: 'Em_Atendimento',
+            observation_started_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+          responseData = { status: 'success', data: updatedEncounter };
+        } else {
+          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+        }
+      }
+    }
     else {
       // Rotas CRUD padrão
       const parts = url.split('?')[0].replace('/api/', '').split('/');
