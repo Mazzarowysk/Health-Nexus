@@ -3,6 +3,7 @@ import { state } from '../state.js';
 import { apiFetch, removeAccents } from '../modules/api.js';
 import { showToast } from '../modules/ui.js';
 import { realtimeHub } from '../modules/realtime.js';
+import { setActivePatientContext, renderPatientJourneyStepper } from '../modules/journey.js';
 
 export function renderAttendanceTab(contentArea) {
   contentArea.innerHTML = `
@@ -48,6 +49,9 @@ export function renderAttendanceTab(contentArea) {
           </button>
         </div>
       </div>
+
+      <!-- Container Dinâmico da Linha de Cuidado Guiada (Patient Journey Stepper) -->
+      <div id="atd-journey-stepper-container"></div>
 
       <!-- Painel Kanban -->
       <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start;">
@@ -570,6 +574,10 @@ export function renderAttendanceTab(contentArea) {
       const res = await apiFetch(`/api/encounters/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status }) });
       if (res.ok) {
         if (status === 'Em_Atendimento') {
+          setActivePatientContext({ id, fullName: patientName, patientName, manchesterColor });
+          const stepperContainer = document.getElementById('atd-journey-stepper-container');
+          if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'consulta');
+
           try {
             const todayIso = new Date().toISOString().split('T')[0];
             const db = window.localDB.getFullDB();
@@ -649,6 +657,10 @@ export function renderAttendanceTab(contentArea) {
   };
 
   const openTriageModal = (id, name) => {
+    setActivePatientContext({ id, fullName: name, patientName: name, manchesterColor: 'Amarelo' });
+    const stepperContainer = document.getElementById('atd-journey-stepper-container');
+    if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'triagem');
+
     document.getElementById('triage-encounter-id').value = id;
     document.getElementById('triage-patient-name').textContent = name;
     document.getElementById('triage-modal').style.display = 'flex';

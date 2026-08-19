@@ -17,10 +17,15 @@ import { renderPatientsTab } from './tabs/patients.js';
 import { renderAttendanceTab } from './tabs/attendance.js';
 import { renderSettingsTab } from './tabs/settings.js';
 import { realtimeHub } from './modules/realtime.js';
+import { setActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD } from './modules/journey.js';
 import { generateMockData } from './mockDataGenerator.js';
 import { renderEmbeddedTabbedManual, showInteractiveManualModal, manualData, showCardDetailModal, searchManualEngine, showManualReturnBeacon } from './manualTabbed.js';
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 import { inject } from '@vercel/analytics';
+
+window.setActivePatientContext = setActivePatientContext;
+window.renderPatientJourneyStepper = renderPatientJourneyStepper;
+window.renderFloatingPatientHUD = renderFloatingPatientHUD;
 
 // Inicia o Vercel Analytics
 inject();

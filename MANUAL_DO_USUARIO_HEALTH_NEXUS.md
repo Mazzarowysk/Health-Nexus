@@ -1,7 +1,6 @@
 # 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.7.2)
 
-> **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletrônico**  
-> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.
+> **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletr> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.
 
 ---
 
@@ -97,8 +96,7 @@ flowchart TD
 
 
 
-    subgraph MOD_PEP [" 7. Prontuário Eletrônico (PEP SOAP & Planilha)"]
-
+    subgraph MOD_PEP [" 7. Prontuário Eletr
         PEP_SOAPE["Atendimento Médico: Método SOAPE & CID-10 Offline"]
 
         PEP_PRESCR["Prescrição Médica em Planilha + Dose/Via/Frequência"]
@@ -307,8 +305,7 @@ flowchart TD
 
   - 2.4. [Fila 3: Em Atendimento (Ações do Médico)](#sec-2-4)
 
-- 3. [Prontuário Eletrônico do Paciente (PEP — Método SOAP)](#sec-3)
-
+- 3. [Prontuário Eletr
   - 3.1. [Estrutura SOAP](#sec-3-1)
 
   - 3.2. [Autocomplete CID-10](#sec-3-2)
@@ -555,8 +552,7 @@ Coluna onde o médico realiza o atendimento ativo. Cada card contém 5 botões d
 
 | :--- | :---: | :--- | :--- |
 
-| **PEP** |  | Prontuário Eletrônico | Abre a janela modal do Prontuário (SOAP, sinais vitais, CID-10, histórico e assinatura). |
-
+| **PEP** |  | Prontuário Eletr
 | **Prescrição** |  | Receituário Médico | Abre a tela para prescrever medicamentos, posologias, via de administração e orientações. |
 
 | **Observação** |  | Observação no PS (12h max) | Inicia a contagem do cronmetro de permanência contínua e exibe badge de tempo no card. |
@@ -571,8 +567,7 @@ Coluna onde o médico realiza o atendimento ativo. Cada card contém 5 botões d
 
 
 
-<h2 id="sec-3">3. Prontuário Eletrônico do Paciente (PEP — Método SOAP)</h2>
-
+<h2 id="sec-3">3. Prontuário Eletr
 
 
 <h3 id="sec-3-1">3.1. Estrutura SOAP</h3>
@@ -1327,8 +1322,7 @@ O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em mo
 
 - A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do **CPF**.
 
-- O **CPF** é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de homônimos na hora do atendimento.
-
+- O **CPF** é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de hom
 
 
 ### 22.4. Ícones Visuais de Forma de Pagamento ����
@@ -1367,44 +1361,6 @@ O sistema de pesquisa do **Manual Interativo** foi integrado ao motor de Intelig
 
 - **Consciência de Acesso (RBAC):** O assistente virtual compreende as permissões do usuário logado e exibe botões de ação contextuais apenas para funções que o usuário tem autorização. Respostas e ações para áreas restritas exibirão mensagens de bloqueio, garantindo máxima segurança.
 
-ô
-ô-ô-ô-ô
-ô
-ô<ôhô2ô ôiôdô=ô"ôsôeôcô-ô2ô2ô"ô>ô2ô2ô.ô ô�ô�ô ôAôtôuôaôlôiôzôaôçôõôeôsô ôRôeôcôeônôtôeôsô ô(ôAôgôoôsôtôoô/ô2ô0ô2ô6ô)ô<ô/ôhô2ô>ô
-ô
-ôOô ôHôeôaôlôtôhô ôNôeôxôuôsô ôrôeôcôeôbôeôuô ôuômôaô ôsôéôrôiôeô ôdôeô ômôeôlôhôoôrôiôaôsô ôpôaôrôaô ôoôtôiômôiôzôaôrô ôoô ôfôlôuôxôoô ôdôeô ôtôrôaôbôaôlôhôoô ôeô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôçôaô ôdôaôsô ôiônôfôoôrômôaôçôõôeôsô ôoôpôeôrôaôcôiôoônôaôiôsô:ô
-ô
-ô#ô#ô#ô ô2ô2ô.ô1ô.ô ôCôoônôtôrôoôlôeô ôdôeô ôAôcôeôsôsôoô ôeô ôPôeôrômôiôsôsôõôeôsô ô(ôRôoôlôeôsô)ô
-ôAô ôaôbôaô ôdôeô ô*ô*ôCôoônôfôiôgôuôrôaôçôõôeôsô ôGôlôoôbôaôiôsô*ô*ô ôaôgôoôrôaô ôcôoônôtôaô ôcôoômô ôuômô ôcôoônôtôrôoôlôeô ôdôeô ôaôcôeôsôsôoô ôrôiôgôoôrôoôsôoô:ô
-ô-ô ô*ô*ôMôAôSôTôEôRô:ô*ô*ô ôPôoôsôsôuôiô ôaôcôeôsôsôoô ôiônôtôeôgôrôaôlô ôaô ôtôoôdôoôsô ôoôsô ôpôaôiônôéôiôsô,ô ôiônôcôlôuôiônôdôoô ô"ôGôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôUôsôuôáôrôiôoôsô"ô,ô ô"ôSôiômôuôlôaôçôãôoô ôdôeô ôDôaôdôoôsô"ô ôeô ôdôeômôaôiôsô ôcôoônôfôiôgôuôrôaôçôõôeôsô ôaôvôaônôçôaôdôaôsô ô(ôiôdôeônôtôiôfôiôcôaôdôaôsô ôeômô ôvôeôrômôeôlôhôoô)ô.ô
-ô-ô ô*ô*ôDôeôsôeônôvôoôlôvôeôdôoôrô:ô*ô*ô ôRôeôcôeôbôeô ôaôcôeôsôsôoô ôaôpôeônôaôsô ôaôoôsô ôaôgôrôuôpôaômôeônôtôoôsô ôtôéôcônôiôcôoôsô ôeôsôsôeônôcôiôaôiôsô ô(ôdôeôsôtôaôcôaôdôoôsô ôeômô ôvôeôrômôeôlôhôoô)ô,ô ôpôeôrômôiôtôiônôdôoô ôrôeôaôlôiôzôaôrô ôsôiônôcôrôoônôiôzôaôçôãôoô ôdôeô ôbôaônôcôoô ôdôeô ôdôaôdôoôsô ô(ôTôuôrôsôoô)ô ôeô ôoôpôeôrôaôçôõôeôsô ôtôéôcônôiôcôaôsô,ô ômôaônôtôeônôdôoô ôrôeôsôtôrôiôçôõôeôsô ôdôeô ôgôeôrôeônôcôiôaômôeônôtôoô ôdôeô ôeôqôuôiôpôeô.ô
-ô-ô ô*ô*ôDôeômôaôiôsô ôpôeôrôfôiôsô:ô*ô*ô ôAôcôeôsôsôoô ôbôlôoôqôuôeôaôdôoô ôàô ôaôbôaô ôdôeô ôCôoônôfôiôgôuôrôaôçôõôeôsô ôpôaôrôaô ôgôaôrôaônôtôiôrô ôaô ôsôeôgôuôrôaônôçôaô ôdôoôsô ôdôaôdôoôsô.ô
-ô
-ô#ô#ô#ô ô2ô2ô.ô2ô.ô ôBôoôtôõôeôsô ôdôeô ôLôiômôpôeôzôaô ôdôeô ôFôiôlôtôrôoôsô ô(ô"ôLôiômôpôaôrô ôFôiôlôtôrôoôsô"ô)ô
-ôVôiôsôaônôdôoô ôaôuômôeônôtôaôrô ôaô ôaôgôiôlôiôdôaôdôeô ôoôpôeôrôaôcôiôoônôaôlô,ô ôfôoôrôaômô ôiônôcôlôuôíôdôoôsô ôbôoôtôõôeôsô ôdôeôdôiôcôaôdôoôsô ôcôoômô ôoô ôíôcôoônôeô ô<ôiô ôcôlôaôsôsô=ô"ôfôaô-ôsôoôlôiôdô ôfôaô-ôfôiôlôtôeôrô-ôcôiôrôcôlôeô-ôxômôaôrôkô"ô>ô<ô/ôiô>ô ô(ôLôiômôpôaôrô ôFôiôlôtôrôoôsô)ô ôeômô ô*ô*ôtôoôdôaôsô ôaôsô ôaôbôaôsô ôpôrôiônôcôiôpôaôiôsô*ô*ô:ô
-ô-ô ô*ô*ôPôaôcôiôeônôtôeôsô,ô ôMôéôdôiôcôoôsô,ô ôAôgôeônôdôaô,ô ôFôaôrômôáôcôiôaô ôeô ôRôeôlôaôtôóôrôiôoôsô.ô*ô*ô
-ô-ô ôUômô ôúônôiôcôoô ôcôlôiôqôuôeô ôzôeôrôaô ôiônôsôtôaônôtôaônôeôaômôeônôtôeô ôtôoôdôaôsô ôaôsô ôbôuôsôcôaôsô ôdôeô ôtôeôxôtôoô ôeô ôrôeôcôoôlôoôcôaô ôoôsô ô*ôcôhôeôcôkôbôoôxôeôsô*ô ôdôeô ôfôiôlôtôrôoô ôeômô ôsôeôuôsô ôeôsôtôaôdôoôsô ôpôaôdôrôãôoô,ô ôpôeôrômôiôtôiônôdôoô ôbôuôsôcôaôsô ôfôlôuôíôdôaôsô.ô
-ô
-ô#ô#ô#ô ô2ô2ô.ô3ô.ô ôBôuôsôcôaô ôdôeô ôPôaôcôiôeônôtôeôsô ôAôpôrôiômôoôrôaôdôaô ô(ôNôoômôeô ôeô ôCôPôFô)ô
-ôOô ôcôoômôpôoônôeônôtôeô ôuônôiôfôiôcôaôdôoô ôdôeô ôbôuôsôcôaô ôdôeô ôpôaôcôiôeônôtôeôsô ô(ôDôrôoôpôdôoôwônô ôdôiônôâômôiôcôoô ôuôtôiôlôiôzôaôdôoô ôeômô ômôoôdôaôiôsô ôdôeô ôaôdômôiôsôsôãôoô,ô ôpôrôeôsôcôrôiôçôãôoô ôeô ôfôiônôaônôcôeôiôrôoô)ô ôfôoôiô ôrôeôeôsôcôrôiôtôoô.ô ôAôgôoôrôaô:ô
-ô-ô ôAô ôpôeôsôqôuôiôsôaô ôpôrôoôcôuôrôaô ônôãôoô ôaôpôeônôaôsô ôpôeôlôoô ôNôoômôeô ôdôoô ôPôaôcôiôeônôtôeô,ô ômôaôsô ôtôaômôbôéômô ôvôeôrôiôfôiôcôaô ôoôcôoôrôrôêônôcôiôaôsô ôdôoô ô*ô*ôCôPôFô*ô*ô.ô
-ô-ô ôOô ô*ô*ôCôPôFô*ô*ô ôéô ôeôxôiôbôiôdôoô ôdôiôrôeôtôaômôeônôtôeô ônôaô ôlôiôsôtôaô ôdôeô ôoôpôçôõôeôsô ô(ôfôoôrômôaôtôoô ôrôeôdôuôzôiôdôoô)ô,ô ôfôaôcôiôlôiôtôaônôdôoô ôaô ôiôdôeônôtôiôfôiôcôaôçôãôoô ôdôeô ôhôoômnôiômôoôsô ônôaô ôhôoôrôaô ôdôoô ôaôtôeônôdôiômôeônôtôoô.ô
-ô
-ô#ô#ô#ô ô2ô2ô.ô4ô.ô ôÍôcôoônôeôsô ôVôiôsôuôaôiôsô ôdôeô ôFôoôrômôaô ôdôeô ôPôaôgôaômôeônôtôoô ô�ô�ô�ô�ô
-ôAô ôiônôtôeôrôfôaôcôeô ôdôaô ôsôeôçôãôoô ôdôeô ôRôeôlôaôtôóôrôiôoôsô ôFôiônôaônôcôeôiôrôoôsô ôfôoôiô ôeônôrôiôqôuôeôcôiôdôaô ôcôoômô ôrôeôpôrôeôsôeônôtôaôçôõôeôsô ôgôrôáôfôiôcôaôsô ô(ôEômôoôjôiôsô)ô:ô
-ô-ô ôPôiôxô ô(ô�ô�ô)ô
-ô-ô ôDôiônôhôeôiôrôoô ô(ô�ô�ô)ô
-ô-ô ôCôaôrôtôãôoô ôdôeô ôCôrôéôdôiôtôoô ô(ô�ô�ô)ô
-ô-ô ôCôaôrôtôãôoô ôdôeô ôDôéôbôiôtôoô ô(ô�ô�ô)ô
-ô-ô ôBôoôlôeôtôoô ô(ô�ô�ô)ô
-ôIôsôsôoô ôrôeôdôuôzô ôoô ôtôeômôpôoô ôdôeô ôrôeôcôoônôhôeôcôiômôeônôtôoô ôvôiôsôuôaôlô ôdôoô ôaôtôeônôdôeônôtôeô ôdôuôrôaônôtôeô ôoô ôfôeôcôhôaômôeônôtôoô ôdôeô ôcôaôiôxôaô.ô
-ô
-ô#ô#ô#ô ô2ô2ô.ô5ô.ô ôVôaôlôiôdôaôçôãôoô ôEôsôtôrôiôtôaô ôdôeô ôSôeônôhôaôsô ônôoô ôLôoôgôiônô ô�ô�ô
-ôAô ôtôeôlôaô ôdôeô ôaôuôtôeônôtôiôcôaôçôãôoô ôfôoôiô ôaôtôuôaôlôiôzôaôdôaô ôpôaôrôaô ôeôxôiôgôiôrô ôaô ôvôaôlôiôdôaôçôãôoô ôeôxôaôtôaô ôdôaô ôsôeônôhôaô ôcôaôdôaôsôtôrôaôdôaô ôdôeô ôcôaôdôaô ôuôsôuôáôrôiôoô:ô
-ô-ô ôTôeônôtôaôtôiôvôaôsô ôcôoômô ôsôeônôhôaôsô ôiônôcôoôrôrôeôtôaôsô ôsôãôoô ôiômôeôdôiôaôtôaômôeônôtôeô ôrôeôjôeôiôtôaôdôaôsô ô(ôHôTôTôPô ô4ô0ô1ô)ô.ô
-ô-ô ôGôaôrôaônôtôiôaô ôdôeô ôqôuôeô ôcôoônôtôaôsô ôiônôdôiôvôiôdôuôaôiôsô ô(ôeôxô:ô ô`ôlôjôoôrôdôaôoô`ô,ô ô`ôbôcôoôlôtôrôiô`ô,ô ô`ôaôdômôiônô`ô)ô ôsôóô ôpôoôsôsôuôeômô ôaôcôeôsôsôoô ôlôiôbôeôrôaôdôoô ômôeôdôiôaônôtôeô ôaô ôaôpôrôeôsôeônôtôaôçôãôoô ôdôaô ôsôeônôhôaô ôcôaôdôaôsôtôrôaôdôaô ôcôoôrôrôeôsôpôoônôdôeônôtôeô.ô
-ô
-ô-ô-ô-ô
 
 ---
 
@@ -1455,8 +1411,7 @@ flowchart TD
         TV_DISPLAY["Exibição em Tela Cheia para Sala de Espera"]
     end
 
-    subgraph MOD_PEP ["🩺 7. Prontuário Eletrônico (PEP SOAP & Planilha)"]
-        PEP_SOAPE["Atendimento Médico: Método SOAPE & CID-10 Offline"]
+    subgraph MOD_PEP ["🩺 7. Prontuário Eletr        PEP_SOAPE["Atendimento Médico: Método SOAPE & CID-10 Offline"]
         PEP_PRESCR["Prescrição Médica em Planilha + Dose/Via/Frequência"]
         PEP_ENF["Matriz da Enfermagem: Checagem de Aplicação de Doses"]
         PEP_PDF["Emissão de PDF A4 Oficial (Receituário & Histórico)"]
@@ -1571,8 +1526,7 @@ Visando aumentar a agilidade operacional, foram incluídos botões dedicados com
 ### 22.3. Busca de Pacientes Aprimorada (Nome e CPF)
 O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em modais de admissão, prescrição e financeiro) foi reescrito. Agora:
 - A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do **CPF**.
-- O **CPF** é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de homônimos na hora do atendimento.
-
+- O **CPF** é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de hom
 ### 22.4. Ícones Visuais de Forma de Pagamento 💵💳
 A interface da seção de Relatórios Financeiros foi enriquecida com representações gráficas (Emojis):
 - Pix (💠)
@@ -1594,3 +1548,27 @@ A tela de autenticação foi atualizada para exigir a validação exata da senha
  
 ### 22.3. Sincronização com Turso Cloud
 Na tela de Configurações Globais, os usuários Master ou Desenvolvedores podem configurar as credenciais do banco de dados Turso. A sincronização ocorre automaticamente a cada 15 minutos, mas é possível ativar a opção **Habilitar Sincronização Manual**, que desativa a verificação automática, permitindo que a sincronização de dados (upload/download) seja feita exclusivamente clicando no botão **Sincronizar Agora**.
+
+---
+
+<h2 id="sec-23">23. Linha de Cuidado Guiada, HUD Flutuante & Desfecho em 1-Clique (v2.7.2) 🚀</h2>
+
+O **Health Nexus v2.7.2** introduziu o conceito de **Patient Flow Orchestrator (Orquestrador da Jornada do Paciente)**:
+
+### 23.1. Barra Visual da Linha de Cuidado (*Patient Journey Stepper*)
+No topo das abas assistenciais (Atendimentos, Triagem, Consultórios e Leitos), o sistema renderiza uma esteira de progresso dinâmico:
+`[1. Recepção ✅] ➔ [2. Triagem Manchester 🔵] ➔ [3. Consulta Médica ⏳] ➔ [4. Farmácia & Exames ⚪] ➔ [5. Desfecho Clínico ⚪]`
+- **Navegação com 1 Clique:** O profissional pode clicar em qualquer etapa autorizada para ser transportado imediatamente para a tela correspondente.
+
+### 23.2. Widget Flutuante do Paciente em Foco (*Floating Patient HUD*)
+No canto inferior direito da tela, um card translúcido inteligente (*Glass HUD*) mantém o paciente ativo visível em tempo real:
+- Exibe o nome do paciente, indicador pulsante de atendimento e botões de atalho direto para o **Prontuário (PEP)** e **Desfecho Rápido**.
+- Permite que o médico ou enfermeiro consulte o estoque da farmácia, a escala médica ou relatórios sem perder o foco no paciente atual.
+
+### 23.3. Desfecho Clínico Rápido (*Smart 1-Click Hand-off*)
+Ao finalizar uma consulta ou avaliação médica, o sistema disponibiliza 3 atalhos inteligentes:
+1. 🟢 **Alta Médica Imediata:** Gera a receita/atestado e conclui o ciclo assistencial.
+2. 🟡 **Observação PS (12 Horas):** Inicia o cronômetro de permanência no Pronto-Socorro com monitoramento de superlotação.
+3. 🔴 **Solicitar Internação:** Direciona para o Mapa de Leitos para reserva imediata em Enfermaria ou UTI.
+
+---

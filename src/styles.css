@@ -5103,5 +5103,189 @@ body.compact-mode .modal-content {
   border-color: rgba(192, 132, 252, 0.7);
 }
 
+/* ==========================================================================
+   LINHA DE CUIDADO GUIADA (PATIENT JOURNEY STEPPER) & FLOATING HUD (v2.7.2)
+   ========================================================================== */
+
+.patient-journey-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+
+.patient-journey-stepper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #6366f1, #00f2fe, #10b981);
+  opacity: 0.8;
+}
+
+.stepper-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.stepper-patient-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(0, 242, 254, 0.2));
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a5b4fc;
+  font-size: 1.1rem;
+}
+
+.stepper-steps-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+  max-width: 760px;
+  margin: 0 20px;
+}
+
+.stepper-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.stepper-step:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.stepper-step.completed {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.stepper-step.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(0, 242, 254, 0.25));
+  border-color: rgba(0, 242, 254, 0.5);
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.25);
+}
+
+.stepper-step.pending {
+  opacity: 0.5;
+}
+
+.stepper-arrow {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  opacity: 0.4;
+}
+
+/* Floating Patient HUD */
+.floating-patient-hud {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(18, 14, 34, 0.88);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  border-radius: 16px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInUp 0.35s ease-out;
+}
+
+.floating-patient-hud:hover {
+  border-color: rgba(0, 242, 254, 0.6);
+  box-shadow: 0 16px 45px rgba(0, 242, 254, 0.15);
+}
+
+.hud-patient-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Smart Clinical Hand-off Modal */
+.handoff-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.handoff-option-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+}
+
+.handoff-option-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+}
+
+.handoff-option-card.alta:hover {
+  border-color: #10b981;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+}
+
+.handoff-option-card.obs:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+}
+
+.handoff-option-card.internar:hover {
+  border-color: #ef4444;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+}
+
+
 
 
