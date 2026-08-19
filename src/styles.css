@@ -1135,11 +1135,22 @@ body {
 .form-row {
   display: flex;
   gap: 16px;
+  align-items: stretch;
 }
 
 .form-row .form-group {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row .form-group > .form-input,
+.form-row .form-group > select,
+.form-row .form-group > textarea,
+.form-row .form-group > .input-with-icon,
+.form-row .form-group > .custom-select-wrapper {
+  margin-top: auto;
 }
 
 .form-label {
