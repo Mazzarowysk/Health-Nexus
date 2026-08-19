@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.7.1`  
+**Versão:** `2.7.2`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -9,6 +9,7 @@
 ## 📘 Documentação & Manual do Usuário
 
 - 🌐 **Manual Interativo por Abas (SPA):** Acessível diretamente pelo botão `📖 Manual do Usuário` no topo do sistema ou pela busca global `Ctrl + K`.
+- 🧩 **Arquitetura Frontend Modular (`src/modules/`):** Código desacoplado em módulos de responsabilidade única (`ui.js`, `sync.js`, `api.js`, `auth.js`) garantindo alta manutenibilidade, isolamento de escopo e facilidade para testes automatizados.
 - 📌 **Navegação Assistida & Retorno Rápido:** Ao pesquisar e navegar para qualquer tela pelo manual, um widget flutuante de retorno (*Floating Return Beacon*) é ativado no canto inferior direito (`Alt + M`) com destaque visual do card (*Smart Highlight Pulse*).
 - ☁️ **Sincronização em Nuvem de Alta Disponibilidade (Dual-Pipeline):** Sincronização atômica e resiliente entre navegadores e Turso Cloud LibSQL com fallback direto HTTP, timeout de 15s, retentativas automáticas e feedback de contagem de registros.
 - 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
@@ -33,7 +34,7 @@
 
 ## 📦 Stack Tecnológica
 
-- **Frontend:** HTML5 + JavaScript (Vanilla SPA) · Vite 5 · Chart.js · jsPDF · SheetJS
+- **Frontend:** HTML5 + JavaScript (Modular SPA em `src/modules/`) · Vite 5 · Chart.js · jsPDF · SheetJS
 - **Backend:** Node.js + Express.js (API REST) · JWT · Bcrypt
 - **Banco de dados:** SQLite local (`local.db`) + Turso cloud (LibSQL) via `@libsql/client`
 - **CSS:** Design System próprio — Glassmorphism dark + Light mode completo

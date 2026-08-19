@@ -1,6 +1,6 @@
 {
   "name": "health-nexus",
-  "version": "2.7.1",
+  "version": "2.7.2",
   "description": "Health Nexus - Software de Gestão Hospitalar",
   "main": "backend/server.js",
   "type": "module",
