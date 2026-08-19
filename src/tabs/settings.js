@@ -1,5 +1,7 @@
 // ─── MÓDULO DA ABA CONFIGURAÇÕES & ADMINISTRAÇÃO (HEALTH NEXUS v2.7.2) ───────────
 import { state } from '../state.js';
+import * as localDB from '../localDB.js';
+import { generateMockData } from '../mockDataGenerator.js';
 import { apiFetch } from '../modules/api.js';
 import { showToast, showCustomAlert, showCustomConfirm } from '../modules/ui.js';
 import { getRolePermissions, showUserManagementModal } from '../modules/auth.js';
@@ -502,4 +504,108 @@ export function renderSettingsTab(contentArea) {
       }
     }
   });
+
+  // ─── GERENCIAMENTO DE DADOS DE TESTE (SIMULAÇÃO E LIMPEZA) ───
+  document.getElementById('btn-seed-custom')?.addEventListener('click', async () => {
+    const countSelect = document.getElementById('seed-count-select');
+    const count = parseInt(countSelect?.value || '300', 10);
+    const btn = document.getElementById('btn-seed-custom');
+    if (!btn) return;
+    btn.disabled = true;
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+    try {
+      generateMockData(count);
+      if (typeof window.clearDataCache === 'function') window.clearDataCache();
+      showToast(`✅ ${count} novos registros gerados com sucesso!`);
+      if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
+        syncManager.pushToCloud(false).catch(() => {});
+      }
+    } catch (e) {
+      console.error('Erro ao gerar registros:', e);
+      showToast('❌ Erro ao gerar dados de teste.', true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldHtml;
+    }
+  });
+
+  // Limpeza de Banco de Dados
+  document.querySelectorAll('.btn-reset-db-action, #btn-reset, #btn-reset-card-backup').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const confirmed = await showCustomConfirm({
+        title: 'Limpar Banco de Dados',
+        message: 'Tem certeza que deseja apagar todos os registros (pacientes, atendimentos, agendamentos, prescrições e leitos)? Os usuários do sistema serão preservados.',
+        confirmText: 'Sim, Limpar Tudo',
+        cancelText: 'Cancelar',
+        type: 'danger'
+      });
+
+      if (confirmed) {
+        btn.disabled = true;
+        const oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Limpando...';
+        try {
+          localDB.clear();
+          await apiFetch('/api/settings/reset', { method: 'POST' }).catch(() => {});
+          if (typeof window.clearDataCache === 'function') window.clearDataCache();
+          if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
+            await syncManager.pushToCloud(true).catch(() => {});
+          }
+          showToast('🗑️ Banco de dados limpo com sucesso! Todos os registros foram zerados.');
+          showCustomAlert({
+            title: 'Banco Limpo',
+            message: 'Todos os registros de pacientes, atendimentos e movimentações foram apagados com sucesso.',
+            type: 'success'
+          });
+        } catch (err) {
+          console.error('Erro ao limpar banco:', err);
+          showToast('❌ Erro ao limpar o banco de dados.', true);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = oldHtml;
+        }
+      }
+    });
+  });
+
+  // ─── BACKUP E RESTAURAÇÃO ───
+  document.getElementById('btn-export-json')?.addEventListener('click', () => {
+    const db = localDB.getFullDB();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", `health_nexus_backup_${new Date().toISOString().slice(0,10)}.json`);
+    dlAnchorElem.click();
+    showToast('💾 Backup exportado com sucesso!');
+  });
+
+  document.getElementById('btn-import-json')?.addEventListener('click', () => {
+    document.getElementById('import-json-file')?.click();
+  });
+
+  document.getElementById('import-json-file')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const json = JSON.parse(event.target.result);
+        localDB.saveFullDB(json);
+        if (typeof window.clearDataCache === 'function') window.clearDataCache();
+        showToast('✅ Backup importado com sucesso!');
+      } catch (err) {
+        showToast('❌ Arquivo de backup inválido.', true);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  document.getElementById('btn-quick-backup')?.addEventListener('click', () => {
+    localStorage.setItem('healthNexusLastBackup', new Date().toISOString());
+    const lastBackupEl = document.getElementById('cfg-last-backup-text');
+    if (lastBackupEl) lastBackupEl.textContent = new Date().toLocaleString('pt-BR');
+    showToast('⚡ Backup incremental realizado com sucesso!');
+  });
 }
+
