@@ -507,15 +507,15 @@ export function renderSettingsTab(contentArea) {
 
   // ─── GERENCIAMENTO DE DADOS DE TESTE (SIMULAÇÃO E LIMPEZA) ───
   document.getElementById('btn-seed-custom')?.addEventListener('click', async () => {
-    const countSelect = document.getElementById('seed-count-select');
-    const count = parseInt(countSelect?.value || '300', 10);
+    const countSelect = document.getElementById('seed-amount') || document.getElementById('seed-count-select');
+    const count = parseInt(countSelect ? countSelect.value : '5', 10);
     const btn = document.getElementById('btn-seed-custom');
     if (!btn) return;
     btn.disabled = true;
     const oldHtml = btn.innerHTML;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
     try {
-      generateMockData(count);
+      await generateMockData(count);
       if (typeof window.clearDataCache === 'function') window.clearDataCache();
       showToast(`✅ ${count} novos registros gerados com sucesso!`);
       if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
