@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.6.0`  
+**Versão:** `2.7.0`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -8,7 +8,8 @@
 
 ## 📘 Documentação & Manual do Usuário
 
-- 🌐 **Portal Web Interativo (Redesenhado):** [manual_do_usuario.html](file:///c:/Health%20Nexus/manual_do_usuario.html) *(acessível no botão `📖 Manual do Usuário` no topo do sistema)*
+- 🌐 **Manual Interativo por Abas (SPA):** Acessível diretamente pelo botão `📖 Manual do Usuário` no topo do sistema ou pela busca global `Ctrl + K`.
+- 📌 **Navegação Assistida & Retorno Rápido:** Ao pesquisar e navegar para qualquer tela pelo manual, um widget flutuante de retorno (*Floating Return Beacon*) é ativado no canto inferior direito (`Alt + M`) com destaque visual do card (*Smart Highlight Pulse*).
 - 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
 - 📄 **Manual Completo em Markdown (Com Fluxogramas):** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
 - 🔑 **Lista de Logins & Credenciais de Médicos/Enfermeiros:** [LOGINS_MEDICOS_ENFERMEIROS.txt](file:///c:/Health%20Nexus/LOGINS_MEDICOS_ENFERMEIROS.txt)
@@ -92,52 +93,35 @@
     - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
     - **Evolução Clínica & Auditoria de SLAs.**
 
-11. **🔍 Busca Global Spotlight (`Ctrl + K`) & Copilot de Conhecimento** *(v2.5.0)*  
-    Barra de busca inteligente integrada no topo da aplicação (`app-header`) e sincronizada no **Manual Interativo por Abas**:  
-    - **Normalização NFD:** Busca insensível a acentos (ex: `excluir usuario` localiza `🗑️ Excluir Usuário`).  
-    - **Algoritmo de Relevância por Tokens:** Pontua títulos (+300), palavras-chave (+250), tokens (+160) e descrições (+30).  
-    - **Dropdown Suspenso em Tempo Real:** Exibe resultados agrupados por Funcionalidades, Módulos e Dúvidas Frequentes (FAQ) com navegação ao clicar.
-
-12. **🔔 Notificações Visuais de Conclusão e Direcionamento de Fluxo** *(v2.6.0)*  
-    Sistema inteligente de feedback de fluxo (`showFlowCompletionNotification`):  
-    - Notifica o usuário com confirmação visual (`✅ Ação Concluída`) após cada transição de etapa (Admissão, Triagem, Chamada de Consultório, Prescrição, Internação, Alta).  
-    - Indica explicitamente o setor de destino (ex: `📢 Paciente Chamado para Consultório 01 — Coluna Em Atendimento`).  
-    - Oferece o botão **"Ir para a Aba ➔"** com persistência visual até a interação do usuário.
-
-13. **⏱️ Cronômetro de Auto-Sync 15 Minutos & Comparativo** *(v2.6.0)*  
-    Temporizador contínuo no cabeçalho superior do sistema:  
-    - Realiza um comparativo automático a cada **15 minutos** entre a base local e a nuvem Turso DB.  
-    - Se houver alterações pendentes, solicita permissão para sincronizar (`Sim, Enviar para a Nuvem`).  
-    - Se não houver alterações no período, reinicia o temporizador silenciosamente sem incomodar o usuário.
-
-14. **📖 Manual do Usuário Interativo por Abas & Busca Spotlight** *(v2.6.0)*  
-    Modal interativo completo (`src/manualTabbed.js`) acessível pelo cabeçalho:  
-    - 11 módulos completos na ordem exata da sidebar do sistema.  
-    - Busca unificada por relevância com menu dropdown suspenso em tempo real.  
-    - Rastreamento da **Localização Atual dos Pacientes em Tempo Real** na barra de busca (Ctrl+K).  
-    - Navegação fluida por setas com suporte a ampliação visual lightbox dos cards.  
-    - Exportação relatorial em **PDF**, **Excel (XLSX)** e **CSV**.
-
-     - Gerenciamento de medicamentos e insumos com **pesquisa em tempo real via APIs globais (RxNav, NLM, OpenFDA)**.  
-     - Preenchimento automático de dados (fabricante, tarja, dosagem).
-     - Notificações automáticas de estoque baixo.
+11. **Farmácia & Estoque Hospitalar**  
+    - Gerenciamento de medicamentos e insumos com **pesquisa em tempo real via APIs globais (RxNav, NLM, OpenFDA)**.  
+    - Preenchimento automático de dados (fabricante, tarja, dosagem).  
+    - Notificações automáticas de estoque baixo.
 
 12. **Financeiro (Títulos & Parcelas)**  
-    - Faturamento, recebimentos (Pix/Cartão/Dinheiro) e contas a pagar.
-    - **Janela Dedicada:** Dashboard de relatórios financeiros expandido em tela cheia.
-    - **Cards KPI Interativos:** Filtro instantâneo de contas a vencer, vencidas, pagas e visão geral.
+    - Faturamento, recebimentos (Pix/Cartão/Dinheiro) e contas a pagar.  
+    - **Janela Dedicada:** Dashboard de relatórios financeiros expandido em tela cheia.  
+    - **Cards KPI Interativos:** Filtro instantâneo de contas a vencer, vencidas, pagas e visão geral.  
     - **Gráficos Glassmorphism:** Distribuição por status (Donut) e volume por métodos de pagamento (Bar) com Chart.js.
 
 13. **Corpo Clínico & Consultórios**  
-    - CRUD de médicos com CRM, especialidade e escala de plantão.
+    - Gestão de médicos e colaboradores com CRM, especialidade, alocação de consultórios e inativação/exclusão.
 
 14. **Relatórios & Exportação**  
-    - Exportação para PDF, XLSX e CSV (padronizados e estabilizados).
+    - Exportação completa e padronizada para PDF, XLSX e CSV.
 
-15. **⏰ 🆕 Escalas de Trabalho & Plantões (Médicos e Enfermeiros)** *(v2.4.0)*  
+15. **⏰ Escalas de Trabalho & Plantões (Médicos e Enfermeiros)**  
     Gestão operacional completa de turnos de trabalho com orelhas dedicadas e permissões RBAC por perfil:  
-    - **Orelha 🩺 Escala de Médicos:** Plantões ordenados por data, CRM, especialidade, turnos (Manhã, Tarde, Noite, Plantão 24h), consultórios/setores e horas.  
-    - **Orelha 💉 Escala de Enfermeiros:** Escalas operacionais com COREN, função (Triagem Manchester, Enfermaria Geral, UTI, Medicação, Centro Cirúrgico) e turnos (6h, 12h, Escala 12x36).  
+    - **Orelha 🩺 Escala de Médicos:** Plantões ordenados por data, CRM, especialidade, turnos e horas.  
+    - **Orelha 💉 Escala de Enfermeiros:** Escalas operacionais com COREN, função e turnos (6h, 12h, 12x36).
+
+---
+
+## 🚀 Diferenciais de Interatividade (v2.7.0)
+
+- **🔍 Motor de Busca Semântica Multi-Tier:** Reconhece sinônimos clínicos e operacionais (`colaborador` ➔ `médico/profissional`, `excluir` ➔ `exclusão/inativação`, `reédio` ➔ `medicamento`).
+- **🤖 Copilot IA com Desambiguação:** Se o usuário buscar por termos genéricos como "excluir", o assistente apresenta uma árvore de opções detalhadas para exclusão de pacientes, médicos, agendamentos, leitos, medicamentos e títulos financeiros.
+- **📌 Navegação Assistida & Floating Return Beacon (`Alt + M`):** Ao clicar em *"Ir para a Tela & Praticar"*, o sistema navega até a tela e fixa um beacon flutuante para retorno instantâneo com animação pulsante (*Smart Highlight Pulse*) no card consultado.  
     - **Logins Restritos:** Contas de usuário individuais para Médicos e Enfermeiros, com acesso restrito às abas operacionais e bloqueio automático de configurações administrativas.  
     - **Cards KPI & Filtros:** Total de plantões, médicos/enfermeiros escalados hoje, busca por texto, filtro por período e turno.  
     - **Modal de Plantão & Impressão:** Criação, edição e exclusão de plantões + relatório de impressão formatado.

@@ -1,6 +1,6 @@
 # 📘 Health Nexus — Manual Operacional do Usuário (Completo & Ilustrado)
 
-> **Versão:** 2.6.0 — Agosto/2026  
+> **Versão:** 2.7.0 — Agosto/2026  
 > **Público-Alvo:** Recepcionistas, Enfermeiros, Médicos, Farmacêuticos, Gestores Financeiros e Administradores Hospitalares  
 > **Sistema:** Health Nexus — Gestão Hospitalar & Pronto-Socorro
 
@@ -40,11 +40,20 @@ O **Health Nexus** utiliza Controle de Acesso Baseado em Perfis (RBAC — Role-B
 | **📋 Recepcionista** | Dashboard, Pacientes, Agenda, Atendimento, Painel TV, Caixa | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Apenas Entradas | Bloqueado |
 | **💊 Farmacêutico(a)**| Dashboard, Pacientes, Farmácia, Relatórios | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado |
 
-### 🤖 Assistente de IA Local (Manual Interativo)
+### 🤖 Assistente de IA Local & Busca Semântica Multi-Tier (v2.7.0)
 
-O sistema possui um **Assistente IA Integrado** na busca do Manual. Ao fazer perguntas em linguagem natural (ex: "como incluir um paciente?"), a IA correlaciona a intenção com os botões e módulos do sistema.
+O sistema possui um **Motor de Busca Semântica Multi-Tier e Copilot IA Integrado** acessível tanto pelo cabeçalho global (`Ctrl + K`) quanto no Manual Interativo por Abas:
 
-**Segurança RBAC na IA:** A IA tem plena consciência do perfil de acesso do usuário. Se um usuário pesquisar por uma funcionalidade restrita a um perfil superior (ex: um Médico pesquisando sobre "Controle de Perfis"), a IA não instruirá sobre o módulo; em vez disso, informará claramente que o usuário logado não possui permissão para executar a ação solicitada, citando os perfis autorizados.
+1. **Dicionário de Sinônimos Clínicos & Operacionais:** Reconhece equivalências como `colaborador` ➔ `médico / corpo clínico`, `excluir` ➔ `exclusão / inativação`, `remédio` ➔ `medicamento`, `consulta` ➔ `agendamento`, etc.
+2. **Desambiguação Inteligente de Ações:** Ao pesquisar termos genéricos como "excluir", a IA categoriza e sugere caminhos diretos para exclusão de pacientes, médicos, leitos, medicamentos, títulos e agendamentos.
+3. **Segurança RBAC na IA:** A IA tem plena consciência do perfil logado e avisa se a funcionalidade consultada exige permissões de outro papel.
+
+### 📌 Navegação Assistida & Floating Return Beacon (`Alt + M`)
+
+Ao consultar qualquer funcionalidade no manual e clicar no botão **`🚀 Ir para a Tela & Praticar (Navegar)`**:
+- O sistema navega para a aba correta e abre o modal/formulário necessário.
+- Um **Beacon Flutuante** de retorno é fixado no canto inferior direito.
+- Clicar no beacon ou teclar **`Alt + M`** devolve o usuário exatamente ao tópico consultado no manual, aplicando um **efeito de brilho pulsante (*Smart Highlight Pulse*)** no card correspondente.
 
 ---
 

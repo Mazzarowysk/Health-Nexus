@@ -13,7 +13,7 @@ import './tabs/tv.js';
 import './tabs/kanban.js';
 import { renderSchedulesTab } from './tabs/escalas.js';
 import { generateMockData } from './mockDataGenerator.js';
-import { renderEmbeddedTabbedManual, showInteractiveManualModal, manualData, showCardDetailModal } from './manualTabbed.js';
+import { renderEmbeddedTabbedManual, showInteractiveManualModal, manualData, showCardDetailModal, searchManualEngine, showManualReturnBeacon } from './manualTabbed.js';
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 import { inject } from '@vercel/analytics';
 
@@ -519,7 +519,7 @@ const showUserSessionsHistory = (userId, userName) => {
   if (sessions.length < 5) {
     const now = new Date();
     const mockAccesses = [
-      { offsetHours: 0, durationMins: 35, ip: '192.168.1.104', browser: 'Chrome / Win11', modules: 'Atendimentos, Escalas, Leitos', status: isTargetUserActive ? 'Online' : 'Encerrado' },
+      { offsetHours: 0, durationMins: 25, ip: '192.168.1.104', browser: 'Chrome / Win11', modules: 'Atendimentos, Escalas, Leitos', status: isTargetUserActive ? 'Online' : 'Encerrado' },
       { offsetHours: 24, durationMins: 205, ip: '192.168.1.104', browser: 'Chrome / Win11', modules: 'Kanban, Prontuário (PEP)', status: 'Encerrado' },
       { offsetHours: 48, durationMins: 210, ip: '192.168.1.104', browser: 'Edge / Win11', modules: 'Agenda, Pacientes', status: 'Encerrado' },
       { offsetHours: 72, durationMins: 210, ip: '192.168.1.104', browser: 'Chrome / Win11', modules: 'Triagem Manchester, Consultórios', status: 'Encerrado' },
@@ -2236,6 +2236,109 @@ const apiFetch = async (url, options = {}) => {
         } else {
           status = 400; responseData = { message: 'ID do atendimento não fornecido' };
         }
+      } else if (url.includes('/api/financial/installments/pay-batch') && method === 'POST') {
+        const { ids, notes } = body || {};
+        if (Array.isArray(ids)) {
+          let updatedCount = 0;
+          ids.forEach(id => {
+            const inst = localDB.get('financial_installments', id);
+            if (inst) {
+              localDB.update('financial_installments', id, {
+                ...inst,
+                status: 'Pagas',
+                paymentDate: new Date().toISOString().split('T')[0],
+                notes: notes || inst.notes || '',
+                updated_at: new Date().toISOString()
+              });
+              updatedCount++;
+            }
+          });
+          responseData = { status: 'success', updated: updatedCount };
+        } else {
+          status = 400; responseData = { message: 'IDs não fornecidos' };
+        }
+      } else if (url.includes('/pay') && url.includes('/api/financial/installments/') && method === 'PUT') {
+        const match = url.match(/\/installments\/([^\/]+)\/pay/);
+        const instId = match ? decodeURIComponent(match[1]) : null;
+        if (instId) {
+          const inst = localDB.get('financial_installments', instId);
+          if (inst) {
+            const updated = {
+              ...inst,
+              status: 'Pagas',
+              paymentDate: body.paymentDate || new Date().toISOString().split('T')[0],
+              amountPaid: body.amountPaid !== undefined ? body.amountPaid : inst.amountPaid,
+              paymentMethod: body.paymentMethod || inst.paymentMethod,
+              discount: body.discount !== undefined ? body.discount : inst.discount,
+              interest: body.interest !== undefined ? body.interest : inst.interest,
+              notes: body.notes !== undefined ? body.notes : inst.notes,
+              updated_at: new Date().toISOString()
+            };
+            localDB.update('financial_installments', instId, updated);
+            responseData = { status: 'success', data: updated };
+          } else {
+            status = 404; responseData = { message: 'Parcela não encontrada' };
+          }
+        } else {
+          status = 400; responseData = { message: 'ID da parcela não fornecido' };
+        }
+      } else if (url.includes('/api/beds/discharge') && method === 'POST') {
+        const { bedId } = body || {};
+        if (bedId) {
+          const bed = localDB.get('beds', bedId);
+          if (bed) {
+            const updated = {
+              ...bed,
+              status: 'Higienizacao',
+              patientName: '',
+              patientId: null,
+              encounterId: null,
+              admittedAt: null,
+              updated_at: new Date().toISOString()
+            };
+            localDB.update('beds', bedId, updated);
+            responseData = { status: 'success', data: updated };
+          } else {
+            status = 404; responseData = { message: 'Leito não encontrado' };
+          }
+        } else {
+          status = 400; responseData = { message: 'ID do leito não fornecido' };
+        }
+      } else if (url.includes('/api/beds/admit') && method === 'POST') {
+        const { bedId, encounterId, patientId, patientName } = body || {};
+        if (bedId) {
+          const bed = localDB.get('beds', bedId);
+          if (bed) {
+            const updated = {
+              ...bed,
+              status: 'Ocupado',
+              patientName: patientName || '',
+              patientId: patientId || null,
+              encounterId: encounterId || null,
+              admittedAt: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+            localDB.update('beds', bedId, updated);
+            
+            if (encounterId) {
+              const allEncounters = localDB.list('encounters') || [];
+              const enc = allEncounters.find(e => e.id === encounterId || e.encounterId === encounterId);
+              if (enc) {
+                localDB.update('encounters', enc.id, {
+                   ...enc,
+                   status: 'Em_Internacao',
+                   room: bed.bedNumber,
+                   updated_at: new Date().toISOString()
+                });
+              }
+            }
+            responseData = { status: 'success', data: updated };
+          } else {
+            status = 404; responseData = { message: 'Leito não encontrado' };
+          }
+        } else {
+          status = 400; responseData = { message: 'ID do leito não fornecido' };
+        }
       } else {
         // Extract table from URL: e.g. /api/patients/PAT-123 -> table: patients, id: PAT-123
         const parts = url.split('?')[0].replace('/api/', '').split('/');
@@ -3874,65 +3977,9 @@ function initGlobalSystemSearch() {
     const qNorm = normalizeStr(rawQuery);
     const queryTokens = qNorm.split(/\s+/).filter(Boolean);
 
-    // 1. Pesquisar botões e funcionalidades com pontuação de relevância (Relevance Scoring)
-    const buttonMatches = [];
-    if (typeof manualData !== 'undefined' && Array.isArray(manualData)) {
-      manualData.forEach(mod => {
-        if (mod.buttons && Array.isArray(mod.buttons)) {
-          mod.buttons.forEach(btn => {
-            const nameNorm = normalizeStr(btn.name);
-            const descNorm = normalizeStr(btn.description);
-            const typeNorm = normalizeStr(btn.type);
-            const rulesNorm = normalizeStr(btn.rules || '');
-            const keywordsNorm = (btn.keywords || []).map(normalizeStr);
-
-            let score = 0;
-
-            // Match Exato no Nome
-            if (nameNorm === qNorm) score += 300;
-            else if (nameNorm.includes(qNorm)) score += 200;
-
-            // Match em Palavras-chave / Sinônimos
-            keywordsNorm.forEach(kw => {
-              if (kw === qNorm) score += 250;
-              else if (kw.includes(qNorm) || qNorm.includes(kw)) score += 180;
-            });
-
-            // Match de todos os tokens da busca no Nome ou Palavras-chave
-            let nameOrKwHits = 0;
-            queryTokens.forEach(t => {
-              if (nameNorm.includes(t) || keywordsNorm.some(k => k.includes(t))) {
-                nameOrKwHits++;
-              }
-            });
-
-            if (queryTokens.length > 0 && nameOrKwHits === queryTokens.length) {
-              score += 160;
-            } else {
-              score += nameOrKwHits * 45;
-            }
-
-            // Match no Tipo da Funcionalidade
-            if (typeNorm.includes(qNorm)) score += 60;
-
-            // Match de frase completa na Descrição
-            if (descNorm.includes(qNorm)) score += 30;
-            
-            // Tokens na Descrição
-            queryTokens.forEach(t => {
-              if (descNorm.includes(t)) score += 5;
-            });
-
-            if (score > 0) {
-              buttonMatches.push({ btn, mod, score });
-            }
-          });
-        }
-      });
-    }
-
-    // Ordenar resultados de funcionalidades por pontuação decrecente (mais relevante no topo)
-    buttonMatches.sort((a, b) => b.score - a.score);
+    const searchResult = typeof searchManualEngine === 'function' ? searchManualEngine(rawQuery, 'Master') : null;
+    const buttonMatches = searchResult ? searchResult.buttonMatches : [];
+    const faqMatches = searchResult ? searchResult.faqMatches : [];
 
     // 2. Pesquisar abas da aplicação
     const allNavItems = [
@@ -3973,35 +4020,8 @@ function initGlobalSystemSearch() {
       });
     }
 
-    // 4. Pesquisar Perguntas Frequentes & Dúvidas Operacionais (FAQ)
-    const faqMatches = [];
-    if (typeof manualData !== 'undefined' && Array.isArray(manualData)) {
-      manualData.forEach(mod => {
-        if (mod.faq && Array.isArray(mod.faq)) {
-          mod.faq.forEach(item => {
-            const qNormStr = normalizeStr(item.q);
-            const aNormStr = normalizeStr(item.a);
-
-            let score = 0;
-            if (qNormStr.includes(qNorm)) score += 200;
-            queryTokens.forEach(t => {
-              if (qNormStr.includes(t)) score += 40;
-              if (aNormStr.includes(t)) score += 15;
-            });
-
-            if (score > 35) {
-              faqMatches.push({ item, mod, score });
-            }
-          });
-        }
-      });
-    }
-    faqMatches.sort((a, b) => b.score - a.score);
-
-    // 🤖 Nexus AI Knowledge Copilot Engine v2.0 — Expanded Pattern Matching
-
-
-    const aiCopilot = getNexusAICopilotResponse(qNorm, rawQuery);
+    // 🤖 Nexus AI Knowledge Copilot Engine v2.5
+    const aiCopilot = searchResult && searchResult.aiCopilot ? searchResult.aiCopilot : getNexusAICopilotResponse(qNorm, rawQuery);
 
     if (buttonMatches.length === 0 && tabMatches.length === 0 && patientMatches.length === 0 && faqMatches.length === 0) {
       searchResultsContainer.innerHTML = `
@@ -4074,21 +4094,21 @@ function initGlobalSystemSearch() {
 
     // Renderizar Funcionalidades & Botões Encontrados (Ordenados por Relevância)
     if (buttonMatches.length > 0) {
-      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #10b981; letter-spacing: 0.5px; padding: 6px 8px 4px 8px;">⚙️ Funcionalidades & Ações Relevantes (${buttonMatches.length})</div>`;
-      buttonMatches.slice(0, 8).forEach(item => {
-        const { btn, mod } = item;
+      const isDeleteSearch = buttonMatches.some(b => b._isDelete);
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: ${isDeleteSearch ? '#f87171' : '#10b981'}; letter-spacing: 0.5px; padding: 6px 8px 4px 8px;">${isDeleteSearch ? '🗑️ Ações de Exclusão & Desativação' : '⚙️ Funcionalidades & Ações Relevantes'} (${buttonMatches.length})</div>`;
+      buttonMatches.slice(0, 10).forEach(btn => {
         html += `
-          <div class="search-result-item" data-type="btn" data-mod-id="${mod.id}" data-btn-name="${encodeURIComponent(btn.name)}" style="
+          <div class="search-result-item" data-type="btn" data-mod-id="${btn._moduleId}" data-btn-name="${encodeURIComponent(btn.name)}" style="
             padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
-            background: rgba(15, 23, 42, 0.75); margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.07);
-          " onmouseover="this.style.background='rgba(16, 185, 129, 0.22)'; this.style.borderColor='${btn.color}'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'; this.style.borderColor='rgba(255,255,255,0.07)'">
+            background: rgba(15, 23, 42, 0.75); margin-bottom: 6px; border: 1px solid ${btn._isDelete ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255,255,255,0.07)'};
+          " onmouseover="this.style.background='${btn._isDelete ? 'rgba(239, 68, 68, 0.22)' : 'rgba(16, 185, 129, 0.22)'}'; this.style.borderColor='${btn.color}'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'; this.style.borderColor='${btn._isDelete ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255,255,255,0.07)'}'">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
               <strong style="color: #ffffff; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid ${btn.icon}" style="color: ${btn.color}; font-size: 0.95rem;"></i>
                 ${btn.name}
               </strong>
-              <span style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: ${mod.color}; padding: 3px 8px; border-radius: 8px; font-weight: 700;">
-                ${mod.title}
+              <span style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: ${btn._moduleColor || '#818cf8'}; padding: 3px 8px; border-radius: 8px; font-weight: 700;">
+                ${btn._moduleTitle}
               </span>
             </div>
             <p style="color: #cbd5e1; font-size: 0.78rem; margin: 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
@@ -4158,9 +4178,9 @@ function initGlobalSystemSearch() {
     if (faqMatches.length > 0) {
       html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #f59e0b; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">❓ Dúvidas Operacionais & Respostas (${faqMatches.length})</div>`;
       faqMatches.slice(0, 3).forEach(f => {
-        const { item, mod } = f;
+        const { item, module } = f;
         html += `
-          <div class="search-result-item" data-type="faq" data-mod-id="${mod.id}" style="
+          <div class="search-result-item" data-type="faq" data-mod-id="${module.id}" style="
             padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
             background: rgba(245, 158, 11, 0.08); margin-bottom: 5px; border: 1px solid rgba(245, 158, 11, 0.25);
           " onmouseover="this.style.background='rgba(245, 158, 11, 0.2)'; this.style.borderColor='#f59e0b'" onmouseout="this.style.background='rgba(245, 158, 11, 0.08)'; this.style.borderColor='rgba(245, 158, 11, 0.25)'">
@@ -4169,7 +4189,7 @@ function initGlobalSystemSearch() {
                 <i class="fa-solid fa-circle-question"></i> ${item.q}
               </strong>
               <span style="font-size: 0.65rem; background: rgba(245, 158, 11, 0.2); color: #fcd34d; padding: 2px 7px; border-radius: 8px; font-weight: 700;">
-                ${mod.title}
+                ${module.title}
               </span>
             </div>
             <p style="color: #cbd5e1; font-size: 0.78rem; margin: 0; line-height: 1.35;">
@@ -4193,17 +4213,29 @@ function initGlobalSystemSearch() {
           if (act === 'openDoctorModal') {
             switchTab('medicos');
             setTimeout(() => { document.getElementById('btn-open-doctor-modal')?.click(); }, 350);
+            if (typeof showManualReturnBeacon === 'function') {
+              showManualReturnBeacon({ moduleId: 'medicos', moduleTitle: 'Corpo Clínico', btnName: 'Cadastrar / Incluir Novo Profissional', targetTab: 'medicos' });
+            }
           } else if (act === 'openPatientModal') {
             switchTab('pacientes');
             setTimeout(() => { document.getElementById('btn-open-patient-modal')?.click(); }, 350);
+            if (typeof showManualReturnBeacon === 'function') {
+              showManualReturnBeacon({ moduleId: 'recepcao', moduleTitle: 'Recepção & Pacientes', btnName: '➕ Novo Paciente', targetTab: 'pacientes' });
+            }
           } else if (act === 'switchTab') {
             switchTab(tgt);
+            if (typeof showManualReturnBeacon === 'function') {
+              showManualReturnBeacon({ moduleId: tgt, moduleTitle: tgt, btnName: 'Navegação por IA', targetTab: tgt });
+            }
           } else if (act === 'openManual') {
             if (typeof showInteractiveManualModal === 'function') showInteractiveManualModal(tgt);
           }
         } else if (itemType === 'tab') {
           const tabId = item.dataset.tabId;
           switchTab(tabId);
+          if (typeof showManualReturnBeacon === 'function') {
+            showManualReturnBeacon({ moduleId: tabId, moduleTitle: tabId, btnName: `Módulo: ${tabId}`, targetTab: tabId });
+          }
         } else if (itemType === 'btn') {
           const modId = item.dataset.modId;
           const btnName = decodeURIComponent(item.dataset.btnName || '');
@@ -4216,18 +4248,31 @@ function initGlobalSystemSearch() {
               'recepcao': 'pacientes',
               'prontuario': 'atendimento',
               'tv': 'tv_panel',
+              'estagnacao': 'estagnacao',
               'leitos': 'leitos',
+              'kanban': 'kanban',
               'farmacia': 'farmacia',
-              'relatorios': 'relatorios',
-              'configuracoes': 'configuracoes',
+              'financeiro': 'financeiro',
               'medicos': 'medicos',
-              'escalas': 'escalas'
+              'consultorios': 'consultorios',
+              'escalas': 'escalas',
+              'relatorios': 'relatorios',
+              'configuracoes': 'configuracoes'
             };
             if (navMap[modId]) switchTab(navMap[modId]);
-            if (btnName.includes('Cadastrar / Incluir Novo Médico')) {
+            if (btnName.includes('Cadastrar / Incluir Novo Médico') || btnName.includes('Cadastrar / Incluir Novo Profissional')) {
               setTimeout(() => { document.getElementById('btn-open-doctor-modal')?.click(); }, 350);
             } else if (typeof showCardDetailModal === 'function') {
               showCardDetailModal(btn, mod);
+            }
+
+            if (typeof showManualReturnBeacon === 'function') {
+              showManualReturnBeacon({
+                moduleId: modId,
+                moduleTitle: mod.title,
+                btnName: btn.name,
+                targetTab: navMap[modId] || 'dashboard'
+              });
             }
           }
         } else if (itemType === 'patient') {
@@ -4278,6 +4323,10 @@ function switchTab(tabName, isBack = false) {
     });
     return;
   }
+
+  // Expor globalmente para módulos interativos
+  window.switchTab = switchTab;
+  window.showInteractiveManualModal = showInteractiveManualModal;
 
   // Registrar histórico de navegação global
   if (!isBack && state.activeTab && state.activeTab !== tabName) {

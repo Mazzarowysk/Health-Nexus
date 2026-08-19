@@ -1,5 +1,6 @@
 import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
+import * as localDB from '../localDB.js';
 
 const API_URL = '/api';
 
@@ -1124,11 +1125,11 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
   modal.style.display = 'flex';
   modal.style.alignItems = 'center';
   modal.style.justifyContent = 'center';
-  modal.style.background = 'rgba(0, 0, 0, 0.75)';
-  modal.style.backdropFilter = 'blur(6px)';
-  modal.style.zIndex = '99999';
+  modal.style.background = 'rgba(5, 7, 20, 0.85)';
+  modal.style.backdropFilter = 'blur(10px)';
+  modal.style.zIndex = '100000';
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 880px; width: 90%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.6);">
+    <div class="modal-content" style="max-width: 880px; width: 90%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; background: #111124; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99, 102, 241, 0.15);">
       
       <div class="modal-header" style="padding: 16px 24px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -1197,6 +1198,16 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
     const bodyEl = document.getElementById('history-modal-body');
     if (!bodyEl) return;
 
+    const activeHosp = localDB.list('hospitalizations').find(h => h.patient_id === patientId && h.status !== 'Alta');
+    const KANBAN_SECTORS = {
+      pronto_socorro: 'Pronto Socorro',
+      corredor_internacao: 'Corredor',
+      clinica_cirurgica: 'Cirúrgica',
+      clinica_medica: 'Clínica Médica',
+      uti: 'UTI'
+    };
+    const sectorName = activeHosp ? (KANBAN_SECTORS[activeHosp.current_sector] || activeHosp.current_sector) : '';
+
     let html = `
       <!-- Card de Informações do Paciente -->
       <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -1219,6 +1230,31 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
           </span>
         </div>
       </div>
+
+      ${activeHosp ? `
+      <!-- NOVA SEÇÃO: Gestão de Internação -->
+      <div style="margin-bottom: 24px; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-weight: 700; color: #f59e0b; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-bed-pulse"></i> Paciente Internado
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+              Setor atual: <strong style="color: var(--text-primary);">${sectorName}</strong>
+              ${activeHosp.bed ? ` | Leito: <strong style="color: var(--text-primary);">${activeHosp.bed}</strong>` : ''}
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" onclick="window.movePatientSectorFromHistory('${activeHosp.id}', '${patientId}', '${patientName.replace(/'/g, "\\'") || ''}')" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: #818cf8; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.25)'" onmouseout="this.style.background='rgba(99,102,241,0.15)'">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i> Mover Setor
+            </button>
+            <button type="button" onclick="window.dischargePatientFromHistory('${activeHosp.id}', '${patientId}', '${patientName.replace(/'/g, "\\'") || ''}')" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #34d399; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">
+              <i class="fa-solid fa-person-walking-arrow-right"></i> Dar Alta
+            </button>
+          </div>
+        </div>
+      </div>
+      ` : ''}
 
       <!-- NOVA SEÇÃO: Evolução Rápida -->
       <div style="margin-bottom: 24px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
@@ -1351,9 +1387,11 @@ window.openPEPModal = async function(encounterId) {
   modal.id = 'pep-modal';
   modal.className = 'modal-overlay';
   modal.style.display = 'flex';
-  modal.style.zIndex = '99999';
+  modal.style.background = 'rgba(5, 7, 20, 0.85)';
+  modal.style.backdropFilter = 'blur(10px)';
+  modal.style.zIndex = '100000';
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 18px; box-shadow: 0 25px 60px rgba(0,0,0,0.65);">
+    <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: #111124; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99, 102, 241, 0.15);">
       
       <div class="modal-header" style="padding: 20px 28px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 14px;">
@@ -1766,3 +1804,108 @@ window.handleExamImport = function(event, patientId) {
 
 window.renderDoctorsTab = renderDoctorsTab;
 
+window.movePatientSectorFromHistory = function(hospId, patientId, patientName) {
+  const KANBAN_SECTORS = [
+    { id: 'pronto_socorro', name: 'Pronto Socorro' },
+    { id: 'corredor_internacao', name: 'Corredor' },
+    { id: 'clinica_cirurgica', name: 'Cirúrgica' },
+    { id: 'clinica_medica', name: 'Clínica Médica' },
+    { id: 'uti', name: 'UTI' }
+  ];
+
+  const html = `
+    <div class="modal-overlay" id="history-move-modal-overlay" style="z-index: 100200;"></div>
+    <div class="modal-content" id="history-move-modal-content" style="z-index: 100201; max-width: 400px;">
+      <div class="modal-header">
+        <h3 style="margin:0; font-size: 1.15rem; color: var(--text-primary);">Mover Setor</h3>
+        <button type="button" class="close-btn" id="history-move-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <p style="margin-top:0; font-size: 0.9rem; color: var(--text-secondary);">Selecione o novo setor para <strong>${patientName}</strong>:</p>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label">Setor Destino</label>
+          <select id="history-new-sector-select" class="form-input" style="width: 100%;">
+            ${KANBAN_SECTORS.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="history-move-cancel" style="padding: 8px 16px; background: transparent; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; color: var(--text-primary);">Cancelar</button>
+          <button type="button" id="history-move-confirm" style="padding: 8px 16px; background: var(--color-primary); border: none; border-radius: 6px; cursor: pointer; color: #fff; font-weight: 600;">Mover</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  const cleanup = () => {
+    document.getElementById('history-move-modal-overlay')?.remove();
+    document.getElementById('history-move-modal-content')?.remove();
+  };
+
+  document.getElementById('history-move-close-btn').addEventListener('click', cleanup);
+  document.getElementById('history-move-cancel').addEventListener('click', cleanup);
+  document.getElementById('history-move-confirm').addEventListener('click', () => {
+    const newSector = document.getElementById('history-new-sector-select').value;
+    const db = typeof localDB !== 'undefined' ? localDB : window.localDB;
+    if (db) {
+      const hosp = db.getById('hospitalizations', hospId);
+      if (hosp) {
+        hosp.current_sector = newSector;
+        db.update('hospitalizations', hospId, hosp);
+        if (typeof window.showToast === 'function') window.showToast('Setor atualizado com sucesso!', 'success');
+        
+        // Refresh the patient history modal to show updated sector
+        const historyModal = document.getElementById('history-modal-content');
+        if (historyModal) {
+          document.getElementById('close-history-modal')?.click();
+          setTimeout(() => window.openPatientHistoryModal(patientId, patientName), 100);
+        }
+        
+        // Se estivermos na aba Kanban, recarregar
+        if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
+          window.loadAndRenderKanban();
+        }
+      }
+    }
+    cleanup();
+  });
+};
+
+window.dischargePatientFromHistory = function(hospId, patientId, patientName) {
+  if (confirm(`Confirmar ALTA para o paciente ${patientName}?`)) {
+    const db = typeof localDB !== 'undefined' ? localDB : window.localDB;
+    if (db) {
+      const hosp = db.getById('hospitalizations', hospId);
+      if (hosp) {
+        hosp.status = 'Alta';
+        hosp.discharged_at = new Date().toISOString();
+        db.update('hospitalizations', hospId, hosp);
+        if (typeof window.showToast === 'function') window.showToast('Alta registrada com sucesso!', 'success');
+        
+        // Add note to clinical history
+        const notes = db.list('clinical_notes') || [];
+        notes.push({
+          id: 'NOTE-' + Math.floor(Math.random() * 1000000),
+          patientId: patientId,
+          text: '✅ Alta Médica/Administrativa registrada pelo sistema.',
+          created_at: new Date().toISOString(),
+          author: 'Sistema (Gestão de Leitos)'
+        });
+        db.updateFullStore('clinical_notes', notes);
+        
+        // Refresh Prontuário
+        const historyModal = document.getElementById('history-modal-content');
+        if (historyModal) {
+          document.getElementById('close-history-modal')?.click();
+          setTimeout(() => window.openPatientHistoryModal(patientId, patientName), 100);
+        }
+
+        // Se estivermos na aba Kanban, recarregar
+        if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
+          window.loadAndRenderKanban();
+        }
+      }
+    }
+  }
+};

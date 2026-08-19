@@ -1,47 +1,84 @@
-// 🤖 Nexus AI Knowledge Copilot Engine v2.0 — Expanded Pattern Matching
+// 🤖 Nexus AI Knowledge Copilot Engine v2.5 — Expanded Semantic Pattern Matching
 export const getNexusAICopilotResponse = (q, raw) => {
   let qNorm = q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   
   // Normalização de Sinônimos Comuns para expandir a compreensão da IA
-  qNorm = qNorm.replace(/\b(enfermeiro|medico|recepcionista|fisioterapeuta|doutor|tecnico|auxiliar)\b/g, 'profissional');
-  qNorm = qNorm.replace(/\b(remedio|droga|pilula|injecao|comprimido)\b/g, 'medicamento');
-  qNorm = qNorm.replace(/\b(cliente|doente|internado)\b/g, 'paciente');
-  qNorm = qNorm.replace(/\b(marcar|agendar|reservar)\b/g, 'agendar');
-  qNorm = qNorm.replace(/\b(deletar|apagar|remover|desativar)\b/g, 'excluir');
+  qNorm = qNorm.replace(/\b(enfermeiro|medico|medica|recepcionista|fisioterapeuta|doutor|doutora|tecnico|auxiliar|colaborador|colaboradora|funcionario|funcionaria|equipe|clinico|membro)\b/g, 'profissional');
+  qNorm = qNorm.replace(/\b(remedio|droga|pilula|injecao|comprimido|farmaco|insumo)\b/g, 'medicamento');
+  qNorm = qNorm.replace(/\b(cliente|doente|internado|usuario sus)\b/g, 'paciente');
+  qNorm = qNorm.replace(/\b(marcar|reservar)\b/g, 'agendar');
+  qNorm = qNorm.replace(/\b(deletar|apagar|remover|desativar|inativar|desligar|limpar|lixeira|exclusao)\b/g, 'excluir');
+  qNorm = qNorm.replace(/\b(adicionar|inserir|criar|incluir|admitir)\b/g, 'cadastrar');
+  qNorm = qNorm.replace(/\b(alterar|modificar|atualizar|trocar|ajustar|mudar)\b/g, 'editar');
 
   // Helper: check if query contains ANY of the given tokens
   const has = (...tokens) => tokens.some(t => qNorm.includes(t));
   // Helper: check if query contains ALL of the given tokens
   const hasAll = (...tokens) => tokens.every(t => qNorm.includes(t));
 
-  // ── PROFISSIONAIS ──────────────────────────────────────────────────────────
-  if (hasAll('profissional', 'incluir') || hasAll('profissional', 'cadastrar') || hasAll('profissional', 'novo') || hasAll('profissional', 'adicionar') || hasAll('profissional', 'criar') ||
-      has('incluir profissional', 'cadastrar profissional', 'novo profissional', 'adicionar profissional', 'corpo clinico', 'registrar profissional')) {
-    return { title: 'Nexus AI Copilot', summary: 'Para <strong>incluir ou cadastrar um novo profissional</strong>, acesse a aba 🩺 <strong>Profissionais</strong> e clique em <strong>+ Novo Profissional</strong>. Preencha Nome, Registro/CRM, Especialidade e Telefone.', actionText: '🩺 Cadastrar Novo Profissional', actionType: 'openDoctorModal', actionTarget: 'medicos' };
+  // ── INTENÇÃO AMPLA: EXCLUSÃO / DESATIVAÇÃO / LIXEIRA GERAL ─────────────
+  if (qNorm === 'excluir' || qNorm === 'cancelar' || qNorm === 'lixeira') {
+    return {
+      title: 'Nexus AI Copilot — Opções de Exclusão & Desativação',
+      summary: `Você buscou por <strong>operações de exclusão/inativação</strong>. No Health Nexus, você pode realizar:<br>
+• <strong>Excluir/Inativar Paciente:</strong> Acesse 👥 Recepção e use a 🗑️ Lixeira no card do paciente.<br>
+• <strong>Excluir/Desativar Colaborador ou Médico:</strong> Acesse 🩺 Corpo Clínico e use a 🗑️ Lixeira.<br>
+• <strong>Excluir Usuário de Acesso:</strong> Acesse ⚙️ Configurações → Gerenciar Usuários (perfil Master).<br>
+• <strong>Cancelar Agendamento/Consulta:</strong> Acesse 📅 Agenda e clique no ❌.<br>
+• <strong>Inativar Medicamento:</strong> Acesse 💊 Farmácia & Estoque.<br>
+• <strong>Excluir Sala/Consultório:</strong> Acesse 🚪 Consultórios.<br>
+• <strong>Cancelar Cobrança/Fatura:</strong> Acesse 💰 Faturamento & Financeiro.`,
+      actionText: '👥 Ir para Recepção & Pacientes',
+      actionType: 'switchTab',
+      actionTarget: 'pacientes'
+    };
   }
-  if (hasAll('profissional', 'excluir') || hasAll('profissional', 'desativar') || hasAll('profissional', 'remover') || hasAll('profissional', 'deletar') || hasAll('profissional', 'lixeira')) {
-    return { title: 'Nexus AI Copilot', summary: 'Para <strong>desativar um profissional</strong>, acesse 🩺 <strong>Profissionais</strong>, localize-o e clique no ícone de 🗑️ Lixeira. O histórico de atendimentos é preservado.', actionText: '🩺 Abrir Profissionais', actionType: 'switchTab', actionTarget: 'medicos' };
+
+  // ── INTENÇÃO AMPLA: CADASTRO / NOVO GERAL ──────────────────────────────
+  if (qNorm === 'cadastrar' || qNorm === 'novo' || qNorm === 'cadastro') {
+    return {
+      title: 'Nexus AI Copilot — Central de Cadastros & Novos Registros',
+      summary: `Você buscou por <strong>cadastros e novos registros</strong>. Escolha onde deseja cadastrar:<br>
+• <strong>Novo Paciente:</strong> 👥 Recepção & Pacientes (Alt+N)<br>
+• <strong>Novo Profissional/Colaborador:</strong> 🩺 Profissionais & Corpo Clínico (+ Novo Médico)<br>
+• <strong>Novo Agendamento:</strong> 📅 Agenda de Consultas<br>
+• <strong>Novo Medicamento/Insumo:</strong> 💊 Farmácia & Estoque<br>
+• <strong>Novo Plantão/Escala:</strong> 📅 Escalas de Trabalho<br>
+• <strong>Novo Usuário do Sistema:</strong> ⚙️ Configurações (Master)`,
+      actionText: '👥 Cadastrar Novo Paciente (Alt+N)',
+      actionType: 'openPatientModal',
+      actionTarget: 'pacientes'
+    };
   }
-  if (hasAll('profissional', 'editar') || hasAll('profissional', 'alterar') || hasAll('profissional', 'atualizar') || hasAll('crm', 'alterar') || hasAll('crm', 'atualizar')) {
-    return { title: 'Nexus AI Copilot', summary: 'Para <strong>editar dados de um profissional</strong>, acesse 🩺 <strong>Profissionais</strong> e clique no ícone de ✏️ Lápis no card para alterar especialidade, CRM, telefone ou e-mail.', actionText: '🩺 Ir para Profissionais', actionType: 'switchTab', actionTarget: 'medicos' };
+
+  // ── PROFISSIONAIS / COLABORADORES ──────────────────────────────────────────
+  if (hasAll('profissional', 'cadastrar') || hasAll('profissional', 'novo') ||
+      has('cadastrar profissional', 'novo profissional', 'corpo clinico', 'registrar profissional', 'contratar profissional')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>incluir ou cadastrar um novo profissional/colaborador</strong>, acesse a aba 🩺 <strong>Profissionais</strong> e clique em <strong>+ Novo Médico/Profissional</strong>. Preencha Nome, Registro/CRM, Especialidade e Telefone.', actionText: '🩺 Cadastrar Novo Profissional', actionType: 'openDoctorModal', actionTarget: 'medicos' };
   }
-  if (has('registro', 'conselho', 'validar', 'verificar', 'conselho classe')) {
-    return { title: 'Nexus AI Copilot', summary: 'O <strong>Registro Profissional</strong> é validado automaticamente pelo sistema ao digitar o número.', actionText: '🩺 Ver Profissionais', actionType: 'switchTab', actionTarget: 'medicos' };
+  if (hasAll('profissional', 'excluir') || has('excluir profissional', 'desativar colaborador', 'remover funcionario', 'lixeira medico', 'excluir medico', 'excluir colaborador', 'excluir funcionario', 'desligar medico')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>desativar ou excluir um colaborador/médico</strong>, acesse 🩺 <strong>Profissionais & Corpo Clínico</strong>, localize o profissional e clique no ícone de 🗑️ Lixeira. O cadastro é inativado e o histórico médico permanece intacto.', actionText: '🩺 Abrir Corpo Clínico', actionType: 'switchTab', actionTarget: 'medicos' };
+  }
+  if (hasAll('profissional', 'editar') || hasAll('crm', 'editar') || has('editar colaborador', 'editar funcionario', 'editar medico', 'alterar especialidade')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>editar dados de um profissional ou colaborador</strong>, acesse 🩺 <strong>Profissionais</strong> e clique no ícone de ✏️ Lápis no card para alterar especialidade, CRM, telefone ou e-mail.', actionText: '🩺 Ir para Profissionais', actionType: 'switchTab', actionTarget: 'medicos' };
+  }
+  if (has('registro', 'conselho', 'validar', 'verificar', 'conselho classe', 'cfm', 'coren')) {
+    return { title: 'Nexus AI Copilot', summary: 'O <strong>Registro Profissional (CRM/COREN)</strong> é validado automaticamente pelo sistema contra a base oficial ao digitar o número.', actionText: '🩺 Ver Profissionais', actionType: 'switchTab', actionTarget: 'medicos' };
   }
   if (has('plantao', 'escala', 'turno', 'horario', 'alocar plantao')) {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>alocar um profissional na escala de plantão</strong>, acesse 📅 <strong>Escalas de Trabalho</strong>.', actionText: '📅 Abrir Escalas de Trabalho', actionType: 'switchTab', actionTarget: 'escalas' };
   }
 
   // ── PACIENTES ────────────────────────────────────────────────────────
-  if (hasAll('paciente', 'incluir') || hasAll('paciente', 'cadastrar') || hasAll('paciente', 'novo') || hasAll('paciente', 'adicionar') ||
-      has('incluir paciente', 'cadastrar paciente', 'novo paciente', 'admitir paciente', 'registrar paciente')) {
+  if (hasAll('paciente', 'cadastrar') || hasAll('paciente', 'novo') ||
+      has('cadastrar paciente', 'novo paciente', 'admitir paciente', 'registrar paciente')) {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>cadastrar um novo paciente</strong>, acesse 👥 <strong>Recepção & Pacientes</strong> e clique em <strong>+ Novo Paciente</strong> (atalho: <strong>Alt+N</strong>). Preencha CPF, Nome, Data de Nascimento e Telefone.', actionText: '👥 Admitir Novo Paciente', actionType: 'openPatientModal', actionTarget: 'pacientes' };
   }
   if (hasAll('paciente', 'buscar') || hasAll('paciente', 'procurar') || hasAll('paciente', 'encontrar') || has('buscar paciente', 'procurar cpf')) {
     return { title: 'Nexus AI Copilot', summary: 'Use a <strong>barra de busca na aba Recepção</strong> para encontrar pacientes por Nome ou CPF (com ou sem formatação). A busca é instantânea à medida que você digita.', actionText: '🔍 Ir para Recepção', actionType: 'switchTab', actionTarget: 'pacientes' };
   }
-  if (hasAll('paciente', 'excluir') || hasAll('paciente', 'deletar') || hasAll('paciente', 'remover') || hasAll('paciente', 'lixeira')) {
-    return { title: 'Nexus AI Copilot', summary: 'Para <strong>remover ou inativar um paciente</strong>, localize o paciente na aba Recepção e clique no ícone de 🗑️ Lixeira. O prontuário histórico é preservado.', actionText: '👥 Ir para Recepção', actionType: 'switchTab', actionTarget: 'pacientes' };
+  if (hasAll('paciente', 'excluir') || has('excluir paciente', 'deletar paciente', 'remover paciente', 'inativar paciente', 'lixeira paciente')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>remover, excluir ou inativar um paciente</strong>, localize o paciente na aba 👥 <strong>Recepção & Pacientes</strong> e clique no ícone de 🗑️ Lixeira. O prontuário histórico é preservado com segurança.', actionText: '👥 Ir para Recepção', actionType: 'switchTab', actionTarget: 'pacientes' };
   }
   if (hasAll('paciente', 'fila') || hasAll('paciente', 'encaminhar') || hasAll('paciente', 'triagem') || has('enviar fila', 'fila espera', 'entrada ps', 'acolhimento')) {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>enviar um paciente para a fila de triagem</strong>, localize-o na Recepção e clique em <strong>"Enviar para Fila"</strong>. O paciente aparecerá na Tela de Atendimentos da enfermagem.', actionText: '👥 Ir para Recepção', actionType: 'switchTab', actionTarget: 'pacientes' };
@@ -51,13 +88,13 @@ export const getNexusAICopilotResponse = (q, raw) => {
   if (has('agendar', 'novo agendamento', 'marcar consulta', 'marcar hora', 'reservar horario', 'agendamento consulta')) {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>agendar uma consulta</strong>, acesse 📅 <strong>Agenda & Consultas</strong> e clique em <strong>Novo Agendamento</strong>. Selecione o profissional, data, horário e paciente.', actionText: '📅 Abrir Agenda', actionType: 'switchTab', actionTarget: 'agenda' };
   }
-  if (has('cancelar agendamento', 'cancelar consulta', 'desmarcar consulta', 'desmarcar agendamento')) {
-    return { title: 'Nexus AI Copilot', summary: 'Para <strong>cancelar um agendamento</strong>, localize a consulta na Agenda e clique no ícone ❌. O registro é mantido no histórico com status "Cancelado".', actionText: '📅 Abrir Agenda', actionType: 'switchTab', actionTarget: 'agenda' };
+  if (has('cancelar agendamento', 'cancelar consulta', 'desmarcar consulta', 'excluir agendamento', 'excluir consulta', 'deletar consulta')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>cancelar ou excluir um agendamento</strong>, localize a consulta na Agenda e clique no ícone ❌. O registro é mantido no histórico com status "Cancelado".', actionText: '📅 Abrir Agenda', actionType: 'switchTab', actionTarget: 'agenda' };
   }
   if (has('reagendar', 'remarcar consulta', 'trocar horario consulta', 'mudar data consulta')) {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>reagendar uma consulta</strong>, localize o agendamento na Agenda e clique no ícone de 🔄 Relógio para selecionar a nova data e horário.', actionText: '📅 Abrir Agenda', actionType: 'switchTab', actionTarget: 'agenda' };
   }
-  if (has('check-in', 'confirmar presenca', 'confirmar chegada', 'paciente chegou', 'paciente chegou')) {
+  if (has('check-in', 'confirmar presenca', 'confirmar chegada', 'paciente chegou')) {
     return { title: 'Nexus AI Copilot', summary: 'O <strong>Check-in do paciente</strong> é feito na Agenda clicando em <strong>"Confirmar Presença"</strong> (✅) quando o paciente chega. Isso atualiza a fila de atendimento automaticamente.', actionText: '📅 Abrir Agenda', actionType: 'switchTab', actionTarget: 'agenda' };
   }
 
@@ -79,8 +116,11 @@ export const getNexusAICopilotResponse = (q, raw) => {
   }
 
   // ── FARMÁCIA / ESTOQUE ───────────────────────────────────────────────
-  if (has('adicionar medicamento', 'cadastrar medicamento', 'novo medicamento', 'incluir medicamento', 'adicionar remedio', 'cadastrar remedio')) {
+  if (has('cadastrar medicamento', 'novo medicamento', 'cadastrar insumo')) {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>cadastrar um medicamento no estoque</strong>, acesse 💊 <strong>Farmácia & Estoque</strong> e clique em <strong>+ Novo Medicamento</strong>. Informe nome, lote, validade e quantidade.', actionText: '💊 Abrir Farmácia', actionType: 'switchTab', actionTarget: 'farmacia' };
+  }
+  if (hasAll('medicamento', 'excluir') || has('excluir medicamento', 'inativar medicamento', 'remover remedio')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>inativar ou excluir um medicamento</strong>, acesse 💊 <strong>Farmácia & Estoque</strong>, localize o item e clique em Inativar/Excluir.', actionText: '💊 Abrir Farmácia', actionType: 'switchTab', actionTarget: 'farmacia' };
   }
   if (has('dispensar medicamento', 'dispensacao', 'entregar medicamento', 'dispensar remedio')) {
     return { title: 'Nexus AI Copilot', summary: 'A <strong>Dispensação de Medicamentos</strong> ocorre na aba 💊 <strong>Farmácia</strong>. O farmacêutico confirma os itens da prescrição e clica em "Confirmar Dispensação" para dar baixa no estoque.', actionText: '💊 Abrir Farmácia', actionType: 'switchTab', actionTarget: 'farmacia' };
@@ -99,18 +139,21 @@ export const getNexusAICopilotResponse = (q, raw) => {
   if (has('leito ocupado', 'leito livre', 'ocupacao leito', 'disponibilidade leito', 'leito disponivel')) {
     return { title: 'Nexus AI Copilot', summary: 'A <strong>disponibilidade de leitos</strong> é visualizada em tempo real no 🛏️ <strong>Gestão de Leitos</strong> (lista) ou no Dashboard (gráfico donut de ocupação por ala).', actionText: '🛏️ Ver Gestão de Leitos', actionType: 'switchTab', actionTarget: 'leitos' };
   }
+  if (hasAll('leito', 'excluir') || has('excluir leito', 'desativar leito', 'cancelar internacao')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>desativar um leito ou cancelar uma internação</strong>, acesse 🛏️ <strong>Gestão de Leitos</strong> e selecione a opção de desativação/alta.', actionText: '🛏️ Gestão de Leitos', actionType: 'switchTab', actionTarget: 'leitos' };
+  }
 
   // ── ESCALAS DE TRABALHO ──────────────────────────────────────────────
-  if (has('escala trabalho', 'escala plantao', 'plantao enfermeiro', 'plantao medico', 'turno trabalho', 'adicionar escala', 'nova escala')) {
+  if (has('escala trabalho', 'escala plantao', 'plantao enfermeiro', 'plantao medico', 'turno trabalho', 'cadastrar plantao', 'cadastrar escala')) {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>gerenciar escalas de plantão</strong>, acesse 📅 <strong>Escalas de Trabalho</strong>. A aba possui sub-seções separadas para Profissionais de saúde com controle de turno, data e consultório.', actionText: '📅 Abrir Escalas de Trabalho', actionType: 'switchTab', actionTarget: 'escalas' };
   }
 
   // ── USUÁRIOS / CONFIGURAÇÕES ─────────────────────────────────────────
-  if (has('criar usuario', 'novo usuario', 'adicionar usuario', 'cadastrar usuario', 'incluir usuario', 'adicionar funcionario', 'registrar usuario')) {
-    return { title: 'Nexus AI Copilot', summary: 'Para <strong>criar um novo usuário</strong>, acesse ⚙️ <strong>Configurações → Gerenciar Usuários</strong> e clique em <strong>"+ Novo Usuário"</strong>. Defina nome, login, senha e papel de acesso (RBAC).', actionText: '⚙️ Gerenciar Usuários', actionType: 'switchTab', actionTarget: 'configuracoes' };
+  if (has('cadastrar usuario', 'novo usuario', 'adicionar usuario', 'incluir usuario', 'adicionar funcionario', 'registrar usuario')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>criar um novo usuário de acesso</strong>, acesse ⚙️ <strong>Configurações → Gerenciar Usuários</strong> e clique em <strong>"+ Novo Usuário"</strong>. Defina nome, login, senha e papel de acesso (RBAC).', actionText: '⚙️ Gerenciar Usuários', actionType: 'switchTab', actionTarget: 'configuracoes' };
   }
-  if (has('excluir usuario', 'deletar usuario', 'remover usuario', 'lixeira usuario') || (has('usuario') && has('excluir', 'deletar', 'apagar', 'remover'))) {
-    return { title: 'Nexus AI Copilot', summary: 'Para <strong>excluir um usuário</strong>, acesse ⚙️ <strong>Configurações → Gerenciar Usuários</strong> e clique no ícone 🗑️ Lixeira. Apenas perfis Master têm essa permissão.', actionText: '⚙️ Gerenciar Usuários', actionType: 'switchTab', actionTarget: 'configuracoes' };
+  if (has('excluir usuario', 'remover usuario', 'lixeira usuario') || (has('usuario') && has('excluir'))) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>excluir um usuário do sistema</strong>, acesse ⚙️ <strong>Configurações → Gerenciar Usuários</strong> e clique no ícone 🗑️ Lixeira. Apenas perfis Master têm essa permissão.', actionText: '⚙️ Gerenciar Usuários', actionType: 'switchTab', actionTarget: 'configuracoes' };
   }
   if (has('senha', 'reset senha', 'redefinir senha', 'mudar senha', 'esqueci senha', 'trocar senha')) {
     return { title: 'Nexus AI Copilot', summary: 'A <strong>redefinição de senha</strong> é feita na aba ⚙️ <strong>Configurações</strong>, clicando no ícone 🔑 Chave ao lado do usuário. Apenas o perfil Master pode resetar senhas.', actionText: '⚙️ Ir para Configurações', actionType: 'switchTab', actionTarget: 'configuracoes' };
@@ -120,18 +163,24 @@ export const getNexusAICopilotResponse = (q, raw) => {
   }
 
   // ── CONSULTÓRIOS / SALAS ─────────────────────────────────────────────
-  if (has('consultorio', 'sala atendimento', 'criar sala', 'nova sala', 'adicionar consultorio')) {
-    return { title: 'Nexus AI Copilot', summary: 'Para gerenciar <strong>Salas & Consultórios</strong>, acesse 🚪 <strong>Consultórios</strong>. Aqui você pode criar, editar e monitorar a ocupação de cada sala em tempo real.', actionText: '🚪 Abrir Consultórios', actionType: 'switchTab', actionTarget: 'consultorios' };
+  if (has('consultorio', 'sala atendimento', 'cadastrar sala', 'nova sala', 'cadastrar consultorio')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para gerenciar <strong>Salas & Consultórios</strong>, acesse 🚪 <strong>Consultórios</strong>. Aqui você pode cadastrar, editar, excluir salas e monitorar a ocupação em tempo real.', actionText: '🚪 Abrir Consultórios', actionType: 'switchTab', actionTarget: 'consultorios' };
+  }
+  if (has('excluir consultorio', 'excluir sala', 'remover consultorio', 'remover sala', 'desativar sala')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>excluir ou desativar um consultório</strong>, acesse 🚪 <strong>Consultórios</strong> e utilize o botão de exclusão na sala correspondente.', actionText: '🚪 Abrir Consultórios', actionType: 'switchTab', actionTarget: 'consultorios' };
   }
 
   // ── FINANCEIRO / FATURAMENTO ─────────────────────────────────────────
-  if (has('faturamento', 'financeiro', 'cobranca', 'nota fiscal', 'recebimento', 'convenio', 'plano saude', 'sus')) {
-    return { title: 'Nexus AI Copilot', summary: 'O módulo de <strong>Faturamento & Financeiro</strong> controla cobranças por convênio, SUS e particular. Acesse para visualizar receitas, emitir faturas e gerar relatórios financeiros.', actionText: '💰 Abrir Financeiro', actionType: 'switchTab', actionTarget: 'financeiro' };
+  if (has('faturamento', 'financeiro', 'cobranca', 'nota fiscal', 'recebimento', 'convenio', 'plano saude', 'sus', 'baixa manual', 'parcela')) {
+    return { title: 'Nexus AI Copilot', summary: 'O módulo de <strong>Faturamento & Financeiro</strong> controla cobranças por convênio, SUS e particular, além de baixa manual de parcelas (individual ou em lote).', actionText: '💰 Abrir Financeiro', actionType: 'switchTab', actionTarget: 'financeiro' };
+  }
+  if (has('excluir fatura', 'cancelar cobranca', 'excluir cobranca', 'estornar', 'cancelar parcela')) {
+    return { title: 'Nexus AI Copilot', summary: 'Para <strong>cancelar ou excluir uma cobrança</strong>, acesse 💰 <strong>Financeiro</strong>, localize a fatura e clique em Cancelar/Estornar.', actionText: '💰 Abrir Financeiro', actionType: 'switchTab', actionTarget: 'financeiro' };
   }
 
   // ── RELATÓRIOS ───────────────────────────────────────────────────────
-  if (has('relatorio', 'gerar relatorio', 'exportar relatorio', 'imprimir relatorio', 'pdf relatorio', 'metricas', 'indicadores')) {
-    return { title: 'Nexus AI Copilot', summary: 'Os <strong>Relatórios & Métricas</strong> estão disponíveis na aba 📊 <strong>Relatórios</strong>. Gere PDFs de atendimentos, internações, farmácia, financeiro e muito mais com filtros de período.', actionText: '📊 Abrir Relatórios', actionType: 'switchTab', actionTarget: 'relatorios' };
+  if (has('relatorio', 'exportar relatorio', 'imprimir relatorio', 'pdf relatorio', 'metricas', 'indicadores', 'excel', 'csv')) {
+    return { title: 'Nexus AI Copilot', summary: 'Os <strong>Relatórios & Métricas</strong> estão disponíveis na aba 📊 <strong>Relatórios</strong>. Gere PDFs e planilhas de atendimentos, internações, farmácia, financeiro e muito mais com filtros de período.', actionText: '📊 Abrir Relatórios', actionType: 'switchTab', actionTarget: 'relatorios' };
   }
 
   // ── PAINEL TV ────────────────────────────────────────────────────────

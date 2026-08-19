@@ -728,7 +728,7 @@
 
 ---
 
-## 🔄 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.4.0)
+## 🔄 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.0)
 
 O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:
 
@@ -908,8 +908,8 @@ A tela de autenticação foi atualizada para exigir a validação exata da senha
 - Garantia de que contas individuais (ex: `ljordao`, `bcoltri`, `admin`) só possuem acesso liberado mediante a apresentação da senha cadastrada correspondente.
 
 ---
-# # #   2 2 . 6 .   S i n c r o n i z a � � o   M a n u a l   c o m   T u r s o   C l o u d 
- F o i   a d i c i o n a d a   a   o p � � o   d e   a t i v a r   a   S i n c r o n i z a � � o   M a n u a l   n a s   c o n f i g u r a � � e s   d e   B a n c o   d e   D a d o s .   I s s o   d e s a t i v a   a   v e r i f i c a � � o   a u t o m � t i c a   a   c a d a   1 5   m i n u t o s ,   p e r m i t i n d o   q u e   a   s i n c r o n i z a � � o   o c o r r a   a p e n a s   a o   c l i c a r   n o   b o t � o   ' S i n c r o n i z a r   A g o r a '   o u   a t r a v � s   d o   b o t � o   n a   b a r r a   s u p e r i o r   ( q u e   e x i b i r �   a   e t i q u e t a   ' M A N U A L ' ) .  
+# # #   2 2 . 6 .   S i n c r o n i z a � � o   M a n u a l   c o m   T u r s o   C l o u d 
+ F o i   a d i c i o n a d a   a   o p � � o   d e   a t i v a r   a   S i n c r o n i z a � � o   M a n u a l   n a s   c o n f i g u r a � � e s   d e   B a n c o   d e   D a d o s .   I s s o   d e s a t i v a   a   v e r i f i c a � � o   a u t o m � t i c a   a   c a d a   1 5   m i n u t o s ,   p e r m i t i n d o   q u e   a   s i n c r o n i z a � � o   o c o r r a   a p e n a s   a o   c l i c a r   n o   b o t � o   ' S i n c r o n i z a r   A g o r a '   o u   a t r a v � s   d o   b o t � o   n a   b a r r a   s u p e r i o r   ( q u e   e x i b i r �   a   e t i q u e t a   ' M A N U A L ' ) .  
  
 ### 22.3. Sincronização com Turso Cloud
 Na tela de Configurações Globais, os usuários Master ou Desenvolvedores podem configurar as credenciais do banco de dados Turso. A sincronização ocorre automaticamente a cada 15 minutos, mas é possível ativar a opção **Habilitar Sincronização Manual**, que desativa a verificação automática, permitindo que a sincronização de dados (upload/download) seja feita exclusivamente clicando no botão **Sincronizar Agora**.
