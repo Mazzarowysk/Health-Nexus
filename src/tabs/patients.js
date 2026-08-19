@@ -655,10 +655,10 @@ export function renderPatientsTab(contentArea) {
         await loadAndRenderTable();
         if (!isEdit && typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: 'Cadastro Concluído',
-            message: `O paciente <strong>${fullName}</strong> foi registrado com sucesso.<br><br><strong>Próximo Passo:</strong> Vá até a coluna de <strong>Ações</strong> deste paciente na lista e clique no primeiro botão azul (Admitir Paciente) para direcioná-lo à Fila de Triagem.`,
-            targetTab: 'pacientes',
-            targetTabLabel: 'Lista de Pacientes',
+            actionTitle: '✅ Cadastro de Paciente Concluído',
+            message: `O paciente <strong>${fullName}</strong> foi cadastrado com sucesso no sistema SUS.<br><br><strong>Próximo Passo:</strong> Clique no botão abaixo para abrir a <strong>Central de Atendimentos</strong> e realizar a admissão imediata para a Triagem de Manchester.`,
+            targetTab: 'atendimento',
+            targetTabLabel: 'Central de Atendimentos',
             targetPatientName: fullName,
             persistent: true
           });

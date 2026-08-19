@@ -304,8 +304,18 @@ export function renderAttendanceTab(contentArea) {
       const res = await apiFetch(`/api/encounters`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(bodyData) });
       const d = await res.json();
       if (res.ok) {
-        showToast(`✅ ${selectedPatient?.fullName || 'Paciente'} admitido(a)!`);
+        showToast(`✅ ${patientName} admitido(a)!`);
         closeAdmissionPanel();
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: '🏥 Admissão Hospitalar Realizada',
+            message: `O paciente <strong>${patientName}</strong> foi admitido no fluxo de <strong>${type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</strong>.<br><br><strong>Próximo Passo:</strong> O paciente está na coluna <strong>Aguardando Triagem</strong>. Clique em 'Realizar Triagem' para aferir sinais vitais e definir a cor Manchester.`,
+            targetTab: 'atendimento',
+            targetTabLabel: 'Fila de Triagem Manchester',
+            targetPatientName: patientName,
+            persistent: true
+          });
+        }
         await loadAndRenderKanban();
       } else {
         showToast(`❌ ${d.message || 'Erro ao admitir.'}`, true);
