@@ -264,11 +264,11 @@ const logout = () => {
   state.user = null;
   renderAuthScreen();
 };
+
 window.renderAuthScreen = renderAuthScreen;
 window.logout = logout;
 window.initializeApp = initializeApp;
 
-// --- NOTIFICAÇÃO VISUAL DE CONCLUSÃO E DIRECIONAMENTO DE FLUXO (ENHANCED v2.6.0) ---
 export function showFlowCompletionNotification(options = {}) {
   const {
     actionTitle = 'Próxima Etapa do Atendimento',
@@ -280,6 +280,7 @@ export function showFlowCompletionNotification(options = {}) {
     targetPatientId = null,
     targetPatientCpf = null,
     actionType = null,
+    autoSwitch = false,
     persistent = false
   } = options;
 

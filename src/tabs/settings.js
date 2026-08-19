@@ -617,6 +617,7 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
   const patients = result.patients || [];
   const doctors = result.doctors || [];
   const nurses = result.nurses || [];
+  const users = result.users || (window.localDB ? window.localDB.list('users') : []) || [];
   const appointments = result.appointments || [];
   const encounters = result.encounters || [];
   const triages = result.triages || [];
@@ -625,6 +626,7 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
   const financial = result.financial_installments || [];
   const tvCalls = result.tv_calls || [];
   const medications = result.medications || [];
+  const dutySchedules = result.duty_schedules || [];
 
   const overlay = document.createElement('div');
   overlay.id = 'hn-simulation-summary-modal';
@@ -641,9 +643,9 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
             <i class="fa-solid fa-list-check"></i>
           </div>
           <div>
-            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff;">Checking de Simulação Realizada</h3>
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff;">Simulação Realizada com Sucesso!</h3>
             <span style="font-size: 0.8rem; color: rgba(255,255,255,0.9); font-weight: 500;">
-              <i class="fa-solid fa-check-circle" style="color: #34d399;"></i> ${count} registros gerados e distribuídos com sucesso
+              <i class="fa-solid fa-check-circle" style="color: #34d399;"></i> ${count} registros gerados e distribuídos pelo hospital
             </span>
           </div>
         </div>
@@ -653,49 +655,57 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
       <!-- Navegação de Abas do Modal -->
       <div style="display: flex; gap: 8px; padding: 12px 24px 0; background: var(--bg-tertiary, #1a1a35); border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
         <button id="tab-btn-sim-check" class="btn" style="background: var(--bg-secondary, #131326); color: #00f2fe; border: 1px solid var(--border-color); border-bottom: 2px solid #00f2fe; padding: 8px 16px; font-size: 0.82rem; font-weight: 700; border-radius: 8px 8px 0 0; cursor: pointer;">
-          <i class="fa-solid fa-list-check"></i> Checklist & Checking dos Módulos
+          <i class="fa-solid fa-list-check"></i> Resumo dos Dados Injetados (10 Módulos)
         </button>
         <button id="tab-btn-sim-patients" class="btn" style="background: transparent; color: var(--text-muted); border: 1px solid transparent; padding: 8px 16px; font-size: 0.82rem; font-weight: 600; border-radius: 8px 8px 0 0; cursor: pointer;">
-          <i class="fa-solid fa-hospital-user"></i> Listagem dos Registros Gerados (${patients.length})
+          <i class="fa-solid fa-hospital-user"></i> Listagem dos Pacientes Gerados (${patients.length})
         </button>
       </div>
 
       <!-- Corpo com Rolagem -->
       <div id="sim-modal-body-content" style="padding: 22px 24px; overflow-y: auto; flex: 1;">
         
-        <!-- SEÇÃO 1: CHECKLIST DE MÓDULOS -->
+        <!-- SEÇÃO 1: CHECKLIST DE MÓDULOS (10 ITENS EXATOS) -->
         <div id="sim-section-check">
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-bottom: 20px;">
             
             <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
               <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
               <div>
-                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Pacientes (SUS)</strong>
-                <span style="font-size: 0.74rem; color: var(--text-muted);">${patients.length} cadastros completos com CPF</span>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Pacientes</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${patients.length}</strong> pacientes</span>
               </div>
             </div>
 
             <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
               <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
               <div>
-                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Triagem Manchester</strong>
-                <span style="font-size: 0.74rem; color: var(--text-muted);">${triages.length} triagens e sinais vitais</span>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Corpo Clínico</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${doctors.length}</strong> médicos | <strong>${nurses.length}</strong> enfermeiros</span>
               </div>
             </div>
 
             <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
               <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
               <div>
-                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Atendimentos & PS</strong>
-                <span style="font-size: 0.74rem; color: var(--text-muted);">${encounters.length} atendimentos no Kanban</span>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Usuários com Login</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${users.length}</strong> usuários com login</span>
               </div>
             </div>
 
             <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
               <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
               <div>
-                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Agenda de Consultórios</strong>
-                <span style="font-size: 0.74rem; color: var(--text-muted);">${appointments.length} consultas distribuídas</span>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Agendamentos</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${appointments.length}</strong> agendamentos</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Atendimentos & Triagens</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${encounters.length}</strong> atendimentos | <strong>${triages.length}</strong> triagens</span>
               </div>
             </div>
 
@@ -703,15 +713,39 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
               <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
               <div>
                 <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Censo Hospitalar (Leitos)</strong>
-                <span style="font-size: 0.74rem; color: var(--text-muted);">${bedsOccupied} ocupados de ${beds.length} leitos</span>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${bedsOccupied}/${beds.length}</strong> leitos ocupados</span>
               </div>
             </div>
 
             <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
               <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
               <div>
-                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Financeiro & Títulos</strong>
-                <span style="font-size: 0.74rem; color: var(--text-muted);">${financial.length} títulos gerados</span>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Títulos Financeiros</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${financial.length}</strong> títulos financeiros</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Chamadas TV</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${tvCalls.length}</strong> chamadas TV</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Medicamentos</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${medications.length}</strong> medicamentos</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.3rem; color: #10b981;"></i>
+              <div>
+                <strong style="font-size: 0.85rem; color: #f8fafc; display: block;">Escalas de Plantão</strong>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">&rarr; <strong>${dutySchedules.length}</strong> escalas de plantão (Médicos + Enf.)</span>
               </div>
             </div>
 
