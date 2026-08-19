@@ -218,9 +218,14 @@ export function renderPatientsTab(contentArea) {
             </div> <!-- Fim coluna 2 -->
           </div> <!-- Fim grid duas colunas -->
 
-            <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-              <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1;">Registrar Paciente</button>
-              <button type="button" id="cancel-edit-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); flex: 1;">Cancelar</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+              <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1; min-width: 150px;">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Cadastro
+              </button>
+              <button type="button" id="submit-and-admit-btn" class="btn" style="flex: 1.2; min-width: 190px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                <i class="fa-solid fa-truck-medical"></i> Salvar e Admitir no PS
+              </button>
+              <button type="button" id="cancel-edit-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); flex: 0.6; min-width: 90px;">Cancelar</button>
             </div>
           </form>
         </div>
@@ -650,16 +655,55 @@ export function renderPatientsTab(contentArea) {
       });
       const data = await res.json();
       if (res.ok) {
+        const savedPatientId = (data.data && data.data.id) || payload.id || editId;
         resetForm();
         dataCache.delete('patients');
         await loadAndRenderTable();
-        if (!isEdit && typeof window.showFlowCompletionNotification === 'function') {
+
+        if (shouldDirectlyAdmit && !isEdit) {
+          shouldDirectlyAdmit = false;
+          try {
+            const encRes = await apiFetch(`/api/encounters`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                patientId: savedPatientId,
+                patientName: fullName,
+                type: 'Urgencia',
+                status: 'Aguardando_Triagem',
+                admitted_at: new Date().toISOString()
+              })
+            });
+            if (encRes.ok) {
+              showToast(`✅ ${fullName} cadastrado e admitido na Triagem!`);
+              if (typeof window.switchTab === 'function') {
+                window.switchTab('atendimento');
+              }
+              if (typeof window.showFlowCompletionNotification === 'function') {
+                window.showFlowCompletionNotification({
+                  actionTitle: '🏥 Admissão no PS Concluída',
+                  message: `O paciente <strong>${fullName}</strong> já está na fila de <strong>Aguardando Triagem</strong>.<br><br><strong>Próximo Passo:</strong> Clique no botão <strong>Realizar Triagem</strong> do card para registrar os sinais vitais e a classificação Manchester.`,
+                  targetTab: 'atendimento',
+                  targetTabLabel: 'Fila de Triagem Manchester',
+                  targetColumn: 'col-triage',
+                  targetPatientName: fullName,
+                  persistent: true
+                });
+              }
+            }
+          } catch (e) {
+            console.error('Erro ao auto-admitir:', e);
+          }
+        } else if (!isEdit && typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
             actionTitle: '✅ Cadastro de Paciente Concluído',
-            message: `O paciente <strong>${fullName}</strong> foi cadastrado com sucesso no sistema SUS.<br><br><strong>Próximo Passo:</strong> Clique no botão abaixo para abrir a <strong>Central de Atendimentos</strong> e realizar a admissão imediata para a Triagem de Manchester.`,
+            message: `O paciente <strong>${fullName}</strong> foi cadastrado com sucesso no sistema SUS.<br><br><strong>Próximo Passo:</strong> Clique no botão abaixo para abrir a <strong>Central de Atendimentos</strong> com <strong>${fullName}</strong> pré-selecionado para admissão imediata.`,
             targetTab: 'atendimento',
-            targetTabLabel: 'Central de Atendimentos',
+            targetTabLabel: 'Admitir para Triagem',
+            targetPatientId: savedPatientId,
             targetPatientName: fullName,
+            targetPatientCpf: cpf,
+            actionType: 'admit_patient',
             persistent: true
           });
         } else {
@@ -675,10 +719,22 @@ export function renderPatientsTab(contentArea) {
     } catch (err) {
       showCustomAlert({ title: 'Erro', message: 'Erro ao conectar-se à API.', type: 'danger' });
     } finally {
+      shouldDirectlyAdmit = false;
       if (submitButton) {
         submitButton.disabled = false;
         submitButton.textContent = originalSubmitText;
       }
+    }
+  });
+
+  let shouldDirectlyAdmit = false;
+  document.getElementById('submit-and-admit-btn')?.addEventListener('click', () => {
+    shouldDirectlyAdmit = true;
+    const form = document.getElementById('patient-form');
+    if (form && form.reportValidity()) {
+      form.dispatchEvent(new Event('submit', { cancelable: true }));
+    } else {
+      shouldDirectlyAdmit = false;
     }
   });
 

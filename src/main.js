@@ -264,17 +264,29 @@ const logout = () => {
   state.user = null;
   renderAuthScreen();
 };
-
 window.renderAuthScreen = renderAuthScreen;
 window.logout = logout;
 window.initializeApp = initializeApp;
 
 // --- NOTIFICAÇÃO VISUAL DE CONCLUSÃO E DIRECIONAMENTO DE FLUXO (ENHANCED v2.6.0) ---
-function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com Sucesso', message = '', targetTab = null, targetTabLabel = null, targetColumn = null, targetPatientName = null, autoSwitch = false, persistent = true }) {
-  let container = document.getElementById('flow-notification-container');
+export function showFlowCompletionNotification(options = {}) {
+  const {
+    actionTitle = 'Próxima Etapa do Atendimento',
+    message = 'Ação registrada com sucesso no sistema.',
+    targetTab = null,
+    targetTabLabel = null,
+    targetColumn = null,
+    targetPatientName = null,
+    targetPatientId = null,
+    targetPatientCpf = null,
+    actionType = null,
+    persistent = false
+  } = options;
+
+  let container = document.getElementById('hn-flow-notifications-container');
   if (!container) {
     container = document.createElement('div');
-    container.id = 'flow-notification-container';
+    container.id = 'hn-flow-notifications-container';
     container.style.cssText = `
       position: fixed;
       top: 76px;
@@ -298,7 +310,7 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
     farmacia:      'Farmácia & Estoque',
     tv_panel:      'Painel TV (Chamador)',
     agenda:        'Agenda & Consultas',
-    atendimento:   'Atendimentos & Prontuário Médico',
+    atendimento:   'Central de Atendimentos',
     estagnacao:    'Alertas & Estagnação',
     leitos:        'Gestão de Leitos & Internação',
     kanban:        'Kanban Hospitalar',
@@ -401,6 +413,14 @@ function showFlowCompletionNotification({ actionTitle = 'Ação Concluída com S
       card.style.transform = 'translateX(120%)';
       card.style.opacity = '0';
       setTimeout(() => card.remove(), 300);
+
+      // Se for ação de admitir paciente na Central de Atendimentos
+      if (actionType === 'admit_patient' || (targetTab === 'atendimento' && targetPatientId)) {
+        if (typeof window.admitPatientFromPatientsTab === 'function') {
+          window.admitPatientFromPatientsTab(targetPatientId, targetPatientName, targetPatientCpf);
+          return;
+        }
+      }
 
       // 2. Muda para a aba de destino
       if (typeof switchTab === 'function') {

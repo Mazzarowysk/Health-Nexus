@@ -1073,42 +1073,46 @@ window.openDoctorActivityModal = async function(doctorName, specialty, crm) {
 // ATALHO E PRONTUÁRIO DE PACIENTES PARA ATENDIMENTOS E HISTÓRICO
 // =========================================================
 window.admitPatientFromPatientsTab = function(patientId, fullName, cpf) {
-    showToast('⏳ Acessando Admissão para ' + fullName + '...');
-    switchTab('atendimento');
-  
-    setTimeout(() => {
-      // Abre o painel lateral de Nova Admissão
+  showToast('⏳ Acessando Admissão para ' + fullName + '...');
+  if (typeof switchTab === 'function') switchTab('atendimento');
+
+  setTimeout(() => {
+    if (typeof window.openAdmissionForPatient === 'function') {
+      window.openAdmissionForPatient(patientId, fullName, cpf);
+    } else {
       const openBtn = document.getElementById('btn-open-admission-panel');
       if (openBtn) openBtn.click();
       
-      // Simula a seleção direta do paciente no painel
-      const selectedIdInput = document.getElementById('selected-patient-id');
-      const infoBox = document.getElementById('adm-selected-info');
-      const nameEl = document.getElementById('adm-selected-name');
-      const cpfEl = document.getElementById('adm-selected-cpf');
-      const btnUrg = document.getElementById('btn-admit-urgencia');
-      const btnAmb = document.getElementById('btn-admit-ambulatorio');
-      const patientList = document.getElementById('adm-patient-list');
-      const searchWrapper = document.querySelector('.search-wrapper');
-      
-      if (selectedIdInput && infoBox && nameEl) {
-        selectedIdInput.value = patientId;
-        nameEl.textContent = fullName;
-        if (cpfEl) cpfEl.textContent = cpf ? 'CPF: ' + cpf : 'CPF Não Informado';
-        infoBox.style.display = 'block';
-        if (btnUrg) btnUrg.disabled = false;
-        if (btnAmb) btnAmb.disabled = false;
+      setTimeout(() => {
+        const selectedIdInput = document.getElementById('selected-patient-id');
+        const infoBox = document.getElementById('adm-selected-info');
+        const nameEl = document.getElementById('adm-selected-name');
+        const cpfEl = document.getElementById('adm-selected-cpf');
+        const btnUrg = document.getElementById('btn-admit-urgencia');
+        const btnAmb = document.getElementById('btn-admit-ambulatorio');
+        const patientList = document.getElementById('adm-patient-list');
+        const searchWrapper = document.querySelector('.search-wrapper');
         
-        // Hide the default list and search to prevent confusion (like "Nenhum paciente encontrado")
-        if (searchWrapper) searchWrapper.style.display = 'none';
-        if (patientList) {
-          patientList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--color-primary);font-weight:600;"><i class="fa-solid fa-check-circle" style="font-size:1.5rem;display:block;margin-bottom:8px;"></i> Paciente pré-selecionado com sucesso! Escolha o destino abaixo.</div>';
-          // Ensure it's not hidden
-          patientList.style.display = 'block';
+        if (selectedIdInput && infoBox && nameEl) {
+          selectedIdInput.value = patientId;
+          nameEl.textContent = fullName;
+          if (cpfEl) cpfEl.textContent = cpf ? 'CPF: ' + cpf : 'CPF Não Informado';
+          infoBox.style.display = 'block';
+          if (btnUrg) {
+            btnUrg.disabled = false;
+            btnUrg.style.animation = 'pulse 1.5s infinite';
+          }
+          if (btnAmb) btnAmb.disabled = false;
+          
+          if (searchWrapper) searchWrapper.style.display = 'none';
+          if (patientList) {
+            patientList.innerHTML = `<div style="padding:20px;text-align:center;color:#00f2fe;font-weight:700;"><i class="fa-solid fa-circle-check" style="font-size:1.6rem;display:block;margin-bottom:8px;color:#10b981;"></i> Paciente <strong>${fullName}</strong> pré-selecionado!<br><span style="font-size:0.75rem;color:var(--text-secondary);font-weight:normal;">Clique no botão <strong>Urgência (PS)</strong> abaixo para admitir na Triagem.</span></div>`;
+          }
         }
-      }
-    }, 250);
-  };
+      }, 100);
+    }
+  }, 200);
+};
 
 window.openPatientHistoryModal = async function(patientId, patientName) {
   const existing = document.getElementById('patient-history-modal');

@@ -279,6 +279,36 @@ export function renderAttendanceTab(contentArea) {
     });
   };
 
+  window.openAdmissionForPatient = (patientId, fullName, cpf) => {
+    openAdmissionPanel();
+    setTimeout(() => {
+      selectedPatient = { id: patientId, fullName, cpf };
+      const selectedIdInput = document.getElementById('selected-patient-id');
+      const infoBox = document.getElementById('adm-selected-info');
+      const nameEl = document.getElementById('adm-selected-name');
+      const cpfEl = document.getElementById('adm-selected-cpf');
+      const btnUrg = document.getElementById('btn-admit-urgencia');
+      const btnAmb = document.getElementById('btn-admit-ambulatorio');
+      const patientList = document.getElementById('adm-patient-list');
+
+      if (selectedIdInput && infoBox && nameEl) {
+        selectedIdInput.value = patientId;
+        nameEl.textContent = fullName;
+        if (cpfEl) cpfEl.textContent = cpf ? 'CPF: ' + cpf : 'CPF Não Informado';
+        infoBox.style.display = 'block';
+        if (btnUrg) {
+          btnUrg.disabled = false;
+          btnUrg.style.animation = 'pulse 1.5s infinite';
+        }
+        if (btnAmb) btnAmb.disabled = false;
+
+        if (patientList) {
+          patientList.innerHTML = `<div style="padding:20px;text-align:center;color:#00f2fe;font-weight:700;"><i class="fa-solid fa-circle-check" style="font-size:1.6rem;display:block;margin-bottom:8px;color:#10b981;"></i> Paciente <strong>${fullName}</strong> pré-selecionado!<br><span style="font-size:0.75rem;color:var(--text-secondary);font-weight:normal;">Clique no botão <strong>Urgência (PS)</strong> abaixo para admitir na Triagem.</span></div>`;
+        }
+      }
+    }, 150);
+  };
+
   document.getElementById('adm-search-input')?.addEventListener('input', e => {
     const q = removeAccents(e.target.value.toLowerCase());
     renderAdmList(admissionPatients.filter(p => removeAccents(p.fullName).toLowerCase().includes(q) || p.cpf.includes(q)));
