@@ -40,6 +40,71 @@ const executeTursoWithRetry = async (fn, retries = 2, delayMs = 600) => {
   throw lastError;
 };
 
+// =========================================================
+// ⚡ REAL-TIME PUSH: SERVER-SENT EVENTS (SSE)
+// =========================================================
+const sseClients = new Set();
+
+export const broadcastEvent = (type, payload) => {
+  const data = JSON.stringify({ type, payload, timestamp: Date.now() });
+  for (const client of sseClients) {
+    try {
+      client.res.write(`data: ${data}\n\n`);
+    } catch (e) {
+      sseClients.delete(client);
+    }
+  }
+};
+
+app.get('/api/events', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders?.();
+
+  const client = { id: Date.now() + Math.random(), res };
+  sseClients.add(client);
+
+  // Heartbeat a cada 25 segundos para manter o canal aberto
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': keep-alive\n\n');
+    } catch (e) {
+      clearInterval(heartbeat);
+      sseClients.delete(client);
+    }
+  }, 25000);
+
+  // Enviar evento de conexão estabelecida
+  res.write(`data: ${JSON.stringify({ type: 'connected', payload: { clientsCount: sseClients.size } })}\n\n`);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients.delete(client);
+  });
+});
+
+app.post('/api/tv/call', (req, res) => {
+  const { patientName, roomName, manchesterColor, doctorName } = req.body || {};
+  const callPayload = {
+    patientName: patientName || 'Paciente',
+    roomName: roomName || 'Consultório 01',
+    manchesterColor: manchesterColor || 'Verde',
+    doctorName: doctorName || 'Dr(a). Plantonista',
+    calledAt: new Date().toISOString()
+  };
+  broadcastEvent('tv_call', callPayload);
+  return res.json({ success: true, message: 'Chamada transmitida via SSE.', data: callPayload });
+});
+
+app.post('/api/broadcast', (req, res) => {
+  const { type, payload } = req.body || {};
+  if (!type) return res.status(400).json({ error: 'Tipo de evento é obrigatório.' });
+  broadcastEvent(type, payload);
+  return res.json({ success: true, message: `Evento ${type} transmitido.` });
+});
+
 // Endpoint de sincronização (simula api/turso.js)
 app.all('/api/turso', async (req, res) => {
   if (!tursoClient) {

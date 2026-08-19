@@ -10,8 +10,11 @@ O repositório está centralizado na pasta `c:\Health Nexus` e organizado com ar
 
 ```
 C:\Health Nexus\
+├── api/                       # Funções Serverless Edge Vercel
+│   ├── events.js              # Server-Sent Events (SSE) push hub
+│   └── index.js               # Handler API principal Vercel
 ├── backend/                   # Servidor Express API & Proxy Turso Serverless
-│   ├── app.js                 # Definição de rotas, proxy /api/turso, ANVISA OpenFDA e handlers
+│   ├── app.js                 # Definição de rotas, SSE stream /api/events, /api/tv/call e proxy
 │   └── server.js              # Ponto de entrada do servidor Node.js local
 ├── dist/                      # Bundle de produção gerado pelo Vite 5
 ├── docs/                      # Documentação técnica, requisitos, arquitetura e segurança
@@ -29,21 +32,27 @@ C:\Health Nexus\
 │   ├── modules/               # Submódulos desacoplados de responsabilidade única
 │   │   ├── api.js             # apiFetch, cache em memória, strings e agregação de KPIs
 │   │   ├── auth.js            # RBAC hospitalar, auditoria de logins e gestão de usuários
+│   │   ├── realtime.js        # RealtimeHub SSE com barramento BroadcastChannel multi-aba
 │   │   ├── sync.js            # SyncManager Dual-Pipeline (Vercel + Direct HTTP Turso)
 │   │   └── ui.js              # Temas, modais de alerta/confirmação, toasts e helpers UI
 │   ├── tabs/                  # Módulos especializados de cada aba hospitalar
 │   │   ├── agenda.js          # Agendamento ambulatorial e consultórios
-│   │   ├── attendance.js      # Fila de atendimento e triagem Manchester
+│   │   ├── attendance.js      # Fila de atendimento, triagem Manchester e permanência 12h PS
 │   │   ├── consultingRooms.js # Gestão e status de consultórios médicos
+│   │   ├── dashboard.js       # Dashboard executivo, funil dinâmico e gráficos Chart.js
 │   │   ├── doctors.js         # Corpo clínico e credenciamento CRM
+│   │   ├── escalas.js         # Escalas de plantão médico e enfermagem
+│   │   ├── kanban.js          # Kanban de internação por setor e leitos
 │   │   ├── leitos.js          # Mapa de leitos e censo hospitalar
+│   │   ├── patients.js        # CRUD de pacientes, validação SUS e busca inteligente
 │   │   ├── pharmacy.js        # Farmácia, lote, validade e dispensação
 │   │   ├── reports.js         # Relatórios gerenciais e exportação PDF/Excel
+│   │   ├── settings.js        # Configurações Turso, simulação e backups redundantes
 │   │   ├── stagnation.js      # Alertas de estagnação e tempo de permanência
 │   │   └── tv.js              # Painel de chamada com voz sintetizada
 │   ├── aiCopilot.js           # Assistente de IA para dúvidas e navegação
 │   ├── localDB.js             # Camada de persistência local (localStorage)
-│   ├── main.js                # Orquestrador central da SPA, roteamento e hubs
+│   ├── main.js                # Orquestrador enxuto da SPA, roteamento e hubs
 │   ├── manualTabbed.js        # Manual interativo integrado por abas com busca spotlight
 │   ├── mockDataGenerator.js   # Gerador de simulação hospitalar (5 a 300+ registros)
 │   ├── state.js               # Gerenciador de estado reativo global
