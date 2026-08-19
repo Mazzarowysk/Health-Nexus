@@ -20,24 +20,36 @@ const initTurso = () => {
 };
 initTurso();
 
-// Helper de timeout para evitar travamento e socket reset
-const executeTursoWithTimeout = (promise, ms = 3500) => {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Turso connection timeout')), ms))
-  ]);
+// Helper de timeout com retentativas para garantir estabilidade com grandes volumes de dados
+const executeTursoWithRetry = async (fn, retries = 2, delayMs = 600) => {
+  let lastError = null;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const promise = fn();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Turso connection timeout (15s)')), 15000)
+      );
+      return await Promise.race([promise, timeoutPromise]);
+    } catch (err) {
+      lastError = err;
+      if (i < retries) {
+        await new Promise(res => setTimeout(res, delayMs * (i + 1)));
+      }
+    }
+  }
+  throw lastError;
 };
 
 // Endpoint de sincronização (simula api/turso.js)
 app.all('/api/turso', async (req, res) => {
   if (!tursoClient) {
-    return res.status(200).json({ updated_at: 0, offline: true, error: 'Configuração do Turso ausente.' });
+    return res.status(503).json({ success: false, updated_at: 0, offline: true, error: 'Configuração do Turso ausente.' });
   }
 
   try {
     const { method } = req;
 
-    await executeTursoWithTimeout(tursoClient.execute(`
+    await executeTursoWithRetry(() => tursoClient.execute(`
       CREATE TABLE IF NOT EXISTS ocz_sync (
         id TEXT PRIMARY KEY,
         dados_json TEXT,
@@ -47,26 +59,30 @@ app.all('/api/turso', async (req, res) => {
     `));
 
     const SYNC_ID = 'main';
-    const result = await executeTursoWithTimeout(tursoClient.execute({
-      sql: 'SELECT * FROM ocz_sync WHERE id = ?',
+    const result = await executeTursoWithRetry(() => tursoClient.execute({
+      sql: 'SELECT id, updated_at, dados_json, config_json FROM ocz_sync WHERE id = ?',
       args: [SYNC_ID]
     }));
     const currentSync = result && result.rows ? result.rows[0] : null;
 
     // Status (Heartbeat)
-    if (method === 'GET' && req.query.status === '1') {
+    if (method === 'GET' && (req.url.includes('status') || req.query.status === '1')) {
       return res.status(200).json({ 
-        updated_at: currentSync ? currentSync.updated_at : 0 
+        success: true,
+        offline: false,
+        updated_at: currentSync ? Number(currentSync.updated_at) : 0 
       });
     }
 
     // Download
     if (method === 'GET') {
       if (!currentSync) {
-        return res.status(200).json({ updated_at: 0, dados_json: '{}', config_json: '{}' });
+        return res.status(200).json({ success: true, updated_at: 0, dados_json: '{}', config_json: '{}' });
       }
       return res.status(200).json({
-        updated_at: currentSync.updated_at,
+        success: true,
+        offline: false,
+        updated_at: Number(currentSync.updated_at),
         dados_json: currentSync.dados_json,
         config_json: currentSync.config_json
       });
@@ -74,32 +90,34 @@ app.all('/api/turso', async (req, res) => {
 
     // Upload
     if (method === 'POST') {
-      const { dados_json, config_json } = req.body;
+      const { dados_json, config_json } = req.body || {};
+      if (!dados_json) {
+        return res.status(400).json({ success: false, error: 'dados_json ausente' });
+      }
       const newUpdatedAt = Date.now();
       
       if (currentSync) {
-        await executeTursoWithTimeout(tursoClient.execute({
+        await executeTursoWithRetry(() => tursoClient.execute({
           sql: 'UPDATE ocz_sync SET dados_json = ?, config_json = ?, updated_at = ? WHERE id = ?',
-          args: [dados_json, config_json, newUpdatedAt, SYNC_ID]
+          args: [dados_json, config_json || '{}', newUpdatedAt, SYNC_ID]
         }));
       } else {
-        await executeTursoWithTimeout(tursoClient.execute({
+        await executeTursoWithRetry(() => tursoClient.execute({
           sql: 'INSERT INTO ocz_sync (id, dados_json, config_json, updated_at) VALUES (?, ?, ?, ?)',
-          args: [SYNC_ID, dados_json, config_json, newUpdatedAt]
+          args: [SYNC_ID, dados_json, config_json || '{}', newUpdatedAt]
         }));
       }
 
-      return res.status(200).json({ success: true, updated_at: newUpdatedAt });
+      return res.status(200).json({ success: true, offline: false, updated_at: newUpdatedAt });
     }
 
-    res.status(405).json({ error: 'Method Not Allowed' });
+    res.status(405).json({ success: false, error: 'Method Not Allowed' });
   } catch (error) {
-    console.warn('[Turso Sync] Conexão com Turso Cloud falhou ou expirou (operando offline):', error?.message || error);
-    // Em caso de falha de conexão com a nuvem (timeout ou token offline), responde gracioso 200 para não quebrar a aplicação
-    if (req.method === 'GET' && req.query.status === '1') {
-      return res.status(200).json({ updated_at: 0, offline: true });
+    console.error('[Turso Sync] Conexão com Turso Cloud falhou:', error?.message || error);
+    if (req.method === 'GET' && (req.url.includes('status') || req.query.status === '1')) {
+      return res.status(200).json({ updated_at: 0, offline: true, error: error?.message });
     }
-    res.status(200).json({ updated_at: 0, offline: true, error: 'Turso Cloud indisponível.' });
+    res.status(503).json({ success: false, updated_at: 0, offline: true, error: `Turso Cloud indisponível: ${error?.message || 'Timeout'}` });
   }
 });
 

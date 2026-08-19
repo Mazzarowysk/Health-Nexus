@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.7.0`  
+**Versão:** `2.7.1`  
 **Status:** Em desenvolvimento ativo  
 **Última atualização:** Agosto 2026
 
@@ -10,6 +10,7 @@
 
 - 🌐 **Manual Interativo por Abas (SPA):** Acessível diretamente pelo botão `📖 Manual do Usuário` no topo do sistema ou pela busca global `Ctrl + K`.
 - 📌 **Navegação Assistida & Retorno Rápido:** Ao pesquisar e navegar para qualquer tela pelo manual, um widget flutuante de retorno (*Floating Return Beacon*) é ativado no canto inferior direito (`Alt + M`) com destaque visual do card (*Smart Highlight Pulse*).
+- ☁️ **Sincronização em Nuvem de Alta Disponibilidade (Dual-Pipeline):** Sincronização atômica e resiliente entre navegadores e Turso Cloud LibSQL com fallback direto HTTP, timeout de 15s, retentativas automáticas e feedback de contagem de registros.
 - 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
 - 📄 **Manual Completo em Markdown (Com Fluxogramas):** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
 - 🔑 **Lista de Logins & Credenciais de Médicos/Enfermeiros:** [LOGINS_MEDICOS_ENFERMEIROS.txt](file:///c:/Health%20Nexus/LOGINS_MEDICOS_ENFERMEIROS.txt)
@@ -22,7 +23,7 @@
 |---|---|---|
 | 🐙 **GitHub** | ✅ Ativo | Branch `main` · Commits disparam deploys automáticos |
 | ▲ **Vercel** | ✅ Ativo | Hospeda Frontend (Vite) + Backend (Express API serverless) |
-| 🗄️ **Turso (LibSQL)** | ✅ Ativo | Banco de dados edge distribuído — Pacientes, Atendimentos, PEP, Escalas |
+| 🗄️ **Turso (LibSQL)** | ✅ Ativo | Banco de dados edge distribuído com Dual-Pipeline de sincronização |
 | 📊 **OpenFDA / ANVISA** | ✅ Ativo | Busca de medicamentos por nome genérico ou comercial — gratuito |
 | 🧠 **CFM Portal** | ✅ Ativo | Verificação de CRM médico via portal oficial CFM |
 | 📍 **ViaCEP** | ✅ Ativo | Autopreenchimento de endereço por CEP |

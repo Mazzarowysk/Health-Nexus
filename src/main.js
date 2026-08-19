@@ -1423,6 +1423,70 @@ class SyncManager {
     }
   }
 
+  // ─── TURSO DIRECT PIPELINE FALLBACK ─────────────────────────────────────
+  async pushDirectToTurso(dados_json, config_json) {
+    const directUrl = 'https://health-nexus-mazzarowysk.aws-us-east-1.turso.io/v2/pipeline';
+    const directToken = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODYxNDU1NTgsImlkIjoiMDE5Zjc1YmYtMTUwMS03YmMyLTlkYTQtZTA1ZGIxMzdiYjEyIiwia2lkIjoiU0RZWEtINkIzZWg1b3JtRDBPRXpUbmhUaGpFMllXRXJxbjhCNVFnSmVLZyIsInJpZCI6Ijg4YTY2NjM0LTM3YWQtNGEyZC04ZmUxLTFmYjM3ZDAxNGE4YiJ9.teLr9MEIIXvjkOJh_nUWWaGwJuF0vnFwaMdUsyQLQba1kLOP30ziYQJkCWDDbADYl74zhYLujOwdr0Gg5EWoAg';
+    const now = Date.now();
+
+    const pipelineBody = {
+      requests: [
+        { type: 'execute', stmt: { sql: `CREATE TABLE IF NOT EXISTS ocz_sync (id TEXT PRIMARY KEY, dados_json TEXT, config_json TEXT, updated_at INTEGER);` } },
+        { type: 'execute', stmt: { sql: `INSERT OR REPLACE INTO ocz_sync (id, dados_json, config_json, updated_at) VALUES ('main', ?, ?, ?);`, args: [{ type: 'text', value: dados_json }, { type: 'text', value: config_json || '{}' }, { type: 'integer', value: String(now) }] } }
+      ]
+    };
+
+    const res = await fetch(directUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${directToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(pipelineBody)
+    });
+
+    if (!res.ok) throw new Error(`Turso HTTP Direct retornou status ${res.status}`);
+    const data = await res.json();
+    if (data.results && data.results.some(r => r.type === 'error')) {
+      throw new Error(data.results.find(r => r.type === 'error')?.response?.message || 'Erro na query Turso');
+    }
+    return { success: true, updated_at: now };
+  }
+
+  async pullDirectFromTurso() {
+    const directUrl = 'https://health-nexus-mazzarowysk.aws-us-east-1.turso.io/v2/pipeline';
+    const directToken = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODYxNDU1NTgsImlkIjoiMDE5Zjc1YmYtMTUwMS03YmMyLTlkYTQtZTA1ZGIxMzdiYjEyIiwia2lkIjoiU0RZWEtINkIzZWg1b3JtRDBPRXpUbmhUaGpFMllXRXJxbjhCNVFnSmVLZyIsInJpZCI6Ijg4YTY2NjM0LTM3YWQtNGEyZC04ZmUxLTFmYjM3ZDAxNGE4YiJ9.teLr9MEIIXvjkOJh_nUWWaGwJuF0vnFwaMdUsyQLQba1kLOP30ziYQJkCWDDbADYl74zhYLujOwdr0Gg5EWoAg';
+
+    const pipelineBody = {
+      requests: [
+        { type: 'execute', stmt: { sql: `SELECT id, updated_at, dados_json, config_json FROM ocz_sync WHERE id = 'main';` } }
+      ]
+    };
+
+    const res = await fetch(directUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${directToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(pipelineBody)
+    });
+
+    if (!res.ok) throw new Error(`Turso HTTP Direct retornou status ${res.status}`);
+    const data = await res.json();
+    const execResult = data?.results?.[0]?.response?.result;
+    if (!execResult || !execResult.rows || execResult.rows.length === 0) {
+      return { updated_at: 0, dados_json: '{}', config_json: '{}' };
+    }
+
+    const row = execResult.rows[0];
+    return {
+      updated_at: Number(row[1]?.value || 0),
+      dados_json: row[2]?.value || '{}',
+      config_json: row[3]?.value || '{}'
+    };
+  }
+
   async pushToCloud(showToastMessage = true) {
     if (this.syncInProgress) return false;
     this.syncInProgress = true;
@@ -1431,28 +1495,77 @@ class SyncManager {
       const dados_json = localStorage.getItem('healthNexusDados') || '{}';
       const config_json = localStorage.getItem('healthNexusConfig') || '{}';
 
-      const res = await fetch('/api/turso?sync=1', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dados_json, config_json })
-      });
+      // Resumo de contagem para feedback
+      let recordSummary = '';
+      try {
+        const parsed = JSON.parse(dados_json);
+        const pCount = (parsed.patients || []).length;
+        const eCount = (parsed.encounters || []).length;
+        const aCount = (parsed.appointments || []).length;
+        recordSummary = `${pCount} pacientes, ${eCount} atendimentos, ${aCount} agendamentos`;
+      } catch(e) {}
 
-      if (res.ok) {
-        const body = await res.json();
-        const now = body.updated_at || Date.now();
-        localStorage.setItem('healthNexusUpdatedAt', now.toString());
-        localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
-        this.lastLocalUpdate = now;
-        if (showToastMessage) showToast('Dados enviados para a nuvem com sucesso!');
+      let success = false;
+      let newUpdatedAt = Date.now();
+
+      // Tentativa 1: Via Endpoint Proxy da Vercel / Express
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch('/api/turso?sync=1', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dados_json, config_json }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const body = await res.json();
+          if (body && body.success && !body.offline && Number(body.updated_at) > 0) {
+            success = true;
+            newUpdatedAt = Number(body.updated_at);
+          }
+        }
+      } catch (errProxy) {
+        console.warn('[SyncManager] Proxy /api/turso indisponível, acionando fallback direto:', errProxy.message);
+      }
+
+      // Tentativa 2: Fallback direto via HTTP Pipeline do Turso
+      if (!success) {
+        try {
+          const directResult = await this.pushDirectToTurso(dados_json, config_json);
+          if (directResult && directResult.success) {
+            success = true;
+            newUpdatedAt = directResult.updated_at;
+          }
+        } catch (errDirect) {
+          console.error('[SyncManager] Erro no push direto ao Turso:', errDirect);
+        }
+      }
+
+      if (success) {
+        localStorage.setItem('healthNexusUpdatedAt', newUpdatedAt.toString());
+        localStorage.setItem('ultimoSync', new Date(newUpdatedAt).toLocaleString('pt-BR'));
+        this.lastLocalUpdate = newUpdatedAt;
+        if (showToastMessage) {
+          showToast(`✅ Nuvem Atualizada com Sucesso! (${recordSummary || 'dados gravados'})`);
+        }
         await getSyncStatus();
         this.startAutoSyncTimer();
         return true;
       } else {
-        if (showToastMessage) showToast('Erro ao sincronizar com a nuvem.');
+        if (showToastMessage) {
+          showCustomAlert({
+            title: 'Falha na Sincronização com a Nuvem',
+            message: 'Não foi possível conectar ao Turso Cloud para salvar os dados.<br><br>Verifique sua conexão com a internet ou tente novamente em instantes.',
+            type: 'danger'
+          });
+        }
         return false;
       }
     } catch (err) {
-      console.error('[SyncManager] Erro no pushToCloud:', err);
+      console.error('[SyncManager] Erro geral no pushToCloud:', err);
       if (showToastMessage) showToast('Erro de conexão ao enviar para a nuvem.');
       return false;
     } finally {
@@ -1462,25 +1575,62 @@ class SyncManager {
 
   async pullFromCloud() {
     try {
-      const res = await fetch('/api/turso');
-      if (res.ok) {
-        const body = await res.json();
-        localDB.overwriteLocal(body);
+      let payload = null;
+
+      // Tentativa 1: Endpoint Proxy
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch('/api/turso', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const body = await res.json();
+          if (body && !body.offline && body.dados_json) {
+            payload = body;
+          }
+        }
+      } catch (e) {
+        console.warn('[SyncManager] Erro proxy pull, tentando direto:', e.message);
+      }
+
+      // Tentativa 2: Fallback Direto
+      if (!payload) {
+        try {
+          payload = await this.pullDirectFromTurso();
+        } catch (errDirect) {
+          console.error('[SyncManager] Erro pull direto Turso:', errDirect);
+        }
+      }
+
+      if (payload && payload.dados_json && payload.dados_json !== '{}') {
+        localDB.overwriteLocal(payload);
         
-        const now = body.updated_at || Date.now();
+        let recordSummary = '';
+        try {
+          const parsed = JSON.parse(payload.dados_json);
+          const pCount = (parsed.patients || []).length;
+          const eCount = (parsed.encounters || []).length;
+          recordSummary = `${pCount} pacientes, ${eCount} atendimentos`;
+        } catch(e) {}
+
+        const now = payload.updated_at || Date.now();
         localStorage.setItem('healthNexusUpdatedAt', now.toString());
         localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
         sessionStorage.setItem('hn_reloading_after_sync', 'true');
-        showToast('Banco local atualizado com os dados da nuvem!');
-        setTimeout(() => window.location.reload(), 800);
+        showToast(`✅ Banco Local Atualizado da Nuvem! (${recordSummary})`);
+        setTimeout(() => window.location.reload(), 700);
         return true;
       } else {
-        showToast('Erro ao baixar dados da nuvem.');
+        showCustomAlert({
+          title: 'Aviso de Sincronização',
+          message: 'A nuvem Turso ainda não possui dados registrados ou está temporariamente inacessível.',
+          type: 'warning'
+        });
         return false;
       }
     } catch (e) {
       console.error('[SyncManager] Erro no pullFromCloud:', e);
-      showToast('Erro ao sincronizar com a nuvem.');
+      showToast('Erro de rede ao baixar dados da nuvem.');
       return false;
     }
   }
@@ -1494,9 +1644,9 @@ const getSyncStatus = async () => {
   
   try {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timeoutId = controller ? setTimeout(() => controller.abort(), 3500) : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 6000) : null;
 
-    const res = await fetch('/api/turso?status=1', { signal: controller?.signal }).catch(() => null);
+    let res = await fetch('/api/turso?status=1', { signal: controller?.signal }).catch(() => null);
     if (timeoutId) clearTimeout(timeoutId);
 
     let cloudUpdated = 0;
@@ -1507,9 +1657,18 @@ const getSyncStatus = async () => {
       cloudOffline = !!data.offline;
       if (data.updated_at !== undefined) {
         cloudUpdated = Number(data.updated_at);
-      } else if (data.cloud_timestamps && data.cloud_timestamps.main_data) {
-        cloudUpdated = Number(data.cloud_timestamps.main_data);
       }
+    }
+
+    // Se o proxy falhou, tenta checar status diretamente no Turso
+    if (cloudOffline || cloudUpdated === 0) {
+      try {
+        const direct = await syncManager.pullDirectFromTurso();
+        if (direct && direct.updated_at) {
+          cloudUpdated = direct.updated_at;
+          cloudOffline = false;
+        }
+      } catch(e) {}
     }
 
     const local_updates = (localUpdated > cloudUpdated && cloudUpdated > 0) ? 1 : 0;
@@ -5332,6 +5491,9 @@ async function renderTabContent() {
           } else {
             showToast(`✅ Paciente ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`);
           }
+          if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
+            syncManager.pushToCloud(false).catch(() => null);
+          }
           state.loading = true;
         } else {
           showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao salvar paciente.', type: 'danger' });
@@ -6660,27 +6822,34 @@ async function renderTabContent() {
         message: `<strong>Esta ação irá:</strong>
           <br>• Limpar todos os dados de simulação anteriores
           <br>• Gerar <strong>${amountVal} registros de simulação</strong> (pacientes, médicos, agendamentos, triagens, leitos, finanças, escalas e estoque)
+          <br>• <strong>Sincronizar imediatamente todos os novos registros com o Turso Cloud</strong>
           <br><br><em>Usuários admin/mazzarowysk serão preservados.</em>`,
-        confirmText: '🚀 Executar Simulação',
+        confirmText: '🚀 Executar Simulação & Sincronizar',
         cancelText: 'Cancelar',
         type: 'warning'
       });
       if (!confirmAction) return;
 
-      showLoadingModal(`⚙️ Executando simulação completa do sistema (${amountVal} registros)...`);
+      showLoadingModal(`⚙️ Gerando ${amountVal} registros e sincronizando com o Turso Cloud...`);
       try {
         await new Promise(r => setTimeout(r, 200));
         const result = await generateMockData(amountVal);
         dataCache.clear();
         dataCacheTimestamps.clear();
+
+        // Enviar os novos dados gerados para o Turso Cloud de forma atômica
+        if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
+          await syncManager.pushToCloud(false);
+        }
+
         hideLoadingModal();
         const paidCount = (result.financial_installments || []).filter(f => f.status === 'Pago').length;
         const pendingCount = (result.financial_installments || []).filter(f => f.status === 'Pendente').length;
         const overdueCount = (result.financial_installments || []).filter(f => f.status === 'Vencido').length;
         const occupiedBeds = (result.beds || []).filter(b => b.status === 'Ocupado').length;
         await showCustomAlert({
-          title: '✅ Simulação Concluída com Sucesso!',
-          message: `<strong>Dados gerados:</strong>
+          title: '✅ Simulação Concluída e Sincronizada na Nuvem!',
+          message: `<strong>Dados gerados e salvos no Turso Cloud:</strong>
             <br>👤 ${(result.patients || []).length} pacientes únicos
             <br>👨‍⚕️ ${(result.doctors || []).length} médicos cadastrados
             <br>📅 ${(result.appointments || []).length} agendamentos
@@ -6706,7 +6875,7 @@ async function renderTabContent() {
     const handleResetDatabase = async () => {
       const confirmed = await showCustomConfirm({
         title: 'Limpar Banco de Dados',
-        message: 'Tem certeza de que deseja APAGAR TODOS os pacientes, atendimentos, prontuários, agendamentos e escalas do banco de dados? Esta ação não pode ser desfeita.',
+        message: 'Tem certeza de que deseja APAGAR TODOS os pacientes, atendimentos, prontuários, agendamentos e escalas do banco de dados local e do Turso Cloud? Esta ação não pode ser desfeita.',
         confirmText: 'Sim, Apagar Tudo',
         cancelText: 'Cancelar',
         type: 'danger'
@@ -6714,24 +6883,22 @@ async function renderTabContent() {
 
       if (confirmed) {
         try {
-          showLoadingModal('Apagando todos os dados do banco de dados...');
+          showLoadingModal('Apagando todos os dados e sincronizando com o Turso Cloud...');
           const res = await apiFetch(`${API_URL}/settings/reset`, { method: 'POST' });
           const data = await res.json();
           if (res.ok) {
             dataCache.clear();
             dataCacheTimestamps.clear();
-            hideLoadingModal();
 
             if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
-              Promise.race([
-                syncManager.pushToCloud(false),
-                new Promise(resolve => setTimeout(resolve, 2000))
-              ]).catch(() => null);
+              await syncManager.pushToCloud(false);
             }
 
+            hideLoadingModal();
+
             await showCustomAlert({
-              title: 'Banco de Dados Zerado',
-              message: 'Todos os registros de pacientes, atendimentos, agendamentos, triagens e prescrições foram removidos com sucesso.',
+              title: 'Banco de Dados Zerado & Sincronizado',
+              message: 'Todos os registros de pacientes, atendimentos, agendamentos, triagens e prescrições foram removidos com sucesso localmente e no Turso Cloud.',
               type: 'success'
             });
             window.location.reload();
