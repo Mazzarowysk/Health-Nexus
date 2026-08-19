@@ -1,36 +1,57 @@
 # Health Nexus — Estrutura de Pastas e Padrões de Código
 
-Este documento estabelece a organização física dos arquivos do **Health Nexus**, define as convenções de nomenclatura e descreve as diretrizes de desenvolvimento (Clean Code, SOLID, Acessibilidade WCAG).
+Este documento estabelece a organização física dos arquivos do **Health Nexus** (v2.7.2), define as convenções de nomenclatura e descreve as diretrizes de desenvolvimento (Clean Code, SOLID, Acessibilidade WCAG).
 
 ---
 
 ## 1. Estrutura Física do Projeto
 
-O repositório está centralizado na pasta `c:\Health Nexus` e é dividido em blocos claros correspondendo a responsabilidades de infraestrutura, backend, frontend e documentação.
+O repositório está centralizado na pasta `c:\Health Nexus` e organizado com arquitetura SPA modular no frontend (Vite), backend proxy no Express/Vercel e documentações técnicas em `docs/`.
 
 ```
 C:\Health Nexus\
-├── assets/                    # Imagens estáticas, logotipos e fontes globais
-├── backend/                   # Código fonte da API Node.js/Express
-│   ├── config/                # Parâmetros de ambiente, DB, CORS, chaves de criptografia
-│   ├── controllers/           # Interpretadores HTTP e chamadores de serviços
-│   ├── database/              # Migrações, seeds e conectores com PostgreSQL
-│   ├── middlewares/           # Verificadores de Token JWT, RBAC, Validação de entrada
-│   ├── models/                # Schemas de dados e definições de ORM/Tabelas
-│   ├── routes/                # Definição dos endpoints REST
-│   ├── services/              # Camada de lógica de negócio e integrações
-│   ├── utils/                 # Funções auxiliares (criptografia, datas, formatações)
-│   ├── tests/                 # Testes unitários e de integração (Jest)
-│   ├── uploads/               # Armazenamento temporário de uploads (Multer)
-│   └── storage/               # Armazenamento permanente (PDFs de exames, contratos)
-├── docs/                      # Documentação técnica e de requisitos do sistema
-├── frontend/                  # Aplicação web cliente (HTML, CSS e JavaScript Vanilla)
-│   ├── components/            # Componentes reutilizáveis (modais, cards, tabelas, menus)
-│   ├── css/                   # Estilos modulares do frontend
-│   ├── js/                    # Scripts de controle de UI e consumo de APIs
-│   ├── views/                 # Páginas da aplicação HTML organizadas por módulo
-│   └── index.html             # Ponto de entrada da aplicação
-└── database/                  # Scripts SQL de backup e configurações de instâncias DB
+├── backend/                   # Servidor Express API & Proxy Turso Serverless
+│   ├── app.js                 # Definição de rotas, proxy /api/turso, ANVISA OpenFDA e handlers
+│   └── server.js              # Ponto de entrada do servidor Node.js local
+├── dist/                      # Bundle de produção gerado pelo Vite 5
+├── docs/                      # Documentação técnica, requisitos, arquitetura e segurança
+│   ├── 01-Visao-Geral/        # Introdução, objetivos e escopo do hospital
+│   ├── 02-Arquitetura/        # Arquitetura geral, estrutura de pastas e design system
+│   ├── 03-Requisitos/         # Especificações de requisitos funcionais por módulo
+│   ├── 04-Banco-de-Dados/     # Dicionário de dados, modelo e schemas Turso/LibSQL
+│   ├── 05-Interfaces/         # Telas, fluxos e especificações de UI/UX
+│   ├── 06-APIs/               # Catálogo de endpoints REST e integrações externas
+│   ├── 07-Seguranca/          # Políticas de autenticação, JWT, RBAC e LGPD
+│   ├── 08-Testes/             # Cenários de teste e homologação clínica
+│   ├── 09-Implantacao/        # Procedimentos de deploy Vercel e rollback
+│   └── 10-Manuais/            # Guias de uso para médicos, enfermagem e recepção
+├── src/                       # Código-fonte do Frontend Modular
+│   ├── modules/               # Submódulos desacoplados de responsabilidade única
+│   │   ├── api.js             # apiFetch, cache em memória, strings e agregação de KPIs
+│   │   ├── auth.js            # RBAC hospitalar, auditoria de logins e gestão de usuários
+│   │   ├── sync.js            # SyncManager Dual-Pipeline (Vercel + Direct HTTP Turso)
+│   │   └── ui.js              # Temas, modais de alerta/confirmação, toasts e helpers UI
+│   ├── tabs/                  # Módulos especializados de cada aba hospitalar
+│   │   ├── agenda.js          # Agendamento ambulatorial e consultórios
+│   │   ├── attendance.js      # Fila de atendimento e triagem Manchester
+│   │   ├── consultingRooms.js # Gestão e status de consultórios médicos
+│   │   ├── doctors.js         # Corpo clínico e credenciamento CRM
+│   │   ├── leitos.js          # Mapa de leitos e censo hospitalar
+│   │   ├── pharmacy.js        # Farmácia, lote, validade e dispensação
+│   │   ├── reports.js         # Relatórios gerenciais e exportação PDF/Excel
+│   │   ├── stagnation.js      # Alertas de estagnação e tempo de permanência
+│   │   └── tv.js              # Painel de chamada com voz sintetizada
+│   ├── aiCopilot.js           # Assistente de IA para dúvidas e navegação
+│   ├── localDB.js             # Camada de persistência local (localStorage)
+│   ├── main.js                # Orquestrador central da SPA, roteamento e hubs
+│   ├── manualTabbed.js        # Manual interativo integrado por abas com busca spotlight
+│   ├── mockDataGenerator.js   # Gerador de simulação hospitalar (5 a 300+ registros)
+│   ├── state.js               # Gerenciador de estado reativo global
+│   └── styles.css             # Design System Glassmorphism Dark/Light Mode
+├── index.html                 # Ponto de entrada HTML5 da aplicação web
+├── package.json               # Dependências, scripts npm e metadados v2.7.2
+├── README.md                  # Documento principal do projeto e badges
+└── vercel.json                # Configurações de rotas e build serverless Vercel
 ```
 
 ---

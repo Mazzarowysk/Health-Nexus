@@ -1,56 +1,59 @@
 # Health Nexus — Arquitetura Geral de Software
 
-> **Versão do documento:** 1.0.1 (alinhado ao código)  
+> **Versão do documento:** 2.7.2 (alinhado ao código em produção)  
 > **Última atualização:** Agosto 2026  
-> **Arquitetura atual:** Offline-first (SPA + localStorage + sync Turso)
+> **Arquitetura atual:** Modular Offline-First (SPA Modular + localStorage + Dual-Pipeline Turso Cloud)
 
-Este documento descreve a arquitetura **implementada** na v1.0.1 do Health Nexus. Seções marcadas como *Roadmap* referem-se a evoluções planejadas para v2.0.
+Este documento descreve a arquitetura **implementada** na v2.7.2 do Health Nexus.
 
 ---
 
-## 1. Diagrama de Camadas (v1.0.1)
+## 1. Diagrama de Camadas (v2.7.2)
 
-O sistema opera como um **monólito híbrido local-first**: a maior parte da lógica de negócio, persistência e controle de acesso reside no navegador. O backend Express atua principalmente como proxy de sincronização com a nuvem (Turso).
+O sistema opera como um **monólito híbrido local-first modular**: a interface e lógica de negócio são organizadas em submódulos especializados sob `src/modules/`, orquestrados por `src/main.js` e consumidos pelas abas em `src/tabs/`. A persistência reside no navegador (`localStorage`) com sincronização atômica para a nuvem Turso via Dual-Pipeline (Vercel API Proxy + Fallback Direto HTTP LibSQL).
 
 ```mermaid
 graph TD
-    User([Usuário / Navegador]) <-->|HTTPS| SPA[SPA Vanilla JS — src/main.js]
+    User([Usuário / Navegador]) <-->|HTTPS| SPA[SPA Modular — src/main.js & src/tabs/*]
 
-    subgraph ClientLayer [Camada Cliente — Navegador]
+    subgraph ClientLayer [Camada Cliente — Navegador / src/modules/]
         SPA
-        APIFetch[apiFetch — mock REST local]
-        LocalDB[localDB.js — CRUD localStorage]
-        SyncMgr[SyncManager — sync Turso]
-        RBAC[getRolePermissions — RBAC UI]
+        UIMod[src/modules/ui.js — Temas, Modais, Toasts]
+        APIMod[src/modules/api.js — apiFetch, Cache, Summary Dinâmico]
+        SyncMod[src/modules/sync.js — SyncManager Dual-Pipeline]
+        AuthMod[src/modules/auth.js — RBAC & Auditoria de Sessões]
+        LocalDB[src/localDB.js — CRUD localStorage]
     end
 
-    subgraph ServerLayer [Servidor Node.js / Express]
+    subgraph ServerLayer [Servidor Node.js / Express & Vercel]
         Express[backend/app.js]
-        TursoProxy[/api/turso — sync endpoint]
+        TursoProxy[/api/turso — Proxy Serverless]
     end
 
     subgraph Persistence [Persistência]
         LS[(localStorage — oczOnlineDados)]
-        Turso[(Turso LibSQL — ocz_sync blob JSON)]
+        Turso[(Turso LibSQL — ocz_sync snapshot JSON)]
     end
 
-    SPA --> APIFetch
-    APIFetch --> LocalDB
+    SPA --> UIMod
+    SPA --> AuthMod
+    SPA --> APIMod
+    SPA --> SyncMod
+    APIMod --> LocalDB
     LocalDB --> LS
-    SyncMgr -->|POST/GET| TursoProxy
+    SyncMod -->|Pipeline 1: Proxy| TursoProxy
     TursoProxy --> Turso
-    SPA --> RBAC
+    SyncMod -.->|Pipeline 2: Fallback Direto HTTP| Turso
 ```
 
-### Detalhamento das Camadas
+### Detalhamento dos Módulos Frontend (`src/modules/`)
 
-1. **SPA (`src/main.js`)**: Single Page Application em JavaScript vanilla (~13k linhas). Renderiza todas as abas (dashboard, pacientes, agenda, atendimento, PEP, farmácia, financeiro, etc.), gerencia estado global e UI.
-2. **`apiFetch()`**: Interceptador que simula a API REST no cliente. Rotas `/api/*` são roteadas para `localDB.js` (CRUD genérico). Rotas de sync (`/api/turso`) passam para o backend real.
-3. **`localDB.js`**: Camada de persistência local. Armazena entidades como arrays JSON dentro de `localStorage` (`oczOnlineDados`). Expõe `list`, `get`, `insert`, `update`, `remove`.
-4. **`SyncManager`**: Classe em `main.js` responsável por push/pull com Turso, cooldown (60s), auto-sync (15 min) e resolução de conflitos local vs nuvem.
-5. **RBAC (frontend)**: Função `getRolePermissions()` controla abas visíveis e flags (`canSignPEP`, `canDoTriage`, etc.) por perfil hospitalar.
-6. **Backend Express (`backend/app.js`)**: Servidor enxuto. Endpoint principal: `/api/turso` (GET status/download, POST upload do blob JSON). Rotas REST legadas retornam 404.
-7. **Turso (LibSQL)**: Nuvem edge. Dados sincronizados como snapshot serializado na tabela `ocz_sync` (colunas `dados_json`, `config_json`, `updated_at`).
+1. **`src/modules/ui.js`**: Gestão completa de interface: controle de tema Dark/Light, gradientes para gráficos Chart.js, select customizado com busca rápida (`setupCustomSelect`), modais de confirmação/alerta (`showCustomAlert`, `showCustomConfirm`, `showLoadingModal`, `hideLoadingModal`) e toasts dinâmicos.
+2. **`src/modules/api.js`**: Roteador interceptador local-first `apiFetch`, cache TTL em memória (`cachedApiGet`), invalidação inteligente (`invalidateCacheForUrl`), formatadores de segurança (`anonymizeCPF`, `abbreviateName`, `removeAccents`) e agregação dinâmica de métricas para `/api/dashboard/summary`.
+3. **`src/modules/sync.js`**: Módulo de sincronização com **Dual-Pipeline Turso** (Proxy Vercel + Direct HTTP LibSQL fallback com timeout de 15s e retentativas), detecção de versão por timestamp ISO/numérico, modais de comparação e auto-sync a cada 15 minutos.
+4. **`src/modules/auth.js`**: Matriz de permissões hospitalares (`getRolePermissions`), auditoria de acessos (`showUserSessionsHistory`), gerenciamento e formulários de cadastro/edição de usuários (`showUserManagementModal`, `showUserFormModal`).
+5. **`src/localDB.js`**: Camada de persistência local. Armazena entidades em `localStorage` (`oczOnlineDados`). Expõe `list`, `get`, `insert`, `update`, `remove`.
+6. **Turso (LibSQL)**: Nuvem edge distribuída. Sincroniza o snapshot atômico na tabela `ocz_sync` (`dados_json`, `config_json`, `updated_at`).
 
 ---
 

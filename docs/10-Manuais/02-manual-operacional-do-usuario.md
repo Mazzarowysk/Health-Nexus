@@ -1,6 +1,6 @@
 # 📘 Health Nexus — Manual Operacional do Usuário (Completo & Ilustrado)
 
-> **Versão:** 2.7.1 — Agosto/2026  
+> **Versão:** 2.7.2 — Agosto/2026  
 > **Público-Alvo:** Recepcionistas, Enfermeiros, Médicos, Farmacêuticos, Gestores Financeiros e Administradores Hospitalares  
 > **Sistema:** Health Nexus — Gestão Hospitalar & Pronto-Socorro
 
@@ -40,13 +40,15 @@ O **Health Nexus** utiliza Controle de Acesso Baseado em Perfis (RBAC — Role-B
 | **📋 Recepcionista** | Dashboard, Pacientes, Agenda, Atendimento, Painel TV, Caixa | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Apenas Entradas | Bloqueado |
 | **💊 Farmacêutico(a)**| Dashboard, Pacientes, Farmácia, Relatórios | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado |
 
-### ☁️ Sincronização em Nuvem de Alta Disponibilidade (Dual-Pipeline) (v2.7.1)
+### ☁️ Sincronização em Nuvem de Alta Disponibilidade (Dual-Pipeline) & Dashboard Dinâmico (v2.7.2)
 
-O sistema conta com arquitetura de sincronização resiliente multi-usuário:
+O sistema conta com arquitetura de sincronização resiliente multi-usuário e painel 100% dinâmico:
 1. **Dual-Pipeline (Proxy + Fallback HTTP Direto):** O cliente tenta o envio através do proxy `/api/turso` e, caso ocorra qualquer instabilidade de rota, aciona automaticamente o pipeline HTTP nativo do Turso Cloud (`v2/pipeline`), garantindo 99.9% de disponibilidade.
-2. **Validação Atômica:** O sistema só confirma o envio após o cluster Turso devolver confirmação com hash/timestamp positivo.
-3. **Bloqueio de Tela nos Processos Críticos:** Nas ações de "Limpar Banco" e "Gerar Simulação", a tela permanece em estado de carregamento seguro até a confirmação total da nuvem, eliminando perda de dados por recarregamento precoce.
-4. **Contagem de Registros:** Cada sincronização informa no toast e no console a quantidade precisa de pacientes, atendimentos e agendamentos gravados ou baixados.
+2. **Dashboard Dinâmico e Reativo:** Todos os gráficos do painel inicial (*Ocupação de Leitos por Ala*, *Funil de Atendimento*, *Risco Manchester* e *Histórico de Atendimentos*) recalculam instantaneamente com base nos dados reais ou simulados do `localDB` e da nuvem.
+3. **Navegação Assistida & Retorno Rápido (`Alt + M`):** Ao navegar pelo Manual ou Copilot, o *Floating Return Beacon* mantém o link direto de volta ao ponto de pesquisa com destaque pulsante.
+4. **Validação Atômica:** O sistema só confirma o envio após o cluster Turso devolver confirmação com hash/timestamp positivo.
+5. **Bloqueio de Tela nos Processos Críticos:** Nas ações de "Limpar Banco" e "Gerar Simulação", a tela permanece em estado de carregamento seguro até a confirmação total da nuvem, eliminando perda de dados por recarregamento precoce.
+6. **Contagem de Registros:** Cada sincronização informa no toast e no console a quantidade precisa de pacientes, atendimentos e agendamentos gravados ou baixados.
 
 ### 🤖 Assistente de IA Local & Busca Semântica Multi-Tier (v2.7.0)
 

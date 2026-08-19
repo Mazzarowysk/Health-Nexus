@@ -1,4 +1,4 @@
-// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.6.0) ────────────────────────
+// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.7.2) ────────────────────────
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 
 // Normalizador de strings e remoção de acentos
