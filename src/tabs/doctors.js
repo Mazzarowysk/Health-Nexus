@@ -1684,10 +1684,10 @@ window.openPEPModal = async function(encounterId) {
 };
 
 async function savePEPData(encounterId, shouldFinalize) {
-  const subjectiveContent = document.getElementById('pep-subjective').value;
-  const objectiveContent = document.getElementById('pep-objective').value;
-  const assessmentContent = document.getElementById('pep-assessment').value;
-  const planContent = document.getElementById('pep-plan').value;
+  const subjectiveContent = document.getElementById('pep-subjective')?.value || '';
+  const objectiveContent = document.getElementById('pep-objective')?.value || '';
+  const assessmentContent = document.getElementById('pep-assessment')?.value || '';
+  const planContent = document.getElementById('pep-plan')?.value || '';
   const outcomeElement = document.getElementById('pep-outcome');
   const outcome = outcomeElement ? outcomeElement.value : 'alta';
 
@@ -1710,7 +1710,6 @@ async function savePEPData(encounterId, shouldFinalize) {
       const patientName = enc.patientName || 'Paciente';
 
       if (outcome === 'observacao') {
-        // Colocar em observação
         await apiFetch(`/api/encounters/${encounterId}/start-observation`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -1726,7 +1725,6 @@ async function savePEPData(encounterId, shouldFinalize) {
           });
         }
       } else if (outcome === 'internacao') {
-        // Abrir modal de internação (não muda o status finalizado direto, pois depende da escolha do leito)
         const modal = document.getElementById('pep-modal');
         if (modal) modal.remove();
         
@@ -1740,12 +1738,10 @@ async function savePEPData(encounterId, shouldFinalize) {
           });
         }
         if (typeof window.openTransferBedModal === 'function') {
-          // O openTransferBedModal mudará o status para internado depois que confirmar
           window.openTransferBedModal(encounterId, patientName);
         }
-        return; // Sai cedo, modal de transferencia cuida do resto
+        return;
       } else {
-        // Padrão: Alta Médica
         await apiFetch('/api/encounters/' + encounterId + '/status', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -1772,10 +1768,9 @@ async function savePEPData(encounterId, shouldFinalize) {
       if (typeof window.showFlowCompletionNotification === 'function') {
         window.showFlowCompletionNotification({
           actionTitle: 'Rascunho do Prontuário Salvo',
-          message: 'O rascunho da evolução foi salvo. Você pode emitir Prescrições, iniciar Observação ou Finalizar o atendimento pelo card do Consultório.',
+          message: 'O rascunho da evolução foi salvo.',
           targetTab: 'consultorios',
-          targetTabLabel: 'Consultórios (Em Atendimento)',
-          targetPatientName: enc.patientName || 'Paciente'
+          targetTabLabel: 'Consultórios'
         });
       } else {
         showToast('Prontuário salvo como rascunho com sucesso!');
@@ -1788,15 +1783,6 @@ async function savePEPData(encounterId, shouldFinalize) {
   }
 }
 
-
-// ==========================================
-// ABA DE ALERTAS & ESTAGNAÇÃO (GESTÃO DE GARGALOS E SLA)
-// ==========================================
-
-
-// ==========================================
-// INTERAÇÕES DO HISTÓRICO DO PACIENTE
-// ==========================================
 window.saveHistoryEvolution = function(patientId, patientName) {
   const textarea = document.getElementById('new-history-evolution');
   if (!textarea || !textarea.value.trim()) {
@@ -1805,9 +1791,8 @@ window.saveHistoryEvolution = function(patientId, patientName) {
     return;
   }
   
-  // Create a new clinical note/evolution
   const text = textarea.value.trim();
-  const db = localDB.getFullDB();
+  const db = (typeof localDB !== 'undefined' && localDB.getFullDB) ? localDB.getFullDB() : {};
   const notes = db.clinical_notes || [];
   notes.push({
     id: 'NOTE-' + Math.floor(Math.random() * 100000),
@@ -1817,7 +1802,7 @@ window.saveHistoryEvolution = function(patientId, patientName) {
     created_at: new Date().toISOString(),
     author: 'Equipe Assistencial'
   });
-  localDB.update('clinical_notes', null, notes); // Trick to save the whole array if there is no individual CRUD for notes, or we just save to localStorage
+  db.clinical_notes = notes;
   localStorage.setItem('healthNexusDados', JSON.stringify(db));
   
   if (typeof window.showToast === 'function') window.showToast('Evolução clínica salva com sucesso!', 'success');
@@ -1827,113 +1812,10 @@ window.saveHistoryEvolution = function(patientId, patientName) {
 };
 
 window.generateHistoryReport = async function(patientId, patientName) {
+  if (typeof window.generatePatientPDF === 'function') {
+    return window.generatePatientPDF(patientId, patientName);
+  }
   if (typeof window.showToast === 'function') window.showToast('Gerando relatório PDF do prontuário...', 'info');
-
-  const patients = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('patients') || []) : [];
-  const patient = patients.find(p => p.id === patientId || (patientName && (p.fullName || p.name || '').toLowerCase() === patientName.toLowerCase())) || { fullName: patientName };
-
-  const encounters = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('encounters') || []).filter(e => e.patientId === patientId || (patientName && e.patientName && e.patientName.toLowerCase() === patientName.toLowerCase())) : [];
-  const appointments = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('appointments') || []).filter(a => a.patientId === patientId || (patientName && a.patientName && a.patientName.toLowerCase() === patientName.toLowerCase())) : [];
-  const hospitalizations = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('hospitalizations') || []).filter(h => h.patient_id === patientId || (patientName && h.patientName && h.patientName.toLowerCase() === patientName.toLowerCase())) : [];
-  const notes = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('clinical_notes') || []).filter(n => n.patientId === patientId) : [];
-
-  const rows = [];
-
-  // Adicionar internações / evoluções do kanban
-  hospitalizations.forEach(h => {
-    rows.push([
-      h.admission_date ? new Date(h.admission_date).toLocaleString('pt-BR') : 'Data N/I',
-      `Internação (${h.current_sector || 'Setor'})`,
-      h.doctor_name || 'Corpo Clínico',
-      `Diagnóstico: ${h.diagnosis || 'Sem diagnóstico'} | Leito: ${h.bed || 'N/A'}`
-    ]);
-    if (h.evolutions && Array.isArray(h.evolutions)) {
-      h.evolutions.forEach(ev => {
-        rows.push([
-          ev.ts ? new Date(ev.ts).toLocaleString('pt-BR') : 'N/I',
-          'Evolução de Internação',
-          ev.author || 'Equipe',
-          ev.text || ''
-        ]);
-      });
-    }
-  });
-
-  // Adicionar atendimentos emergenciais
-  encounters.forEach(e => {
-    rows.push([
-      e.createdAt ? new Date(e.createdAt).toLocaleString('pt-BR') : 'Data N/I',
-      `Atendimento (${e.type || 'Emergência'})`,
-      e.doctorName || 'Médico de Plantão',
-      `Status: ${e.status || 'Finalizado'} | Conduta: ${e.clinicalNotes || e.chiefComplaint || 'Atendimento realizado'}`
-    ]);
-  });
-
-  // Adicionar consultas ambulatoriais
-  appointments.forEach(a => {
-    rows.push([
-      a.date ? new Date(a.date).toLocaleDateString('pt-BR') + ' ' + (a.time || '') : 'Data N/I',
-      'Consulta Ambulatorial',
-      a.doctorName || 'Médico Consultório',
-      `Status: ${a.status || 'Agendada'} | Especialidade: ${a.specialty || 'Clínica Geral'}`
-    ]);
-  });
-
-  // Adicionar anotações diretas
-  notes.forEach(n => {
-    rows.push([
-      n.created_at ? new Date(n.created_at).toLocaleString('pt-BR') : 'N/I',
-      'Anotação / Evolução Rápida',
-      n.author || 'Equipe Assistencial',
-      n.text || ''
-    ]);
-  });
-
-  if (rows.length === 0) {
-    rows.push([new Date().toLocaleDateString('pt-BR'), 'Registro Inicial', 'Sistema', `Cadastro de prontuário inicial do paciente ${patient.fullName || patientName}`]);
-  }
-
-  const columns = ['Data / Hora', 'Tipo de Registro', 'Profissional', 'Detalhes / Anotações Clínicas'];
-  const title = `Prontuário e Histórico Clínico - ${patient.fullName || patientName}`;
-  const safeFileName = (patient.fullName || patientName || 'paciente').toLowerCase().replace(/[^a-z0-9]/g, '_');
-  const filename = `prontuario_${safeFileName}_${Date.now()}.pdf`;
-
-  try {
-    if (typeof window.exportToPDF === 'function') {
-      await window.exportToPDF(columns, rows, title, filename);
-      if (typeof window.showToast === 'function') window.showToast('Relatório PDF baixado com sucesso!', 'success');
-    } else if (window.jspdf) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const loadLogo = () => new Promise(resolve => {
-        const img = new Image(); img.src = '/assets/logo.png';
-        img.onload = () => resolve(img); img.onerror = () => resolve(null);
-      });
-      const logoImg = await loadLogo();
-      if (logoImg) {
-        doc.addImage(logoImg, 'PNG', 14, 10, 16, 16);
-        doc.setFontSize(16);
-        doc.text(title, 34, 20);
-        doc.setFontSize(9);
-        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 34, 26);
-      } else {
-        doc.setFontSize(16);
-        doc.text(title, 14, 20);
-        doc.setFontSize(9);
-        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 26);
-      }
-      if (doc.autoTable) {
-        doc.autoTable({ startY: 32, head: [columns], body: rows });
-      }
-      doc.save(filename);
-      if (typeof window.showToast === 'function') window.showToast('Relatório PDF baixado com sucesso!', 'success');
-    } else {
-      alert('Biblioteca PDF (jsPDF) não carregada na página.');
-    }
-  } catch (err) {
-    console.error('Erro ao gerar PDF:', err);
-    alert('Erro ao gerar o arquivo PDF: ' + err.message);
-  }
 };
 
 window.handleExamImport = function(event, patientId) {
@@ -2012,14 +1894,12 @@ window.movePatientSectorFromHistory = function(hospId, patientId, patientName) {
         db.update('hospitalizations', hospId, hosp);
         if (typeof window.showToast === 'function') window.showToast('Setor atualizado com sucesso!', 'success');
         
-        // Refresh the patient history modal to show updated sector
         const historyModal = document.getElementById('history-modal-content');
         if (historyModal) {
           document.getElementById('close-history-modal')?.click();
           setTimeout(() => window.openPatientHistoryModal(patientId, patientName), 100);
         }
         
-        // Se estivermos na aba Kanban, recarregar
         if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
           window.loadAndRenderKanban();
         }
@@ -2040,7 +1920,6 @@ window.dischargePatientFromHistory = function(hospId, patientId, patientName) {
         db.update('hospitalizations', hospId, hosp);
         if (typeof window.showToast === 'function') window.showToast('Alta registrada com sucesso!', 'success');
         
-        // Add note to clinical history
         const notes = db.list('clinical_notes') || [];
         notes.push({
           id: 'NOTE-' + Math.floor(Math.random() * 1000000),
@@ -2051,14 +1930,12 @@ window.dischargePatientFromHistory = function(hospId, patientId, patientName) {
         });
         db.updateFullStore('clinical_notes', notes);
         
-        // Refresh Prontuário
         const historyModal = document.getElementById('history-modal-content');
         if (historyModal) {
           document.getElementById('close-history-modal')?.click();
           setTimeout(() => window.openPatientHistoryModal(patientId, patientName), 100);
         }
 
-        // Se estivermos na aba Kanban, recarregar
         if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
           window.loadAndRenderKanban();
         }
