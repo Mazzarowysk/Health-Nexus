@@ -1106,7 +1106,7 @@ window.admitPatientFromPatientsTab = function(patientId, fullName, cpf) {
           
           if (searchWrapper) searchWrapper.style.display = 'none';
           if (patientList) {
-            patientList.innerHTML = `<div style="padding:20px;text-align:center;color:#00f2fe;font-weight:700;"><i class="fa-solid fa-circle-check" style="font-size:1.6rem;display:block;margin-bottom:8px;color:#10b981;"></i> Paciente <strong>${fullName}</strong> pré-selecionado!<br><span style="font-size:0.75rem;color:var(--text-secondary);font-weight:normal;">Clique no botão <strong>Urgência (PS)</strong> abaixo para admitir na Triagem.</span></div>`;
+            patientList.innerHTML = `<div style="padding:16px 20px;text-align:center;color:#38bdf8;font-weight:700;"><i class="fa-solid fa-circle-check" style="font-size:1.6rem;display:block;margin-bottom:8px;color:#10b981;"></i> Paciente <strong>${fullName}</strong> pré-selecionado!<br><span style="font-size:0.8rem;color:#cbd5e1;font-weight:normal;display:block;margin-top:4px;">Selecione o tipo de admissão desejado abaixo:<br><strong>Urgência (PS)</strong> para Triagem Manchester ou <strong>Ambulatório</strong> para consulta direta.</span></div>`;
           }
         }
       }, 100);
