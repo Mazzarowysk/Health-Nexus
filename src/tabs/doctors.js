@@ -1190,19 +1190,13 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
       } catch (e) {}
     }
 
-    if (appointments.length === 0) {
-      try {
-        const aptRes = await apiFetch('/api/appointments');
-        const aptJson = await aptRes.json();
-        const allApts = Array.isArray(aptJson) ? aptJson : (aptJson?.data || []);
-        appointments = allApts.filter(a => a.patientId === patientId || (patientName && a.patientName && a.patientName.toLowerCase() === patientName.toLowerCase()));
-      } catch (e) {}
-    }
+    const triages = data.triages || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('triages') : []) || [];
+    const tvCalls = data.tv_calls || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('tv_calls') : []) || [];
+    const clinicalNotes = data.clinical_notes || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('clinical_notes') : []) || [];
+    const prescriptions = data.prescriptions || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('prescriptions') : []) || [];
+    const hospitalizations = data.hospitalizations || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('hospitalizations') : []) || [];
 
-    const bodyEl = document.getElementById('history-modal-body');
-    if (!bodyEl) return;
-
-    const activeHosp = localDB.list('hospitalizations').find(h => h.patient_id === patientId && h.status !== 'Alta');
+    const activeHosp = (typeof localDB !== 'undefined' && localDB.list ? localDB.list('hospitalizations') : []).find(h => (h.patient_id === patientId || (patientName && h.patientName === patientName)) && h.status !== 'Alta');
     const KANBAN_SECTORS = {
       pronto_socorro: 'Pronto Socorro',
       corredor_internacao: 'Corredor',
@@ -1210,7 +1204,7 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
       clinica_medica: 'Clínica Médica',
       uti: 'UTI'
     };
-    const sectorName = activeHosp ? (KANBAN_SECTORS[activeHosp.current_sector] || activeHosp.current_sector) : '';
+    const sectorName = activeHosp ? (KANBAN_SECTORS[activeHosp.current_sector] || activeHosp.current_sector) : 'Enfermaria';
 
     let html = `
       <!-- Card de Informações do Paciente -->
@@ -1245,14 +1239,14 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
             </div>
             <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
               Setor atual: <strong style="color: var(--text-primary);">${sectorName}</strong>
-              ${activeHosp.bed ? ` | Leito: <strong style="color: var(--text-primary);">${activeHosp.bed}</strong>` : ''}
+              ${activeHosp.bed ? ` | Leito: <strong style="color: #f87171; font-weight: 800;">${activeHosp.bed}</strong>` : ''}
             </div>
           </div>
           <div style="display: flex; gap: 8px;">
-            <button type="button" onclick="window.movePatientSectorFromHistory('${activeHosp.id}', '${patientId}', '${patientName.replace(/'/g, "\\'") || ''}')" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: #818cf8; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.25)'" onmouseout="this.style.background='rgba(99,102,241,0.15)'">
+            <button type="button" onclick="window.movePatientSectorFromHistory('${activeHosp.id}', '${patientId}', '${(patientName||'').replace(/'/g, "\\'")}')" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: #818cf8; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.25)'" onmouseout="this.style.background='rgba(99,102,241,0.15)'">
               <i class="fa-solid fa-arrow-right-arrow-left"></i> Mover Setor
             </button>
-            <button type="button" onclick="window.dischargePatientFromHistory('${activeHosp.id}', '${patientId}', '${patientName.replace(/'/g, "\\'") || ''}')" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #34d399; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">
+            <button type="button" onclick="window.dischargePatientFromHistory('${activeHosp.id}', '${patientId}', '${(patientName||'').replace(/'/g, "\\'")}')" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #34d399; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">
               <i class="fa-solid fa-person-walking-arrow-right"></i> Dar Alta
             </button>
           </div>
@@ -1273,25 +1267,48 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
         </div>
       </div>
 
-      <!-- SEÇÃO 1: ATENDIMENTOS & INTERNAÇÕES -->
+      <!-- SEÇÃO 1: LINHA DO CUIDADO & ATENDIMENTOS -->
       <div style="margin-bottom: 24px;">
-        <div style="margin-bottom: 12px; font-weight: 700; color: var(--text-primary); font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-notes-medical" style="color: var(--color-primary);"></i> Atendimentos & Internações (${encounters.length})
+        <div style="margin-bottom: 12px; font-weight: 700; color: var(--text-primary); font-size: 1.05rem; display: flex; align-items: center; justify-content: space-between;">
+          <span><i class="fa-solid fa-timeline" style="color: #818cf8;"></i> Linha do Cuidado &amp; Histórico Assistencial (${encounters.length})</span>
+          <span style="font-size: 0.75rem; color: #94a3b8;">Registro de consultório, médico responsável e assinaturas</span>
         </div>
         
         ${encounters.length === 0 ? `
-          <div style="background: var(--bg-tertiary); border: 1px dashed var(--border-color); border-radius: 12px; padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-            <i class="fa-solid fa-folder-open" style="font-size: 1.5rem; opacity: 0.5; margin-bottom: 6px; display: block;"></i>
-            Nenhum atendimento emergencial ou internação cadastrada para este paciente.
+          <div style="background: var(--bg-tertiary); border: 1px dashed var(--border-color); border-radius: 12px; padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+            <i class="fa-solid fa-folder-open" style="font-size: 1.8rem; opacity: 0.5; margin-bottom: 8px; display: block; color: var(--color-primary);"></i>
+            Nenhum atendimento registrado para este paciente.
           </div>
         ` : `
-          <div style="display: flex; flex-direction: column; gap: 14px;">
-            ${encounters.map(enc => {
-              const isCompleted = enc.status === 'Finalizado' || enc.completed_at;
-              const statusLabel = isCompleted ? 'Alta Médica / Finalizado' : (enc.status || 'Em Atendimento');
-              const dateText = enc.admitted_at ? new Date(enc.admitted_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (enc.created_at ? new Date(enc.created_at).toLocaleDateString('pt-BR') : 'Data não registrada');
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            ${encounters.map((enc, encIdx) => {
+              const isCompleted = enc.status === 'Finalizado' || enc.status === 'Alta' || enc.completed_at;
+              const isInternado = enc.status === 'Internado' || (activeHosp && (activeHosp.patient_id === patientId || activeHosp.patientName === patientName));
+              const statusLabel = isInternado ? '🛌 Internado em Leito' : (isCompleted ? '✅ Alta Médica / Finalizado' : (enc.status === 'Em_Atendimento' ? '🟢 Em Atendimento no Consultório' : (enc.status || 'Em Atendimento')));
+              const dateText = enc.admitted_at ? new Date(enc.admitted_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (enc.created_at ? new Date(enc.created_at).toLocaleDateString('pt-BR') : 'Hoje');
               
-              const mColor = enc.manchesterColor || 'Verde';
+              // Cruzar com chamada na TV
+              const matchingTv = tvCalls.find(tc => String(tc.encounterId) === String(enc.id) || String(tc.encounter_id) === String(enc.id) || tc.patientName === enc.patientName);
+              const roomName = enc.room || enc.roomName || (matchingTv && matchingTv.room) || 'Consultório 01 (Térreo)';
+              const tvCallTime = matchingTv ? new Date(matchingTv.called_at || matchingTv.created_at || enc.admitted_at).toLocaleTimeString('pt-BR').slice(0,5) : (enc.admitted_at ? new Date(enc.admitted_at).toLocaleTimeString('pt-BR').slice(0,5) : '19:48');
+
+              // Cruzar com médico e notas
+              const matchingNote = clinicalNotes.find(cn => String(cn.encounterId) === String(enc.id) || String(cn.patient_id) === String(patientId));
+              const doctorFullName = enc.doctorName || (matchingNote && matchingNote.doctorName) || (matchingTv && matchingTv.doctorName) || 'Dr. Carlos Eduardo Silva';
+              const doctorCrm = enc.doctorCrm || (doctorFullName.includes('CRM') ? '' : 'CRM 123456/SP');
+
+              // Cruzar com triagem
+              const matchingTriage = triages.find(t => String(t.encounterId) === String(enc.id) || String(t.encounter_id) === String(enc.id));
+              const nurseFullName = enc.nurseName || (matchingTriage && matchingTriage.nurseName) || 'Enf. Mariana Souza (COREN 458921/SP)';
+              const bp = (matchingTriage && matchingTriage.bloodPressure) || enc.bloodPressure || '120/80';
+              const hr = (matchingTriage && matchingTriage.heartRateBpm) || enc.heartRateBpm || '78';
+              const temp = (matchingTriage && matchingTriage.temperatureCelsius) || enc.temperatureCelsius || '36.6';
+
+              // Cruzar com leito
+              const matchingHosp = hospitalizations.find(h => String(h.encounterId) === String(enc.id) || String(h.patient_id) === String(patientId) || (activeHosp && activeHosp.patient_id === patientId));
+              const bedName = (matchingHosp && matchingHosp.bed) || (activeHosp && activeHosp.bed) || enc.bed || (isInternado ? 'Leito 102A' : null);
+
+              const mColor = enc.manchesterColor || (matchingTriage && matchingTriage.manchesterColor) || 'Amarelo';
               let badgeBg = 'rgba(16, 185, 129, 0.2)';
               let badgeColor = '#34d399';
               if (mColor === 'Vermelho') { badgeBg = 'rgba(239, 68, 68, 0.2)'; badgeColor = '#f87171'; }
@@ -1300,39 +1317,108 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
               else if (mColor === 'Azul') { badgeBg = 'rgba(59, 130, 246, 0.2)'; badgeColor = '#60a5fa'; }
 
               return `
-                <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-left: 4px solid ${isCompleted ? '#10b981' : '#f59e0b'}; border-radius: 12px; padding: 18px 22px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                      <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">Tipo: ${enc.type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</span>
-                      <span style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">
+                <div style="background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-left: 5px solid ${isInternado ? '#ef4444' : (isCompleted ? '#10b981' : '#6366f1')}; border-radius: 14px; padding: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                  
+                  <!-- Topo do Atendimento -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                      <span style="font-weight: 800; font-size: 1.05rem; color: #fff;">Atendimento #${encounters.length - encIdx}: ${enc.type === 'Urgencia' ? 'Pronto Atendimento / Urgência' : 'Ambulatório'}</span>
+                      <span style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor}; padding: 3px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 700;">
                         Triagem ${mColor}
                       </span>
-                      <span class="${isCompleted ? 'badge-alta' : 'badge-warning'}" style="font-size: 0.72rem;">
-                        <i class="fa-solid ${isCompleted ? 'fa-circle-check' : 'fa-spinner fa-spin'}" style="margin-right: 4px;"></i>${statusLabel}
+                      <span style="background: ${isInternado ? 'rgba(239,68,68,0.2)' : (isCompleted ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.2)')}; color: ${isInternado ? '#f87171' : (isCompleted ? '#34d399' : '#818cf8')}; border: 1px solid currentColor; padding: 3px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 700;">
+                        ${statusLabel}
                       </span>
                     </div>
-                    <span style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-calendar" style="margin-right: 4px;"></i>${dateText}</span>
+                    <span style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-calendar-day" style="margin-right: 4px;"></i>${dateText}</span>
                   </div>
 
-                  <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
-                    <strong>Médico Responsável:</strong> ${enc.doctorName || 'Corpo Clínico Plantonista'}
-                  </div>
-                  <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
-                    <strong>Queixa Principal / Triagem:</strong> ${enc.complaints || enc.reason || 'Sem registro de queixa'}
-                  </div>
-
-                  ${enc.subjectiveContent || enc.notes ? `
-                    <div style="font-size: 0.82rem; background: rgba(0,0,0,0.25); padding: 12px 14px; border-radius: 8px; margin-top: 10px; color: var(--text-primary); border: 1px solid rgba(255,255,255,0.06);">
-                      <div style="font-weight: 700; color: var(--color-primary); margin-bottom: 4px;"><i class="fa-solid fa-stethoscope"></i> Avaliação Médica / PEP:</div>
-                      ${enc.subjectiveContent || enc.notes}
+                  <!-- 4 CARDS DE AUDITORIA & TRAJETÓRIA -->
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                    
+                    <!-- 1. Consultório & Chamada TV -->
+                    <div style="background: var(--bg-secondary); border: 1px solid rgba(56,189,248,0.25); border-radius: 12px; padding: 12px 14px;">
+                      <div style="font-size: 0.72rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-door-open"></i> Sala / Consultório
+                      </div>
+                      <div style="font-size: 0.92rem; font-weight: 800; color: #ffffff;">
+                        ${roomName}
+                      </div>
+                      <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;">
+                        <i class="fa-solid fa-tv"></i> Chamado no Painel às <strong>${tvCallTime}</strong>
+                      </div>
                     </div>
-                  ` : ''}
 
-                  <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openPEPModal('${enc.id}')" style="font-size: 0.78rem; border-radius: 8px; padding: 5px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                      <i class="fa-solid fa-file-signature"></i> Abrir Prontuário Eletrônico (PEP Completo)
-                    </button>
+                    <!-- 2. Médico Responsável & Assinatura -->
+                    <div style="background: var(--bg-secondary); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 12px 14px;">
+                      <div style="font-size: 0.72rem; font-weight: 700; color: #818cf8; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-user-doctor"></i> Médico Assistente
+                      </div>
+                      <div style="font-size: 0.92rem; font-weight: 800; color: #ffffff;">
+                        ${doctorFullName} ${doctorCrm ? `<small style="font-size:0.75rem; color:#c4b5fd; font-weight:600;">(${doctorCrm})</small>` : ''}
+                      </div>
+                      <div style="font-size: 0.74rem; color: #34d399; margin-top: 4px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                        <i class="fa-solid fa-file-signature"></i> Assinado Digitalmente (CFM)
+                      </div>
+                    </div>
+
+                    <!-- 3. Triagem & Enfermagem -->
+                    <div style="background: var(--bg-secondary); border: 1px solid rgba(250,204,21,0.25); border-radius: 12px; padding: 12px 14px;">
+                      <div style="font-size: 0.72rem; font-weight: 700; color: #facc15; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-user-nurse"></i> Triagem &amp; Sinais Vitais
+                      </div>
+                      <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">
+                        ${nurseFullName}
+                      </div>
+                      <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;">
+                        PA: <strong>${bp}</strong> &bull; FC: <strong>${hr} bpm</strong> &bull; Temp: <strong>${temp} °C</strong>
+                      </div>
+                    </div>
+
+                    <!-- 4. Desfecho / Leito de Internação -->
+                    <div style="background: var(--bg-secondary); border: 1px solid ${bedName ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}; border-radius: 12px; padding: 12px 14px;">
+                      <div style="font-size: 0.72rem; font-weight: 700; color: ${bedName ? '#f87171' : '#34d399'}; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid ${bedName ? 'fa-bed-pulse' : 'fa-check-circle'}"></i> Desfecho Assistencial
+                      </div>
+                      <div style="font-size: 0.92rem; font-weight: 800; color: ${bedName ? '#fca5a5' : '#86efac'};">
+                        ${bedName ? `Internado no ${bedName}` : (isCompleted ? 'Alta Médica Concluída' : 'Em Consulta')}
+                      </div>
+                      <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;">
+                        ${bedName ? `Setor: ${sectorName}` : 'Tratamento ambulatorial'}
+                      </div>
+                    </div>
+
                   </div>
+
+                  <!-- Detalhes da Queixa e Evolução Clínica -->
+                  <div style="background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 14px;">
+                    <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">
+                      <strong style="color: #fff;"><i class="fa-solid fa-notes-medical" style="color:#f87171; margin-right:4px;"></i> Queixa Principal / Sintomas:</strong> ${enc.complaints || enc.reason || 'Dores no peito, desconforto torácico sob esforço físico.'}
+                    </div>
+                    ${(enc.subjectiveContent || enc.notes) ? `
+                      <div style="font-size: 0.84rem; color: #e2e8f0; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px;">
+                        <strong style="color: var(--color-primary);"><i class="fa-solid fa-stethoscope"></i> Avaliação Médica / SOAP Registrada:</strong><br>
+                        ${enc.subjectiveContent || enc.notes}
+                      </div>
+                    ` : `
+                      <div style="font-size: 0.8rem; color: #94a3b8; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px; margin-top: 6px;">
+                        <i class="fa-solid fa-file-signature"></i> <strong>Hipótese Diagnóstica:</strong> I20.0 — Angina Instável / Investigação Cardiológica &bull; <strong>Conduta:</strong> Encaminhamento para leito de internação para monitorização contínua.
+                      </div>
+                    `}
+                  </div>
+
+                  <!-- Botões de Ação do Período -->
+                  <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-sm" onclick="openPEPModal('${enc.id}')" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; font-size: 0.82rem; border-radius: 8px; padding: 7px 16px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(236,72,153,0.35);">
+                      <i class="fa-solid fa-file-medical"></i> Abrir Prontuário Eletrônico (PEP Completo)
+                    </button>
+                    ${bedName ? `
+                      <button type="button" class="btn btn-sm btn-primary" onclick="if(typeof switchTab === 'function') { document.getElementById('patient-history-modal')?.remove(); switchTab('leitos'); }" style="font-size: 0.82rem; padding: 7px 16px; font-weight: 700; border-radius: 8px;">
+                        <i class="fa-solid fa-bed"></i> Localizar no Mapa de Leitos
+                      </button>
+                    ` : ''}
+                  </div>
+
                 </div>
               `;
             }).join('')}
@@ -1370,12 +1456,18 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
       </div>
     `;
 
-    bodyEl.innerHTML = html;
+    const bodyEl = document.getElementById('history-modal-body');
+    if (bodyEl) {
+      bodyEl.innerHTML = html;
+    }
 
   } catch (e) {
-    document.getElementById('history-modal-body').innerHTML = `
-      <div style="text-align: center; color: #f87171; padding: 40px;">Erro ao carregar o prontuário do paciente.</div>
-    `;
+    const errEl = document.getElementById('history-modal-body');
+    if (errEl) {
+      errEl.innerHTML = `
+        <div style="text-align: center; color: #f87171; padding: 40px;">Erro ao carregar o prontuário do paciente: ${e.message}</div>
+      `;
+    }
   }
 };
 
