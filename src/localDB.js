@@ -235,5 +235,8 @@ export function clear() {
 
   localStorage.setItem(DB_KEY, JSON.stringify(emptyDB));
   localStorage.setItem(UPDATED_AT_KEY, Date.now().toString());
+  if (typeof window !== 'undefined' && typeof window.clearDataCache === 'function') {
+    window.clearDataCache();
+  }
 }
 

@@ -511,6 +511,234 @@ export const apiFetch = async (url, options = {}) => {
         }
       }
     }
+    else if (url.includes('/api/encounters/') && url.includes('/transfer-to-bed') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/transfer-to-bed/);
+      const encounterId = match ? match[1] : null;
+      const { bedId, patientName, patientId } = body;
+
+      const allBeds = localDB.list('beds') || [];
+      const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+
+      if (bed) {
+        const encs = localDB.list('encounters') || [];
+        const enc = encs.find(e => String(e.id) === String(encounterId) || (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim()));
+        const pId = patientId || (enc ? enc.patientId : null) || 'pat-' + Date.now();
+        const pName = patientName || (enc ? enc.patientName : 'Paciente');
+
+        const updatedBed = {
+          ...bed,
+          status: 'Ocupado',
+          patientId: pId,
+          patientName: pName,
+          admittedAt: new Date().toISOString(),
+          encounterId: encounterId || (enc ? enc.id : null)
+        };
+        localDB.update('beds', bed.id, updatedBed);
+
+        if (enc) {
+          localDB.update('encounters', enc.id, {
+            ...enc,
+            status: 'Internado',
+            bed: bed.bedNumber || bed.number,
+            bedId: bed.id,
+            hospitalized_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          });
+        }
+
+        // Criar registro de internação
+        const hosps = localDB.list('hospitalizations') || [];
+        const activeHosp = hosps.find(h => h.patient_id === pId && h.status !== 'Alta');
+        if (activeHosp) {
+          localDB.update('hospitalizations', activeHosp.id, {
+            ...activeHosp,
+            bed_id: bed.id,
+            bed: bed.bedNumber || bed.number,
+            current_sector: bed.sector || bed.type || 'Enfermaria',
+            status: 'Internado'
+          });
+        } else {
+          localDB.insert('hospitalizations', {
+            id: 'hosp-' + Date.now(),
+            patient_id: pId,
+            patientName: pName,
+            bed_id: bed.id,
+            bed: bed.bedNumber || bed.number,
+            current_sector: bed.sector || bed.type || 'Enfermaria',
+            admitted_at: new Date().toISOString(),
+            status: 'Internado'
+          });
+        }
+
+        responseData = { status: 'success', data: updatedBed, message: 'Paciente transferido para internação com sucesso.' };
+      } else {
+        status = 404; responseData = { message: 'Leito não encontrado.' };
+      }
+    }
+    else if (url.includes('/api/beds/admit') && method === 'POST') {
+      const { bedId, patientId, patientName, encounterId } = body;
+      const allBeds = localDB.list('beds') || [];
+      const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+
+      if (bed) {
+        const updatedBed = {
+          ...bed,
+          status: 'Ocupado',
+          patientId: patientId,
+          patientName: patientName,
+          admittedAt: new Date().toISOString(),
+          encounterId: encounterId || null
+        };
+        localDB.update('beds', bed.id, updatedBed);
+
+        if (encounterId) {
+          const encs = localDB.list('encounters') || [];
+          const enc = encs.find(e => String(e.id) === String(encounterId));
+          if (enc) {
+            localDB.update('encounters', enc.id, {
+              ...enc,
+              status: 'Internado',
+              bed: bed.bedNumber || bed.number,
+              bedId: bed.id,
+              lastStatusUpdate: new Date().toISOString()
+            });
+          }
+        }
+
+        const hosps = localDB.list('hospitalizations') || [];
+        const activeHosp = hosps.find(h => h.patient_id === patientId && h.status !== 'Alta');
+        if (activeHosp) {
+          localDB.update('hospitalizations', activeHosp.id, {
+            ...activeHosp,
+            bed_id: bed.id,
+            bed: bed.bedNumber || bed.number,
+            current_sector: bed.sector || bed.type || 'Enfermaria',
+            status: 'Internado'
+          });
+        } else {
+          localDB.insert('hospitalizations', {
+            id: 'hosp-' + Date.now(),
+            patient_id: patientId,
+            patientName: patientName,
+            bed_id: bed.id,
+            bed: bed.bedNumber || bed.number,
+            current_sector: bed.sector || bed.type || 'Enfermaria',
+            admitted_at: new Date().toISOString(),
+            status: 'Internado'
+          });
+        }
+
+        responseData = { status: 'success', data: updatedBed, message: 'Paciente internado no leito com sucesso.' };
+      } else {
+        status = 404; responseData = { message: 'Leito não encontrado.' };
+      }
+    }
+    else if (url.includes('/api/beds/discharge') && method === 'POST') {
+      const { bedId } = body;
+      const allBeds = localDB.list('beds') || [];
+      const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+
+      if (bed) {
+        const prevPatientId = bed.patientId;
+        const prevPatientName = bed.patientName;
+        const updatedBed = {
+          ...bed,
+          status: 'Higienizacao',
+          previousPatientName: prevPatientName,
+          patientId: null,
+          patientName: null,
+          dischargedAt: new Date().toISOString()
+        };
+        localDB.update('beds', bed.id, updatedBed);
+
+        // Dar alta na internação ativa
+        const hosps = localDB.list('hospitalizations') || [];
+        const activeHosp = hosps.find(h => (h.bed_id === bed.id || h.bed === (bed.bedNumber || bed.number) || (prevPatientId && h.patient_id === prevPatientId)) && h.status !== 'Alta');
+        if (activeHosp) {
+          localDB.update('hospitalizations', activeHosp.id, {
+            ...activeHosp,
+            status: 'Alta',
+            discharged_at: new Date().toISOString()
+          });
+        }
+
+        // Dar alta no encounter se ainda estiver ativo
+        if (prevPatientId || prevPatientName) {
+          const encs = localDB.list('encounters') || [];
+          const enc = encs.find(e => (prevPatientId && e.patientId === prevPatientId) || (prevPatientName && e.patientName && e.patientName.toLowerCase() === prevPatientName.toLowerCase()));
+          if (enc && enc.status !== 'Finalizado') {
+            localDB.update('encounters', enc.id, {
+              ...enc,
+              status: 'Finalizado',
+              discharged_at: new Date().toISOString(),
+              completed_at: new Date().toISOString(),
+              lastStatusUpdate: new Date().toISOString()
+            });
+          }
+        }
+
+        responseData = { status: 'success', data: updatedBed, message: 'Alta concedida e leito encaminhado para higienização.' };
+      } else {
+        status = 404; responseData = { message: 'Leito não encontrado.' };
+      }
+    }
+    else if (url.includes('/api/beds/') && url.includes('/status') && method === 'PUT') {
+      const match = url.match(/\/api\/beds\/([^\/]+)\/status/);
+      const bedId = match ? match[1] : null;
+      if (bedId) {
+        const allBeds = localDB.list('beds') || [];
+        const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+        if (bed) {
+          const updatedBed = {
+            ...bed,
+            status: body.status || 'Vago',
+            ...(body.status === 'Vago' ? { patientId: null, patientName: null } : {})
+          };
+          localDB.update('beds', bed.id, updatedBed);
+          responseData = { status: 'success', data: updatedBed };
+        } else {
+          status = 404; responseData = { message: 'Leito não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/patients/') && url.includes('/history') && method === 'GET') {
+      const match = url.match(/\/api\/patients\/([^\/]+)\/history/);
+      const patientId = match ? match[1] : null;
+      const allPatients = localDB.list('patients') || [];
+      const patient = allPatients.find(p => String(p.id) === String(patientId) || (p.fullName && p.fullName.toLowerCase().includes(patientId.toLowerCase()))) || { id: patientId, fullName: patientId };
+
+      const allEncounters = localDB.list('encounters') || [];
+      const encounters = allEncounters.filter(e => String(e.patientId) === String(patient.id) || (patient.fullName && e.patientName && e.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+
+      const allAppointments = localDB.list('appointments') || [];
+      const appointments = allAppointments.filter(a => String(a.patientId) === String(patient.id) || (patient.fullName && a.patientName && a.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+
+      const allHosps = localDB.list('hospitalizations') || [];
+      const hospitalizations = allHosps.filter(h => String(h.patient_id) === String(patient.id) || (patient.fullName && h.patientName && h.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+
+      const allTv = localDB.list('tv_calls') || [];
+      const tvCalls = allTv.filter(t => String(t.patientId) === String(patient.id) || (patient.fullName && t.patientName && t.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+
+      const allTriages = localDB.list('triages') || [];
+      const triages = allTriages.filter(t => String(t.patientId) === String(patient.id) || (patient.fullName && t.patientName && t.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+
+      const allPrescriptions = localDB.list('prescriptions') || [];
+      const prescriptions = allPrescriptions.filter(p => String(p.patientId) === String(patient.id) || (patient.fullName && p.patientName && p.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+
+      const allNotes = localDB.list('clinical_notes') || [];
+      const clinicalNotes = allNotes.filter(n => String(n.patientId) === String(patient.id));
+
+      responseData = {
+        patient,
+        encounters,
+        appointments,
+        hospitalizations,
+        tvCalls,
+        triages,
+        prescriptions,
+        clinicalNotes
+      };
+    }
     else {
       // Rotas CRUD padrão
       const parts = url.split('?')[0].replace('/api/', '').split('/');
@@ -535,11 +763,51 @@ export const apiFetch = async (url, options = {}) => {
       } else if (method === 'POST') {
         if (table === 'tv_calls') {
           body.calledAt = new Date().toISOString();
-          if (body.patientId || body.patientName) {
-            const allEncounters = localDB.list('encounters');
-            const enc = allEncounters.find(e => (body.patientId && e.patientId === body.patientId) || (body.patientName && e.patientName === body.patientName));
-            if (enc && enc.status !== 'Finalizado' && enc.status !== 'Cancelado') {
-              localDB.update('encounters', enc.id, { ...enc, status: 'Finalizado' });
+          const pName = (body.patientName || '').trim();
+          const targetRoom = body.roomName || body.room || 'Consultório 01';
+          if (body.patientId || pName) {
+            const allEncounters = localDB.list('encounters') || [];
+            const enc = allEncounters.find(e => 
+              (body.patientId && String(e.patientId) === String(body.patientId)) || 
+              (pName && e.patientName && e.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
+            );
+            if (enc) {
+              localDB.update('encounters', enc.id, { 
+                ...enc, 
+                status: 'Em_Atendimento',
+                room: targetRoom,
+                roomName: targetRoom,
+                called_at: new Date().toISOString(),
+                lastStatusUpdate: new Date().toISOString()
+              });
+            } else {
+              localDB.insert('encounters', {
+                id: 'ENC-' + Date.now(),
+                patientName: pName,
+                patientId: body.patientId || ('pat-' + Date.now()),
+                type: 'Urgencia',
+                status: 'Em_Atendimento',
+                room: targetRoom,
+                roomName: targetRoom,
+                manchesterColor: body.manchesterColor || 'Verde',
+                admitted_at: new Date().toISOString(),
+                called_at: new Date().toISOString(),
+                lastStatusUpdate: new Date().toISOString()
+              });
+            }
+
+            const allApts = localDB.list('appointments') || [];
+            const apt = allApts.find(a => 
+              (body.patientId && String(a.patientId) === String(body.patientId)) || 
+              (pName && a.patientName && a.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
+            );
+            if (apt) {
+              localDB.update('appointments', apt.id, {
+                ...apt,
+                status: 'Em Atendimento',
+                room: targetRoom,
+                roomName: targetRoom
+              });
             }
           }
         }

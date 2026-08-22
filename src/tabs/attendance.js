@@ -734,15 +734,16 @@ export function renderAttendanceTab(contentArea) {
         })
       });
       if (res.ok) {
-        const pName = document.getElementById('triage-patient-name').textContent || '';
+        const pName = document.getElementById('triage-patient-name').textContent || 'Paciente';
         closeTriageModal();
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: 'Triagem Manchester Concluída',
-            message: 'Classificação de risco registrada com sucesso. O paciente foi direcionado para a Fila de Atendimento Médico.',
+            actionTitle: '🩺 Triagem Manchester Registrada',
+            message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${radio.value}</strong> e está pronto para o atendimento médico.<br><br><strong>Próxima Etapa:</strong> Chame o paciente no <strong>Painel TV</strong> ou abra o <strong>PEP / Prontuário</strong> para iniciar a consulta.`,
             targetTab: 'atendimento',
-            targetTabLabel: 'Atendimentos & Prontuário Médico',
-            targetPatientName: pName
+            targetTabLabel: 'Fila de Consultório / PEP',
+            targetPatientName: pName,
+            persistent: true
           });
         }
         await loadAndRenderKanban();

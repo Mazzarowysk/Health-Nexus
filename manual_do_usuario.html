@@ -346,12 +346,12 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.7.2)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.7.3)</h1>
 <blockquote>
 <p>**Health Nexus — Sistema de Gestão Hospitalar &amp; Prontuário Eletr&gt; Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.</p>
 </blockquote>
 <hr>
-<h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.2)</h2>
+<h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.3)</h2>
 <p>O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:</p>
 <pre><code class="language-mermaid">
 flowchart TD
@@ -879,8 +879,8 @@ graph TD
 </ul>
 <p>| Botão do Modal | Ação | Resultado |</p>
 <p>| :--- | :--- | :--- |</p>
-<p>| <strong>ï¸ Aprovar Acesso</strong> | Concede o perfil solicitado | Libera as permissões de acordo com o cargo cadastrado. |</p>
-<p>| <strong>âŒ Recusar Solicitação</strong> | Define o perfil como <code>Médico</code> padrão | Nega privilégios de administrador mantendo acesso de médico. |</p>
+<p>| <strong>ï¸  Aprovar Acesso</strong> | Concede o perfil solicitado | Libera as permissões de acordo com o cargo cadastrado. |</p>
+<p>| <strong>â Œ Recusar Solicitação</strong> | Define o perfil como <code>Médico</code> padrão | Nega privilégios de administrador mantendo acesso de médico. |</p>
 <h3 id="sec-4-8">4.8. Modal de Gestão de Usuários & Troca de Perfil</h3><ul>
 <li><strong>Como Acessar:</strong> Clique no nome do usuário logado no canto superior direito do menu.</li>
 </ul>
@@ -889,44 +889,214 @@ graph TD
 <p>| <strong>Salvar Alterações</strong> | Atualiza a senha e dados do operador | Grava no banco e emite toast de confirmação. |</p>
 <p>| <strong>Sair / Logout</strong> | Encerra a sessão atual | Redireciona para a tela de Login. |</p>
 <hr>
-<h2 id="sec-5">5. Gestão de Pacientes & Histórico Clínico</h2><p>Na aba <strong>Pacientes</strong>, o hospital mantém o cadastro centralizado.</p>
-<h3>Tabela de Campos Cadastrais do Paciente</h3>
-<p>| Campo | Tipo de Dado | Regra de Validação | Exemplo de Preenchimento |</p>
-<p>| :--- | :--- | :--- | :--- |</p>
-<p>| <strong>Nome Completo</strong> | Texto | Mínimo de 3 caracteres | <code>Renato Ramos Machado</code> |</p>
-<p>| <strong>CPF</strong> | Número / Texto | Validação de algoritmo de 11 dígitos | <code>123.456.789-00</code> |</p>
-<p>| <strong>Data de Nascimento</strong> | Data (AAAA-MM-DD) | Não pode ser data futura | <code>1985-04-12</code> |</p>
-<p>| <strong>Telefone / WhatsApp</strong>| Texto | DDD + Número | <code>(11) 98765-4321</code> |</p>
-<p>| <strong>Endereço Completo</strong> | Texto | Logradouro, Número, Bairro, Cidade | <code>Av. Paulista, 1000 — São Paulo/SP</code> |</p>
-<p>| <strong>Convênio / Plano</strong> | Seletor | SUS, Particular ou Nome do Convênio | <code>Bradesco Saúde</code> |</p>
+<h2 id="sec-5">5. Gestão de Pacientes &amp; Linha do Cuidado Completa</h2><p>Na aba <strong>Pacientes</strong>, o hospital mantém o cadastro centralizado e o acesso à trajetória clínica completa de cada paciente.</p>
+<h3>📋 Tabela de Campos Cadastrais do Paciente</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Campo</th>
+<th align="left">Tipo de Dado</th>
+<th align="left">Regra de Validação</th>
+<th align="left">Exemplo de Preenchimento</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Nome Completo</strong></td>
+<td align="left">Texto</td>
+<td align="left">Mínimo de 3 caracteres</td>
+<td align="left"><code>Renato Ramos Machado</code></td>
+</tr>
+<tr>
+<td align="left"><strong>CPF</strong></td>
+<td align="left">Número / Texto</td>
+<td align="left">Validação de algoritmo de 11 dígitos</td>
+<td align="left"><code>123.456.789-00</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Data de Nascimento</strong></td>
+<td align="left">Data (AAAA-MM-DD)</td>
+<td align="left">Não pode ser data futura</td>
+<td align="left"><code>1985-04-12</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Telefone / WhatsApp</strong></td>
+<td align="left">Texto</td>
+<td align="left">DDD + Número</td>
+<td align="left"><code>(11) 98765-4321</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Endereço Completo</strong></td>
+<td align="left">Texto</td>
+<td align="left">Autopreenchimento por CEP</td>
+<td align="left"><code>Av. Paulista, 1000 — São Paulo/SP</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Convênio / Plano</strong></td>
+<td align="left">Seletor</td>
+<td align="left">SUS, Particular ou Nome do Convênio</td>
+<td align="left"><code>Bradesco Saúde</code></td>
+</tr>
+</tbody></table>
+<h3>🧭 Linha do Cuidado &amp; Trajetória do Paciente (Patient Journey Timeline)</h3>
+<p>Ao clicar no botão de <strong>Prontuário &amp; Histórico</strong> de qualquer paciente (ou pesquisá-lo pelo nome), o sistema abre a visualização da <strong>Linha do Cuidado</strong>, dividida em períodos de atendimento:</p>
+<ol>
+<li><strong>🎟️ 1. Recepção:</strong> Data/hora de admissão, ficha cadastral e queixa principal relatada.</li>
+<li><strong>🩺 2. Triagem Manchester:</strong> Cor do risco (<em>Vermelho, Laranja, Amarelo, Verde, Azul</em>), sinais vitais (PA, FC, Temp).</li>
+<li><strong>📢 3. Chamada de TV:</strong> Registro do disparo sonoro, consultório médico e profissional responsável.</li>
+<li><strong>👨‍⚕️ 4. Consulta Médica (PEP):</strong> Evolução SOAP (<em>Subjetivo, Objetivo, Avaliação, Plano</em>), hipótese diagnóstica CID-10 e prescrição.</li>
+<li><strong>🛌 5. Desfecho Assistencial:</strong> Leito alocado (<em>Ex: 101A</em>), setor de internação ou alta hospitalar registrada.</li>
+</ol>
 <hr>
-<h2 id="sec-6">6. Gestão da Equipe Médica & Corpo Clínico</h2><p>Na aba <strong>Médicos</strong>, gerencia-se o corpo clínico do hospital.</p>
-<h3>”âš•ï¸ Tabela de Campos e Ações dos Médicos</h3>
-<p>| Campo / Ação | Tipo | Descrição / Exemplo | Função no Sistema |</p>
-<p>| :--- | :--- | :--- | :--- |</p>
-<p>| <strong>Nome do Médico</strong> | Texto | <code>Dr. Carlos Eduardo Silva</code> | Exibido nos laudos, receitas e chamadas de TV. |</p>
-<p>| <strong>CRM / UF</strong> | Texto | <code>123456/SP</code> | Registro profissional de classe no conselho médico. |</p>
-<p>| <strong>Especialidade</strong> | Seletor | <code>Cardiologia</code>, <code>Pediatria</code>, <code>Ortopedia</code> | Vincula a fila de atendimento da especialidade. |</p>
-<p>| <strong>Consultório Alocado</strong>| Seletor | <code>Consultório 03</code> | Define em qual sala o médico atende no dia. |</p>
-<p>| <strong>Status da Escala</strong> | Badge |  <code>Em Plantão</code> / âšª <code>Folga</code> | Controla se o médico está disponível para chamadas. |</p>
+<h2 id="sec-6">6. Gestão da Equipe Médica &amp; Corpo Clínico</h2><p>Na aba <strong>Médicos</strong>, gerencia-se o corpo clínico do hospital.</p>
+<h3>🩺 Tabela de Campos e Ações dos Médicos</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Campo / Ação</th>
+<th align="left">Tipo</th>
+<th align="left">Descrição / Exemplo</th>
+<th align="left">Função no Sistema</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Nome do Médico</strong></td>
+<td align="left">Texto</td>
+<td align="left"><code>Dr. Carlos Eduardo Silva</code></td>
+<td align="left">Exibido nos laudos, receitas e chamadas de TV.</td>
+</tr>
+<tr>
+<td align="left"><strong>CRM / UF</strong></td>
+<td align="left">Texto</td>
+<td align="left"><code>123456/SP</code></td>
+<td align="left">Registro profissional de classe no conselho médico.</td>
+</tr>
+<tr>
+<td align="left"><strong>Especialidade</strong></td>
+<td align="left">Seletor</td>
+<td align="left"><code>Cardiologia</code>, <code>Pediatria</code>, <code>Ortopedia</code></td>
+<td align="left">Vincula a fila de atendimento da especialidade.</td>
+</tr>
+<tr>
+<td align="left"><strong>Consultório Alocado</strong></td>
+<td align="left">Seletor</td>
+<td align="left"><code>Consultório 01</code></td>
+<td align="left">Define em qual sala o médico atende no dia.</td>
+</tr>
+<tr>
+<td align="left"><strong>Status da Escala</strong></td>
+<td align="left">Badge</td>
+<td align="left">🟢 <code>Em Plantão</code> / ⚪ <code>Folga</code></td>
+<td align="left">Controla se o médico está disponível para chamadas.</td>
+</tr>
+</tbody></table>
 <hr>
-<h2 id="sec-7">7. Gestão de Consultórios & Salas de Atendimento</h2><p>Na aba <strong>Consultórios</strong>, controla-se a ocupação das salas médicas.</p>
-<h3>Tabela de Status e Gestão das Salas</h3>
-<p>| Sala / Consultório | Ala | Especialidade Vinculada | Médico Alocado | Status Atual | Ações Rápidas |</p>
-<p>| :--- | :--- | :--- | :--- | :---: | :--- |</p>
-<p>| <strong>Consultório 01</strong> | Térreo | Clinica Geral | Dr. Carlos Silva |  <code>Disponível</code> | <code>Alocar Médico</code>, <code>Chamar Próximo</code> |</p>
-<p>| <strong>Consultório 02</strong> | Térreo | Pediatria | Dra. Mariana Costa |  <code>Em Consulta</code> | <code>Ver Atendimento</code> |</p>
-<p>| <strong>Consultório 03</strong> | 1º Andar | Ortopedia | Dr. Roberto Alves |  <code>Higienização</code> | <code>Liberar Sala</code> |</p>
-<p>| <strong>Sala Amarela</strong> | Urgência | Emergência / PS | Dra. Fernanda Lima |  <code>Em Consulta</code> | <code>Transferir Paciente</code> |</p>
+<h2 id="sec-7">7. Gestão de Consultórios &amp; Integração com Painel TV</h2><p>Na aba <strong>Consultórios</strong>, controla-se a ocupação das salas médicas e o atendimento em tempo real.</p>
+<h3>🚪 Tabela de Status e Gestão das Salas</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Sala / Consultório</th>
+<th align="left">Ala</th>
+<th align="left">Especialidade Vinculada</th>
+<th align="left">Médico Alocado</th>
+<th align="center">Status Atual</th>
+<th align="left">Ações Rápidas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Consultório 01</strong></td>
+<td align="left">Térreo</td>
+<td align="left">Clínica Geral</td>
+<td align="left">Dr. Carlos Silva</td>
+<td align="center">🟢 <code>Em Atendimento</code></td>
+<td align="left"><code>🩺 Abrir PEP</code>, <code>Ver Atendimento</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Consultório 02</strong></td>
+<td align="left">Térreo</td>
+<td align="left">Pediatria</td>
+<td align="left">Dra. Mariana Costa</td>
+<td align="center">🟢 <code>Disponível</code></td>
+<td align="left"><code>Alocar Médico</code>, <code>Chamar Próximo</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Consultório 03</strong></td>
+<td align="left">1º Andar</td>
+<td align="left">Ortopedia</td>
+<td align="left">Dr. Roberto Alves</td>
+<td align="center">🟡 <code>Higienização</code></td>
+<td align="left"><code>Liberar Sala</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Sala Amarela</strong></td>
+<td align="left">Urgência</td>
+<td align="left">Emergência / PS</td>
+<td align="left">Dra. Fernanda Lima</td>
+<td align="center">🔴 <code>Em Consulta</code></td>
+<td align="left"><code>Transferir Paciente</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Vínculo em Tempo Real:</strong> Ao emitir a chamada no Painel TV, o consultório correspondente exibe automaticamente o nome do paciente chamado com botão de <strong>1-clique para abrir o Prontuário Eletrônico (PEP)</strong>.</p>
+</blockquote>
 <hr>
-<h2 id="sec-8">8. Gestão de Leitos & Hospitalização</h2><p>Na aba <strong>Leitos</strong>, a equipe gerencia a ocupação das alas hospitalares.</p>
-<h3>ï¸ Tabela de Gestão de Leitos</h3>
-<p>| Leito ID | Ala / Setor | Paciente Internado | Tempo de Internação | Status do Leito | Ações Permitidas |</p>
-<p>| :--- | :--- | :--- | :---: | :---: | :--- |</p>
-<p>| <strong>Enfermaria 101-A</strong>| Enfermaria Geral | Maria Eduarda Souza | 3 dias |  <code>Ocupado</code> | <code>Transferir Leito</code>, <code>Dar Alta</code> |</p>
-<p>| <strong>Enfermaria 101-B</strong>| Enfermaria Geral | — | — |  <code>Disponível</code> | <code>Internar Paciente</code> |</p>
-<p>| <strong>UTI-01</strong> | UTI Adulto | José Ramos Ferreira | 7 dias |  <code>Ocupado</code> | <code>Transferir Leito</code>, <code>Evolução UTI</code> |</p>
-<p>| <strong>Isolamento-02</strong> | Isolamento | — | — |  <code>Higienização</code> | <code>Liberar para Uso</code> |</p>
+<h2 id="sec-8">8. Gestão Avançada de Leitos, Censo &amp; Histórico</h2><p>Na aba <strong>Leitos</strong>, a equipe hospitalar gerencia a ocupação em tempo real com controle de capacidade por leito individual.</p>
+<h3>🛏️ Tabela de Gestão de Leitos</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Leito ID</th>
+<th align="left">Setor / Ala</th>
+<th align="left">Paciente Alocado</th>
+<th align="center">Tempo de Internação</th>
+<th align="center">Status do Leito</th>
+<th align="left">Ações Permitidas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Leito 101A</strong></td>
+<td align="left">Enfermaria Geral</td>
+<td align="left">Marcelo Mazaro</td>
+<td align="center">1 dia</td>
+<td align="center">🔴 <code>Ocupado</code></td>
+<td align="left"><code>🩺 PEP</code>, <code>📋 Detalhes</code>, <code>🚪 Alta</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Leito 101B</strong></td>
+<td align="left">Enfermaria Geral</td>
+<td align="left">—</td>
+<td align="center">—</td>
+<td align="center">🟢 <code>Vago</code></td>
+<td align="left"><code>🛏️ Internar Neste Leito</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Leito UTI-01</strong></td>
+<td align="left">UTI Adulto</td>
+<td align="left">José Ramos</td>
+<td align="center">5 dias</td>
+<td align="center">🔴 <code>Ocupado</code></td>
+<td align="left"><code>🩺 PEP</code>, <code>📋 Detalhes</code>, <code>🚪 Alta</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Leito Isolamento-02</strong></td>
+<td align="left">Isolamento</td>
+<td align="left">—</td>
+<td align="center">—</td>
+<td align="center">🟡 <code>Higienização</code></td>
+<td align="left"><code>✨ Liberar Leito</code></td>
+</tr>
+</tbody></table>
+<h3>🔒 Regras Operacionais de Leito (Segurança do Paciente):</h3>
+<ol>
+<li><strong>Bloqueio de Dupla Alocação:</strong> Quando um leito individual está <code>Ocupado</code>, o botão de alocação de novo paciente é <strong>automaticamente inabilitado</strong> para evitar duplicidades.</li>
+<li><strong>Painel Detalhado do Leito:</strong> Ao clicar no card de qualquer leito, abre-se o modal do leito com:<ul>
+<li>Ficha do ocupante atual, data/hora da internação e dias de permanência.</li>
+<li><strong>Histórico Completo de Internações:</strong> Relação de todos os pacientes que já ocuparam aquele leito no passado com data de entrada e saída.</li>
+<li>Controles operacionais para alternar status (<em>Vago</em>, <em>Higienização</em>, <em>Manutenção</em>).</li>
+</ul>
+</li>
+<li><strong>Ciclo de Higienização:</strong> Ao conceder alta médica, o leito passa imediatamente para o status 🟡 <code>Higienização</code> até ser liberado pela equipe de limpeza.</li>
+</ol>
 <hr>
 <h2 id="sec-9">9. Agenda, Escala Médica & Consultas Eletivas</h2><p>Na aba <strong>Agenda</strong>, realiza-se a marcação e controle de horários.</p>
 <h3>Tabela de Operações da Agenda</h3>

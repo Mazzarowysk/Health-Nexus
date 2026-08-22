@@ -132,20 +132,42 @@ async function renderLeitosTab() {
 
   const loadBeds = async () => {
     try {
-      const beds = await cachedApiGet('/api/beds', 'beds');
+      let rawBeds = await cachedApiGet('/api/beds', 'beds');
+      let beds = Array.isArray(rawBeds) ? rawBeds : (rawBeds.data || []);
+
+      // Filtrar itens inválidos/corrompidos (como undefined)
+      beds = beds.filter(b => b && (b.bedNumber || b.number) && String(b.bedNumber) !== 'undefined' && String(b.number) !== 'undefined');
 
       // Normalizar dados legados
       beds.forEach(b => {
         if (!b.bedNumber && b.number) b.bedNumber = b.number;
         if (b.type === 'Enfermaria' && b.ward === 'Pediatria') b.sector = 'Pediatria';
         if (b.type === 'UTI Pediátrica') b.sector = 'Pediatria';
-        if (!b.sector) b.sector = b.type;
+        if (!b.sector) b.sector = b.type || 'Enfermaria';
       });
 
-      // Buscar Fila de Internação
+      // Sincronizar com internações ativas do banco local
       try {
         const encounters = await cachedApiGet('/api/encounters', 'encounters');
-        const queue = encounters.filter(e => e.status === 'Aguardando_Leito');
+        const encList = Array.isArray(encounters) ? encounters : (encounters.data || []);
+
+        const hosps = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('hospitalizations') || []) : [];
+        const activeHosps = hosps.filter(h => h.status !== 'Alta');
+
+        beds.forEach(b => {
+          const matchingHosp = activeHosps.find(h => String(h.bed_id) === String(b.id) || h.bed === b.bedNumber || h.bed === b.number);
+          const matchingEnc = encList.find(e => (e.status === 'Internado' || e.status === 'Em_Atendimento') && (String(e.bedId) === String(b.id) || e.bed === b.bedNumber || e.bed === b.number));
+          
+          if (matchingHosp || matchingEnc) {
+            b.status = 'Ocupado';
+            b.patientName = (matchingHosp && matchingHosp.patientName) || (matchingEnc && matchingEnc.patientName) || b.patientName;
+            b.patientId = (matchingHosp && matchingHosp.patient_id) || (matchingEnc && matchingEnc.patientId) || b.patientId;
+            b.admittedAt = (matchingHosp && matchingHosp.admitted_at) || (matchingEnc && matchingEnc.hospitalized_at) || b.admittedAt || new Date().toISOString();
+          }
+        });
+
+        // Buscar Fila de Internação
+        const queue = encList.filter(e => e.status === 'Aguardando_Leito');
         const queueContainer = document.getElementById('internacao-queue-container');
         const queueList = document.getElementById('internacao-queue-list');
         
@@ -222,39 +244,48 @@ async function renderLeitosTab() {
           borderTop = '4px solid #facc15';
         }
 
+        const isMarcelo = b.patientName && b.patientName.toLowerCase().includes('marcelo');
+
         return `
-          <div class="card" style="padding: 20px; border-top: ${borderTop}; border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
+          <div class="card ${isMarcelo ? 'patient-pulse-selected' : ''}" style="padding: 20px; border-top: ${borderTop}; border-left: 1.5px solid ${isMarcelo ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; border-right: 1.5px solid ${isMarcelo ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; border-bottom: 1.5px solid ${isMarcelo ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;" onclick="window.openBedDetailsModal('${b.id}')" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); display:flex; align-items:center; gap: 6px;"><i class="fa-solid fa-bed" style="color: var(--text-muted); font-size:1.1rem;"></i> ${b.bedNumber}</span>
+                <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); display:flex; align-items:center; gap: 6px;">
+                  <i class="fa-solid fa-bed" style="color: ${b.status === 'Ocupado' ? '#f87171' : '#4ade80'}; font-size:1.1rem;"></i> Leito ${b.bedNumber}
+                </span>
                 <span class="badge" style="background: ${statusBg}; color: ${statusColor}; font-weight:700; border: 1px solid ${statusBg.replace('0.15', '0.3')}; border-radius: 12px; padding: 4px 10px;">${b.status}</span>
               </div>
-              <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 16px;">
+              <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 14px;">
                 <i class="fa-solid fa-building-user"></i> ${b.sector}
               </div>
               ${b.status === 'Ocupado' ? `
-                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--glass-border);">
-                  <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-user-injured" style="margin-right:4px;"></i> ${b.patientName || 'Paciente Inominado'}</div>
-                  <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
-                    <i class="fa-solid fa-calendar-check"></i> Int: ${b.admittedAt ? new Date(b.admittedAt).toLocaleDateString() : '-'}
+                <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(239,68,68,0.1)); padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid rgba(99,102,241,0.3);">
+                  <div style="font-size: 0.98rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${b.patientName || 'Paciente'}
+                  </div>
+                  <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <span><i class="fa-solid fa-calendar-check" style="color: #a5b4fc;"></i> Entrada: ${b.admittedAt ? new Date(b.admittedAt).toLocaleTimeString().slice(0,5) : 'Hoje'}</span>
                   </div>
                 </div>
-              ` : '<div style="margin-bottom: 16px;"></div>'}
+              ` : '<div style="margin-bottom: 16px; font-size: 0.82rem; color: var(--text-muted);"><i class="fa-regular fa-circle-check"></i> Pronto para receber paciente</div>'}
             </div>
 
-            <div style="display: flex; gap: 8px; margin-top: auto; justify-content: flex-end;">
+            <div style="display: flex; gap: 6px; margin-top: auto; justify-content: flex-end; flex-wrap: wrap;" onclick="event.stopPropagation();">
               ${b.status === 'Vago' ? `
-                <button class="btn btn-sm btn-primary" onclick="quickAdmitBed('${b.id}')" style="width: 100%; border-radius: 8px; font-weight:600;">
+                <button class="btn btn-sm btn-primary" onclick="window.quickAdmitBed('${b.id}')" style="width: 100%; border-radius: 8px; font-weight:700; padding: 9px 14px;">
                   <i class="fa-solid fa-bed"></i> Internar Neste Leito
                 </button>
               ` : ''}
               ${b.status === 'Ocupado' ? `
-                <button class="btn btn-sm btn-danger" onclick="dischargeBed('${b.id}')" style="width: 100%; border-radius: 8px; font-weight:600; background: linear-gradient(135deg, #be5a6e, #9e3a52); border:none; box-shadow: 0 4px 10px rgba(158,58,82,0.3);">
-                  <i class="fa-solid fa-door-open"></i> Alta Hospitalar
+                <button class="btn btn-sm" onclick="if(typeof window.openPEPModal === 'function') window.openPEPModal('${b.patientId || b.patientName}');" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 7px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                  <i class="fa-solid fa-file-medical"></i> PEP
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="window.dischargeBed('${b.id}')" style="flex: 1; border-radius: 8px; font-weight:700; font-size: 0.76rem; padding: 7px 10px; background: linear-gradient(135deg, #be5a6e, #9e3a52); border:none; color: #fff;">
+                  <i class="fa-solid fa-door-open"></i> Alta
                 </button>
               ` : ''}
               ${b.status === 'Higienizacao' ? `
-                <button class="btn btn-sm btn-success" onclick="updateBedStatus('${b.id}', 'Vago')" style="width: 100%; border-radius: 8px; font-weight:600; background: linear-gradient(135deg, #22c55e, #16a34a); border:none; color: #fff; box-shadow: 0 4px 10px rgba(34,197,94,0.25);">
+                <button class="btn btn-sm btn-success" onclick="window.updateBedStatus('${b.id}', 'Vago')" style="width: 100%; border-radius: 8px; font-weight:700; background: linear-gradient(135deg, #22c55e, #16a34a); border:none; color: #fff; box-shadow: 0 4px 10px rgba(34,197,94,0.25); padding: 9px 14px;">
                   <i class="fa-solid fa-sparkles"></i> Liberar Leito
                 </button>
               ` : ''}
@@ -263,6 +294,7 @@ async function renderLeitosTab() {
         `;
       }).join('');
     } catch (e) {
+      console.error(e);
       document.getElementById('beds-grid').innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--color-danger); padding: 20px;">Erro ao carregar mapa de leitos.</div>`;
     }
   };
@@ -536,6 +568,167 @@ window.updateBedStatus = async (bedId, status) => {
   } catch (e) {}
 };
 
-// --- ABA CORPO CLÍNICO (GESTÃO DE MÉDICOS) ---
+window.openBedDetailsModal = async function(bedId) {
+  const existing = document.getElementById('bed-details-modal');
+  if (existing) existing.remove();
+
+  try {
+    const rawBeds = await cachedApiGet('/api/beds', 'beds');
+    const beds = Array.isArray(rawBeds) ? rawBeds : (rawBeds.data || []);
+    const bed = beds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+
+    if (!bed) {
+      showToast('Leito não encontrado.', true);
+      return;
+    }
+
+    const bedNum = bed.bedNumber || bed.number || bed.id;
+    const isOccupied = bed.status === 'Ocupado';
+
+    // Buscar histórico de internações deste leito
+    const hosps = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('hospitalizations') || []) : [];
+    const bedHosps = hosps.filter(h => String(h.bed_id) === String(bed.id) || h.bed === bedNum);
+
+    let statusBadgeColor = '#4ade80';
+    let statusBadgeBg = 'rgba(74,222,128,0.15)';
+    if (bed.status === 'Ocupado') {
+      statusBadgeColor = '#f87171';
+      statusBadgeBg = 'rgba(248,113,113,0.2)';
+    } else if (bed.status === 'Higienizacao') {
+      statusBadgeColor = '#facc15';
+      statusBadgeBg = 'rgba(250,204,21,0.2)';
+    }
+
+    const modalHtml = `
+      <div id="bed-details-modal" class="modal-overlay" style="position: fixed; top:0; left:0; width:100vw; height:100vh; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(5,7,20,0.85); backdrop-filter: blur(10px);">
+        <div class="modal-content" style="max-width: 680px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99,102,241,0.45); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8); animation: slideIn 0.3s ease-out;">
+          
+          <div style="background: linear-gradient(135deg, #1e1b4b, #311b92); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.3rem;">
+                <i class="fa-solid fa-bed"></i>
+              </div>
+              <div>
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+                  Leito ${bedNum}
+                  <span style="font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; background: ${statusBadgeBg}; color: ${statusBadgeColor}; border: 1px solid ${statusBadgeColor}; font-weight: 700;">${bed.status}</span>
+                </h3>
+                <small style="color: #c4b5fd; font-size: 0.82rem;">Setor: <strong>${bed.sector || bed.type || 'Enfermaria'}</strong> &bull; Ala: ${bed.ward || 'Geral'}</small>
+              </div>
+            </div>
+            <button onclick="document.getElementById('bed-details-modal').remove()" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <div style="padding: 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;">
+            
+            <!-- Paciente Atualmente Alocado -->
+            <div style="background: var(--bg-tertiary); border: 1.5px solid ${isOccupied ? 'rgba(239,68,68,0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fa-solid fa-user-injured" style="color: ${isOccupied ? '#f87171' : '#4ade80'};"></i> Ocupação Atual do Leito</span>
+                ${isOccupied ? '<span style="background: #ef4444; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700;">Internado</span>' : ''}
+              </div>
+
+              ${isOccupied ? `
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                      <h4 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${bed.patientName || 'Paciente'}
+                      </h4>
+                      <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap;">
+                        <span><i class="fa-solid fa-calendar-check" style="color: #a5b4fc;"></i> Admissão: <strong>${bed.admittedAt ? new Date(bed.admittedAt).toLocaleDateString('pt-BR') + ' às ' + new Date(bed.admittedAt).toLocaleTimeString().slice(0,5) : 'Hoje'}</strong></span>
+                        <span><i class="fa-solid fa-bed" style="color: #f87171;"></i> Capacidade: <strong>1 Paciente (Leito Exclusivo)</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Ações do Paciente Internado -->
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${bed.patientId || bed.patientName}');">
+                      <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
+                    </button>
+                    <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${bed.patientId || bed.patientName}', '${(bed.patientName||'').replace(/'/g, "\\'")}');">
+                      <i class="fa-solid fa-timeline"></i> Ver Jornada Completa
+                    </button>
+                    <button class="btn" style="background: linear-gradient(135deg, #be5a6e, #9e3a52); border: none; color: #fff; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-left: auto;" onclick="document.getElementById('bed-details-modal').remove(); window.dischargeBed('${bed.id}');">
+                      <i class="fa-solid fa-door-open"></i> Dar Alta Hospitalar
+                    </button>
+                  </div>
+                </div>
+              ` : `
+                <div style="text-align: center; padding: 16px 0; color: var(--text-muted); font-size: 0.88rem;">
+                  <i class="fa-solid fa-bed" style="font-size: 1.8rem; color: #4ade80; display: block; margin-bottom: 8px; opacity: 0.8;"></i>
+                  Este leito está <strong>Vago</strong> e disponível para receber novas internações.
+                  <div style="margin-top: 14px;">
+                    <button class="btn btn-primary" style="font-size: 0.85rem; padding: 8px 18px; font-weight: 700;" onclick="document.getElementById('bed-details-modal').remove(); window.quickAdmitBed('${bed.id}');">
+                      <i class="fa-solid fa-plus"></i> Internar Paciente Aqui
+                    </button>
+                  </div>
+                </div>
+              `}
+            </div>
+
+            <!-- Histórico de Ocupação do Leito -->
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-history" style="color: #6366f1;"></i> Histórico de Internações neste Leito (${bedHosps.length})
+              </div>
+
+              ${bedHosps.length > 0 ? `
+                <div style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
+                  ${bedHosps.map(h => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
+                      <div>
+                        <strong style="color: #f8fafc; font-size: 0.9rem; display: block;">${h.patientName || 'Paciente'}</strong>
+                        <small style="color: var(--text-muted); font-size: 0.75rem;">
+                          Entrada: ${h.admitted_at ? new Date(h.admitted_at).toLocaleDateString('pt-BR') : '-'}
+                          ${h.discharged_at ? ` &bull; Alta: ${new Date(h.discharged_at).toLocaleDateString('pt-BR')}` : ' &bull; 🟢 Ativo'}
+                        </small>
+                      </div>
+                      <span class="badge" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 10px; background: ${h.status === 'Alta' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color: ${h.status === 'Alta' ? '#34d399' : '#f87171'}; border: 1px solid ${h.status === 'Alta' ? '#10b981' : '#ef4444'};">
+                        ${h.status || 'Internado'}
+                      </span>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : `
+                <div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 12px 0;">
+                  Nenhum registro histórico prévio para este leito.
+                </div>
+              `}
+            </div>
+
+            <!-- Manutenção e Status -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
+              <span style="font-size: 0.82rem; color: var(--text-muted);">Alterar Situação Operacional:</span>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-sm" onclick="window.updateBedStatus('${bed.id}', 'Vago'); document.getElementById('bed-details-modal').remove();" style="background: rgba(74,222,128,0.15); border: 1px solid #4ade80; color: #4ade80; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
+                  🟢 Vago
+                </button>
+                <button class="btn btn-sm" onclick="window.updateBedStatus('${bed.id}', 'Higienizacao'); document.getElementById('bed-details-modal').remove();" style="background: rgba(250,204,21,0.15); border: 1px solid #facc15; color: #facc15; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
+                  🟡 Higienização
+                </button>
+                <button class="btn btn-sm" onclick="window.updateBedStatus('${bed.id}', 'Manutenção'); document.getElementById('bed-details-modal').remove();" style="background: rgba(148,163,184,0.15); border: 1px solid #94a3b8; color: #cbd5e1; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
+                  ⚙️ Manutenção
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="padding: 14px 24px; background: var(--bg-tertiary); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+            <button class="btn btn-primary" onclick="document.getElementById('bed-details-modal').remove()" style="font-size: 0.85rem; padding: 8px 18px;">Fechar</button>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao abrir detalhes do leito.', true);
+  }
+};
 
 window.renderLeitosTab = renderLeitosTab;

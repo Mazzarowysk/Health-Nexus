@@ -1,10 +1,10 @@
-# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.7.2)
+# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.7.3)
 
 > **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletr> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.
 
 ---
 
-## 🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.2)
+## 🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.3)
 
 O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:
 
@@ -734,9 +734,9 @@ Abaixo encontra-se o detalhamento técnico de cada janela modal presente no sist
 
 | :--- | :--- | :--- |
 
-| **ï¸ Aprovar Acesso** | Concede o perfil solicitado | Libera as permissões de acordo com o cargo cadastrado. |
+| **ï¸  Aprovar Acesso** | Concede o perfil solicitado | Libera as permissões de acordo com o cargo cadastrado. |
 
-| **âŒ Recusar Solicitação** | Define o perfil como `Médico` padrão | Nega privilégios de administrador mantendo acesso de médico. |
+| **â Œ Recusar Solicitação** | Define o perfil como `Médico` padrão | Nega privilégios de administrador mantendo acesso de médico. |
 
 
 
@@ -760,123 +760,82 @@ Abaixo encontra-se o detalhamento técnico de cada janela modal presente no sist
 
 
 
-<h2 id="sec-5">5. Gestão de Pacientes & Histórico Clínico</h2>
+<h2 id="sec-5">5. Gestão de Pacientes &amp; Linha do Cuidado Completa</h2>
 
+Na aba **Pacientes**, o hospital mantém o cadastro centralizado e o acesso à trajetória clínica completa de cada paciente.
 
-
-Na aba **Pacientes**, o hospital mantém o cadastro centralizado.
-
-
-
-###  Tabela de Campos Cadastrais do Paciente
-
+### 📋 Tabela de Campos Cadastrais do Paciente
 | Campo | Tipo de Dado | Regra de Validação | Exemplo de Preenchimento |
-
 | :--- | :--- | :--- | :--- |
-
 | **Nome Completo** | Texto | Mínimo de 3 caracteres | `Renato Ramos Machado` |
-
 | **CPF** | Número / Texto | Validação de algoritmo de 11 dígitos | `123.456.789-00` |
-
 | **Data de Nascimento** | Data (AAAA-MM-DD) | Não pode ser data futura | `1985-04-12` |
-
 | **Telefone / WhatsApp**| Texto | DDD + Número | `(11) 98765-4321` |
-
-| **Endereço Completo** | Texto | Logradouro, Número, Bairro, Cidade | `Av. Paulista, 1000 — São Paulo/SP` |
-
+| **Endereço Completo** | Texto | Autopreenchimento por CEP | `Av. Paulista, 1000 — São Paulo/SP` |
 | **Convênio / Plano** | Seletor | SUS, Particular ou Nome do Convênio | `Bradesco Saúde` |
 
-
+### 🧭 Linha do Cuidado &amp; Trajetória do Paciente (Patient Journey Timeline)
+Ao clicar no botão de **Prontuário &amp; Histórico** de qualquer paciente (ou pesquisá-lo pelo nome), o sistema abre a visualização da **Linha do Cuidado**, dividida em períodos de atendimento:
+1. **🎟️ 1. Recepção:** Data/hora de admissão, ficha cadastral e queixa principal relatada.
+2. **🩺 2. Triagem Manchester:** Cor do risco (*Vermelho, Laranja, Amarelo, Verde, Azul*), sinais vitais (PA, FC, Temp).
+3. **📢 3. Chamada de TV:** Registro do disparo sonoro, consultório médico e profissional responsável.
+4. **👨‍⚕️ 4. Consulta Médica (PEP):** Evolução SOAP (*Subjetivo, Objetivo, Avaliação, Plano*), hipótese diagnóstica CID-10 e prescrição.
+5. **🛌 5. Desfecho Assistencial:** Leito alocado (*Ex: 101A*), setor de internação ou alta hospitalar registrada.
 
 ---
 
-
-
-<h2 id="sec-6">6. Gestão da Equipe Médica & Corpo Clínico</h2>
-
-
+<h2 id="sec-6">6. Gestão da Equipe Médica &amp; Corpo Clínico</h2>
 
 Na aba **Médicos**, gerencia-se o corpo clínico do hospital.
 
-
-
-### ”âš•ï¸ Tabela de Campos e Ações dos Médicos
-
+### 🩺 Tabela de Campos e Ações dos Médicos
 | Campo / Ação | Tipo | Descrição / Exemplo | Função no Sistema |
-
 | :--- | :--- | :--- | :--- |
-
 | **Nome do Médico** | Texto | `Dr. Carlos Eduardo Silva` | Exibido nos laudos, receitas e chamadas de TV. |
-
 | **CRM / UF** | Texto | `123456/SP` | Registro profissional de classe no conselho médico. |
-
 | **Especialidade** | Seletor | `Cardiologia`, `Pediatria`, `Ortopedia` | Vincula a fila de atendimento da especialidade. |
-
-| **Consultório Alocado**| Seletor | `Consultório 03` | Define em qual sala o médico atende no dia. |
-
-| **Status da Escala** | Badge |  `Em Plantão` / âšª `Folga` | Controla se o médico está disponível para chamadas. |
-
-
+| **Consultório Alocado**| Seletor | `Consultório 01` | Define em qual sala o médico atende no dia. |
+| **Status da Escala** | Badge | 🟢 `Em Plantão` / ⚪ `Folga` | Controla se o médico está disponível para chamadas. |
 
 ---
 
+<h2 id="sec-7">7. Gestão de Consultórios &amp; Integração com Painel TV</h2>
 
+Na aba **Consultórios**, controla-se a ocupação das salas médicas e o atendimento em tempo real.
 
-<h2 id="sec-7">7. Gestão de Consultórios & Salas de Atendimento</h2>
-
-
-
-Na aba **Consultórios**, controla-se a ocupação das salas médicas.
-
-
-
-###  Tabela de Status e Gestão das Salas
-
+### 🚪 Tabela de Status e Gestão das Salas
 | Sala / Consultório | Ala | Especialidade Vinculada | Médico Alocado | Status Atual | Ações Rápidas |
-
 | :--- | :--- | :--- | :--- | :---: | :--- |
+| **Consultório 01** | Térreo | Clínica Geral | Dr. Carlos Silva | 🟢 `Em Atendimento` | `🩺 Abrir PEP`, `Ver Atendimento` |
+| **Consultório 02** | Térreo | Pediatria | Dra. Mariana Costa | 🟢 `Disponível` | `Alocar Médico`, `Chamar Próximo` |
+| **Consultório 03** | 1º Andar | Ortopedia | Dr. Roberto Alves | 🟡 `Higienização` | `Liberar Sala` |
+| **Sala Amarela** | Urgência | Emergência / PS | Dra. Fernanda Lima | 🔴 `Em Consulta` | `Transferir Paciente` |
 
-| **Consultório 01** | Térreo | Clinica Geral | Dr. Carlos Silva |  `Disponível` | `Alocar Médico`, `Chamar Próximo` |
-
-| **Consultório 02** | Térreo | Pediatria | Dra. Mariana Costa |  `Em Consulta` | `Ver Atendimento` |
-
-| **Consultório 03** | 1º Andar | Ortopedia | Dr. Roberto Alves |  `Higienização` | `Liberar Sala` |
-
-| **Sala Amarela** | Urgência | Emergência / PS | Dra. Fernanda Lima |  `Em Consulta` | `Transferir Paciente` |
-
-
+> **Vínculo em Tempo Real:** Ao emitir a chamada no Painel TV, o consultório correspondente exibe automaticamente o nome do paciente chamado com botão de **1-clique para abrir o Prontuário Eletrônico (PEP)**.
 
 ---
 
+<h2 id="sec-8">8. Gestão Avançada de Leitos, Censo &amp; Histórico</h2>
 
+Na aba **Leitos**, a equipe hospitalar gerencia a ocupação em tempo real com controle de capacidade por leito individual.
 
-<h2 id="sec-8">8. Gestão de Leitos & Hospitalização</h2>
-
-
-
-Na aba **Leitos**, a equipe gerencia a ocupação das alas hospitalares.
-
-
-
-### ï¸ Tabela de Gestão de Leitos
-
-| Leito ID | Ala / Setor | Paciente Internado | Tempo de Internação | Status do Leito | Ações Permitidas |
-
+### 🛏️ Tabela de Gestão de Leitos
+| Leito ID | Setor / Ala | Paciente Alocado | Tempo de Internação | Status do Leito | Ações Permitidas |
 | :--- | :--- | :--- | :---: | :---: | :--- |
+| **Leito 101A** | Enfermaria Geral | Marcelo Mazaro | 1 dia | 🔴 `Ocupado` | `🩺 PEP`, `📋 Detalhes`, `🚪 Alta` |
+| **Leito 101B** | Enfermaria Geral | — | — | 🟢 `Vago` | `🛏️ Internar Neste Leito` |
+| **Leito UTI-01** | UTI Adulto | José Ramos | 5 dias | 🔴 `Ocupado` | `🩺 PEP`, `📋 Detalhes`, `🚪 Alta` |
+| **Leito Isolamento-02** | Isolamento | — | — | 🟡 `Higienização` | `✨ Liberar Leito` |
 
-| **Enfermaria 101-A**| Enfermaria Geral | Maria Eduarda Souza | 3 dias |  `Ocupado` | `Transferir Leito`, `Dar Alta` |
-
-| **Enfermaria 101-B**| Enfermaria Geral | — | — |  `Disponível` | `Internar Paciente` |
-
-| **UTI-01** | UTI Adulto | José Ramos Ferreira | 7 dias |  `Ocupado` | `Transferir Leito`, `Evolução UTI` |
-
-| **Isolamento-02** | Isolamento | — | — |  `Higienização` | `Liberar para Uso` |
-
-
+### 🔒 Regras Operacionais de Leito (Segurança do Paciente):
+1. **Bloqueio de Dupla Alocação:** Quando um leito individual está `Ocupado`, o botão de alocação de novo paciente é **automaticamente inabilitado** para evitar duplicidades.
+2. **Painel Detalhado do Leito:** Ao clicar no card de qualquer leito, abre-se o modal do leito com:
+   - Ficha do ocupante atual, data/hora da internação e dias de permanência.
+   - **Histórico Completo de Internações:** Relação de todos os pacientes que já ocuparam aquele leito no passado com data de entrada e saída.
+   - Controles operacionais para alternar status (*Vago*, *Higienização*, *Manutenção*).
+3. **Ciclo de Higienização:** Ao conceder alta médica, o leito passa imediatamente para o status 🟡 `Higienização` até ser liberado pela equipe de limpeza.
 
 ---
-
-
 
 <h2 id="sec-9">9. Agenda, Escala Médica & Consultas Eletivas</h2>
 

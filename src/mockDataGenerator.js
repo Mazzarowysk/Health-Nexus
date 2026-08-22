@@ -833,6 +833,9 @@ export async function generateMockData(baseAmount = 300) {
 
   localStorage.setItem('healthNexusDados', JSON.stringify(db));
   localStorage.setItem('healthNexusUpdatedAt', Date.now().toString());
+  if (typeof window !== 'undefined' && typeof window.clearDataCache === 'function') {
+    window.clearDataCache();
+  }
 
   console.log('[MockGen] ✅ Simulação completa gerada!');
   console.log(`  → ${patients.length} pacientes`);

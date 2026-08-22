@@ -1,15 +1,17 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.7.2`  
-**Status:** Em desenvolvimento ativo  
+**Versão:** `2.7.3`  
+**Status:** Em desenvolvimento ativo (Production-Ready)  
 **Última atualização:** Agosto 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🧭 **Linha do Cuidado & Trajetória Completa do Paciente (Patient Journey Timeline):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.
+- 🛏️ **Gestão Inteligente de Leitos & Censo Hospitalar:** Bloqueio automático de leitos ocupados, Painel Detalhado com ocupante atual, tempo de permanência, histórico completo de internações anteriores por leito e ciclo de higienização automatizado.
 - 🌐 **Manual Interativo por Abas (SPA):** Acessível diretamente pelo botão `📖 Manual do Usuário` no topo do sistema ou pela busca global `Ctrl + K`.
-- 🧩 **Arquitetura Frontend Modular (`src/modules/`):** Código desacoplado em módulos de responsabilidade única (`ui.js`, `sync.js`, `api.js`, `auth.js`) garantindo alta manutenibilidade, isolamento de escopo e facilidade para testes automatizados.
+- 🧩 **Arquitetura Frontend Modular (`src/modules/`):** Código desacoplado em módulos de responsabilidade única (`ui.js`, `sync.js`, `api.js`, `auth.js`, `journey.js`) garantindo alta manutenibilidade, isolamento de escopo e facilidade para testes automatizados.
 - 📌 **Navegação Assistida & Retorno Rápido:** Ao pesquisar e navegar para qualquer tela pelo manual, um widget flutuante de retorno (*Floating Return Beacon*) é ativado no canto inferior direito (`Alt + M`) com destaque visual do card (*Smart Highlight Pulse*).
 - ☁️ **Sincronização em Nuvem de Alta Disponibilidade (Dual-Pipeline):** Sincronização atômica e resiliente entre navegadores e Turso Cloud LibSQL com fallback direto HTTP, timeout de 15s, retentativas automáticas e feedback de contagem de registros.
 - 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
@@ -76,18 +78,20 @@
    - Tela cheia para sala de espera.  
    - Anuncia paciente com voz sintetizada (Web Speech API) e exibe nome em destaque.
 
-7. **Prontuário Eletrônico (PEP SOAP)**  
-   - Autosave, assinatura digital, prescrições médicas em planilha.  
-   - Histórico completo assistencial por paciente.
+7. **Prontuário Eletrônico (PEP SOAP) & Trajetória Assistencial**  
+   - Autosave, assinatura digital, prescrições médicas e receituário.  
+   - **Linha do Tempo Completa da Jornada do Paciente:** Visualização de todos os períodos assistenciais (Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP &rarr; Leito de Internação &rarr; Alta Médica).
 
 8. **Alertas & Estagnação**  
    - Monitoramento proativo de gargalos assistenciais.  
    - **Cards KPI clicáveis** com filtro instantâneo da tabela.  
    - Painel exclusivo de aprovação de novos acessos e monitoramento de gargalos.
 
-9. **Leitos (Censo Hospitalar)**  
-   - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo).  
-   - Alocação e alta de pacientes com atualização automática para higienização.
+9. **Leitos & Censo Hospitalar (Gestão Avançada)**  
+   - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo) · Manutenção (cinza).  
+   - **Painel Detalhado do Leito:** Exibe ocupante atual, data/hora da admissão, tempo de permanência, atalho direto para PEP e histórico completo de todas as ocupações anteriores.
+   - **Inabilitação Automática de Leitos Ocupados:** Prevenção ativa contra dupla ocupação em leitos individuais.
+   - **Ciclo de Higienização:** Alta hospitalar redireciona automaticamente o leito para limpeza com liberação em 1 clique.
 
 10. **Kanban de Internação Interativo**  
     Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas (SLA):  
@@ -106,8 +110,9 @@
     - **Cards KPI Interativos:** Filtro instantâneo de contas a vencer, vencidas, pagas e visão geral.  
     - **Gráficos Glassmorphism:** Distribuição por status (Donut) e volume por métodos de pagamento (Bar) com Chart.js.
 
-13. **Corpo Clínico & Consultórios**  
-    - Gestão de médicos e colaboradores com CRM, especialidade, alocação de consultórios e inativação/exclusão.
+13. **Corpo Clínico & Consultórios Médicos**  
+    - Gestão de médicos com CRM, especialidade, alocação de consultórios e inativação/exclusão.
+    - **Vínculo em Tempo Real com Painel TV:** Ao chamar o paciente no painel sonoro, o consultório exibe o paciente chamado com botão de 1-clique para abertura do PEP.
 
 14. **Relatórios & Exportação**  
     - Exportação completa e padronizada para PDF, XLSX e CSV.
@@ -119,28 +124,15 @@
 
 ---
 
-## 🚀 Diferenciais de Interatividade (v2.7.0)
+## 🚀 Diferenciais de Interatividade (v2.7.3)
 
-- **🔍 Motor de Busca Semântica Multi-Tier:** Reconhece sinônimos clínicos e operacionais (`colaborador` ➔ `médico/profissional`, `excluir` ➔ `exclusão/inativação`, `reédio` ➔ `medicamento`).
+- **🧭 Linha do Cuidado & Trajetória Completa (Patient Flow Timeline):** Ao buscar qualquer paciente por nome ou CPF no sistema ou no prontuário, a equipe médica e de enfermagem pode visualizar a linha do tempo cronológica com todas as fases assistenciais de cada período de atendimento.
+- **🛏️ Painel Detalhado de Leito & Histórico de Ocupantes:** Clique em qualquer leito para consultar a ficha do ocupante e o histórico completo de internações passadas daquele leito.
+- **🔍 Motor de Busca Semântica Multi-Tier:** Reconhece sinônimos clínicos e operacionais (`colaborador` ➔ `médico/profissional`, `excluir` ➔ `exclusão/inativação`, `remédio` ➔ `medicamento`).
 - **🤖 Copilot IA com Desambiguação:** Se o usuário buscar por termos genéricos como "excluir", o assistente apresenta uma árvore de opções detalhadas para exclusão de pacientes, médicos, agendamentos, leitos, medicamentos e títulos financeiros.
 - **📌 Navegação Assistida & Floating Return Beacon (`Alt + M`):** Ao clicar em *"Ir para a Tela & Praticar"*, o sistema navega até a tela e fixa um beacon flutuante para retorno instantâneo com animação pulsante (*Smart Highlight Pulse*) no card consultado.  
-    - **Logins Restritos:** Contas de usuário individuais para Médicos e Enfermeiros, com acesso restrito às abas operacionais e bloqueio automático de configurações administrativas.  
-    - **Cards KPI & Filtros:** Total de plantões, médicos/enfermeiros escalados hoje, busca por texto, filtro por período e turno.  
-    - **Modal de Plantão & Impressão:** Criação, edição e exclusão de plantões + relatório de impressão formatado.
-
-16. **Configurações, Simulador & Nuvem (Turso Cloud)**  
-    - Sincronização SQLite ↔ Turso.
-    - **Gerador de Dados de Teste:** O sistema conta com um algoritmo inteligente de simulação de dados que gera centenas de registros fictícios de uma vez (pacientes, agendas, PEPs, internações) para testes locais.
-
-17. **🆕 Histórico de Sessões** *(v1.3.0 · Exclusivo Master)*  
-    - Registro automático de login e logout de cada usuário.  
-    - Relatório com gráfico de tempo de uso (exclusivo para o perfil Master).  
-    - Disponível na aba **Gestão de Usuários** → botão "Histórico de Sessões".
-
-18. **🆕 Notificações de Fluxo Persistentes, Busca Spotlight no Manual & Reset Seguro** *(v2.6.0)*  
-    - **Notificações de Fluxo Persistentes:** O assistente de fluxo do sistema exibe um card flutuante no topo direito (`✅ Ação Concluída`) indicando o setor de destino (`➡️ Direcionado para: [Aba]`) e o botão `Ir para a Aba ➔`. O aviso permanece fixo na tela até a interação do usuário ou até que ele navegue para a aba.  
-    - **Busca Spotlight Unificada no Manual:** O modal do Manual Interativo agora possui o mesmo motor de busca por Relevância (Relevance Scoring Engine) com autocomplete e menu dropdown suspenso em tempo real.  
-    - **Reset Seguro & Sincronizado do Banco de Dados:** O botão `🗑️ Limpar Banco de Dados` na aba Configurações zera todas as tabelas hospitalares mantendo as contas de usuário e perfis, limpa os caches em memória, sincroniza o estado zerado com o Turso Cloud DB e recarrega a aplicação.
+- **✨ Modal de Conclusão Central com Resumo de Simulação:** Resumo visual de registros gerados com contadores em tempo real e redirecionamento assistido.
+- **🗑️ Reset Seguro & Sincronizado do Banco de Dados:** O botão `🗑️ Limpar Banco de Dados` zera todas as tabelas hospitalares mantendo as contas de usuário e perfis, limpa os caches em memória, sincroniza o estado zerado com o Turso Cloud DB e recarrega a aplicação.
 
 ---
 

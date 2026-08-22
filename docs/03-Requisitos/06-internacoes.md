@@ -28,10 +28,11 @@ stateDiagram-v2
 ---
 
 ## 3. Regras de Negócio
-1.  **Censo Hospitalar em Tempo Real**: O sistema deve manter uma visualização gráfica de mapa de leitos (Censo) atualizada em tempo real. O status de um leito pode ser: `Livre`, `Ocupado`, `Higienização`, `Manutenção`, ou `Reservado`.
-2.  **Duplicidade de Ocupação**: Um paciente não pode estar alocado em mais de um leito simultaneamente.
-3.  **Autorização prévia de AIH/Guia**: Para internações eletivas, o sistema exige a validação do número da AIH (SUS) ou Guia de Internação (Convênio) para autorizar a admissão física. Para internações de urgência, o sistema permite a alocação imediata e dá um prazo de 48 horas para regularização do documento.
-4.  **Notificação de Higienização**: Ao registrar a alta do paciente, o status do leito é alterado automaticamente para `Higienização`, e uma notificação via WebSocket é enviada para o painel da equipe de limpeza.
+1.  **Censo Hospitalar em Tempo Real**: O sistema deve manter uma visualização gráfica de mapa de leitos (Censo) atualizada em tempo real. O status de um leito pode ser: `Vago`, `Ocupado`, `Higienização`, `Manutenção`, ou `Reservado`.
+2.  **Bloqueio de Dupla Alocação por Leito**: Um leito ocupado inabilita automaticamente novas admissões no mesmo leito até que a alta ou transferência seja homologada.
+3.  **Painel Detalhado do Leito & Histórico de Ocupantes**: Ao clicar em qualquer leito no mapa, o sistema abre modal com ficha do ocupante atual, data de admissão, dias de permanência e a relação histórica de todas as internações anteriores naquele leito.
+4.  **Autorização prévia de AIH/Guia**: Para internações eletivas, o sistema exige a validação do número da AIH (SUS) ou Guia de Internação (Convênio) para autorizar a admissão física. Para internações de urgência, o sistema permite a alocação imediata e dá um prazo de 48 horas para regularização do documento.
+5.  **Ciclo de Higienização Automatizado**: Ao registrar a alta médica do paciente, o status do leito é alterado automaticamente para `Higienização`, com botão de liberação em 1 clique para retorno a `Vago`.
 
 ---
 

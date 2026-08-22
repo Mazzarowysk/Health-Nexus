@@ -32,7 +32,8 @@ stateDiagram-v2
     *   `Verde` (Pouco Urgente): Até 120 minutos.
     *   `Azul` (Não Urgente): Até 240 minutos.
 2.  **Ordenação da Fila**: A fila de chamada do consultório médico deve priorizar a gravidade da cor em vez da ordem de chegada. Em caso de empate na cor de triagem, o tempo de espera mais longo define a prioridade.
-3.  **Chamada no Painel (TV Signage & Voz)**: A chamada do paciente para triagem ou consultório dispara sinal visual no Painel TV (com auto-refresh a cada 3s) e anúncio sonoro com síntese de voz (*Web Speech API* em português). Pode ser acionada tanto pelo botão "Chamar para Consulta" na Central de Atendimentos quanto pelo modal dinâmico de seleção no próprio Painel TV.
+3.  **Chamada no Painel (TV Signage & Voz) e Vínculo com Consultório**: A chamada do paciente para triagem ou consultório dispara sinal visual no Painel TV e anúncio sonoro (*Web Speech API*). Ao ser chamado, o status do atendimento transiciona para `Em_Atendimento` com vínculo da sala/consultório, permitindo abertura direta do PEP em 1 clique pelo médico.
+4.  **Linha do Cuidado Completa (Patient Journey Timeline)**: O sistema consolida todos os atendimentos, triagens, notas SOAP, prescrições e internações em uma linha do tempo unificada acessível pelo prontuário e busca global.
 
 ---
 

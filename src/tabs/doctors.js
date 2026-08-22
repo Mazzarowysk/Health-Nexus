@@ -1434,7 +1434,68 @@ window.openPEPModal = async function(encounterId) {
       }
     } catch(e) {}
 
-    const enc = encounters.find(e => String(e.id) === String(encounterId)) || {};
+    let enc = encounters.find(e => 
+      String(e.id) === String(encounterId) || 
+      String(e.patientId) === String(encounterId) ||
+      (e.patientName && encounterId && e.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
+    ) || {};
+
+    if (!enc.id && window.localDB) {
+      const db = window.localDB.getFullDB();
+      const localEncs = db.encounters || [];
+      const foundEnc = localEncs.find(e => 
+        String(e.id) === String(encounterId) || 
+        String(e.patientId) === String(encounterId) ||
+        (e.patientName && encounterId && e.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
+      );
+      if (foundEnc) {
+        enc = { ...foundEnc };
+      } else {
+        const localApts = db.appointments || [];
+        const foundApt = localApts.find(a => 
+          String(a.id) === String(encounterId) || 
+          String(a.patientId) === String(encounterId) ||
+          (a.patientName && encounterId && a.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
+        );
+        if (foundApt) {
+          enc = {
+            id: foundApt.id,
+            patientId: foundApt.patientId,
+            patientName: foundApt.patientName,
+            doctorName: foundApt.doctorName,
+            room: foundApt.roomName || foundApt.room || 'Consultório 01',
+            complaints: foundApt.complaints || foundApt.notes || 'Consulta ambulatorial',
+            manchesterColor: foundApt.manchesterColor || 'Verde',
+            status: foundApt.status || 'Em Atendimento'
+          };
+        } else {
+          const localPatients = db.patients || [];
+          const foundPat = localPatients.find(p => 
+            String(p.id) === String(encounterId) || 
+            (p.fullName && encounterId && p.fullName.toLowerCase().includes(String(encounterId).toLowerCase()))
+          );
+          if (foundPat) {
+            enc = {
+              id: 'ENC-' + Date.now(),
+              patientId: foundPat.id,
+              patientName: foundPat.fullName,
+              room: 'Consultório 01',
+              manchesterColor: 'Verde',
+              status: 'Em Atendimento'
+            };
+          }
+        }
+      }
+    }
+
+    if (enc.patientName && typeof window.setActivePatientContext === 'function') {
+      window.setActivePatientContext({
+        id: enc.patientId || enc.id,
+        fullName: enc.patientName,
+        patientName: enc.patientName,
+        manchesterColor: enc.manchesterColor || 'Verde'
+      });
+    }
 
     const subtitleEl = document.getElementById('pep-modal-subtitle');
     if (subtitleEl) {
@@ -1443,7 +1504,7 @@ window.openPEPModal = async function(encounterId) {
 
     let notes = {};
     try {
-      const notesRes = await apiFetch('/api/encounters/' + encounterId + '/notes');
+      const notesRes = await apiFetch('/api/encounters/' + (enc.id || encounterId) + '/notes');
       if (notesRes && notesRes.ok) {
         const notesData = await notesRes.json();
         notes = (notesData && typeof notesData === 'object') ? (notesData.data || notesData) : {};

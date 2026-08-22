@@ -15,7 +15,7 @@ import { renderSchedulesTab } from './tabs/escalas.js';
 import { renderDashboardTab, fetchDashboardData, initDashboardCharts, initInteractiveFunnel } from './tabs/dashboard.js';
 import { renderPatientsTab } from './tabs/patients.js';
 import { renderAttendanceTab } from './tabs/attendance.js';
-import { renderSettingsTab } from './tabs/settings.js';
+import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.js';
 import { realtimeHub } from './modules/realtime.js';
 import { setActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD } from './modules/journey.js';
 import { generateMockData } from './mockDataGenerator.js';
@@ -26,6 +26,7 @@ import { inject } from '@vercel/analytics';
 window.setActivePatientContext = setActivePatientContext;
 window.renderPatientJourneyStepper = renderPatientJourneyStepper;
 window.renderFloatingPatientHUD = renderFloatingPatientHUD;
+window.showSimulationSummaryModal = showSimulationSummaryModal;
 
 // Inicia o Vercel Analytics
 inject();
@@ -2938,19 +2939,22 @@ async function loadConsultingRooms() {
 
   try {
     const todayIso = new Date().toISOString().split('T')[0];
-    const [roomsRes, aptRes, encRes] = await Promise.all([
+    const [roomsRes, aptRes, encRes, tvRes] = await Promise.all([
       apiFetch('/api/consulting-rooms').catch(() => ({ ok: false })),
       apiFetch('/api/appointments?date=' + todayIso).catch(() => ({ ok: false })),
-      apiFetch('/api/encounters').catch(() => ({ ok: false }))
+      apiFetch('/api/encounters').catch(() => ({ ok: false })),
+      apiFetch('/api/tv/calls').catch(() => ({ ok: false }))
     ]);
     
     const roomsResult = roomsRes.ok ? await roomsRes.json() : { data: [] };
     const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
     const encResult = encRes.ok ? await encRes.json() : { data: [] };
+    const tvResult = tvRes.ok ? await tvRes.json() : { data: [] };
     
     let rooms = Array.isArray(roomsResult) ? roomsResult : (roomsResult.data || []);
     const appointments = Array.isArray(aptResult) ? aptResult : (aptResult.data || []);
     const encounters = Array.isArray(encResult) ? encResult : (encResult.data || []);
+    const tvCalls = Array.isArray(tvResult) ? tvResult : (tvResult.data || []);
 
     if (rooms.length === 0) {
       rooms = [
@@ -2964,10 +2968,12 @@ async function loadConsultingRooms() {
     dashboard.innerHTML = rooms.map(r => {
       const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name || (r.name === 'Consultório 01' && !a.roomName && !a.room)));
       const roomEncs = encounters.filter(e => (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
+      const roomTvCalls = tvCalls.filter(c => c.roomName === r.name || c.room === r.name);
       
       const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
       const inProgressApt = roomApts.find(a => a.status === 'Em Atendimento' || a.status === 'Em_Atendimento');
-      const inProgress = inProgressEnc || inProgressApt;
+      const inProgressTv = roomTvCalls.length > 0 ? roomTvCalls[0] : null;
+      const inProgress = inProgressEnc || inProgressApt || inProgressTv;
 
       const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
       const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
@@ -2977,6 +2983,7 @@ async function loadConsultingRooms() {
       const roomStatus = hasPatient ? 'Em Uso' : (r.status || 'Disponível');
       const doctorDisplay = r.currentDoctor || r.doctorName || 'Dr. Carlos Silva';
       const patientNameDisplay = inProgress ? (inProgress.patientName || inProgress.name || 'Paciente') : null;
+      const patientTargetId = inProgressEnc ? inProgressEnc.id : (inProgress ? (inProgress.patientId || inProgress.id || inProgress.patientName) : '');
       
       return `
         <div class="interactive-card ${patientNameDisplay && patientNameDisplay.toLowerCase().includes('marcelo') ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
@@ -3003,15 +3010,20 @@ async function loadConsultingRooms() {
 
           <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
             ${patientNameDisplay ? `
-              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: #ffffff; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(79,70,229,0.15)); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(129,140,248,0.35);">
-                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: #ffffff; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(79,70,229,0.15)); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(129,140,248,0.35); flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; min-width: 140px;">
                   <i class="fa-solid fa-user-check" style="color: #38bdf8; font-size: 1rem;"></i>
                   <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${patientNameDisplay}</strong>
                 </div>
-                <span style="font-size: 0.7rem; background: #6366f1; color: #fff; padding: 2px 7px; border-radius: 6px; font-weight: 700;">Em Consulta</span>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(236,72,153,0.3);" onclick="event.stopPropagation(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientNameDisplay}');" title="Abrir Prontuário Eletrônico">
+                    <i class="fa-solid fa-file-medical"></i> PEP
+                  </button>
+                  <span style="font-size: 0.7rem; background: #6366f1; color: #fff; padding: 2px 7px; border-radius: 6px; font-weight: 700;">Chamado</span>
+                </div>
               </div>
             ` : `
-              <div style="font-size: 0.82rem; color: var(--text-muted); padding: 6px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); padding: 6px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento em andamento</div>
             `}
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
               <span style="color: var(--text-muted);">Próximos na Fila:</span>
@@ -3046,27 +3058,32 @@ async function openConsultorioDetailsModal(roomName) {
 
   const roomApts = apts.filter(a => (a.roomName === roomName || a.room === roomName || (roomName === 'Consultório 01' && !a.roomName && !a.room)));
   const roomEncs = encs.filter(e => (e.room === roomName || e.roomName === roomName || (roomName === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
+  const roomTvCalls = tvCalls.filter(c => c.roomName === roomName || c.room === roomName);
   
   const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
   const inProgressApt = roomApts.find(a => a.status === 'Em Atendimento' || a.status === 'Em_Atendimento');
-  const inProgress = inProgressEnc || inProgressApt;
+  const inProgressTv = roomTvCalls.length > 0 ? roomTvCalls[0] : null;
+  const inProgress = inProgressEnc || inProgressApt || inProgressTv;
 
   const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
   const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
   const waiting = [...waitingEncs, ...waitingApts];
 
-  const recentCalls = tvCalls.filter(c => c.roomName === roomName || c.room === roomName).slice(0, 5);
+  const recentCalls = roomTvCalls.slice(0, 8);
+
+  const patientTargetId = inProgressEnc ? inProgressEnc.id : (inProgress ? (inProgress.patientId || inProgress.id || inProgress.patientName) : '');
+  const patientTargetName = inProgress ? (inProgress.patientName || inProgress.name || 'Paciente') : '';
 
   const modalHtml = `
     <div id="consultorio-details-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.85); backdrop-filter: blur(10px);">
-      <div class="modal-content" style="max-width: 680px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
+      <div class="modal-content" style="max-width: 720px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
         
         <div style="background: linear-gradient(135deg, #6366f1, #00f2fe); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-door-open" style="font-size: 1.3rem;"></i>
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Painel do ${roomName}</h3>
-              <small style="color: rgba(255,255,255,0.85);">Gestão de Atendimento em Tempo Real</small>
+              <small style="color: rgba(255,255,255,0.85);">Gestão de Atendimento Médico &amp; Prontuário</small>
             </div>
           </div>
           <button onclick="document.getElementById('consultorio-details-modal').remove()" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
@@ -3075,29 +3092,42 @@ async function openConsultorioDetailsModal(roomName) {
         <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
           
           <!-- Paciente em Atendimento -->
-          <div style="background: var(--bg-tertiary); border: 1.5px solid ${inProgress ? '#6366f1' : 'var(--border-color)'}; border-radius: 14px; padding: 16px;">
-            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-              <span><i class="fa-solid fa-user-doctor" style="color: #6366f1;"></i> Paciente em Atendimento Agora</span>
-              ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">Ativo</span>' : ''}
+          <div style="background: var(--bg-tertiary); border: 1.5px solid ${inProgress ? '#6366f1' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+              <span><i class="fa-solid fa-user-doctor" style="color: #6366f1;"></i> Paciente em Atendimento / Chamado</span>
+              ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Ativo na Sala</span>' : ''}
             </div>
 
             ${inProgress ? `
-              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                <div>
-                  <h4 style="margin: 0; font-size: 1.1rem; color: #f8fafc;">${inProgress.patientName || inProgress.name || 'Paciente'}</h4>
-                  <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-                    ${inProgress.manchesterColor ? `Triagem: <strong style="color: #38bdf8;">${inProgress.manchesterColor}</strong> · ` : ''}
-                    Entrada: ${inProgress.admitted_at ? new Date(inProgress.admitted_at).toLocaleTimeString().slice(0,5) : (inProgress.time || 'Agora')}
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                  <div>
+                    <h4 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+                      <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${patientTargetName}
+                    </h4>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap;">
+                      ${inProgress.manchesterColor ? `<span>Risco: <strong style="color: #38bdf8;">● ${inProgress.manchesterColor}</strong></span> &bull; ` : ''}
+                      <span>Horário: <strong>${inProgress.admitted_at ? new Date(inProgress.admitted_at).toLocaleTimeString().slice(0,5) : (inProgress.calledAt ? new Date(inProgress.calledAt).toLocaleTimeString().slice(0,5) : (inProgress.time || 'Agora'))}</strong></span>
+                    </div>
                   </div>
                 </div>
-                <div style="display: flex; gap: 8px;">
-                  <button class="btn btn-primary" style="font-size: 0.8rem; padding: 8px 14px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.switchTab === 'function') window.switchTab('atendimento');">
-                    <i class="fa-solid fa-arrow-right"></i> Ver na Central de Atendimentos
+
+                <!-- Ações Diretas de Consulta / PEP / Prescrição -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+                  <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.85rem; padding: 9px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(236,72,153,0.35);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientTargetName}');">
+                    <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
+                  </button>
+                  <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.82rem; padding: 9px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('${patientTargetId}', '${patientTargetName}');">
+                    <i class="fa-solid fa-pills"></i> Prescrição Médica
+                  </button>
+                  <button class="btn" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; font-size: 0.82rem; padding: 9px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.switchTab === 'function') window.switchTab('atendimento');">
+                    <i class="fa-solid fa-arrow-right"></i> Central de Atendimentos
                   </button>
                 </div>
               </div>
             ` : `
-              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0; text-align: center;">
+              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 14px 0; text-align: center;">
+                <i class="fa-solid fa-door-open" style="font-size: 1.5rem; color: var(--border-color); display: block; margin-bottom: 6px;"></i>
                 Nenhum paciente está sendo atendido nesta sala no momento.
               </div>
             `}
@@ -3112,17 +3142,19 @@ async function openConsultorioDetailsModal(roomName) {
             ${waiting.length > 0 ? `
               <div style="display: flex; flex-direction: column; gap: 8px;">
                 ${waiting.map((w, idx) => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                      <span style="width: 24px; height: 24px; border-radius: 50%; background: rgba(99,102,241,0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">${idx + 1}</span>
+                      <span style="width: 26px; height: 26px; border-radius: 50%; background: rgba(99,102,241,0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">${idx + 1}</span>
                       <div>
-                        <strong style="color: #f8fafc; font-size: 0.85rem; display: block;">${w.patientName || w.name}</strong>
-                        <small style="color: var(--text-muted); font-size: 0.74rem;">${w.manchesterColor ? `Manchester: ${w.manchesterColor}` : (w.time ? `Horário: ${w.time}` : 'Aguardando Médico')}</small>
+                        <strong style="color: #f8fafc; font-size: 0.9rem; display: block;">${w.patientName || w.name}</strong>
+                        <small style="color: var(--text-muted); font-size: 0.76rem;">${w.manchesterColor ? `Manchester: <strong>${w.manchesterColor}</strong>` : (w.time ? `Horário: ${w.time}` : 'Aguardando Médico')}</small>
                       </div>
                     </div>
-                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 6px 10px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.switchTab === 'function') window.switchTab('atendimento');">
-                      Atender
-                    </button>
+                    <div style="display: flex; gap: 6px;">
+                      <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${w.id || w.patientId || w.patientName}');">
+                        <i class="fa-solid fa-file-medical"></i> Atender (PEP)
+                      </button>
+                    </div>
                   </div>
                 `).join('')}
               </div>
@@ -3136,14 +3168,21 @@ async function openConsultorioDetailsModal(roomName) {
           <!-- Chamadas Recentes no Painel de TV -->
           ${recentCalls.length > 0 ? `
             <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
-              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
-                <i class="fa-solid fa-tv" style="color: #38bdf8;"></i> Últimas Chamadas de TV
+              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-tv" style="color: #38bdf8;"></i> Chamadas de TV Registradas para esta Sala
               </div>
-              <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; flex-direction: column; gap: 8px;">
                 ${recentCalls.map(c => `
-                  <div style="font-size: 0.8rem; color: #cbd5e1; display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
-                    <span><strong style="color: #f8fafc;">${c.patientName}</strong> (${c.doctorName || 'Médico'})</span>
-                    <span style="color: #94a3b8; font-size: 0.75rem;">${c.calledAt ? new Date(c.calledAt).toLocaleTimeString().slice(0,5) : 'Recente'}</span>
+                  <div style="font-size: 0.82rem; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
+                    <div>
+                      <strong style="color: #f8fafc; font-size: 0.9rem; display: block;">${c.patientName}</strong>
+                      <span style="color: #94a3b8; font-size: 0.75rem;">Chamado por: <strong>${c.doctorName || 'Dr. Médico Plantonista'}</strong> &bull; ${c.calledAt ? new Date(c.calledAt).toLocaleTimeString().slice(0,5) : 'Recente'}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                      <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(236,72,153,0.3);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${c.patientId || c.patientName}');">
+                        <i class="fa-solid fa-file-medical"></i> Atender (PEP)
+                      </button>
+                    </div>
                   </div>
                 `).join('')}
               </div>
