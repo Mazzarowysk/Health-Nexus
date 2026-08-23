@@ -22,44 +22,44 @@ export const openTelemedicineModal = async (patientData = {}) => {
   overlay.style.cssText = 'z-index: 100002; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.9); backdrop-filter: blur(12px);';
 
   overlay.innerHTML = `
-    <div class="sync-modal-card" style="max-width: 960px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; background: #0c0f1d; border: 1.5px solid rgba(99, 102, 241, 0.4); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.9), 0 0 30px rgba(99,102,241,0.2);">
+    <div class="sync-modal-card" style="max-width: 960px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.85);">
       
       <!-- Top Bar da Sala -->
-      <div style="background: linear-gradient(135deg, #1e1b4b, #311b92); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); color: #fff;">
+      <div style="background: #1e293b; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; color: #fff;">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 1.1rem;">
-            <i class="fa-solid fa-video fa-fade"></i>
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 1.05rem;">
+            <i class="fa-solid fa-video"></i>
           </div>
           <div>
             <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700;">Sala de Teleconsulta WebRTC · Criptografia E2E</h3>
-            <div style="font-size: 0.8rem; color: #c4b5fd;">Paciente: <strong style="color: #fff;">${patientName}</strong> &bull; Profissional: ${doctorName}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">Paciente: <strong style="color: #fff;">${patientName}</strong> &bull; Profissional: ${doctorName}</div>
           </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-family: monospace; font-size: 0.9rem; font-weight: 700; color: #34d399; display: flex; align-items: center; gap: 6px;">
+          <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 16px; font-family: monospace; font-size: 0.85rem; font-weight: 700; color: #34d399; display: flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-circle" style="font-size: 0.5rem; color: #ef4444;"></i> REC <span id="telemed-call-timer">00:00</span>
           </div>
-          <button id="btn-close-telemed-top" class="modal-close" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+          <button id="btn-close-telemed-top" class="modal-close" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
 
       <!-- Grid de Vídeo da Chamada -->
-      <div style="padding: 20px; flex: 1; display: grid; grid-template-columns: 2fr 1fr; gap: 16px; min-height: 420px; overflow-y: auto; background: #070913;">
+      <div style="padding: 18px; flex: 1; display: grid; grid-template-columns: 2fr 1fr; gap: 16px; min-height: 420px; overflow-y: auto; background: #0b0f19;">
         
         <!-- Vídeo Principal (Paciente) -->
-        <div style="position: relative; background: #111827; border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1.5px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
+        <div style="position: relative; background: #111827; border-radius: 14px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #1e293b;">
           <div id="patient-video-placeholder" style="text-align: center; color: var(--text-muted); padding: 20px;">
-            <div style="width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 16px; font-weight: 800; box-shadow: 0 10px 25px rgba(99,102,241,0.4);">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: #0284c7; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 14px; font-weight: 800; box-shadow: 0 4px 14px rgba(2,132,199,0.4);">
               ${patientName.charAt(0).toUpperCase()}
             </div>
-            <h4 style="color: #fff; margin: 0 0 6px; font-size: 1.1rem;">${patientName}</h4>
-            <span style="font-size: 0.8rem; color: #34d399; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); padding: 3px 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px;">
+            <h4 style="color: #fff; margin: 0 0 6px; font-size: 1.05rem;">${patientName}</h4>
+            <span style="font-size: 0.78rem; color: #34d399; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); padding: 2px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px;">
               <i class="fa-solid fa-signal"></i> Conexão HD Estável (30 fps)
             </span>
           </div>
           
-          <div style="position: absolute; bottom: 12px; left: 16px; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); color: #fff; padding: 4px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+          <div style="position: absolute; bottom: 12px; left: 14px; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1);">
             <i class="fa-solid fa-user"></i> ${patientName} (Paciente)
           </div>
         </div>
@@ -68,25 +68,25 @@ export const openTelemedicineModal = async (patientData = {}) => {
         <div style="display: flex; flex-direction: column; gap: 12px;">
           
           <!-- Câmera Local (Médico) -->
-          <div style="height: 180px; position: relative; background: #1e1b4b; border-radius: 14px; overflow: hidden; border: 1.5px solid rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: center;">
+          <div style="height: 170px; position: relative; background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; display: flex; align-items: center; justify-content: center;">
             <video id="telemed-local-video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: none;"></video>
-            <div id="doctor-camera-fallback" style="text-align: center; color: #a5b4fc; padding: 10px;">
-              <i class="fa-solid fa-user-doctor" style="font-size: 2.2rem; margin-bottom: 8px; display: block; color: #818cf8;"></i>
+            <div id="doctor-camera-fallback" style="text-align: center; color: #94a3b8; padding: 10px;">
+              <i class="fa-solid fa-user-doctor" style="font-size: 2rem; margin-bottom: 6px; display: block; color: #38bdf8;"></i>
               <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">${doctorName}</div>
-              <div style="font-size: 0.74rem; color: #c4b5fd; margin-top: 2px;">Câmera Ativa</div>
+              <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 2px;">Câmera Ativa</div>
             </div>
-            <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; color: #fff; font-weight: 600;">
+            <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(15,23,42,0.8); padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; color: #fff; font-weight: 600; border: 1px solid rgba(255,255,255,0.1);">
               Você (Médico)
             </div>
           </div>
 
           <!-- Mini Painel de Observações Clínicas -->
-          <div style="flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; display: flex; flex-direction: column;">
+          <div style="flex: 1; background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; display: flex; flex-direction: column;">
             <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-clipboard-check" style="color: var(--color-primary);"></i> Anotações da Teleconsulta
             </div>
-            <textarea id="telemed-quick-notes" class="form-input" style="flex: 1; width: 100%; resize: none; font-size: 0.82rem;" placeholder="Digite anotações rápidas durante o atendimento..."></textarea>
-            <button id="btn-telemed-copy-to-pep" type="button" class="btn btn-sm btn-primary" style="margin-top: 8px; font-size: 0.78rem; width: 100%;">
+            <textarea id="telemed-quick-notes" class="form-input" style="flex: 1; width: 100%; resize: none; font-size: 0.82rem; background: #0f172a; border-color: #334155;" placeholder="Digite anotações rápidas durante o atendimento..."></textarea>
+            <button id="btn-telemed-copy-to-pep" type="button" class="btn btn-sm btn-primary" style="margin-top: 8px; font-size: 0.78rem; width: 100%; background: #0284c7;">
               <i class="fa-solid fa-file-medical"></i> Copiar para o PEP
             </button>
           </div>
@@ -96,25 +96,25 @@ export const openTelemedicineModal = async (patientData = {}) => {
       </div>
 
       <!-- Barra de Controles da Chamada -->
-      <div style="padding: 16px 24px; background: #0c0f1d; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap;">
+      <div style="padding: 14px 24px; background: #0f172a; border-top: 1px solid #1e293b; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap;">
         
-        <button id="btn-telemed-toggle-mic" type="button" class="btn" style="width: 48px; height: 48px; border-radius: 50%; background: #1e293b; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Ativar/Desativar Microfone">
+        <button id="btn-telemed-toggle-mic" type="button" class="btn" style="width: 44px; height: 44px; border-radius: 50%; background: #1e293b; border: 1px solid #334155; color: #fff; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Ativar/Desativar Microfone">
           <i class="fa-solid fa-microphone"></i>
         </button>
 
-        <button id="btn-telemed-toggle-cam" type="button" class="btn" style="width: 48px; height: 48px; border-radius: 50%; background: #1e293b; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Ativar/Desativar Câmera">
+        <button id="btn-telemed-toggle-cam" type="button" class="btn" style="width: 44px; height: 44px; border-radius: 50%; background: #1e293b; border: 1px solid #334155; color: #fff; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Ativar/Desativar Câmera">
           <i class="fa-solid fa-video"></i>
         </button>
 
-        <button id="btn-telemed-screen-share" type="button" class="btn" style="width: 48px; height: 48px; border-radius: 50%; background: #1e293b; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Compartilhar Tela">
+        <button id="btn-telemed-screen-share" type="button" class="btn" style="width: 44px; height: 44px; border-radius: 50%; background: #1e293b; border: 1px solid #334155; color: #fff; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Compartilhar Tela">
           <i class="fa-solid fa-desktop"></i>
         </button>
 
-        <button id="btn-telemed-open-pep" type="button" class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; padding: 10px 20px; border-radius: 25px; font-weight: 700; font-size: 0.88rem; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 14px rgba(236,72,153,0.35);">
+        <button id="btn-telemed-open-pep" type="button" class="btn" style="background: #0284c7; color: #fff; border: none; padding: 9px 18px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(2,132,199,0.3);">
           <i class="fa-solid fa-file-medical"></i> Abrir PEP em Split
         </button>
 
-        <button id="btn-telemed-end-call" type="button" class="btn" style="background: #ef4444; color: #fff; border: none; padding: 10px 22px; border-radius: 25px; font-weight: 700; font-size: 0.88rem; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 14px rgba(239,68,68,0.4);">
+        <button id="btn-telemed-end-call" type="button" class="btn" style="background: #ef4444; color: #fff; border: none; padding: 9px 20px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(239,68,68,0.3);">
           <i class="fa-solid fa-phone-slash"></i> Encerrar Consulta
         </button>
 

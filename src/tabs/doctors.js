@@ -1557,27 +1557,27 @@ window.openPEPModal = async function(encounterId) {
   modal.style.backdropFilter = 'blur(10px)';
   modal.style.zIndex = '100000';
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: #111124; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99, 102, 241, 0.15);">
+    <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85);">
       
-      <div class="modal-header" style="padding: 18px 24px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div class="modal-header" style="padding: 18px 24px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.4); display: flex; align-items: center; justify-content: center; color: #f472b6;">
-            <i class="fa-solid fa-file-medical" style="font-size: 1.2rem;"></i>
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8;">
+            <i class="fa-solid fa-file-medical" style="font-size: 1.15rem;"></i>
           </div>
           <div>
             <h3 style="font-family: Outfit, sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin: 0;">Prontuário Eletrônico (PEP)</h3>
-            <div id="pep-modal-subtitle" style="font-size: 0.8rem; color: #c4b5fd;">Carregando dados do paciente...</div>
+            <div id="pep-modal-subtitle" style="font-size: 0.8rem; color: #94a3b8;">Carregando dados do paciente...</div>
           </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+          <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 16px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
             <i class="fa-solid fa-video"></i> Teleconsulta
           </button>
-          <button type="button" id="btn-pep-whatsapp-header" class="btn" style="background: rgba(37,211,102,0.18); border: 1px solid rgba(37,211,102,0.4); color: #4ade80; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+          <button type="button" id="btn-pep-whatsapp-header" class="btn" style="background: rgba(37,211,102,0.15); border: 1px solid rgba(37,211,102,0.3); color: #4ade80; font-size: 0.78rem; font-weight: 700; border-radius: 16px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
             <i class="fa-brands fa-whatsapp"></i> WhatsApp
           </button>
-          <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -1823,7 +1823,7 @@ window.openPEPModal = async function(encounterId) {
               <button type="button" id="btn-save-pep" class="btn" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 16px;">
                 <i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Salvar Rascunho
               </button>
-              <button type="submit" class="btn btn-primary" style="padding:8px 20px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
+              <button type="submit" class="btn btn-primary" style="padding:8px 20px; background:#0284c7; border:none; box-shadow: 0 2px 8px rgba(2,132,199,0.35);">
                 <i class="fa-solid fa-file-signature" style="margin-right:6px;"></i> Assinar & Encaminhar
               </button>
             `}

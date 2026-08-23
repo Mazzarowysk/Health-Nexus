@@ -1,74 +1,74 @@
-/* --- DESIGN SYSTEM TOKENS & GLOBALS (GLASSMORPHISM) --- */
+/* --- DESIGN SYSTEM TOKENS & GLOBALS (CLINICAL ENTERPRISE) --- */
 :root {
-  /* HSL Color System - Theme: Ultra-Modern / Linear */
-  --bg-primary-h: 0;
-  --bg-primary-s: 0%;
-  --bg-primary-l: 0%; /* #000000 */
-  --bg-primary: HSL(var(--bg-primary-h), var(--bg-primary-s), var(--bg-primary-l));
+  /* HSL Color System - Theme: Clinical Enterprise & Slate Precision */
+  --bg-primary-h: 222;
+  --bg-primary-s: 47%;
+  --bg-primary-l: 7%; /* #0b0f19 */
+  --bg-primary: #0b0f19;
 
-  --bg-secondary: #09090b; /* zinc-950 */
-  --bg-tertiary: #18181b; /* zinc-900 */
-  --bg-solid: #000000;
+  --bg-secondary: #111827; /* gray-900 */
+  --bg-tertiary: #1e293b; /* slate-800 */
+  --bg-solid: #0b0f19;
 
-  /* Efeito Vidro Escuro Ultra-Polido */
-  --glass-bg: rgba(9, 9, 11, 0.55);
+  /* Superfície Clínica & Micro-Bordas */
+  --glass-bg: rgba(17, 24, 39, 0.82);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.05);
-  --glass-blur: blur(24px);
+  --glass-highlight: rgba(255, 255, 255, 0.04);
+  --glass-blur: blur(16px);
 
-  /* Cores de Destaque (Brand & Accent Colors) - Ultra-Modern */
-  --primary-h: 239; /* Indigo-500 */
-  --primary-s: 84%;
-  --primary-l: 67%;
-  --color-primary: HSL(var(--primary-h), var(--primary-s), var(--primary-l));
-  --color-primary-hover: HSL(var(--primary-h), var(--primary-s), calc(var(--primary-l) + 10%));
+  /* Cores de Destaque Clínico (Brand & Accent Colors) - Clinical Tech */
+  --primary-h: 201; /* Sky-600 / Tech Blue #0284c7 */
+  --primary-s: 96%;
+  --primary-l: 39%;
+  --color-primary: #0284c7;
+  --color-primary-hover: #0369a1;
 
-  --accent-h: 189; /* Cyan-500 */
-  --accent-s: 94%;
-  --accent-l: 43%;
-  --color-accent: HSL(var(--accent-h), var(--accent-s), var(--accent-l));
+  --accent-h: 173; /* Medical Teal #0d9488 */
+  --accent-s: 80%;
+  --accent-l: 40%;
+  --color-accent: #0d9488;
 
-  --danger-h: 348; /* Rose-500 */
-  --danger-s: 83%;
-  --danger-l: 58%;
-  --color-danger: HSL(var(--danger-h), var(--danger-s), var(--danger-l));
+  --danger-h: 350; /* Red-500 #ef4444 */
+  --danger-s: 84%;
+  --danger-l: 60%;
+  --color-danger: #ef4444;
 
-  --warning-h: 45; /* Amber-500 */
-  --warning-s: 93%;
-  --warning-l: 47%;
-  --color-warning: HSL(var(--warning-h), var(--warning-s), var(--warning-l));
+  --warning-h: 38; /* Amber-500 #f59e0b */
+  --warning-s: 92%;
+  --warning-l: 50%;
+  --color-warning: #f59e0b;
 
   /* Cores de Texto */
-  --text-primary: #fafafa; /* zinc-50 */
-  --text-secondary: #a1a1aa; /* zinc-400 */
-  --text-muted: #71717a; /* zinc-500 */
+  --text-primary: #f8fafc; /* slate-50 */
+  --text-secondary: #94a3b8; /* slate-400 */
+  --text-muted: #64748b; /* slate-500 */
 
-  /* Bordas e Sombras (Linear-style Inset Shadows) */
-  --border-color: var(--glass-border);
+  /* Bordas e Sombras de Profundidade Real */
+  --border-color: rgba(255, 255, 255, 0.09);
   --border-focus: var(--color-primary);
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   /* Bordas Arredondadas */
   --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 24px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
   
   /* Transições e Animações */
   --transition-fast: 0.15s ease;
-  --transition-normal: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --transition-normal: 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-/* --- UTILITY: INTERACTIVE CARDS & SHORTCUTS (LUXURY GRADIENTS & VISUAL AFFORDANCE) --- */
+/* --- UTILITY: INTERACTIVE CARDS & SHORTCUTS (CLINICAL PRECISION) --- */
 .interactive-card {
   cursor: pointer !important;
   position: relative !important;
   user-select: none;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  background: #141c2e !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-  border-radius: 16px !important;
-  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 14px !important;
+  transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
   overflow: hidden !important;
 }
 
@@ -78,17 +78,17 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.4), rgba(6, 182, 212, 0.4), transparent);
-  opacity: 0.4;
-  transition: opacity 0.25s ease;
+  height: 2px;
+  background: linear-gradient(90deg, #0284c7, #0d9488);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .interactive-card:hover {
-  transform: translateY(-4px) scale(1.01) !important;
-  border-color: rgba(99, 102, 241, 0.3) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 40px -10px rgba(99, 102, 241, 0.15) !important;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  transform: translateY(-3px) !important;
+  border-color: rgba(2, 132, 199, 0.4) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 20px rgba(2, 132, 199, 0.1) !important;
+  background: #182238 !important;
 }
 
 .interactive-card:hover::before {
@@ -96,8 +96,8 @@
 }
 
 .interactive-card:active {
-  transform: translateY(-1px) scale(0.98) !important;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+  transform: translateY(-1px) scale(0.99) !important;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25) !important;
 }
 
 .interactive-card .kpi-icon {
@@ -106,9 +106,9 @@
 
 .interactive-card:hover::after {
   opacity: 1;
-  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  background: #0284c7;
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
   transform: translateY(-1px);
 }
 
@@ -934,15 +934,15 @@ body {
 }
 
 .kpi-card {
-  background: linear-gradient(145deg, rgba(26, 21, 50, 0.7) 0%, rgba(14, 11, 30, 0.85) 100%);
+  background: #131c2e;
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 22px 26px;
+  border-radius: 16px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
 }
 
@@ -951,7 +951,7 @@ body {
   justify-content: space-between;
   align-items: center;
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-family: 'Outfit', sans-serif;
   font-weight: 600;
   letter-spacing: 0.03em;
@@ -959,32 +959,32 @@ body {
 }
 
 .kpi-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .kpi-icon.primary {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.2));
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  color: #c4b5fd;
+  background: rgba(2, 132, 199, 0.15);
+  border: 1px solid rgba(2, 132, 199, 0.35);
+  color: #38bdf8;
 }
 
 .kpi-icon.accent {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 182, 212, 0.2));
-  border: 1px solid rgba(6, 182, 212, 0.3);
-  color: #6ee7b7;
+  background: rgba(13, 148, 136, 0.15);
+  border: 1px solid rgba(13, 148, 136, 0.35);
+  color: #2dd4bf;
 }
 
 .kpi-icon.warning {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.2));
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #fcd34d;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
 }
 
 .kpi-value {
@@ -992,9 +992,7 @@ body {
   font-size: 2.1rem;
   font-weight: 800;
   margin: 10px 0 6px 0;
-  background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
   letter-spacing: -0.02em;
 }
 

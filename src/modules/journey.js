@@ -104,19 +104,19 @@ export function renderFloatingPatientHUD() {
     <div style="display: flex; align-items: center; gap: 10px;">
       <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; animation: pulse 1.5s infinite;"></div>
       <div class="hud-patient-info">
-        <span style="font-size: 0.72rem; color: #a5b4fc; text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Paciente em Foco</span>
+        <span style="font-size: 0.72rem; color: #38bdf8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Paciente em Foco</span>
         <strong style="font-size: 0.88rem; color: #ffffff;">${activePatientContext.fullName || activePatientContext.patientName}</strong>
       </div>
     </div>
 
     <div class="hud-actions-group">
-      <button onclick="window.openTelemedicineModal({ id: '${activePatientContext.id}', patientName: '${(activePatientContext.fullName || activePatientContext.patientName || '').replace(/'/g, "\\'")}' })" class="btn" style="font-size: 0.74rem; padding: 5px 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; border-radius: 6px; cursor: pointer;" title="Iniciar Teleconsulta">
+      <button onclick="window.openTelemedicineModal({ id: '${activePatientContext.id}', patientName: '${(activePatientContext.fullName || activePatientContext.patientName || '').replace(/'/g, "\\'")}' })" class="btn" style="font-size: 0.74rem; padding: 5px 10px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; border-radius: 6px; cursor: pointer;" title="Iniciar Teleconsulta">
         <i class="fa-solid fa-video"></i> Telemed
       </button>
-      <button onclick="window.openPEPModal('${activePatientContext.id}')" class="btn" style="font-size: 0.74rem; padding: 5px 10px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; border-radius: 6px; cursor: pointer;" title="Abrir Prontuário">
+      <button onclick="window.openPEPModal('${activePatientContext.id}')" class="btn" style="font-size: 0.74rem; padding: 5px 10px; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; border-radius: 6px; cursor: pointer;" title="Abrir Prontuário">
         <i class="fa-solid fa-file-medical"></i> PEP
       </button>
-      <button onclick="window.showClinicalHandoffModal()" class="btn" style="font-size: 0.74rem; padding: 5px 10px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; border-radius: 6px; cursor: pointer;" title="Definir Desfecho Clínico">
+      <button onclick="window.showClinicalHandoffModal()" class="btn" style="font-size: 0.74rem; padding: 5px 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; border-radius: 6px; cursor: pointer;" title="Definir Desfecho Clínico">
         <i class="fa-solid fa-bolt"></i> Desfecho
       </button>
       <button onclick="window.clearActivePatientHUD()" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; font-size: 0.85rem;" title="Fechar Foco">
