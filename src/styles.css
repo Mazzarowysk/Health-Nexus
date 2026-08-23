@@ -626,21 +626,22 @@ body {
 /* Container de Cartão Branco Arredondado para a Logomarca no Canto Superior Esquerdo da Sidebar */
 .brand-logo-card {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 8px 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.15);
   width: 100%;
   max-width: 180px;
+  box-sizing: border-box;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .brand-logo-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .brand-logo i {
@@ -1094,9 +1095,10 @@ body {
 
 .brand-logo-img {
   max-height: 52px;
-  width: auto;
+  width: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  display: block;
+  filter: none;
 }
 
 @keyframes logo-pulse {
