@@ -431,8 +431,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
     });
   });
 
-  // Fechar clicando fora
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  // Fechar apenas pelo botão cancelar ou confirmar
   document.getElementById('btn-tv-modal-cancel').addEventListener('click', () => overlay.remove());
 
   document.getElementById('btn-tv-modal-confirm').addEventListener('click', async () => {

@@ -1498,7 +1498,7 @@ export const showCardDetailModal = (buttonItem, moduleItem) => {
   document.body.appendChild(overlay);
 
   const handleClose = (e) => {
-    if (e.target.id === 'card-detail-close-btn' || e.target.closest('#card-detail-close-btn') || e.target.id === 'card-detail-close-btn-footer' || e.target === overlay) {
+    if (e.target.id === 'card-detail-close-btn' || e.target.closest('#card-detail-close-btn') || e.target.id === 'card-detail-close-btn-footer') {
       overlay.remove();
       document.removeEventListener('keydown', handleEsc);
     }
@@ -2128,7 +2128,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral', targetBtnName
       return;
     }
 
-    if (e.target.id === 'manual-modal-close' || e.target.closest('#manual-modal-close') || e.target === overlay) {
+    if (e.target.id === 'manual-modal-close' || e.target.closest('#manual-modal-close')) {
       overlay.remove();
       document.removeEventListener('keydown', handleEsc);
     }

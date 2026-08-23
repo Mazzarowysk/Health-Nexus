@@ -728,7 +728,7 @@ export function renderAttendanceTab(contentArea) {
   const closeTriageModal = () => { document.getElementById('triage-modal').style.display = 'none'; document.getElementById('triage-form').reset(); };
   document.getElementById('close-triage-modal')?.addEventListener('click', closeTriageModal);
   document.getElementById('btn-cancel-triage')?.addEventListener('click', closeTriageModal);
-  document.getElementById('triage-modal')?.addEventListener('click', e => { if (e.target === document.getElementById('triage-modal')) closeTriageModal(); });
+  // Não fecha ao clicar fora para evitar perda de dados digitados
 
   const updateTriageMEWS = () => {
     const pa = document.getElementById('triage-pa')?.value || '';
@@ -845,7 +845,7 @@ export function renderAttendanceTab(contentArea) {
     } catch { document.getElementById('history-list').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">Erro ao carregar histórico.</div>'; }
   });
   document.getElementById('close-history-panel')?.addEventListener('click', () => document.getElementById('history-panel').style.display = 'none');
-  document.getElementById('history-panel')?.addEventListener('click', e => { if (e.target === document.getElementById('history-panel')) document.getElementById('history-panel').style.display = 'none'; });
+  // Não fecha ao clicar fora para evitar perda de contexto
   document.getElementById('history-search')?.addEventListener('input', e => {
     const q = removeAccents(e.target.value.toLowerCase());
     renderHistory(allHistory.filter(enc => removeAccents(enc.patientName||'').toLowerCase().includes(q)));

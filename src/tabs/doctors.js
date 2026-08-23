@@ -909,9 +909,8 @@ window.openDoctorActivityModal = async function(doctorName, specialty, crm) {
 
   document.body.appendChild(modal);
 
-  // Close listeners
-  document.getElementById('btn-close-activity-modal').addEventListener('click', () => modal.remove());
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  // Close listeners (apenas pelo botão fechar)
+  document.getElementById('btn-close-activity-modal')?.addEventListener('click', () => modal.remove());
 
   // Tab switching
   let actData = null;

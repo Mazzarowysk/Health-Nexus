@@ -215,10 +215,7 @@ export const showUserSessionsHistory = (userId, userName) => {
   overlay.className = 'modal-overlay open';
   overlay.id = 'hn-sessions-modal';
   overlay.style.cssText = 'z-index: 100005; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);';
-
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) overlay.remove();
-  });
+  // Fechar apenas pelo botão fechar da interface
 
   const targetUserObj = localDB.get('users', userId) || (localDB.list('users') || []).find(u => u.id === userId || u.username === userName || u.name === userName);
   const userCreatedAt = targetUserObj && targetUserObj.created_at ? new Date(targetUserObj.created_at) : null;

@@ -2886,11 +2886,7 @@ function renderReportsTab(contentArea) {
 
     document.getElementById('close-boleto-modal')?.addEventListener('click', close);
     document.getElementById('btn-close-boleto-foot')?.addEventListener('click', close);
-
-    // Fechar ao clicar fora do cartão (no fundo escuro)
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) close();
-    });
+    // Não fecha ao clicar fora para evitar perda de dados
 
     // Fechar com a tecla ESC (Escape)
     const escHandler = (e) => {
@@ -3462,7 +3458,7 @@ async function openEncounterReportDetail(encId) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   overlay.innerHTML = `<div style="color:#818cf8;font-size:1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando atendimento...</div>`;
   document.body.appendChild(overlay);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  // Fechar apenas pelo botão fechar da interface
 
   try {
     const [encRes, triageRes, patRes, noteRes] = await Promise.all([
