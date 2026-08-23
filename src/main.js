@@ -827,7 +827,7 @@ async function uploadBackupToGoogleDrive(snapshotData, customFileName) {
     return null;
   }
 
-  showToast('☁️ Backup vinculado registrado para ' + gdriveUser);
+showToast('☁️ Backup vinculado registrado para ' + gdriveUser);
   return { simulated: true, name: fileName };
 }
 
@@ -839,23 +839,21 @@ function renderAuthScreen() {
   const renderForm = () => {
     root.innerHTML = `
       <div class="auth-container">
-        <!-- Painel Esquerdo: Branding Imersivo -->
+        <!-- Painel Esquerdo: Branding Institucional Hospitalar -->
         <div class="auth-brand-panel">
-          <!-- Canvas 2D de Constelação Tecnológica Interativa (Pontos & Conexões em Rede) -->
+          <!-- Canvas 2D Suave e Sóbrio (Rede Neural Clínica) -->
           <canvas id="auth-constellation-canvas" class="auth-constellation-canvas"></canvas>
 
-          <!-- Camada de Animações Fluídas & Orbes de Luz -->
+          <!-- Camada de Iluminação Ambiental Sutil -->
           <div class="auth-brand-ambient">
             <div class="auth-orb orb-primary"></div>
             <div class="auth-orb orb-secondary"></div>
             <div class="auth-orb orb-accent"></div>
-            <div class="auth-ring ring-1"></div>
-            <div class="auth-ring ring-2"></div>
           </div>
 
           <div class="auth-brand-content">
             <div class="auth-hero-badge">
-              <i class="fa-solid fa-hospital" style="color: #fbbf24;"></i> PLATAFORMA OFICIAL &bull; GESTÃO HOSPITALAR
+              <i class="fa-solid fa-hospital" style="color: #38bdf8;"></i> SISTEMA HOSPITALAR ENTERPRISE &bull; LINHA DO CUIDADO
             </div>
 
             <div class="auth-brand-logo-wrap">
@@ -865,55 +863,55 @@ function renderAuthScreen() {
               <div class="auth-brand-name">
                 Health Nexus
                 <span class="auth-brand-subtag">
-                  <i class="fa-solid fa-shield-halved" style="color: #818cf8; margin-right: 5px;"></i> Sistema de Gestão Hospitalar
+                  <i class="fa-solid fa-shield-halved" style="color: #38bdf8; margin-right: 5px;"></i> Plataforma Clínica Integrada
                 </span>
               </div>
             </div>
 
             <h2 class="auth-brand-headline">
-              Cuidado Inteligente.<br>
-              <span class="highlight">Gestão Precisa.</span>
+              Decisão Clínica Precisa.<br>
+              <span class="highlight">Gestão Hospitalar em Tempo Real.</span>
             </h2>
 
             <p class="auth-brand-desc">
-              Plataforma completa para hospitais e clínicas. Gerencie pacientes, agendamentos, leitos e prontuários em um único sistema seguro e integrado.
+              Prontuário eletrônico SOAP com ditado por voz, triagem Manchester com alerta preditivo MEWS, mapa de leitos Kanban e telemedicina em conformidade CFM e LGPD.
             </p>
 
             <ul class="auth-feature-list">
               <li class="auth-feature-item">
-                <div class="auth-feature-icon"><i class="fa-solid fa-user-injured"></i></div>
+                <div class="auth-feature-icon"><i class="fa-solid fa-file-medical"></i></div>
                 <div class="auth-feature-text">
-                  <strong>Gestão de Pacientes</strong>
-                  Prontuário eletrônico completo com histórico e triagem Manchester
+                  <strong>Prontuário PEP &amp; Voz</strong>
+                  Ditado contínuo SOAP e interações medicamentosas
                 </div>
               </li>
               <li class="auth-feature-item">
-                <div class="auth-feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="auth-feature-icon"><i class="fa-solid fa-heart-pulse"></i></div>
                 <div class="auth-feature-text">
-                  <strong>Agenda Inteligente</strong>
-                  Agendamentos, controle de consultas e atendimentos em tempo real
+                  <strong>Manchester &amp; Sepse</strong>
+                  Triagem clínica com escore precoce MEWS
                 </div>
               </li>
               <li class="auth-feature-item">
                 <div class="auth-feature-icon"><i class="fa-solid fa-bed-pulse"></i></div>
                 <div class="auth-feature-text">
                   <strong>Controle de Leitos</strong>
-                  Mapa de ocupação hospitalar com status em tempo real
+                  Censo hospitalar e Kanban de internações
                 </div>
               </li>
               <li class="auth-feature-item">
-                <div class="auth-feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="auth-feature-icon"><i class="fa-solid fa-video"></i></div>
                 <div class="auth-feature-text">
-                  <strong>Relatórios &amp; Dashboard</strong>
-                  Indicadores clínicos e financeiros com sincronização em nuvem
+                  <strong>Telemedicina E2E</strong>
+                  Consultas por vídeo HD e receita digital
                 </div>
               </li>
             </ul>
           </div>
 
           <div class="auth-brand-footer">
-            <i class="fa-solid fa-shield-halved" style="margin-right: 5px; color: var(--color-accent);"></i>
-            Dados protegidos com criptografia JWT &mdash; v1.0.1
+            <i class="fa-solid fa-shield-halved" style="margin-right: 5px; color: #0d9488;"></i>
+            Criptografia E2E &bull; Conformidade CFM nº 1.821/2007 &bull; v2.8.0
           </div>
         </div>
 
@@ -921,15 +919,15 @@ function renderAuthScreen() {
         <div class="auth-form-panel">
           <div class="auth-form-header">
             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 4px;">
-              <div class="auth-form-eyebrow" style="margin-bottom: 0;">${isLogin ? 'Acesso ao Sistema' : 'Criar Nova Conta'}</div>
+              <div class="auth-form-eyebrow" style="margin-bottom: 0;">${isLogin ? 'Autenticação Segura' : 'Credenciamento'}</div>
               ${isLogin ? `
-                <button type="button" id="btn-show-instructions" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(129, 140, 248, 0.35); color: #818cf8; padding: 4px 11px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='rgba(99, 102, 241, 0.3)'; this.style.borderColor='#818cf8'" onmouseleave="this.style.background='rgba(99, 102, 241, 0.15)'; this.style.borderColor='rgba(129, 140, 248, 0.35)'">
-                  <i class="fa-solid fa-circle-question" style="color: #fbbf24;"></i> Instruções de Acesso
+                <button type="button" id="btn-show-instructions" style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 5px 12px; border-radius: 16px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='#334155'; this.style.color='#f8fafc'" onmouseleave="this.style.background='#1e293b'; this.style.color='#94a3b8'">
+                  <i class="fa-solid fa-circle-info" style="color: #38bdf8;"></i> Instruções de Acesso
                 </button>
               ` : ''}
             </div>
-            <h1 class="auth-title">${isLogin ? 'Bem-vindo de volta' : 'Criar sua conta'}</h1>
-            <p class="auth-subtitle">${isLogin ? 'Entre com suas credenciais para acessar o painel' : 'Preencha os dados abaixo para criar sua conta'}</p>
+            <h1 class="auth-title">${isLogin ? 'Acesso ao Sistema' : 'Criar Credencial'}</h1>
+            <p class="auth-subtitle">${isLogin ? 'Identifique-se com suas credenciais hospitalares' : 'Preencha os dados abaixo para solicitar acesso'}</p>
           </div>
 
           <div id="auth-error-container"></div>
@@ -954,8 +952,8 @@ function renderAuthScreen() {
                   <option value="Desenvolvedor">💻 Solicitar Acesso Desenvolvedor</option>
                 </select>
               </div>
-              <div id="auth-master-key-box" class="form-group" style="display: block; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
-                <label class="form-label" for="auth-master-key" style="color: #a5b4fc; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              <div id="auth-master-key-box" class="form-group" style="display: block; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                <label class="form-label" for="auth-master-key" style="color: #38bdf8; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                   <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Chave Master (Opcional):
                 </label>
                 <input type="password" id="auth-master-key" class="form-input" placeholder="Digite a chave se possuir">
@@ -977,7 +975,7 @@ function renderAuthScreen() {
                 </button>
               </div>
             </div>
-            <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 6px; padding: 12px; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em;">
+            <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 6px; padding: 12px; font-size: 0.95rem; font-weight: 700; background: #0284c7; border: none; box-shadow: 0 2px 10px rgba(2,132,199,0.35);">
               <i class="fa-solid fa-${isLogin ? 'right-to-bracket' : 'user-plus'}" style="margin-right: 8px;"></i>
               ${isLogin ? 'Entrar no Sistema' : 'Criar Conta'}
             </button>
@@ -987,13 +985,13 @@ function renderAuthScreen() {
 
           <div class="auth-toggle">
             ${isLogin
-              ? 'Não tem uma conta? <a id="toggle-auth">Cadastre-se gratuitamente</a>'
+              ? 'Não tem uma conta? <a id="toggle-auth">Solicitar credencial</a>'
               : 'Já tem uma conta? <a id="toggle-auth">Fazer login</a>'}
           </div>
 
           <div class="auth-form-footer">
-            <i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i>
-            Desenvolvido por @mazzarowysk &amp; @_coltri_
+            <i class="fa-solid fa-hospital-user" style="margin-right: 4px; color: #0d9488;"></i>
+            Health Nexus &bull; Ambiente Clínico Seguro
           </div>
         </div>
       </div>
@@ -1173,10 +1171,10 @@ function initConstellationCanvas() {
   const resizeObserver = new ResizeObserver(() => resize());
   resizeObserver.observe(parent);
 
-  // Nós da rede tecnológica
-  const nodeCount = Math.floor(Math.min(width, 700) / 13);
+  // Nós da rede neural clínica
+  const nodeCount = Math.floor(Math.min(width, 700) / 16);
   const nodes = [];
-  const palette = ['#00f2fe', '#a855f7', '#e026b8', '#38bdf8', '#818cf8', '#34d399'];
+  const palette = ['#0284c7', '#0ea5e9', '#0d9488', '#38bdf8', '#64748b'];
 
   const mouse = { x: null, y: null, radius: 180 };
 
@@ -1200,11 +1198,11 @@ function initConstellationCanvas() {
     constructor() {
       this.x = Math.random() * width;
       this.y = Math.random() * height;
-      this.vx = (Math.random() - 0.5) * 0.9;
-      this.vy = (Math.random() - 0.5) * 0.9;
-      this.radius = Math.random() * 2.2 + 1.2;
+      this.vx = (Math.random() - 0.5) * 0.7;
+      this.vy = (Math.random() - 0.5) * 0.7;
+      this.radius = Math.random() * 1.8 + 1.0;
       this.color = palette[Math.floor(Math.random() * palette.length)];
-      this.pulseSpeed = Math.random() * 0.03 + 0.01;
+      this.pulseSpeed = Math.random() * 0.02 + 0.01;
       this.pulse = Math.random() * Math.PI;
     }
 
@@ -1223,19 +1221,19 @@ function initConstellationCanvas() {
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < mouse.radius && dist > 0) {
           const force = (mouse.radius - dist) / mouse.radius;
-          this.x += (dx / dist) * force * 0.8;
-          this.y += (dy / dist) * force * 0.8;
+          this.x += (dx / dist) * force * 0.6;
+          this.y += (dy / dist) * force * 0.6;
         }
       }
     }
 
     draw() {
-      const currentRadius = this.radius + Math.sin(this.pulse) * 0.6;
+      const currentRadius = this.radius + Math.sin(this.pulse) * 0.4;
       ctx.beginPath();
       ctx.arc(this.x, this.y, Math.max(0.5, currentRadius), 0, Math.PI * 2);
       ctx.fillStyle = this.color;
       ctx.shadowColor = this.color;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 6;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
@@ -1245,7 +1243,7 @@ function initConstellationCanvas() {
     nodes.push(new Node());
   }
 
-  const maxDist = 140;
+  const maxDist = 130;
 
   const animate = () => {
     ctx.clearRect(0, 0, width, height);
@@ -1261,29 +1259,29 @@ function initConstellationCanvas() {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < maxDist) {
-          const alpha = (1 - dist / maxDist) * 0.55;
+          const alpha = (1 - dist / maxDist) * 0.35;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
           ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
+          ctx.strokeStyle = `rgba(2, 132, 199, ${alpha})`;
           ctx.lineWidth = 1;
           ctx.stroke();
         }
       }
 
-      // Conexão cintilante com o cursor do mouse
+      // Conexão sutil com o cursor do mouse
       if (mouse.x !== null && mouse.y !== null) {
         const dx = nodes[i].x - mouse.x;
         const dy = nodes[i].y - mouse.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < mouse.radius) {
-          const alpha = (1 - dist / mouse.radius) * 0.75;
+          const alpha = (1 - dist / mouse.radius) * 0.55;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
           ctx.lineTo(mouse.x, mouse.y);
-          ctx.strokeStyle = `rgba(168, 85, 247, ${alpha})`;
-          ctx.lineWidth = 1.3;
+          ctx.strokeStyle = `rgba(13, 148, 136, ${alpha})`;
+          ctx.lineWidth = 1.2;
           ctx.stroke();
         }
       }
