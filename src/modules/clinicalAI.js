@@ -71,15 +71,15 @@ export const startVoiceDictation = (targetInputId, micButtonId = null, onResultC
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         let transcript = event.results[i][0].transcript;
         
-        // Tratamento inteligente de pontuação clínica falada
+        // Tratamento inteligente de pontuação clínica falada (com ou sem acentuação)
         transcript = transcript
           .replace(/\bponto final\b/gi, '.')
-          .replace(/\bponto e vírgula\b/gi, ';')
+          .replace(/\bponto e v[íi]rgula\b/gi, ';')
           .replace(/\bdois pontos\b/gi, ':')
-          .replace(/\bvírgula\b/gi, ',')
-          .replace(/\bexclamação\b/gi, '!')
-          .replace(/\binterrogação\b/gi, '?')
-          .replace(/\bnovo parágrafo\b/gi, '\n\n')
+          .replace(/\bv[íi]rgula\b/gi, ',')
+          .replace(/\bexclama[çc][ãa]o\b/gi, '!')
+          .replace(/\binterroga[çc][ãa]o\b/gi, '?')
+          .replace(/\bnovo par[áa]grafo\b/gi, '\n\n')
           .replace(/\bnova linha\b/gi, '\n');
 
         if (event.results[i].isFinal) {
