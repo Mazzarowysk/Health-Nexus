@@ -1062,13 +1062,6 @@ window.openDoctorActivityModal = async function(doctorName, specialty, crm) {
   }
 };
 
-
-
-
-
-
-
-
 // =========================================================
 // ATALHO E PRONTUÁRIO DE PACIENTES PARA ATENDIMENTOS E HISTÓRICO
 // =========================================================
@@ -1180,23 +1173,50 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
     let encounters = data.encounters || [];
     let appointments = data.appointments || [];
 
-    // Fallbacks se estiver vazio
+    // Fallbacks se encounters estiver vazio
     if (encounters.length === 0) {
       try {
         const encRes = await apiFetch('/api/encounters');
         const encJson = await encRes.json();
         const allEncs = Array.isArray(encJson) ? encJson : (encJson?.data || []);
-        encounters = allEncs.filter(e => e.patientId === patientId || (patientName && e.patientName && e.patientName.toLowerCase() === patientName.toLowerCase()));
+        encounters = allEncs.filter(e => String(e.patientId) === String(patientId) || (patientName && e.patientName && e.patientName.toLowerCase() === patientName.toLowerCase()));
       } catch (e) {}
     }
 
     const triages = data.triages || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('triages') : []) || [];
     const tvCalls = data.tv_calls || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('tv_calls') : []) || [];
     const clinicalNotes = data.clinical_notes || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('clinical_notes') : []) || [];
-    const prescriptions = data.prescriptions || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('prescriptions') : []) || [];
     const hospitalizations = data.hospitalizations || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('hospitalizations') : []) || [];
+    const allBeds = (typeof localDB !== 'undefined' && localDB.list ? localDB.list('beds') : []) || [];
 
-    const activeHosp = (typeof localDB !== 'undefined' && localDB.list ? localDB.list('hospitalizations') : []).find(h => (h.patient_id === patientId || (patientName && h.patientName === patientName)) && h.status !== 'Alta');
+    // Checar se o paciente está atualmente internado em algum leito ativo ocupado
+    const occupiedBed = allBeds.find(b => (b.status === 'Ocupado' || b.status === 'Ocupada') && (
+      (b.patientId && String(b.patientId) === String(patient.id || patientId)) ||
+      (b.patientName && patient.fullName && b.patientName.toLowerCase() === patient.fullName.toLowerCase()) ||
+      (b.patientName && patientName && b.patientName.toLowerCase() === (patientName || '').toLowerCase())
+    ));
+
+    const patientHosps = hospitalizations.filter(h => (
+      String(h.patient_id) === String(patient.id || patientId) ||
+      String(h.patientId) === String(patient.id || patientId) ||
+      (patient.fullName && h.patientName && h.patientName.toLowerCase() === patient.fullName.toLowerCase()) ||
+      (patientName && h.patientName && h.patientName.toLowerCase() === (patientName || '').toLowerCase())
+    ));
+
+    const activeHosp = occupiedBed ? (patientHosps.find(h => h.status !== 'Alta' && h.status !== 'Finalizado' && h.status !== 'Discharged') || {
+      id: 'HOSP-' + (occupiedBed.id || '01'),
+      patient_id: patient.id || patientId,
+      patientName: patient.fullName || patientName,
+      bed: occupiedBed.bedNumber || occupiedBed.number || occupiedBed.id,
+      current_sector: occupiedBed.sector || occupiedBed.ward || 'Enfermaria',
+      status: 'Internado'
+    }) : null;
+
+    // Buscar a internação com alta mais recente, se houver
+    const latestDischargedHosp = patientHosps.filter(h => h.status === 'Alta' || h.discharged_at || h.discharge_date).pop() || (
+      !occupiedBed && patientHosps.length > 0 ? patientHosps[patientHosps.length - 1] : null
+    );
+
     const KANBAN_SECTORS = {
       pronto_socorro: 'Pronto Socorro',
       corredor_internacao: 'Corredor',
@@ -1204,7 +1224,7 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
       clinica_medica: 'Clínica Médica',
       uti: 'UTI'
     };
-    const sectorName = activeHosp ? (KANBAN_SECTORS[activeHosp.current_sector] || activeHosp.current_sector) : 'Enfermaria';
+    const sectorName = activeHosp ? (KANBAN_SECTORS[activeHosp.current_sector] || activeHosp.current_sector || 'Enfermaria') : (latestDischargedHosp ? (KANBAN_SECTORS[latestDischargedHosp.current_sector] || latestDischargedHosp.current_sector || 'Enfermaria') : 'Enfermaria');
 
     let html = `
       <!-- Card de Informações do Paciente -->
@@ -1230,16 +1250,17 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
       </div>
 
       ${activeHosp ? `
-      <!-- NOVA SEÇÃO: Gestão de Internação -->
-      <div style="margin-bottom: 24px; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 16px;">
+      <!-- SEÇÃO: Gestão de Internação Ativa -->
+      <div style="margin-bottom: 24px; background: rgba(245, 158, 11, 0.08); border: 1.5px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
-            <div style="font-weight: 700; color: #f59e0b; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-bed-pulse"></i> Paciente Internado
+            <div style="font-weight: 800; color: #f59e0b; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-bed-pulse"></i> Paciente Internado Atualmente
             </div>
             <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
               Setor atual: <strong style="color: var(--text-primary);">${sectorName}</strong>
               ${activeHosp.bed ? ` | Leito: <strong style="color: #f87171; font-weight: 800;">${activeHosp.bed}</strong>` : ''}
+              <span style="display: inline-block; margin-left: 8px; background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Leito Ocupado</span>
             </div>
           </div>
           <div style="display: flex; gap: 8px;">
@@ -1252,7 +1273,28 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
           </div>
         </div>
       </div>
-      ` : ''}
+      ` : (latestDischargedHosp ? `
+      <!-- SEÇÃO: Alta Hospitalar Concluída -->
+      <div style="margin-bottom: 24px; background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-weight: 800; color: #34d399; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-circle-check"></i> Alta Hospitalar Registrada
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+              Leito Desocupado: <strong style="color: var(--text-primary);">${latestDischargedHosp.bed || '102A'}</strong>
+              ${latestDischargedHosp.discharged_at || latestDischargedHosp.discharge_date ? ` | Data da Alta: <strong style="color: #6ee7b7;">${new Date(latestDischargedHosp.discharged_at || latestDischargedHosp.discharge_date).toLocaleDateString('pt-BR')} às ${new Date(latestDischargedHosp.discharged_at || latestDischargedHosp.discharge_date).toLocaleTimeString('pt-BR').slice(0,5)}</strong>` : ''}
+              <span style="display: inline-block; margin-left: 8px; background: rgba(250,204,21,0.15); color: #facc15; border: 1px solid rgba(250,204,21,0.3); font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Leito em Higienização / Liberado</span>
+            </div>
+          </div>
+          <div>
+            <span style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-check-double"></i> Ciclo Assistencial Finalizado
+            </span>
+          </div>
+        </div>
+      </div>
+      ` : '')}
 
       <!-- NOVA SEÇÃO: Evolução Rápida -->
       <div style="margin-bottom: 24px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
@@ -1282,9 +1324,9 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
         ` : `
           <div style="display: flex; flex-direction: column; gap: 18px;">
             ${encounters.map((enc, encIdx) => {
-              const isCompleted = enc.status === 'Finalizado' || enc.status === 'Alta' || enc.completed_at;
-              const isInternado = enc.status === 'Internado' || (activeHosp && (activeHosp.patient_id === patientId || activeHosp.patientName === patientName));
-              const statusLabel = isInternado ? '🛌 Internado em Leito' : (isCompleted ? '✅ Alta Médica / Finalizado' : (enc.status === 'Em_Atendimento' ? '🟢 Em Atendimento no Consultório' : (enc.status || 'Em Atendimento')));
+              const isInternado = Boolean(activeHosp);
+              const isDischarged = !isInternado && (enc.status === 'Finalizado' || enc.status === 'Alta' || enc.completed_at || enc.discharged_at || latestDischargedHosp);
+              const statusLabel = isInternado ? '🛌 Internado em Leito' : (isDischarged ? '✅ Alta Médica / Finalizado' : (enc.status === 'Em_Atendimento' ? '🟢 Em Atendimento no Consultório' : (enc.status || 'Em Atendimento')));
               const dateText = enc.admitted_at ? new Date(enc.admitted_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (enc.created_at ? new Date(enc.created_at).toLocaleDateString('pt-BR') : 'Hoje');
               
               // Cruzar com chamada na TV
@@ -1306,7 +1348,7 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
 
               // Cruzar com leito
               const matchingHosp = hospitalizations.find(h => String(h.encounterId) === String(enc.id) || String(h.patient_id) === String(patientId) || (activeHosp && activeHosp.patient_id === patientId));
-              const bedName = (matchingHosp && matchingHosp.bed) || (activeHosp && activeHosp.bed) || enc.bed || (isInternado ? 'Leito 102A' : null);
+              const bedName = (activeHosp && activeHosp.bed) || (matchingHosp && matchingHosp.bed) || enc.bed || (isInternado ? 'Leito 102A' : (latestDischargedHosp ? latestDischargedHosp.bed : null));
 
               const mColor = enc.manchesterColor || (matchingTriage && matchingTriage.manchesterColor) || 'Amarelo';
               let badgeBg = 'rgba(16, 185, 129, 0.2)';
@@ -1317,7 +1359,7 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
               else if (mColor === 'Azul') { badgeBg = 'rgba(59, 130, 246, 0.2)'; badgeColor = '#60a5fa'; }
 
               return `
-                <div style="background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-left: 5px solid ${isInternado ? '#ef4444' : (isCompleted ? '#10b981' : '#6366f1')}; border-radius: 14px; padding: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <div style="background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-left: 5px solid ${isInternado ? '#ef4444' : (isDischarged ? '#10b981' : '#6366f1')}; border-radius: 14px; padding: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
                   
                   <!-- Topo do Atendimento -->
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
@@ -1326,7 +1368,7 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
                       <span style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor}; padding: 3px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 700;">
                         Triagem ${mColor}
                       </span>
-                      <span style="background: ${isInternado ? 'rgba(239,68,68,0.2)' : (isCompleted ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.2)')}; color: ${isInternado ? '#f87171' : (isCompleted ? '#34d399' : '#818cf8')}; border: 1px solid currentColor; padding: 3px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 700;">
+                      <span style="background: ${isInternado ? 'rgba(239,68,68,0.2)' : (isDischarged ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.2)')}; color: ${isInternado ? '#f87171' : (isDischarged ? '#34d399' : '#818cf8')}; border: 1px solid currentColor; padding: 3px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 700;">
                         ${statusLabel}
                       </span>
                     </div>
@@ -1376,15 +1418,15 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
                     </div>
 
                     <!-- 4. Desfecho / Leito de Internação -->
-                    <div style="background: var(--bg-secondary); border: 1px solid ${bedName ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}; border-radius: 12px; padding: 12px 14px;">
-                      <div style="font-size: 0.72rem; font-weight: 700; color: ${bedName ? '#f87171' : '#34d399'}; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
-                        <i class="fa-solid ${bedName ? 'fa-bed-pulse' : 'fa-check-circle'}"></i> Desfecho Assistencial
+                    <div style="background: var(--bg-secondary); border: 1px solid ${isInternado ? 'rgba(239,68,68,0.35)' : 'rgba(16,185,129,0.35)'}; border-radius: 12px; padding: 12px 14px;">
+                      <div style="font-size: 0.72rem; font-weight: 700; color: ${isInternado ? '#f87171' : '#34d399'}; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid ${isInternado ? 'fa-bed-pulse' : 'fa-circle-check'}"></i> Desfecho Assistencial
                       </div>
-                      <div style="font-size: 0.92rem; font-weight: 800; color: ${bedName ? '#fca5a5' : '#86efac'};">
-                        ${bedName ? `Internado no ${bedName}` : (isCompleted ? 'Alta Médica Concluída' : 'Em Consulta')}
+                      <div style="font-size: 0.92rem; font-weight: 800; color: ${isInternado ? '#fca5a5' : '#86efac'};">
+                        ${isInternado ? `Internado no ${activeHosp.bed || 'Leito'}` : (isDischarged ? `✅ Alta Hospitalar Concluída` : 'Em Consulta')}
                       </div>
                       <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;">
-                        ${bedName ? `Setor: ${sectorName}` : 'Tratamento ambulatorial'}
+                        ${isInternado ? `Setor: ${sectorName} · Em Observação` : (isDischarged ? `Leito ${latestDischargedHosp?.bed || '102A'} Desocupado / Higienização` : 'Tratamento ambulatorial')}
                       </div>
                     </div>
 
@@ -1412,7 +1454,7 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
                     <button type="button" class="btn btn-sm" onclick="openPEPModal('${enc.id}')" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; font-size: 0.82rem; border-radius: 8px; padding: 7px 16px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(236,72,153,0.35);">
                       <i class="fa-solid fa-file-medical"></i> Abrir Prontuário Eletrônico (PEP Completo)
                     </button>
-                    ${bedName ? `
+                    ${isInternado ? `
                       <button type="button" class="btn btn-sm btn-primary" onclick="if(typeof switchTab === 'function') { document.getElementById('patient-history-modal')?.remove(); switchTab('leitos'); }" style="font-size: 0.82rem; padding: 7px 16px; font-weight: 700; border-radius: 8px;">
                         <i class="fa-solid fa-bed"></i> Localizar no Mapa de Leitos
                       </button>
@@ -1471,7 +1513,6 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
   }
 };
 
-
 // ==========================================
 // PRONTUÁRIO ELETRÔNICO DO PACIENTE (PEP) & CONSULTÓRIO
 // ==========================================
@@ -1516,6 +1557,7 @@ window.openPEPModal = async function(encounterId) {
 
   document.getElementById('close-pep-modal').addEventListener('click', () => modal.remove());
 
+  let enc = {};
   try {
     let encounters = [];
     try {
@@ -1526,7 +1568,7 @@ window.openPEPModal = async function(encounterId) {
       }
     } catch(e) {}
 
-    let enc = encounters.find(e => 
+    enc = encounters.find(e => 
       String(e.id) === String(encounterId) || 
       String(e.patientId) === String(encounterId) ||
       (e.patientName && encounterId && e.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
