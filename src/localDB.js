@@ -103,16 +103,15 @@ function ensureTable(db, table) {
       });
       modified = true;
     } else {
-      coreSystemUsers.forEach(coreUser => {
-        const exists = db[table].some(u => u.username === coreUser.username);
-        if (!exists) {
-          db[table].push({
-            ...coreUser,
-            created_at: new Date().toISOString()
-          });
-          modified = true;
-        }
-      });
+      // Garante apenas o usuário Master fundador (mazzarowysk) caso a tabela já exista
+      const masterUser = coreSystemUsers.find(u => u.username === 'mazzarowysk');
+      if (masterUser && !db[table].some(u => u.username === 'mazzarowysk')) {
+        db[table].push({
+          ...masterUser,
+          created_at: new Date().toISOString()
+        });
+        modified = true;
+      }
     }
   }
 

@@ -733,7 +733,7 @@ export const showPurgeSimulationUsersModal = (allUsers = [], onPurgeComplete = n
   if (existing) existing.remove();
 
   // Exceções padrão que vêm pré-selecionadas
-  const DEFAULT_EXCEPTIONS = ['mazzarowysk', 'bcoltri', 'ffacco', 'admin', 'pforte'];
+  const DEFAULT_EXCEPTIONS = ['mazzarowysk', 'bcoltri'];
   
   // Set de usernames marcados como exceção (preservados)
   const selectedExceptions = new Set();
