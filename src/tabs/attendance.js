@@ -1,9 +1,10 @@
 // ─── MÓDULO DA ABA ATENDIMENTOS & TRIAGEM MANCHESTER (HEALTH NEXUS v2.7.2) ──────
 import { state } from '../state.js';
 import { apiFetch, removeAccents } from '../modules/api.js';
-import { showToast } from '../modules/ui.js';
+import { showToast, showCustomAlert } from '../modules/ui.js';
 import { realtimeHub } from '../modules/realtime.js';
 import { setActivePatientContext, renderPatientJourneyStepper } from '../modules/journey.js';
+import { getRolePermissions } from '../modules/auth.js';
 
 export function renderAttendanceTab(contentArea) {
   contentArea.innerHTML = `
@@ -694,6 +695,16 @@ export function renderAttendanceTab(contentArea) {
   };
 
   const openTriageModal = (id, name) => {
+    const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canDoTriage: true, label: 'Usuário' };
+    if (!perms.canDoTriage) {
+      showCustomAlert({
+        title: 'Acesso Restrito',
+        message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão clínica para realizar Triagem Manchester. Esta operação é restrita a Enfermeiros e Médicos.`,
+        type: 'warning'
+      });
+      return;
+    }
+
     setActivePatientContext({ id, fullName: name, patientName: name, manchesterColor: 'Amarelo' });
     const stepperContainer = document.getElementById('atd-journey-stepper-container');
     if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'triagem');

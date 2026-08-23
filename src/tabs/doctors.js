@@ -707,7 +707,16 @@ async function renderDoctorsTab() {
   if (btnAddSpecialty) btnAddSpecialty.addEventListener('click', () => handleAddNewOption('doc-specialty', 'sector-options', 'Especialidade / Setor'));
 
   const modal = document.getElementById('modal-doctor');
-  document.getElementById('btn-open-doctor-modal').addEventListener('click', () => {
+  document.getElementById('btn-open-doctor-modal')?.addEventListener('click', () => {
+    const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canEditProfessionals: true, label: 'Usuário' };
+    if (!perms.canEditProfessionals && !perms.canManageUsers) {
+      showCustomAlert({
+        title: 'Acesso Restrito',
+        message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para cadastrar ou editar profissionais de saúde. Apenas Administradores e Master possuem esta autorização.`,
+        type: 'warning'
+      });
+      return;
+    }
     document.getElementById('doc-id').value = '';
     document.getElementById('form-doctor').reset();
     if (docRoleInput) docRoleInput.dispatchEvent(new Event('change'));
@@ -715,15 +724,33 @@ async function renderDoctorsTab() {
     modal.style.display = 'flex';
   });
 
-  document.getElementById('btn-close-doctor-modal').addEventListener('click', () => { modal.style.display = 'none'; });
-  document.getElementById('btn-cancel-doctor-modal').addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-close-doctor-modal')?.addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-cancel-doctor-modal')?.addEventListener('click', () => { modal.style.display = 'none'; });
 
-  document.getElementById('doctors-trash-btn').addEventListener('click', () => {
+  document.getElementById('doctors-trash-btn')?.addEventListener('click', () => {
+    const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canDeleteRecords: true, label: 'Usuário' };
+    if (!perms.canDeleteRecords) {
+      showCustomAlert({
+        title: 'Acesso Restrito',
+        message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização para acessar ou restaurar registros da lixeira.`,
+        type: 'warning'
+      });
+      return;
+    }
     showTrashModal('doctors');
   });
 
-  document.getElementById('form-doctor').addEventListener('submit', async (e) => {
+  document.getElementById('form-doctor')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canEditProfessionals: true, label: 'Usuário' };
+    if (!perms.canEditProfessionals && !perms.canManageUsers) {
+      showCustomAlert({
+        title: 'Acesso Restrito',
+        message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização para salvar dados cadastrais de profissionais.`,
+        type: 'warning'
+      });
+      return;
+    }
     const id = document.getElementById('doc-id').value;
     const name = document.getElementById('doc-name').value;
     const role = document.getElementById('doc-role') ? document.getElementById('doc-role').value : 'Médico(a)';
@@ -1648,7 +1675,19 @@ window.openPEPModal = async function(encounterId) {
     const bodyEl = document.getElementById('pep-modal-body');
     if (!bodyEl) return;
 
+    const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canSignPEP: true, label: 'Usuário' };
+    const isReadOnly = !perms.canSignPEP;
+
     bodyEl.innerHTML = `
+      ${isReadOnly ? `
+        <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; color: #fbbf24; font-size: 0.85rem;">
+          <i class="fa-solid fa-lock" style="font-size: 1.1rem;"></i>
+          <div>
+            <strong>Modo Somente Leitura (Auditoria):</strong> Seu perfil (<strong>${perms.label}</strong>) possui acesso para consulta ao prontuário. A evolução clínica, prescrição e assinatura médica são restritas a médicos habilitados (CFM/CRM).
+          </div>
+        </div>
+      ` : ''}
+
       <!-- Sinais Vitais & Dados de Triagem -->
       <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
@@ -1664,30 +1703,30 @@ window.openPEPModal = async function(encounterId) {
       <form id="pep-form" style="display:flex; flex-direction:column; gap:16px;">
         <div>
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Subjetivo (Anamnese & Queixa):</label>
-          <textarea id="pep-subjective" class="form-input" style="width:100%; min-height:70px; resize:vertical;" placeholder="Relato do paciente, evolução dos sintomas...">${notes.subjectiveContent || enc.complaints || ''}</textarea>
+          <textarea id="pep-subjective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:70px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:70px; resize:vertical;"'} placeholder="Relato do paciente, evolução dos sintomas...">${notes.subjectiveContent || enc.complaints || ''}</textarea>
         </div>
 
         <div>
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Objetivo (Exame Físico / Achados):</label>
-          <textarea id="pep-objective" class="form-input" style="width:100%; min-height:70px; resize:vertical;" placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || ''}</textarea>
+          <textarea id="pep-objective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:70px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:70px; resize:vertical;"'} placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || ''}</textarea>
         </div>
 
         <div class="autocomplete-container" style="position:relative;">
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Avaliação (Diagnóstico / CID-10):</label>
-          <textarea id="pep-assessment" class="form-input pep-cid-input" style="width:100%; min-height:60px; resize:vertical;" placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || ''}</textarea>
+          <textarea id="pep-assessment" class="form-input pep-cid-input" ${isReadOnly ? 'readonly style="width:100%; min-height:60px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:60px; resize:vertical;"'} placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || ''}</textarea>
           <div id="pep-cid-dropdown" class="autocomplete-dropdown"></div>
         </div>
 
         <div>
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Plano Terapêutico & Prescrição:</label>
-          <textarea id="pep-plan" class="form-input" style="width:100%; min-height:70px; resize:vertical;" placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || ''}</textarea>
+          <textarea id="pep-plan" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:70px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:70px; resize:vertical;"'} placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || ''}</textarea>
         </div>
 
         <div style="margin-top: 10px; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">
             <i class="fa-solid fa-route" style="color: #6366f1; margin-right: 6px;"></i> Desfecho do Atendimento:
           </label>
-          <select id="pep-outcome" class="form-input" style="width:100%;">
+          <select id="pep-outcome" class="form-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
             <option value="alta" selected>Alta Médica (Encerrar Consulta)</option>
             <option value="observacao">Manter em Observação Médica (PS)</option>
             <option value="internacao">Solicitar Internação (Transferência de Leito)</option>
@@ -1695,12 +1734,18 @@ window.openPEPModal = async function(encounterId) {
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:10px;">
-          <button type="button" id="btn-save-pep" class="btn" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 20px;">
-            <i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Salvar Rascunho
-          </button>
-          <button type="submit" class="btn btn-primary" style="padding:10px 22px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
-            <i class="fa-solid fa-file-signature" style="margin-right:6px;"></i> Assinar & Encaminhar
-          </button>
+          ${isReadOnly ? `
+            <button type="button" class="btn" onclick="document.getElementById('pep-modal')?.remove()" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 20px;">
+              <i class="fa-solid fa-xmark" style="margin-right:6px;"></i> Fechar Prontuário
+            </button>
+          ` : `
+            <button type="button" id="btn-save-pep" class="btn" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 20px;">
+              <i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Salvar Rascunho
+            </button>
+            <button type="submit" class="btn btn-primary" style="padding:10px 22px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
+              <i class="fa-solid fa-file-signature" style="margin-right:6px;"></i> Assinar & Encaminhar
+            </button>
+          `}
         </div>
       </form>
     `;
@@ -1726,6 +1771,16 @@ window.openPEPModal = async function(encounterId) {
 };
 
 async function savePEPData(encounterId, shouldFinalize) {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canSignPEP: true, label: 'Usuário' };
+  if (!perms.canSignPEP) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para preencher ou assinar evoluções médicas no PEP.`,
+      type: 'warning'
+    });
+    return;
+  }
+
   const subjectiveContent = document.getElementById('pep-subjective')?.value || '';
   const objectiveContent = document.getElementById('pep-objective')?.value || '';
   const assessmentContent = document.getElementById('pep-assessment')?.value || '';
@@ -1826,6 +1881,20 @@ async function savePEPData(encounterId, shouldFinalize) {
 }
 
 window.saveHistoryEvolution = function(patientId, patientName) {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canSignPEP: true, canDoTriage: true, label: 'Usuário' };
+  if (!perms.canSignPEP && !perms.canDoTriage) {
+    if (typeof showCustomAlert === 'function') {
+      showCustomAlert({
+        title: 'Acesso Restrito',
+        message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização assistencial para registrar evoluções clínicas no prontuário.`,
+        type: 'warning'
+      });
+    } else if (typeof window.showToast === 'function') {
+      window.showToast('Acesso restrito a profissionais assistenciais.', 'warning');
+    }
+    return;
+  }
+
   const textarea = document.getElementById('new-history-evolution');
   if (!textarea || !textarea.value.trim()) {
     if (typeof window.showToast === 'function') window.showToast('Digite alguma anotação antes de salvar.', 'warning');
@@ -1842,7 +1911,7 @@ window.saveHistoryEvolution = function(patientId, patientName) {
     patientName: patientName,
     text: text,
     created_at: new Date().toISOString(),
-    author: 'Equipe Assistencial'
+    author: `${perms.label || 'Equipe Assistencial'} (${state.user?.name || state.user?.username || 'Profissional'})`
   });
   db.clinical_notes = notes;
   localStorage.setItem('healthNexusDados', JSON.stringify(db));
@@ -1886,6 +1955,20 @@ window.handleExamImport = function(event, patientId) {
 window.renderDoctorsTab = renderDoctorsTab;
 
 window.movePatientSectorFromHistory = function(hospId, patientId, patientName) {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
+  if (!perms.canManageBeds) {
+    if (typeof showCustomAlert === 'function') {
+      showCustomAlert({
+        title: 'Acesso Restrito',
+        message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para transferir pacientes entre setores hospitalares.`,
+        type: 'warning'
+      });
+    } else {
+      alert('Acesso restrito: você não tem permissão para transferir pacientes.');
+    }
+    return;
+  }
+
   const KANBAN_SECTORS = [
     { id: 'pronto_socorro', name: 'Pronto Socorro' },
     { id: 'corredor_internacao', name: 'Corredor' },
@@ -1952,6 +2035,20 @@ window.movePatientSectorFromHistory = function(hospId, patientId, patientName) {
 };
 
 window.dischargePatientFromHistory = function(hospId, patientId, patientName) {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
+  if (!perms.canManageBeds) {
+    if (typeof showCustomAlert === 'function') {
+      showCustomAlert({
+        title: 'Acesso Restrito',
+        message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para conceder alta hospitalar.`,
+        type: 'warning'
+      });
+    } else {
+      alert('Acesso restrito: você não tem permissão para conceder alta.');
+    }
+    return;
+  }
+
   if (confirm(`Confirmar ALTA para o paciente ${patientName}?`)) {
     const db = typeof localDB !== 'undefined' ? localDB : window.localDB;
     if (db) {
@@ -1962,15 +2059,15 @@ window.dischargePatientFromHistory = function(hospId, patientId, patientName) {
         db.update('hospitalizations', hospId, hosp);
         if (typeof window.showToast === 'function') window.showToast('Alta registrada com sucesso!', 'success');
         
-        const notes = db.list('clinical_notes') || [];
-        notes.push({
-          id: 'NOTE-' + Math.floor(Math.random() * 1000000),
-          patientId: patientId,
-          text: '✅ Alta Médica/Administrativa registrada pelo sistema.',
-          created_at: new Date().toISOString(),
-          author: 'Sistema (Gestão de Leitos)'
-        });
-        db.updateFullStore('clinical_notes', notes);
+        if (typeof db.insert === 'function') {
+          db.insert('clinical_notes', {
+            id: 'NOTE-' + Math.floor(Math.random() * 1000000),
+            patientId: patientId,
+            text: '✅ Alta Hospitalar/Administrativa registrada no sistema.',
+            created_at: new Date().toISOString(),
+            author: `${perms.label} (${state.user?.name || state.user?.username || 'Sistema'})`
+          });
+        }
         
         const historyModal = document.getElementById('history-modal-content');
         if (historyModal) {

@@ -24,7 +24,12 @@ export const getRolePermissions = (user) => {
       canManageUsers: true,
       canDeleteRecords: true,
       canSignPEP: true,
-      canDoTriage: true
+      canDoTriage: true,
+      canManageBeds: true,
+      canManagePharmacy: true,
+      canManageFinance: true,
+      canManageSchedules: true,
+      canEditProfessionals: true
     };
   }
 
@@ -39,7 +44,12 @@ export const getRolePermissions = (user) => {
       canManageUsers: false,
       canDeleteRecords: false,
       canSignPEP: true,
-      canDoTriage: true
+      canDoTriage: true,
+      canManageBeds: true,
+      canManagePharmacy: true,
+      canManageFinance: true,
+      canManageSchedules: true,
+      canEditProfessionals: true
     };
   }
 
@@ -48,12 +58,17 @@ export const getRolePermissions = (user) => {
       role: 'Administrador',
       label: '🛠️ Administrador',
       badgeColor: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
       canSignPEP: true,
-      canDoTriage: true
+      canDoTriage: true,
+      canManageBeds: true,
+      canManagePharmacy: true,
+      canManageFinance: true,
+      canManageSchedules: true,
+      canEditProfessionals: true
     };
   }
 
@@ -62,12 +77,17 @@ export const getRolePermissions = (user) => {
       role: 'Enfermeiro',
       label: '🩺 Enfermeiro(a)',
       badgeColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro'],
+      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
       canSignPEP: false,
-      canDoTriage: true
+      canDoTriage: true,
+      canManageBeds: true,
+      canManagePharmacy: true,
+      canManageFinance: false,
+      canManageSchedules: true,
+      canEditProfessionals: false
     };
   }
 
@@ -76,12 +96,17 @@ export const getRolePermissions = (user) => {
       role: 'Recepcionista',
       label: '📋 Recepcionista',
       badgeColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'agenda', 'atendimento', 'consultorios', 'tv_panel', 'financeiro'],
+      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'agenda', 'atendimento', 'consultorios', 'tv_panel'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
       canSignPEP: false,
-      canDoTriage: false
+      canDoTriage: false,
+      canManageBeds: false,
+      canManagePharmacy: false,
+      canManageFinance: false,
+      canManageSchedules: false,
+      canEditProfessionals: false
     };
   }
 
@@ -90,12 +115,17 @@ export const getRolePermissions = (user) => {
       role: 'Farmacêutico',
       label: '💊 Farmacêutico(a)',
       badgeColor: 'linear-gradient(135deg, #ec4899, #db2777)',
-      allowedTabs: ['dashboard', 'pacientes', 'farmacia', 'atendimento', 'financeiro', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'farmacia', 'relatorios'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
       canSignPEP: false,
-      canDoTriage: false
+      canDoTriage: false,
+      canManageBeds: false,
+      canManagePharmacy: true,
+      canManageFinance: false,
+      canManageSchedules: false,
+      canEditProfessionals: false
     };
   }
 
@@ -104,12 +134,17 @@ export const getRolePermissions = (user) => {
       role: 'Biomédico',
       label: '🧪 Biomédico(a)',
       badgeColor: 'linear-gradient(135deg, #14b8a6, #0d9488)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'financeiro', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consultorios', 'relatorios'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
       canSignPEP: false,
-      canDoTriage: false
+      canDoTriage: false,
+      canManageBeds: false,
+      canManagePharmacy: false,
+      canManageFinance: false,
+      canManageSchedules: false,
+      canEditProfessionals: false
     };
   }
 
@@ -123,7 +158,12 @@ export const getRolePermissions = (user) => {
       canManageUsers: false,
       canDeleteRecords: false,
       canSignPEP: false,
-      canDoTriage: false
+      canDoTriage: false,
+      canManageBeds: false,
+      canManagePharmacy: false,
+      canManageFinance: true,
+      canManageSchedules: false,
+      canEditProfessionals: false
     };
   }
 
@@ -137,7 +177,12 @@ export const getRolePermissions = (user) => {
       canManageUsers: false,
       canDeleteRecords: false,
       canSignPEP: false,
-      canDoTriage: true
+      canDoTriage: true,
+      canManageBeds: true,
+      canManagePharmacy: false,
+      canManageFinance: false,
+      canManageSchedules: false,
+      canEditProfessionals: false
     };
   }
 
@@ -146,12 +191,17 @@ export const getRolePermissions = (user) => {
     role: 'Médico',
     label: '🩺 Médico',
     badgeColor: 'linear-gradient(135deg, #10b981, #059669)',
-    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'relatorios'],
+    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'relatorios'],
     canApproveUsers: false,
     canManageUsers: false,
     canDeleteRecords: false,
     canSignPEP: true,
-    canDoTriage: true
+    canDoTriage: true,
+    canManageBeds: true,
+    canManagePharmacy: true,
+    canManageFinance: false,
+    canManageSchedules: true,
+    canEditProfessionals: false
   };
 };
 

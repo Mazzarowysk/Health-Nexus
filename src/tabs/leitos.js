@@ -411,6 +411,16 @@ async function renderLeitosTab() {
 }
 
 window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
+  if (!perms.canManageBeds) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização para internar pacientes em leitos. Esta operação é restrita a Médicos, Enfermeiros e Administradores.`,
+      type: 'warning'
+    });
+    return;
+  }
+
   const modal = document.getElementById('modal-admit-bed');
   if (modal) {
     modal.style.display = 'flex';
@@ -470,6 +480,16 @@ window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
 };
 
 window.dischargeBed = (bedId) => {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
+  if (!perms.canManageBeds) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização para conceder alta de leito hospitalar.`,
+      type: 'warning'
+    });
+    return;
+  }
+
   const modalHtml = `
     <div id="discharge-confirm-modal" class="modal-overlay" style="z-index: 9999; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px);">
       <div class="modal-content" style="max-width: 420px; width: 90%; text-align: center; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 24px; padding: 40px 36px 32px; box-shadow: 0 24px 60px rgba(0,0,0,0.25); position: relative; overflow: hidden;">
@@ -518,6 +538,16 @@ window.dischargeBed = (bedId) => {
 };
 
 window.executeDischarge = async (bedId) => {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
+  if (!perms.canManageBeds) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização para conceder alta hospitalar.`,
+      type: 'warning'
+    });
+    return;
+  }
+
   const modal = document.getElementById('discharge-confirm-modal');
   if (modal) modal.remove();
   
@@ -554,6 +584,16 @@ window.executeDischarge = async (bedId) => {
 };
 
 window.updateBedStatus = async (bedId, status) => {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
+  if (!perms.canManageBeds) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para alterar o status operacional de leitos.`,
+      type: 'warning'
+    });
+    return;
+  }
+
   try {
     const res = await apiFetch(`/api/beds/${bedId}/status`, {
       method: 'PUT',
@@ -562,7 +602,6 @@ window.updateBedStatus = async (bedId, status) => {
     });
     if (res.ok) {
       showToast('Status do leito atualizado!');
-      
       renderLeitosTab();
     }
   } catch (e) {}

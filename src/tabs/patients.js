@@ -3,6 +3,7 @@ import { state, dataCache } from '../state.js';
 import { apiFetch, cachedApiGet, removeAccents } from '../modules/api.js';
 import { showToast, showCustomAlert, showCustomConfirm } from '../modules/ui.js';
 import { syncManager } from '../modules/sync.js';
+import { getRolePermissions } from '../modules/auth.js';
 
 export function renderPatientsTab(contentArea) {
   contentArea.innerHTML = `
@@ -373,6 +374,16 @@ export function renderPatientsTab(contentArea) {
 
     document.querySelectorAll('.btn-icon-delete').forEach(btn => {
       btn.addEventListener('click', async () => {
+        const perms = getRolePermissions(state.user);
+        if (!perms.canDeleteRecords) {
+          showCustomAlert({
+            title: 'Acesso Restrito',
+            message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para excluir registros de pacientes. Apenas Administradores e Master podem realizar esta operação.`,
+            type: 'warning'
+          });
+          return;
+        }
+
         const id = btn.getAttribute('data-delete-id');
         const confirmed = await showCustomConfirm({
           title: 'Excluir Paciente',

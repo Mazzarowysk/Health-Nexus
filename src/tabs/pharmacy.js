@@ -275,6 +275,15 @@ function renderPharmacyTable(items) {
   // Eventos de Editar e Excluir
   document.querySelectorAll('.btn-edit-pharm').forEach(btn => {
     btn.addEventListener('click', () => {
+      const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManagePharmacy: true, label: 'Usuário' };
+      if (!perms.canManagePharmacy) {
+        showCustomAlert({
+          title: 'Acesso Restrito',
+          message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para alterar o cadastro de medicamentos.`,
+          type: 'warning'
+        });
+        return;
+      }
       const item = currentPharmacyItems.find(i => i.id === btn.dataset.id);
       if (item) openAddPharmModal(item);
     });
@@ -282,6 +291,16 @@ function renderPharmacyTable(items) {
 
   document.querySelectorAll('.btn-del-pharm').forEach(btn => {
     btn.addEventListener('click', async () => {
+      const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canDeleteRecords: true, label: 'Usuário' };
+      if (!perms.canDeleteRecords && !perms.canManagePharmacy) {
+        showCustomAlert({
+          title: 'Acesso Restrito',
+          message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para excluir medicamentos do estoque.`,
+          type: 'warning'
+        });
+        return;
+      }
+
       const id = btn.dataset.id;
       const name = btn.dataset.name;
       const confirmed = await showCustomConfirm({
@@ -309,6 +328,16 @@ function renderPharmacyTable(items) {
 }
 
 function openAddPharmModal(itemToEdit = null) {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManagePharmacy: true, label: 'Usuário' };
+  if (!perms.canManagePharmacy) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização para cadastrar ou editar medicamentos no estoque.`,
+      type: 'warning'
+    });
+    return;
+  }
+
   const existingModal = document.getElementById('modal-pharm-add-overlay');
   if (existingModal) existingModal.remove();
 
@@ -555,6 +584,16 @@ function openAddPharmModal(itemToEdit = null) {
 }
 
 function openDispenseMedModal() {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManagePharmacy: true, label: 'Usuário' };
+  if (!perms.canManagePharmacy) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para realizar dispensação de medicamentos.`,
+      type: 'warning'
+    });
+    return;
+  }
+
   const existingModal = document.getElementById('modal-pharm-dispense-overlay');
   if (existingModal) existingModal.remove();
 
