@@ -1556,25 +1556,25 @@ function renderReportsTab(contentArea) {
       summaryContainer.innerHTML = `
         <!-- KPI Cards Atendimentos -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;">
-          ${kpiCard(total, 'Total Atendimentos', '#ec4899', 'fa-notes-medical', 'all', '')}
+          ${kpiCard(total, 'Total Atendimentos', '#0284c7', 'fa-notes-medical', 'all', '')}
           ${kpiCard(urgencias, 'Urgências', '#ef4444', 'fa-truck-medical', 'type', 'Urgencia')}
-          ${kpiCard(ambulatorio, 'Ambulatório', '#818cf8', 'fa-hospital', 'type', 'Ambulatorio')}
-          ${kpiCard(pctFin + '%', 'Concluídos', '#34d399', 'fa-circle-check', 'status', 'Finalizado')}
+          ${kpiCard(ambulatorio, 'Ambulatório', '#0ea5e9', 'fa-hospital', 'type', 'Ambulatorio')}
+          ${kpiCard(pctFin + '%', 'Concluídos', '#10b981', 'fa-circle-check', 'status', 'Finalizado')}
         </div>
 
         <!-- Charts row -->
         <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;margin-bottom:20px;">
 
           <!-- DONUT — Classificação Manchester -->
-          <div class="glass-card" style="padding:20px;border-radius:16px;border:1px solid rgba(236,72,153,0.2);background:rgba(236,72,153,0.04);">
+          <div class="chart-card" style="padding:20px;border-radius:16px;border:1px solid #1e293b;background:#111827;">
             <h4 style="margin:0 0 14px;font-size:0.88rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-              <i class="fa-solid fa-shield-halved" style="color:#ec4899;"></i> Classificação Manchester
+              <i class="fa-solid fa-shield-halved" style="color:#0284c7;"></i> Classificação Manchester
               <span style="margin-left:auto;font-size:0.68rem;color:var(--text-muted);font-weight:400;">Clique para filtrar</span>
             </h4>
             <div style="position:relative;width:180px;height:180px;margin:0 auto 14px;">
               <canvas id="chart-enc-manchester"></canvas>
               <div id="manch-donut-kpi" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
-                <span style="font-family:'Outfit';font-size:2rem;font-weight:900;color:#ec4899;display:block;line-height:1;filter:drop-shadow(0 0 8px rgba(236,72,153,0.4));">${total}</span>
+                <span style="font-family:'Outfit';font-size:2rem;font-weight:900;color:#ffffff;display:block;line-height:1;">${total}</span>
                 <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">TOTAL</span>
               </div>
             </div>
@@ -3695,7 +3695,7 @@ async function openEncounterReportDetail(encId) {
                   </div>
                   <div style="font-size:0.92rem;font-weight:700;color:#475569;margin-bottom:6px;">Sem nota clínica</div>
                   <div style="font-size:0.78rem;color:#334155;margin-bottom:16px;">A nota SOAP será criada durante o atendimento médico.</div>
-                  ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i> Criar Nota no PEP</button>` : ''}
+                  ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:#0284c7;border:none;color:#fff;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;box-shadow:0 2px 8px rgba(2,132,199,0.35);"><i class="fa-solid fa-pen-to-square"></i> Criar Nota no PEP</button>` : ''}
                 </div>`}
           </div>
 
@@ -3747,7 +3747,7 @@ async function openEncounterReportDetail(encId) {
 
         <!-- FOOTER -->
         <div style="padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:9px;justify-content:flex-end;flex-shrink:0;">
-          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:8px 17px;font-weight:700;font-size:0.81rem;cursor:pointer;box-shadow:0 4px 14px rgba(236,72,153,0.28);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
+          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:#0284c7;border:none;color:#fff;border-radius:10px;padding:8px 17px;font-weight:700;font-size:0.81rem;cursor:pointer;box-shadow:0 2px 8px rgba(2,132,199,0.35);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
           <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#94a3b8;border-radius:10px;padding:8px 17px;font-weight:600;font-size:0.81rem;cursor:pointer;">Fechar</button>
         </div>
       </div>

@@ -19,7 +19,7 @@ async function renderTVPanelTab() {
           </p>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none;">
+          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: #0284c7; border: none; box-shadow: 0 2px 8px rgba(2,132,199,0.35);">
             <i class="fa-solid fa-bullhorn"></i> Chamar Paciente no Painel
           </button>
         </div>
