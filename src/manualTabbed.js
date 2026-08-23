@@ -38,10 +38,16 @@ export const SEMANTIC_SYNONYMS = {
   leito: ['leito', 'leitos', 'vaga', 'vagas', 'quarto', 'acomodacao', 'internacao', 'internar', 'enfermaria', 'uti', 'censo', 'higienizacao'],
   // Entidades: Salas / Consultórios
   consultorio: ['consultorio', 'consultorios', 'sala', 'salas', 'posto', 'ambulatorio'],
+  // Assinatura Digital ICP-Brasil
+  icp_brasil: ['icp-brasil', 'icp', 'assinatura digital', 'certificado digital', 'birdid', 'neoid', 'certisign', 'vidaas', 'a1', 'a3', 'validar', 'carimbo de tempo', 'sha256', 'qr code', 'autenticidade', 'cfm 2299', 'mp 2200', 'assinatura nuvem'],
+  // Faturamento TISS 4.01 XML & TUSS (ANS)
+  tiss: ['tiss', 'tuss', 'xml', 'guia tiss', 'ans', 'operadora', 'lote tiss', 'faturamento tiss', 'padrao tiss', '4.01', 'convenio xml', 'guia consulta', 'guia sadt', 'hash md5', 'exportar tiss', 'lote guias'],
+  // PWA & Notificações Push de Sobreaviso
+  pwa: ['pwa', 'service worker', 'push', 'notificacao push', 'notificacoes', 'sobreaviso', 'offline', 'alerta plantao', 'alerta celular', 'mobile', 'aplicativo', 'instalavel'],
   // Entidades: Financeiro / Faturamento
-  financeiro: ['financeiro', 'faturamento', 'cobranca', 'fatura', 'parcela', 'baixa', 'pagamento', 'convenio', 'receita', 'despesa', 'dre'],
+  financeiro: ['financeiro', 'faturamento', 'cobranca', 'fatura', 'parcela', 'baixa', 'pagamento', 'convenio', 'receita', 'despesa', 'dre', 'tiss', 'tuss', 'xml'],
   // Relatórios / Impressão
-  relatorio: ['relatorio', 'relatorios', 'exportar', 'exportacao', 'imprimir', 'impressao', 'pdf', 'excel', 'planilha', 'csv', 'grafico', 'metricas', 'indicadores', 'kpi']
+  relatorio: ['relatorio', 'relatorios', 'exportar', 'exportacao', 'imprimir', 'impressao', 'pdf', 'excel', 'planilha', 'csv', 'grafico', 'metricas', 'indicadores', 'kpi', 'tiss', 'xml']
 };
 
 export const expandQueryTokens = (rawQuery) => {
@@ -150,6 +156,16 @@ export const manualData = [
         shortcut: 'Cronômetro ativo no badge de status',
         rules: 'Executa automaticamente a cada 15 minutos.',
         keywords: ['15 minutos', 'cronômetro', 'auto-sync', 'comparativo', 'banco de dados', 'alterações pendentes', 'temporizador', 'sincronizar']
+      },
+      {
+        icon: 'fa-mobile-screen-button',
+        name: '📲 App Mobile PWA & Notificações Push de Plantão',
+        type: 'Mobile & Notificações',
+        color: '#06b6d4',
+        description: 'Transforma o Health Nexus em aplicativo standalone instalável em celulares e tablets, com Service Worker para navegação ultrarrápida e notificações push para médicos de sobreaviso e alertas de emergência.',
+        shortcut: 'Configurações / Notificações',
+        rules: 'Funciona em Android, iOS e Windows com suporte offline.',
+        keywords: ['pwa', 'aplicativo celular', 'mobile', 'push', 'notificações push', 'sobreaviso', 'service worker', 'instalar app', 'offline']
       },
       {
         icon: 'fa-moon-sun',
@@ -430,11 +446,21 @@ export const manualData = [
         keywords: ['cid-10', 'diagnóstico', 'código doença', 'cid', 'hipótese diagnóstica']
       },
       {
+        icon: 'fa-signature',
+        name: '🔐 Assinatura Digital ICP-Brasil em Nuvem (BirdID / NeoID / Certisign)',
+        type: 'Assinatura Qualificada / CFM',
+        color: '#0284c7',
+        description: 'Assina digitalmente evoluções clínicas, prescrições e atestados com validade jurídica nacional (MP 2.200-2/2001 e Resolução CFM 2.299/2021) via provedores em nuvem (BirdID, NeoID, Certisign, VIDaaS) ou certificado A1, inserindo carimbo de tempo, Hash SHA-256 e QR Code ITI.',
+        shortcut: 'Botão "Assinar e Finalizar" no PEP',
+        rules: 'Exige autenticação por senha PIN, OTP ou token do certificado.',
+        keywords: ['icp-brasil', 'assinatura digital', 'certificado digital', 'birdid', 'neoid', 'certisign', 'vidaas', 'a1', 'a3', 'validar', 'cfm 2299', 'mp 2200', 'carimbo de tempo', 'sha256', 'qr code', 'receita controlada', 'antibióticos']
+      },
+      {
         icon: 'fa-file-signature',
         name: '📄 Emissão de Atestado / Declaração',
         type: 'Documentação / PDF',
         color: '#ec4899',
-        description: 'Gera atestado médico configurável (dias de afastamento, repouso ou declaração de comparecimento) com validação de CRM.',
+        description: 'Gera atestado médico configurável (dias de afastamento, repouso ou declaração de comparecimento) com validação de CRM e assinatura ICP-Brasil.',
         shortcut: 'Botão Atestado',
         rules: 'Preenche automaticamente os dados do médico logado.',
         keywords: ['emitir atestado', 'atestado médico', 'afastamento', 'declaração de comparecimento', 'imprimir atestado', 'laudo']
@@ -454,7 +480,7 @@ export const manualData = [
         name: '🏁 Finalizar Consulta',
         type: 'Encerramento',
         color: '#059669',
-        description: 'Salva todas as informações no prontuário definitivo e conclui o atendimento do paciente.',
+        description: 'Salva todas as informações no prontuário definitivo, grava o selo ICP-Brasil e conclui o atendimento do paciente.',
         shortcut: 'Botão Concluir no rodapé',
         rules: 'Libera o médico para chamar o próximo paciente na TV.',
         keywords: ['finalizar consulta', 'concluir atendimento', 'fechar prontuário', 'dar alta médica', 'encerrar']
@@ -1032,6 +1058,16 @@ export const manualData = [
         shortcut: 'Botão Exportar Excel',
         rules: 'Compatível com Microsoft Excel, Google Sheets e PowerBI.',
         keywords: ['exportar excel', 'baixar planilha', 'exportar csv', 'tabela excel', 'dados brutos']
+      },
+      {
+        icon: 'fa-file-code',
+        name: '📑 Exportação de Lotes TISS 4.01 XML (Padrão ANS)',
+        type: 'Faturamento & Convênios',
+        color: '#0284c7',
+        description: 'Gera lotes eletrônicos de guias de consulta, SADT e honorários médicos no padrão TISS Versão 4.01.00 da ANS, com códigos TUSS mapeados e hash MD5 de integridade para envio direto às operadoras de saúde.',
+        shortcut: 'Botão "Exportar Lote TISS 4.01 (XML ANS)"',
+        rules: 'Calcula hash criptográfico MD5 sobre o XML para evitar glosas e rejeições de lotes.',
+        keywords: ['tiss', 'tuss', 'xml', 'guia tiss', 'ans', 'faturamento convênio', 'lote tiss', '4.01', 'exportar tiss', 'hash md5', 'guia de consulta', 'sadt']
       }
     ],
     workflow: [

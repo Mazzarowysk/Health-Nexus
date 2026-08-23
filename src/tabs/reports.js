@@ -116,7 +116,7 @@ function renderReportsTab(contentArea) {
         </div>
 
         <!-- Botões de Exportação -->
-        <div class="report-actions" style="margin-top: 20px;">
+        <div class="report-actions" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
           <button id="btn-export-pdf" class="btn btn-primary" style="background: var(--danger-color)">
             <i class="fa-solid fa-file-pdf"></i> Exportar PDF
           </button>
@@ -125,6 +125,9 @@ function renderReportsTab(contentArea) {
           </button>
           <button id="btn-export-csv" class="btn btn-outline">
             <i class="fa-solid fa-file-csv"></i> Exportar CSV
+          </button>
+          <button id="btn-export-tiss" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); font-weight: 700;">
+            <i class="fa-solid fa-file-code"></i> Exportar Lote TISS 4.01 (XML ANS)
           </button>
         </div>
       </div>
@@ -150,6 +153,38 @@ function renderReportsTab(contentArea) {
   const btnPdf = document.getElementById('btn-export-pdf');
   const btnXls = document.getElementById('btn-export-xls');
   const btnCsv = document.getElementById('btn-export-csv');
+  const btnTiss = document.getElementById('btn-export-tiss');
+
+  if (btnTiss) {
+    btnTiss.addEventListener('click', () => {
+      const listToExport = currentFilteredList && currentFilteredList.length > 0 ? currentFilteredList : encountersList;
+      if (typeof window.generateTISS401XML === 'function') {
+        const tissResult = window.generateTISS401XML({
+          numeroLote: String(Math.floor(1000 + Math.random() * 9000)),
+          registroANS: '359012',
+          cnpjPrestador: '12345678000199',
+          cnesHospital: '7654321',
+          nomeHospital: 'Hospital & Maternidade Health Nexus',
+          atendimentos: listToExport.map(item => ({
+            paciente_nome: item.patientName || item.fullName || item.name || 'Paciente Beneficiário',
+            carteirinha: (item.susNumber || item.cpf ? item.cpf.replace(/\D/g, '') : '3254980001234567'),
+            medico_nome: item.doctorName || item.triageNurse || 'Dr. Médico Assistente',
+            medico_crm: item.doctorCrm || '123456',
+            data: (item.created_at || item.entryTime || new Date().toISOString()).split('T')[0],
+            tipo: item.manchesterColor === 'VERMELHO' || item.manchesterColor === 'LARANJA' ? 'urgencia' : 'consulta',
+            cid: item.cid || 'Z00.0'
+          }))
+        });
+
+        if (typeof window.downloadTISSFile === 'function') {
+          window.downloadTISSFile(tissResult.xml, `LOTE_TISS_4_01_LOTE_${tissResult.numeroLote}.xml`);
+        }
+        if (typeof showToast === 'function') {
+          showToast(`📦 Lote TISS 4.01 gerado com sucesso (${tissResult.totalGuias} guias, Hash MD5: ${tissResult.hashMD5.substring(0, 8)}...)!`);
+        }
+      }
+    });
+  }
 
   let finPieChartInstance = null;
   let finBarChartInstance = null;

@@ -187,6 +187,39 @@ export const getNexusAICopilotResponse = (q, raw) => {
     };
   }
 
+  // ── ASSINATURA DIGITAL ICP-BRASIL (NUVEM & A1) ───────────────────────
+  if (has('icp-brasil', 'icp', 'assinatura digital', 'certificado digital', 'birdid', 'neoid', 'certisign', 'vidaas', 'cfm 2299', 'mp 2200', 'carimbo de tempo', 'sha256', 'validar')) {
+    return {
+      title: 'Nexus AI Copilot — Assinatura Digital ICP-Brasil em Nuvem',
+      summary: 'O Health Nexus integra emissão de <strong>Assinaturas Digitais Qualificadas ICP-Brasil</strong> em conformidade com a MP 2.200-2/2001 e Resolução CFM nº 2.299/2021. Suporta provedores em nuvem (<strong>BirdID, NeoID, Certisign RemoteID, VIDaaS</strong>) e certificados A1 locais, carimbando PDFs com Hash SHA-256 e QR Code rastreável no portal ITI.',
+      actionText: '🔐 Ver no Prontuário Médico',
+      actionType: 'switchTab',
+      actionTarget: 'atendimento'
+    };
+  }
+
+  // ── FATURAMENTO TISS 4.01 XML & TUSS (ANS) ───────────────────────────
+  if (has('tiss', 'tuss', 'xml', 'guia tiss', 'ans', 'lote tiss', 'faturamento tiss', 'padrao tiss', '4.01', 'exportar tiss')) {
+    return {
+      title: 'Nexus AI Copilot — Faturamento TISS 4.01 XML (Padrão ANS)',
+      summary: 'Gera e exporta lotes eletrônicos no padrão oficial <strong>TISS Versão 4.01.00 da ANS</strong> para envio a operadoras de saúde (Unimed, Bradesco, Amil, SulAmérica). O arquivo XML inclui Guias de Consulta e SADT com códigos TUSS e cálculo automático de Hash MD5 para eliminar glosas.',
+      actionText: '📑 Abrir Faturamento TISS',
+      actionType: 'switchTab',
+      actionTarget: 'relatorios'
+    };
+  }
+
+  // ── PWA & NOTIFICAÇÕES PUSH PARA PLANTÕES ────────────────────────────
+  if (has('pwa', 'service worker', 'push', 'notificacao push', 'notificacoes', 'sobreaviso', 'alerta plantao', 'alerta celular', 'instalar app', 'offline')) {
+    return {
+      title: 'Nexus AI Copilot — PWA & Notificações Push de Plantão',
+      summary: 'O Health Nexus opera como um <strong>Progressive Web App (PWA) instalável</strong> com Service Worker de alta velocidade offline. Conta com sistema de <strong>Notificações Push</strong> para médicos de sobreaviso, disparando alertas imediatos de pacientes críticos (MEWS ≥ 5 / Manchester Vermelho).',
+      actionText: '📲 Ativar Notificações Push',
+      actionType: 'requestPushNotifications',
+      actionTarget: 'pwa'
+    };
+  }
+
   // ── FARMÁCIA / ESTOQUE ───────────────────────────────────────────────
   if (has('cadastrar medicamento', 'novo medicamento', 'cadastrar insumo')) {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>cadastrar um medicamento no estoque</strong>, acesse 💊 <strong>Farmácia & Estoque</strong> e clique em <strong>+ Novo Medicamento</strong>. Informe nome, lote, validade e quantidade.', actionText: '💊 Abrir Farmácia', actionType: 'switchTab', actionTarget: 'farmacia' };

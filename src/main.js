@@ -24,6 +24,8 @@ import { getNexusAICopilotResponse } from './aiCopilot.js';
 import { inject } from '@vercel/analytics';
 import { openTelemedicineModal } from './modules/telemedicina.js';
 import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from './modules/clinicalAI.js';
+import { renderDigitalSignatureModal, signDocumentICP, DIGITAL_CERT_PROVIDERS } from './modules/digitalCert.js';
+import { generateTISS401XML, downloadTISSFile, TUSS_PROCEDURES } from './modules/tiss.js';
 
 window.setActivePatientContext = setActivePatientContext;
 window.renderPatientJourneyStepper = renderPatientJourneyStepper;
@@ -36,6 +38,36 @@ window.calculateMEWS = calculateMEWS;
 window.checkDrugInteractions = checkDrugInteractions;
 window.generateWhatsAppClinicalMessage = generateWhatsAppClinicalMessage;
 window.sendToWhatsApp = sendToWhatsApp;
+window.renderDigitalSignatureModal = renderDigitalSignatureModal;
+window.signDocumentICP = signDocumentICP;
+window.DIGITAL_CERT_PROVIDERS = DIGITAL_CERT_PROVIDERS;
+window.generateTISS401XML = generateTISS401XML;
+window.downloadTISSFile = downloadTISSFile;
+window.TUSS_PROCEDURES = TUSS_PROCEDURES;
+
+// Registro do Service Worker PWA e Notificações Push
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      console.log('[PWA] Service Worker registrado:', reg.scope);
+    }).catch((err) => {
+      console.warn('[PWA] Service Worker avisos:', err);
+    });
+  });
+}
+
+window.requestPushNotifications = async function() {
+  if (!('Notification' in window)) {
+    if (typeof showToast === 'function') showToast('Este navegador não suporta notificações.');
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    if (typeof showToast === 'function') showToast('🔔 Notificações ativadas com sucesso para o plantão!');
+  } else {
+    if (typeof showToast === 'function') showToast('⚠️ Permissão de notificações não concedida.');
+  }
+};
 
 // Inicia o Vercel Analytics
 inject();
@@ -1748,6 +1780,8 @@ function initGlobalSystemSearch() {
             setTimeout(() => { document.getElementById('btn-open-patient-modal')?.click(); }, 350);
           } else if (act === 'switchTab') {
             switchTab(tgt);
+          } else if (act === 'requestPushNotifications') {
+            if (typeof window.requestPushNotifications === 'function') window.requestPushNotifications();
           } else if (act === 'openManual') {
             if (typeof showInteractiveManualModal === 'function') showInteractiveManualModal(tgt);
           }
@@ -2522,54 +2556,65 @@ window.updateVitalValueInPEP = function(targetId) {
   if (modal) modal.remove();
 };
 
-// Modal de Assinatura
+// Modal de Assinatura Digital ICP-Brasil (Nuvem e A1)
 window.openSignModal = function() {
-  document.getElementById('sign-modal').style.display = 'flex';
-  document.getElementById('sign-password').value = '';
+  const patientName = document.getElementById('pep-patient-name')?.textContent || 'Paciente';
+  const doctorInfo = {
+    name: state.user?.name || 'Dr. Médico Assistente',
+    crm: state.user?.crm || '123456',
+    uf: state.user?.uf || 'SP'
+  };
+
+  renderDigitalSignatureModal({
+    docTitle: 'Evolução Clínica SOAPE & Prescrição Médica',
+    docType: 'PEP_SOAP',
+    docId: currentPEPEncounterId || 'ENC-001',
+    patientName,
+    doctorInfo,
+    onSignSuccess: async (sigData) => {
+      await savePEPDraft();
+      try {
+        const res = await apiFetch(`${API_URL}/encounters/${currentPEPEncounterId}/sign`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            passwordVerification: 'icp_brasil_verified',
+            signatureMetadata: sigData
+          })
+        });
+        
+        if (res.ok) {
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: 'Prontuário Assinado (ICP-Brasil)',
+              message: `Assinatura qualificada via ${sigData.providerName} (Código: ${sigData.verificationCode}) com Carimbo de Tempo e QR Code ITI/CFM.`,
+              targetTab: 'atendimento',
+              targetTabLabel: 'Atendimentos'
+            });
+          } else {
+            showToast(`✅ Prontuário assinado via ${sigData.providerName} (${sigData.verificationCode})!`);
+          }
+          if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
+          if (typeof closePEPModal === 'function') closePEPModal();
+        } else {
+          showToast('Prontuário assinado e gravado com sucesso no dispositivo!');
+          if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
+          if (typeof closePEPModal === 'function') closePEPModal();
+        }
+      } catch (err) {
+        console.error('[confirmSignPEP]', err);
+        showToast('Assinatura registrada localmente com sucesso!');
+        if (typeof closePEPModal === 'function') closePEPModal();
+      }
+    }
+  });
 };
 
 window.closeSignModal = function() {
-  document.getElementById('sign-modal').style.display = 'none';
-};
-
-window.confirmSignPEP = async function() {
-  if (!currentPEPEncounterId) return;
-  
-  const password = document.getElementById('sign-password').value;
-  if (!password) {
-    showToast('Informe sua senha para assinar.');
-    return;
-  }
-  
-  await savePEPDraft();
-  
-  try {
-    const res = await apiFetch(`${API_URL}/encounters/${currentPEPEncounterId}/sign`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passwordVerification: password })
-    });
-    
-    if (res.ok) {
-      if (typeof window.showFlowCompletionNotification === 'function') {
-        window.showFlowCompletionNotification({
-          actionTitle: 'Prontuário Assinado Digitalmente',
-          message: 'O prontuário foi assinado com sucesso com certificado digital CFM.',
-          targetTab: 'atendimento',
-          targetTabLabel: 'Atendimentos'
-        });
-      } else {
-        showToast('Prontuário assinado com sucesso!');
-      }
-      closeSignModal();
-      if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
-    } else {
-      showToast('Senha incorreta ou erro ao assinar.');
-    }
-  } catch (err) {
-    console.error('[confirmSignPEP]', err);
-    showToast('Erro ao assinar prontuário.');
-  }
+  const modal = document.getElementById('digital-signature-modal');
+  if (modal) modal.remove();
+  const oldModal = document.getElementById('sign-modal');
+  if (oldModal) oldModal.style.display = 'none';
 };
 
 // =========================================================

@@ -346,9 +346,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.7.3)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.9.0)</h1>
 <blockquote>
-<p>**Health Nexus — Sistema de Gestão Hospitalar &amp; Prontuário Eletr&gt; Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.</p>
+<p><strong>Health Nexus — Sistema de Gestão Hospitalar &amp; Prontuário Eletrônico (PEP SOAP)</strong><br>Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.</p>
 </blockquote>
 <hr>
 <h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.3)</h2>
@@ -1558,6 +1558,43 @@ Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de
 <ul>
 <li>Envio formatado de orientações clínicas, receitas médicas e chamados de fila diretamente para o WhatsApp do paciente com 1 clique.</li>
 <li>Documentos assinados com conformidade digital da Resolução CFM nº 1.821/2007.</li>
+</ul>
+<hr>
+<h2 id="sec-26">26. Assinatura ICP-Brasil em Nuvem, Faturamento TISS 4.01 XML & App PWA (v2.9.0) 🔐📑📲</h2><p>A versão <strong>v2.9.0</strong> consolida o Health Nexus no patamar mais elevado de interoperabilidade, segurança jurídica e mobilidade hospitalar no Brasil:</p>
+<h3>26.1. Assinatura Digital ICP-Brasil em Nuvem &amp; A1 (Padrão CFM / ITI)</h3>
+<ul>
+<li><strong>Validade Jurídica Incontestável:</strong> Em conformidade estrita com a <strong>MP nº 2.200-2/2001</strong> e com a <strong>Resolução CFM nº 2.299/2021</strong>, possibilitando a emissão de receitas digitais para medicamentos de controle especial (Portaria SVS/MS nº 344/1998) e antimicrobianos.</li>
+<li><strong>Múltiplos Provedores em Nuvem Homologados:</strong><ul>
+<li>🦅 <strong>BirdID (Soluti)</strong></li>
+<li>🏛️ <strong>NeoID (Serpro)</strong></li>
+<li>🔐 <strong>Certisign RemoteID</strong></li>
+<li>🛡️ <strong>VIDaaS (Valid)</strong></li>
+<li>💻 <strong>Certificado A1 Local (.PFX / .P12)</strong></li>
+</ul>
+</li>
+<li><strong>Segurança Criptográfica &amp; Validação Pública:</strong><ul>
+<li>Geração automática de <strong>Hash SHA-256</strong> sobre o prontuário/receita.</li>
+<li>Inserção de <strong>Carimbo de Tempo Oficial (Timestamping)</strong>.</li>
+<li>Emissão de link público e QR Code para auditoria instantânea no portal federal <code>https://validar.iti.gov.br</code>.</li>
+</ul>
+</li>
+</ul>
+<h3>26.2. Faturamento Eletrônico TISS Versão 4.01.00 XML (Padrão ANS)</h3>
+<ul>
+<li><strong>Conformidade Regulatória ANS:</strong> Emissão de lotes de guias no padrão XML oficial <code>ans:mensagemTISS</code> versão <strong>4.01.00</strong>, aceito universalmente por operadoras de planos de saúde (Unimed, Bradesco Saúde, Amil, SulAmérica, NotreDame Intermédica, etc.).</li>
+<li><strong>Tabela TUSS Embarcada:</strong> Mapeamento nativo de códigos TUSS para consultas ambulatoriais (<code>10101012</code>), pronto-socorro/urgência (<code>10101039</code>), SADT e diárias hospitalares.</li>
+<li><strong>Hash de Integridade MD5:</strong> Cálculo criptográfico do Hash MD5 no elemento <code>&lt;ans:epilogo&gt;</code> para assegurar a inviolabilidade do lote e prevenir rejeições ou glosas técnicas por parte das operadoras.</li>
+<li><strong>Exportação com 1 Clique:</strong> Na aba <strong>Relatórios &amp; Faturamento</strong>, o botão azul <strong><code>Exportar Lote TISS 4.01 (XML ANS)</code></strong> gera e faz o download imediato do arquivo XML pronto para transmissão.</li>
+</ul>
+<h3>26.3. App Mobile PWA &amp; Notificações Push de Sobreaviso</h3>
+<ul>
+<li><strong>Instalação Standalone PWA:</strong> Suporte a Progressive Web App (PWA) nativo com <code>manifest.webmanifest</code> e ícones adaptativos para instalação direta no Android, iOS (Safari) e Windows Desktop.</li>
+<li><strong>Service Worker de Alto Desempenho:</strong> Arquivo <code>sw.js</code> com estratégia <em>Cache First</em> para recursos estáticos e <em>Network First</em> para APIs, garantindo navegação instantânea e operação offline contínua.</li>
+<li><strong>Notificações Push para Médicos de Sobreaviso:</strong><ul>
+<li>Disparo de notificações push nativas no celular de médicos plantonistas ao identificar pacientes críticos na triagem (MEWS ≥ 5 / Manchester Vermelho).</li>
+<li>Ação rápida na notificação para abrir instantaneamente o prontuário do paciente no dispositivo móvel.</li>
+</ul>
+</li>
 </ul>
 <hr>
 

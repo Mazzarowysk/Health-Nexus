@@ -1,22 +1,25 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.8.0`  
+**Versão:** `2.9.0`  
 **Status:** Em desenvolvimento ativo (Production-Ready)  
 **Última atualização:** Agosto 2026
 
 ---
 
-## 📘 Documentação & Inovação Clínica (v2.8.0)
+## 📘 Documentação & Inovação Clínica (v2.9.0)
 
+- 🔐 **Assinatura Digital ICP-Brasil em Nuvem & A1 (Padrão CFM / ITI):** Assinatura eletrônica qualificada com validade jurídica nacional (MP 2.200-2/2001 e Resolução CFM 2.299/2021) via provedores em nuvem (**BirdID/Soluti, NeoID/Serpro, Certisign RemoteID, VIDaaS/Valid**) e A1 local, com carimbo de tempo, Hash SHA-256 e validação pública ITI.
+- 📑 **Faturamento Eletrônico TISS 4.01 XML (Padrão ANS):** Emissão de lotes de guias no padrão `ans:mensagemTISS` v4.01.00 com códigos TUSS mapeados e cálculo de integridade Hash MD5 para envio a operadoras de saúde sem risco de glosas.
+- 📲 **App Mobile PWA & Notificações Push de Plantão:** Instalação standalone em smartphones e tablets com Service Worker offline e envio de notificações push nativas para médicos de sobreaviso em casos críticos (MEWS ≥ 5 / Manchester Vermelho).
 - 🎙️ **Ditado Clínico por Voz (*Voice-to-SOAP*):** Transcrição de consultas em tempo real com pontuação inteligente direto nos campos SOAP do PEP via Web Speech API.
-- ⚠️ **Escore Preditivo MEWS & Alerta de Sepse:** Cálculo em tempo real dos sinais vitais da Triagem Manchester e PEP para detecção precoce de choque e deterioração clínica.
+- ⚠️ **Escore Preditivo MEWS & Alerta de Sepse:** Cálculo em tempo real dos sinais vitais da Triagem Manchester e PEP para detecção precoce de choque e deterioração clínica com trava inteligente.
 - 💊 **Verificador em Tempo Real de Interações Medicamentosas:** Bloqueio e alerta visual com conduta médica recomendada ao prescrever fármacos com risco de incompatibilidade.
 - 📹 **Sala Virtual de Telemedicina WebRTC:** Teleconsultas criptografadas de ponta a ponta integradas dentro do Prontuário Eletrônico (PEP) com controle de vídeo/áudio e anotações simultâneas.
 - 📲 **Envio de Receitas e Chamados via WhatsApp:** Geração com 1 clique de notificações formatadas para o paciente.
 - 🧭 **Linha do Cuidado Guiada (Patient Journey Stepper & Floating HUD):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.
 - 🛏️ **Gestão Inteligente de Leitos & Censo Hospitalar:** Bloqueio automático de leitos ocupados, Painel Detalhado com ocupante atual, tempo de permanência, histórico completo de internações anteriores por leito e ciclo de higienização automatizado.
 - 🌐 **Manual Interativo por Abas (SPA):** Acessível diretamente pelo botão `📖 Manual do Usuário` no topo do sistema ou pela busca global `Ctrl + K`.
-- 🧩 **Arquitetura Frontend Modular (`src/modules/`):** Código desacoplado em módulos de responsabilidade única (`ui.js`, `sync.js`, `api.js`, `auth.js`, `journey.js`) garantindo alta manutenibilidade, isolamento de escopo e facilidade para testes automatizados.
+- 🧩 **Arquitetura Frontend Modular (`src/modules/`):** Código desacoplado em módulos de responsabilidade única (`digitalCert.js`, `tiss.js`, `ui.js`, `sync.js`, `api.js`, `auth.js`, `journey.js`) garantindo alta manutenibilidade e isolamento.
 - 📌 **Navegação Assistida & Retorno Rápido:** Ao pesquisar e navegar para qualquer tela pelo manual, um widget flutuante de retorno (*Floating Return Beacon*) é ativado no canto inferior direito (`Alt + M`) com destaque visual do card (*Smart Highlight Pulse*).
 - ☁️ **Sincronização em Nuvem de Alta Disponibilidade (Dual-Pipeline):** Sincronização atômica e resiliente entre navegadores e Turso Cloud LibSQL com fallback direto HTTP, timeout de 15s, retentativas automáticas e feedback de contagem de registros.
 - 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)

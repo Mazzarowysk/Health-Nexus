@@ -1,6 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.7.3)
+# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.9.0)
 
-> **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletr> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.
+> **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletrônico (PEP SOAP)**  
+> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.
 
 ---
 
@@ -1323,5 +1324,38 @@ A versão **v2.8.0** do Health Nexus introduz um conjunto revolucionário de int
 - Documentos assinados com conformidade digital da Resolução CFM nº 1.821/2007.
 
 ---
+
+<h2 id="sec-26">26. Assinatura ICP-Brasil em Nuvem, Faturamento TISS 4.01 XML & App PWA (v2.9.0) 🔐📑📲</h2>
+
+A versão **v2.9.0** consolida o Health Nexus no patamar mais elevado de interoperabilidade, segurança jurídica e mobilidade hospitalar no Brasil:
+
+### 26.1. Assinatura Digital ICP-Brasil em Nuvem & A1 (Padrão CFM / ITI)
+- **Validade Jurídica Incontestável:** Em conformidade estrita com a **MP nº 2.200-2/2001** e com a **Resolução CFM nº 2.299/2021**, possibilitando a emissão de receitas digitais para medicamentos de controle especial (Portaria SVS/MS nº 344/1998) e antimicrobianos.
+- **Múltiplos Provedores em Nuvem Homologados:**
+  - 🦅 **BirdID (Soluti)**
+  - 🏛️ **NeoID (Serpro)**
+  - 🔐 **Certisign RemoteID**
+  - 🛡️ **VIDaaS (Valid)**
+  - 💻 **Certificado A1 Local (.PFX / .P12)**
+- **Segurança Criptográfica & Validação Pública:**
+  - Geração automática de **Hash SHA-256** sobre o prontuário/receita.
+  - Inserção de **Carimbo de Tempo Oficial (Timestamping)**.
+  - Emissão de link público e QR Code para auditoria instantânea no portal federal `https://validar.iti.gov.br`.
+
+### 26.2. Faturamento Eletrônico TISS Versão 4.01.00 XML (Padrão ANS)
+- **Conformidade Regulatória ANS:** Emissão de lotes de guias no padrão XML oficial `ans:mensagemTISS` versão **4.01.00**, aceito universalmente por operadoras de planos de saúde (Unimed, Bradesco Saúde, Amil, SulAmérica, NotreDame Intermédica, etc.).
+- **Tabela TUSS Embarcada:** Mapeamento nativo de códigos TUSS para consultas ambulatoriais (`10101012`), pronto-socorro/urgência (`10101039`), SADT e diárias hospitalares.
+- **Hash de Integridade MD5:** Cálculo criptográfico do Hash MD5 no elemento `<ans:epilogo>` para assegurar a inviolabilidade do lote e prevenir rejeições ou glosas técnicas por parte das operadoras.
+- **Exportação com 1 Clique:** Na aba **Relatórios & Faturamento**, o botão azul **`Exportar Lote TISS 4.01 (XML ANS)`** gera e faz o download imediato do arquivo XML pronto para transmissão.
+
+### 26.3. App Mobile PWA & Notificações Push de Sobreaviso
+- **Instalação Standalone PWA:** Suporte a Progressive Web App (PWA) nativo com `manifest.webmanifest` e ícones adaptativos para instalação direta no Android, iOS (Safari) e Windows Desktop.
+- **Service Worker de Alto Desempenho:** Arquivo `sw.js` com estratégia *Cache First* para recursos estáticos e *Network First* para APIs, garantindo navegação instantânea e operação offline contínua.
+- **Notificações Push para Médicos de Sobreaviso:**
+  - Disparo de notificações push nativas no celular de médicos plantonistas ao identificar pacientes críticos na triagem (MEWS ≥ 5 / Manchester Vermelho).
+  - Ação rápida na notificação para abrir instantaneamente o prontuário do paciente no dispositivo móvel.
+
+---
+
 
 
