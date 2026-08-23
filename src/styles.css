@@ -4164,6 +4164,15 @@ body.light-theme {
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+.modal-draggable-handle, [data-draggable-initialized="true"] {
+  cursor: grab !important;
+  user-select: none !important;
+}
+
+.modal-draggable-handle:active, [data-draggable-initialized="true"]:active {
+  cursor: grabbing !important;
+}
+
 .sync-header-banner {
   padding: 18px 24px;
   display: flex;

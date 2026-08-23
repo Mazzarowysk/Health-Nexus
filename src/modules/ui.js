@@ -397,3 +397,137 @@ if (typeof window !== 'undefined') {
     showCustomAlert({ title, message: String(msg), type });
   };
 }
+
+// ==========================================================================
+// SISTEMA DE DRAG & DROP UNIVERSAL PARA MODAIS E JANELAS FLUTUANTES (v2.8.0)
+// ==========================================================================
+export const makeDraggable = (element, handle = null) => {
+  if (!element) return;
+  
+  const dragHandle = handle || 
+    element.querySelector('.modal-header, .sync-header-banner, .tab-header-banner, .modal-top-bar, .modal-title-bar, .sync-header') || 
+    element.firstElementChild || 
+    element;
+
+  if (!dragHandle || dragHandle.dataset.draggableInitialized === 'true') return;
+  dragHandle.dataset.draggableInitialized = 'true';
+
+  dragHandle.style.cursor = 'grab';
+  dragHandle.style.userSelect = 'none';
+
+  let isDragging = false;
+  let startMouseX = 0;
+  let startMouseY = 0;
+  let startElemX = 0;
+  let startElemY = 0;
+
+  const getElementPos = () => {
+    const style = window.getComputedStyle(element);
+    try {
+      const matrix = window.DOMMatrixReadOnly ? new DOMMatrixReadOnly(style.transform) : new WebKitCSSMatrix(style.transform);
+      return {
+        x: matrix.m41 || 0,
+        y: matrix.m42 || 0
+      };
+    } catch {
+      return { x: 0, y: 0 };
+    }
+  };
+
+  const startDrag = (clientX, clientY, target) => {
+    if (target.closest('button, input, select, textarea, a, .modal-close, [data-no-drag]')) {
+      return;
+    }
+
+    isDragging = true;
+    startMouseX = clientX;
+    startMouseY = clientY;
+
+    const pos = getElementPos();
+    startElemX = pos.x;
+    startElemY = pos.y;
+
+    dragHandle.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+  };
+
+  const moveDrag = (clientX, clientY) => {
+    if (!isDragging) return;
+    const deltaX = clientX - startMouseX;
+    const deltaY = clientY - startMouseY;
+
+    const newX = startElemX + deltaX;
+    const newY = startElemY + deltaY;
+
+    element.style.transform = `translate(${newX}px, ${newY}px)`;
+    element.style.transition = 'none';
+  };
+
+  const endDrag = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    dragHandle.style.cursor = 'grab';
+    document.body.style.userSelect = '';
+    element.style.transition = '';
+  };
+
+  dragHandle.addEventListener('mousedown', (e) => {
+    startDrag(e.clientX, e.clientY, e.target);
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      e.preventDefault();
+      moveDrag(e.clientX, e.clientY);
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    endDrag();
+  });
+
+  dragHandle.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length === 1) {
+      startDrag(e.touches[0].clientX, e.touches[0].clientY, e.target);
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (isDragging && e.touches && e.touches.length === 1) {
+      moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    endDrag();
+  });
+};
+
+// Auto-draggable Observer para novos modais no DOM
+export const initDraggableModalsObserver = () => {
+  if (typeof window === 'undefined' || !window.MutationObserver) return;
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType === 1) {
+          if (node.classList?.contains('modal-overlay') || node.id?.includes('modal') || node.id?.includes('overlay')) {
+            const card = node.querySelector('.sync-modal-card, .modal-card, .glass-card, [style*="border-radius"]') || node.firstElementChild;
+            if (card) {
+              const header = card.querySelector('div:first-child, .modal-header, .sync-header-banner');
+              makeDraggable(card, header);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+};
+
+if (typeof window !== 'undefined') {
+  window.makeDraggable = makeDraggable;
+  initDraggableModalsObserver();
+}
+

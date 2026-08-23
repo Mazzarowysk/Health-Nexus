@@ -3,7 +3,7 @@
 // Atendimento Médico Remoto, Câmera/Vídeo, Áudio e Compartilhamento
 // ==========================================
 
-import { showToast, showCustomAlert } from './ui.js';
+import { showToast, showCustomAlert, makeDraggable } from './ui.js';
 
 let localStream = null;
 let telemedTimerInterval = null;
@@ -22,17 +22,22 @@ export const openTelemedicineModal = async (patientData = {}) => {
   overlay.style.cssText = 'z-index: 100002; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.9); backdrop-filter: blur(12px);';
 
   overlay.innerHTML = `
-    <div class="sync-modal-card" style="max-width: 960px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.85);">
+    <div class="sync-modal-card" style="max-width: 960px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.85); position: relative;">
       
-      <!-- Top Bar da Sala -->
-      <div style="background: #1e293b; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; color: #fff;">
+      <!-- Top Bar da Sala (Draggable Header) -->
+      <div id="telemed-drag-handle" style="background: #1e293b; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; color: #fff; cursor: grab; user-select: none;">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 1.05rem;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.05rem;">
             <i class="fa-solid fa-video"></i>
           </div>
           <div>
-            <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700;">Sala de Teleconsulta WebRTC · Criptografia E2E</h3>
-            <div style="font-size: 0.8rem; color: #94a3b8;">Paciente: <strong style="color: #fff;">${patientName}</strong> &bull; Profissional: ${doctorName}</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700;">Sala de Teleconsulta WebRTC · Criptografia E2E</h3>
+              <span style="font-size: 0.68rem; color: #38bdf8; background: rgba(2,132,199,0.12); border: 1px solid rgba(2,132,199,0.3); padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;" title="Clique e arraste pelo cabeçalho para reposicionar a tela">
+                <i class="fa-solid fa-up-down-left-right"></i> Arrastável
+              </span>
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">Paciente: <strong style="color: #fff;">${patientName}</strong> &bull; Profissional: ${doctorName}</div>
           </div>
         </div>
 
@@ -125,7 +130,12 @@ export const openTelemedicineModal = async (patientData = {}) => {
 
   document.body.appendChild(overlay);
 
-  // Iniciar Stream Local da Câmera (com fallback)
+  // Ativar Sistema de Drag & Drop para Reposicionamento Livre
+  const modalCard = overlay.querySelector('.sync-modal-card');
+  const dragHandle = document.getElementById('telemed-drag-handle');
+  if (modalCard && dragHandle) {
+    makeDraggable(modalCard, dragHandle);
+  }
   try {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }).catch(() => null);
