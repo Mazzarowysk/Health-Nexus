@@ -1,8 +1,8 @@
-// 🤖 Nexus AI Knowledge Copilot Engine v2.5 — Expanded Semantic Pattern Matching
+// 🤖 Nexus AI Knowledge Copilot Engine v2.8 — Expanded Semantic NLP Pattern Matching
 export const getNexusAICopilotResponse = (q, raw) => {
   let qNorm = q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   
-  // Normalização de Sinônimos Comuns para expandir a compreensão da IA
+  // Normalização de Sinônimos Comuns para expandir a compreensão da IA via PLN
   qNorm = qNorm.replace(/\b(enfermeiro|medico|medica|recepcionista|fisioterapeuta|doutor|doutora|tecnico|auxiliar|colaborador|colaboradora|funcionario|funcionaria|equipe|clinico|membro)\b/g, 'profissional');
   qNorm = qNorm.replace(/\b(remedio|droga|pilula|injecao|comprimido|farmaco|insumo)\b/g, 'medicamento');
   qNorm = qNorm.replace(/\b(cliente|doente|internado|usuario sus)\b/g, 'paciente');
@@ -10,6 +10,12 @@ export const getNexusAICopilotResponse = (q, raw) => {
   qNorm = qNorm.replace(/\b(deletar|apagar|remover|desativar|inativar|desligar|limpar|lixeira|exclusao)\b/g, 'excluir');
   qNorm = qNorm.replace(/\b(adicionar|inserir|criar|incluir|admitir)\b/g, 'cadastrar');
   qNorm = qNorm.replace(/\b(alterar|modificar|atualizar|trocar|ajustar|mudar)\b/g, 'editar');
+  qNorm = qNorm.replace(/\b(teleconsulta|videochamada|chamada de video|consulta online|webrtc|atendimento remoto|teleatendimento|consulta virtual|sala virtual)\b/g, 'telemedicina');
+  qNorm = qNorm.replace(/\b(voice-to-soap|ditar|microfone|ditado por voz|ditado clinico|reconhecimento de fala)\b/g, 'ditado');
+  qNorm = qNorm.replace(/\b(choque septico|alerta sepse|deterioracao clinica|escore preditivo)\b/g, 'sepse');
+  qNorm = qNorm.replace(/\b(incompatibilidade|interacao medicamentosa|contraindicacao)\b/g, 'interacao');
+  qNorm = qNorm.replace(/\b(zap|notificacao paciente|envio receita|receita celular)\b/g, 'whatsapp');
+  qNorm = qNorm.replace(/\b(patient journey|jornada do paciente|trajetoria assistencial|stepper)\b/g, 'linha do cuidado');
 
   // Helper: check if query contains ANY of the given tokens
   const has = (...tokens) => tokens.some(t => qNorm.includes(t));
@@ -112,7 +118,73 @@ export const getNexusAICopilotResponse = (q, raw) => {
     return { title: 'Nexus AI Copilot', summary: 'Os <strong>Atestados Médicos</strong> são emitidos pelo profissional no Prontuário, aba "Atestado". É possível definir o número de dias de afastamento e gerar PDF imprimível.', actionText: '⚕️ Abrir Prontuário', actionType: 'switchTab', actionTarget: 'atendimento' };
   }
   if (has('triagem', 'manchester', 'sinais vitais', 'pressao arterial', 'temperatura', 'spo2', 'glicemia', 'saturacao')) {
-    return { title: 'Nexus AI Copilot', summary: 'A <strong>Triagem Manchester</strong> é realizada na aba ⚕️ <strong>Atendimentos</strong>, registrando PA, FC, Temperatura, SpO2 e Glicemia. O sistema calcula automaticamente a cor de risco (Vermelho → Azul).', actionText: '⚕️ Abrir Triagem', actionType: 'switchTab', actionTarget: 'atendimento' };
+    return { title: 'Nexus AI Copilot', summary: 'A <strong>Triagem Manchester</strong> é realizada na aba ⚕️ <strong>Atendimentos</strong>, registrando PA, FC, Temperatura, SpO2 e Glicemia. O sistema calcula automaticamente a cor de risco (Vermelho → Azul) e aplica trava preditiva baseada em MEWS/Sepse.', actionText: '⚕️ Abrir Triagem', actionType: 'switchTab', actionTarget: 'atendimento' };
+  }
+
+  // ── TELEMEDICINA / WEBRTC / CONSULTA ONLINE ──────────────────────────
+  if (has('telemedicina', 'teleconsulta', 'videochamada', 'webrtc', 'consulta online', 'chamada de video', 'camera', 'atendimento remoto', 'consulta virtual', 'sala virtual')) {
+    return {
+      title: 'Nexus AI Copilot — Sala Virtual de Telemedicina WebRTC',
+      summary: 'A <strong>Telemedicina Integrada</strong> do Health Nexus permite realizar atendimentos médicos remotos com áudio e vídeo de alta definição criptografados ponta a ponta (WebRTC) diretamente no <strong>Prontuário Eletrônico (PEP)</strong>. O médico atende em tela dividida, registra anamnese SOAP, emite prescrições e envia receitas simultaneamente.',
+      actionText: '📹 Abrir Prontuário & Telemedicina',
+      actionType: 'switchTab',
+      actionTarget: 'atendimento'
+    };
+  }
+
+  // ── DITADO CLÍNICO POR VOZ / VOICE-TO-SOAP ───────────────────────────
+  if (has('ditado', 'voice-to-soap', 'fala', 'transcricao', 'ditar', 'microfone', 'falar prontuario', 'pontuacao automatica')) {
+    return {
+      title: 'Nexus AI Copilot — Ditado Clínico por Voz (Voice-to-SOAP)',
+      summary: 'O recurso de <strong>Ditado Clínico por Voz</strong> utiliza a Web Speech API com PLN médico nativo em português. Ao clicar no botão do microfone nos campos de Anamnese ou Exame Físico, o médico dita a consulta e comandos de voz como <em>"vírgula"</em>, <em>"ponto"</em>, <em>"novo parágrafo"</em> e <em>"dois pontos"</em> são formatados em tempo real.',
+      actionText: '🎙️ Ver no Prontuário Médico',
+      actionType: 'switchTab',
+      actionTarget: 'atendimento'
+    };
+  }
+
+  // ── ESCORE MEWS & ALERTA PREDITIVO DE SEPSE ──────────────────────────
+  if (has('mews', 'sepse', 'alerta sepse', 'escore preditivo', 'deterioracao', 'choque', 'escore')) {
+    return {
+      title: 'Nexus AI Copilot — Escore Preditivo MEWS & Alerta de Sepse',
+      summary: 'O algoritmo <strong>MEWS (Modified Early Warning Score)</strong> monitora sinais vitais (PA, FC, FR, Temp, SpO2 e Consciência AVPU) na Triagem Manchester e nos Leitos. Se o paciente atingir escore crítico (≥5) ou critérios de Sepse (qSOFA), o sistema <strong>auto-seleciona a cor Vermelha/Emergência</strong> com destaque pulsante e ativa trava de segurança contra rebaixamento indevido.',
+      actionText: '⚠️ Abrir Triagem & MEWS',
+      actionType: 'switchTab',
+      actionTarget: 'atendimento'
+    };
+  }
+
+  // ── INTERAÇÕES MEDICAMENTOSAS / FARMACOLOGIA CLÍNICA ──────────────────
+  if (has('interacao', 'interacoes', 'incompatibilidade', 'interacao medicamentosa', 'farmacologia', 'contraindicacao', 'risco de sangramento')) {
+    return {
+      title: 'Nexus AI Copilot — Verificador de Interações Medicamentosas',
+      summary: 'A inteligência farmacológica do Health Nexus cruza em tempo real todos os medicamentos prescritos e dispensados. Identifica combinações de risco crítico (ex: Varfarina + AAS, Tramadol + Fluoxetina, Enalapril + Espironolactona) e exibe alertas imediatos com a <strong>conduta médica recomendada</strong> antes da gravação da receita.',
+      actionText: '💊 Ver Prescrição Médica',
+      actionType: 'switchTab',
+      actionTarget: 'atendimento'
+    };
+  }
+
+  // ── WHATSAPP / NOTIFICAÇÃO DO PACIENTE ────────────────────────────────
+  if (has('whatsapp', 'zap', 'notificacao paciente', 'envio receita', 'receita celular', 'mensagem')) {
+    return {
+      title: 'Nexus AI Copilot — Despacho de Receitas & Alertas via WhatsApp',
+      summary: 'Permite o envio seguro e instantâneo das <strong>receitas médicas digitais, atestados, orientações de pós-consulta e avisos de chamada</strong> direto para o WhatsApp do paciente, eliminando custos de papel e facilitando a adesão ao tratamento.',
+      actionText: '📲 Abrir Atendimentos',
+      actionType: 'switchTab',
+      actionTarget: 'atendimento'
+    };
+  }
+
+  // ── LINHA DO CUIDADO / PATIENT JOURNEY HUD ────────────────────────────
+  if (has('linha do cuidado', 'patient journey', 'jornada', 'trajetoria', 'rastreabilidade', 'hud', 'periodo de atendimento')) {
+    return {
+      title: 'Nexus AI Copilot — Linha do Cuidado (Patient Journey HUD)',
+      summary: 'A <strong>Linha do Cuidado</strong> apresenta o rastreamento cronológico e visual de cada passo do paciente no hospital (Recepção ➔ Triagem ➔ Chamada TV ➔ Consultório ➔ Farmácia ➔ Leito ➔ Alta), com auditoria dos tempos de permanência e histórico segmentado por período de atendimento.',
+      actionText: '🧭 Ver Linha do Cuidado',
+      actionType: 'switchTab',
+      actionTarget: 'atendimento'
+    };
   }
 
   // ── FARMÁCIA / ESTOQUE ───────────────────────────────────────────────

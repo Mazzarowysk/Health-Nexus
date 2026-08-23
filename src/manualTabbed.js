@@ -8,8 +8,20 @@ export const removeAccents = (str) => {
 
 // Dicionário de Expansão Semântica e Sinônimos
 export const SEMANTIC_SYNONYMS = {
+  // Telemedicina / WebRTC / Consulta Online
+  telemedicina: ['telemedicina', 'teleconsulta', 'videochamada', 'video', 'webrtc', 'consulta online', 'chamada de video', 'camera', 'microfone', 'atendimento remoto', 'teleatendimento', 'consulta virtual', 'sala virtual', 'p2p'],
+  // Ditado Clínico por Voz / Voice-to-SOAP
+  voz: ['ditado', 'voz', 'ditar', 'microfone', 'voice-to-soap', 'fala', 'transcricao', 'audio', 'ditado clinico', 'reconhecimento de fala', 'pontuacao automatica'],
+  // Escore Preditivo MEWS & Sepse
+  mews: ['mews', 'sepse', 'alerta sepse', 'escore', 'preditivo', 'deterioracao', 'sinais vitais', 'choque', 'avpu', 'risco clinico', 'gravidade', 'classificacao preditiva', 'trava de risco', 'qsofa'],
+  // Interações Medicamentosas & Farmacologia
+  interacao: ['interacao', 'interacoes', 'incompatibilidade', 'interacao medicamentosa', 'farmacologia', 'concomitante', 'risco de sangramento', 'contraindicacao', 'bulario', 'alerta farmacologico'],
+  // WhatsApp / Mensagens Móveis
+  whatsapp: ['whatsapp', 'zap', 'mensagem', 'notificacao paciente', 'envio receita', 'receita celular', 'aviso celular', 'notificar', 'despacho whatsapp'],
+  // Linha do Cuidado / Patient Journey HUD
+  jornada: ['linha do cuidado', 'patient journey', 'jornada', 'trajetoria', 'rastreabilidade', 'stepper', 'hud', 'periodo de atendimento', 'tempo de permanencia'],
   // Ações de Exclusão / Cancelamento
-  excluir: ['excluir', 'exclusao', 'deletar', 'apagar', 'remover', 'remocao', 'inativar', 'inativacao', 'desativar', 'desativacao', 'cancelar', 'cancelamento', 'lixeira', 'desligar', 'estornar', 'descartar', 'eliminar'],
+  excluir: ['excluir', 'exclusao', 'deletar', 'apagar', 'remover', 'remocao', 'inativar', 'inativacao', 'desativar', 'desativacao', 'cancelar', 'cancelamento', 'lixeira', 'desligar', 'estornar', 'descartar', 'eliminar', 'purga', 'limpeza'],
   // Ações de Cadastro / Criação
   cadastrar: ['cadastrar', 'cadastro', 'criar', 'criacao', 'novo', 'nova', 'novos', 'incluir', 'inclusao', 'adicionar', 'adicao', 'inserir', 'registrar', 'registro', 'admitir', 'admissao'],
   // Ações de Edição / Atualização
@@ -19,15 +31,15 @@ export const SEMANTIC_SYNONYMS = {
   // Entidades: Pacientes
   paciente: ['paciente', 'pacientes', 'cliente', 'clientes', 'doente', 'internado', 'internada', 'usuario sus', 'prontuario', 'ficha'],
   // Entidades: Medicamentos
-  medicamento: ['medicamento', 'medicamentos', 'remedio', 'remedios', 'droga', 'drogas', 'farmaco', 'insumo', 'insumos', 'posologia', 'comprimido', 'ampola'],
+  medicamento: ['medicamento', 'medicamentos', 'remedio', 'remedios', 'droga', 'drogas', 'farmaco', 'insumo', 'insumos', 'posologia', 'comprimido', 'ampola', 'prescricao'],
   // Entidades: Agendamento / Consultas
   consulta: ['consulta', 'consultas', 'agendamento', 'agendamentos', 'agendar', 'marcar', 'horario', 'compromisso', 'reserva'],
   // Entidades: Leitos / Internação
-  leito: ['leito', 'leitos', 'vaga', 'vagas', 'quarto', 'acomodacao', 'internacao', 'internar', 'enfermaria', 'uti'],
+  leito: ['leito', 'leitos', 'vaga', 'vagas', 'quarto', 'acomodacao', 'internacao', 'internar', 'enfermaria', 'uti', 'censo', 'higienizacao'],
   // Entidades: Salas / Consultórios
   consultorio: ['consultorio', 'consultorios', 'sala', 'salas', 'posto', 'ambulatorio'],
   // Entidades: Financeiro / Faturamento
-  financeiro: ['financeiro', 'faturamento', 'cobranca', 'fatura', 'parcela', 'baixa', 'pagamento', 'convenio', 'receita', 'despesa'],
+  financeiro: ['financeiro', 'faturamento', 'cobranca', 'fatura', 'parcela', 'baixa', 'pagamento', 'convenio', 'receita', 'despesa', 'dre'],
   // Relatórios / Impressão
   relatorio: ['relatorio', 'relatorios', 'exportar', 'exportacao', 'imprimir', 'impressao', 'pdf', 'excel', 'planilha', 'csv', 'grafico', 'metricas', 'indicadores', 'kpi']
 };
@@ -328,6 +340,66 @@ export const manualData = [
         keywords: ['triagem manchester', 'classificação de risco', 'sinais vitais', 'pressão alta', 'febre', 'spo2', 'dor']
       },
       {
+        icon: 'fa-video',
+        name: '📹 Sala Virtual de Telemedicina WebRTC',
+        type: 'Telemedicina / P2P',
+        color: '#06b6d4',
+        description: 'Inicia videochamada médica criptografada ponta a ponta (WebRTC) em tela dividida direto dentro do PEP. Permite ao médico realizar teleconsulta com áudio/vídeo HD enquanto examina, prescreve medicamentos, emite atestados e registra o SOAP simultaneamente.',
+        shortcut: 'Botão "Telemedicina" no topo do Prontuário',
+        rules: 'Funciona nativamente no navegador sem exigir softwares externos. Permite compartilhar o link da sala com o paciente por WhatsApp ou e-mail.',
+        keywords: ['telemedicina', 'teleconsulta', 'videochamada', 'webrtc', 'consulta online', 'chamada de video', 'camera', 'microfone', 'atendimento remoto', 'teleatendimento', 'consulta virtual', 'sala virtual']
+      },
+      {
+        icon: 'fa-microphone-lines',
+        name: '🎙️ Ditado Clínico por Voz (Voice-to-SOAP)',
+        type: 'Inteligência Clínica / PLN',
+        color: '#a855f7',
+        description: 'Mecanismo de reconhecimento de voz com pontuação automática (vírgula, ponto final, nova linha, dois pontos) e PLN em português integrado aos campos de Anamnese, Exame Físico e Conduta.',
+        shortcut: 'Botão "Ditar" com microfone nos campos SOAP',
+        rules: 'Requer permissão de microfone no navegador. O texto transcrito é formatado em tempo real com vocabulário clínico otimizado.',
+        keywords: ['ditado', 'voz', 'ditar', 'microfone', 'voice-to-soap', 'fala', 'transcricao', 'audio', 'ditado clinico', 'reconhecimento de fala', 'pontuacao automatica']
+      },
+      {
+        icon: 'fa-triangle-exclamation',
+        name: '⚠️ Escore Preditivo MEWS & Alerta de Sepse',
+        type: 'Predição Clínica / Segurança',
+        color: '#ef4444',
+        description: 'Algoritmo preditivo de deterioração fisiológica baseado no Modified Early Warning Score e critérios de sepse rápida (qSOFA). Se a pontuação indicar gravidade (MEWS ≥ 5 ou sepse), auto-seleciona a classificação de risco máxima e bloqueia o rebaixamento de urgência.',
+        shortcut: 'Painel Superior de Sinais Vitais / Triagem',
+        rules: 'Cruza Pressão Sistólica, Frequência Cardíaca, Frequência Respiratória, Temperatura, Saturação O2 e Nível AVPU de Consciência.',
+        keywords: ['mews', 'sepse', 'alerta sepse', 'escore', 'preditivo', 'deterioracao', 'sinais vitais', 'choque', 'avpu', 'risco clinico', 'gravidade', 'classificacao preditiva', 'trava de risco', 'qsofa']
+      },
+      {
+        icon: 'fa-capsules',
+        name: '💊 Verificador de Interações Medicamentosas',
+        type: 'Farmacologia Clínica',
+        color: '#f59e0b',
+        description: 'Cruza em tempo real todos os medicamentos selecionados na prescrição contra a base farmacológica integrada, emitindo avisos imediatos de contraindicação com recomendações de conduta (ex: monitoramento de INR, ajuste de dose ou substituição terapêutica).',
+        shortcut: 'Automático ao prescrever / Aba Farmácia',
+        rules: 'Alerta sobre interações graves (ex: Varfarina + AAS, Tramadol + Fluoxetina, Enalapril + Espironolactona) antes de assinar a receita.',
+        keywords: ['interacao', 'interacoes', 'incompatibilidade', 'interacao medicamentosa', 'farmacologia', 'concomitante', 'risco de sangramento', 'contraindicacao', 'bulario', 'alerta farmacologico']
+      },
+      {
+        icon: 'fa-brands fa-whatsapp',
+        name: '📲 Despacho de Prescrições via WhatsApp',
+        type: 'Comunicação / Notificação',
+        color: '#22c55e',
+        description: 'Dispara a receita médica digital, atestados e orientações da consulta diretamente para o WhatsApp do paciente com um clique, facilitando o cumprimento do plano terapêutico.',
+        shortcut: 'Botão "WhatsApp" na Prescrição e PEP',
+        rules: 'Formata a mensagem com cabeçalho hospitalar oficial, assinatura do médico e link seguro de visualização.',
+        keywords: ['whatsapp', 'zap', 'mensagem', 'notificacao paciente', 'envio receita', 'receita celular', 'aviso celular', 'notificar', 'despacho whatsapp']
+      },
+      {
+        icon: 'fa-route',
+        name: '🧭 Linha do Cuidado (Patient Journey HUD)',
+        type: 'Rastreabilidade Assistencial',
+        color: '#38bdf8',
+        description: 'Rastreador visual da trajetória completa do paciente desde o acolhimento na Recepção até o desfecho hospitalar (Triagem, Chamada TV, Atendimento Médico, Prescrição, Dispensação na Farmácia e Internação/Alta). Permite auditar tempos de espera e consultar o histórico cronológico de cada período.',
+        shortcut: 'Barra superior do Prontuário e Atendimentos',
+        rules: 'Permite alternar entre períodos anteriores de atendimento e o atendimento ativo.',
+        keywords: ['linha do cuidado', 'patient journey', 'jornada', 'trajetoria', 'rastreabilidade', 'stepper', 'hud', 'periodo de atendimento', 'tempo de permanencia']
+      },
+      {
         icon: 'fa-notes-medical',
         name: '🩺 Iniciar Atendimento',
         type: 'Ação Clínica',
@@ -399,13 +471,15 @@ export const manualData = [
       }
     ],
     workflow: [
-      { step: 1, title: 'Triagem', desc: 'Enfermagem registra sinais vitais e define a cor do protocolo Manchester.' },
-      { step: 2, title: 'Anamnese', desc: 'Médico inicia o atendimento, registra a queixa principal e exame físico.' },
-      { step: 3, title: 'Prescrição & CID-10', desc: 'Médico seleciona os medicamentos na farmácia e vincula o CID-10.' },
-      { step: 4, title: 'Finalização', desc: 'Emite o atestado/receita impressa e clica em Finalizar Consulta.' }
+      { step: 1, title: 'Triagem & Sinais Vitais', desc: 'Enfermagem afere sinais vitais; o sistema calcula MEWS e cor Manchester com trava preditiva de risco.' },
+      { step: 2, title: 'Anamnese ou Telemedicina', desc: 'Médico inicia a consulta presencial ou sala virtual WebRTC, usando ditado por voz para preencher o SOAP.' },
+      { step: 3, title: 'Prescrição & Checagem', desc: 'Médico vincula o CID-10 e prescreve medicamentos; o validador de interações checa incompatibilidades farmacológicas.' },
+      { step: 4, title: 'Despacho & Finalização', desc: 'Emite atestado, envia receita via WhatsApp para o paciente e clica em Finalizar Consulta.' }
     ],
     faq: [
-      { q: 'Como consultar o histórico anterior do paciente?', a: 'No lado direito do prontuário, há a aba "Histórico de Atendimentos" com todas as consultas passadas registradas no sistema.' }
+      { q: 'Como iniciar uma consulta por Telemedicina?', a: 'No Prontuário Eletrônico, clique no botão "Telemedicina" no topo. A sala virtual WebRTC será aberta em tela dividida, permitindo atender por vídeo e prescrever ao mesmo tempo.' },
+      { q: 'Como usar o Ditado por Voz nos prontuários?', a: 'Basta clicar no ícone de Microfone ao lado do campo de Anamnese ou Exame Físico e começar a falar. Diga "vírgula", "ponto final" ou "novo parágrafo" para pontuar.' },
+      { q: 'Como consultar o histórico anterior do paciente na Linha do Cuidado?', a: 'No cabeçalho do Prontuário, o seletor de "Período de Atendimento" e o histórico lateral exibem todas as passagens cronológicas anteriores com sinais vitais e receitas registradas.' }
     ]
   },
   {
