@@ -1617,15 +1617,39 @@ Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de
 <li><strong>Botões de Ação Rápida:</strong><ul>
 <li><code>🛡️ Padrão Oficial</code>: Restaura a seleção para as contas oficiais padrão.</li>
 <li><code>✅ Marcar Todos</code>: Protege todos os usuários contra exclusão.</li>
-<li><code>❌ Desmarcar</code>: Desmarca todos os usuários (exceto o Master).</li>
 </ul>
 </li>
-<li><strong>Contador Dinâmico em Tempo Real:</strong> Exibe a contagem exata de contas que serão preservadas vs contas que serão eliminadas.</li>
 </ul>
 </li>
-<li>Clique em <strong><code>Executar Limpeza</code></strong> e confirme o diálogo de segurança.</li>
-<li>O sistema atualiza o banco de dados local, sincroniza com a nuvem (Turso Cloud) e registra um evento de auditoria no histórico da sessão.</li>
 </ol>
+<hr>
+<h2 id="sec-25">25. Inteligência Assistencial Clínica, Voice-to-SOAP & Telemedicina WebRTC (v2.8.0) 🧠🎙️</h2><p>A versão <strong>v2.8.0</strong> do Health Nexus introduz um conjunto revolucionário de inteligência clínica e conectividade:</p>
+<h3>25.1. Ditado Clínico por Voz (<em>Voice-to-SOAP</em>)</h3>
+<ul>
+<li>Nos campos <strong>Subjetivo</strong>, <strong>Objetivo</strong>, <strong>Avaliação</strong> e <strong>Plano</strong> do PEP, médicos podem clicar em <strong><code>🎙️ Ditar</code></strong> para transcrever anamneses e hipóteses por voz com pontuação automática em português (<code>pt-BR</code>).</li>
+</ul>
+<h3>25.2. Escore Preditivo MEWS &amp; Alerta Precoce de Sepse</h3>
+<ul>
+<li>O sistema calcula em tempo real o escore <strong>MEWS (Modified Early Warning Score)</strong> a partir de PA, FC, Temperatura, SpO2 e Dor tanto na <strong>Triagem Manchester</strong> quanto no <strong>PEP</strong>:<ul>
+<li>🟢 <strong>Escore 0–2 (Baixo Risco):</strong> Parâmetros estáveis.</li>
+<li>🟡 <strong>Escore 3–4 (Risco Moderado):</strong> Monitorização reforçada a cada 30 min.</li>
+<li>🔴 <strong>Escore ≥ 5 (Alto Risco / Crítico):</strong> Alerta visual e sonoro com protocolo de sepse e acionamento de emergência/UTI.</li>
+</ul>
+</li>
+</ul>
+<h3>25.3. Verificador em Tempo Real de Interações Medicamentosas</h3>
+<ul>
+<li>Ao prescrever no campo <em>Plano Terapêutico</em>, o sistema analisa combinações de risco (ex: Varfarina + AAS, Ciprofloxacino + Teofilina, Omeprazol + Clopidogrel, Enalapril + Espironolactona) e exibe um alerta com a conduta médica recomendada.</li>
+</ul>
+<h3>25.4. Sala Virtual de Telemedicina WebRTC</h3>
+<ul>
+<li>Médicos podem iniciar chamadas de vídeo criptografadas de ponta a ponta com o paciente diretamente pelo PEP ou pelo HUD Flutuante, com controles de áudio, vídeo, compartilhamento de tela e painel de anotações simultâneo.</li>
+</ul>
+<h3>25.5. Integração com WhatsApp &amp; Autenticação Digital CFM</h3>
+<ul>
+<li>Envio formatado de orientações clínicas, receitas médicas e chamados de fila diretamente para o WhatsApp do paciente com 1 clique.</li>
+<li>Documentos assinados com conformidade digital da Resolução CFM nº 1.821/2007.</li>
+</ul>
 <hr>
 
     </main>

@@ -1,6 +1,8 @@
 import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 import * as localDB from '../localDB.js';
+import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from '../modules/clinicalAI.js';
+import { openTelemedicineModal } from '../modules/telemedicina.js';
 
 const API_URL = '/api';
 
@@ -1557,22 +1559,31 @@ window.openPEPModal = async function(encounterId) {
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: #111124; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99, 102, 241, 0.15);">
       
-      <div class="modal-header" style="padding: 20px 28px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.4); display: flex; align-items: center; justify-content: center; color: #f472b6;">
-            <i class="fa-solid fa-file-medical" style="font-size: 1.3rem;"></i>
+      <div class="modal-header" style="padding: 18px 24px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.4); display: flex; align-items: center; justify-content: center; color: #f472b6;">
+            <i class="fa-solid fa-file-medical" style="font-size: 1.2rem;"></i>
           </div>
           <div>
-            <h3 style="font-family: Outfit, sans-serif; font-size: 1.25rem; font-weight: 700; color: #fff; margin: 0;">Prontuário Eletrônico (PEP)</h3>
-            <div id="pep-modal-subtitle" style="font-size: 0.82rem; color: #c4b5fd;">Carregando dados do paciente...</div>
+            <h3 style="font-family: Outfit, sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin: 0;">Prontuário Eletrônico (PEP)</h3>
+            <div id="pep-modal-subtitle" style="font-size: 0.8rem; color: #c4b5fd;">Carregando dados do paciente...</div>
           </div>
         </div>
-        <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+            <i class="fa-solid fa-video"></i> Teleconsulta
+          </button>
+          <button type="button" id="btn-pep-whatsapp-header" class="btn" style="background: rgba(37,211,102,0.18); border: 1px solid rgba(37,211,102,0.4); color: #4ade80; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </button>
+          <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       </div>
 
-      <div class="modal-body" id="pep-modal-body" style="padding: 24px 28px; overflow-y: auto; flex: 1;">
+      <div class="modal-body" id="pep-modal-body" style="padding: 22px 24px; overflow-y: auto; flex: 1;">
         <div style="text-align: center; color: var(--text-muted); padding: 40px;">
           <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 12px;"></i>
           <div>Buscando atendimento no banco...</div>
@@ -1582,7 +1593,10 @@ window.openPEPModal = async function(encounterId) {
   `;
   document.body.appendChild(modal);
 
-  document.getElementById('close-pep-modal').addEventListener('click', () => modal.remove());
+  document.getElementById('close-pep-modal').addEventListener('click', () => {
+    stopVoiceDictation();
+    modal.remove();
+  });
 
   let enc = {};
   try {
@@ -1663,6 +1677,26 @@ window.openPEPModal = async function(encounterId) {
       subtitleEl.innerHTML = `Paciente: <strong style="color:#fff;">${enc.patientName || 'Paciente'}</strong> · Sala: <span style="color:#34d399;">${enc.room || 'Consultório 01'}</span>`;
     }
 
+    // Botões de Cabeçalho (Telemedicina e WhatsApp)
+    document.getElementById('btn-pep-telemed-header')?.addEventListener('click', () => {
+      openTelemedicineModal({
+        id: enc.patientId || enc.id,
+        patientName: enc.patientName,
+        doctorName: state.user?.name || enc.doctorName || 'Dr. Médico Assistente'
+      });
+    });
+
+    document.getElementById('btn-pep-whatsapp-header')?.addEventListener('click', () => {
+      const msg = generateWhatsAppClinicalMessage({
+        patientName: enc.patientName,
+        doctorName: state.user?.name || enc.doctorName,
+        diagnosis: document.getElementById('pep-assessment')?.value || 'Atendimento Médico Especializado',
+        plan: document.getElementById('pep-plan')?.value || 'Seguir orientações e prescrição em anexo.',
+        room: enc.room
+      });
+      sendToWhatsApp(enc.phone || '', msg);
+    });
+
     let notes = {};
     try {
       const notesRes = await apiFetch('/api/encounters/' + (enc.id || encounterId) + '/notes');
@@ -1678,6 +1712,9 @@ window.openPEPModal = async function(encounterId) {
     const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canSignPEP: true, label: 'Usuário' };
     const isReadOnly = !perms.canSignPEP;
 
+    // Cálculo do Escore MEWS e Risco Clínico
+    const mewsData = calculateMEWS(enc);
+
     bodyEl.innerHTML = `
       ${isReadOnly ? `
         <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; color: #fbbf24; font-size: 0.85rem;">
@@ -1688,41 +1725,78 @@ window.openPEPModal = async function(encounterId) {
         </div>
       ` : ''}
 
-      <!-- Sinais Vitais & Dados de Triagem -->
-      <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Classificação Manchester:</span>
-          <span style="display:inline-block; margin-left:8px; padding:3px 12px; border-radius:20px; font-weight:700; font-size:0.8rem; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);">${enc.manchesterColor || 'AMARELO'}</span>
+      <!-- Sinais Vitais & Escore MEWS -->
+      <div style="background: var(--bg-tertiary); border: 1px solid ${mewsData.isSepsisAlert ? '#ef4444' : 'var(--border-color)'}; border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; ${mewsData.isSepsisAlert ? 'box-shadow: 0 0 16px rgba(239,68,68,0.3);' : ''}">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div>
+            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Manchester:</span>
+            <span style="display:inline-block; margin-left:6px; padding:2px 10px; border-radius:20px; font-weight:700; font-size:0.78rem; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);">${enc.manchesterColor || 'AMARELO'}</span>
+          </div>
+          <div style="background: ${mewsData.badgeBg}; border: 1px solid ${mewsData.badgeColor}; color: ${mewsData.badgeColor}; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+            <i class="fa-solid fa-heart-pulse"></i> Escore MEWS: ${mewsData.score} · ${mewsData.riskLevel}
+          </div>
         </div>
-        <div style="font-size:0.85rem; color:var(--text-primary); font-family:monospace;">
-          <strong>PA:</strong> ${enc.bloodPressure || '120/80'} | <strong>Temp:</strong> ${enc.temperatureCelsius || 36.5}°C | <strong>FC:</strong> ${enc.heartRateBpm || 80} bpm
+        <div style="font-size:0.82rem; color:var(--text-primary); font-family:monospace;">
+          <strong>PA:</strong> ${enc.bloodPressure || '120/80'} | <strong>Temp:</strong> ${enc.temperatureCelsius || 36.5}°C | <strong>FC:</strong> ${enc.heartRateBpm || 80} bpm | <strong>SpO2:</strong> ${enc.oxygenSaturation || 98}%
         </div>
       </div>
 
-      <!-- Formulário SOAP / Prontuário -->
-      <form id="pep-form" style="display:flex; flex-direction:column; gap:16px;">
+      ${mewsData.isSepsisAlert ? `
+        <div style="background: rgba(239,68,68,0.15); border: 1.5px solid #ef4444; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; color: #fca5a5; font-size: 0.84rem; display: flex; align-items: center; gap: 10px; animation: pulse 2s infinite;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.3rem; color: #ef4444;"></i>
+          <div>
+            <strong style="color: #fff; font-size: 0.88rem;">ALERTA PREDITIVO DE SEPSE / DETERIORAÇÃO:</strong><br>
+            ${mewsData.recommendation}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Formulário SOAP / Prontuário com Ditado por Voz -->
+      <form id="pep-form" style="display:flex; flex-direction:column; gap:14px;">
+        
         <div>
-          <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Subjetivo (Anamnese & Queixa):</label>
-          <textarea id="pep-subjective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:70px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:70px; resize:vertical;"'} placeholder="Relato do paciente, evolução dos sintomas...">${notes.subjectiveContent || enc.complaints || ''}</textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Subjetivo (Anamnese & Queixa):</label>
+            ${!isReadOnly ? `<button type="button" id="btn-voice-subj" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
+          </div>
+          <textarea id="pep-subjective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Relato do paciente, evolução dos sintomas...">${notes.subjectiveContent || enc.complaints || ''}</textarea>
         </div>
 
         <div>
-          <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Objetivo (Exame Físico / Achados):</label>
-          <textarea id="pep-objective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:70px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:70px; resize:vertical;"'} placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || ''}</textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Objetivo (Exame Físico / Achados):</label>
+            ${!isReadOnly ? `<button type="button" id="btn-voice-obj" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
+          </div>
+          <textarea id="pep-objective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || ''}</textarea>
         </div>
 
         <div class="autocomplete-container" style="position:relative;">
-          <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Avaliação (Diagnóstico / CID-10):</label>
-          <textarea id="pep-assessment" class="form-input pep-cid-input" ${isReadOnly ? 'readonly style="width:100%; min-height:60px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:60px; resize:vertical;"'} placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || ''}</textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Avaliação (Diagnóstico / CID-10):</label>
+            ${!isReadOnly ? `<button type="button" id="btn-voice-ass" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
+          </div>
+          <textarea id="pep-assessment" class="form-input pep-cid-input" ${isReadOnly ? 'readonly style="width:100%; min-height:55px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:55px; resize:vertical;"'} placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || ''}</textarea>
           <div id="pep-cid-dropdown" class="autocomplete-dropdown"></div>
         </div>
 
         <div>
-          <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">Plano Terapêutico & Prescrição:</label>
-          <textarea id="pep-plan" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:70px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:70px; resize:vertical;"'} placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || ''}</textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Plano Terapêutico & Prescrição:</label>
+            ${!isReadOnly ? `<button type="button" id="btn-voice-plan" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
+          </div>
+          <textarea id="pep-plan" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || ''}</textarea>
+          
+          <!-- Banner Dinâmico de Interações Medicamentosas -->
+          <div id="pep-drug-interactions-alert" style="display: none; margin-top: 8px; padding: 10px 14px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1.5px solid #ef4444; color: #fca5a5; font-size: 0.82rem;">
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #fff; margin-bottom: 3px;">
+              <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> <span id="pep-inter-title">Alerta de Interação Medicamentosa</span>
+            </div>
+            <div id="pep-inter-desc" style="font-size: 0.78rem; line-height: 1.35;"></div>
+            <div id="pep-inter-action" style="font-size: 0.78rem; font-weight: 600; color: #fde047; margin-top: 3px;"></div>
+          </div>
         </div>
 
-        <div style="margin-top: 10px; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <div style="margin-top: 6px; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">
             <i class="fa-solid fa-route" style="color: #6366f1; margin-right: 6px;"></i> Desfecho do Atendimento:
           </label>
@@ -1733,22 +1807,79 @@ window.openPEPModal = async function(encounterId) {
           </select>
         </div>
 
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:10px;">
-          ${isReadOnly ? `
-            <button type="button" class="btn" onclick="document.getElementById('pep-modal')?.remove()" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 20px;">
-              <i class="fa-solid fa-xmark" style="margin-right:6px;"></i> Fechar Prontuário
-            </button>
-          ` : `
-            <button type="button" id="btn-save-pep" class="btn" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 20px;">
-              <i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Salvar Rascunho
-            </button>
-            <button type="submit" class="btn btn-primary" style="padding:10px 22px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
-              <i class="fa-solid fa-file-signature" style="margin-right:6px;"></i> Assinar & Encaminhar
-            </button>
-          `}
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap;">
+          <div>
+            <span style="font-size: 0.75rem; color: #34d399; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fa-solid fa-shield-halved"></i> Autenticação Digital CFM nº 1.821
+            </span>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            ${isReadOnly ? `
+              <button type="button" class="btn" onclick="document.getElementById('pep-modal')?.remove()" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 18px;">
+                <i class="fa-solid fa-xmark" style="margin-right:6px;"></i> Fechar Prontuário
+              </button>
+            ` : `
+              <button type="button" id="btn-save-pep" class="btn" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 16px;">
+                <i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Salvar Rascunho
+              </button>
+              <button type="submit" class="btn btn-primary" style="padding:8px 20px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
+                <i class="fa-solid fa-file-signature" style="margin-right:6px;"></i> Assinar & Encaminhar
+              </button>
+            `}
+          </div>
         </div>
       </form>
     `;
+
+    // Eventos de Ditado por Voz para cada campo SOAP
+    if (!isReadOnly) {
+      document.getElementById('btn-voice-subj')?.addEventListener('click', () => {
+        startVoiceDictation('pep-subjective', 'btn-voice-subj');
+      });
+      document.getElementById('btn-voice-obj')?.addEventListener('click', () => {
+        startVoiceDictation('pep-objective', 'btn-voice-obj');
+      });
+      document.getElementById('btn-voice-ass')?.addEventListener('click', () => {
+        startVoiceDictation('pep-assessment', 'btn-voice-ass');
+      });
+      document.getElementById('btn-voice-plan')?.addEventListener('click', () => {
+        startVoiceDictation('pep-plan', 'btn-voice-plan', (text) => {
+          checkPlanInteractions(text);
+        });
+      });
+
+      // Validador de Interações Medicamentosas no Plano
+      const planTextarea = document.getElementById('pep-plan');
+      const checkPlanInteractions = (content) => {
+        const interactions = checkDrugInteractions(content || '');
+        const alertBox = document.getElementById('pep-drug-interactions-alert');
+        const titleEl = document.getElementById('pep-inter-title');
+        const descEl = document.getElementById('pep-inter-desc');
+        const actionEl = document.getElementById('pep-inter-action');
+
+        if (interactions && interactions.length > 0 && alertBox) {
+          const first = interactions[0];
+          alertBox.style.display = 'block';
+          alertBox.style.background = first.severity === 'Grave' ? 'rgba(239, 68, 68, 0.18)' : 'rgba(245, 158, 11, 0.18)';
+          alertBox.style.border = first.severity === 'Grave' ? '1.5px solid #ef4444' : '1.5px solid #f59e0b';
+          if (titleEl) titleEl.textContent = `Interação ${first.severity.toUpperCase()}: ${first.title}`;
+          if (descEl) descEl.textContent = first.desc;
+          if (actionEl) actionEl.textContent = `💡 Conduta Recomendada: ${first.action}`;
+        } else if (alertBox) {
+          alertBox.style.display = 'none';
+        }
+      };
+
+      planTextarea?.addEventListener('input', (e) => {
+        checkPlanInteractions(e.target.value);
+      });
+
+      // Checagem inicial
+      if (notes.planContent) {
+        checkPlanInteractions(notes.planContent);
+      }
+    }
 
     document.getElementById('btn-save-pep')?.addEventListener('click', async () => {
       await savePEPData(encounterId, false);

@@ -22,11 +22,20 @@ import { generateMockData } from './mockDataGenerator.js';
 import { renderEmbeddedTabbedManual, showInteractiveManualModal, manualData, showCardDetailModal, searchManualEngine, showManualReturnBeacon } from './manualTabbed.js';
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 import { inject } from '@vercel/analytics';
+import { openTelemedicineModal } from './modules/telemedicina.js';
+import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from './modules/clinicalAI.js';
 
 window.setActivePatientContext = setActivePatientContext;
 window.renderPatientJourneyStepper = renderPatientJourneyStepper;
 window.renderFloatingPatientHUD = renderFloatingPatientHUD;
 window.showSimulationSummaryModal = showSimulationSummaryModal;
+window.openTelemedicineModal = openTelemedicineModal;
+window.startVoiceDictation = startVoiceDictation;
+window.stopVoiceDictation = stopVoiceDictation;
+window.calculateMEWS = calculateMEWS;
+window.checkDrugInteractions = checkDrugInteractions;
+window.generateWhatsAppClinicalMessage = generateWhatsAppClinicalMessage;
+window.sendToWhatsApp = sendToWhatsApp;
 
 // Inicia o Vercel Analytics
 inject();

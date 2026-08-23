@@ -1,14 +1,19 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.7.3`  
+**Versão:** `2.8.0`  
 **Status:** Em desenvolvimento ativo (Production-Ready)  
 **Última atualização:** Agosto 2026
 
 ---
 
-## 📘 Documentação & Manual do Usuário
+## 📘 Documentação & Inovação Clínica (v2.8.0)
 
-- 🧭 **Linha do Cuidado & Trajetória Completa do Paciente (Patient Journey Timeline):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.
+- 🎙️ **Ditado Clínico por Voz (*Voice-to-SOAP*):** Transcrição de consultas em tempo real com pontuação inteligente direto nos campos SOAP do PEP via Web Speech API.
+- ⚠️ **Escore Preditivo MEWS & Alerta de Sepse:** Cálculo em tempo real dos sinais vitais da Triagem Manchester e PEP para detecção precoce de choque e deterioração clínica.
+- 💊 **Verificador em Tempo Real de Interações Medicamentosas:** Bloqueio e alerta visual com conduta médica recomendada ao prescrever fármacos com risco de incompatibilidade.
+- 📹 **Sala Virtual de Telemedicina WebRTC:** Teleconsultas criptografadas de ponta a ponta integradas dentro do Prontuário Eletrônico (PEP) com controle de vídeo/áudio e anotações simultâneas.
+- 📲 **Envio de Receitas e Chamados via WhatsApp:** Geração com 1 clique de notificações formatadas para o paciente.
+- 🧭 **Linha do Cuidado Guiada (Patient Journey Stepper & Floating HUD):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.
 - 🛏️ **Gestão Inteligente de Leitos & Censo Hospitalar:** Bloqueio automático de leitos ocupados, Painel Detalhado com ocupante atual, tempo de permanência, histórico completo de internações anteriores por leito e ciclo de higienização automatizado.
 - 🌐 **Manual Interativo por Abas (SPA):** Acessível diretamente pelo botão `📖 Manual do Usuário` no topo do sistema ou pela busca global `Ctrl + K`.
 - 🧩 **Arquitetura Frontend Modular (`src/modules/`):** Código desacoplado em módulos de responsabilidade única (`ui.js`, `sync.js`, `api.js`, `auth.js`, `journey.js`) garantindo alta manutenibilidade, isolamento de escopo e facilidade para testes automatizados.

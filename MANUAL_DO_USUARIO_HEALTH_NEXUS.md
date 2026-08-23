@@ -1542,10 +1542,31 @@ A ferramenta de **Limpeza de Simulação** permite expurgar todos os usuários d
    - **Botões de Ação Rápida:**
      - `🛡️ Padrão Oficial`: Restaura a seleção para as contas oficiais padrão.
      - `✅ Marcar Todos`: Protege todos os usuários contra exclusão.
-     - `❌ Desmarcar`: Desmarca todos os usuários (exceto o Master).
-   - **Contador Dinâmico em Tempo Real:** Exibe a contagem exata de contas que serão preservadas vs contas que serão eliminadas.
-4. Clique em **`Executar Limpeza`** e confirme o diálogo de segurança.
-5. O sistema atualiza o banco de dados local, sincroniza com a nuvem (Turso Cloud) e registra um evento de auditoria no histórico da sessão.
+---
+
+<h2 id="sec-25">25. Inteligência Assistencial Clínica, Voice-to-SOAP & Telemedicina WebRTC (v2.8.0) 🧠🎙️</h2>
+
+A versão **v2.8.0** do Health Nexus introduz um conjunto revolucionário de inteligência clínica e conectividade:
+
+### 25.1. Ditado Clínico por Voz (*Voice-to-SOAP*)
+- Nos campos **Subjetivo**, **Objetivo**, **Avaliação** e **Plano** do PEP, médicos podem clicar em **`🎙️ Ditar`** para transcrever anamneses e hipóteses por voz com pontuação automática em português (`pt-BR`).
+
+### 25.2. Escore Preditivo MEWS & Alerta Precoce de Sepse
+- O sistema calcula em tempo real o escore **MEWS (Modified Early Warning Score)** a partir de PA, FC, Temperatura, SpO2 e Dor tanto na **Triagem Manchester** quanto no **PEP**:
+  - 🟢 **Escore 0–2 (Baixo Risco):** Parâmetros estáveis.
+  - 🟡 **Escore 3–4 (Risco Moderado):** Monitorização reforçada a cada 30 min.
+  - 🔴 **Escore ≥ 5 (Alto Risco / Crítico):** Alerta visual e sonoro com protocolo de sepse e acionamento de emergência/UTI.
+
+### 25.3. Verificador em Tempo Real de Interações Medicamentosas
+- Ao prescrever no campo *Plano Terapêutico*, o sistema analisa combinações de risco (ex: Varfarina + AAS, Ciprofloxacino + Teofilina, Omeprazol + Clopidogrel, Enalapril + Espironolactona) e exibe um alerta com a conduta médica recomendada.
+
+### 25.4. Sala Virtual de Telemedicina WebRTC
+- Médicos podem iniciar chamadas de vídeo criptografadas de ponta a ponta com o paciente diretamente pelo PEP ou pelo HUD Flutuante, com controles de áudio, vídeo, compartilhamento de tela e painel de anotações simultâneo.
+
+### 25.5. Integração com WhatsApp & Autenticação Digital CFM
+- Envio formatado de orientações clínicas, receitas médicas e chamados de fila diretamente para o WhatsApp do paciente com 1 clique.
+- Documentos assinados com conformidade digital da Resolução CFM nº 1.821/2007.
 
 ---
+
 

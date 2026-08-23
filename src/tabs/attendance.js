@@ -5,6 +5,7 @@ import { showToast, showCustomAlert } from '../modules/ui.js';
 import { realtimeHub } from '../modules/realtime.js';
 import { setActivePatientContext, renderPatientJourneyStepper } from '../modules/journey.js';
 import { getRolePermissions } from '../modules/auth.js';
+import { calculateMEWS, generateWhatsAppClinicalMessage, sendToWhatsApp } from '../modules/clinicalAI.js';
 
 export function renderAttendanceTab(contentArea) {
   contentArea.innerHTML = `
@@ -152,6 +153,17 @@ export function renderAttendanceTab(contentArea) {
                 <div class="form-group"><label class="form-label">Peso (kg):</label><input type="text" id="triage-peso" class="form-input" placeholder="70.0" inputmode="decimal"></div>
                 <div class="form-group"><label class="form-label">Glicemia (mg/dL):</label><input type="number" id="triage-glicemia" class="form-input" min="30" max="700" placeholder="100"></div>
               </div>
+
+              <!-- Card Dinâmico de MEWS e Sinais Vitais -->
+              <div id="triage-mews-preview" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 10px; padding: 10px 14px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-heart-pulse" style="color: #818cf8;"></i>
+                  <span style="font-size: 0.8rem; color: var(--text-primary);">Escore MEWS Preditivo:</span>
+                  <strong id="triage-mews-score-val" style="font-size: 0.85rem; color: #34d399;">0 (Baixo Risco)</strong>
+                </div>
+                <span id="triage-mews-suggest" style="font-size: 0.74rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); padding: 2px 8px; border-radius: 8px;">Sinais Estáveis</span>
+              </div>
+
               <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin:16px 0 12px; color:var(--text-primary); border-left:3px solid #8b5cf6; padding-left:8px;">* Classificação de Risco</h4>
               <div class="manchester-selector">
                 <div class="manchester-option vermelho"><input type="radio" id="color-vermelho" name="manchesterColor" value="Vermelho" required><label for="color-vermelho" class="manchester-label"><i class="fa-solid fa-triangle-exclamation"></i><span>Emergência</span></label></div>
@@ -718,10 +730,49 @@ export function renderAttendanceTab(contentArea) {
   document.getElementById('btn-cancel-triage')?.addEventListener('click', closeTriageModal);
   document.getElementById('triage-modal')?.addEventListener('click', e => { if (e.target === document.getElementById('triage-modal')) closeTriageModal(); });
 
+  const updateTriageMEWS = () => {
+    const pa = document.getElementById('triage-pa')?.value || '';
+    const temp = document.getElementById('triage-temp')?.value || '';
+    const fc = document.getElementById('triage-fc')?.value || '';
+    const spo2 = document.getElementById('triage-spo2')?.value || '';
+
+    const mews = calculateMEWS({
+      bloodPressure: pa,
+      temperatureCelsius: temp,
+      heartRateBpm: fc,
+      oxygenSaturation: spo2
+    });
+
+    const scoreEl = document.getElementById('triage-mews-score-val');
+    const suggestEl = document.getElementById('triage-mews-suggest');
+    const previewEl = document.getElementById('triage-mews-preview');
+
+    if (scoreEl && suggestEl && previewEl) {
+      scoreEl.textContent = `${mews.score} (${mews.riskLevel})`;
+      scoreEl.style.color = mews.badgeColor;
+      previewEl.style.background = mews.badgeBg;
+      previewEl.style.border = `1px solid ${mews.badgeColor}`;
+
+      if (mews.isSepsisAlert) {
+        suggestEl.innerHTML = '<strong style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ALERTA SEPSE / EMERGÊNCIA</strong>';
+      } else if (mews.score >= 5) {
+        suggestEl.innerHTML = '<span style="color: #f87171; font-weight:700;">Recomendado: Vermelho/Laranja</span>';
+      } else if (mews.score >= 3) {
+        suggestEl.innerHTML = '<span style="color: #fbbf24; font-weight:600;">Recomendado: Amarelo</span>';
+      } else {
+        suggestEl.innerHTML = '<span style="color: #34d399;">Sinais Vitais Estáveis</span>';
+      }
+    }
+  };
+
   document.getElementById('triage-pa')?.addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g,'').substring(0,6);
     e.target.value = v.length <= 3 ? v : v.slice(0,3)+'/'+v.slice(3);
+    updateTriageMEWS();
   });
+  document.getElementById('triage-temp')?.addEventListener('input', updateTriageMEWS);
+  document.getElementById('triage-fc')?.addEventListener('input', updateTriageMEWS);
+  document.getElementById('triage-spo2')?.addEventListener('input', updateTriageMEWS);
 
   document.getElementById('triage-form')?.addEventListener('submit', async e => {
     e.preventDefault();

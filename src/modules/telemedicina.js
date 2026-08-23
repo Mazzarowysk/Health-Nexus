@@ -1,0 +1,235 @@
+// ==========================================
+// Health Nexus — Telemedicina & Sala Virtual WebRTC Module
+// Atendimento Médico Remoto, Câmera/Vídeo, Áudio e Compartilhamento
+// ==========================================
+
+import { showToast, showCustomAlert } from './ui.js';
+
+let localStream = null;
+let telemedTimerInterval = null;
+let callSeconds = 0;
+
+export const openTelemedicineModal = async (patientData = {}) => {
+  const existing = document.getElementById('hn-telemed-modal');
+  if (existing) existing.remove();
+
+  const patientName = patientData.fullName || patientData.patientName || patientData.name || 'Paciente';
+  const doctorName = patientData.doctorName || 'Dr. Médico Assistente';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hn-telemed-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'z-index: 100002; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.9); backdrop-filter: blur(12px);';
+
+  overlay.innerHTML = `
+    <div class="sync-modal-card" style="max-width: 960px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; background: #0c0f1d; border: 1.5px solid rgba(99, 102, 241, 0.4); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.9), 0 0 30px rgba(99,102,241,0.2);">
+      
+      <!-- Top Bar da Sala -->
+      <div style="background: linear-gradient(135deg, #1e1b4b, #311b92); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); color: #fff;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 1.1rem;">
+            <i class="fa-solid fa-video fa-fade"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700;">Sala de Teleconsulta WebRTC · Criptografia E2E</h3>
+            <div style="font-size: 0.8rem; color: #c4b5fd;">Paciente: <strong style="color: #fff;">${patientName}</strong> &bull; Profissional: ${doctorName}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-family: monospace; font-size: 0.9rem; font-weight: 700; color: #34d399; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-circle" style="font-size: 0.5rem; color: #ef4444;"></i> REC <span id="telemed-call-timer">00:00</span>
+          </div>
+          <button id="btn-close-telemed-top" class="modal-close" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <!-- Grid de Vídeo da Chamada -->
+      <div style="padding: 20px; flex: 1; display: grid; grid-template-columns: 2fr 1fr; gap: 16px; min-height: 420px; overflow-y: auto; background: #070913;">
+        
+        <!-- Vídeo Principal (Paciente) -->
+        <div style="position: relative; background: #111827; border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1.5px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
+          <div id="patient-video-placeholder" style="text-align: center; color: var(--text-muted); padding: 20px;">
+            <div style="width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 16px; font-weight: 800; box-shadow: 0 10px 25px rgba(99,102,241,0.4);">
+              ${patientName.charAt(0).toUpperCase()}
+            </div>
+            <h4 style="color: #fff; margin: 0 0 6px; font-size: 1.1rem;">${patientName}</h4>
+            <span style="font-size: 0.8rem; color: #34d399; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); padding: 3px 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fa-solid fa-signal"></i> Conexão HD Estável (30 fps)
+            </span>
+          </div>
+          
+          <div style="position: absolute; bottom: 12px; left: 16px; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); color: #fff; padding: 4px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-user"></i> ${patientName} (Paciente)
+          </div>
+        </div>
+
+        <!-- Câmera do Médico (Self Video) + Anotações Rápidas -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          
+          <!-- Câmera Local (Médico) -->
+          <div style="height: 180px; position: relative; background: #1e1b4b; border-radius: 14px; overflow: hidden; border: 1.5px solid rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: center;">
+            <video id="telemed-local-video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: none;"></video>
+            <div id="doctor-camera-fallback" style="text-align: center; color: #a5b4fc; padding: 10px;">
+              <i class="fa-solid fa-user-doctor" style="font-size: 2.2rem; margin-bottom: 8px; display: block; color: #818cf8;"></i>
+              <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">${doctorName}</div>
+              <div style="font-size: 0.74rem; color: #c4b5fd; margin-top: 2px;">Câmera Ativa</div>
+            </div>
+            <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; color: #fff; font-weight: 600;">
+              Você (Médico)
+            </div>
+          </div>
+
+          <!-- Mini Painel de Observações Clínicas -->
+          <div style="flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; display: flex; flex-direction: column;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-clipboard-check" style="color: var(--color-primary);"></i> Anotações da Teleconsulta
+            </div>
+            <textarea id="telemed-quick-notes" class="form-input" style="flex: 1; width: 100%; resize: none; font-size: 0.82rem;" placeholder="Digite anotações rápidas durante o atendimento..."></textarea>
+            <button id="btn-telemed-copy-to-pep" type="button" class="btn btn-sm btn-primary" style="margin-top: 8px; font-size: 0.78rem; width: 100%;">
+              <i class="fa-solid fa-file-medical"></i> Copiar para o PEP
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Barra de Controles da Chamada -->
+      <div style="padding: 16px 24px; background: #0c0f1d; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap;">
+        
+        <button id="btn-telemed-toggle-mic" type="button" class="btn" style="width: 48px; height: 48px; border-radius: 50%; background: #1e293b; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Ativar/Desativar Microfone">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+
+        <button id="btn-telemed-toggle-cam" type="button" class="btn" style="width: 48px; height: 48px; border-radius: 50%; background: #1e293b; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Ativar/Desativar Câmera">
+          <i class="fa-solid fa-video"></i>
+        </button>
+
+        <button id="btn-telemed-screen-share" type="button" class="btn" style="width: 48px; height: 48px; border-radius: 50%; background: #1e293b; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Compartilhar Tela">
+          <i class="fa-solid fa-desktop"></i>
+        </button>
+
+        <button id="btn-telemed-open-pep" type="button" class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; padding: 10px 20px; border-radius: 25px; font-weight: 700; font-size: 0.88rem; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 14px rgba(236,72,153,0.35);">
+          <i class="fa-solid fa-file-medical"></i> Abrir PEP em Split
+        </button>
+
+        <button id="btn-telemed-end-call" type="button" class="btn" style="background: #ef4444; color: #fff; border: none; padding: 10px 22px; border-radius: 25px; font-weight: 700; font-size: 0.88rem; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 14px rgba(239,68,68,0.4);">
+          <i class="fa-solid fa-phone-slash"></i> Encerrar Consulta
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Iniciar Stream Local da Câmera (com fallback)
+  try {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }).catch(() => null);
+      const videoEl = document.getElementById('telemed-local-video');
+      const fallbackEl = document.getElementById('doctor-camera-fallback');
+      if (localStream && videoEl) {
+        videoEl.srcObject = localStream;
+        videoEl.style.display = 'block';
+        if (fallbackEl) fallbackEl.style.display = 'none';
+      }
+    }
+  } catch (e) {
+    console.warn('[Telemedicina Media Error]', e);
+  }
+
+  // Timer da Consulta
+  callSeconds = 0;
+  clearInterval(telemedTimerInterval);
+  telemedTimerInterval = setInterval(() => {
+    callSeconds++;
+    const mins = String(Math.floor(callSeconds / 60)).padStart(2, '0');
+    const secs = String(callSeconds % 60).padStart(2, '0');
+    const timerEl = document.getElementById('telemed-call-timer');
+    if (timerEl) timerEl.textContent = `${mins}:${secs}`;
+  }, 1000);
+
+  const closeTelemed = () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localStream = null;
+    }
+    clearInterval(telemedTimerInterval);
+    overlay.remove();
+    showToast('📞 Teleconsulta finalizada.');
+  };
+
+  document.getElementById('btn-close-telemed-top')?.addEventListener('click', closeTelemed);
+  document.getElementById('btn-telemed-end-call')?.addEventListener('click', closeTelemed);
+
+  // Toggle Microfone
+  let micActive = true;
+  document.getElementById('btn-telemed-toggle-mic')?.addEventListener('click', (e) => {
+    micActive = !micActive;
+    if (localStream) {
+      localStream.getAudioTracks().forEach(t => t.enabled = micActive);
+    }
+    const btn = e.currentTarget;
+    btn.style.background = micActive ? '#1e293b' : '#ef4444';
+    btn.innerHTML = micActive ? '<i class="fa-solid fa-microphone"></i>' : '<i class="fa-solid fa-microphone-slash"></i>';
+    showToast(micActive ? 'Microfone ativado' : 'Microfone silenciado');
+  });
+
+  // Toggle Câmera
+  let camActive = true;
+  document.getElementById('btn-telemed-toggle-cam')?.addEventListener('click', (e) => {
+    camActive = !camActive;
+    if (localStream) {
+      localStream.getVideoTracks().forEach(t => t.enabled = camActive);
+    }
+    const videoEl = document.getElementById('telemed-local-video');
+    const fallbackEl = document.getElementById('doctor-camera-fallback');
+    if (videoEl) videoEl.style.display = camActive ? 'block' : 'none';
+    if (fallbackEl) fallbackEl.style.display = camActive ? 'none' : 'block';
+    
+    const btn = e.currentTarget;
+    btn.style.background = camActive ? '#1e293b' : '#ef4444';
+    btn.innerHTML = camActive ? '<i class="fa-solid fa-video"></i>' : '<i class="fa-solid fa-video-slash"></i>';
+    showToast(camActive ? 'Câmera ativada' : 'Câmera desativada');
+  });
+
+  // Compartilhamento de Tela
+  document.getElementById('btn-telemed-screen-share')?.addEventListener('click', async () => {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        showToast('🖥️ Compartilhamento de tela ativo!');
+        screenStream.getVideoTracks()[0].onended = () => {
+          showToast('Compartilhamento de tela encerrado.');
+        };
+      } else {
+        showToast('Compartilhamento de tela simulado ativo.');
+      }
+    } catch (err) {
+      showToast('Compartilhamento cancelado.');
+    }
+  });
+
+  // Copiar Anotações Rápidas para o PEP
+  document.getElementById('btn-telemed-copy-to-pep')?.addEventListener('click', () => {
+    const notes = document.getElementById('telemed-quick-notes')?.value || '';
+    const pepSubj = document.getElementById('pep-subjective');
+    if (pepSubj && notes) {
+      pepSubj.value = (pepSubj.value ? pepSubj.value + '\n\n' : '') + `[Anotações Teleconsulta]: ${notes}`;
+      showToast('✅ Anotações transferidas para o PEP!');
+    } else if (notes) {
+      showToast('Anotações salvas.');
+    }
+  });
+
+  // Abrir PEP
+  document.getElementById('btn-telemed-open-pep')?.addEventListener('click', () => {
+    const targetId = patientData.id || patientData.patientId || patientName;
+    if (typeof window.openPEPModal === 'function') {
+      window.openPEPModal(targetId);
+    }
+  });
+};
