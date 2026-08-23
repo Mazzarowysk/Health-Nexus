@@ -95,14 +95,14 @@ export function renderSettingsTab(contentArea) {
             ${getRolePermissions(state.user).role === 'Desenvolvedor' ? `
             <div class="settings-form-group" style="margin-bottom: 16px; margin-top: 16px;">
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="turso-cfg-manual-sync" style="width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;">
+                <input type="checkbox" id="turso-cfg-manual-sync" style="width: 18px; height: 18px; accent-color: #0284c7; cursor: pointer;">
                 <span style="color: var(--text-primary); font-size: 14px; font-weight: 500;">Habilitar Sincronização Manual</span>
               </label>
               <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block; margin-left: 26px;">Desativa a verificação automática e sincroniza apenas pelos botões.</small>
             </div>
             ` : ''}
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-              <button id="btn-save-turso-cfg" style="background-color: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+              <button id="btn-save-turso-cfg" style="background-color: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                 <i class="fa-solid fa-save"></i> Salvar Credenciais
               </button>
               <button id="btn-test-turso-cfg" style="background-color: #334155; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
@@ -161,9 +161,9 @@ export function renderSettingsTab(contentArea) {
         </details>
 
         <!-- Accordion de Backup e Restauração -->
-        <details class="settings-accordion" style="border: 1px solid rgba(129, 140, 248, 0.35);">
-          <summary class="settings-accordion-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(219, 39, 119, 0.15)); font-weight: 700;">
-            <i class="fa-solid fa-box-archive" style="color: #f472b6;"></i> Backup e Restauração
+        <details class="settings-accordion" style="border: 1px solid #1e293b;">
+          <summary class="settings-accordion-header" style="background: #111827; font-weight: 700;">
+            <i class="fa-solid fa-box-archive" style="color: #38bdf8;"></i> Backup e Restauração
             <span class="status-badge" style="margin-left: auto; background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3);">
               <i class="fa-brands fa-google-drive" style="margin-right: 4px;"></i> REDUNDÂNCIA ATIVA
             </span>
@@ -174,11 +174,11 @@ export function renderSettingsTab(contentArea) {
               <div class="backup-action-card">
                 <div>
                   <div class="backup-card-header">
-                    <i class="fa-solid fa-download" style="color: #818cf8;"></i> Exportar Backup
+                    <i class="fa-solid fa-download" style="color: #38bdf8;"></i> Exportar Backup
                   </div>
                   <p class="backup-card-desc">Exporte todos os dados do sistema para um arquivo .JSON seguro.</p>
                 </div>
-                <button id="btn-export-json" class="btn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; font-weight: 600; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                <button id="btn-export-json" class="btn" style="background: #0284c7; color: #fff; border: none; font-weight: 600; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(2,132,199,0.35);">
                   <i class="fa-solid fa-play"></i> Exportar
                 </button>
               </div>

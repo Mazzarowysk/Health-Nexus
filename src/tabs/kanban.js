@@ -532,17 +532,17 @@ window.moveKanbanCard = function(hospId) {
     <div id="kanban-move-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,7,20,0.85);z-index:100200;backdrop-filter:blur(10px);">
       <div style="background:#131326;padding:26px 28px;border-radius:18px;width:92%;max-width:400px;box-shadow:0 25px 70px rgba(0,0,0,0.9), 0 0 30px rgba(99,102,241,0.25);border:1.5px solid rgba(139,92,246,0.5);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(139,92,246,0.25);">
-          <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-arrow-right-arrow-left" style="color:#818cf8;"></i> Mover Setor</h3>
+          <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-arrow-right-arrow-left" style="color:#38bdf8;"></i> Mover Setor</h3>
           <button onclick="document.getElementById('kanban-move-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <p style="font-size:0.92rem;color:#e2e8f0;margin:0 0 18px;font-weight:600;">Paciente: <strong style="color:#38bdf8;">${pat.fullName || pat.name||'Paciente'}</strong></p>
         <div><label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;">Novo Setor Destino</label>
-          <select id="move-sector-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.5);background:#0f172a;color:#ffffff;font-size:0.92rem;font-weight:600;">
+          <select id="move-sector-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#ffffff;font-size:0.92rem;font-weight:600;">
             ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id===hosp.current_sector?'selected':''} style="background:#0f172a;color:#ffffff;">${c.label}</option>`).join('')}
           </select></div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
-          <button onclick="document.getElementById('kanban-move-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;">Cancelar</button>
-          <button onclick="confirmMoveKanban('${hospId}')" style="padding:9px 18px;border-radius:8px;background:linear-gradient(135deg, #6366f1, #8b5cf6);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 14px rgba(99,102,241,0.4);"><i class="fa-solid fa-check"></i> Mover</button>
+          <button onclick="document.getElementById('kanban-move-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;">Cancelar</button>
+          <button onclick="confirmMoveKanban('${hospId}')" style="padding:9px 18px;border-radius:8px;background:#0284c7;color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 2px 10px rgba(2,132,199,0.35);"><i class="fa-solid fa-check"></i> Mover</button>
         </div>
       </div>
     </div>`);

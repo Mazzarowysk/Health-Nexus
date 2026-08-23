@@ -640,11 +640,11 @@ window.openBedDetailsModal = async function(bedId) {
 
     const modalHtml = `
       <div id="bed-details-modal" class="modal-overlay" style="position: fixed; top:0; left:0; width:100vw; height:100vh; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(5,7,20,0.85); backdrop-filter: blur(10px);">
-        <div class="modal-content" style="max-width: 680px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99,102,241,0.45); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8); animation: slideIn 0.3s ease-out;">
+        <div class="modal-content" style="max-width: 680px; width: 95vw; max-height: 90vh; background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8); animation: slideIn 0.3s ease-out;">
           
-          <div style="background: linear-gradient(135deg, #1e1b4b, #311b92); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid var(--border-color);">
+          <div style="background: #1e293b; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid #334155;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.3rem;">
+              <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.2rem;">
                 <i class="fa-solid fa-bed"></i>
               </div>
               <div>
@@ -652,7 +652,7 @@ window.openBedDetailsModal = async function(bedId) {
                   Leito ${bedNum}
                   <span style="font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; background: ${statusBadgeBg}; color: ${statusBadgeColor}; border: 1px solid ${statusBadgeColor}; font-weight: 700;">${bed.status}</span>
                 </h3>
-                <small style="color: #c4b5fd; font-size: 0.82rem;">Setor: <strong>${bed.sector || bed.type || 'Enfermaria'}</strong> &bull; Ala: ${bed.ward || 'Geral'}</small>
+                <small style="color: #94a3b8; font-size: 0.82rem;">Setor: <strong>${bed.sector || bed.type || 'Enfermaria'}</strong> &bull; Ala: ${bed.ward || 'Geral'}</small>
               </div>
             </div>
             <button onclick="document.getElementById('bed-details-modal').remove()" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>

@@ -111,11 +111,10 @@ window.startAppointmentEncounter = async function(patientId, aptId) {
 window.handleCardClick = function(tabName, reportType, message) {
   const existingToast = document.querySelector('.interactive-toast');
   if (existingToast) existingToast.remove();
-
   const toast = document.createElement('div');
   toast.className = 'interactive-toast';
-  toast.innerHTML = `<i class="fa-solid fa-bolt" style="color:#a855f7;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
-  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:linear-gradient(135deg, #1e1b4b, #311b92);color:#ffffff;padding:14px 22px;border-radius:14px;border:1px solid #8b5cf6;box-shadow:0 12px 35px rgba(139,92,246,0.45);font-family:Outfit,sans-serif;font-weight:600;font-size:0.9rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:12px;';
+  toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#0ea5e9;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
+  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#0f172a;color:#ffffff;padding:12px 20px;border-radius:12px;border:1px solid #334155;box-shadow:0 12px 30px rgba(0,0,0,0.6);font-family:Outfit,sans-serif;font-weight:600;font-size:0.88rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:10px;';
   document.body.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
@@ -536,7 +535,7 @@ function openLoginInstructionsModal() {
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,8,22,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:99999;animation:fadeIn 0.25s ease-out;';
 
   modal.innerHTML = `
-    <div style="background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 20px; width: 90%; max-width: 440px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
+    <div style="background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; width: 90%; max-width: 440px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
       <!-- Botão Fechar -->
       <button id="close-instructions-modal" type="button" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; padding: 4px; transition: color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='#94a3b8'">
         <i class="fa-solid fa-xmark"></i>
@@ -544,17 +543,17 @@ function openLoginInstructionsModal() {
 
       <!-- Cabeçalho da Janela -->
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(129, 140, 248, 0.4); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.25rem;">
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.15rem;">
           <i class="fa-solid fa-key"></i>
         </div>
         <div>
-          <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; color: #ffffff;">Instruções de Acesso</h3>
-          <span style="font-size: 0.8rem; color: #94a3b8;">Orientações para login no Health Nexus</span>
+          <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.15rem; color: #ffffff;">Instruções de Acesso</h3>
+          <span style="font-size: 0.78rem; color: #94a3b8;">Orientações para login no Health Nexus</span>
         </div>
       </div>
 
       <!-- Texto de Orientação -->
-      <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 18px; background: rgba(255,255,255,0.03); padding: 12px 14px; border-radius: 10px; border-left: 3px solid #818cf8;">
+      <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 18px; background: #111827; padding: 12px 14px; border-radius: 10px; border-left: 3px solid #0284c7;">
         Para acessar o sistema de demonstração, utilize uma das contas pré-configuradas abaixo ou selecione <strong>"Preencher"</strong> para aplicar automaticamente.
       </p>
 
@@ -2437,17 +2436,17 @@ window.openVitalDetailModal = function(vitalKey) {
   modal.style.zIndex = '999999';
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 580px; width: 92%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.7);">
-      <div class="modal-header" style="padding: 20px 24px; background: linear-gradient(135deg, #1e1b4b, #2e1065); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+      <div class="modal-header" style="padding: 18px 24px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: ${info.color}22; border: 1px solid ${info.color}55; display: flex; align-items: center; justify-content: center; color: ${info.color}; font-size: 1.2rem;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: ${info.color}22; border: 1px solid ${info.color}55; display: flex; align-items: center; justify-content: center; color: ${info.color}; font-size: 1.15rem;">
             <i class="fa-solid ${info.icon}"></i>
           </div>
           <div>
             <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff;">${info.title}</h3>
-            <span style="font-size: 0.78rem; color: #c4b5fd;">Guia Clínico & Padrões Médicos Normais</span>
+            <span style="font-size: 0.78rem; color: #94a3b8;">Guia Clínico & Padrões Médicos Normais</span>
           </div>
         </div>
-        <button type="button" class="modal-close" onclick="document.getElementById('vital-detail-modal').remove()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <button type="button" class="modal-close" onclick="document.getElementById('vital-detail-modal').remove()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>

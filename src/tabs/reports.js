@@ -513,7 +513,7 @@ function renderReportsTab(contentArea) {
           </div>
           <div class="filter-group" style="grid-column: 1 / -1; margin-top: 8px; display: flex; gap: 12px;">
             <button type="button" onclick="document.getElementById('filter-date-start-fin').value=''; document.getElementById('filter-date-end-fin').value=''; document.getElementById('filter-fin-type').value='Todos'; document.getElementById('filter-fin-search').value=''; document.querySelectorAll('.filter-fin-item, .filter-fin-cat-item, .filter-fin-method-item').forEach(c=>c.checked=true); typeof filterAndRender==='function' && filterAndRender();" class="btn" style="flex: 1; max-width: 160px; height: 44px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Limpar Filtros"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar</button>
-            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;height:44px;background:linear-gradient(135deg, #6366f1, #4f46e5);color:#fff;font-weight:700;font-size:0.88rem;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(99,102,241,0.35);cursor:pointer;border:none;">
+            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;height:44px;background:#0284c7;color:#fff;font-weight:700;font-size:0.88rem;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 10px rgba(2,132,199,0.35);cursor:pointer;border:none;">
               <i class="fa-solid fa-window-restore"></i> Visualizar Listagem em Janela Dedicada
             </button>
           </div>
@@ -2554,9 +2554,9 @@ function renderReportsTab(contentArea) {
           </div>
           
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button id="btn-copy-linha-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(99,102,241,0.4);"><i class="fa-solid fa-copy"></i> Copiar Linha</button>
+            <button id="btn-copy-linha-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(2,132,199,0.4);"><i class="fa-solid fa-copy"></i> Copiar Linha</button>
             <button id="btn-copy-pix-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(52,211,153,0.4); color: #34d399;"><i class="fa-solid fa-qrcode"></i> Copiar Pix</button>
-            <button id="btn-print-boleto" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 14px; background: linear-gradient(135deg, #6366f1, #4f46e5);"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
+            <button id="btn-print-boleto" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 14px; background: #0284c7;"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
             <button id="close-boleto-modal" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Fechar Janela (ESC)"><i class="fa-solid fa-xmark"></i></button>
           </div>
         </div>
@@ -2872,7 +2872,7 @@ function renderReportsTab(contentArea) {
         <!-- BOTÕES DE FECHAMENTO DO MODAL -->
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px;">
           <button id="btn-close-boleto-foot" class="btn btn-outline" style="font-size: 0.85rem; padding: 8px 18px;">Fechar Visualização</button>
-          <button id="btn-print-boleto-foot" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); font-size: 0.85rem; padding: 8px 20px;"><i class="fa-solid fa-print"></i> Imprimir Boleto FEBRABAN</button>
+          <button id="btn-print-boleto-foot" class="btn btn-primary" style="background: #0284c7; font-size: 0.85rem; padding: 8px 20px; box-shadow: 0 2px 10px rgba(2,132,199,0.35);"><i class="fa-solid fa-print"></i> Imprimir Boleto FEBRABAN</button>
         </div>
       </div>
     `;
