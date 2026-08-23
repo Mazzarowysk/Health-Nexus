@@ -48,9 +48,10 @@
 ## 🧩 Módulos Implementados (Visão Geral 360º)
 
 1. **Autenticação & Controle de Acesso (RBAC)**  
-   Login com JWT e gestão de papéis: `Master`, `Médico`, `Enfermeiro`, `Recepcionista`, `Desenvolvedor`.  
-   - Liberação de logins para 12 médicos e 8 enfermeiros com acessos operacionais restritos.
+   Login com JWT e gestão de papéis: `Master`, `Médico`, `Enfermeiro`, `Recepcionista`, `Desenvolvedor`, `Administrador`, `Farmacêutico`, `Gestor Financeiro`, `Biomédico`, `Auxiliar`.  
+   - Liberação de logins para corpo clínico com acessos operacionais restritos.
    - Auditoria de segurança de acessos (últimos 5 acessos e modal de auditoria até 100 acessos por usuário).
+   - **Purga de Usuários de Simulação com Lista de Exceções (*Whitelist*):** Ferramenta exclusiva do Usuário Master (`mazzarowysk`) para expurgar contas fictícias geradas por testes em lote, com seleção visual e proteção automática de contas vitais (`mazzarowysk`, `bcoltri`, `ffacco`, `admin`, `pforte`).
    - Preservação inteligente de usuários durante a limpeza/geração de dados de teste.
 
 2. **Dashboard (Health Nexus)**  

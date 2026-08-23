@@ -1601,14 +1601,30 @@ Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de
 <p>No canto inferior direito da tela, um card translúcido inteligente (<em>Glass HUD</em>) mantém o paciente ativo visível em tempo real:</p>
 <ul>
 <li>Exibe o nome do paciente, indicador pulsante de atendimento e botões de atalho direto para o <strong>Prontuário (PEP)</strong> e <strong>Desfecho Rápido</strong>.</li>
-<li>Permite que o médico ou enfermeiro consulte o estoque da farmácia, a escala médica ou relatórios sem perder o foco no paciente atual.</li>
 </ul>
-<h3>23.3. Desfecho Clínico Rápido (<em>Smart 1-Click Hand-off</em>)</h3>
-<p>Ao finalizar uma consulta ou avaliação médica, o sistema disponibiliza 3 atalhos inteligentes:</p>
+<hr>
+<h2 id="sec-24">24. Limpeza de Usuários de Simulação & Lista de Exceções (*Whitelist*) (v2.7.3) 🧹</h2><p>O <strong>Health Nexus v2.7.3</strong> disponibiliza uma ferramenta administrativa avançada exclusiva para o <strong>Usuário Master (<code>mazzarowysk</code>)</strong> no modal de <strong>Gerenciamento de Usuários</strong>:</p>
+<h3>24.1. Objetivo da Funcionalidade</h3>
+<p>Durante testes de estresse ou homologação, a geração de massa fictícia de dados (<em>Seed</em>) cria dezenas de usuários de teste (<code>USR-DOC-001</code>, <code>dr.carloseduard</code>, <code>enf.patricia</code>, etc.).<br>A ferramenta de <strong>Limpeza de Simulação</strong> permite expurgar todos os usuários de teste em lote sem afetar as contas oficiais do hospital ou funcionários cadastrados.</p>
+<h3>24.2. Como Utilizar o Recurso</h3>
 <ol>
-<li>🟢 <strong>Alta Médica Imediata:</strong> Gera a receita/atestado e conclui o ciclo assistencial.</li>
-<li>🟡 <strong>Observação PS (12 Horas):</strong> Inicia o cronômetro de permanência no Pronto-Socorro com monitoramento de superlotação.</li>
-<li>🔴 <strong>Solicitar Internação:</strong> Direciona para o Mapa de Leitos para reserva imediata em Enfermaria ou UTI.</li>
+<li>Acesse a aba <strong>Configurações</strong> e abra o painel <strong>Gerenciamento de Usuários</strong>.</li>
+<li>Clique no botão vermelho <strong><code>🧹 Limpar Simulação</code></strong> (disponível apenas para contas Master).</li>
+<li>No modal de purga:<ul>
+<li><strong>Lista de Exceções Protegidas:</strong> As contas vitais do sistema (<code>mazzarowysk</code>, <code>bcoltri</code>, <code>ffacco</code>, <code>admin</code>, <code>pforte</code>) vêm pré-selecionadas como protegidas.</li>
+<li><strong>Trava de Segurança Master:</strong> A conta <code>mazzarowysk</code> é permanentemente travada contra exclusão acidental.</li>
+<li><strong>Seleção Flexível:</strong> O Master pode marcar qualquer usuário adicional da lista para ser <strong>PRESERVADO</strong> ou desmarcar para ser <strong>EXCLUÍDO</strong>.</li>
+<li><strong>Botões de Ação Rápida:</strong><ul>
+<li><code>🛡️ Padrão Oficial</code>: Restaura a seleção para as contas oficiais padrão.</li>
+<li><code>✅ Marcar Todos</code>: Protege todos os usuários contra exclusão.</li>
+<li><code>❌ Desmarcar</code>: Desmarca todos os usuários (exceto o Master).</li>
+</ul>
+</li>
+<li><strong>Contador Dinâmico em Tempo Real:</strong> Exibe a contagem exata de contas que serão preservadas vs contas que serão eliminadas.</li>
+</ul>
+</li>
+<li>Clique em <strong><code>Executar Limpeza</code></strong> e confirme o diálogo de segurança.</li>
+<li>O sistema atualiza o banco de dados local, sincroniza com a nuvem (Turso Cloud) e registra um evento de auditoria no histórico da sessão.</li>
 </ol>
 <hr>
 

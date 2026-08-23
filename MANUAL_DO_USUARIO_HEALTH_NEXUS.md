@@ -1522,12 +1522,30 @@ No topo das abas assistenciais (Atendimentos, Triagem, Consultórios e Leitos), 
 ### 23.2. Widget Flutuante do Paciente em Foco (*Floating Patient HUD*)
 No canto inferior direito da tela, um card translúcido inteligente (*Glass HUD*) mantém o paciente ativo visível em tempo real:
 - Exibe o nome do paciente, indicador pulsante de atendimento e botões de atalho direto para o **Prontuário (PEP)** e **Desfecho Rápido**.
-- Permite que o médico ou enfermeiro consulte o estoque da farmácia, a escala médica ou relatórios sem perder o foco no paciente atual.
+---
 
-### 23.3. Desfecho Clínico Rápido (*Smart 1-Click Hand-off*)
-Ao finalizar uma consulta ou avaliação médica, o sistema disponibiliza 3 atalhos inteligentes:
-1. 🟢 **Alta Médica Imediata:** Gera a receita/atestado e conclui o ciclo assistencial.
-2. 🟡 **Observação PS (12 Horas):** Inicia o cronômetro de permanência no Pronto-Socorro com monitoramento de superlotação.
-3. 🔴 **Solicitar Internação:** Direciona para o Mapa de Leitos para reserva imediata em Enfermaria ou UTI.
+<h2 id="sec-24">24. Limpeza de Usuários de Simulação & Lista de Exceções (*Whitelist*) (v2.7.3) 🧹</h2>
+
+O **Health Nexus v2.7.3** disponibiliza uma ferramenta administrativa avançada exclusiva para o **Usuário Master (`mazzarowysk`)** no modal de **Gerenciamento de Usuários**:
+
+### 24.1. Objetivo da Funcionalidade
+Durante testes de estresse ou homologação, a geração de massa fictícia de dados (*Seed*) cria dezenas de usuários de teste (`USR-DOC-001`, `dr.carloseduard`, `enf.patricia`, etc.).  
+A ferramenta de **Limpeza de Simulação** permite expurgar todos os usuários de teste em lote sem afetar as contas oficiais do hospital ou funcionários cadastrados.
+
+### 24.2. Como Utilizar o Recurso
+1. Acesse a aba **Configurações** e abra o painel **Gerenciamento de Usuários**.
+2. Clique no botão vermelho **`🧹 Limpar Simulação`** (disponível apenas para contas Master).
+3. No modal de purga:
+   - **Lista de Exceções Protegidas:** As contas vitais do sistema (`mazzarowysk`, `bcoltri`, `ffacco`, `admin`, `pforte`) vêm pré-selecionadas como protegidas.
+   - **Trava de Segurança Master:** A conta `mazzarowysk` é permanentemente travada contra exclusão acidental.
+   - **Seleção Flexível:** O Master pode marcar qualquer usuário adicional da lista para ser **PRESERVADO** ou desmarcar para ser **EXCLUÍDO**.
+   - **Botões de Ação Rápida:**
+     - `🛡️ Padrão Oficial`: Restaura a seleção para as contas oficiais padrão.
+     - `✅ Marcar Todos`: Protege todos os usuários contra exclusão.
+     - `❌ Desmarcar`: Desmarca todos os usuários (exceto o Master).
+   - **Contador Dinâmico em Tempo Real:** Exibe a contagem exata de contas que serão preservadas vs contas que serão eliminadas.
+4. Clique em **`Executar Limpeza`** e confirme o diálogo de segurança.
+5. O sistema atualiza o banco de dados local, sincroniza com a nuvem (Turso Cloud) e registra um evento de auditoria no histórico da sessão.
 
 ---
+

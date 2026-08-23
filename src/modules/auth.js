@@ -444,9 +444,16 @@ export const showUserManagementModal = async () => {
           <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">
             Cadastre novos usuários, altere senhas e defina funções do corpo clínico.
           </p>
-          <button id="btn-add-new-user" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 9px 16px; font-size: 0.88rem;">
-            <i class="fa-solid fa-user-plus"></i> Novo Usuário
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            ${(state.user?.role === 'Master' || state.user?.username === 'mazzarowysk' || state.user?.role === 'Administrador') ? `
+              <button id="btn-purge-sim-users" class="btn" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; padding: 9px 14px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'" title="Excluir usuários de teste/simulação com lista de exceções protegidas">
+                <i class="fa-solid fa-broom-ball"></i> Limpar Simulação
+              </button>
+            ` : ''}
+            <button id="btn-add-new-user" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 9px 16px; font-size: 0.88rem;">
+              <i class="fa-solid fa-user-plus"></i> Novo Usuário
+            </button>
+          </div>
         </div>
 
         <div style="position: relative; margin-top: 6px;">
@@ -468,6 +475,8 @@ export const showUserManagementModal = async () => {
 
   document.getElementById('btn-users-modal-close')?.addEventListener('click', () => overlay.remove());
 
+  let latestUsersList = [];
+
   const loadUsersList = async () => {
     const container = document.getElementById('users-table-container');
     if (!container) return;
@@ -477,6 +486,7 @@ export const showUserManagementModal = async () => {
       if (!res.ok) throw new Error('Falha ao buscar usuários');
       const payload = await res.json();
       const rawUsersList = payload.data || [];
+      latestUsersList = rawUsersList;
 
       if (rawUsersList.length === 0) {
         container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhum usuário cadastrado.</div>`;
@@ -711,7 +721,299 @@ export const showUserManagementModal = async () => {
     showUserFormModal(null, loadUsersList);
   });
 
+  document.getElementById('btn-purge-sim-users')?.addEventListener('click', () => {
+    showPurgeSimulationUsersModal(latestUsersList, loadUsersList);
+  });
+
   loadUsersList();
+};
+
+export const showPurgeSimulationUsersModal = (allUsers = [], onPurgeComplete = null) => {
+  const existing = document.getElementById('hn-purge-users-modal');
+  if (existing) existing.remove();
+
+  // Exceções padrão que vêm pré-selecionadas
+  const DEFAULT_EXCEPTIONS = ['mazzarowysk', 'bcoltri', 'ffacco', 'admin', 'pforte'];
+  
+  // Set de usernames marcados como exceção (preservados)
+  const selectedExceptions = new Set();
+  
+  // Inicializar exceções com as contas padrão
+  allUsers.forEach(u => {
+    const un = (u.username || '').replace('@', '').toLowerCase().trim();
+    if (DEFAULT_EXCEPTIONS.includes(un) || un === 'mazzarowysk') {
+      selectedExceptions.add(un);
+    }
+  });
+  // Garantir mazzarowysk sempre protegido
+  selectedExceptions.add('mazzarowysk');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hn-purge-users-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'z-index: 100001; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);';
+
+  overlay.innerHTML = `
+    <div class="sync-modal-card" style="max-width: 680px; width: 92%; max-height: 88vh; display: flex; flex-direction: column; border: 1.5px solid rgba(239, 68, 68, 0.5); box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(239,68,68,0.2);">
+      <div class="sync-header-banner" style="background: linear-gradient(135deg, #b91c1c, #7f1d1d); padding: 18px 24px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="sync-header-title" style="display: flex; align-items: center; gap: 10px; margin: 0; color: #fff; font-size: 1.15rem; font-weight: 700;">
+          <i class="fa-solid fa-broom-ball"></i> Limpeza de Usuários de Simulação
+        </h3>
+        <button id="btn-purge-modal-close" class="modal-close" aria-label="Fechar" style="background: rgba(255,255,255,0.15); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="sync-modal-body" style="padding: 22px; gap: 14px; overflow-y: auto; text-align: left; align-items: stretch; display: flex; flex-direction: column;">
+        <!-- Banner de Orientação -->
+        <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 14px 16px; color: #fca5a5; font-size: 0.86rem; line-height: 1.5;">
+          <strong style="color: #f87171; display: flex; align-items: center; gap: 6px; font-size: 0.92rem; margin-bottom: 4px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Gerenciamento de Massa de Testes & Exceções
+          </strong>
+          Esta ferramenta realiza a exclusão em lote dos usuários fictícios gerados por testes. 
+          Marque abaixo os usuários que você deseja <strong>PRESERVAR</strong> (Lista de Exceções). Usuários não marcados serão excluídos do sistema.
+        </div>
+
+        <!-- Barra de Ações Rápidas & Busca -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+          <div style="position: relative; flex: 1; min-width: 220px;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.85rem; pointer-events: none;"></i>
+            <input type="text" id="purge-search-input" class="input-field" placeholder="Filtrar por nome, @login ou função..." style="width: 100%; height: 38px; padding-left: 36px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.85rem; box-sizing: border-box;">
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button id="btn-purge-select-defaults" type="button" class="btn btn-sm" style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.78rem; font-weight: 600; padding: 6px 10px; border-radius: 6px; cursor: pointer;">
+              <i class="fa-solid fa-shield"></i> Padrão Oficial
+            </button>
+            <button id="btn-purge-select-all" type="button" class="btn btn-sm" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 0.78rem; font-weight: 600; padding: 6px 10px; border-radius: 6px; cursor: pointer;">
+              <i class="fa-solid fa-check-double"></i> Marcar Todos
+            </button>
+            <button id="btn-purge-unselect-all" type="button" class="btn btn-sm" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; font-size: 0.78rem; font-weight: 600; padding: 6px 10px; border-radius: 6px; cursor: pointer;">
+              <i class="fa-solid fa-ban"></i> Desmarcar
+            </button>
+          </div>
+        </div>
+
+        <!-- Indicador de Contagem em Tempo Real -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; font-size: 0.84rem; flex-wrap: wrap; gap: 10px;">
+          <div>
+            Total de Usuários: <strong style="color: var(--text-primary);">${allUsers.length}</strong>
+          </div>
+          <div style="display: flex; gap: 14px;">
+            <span style="color: #34d399; font-weight: 700;"><i class="fa-solid fa-shield-heart"></i> Preservados: <span id="purge-badge-kept">0</span></span>
+            <span style="color: #f87171; font-weight: 700;"><i class="fa-solid fa-trash-can"></i> A Excluir: <span id="purge-badge-deleted">0</span></span>
+          </div>
+        </div>
+
+        <!-- Lista Rolável de Usuários com Checkbox -->
+        <div id="purge-users-list-container" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--border-color); border-radius: 10px; padding: 8px; background: rgba(0,0,0,0.2);">
+          <!-- Renderizado dinamicamente -->
+        </div>
+
+        <!-- Rodapé com Confirmação -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); margin-top: 4px;">
+          <button id="btn-purge-cancel" type="button" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 18px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer;">
+            Cancelar
+          </button>
+          <button id="btn-purge-confirm-exec" type="button" class="btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; padding: 8px 20px; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(239,68,68,0.4);">
+            <i class="fa-solid fa-trash-can"></i> <span id="btn-purge-confirm-text">Executar Limpeza</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('btn-purge-modal-close')?.addEventListener('click', () => overlay.remove());
+  document.getElementById('btn-purge-cancel')?.addEventListener('click', () => overlay.remove());
+
+  const listContainer = document.getElementById('purge-users-list-container');
+  const badgeKept = document.getElementById('purge-badge-kept');
+  const badgeDeleted = document.getElementById('purge-badge-deleted');
+  const btnConfirmText = document.getElementById('btn-purge-confirm-text');
+  const searchInput = document.getElementById('purge-search-input');
+
+  const updateStats = () => {
+    const total = allUsers.length;
+    const keptCount = selectedExceptions.size;
+    const deletedCount = Math.max(0, total - keptCount);
+
+    if (badgeKept) badgeKept.textContent = keptCount;
+    if (badgeDeleted) badgeDeleted.textContent = deletedCount;
+    if (btnConfirmText) {
+      btnConfirmText.textContent = deletedCount > 0 ? `Excluir ${deletedCount} Usuários` : 'Nenhuma Exclusão Selecionada';
+    }
+  };
+
+  const renderUsersList = () => {
+    if (!listContainer) return;
+    const searchVal = (searchInput?.value || '').toLowerCase().trim();
+
+    const filtered = allUsers.filter(u => {
+      if (!searchVal) return true;
+      const un = (u.username || '').toLowerCase();
+      const nm = (u.name || '').toLowerCase();
+      const rl = (u.role || '').toLowerCase();
+      return un.includes(searchVal) || nm.includes(searchVal) || rl.includes(searchVal);
+    });
+
+    if (filtered.length === 0) {
+      listContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.85rem;">Nenhum usuário encontrado para "${searchVal}".</div>`;
+      updateStats();
+      return;
+    }
+
+    listContainer.innerHTML = filtered.map(u => {
+      const un = (u.username || '').replace('@', '').toLowerCase().trim();
+      const isMaster = un === 'mazzarowysk';
+      const isChecked = selectedExceptions.has(un) || isMaster;
+
+      let roleColor = '#818cf8';
+      let roleBg = 'rgba(99, 102, 241, 0.15)';
+      if (isMaster || u.role === 'Master') {
+        roleColor = '#34d399'; roleBg = 'rgba(16, 185, 129, 0.15)';
+      } else if (u.role === 'Desenvolvedor') {
+        roleColor = '#c084fc'; roleBg = 'rgba(168, 85, 247, 0.15)';
+      } else if (u.role === 'Médico') {
+        roleColor = '#f472b6'; roleBg = 'rgba(236, 72, 153, 0.15)';
+      } else if (u.role === 'Enfermeiro') {
+        roleColor = '#38bdf8'; roleBg = 'rgba(56, 189, 248, 0.15)';
+      }
+
+      return `
+        <label style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: ${isChecked ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-secondary)'}; border: 1px solid ${isChecked ? 'rgba(99, 102, 241, 0.3)' : 'var(--border-color)'}; border-radius: 8px; cursor: ${isMaster ? 'not-allowed' : 'pointer'}; transition: 0.15s; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+            <input type="checkbox" class="purge-user-checkbox" data-username="${un}" ${isChecked ? 'checked' : ''} ${isMaster ? 'disabled' : ''} style="width: 16px; height: 16px; accent-color: #6366f1; cursor: ${isMaster ? 'not-allowed' : 'pointer'};">
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <strong style="color: #fff; font-size: 0.88rem;">${u.name}</strong>
+              <span style="font-family: monospace; font-size: 0.78rem; color: var(--text-secondary); margin-left: 6px;">@${u.username}</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            ${isMaster ? `<span style="font-size: 0.7rem; font-weight: 800; background: rgba(16,185,129,0.25); color: #34d399; border: 1px solid rgba(16,185,129,0.5); padding: 2px 8px; border-radius: 10px;"><i class="fa-solid fa-lock"></i> MASTER PROTEGIDO</span>` : ''}
+            <span style="font-size: 0.74rem; font-weight: 700; background: ${roleBg}; color: ${roleColor}; padding: 2px 8px; border-radius: 8px;">
+              ${u.role || 'Usuário'}
+            </span>
+          </div>
+        </label>
+      `;
+    }).join('');
+
+    listContainer.querySelectorAll('.purge-user-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const targetUn = e.target.dataset.username;
+        if (targetUn === 'mazzarowysk') {
+          e.target.checked = true;
+          return;
+        }
+        if (e.target.checked) {
+          selectedExceptions.add(targetUn);
+        } else {
+          selectedExceptions.delete(targetUn);
+        }
+        renderUsersList();
+      });
+    });
+
+    updateStats();
+  };
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => renderUsersList());
+  }
+
+  document.getElementById('btn-purge-select-defaults')?.addEventListener('click', () => {
+    selectedExceptions.clear();
+    allUsers.forEach(u => {
+      const un = (u.username || '').replace('@', '').toLowerCase().trim();
+      if (DEFAULT_EXCEPTIONS.includes(un) || un === 'mazzarowysk') {
+        selectedExceptions.add(un);
+      }
+    });
+    selectedExceptions.add('mazzarowysk');
+    renderUsersList();
+  });
+
+  document.getElementById('btn-purge-select-all')?.addEventListener('click', () => {
+    allUsers.forEach(u => {
+      const un = (u.username || '').replace('@', '').toLowerCase().trim();
+      selectedExceptions.add(un);
+    });
+    selectedExceptions.add('mazzarowysk');
+    renderUsersList();
+  });
+
+  document.getElementById('btn-purge-unselect-all')?.addEventListener('click', () => {
+    selectedExceptions.clear();
+    selectedExceptions.add('mazzarowysk');
+    renderUsersList();
+  });
+
+  document.getElementById('btn-purge-confirm-exec')?.addEventListener('click', async () => {
+    const total = allUsers.length;
+    const keptCount = selectedExceptions.size;
+    const deletedCount = Math.max(0, total - keptCount);
+
+    if (deletedCount === 0) {
+      showCustomAlert({
+        title: 'Nenhuma Exclusão',
+        message: 'Todos os usuários estão marcados na lista de exceções. Desmarque os usuários que deseja excluir antes de executar.',
+        type: 'warning'
+      });
+      return;
+    }
+
+    const confirmed = await showCustomConfirm({
+      title: 'Confirmar Purga de Usuários de Simulação',
+      message: `Tem certeza que deseja excluir permanentemente <strong>${deletedCount} usuário(s) de teste</strong>?<br><br>🛡️ <strong>${keptCount} usuário(s)</strong> da Lista de Exceções serão mantidos intactos no sistema.`,
+      confirmText: `Sim, Excluir ${deletedCount} Usuários`,
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+
+    if (confirmed) {
+      try {
+        const db = localDB.getFullDB();
+        const currentUsers = db.users || [];
+        const filteredUsers = currentUsers.filter(u => {
+          const un = (u.username || '').replace('@', '').toLowerCase().trim();
+          return selectedExceptions.has(un) || un === 'mazzarowysk';
+        });
+
+        db.users = filteredUsers;
+        localDB.saveFullDB(db);
+
+        // Registro de Auditoria
+        try {
+          localDB.insert('session_history', {
+            id: 'AUD-PURGE-' + Date.now(),
+            userId: state.user?.id || 'USR-MAZZAROWYSK',
+            username: state.user?.username || 'mazzarowysk',
+            action: `Purga de simulação: ${deletedCount} usuários de teste excluídos. ${filteredUsers.length} usuários mantidos na exceção.`,
+            ipAddress: '127.0.0.1 (Local)',
+            timestamp: new Date().toISOString(),
+            deviceInfo: navigator.userAgent
+          });
+        } catch (e) {}
+
+        syncManager.pushToCloud(false);
+        overlay.remove();
+
+        if (typeof onPurgeComplete === 'function') {
+          await onPurgeComplete();
+        }
+
+        showToast(`🧹 Limpeza concluída! ${deletedCount} usuários de simulação foram removidos. ${filteredUsers.length} mantidos.`);
+      } catch (err) {
+        console.error('[PurgeSimulationUsers]', err);
+        showCustomAlert({
+          title: 'Erro na Limpeza',
+          message: 'Falha ao executar a purga de usuários: ' + err.message,
+          type: 'danger'
+        });
+      }
+    }
+  });
+
+  renderUsersList();
 };
 
 export const showUserFormModal = (userToEdit = null, onSaved = null) => {
