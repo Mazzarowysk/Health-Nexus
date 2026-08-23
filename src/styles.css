@@ -2134,6 +2134,24 @@ body {
   background-color: rgba(0, 122, 255, 0.15);
 }
 
+.manchester-option.ai-suggested-glow .manchester-label {
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.55);
+  border-width: 2px;
+  animation: pulseAiBorder 2s infinite ease-in-out;
+}
+
+@keyframes pulseAiBorder {
+  0%, 100% { box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
+  50% { box-shadow: 0 0 24px rgba(139, 92, 246, 0.85); }
+}
+
+.manchester-option input[type="radio"]:disabled + .manchester-label {
+  cursor: not-allowed !important;
+  pointer-events: none;
+  opacity: 0.32;
+  filter: grayscale(0.6);
+}
+
 @media (max-width: 1200px) {
   .atendimentos-grid {
     grid-template-columns: 1fr;
