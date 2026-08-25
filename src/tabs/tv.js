@@ -781,9 +781,12 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
             <div>
               <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Instruções</label>
               <div style="display: flex; gap: 6px;">
-                <input type="text" id="rx-med-notes" class="form-input" placeholder="Diluir em 100ml SF" style="flex: 1; font-size: 0.83rem;">
-                <button type="button" id="btn-add-rx-item" class="btn btn-primary" style="padding: 0 14px; font-size: 0.82rem; height: 38px; border-radius: 8px; font-weight: 700;" title="Adicionar medicamento à planilha">
-                  <i class="fa-solid fa-plus"></i>
+                <input type="text" id="rx-med-notes" class="form-input" placeholder="Diluir em 100ml SF" style="flex: 1; min-width: 130px; font-size: 0.83rem;">
+                <button type="button" id="btn-add-rx-item" class="btn" style="padding: 0 12px; font-size: 0.8rem; height: 38px; border-radius: 8px; font-weight: 700; background: rgba(99,102,241,0.2); border: 1px solid #6366f1; color: #c7d2fe; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer;" title="Adicionar este medicamento à lista da planilha">
+                  <i class="fa-solid fa-plus"></i> Adicionar
+                </button>
+                <button type="button" id="btn-prescribe-direct" class="btn btn-primary" style="padding: 0 14px; font-size: 0.8rem; height: 38px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; background: linear-gradient(135deg, #059669, #10b981); border: none; color: #fff;" title="Adicionar e Prescrever Imediatamente">
+                  <i class="fa-solid fa-paper-plane"></i> Prescrever
                 </button>
               </div>
             </div>
@@ -793,10 +796,13 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
           <div id="rx-posology-smart-tip" style="display: none; font-size: 0.78rem; color: #a5b4fc; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); padding: 6px 12px; border-radius: 8px; margin-bottom: 12px;"></div>
 
           <!-- RASCUNHO DA TABELA DE MEDICAÇÕES -->
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; margin-top: 4px;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Planilha da Prescrição Atual:</div>
-            <div id="rx-draft-table" style="max-height: 140px; overflow-y: auto;">
-              <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+).</div>
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-top: 4px;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+              <span><i class="fa-solid fa-table-list" style="color: #6366f1; margin-right: 6px;"></i> Planilha da Prescrição Atual:</span>
+              <span style="font-size: 0.72rem; font-weight: 400; color: var(--text-muted);">Itens serão encaminhados para a Farmácia</span>
+            </div>
+            <div id="rx-draft-table" style="max-height: 180px; overflow-y: auto;">
+              <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+ Adicionar).</div>
             </div>
 
             <!-- BANNER DINÂMICO DE INTERAÇÕES MEDICAMENTOSAS -->
@@ -1075,7 +1081,7 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     const tableEl = document.getElementById('rx-draft-table');
     const saveBtn = document.getElementById('btn-save-rx');
     if (draftItems.length === 0) {
-      tableEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+).</div>';
+      tableEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+ Adicionar).</div>';
       saveBtn.disabled = true;
       const alertBox = document.getElementById('rx-drug-interactions-alert');
       if (alertBox) alertBox.style.display = 'none';
@@ -1084,15 +1090,15 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     saveBtn.disabled = false;
 
     let html = `
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; table-layout: fixed;">
         <thead>
           <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-muted);">
-            <th style="padding: 6px;">Medicamento</th>
-            <th style="padding: 6px;">Dose</th>
-            <th style="padding: 6px;">Via</th>
-            <th style="padding: 6px;">Frequência</th>
-            <th style="padding: 6px;">Instruções</th>
-            <th style="padding: 6px; text-align: right;">Ação</th>
+            <th style="padding: 8px 6px; width: 26%;">Medicamento</th>
+            <th style="padding: 8px 6px; width: 18%;">Dose</th>
+            <th style="padding: 8px 6px; width: 10%;">Via</th>
+            <th style="padding: 8px 6px; width: 15%;">Frequência</th>
+            <th style="padding: 8px 6px; width: 26%;">Instruções</th>
+            <th style="padding: 8px 6px; width: 5%; text-align: right;">Ação</th>
           </tr>
         </thead>
         <tbody>
@@ -1101,13 +1107,13 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     draftItems.forEach((item, idx) => {
       html += `
         <tr style="border-bottom: 1px solid var(--border-color);">
-          <td style="padding: 6px; font-weight: 600; color: var(--text-primary);">${item.name}</td>
-          <td style="padding: 6px; color: var(--text-secondary);">${item.dosage || '—'}</td>
-          <td style="padding: 6px;"><span style="background: rgba(99,102,241,0.15); color: #a78bfa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${item.route}</span></td>
-          <td style="padding: 6px; color: var(--text-secondary);">${item.frequency}</td>
-          <td style="padding: 6px; color: var(--text-muted);">${item.instructions || '—'}</td>
-          <td style="padding: 6px; text-align: right;">
-            <button type="button" class="btn-remove-rx-draft" data-idx="${idx}" style="background: transparent; border: none; color: var(--danger-color); cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+          <td style="padding: 8px 6px; font-weight: 600; color: var(--text-primary); word-break: break-word;">${item.name}</td>
+          <td style="padding: 8px 6px; color: var(--text-secondary); word-break: break-word;">${item.dosage || '—'}</td>
+          <td style="padding: 8px 6px;"><span style="background: rgba(99,102,241,0.15); color: #a78bfa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${item.route}</span></td>
+          <td style="padding: 8px 6px; color: var(--text-secondary); word-break: break-word;">${item.frequency}</td>
+          <td style="padding: 8px 6px; color: var(--text-muted); word-break: break-word;">${item.instructions || '—'}</td>
+          <td style="padding: 8px 6px; text-align: right;">
+            <button type="button" class="btn-remove-rx-draft" data-idx="${idx}" style="background: transparent; border: none; color: var(--danger-color); cursor: pointer; padding: 4px;" title="Remover"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
       `;
@@ -1127,18 +1133,14 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     checkRxInteractions();
   };
 
-  document.getElementById('btn-add-rx-item').onclick = () => {
+  const addItemFromInputs = () => {
     const name = document.getElementById('rx-med-name').value.trim();
     const dosage = document.getElementById('rx-med-dose').value.trim();
     const route = document.getElementById('rx-med-route').value;
     const frequency = document.getElementById('rx-med-freq').value;
     const instructions = document.getElementById('rx-med-notes').value.trim();
 
-    if (!name) { 
-      if (typeof showToast === 'function') showToast('Digite ou selecione o nome do medicamento.', 'warning');
-      else alert('Digite o nome do medicamento.'); 
-      return; 
-    }
+    if (!name) return false;
 
     draftItems.push({ name, dosage, route, frequency, instructions });
     document.getElementById('rx-med-name').value = '';
@@ -1147,7 +1149,36 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     const tipEl = document.getElementById('rx-posology-smart-tip');
     if (tipEl) tipEl.style.display = 'none';
     updateDraftTable();
+    return true;
   };
+
+  document.getElementById('btn-add-rx-item').onclick = () => {
+    const name = document.getElementById('rx-med-name').value.trim();
+    if (!name) { 
+      if (typeof showToast === 'function') showToast('Digite ou selecione o nome do medicamento para adicionar.', 'warning');
+      else alert('Digite o nome do medicamento.'); 
+      return; 
+    }
+    addItemFromInputs();
+  };
+
+  const btnPrescribeDirect = document.getElementById('btn-prescribe-direct');
+  if (btnPrescribeDirect) {
+    btnPrescribeDirect.onclick = async () => {
+      const name = document.getElementById('rx-med-name').value.trim();
+      if (name) {
+        addItemFromInputs();
+      }
+
+      if (draftItems.length === 0) {
+        if (typeof showToast === 'function') showToast('Preencha os dados do medicamento antes de prescrever.', 'warning');
+        else alert('Preencha os dados do medicamento antes de prescrever.');
+        return;
+      }
+
+      document.getElementById('btn-save-rx').click();
+    };
+  }
 
   document.getElementById('btn-save-rx').onclick = async () => {
     if (draftItems.length === 0) return;
