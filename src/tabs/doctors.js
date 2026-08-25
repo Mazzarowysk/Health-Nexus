@@ -2353,17 +2353,21 @@ async function savePEPData(encounterId, shouldFinalize) {
       const patientName = enc.patientName || 'Paciente';
 
       if (outcome === 'observacao') {
+        const activeRoom = enc.room || enc.roomName || (state.currentRoom ? state.currentRoom.name : 'Consultório 01');
         await apiFetch(`/api/encounters/${encounterId}/start-observation`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ notes: 'Encaminhado para observação após evolução.' })
+          body: JSON.stringify({ 
+            notes: 'Encaminhado para leito de observação do consultório após evolução médica.',
+            room: activeRoom
+          })
         });
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: 'Encaminhado para Observação',
-            message: `O prontuário foi assinado e o paciente <strong>${patientName}</strong> foi colocado em observação médica (12h).`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Atendimentos Médicos (Observação)',
+            actionTitle: 'Alocado na Observação do Consultório',
+            message: `O prontuário foi assinado e o paciente <strong>${patientName}</strong> foi alocado na <strong>Área de Observação do ${activeRoom}</strong> para monitoramento contínuo.`,
+            targetTab: 'consultorios',
+            targetTabLabel: `Salas & Consultórios (${activeRoom})`,
             targetPatientName: patientName
           });
         }

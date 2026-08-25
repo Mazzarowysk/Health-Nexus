@@ -495,13 +495,36 @@ export const apiFetch = async (url, options = {}) => {
       const match = url.match(/\/api\/encounters\/([^\/]+)\/start-observation/);
       const encounterId = match ? match[1] : null;
       if (encounterId) {
+        let bodyObj = {};
+        try { bodyObj = (typeof body === 'string') ? JSON.parse(body) : (body || {}); } catch(e){}
         const allEncounters = localDB.list('encounters') || [];
         const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
         if (enc) {
           const updatedEncounter = {
             ...enc,
-            status: 'Em_Atendimento',
-            observation_started_at: new Date().toISOString(),
+            status: 'Em_Observacao',
+            observation_started_at: enc.observation_started_at || new Date().toISOString(),
+            room: bodyObj.room || enc.room || enc.roomName || 'Consultório 01',
+            lastStatusUpdate: new Date().toISOString()
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+          responseData = { status: 'success', data: updatedEncounter };
+        } else {
+          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/discharge') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/discharge/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        if (enc) {
+          const updatedEncounter = {
+            ...enc,
+            status: 'Alta',
+            completed_at: new Date().toISOString(),
             lastStatusUpdate: new Date().toISOString()
           };
           localDB.update('encounters', enc.id, updatedEncounter);

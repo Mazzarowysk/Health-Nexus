@@ -3273,7 +3273,7 @@ async function loadConsultingRooms() {
     
     dashboard.innerHTML = rooms.map(r => {
       const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name || (r.name === 'Consultório 01' && !a.roomName && !a.room)));
-      const roomEncs = encounters.filter(e => (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
+      const roomEncs = encounters.filter(e => (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento' || e.status === 'Em_Observacao' || e.status === 'Observacao'))));
       const roomTvCalls = tvCalls.filter(c => c.roomName === r.name || c.room === r.name);
       
       const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
@@ -3281,22 +3281,27 @@ async function loadConsultingRooms() {
       const inProgressTv = roomTvCalls.length > 0 ? roomTvCalls[0] : null;
       const inProgress = inProgressEnc || inProgressApt || inProgressTv;
 
-      const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
+      const obsEncs = roomEncs.filter(e => 
+        (e.status === 'Em_Observacao' || e.status === 'Observacao' || (!!e.observation_started_at && e.status !== 'Alta' && e.status !== 'Finalizado')) &&
+        e !== inProgress
+      );
+
+      const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress && !obsEncs.includes(e));
       const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
       const waiting = [...waitingEncs, ...waitingApts];
       
       const hasPatient = !!inProgress;
-      const roomStatus = hasPatient ? 'Em Uso' : (r.status || 'Disponível');
+      const roomStatus = hasPatient ? 'Em Uso' : (obsEncs.length > 0 ? 'Observação Ativa' : (r.status || 'Disponível'));
       const doctorDisplay = r.currentDoctor || r.doctorName || 'Dr. Carlos Silva';
       const patientNameDisplay = inProgress ? (inProgress.patientName || inProgress.name || 'Paciente') : null;
       const patientTargetId = inProgressEnc ? inProgressEnc.id : (inProgress ? (inProgress.patientId || inProgress.id || inProgress.patientName) : '');
       
       return `
-        <div class="interactive-card ${patientNameDisplay && patientNameDisplay.toLowerCase().includes('marcelo') ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+        <div class="interactive-card ${patientNameDisplay && patientNameDisplay.toLowerCase().includes('marcelo') ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : (obsEncs.length > 0 ? 'rgba(245, 158, 11, 0.4)' : 'var(--border-color)')}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">
-                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : 'var(--color-primary)'};"></i> ${r.name}
+                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : (obsEncs.length > 0 ? '#fbbf24' : 'var(--color-primary)')};"></i> ${r.name}
               </h3>
               <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">${r.specialty || 'Uso Geral / Pronto Atendimento'}</div>
             </div>
@@ -3306,13 +3311,24 @@ async function loadConsultingRooms() {
           </div>
           
           <div style="margin-top: 4px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; background: ${hasPatient ? 'rgba(99,102,241,0.2)' : 'rgba(16,185,129,0.15)'}; color: ${hasPatient ? '#a5b4fc' : '#34d399'}; border: 1px solid ${hasPatient ? 'rgba(99,102,241,0.4)' : 'rgba(16,185,129,0.3)'};">
+            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; background: ${hasPatient ? 'rgba(99,102,241,0.2)' : (obsEncs.length > 0 ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.15)')}; color: ${hasPatient ? '#a5b4fc' : (obsEncs.length > 0 ? '#fbbf24' : '#34d399')}; border: 1px solid ${hasPatient ? 'rgba(99,102,241,0.4)' : (obsEncs.length > 0 ? 'rgba(245,158,11,0.4)' : 'rgba(16,185,129,0.3)')};">
               <i class="fa-solid fa-circle" style="font-size: 0.45rem;"></i> ${roomStatus}
             </span>
             <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-user-doctor" style="color: #38bdf8;"></i> ${doctorDisplay}
             </span>
           </div>
+
+          <!-- ÁREA DE OBSERVAÇÃO DO CONSULTÓRIO (DESTAQUE NO CARD) -->
+          ${obsEncs.length > 0 ? `
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #fbbf24; font-weight: 700;">
+                <i class="fa-solid fa-bed-pulse"></i>
+                <span>${obsEncs.length} em Observação na Sala</span>
+              </div>
+              <span style="font-size: 0.68rem; background: rgba(245,158,11,0.25); color: #fde68a; padding: 2px 6px; border-radius: 4px; font-weight: 800;">MONITORANDO</span>
+            </div>
+          ` : ''}
 
           <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
             ${patientNameDisplay ? `
@@ -3329,7 +3345,7 @@ async function loadConsultingRooms() {
                 </div>
               </div>
             ` : `
-              <div style="font-size: 0.82rem; color: var(--text-muted); padding: 6px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento em andamento</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); padding: 4px 0;"><i class="fa-regular fa-clock"></i> Mesa de consulta livre</div>
             `}
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
               <span style="color: var(--text-muted);">Próximos na Fila:</span>
@@ -3363,7 +3379,7 @@ async function openConsultorioDetailsModal(roomName) {
   const tvCalls = tvRes.ok ? (await tvRes.json()).data || [] : [];
 
   const roomApts = apts.filter(a => (a.roomName === roomName || a.room === roomName || (roomName === 'Consultório 01' && !a.roomName && !a.room)));
-  const roomEncs = encs.filter(e => (e.room === roomName || e.roomName === roomName || (roomName === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
+  const roomEncs = encs.filter(e => (e.room === roomName || e.roomName === roomName || (roomName === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento' || e.status === 'Em_Observacao' || e.status === 'Observacao'))));
   const roomTvCalls = tvCalls.filter(c => c.roomName === roomName || c.room === roomName);
   
   const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
@@ -3371,7 +3387,12 @@ async function openConsultorioDetailsModal(roomName) {
   const inProgressTv = roomTvCalls.length > 0 ? roomTvCalls[0] : null;
   const inProgress = inProgressEnc || inProgressApt || inProgressTv;
 
-  const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
+  const obsEncs = roomEncs.filter(e => 
+    (e.status === 'Em_Observacao' || e.status === 'Observacao' || (!!e.observation_started_at && e.status !== 'Alta' && e.status !== 'Finalizado')) &&
+    e !== inProgress
+  );
+
+  const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress && !obsEncs.includes(e));
   const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
   const waiting = [...waitingEncs, ...waitingApts];
 
@@ -3382,14 +3403,14 @@ async function openConsultorioDetailsModal(roomName) {
 
   const modalHtml = `
     <div id="consultorio-details-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.85); backdrop-filter: blur(10px);">
-      <div class="modal-content" style="max-width: 720px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
+      <div class="modal-content" style="max-width: 780px; width: 95vw; max-height: 92vh; background: var(--bg-secondary); border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
         
         <div style="background: linear-gradient(135deg, #6366f1, #00f2fe); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-door-open" style="font-size: 1.3rem;"></i>
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Painel do ${roomName}</h3>
-              <small style="color: rgba(255,255,255,0.85);">Gestão de Atendimento Médico &amp; Prontuário</small>
+              <small style="color: rgba(255,255,255,0.85);">Gestão de Atendimento, Área de Observação &amp; Prontuário</small>
             </div>
           </div>
           <button onclick="document.getElementById('consultorio-details-modal').remove()" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
@@ -3397,11 +3418,11 @@ async function openConsultorioDetailsModal(roomName) {
 
         <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
           
-          <!-- Paciente em Atendimento -->
+          <!-- SEÇÃO 1: MESA DE ATENDIMENTO (Paciente Chamado / Ativo) -->
           <div style="background: var(--bg-tertiary); border: 1.5px solid ${inProgress ? '#6366f1' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
             <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-              <span><i class="fa-solid fa-user-doctor" style="color: #6366f1;"></i> Paciente em Atendimento / Chamado</span>
-              ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Ativo na Sala</span>' : ''}
+              <span><i class="fa-solid fa-user-doctor" style="color: #6366f1;"></i> 1. Mesa de Atendimento / Paciente em Consulta</span>
+              ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Ativo na Mesa</span>' : ''}
             </div>
 
             ${inProgress ? `
@@ -3432,17 +3453,80 @@ async function openConsultorioDetailsModal(roomName) {
                 </div>
               </div>
             ` : `
-              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 14px 0; text-align: center;">
-                <i class="fa-solid fa-door-open" style="font-size: 1.5rem; color: var(--border-color); display: block; margin-bottom: 6px;"></i>
-                Nenhum paciente está sendo atendido nesta sala no momento.
+              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0; text-align: center;">
+                <i class="fa-solid fa-chair" style="font-size: 1.3rem; color: var(--border-color); display: block; margin-bottom: 4px;"></i>
+                Mesa de atendimento livre. Chame o próximo paciente da fila abaixo.
               </div>
             `}
           </div>
 
-          <!-- Pacientes Aguardando -->
+          <!-- SEÇÃO 2: ÁREA DE OBSERVAÇÃO DO CONSULTÓRIO (Poltronas & Leitos de Decisão Clínica) -->
+          <div style="background: var(--bg-tertiary); border: 1.5px solid ${obsEncs.length > 0 ? 'rgba(245, 158, 11, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+              <span style="display: flex; align-items: center; gap: 8px; color: #fbbf24;">
+                <i class="fa-solid fa-bed-pulse"></i> 2. Área de Observação deste Consultório (${obsEncs.length})
+              </span>
+              ${obsEncs.length > 0 ? `<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">${obsEncs.length} Leito(s) Ativo(s)</span>` : ''}
+            </div>
+
+            ${obsEncs.length > 0 ? `
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${obsEncs.map((obs, idx) => {
+                  const obsStart = new Date(obs.observation_started_at || obs.admitted_at || Date.now()).getTime();
+                  const diffMs = Math.max(0, Date.now() - obsStart);
+                  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                  const isLimit = diffHours >= 12;
+                  const isWarning = diffHours >= 10;
+
+                  return `
+                    <div style="background: var(--bg-secondary); border: 1px solid ${isLimit ? '#ef4444' : (isWarning ? '#f59e0b' : 'rgba(99,102,241,0.3)')}; border-left: 4px solid ${isLimit ? '#ef4444' : '#f59e0b'}; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+                      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.72rem; background: rgba(245,158,11,0.2); color: #fbbf24; padding: 2px 8px; border-radius: 6px; font-weight: 800;">
+                              <i class="fa-solid fa-bed"></i> Leito Obs ${idx + 1}
+                            </span>
+                            <strong style="color: #f8fafc; font-size: 1rem;">${obs.patientName || 'Paciente'}</strong>
+                          </div>
+                          <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span>Tempo em Observação: <strong style="color: ${isLimit ? '#ef4444' : (isWarning ? '#fbbf24' : '#60a5fa')};">${diffHours}h ${diffMins}m / 12h máx</strong></span>
+                            ${obs.manchesterColor ? `&bull; <span>Manchester: <strong>${obs.manchesterColor}</strong></span>` : ''}
+                          </div>
+                        </div>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                          <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${obs.id || obs.patientId || obs.patientName}');" title="Reavaliar Evolução no PEP">
+                            <i class="fa-solid fa-stethoscope"></i> Reavaliar (PEP)
+                          </button>
+                          <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('${obs.id}', '${obs.patientName}');" title="Ver ou Ajustar Prescrição">
+                            <i class="fa-solid fa-pills"></i> Prescrição
+                          </button>
+                          <button class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" onclick="window.dischargeFromObservation('${obs.id}', '${roomName}')" title="Concluir Observação e Dar Alta">
+                            <i class="fa-solid fa-check"></i> Dar Alta
+                          </button>
+                        </div>
+                      </div>
+                      ${obs.complaints || obs.clinicalNotes ? `
+                        <div style="font-size: 0.78rem; color: #cbd5e1; background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 6px; font-style: italic;">
+                          "${obs.complaints || obs.clinicalNotes}"
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : `
+              <div style="color: var(--text-muted); font-size: 0.82rem; padding: 12px 0; text-align: center;">
+                <i class="fa-solid fa-bed" style="color: var(--border-color); font-size: 1.3rem; display: block; margin-bottom: 4px;"></i>
+                Nenhum paciente alocado na área de observação deste consultório no momento.
+              </div>
+            `}
+          </div>
+
+          <!-- SEÇÃO 3: PACIENTES AGUARDANDO NA FILA -->
           <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
             <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
-              <span><i class="fa-solid fa-users" style="color: #f59e0b;"></i> Fila de Espera para ${roomName} (${waiting.length})</span>
+              <span><i class="fa-solid fa-users" style="color: #60a5fa;"></i> 3. Fila de Espera para ${roomName} (${waiting.length})</span>
             </div>
 
             ${waiting.length > 0 ? `
@@ -3507,6 +3591,27 @@ async function openConsultorioDetailsModal(roomName) {
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
+
+window.dischargeFromObservation = async function(encId, roomName) {
+  try {
+    const res = await apiFetch(`/api/encounters/${encId}/discharge`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: 'Alta médica concedida após período de observação no consultório.' })
+    });
+    if (res.ok) {
+      if (typeof showToast === 'function') showToast('✅ Alta médica concedida! Leito de observação liberado.', 'success');
+      const modal = document.getElementById('consultorio-details-modal');
+      if (modal) modal.remove();
+      if (typeof loadConsultingRooms === 'function') loadConsultingRooms();
+      if (roomName && typeof openConsultorioDetailsModal === 'function') {
+        setTimeout(() => openConsultorioDetailsModal(roomName), 200);
+      }
+    }
+  } catch (e) {
+    console.error('Erro ao dar alta na observação:', e);
+  }
+};
 
 window.loadConsultingRooms = loadConsultingRooms;
 window.openConsultorioDetailsModal = openConsultorioDetailsModal;
