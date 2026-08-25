@@ -852,3 +852,280 @@ export const sendToWhatsApp = (phone = '', message = '') => {
 
   window.open(url, '_blank');
 };
+
+export const SMART_POSOLOGY_DATABASE = [
+  {
+    keys: ['dipirona', 'novalgina', 'anador', 'metamizol'],
+    name: 'Dipirona Sódica',
+    dose: '500 mg/mL (1 ampola - 2mL)',
+    route: 'EV',
+    frequency: 'De 6 em 6h',
+    instructions: 'Diluir em 100ml SF 0,9% e infundir em 15 min se dor ou febre > 37.8°C.'
+  },
+  {
+    keys: ['paracetamol', 'tylenol'],
+    name: 'Paracetamol',
+    dose: '750 mg (1 comprimido)',
+    route: 'VO',
+    frequency: 'De 6 em 6h',
+    instructions: 'Tomar por via oral com água se febre ou dor. Dose máxima 4g/dia.'
+  },
+  {
+    keys: ['ibuprofeno', 'advil', 'alivium'],
+    name: 'Ibuprofeno',
+    dose: '600 mg (1 comprimido)',
+    route: 'VO',
+    frequency: 'De 8 em 8h',
+    instructions: 'Tomar após as refeições. Evitar uso prolongado em idosos ou nefropatas.'
+  },
+  {
+    keys: ['cetoprofeno', 'profenid'],
+    name: 'Cetoprofeno',
+    dose: '100 mg (1 ampola)',
+    route: 'EV',
+    frequency: 'De 12 em 12h',
+    instructions: 'Diluir em 100ml SG 5% ou SF 0,9% e infundir em 30 min.'
+  },
+  {
+    keys: ['diclofenaco', 'voltaren', 'cataflam'],
+    name: 'Diclofenaco Sódico',
+    dose: '75 mg (1 ampola - 3mL)',
+    route: 'IM',
+    frequency: '1x ao dia',
+    instructions: 'Injeção intramuscular profunda no quadrante superior externo do glúteo.'
+  },
+  {
+    keys: ['amoxicilina', 'clavulin', 'amoxicilina + clavulanato', 'amoxil'],
+    name: 'Amoxicilina + Clavulanato',
+    dose: '875 + 125 mg (1 comp)',
+    route: 'VO',
+    frequency: 'De 12 em 12h',
+    instructions: 'Tomar no início das refeições por 7 a 10 dias consecutivos.'
+  },
+  {
+    keys: ['ceftriaxona', 'rocefin', 'triaxin'],
+    name: 'Ceftriaxona Sódica',
+    dose: '1 g (1 frasco-ampola)',
+    route: 'EV',
+    frequency: '1x ao dia',
+    instructions: 'Reconstituir e diluir em 100ml de SF 0,9%. Infundir em 30 min.'
+  },
+  {
+    keys: ['azitromicina', 'astro', 'zitromax'],
+    name: 'Azitromicina',
+    dose: '500 mg (1 comprimido)',
+    route: 'VO',
+    frequency: '1x ao dia',
+    instructions: 'Tomar 1h antes ou 2h após a refeição, por 5 dias.'
+  },
+  {
+    keys: ['ciprofloxacino', 'cipro', 'quinoflox'],
+    name: 'Ciprofloxacino',
+    dose: '500 mg (1 comprimido)',
+    route: 'VO',
+    frequency: 'De 12 em 12h',
+    instructions: 'Ingerir com bastante líquido. Evitar uso simultâneo com antiácidos.'
+  },
+  {
+    keys: ['tramadol', 'cloridrato de tramadol', 'tramal', 'sylador'],
+    name: 'Cloridrato de Tramadol',
+    dose: '50 mg (1 ampola - 1mL)',
+    route: 'EV',
+    frequency: 'De 8 em 8h',
+    instructions: 'Diluir em 100ml SF 0,9% e infundir lentamente em 30 min se dor intensa.'
+  },
+  {
+    keys: ['morfina', 'dimorf'],
+    name: 'Sulfato de Morfina',
+    dose: '2 mg a 4 mg (fracionado)',
+    route: 'EV',
+    frequency: 'De 4 em 4h',
+    instructions: 'Diluir 1 amp (10mg/mL) em 9mL AD (1mg/mL). Administrar lentamente em bólus.'
+  },
+  {
+    keys: ['ondansetrona', 'vonau', 'nausedron', 'zofran'],
+    name: 'Cloridrato de Ondansetrona',
+    dose: '8 mg (1 ampola - 4mL)',
+    route: 'EV',
+    frequency: 'De 8 em 8h',
+    instructions: 'Injetar EV direto lento em 2 a 5 minutos se náuseas ou vômitos.'
+  },
+  {
+    keys: ['metoclopramida', 'plasil'],
+    name: 'Cloridrato de Metoclopramida',
+    dose: '10 mg (1 ampola - 2mL)',
+    route: 'EV',
+    frequency: 'De 8 em 8h',
+    instructions: 'Injetar EV lento (mínimo 3 min) para prevenção de efeitos extrapiramidais.'
+  },
+  {
+    keys: ['omeprazol', 'losec', 'victrix'],
+    name: 'Omeprazol',
+    dose: '40 mg (1 frasco-ampola)',
+    route: 'EV',
+    frequency: '1x ao dia',
+    instructions: 'Reconstituir com diluente próprio e infundir EV lento pela manhã em jejum.'
+  },
+  {
+    keys: ['pantoprazol', 'pantozol'],
+    name: 'Pantoprazol',
+    dose: '40 mg (1 frasco-ampola)',
+    route: 'EV',
+    frequency: '1x ao dia',
+    instructions: 'Injetar EV lento em 2 a 5 minutos para proteção gástrica.'
+  },
+  {
+    keys: ['losartana', 'cozaar', 'aradois'],
+    name: 'Losartana Potássica',
+    dose: '50 mg (1 comprimido)',
+    route: 'VO',
+    frequency: '1x ao dia',
+    instructions: 'Tomar no mesmo horário pela manhã. Monitorar pressão arterial.'
+  },
+  {
+    keys: ['metoprolol', 'selozok', 'succinato de metoprolol'],
+    name: 'Succinato de Metoprolol',
+    dose: '50 mg (1 comprimido)',
+    route: 'VO',
+    frequency: '1x ao dia',
+    instructions: 'Tomar pela manhã com água. Não mastigar comprimido de liberação controlada.'
+  },
+  {
+    keys: ['propranolol', 'inderal'],
+    name: 'Cloridrato de Propranolol',
+    dose: '40 mg (1 comprimido)',
+    route: 'VO',
+    frequency: 'De 12 em 12h',
+    instructions: 'Checar frequência cardíaca antes da tomada. Contraindicado na asma ativa.'
+  },
+  {
+    keys: ['furosemida', 'lasix'],
+    name: 'Furosemida',
+    dose: '20 mg (1 ampola - 2mL)',
+    route: 'EV',
+    frequency: '1x ao dia',
+    instructions: 'Injetar EV direto lento (1 a 2 min). Monitorar débito urinário e eletrólitos.'
+  },
+  {
+    keys: ['enoxaparina', 'clexane', 'versa'],
+    name: 'Enoxaparina Sódica',
+    dose: '40 mg (0,4 mL - seringa pré-enchida)',
+    route: 'SC',
+    frequency: '1x ao dia',
+    instructions: 'Injeção subcutânea profunda na parede abdominal anterolateral. Não massagear.'
+  },
+  {
+    keys: ['varfarina', 'marevan', 'coumadin'],
+    name: 'Varfarina Sódica',
+    dose: '5 mg (1 comprimido)',
+    route: 'VO',
+    frequency: '1x ao dia',
+    instructions: 'Tomar à noite com água. Controle estrito de INR/TP periodicamente.'
+  },
+  {
+    keys: ['aspirina', 'aas', 'acido acetilsalicilico', 'somalgin'],
+    name: 'Ácido Acetilsalicílico (AAS)',
+    dose: '100 mg (1 comprimido)',
+    route: 'VO',
+    frequency: '1x ao dia',
+    instructions: 'Tomar logo após o almoço para minimizar irritação gástrica.'
+  },
+  {
+    keys: ['clopidogrel', 'plavix'],
+    name: 'Bissulfato de Clopidogrel',
+    dose: '75 mg (1 comprimido)',
+    route: 'VO',
+    frequency: '1x ao dia',
+    instructions: 'Tomar diariamente no mesmo horário com ou sem alimentos.'
+  },
+  {
+    keys: ['sustrate', 'isossorbida', 'monocordil', 'dinitrato'],
+    name: 'Mononitrato de Isossorbida',
+    dose: '10 mg (1 comprimido)',
+    route: 'VO',
+    frequency: 'De 12 em 12h',
+    instructions: 'Se dor torácica aguda em crise, preferir forma sublingual 5mg. Cautela com hipotensão.'
+  },
+  {
+    keys: ['sildenafila', 'viagra', 'tadalafila', 'cialis'],
+    name: 'Citrato de Sildenafila',
+    dose: '50 mg (1 comprimido)',
+    route: 'VO',
+    frequency: 'Dose Única',
+    instructions: 'CONTRAINDICADO USO COM NITRATOS. Risco de hipotensão severa e colapso circulatório.'
+  },
+  {
+    keys: ['diazepam', 'valium'],
+    name: 'Diazepam',
+    dose: '10 mg (1 ampola - 2mL)',
+    route: 'EV',
+    frequency: 'Dose Única',
+    instructions: 'Injetar EV direto lento em veia calibrosa. Monitorar saturação e padrão respiratório.'
+  },
+  {
+    keys: ['clonazepam', 'rivotril'],
+    name: 'Clonazepam',
+    dose: '2 mg (1 comprimido) ou 5 gotas',
+    route: 'VO',
+    frequency: '1x ao dia',
+    instructions: 'Tomar à noite antes de deitar. Evitar ingestão concomitante com álcool ou depressores.'
+  },
+  {
+    keys: ['hidrocortisona', 'solu-cortef', 'flebodiscort'],
+    name: 'Succinato Sódico de Hidrocortisona',
+    dose: '100 mg a 500 mg (1 frasco)',
+    route: 'EV',
+    frequency: 'De 8 em 8h',
+    instructions: 'Reconstituir com diluente próprio e infundir em 100ml SF 0,9% em 20 a 30 min.'
+  },
+  {
+    keys: ['dexametasona', 'decadron'],
+    name: 'Fosfato Dissódico de Dexametasona',
+    dose: '4 mg a 10 mg (1 ampola)',
+    route: 'EV',
+    frequency: '1x ao dia',
+    instructions: 'Injetar EV direto lento em 3 minutos ou diluir em soro fisiológico.'
+  },
+  {
+    keys: ['salbutamol', 'aerolin'],
+    name: 'Sulfato de Salbutamol (Aerolin)',
+    dose: '4 jatos (spray) ou 10 gotas (nebulização)',
+    route: 'Inalatória',
+    frequency: 'De 4 em 4h',
+    instructions: 'Nebulização com 3ml de SF 0,9% com fluxo de O2 a 6L/min ou spray com espaçador.'
+  },
+  {
+    keys: ['ipratropio', 'atrovent'],
+    name: 'Brometo de Ipratrópio (Atrovent)',
+    dose: '20 a 40 gotas',
+    route: 'Inalatória',
+    frequency: 'De 6 em 6h',
+    instructions: 'Diluir em 3ml a 5ml de SF 0,9% para nebulização contínua.'
+  },
+  {
+    keys: ['insulina regular', 'insulina nph', 'novorapid', 'humalog'],
+    name: 'Insulina Humana',
+    dose: 'Conforme glicemia capilar (HGT)',
+    route: 'SC',
+    frequency: 'Conforme protocolo de HGT',
+    instructions: 'Aplicação subcutânea em abdômen ou braço. Checar HGT prévio obrigatoriamente.'
+  }
+];
+
+export function getSmartPosologyForMedication(medInput) {
+  if (!medInput || typeof medInput !== 'string') return null;
+  const cleanInput = medInput.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  
+  for (const item of SMART_POSOLOGY_DATABASE) {
+    if (item.keys.some(k => cleanInput.includes(k) || k.includes(cleanInput))) {
+      return item;
+    }
+  }
+  return null;
+}
+
+if (typeof window !== 'undefined') {
+  window.SMART_POSOLOGY_DATABASE = SMART_POSOLOGY_DATABASE;
+  window.getSmartPosologyForMedication = getSmartPosologyForMedication;
+}
+
