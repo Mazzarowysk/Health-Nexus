@@ -1,5 +1,7 @@
 import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
+import { checkDrugInteractions } from '../modules/clinicalAI.js';
+import { showCDSSCriticalOverrideModal } from './doctors.js';
 
 const API_URL = '/api';
 
@@ -789,6 +791,16 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
             <div id="rx-draft-table" style="max-height: 140px; overflow-y: auto;">
               <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+).</div>
             </div>
+
+            <!-- BANNER DINÂMICO DE INTERAÇÕES MEDICAMENTOSAS -->
+            <div id="rx-drug-interactions-alert" style="display: none; margin-top: 12px; padding: 12px 16px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); border: 1.5px solid #ef4444; color: #fca5a5; font-size: 0.83rem;">
+              <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #fff; margin-bottom: 4px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444; font-size: 1.1rem;"></i> <span id="rx-inter-title">Alerta de Interação Medicamentosa Cruzada</span>
+              </div>
+              <div id="rx-inter-desc" style="font-size: 0.8rem; line-height: 1.4; margin-bottom: 4px;"></div>
+              <div id="rx-inter-action" style="font-size: 0.8rem; font-weight: 600; color: #fde047;"></div>
+            </div>
+
             <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
               <button type="button" id="btn-save-rx" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" disabled>
                 <i class="fa-solid fa-floppy-disk"></i> Salvar Prescrição Médica
@@ -903,6 +915,44 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
   }, 100);
 
   let draftItems = [];
+  let patientHistoryContext = '';
+
+  try {
+    const encList = (state.encounters || dataCache.encounters || []);
+    const foundEnc = encList.find(e => String(e.id) === String(encounterId));
+    if (foundEnc) {
+      patientHistoryContext = [
+        foundEnc.complaints,
+        foundEnc.clinicalNotes,
+        foundEnc.patientNotes,
+        foundEnc.notes
+      ].filter(Boolean).join(' | ');
+    }
+  } catch (e) {}
+
+  const checkRxInteractions = () => {
+    const fnCheck = (typeof checkDrugInteractions === 'function') ? checkDrugInteractions : window.checkDrugInteractions;
+    const interactions = (typeof fnCheck === 'function') ? fnCheck(draftItems, patientHistoryContext) : [];
+    const alertBox = document.getElementById('rx-drug-interactions-alert');
+    const titleEl = document.getElementById('rx-inter-title');
+    const descEl = document.getElementById('rx-inter-desc');
+    const actionEl = document.getElementById('rx-inter-action');
+
+    if (interactions && interactions.length > 0 && alertBox) {
+      const first = interactions[0];
+      alertBox.style.display = 'block';
+      alertBox.style.background = first.severity === 'Grave' ? 'rgba(239, 68, 68, 0.18)' : 'rgba(245, 158, 11, 0.18)';
+      alertBox.style.border = first.severity === 'Grave' ? '1.5px solid #ef4444' : '1.5px solid #f59e0b';
+      if (titleEl) {
+        titleEl.innerHTML = `<span style="color:${first.severity === 'Grave' ? '#ef4444' : '#f59e0b'}; font-weight:800;">[INTERAÇÃO ${first.severity.toUpperCase()}]</span> ${first.title}`;
+      }
+      if (descEl) descEl.textContent = first.desc;
+      if (actionEl) actionEl.textContent = `💡 Conduta Recomendada: ${first.action}`;
+    } else if (alertBox) {
+      alertBox.style.display = 'none';
+    }
+    return interactions;
+  };
 
   const updateDraftTable = () => {
     const tableEl = document.getElementById('rx-draft-table');
@@ -910,6 +960,7 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     if (draftItems.length === 0) {
       tableEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+).</div>';
       saveBtn.disabled = true;
+      checkRxInteractions();
       return;
     }
     saveBtn.disabled = false;
@@ -954,6 +1005,8 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
         updateDraftTable();
       });
     });
+
+    checkRxInteractions();
   };
 
   document.getElementById('btn-add-rx-item').onclick = () => {
@@ -974,6 +1027,15 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 
   document.getElementById('btn-save-rx').onclick = async () => {
     if (draftItems.length === 0) return;
+    
+    // Verificação de segurança contra interações graves
+    const currentInteractions = checkRxInteractions();
+    const severeInteractions = currentInteractions.filter(i => i.severity === 'Grave' || i.severity === 'Critica' || i.isBlocker);
+    if (severeInteractions.length > 0) {
+      const confirmSave = await showCDSSCriticalOverrideModal(severeInteractions);
+      if (!confirmSave) return;
+    }
+
     const doctorName = state.user ? state.user.name : 'Dr. Médico Plantonista';
     try {
       const res = await apiFetch(`/api/encounters/${encounterId}/prescriptions`, {

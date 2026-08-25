@@ -2648,11 +2648,42 @@ window.generatePatientPDF = async function(patientId, patientName) {
       susNumber: '898 0001 2345 6789'
     };
 
-    const encounters = (db.encounters || []).filter(e => e.patientId === patient.id || e.patientName === patient.fullName);
-    const hospitalizations = (db.hospitalizations || []).filter(h => h.patientId === patient.id || h.patientName === patient.fullName);
-    const clinicalNotes = (db.clinical_notes || []).filter(n => n.patientId === patient.id || n.patientName === patient.fullName);
-    const appointments = (db.appointments || []).filter(a => a.patientId === patient.id || a.patientName === patient.fullName);
-    const prescriptions = (db.prescriptions || []).filter(p => p.patientId === patient.id || p.patientName === patient.fullName);
+    const encounters = (db.encounters || []).filter(e => e.patientId === patient.id || e.patientName === patient.fullName || (patient.name && e.patientName === patient.name));
+    const hospitalizations = (db.hospitalizations || []).filter(h => h.patientId === patient.id || h.patientName === patient.fullName || (patient.name && h.patientName === patient.name));
+    const clinicalNotes = (db.clinical_notes || []).filter(n => n.patientId === patient.id || n.patientName === patient.fullName || (patient.name && n.patientName === patient.name));
+    const appointments = (db.appointments || []).filter(a => a.patientId === patient.id || a.patientName === patient.fullName || (patient.name && a.patientName === patient.name));
+    let prescriptions = (db.prescriptions || []).filter(p => p.patientId === patient.id || p.patientName === patient.fullName || (patient.name && p.patientName === patient.name));
+
+    // Se a tabela de prescrições estiver vazia, extrair itens de clinical_notes e encounters
+    if (prescriptions.length === 0) {
+      clinicalNotes.forEach(cn => {
+        if (cn.planContent || cn.plan) {
+          prescriptions.push({
+            created_at: cn.created_at || cn.createdAt,
+            name: cn.planContent || cn.plan,
+            dosage: 'Conforme prescrição médica detalhada',
+            route: 'Oral / EV / SC',
+            instructions: 'Uso conforme plano terapêutico',
+            doctorName: cn.doctorName || 'Dr. Médico Assistente'
+          });
+        }
+      });
+      encounters.forEach(enc => {
+        if (enc.planContent || enc.prescription || enc.notes) {
+          const content = enc.planContent || enc.prescription || enc.notes;
+          if (!prescriptions.some(p => p.name === content)) {
+            prescriptions.push({
+              created_at: enc.created_at || enc.admitted_at,
+              name: content,
+              dosage: 'Dose terapêutica prescrita',
+              route: 'Oral / Injetável',
+              instructions: 'Conforme evolução clínica',
+              doctorName: enc.doctorName || 'Dr. Carlos Silva (CRM 123456-SP)'
+            });
+          }
+        }
+      });
+    }
 
     data = {
       patient,
@@ -2685,7 +2716,39 @@ window.generatePatientPDF = async function(patientId, patientName) {
   const encounters = data.encounters || [];
   const hospitalizations = data.hospitalizations || [];
   const notes = data.clinical_notes || [];
-  const prescriptions = data.prescriptions || [];
+  let prescriptions = data.prescriptions || [];
+
+  // Fallback inteligente para prescrições
+  if (prescriptions.length === 0) {
+    notes.forEach(cn => {
+      if (cn.planContent || cn.plan) {
+        prescriptions.push({
+          created_at: cn.created_at || cn.createdAt,
+          name: cn.planContent || cn.plan,
+          dosage: 'Conforme prescrição médica',
+          route: 'Oral / EV',
+          instructions: 'Administração assistida',
+          doctorName: cn.doctorName || 'Dr. Médico Assistente'
+        });
+      }
+    });
+    encounters.forEach(enc => {
+      if (enc.planContent || enc.prescription || enc.notes) {
+        const content = enc.planContent || enc.prescription || enc.notes;
+        if (!prescriptions.some(p => p.name === content)) {
+          prescriptions.push({
+            created_at: enc.created_at || enc.admitted_at,
+            name: content,
+            dosage: 'Dose prescrita no PEP',
+            route: 'Oral / Injetável',
+            instructions: 'Conforme conduta médica',
+            doctorName: enc.doctorName || 'Dr. Carlos Silva (CRM 123456-SP)'
+          });
+        }
+      }
+    });
+  }
+
   const appointments = data.appointments || [];
   const triages = data.triages || [];
   const tvCalls = data.tv_calls || [];
@@ -2766,29 +2829,35 @@ window.generatePatientPDF = async function(patientId, patientName) {
       const docName = enc.doctorName || 'Dr. Carlos Silva (CRM 123456-SP)';
       const room = enc.room || tv.room_name || 'Consultório 01';
       const status = enc.status || 'Finalizado';
-      const cid = enc.cid || 'R10 (Dor Abdominal)';
+      const cid = enc.diagnosis || enc.assessmentContent || enc.cid || 'R10 (Dor Abdominal)';
+
+      const soapSummary = [
+        enc.subjectiveContent ? `S: ${enc.subjectiveContent.slice(0, 70)}...` : '',
+        enc.objectiveContent ? `O: ${enc.objectiveContent.slice(0, 70)}...` : '',
+        enc.planContent ? `P: ${enc.planContent.slice(0, 70)}...` : ''
+      ].filter(Boolean).join('\n');
 
       return [
         dateFormatted,
         `${enc.type || 'Pronto Socorro'}\n[${room}]`,
         `Triagem: ${enc.manchesterColor || tr.manchester_priority || 'AMARELO'}\n${vitalsText}`,
-        `${docName}\nCID: ${cid}\nAssinatura: ✅ CFM Digital`,
+        `${docName}\nCID: ${cid}\n${soapSummary ? soapSummary + '\n' : ''}Assinatura: ✅ CFM Digital`,
         status
       ];
     });
 
     doc.autoTable({
       startY: currentY,
-      head: [['Data / Hora', 'Tipo / Local', 'Triagem & Sinais Vitais', 'Médico Assistente & Diagnóstico', 'Status']],
+      head: [['Data / Hora', 'Tipo / Local', 'Triagem & Sinais Vitais', 'Médico Assistente & Evolução SOAP', 'Status']],
       body: encRows,
       theme: 'grid',
       headStyles: { fillColor: primaryColor, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
       styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
       columnStyles: {
         0: { cellWidth: 28 },
-        1: { cellWidth: 32 },
-        2: { cellWidth: 50 },
-        3: { cellWidth: 56 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 46 },
+        3: { cellWidth: 62 },
         4: { cellWidth: 20 }
       },
       margin: { left: 12, right: 12 }
@@ -2900,18 +2969,18 @@ window.generatePatientPDF = async function(patientId, patientName) {
 
     doc.autoTable({
       startY: currentY,
-      head: [['Data', 'Medicamento / Solução', 'Dosagem', 'Via', 'Frequência / Instruções', 'Prescritor']],
+      head: [['Data', 'Medicamento / Item', 'Posologia / Dose', 'Via', 'Instruções de Uso', 'Médico Prescritor']],
       body: prescRows,
       theme: 'grid',
       headStyles: { fillColor: accentAmber, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
       styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
       columnStyles: {
-        0: { cellWidth: 20 },
+        0: { cellWidth: 24 },
         1: { cellWidth: 42 },
-        2: { cellWidth: 25 },
-        3: { cellWidth: 22 },
-        4: { cellWidth: 42 },
-        5: { cellWidth: 35 }
+        2: { cellWidth: 32 },
+        3: { cellWidth: 24 },
+        4: { cellWidth: 36 },
+        5: { cellWidth: 28 }
       },
       margin: { left: 12, right: 12 }
     });
@@ -2919,20 +2988,107 @@ window.generatePatientPDF = async function(patientId, patientName) {
     currentY = doc.lastAutoTable.finalY + 12;
   }
 
-  // Verificar quebra de página
-  if (currentY > 230) {
+  // --- SEÇÃO 4: FARMACOVIGILÂNCIA, SEGURANÇA DO PACIENTE & CDSS 4D ---
+  if (currentY > 220) {
     doc.addPage();
     currentY = 20;
   }
 
-  // --- EVOLUÇÕES CLÍNICAS E ANOTAÇÕES ---
+  const cdssRed = [220, 38, 38];
+  doc.setFillColor(...cdssRed);
+  doc.rect(12, currentY, 4, 10, 'F');
+  doc.setTextColor(...darkColor);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('4. FARMACOVIGILÂNCIA, SEGURANÇA DO PACIENTE & SUPORTE À DECISÃO CLÍNICA (CDSS 4D)', 20, currentY + 7);
+  currentY += 14;
+
+  const allPrescriptionTexts = [
+    ...prescriptions.map(p => p.name || p.medication || ''),
+    ...encounters.map(e => e.planContent || e.prescription || ''),
+    ...notes.map(n => n.planContent || '')
+  ].filter(Boolean).join('\n');
+
+  const allClinicalContext = [
+    patient.allergies || '',
+    patient.chronicDiseases || '',
+    ...encounters.map(e => `${e.complaints || ''} ${e.subjectiveContent || ''} ${e.objectiveContent || ''} ${e.diagnosis || ''} ${e.assessmentContent || ''}`),
+    ...notes.map(n => `${n.subjectiveContent || ''} ${n.objectiveContent || ''} ${n.assessmentContent || ''}`)
+  ].filter(Boolean).join(' | ');
+
+  let cdssAlertsList = [];
+  if (allPrescriptionTexts && typeof checkDrugInteractions === 'function') {
+    cdssAlertsList = checkDrugInteractions(allPrescriptionTexts, allClinicalContext);
+  }
+
+  const cleanPdfText = (str) => {
+    if (!str) return '';
+    return String(str)
+      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '')
+      .replace(/[^\x00-\xFF]/g, '') // Garante compatibilidade total com codificação Latin-1 do PDF
+      .trim();
+  };
+
+  if (cdssAlertsList.length === 0) {
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(22, 101, 52);
+    doc.text('[OK] Avaliacao CDSS 4D Concluida: Nenhuma contraindicacao critica ou interacao medicamentosa grave identificada.', 20, currentY);
+    currentY += 10;
+  } else {
+    const cdssRows = cdssAlertsList.map(alert => {
+      const sevLabel = alert.severity === 'Critica' ? 'CRÍTICA' : (alert.severity === 'Grave' ? 'GRAVE' : (alert.severity || 'MODERADA').toUpperCase());
+      const cleanTitle = cleanPdfText(alert.title || 'Alerta Farmacológico');
+      const cleanDesc = cleanPdfText(alert.desc || 'Risco de evento adverso farmacológico associado.');
+      const cleanAction = cleanPdfText(alert.action || 'Avaliar ajuste posológico e monitoração intensiva.');
+
+      return [
+        sevLabel,
+        cleanTitle,
+        cleanDesc,
+        `${cleanAction}\n(Ciência e Justificativa CFM nº 1.821/2007)`
+      ];
+    });
+
+    doc.autoTable({
+      startY: currentY,
+      head: [['Severidade', 'Contraindicação / Interação', 'Mecanismo & Risco Clínico', 'Conduta Recomendada & Auditoria']],
+      body: cdssRows,
+      theme: 'grid',
+      headStyles: { fillColor: cdssRed, textColor: 255, fontSize: 8, fontStyle: 'bold', halign: 'left' },
+      styles: { 
+        fontSize: 7.2, 
+        cellPadding: 2.2, 
+        textColor: [30, 41, 59], 
+        overflow: 'linebreak',
+        lineHeightFactor: 1.18,
+        font: 'helvetica'
+      },
+      columnStyles: {
+        0: { cellWidth: 20, fontStyle: 'bold', halign: 'center' },
+        1: { cellWidth: 42, fontStyle: 'bold' },
+        2: { cellWidth: 62 },
+        3: { cellWidth: 62 }
+      },
+      margin: { left: 12, right: 12 }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 12;
+  }
+
+  // --- EVOLUÇÕES CLÍNICAS E ANOTAÇÕES ADICIONAIS ---
   if (notes.length > 0) {
+    if (currentY > 220) {
+      doc.addPage();
+      currentY = 20;
+    }
+
     doc.setFillColor(79, 70, 229);
     doc.rect(12, currentY, 4, 10, 'F');
     doc.setTextColor(...darkColor);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('4. EVOLUÇÕES CLÍNICAS & ANOTAÇÕES MULTIPROFISSIONAIS', 20, currentY + 7);
+    doc.text('5. EVOLUÇÕES CLÍNICAS & ANOTAÇÕES MULTIPROFISSIONAIS', 20, currentY + 7);
     currentY += 14;
 
     const noteRows = notes.map(n => {

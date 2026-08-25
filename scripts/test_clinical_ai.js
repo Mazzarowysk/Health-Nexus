@@ -103,6 +103,89 @@ inter3.forEach(i => {
   console.log(`   👉 Ação Médica Sugerida: ${i.action}`);
 });
 
+console.log('\n[Prescrição de Risco 4 - Tramadol + Aspirina / AAS (Objetos de Prescrição)]');
+const prescricao4 = [
+  { name: 'Cloridrato de Tramadol', dosage: '50mg', route: 'VO' },
+  { name: 'AAS Infantil', dosage: '100mg', route: 'VO' }
+];
+console.log('Fármacos:', prescricao4.map(p => `${p.name} ${p.dosage}`).join(', '));
+const inter4 = checkDrugInteractions(prescricao4);
+inter4.forEach(i => {
+  console.log(`🚨 [${i.severity.toUpperCase()}] ${i.title}`);
+  console.log(`   Explicação: ${i.desc}`);
+  console.log(`   👉 Ação Médica Sugerida: ${i.action}`);
+});
+
+console.log('\n[Prescrição de Risco 5 - 1 ÚNICA Medicação Prescrita cruzada com a ANAMNESE/Uso Contínuo]');
+const prescricaoUnica = 'Cloridrato de Tramadol 50mg de 8 em 8h se dor intensa';
+const anamnesePaciente = 'Paciente relata histórico de depressão em uso contínuo de Fluoxetina 20mg/dia e hipertensão arterial.';
+console.log('Prescrição Atual (1 único remédio):', prescricaoUnica);
+console.log('Anamnese / Histórico do Paciente:', anamnesePaciente);
+const inter5 = checkDrugInteractions(prescricaoUnica, anamnesePaciente);
+inter5.forEach(i => {
+  console.log(`🚨 [${i.severity.toUpperCase()}] ${i.title}`);
+  console.log(`   Explicação: ${i.desc}`);
+  console.log(`   👉 Ação Médica Sugerida: ${i.action}`);
+});
+
+console.log('\n[Prescrição de Risco 6 - 1 ÚNICA Medicação Prescrita cruzada com ALERGIA na Anamnese]');
+const prescricaoAlergia = 'Dipirona Sódica 500mg/ml - 1 ampola EV em caso de febre';
+const anamneseAlergia = 'Paciente hipertenso. Relata alergia severa a Dipirona e Novalgina (edema de glote prévio).';
+console.log('Prescrição Atual:', prescricaoAlergia);
+console.log('Anamnese / Alergias do Paciente:', anamneseAlergia);
+const inter6 = checkDrugInteractions(prescricaoAlergia, anamneseAlergia);
+inter6.forEach(i => {
+  console.log(`🚨 [${i.severity.toUpperCase()}] ${i.title}`);
+  console.log(`   Explicação: ${i.desc}`);
+  console.log(`   👉 Ação Médica Sugerida: ${i.action}`);
+});
+
+console.log('\n[Prescrição de Risco 7 - Sildenafila / Tadalafila em Paciente com Dor no Peito / Taquicardia (Cenário do Usuário)]');
+const prescricaoPde5 = 'Sildenafila 50 mg ou Tadalafila 20 mg — 1 comp. VO.';
+const contextoCardiovascular = 'Subjetivo: Dores no peito. Paciente relata dor torácica de início recente, acompanhada de palpitação/taquicardia. Objetivo: Taquicárdico (FC: 150 bpm). Avaliação: Taquicardia paroxística (CID-10: R00.0 / I47.9)';
+console.log('Prescrição Atual:', prescricaoPde5);
+console.log('Quadro Clínico / Anamnese:', contextoCardiovascular);
+const inter7 = checkDrugInteractions(prescricaoPde5, contextoCardiovascular);
+inter7.forEach(i => {
+  console.log(`🚨 [${i.severity.toUpperCase()}] ${i.title}`);
+  console.log(`   Explicação: ${i.desc}`);
+  console.log(`   👉 Ação Médica Sugerida: ${i.action}`);
+});
+
+console.log('\n[Prescrição de Risco 8 - Betabloqueador em Paciente com Asma / Broncoespasmo (Contraindicação Clínica)]');
+const prescricaoBeta = 'Propranolol 40mg VO de 12/12h para controle pressórico';
+const contextoAsma = 'Diagnóstico: Crise de Asma Brônquica Moderada (CID-10: J45). Paciente refere dispneia e sibilância.';
+console.log('Prescrição Atual:', prescricaoBeta);
+console.log('Condição Clínica / CID-10:', contextoAsma);
+const inter8 = checkDrugInteractions(prescricaoBeta, contextoAsma);
+inter8.forEach(i => {
+  console.log(`🚨 [${i.severity.toUpperCase()}] ${i.title}`);
+  console.log(`   Explicação: ${i.desc}`);
+  console.log(`   👉 Ação Médica Sugerida: ${i.action}`);
+});
+
+console.log('\n[Prescrição de Risco 9 - AINE em Paciente com Insuficiência Renal Crônica (Contraindicação Clínica)]');
+const prescricaoAine = 'Ibuprofeno 600mg de 8/8h se dor articular';
+const contextoRenal = 'Histórico: Paciente portador de Insuficiência Renal Crônica estágio 4 (CID-10: N18.4), Creatinina 3.2 mg/dL.';
+console.log('Prescrição Atual:', prescricaoAine);
+console.log('Condição Clínica / CID-10:', contextoRenal);
+const inter9 = checkDrugInteractions(prescricaoAine, contextoRenal);
+inter9.forEach(i => {
+  console.log(`🚨 [${i.severity.toUpperCase()}] ${i.title}`);
+  console.log(`   Explicação: ${i.desc}`);
+  console.log(`   👉 Ação Médica Sugerida: ${i.action}`);
+});
+
+console.log('\n[Prescrição de Risco 10 - Duplicidade Terapêutica de Mesma Classe (Dois AINEs Prescritos Juntos)]');
+const prescricaoDuplicada = '1. Cetoprofeno 100mg IV de 12/12h\n2. Ibuprofeno 600mg VO se dor';
+console.log('Prescrição Atual (Múltiplos AINEs):', prescricaoDuplicada);
+const inter10 = checkDrugInteractions(prescricaoDuplicada, 'Paciente sem outras comorbidades.');
+inter10.forEach(i => {
+  console.log(`🚨 [${i.severity.toUpperCase()}] ${i.title}`);
+  console.log(`   Explicação: ${i.desc}`);
+  console.log(`   👉 Ação Médica Sugerida: ${i.action}`);
+});
+
 
 // --------------------------------------------------------------------------
 // TESTE 3: DITADO CLÍNICO POR VOZ (PARSING E PONTUAÇÃO AUTOMÁTICA)

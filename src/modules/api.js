@@ -511,6 +511,55 @@ export const apiFetch = async (url, options = {}) => {
         }
       }
     }
+    else if (url.includes('/api/encounters/') && url.includes('/notes')) {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/notes/);
+      const encounterId = match ? match[1] : null;
+      if (method === 'GET') {
+        const encs = localDB.list('encounters') || [];
+        const enc = encs.find(e => String(e.id) === String(encounterId) || String(e.patientId) === String(encounterId) || (e.patientName && encounterId && e.patientName.toLowerCase() === encounterId.toLowerCase()));
+        const allNotes = localDB.list('clinical_notes') || [];
+        const foundNote = allNotes.find(n => String(n.encounterId) === String(encounterId) || (enc && String(n.patientId) === String(enc.patientId)));
+        
+        responseData = {
+          subjectiveContent: enc?.subjectiveContent || foundNote?.subjectiveContent || enc?.complaints || '',
+          objectiveContent: enc?.objectiveContent || foundNote?.objectiveContent || '',
+          assessmentContent: enc?.assessmentContent || enc?.diagnosis || foundNote?.assessmentContent || '',
+          planContent: enc?.planContent || enc?.plan || foundNote?.planContent || ''
+        };
+      } else if (method === 'POST' || method === 'PUT') {
+        const { subjectiveContent, objectiveContent, assessmentContent, planContent, noteType } = body;
+        const encs = localDB.list('encounters') || [];
+        const enc = encs.find(e => String(e.id) === String(encounterId) || String(e.patientId) === String(encounterId) || (e.patientName && encounterId && e.patientName.toLowerCase() === encounterId.toLowerCase()));
+        
+        if (enc) {
+          localDB.update('encounters', enc.id, {
+            ...enc,
+            subjectiveContent: subjectiveContent || enc.subjectiveContent,
+            objectiveContent: objectiveContent || enc.objectiveContent,
+            assessmentContent: assessmentContent || enc.assessmentContent,
+            diagnosis: assessmentContent || enc.diagnosis,
+            planContent: planContent || enc.planContent,
+            plan: planContent || enc.plan,
+            lastStatusUpdate: new Date().toISOString()
+          });
+        }
+
+        const newNote = localDB.insert('clinical_notes', {
+          id: 'NOTE-' + Date.now(),
+          encounterId: enc?.id || encounterId,
+          patientId: enc?.patientId || 'pat-01',
+          patientName: enc?.patientName || '',
+          noteType: noteType || 'Evolucao_Medica',
+          subjectiveContent,
+          objectiveContent,
+          assessmentContent,
+          planContent,
+          created_at: new Date().toISOString()
+        });
+
+        responseData = { status: 'success', data: newNote, message: 'Evolução médica gravada com sucesso.' };
+      }
+    }
     else if (url.includes('/api/encounters/') && url.includes('/transfer-to-bed') && method === 'PUT') {
       const match = url.match(/\/api\/encounters\/([^\/]+)\/transfer-to-bed/);
       const encounterId = match ? match[1] : null;

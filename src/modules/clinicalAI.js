@@ -242,94 +242,558 @@ export const calculateMEWS = (vitals = {}) => {
   };
 };
 
-// --- 3. VERIFICADOR DE INTERAÇÕES MEDICAMENTOSAS EM TEMPO REAL ---
+// --- 3. SISTEMA AVANÇADO DE APOIO À DECISÃO CLÍNICA FARMACOLÓGICA (CDSS 4D) ---
+// Base Ontológica indexada por ATC (OMS), DCB (Anvisa) e Nomes Comerciais de Referência
 
-const DRUG_INTERACTIONS_DB = [
+export const PHARMACOLOGICAL_TAXONOMY = {
+  // 1. Inibidores de PDE-5 (Vasodilatadores para Disfunção Erétil / HAP)
+  'ATC_G04BE': {
+    className: 'Inibidores da Fosfodiesterase Tipo 5 (PDE-5)',
+    substances: ['sildenafila', 'viagra', 'tadalafila', 'cialis', 'vardenafila', 'levitra', 'avanafila', 'spedra'],
+    mechanism: 'Vasodilatação mediada por GMPc com relaxamento da musculatura lisa vascular'
+  },
+  // 2. Nitratos Vasodilatadores Coronarianos
+  'ATC_C01DA': {
+    className: 'Nitratos Vasodilatadores Coronarianos',
+    substances: ['monocordil', 'sustrate', 'isossorbida', 'nitroglicerina', 'dinitrato', 'propatilnitrato', 'tridil', 'nitrato', 'nitratos'],
+    mechanism: 'Doadores de óxido nítrico com vasodilatação venosa e coronariana potente'
+  },
+  // 3. Anti-inflamatórios Não Esteroidais (AINEs)
+  'ATC_M01A': {
+    className: 'Anti-inflamatórios Não Esteroidais (AINEs)',
+    substances: ['ibuprofeno', 'advil', 'alivium', 'cetoprofeno', 'profenid', 'diclofenaco', 'voltaren', 'cataflam', 'naproxeno', 'flanax', 'nimesulida', 'nisulid', 'meloxicam', 'piroxicam', 'celecoxibe', 'celebra'],
+    mechanism: 'Inibição das enzimas ciclo-oxigenases (COX-1 e COX-2), inibindo prostaglandinas'
+  },
+  // 4. Anticoagulantes Cumarínicos / Orais
+  'ATC_B01AA': {
+    className: 'Anticoagulantes Cumarínicos (Antivitamina K)',
+    substances: ['varfarina', 'warfarin', 'marevan', 'coumadin'],
+    mechanism: 'Inibição da síntese hepática de fatores de coagulação dependentes de Vitamina K'
+  },
+  // 5. Antiagregantes Plaquetários / Salicilatos
+  'ATC_B01AC': {
+    className: 'Antiagregantes Plaquetários & Salicilatos',
+    substances: ['aspirina', 'aas', 'acido acetilsalicilico', 'somalgin', 'clopidogrel', 'plavix', 'ticagrelor', 'brilinta', 'prasugrel'],
+    mechanism: 'Inibição irreversível da COX-1 plaquetária e bloqueio de receptores P2Y12'
+  },
+  // 6. Analgésicos Opioides
+  'ATC_N02A': {
+    className: 'Analgésicos Opioides de Ação Central',
+    substances: ['tramadol', 'cloridrato de tramadol', 'tramal', 'sylador', 'morfina', 'dimorf', 'codeina', 'tylex', 'fentanil', 'oxicodona', 'oxycontin'],
+    mechanism: 'Agonismo de receptores opioides mu no sistema nervoso central'
+  },
+  // 7. Antidepressivos ISRS / IRSN
+  'ATC_N06AB': {
+    className: 'Inibidores de Recaptação de Serotonina / Noradrenalina (ISRS/IRSN)',
+    substances: ['fluoxetina', 'prozac', 'daforin', 'sertralina', 'zoloft', 'assert', 'escitalopram', 'lexapro', 'paroxetina', 'aropax', 'citalopram', 'cipramil', 'venlafaxina', 'efexor', 'duloxetina', 'cymbalta'],
+    mechanism: 'Aumento da disponibilidade sináptica de serotonina e/ou noradrenalina'
+  },
+  // 8. Benzodiazepínicos (Sedativos/Ansiolíticos)
+  'ATC_N05BA': {
+    className: 'Benzodiazepínicos Depressores do SNC',
+    substances: ['diazepam', 'valium', 'clonazepam', 'rivotril', 'midazolam', 'dormonid', 'alprazolam', 'frontal', 'lorazepam'],
+    mechanism: 'Potencialização da neurotransmissão inibitória gabaérgica'
+  },
+  // 9. Betabloqueadores
+  'ATC_C07A': {
+    className: 'Betabloqueadores Adrenérgicos',
+    substances: ['propranolol', 'inderal', 'atenolol', 'atenol', 'metoprolol', 'selozok', 'carvedilol', 'coreg', 'bisoprolol', 'concor'],
+    mechanism: 'Antagonismo competitivo dos receptores beta-1 e beta-2 adrenérgicos'
+  },
+  // 10. Bloqueadores dos Canais de Cálcio Não-Di-hidropiridínicos
+  'ATC_C08D': {
+    className: 'Bloqueadores de Canais de Cálcio (Não-Di-hidropiridínicos)',
+    substances: ['verapamil', 'dilacoron', 'diltiazem', 'cardizem', 'balcor'],
+    mechanism: 'Inibição do influxo de cálcio no miocárdio e nódulo atrioventricular'
+  },
+  // 11. Inibidores da ECA & Bloqueadores dos Receptores de Angiotensina (IECA/BRA)
+  'ATC_C09A': {
+    className: 'Inibidores do Sistema Renina-Angiotensina (IECA/BRA)',
+    substances: ['enalapril', 'renitec', 'captopril', 'capoten', 'ramipril', 'triatec', 'losartana', 'aradois', 'cozaar', 'valsartana', 'diovan', 'candesartana'],
+    mechanism: 'Bloqueio da conversão ou ação da angiotensina II com vasodilatação sistêmica'
+  },
+  // 12. Diuréticos Poupadores de Potássio
+  'ATC_C03DA': {
+    className: 'Diuréticos Poupadores de Potássio / Antagonistas da Aldosterona',
+    substances: ['espironolactona', 'aldactone'],
+    mechanism: 'Antagonismo competitivo da aldosterona nos túbulos coletores renais'
+  },
+  // 13. Estatinas (Hipolipemiantes)
+  'ATC_C10AA': {
+    className: 'Inibidores da HMG-CoA Redutase (Estatinas)',
+    substances: ['sinvastatina', 'zocor', 'atorvastatina', 'lipitor', 'rosuvastatina', 'crestor', 'pravastatina'],
+    mechanism: 'Inibição da síntese hepática de colesterol via enzima HMG-CoA redutase'
+  },
+  // 14. Inibidores Enzimáticos CYP3A4 & Azóis / Macrolídeos
+  'ATC_J01FA_J02AC': {
+    className: 'Macrolídeos & Antifúngicos Azólicos Inibidores Potentes do CYP3A4',
+    substances: ['claritromicina', 'klaricid', 'eritromicina', 'fluconazol', 'diflucan', 'itraconazol', 'sporanox', 'cetoconazol'],
+    mechanism: 'Inibição potente do citocromo CYP3A4 elevando concentrações plasmáticas de substratos'
+  },
+  // 15. Inibidores da Bomba de Prótons (IBP)
+  'ATC_A02BC': {
+    className: 'Inibidores da Bomba de Prótons (IBP)',
+    substances: ['omeprazol', 'losec', 'pantoprazol', 'pantozol', 'esomeprazol', 'nexium', 'lansoprazol'],
+    mechanism: 'Inibição irreversível da H+/K+ ATPase na mucosa gástrica'
+  },
+  // 16. Estabilizadores de Humor (Lítio)
+  'ATC_N05AN': {
+    className: 'Estabilizadores do Humor (Sais de Lítio)',
+    substances: ['litio', 'carbonato de litio', 'carbolitium'],
+    mechanism: 'Modulação de segundos mensageiros fosfoinositídeos e neurotransmissão glutamatérgica'
+  },
+  // 17. Digitálicos
+  'ATC_C01AA': {
+    className: 'Glicosídeos Cardiotônicos (Digitálicos)',
+    substances: ['digoxina'],
+    mechanism: 'Inibição da Na+/K+ ATPase aumentando o cálcio intracelular e contratilidade miocárdica'
+  },
+  // 18. Antiarrítmicos Classe III
+  'ATC_C01BD': {
+    className: 'Antiarrítmicos Bloqueadores dos Canais de Potássio',
+    substances: ['amiodarona', 'ancoron'],
+    mechanism: 'Prolongamento do potencial de ação e período refratário miocárdico'
+  },
+  // 19. Suplementos Eletrolíticos
+  'ATC_A12BA': {
+    className: 'Suplementos de Potássio',
+    substances: ['cloreto de potassio', 'slow-k', 'potassio'],
+    mechanism: 'Reposição direta de cátions de potássio sérico'
+  },
+  // 20. Quinolonas
+  'ATC_J01MA': {
+    className: 'Antibióticos Quinolonas / Fluoroquinolonas',
+    substances: ['ciprofloxacino', 'ciprofloxacina', 'cipro', 'levofloxacino', 'levaquin'],
+    mechanism: 'Inibição da DNA girase bacteriana e topoisomerase IV'
+  },
+  // 21. Teofilinas / Metilxantinas
+  'ATC_R03DA': {
+    className: 'Broncodilatadores Metilxantinas',
+    substances: ['teofilina', 'aminofilina'],
+    mechanism: 'Inibição não-seletiva da fosfodiesterase promovendo broncodilatação'
+  },
+  // 22. Antimetabólitos Imunossupressores
+  'ATC_L01BA': {
+    className: 'Antimetabólitos Antagonistas do Ácido Fólico',
+    substances: ['metotrexato', 'methotrexate'],
+    mechanism: 'Inibição da di-hidrofolato redutase bloqueando síntese de DNA celular'
+  },
+  // 23. Penicilinas & Beta-lactâmicos
+  'ATC_J01CA': {
+    className: 'Penicilinas & Antibacterianos Beta-lactâmicos',
+    substances: ['amoxicilina', 'amoxil', 'ampicilina', 'clavulanato', 'amoxicilina + clavulanato', 'ceftriaxona', 'rocefin', 'cefalosporina', 'penicilina'],
+    mechanism: 'Inibição da síntese da parede celular bacteriana via PBPs'
+  }
+};
+
+// Base de Interações Fármaco x Fármaco (DDI) com Severidade Padrão Ouro (Micromedex/Lexicomp)
+export const DRUG_INTERACTIONS_DB = [
   {
-    drugs: ['varfarina', 'aspirina'],
-    severity: 'Grave',
+    classA: 'ATC_G04BE',
+    classB: 'ATC_C01DA',
+    severity: 'Critica',
     color: '#ef4444',
-    title: 'Hemorragia Severa',
-    desc: 'O uso concomitante de Varfarina e Aspirina (AAS) potencializa drasticamente o risco de sangramento gastrointestinal e intracraniano.',
-    action: 'Evitar associação. Monitorar INR e considerar alternativa antiplaquetária com protetor gástrico.'
+    title: 'CONTRAINDICAÇÃO ABSOLUTA: Inibidores da PDE-5 + Nitratos',
+    desc: 'A associação de Inibidores da PDE-5 (Sildenafila, Tadalafila) com Nitratos (Monocordil, Sustrate, Isossorbida, Nitroglicerina) produz vasodilatação sistêmica maciça com colapso hemodinâmico, choque cardiogênico refratário e risco de morte súbita.',
+    action: 'CONTRAINDICAÇÃO ABSOLUTA. Suspender nitratos por no mínimo 24h (Sildenafila) ou 48h (Tadalafila) antes do uso, ou prescrever alternativa terapêutica segura.',
+    isBlocker: true
   },
   {
-    drugs: ['varfarina', 'ibuprofeno'],
+    classA: 'ATC_B01AA',
+    classB: 'ATC_B01AC',
     severity: 'Grave',
     color: '#ef4444',
-    title: 'Risco de Sangramento Gastrointestinal',
-    desc: 'Anti-inflamatórios não esteroidais (AINEs) deslocam a varfarina de proteínas plasmáticas e inibem agregação plaquetária.',
-    action: 'Substituir AINE por analgésico puro (Dipirona ou Paracetamol).'
+    title: 'Hemorragia Severa por Dupla Anticoagulação/Antiagregação',
+    desc: 'O uso concomitante de Varfarina com Salicilatos/Antiagregantes potencializa drasticamente o risco de sangramento gastrointestinal volumoso e hemorragia intracraniana.',
+    action: 'Evitar associação não planejada. Se mandatória por prótese/SCA, monitorar INR frequentemente e associar protetor gástrico (IBP).'
   },
   {
-    drugs: ['ciprofloxacino', 'teofilina'],
+    classA: 'ATC_B01AA',
+    classB: 'ATC_M01A',
     severity: 'Grave',
     color: '#ef4444',
-    title: 'Toxicidade por Teofilina',
-    desc: 'Ciprofloxacino inibe o citocromo P450 (CYP1A2), elevando os níveis séricos de Teofilina com risco de convulsões e arritmias ventriculares.',
-    action: 'Reduzir dose da teofilina ou escolher outro antibiótico (ex: Azitromicina).'
+    title: 'Risco de Sangramento Gastrointestinal Grave (Varfarina + AINEs)',
+    desc: 'Anti-inflamatórios não esteroidais (AINEs) deslocam a varfarina de proteínas plasmáticas, inibem a função plaquetária e causam lesão direta da mucosa gástrica.',
+    action: 'Substituir AINE por analgésico puro (Dipirona ou Paracetamol). Não associar AINEs a anticoagulantes orais.'
   },
   {
-    drugs: ['omeprazol', 'clopidogrel'],
+    classA: 'ATC_N02A',
+    classB: 'ATC_N06AB',
+    severity: 'Grave',
+    color: '#ef4444',
+    title: 'Síndrome Serotoninérgica & Redução do Limiar Convulsivo',
+    desc: 'A combinação de Tramadol com antidepressivos ISRS/IRSN (Fluoxetina, Sertralina, Escitalopram, Venlafaxina) eleva os níveis sinápticos de serotonina, podendo precipitar Síndrome Serotoninérgica com hipertermia, clônus e convulsões.',
+    action: 'Monitorar sinais precoces de neurotoxicidade (tremores, hiperreflexia, diaforese). Preferir analgesia sem componente serotoninérgico.'
+  },
+  {
+    classA: 'ATC_N02A',
+    classB: 'ATC_N05BA',
+    severity: 'Grave',
+    color: '#ef4444',
+    title: 'Depressão Respiratória & Sedação Profunda',
+    desc: 'Associação de opioides com benzodiazepínicos causa depressão sinérgica profunda do centro respiratório bulbar e do SNC, com risco de parada respiratória e coma.',
+    action: 'Evitar associação. Se imprescindível em ambiente hospitalar, monitorar oximetria de pulso contínua e manter Naloxona/Flumazenil de fácil acesso.'
+  },
+  {
+    classA: 'ATC_C07A',
+    classB: 'ATC_C08D',
+    severity: 'Critica',
+    color: '#ef4444',
+    title: 'Bloqueio AV Total & Bradicardia Severa / Choque',
+    desc: 'Associação de Beta-bloqueador com Bloqueador de Canal de Cálcio não-di-hidropiridínico (Verapamil ou Diltiazem) suprime aditivamente o nódulo sinusal e condução atrioventricular, podendo desencadear BAVT, assistolia e choque cardiogênico.',
+    action: 'CONTRAINDICADO na maioria dos casos clínicos. Monitorar eletrocardiograma e frequência cardíaca continuamente.'
+  },
+  {
+    classA: 'ATC_C10AA',
+    classB: 'ATC_J01FA_J02AC',
+    severity: 'Grave',
+    color: '#ef4444',
+    title: 'Risco Elevado de Rabdomiólise & Lesão Renal Aguda',
+    desc: 'Macrolídeos (Claritromicina/Eritromicina) e Azóis (Fluconazol/Itraconazol) inibem potentemente o CYP3A4, multiplicando a exposição sérica às estatinas (Sinvastatina/Atorvastatina).',
+    action: 'Suspender temporariamente a estatina durante o ciclo antimicrobiano ou selecionar Rosuvastatina/Pravastatina.'
+  },
+  {
+    classA: 'ATC_N05AN',
+    classB: 'ATC_M01A',
+    severity: 'Grave',
+    color: '#ef4444',
+    title: 'Intoxicação Aguda por Lítio (Nefrotoxicidade & Neurotoxicidade)',
+    desc: 'AINEs inibem prostaglandinas renais, reduzindo a taxa de filtração glomerular do Lítio e elevando rapidamente a litiemia sérica para faixas tóxicas.',
+    action: 'Evitar AINEs em uso de Lítio. Utilizar Paracetamol ou Dipirona como analgésicos e monitorar litiemia.'
+  },
+  {
+    classA: 'ATC_C09A',
+    classB: 'ATC_C03DA',
     severity: 'Moderada',
     color: '#f59e0b',
-    title: 'Redução da Eficácia Antiagregante',
-    desc: 'Omeprazol inibe a ativação do pró-fármaco Clopidogrel via CYP2C19, aumentando risco de eventos trombóticos/isquêmicos.',
-    action: 'Substituir Omeprazol por Pantoprazol ou Famotidina.'
+    title: 'Risco de Hipercalemia Grave (IECA/BRA + Espironolactona)',
+    desc: 'Bloqueio dual do eixo renina-angiotensina-aldosterona retém potássio sérico, podendo elevar K+ > 5.5 mEq/L e induzir arritmias cardíacas.',
+    action: 'Monitorar eletrólitos séricos (K+) e função renal (Creatinina/Ureia) periodicamente.'
   },
   {
-    drugs: ['enalapril', 'espironolactona'],
-    severity: 'Moderada',
-    color: '#f59e0b',
-    title: 'Risco de Hipercalemia Grave',
-    desc: 'Associação de IECA com poupador de potássio pode causar elevação perigosa de potássio sérico (K+ > 5.5 mEq/L) com arritmias.',
-    action: 'Monitorar eletrólitos séricos e função renal frequentemente.'
+    classA: 'ATC_C03DA',
+    classB: 'ATC_A12BA',
+    severity: 'Critica',
+    color: '#ef4444',
+    title: 'Hipercalemia Fatal & Parada Cardíaca em Diástole',
+    desc: 'Associação de diurético poupador de potássio com suplementação direta de potássio pode disparar hipercalemia hiperaguda fatal.',
+    action: 'CONTRAINDICADO em pacientes com normocalemia. Monitorar potássio sérico diariamente.'
   },
   {
-    drugs: ['tramadol', 'fluoxetina'],
+    classA: 'ATC_C01AA',
+    classB: 'ATC_C01BD',
     severity: 'Grave',
     color: '#ef4444',
-    title: 'Síndrome Serotoninérgica & Convulsões',
-    desc: 'Associação de opioide com inibidor de recaptação de serotonina (ISRS) eleva serotonina cerebral e reduz limiar convulsivo.',
-    action: 'Monitorar sinais de tremores, hiperreflexia e febre. Considerar analgésico não serotoninérgico.'
+    title: 'Intoxicação Digitálica Grave por Amiodarona',
+    desc: 'Amiodarona inibe a glicoproteína-P renal e reduz o clearance da Digoxina em 50%, provocando acúmulo tóxico com BAV e arritmias ventriculares.',
+    action: 'Reduzir a dose de Digoxina em 50% ao introduzir Amiodarona e solicitar dosagem de digoxinemia e ECG.'
   },
   {
-    drugs: ['amoxicilina', 'metotrexato'],
+    classA: 'ATC_A02BC',
+    classB: 'ATC_B01AC',
     severity: 'Moderada',
     color: '#f59e0b',
-    title: 'Toxicidade por Metotrexato',
-    desc: 'Penicilinas competem com a secreção tubular renal do metotrexato, elevando sua toxicidade hematológica.',
-    action: 'Monitorar hemograma e plaquetas de perto durante o tratamento.'
+    title: 'Redução da Ativação do Clopidogrel por Omeprazol',
+    desc: 'Omeprazol inibe o CYP2C19, enzima necessária para bioativar o pró-fármaco Clopidogrel, reduzindo a proteção contra trombose de stent/SCA.',
+    action: 'Substituir Omeprazol por Pantoprazol (menor afinidade pelo CYP2C19) ou Famotidina.'
   },
   {
-    drugs: ['digoxina', 'amiodarona'],
+    classA: 'ATC_J01MA',
+    classB: 'ATC_R03DA',
     severity: 'Grave',
     color: '#ef4444',
-    title: 'Intoxicação Digitálica',
-    desc: 'Amiodarona reduz o clearance da digoxina, dobrando seus níveis plasmáticos com risco de bloqueio AV e arritmias fatais.',
-    action: 'Reduzir dose da Digoxina em 50% e monitorar ECG constantemente.'
+    title: 'Toxicidade Severa por Teofilina (Ciprofloxacino)',
+    desc: 'Ciprofloxacino inibe o CYP1A2, elevando os níveis de Teofilina com risco de taquiarritmias graves e convulsões.',
+    action: 'Reduzir dose da teofilina ou prescrever antibiótico alternativo (ex.: Azitromicina ou Amoxicilina).'
+  },
+  {
+    classA: 'ATC_J01CA',
+    classB: 'ATC_L01BA',
+    severity: 'Moderada',
+    color: '#f59e0b',
+    title: 'Toxicidade Medular por Metotrexato (Penicilinas)',
+    desc: 'Penicilinas competem com a secreção tubular renal do Metotrexato, aumentando seus níveis séricos e risco de mielossupressão.',
+    action: 'Monitorar hemograma e plaquetas rigorosamente durante o tratamento.'
+  },
+  {
+    classA: 'ATC_N02A',
+    classB: 'ATC_B01AC',
+    severity: 'Moderada',
+    color: '#f59e0b',
+    title: 'Risco de Lesão de Mucosa & Sangramento GI (Tramadol + Salicilatos)',
+    desc: 'Associação de analgésico opioide com salicilatos pode elevar o risco de desconforto gástrico e sangramento oculto em mucosa predisposta.',
+    action: 'Avaliar prescrição de IBP protetor gástrico e orientar tomada após as refeições.'
   }
 ];
 
-export const checkDrugInteractions = (textOrArray) => {
-  let content = '';
-  if (Array.isArray(textOrArray)) {
-    content = textOrArray.map(item => typeof item === 'string' ? item : (item.name || item.medication || '')).join(' ');
-  } else if (typeof textOrArray === 'string') {
-    content = textOrArray;
+// Helper: Identificar classes farmacológicas presentes em um texto
+export const detectPharmacologicalClasses = (text = '') => {
+  const norm = String(text).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const detected = [];
+
+  for (const [classCode, classData] of Object.entries(PHARMACOLOGICAL_TAXONOMY)) {
+    const matchedSubstances = classData.substances.filter(s => {
+      const cleanSub = s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const escaped = cleanSub.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+      return regex.test(norm) || norm.includes(cleanSub);
+    });
+
+    matchedSubstances.forEach(matchedSubstance => {
+      detected.push({
+        classCode,
+        className: classData.className,
+        matchedSubstance,
+        mechanism: classData.mechanism
+      });
+    });
   }
 
-  const normalized = content.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const foundInteractions = [];
+  return detected;
+};
 
-  DRUG_INTERACTIONS_DB.forEach(inter => {
-    const allPresent = inter.drugs.every(d => normalized.includes(d));
-    if (allPresent) {
-      foundInteractions.push(inter);
+// --- MOTOR PRINCIPAL CDSS EM 4 DIMENSÕES ---
+export const evaluatePrescriptionCDSS = (prescriptionInput, clinicalContext = {}) => {
+  let prescriptionText = '';
+  if (Array.isArray(prescriptionInput)) {
+    prescriptionText = prescriptionInput.map(i => typeof i === 'string' ? i : (i.name || i.medication || '')).join(' ');
+  } else if (typeof prescriptionInput === 'string') {
+    prescriptionText = prescriptionInput;
+  }
+
+  let historyText = '';
+  if (typeof clinicalContext === 'string') {
+    historyText = clinicalContext;
+  } else if (clinicalContext && typeof clinicalContext === 'object') {
+    historyText = [
+      clinicalContext.subjectiveContent || '',
+      clinicalContext.objectiveContent || '',
+      clinicalContext.assessmentContent || '',
+      clinicalContext.complaints || '',
+      clinicalContext.notes || '',
+      clinicalContext.patientNotes || '',
+      clinicalContext.allergies || '',
+      clinicalContext.medicalHistory || '',
+      clinicalContext.continuousMedications || ''
+    ].filter(Boolean).join(' | ');
+  }
+
+  const normPrescription = prescriptionText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const normHistory = historyText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const combinedNorm = (normPrescription + ' ' + normHistory).trim();
+
+  if (!normPrescription) return [];
+
+  const alerts = [];
+
+  const rxClasses = detectPharmacologicalClasses(normPrescription);
+  const historyClasses = detectPharmacologicalClasses(normHistory);
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // DIMENSÃO 1: INTERAÇÕES FÁRMACO X FÁRMACO (DDI)
+  // ──────────────────────────────────────────────────────────────────────────
+  DRUG_INTERACTIONS_DB.forEach(rule => {
+    const rxHasA = rxClasses.some(c => c.classCode === rule.classA);
+    const rxHasB = rxClasses.some(c => c.classCode === rule.classB);
+
+    const historyHasA = historyClasses.some(c => c.classCode === rule.classA);
+    const historyHasB = historyClasses.some(c => c.classCode === rule.classB);
+
+    const matchCase1 = rxHasA && (rxHasB || historyHasB);
+    const matchCase2 = rxHasB && (rxHasA || historyHasA);
+
+    if (matchCase1 || matchCase2) {
+      const isWithContinuous = (rxHasA && !rxHasB && historyHasB) || (rxHasB && !rxHasA && historyHasA);
+      alerts.push({
+        dimension: 'DDI',
+        severity: rule.severity,
+        color: rule.color,
+        title: isWithContinuous ? `[Uso Contínuo / Anamnese] ${rule.title}` : rule.title,
+        desc: isWithContinuous ? `O paciente possui histórico de uso prévio na anamnese. ${rule.desc}` : rule.desc,
+        action: rule.action,
+        isBlocker: Boolean(rule.isBlocker)
+      });
     }
   });
 
-  return foundInteractions;
+  // ──────────────────────────────────────────────────────────────────────────
+  // DIMENSÃO 2: FÁRMACO X ALERGIAS DO PACIENTE
+  // ──────────────────────────────────────────────────────────────────────────
+  const allergyKeywords = ['alergia', 'alergico', 'alergica', 'hipersensibilidade', 'anafilaxia', 'reacao adversa', 'edema de glote'];
+  const hasAllergySignal = allergyKeywords.some(kw => normHistory.includes(kw)) || Boolean(clinicalContext?.allergies);
+
+  if (hasAllergySignal) {
+    const ALLERGEN_TAXONOMY = [
+      {
+        label: 'Dipirona / Pirazolonas',
+        aliases: ['dipirona', 'metamizol', 'novalgina', 'anador', 'lisador'],
+        matchClasses: []
+      },
+      {
+        label: 'Penicilinas & Beta-lactâmicos',
+        aliases: ['penicilina', 'amoxicilina', 'amoxil', 'ampicilina', 'cefalosporina', 'ceftriaxona', 'rocefin', 'clavulanato'],
+        matchClasses: ['ATC_J01CA']
+      },
+      {
+        label: 'Aspirina / Salicilatos',
+        aliases: ['aspirina', 'aas', 'acido acetilsalicilico', 'somalgin'],
+        matchClasses: ['ATC_B01AC']
+      },
+      {
+        label: 'Anti-inflamatórios (AINEs)',
+        aliases: ['ibuprofeno', 'cetoprofeno', 'diclofenaco', 'naproxeno', 'nimesulida', 'piroxicam', 'meloxicam', 'voltaren', 'cataflam', 'profenid'],
+        matchClasses: ['ATC_M01A']
+      },
+      {
+        label: 'Sulfonamidas / Sulfas',
+        aliases: ['sulfametoxazol', 'sulfa', 'sulfas', 'bactrim'],
+        matchClasses: []
+      },
+      {
+        label: 'Opioides / Tramadol',
+        aliases: ['tramadol', 'tramal', 'morfina', 'codeina', 'fentanil'],
+        matchClasses: ['ATC_N02A']
+      }
+    ];
+
+    ALLERGEN_TAXONOMY.forEach(alg => {
+      const historyHasAllergy = alg.aliases.some(alias => normHistory.includes(alias));
+      const prescriptionHasAllergen = alg.aliases.some(alias => normPrescription.includes(alias)) ||
+                                     rxClasses.some(c => alg.matchClasses.includes(c.classCode));
+
+      if (historyHasAllergy && prescriptionHasAllergen) {
+        alerts.unshift({
+          dimension: 'ALLERGY',
+          severity: 'Critica',
+          color: '#ef4444',
+          title: `🚨 ALERTA CRÍTICO DE ALERGIA: PACIENTE ALÉRGICO A ${alg.label.toUpperCase()}`,
+          desc: `Consta no cadastro/anamnese do paciente histórico formal de hipersensibilidade a "${alg.label}". A prescrição deste fármaco apresenta ALTO RISCO de reação anafilática grave, broncoespasmo e choque.`,
+          action: `SUSPENDER IMEDIATAMENTE a prescrição de ${alg.label} e prescrever alternativa farmacológica segura de outra classe terapêutica.`,
+          isAllergyAlert: true,
+          isBlocker: true
+        });
+      }
+    });
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // DIMENSÃO 3: FÁRMACO X CONDIÇÃO CLÍNICA / CID-10 / SINAIS VITAIS
+  // ──────────────────────────────────────────────────────────────────────────
+  // Regra 3.1: Inibidores de PDE-5 em Dor Torácica / Angina / Isquemia / Arritmias Agudas
+  const hasPDE5 = rxClasses.some(c => c.classCode === 'ATC_G04BE');
+  if (hasPDE5) {
+    const cardiacSymptomKeywords = [
+      'dor no peito', 'dor toracica', 'desconforto toracico', 'angina', 'palpitacao', 
+      'taquicardia', 'taquiarritmia', 'isquemia', 'infarto', 'iam', 'coronaria', 
+      'insuficiencia cardiaca', 'arritmia', 'pos-infarto', 'sindrome coronariana', 'r00.0', 'i47', 'i20', 'i21'
+    ];
+    if (cardiacSymptomKeywords.some(kw => combinedNorm.includes(kw))) {
+      alerts.unshift({
+        dimension: 'CLINICAL_CONTRAINDICATION',
+        severity: 'Critica',
+        color: '#ef4444',
+        title: '🚨 CONTRAINDICAÇÃO CARDIOVASCULAR CRÍTICA: Inibidores da PDE-5 em Dor Torácica / Taquiarritmia',
+        desc: 'O paciente apresenta quadro agudo de dor torácica / taquiarritmia / síndrome coronariana. O uso de inibidores da PDE-5 (Sildenafila, Tadalafila) é fortemente contraindicado pelo risco de vasodilatação reflexa, queda crítica da pressão de perfusão coronariana, isquemia miocárdica e choque.',
+        action: 'SUSPENDER IMEDIATAMENTE a prescrição de Sildenafila/Tadalafila. Priorizar estabilização hemodinâmica, ECG de 12 derivações e investigação de emergência cardiológica.',
+        isBlocker: true
+      });
+    }
+  }
+
+  // Regra 3.2: Betabloqueadores em Asma / Broncoespasmo / DPOC
+  const hasBetaBlocker = rxClasses.some(c => c.classCode === 'ATC_C07A');
+  if (hasBetaBlocker) {
+    const asthmaKeywords = ['asma', 'broncoespasmo', 'dpoc', 'chiado', 'sibilância', 'j45', 'j44'];
+    if (asthmaKeywords.some(kw => combinedNorm.includes(kw))) {
+      alerts.push({
+        dimension: 'CLINICAL_CONTRAINDICATION',
+        severity: 'Grave',
+        color: '#ef4444',
+        title: 'CONTRAINDICAÇÃO RESPIRATÓRIA: Betabloqueadores em Paciente Asmático / DPOC',
+        desc: 'Betabloqueadores podem antagonizar receptores beta-2 brônquicos e desencadear broncoespasmo severo e insuficiência respiratória em pacientes com asma ou DPOC.',
+        action: 'Substituir por classe anti-hipertensiva alternativa (IECA/BRA ou Bloqueador de Canal de Cálcio di-hidropiridínico).'
+      });
+    }
+  }
+
+  // Regra 3.3: AINEs em Insuficiência Renal Crônica / Úlcera Péptica Ativa
+  const hasAINE = rxClasses.some(c => c.classCode === 'ATC_M01A');
+  if (hasAINE) {
+    const renalUlcerKeywords = ['insuficiencia renal', 'drc', 'creatinina elevada', 'ulcera', 'hemorragia digestiva', 'hda', 'n18', 'k25', 'k26'];
+    if (renalUlcerKeywords.some(kw => combinedNorm.includes(kw))) {
+      alerts.push({
+        dimension: 'CLINICAL_CONTRAINDICATION',
+        severity: 'Grave',
+        color: '#ef4444',
+        title: 'CONTRAINDICAÇÃO CLÍNICA: AINEs em Doença Renal / Úlcera Ativa',
+        desc: 'Anti-inflamatórios reduzem a síntese de prostaglandinas vasodilatadoras renais (precipitando IRA) e inibem a proteção da mucosa gástrica com risco de perfuração/sangramento.',
+        action: 'Prescrever analgésicos puros (Dipirona / Paracetamol) ou opioides fracos para controle álgico seguro.'
+      });
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // DIMENSÃO 4: DUPLICIDADE TERAPÊUTICA (Mesma Classe Farmacológica no Plano)
+  // ──────────────────────────────────────────────────────────────────────────
+  const classOccurrences = {};
+  rxClasses.forEach(item => {
+    if (!classOccurrences[item.classCode]) {
+      classOccurrences[item.classCode] = [];
+    }
+    if (!classOccurrences[item.classCode].includes(item.matchedSubstance)) {
+      classOccurrences[item.classCode].push(item.matchedSubstance);
+    }
+  });
+
+  for (const [classCode, substances] of Object.entries(classOccurrences)) {
+    // Normaliza para não considerar sinônimos do mesmo fármaco como duplicidade
+    const uniqueBases = [];
+    substances.forEach(s => {
+      const isDuplicateVariation = uniqueBases.some(b => b.includes(s) || s.includes(b));
+      if (!isDuplicateVariation) uniqueBases.push(s);
+    });
+
+    if (uniqueBases.length >= 2) {
+      const classInfo = PHARMACOLOGICAL_TAXONOMY[classCode];
+      alerts.push({
+        dimension: 'DUPLICATION',
+        severity: classCode === 'ATC_G04BE' ? 'Critica' : 'Moderada',
+        color: classCode === 'ATC_G04BE' ? '#ef4444' : '#60a5fa',
+        title: `DUPLICIDADE TERAPÊUTICA: ${classInfo.className}`,
+        desc: `Prescrição simultânea de ${uniqueBases.length} fármacos da mesma classe terapêutica (${uniqueBases.join(' + ')}). Essa associação raramente traz benefício clínico e multiplica a toxicidade e os efeitos adversos.`,
+        action: `Avaliar prescrição e manter apenas um único princípio ativo na dose terapêutica recomendada.`
+      });
+    }
+  }
+
+  return alerts;
+};
+
+// Wrapper para manter compatibilidade total com chamadas antigas
+export const checkDrugInteractions = (textOrArray, patientHistoryContext = '') => {
+  return evaluatePrescriptionCDSS(textOrArray, patientHistoryContext);
+};
+
+// Helper: Conector Assíncrono com a API OpenFDA para enriquecimento de bulas e reações adversas
+export const queryOpenFDADrugSafety = async (drugName = '') => {
+  if (!drugName) return null;
+  try {
+    const cleanDrug = encodeURIComponent(drugName.trim());
+    const res = await fetch(`https://api.fda.gov/drug/label.json?search=openfda.generic_name:${cleanDrug}&limit=1`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    const result = json.results?.[0];
+    if (!result) return null;
+    return {
+      genericName: result.openfda?.generic_name?.[0] || drugName,
+      brandName: result.openfda?.brand_name?.[0] || '',
+      warnings: result.warnings?.[0] || result.boxed_warning?.[0] || '',
+      contraindications: result.contraindications?.[0] || '',
+      drugInteractions: result.drug_interactions?.[0] || ''
+    };
+  } catch (e) {
+    return null;
+  }
 };
 
 // --- 4. FORMATADOR E INTEGRAÇÃO WHATSAPP ---

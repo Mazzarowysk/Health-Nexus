@@ -1254,26 +1254,78 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
     };
     const sectorName = activeHosp ? (KANBAN_SECTORS[activeHosp.current_sector] || activeHosp.current_sector || 'Enfermaria') : (latestDischargedHosp ? (KANBAN_SECTORS[latestDischargedHosp.current_sector] || latestDischargedHosp.current_sector || 'Enfermaria') : 'Enfermaria');
 
+    let ageDisplayHistory = '';
+    if (patient.birthDate) {
+      const bDate = new Date(patient.birthDate);
+      if (!isNaN(bDate.getTime())) {
+        const today = new Date();
+        let age = today.getFullYear() - bDate.getFullYear();
+        const m = today.getMonth() - bDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) age--;
+        const parts = patient.birthDate.split('-');
+        const formattedBirth = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : patient.birthDate;
+        ageDisplayHistory = `${age} anos (${formattedBirth})`;
+      }
+    }
+
     let html = `
-      <!-- Card de Informações do Paciente -->
-      <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <div style="font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> ${patient.fullName || patientName}
+      <!-- Card Completo de Dados Cadastrais do Paciente (Recepção) -->
+      <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1.5px solid rgba(139, 92, 246, 0.35); border-radius: 14px; padding: 18px 22px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div style="font-size: 1.15rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-id-card-clip" style="color: #a78bfa;"></i> ${patient.fullName || patientName}
+            </div>
+            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">Ficha Cadastral &amp; Dados Administrativos da Recepção</div>
           </div>
-          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap;">
-            <span><strong>CPF:</strong> ${patient.cpf || 'Não informado'}</span>
-            <span><strong>Nascimento:</strong> ${patient.birthDate || 'Não informado'}</span>
-            <span><strong>Gênero:</strong> ${patient.gender || 'Não informado'}</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+              ${encounters.length} Atendimento(s)
+            </span>
+            <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+              ${appointments.length} Consulta(s)
+            </span>
           </div>
         </div>
-        <div style="display: flex; gap: 10px;">
-          <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
-            ${encounters.length} Atendimento(s)
-          </span>
-          <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
-            ${appointments.length} Consulta(s)
-          </span>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 18px; font-size: 0.82rem;">
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.73rem; display: block;">CPF / Nascimento:</span>
+            <strong style="color: #fff; font-family: monospace;">${patient.cpf || 'Não Informado'}</strong> ${ageDisplayHistory ? `&bull; <span style="color: #c4b5fd;">${ageDisplayHistory}</span>` : ''}
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.73rem; display: block;">Convênio / Carteirinha:</span>
+            <strong style="color: #34d399;">${patient.healthPlan || 'Particular'}</strong> ${patient.cardNumber ? `<span style="color: #94a3b8; font-size: 0.75rem;">(${patient.cardNumber})</span>` : ''}
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.73rem; display: block;">Filiação (Mãe):</span>
+            <strong style="color: #e2e8f0;">${patient.motherName || 'Não Informado'}</strong>
+          </div>
+          ${patient.fatherName ? `
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.73rem; display: block;">Filiação (Pai):</span>
+              <strong style="color: #cbd5e1;">${patient.fatherName}</strong>
+            </div>
+          ` : ''}
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.73rem; display: block;">Telefone / WhatsApp:</span>
+            <strong style="color: #60a5fa;">${patient.cellphone || patient.phone || 'Não Informado'}</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.73rem; display: block;">Endereço / Cidade:</span>
+            <strong style="color: #cbd5e1;">${(patient.city || patient.address) ? `${patient.address || ''}${patient.number ? ', ' + patient.number : ''}${patient.neighborhood ? ' - ' + patient.neighborhood : ''} (${patient.city || ''})` : 'Não Informado'}</strong>
+          </div>
+          ${patient.responsibleName ? `
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.73rem; display: block;">Responsável Legal:</span>
+              <strong style="color: #f59e0b;">${patient.responsibleName}</strong> <small style="color: #94a3b8;">(${patient.responsibleRelationship || 'Acompanhante'})</small>
+            </div>
+          ` : ''}
+          ${patient.allergies ? `
+            <div style="grid-column: 1 / -1; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 6px 12px; color: #fca5a5;">
+              <i class="fa-solid fa-triangle-exclamation"></i> <strong>Alergias Cadastradas:</strong> ${patient.allergies}
+            </div>
+          ` : ''}
         </div>
       </div>
 
@@ -1465,14 +1517,14 @@ window.openPatientHistoryModal = async function(patientId, patientName) {
                     <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">
                       <strong style="color: #fff;"><i class="fa-solid fa-notes-medical" style="color:#f87171; margin-right:4px;"></i> Queixa Principal / Sintomas:</strong> ${enc.complaints || enc.reason || 'Dores no peito, desconforto torácico sob esforço físico.'}
                     </div>
-                    ${(enc.subjectiveContent || enc.notes) ? `
+                    ${(enc.assessmentContent || enc.diagnosis || enc.subjectiveContent || enc.notes) ? `
                       <div style="font-size: 0.84rem; color: #e2e8f0; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px;">
-                        <strong style="color: var(--color-primary);"><i class="fa-solid fa-stethoscope"></i> Avaliação Médica / SOAP Registrada:</strong><br>
-                        ${enc.subjectiveContent || enc.notes}
+                        <strong style="color: var(--color-primary);"><i class="fa-solid fa-stethoscope"></i> Avaliação Médica / Diagnóstico:</strong><br>
+                        ${enc.assessmentContent || enc.diagnosis || enc.notes || 'Atendimento clínico em andamento.'}
                       </div>
                     ` : `
                       <div style="font-size: 0.8rem; color: #94a3b8; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px; margin-top: 6px;">
-                        <i class="fa-solid fa-file-signature"></i> <strong>Hipótese Diagnóstica:</strong> I20.0 — Angina Instável / Investigação Cardiológica &bull; <strong>Conduta:</strong> Encaminhamento para leito de internação para monitorização contínua.
+                        <i class="fa-solid fa-hourglass-half" style="color: #f59e0b; margin-right: 4px;"></i> <strong>Status Clínico:</strong> Paciente triado, aguardando preenchimento da evolução médica / conduta no consultório.
                       </div>
                     `}
                   </div>
@@ -1558,7 +1610,7 @@ window.openPEPModal = async function(encounterId) {
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85);">
       
-      <div class="modal-header" style="padding: 18px 24px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div class="modal-header" style="padding: 16px 24px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 14px;">
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8;">
             <i class="fa-solid fa-file-medical" style="font-size: 1.15rem;"></i>
@@ -1569,14 +1621,25 @@ window.openPEPModal = async function(encounterId) {
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 16px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
-            <i class="fa-solid fa-video"></i> Teleconsulta
-          </button>
-          <button type="button" id="btn-pep-whatsapp-header" class="btn" style="background: rgba(37,211,102,0.15); border: 1px solid rgba(37,211,102,0.3); color: #4ade80; font-size: 0.78rem; font-weight: 700; border-radius: 16px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
-            <i class="fa-brands fa-whatsapp"></i> WhatsApp
-          </button>
-          <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btn-pep-history-header" class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.35); color: #a5b4fc; font-size: 0.78rem; font-weight: 700; border-radius: 16px; padding: 6px 13px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;" title="Ver Histórico Pregresso do Paciente">
+              <i class="fa-solid fa-clock-rotate-left"></i> Histórico Pregresso
+            </button>
+            <button type="button" id="btn-pep-pdf-header" class="btn" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color: #f87171; font-size: 0.78rem; font-weight: 700; border-radius: 16px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;" title="Gerar e Baixar Prontuário em PDF">
+              <i class="fa-solid fa-file-pdf"></i> Gerar PDF
+            </button>
+            <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 16px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+              <i class="fa-solid fa-video"></i> Teleconsulta
+            </button>
+            <button type="button" id="btn-pep-whatsapp-header" class="btn" style="background: rgba(37,211,102,0.15); border: 1px solid rgba(37,211,102,0.3); color: #4ade80; font-size: 0.78rem; font-weight: 700; border-radius: 16px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </button>
+          </div>
+
+          <div style="width: 1px; height: 26px; background: rgba(255,255,255,0.12); margin: 0 4px;"></div>
+
+          <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: #cbd5e1; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 0.95rem;" onmouseover="this.style.background='rgba(239,68,68,0.2)'; this.style.borderColor='rgba(239,68,68,0.5)'; this.style.color='#ef4444';" onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.18)'; this.style.color='#cbd5e1';" title="Fechar Prontuário">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -1676,6 +1739,29 @@ window.openPEPModal = async function(encounterId) {
       subtitleEl.innerHTML = `Paciente: <strong style="color:#fff;">${enc.patientName || 'Paciente'}</strong> · Sala: <span style="color:#34d399;">${enc.room || 'Consultório 01'}</span>`;
     }
 
+    // Botão Gerar PDF direto do cabeçalho do PEP
+    document.getElementById('btn-pep-pdf-header')?.addEventListener('click', () => {
+      const subjectiveContent = document.getElementById('pep-subjective')?.value || '';
+      const objectiveContent = document.getElementById('pep-objective')?.value || '';
+      const assessmentContent = document.getElementById('pep-assessment')?.value || '';
+      const planContent = document.getElementById('pep-plan')?.value || '';
+
+      if (window.localDB && typeof window.localDB.update === 'function' && enc.id) {
+        window.localDB.update('encounters', enc.id, {
+          subjectiveContent,
+          objectiveContent,
+          assessmentContent,
+          planContent,
+          notes: planContent,
+          diagnosis: assessmentContent
+        });
+      }
+
+      if (typeof window.generatePatientPDF === 'function') {
+        window.generatePatientPDF(enc.patientId || enc.id, enc.patientName || 'Paciente');
+      }
+    });
+
     // Botões de Cabeçalho (Telemedicina e WhatsApp)
     document.getElementById('btn-pep-telemed-header')?.addEventListener('click', () => {
       openTelemedicineModal({
@@ -1714,6 +1800,42 @@ window.openPEPModal = async function(encounterId) {
     // Cálculo do Escore MEWS e Risco Clínico
     const mewsData = calculateMEWS(enc);
 
+    // Buscar histórico de atendimentos anteriores do paciente
+    let pastEncs = [];
+    try {
+      const allEncs = (state.encounters || dataCache.encounters || (window.localDB ? window.localDB.list('encounters') : [])) || [];
+      pastEncs = allEncs.filter(e => 
+        e.id !== enc.id && (
+          (enc.patientId && String(e.patientId) === String(enc.patientId)) ||
+          (enc.patientName && e.patientName && e.patientName.toLowerCase().trim() === enc.patientName.toLowerCase().trim())
+        )
+      );
+    } catch(e) {}
+
+    // Buscar dados cadastrais completos do paciente (Recepção / Admissão)
+    let patientData = {};
+    try {
+      const allPatients = (state.patients || dataCache.patients || (window.localDB ? window.localDB.list('patients') : [])) || [];
+      patientData = allPatients.find(p => 
+        (enc.patientId && String(p.id) === String(enc.patientId)) || 
+        (p.fullName && enc.patientName && p.fullName.toLowerCase().trim() === enc.patientName.toLowerCase().trim())
+      ) || {};
+    } catch(e) {}
+
+    let ageDisplay = '';
+    if (patientData.birthDate) {
+      const bDate = new Date(patientData.birthDate);
+      if (!isNaN(bDate.getTime())) {
+        const today = new Date();
+        let age = today.getFullYear() - bDate.getFullYear();
+        const m = today.getMonth() - bDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) age--;
+        const parts = patientData.birthDate.split('-');
+        const formattedBirth = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : patientData.birthDate;
+        ageDisplay = `${age} anos (${formattedBirth})`;
+      }
+    }
+
     bodyEl.innerHTML = `
       ${isReadOnly ? `
         <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; color: #fbbf24; font-size: 0.85rem;">
@@ -1723,6 +1845,90 @@ window.openPEPModal = async function(encounterId) {
           </div>
         </div>
       ` : ''}
+
+      <!-- Ficha de Identificação Cadastral do Paciente (Recepção / Admissão) -->
+      <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1.5px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-id-card-clip" style="color: #818cf8; font-size: 1.1rem;"></i>
+            <span style="font-weight: 700; color: #fff; font-size: 0.92rem;">Dados Cadastrais do Paciente (Ato do Cadastro / Recepção)</span>
+          </div>
+          <span style="font-size: 0.75rem; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 6px;">
+            ID: <strong style="color: #cbd5e1;">${patientData.id || enc.patientId || 'N/A'}</strong>
+          </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 16px; font-size: 0.82rem;">
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.74rem; display: block;">Nome Completo:</span>
+            <strong style="color: #ffffff; font-size: 0.92rem;">${patientData.fullName || enc.patientName || 'Não Informado'}</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.74rem; display: block;">CPF / Nascimento:</span>
+            <strong style="color: #e2e8f0; font-family: monospace;">${patientData.cpf || enc.cpf || 'Não Informado'}</strong> ${ageDisplay ? `&bull; <span style="color: #a5b4fc;">${ageDisplay}</span>` : ''}
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.74rem; display: block;">Convênio / Carteirinha:</span>
+            <strong style="color: #34d399;">${patientData.healthPlan || 'Particular'}</strong> ${patientData.cardNumber ? `<span style="color: #94a3b8; font-size: 0.75rem;">(${patientData.cardNumber})</span>` : ''}
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.74rem; display: block;">Filiação (Nome da Mãe):</span>
+            <strong style="color: #cbd5e1;">${patientData.motherName || 'Não Informado'}</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.74rem; display: block;">Telefone / WhatsApp:</span>
+            <strong style="color: #60a5fa;">${patientData.cellphone || patientData.phone || enc.phone || 'Não Informado'}</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.74rem; display: block;">Endereço / Cidade:</span>
+            <strong style="color: #cbd5e1;">${(patientData.city || patientData.address) ? `${patientData.address || ''}${patientData.number ? ', ' + patientData.number : ''}${patientData.neighborhood ? ' - ' + patientData.neighborhood : ''} (${patientData.city || ''})` : 'Não Informado'}</strong>
+          </div>
+          ${patientData.responsibleName ? `
+            <div>
+              <span style="color: var(--text-muted); font-size: 0.74rem; display: block;">Responsável Legal:</span>
+              <strong style="color: #f59e0b;">${patientData.responsibleName}</strong> <small style="color: #94a3b8;">(${patientData.responsibleRelationship || 'Acompanhante'})</small>
+            </div>
+          ` : ''}
+          ${patientData.allergies ? `
+            <div style="grid-column: 1 / -1; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 6px 10px; color: #fca5a5;">
+              <i class="fa-solid fa-triangle-exclamation"></i> <strong>Alergias Cadastradas:</strong> ${patientData.allergies}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <!-- Painel de Histórico Pregresso do Paciente -->
+      <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" id="pep-history-toggle-header">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #a5b4fc; font-size: 0.88rem;">
+            <i class="fa-solid fa-clock-rotate-left"></i> Histórico Pregresso & Atendimentos Anteriores (${pastEncs.length})
+          </div>
+          <button type="button" id="btn-toggle-pep-history-inner" class="btn btn-sm" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #c7d2fe; font-size: 0.74rem; padding: 3px 10px; border-radius: 6px; cursor: pointer;">
+            <i class="fa-solid fa-chevron-down" id="pep-history-chevron-icon"></i> <span id="pep-history-toggle-text">Ver Histórico</span>
+          </button>
+        </div>
+
+        <div id="pep-history-drawer-content" style="display: none; margin-top: 12px; border-top: 1px dashed rgba(99,102,241,0.25); padding-top: 10px; max-height: 220px; overflow-y: auto;">
+          ${pastEncs.length === 0 ? `
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 8px;">
+              Este é o primeiro atendimento registrado para este paciente no sistema.
+            </div>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${pastEncs.map(pe => `
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 0.8rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <strong style="color: #fff;">📅 ${pe.entryTime || (pe.created_at ? new Date(pe.created_at).toLocaleDateString('pt-BR') : 'Atendimento Anterior')} — ${pe.doctorName || 'Médico Assistente'}</strong>
+                    <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: rgba(99,102,241,0.15); color: #a5b4fc;">${pe.status || 'Concluído'}</span>
+                  </div>
+                  <div style="color: var(--text-secondary);"><strong style="color: var(--text-primary);">Queixa / Anamnese:</strong> ${pe.complaints || pe.reason || 'Consulta médica'}</div>
+                  ${(pe.assessmentContent || pe.notes) ? `<div style="color: #93c5fd; margin-top: 2px;"><strong style="color: var(--text-primary);">Diagnóstico / Conduta:</strong> ${pe.assessmentContent || pe.notes}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      </div>
 
       <!-- Sinais Vitais & Escore MEWS -->
       <div style="background: var(--bg-tertiary); border: 1px solid ${mewsData.isSepsisAlert ? '#ef4444' : 'var(--border-color)'}; border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; ${mewsData.isSepsisAlert ? 'box-shadow: 0 0 16px rgba(239,68,68,0.3);' : ''}">
@@ -1758,7 +1964,7 @@ window.openPEPModal = async function(encounterId) {
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Subjetivo (Anamnese & Queixa):</label>
             ${!isReadOnly ? `<button type="button" id="btn-voice-subj" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
           </div>
-          <textarea id="pep-subjective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Relato do paciente, evolução dos sintomas...">${notes.subjectiveContent || enc.complaints || ''}</textarea>
+          <textarea id="pep-subjective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Relato do paciente, evolução dos sintomas...">${notes.subjectiveContent || enc.subjectiveContent || enc.complaints || ''}</textarea>
         </div>
 
         <div>
@@ -1766,7 +1972,7 @@ window.openPEPModal = async function(encounterId) {
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Objetivo (Exame Físico / Achados):</label>
             ${!isReadOnly ? `<button type="button" id="btn-voice-obj" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
           </div>
-          <textarea id="pep-objective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || ''}</textarea>
+          <textarea id="pep-objective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || enc.objectiveContent || enc.physicalExam || ''}</textarea>
         </div>
 
         <div class="autocomplete-container" style="position:relative;">
@@ -1774,7 +1980,7 @@ window.openPEPModal = async function(encounterId) {
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Avaliação (Diagnóstico / CID-10):</label>
             ${!isReadOnly ? `<button type="button" id="btn-voice-ass" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
           </div>
-          <textarea id="pep-assessment" class="form-input pep-cid-input" ${isReadOnly ? 'readonly style="width:100%; min-height:55px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:55px; resize:vertical;"'} placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || ''}</textarea>
+          <textarea id="pep-assessment" class="form-input pep-cid-input" ${isReadOnly ? 'readonly style="width:100%; min-height:55px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:55px; resize:vertical;"'} placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || enc.assessmentContent || enc.diagnosis || ''}</textarea>
           <div id="pep-cid-dropdown" class="autocomplete-dropdown"></div>
         </div>
 
@@ -1783,15 +1989,17 @@ window.openPEPModal = async function(encounterId) {
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Plano Terapêutico & Prescrição:</label>
             ${!isReadOnly ? `<button type="button" id="btn-voice-plan" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
           </div>
-          <textarea id="pep-plan" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || ''}</textarea>
+          <textarea id="pep-plan" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || enc.planContent || enc.plan || enc.prescription || ''}</textarea>
           
-          <!-- Banner Dinâmico de Interações Medicamentosas -->
-          <div id="pep-drug-interactions-alert" style="display: none; margin-top: 8px; padding: 10px 14px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1.5px solid #ef4444; color: #fca5a5; font-size: 0.82rem;">
-            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #fff; margin-bottom: 3px;">
-              <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> <span id="pep-inter-title">Alerta de Interação Medicamentosa</span>
+          <!-- Banner Dinâmico CDSS 4D de Apoio à Decisão Farmacológica -->
+          <div id="pep-drug-interactions-alert" style="display: none; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1.5px solid #ef4444; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
+            <div id="pep-cdss-header" style="background: rgba(239, 68, 68, 0.22); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(239,68,68,0.3);">
+              <span style="font-weight: 700; font-size: 0.84rem; color: #fff; display: flex; align-items: center; gap: 7px;">
+                <i class="fa-solid fa-shield-virus" style="color: #ef4444;"></i> Alertas Farmacológicos & Segurança do Paciente (CDSS 4D)
+              </span>
+              <span id="pep-cdss-count-badge" style="background: #ef4444; color: #fff; font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: bold;"></span>
             </div>
-            <div id="pep-inter-desc" style="font-size: 0.78rem; line-height: 1.35;"></div>
-            <div id="pep-inter-action" style="font-size: 0.78rem; font-weight: 600; color: #fde047; margin-top: 3px;"></div>
+            <div id="pep-cdss-list" style="padding: 10px 12px; background: rgba(15, 23, 42, 0.85); display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto;"></div>
           </div>
         </div>
 
@@ -1848,23 +2056,74 @@ window.openPEPModal = async function(encounterId) {
         });
       });
 
-      // Validador de Interações Medicamentosas no Plano
+      // Validador de Interações Medicamentosas & Alergias no Plano cruzado com a Anamnese
       const planTextarea = document.getElementById('pep-plan');
-      const checkPlanInteractions = (content) => {
-        const interactions = checkDrugInteractions(content || '');
-        const alertBox = document.getElementById('pep-drug-interactions-alert');
-        const titleEl = document.getElementById('pep-inter-title');
-        const descEl = document.getElementById('pep-inter-desc');
-        const actionEl = document.getElementById('pep-inter-action');
+      const subjectiveTextarea = document.getElementById('pep-subjective');
+      const objectiveTextarea = document.getElementById('pep-objective');
+      const assessmentTextarea = document.getElementById('pep-assessment');
 
-        if (interactions && interactions.length > 0 && alertBox) {
-          const first = interactions[0];
+      const getAnamnesisContext = () => {
+        const subjText = subjectiveTextarea?.value || notes.subjectiveContent || '';
+        const objText = objectiveTextarea?.value || notes.objectiveContent || '';
+        const assText = assessmentTextarea?.value || notes.assessmentContent || '';
+        const complaints = enc.complaints || '';
+        const patientNotes = enc.patientNotes || enc.notes || '';
+        const allergies = patientData.allergies || '';
+        return [subjText, objText, assText, complaints, patientNotes, allergies].filter(Boolean).join(' | ');
+      };
+
+      const checkPlanInteractions = (content) => {
+        const anamnesisCtx = getAnamnesisContext();
+        const interactions = checkDrugInteractions(content || '', anamnesisCtx);
+        const alertBox = document.getElementById('pep-drug-interactions-alert');
+        const countBadge = document.getElementById('pep-cdss-count-badge');
+        const listEl = document.getElementById('pep-cdss-list');
+
+        if (interactions && interactions.length > 0 && alertBox && listEl) {
           alertBox.style.display = 'block';
-          alertBox.style.background = first.severity === 'Grave' ? 'rgba(239, 68, 68, 0.18)' : 'rgba(245, 158, 11, 0.18)';
-          alertBox.style.border = first.severity === 'Grave' ? '1.5px solid #ef4444' : '1.5px solid #f59e0b';
-          if (titleEl) titleEl.textContent = `Interação ${first.severity.toUpperCase()}: ${first.title}`;
-          if (descEl) descEl.textContent = first.desc;
-          if (actionEl) actionEl.textContent = `💡 Conduta Recomendada: ${first.action}`;
+          if (countBadge) countBadge.textContent = `${interactions.length} ${interactions.length === 1 ? 'alerta' : 'alertas'}`;
+
+          const hasCritical = interactions.some(i => i.severity === 'Critica');
+          alertBox.style.border = hasCritical ? '1.5px solid #ef4444' : '1.5px solid #f59e0b';
+
+          listEl.innerHTML = interactions.map(item => {
+            let badgeBg = '#f59e0b';
+            let badgeText = 'MODERADA';
+            let icon = 'fa-triangle-exclamation';
+
+            if (item.severity === 'Critica') {
+              badgeBg = '#ef4444';
+              badgeText = 'CRÍTICA / CONTRAINDICADA';
+              icon = 'fa-ban';
+            } else if (item.severity === 'Grave') {
+              badgeBg = '#f97316';
+              badgeText = 'GRAVE';
+              icon = 'fa-triangle-exclamation';
+            } else if (item.dimension === 'DUPLICATION') {
+              badgeBg = '#3b82f6';
+              badgeText = 'DUPLICIDADE';
+              icon = 'fa-clone';
+            }
+
+            return `
+              <div style="background: rgba(30, 41, 59, 0.9); border-left: 4px solid ${badgeBg}; padding: 8px 10px; border-radius: 4px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px;">
+                  <span style="font-weight: 700; font-size: 0.8rem; color: #fff; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid ${icon}" style="color: ${badgeBg};"></i> ${item.title}
+                  </span>
+                  <span style="background: ${badgeBg}; color: #fff; font-size: 0.65rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">
+                    ${badgeText}
+                  </span>
+                </div>
+                <div style="font-size: 0.76rem; color: #cbd5e1; line-height: 1.35; margin-bottom: 4px;">
+                  ${item.desc}
+                </div>
+                <div style="font-size: 0.74rem; font-weight: 600; color: #fde047; display: flex; align-items: flex-start; gap: 4px;">
+                  <span>💡</span> <span>Conduta Recomendada: ${item.action}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
         } else if (alertBox) {
           alertBox.style.display = 'none';
         }
@@ -1874,11 +2133,45 @@ window.openPEPModal = async function(encounterId) {
         checkPlanInteractions(e.target.value);
       });
 
+      subjectiveTextarea?.addEventListener('input', () => {
+        checkPlanInteractions(planTextarea?.value || '');
+      });
+
+      objectiveTextarea?.addEventListener('input', () => {
+        checkPlanInteractions(planTextarea?.value || '');
+      });
+
+      assessmentTextarea?.addEventListener('input', () => {
+        checkPlanInteractions(planTextarea?.value || '');
+      });
+
       // Checagem inicial
-      if (notes.planContent) {
-        checkPlanInteractions(notes.planContent);
+      if (notes.planContent || planTextarea?.value) {
+        checkPlanInteractions(notes.planContent || planTextarea?.value || '');
       }
     }
+
+    // Listener do Histórico Pregresso
+    const toggleHistory = () => {
+      const drawer = document.getElementById('pep-history-drawer-content');
+      const chevron = document.getElementById('pep-history-chevron-icon');
+      const toggleText = document.getElementById('pep-history-toggle-text');
+      if (drawer) {
+        const isClosed = drawer.style.display === 'none';
+        drawer.style.display = isClosed ? 'block' : 'none';
+        if (chevron) chevron.className = isClosed ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+        if (toggleText) toggleText.textContent = isClosed ? 'Ocultar' : 'Ver Histórico';
+      }
+    };
+
+    document.getElementById('pep-history-toggle-header')?.addEventListener('click', toggleHistory);
+    document.getElementById('btn-pep-history-header')?.addEventListener('click', () => {
+      toggleHistory();
+      const drawer = document.getElementById('pep-history-drawer-content');
+      if (drawer && drawer.style.display === 'block') {
+        drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
 
     document.getElementById('btn-save-pep')?.addEventListener('click', async () => {
       await savePEPData(encounterId, false);
@@ -1900,6 +2193,105 @@ window.openPEPModal = async function(encounterId) {
   }
 };
 
+export function showCDSSCriticalOverrideModal(criticalBlockers = []) {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('cdss-override-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'cdss-override-modal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 7, 20, 0.88);
+      backdrop-filter: blur(12px);
+      z-index: 200000;
+      padding: 16px;
+      position: fixed;
+      inset: 0;
+    `;
+
+    modal.innerHTML = `
+      <div style="background: #0f172a; border: 1.5px solid rgba(239, 68, 68, 0.6); border-radius: 18px; max-width: 620px; width: 100%; box-shadow: 0 25px 70px rgba(239, 68, 68, 0.25), 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; display: flex; flex-direction: column;">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, rgba(239,68,68,0.25), rgba(15,23,42,0.95)); padding: 18px 24px; border-bottom: 1px solid rgba(239, 68, 68, 0.35); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.5); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.3rem; box-shadow: 0 0 16px rgba(239,68,68,0.4);">
+              <i class="fa-solid fa-shield-virus"></i>
+            </div>
+            <div>
+              <div style="font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                Alerta Crítico de Farmacovigilância
+                <span style="font-size: 0.65rem; background: #ef4444; color: #fff; padding: 2px 8px; border-radius: 10px; font-weight: 800; text-transform: uppercase;">CDSS 4D</span>
+              </div>
+              <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">
+                Conformidade Médico-Legal &middot; Resolução CFM nº 1.821/2007
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 20px 24px; max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;">
+          <div style="color: #fca5a5; font-size: 0.86rem; line-height: 1.45; background: rgba(239,68,68,0.1); border-left: 3px solid #ef4444; padding: 10px 14px; border-radius: 6px;">
+            O motor de inteligência farmacológica detectou <strong>${criticalBlockers.length} contraindicações graves/críticas</strong> na prescrição que oferecem risco de colapso hemodinâmico ou evento adverso severo:
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            ${criticalBlockers.map((item) => `
+              <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(239,68,68,0.35); border-radius: 10px; padding: 12px 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+                  <strong style="color: #fff; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> ${item.title}
+                  </strong>
+                  <span style="background: #ef4444; color: #fff; font-size: 0.64rem; font-weight: 800; padding: 2px 7px; border-radius: 4px;">CRÍTICA</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 6px;">
+                  ${item.desc}
+                </div>
+                <div style="font-size: 0.78rem; font-weight: 600; color: #fde047; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px;">
+                  💡 <strong>Conduta Recomendada:</strong> ${item.action}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div style="margin-top: 4px;">
+            <label style="display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">
+              <i class="fa-solid fa-pen-nib" style="color: #60a5fa; margin-right: 4px;"></i> Justificativa Clínica do Médico Assistente (Opcional para Auditoria CFM):
+            </label>
+            <textarea id="cdss-override-reason" class="form-input" style="width: 100%; min-height: 50px; font-size: 0.82rem; resize: vertical;" placeholder="Informe a justificativa médica caso opte por manter a prescrição sob monitorização intensiva..."></textarea>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div style="padding: 16px 24px; background: #1e293b; border-top: 1px solid #334155; display: flex; justify-content: flex-end; align-items: center; gap: 12px;">
+          <button type="button" id="btn-cdss-cancel" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 9px 18px; font-size: 0.85rem; font-weight: 600; border-radius: 10px; cursor: pointer;">
+            <i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i> Revisar Prescrição
+          </button>
+          <button type="button" id="btn-cdss-confirm" class="btn" style="background: linear-gradient(135deg, #ef4444, #b91c1c); border: none; color: #fff; padding: 9px 20px; font-size: 0.85rem; font-weight: 700; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);">
+            <i class="fa-solid fa-signature" style="margin-right: 6px;"></i> Confirmar Conduta & Assinar
+          </button>
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = (confirmed) => {
+      modal.remove();
+      resolve(confirmed);
+    };
+
+    document.getElementById('btn-cdss-cancel')?.addEventListener('click', () => closeModal(false));
+    document.getElementById('btn-cdss-confirm')?.addEventListener('click', () => closeModal(true));
+  });
+}
+
 async function savePEPData(encounterId, shouldFinalize) {
   const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canSignPEP: true, label: 'Usuário' };
   if (!perms.canSignPEP) {
@@ -1918,6 +2310,18 @@ async function savePEPData(encounterId, shouldFinalize) {
   const outcomeElement = document.getElementById('pep-outcome');
   const outcome = outcomeElement ? outcomeElement.value : 'alta';
 
+  // Validação de Segurança Farmacológica CDSS 4D antes de Assinar/Finalizar
+  if (shouldFinalize && planContent) {
+    const cdssAlerts = checkDrugInteractions(planContent, `${subjectiveContent} | ${objectiveContent} | ${assessmentContent}`);
+    const criticalBlockers = cdssAlerts.filter(a => a.severity === 'Critica' || a.isBlocker);
+    if (criticalBlockers.length > 0) {
+      const userConfirmed = await showCDSSCriticalOverrideModal(criticalBlockers);
+      if (!userConfirmed) {
+        return;
+      }
+    }
+  }
+
   try {
     await apiFetch('/api/encounters/' + encounterId + '/notes', {
       method: 'POST',
@@ -1930,6 +2334,18 @@ async function savePEPData(encounterId, shouldFinalize) {
         planContent
       })
     });
+
+    if (window.localDB && typeof window.localDB.update === 'function') {
+      window.localDB.update('encounters', encounterId, {
+        subjectiveContent,
+        objectiveContent,
+        assessmentContent,
+        planContent,
+        notes: planContent,
+        diagnosis: assessmentContent,
+        status: shouldFinalize ? 'Finalizado' : 'Em Atendimento'
+      });
+    }
 
     if (shouldFinalize) {
       const encounters = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('encounters') : [];
