@@ -181,7 +181,7 @@ async function renderLeitosTab() {
                   <i class="fa-solid fa-clock"></i> Aguardando Leito (${q.room || '-'})
                 </div>
               </div>
-              <button class="btn btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.transform='scale(1.02)';" onmouseleave="this.style.transform='none';">
+              <button class="btn btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}', '${q.patientId || ''}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.transform='scale(1.02)';" onmouseleave="this.style.transform='none';">
                 <i class="fa-solid fa-bed-pulse"></i> Alocar
               </button>
             </div>
@@ -300,7 +300,7 @@ async function renderLeitosTab() {
   };
 
   // Carregar Pacientes no Modal (Busca Direta & Rápida)
-  const loadPatientsModal = async () => {
+  window.loadPatientsModal = async (selectedPatientId = null, selectedPatientName = null) => {
     try {
       const res = await apiFetch(`${API_URL}/patients`);
       if (!res.ok) throw new Error();
@@ -314,9 +314,26 @@ async function renderLeitosTab() {
       const pHiddenInput = document.getElementById('admit-patient-id');
 
       if (pComboContainer && pHiddenInput) {
-        setupCustomSelect(pComboContainer, pHiddenInput, patientList, 'Selecione o paciente...');
+        window.admitPatientCustomSelect = setupCustomSelect(pComboContainer, pHiddenInput, patientList, 'Selecione o paciente...');
+        
+        // Auto-selecionar se veio pré-definido
+        if (selectedPatientId || selectedPatientName) {
+          const normQuery = (selectedPatientName || '').toLowerCase().trim();
+          const found = patientList.find(p => 
+            (selectedPatientId && String(p.id) === String(selectedPatientId)) ||
+            (normQuery && (
+              (p.fullName || '').toLowerCase().trim() === normQuery ||
+              (p.fullName || '').toLowerCase().includes(normQuery) ||
+              normQuery.includes((p.fullName || '').toLowerCase())
+            ))
+          );
+          if (found && window.admitPatientCustomSelect) {
+            window.admitPatientCustomSelect.setValue(found.id);
+          }
+        }
       }
     } catch (e) {
+      console.error('Erro ao carregar pacientes no modal de leito:', e);
       const pComboContainer = document.getElementById('admit-patient-combo');
       if (pComboContainer) pComboContainer.innerHTML = '<div class="form-input">Erro ao carregar pacientes</div>';
     }
@@ -367,18 +384,24 @@ async function renderLeitosTab() {
 
   // Modal Handlers
   const modal = document.getElementById('modal-admit-bed');
-  document.getElementById('btn-open-admit-modal')?.addEventListener('click', () => { modal.style.display = 'flex'; loadPatientsModal(); });
-  document.getElementById('btn-close-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
-  document.getElementById('btn-cancel-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-open-admit-modal')?.addEventListener('click', () => { 
+    modal.style.display = 'flex'; 
+    if (window.admitPatientCustomSelect) {
+      window.admitPatientCustomSelect.clear();
+    } else {
+      window.loadPatientsModal(); 
+    }
+  });
+  document.getElementById('btn-close-admit-modal')?.addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-cancel-admit-modal')?.addEventListener('click', () => { modal.style.display = 'none'; });
 
-  document.getElementById('form-admit-bed').addEventListener('submit', async (e) => {
+  document.getElementById('form-admit-bed')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const bedId = document.getElementById('admit-bed-id').value;
-    const pSelect = document.getElementById('admit-patient-id');
+    const pHiddenInput = document.getElementById('admit-patient-id');
     const encInput = document.getElementById('admit-encounter-id');
-    const selectedOption = pSelect.options ? pSelect.options[pSelect.selectedIndex] : null;
-    const patientId = pSelect.value;
-    const patientName = selectedOption ? selectedOption.dataset.name : (pSelect.dataset.name || '');
+    const patientId = pHiddenInput ? pHiddenInput.value : '';
+    const patientName = pHiddenInput ? (pHiddenInput.dataset.name || '') : '';
     const encounterId = encInput ? encInput.value : null;
 
     if (!bedId || !patientId) {
@@ -417,10 +440,10 @@ async function renderLeitosTab() {
   });
 
   loadBeds();
-  loadPatientsModal();
+  window.loadPatientsModal();
 }
 
-window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
+window.quickAdmitBed = async (bedId, encounterId = null, patientName = null, patientId = null) => {
   const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
   if (!perms.canManageBeds) {
     showCustomAlert({
@@ -440,51 +463,9 @@ window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
     const encInput = document.getElementById('admit-encounter-id');
     if (encInput) encInput.value = encounterId || '';
 
-    const pSelect = document.getElementById('admit-patient-id');
-    const pSearch = document.getElementById('admit-patient-search');
-    if (pSearch) pSearch.value = patientName || ''; // preenche se veio da fila
-
-    if (pSelect) {
-      apiFetch(`${API_URL}/patients`).then(r => r.json()).then(patients => {
-        const list = Array.isArray(patients) ? patients : (patients.data || []);
-        
-        // Ordenação Alfabética A-Z por nome completo
-        list.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'pt-BR', { sensitivity: 'base' }));
-
-        const renderOptions = (items) => {
-          pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
-            items.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
-          
-          // Auto-selecionar se patientName foi fornecido e encontrado
-          if (patientName) {
-            const found = items.find(p => (p.fullName || '').toLowerCase() === patientName.toLowerCase());
-            if (found) {
-              pSelect.value = found.id;
-            }
-          }
-        };
-
-        renderOptions(list);
-
-        if (pSearch && !pSearch.dataset.bound) {
-          pSearch.dataset.bound = 'true';
-          pSearch.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            if (!query) {
-              renderOptions(list);
-            } else {
-              const filtered = list.filter(p => {
-                const nameMatch = (p.fullName || '').toLowerCase().includes(query);
-                const cpfDigits = (p.cpf || '').replace(/\D/g, '');
-                const queryDigits = query.replace(/\D/g, '');
-                const cpfMatch = queryDigits ? cpfDigits.includes(queryDigits) : (p.cpf || '').toLowerCase().includes(query);
-                return nameMatch || cpfMatch;
-              });
-              renderOptions(filtered);
-            }
-          });
-        }
-      }).catch(() => {});
+    // Carregar e auto-selecionar o paciente no combo
+    if (window.loadPatientsModal) {
+      await window.loadPatientsModal(patientId, patientName);
     }
   }
 };
