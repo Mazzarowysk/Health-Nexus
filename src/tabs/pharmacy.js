@@ -575,6 +575,17 @@ function openAddPharmModal(itemToEdit = null) {
       if (res.ok) {
         closeModal();
         showCustomAlert({ title: 'Sucesso', message: `Medicamento "${name}" ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`, type: 'success' });
+        
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Estoque da Farmácia Atualizado',
+            message: `O medicamento <strong>${name}</strong> (${dosage || form || 'Geral'}) foi salvo com saldo de <strong>${stockQuantity} unids</strong>.<br><br><strong>Próximo Passo:</strong> O fármaco está disponível para prescrição médica imediata no <strong>Prontuário PEP</strong> e na <strong>Central de Atendimentos</strong>.`,
+            targetTab: 'atendimento',
+            targetTabLabel: 'Central de Atendimentos',
+            actionType: 'switchTab'
+          });
+        }
+
         await loadPharmacyData();
       } else {
         const errData = await res.json();
@@ -676,6 +687,17 @@ function openDispenseMedModal() {
       if (res.ok) {
         closeModal();
         showCustomAlert({ title: 'Sucesso', message: 'Dispensação realizada com sucesso!', type: 'success' });
+        
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Dispensação Farmacêutica Concluída',
+            message: `Baixa de <strong>${quantity} unidade(s)</strong> registrada no estoque da farmácia.<br><br><strong>Próximo Passo:</strong> A enfermagem pode administrar o medicamento e acompanhar a evolução na <strong>Central de Atendimentos</strong> ou na <strong>Gestão de Leitos</strong>.`,
+            targetTab: 'atendimento',
+            targetTabLabel: 'Central de Atendimentos',
+            actionType: 'switchTab'
+          });
+        }
+
         await loadPharmacyData();
       } else {
         const errData = await res.json();

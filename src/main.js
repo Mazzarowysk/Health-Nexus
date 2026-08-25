@@ -125,6 +125,16 @@ window.startAppointmentEncounter = async function(patientId, aptId) {
 
     showToast('⚡ Atendimento iniciado! Paciente movido para Em Atendimento.');
 
+    if (typeof window.showFlowCompletionNotification === 'function') {
+      window.showFlowCompletionNotification({
+        actionTitle: 'Atendimento Clínico Iniciado',
+        message: 'A consulta foi iniciada e o atendimento gerado no sistema.<br><br><strong>Próximo Passo:</strong> Acesse o <strong>Prontuário Eletrônico (PEP)</strong> para realizar a anamnese, evolução e prescrição do paciente.',
+        targetTab: 'medicos',
+        targetTabLabel: 'Corpo Clínico & Médicos',
+        actionType: 'switchTab'
+      });
+    }
+
     if (state.activeTab === 'agenda') {
       renderAgendaTab();
     } else {
@@ -3601,6 +3611,17 @@ window.dischargeFromObservation = async function(encId, roomName) {
     });
     if (res.ok) {
       if (typeof showToast === 'function') showToast('✅ Alta médica concedida! Leito de observação liberado.', 'success');
+      
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: 'Alta de Observação Concluída',
+          message: `Alta médica concedida com sucesso. O leito/poltrona de observação do <strong>${roomName || 'Consultório'}</strong> foi liberado.<br><br><strong>Próximo Passo:</strong> Acompanhe o fluxo geral na <strong>Central de Atendimentos</strong> ou visualize os relatórios assistenciais.`,
+          targetTab: 'atendimento',
+          targetTabLabel: 'Central de Atendimentos',
+          actionType: 'switchTab'
+        });
+      }
+
       const modal = document.getElementById('consultorio-details-modal');
       if (modal) modal.remove();
       if (typeof loadConsultingRooms === 'function') loadConsultingRooms();

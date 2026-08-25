@@ -462,7 +462,21 @@ function setupDND() {
       if(hosp && hosp.current_sector!==newCol) {
         localDB.update('hospitalizations',hospId,{current_sector:newCol,sector_entry_date:new Date().toISOString()});
         const name=KANBAN_COLUMNS.find(c=>c.id===newCol)?.label||newCol;
+        const pat=(localDB.list('patients').find(p=>p.id===hosp?.patient_id)||{});
+        const patName = pat.fullName || pat.name || 'Paciente';
+
         if(window.showToast) window.showToast('Paciente movido para '+name);
+
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Transferência de Setor Realizada',
+            message: `O paciente <strong>${patName}</strong> foi transferido para o setor <strong>${name}</strong>.<br><br><strong>Próximo Passo:</strong> O tempo de permanência (SLA) foi reiniciado para o novo setor.`,
+            targetTab: 'kanban',
+            targetTabLabel: 'Kanban de Internação',
+            actionType: 'switchTab'
+          });
+        }
+
         loadAndRenderKanban();
       }
     });
@@ -552,9 +566,26 @@ window.saveKanbanPatient = function() {
   const doctorName=docEl.selectedIndex>0?docEl.options[docEl.selectedIndex].text:'';
   const notes=document.getElementById('kanban-notes').value.trim();
   const admDate=admRaw?new Date(admRaw).toISOString():new Date().toISOString();
+  
+  const patObj = localDB.list('patients')?.find(p => p.id === patId) || {};
+  const patName = patObj.fullName || patObj.name || 'Paciente';
+  const sectorLabel = KANBAN_COLUMNS.find(c => c.id === sectorId)?.label || sectorId;
+
   localDB.insert('hospitalizations',{patient_id:patId,current_sector:sectorId,sector_entry_date:admDate,admission_date:admDate,bed,diagnosis,doctor_id:doctorId,doctor_name:doctorName,notes,status:'Internado'});
   document.getElementById('kanban-modal').remove();
+  
   if(window.showToast) window.showToast('Paciente adicionado ao Kanban!');
+
+  if (typeof window.showFlowCompletionNotification === 'function') {
+    window.showFlowCompletionNotification({
+      actionTitle: 'Paciente Alocado no Kanban',
+      message: `O paciente <strong>${patName}</strong> foi inserido no setor <strong>${sectorLabel}</strong> (Leito: ${bed || 'Aguardando'}).<br><br><strong>Próximo Passo:</strong> Acompanhe a meta de permanência (SLA) e lance novas evoluções diárias no cartão.`,
+      targetTab: 'kanban',
+      targetTabLabel: 'Kanban de Internação',
+      actionType: 'switchTab'
+    });
+  }
+
   loadAndRenderKanban();
 };
 
@@ -628,10 +659,23 @@ window.moveKanbanCard = function(hospId) {
 window.confirmMoveKanban = function(hospId) {
   const ns=document.getElementById('move-sector-select').value;
   const hosp=localDB.get('hospitalizations',hospId);
+  const pat=(localDB.list('patients').find(p=>p.id===hosp?.patient_id)||{});
+  const patName = pat.fullName || pat.name || 'Paciente';
+
   if(hosp && hosp.current_sector!==ns) {
     localDB.update('hospitalizations',hospId,{current_sector:ns,sector_entry_date:new Date().toISOString()});
     const name=KANBAN_COLUMNS.find(c=>c.id===ns)?.label||ns;
     if(window.showToast) window.showToast('Paciente movido para '+name);
+
+    if (typeof window.showFlowCompletionNotification === 'function') {
+      window.showFlowCompletionNotification({
+        actionTitle: 'Transferência de Setor Realizada',
+        message: `O paciente <strong>${patName}</strong> foi transferido para o setor <strong>${name}</strong>.<br><br><strong>Próximo Passo:</strong> O cronômetro de permanência (SLA) foi iniciado para o novo setor.`,
+        targetTab: 'kanban',
+        targetTabLabel: 'Kanban de Internação',
+        actionType: 'switchTab'
+      });
+    }
   }
   document.getElementById('kanban-move-modal').remove();
   loadAndRenderKanban();
@@ -719,8 +763,23 @@ window.saveKanbanEvolution = function(hospId) {
 // ──── Alta ────
 window.dischargePatient = function(hospId) {
   if(confirm('Registrar ALTA para este paciente? Ele sai do Kanban.')) {
+    const hosp = localDB.get('hospitalizations', hospId);
+    const pat = (localDB.list('patients').find(p => p.id === hosp?.patient_id) || {});
+    const patName = pat.fullName || pat.name || 'Paciente';
+
     localDB.update('hospitalizations',hospId,{status:'Alta',discharge_date:new Date().toISOString()});
     if(window.showToast) window.showToast('Alta registrada com sucesso!');
+
+    if (typeof window.showFlowCompletionNotification === 'function') {
+      window.showFlowCompletionNotification({
+        actionTitle: 'Alta Médica Hospitalar Concedida',
+        message: `O paciente <strong>${patName}</strong> recebeu alta e foi desinternado do Kanban.<br><br><strong>Próximo Passo:</strong> Confira a liberação e higienização de leitos na <strong>Gestão de Leitos & Internação</strong>.`,
+        targetTab: 'leitos',
+        targetTabLabel: 'Gestão de Leitos & Internação',
+        actionType: 'switchTab'
+      });
+    }
+
     loadAndRenderKanban();
   }
 };

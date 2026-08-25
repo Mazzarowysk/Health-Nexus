@@ -659,6 +659,16 @@ function openScheduleModal(scheduleId = null) {
     } else {
       localDB.insert('duty_schedules', payload);
       showToast('Novo plantão cadastrado com sucesso!', 'success');
+
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: 'Escala de Plantão Salva',
+          message: `O plantão de <strong>${profObj ? profObj.name : 'Profissional'}</strong> foi registrado para <strong>${roomName}</strong> (${shiftDate} - ${shiftType}).<br><br><strong>Próximo Passo:</strong> Acesse a aba <strong>Salas & Consultórios</strong> para verificar a escala ativa e ocupação das salas.`,
+          targetTab: 'consultorios',
+          targetTabLabel: 'Salas & Consultórios',
+          actionType: 'switchTab'
+        });
+      }
     }
 
     close();
