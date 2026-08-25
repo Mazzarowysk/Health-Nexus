@@ -1734,9 +1734,36 @@ window.openPEPModal = async function(encounterId) {
       });
     }
 
+    // Identificação do Número do PEP e Categorização
+    const pepNumber = enc.pepNumber || ('PEP-' + (enc.type === 'Internacao' ? 'INT' : (enc.type === 'Ambulatorio' ? 'AMB' : 'PS')) + '-2026-' + String(enc.id).replace(/\D/g, '').slice(-4).padStart(4, '0'));
+    const typeLabel = enc.type === 'Internacao' ? '🏥 Internação Hospitalar' : (enc.type === 'Ambulatorio' ? '🩺 Consulta Ambulatorial' : '🚑 Pronto-Socorro / Urgência');
+    const statusColor = enc.status === 'Finalizado' ? '#94a3b8' : (enc.status === 'Internado' ? '#f87171' : '#34d399');
+    const statusBadge = enc.status === 'Finalizado' ? '⚪ Finalizado (Histórico)' : (enc.status === 'Internado' ? '🔴 Internado em Leito' : '🟢 Em Atendimento');
+
+    // Buscar TODOS os episódios/PEPs deste paciente (ordenados do mais recente para o mais antigo)
+    let allPatientEncs = [];
+    try {
+      const allEncs = (state.encounters || dataCache.encounters || (window.localDB ? window.localDB.list('encounters') : [])) || [];
+      allPatientEncs = allEncs.filter(e => 
+        (enc.patientId && String(e.patientId) === String(enc.patientId)) ||
+        (enc.patientName && e.patientName && e.patientName.toLowerCase().trim() === enc.patientName.toLowerCase().trim())
+      );
+      allPatientEncs.sort((a, b) => new Date(b.admitted_at || b.created_at || 0) - new Date(a.admitted_at || a.created_at || 0));
+    } catch(e) {}
+
     const subtitleEl = document.getElementById('pep-modal-subtitle');
     if (subtitleEl) {
-      subtitleEl.innerHTML = `Paciente: <strong style="color:#fff;">${enc.patientName || 'Paciente'}</strong> · Sala: <span style="color:#34d399;">${enc.room || 'Consultório 01'}</span>`;
+      subtitleEl.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 3px;">
+          <span>Paciente: <strong style="color:#fff;">${enc.patientName || 'Paciente'}</strong></span>
+          <span style="color: rgba(255,255,255,0.2);">&bull;</span>
+          <span style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.35); padding: 2px 8px; border-radius: 6px; font-weight: 700; font-family: monospace; font-size: 0.76rem;">${pepNumber}</span>
+          <span style="background: ${enc.type === 'Internacao' ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)'}; color: ${enc.type === 'Internacao' ? '#f87171' : '#a5b4fc'}; border: 1px solid ${enc.type === 'Internacao' ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)'}; padding: 2px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">
+            ${typeLabel} ${enc.bed ? '· Leito ' + enc.bed : (enc.room ? '· ' + enc.room : '')}
+          </span>
+          <span style="font-size: 0.74rem; color: ${statusColor}; font-weight: 700; background: rgba(0,0,0,0.25); padding: 2px 8px; border-radius: 6px;">${statusBadge}</span>
+        </div>
+      `;
     }
 
     // Botão Gerar PDF direto do cabeçalho do PEP
@@ -1801,16 +1828,7 @@ window.openPEPModal = async function(encounterId) {
     const mewsData = calculateMEWS(enc);
 
     // Buscar histórico de atendimentos anteriores do paciente
-    let pastEncs = [];
-    try {
-      const allEncs = (state.encounters || dataCache.encounters || (window.localDB ? window.localDB.list('encounters') : [])) || [];
-      pastEncs = allEncs.filter(e => 
-        e.id !== enc.id && (
-          (enc.patientId && String(e.patientId) === String(enc.patientId)) ||
-          (enc.patientName && e.patientName && e.patientName.toLowerCase().trim() === enc.patientName.toLowerCase().trim())
-        )
-      );
-    } catch(e) {}
+    const pastEncs = allPatientEncs.filter(e => e.id !== enc.id);
 
     // Buscar dados cadastrais completos do paciente (Recepção / Admissão)
     let patientData = {};
@@ -1843,6 +1861,68 @@ window.openPEPModal = async function(encounterId) {
           <div>
             <strong>Modo Somente Leitura (Auditoria):</strong> Seu perfil (<strong>${perms.label}</strong>) possui acesso para consulta ao prontuário. A evolução clínica, prescrição e assinatura médica são restritas a médicos habilitados (CFM/CRM).
           </div>
+        </div>
+      ` : ''}
+
+      <!-- Barra de Navegação de Episódios de Cuidado / PEPs Anteriores -->
+      ${allPatientEncs.length > 1 ? `
+        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 12px; padding: 10px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(139,92,246,0.2); color: #c084fc; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+              <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div>
+              <div style="font-size: 0.86rem; font-weight: 700; color: #fff;">
+                Episódio Atual: <strong style="color: #38bdf8;">${pepNumber}</strong>
+              </div>
+              <div style="font-size: 0.74rem; color: #94a3b8;">
+                Este paciente possui <strong style="color: #c084fc;">${allPatientEncs.length} episódios/PEPs</strong> arquivados no prontuário.
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="select-pep-episode" style="font-size: 0.78rem; font-weight: 600; color: #cbd5e1; white-space: nowrap;">
+              <i class="fa-solid fa-arrow-right-arrow-left" style="margin-right: 4px; color: #818cf8;"></i> Alternar PEP:
+            </label>
+            <select id="select-pep-episode" class="form-input" style="background: #0f172a; color: #fff; border: 1px solid rgba(139,92,246,0.4); border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; max-width: 330px;">
+              ${allPatientEncs.map(pe => {
+                const pNum = pe.pepNumber || ('PEP-' + (pe.type === 'Internacao' ? 'INT' : (pe.type === 'Ambulatorio' ? 'AMB' : 'PS')) + '-2026-' + String(pe.id).replace(/\D/g, '').slice(-4).padStart(4, '0'));
+                const pType = pe.type === 'Internacao' ? 'Internação' : (pe.type === 'Ambulatorio' ? 'Ambulatório' : 'Pronto-Socorro');
+                const pStat = pe.status === 'Finalizado' ? 'Finalizado' : 'Ativo';
+                const isCurrent = String(pe.id) === String(enc.id);
+                return `<option value="${pe.id}" ${isCurrent ? 'selected' : ''}>${isCurrent ? '▶ ' : ''}${pNum} — ${pType} [${pStat}] ${pe.bed ? '· Leito ' + pe.bed : ''}</option>`;
+              }).join('')}
+            </select>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Banner de Episódio Finalizado (Modo Consulta Histórica) -->
+      ${enc.status === 'Finalizado' ? `
+        <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; color: #93c5fd; font-size: 0.84rem; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-clock-rotate-left" style="font-size: 1.1rem; color: #60a5fa;"></i>
+            <div>
+              <strong>Episódio de Cuidado Concluído (${pepNumber}):</strong><br>
+              <span style="font-size: 0.78rem; color: #cbd5e1;">${enc.closingReason || enc.outcome || 'Atendimento finalizado com sucesso'}. Registro médico arquivado para consulta e auditoria.</span>
+            </div>
+          </div>
+          <span style="font-size: 0.74rem; background: rgba(59,130,246,0.2); padding: 3px 10px; border-radius: 12px; font-weight: 700; color: #60a5fa; border: 1px solid rgba(59,130,246,0.4);">
+            ARQUIVADO
+          </span>
+        </div>
+      ` : ''}
+
+      <!-- Banner de Continuidade (Internação vinculada ao PEP do PS) -->
+      ${(enc.type === 'Internacao' && enc.previousEncounterId) ? `
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; color: #86efac; font-size: 0.84rem; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-link" style="color: #34d399;"></i>
+            <span><strong>Internação Hospitalar Vinculada:</strong> Atendimento originado da emergência/PS (${enc.previousPepNumber || 'PEP Anterior'}).</span>
+          </div>
+          <button type="button" class="btn btn-sm" onclick="openPEPModal('${enc.previousEncounterId}')" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); color: #4ade80; font-size: 0.74rem; font-weight: 700; border-radius: 6px; padding: 4px 12px; cursor: pointer;">
+            <i class="fa-solid fa-eye"></i> Visualizar PEP do PS
+          </button>
         </div>
       ` : ''}
 
@@ -2163,6 +2243,15 @@ window.openPEPModal = async function(encounterId) {
         if (toggleText) toggleText.textContent = isClosed ? 'Ocultar' : 'Ver Histórico';
       }
     };
+
+    document.getElementById('select-pep-episode')?.addEventListener('change', (e) => {
+      const selectedId = e.target.value;
+      if (selectedId && selectedId !== enc.id) {
+        stopVoiceDictation();
+        modal.remove();
+        openPEPModal(selectedId);
+      }
+    });
 
     document.getElementById('pep-history-toggle-header')?.addEventListener('click', toggleHistory);
     document.getElementById('btn-pep-history-header')?.addEventListener('click', () => {

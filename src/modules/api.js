@@ -593,32 +593,64 @@ export const apiFetch = async (url, options = {}) => {
 
       if (bed) {
         const encs = localDB.list('encounters') || [];
-        const enc = encs.find(e => String(e.id) === String(encounterId) || (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim()));
-        const pId = patientId || (enc ? enc.patientId : null) || 'pat-' + Date.now();
-        const pName = patientName || (enc ? enc.patientName : 'Paciente');
+        const prevEnc = encs.find(e => String(e.id) === String(encounterId) || (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim()));
+        const pId = patientId || (prevEnc ? prevEnc.patientId : null) || 'pat-' + Date.now();
+        const pName = patientName || (prevEnc ? prevEnc.patientName : 'Paciente');
+        const nowIso = new Date().toISOString();
+        const year = new Date().getFullYear();
+        const seq = String(encs.length + 1).padStart(4, '0');
+        const newPepNumber = `PEP-INT-${year}-${seq}`;
+        const newEncounterId = 'enc-int-' + Date.now();
 
+        // 1. Finalizar o PEP anterior de Pronto-Socorro / Ambulatório
+        if (prevEnc) {
+          localDB.update('encounters', prevEnc.id, {
+            ...prevEnc,
+            status: 'Finalizado',
+            outcome: 'Transferência para Internação Hospitalar',
+            closingReason: `Transferido e internado no Leito ${bed.bedNumber || bed.number} (${bed.sector || 'Enfermaria'})`,
+            completed_at: nowIso,
+            closedAt: nowIso,
+            discharged_at: nowIso,
+            lastStatusUpdate: nowIso
+          });
+        }
+
+        // 2. Criar NOVO PEP de Internação Hospitalar
+        const newInpatientEncounter = {
+          id: newEncounterId,
+          pepNumber: newPepNumber,
+          patientId: pId,
+          patientName: pName,
+          type: 'Internacao',
+          status: 'Internado',
+          bed: bed.bedNumber || bed.number,
+          bedId: bed.id,
+          sector: bed.sector || bed.type || 'Enfermaria',
+          previousEncounterId: prevEnc ? prevEnc.id : null,
+          previousPepNumber: prevEnc ? (prevEnc.pepNumber || 'PEP-PS-ANTERIOR') : null,
+          admitted_at: nowIso,
+          hospitalized_at: nowIso,
+          subjectiveContent: prevEnc ? (prevEnc.subjectiveContent || prevEnc.complaints || '') : '',
+          diagnosis: prevEnc ? (prevEnc.diagnosis || prevEnc.assessmentContent || '') : '',
+          manchesterColor: prevEnc ? (prevEnc.manchesterColor || 'Verde') : 'Verde',
+          lastStatusUpdate: nowIso
+        };
+        localDB.insert('encounters', newInpatientEncounter);
+
+        // 3. Atualizar Leito com o novo PEP de internação
         const updatedBed = {
           ...bed,
           status: 'Ocupado',
           patientId: pId,
           patientName: pName,
-          admittedAt: new Date().toISOString(),
-          encounterId: encounterId || (enc ? enc.id : null)
+          admittedAt: nowIso,
+          encounterId: newEncounterId,
+          pepNumber: newPepNumber
         };
         localDB.update('beds', bed.id, updatedBed);
 
-        if (enc) {
-          localDB.update('encounters', enc.id, {
-            ...enc,
-            status: 'Internado',
-            bed: bed.bedNumber || bed.number,
-            bedId: bed.id,
-            hospitalized_at: new Date().toISOString(),
-            lastStatusUpdate: new Date().toISOString()
-          });
-        }
-
-        // Criar registro de internação
+        // 4. Criar ou Atualizar registro de internação no Kanban
         const hosps = localDB.list('hospitalizations') || [];
         const activeHosp = hosps.find(h => h.patient_id === pId && h.status !== 'Alta');
         if (activeHosp) {
@@ -627,6 +659,8 @@ export const apiFetch = async (url, options = {}) => {
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
             current_sector: bed.sector || bed.type || 'Enfermaria',
+            encounter_id: newEncounterId,
+            pepNumber: newPepNumber,
             status: 'Internado'
           });
         } else {
@@ -637,12 +671,19 @@ export const apiFetch = async (url, options = {}) => {
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
             current_sector: bed.sector || bed.type || 'Enfermaria',
-            admitted_at: new Date().toISOString(),
+            encounter_id: newEncounterId,
+            pepNumber: newPepNumber,
+            admitted_at: nowIso,
             status: 'Internado'
           });
         }
 
-        responseData = { status: 'success', data: updatedBed, message: 'Paciente transferido para internação com sucesso.' };
+        responseData = { 
+          status: 'success', 
+          data: updatedBed, 
+          newEncounter: newInpatientEncounter,
+          message: `PEP de PS finalizado e Novo PEP (${newPepNumber}) aberto para a internação no leito ${bed.bedNumber || bed.number}.` 
+        };
       } else {
         status = 404; responseData = { message: 'Leito não encontrado.' };
       }
@@ -653,30 +694,68 @@ export const apiFetch = async (url, options = {}) => {
       const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
 
       if (bed) {
+        const encs = localDB.list('encounters') || [];
+        const prevEnc = encs.find(e => 
+          (encounterId && String(e.id) === String(encounterId)) || 
+          (patientId && String(e.patientId) === String(patientId) && e.status !== 'Finalizado') ||
+          (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim() && e.status !== 'Finalizado')
+        );
+
+        const nowIso = new Date().toISOString();
+        const year = new Date().getFullYear();
+        const seq = String(encs.length + 1).padStart(4, '0');
+        const newPepNumber = `PEP-INT-${year}-${seq}`;
+        const newEncounterId = 'enc-int-' + Date.now();
+
+        // 1. Finalizar o PEP anterior de Pronto-Socorro / Ambulatório
+        if (prevEnc) {
+          localDB.update('encounters', prevEnc.id, {
+            ...prevEnc,
+            status: 'Finalizado',
+            outcome: 'Transferência para Internação Hospitalar',
+            closingReason: `Transferido e internado no Leito ${bed.bedNumber || bed.number} (${bed.sector || 'Enfermaria'})`,
+            completed_at: nowIso,
+            closedAt: nowIso,
+            discharged_at: nowIso,
+            lastStatusUpdate: nowIso
+          });
+        }
+
+        // 2. Criar NOVO PEP de Internação Hospitalar
+        const newInpatientEncounter = {
+          id: newEncounterId,
+          pepNumber: newPepNumber,
+          patientId: patientId,
+          patientName: patientName,
+          type: 'Internacao',
+          status: 'Internado',
+          bed: bed.bedNumber || bed.number,
+          bedId: bed.id,
+          sector: bed.sector || bed.type || 'Enfermaria',
+          previousEncounterId: prevEnc ? prevEnc.id : null,
+          previousPepNumber: prevEnc ? (prevEnc.pepNumber || 'PEP-PS-ANTERIOR') : null,
+          admitted_at: nowIso,
+          hospitalized_at: nowIso,
+          subjectiveContent: prevEnc ? (prevEnc.subjectiveContent || prevEnc.complaints || '') : '',
+          diagnosis: prevEnc ? (prevEnc.diagnosis || prevEnc.assessmentContent || '') : '',
+          manchesterColor: prevEnc ? (prevEnc.manchesterColor || 'Verde') : 'Verde',
+          lastStatusUpdate: nowIso
+        };
+        localDB.insert('encounters', newInpatientEncounter);
+
+        // 3. Atualizar Leito com o novo PEP de internação
         const updatedBed = {
           ...bed,
           status: 'Ocupado',
           patientId: patientId,
           patientName: patientName,
-          admittedAt: new Date().toISOString(),
-          encounterId: encounterId || null
+          admittedAt: nowIso,
+          encounterId: newEncounterId,
+          pepNumber: newPepNumber
         };
         localDB.update('beds', bed.id, updatedBed);
 
-        if (encounterId) {
-          const encs = localDB.list('encounters') || [];
-          const enc = encs.find(e => String(e.id) === String(encounterId));
-          if (enc) {
-            localDB.update('encounters', enc.id, {
-              ...enc,
-              status: 'Internado',
-              bed: bed.bedNumber || bed.number,
-              bedId: bed.id,
-              lastStatusUpdate: new Date().toISOString()
-            });
-          }
-        }
-
+        // 4. Criar ou Atualizar registro de internação no Kanban
         const hosps = localDB.list('hospitalizations') || [];
         const activeHosp = hosps.find(h => h.patient_id === patientId && h.status !== 'Alta');
         if (activeHosp) {
@@ -685,6 +764,8 @@ export const apiFetch = async (url, options = {}) => {
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
             current_sector: bed.sector || bed.type || 'Enfermaria',
+            encounter_id: newEncounterId,
+            pepNumber: newPepNumber,
             status: 'Internado'
           });
         } else {
@@ -695,12 +776,19 @@ export const apiFetch = async (url, options = {}) => {
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
             current_sector: bed.sector || bed.type || 'Enfermaria',
-            admitted_at: new Date().toISOString(),
+            encounter_id: newEncounterId,
+            pepNumber: newPepNumber,
+            admitted_at: nowIso,
             status: 'Internado'
           });
         }
 
-        responseData = { status: 'success', data: updatedBed, message: 'Paciente internado no leito com sucesso.' };
+        responseData = { 
+          status: 'success', 
+          data: updatedBed, 
+          newEncounter: newInpatientEncounter,
+          message: `PEP de PS finalizado e Novo PEP (${newPepNumber}) gerado para a internação no leito ${bed.bedNumber || bed.number}.` 
+        };
       } else {
         status = 404; responseData = { message: 'Leito não encontrado.' };
       }
@@ -955,6 +1043,18 @@ export const apiFetch = async (url, options = {}) => {
               });
             }
           }
+        }
+        if (table === 'encounters') {
+          const encs = localDB.list('encounters') || [];
+          const year = new Date().getFullYear();
+          const prefix = body.type === 'Internacao' ? 'INT' : (body.type === 'Ambulatorio' ? 'AMB' : 'PS');
+          const seq = String(encs.length + 1).padStart(4, '0');
+          if (!body.pepNumber) {
+            body.pepNumber = `PEP-${prefix}-${year}-${seq}`;
+          }
+          if (!body.openedAt) body.openedAt = new Date().toISOString();
+          if (!body.admitted_at) body.admitted_at = new Date().toISOString();
+          if (!body.type) body.type = 'Urgencia';
         }
         responseData = { data: localDB.insert(table, body) };
       } else if (method === 'PUT') {

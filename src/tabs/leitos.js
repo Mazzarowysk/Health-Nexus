@@ -260,8 +260,15 @@ async function renderLeitosTab() {
               </div>
               ${b.status === 'Ocupado' ? `
                 <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(239,68,68,0.1)); padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid rgba(99,102,241,0.3);">
-                  <div style="font-size: 0.98rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${b.patientName || 'Paciente'}
+                  <div style="font-size: 0.98rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                    <span style="display: flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${b.patientName || 'Paciente'}
+                    </span>
+                    ${b.pepNumber ? `
+                      <span style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-family: monospace; font-weight: 700;">
+                        ${b.pepNumber}
+                      </span>
+                    ` : ''}
                   </div>
                   <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">
                     <span><i class="fa-solid fa-calendar-check" style="color: #a5b4fc;"></i> Entrada: ${b.admittedAt ? new Date(b.admittedAt).toLocaleTimeString().slice(0,5) : 'Hoje'}</span>
@@ -277,7 +284,7 @@ async function renderLeitosTab() {
                 </button>
               ` : ''}
               ${b.status === 'Ocupado' ? `
-                <button class="btn btn-sm" onclick="if(typeof window.openPEPModal === 'function') window.openPEPModal('${b.patientId || b.patientName}');" style="background: #0284c7; color: #fff; border: none; font-size: 0.76rem; padding: 7px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.3);">
+                <button class="btn btn-sm" onclick="if(typeof window.openPEPModal === 'function') window.openPEPModal('${b.encounterId || b.patientId || b.patientName}');" style="background: #0284c7; color: #fff; border: none; font-size: 0.76rem; padding: 7px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.3);">
                   <i class="fa-solid fa-file-medical"></i> PEP
                 </button>
                 <button class="btn btn-sm btn-danger" onclick="window.dischargeBed('${b.id}')" style="flex: 1; border-radius: 8px; font-weight:700; font-size: 0.76rem; padding: 7px 10px; background: linear-gradient(135deg, #be5a6e, #9e3a52); border:none; color: #fff;">
