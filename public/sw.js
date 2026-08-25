@@ -1,9 +1,9 @@
 /**
  * Health Nexus - Service Worker de Alta Resiliência Hospitalar & Push Notifications
- * Versão: 3.9.0
+ * Versão: 3.10.0
  */
 
-const CACHE_NAME = 'health-nexus-v3.9.0';
+const CACHE_NAME = 'health-nexus-v3.10.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -396,6 +396,16 @@ async function renderLeitosTab() {
         showToast('Paciente internado com sucesso!');
         modal.style.display = 'none';
         
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Internação em Leito Concluída',
+            message: `O paciente <strong>${patientName || 'selecionado'}</strong> foi alocado no <strong>Leito ${bedId}</strong> com sucesso.<br><br><strong>Próximo Passo:</strong> Acompanhe as metas de tempo de permanência (SLA), evoluções e diagnósticos na aba <strong>Kanban de Internação</strong>.`,
+            targetTab: 'kanban',
+            targetTabLabel: 'Kanban de Internação',
+            actionType: 'switchTab'
+          });
+        }
+
         loadBeds();
       } else {
         const d = await res.json();

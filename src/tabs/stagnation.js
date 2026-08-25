@@ -177,6 +177,15 @@ async function loadAndRenderStagnationData() {
               });
               if (r.ok) {
                 showToast(`✅ Acesso Total aprovado para ${uname}!`);
+                if (typeof window.showFlowCompletionNotification === 'function') {
+                  window.showFlowCompletionNotification({
+                    actionTitle: 'Acesso Master Liberado',
+                    message: `O usuário <strong>${uname}</strong> foi aprovado com privilégios de Administrador Master.<br><br><strong>Próximo Passo:</strong> O usuário já pode efetuar login completo ou gerenciar permissões no sistema.`,
+                    targetTab: 'configuracoes',
+                    targetTabLabel: 'Configurações & Usuários',
+                    actionType: 'switchTab'
+                  });
+                }
                 loadAndRenderStagnationData();
               } else {
                 showCustomAlert({ title: 'Atenção', message: 'Erro ao aprovar usuário.', type: 'warning' });
@@ -574,6 +583,17 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
           if (res.ok) {
             showToast(`🛏️ Internação em UTI/Leito solicitada com sucesso para ${patientName}!`);
             closeModal();
+
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: 'Solicitação de Internação Registrada',
+                message: `A solicitação de vaga em leito/UTI para <strong>${patientName}</strong> foi enviada com prioridade à Central de Leitos.<br><br><strong>Próximo Passo:</strong> Acesse a <strong>Gestão de Leitos & Internação</strong> para alocar o paciente em um leito vago (UTI / Enfermaria).`,
+                targetTab: 'leitos',
+                targetTabLabel: 'Gestão de Leitos & Internação',
+                actionType: 'switchTab'
+              });
+            }
+
             const mainContent = document.getElementById('main-content');
             if (mainContent) {
               loadAndRenderStagnationData();
@@ -604,12 +624,65 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
         });
 
         if (res.ok) {
+          closeModal();
+
           if (status === 'Aguardando_Leito') {
             showToast(`🛏️ Internação em UTI/Leito solicitada com sucesso para ${patientName}!`);
-          } else {
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: 'Solicitação de Internação Registrada',
+                message: `O paciente <strong>${patientName}</strong> foi encaminhado para internação.<br><br><strong>Próximo Passo:</strong> Acesse a aba <strong>Gestão de Leitos & Internação</strong> para alocar ou reservar um leito vago.`,
+                targetTab: 'leitos',
+                targetTabLabel: 'Gestão de Leitos & Internação',
+                actionType: 'switchTab'
+              });
+            }
+          } else if (status === 'Aguardando_Atendimento') {
             showToast(`⚡ Atendimento de ${patientName} direcionado para ${room}!`);
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: 'Paciente Direcionado de Consultório',
+                message: `O paciente <strong>${patientName}</strong> foi transferido para a fila de espera do <strong>${room}</strong>.<br><br><strong>Próximo Passo:</strong> O médico responsável pode chamá-lo para consulta na aba <strong>Salas & Consultórios</strong> ou na <strong>Central de Atendimentos</strong>.`,
+                targetTab: 'consultorios',
+                targetTabLabel: 'Salas & Consultórios',
+                actionType: 'switchTab'
+              });
+            }
+          } else if (status === 'Aguardando_Triagem') {
+            showToast(`⚡ Paciente ${patientName} redirecionado para Triagem!`);
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: 'Direcionado para Triagem',
+                message: `O paciente <strong>${patientName}</strong> foi encaminhado para a fila de <strong>Aguardando Triagem</strong>.<br><br><strong>Próximo Passo:</strong> A equipe de enfermagem deve aferir os sinais vitais e definir a classificação de risco Manchester.`,
+                targetTab: 'atendimento',
+                targetTabLabel: 'Central de Atendimentos',
+                actionType: 'switchTab'
+              });
+            }
+          } else if (status === 'Em_Atendimento') {
+            showToast(`⚡ Atendimento de ${patientName} iniciado em ${room}!`);
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: 'Atendimento Médico em Andamento',
+                message: `O paciente <strong>${patientName}</strong> está em consulta no <strong>${room}</strong>.<br><br><strong>Próximo Passo:</strong> Acesse o <strong>Prontuário Eletrônico (PEP)</strong> para evolução clínica e prescrição.`,
+                targetTab: 'medicos',
+                targetTabLabel: 'Corpo Clínico & Médicos',
+                actionType: 'switchTab'
+              });
+            }
+          } else {
+            showToast(`⚡ Atendimento de ${patientName} finalizado!`);
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: 'Atendimento Finalizado',
+                message: `O atendimento de <strong>${patientName}</strong> foi concluído com sucesso no sistema.`,
+                targetTab: 'atendimento',
+                targetTabLabel: 'Central de Atendimentos',
+                actionType: 'switchTab'
+              });
+            }
           }
-          closeModal();
+
           const mainContent = document.getElementById('main-content');
           if (mainContent) {
             loadAndRenderStagnationData();
