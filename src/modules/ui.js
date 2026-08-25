@@ -29,12 +29,19 @@ export const updateThemeIcon = () => {
 };
 
 // --- HELPER COMPONENTE DE SELEÇÃO CUSTOMIZADA E PESQUISÁVEL ---
-export const createChartGradient = function(ctx, colorHex, alpha1 = 'ff', alpha2 = '11', height = 200) {
-  const g = ctx.createLinearGradient(0, 0, 0, height);
-  const base = colorHex.length >= 7 ? colorHex.substring(0, 7) : colorHex;
-  g.addColorStop(0, base + alpha1);
-  g.addColorStop(1, base + alpha2);
-  return g;
+export const createChartGradient = function(canvasOrCtx, colorHex, alpha1 = 'ff', alpha2 = '11', height = 200) {
+  if (!canvasOrCtx) return colorHex;
+  const ctx = (typeof canvasOrCtx.getContext === 'function') ? canvasOrCtx.getContext('2d') : canvasOrCtx;
+  if (!ctx || typeof ctx.createLinearGradient !== 'function') return colorHex;
+  try {
+    const g = ctx.createLinearGradient(0, 0, 0, height);
+    const base = colorHex.length >= 7 ? colorHex.substring(0, 7) : colorHex;
+    g.addColorStop(0, base + alpha1);
+    g.addColorStop(1, base + alpha2);
+    return g;
+  } catch(e) {
+    return colorHex;
+  }
 };
 if (typeof window !== 'undefined') window.createChartGradient = createChartGradient;
 

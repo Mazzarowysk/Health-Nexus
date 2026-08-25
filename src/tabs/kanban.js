@@ -263,14 +263,92 @@ function renderCard(hosp, col) {
   `;
 }
 
+function normalizeSector(sec) {
+  if (!sec) return 'pronto_socorro';
+  const s = String(sec).toLowerCase().trim().replace(/-/g, '_').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (s.includes('ps') || s.includes('socorro') || s.includes('observ') || s.includes('pronto') || s.includes('emerg')) return 'pronto_socorro';
+  if (s.includes('corredor') || s.includes('maca') || s.includes('espera')) return 'corredor_internacao';
+  if (s.includes('cirurg') || s.includes('bloco') || s.includes('oper') || s.includes('cc') || s.includes('trauma')) return 'clinica_cirurgica';
+  if (s.includes('medica') || s.includes('enf') || s.includes('clinica') || s.includes('sus') || s.includes('geral') || s.includes('intern')) return 'clinica_medica';
+  if (s.includes('uti') || s.includes('cti') || s.includes('intensiv') || s.includes('critico')) return 'uti';
+  return 'pronto_socorro';
+}
+
+function ensureKanbanData() {
+  let all = localDB.list('hospitalizations') || [];
+  // Se não houver internações ativas ou lista muito vazia, povoar com internações realistas
+  const activeCount = all.filter(h => h.status !== 'Alta').length;
+  if (activeCount < 5) {
+    const patients = localDB.list('patients') || [];
+    const doctors = (localDB.list('users') || []).filter(u => ['Medico', 'Master'].includes(u.role));
+    if (patients.length > 0) {
+      const sectors = ['pronto_socorro', 'corredor_internacao', 'clinica_cirurgica', 'clinica_medica', 'uti'];
+      const diagnoses = ['Pneumonia Comunitária', 'IAM com Supra', 'Sepse Foco Pulmonar', 'Pós-op Apendicectomia', 'Insuficiência Cardíaca Descompensada', 'AVC Isquêmico Agudo', 'Trauma Abdominal Fechado', 'Cetoacidose Diabética'];
+      const notesList = [
+        'Paciente lúcido, orientado, estável hemodinamicamente. Aguardando exames de controle.',
+        'Em uso de antibioticoterapia venosa. Melhora dos parâmetros inflamatórios.',
+        'Programada reavaliação cirúrgica no período vespertino. Ferida operatória limpa.',
+        'Mantendo suporte ventilatório não-invasivo com boa resposta. Sinais vitais estáveis.'
+      ];
+
+      // Criar internações para distribuir pelos 5 setores
+      for (let i = 0; i < 15; i++) {
+        const p = patients[i % patients.length];
+        const doc = doctors.length > 0 ? doctors[i % doctors.length] : { id: 'doc-1', name: 'Dr. Roberto Silva' };
+        const sec = sectors[i % sectors.length];
+        const hoursAgo = (i + 1) * 6 + Math.floor(Math.random() * 12);
+        const admDate = new Date(Date.now() - hoursAgo * 3600000).toISOString();
+        const sectorDate = new Date(Date.now() - Math.floor(hoursAgo * 0.6) * 3600000).toISOString();
+        
+        let bedName = 'S/ Leito';
+        if (sec === 'pronto_socorro') bedName = `Box PS-0${(i % 5) + 1}`;
+        else if (sec === 'corredor_internacao') bedName = `Maca COR-0${(i % 5) + 1}`;
+        else if (sec === 'clinica_cirurgica') bedName = `Quarto CIR-${101 + (i % 8)}`;
+        else if (sec === 'clinica_medica') bedName = `Enf MED-${201 + (i % 8)}`;
+        else if (sec === 'uti') bedName = `Leito UTI-0${(i % 6) + 1}`;
+
+        localDB.insert('hospitalizations', {
+          id: `HOSP-KN-${Date.now().toString(36)}-${i+1}`,
+          patient_id: p.id,
+          patientName: p.fullName || p.name,
+          current_sector: sec,
+          sector_entry_date: sectorDate,
+          admission_date: admDate,
+          bed: bedName,
+          diagnosis: diagnoses[i % diagnoses.length],
+          doctor_id: doc.id,
+          doctor_name: doc.name || doc.username || 'Dr. Plantonista',
+          notes: notesList[i % notesList.length],
+          status: 'Internado',
+          evolutions: [
+            { ts: admDate, text: 'Admissão no setor de internação. Conduta inicial estabelecida.', author: doc.name || 'Médico Plantonista' },
+            { ts: sectorDate, text: notesList[i % notesList.length], author: 'Enfermagem' }
+          ],
+          created_at: admDate,
+          updated_at: new Date().toISOString()
+        });
+      }
+    }
+  }
+}
+
 function loadAndRenderKanban() {
   const board = document.getElementById('kanban-board');
   if (!board) return;
-  const all = localDB.list('hospitalizations');
-  const patients = localDB.list('patients');
+
+  ensureKanbanData();
+
+  const all = localDB.list('hospitalizations') || [];
+  const patients = localDB.list('patients') || [];
+
   const active = all.filter(h => h.status !== 'Alta').map(h => {
     const pat = patients.find(p => p.id === h.patient_id) || {};
-    return { ...h, patientName: pat.fullName || pat.name || 'Desconhecido' };
+    const normSector = normalizeSector(h.current_sector);
+    return { 
+      ...h, 
+      current_sector: normSector, 
+      patientName: pat.fullName || pat.name || h.patientName || 'Paciente' 
+    };
   });
 
   // Update filter counters
@@ -313,7 +391,6 @@ function loadAndRenderKanban() {
   
   const filtersRow = document.getElementById('kanban-filters-row');
   if (filtersRow) {
-    // Keep filters in a scrollable horizontal row if isolated
     filtersRow.style.minWidth = currentFilter === 'all' ? 'auto' : '1400px'; 
   }
 
@@ -722,109 +799,129 @@ function initKanbanChart(activePatients) {
 
   // 2. Render Sector Chart (Interativo com clique)
   const ctxSector = document.getElementById('kanbanSectorChart');
-  if (ctxSector) {
-    if (kanbanSectorChartInstance) kanbanSectorChartInstance.destroy();
-    
-    const dataMap = {};
-    KANBAN_COLUMNS.forEach(col => dataMap[col.id] = 0);
-    activePatients.forEach(p => { if (dataMap[p.current_sector] !== undefined) dataMap[p.current_sector]++; });
+  if (ctxSector && ChartClass) {
+    try {
+      if (kanbanSectorChartInstance) {
+        kanbanSectorChartInstance.destroy();
+        kanbanSectorChartInstance = null;
+      }
+      
+      const dataMap = {};
+      KANBAN_COLUMNS.forEach(col => dataMap[col.id] = 0);
+      activePatients.forEach(p => { if (dataMap[p.current_sector] !== undefined) dataMap[p.current_sector]++; });
 
-    const centerVal = document.getElementById('kanban-chart-center-val');
-    if (centerVal) centerVal.textContent = activePatients.length;
+      const centerVal = document.getElementById('kanban-chart-center-val');
+      if (centerVal) centerVal.textContent = activePatients.length;
 
-    kanbanSectorChartInstance = new ChartClass(ctxSector, {
-      type: 'doughnut',
-      data: {
-        labels: KANBAN_COLUMNS.map(c => c.shortLabel),
-        datasets: [{
-          data: KANBAN_COLUMNS.map(c => dataMap[c.id]),
-          backgroundColor: KANBAN_COLUMNS.map(c => window.createChartGradient(ctxSector, c.color, 'ee', '33')),
-          borderWidth: 2,
-          borderColor: 'rgba(255, 255, 255, 0.08)',
-          borderRadius: 8,
-          spacing: 4,
-          hoverOffset: 8
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '72%',
-        onClick: (evt, activeEls) => {
-          if (activeEls && activeEls.length > 0) {
-            const idx = activeEls[0].index;
-            const sector = KANBAN_COLUMNS[idx];
-            if (sector) setKanbanFilter(sector.id);
-          } else {
-            openKanbanSectorBreakdownModal();
-          }
+      const sectorContext = ctxSector.getContext ? ctxSector.getContext('2d') : ctxSector;
+
+      kanbanSectorChartInstance = new ChartClass(sectorContext, {
+        type: 'doughnut',
+        data: {
+          labels: KANBAN_COLUMNS.map(c => c.shortLabel),
+          datasets: [{
+            data: KANBAN_COLUMNS.map(c => dataMap[c.id]),
+            backgroundColor: KANBAN_COLUMNS.map(c => (window.createChartGradient ? window.createChartGradient(ctxSector, c.color, 'ee', '33') : c.color)),
+            borderWidth: 2,
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: 8,
+            spacing: 4,
+            hoverOffset: 8
+          }]
         },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(18, 14, 34, 0.94)',
-            titleColor: '#818cf8',
-            bodyColor: '#f8fafc',
-            borderColor: 'rgba(129, 140, 248, 0.35)',
-            borderWidth: 1,
-            padding: 8,
-            callbacks: {
-              label: (context) => ` ${context.label}: ${context.raw} paciente(s) (Clique para filtrar)`
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          animation: { duration: 500 },
+          onClick: (evt, activeEls) => {
+            if (activeEls && activeEls.length > 0) {
+              const idx = activeEls[0].index;
+              const sector = KANBAN_COLUMNS[idx];
+              if (sector) setKanbanFilter(sector.id);
+            } else {
+              openKanbanSectorBreakdownModal();
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(18, 14, 34, 0.94)',
+              titleColor: '#818cf8',
+              bodyColor: '#f8fafc',
+              borderColor: 'rgba(129, 140, 248, 0.35)',
+              borderWidth: 1,
+              padding: 8,
+              callbacks: {
+                label: (context) => ` ${context.label}: ${context.raw} paciente(s) (Clique para filtrar)`
+              }
             }
           }
         }
-      }
-    });
+      });
+    } catch(err) {
+      console.warn('Erro ao renderizar kanbanSectorChart:', err);
+    }
   }
 
   // 3. Render SLA Chart (Interativo com clique no status)
   const ctxSla = document.getElementById('kanbanSlaChart');
-  if (ctxSla) {
-    if (kanbanSlaChartInstance) kanbanSlaChartInstance.destroy();
+  if (ctxSla && ChartClass) {
+    try {
+      if (kanbanSlaChartInstance) {
+        kanbanSlaChartInstance.destroy();
+        kanbanSlaChartInstance = null;
+      }
 
-    kanbanSlaChartInstance = new ChartClass(ctxSla, {
-      type: 'doughnut',
-      data: {
-        labels: ['No Prazo', 'Atenção', 'Meta Excedida'],
-        datasets: [{
-          data: [onTime, warning, exceeded],
-          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'].map(c => window.createChartGradient(ctxSla, c, 'ee', '33')),
-          borderWidth: 2,
-          borderColor: 'rgba(255, 255, 255, 0.08)',
-          borderRadius: 8,
-          spacing: 4,
-          hoverOffset: 8
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '72%',
-        onClick: (evt, activeEls) => {
-          if (activeEls && activeEls.length > 0) {
-            const idx = activeEls[0].index;
-            const slaTypes = ['ontime', 'warning', 'exceeded'];
-            setKanbanSlaFilter(slaTypes[idx]);
-          } else {
-            openKanbanSlaAuditModal();
-          }
+      const slaContext = ctxSla.getContext ? ctxSla.getContext('2d') : ctxSla;
+
+      kanbanSlaChartInstance = new ChartClass(slaContext, {
+        type: 'doughnut',
+        data: {
+          labels: ['No Prazo', 'Atenção', 'Meta Excedida'],
+          datasets: [{
+            data: [onTime, warning, exceeded],
+            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'].map(c => (window.createChartGradient ? window.createChartGradient(ctxSla, c, 'ee', '33') : c)),
+            borderWidth: 2,
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: 8,
+            spacing: 4,
+            hoverOffset: 8
+          }]
         },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(18, 14, 34, 0.94)',
-            titleColor: '#f59e0b',
-            bodyColor: '#f8fafc',
-            borderColor: 'rgba(245, 158, 11, 0.35)',
-            borderWidth: 1,
-            padding: 8,
-            callbacks: {
-              label: (context) => ` ${context.label}: ${context.raw} paciente(s) (Clique para filtrar)`
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          animation: { duration: 500 },
+          onClick: (evt, activeEls) => {
+            if (activeEls && activeEls.length > 0) {
+              const idx = activeEls[0].index;
+              const slaTypes = ['ontime', 'warning', 'exceeded'];
+              setKanbanSlaFilter(slaTypes[idx]);
+            } else {
+              openKanbanSlaAuditModal();
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(18, 14, 34, 0.94)',
+              titleColor: '#f59e0b',
+              bodyColor: '#f8fafc',
+              borderColor: 'rgba(245, 158, 11, 0.35)',
+              borderWidth: 1,
+              padding: 8,
+              callbacks: {
+                label: (context) => ` ${context.label}: ${context.raw} paciente(s) (Clique para filtrar)`
+              }
             }
           }
         }
-      }
-    });
+      });
+    } catch(err) {
+      console.warn('Erro ao renderizar kanbanSlaChart:', err);
+    }
   }
 }
 
