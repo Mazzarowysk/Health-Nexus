@@ -602,6 +602,25 @@ export const apiFetch = async (url, options = {}) => {
         const newPepNumber = `PEP-INT-${year}-${seq}`;
         const newEncounterId = 'enc-int-' + Date.now();
 
+        // 0. DESOCUPAR AUTOMATICAMENTE QUALQUER LEITO ANTERIOR QUE ESTE PACIENTE JÁ ESTIVESSE OCUPANDO (ANTI-DUPLICIDADE)
+        allBeds.forEach(otherBed => {
+          if (String(otherBed.id) !== String(bed.id) && (
+            (pId && String(otherBed.patientId) === String(pId)) ||
+            (pName && otherBed.patientName && otherBed.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
+          )) {
+            localDB.update('beds', otherBed.id, {
+              ...otherBed,
+              status: 'Higienizacao',
+              patientId: null,
+              patientName: null,
+              encounterId: null,
+              pepNumber: null,
+              admittedAt: null,
+              updated_at: nowIso
+            });
+          }
+        });
+
         // 1. Finalizar o PEP anterior de Pronto-Socorro / Ambulatório
         if (prevEnc) {
           localDB.update('encounters', prevEnc.id, {
@@ -706,6 +725,25 @@ export const apiFetch = async (url, options = {}) => {
         const seq = String(encs.length + 1).padStart(4, '0');
         const newPepNumber = `PEP-INT-${year}-${seq}`;
         const newEncounterId = 'enc-int-' + Date.now();
+
+        // 0. DESOCUPAR AUTOMATICAMENTE QUALQUER LEITO ANTERIOR QUE ESTE PACIENTE JÁ ESTIVESSE OCUPANDO (ANTI-DUPLICIDADE)
+        allBeds.forEach(otherBed => {
+          if (String(otherBed.id) !== String(bed.id) && (
+            (patientId && String(otherBed.patientId) === String(patientId)) ||
+            (patientName && otherBed.patientName && otherBed.patientName.toLowerCase().trim() === patientName.toLowerCase().trim())
+          )) {
+            localDB.update('beds', otherBed.id, {
+              ...otherBed,
+              status: 'Higienizacao',
+              patientId: null,
+              patientName: null,
+              encounterId: null,
+              pepNumber: null,
+              admittedAt: null,
+              updated_at: nowIso
+            });
+          }
+        });
 
         // 1. Finalizar o PEP anterior de Pronto-Socorro / Ambulatório
         if (prevEnc) {

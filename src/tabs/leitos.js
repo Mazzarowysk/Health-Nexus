@@ -162,7 +162,41 @@ async function renderLeitosTab() {
             b.status = 'Ocupado';
             b.patientName = (matchingHosp && matchingHosp.patientName) || (matchingEnc && matchingEnc.patientName) || b.patientName;
             b.patientId = (matchingHosp && matchingHosp.patient_id) || (matchingEnc && matchingEnc.patientId) || b.patientId;
+            b.pepNumber = (matchingHosp && matchingHosp.pepNumber) || (matchingEnc && matchingEnc.pepNumber) || b.pepNumber;
             b.admittedAt = (matchingHosp && matchingHosp.admitted_at) || (matchingEnc && matchingEnc.hospitalized_at) || b.admittedAt || new Date().toISOString();
+          }
+        });
+
+        // Deduplicação Estrita (Anti-Duplicidade): Garante que nenhum paciente conste em mais de 1 leito simultaneamente
+        const seenPatients = new Map();
+        const occupiedBeds = beds.filter(b => b.status === 'Ocupado' && (b.patientId || b.patientName));
+        occupiedBeds.sort((a, b) => new Date(b.admittedAt || 0) - new Date(a.admittedAt || 0));
+
+        occupiedBeds.forEach(b => {
+          const pKey = (b.patientId ? String(b.patientId) : '') || (b.patientName ? b.patientName.toLowerCase().trim() : '');
+          if (!pKey) return;
+          if (seenPatients.has(pKey)) {
+            // Leito anterior duplicado detectado: libera o leito anterior para higienização
+            b.status = 'Higienizacao';
+            b.patientId = null;
+            b.patientName = null;
+            b.encounterId = null;
+            b.pepNumber = null;
+            b.admittedAt = null;
+            if (typeof window.localDB !== 'undefined' && localDB.update) {
+              localDB.update('beds', b.id, {
+                ...b,
+                status: 'Higienizacao',
+                patientId: null,
+                patientName: null,
+                encounterId: null,
+                pepNumber: null,
+                admittedAt: null,
+                updated_at: new Date().toISOString()
+              });
+            }
+          } else {
+            seenPatients.set(pKey, b.id);
           }
         });
 
@@ -429,10 +463,11 @@ async function renderLeitosTab() {
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
             actionTitle: 'Internação em Leito Concluída',
-            message: `O paciente <strong>${patientName || 'selecionado'}</strong> foi alocado no <strong>Leito ${bedId}</strong> com sucesso.<br><br><strong>Próximo Passo:</strong> Acompanhe as metas de tempo de permanência (SLA), evoluções e diagnósticos na aba <strong>Kanban de Internação</strong>.`,
-            targetTab: 'kanban',
-            targetTabLabel: 'Kanban de Internação',
-            actionType: 'switchTab'
+            message: `O paciente <strong>${patientName || 'selecionado'}</strong> foi alocado no <strong>Leito ${bedId}</strong> com sucesso.<br><br><strong>Acompanhamento:</strong> O leito foi atualizado no mapa abaixo. Caso deseje acompanhar o quadro geral, você também pode acessar a aba <strong>Kanban de Internação</strong>.`,
+            targetTab: 'leitos',
+            targetTabLabel: 'Mapa de Leitos',
+            targetPatientName: patientName,
+            autoSwitch: false
           });
         }
 
