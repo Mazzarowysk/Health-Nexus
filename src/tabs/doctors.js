@@ -2424,6 +2424,10 @@ async function savePEPData(encounterId, shouldFinalize) {
       })
     });
 
+    const targetStatus = !shouldFinalize 
+      ? 'Em Atendimento' 
+      : (outcome === 'observacao' ? 'Em_Observacao' : (outcome === 'internacao' ? 'Aguardando_Leito' : 'Finalizado'));
+
     if (window.localDB && typeof window.localDB.update === 'function') {
       window.localDB.update('encounters', encounterId, {
         subjectiveContent,
@@ -2432,7 +2436,8 @@ async function savePEPData(encounterId, shouldFinalize) {
         planContent,
         notes: planContent,
         diagnosis: assessmentContent,
-        status: shouldFinalize ? 'Finalizado' : 'Em Atendimento'
+        status: targetStatus,
+        lastStatusUpdate: new Date().toISOString()
       });
     }
 
@@ -2440,6 +2445,25 @@ async function savePEPData(encounterId, shouldFinalize) {
       const encounters = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('encounters') : [];
       const enc = encounters.find(e => e.id === encounterId) || {};
       const patientName = enc.patientName || 'Paciente';
+      const nowIso = new Date().toISOString();
+
+      // Enviar prescrição automaticamente para a Fila de Dispensação da Farmácia se houver conduta farmacológica
+      if (planContent && planContent.trim().length > 3) {
+        try {
+          localDB.insert('prescriptions', {
+            id: 'RX-' + Date.now(),
+            encounterId: encounterId,
+            patientId: enc.patientId || encounterId,
+            patientName: patientName,
+            doctorName: state.user?.name || enc.doctorName || 'Dr. Médico Assistente',
+            items: planContent,
+            instructions: planContent,
+            status: 'Pendente',
+            created_at: nowIso,
+            date: nowIso.slice(0, 10)
+          });
+        } catch(e) {}
+      }
 
       if (outcome === 'observacao') {
         const activeRoom = enc.room || enc.roomName || (state.currentRoom ? state.currentRoom.name : 'Consultório 01');
@@ -2466,8 +2490,8 @@ async function savePEPData(encounterId, shouldFinalize) {
         
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: 'Solicitação de Internação',
-            message: `O prontuário foi assinado. O paciente <strong>${patientName}</strong> requer internação. Selecione o Leito Vago a seguir para concluir a transferência.`,
+            actionTitle: 'Solicitação de Internação Registrada',
+            message: `O prontuário foi assinado. O paciente <strong>${patientName}</strong> foi colocado na <strong>Fila de Internação (Aguardando Leito)</strong>. Selecione o Leito a seguir para alocar.`,
             targetTab: 'leitos',
             targetTabLabel: 'Gestão de Leitos (Transferência)',
             persistent: true

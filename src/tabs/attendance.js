@@ -628,6 +628,11 @@ export function renderAttendanceTab(contentArea) {
           const stepperContainer = document.getElementById('atd-journey-stepper-container');
           if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'consulta');
 
+          const activeRoom = (state.currentRoom && state.currentRoom.name) || 
+                             (state.user && (state.user.room || state.user.roomName)) || 
+                             (enc && (enc.room || enc.roomName)) || 
+                             'Consultório 01';
+
           try {
             const todayIso = new Date().toISOString().split('T')[0];
             const db = window.localDB.getFullDB();
@@ -637,19 +642,20 @@ export function renderAttendanceTab(contentArea) {
               window.localDB.update('appointments', existingApt.id, {
                 ...existingApt,
                 status: 'Em Atendimento',
-                roomName: 'Consultório 01',
-                room: 'Consultório 01'
+                roomName: activeRoom,
+                room: activeRoom
               });
             } else {
               window.localDB.insert('appointments', {
                 id: 'apt-' + Date.now(),
                 patientName: patientName,
-                doctorName: (state.user && state.user.fullName) || 'Dr. Médico Plantonista',
+                patientId: enc.patientId,
+                doctorName: (state.user && (state.user.name || state.user.fullName)) || 'Dr. Médico Plantonista',
                 date: todayIso,
                 time: new Date().toLocaleTimeString().slice(0, 5),
                 status: 'Em Atendimento',
-                roomName: 'Consultório 01',
-                room: 'Consultório 01',
+                roomName: activeRoom,
+                room: activeRoom,
                 specialty: 'Clínica Geral'
               });
             }
@@ -657,9 +663,9 @@ export function renderAttendanceTab(contentArea) {
 
           const callPayload = {
             patientName: patientName,
-            roomName: 'Consultório 01',
+            roomName: activeRoom,
             manchesterColor: manchesterColor || 'Verde',
-            doctorName: (state.user && state.user.fullName) || 'Dr. Médico Plantonista'
+            doctorName: (state.user && (state.user.name || state.user.fullName)) || 'Dr. Médico Assistente'
           };
 
           apiFetch('/api/tv/call', {
@@ -670,7 +676,7 @@ export function renderAttendanceTab(contentArea) {
           realtimeHub.broadcastTVCall(callPayload);
 
           if ('speechSynthesis' in window) {
-            const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao Consultório 01.`;
+            const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao ${activeRoom}.`;
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'pt-BR';
             utterance.rate = 0.9;
@@ -679,11 +685,11 @@ export function renderAttendanceTab(contentArea) {
 
           if (typeof window.showFlowCompletionNotification === 'function') {
             window.showFlowCompletionNotification({
-              actionTitle: `📢 Paciente Chamado para Consultório 01`,
-              message: `O paciente <strong>${patientName}</strong> foi chamado para o <strong>Consultório 01</strong>.`,
+              actionTitle: `📢 Paciente Chamado para ${activeRoom}`,
+              message: `O paciente <strong>${patientName}</strong> foi chamado para o <strong>${activeRoom}</strong>.`,
               targetTab: 'consultorios',
-              targetTabLabel: 'Consultório 01 (Salas & Consultórios)',
-              targetColumn: 'Consultório 01',
+              targetTabLabel: `${activeRoom} (Salas & Consultórios)`,
+              targetColumn: activeRoom,
               targetPatientName: patientName,
               persistent: true
             });

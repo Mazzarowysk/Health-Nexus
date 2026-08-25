@@ -762,18 +762,76 @@ window.saveKanbanEvolution = function(hospId) {
 
 // ──── Alta ────
 window.dischargePatient = function(hospId) {
-  if(confirm('Registrar ALTA para este paciente? Ele sai do Kanban.')) {
+  if(confirm('Registrar ALTA para este paciente? Ele sai do Kanban e o leito será liberado para Higienização.')) {
     const hosp = localDB.get('hospitalizations', hospId);
     const pat = (localDB.list('patients').find(p => p.id === hosp?.patient_id) || {});
-    const patName = pat.fullName || pat.name || 'Paciente';
+    const patName = pat.fullName || pat.name || (hosp ? hosp.patientName : 'Paciente');
+    const nowIso = new Date().toISOString();
 
-    localDB.update('hospitalizations',hospId,{status:'Alta',discharge_date:new Date().toISOString()});
-    if(window.showToast) window.showToast('Alta registrada com sucesso!');
+    // 1. Atualizar Hospitalização para Alta
+    localDB.update('hospitalizations', hospId, {
+      status: 'Alta',
+      discharge_date: nowIso,
+      discharged_at: nowIso
+    });
+
+    // 2. Liberar Leito correspondente para Higienização
+    const allBeds = localDB.list('beds') || [];
+    allBeds.forEach(bed => {
+      const matchBed = (hosp && hosp.bed_id && String(bed.id) === String(hosp.bed_id)) ||
+                       (hosp && hosp.bed && (bed.bedNumber === hosp.bed || bed.number === hosp.bed)) ||
+                       (hosp && hosp.patient_id && String(bed.patientId) === String(hosp.patient_id)) ||
+                       (patName && bed.patientName && bed.patientName.toLowerCase().trim() === patName.toLowerCase().trim());
+      if (matchBed) {
+        localDB.update('beds', bed.id, {
+          ...bed,
+          status: 'Higienizacao',
+          patientId: null,
+          patientName: null,
+          encounterId: null,
+          pepNumber: null,
+          admittedAt: null,
+          dischargedAt: nowIso,
+          updated_at: nowIso
+        });
+      }
+    });
+
+    // 3. Finalizar Encounter de Internação
+    const allEncs = localDB.list('encounters') || [];
+    allEncs.forEach(enc => {
+      const matchEnc = (hosp && hosp.encounter_id && String(enc.id) === String(hosp.encounter_id)) ||
+                       (hosp && hosp.patient_id && String(enc.patientId) === String(hosp.patient_id)) ||
+                       (patName && enc.patientName && enc.patientName.toLowerCase().trim() === patName.toLowerCase().trim());
+      if (matchEnc && (enc.status === 'Internado' || enc.status === 'Em_Atendimento')) {
+        localDB.update('encounters', enc.id, {
+          ...enc,
+          status: 'Finalizado',
+          dischargeType: 'Alta Hospitalar',
+          discharged_at: nowIso,
+          completed_at: nowIso,
+          lastStatusUpdate: nowIso
+        });
+      }
+    });
+
+    // 4. Inserir Anotação Clínica de Alta
+    if (hosp && hosp.patient_id) {
+      localDB.insert('clinical_notes', {
+        id: 'NOTE-' + Date.now(),
+        patientId: hosp.patient_id,
+        text: `✅ Alta Hospitalar concedida via Kanban (${hosp.current_sector || 'Setor'}). Paciente desinternado e leito liberado para higienização.`,
+        created_at: nowIso,
+        author: hosp.doctor_name || 'Médico Assistente'
+      });
+    }
+
+    if(window.showToast) window.showToast('✅ Alta registrada com sucesso! Leito liberado para higienização.');
 
     if (typeof window.showFlowCompletionNotification === 'function') {
       window.showFlowCompletionNotification({
-        actionTitle: 'Alta Médica Hospitalar Concedida',
-        message: `O paciente <strong>${patName}</strong> recebeu alta e foi desinternado do Kanban.<br><br><strong>Próximo Passo:</strong> Confira a liberação e higienização de leitos na <strong>Gestão de Leitos & Internação</strong>.`,
+        actionTitle: 'Alta Médica Hospitalar Concluída',
+        message: `O paciente <strong>${patName}</strong> recebeu alta médica. O leito hospitalar foi encaminhado automaticamente para a <strong>Fila de Higienização</strong>.`,
         targetTab: 'leitos',
         targetTabLabel: 'Gestão de Leitos & Internação',
         actionType: 'switchTab'

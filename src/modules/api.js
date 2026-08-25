@@ -897,6 +897,25 @@ export const apiFetch = async (url, options = {}) => {
             created_at: nowIso,
             author: 'Gestão de Leitos (Sistema)'
           });
+
+          // Gerar faturamento/título financeiro de encerramento da internação
+          try {
+            const pat = (localDB.list('patients') || []).find(p => String(p.id) === String(prevPatientId)) || {};
+            const isParticular = !pat.healthPlan || pat.healthPlan.toLowerCase().includes('particular');
+            const dailyRate = (bed.type && bed.type.includes('UTI')) ? 2200 : 850;
+            localDB.insert('financial_installments', {
+              id: 'FIN-' + Date.now(),
+              patient_id: prevPatientId || 'pat-01',
+              patientName: prevPatientName || 'Paciente',
+              category: 'Procedimentos',
+              description: `Encerramento de Internação — Leito ${bed.number || bed.bedNumber || bed.id} (${bed.sector || 'Enfermaria'})`,
+              amount: dailyRate,
+              due_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+              status: isParticular ? 'A Vencer' : 'Pagas',
+              payment_method: isParticular ? 'Pix' : 'Convênio',
+              created_at: nowIso
+            });
+          } catch(e) {}
         }
 
         responseData = { status: 'success', data: updatedBed, message: 'Alta concedida e leito encaminhado para higienização.' };
