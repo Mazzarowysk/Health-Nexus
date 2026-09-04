@@ -1280,6 +1280,43 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
   };
 };
 
+window.handleLocationBadgeClick = function(patientId, patientName) {
+  const loc = (typeof window.getPatientCurrentLocation === 'function') ? window.getPatientCurrentLocation(patientId, patientName) : {};
+
+  // 1. Se estiver em Consultório ou Atendimento Médico / Chamado TV
+  if (loc.status === 'Em Atendimento' || (loc.sector && loc.sector.toLowerCase().includes('consultór')) || loc.icon === 'fa-desktop' || loc.icon === 'fa-user-doctor') {
+    if (typeof window.openPEPModal === 'function') {
+      window.openPEPModal(patientId || patientName);
+    } else if (typeof window.switchTab === 'function') {
+      window.switchTab('consultorios');
+    }
+    return;
+  }
+
+  // 2. Se estiver Internado / Leito
+  if (loc.status === 'Internado' || loc.status === 'Internado em Leito' || (loc.sector && loc.sector.toLowerCase().includes('intern'))) {
+    if (typeof window.openPatientHistoryModal === 'function') {
+      window.openPatientHistoryModal(patientId, patientName);
+    } else if (typeof window.switchTab === 'function') {
+      window.switchTab('leitos');
+    }
+    return;
+  }
+
+  // 3. Se estiver na Triagem / Fila de Espera
+  if (loc.status === 'Na Fila de Espera' || (loc.sector && loc.sector.toLowerCase().includes('triagem'))) {
+    if (typeof window.switchTab === 'function') {
+      window.switchTab('atendimento');
+    }
+    return;
+  }
+
+  // 4. Fallback: Prontuário Geral
+  if (typeof window.openPatientHistoryModal === 'function') {
+    window.openPatientHistoryModal(patientId, patientName);
+  }
+};
+
 window.openPatientHistoryModal = async function(patientId, patientName) {
   const existing = document.getElementById('patient-history-modal');
   if (existing) existing.remove();
@@ -2049,6 +2086,30 @@ window.openPEPModal = async function(encounterId) {
       }
     }
 
+    // Buscar triagem Manchester associada ao paciente para preservar queixas e sinais vitais
+    let triageData = {};
+    if (window.localDB) {
+      const db = window.localDB.getFullDB();
+      const triages = db.triages || [];
+      const pidNorm = String(enc.patientId || enc.id || encounterId).toLowerCase();
+      const pnameNorm = String(enc.patientName || '').toLowerCase().trim();
+
+      triageData = triages.find(t => 
+        (t.patientId && String(t.patientId).toLowerCase() === pidNorm) ||
+        (t.encounterId && String(t.encounterId).toLowerCase() === String(enc.id).toLowerCase()) ||
+        (t.patientName && pnameNorm && t.patientName.toLowerCase().includes(pnameNorm))
+      ) || {};
+    }
+
+    if (triageData.chiefComplaint || triageData.complaint || triageData.notes || triageData.symptoms) {
+      enc.complaints = enc.complaints || triageData.chiefComplaint || triageData.complaint || triageData.symptoms || triageData.notes || '';
+    }
+    if (triageData.manchesterColor) enc.manchesterColor = enc.manchesterColor || triageData.manchesterColor;
+    if (triageData.bloodPressure) enc.bloodPressure = enc.bloodPressure || triageData.bloodPressure;
+    if (triageData.temperatureCelsius || triageData.temperature) enc.temperatureCelsius = enc.temperatureCelsius || triageData.temperatureCelsius || triageData.temperature;
+    if (triageData.heartRateBpm || triageData.heartRate) enc.heartRateBpm = enc.heartRateBpm || triageData.heartRateBpm || triageData.heartRate;
+    if (triageData.oxygenSaturation || triageData.spo2) enc.oxygenSaturation = enc.oxygenSaturation || triageData.oxygenSaturation || triageData.spo2;
+
     if (enc.patientName && typeof window.setActivePatientContext === 'function') {
       window.setActivePatientContext({
         id: enc.patientId || enc.id,
@@ -2121,6 +2182,11 @@ window.openPEPModal = async function(encounterId) {
         notes = (notesData && typeof notesData === 'object') ? (notesData.data || notesData) : {};
       }
     } catch (e) {}
+
+    // Preservar a queixa da triagem Manchester no campo Subjetivo se estiver sem nota gravada
+    if (!notes.subjectiveContent && enc.complaints) {
+      notes.subjectiveContent = `[Queixa da Triagem Manchester] ${enc.complaints}`;
+    }
 
     const bodyEl = document.getElementById('pep-modal-body');
     if (!bodyEl) return;

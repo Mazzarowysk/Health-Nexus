@@ -278,9 +278,9 @@ export function renderPatientsTab(contentArea) {
         <tr>
           <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${p.id}</td>
           <td style="font-weight: 500;">${p.fullName}<br><small style="color: var(--text-muted); font-size: 0.76rem;">Mãe: ${p.motherName || '-'}</small></td>
-          <td>
-            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700; background: ${loc.bg}; color: ${loc.color}; border: 1px solid ${loc.borderColor}; whitespace: nowrap;">
-              <i class="fa-solid ${loc.icon}"></i> ${loc.sector || loc.text} ${loc.bed ? `(${loc.bed})` : ''}
+          <td onclick="window.handleLocationBadgeClick('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" style="cursor: pointer;" title="Clique para ir direto ao atendimento / PEP do paciente no ${loc.sector || 'Consultório'}">
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 0.77rem; font-weight: 700; background: ${loc.bg}; color: ${loc.color}; border: 1px solid ${loc.borderColor}; whitespace: nowrap; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" onmouseover="this.style.transform='scale(1.06)'; this.style.boxShadow='0 0 14px ${loc.color}50';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.2)';">
+              <i class="fa-solid ${loc.icon}"></i> ${loc.sector || loc.text} ${loc.bed ? `(${loc.bed})` : ''} <i class="fa-solid fa-arrow-right" style="font-size:0.65rem; margin-left:3px; opacity:0.8;"></i>
             </span>
           </td>
           <td style="font-family: monospace; font-size: 0.9rem;">${p.cpf}</td>
