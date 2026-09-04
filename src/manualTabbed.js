@@ -1057,6 +1057,75 @@ export const manualData = [
       { q: 'Como excluir um usuário do sistema?', a: 'Na aba Configurações, acesse "Gerenciar Usuários" e clique no ícone de 🗑️ Lixeira ao lado do usuário que deseja remover. A exclusão será sincronizada com a nuvem Turso.' },
       { q: 'Como recuperar a senha do usuário Master?', a: 'A senha do usuário master pode ser restaurada via console ou pelo script de credenciais oficiais do sistema.' }
     ]
+  },
+  {
+    id: 'tiss',
+    title: 'Faturamento TISS / TUSS & ANS (v2.8.0)',
+    icon: 'fa-file-invoice-dollar',
+    color: '#10b981',
+    summary: 'Módulo completo de faturamento eletrônico de guias TISS 4.01.00, tabelas TUSS, auditoria anti-glosa e lote XML para operadoras.',
+    roles: ['Master', 'Gestor Financeiro', 'Administrador'],
+    buttons: [
+      {
+        icon: 'fa-file-code',
+        name: '📦 Exportar Lote XML TISS 4.01',
+        type: 'Faturamento & ANS',
+        color: '#10b981',
+        description: 'Gera o arquivo XML de lote eletrônico no padrão oficial TISS v4.01.00 da ANS contendo todas as guias aprovadas para transmissão aos convênios.',
+        shortcut: 'Aba Faturamento TISS -> Botão Exportar XML TISS',
+        rules: 'Valida previamente matrícula do beneficiário, código TUSS e assinatura do auditor antes de gerar o XML.',
+        keywords: ['tiss', 'tuss', 'xml tiss', 'lote tiss', 'ans', 'faturamento', 'guias tiss', 'exportar xml', 'convênio']
+      },
+      {
+        icon: 'fa-shield-heart',
+        name: '🛡️ Auditoria Anti-Glosa de Guias',
+        type: 'Auditoria Hospitalar',
+        color: '#3b82f6',
+        description: 'Executa verificação cruzada automática de procedimentos TUSS contra regras de cobertura do plano, prevenindo glosas administrativas e técnicas.',
+        shortcut: 'Tabela de Lotes TISS -> Ícone de Auditoria',
+        rules: 'Exibe alertas de ineligibilidade de carência ou ausência de autorização prévia.',
+        keywords: ['anti-glosa', 'auditoria tiss', 'glosa', 'validar guias', 'tuss', 'elegibilidade', 'autorização']
+      },
+      {
+        icon: 'fa-qrcode',
+        name: '📜 QR Code de Autenticidade CFM & Validação Pública',
+        type: 'Segurança & Validação',
+        color: '#8b5cf6',
+        description: 'Verifica a integridade do QR Code e hash SHA-256 impresso no rodapé das receitas médicas e guias assistenciais.',
+        shortcut: 'Rodapé de receitas / Modal openPublicPrescriptionValidator',
+        rules: 'Permite consulta pública via câmera de smartphone ou código de validação.',
+        keywords: ['qr code', 'cfm', 'autenticidade', 'validação pública', 'sha-256', 'receita digital', 'assinar receita']
+      },
+      {
+        icon: 'fa-x-ray',
+        name: '🩻 Visualizador Radiológico PACS / DICOM',
+        type: 'Imagens Diagnósticas',
+        color: '#06b6d4',
+        description: 'Abre o canvas de exames radiológicos com ferramentas avançadas de zoom, contraste, inversão e medição milimétrica no PEP.',
+        shortcut: 'PEP -> Botão Ver Exame DICOM',
+        rules: 'Disponível para Raio-X, Tomografia, Ressonância e Ultrassom.',
+        keywords: ['pacs', 'dicom', 'raio x', 'tomografia', 'imagem radiológica', 'laudo', 'canvas dicom', 'régua']
+      },
+      {
+        icon: 'fa-heart-circle-bolt',
+        name: '⏱️ Protocolos de Emergência Aguda (IAM, AVC, Sepse)',
+        type: 'Suporte à Emergência',
+        color: '#ef4444',
+        description: 'Monitora os cronômetros de prioridade assistencial para Síndrome Coronariana Aguda (ECG < 10min), AVC (Janela Trombolítica 4.5h) e Sepse (Pacote 1ª Hora).',
+        shortcut: 'Triagem Manchester / PEP Alertas',
+        rules: 'Ativado automaticamente pela linguagem natural da queixa principal.',
+        keywords: ['iam', 'avc', 'sepse', 'protocolo emergência', 'porta balão', 'trombolítico', 'ecg 10min', 'cronômetro emergência']
+      }
+    ],
+    workflow: [
+      { step: 1, title: 'Conferência de Atendimentos', desc: 'Verifique na lista de guias os procedimentos TUSS realizados pelos médicos no PEP.' },
+      { step: 2, title: 'Auditoria Anti-Glosa', desc: 'Clique em Auditar Lote para sanar pendências de matrícula ou falta de autorização.' },
+      { step: 3, title: 'Geração de Lote XML', desc: 'Clique em Exportar Lote XML TISS 4.01 para salvar o arquivo de envio às operadoras de saúde.' }
+    ],
+    faq: [
+      { q: 'Qual versão do padrão TISS é gerada pelo Health Nexus?', a: 'O sistema utiliza a versão oficial TISS v4.01.00 com tabela de codificação TUSS atualizada da ANS.' },
+      { q: 'Como auditar as guias antes do envio aos convênios?', a: 'Na aba Faturamento TISS, utilize o filtro de status "Pendente Auditoria" e clique em "Executar Auditoria Anti-Glosa".' }
+    ]
   }
 ];
 
