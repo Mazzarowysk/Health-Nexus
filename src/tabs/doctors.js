@@ -1165,6 +1165,28 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
     };
   }
 
+  // 1.5 Hospitalizações ativas (Kanban / Internação)
+  const hospitalizations = db.hospitalizations || [];
+  const activeHosp = hospitalizations.find(h => h.status !== 'Alta' && h.status !== 'Finalizado' && h.status !== 'Discharged' && (
+    (h.patient_id && String(h.patient_id).toLowerCase() === normPid) ||
+    (h.patientId && String(h.patientId).toLowerCase() === normPid) ||
+    (h.patientName && normPname && h.patientName.toLowerCase().includes(normPname))
+  ));
+  if (activeHosp) {
+    const sec = activeHosp.current_sector || activeHosp.sector || 'Internação';
+    const bedName = activeHosp.bed || 'Internação';
+    return {
+      text: `Internado(a) — ${sec} (${bedName})`,
+      sector: sec,
+      bed: bedName,
+      status: 'Internado',
+      color: '#f87171',
+      bg: 'rgba(239,68,68,0.15)',
+      borderColor: 'rgba(239,68,68,0.4)',
+      icon: 'fa-bed-pulse'
+    };
+  }
+
   // 2. Encounters ativos (Em Atendimento / Observação / Consultório)
   const activeEnc = encounters.find(e => (e.status === 'Em Atendimento' || e.status === 'Aguardando Atendimento' || e.status === 'Em Observação') && (
     (e.patientId && String(e.patientId).toLowerCase() === normPid) ||
