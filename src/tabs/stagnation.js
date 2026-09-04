@@ -177,15 +177,6 @@ async function loadAndRenderStagnationData() {
               });
               if (r.ok) {
                 showToast(`✅ Acesso Total aprovado para ${uname}!`);
-                if (typeof window.showFlowCompletionNotification === 'function') {
-                  window.showFlowCompletionNotification({
-                    actionTitle: 'Acesso Master Liberado',
-                    message: `O usuário <strong>${uname}</strong> foi aprovado com privilégios de Administrador Master.<br><br><strong>Próximo Passo:</strong> O usuário já pode efetuar login completo ou gerenciar permissões no sistema.`,
-                    targetTab: 'configuracoes',
-                    targetTabLabel: 'Configurações & Usuários',
-                    actionType: 'switchTab'
-                  });
-                }
                 loadAndRenderStagnationData();
               } else {
                 showCustomAlert({ title: 'Atenção', message: 'Erro ao aprovar usuário.', type: 'warning' });
@@ -348,7 +339,7 @@ async function loadAndRenderStagnationData() {
               </td>
               <td style="padding: 18px 16px; vertical-align: middle; text-align: right;">
                 <div class="actions-cell" style="justify-content: flex-end;">
-                  <button class="btn btn-primary" onclick="openReassignModal('${item.id}', '${(item.patientName||'').replace(/'/g, "\\'")}', '${item.room||'Consultório 01'}', '${item.status}')" style="font-size: 0.82rem; font-weight: 700; padding: 8px 16px; border-radius: 12px; background: #0284c7; border: none; box-shadow: 0 2px 8px rgba(2,132,199,0.35); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: #ffffff;" title="Redirecionar de Consultório/Ala ou Avançar Status">
+                  <button class="btn btn-primary" onclick="openReassignModal('${item.id}', '${(item.patientName||'').replace(/'/g, "\\'")}', '${item.room||'Consultório 01'}', '${item.status}')" style="font-size: 0.82rem; font-weight: 700; padding: 9px 18px; border-radius: 20px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; box-shadow: 0 4px 14px rgba(99,102,241,0.35); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: #ffffff;" title="Redirecionar de Consultório/Ala ou Avançar Status">
                     <i class="fa-solid fa-right-left"></i> Direcionar
                   </button>
                 </div>
@@ -512,7 +503,7 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
             <label class="form-label" style="font-weight: 600; color: #e2e8f0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.88rem;">
               <i class="fa-solid fa-door-open" style="color: #38bdf8;"></i> Novo Consultório / Ala:
             </label>
-            <select id="reassign-room" class="form-input" style="width: 100%; height: 44px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-size: 0.9rem; padding: 0 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#334155'">
+            <select id="reassign-room" class="form-input" style="width: 100%; height: 44px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-size: 0.9rem; padding: 0 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
               ${roomOptionsHtml}
             </select>
           </div>
@@ -521,7 +512,7 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
             <label class="form-label" style="font-weight: 600; color: #e2e8f0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.88rem;">
               <i class="fa-solid fa-arrows-spin" style="color: #a5b4fc;"></i> Novo Status do Atendimento:
             </label>
-            <select id="reassign-status" class="form-input" style="width: 100%; height: 44px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-size: 0.9rem; padding: 0 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#334155'">
+            <select id="reassign-status" class="form-input" style="width: 100%; height: 44px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f8fafc; font-size: 0.9rem; padding: 0 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
               <option value="Aguardando_Triagem" ${currentStatus === 'Aguardando_Triagem' ? 'selected' : ''}>Aguardando Triagem</option>
               <option value="Aguardando_Atendimento" ${currentStatus === 'Aguardando_Atendimento' ? 'selected' : ''}>Aguardando Atendimento Médico</option>
               <option value="Em_Atendimento" ${currentStatus === 'Em_Atendimento' ? 'selected' : ''}>Em Atendimento (No Consultório)</option>
@@ -548,10 +539,10 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
 
           <!-- Main Form Buttons -->
           <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 10px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-            <button type="button" id="btn-cancel-reassign" class="btn btn-secondary" style="padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 0.88rem; background: #1e293b; color: #cbd5e1; border: 1px solid #334155; cursor: pointer;">
+            <button type="button" id="btn-cancel-reassign" class="btn btn-secondary" style="padding: 11px 20px; border-radius: 12px; font-weight: 600; font-size: 0.88rem; background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid var(--border-color); cursor: pointer;">
               Cancelar
             </button>
-            <button type="submit" class="btn btn-primary" style="padding: 10px 22px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; background: #0284c7; color: #ffffff; border: none; box-shadow: 0 2px 10px rgba(2,132,199,0.4); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <button type="submit" class="btn btn-primary" style="padding: 11px 24px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; border: none; box-shadow: 0 4px 16px rgba(99,102,241,0.4); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
               <i class="fa-solid fa-check"></i> Confirmar Direcionamento
             </button>
           </div>
@@ -583,17 +574,6 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
           if (res.ok) {
             showToast(`🛏️ Internação em UTI/Leito solicitada com sucesso para ${patientName}!`);
             closeModal();
-
-            if (typeof window.showFlowCompletionNotification === 'function') {
-              window.showFlowCompletionNotification({
-                actionTitle: 'Solicitação de Internação Registrada',
-                message: `A solicitação de vaga em leito/UTI para <strong>${patientName}</strong> foi enviada com prioridade à Central de Leitos.<br><br><strong>Próximo Passo:</strong> Acesse a <strong>Gestão de Leitos & Internação</strong> para alocar o paciente em um leito vago (UTI / Enfermaria).`,
-                targetTab: 'leitos',
-                targetTabLabel: 'Gestão de Leitos & Internação',
-                actionType: 'switchTab'
-              });
-            }
-
             const mainContent = document.getElementById('main-content');
             if (mainContent) {
               loadAndRenderStagnationData();
@@ -624,65 +604,12 @@ window.openReassignModal = async function(encounterId, patientName, currentRoom,
         });
 
         if (res.ok) {
-          closeModal();
-
           if (status === 'Aguardando_Leito') {
             showToast(`🛏️ Internação em UTI/Leito solicitada com sucesso para ${patientName}!`);
-            if (typeof window.showFlowCompletionNotification === 'function') {
-              window.showFlowCompletionNotification({
-                actionTitle: 'Solicitação de Internação Registrada',
-                message: `O paciente <strong>${patientName}</strong> foi encaminhado para internação.<br><br><strong>Próximo Passo:</strong> Acesse a aba <strong>Gestão de Leitos & Internação</strong> para alocar ou reservar um leito vago.`,
-                targetTab: 'leitos',
-                targetTabLabel: 'Gestão de Leitos & Internação',
-                actionType: 'switchTab'
-              });
-            }
-          } else if (status === 'Aguardando_Atendimento') {
-            showToast(`⚡ Atendimento de ${patientName} direcionado para ${room}!`);
-            if (typeof window.showFlowCompletionNotification === 'function') {
-              window.showFlowCompletionNotification({
-                actionTitle: 'Paciente Direcionado de Consultório',
-                message: `O paciente <strong>${patientName}</strong> foi transferido para a fila de espera do <strong>${room}</strong>.<br><br><strong>Próximo Passo:</strong> O médico responsável pode chamá-lo para consulta na aba <strong>Salas & Consultórios</strong> ou na <strong>Central de Atendimentos</strong>.`,
-                targetTab: 'consultorios',
-                targetTabLabel: 'Salas & Consultórios',
-                actionType: 'switchTab'
-              });
-            }
-          } else if (status === 'Aguardando_Triagem') {
-            showToast(`⚡ Paciente ${patientName} redirecionado para Triagem!`);
-            if (typeof window.showFlowCompletionNotification === 'function') {
-              window.showFlowCompletionNotification({
-                actionTitle: 'Direcionado para Triagem',
-                message: `O paciente <strong>${patientName}</strong> foi encaminhado para a fila de <strong>Aguardando Triagem</strong>.<br><br><strong>Próximo Passo:</strong> A equipe de enfermagem deve aferir os sinais vitais e definir a classificação de risco Manchester.`,
-                targetTab: 'atendimento',
-                targetTabLabel: 'Central de Atendimentos',
-                actionType: 'switchTab'
-              });
-            }
-          } else if (status === 'Em_Atendimento') {
-            showToast(`⚡ Atendimento de ${patientName} iniciado em ${room}!`);
-            if (typeof window.showFlowCompletionNotification === 'function') {
-              window.showFlowCompletionNotification({
-                actionTitle: 'Atendimento Médico em Andamento',
-                message: `O paciente <strong>${patientName}</strong> está em consulta no <strong>${room}</strong>.<br><br><strong>Próximo Passo:</strong> Acesse o <strong>Prontuário Eletrônico (PEP)</strong> para evolução clínica e prescrição.`,
-                targetTab: 'medicos',
-                targetTabLabel: 'Corpo Clínico & Médicos',
-                actionType: 'switchTab'
-              });
-            }
           } else {
-            showToast(`⚡ Atendimento de ${patientName} finalizado!`);
-            if (typeof window.showFlowCompletionNotification === 'function') {
-              window.showFlowCompletionNotification({
-                actionTitle: 'Atendimento Finalizado',
-                message: `O atendimento de <strong>${patientName}</strong> foi concluído com sucesso no sistema.`,
-                targetTab: 'atendimento',
-                targetTabLabel: 'Central de Atendimentos',
-                actionType: 'switchTab'
-              });
-            }
+            showToast(`⚡ Atendimento de ${patientName} direcionado para ${room}!`);
           }
-
+          closeModal();
           const mainContent = document.getElementById('main-content');
           if (mainContent) {
             loadAndRenderStagnationData();

@@ -628,11 +628,6 @@ export function renderAttendanceTab(contentArea) {
           const stepperContainer = document.getElementById('atd-journey-stepper-container');
           if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'consulta');
 
-          const activeRoom = (state.currentRoom && state.currentRoom.name) || 
-                             (state.user && (state.user.room || state.user.roomName)) || 
-                             (enc && (enc.room || enc.roomName)) || 
-                             'Consultório 01';
-
           try {
             const todayIso = new Date().toISOString().split('T')[0];
             const db = window.localDB.getFullDB();
@@ -642,20 +637,19 @@ export function renderAttendanceTab(contentArea) {
               window.localDB.update('appointments', existingApt.id, {
                 ...existingApt,
                 status: 'Em Atendimento',
-                roomName: activeRoom,
-                room: activeRoom
+                roomName: 'Consultório 01',
+                room: 'Consultório 01'
               });
             } else {
               window.localDB.insert('appointments', {
                 id: 'apt-' + Date.now(),
                 patientName: patientName,
-                patientId: enc.patientId,
-                doctorName: (state.user && (state.user.name || state.user.fullName)) || 'Dr. Médico Plantonista',
+                doctorName: (state.user && state.user.fullName) || 'Dr. Médico Plantonista',
                 date: todayIso,
                 time: new Date().toLocaleTimeString().slice(0, 5),
                 status: 'Em Atendimento',
-                roomName: activeRoom,
-                room: activeRoom,
+                roomName: 'Consultório 01',
+                room: 'Consultório 01',
                 specialty: 'Clínica Geral'
               });
             }
@@ -663,9 +657,9 @@ export function renderAttendanceTab(contentArea) {
 
           const callPayload = {
             patientName: patientName,
-            roomName: activeRoom,
+            roomName: 'Consultório 01',
             manchesterColor: manchesterColor || 'Verde',
-            doctorName: (state.user && (state.user.name || state.user.fullName)) || 'Dr. Médico Assistente'
+            doctorName: (state.user && state.user.fullName) || 'Dr. Médico Plantonista'
           };
 
           apiFetch('/api/tv/call', {
@@ -676,7 +670,7 @@ export function renderAttendanceTab(contentArea) {
           realtimeHub.broadcastTVCall(callPayload);
 
           if ('speechSynthesis' in window) {
-            const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao ${activeRoom}.`;
+            const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao Consultório 01.`;
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'pt-BR';
             utterance.rate = 0.9;
@@ -685,11 +679,11 @@ export function renderAttendanceTab(contentArea) {
 
           if (typeof window.showFlowCompletionNotification === 'function') {
             window.showFlowCompletionNotification({
-              actionTitle: `📢 Paciente Chamado para ${activeRoom}`,
-              message: `O paciente <strong>${patientName}</strong> foi chamado para o <strong>${activeRoom}</strong>.`,
+              actionTitle: `📢 Paciente Chamado para Consultório 01`,
+              message: `O paciente <strong>${patientName}</strong> foi chamado para o <strong>Consultório 01</strong>.`,
               targetTab: 'consultorios',
-              targetTabLabel: `${activeRoom} (Salas & Consultórios)`,
-              targetColumn: activeRoom,
+              targetTabLabel: 'Consultório 01 (Salas & Consultórios)',
+              targetColumn: 'Consultório 01',
               targetPatientName: patientName,
               persistent: true
             });
@@ -729,40 +723,18 @@ export function renderAttendanceTab(contentArea) {
 
     document.getElementById('triage-encounter-id').value = id;
     document.getElementById('triage-patient-name').textContent = name;
-    
-    // Resetar estados das opções de Manchester ao abrir
-    document.querySelectorAll('.manchester-option').forEach(opt => {
-      opt.classList.remove('ai-suggested-glow');
-      const inp = opt.querySelector('input[type="radio"]');
-      if (inp) { inp.disabled = false; inp.checked = false; }
-      opt.style.opacity = '1';
-      opt.style.cursor = 'pointer';
-    });
-
     document.getElementById('triage-modal').style.display = 'flex';
   };
-  const closeTriageModal = () => { 
-    document.getElementById('triage-modal').style.display = 'none'; 
-    document.getElementById('triage-form').reset(); 
-    document.querySelectorAll('.manchester-option').forEach(opt => {
-      opt.classList.remove('ai-suggested-glow');
-      const inp = opt.querySelector('input[type="radio"]');
-      if (inp) inp.disabled = false;
-      opt.style.opacity = '1';
-    });
-  };
+  const closeTriageModal = () => { document.getElementById('triage-modal').style.display = 'none'; document.getElementById('triage-form').reset(); };
   document.getElementById('close-triage-modal')?.addEventListener('click', closeTriageModal);
   document.getElementById('btn-cancel-triage')?.addEventListener('click', closeTriageModal);
-  // Não fecha ao clicar fora para evitar perda de dados digitados
+  document.getElementById('triage-modal')?.addEventListener('click', e => { if (e.target === document.getElementById('triage-modal')) closeTriageModal(); });
 
   const updateTriageMEWS = () => {
     const pa = document.getElementById('triage-pa')?.value || '';
     const temp = document.getElementById('triage-temp')?.value || '';
     const fc = document.getElementById('triage-fc')?.value || '';
     const spo2 = document.getElementById('triage-spo2')?.value || '';
-
-    // Se nenhum sinal vital foi digitado ainda, não força classificação
-    if (!pa && !temp && !fc && !spo2) return;
 
     const mews = calculateMEWS({
       bloodPressure: pa,
@@ -781,66 +753,15 @@ export function renderAttendanceTab(contentArea) {
       previewEl.style.background = mews.badgeBg;
       previewEl.style.border = `1px solid ${mews.badgeColor}`;
 
-      let targetColor = 'Verde';
-      let maxAllowedTier = 5; // 1: Vermelho, 2: Laranja, 3: Amarelo, 4: Verde, 5: Azul
-
-      if (mews.isSepsisAlert || mews.score >= 5) {
-        targetColor = 'Vermelho';
-        maxAllowedTier = 2; // Permite no máximo Laranja como alternativa de urgência
-        suggestEl.innerHTML = '<strong style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ALERTA SEPSE / EMERGÊNCIA (⚡ Setado: Vermelho)</strong>';
-      } else if (mews.score >= 4) {
-        targetColor = 'Laranja';
-        maxAllowedTier = 3;
-        suggestEl.innerHTML = '<span style="color: #f87171; font-weight:700;">Recomendado pela IA: Laranja / Muito Urgente</span>';
-      } else if (mews.score >= 2) {
-        targetColor = 'Amarelo';
-        maxAllowedTier = 4;
-        suggestEl.innerHTML = '<span style="color: #fbbf24; font-weight:600;">Recomendado pela IA: Amarelo / Urgente</span>';
-      } else if (mews.score === 1) {
-        targetColor = 'Verde';
-        maxAllowedTier = 5;
-        suggestEl.innerHTML = '<span style="color: #34d399;">Sinais Estáveis · Recomendado: Verde</span>';
+      if (mews.isSepsisAlert) {
+        suggestEl.innerHTML = '<strong style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ALERTA SEPSE / EMERGÊNCIA</strong>';
+      } else if (mews.score >= 5) {
+        suggestEl.innerHTML = '<span style="color: #f87171; font-weight:700;">Recomendado: Vermelho/Laranja</span>';
+      } else if (mews.score >= 3) {
+        suggestEl.innerHTML = '<span style="color: #fbbf24; font-weight:600;">Recomendado: Amarelo</span>';
       } else {
-        targetColor = 'Azul';
-        maxAllowedTier = 5;
-        suggestEl.innerHTML = '<span style="color: #38bdf8;">Sinais Normais · Recomendado: Azul/Verde</span>';
+        suggestEl.innerHTML = '<span style="color: #34d399;">Sinais Vitais Estáveis</span>';
       }
-
-      // Auto-selecionar e destacar no Manchester Selector
-      const colorTiers = [
-        { id: 'color-vermelho', tier: 1, name: 'Vermelho' },
-        { id: 'color-laranja', tier: 2, name: 'Laranja' },
-        { id: 'color-amarelo', tier: 3, name: 'Amarelo' },
-        { id: 'color-verde', tier: 4, name: 'Verde' },
-        { id: 'color-azul', tier: 5, name: 'Azul' }
-      ];
-
-      colorTiers.forEach(item => {
-        const input = document.getElementById(item.id);
-        const container = input?.closest('.manchester-option');
-        if (!input || !container) return;
-
-        // Trava de segurança: inabilita opções mais brandas caso o paciente esteja instável/crítico
-        if (item.tier > maxAllowedTier) {
-          input.disabled = true;
-          if (input.checked) input.checked = false;
-          container.style.opacity = '0.3';
-          container.style.cursor = 'not-allowed';
-          container.title = 'Inabilitado por segurança: sinais vitais indicam gravidade clínica superior.';
-        } else {
-          input.disabled = false;
-          container.style.opacity = '1';
-          container.style.cursor = 'pointer';
-          container.title = item.name === targetColor ? '⚡ Classificação Preditiva Selecionada pela IA' : 'Elevação permitida por queixa clínica';
-        }
-
-        if (item.name === targetColor) {
-          input.checked = true;
-          container.classList.add('ai-suggested-glow');
-        } else {
-          container.classList.remove('ai-suggested-glow');
-        }
-      });
     }
   };
 
@@ -852,8 +773,6 @@ export function renderAttendanceTab(contentArea) {
   document.getElementById('triage-temp')?.addEventListener('input', updateTriageMEWS);
   document.getElementById('triage-fc')?.addEventListener('input', updateTriageMEWS);
   document.getElementById('triage-spo2')?.addEventListener('input', updateTriageMEWS);
-  document.getElementById('triage-peso')?.addEventListener('input', updateTriageMEWS);
-  document.getElementById('triage-glicemia')?.addEventListener('input', updateTriageMEWS);
 
   document.getElementById('triage-form')?.addEventListener('submit', async e => {
     e.preventDefault();
@@ -926,7 +845,7 @@ export function renderAttendanceTab(contentArea) {
     } catch { document.getElementById('history-list').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">Erro ao carregar histórico.</div>'; }
   });
   document.getElementById('close-history-panel')?.addEventListener('click', () => document.getElementById('history-panel').style.display = 'none');
-  // Não fecha ao clicar fora para evitar perda de contexto
+  document.getElementById('history-panel')?.addEventListener('click', e => { if (e.target === document.getElementById('history-panel')) document.getElementById('history-panel').style.display = 'none'; });
   document.getElementById('history-search')?.addEventListener('input', e => {
     const q = removeAccents(e.target.value.toLowerCase());
     renderHistory(allHistory.filter(enc => removeAccents(enc.patientName||'').toLowerCase().includes(q)));

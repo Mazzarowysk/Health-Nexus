@@ -495,16 +495,13 @@ export const apiFetch = async (url, options = {}) => {
       const match = url.match(/\/api\/encounters\/([^\/]+)\/start-observation/);
       const encounterId = match ? match[1] : null;
       if (encounterId) {
-        let bodyObj = {};
-        try { bodyObj = (typeof body === 'string') ? JSON.parse(body) : (body || {}); } catch(e){}
         const allEncounters = localDB.list('encounters') || [];
         const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
         if (enc) {
           const updatedEncounter = {
             ...enc,
-            status: 'Em_Observacao',
-            observation_started_at: enc.observation_started_at || new Date().toISOString(),
-            room: bodyObj.room || enc.room || enc.roomName || 'Consultório 01',
+            status: 'Em_Atendimento',
+            observation_started_at: new Date().toISOString(),
             lastStatusUpdate: new Date().toISOString()
           };
           localDB.update('encounters', enc.id, updatedEncounter);
@@ -512,75 +509,6 @@ export const apiFetch = async (url, options = {}) => {
         } else {
           status = 404; responseData = { message: 'Atendimento não encontrado.' };
         }
-      }
-    }
-    else if (url.includes('/api/encounters/') && url.includes('/discharge') && method === 'PUT') {
-      const match = url.match(/\/api\/encounters\/([^\/]+)\/discharge/);
-      const encounterId = match ? match[1] : null;
-      if (encounterId) {
-        const allEncounters = localDB.list('encounters') || [];
-        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
-        if (enc) {
-          const updatedEncounter = {
-            ...enc,
-            status: 'Alta',
-            completed_at: new Date().toISOString(),
-            lastStatusUpdate: new Date().toISOString()
-          };
-          localDB.update('encounters', enc.id, updatedEncounter);
-          responseData = { status: 'success', data: updatedEncounter };
-        } else {
-          status = 404; responseData = { message: 'Atendimento não encontrado.' };
-        }
-      }
-    }
-    else if (url.includes('/api/encounters/') && url.includes('/notes')) {
-      const match = url.match(/\/api\/encounters\/([^\/]+)\/notes/);
-      const encounterId = match ? match[1] : null;
-      if (method === 'GET') {
-        const encs = localDB.list('encounters') || [];
-        const enc = encs.find(e => String(e.id) === String(encounterId) || String(e.patientId) === String(encounterId) || (e.patientName && encounterId && e.patientName.toLowerCase() === encounterId.toLowerCase()));
-        const allNotes = localDB.list('clinical_notes') || [];
-        const foundNote = allNotes.find(n => String(n.encounterId) === String(encounterId) || (enc && String(n.patientId) === String(enc.patientId)));
-        
-        responseData = {
-          subjectiveContent: enc?.subjectiveContent || foundNote?.subjectiveContent || enc?.complaints || '',
-          objectiveContent: enc?.objectiveContent || foundNote?.objectiveContent || '',
-          assessmentContent: enc?.assessmentContent || enc?.diagnosis || foundNote?.assessmentContent || '',
-          planContent: enc?.planContent || enc?.plan || foundNote?.planContent || ''
-        };
-      } else if (method === 'POST' || method === 'PUT') {
-        const { subjectiveContent, objectiveContent, assessmentContent, planContent, noteType } = body;
-        const encs = localDB.list('encounters') || [];
-        const enc = encs.find(e => String(e.id) === String(encounterId) || String(e.patientId) === String(encounterId) || (e.patientName && encounterId && e.patientName.toLowerCase() === encounterId.toLowerCase()));
-        
-        if (enc) {
-          localDB.update('encounters', enc.id, {
-            ...enc,
-            subjectiveContent: subjectiveContent || enc.subjectiveContent,
-            objectiveContent: objectiveContent || enc.objectiveContent,
-            assessmentContent: assessmentContent || enc.assessmentContent,
-            diagnosis: assessmentContent || enc.diagnosis,
-            planContent: planContent || enc.planContent,
-            plan: planContent || enc.plan,
-            lastStatusUpdate: new Date().toISOString()
-          });
-        }
-
-        const newNote = localDB.insert('clinical_notes', {
-          id: 'NOTE-' + Date.now(),
-          encounterId: enc?.id || encounterId,
-          patientId: enc?.patientId || 'pat-01',
-          patientName: enc?.patientName || '',
-          noteType: noteType || 'Evolucao_Medica',
-          subjectiveContent,
-          objectiveContent,
-          assessmentContent,
-          planContent,
-          created_at: new Date().toISOString()
-        });
-
-        responseData = { status: 'success', data: newNote, message: 'Evolução médica gravada com sucesso.' };
       }
     }
     else if (url.includes('/api/encounters/') && url.includes('/transfer-to-bed') && method === 'PUT') {
@@ -593,83 +521,32 @@ export const apiFetch = async (url, options = {}) => {
 
       if (bed) {
         const encs = localDB.list('encounters') || [];
-        const prevEnc = encs.find(e => String(e.id) === String(encounterId) || (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim()));
-        const pId = patientId || (prevEnc ? prevEnc.patientId : null) || 'pat-' + Date.now();
-        const pName = patientName || (prevEnc ? prevEnc.patientName : 'Paciente');
-        const nowIso = new Date().toISOString();
-        const year = new Date().getFullYear();
-        const seq = String(encs.length + 1).padStart(4, '0');
-        const newPepNumber = `PEP-INT-${year}-${seq}`;
-        const newEncounterId = 'enc-int-' + Date.now();
+        const enc = encs.find(e => String(e.id) === String(encounterId) || (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim()));
+        const pId = patientId || (enc ? enc.patientId : null) || 'pat-' + Date.now();
+        const pName = patientName || (enc ? enc.patientName : 'Paciente');
 
-        // 0. DESOCUPAR AUTOMATICAMENTE QUALQUER LEITO ANTERIOR QUE ESTE PACIENTE JÁ ESTIVESSE OCUPANDO (ANTI-DUPLICIDADE)
-        allBeds.forEach(otherBed => {
-          if (String(otherBed.id) !== String(bed.id) && (
-            (pId && String(otherBed.patientId) === String(pId)) ||
-            (pName && otherBed.patientName && otherBed.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
-          )) {
-            localDB.update('beds', otherBed.id, {
-              ...otherBed,
-              status: 'Higienizacao',
-              patientId: null,
-              patientName: null,
-              encounterId: null,
-              pepNumber: null,
-              admittedAt: null,
-              updated_at: nowIso
-            });
-          }
-        });
-
-        // 1. Finalizar o PEP anterior de Pronto-Socorro / Ambulatório
-        if (prevEnc) {
-          localDB.update('encounters', prevEnc.id, {
-            ...prevEnc,
-            status: 'Finalizado',
-            outcome: 'Transferência para Internação Hospitalar',
-            closingReason: `Transferido e internado no Leito ${bed.bedNumber || bed.number} (${bed.sector || 'Enfermaria'})`,
-            completed_at: nowIso,
-            closedAt: nowIso,
-            discharged_at: nowIso,
-            lastStatusUpdate: nowIso
-          });
-        }
-
-        // 2. Criar NOVO PEP de Internação Hospitalar
-        const newInpatientEncounter = {
-          id: newEncounterId,
-          pepNumber: newPepNumber,
-          patientId: pId,
-          patientName: pName,
-          type: 'Internacao',
-          status: 'Internado',
-          bed: bed.bedNumber || bed.number,
-          bedId: bed.id,
-          sector: bed.sector || bed.type || 'Enfermaria',
-          previousEncounterId: prevEnc ? prevEnc.id : null,
-          previousPepNumber: prevEnc ? (prevEnc.pepNumber || 'PEP-PS-ANTERIOR') : null,
-          admitted_at: nowIso,
-          hospitalized_at: nowIso,
-          subjectiveContent: prevEnc ? (prevEnc.subjectiveContent || prevEnc.complaints || '') : '',
-          diagnosis: prevEnc ? (prevEnc.diagnosis || prevEnc.assessmentContent || '') : '',
-          manchesterColor: prevEnc ? (prevEnc.manchesterColor || 'Verde') : 'Verde',
-          lastStatusUpdate: nowIso
-        };
-        localDB.insert('encounters', newInpatientEncounter);
-
-        // 3. Atualizar Leito com o novo PEP de internação
         const updatedBed = {
           ...bed,
           status: 'Ocupado',
           patientId: pId,
           patientName: pName,
-          admittedAt: nowIso,
-          encounterId: newEncounterId,
-          pepNumber: newPepNumber
+          admittedAt: new Date().toISOString(),
+          encounterId: encounterId || (enc ? enc.id : null)
         };
         localDB.update('beds', bed.id, updatedBed);
 
-        // 4. Criar ou Atualizar registro de internação no Kanban
+        if (enc) {
+          localDB.update('encounters', enc.id, {
+            ...enc,
+            status: 'Internado',
+            bed: bed.bedNumber || bed.number,
+            bedId: bed.id,
+            hospitalized_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          });
+        }
+
+        // Criar registro de internação
         const hosps = localDB.list('hospitalizations') || [];
         const activeHosp = hosps.find(h => h.patient_id === pId && h.status !== 'Alta');
         if (activeHosp) {
@@ -678,8 +555,6 @@ export const apiFetch = async (url, options = {}) => {
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
             current_sector: bed.sector || bed.type || 'Enfermaria',
-            encounter_id: newEncounterId,
-            pepNumber: newPepNumber,
             status: 'Internado'
           });
         } else {
@@ -690,19 +565,12 @@ export const apiFetch = async (url, options = {}) => {
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
             current_sector: bed.sector || bed.type || 'Enfermaria',
-            encounter_id: newEncounterId,
-            pepNumber: newPepNumber,
-            admitted_at: nowIso,
+            admitted_at: new Date().toISOString(),
             status: 'Internado'
           });
         }
 
-        responseData = { 
-          status: 'success', 
-          data: updatedBed, 
-          newEncounter: newInpatientEncounter,
-          message: `PEP de PS finalizado e Novo PEP (${newPepNumber}) aberto para a internação no leito ${bed.bedNumber || bed.number}.` 
-        };
+        responseData = { status: 'success', data: updatedBed, message: 'Paciente transferido para internação com sucesso.' };
       } else {
         status = 404; responseData = { message: 'Leito não encontrado.' };
       }
@@ -713,87 +581,30 @@ export const apiFetch = async (url, options = {}) => {
       const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
 
       if (bed) {
-        const encs = localDB.list('encounters') || [];
-        const prevEnc = encs.find(e => 
-          (encounterId && String(e.id) === String(encounterId)) || 
-          (patientId && String(e.patientId) === String(patientId) && e.status !== 'Finalizado') ||
-          (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim() && e.status !== 'Finalizado')
-        );
-
-        const nowIso = new Date().toISOString();
-        const year = new Date().getFullYear();
-        const seq = String(encs.length + 1).padStart(4, '0');
-        const newPepNumber = `PEP-INT-${year}-${seq}`;
-        const newEncounterId = 'enc-int-' + Date.now();
-
-        // 0. DESOCUPAR AUTOMATICAMENTE QUALQUER LEITO ANTERIOR QUE ESTE PACIENTE JÁ ESTIVESSE OCUPANDO (ANTI-DUPLICIDADE)
-        allBeds.forEach(otherBed => {
-          if (String(otherBed.id) !== String(bed.id) && (
-            (patientId && String(otherBed.patientId) === String(patientId)) ||
-            (patientName && otherBed.patientName && otherBed.patientName.toLowerCase().trim() === patientName.toLowerCase().trim())
-          )) {
-            localDB.update('beds', otherBed.id, {
-              ...otherBed,
-              status: 'Higienizacao',
-              patientId: null,
-              patientName: null,
-              encounterId: null,
-              pepNumber: null,
-              admittedAt: null,
-              updated_at: nowIso
-            });
-          }
-        });
-
-        // 1. Finalizar o PEP anterior de Pronto-Socorro / Ambulatório
-        if (prevEnc) {
-          localDB.update('encounters', prevEnc.id, {
-            ...prevEnc,
-            status: 'Finalizado',
-            outcome: 'Transferência para Internação Hospitalar',
-            closingReason: `Transferido e internado no Leito ${bed.bedNumber || bed.number} (${bed.sector || 'Enfermaria'})`,
-            completed_at: nowIso,
-            closedAt: nowIso,
-            discharged_at: nowIso,
-            lastStatusUpdate: nowIso
-          });
-        }
-
-        // 2. Criar NOVO PEP de Internação Hospitalar
-        const newInpatientEncounter = {
-          id: newEncounterId,
-          pepNumber: newPepNumber,
-          patientId: patientId,
-          patientName: patientName,
-          type: 'Internacao',
-          status: 'Internado',
-          bed: bed.bedNumber || bed.number,
-          bedId: bed.id,
-          sector: bed.sector || bed.type || 'Enfermaria',
-          previousEncounterId: prevEnc ? prevEnc.id : null,
-          previousPepNumber: prevEnc ? (prevEnc.pepNumber || 'PEP-PS-ANTERIOR') : null,
-          admitted_at: nowIso,
-          hospitalized_at: nowIso,
-          subjectiveContent: prevEnc ? (prevEnc.subjectiveContent || prevEnc.complaints || '') : '',
-          diagnosis: prevEnc ? (prevEnc.diagnosis || prevEnc.assessmentContent || '') : '',
-          manchesterColor: prevEnc ? (prevEnc.manchesterColor || 'Verde') : 'Verde',
-          lastStatusUpdate: nowIso
-        };
-        localDB.insert('encounters', newInpatientEncounter);
-
-        // 3. Atualizar Leito com o novo PEP de internação
         const updatedBed = {
           ...bed,
           status: 'Ocupado',
           patientId: patientId,
           patientName: patientName,
-          admittedAt: nowIso,
-          encounterId: newEncounterId,
-          pepNumber: newPepNumber
+          admittedAt: new Date().toISOString(),
+          encounterId: encounterId || null
         };
         localDB.update('beds', bed.id, updatedBed);
 
-        // 4. Criar ou Atualizar registro de internação no Kanban
+        if (encounterId) {
+          const encs = localDB.list('encounters') || [];
+          const enc = encs.find(e => String(e.id) === String(encounterId));
+          if (enc) {
+            localDB.update('encounters', enc.id, {
+              ...enc,
+              status: 'Internado',
+              bed: bed.bedNumber || bed.number,
+              bedId: bed.id,
+              lastStatusUpdate: new Date().toISOString()
+            });
+          }
+        }
+
         const hosps = localDB.list('hospitalizations') || [];
         const activeHosp = hosps.find(h => h.patient_id === patientId && h.status !== 'Alta');
         if (activeHosp) {
@@ -802,8 +613,6 @@ export const apiFetch = async (url, options = {}) => {
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
             current_sector: bed.sector || bed.type || 'Enfermaria',
-            encounter_id: newEncounterId,
-            pepNumber: newPepNumber,
             status: 'Internado'
           });
         } else {
@@ -814,19 +623,12 @@ export const apiFetch = async (url, options = {}) => {
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
             current_sector: bed.sector || bed.type || 'Enfermaria',
-            encounter_id: newEncounterId,
-            pepNumber: newPepNumber,
-            admitted_at: nowIso,
+            admitted_at: new Date().toISOString(),
             status: 'Internado'
           });
         }
 
-        responseData = { 
-          status: 'success', 
-          data: updatedBed, 
-          newEncounter: newInpatientEncounter,
-          message: `PEP de PS finalizado e Novo PEP (${newPepNumber}) gerado para a internação no leito ${bed.bedNumber || bed.number}.` 
-        };
+        responseData = { status: 'success', data: updatedBed, message: 'Paciente internado no leito com sucesso.' };
       } else {
         status = 404; responseData = { message: 'Leito não encontrado.' };
       }
@@ -897,25 +699,6 @@ export const apiFetch = async (url, options = {}) => {
             created_at: nowIso,
             author: 'Gestão de Leitos (Sistema)'
           });
-
-          // Gerar faturamento/título financeiro de encerramento da internação
-          try {
-            const pat = (localDB.list('patients') || []).find(p => String(p.id) === String(prevPatientId)) || {};
-            const isParticular = !pat.healthPlan || pat.healthPlan.toLowerCase().includes('particular');
-            const dailyRate = (bed.type && bed.type.includes('UTI')) ? 2200 : 850;
-            localDB.insert('financial_installments', {
-              id: 'FIN-' + Date.now(),
-              patient_id: prevPatientId || 'pat-01',
-              patientName: prevPatientName || 'Paciente',
-              category: 'Procedimentos',
-              description: `Encerramento de Internação — Leito ${bed.number || bed.bedNumber || bed.id} (${bed.sector || 'Enfermaria'})`,
-              amount: dailyRate,
-              due_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
-              status: isParticular ? 'A Vencer' : 'Pagas',
-              payment_method: isParticular ? 'Pix' : 'Convênio',
-              created_at: nowIso
-            });
-          } catch(e) {}
         }
 
         responseData = { status: 'success', data: updatedBed, message: 'Alta concedida e leito encaminhado para higienização.' };
@@ -1100,18 +883,6 @@ export const apiFetch = async (url, options = {}) => {
               });
             }
           }
-        }
-        if (table === 'encounters') {
-          const encs = localDB.list('encounters') || [];
-          const year = new Date().getFullYear();
-          const prefix = body.type === 'Internacao' ? 'INT' : (body.type === 'Ambulatorio' ? 'AMB' : 'PS');
-          const seq = String(encs.length + 1).padStart(4, '0');
-          if (!body.pepNumber) {
-            body.pepNumber = `PEP-${prefix}-${year}-${seq}`;
-          }
-          if (!body.openedAt) body.openedAt = new Date().toISOString();
-          if (!body.admitted_at) body.admitted_at = new Date().toISOString();
-          if (!body.type) body.type = 'Urgencia';
         }
         responseData = { data: localDB.insert(table, body) };
       } else if (method === 'PUT') {

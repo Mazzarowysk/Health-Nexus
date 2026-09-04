@@ -24,8 +24,6 @@ import { getNexusAICopilotResponse } from './aiCopilot.js';
 import { inject } from '@vercel/analytics';
 import { openTelemedicineModal } from './modules/telemedicina.js';
 import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from './modules/clinicalAI.js';
-import { renderDigitalSignatureModal, signDocumentICP, DIGITAL_CERT_PROVIDERS } from './modules/digitalCert.js';
-import { generateTISS401XML, downloadTISSFile, TUSS_PROCEDURES } from './modules/tiss.js';
 
 window.setActivePatientContext = setActivePatientContext;
 window.renderPatientJourneyStepper = renderPatientJourneyStepper;
@@ -38,36 +36,6 @@ window.calculateMEWS = calculateMEWS;
 window.checkDrugInteractions = checkDrugInteractions;
 window.generateWhatsAppClinicalMessage = generateWhatsAppClinicalMessage;
 window.sendToWhatsApp = sendToWhatsApp;
-window.renderDigitalSignatureModal = renderDigitalSignatureModal;
-window.signDocumentICP = signDocumentICP;
-window.DIGITAL_CERT_PROVIDERS = DIGITAL_CERT_PROVIDERS;
-window.generateTISS401XML = generateTISS401XML;
-window.downloadTISSFile = downloadTISSFile;
-window.TUSS_PROCEDURES = TUSS_PROCEDURES;
-
-// Registro do Service Worker PWA e Notificações Push
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then((reg) => {
-      console.log('[PWA] Service Worker registrado:', reg.scope);
-    }).catch((err) => {
-      console.warn('[PWA] Service Worker avisos:', err);
-    });
-  });
-}
-
-window.requestPushNotifications = async function() {
-  if (!('Notification' in window)) {
-    if (typeof showToast === 'function') showToast('Este navegador não suporta notificações.');
-    return;
-  }
-  const permission = await Notification.requestPermission();
-  if (permission === 'granted') {
-    if (typeof showToast === 'function') showToast('🔔 Notificações ativadas com sucesso para o plantão!');
-  } else {
-    if (typeof showToast === 'function') showToast('⚠️ Permissão de notificações não concedida.');
-  }
-};
 
 // Inicia o Vercel Analytics
 inject();
@@ -125,16 +93,6 @@ window.startAppointmentEncounter = async function(patientId, aptId) {
 
     showToast('⚡ Atendimento iniciado! Paciente movido para Em Atendimento.');
 
-    if (typeof window.showFlowCompletionNotification === 'function') {
-      window.showFlowCompletionNotification({
-        actionTitle: 'Atendimento Clínico Iniciado',
-        message: 'A consulta foi iniciada e o atendimento gerado no sistema.<br><br><strong>Próximo Passo:</strong> Acesse o <strong>Prontuário Eletrônico (PEP)</strong> para realizar a anamnese, evolução e prescrição do paciente.',
-        targetTab: 'medicos',
-        targetTabLabel: 'Corpo Clínico & Médicos',
-        actionType: 'switchTab'
-      });
-    }
-
     if (state.activeTab === 'agenda') {
       renderAgendaTab();
     } else {
@@ -153,10 +111,11 @@ window.startAppointmentEncounter = async function(patientId, aptId) {
 window.handleCardClick = function(tabName, reportType, message) {
   const existingToast = document.querySelector('.interactive-toast');
   if (existingToast) existingToast.remove();
+
   const toast = document.createElement('div');
   toast.className = 'interactive-toast';
-  toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#0ea5e9;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
-  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#0f172a;color:#ffffff;padding:12px 20px;border-radius:12px;border:1px solid #334155;box-shadow:0 12px 30px rgba(0,0,0,0.6);font-family:Outfit,sans-serif;font-weight:600;font-size:0.88rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:10px;';
+  toast.innerHTML = `<i class="fa-solid fa-bolt" style="color:#a855f7;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
+  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:linear-gradient(135deg, #1e1b4b, #311b92);color:#ffffff;padding:14px 22px;border-radius:14px;border:1px solid #8b5cf6;box-shadow:0 12px 35px rgba(139,92,246,0.45);font-family:Outfit,sans-serif;font-weight:600;font-size:0.9rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:12px;';
   document.body.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
@@ -577,7 +536,7 @@ function openLoginInstructionsModal() {
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,8,22,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:99999;animation:fadeIn 0.25s ease-out;';
 
   modal.innerHTML = `
-    <div style="background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; width: 90%; max-width: 440px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
+    <div style="background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 20px; width: 90%; max-width: 440px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
       <!-- Botão Fechar -->
       <button id="close-instructions-modal" type="button" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; padding: 4px; transition: color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='#94a3b8'">
         <i class="fa-solid fa-xmark"></i>
@@ -585,17 +544,17 @@ function openLoginInstructionsModal() {
 
       <!-- Cabeçalho da Janela -->
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.15rem;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(129, 140, 248, 0.4); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.25rem;">
           <i class="fa-solid fa-key"></i>
         </div>
         <div>
-          <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.15rem; color: #ffffff;">Instruções de Acesso</h3>
-          <span style="font-size: 0.78rem; color: #94a3b8;">Orientações para login no Health Nexus</span>
+          <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; color: #ffffff;">Instruções de Acesso</h3>
+          <span style="font-size: 0.8rem; color: #94a3b8;">Orientações para login no Health Nexus</span>
         </div>
       </div>
 
       <!-- Texto de Orientação -->
-      <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 18px; background: #111827; padding: 12px 14px; border-radius: 10px; border-left: 3px solid #0284c7;">
+      <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 18px; background: rgba(255,255,255,0.03); padding: 12px 14px; border-radius: 10px; border-left: 3px solid #818cf8;">
         Para acessar o sistema de demonstração, utilize uma das contas pré-configuradas abaixo ou selecione <strong>"Preencher"</strong> para aplicar automaticamente.
       </p>
 
@@ -868,7 +827,7 @@ async function uploadBackupToGoogleDrive(snapshotData, customFileName) {
     return null;
   }
 
-showToast('☁️ Backup vinculado registrado para ' + gdriveUser);
+  showToast('☁️ Backup vinculado registrado para ' + gdriveUser);
   return { simulated: true, name: fileName };
 }
 
@@ -880,21 +839,23 @@ function renderAuthScreen() {
   const renderForm = () => {
     root.innerHTML = `
       <div class="auth-container">
-        <!-- Painel Esquerdo: Branding Institucional Hospitalar -->
+        <!-- Painel Esquerdo: Branding Imersivo -->
         <div class="auth-brand-panel">
-          <!-- Canvas 2D Suave e Sóbrio (Rede Neural Clínica) -->
+          <!-- Canvas 2D de Constelação Tecnológica Interativa (Pontos & Conexões em Rede) -->
           <canvas id="auth-constellation-canvas" class="auth-constellation-canvas"></canvas>
 
-          <!-- Camada de Iluminação Ambiental Sutil -->
+          <!-- Camada de Animações Fluídas & Orbes de Luz -->
           <div class="auth-brand-ambient">
             <div class="auth-orb orb-primary"></div>
             <div class="auth-orb orb-secondary"></div>
             <div class="auth-orb orb-accent"></div>
+            <div class="auth-ring ring-1"></div>
+            <div class="auth-ring ring-2"></div>
           </div>
 
           <div class="auth-brand-content">
             <div class="auth-hero-badge">
-              <i class="fa-solid fa-hospital" style="color: #38bdf8;"></i> SISTEMA HOSPITALAR ENTERPRISE &bull; LINHA DO CUIDADO
+              <i class="fa-solid fa-hospital" style="color: #fbbf24;"></i> PLATAFORMA OFICIAL &bull; GESTÃO HOSPITALAR
             </div>
 
             <div class="auth-brand-logo-wrap">
@@ -904,55 +865,55 @@ function renderAuthScreen() {
               <div class="auth-brand-name">
                 Health Nexus
                 <span class="auth-brand-subtag">
-                  <i class="fa-solid fa-shield-halved" style="color: #38bdf8; margin-right: 5px;"></i> Plataforma Clínica Integrada
+                  <i class="fa-solid fa-shield-halved" style="color: #818cf8; margin-right: 5px;"></i> Sistema de Gestão Hospitalar
                 </span>
               </div>
             </div>
 
             <h2 class="auth-brand-headline">
-              Decisão Clínica Precisa.<br>
-              <span class="highlight">Gestão Hospitalar em Tempo Real.</span>
+              Cuidado Inteligente.<br>
+              <span class="highlight">Gestão Precisa.</span>
             </h2>
 
             <p class="auth-brand-desc">
-              Prontuário eletrônico SOAP com ditado por voz, triagem Manchester com alerta preditivo MEWS, mapa de leitos Kanban e telemedicina em conformidade CFM e LGPD.
+              Plataforma completa para hospitais e clínicas. Gerencie pacientes, agendamentos, leitos e prontuários em um único sistema seguro e integrado.
             </p>
 
             <ul class="auth-feature-list">
               <li class="auth-feature-item">
-                <div class="auth-feature-icon"><i class="fa-solid fa-file-medical"></i></div>
+                <div class="auth-feature-icon"><i class="fa-solid fa-user-injured"></i></div>
                 <div class="auth-feature-text">
-                  <strong>Prontuário PEP &amp; Voz</strong>
-                  Ditado contínuo SOAP e interações medicamentosas
+                  <strong>Gestão de Pacientes</strong>
+                  Prontuário eletrônico completo com histórico e triagem Manchester
                 </div>
               </li>
               <li class="auth-feature-item">
-                <div class="auth-feature-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+                <div class="auth-feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
                 <div class="auth-feature-text">
-                  <strong>Manchester &amp; Sepse</strong>
-                  Triagem clínica com escore precoce MEWS
+                  <strong>Agenda Inteligente</strong>
+                  Agendamentos, controle de consultas e atendimentos em tempo real
                 </div>
               </li>
               <li class="auth-feature-item">
                 <div class="auth-feature-icon"><i class="fa-solid fa-bed-pulse"></i></div>
                 <div class="auth-feature-text">
                   <strong>Controle de Leitos</strong>
-                  Censo hospitalar e Kanban de internações
+                  Mapa de ocupação hospitalar com status em tempo real
                 </div>
               </li>
               <li class="auth-feature-item">
-                <div class="auth-feature-icon"><i class="fa-solid fa-video"></i></div>
+                <div class="auth-feature-icon"><i class="fa-solid fa-chart-line"></i></div>
                 <div class="auth-feature-text">
-                  <strong>Telemedicina E2E</strong>
-                  Consultas por vídeo HD e receita digital
+                  <strong>Relatórios &amp; Dashboard</strong>
+                  Indicadores clínicos e financeiros com sincronização em nuvem
                 </div>
               </li>
             </ul>
           </div>
 
           <div class="auth-brand-footer">
-            <i class="fa-solid fa-shield-halved" style="margin-right: 5px; color: #0d9488;"></i>
-            Criptografia E2E &bull; Conformidade CFM nº 1.821/2007 &bull; v2.8.0
+            <i class="fa-solid fa-shield-halved" style="margin-right: 5px; color: var(--color-accent);"></i>
+            Dados protegidos com criptografia JWT &mdash; v1.0.1
           </div>
         </div>
 
@@ -960,15 +921,15 @@ function renderAuthScreen() {
         <div class="auth-form-panel">
           <div class="auth-form-header">
             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 4px;">
-              <div class="auth-form-eyebrow" style="margin-bottom: 0;">${isLogin ? 'Autenticação Segura' : 'Credenciamento'}</div>
+              <div class="auth-form-eyebrow" style="margin-bottom: 0;">${isLogin ? 'Acesso ao Sistema' : 'Criar Nova Conta'}</div>
               ${isLogin ? `
-                <button type="button" id="btn-show-instructions" style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 5px 12px; border-radius: 16px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='#334155'; this.style.color='#f8fafc'" onmouseleave="this.style.background='#1e293b'; this.style.color='#94a3b8'">
-                  <i class="fa-solid fa-circle-info" style="color: #38bdf8;"></i> Instruções de Acesso
+                <button type="button" id="btn-show-instructions" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(129, 140, 248, 0.35); color: #818cf8; padding: 4px 11px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='rgba(99, 102, 241, 0.3)'; this.style.borderColor='#818cf8'" onmouseleave="this.style.background='rgba(99, 102, 241, 0.15)'; this.style.borderColor='rgba(129, 140, 248, 0.35)'">
+                  <i class="fa-solid fa-circle-question" style="color: #fbbf24;"></i> Instruções de Acesso
                 </button>
               ` : ''}
             </div>
-            <h1 class="auth-title">${isLogin ? 'Acesso ao Sistema' : 'Criar Credencial'}</h1>
-            <p class="auth-subtitle">${isLogin ? 'Identifique-se com suas credenciais hospitalares' : 'Preencha os dados abaixo para solicitar acesso'}</p>
+            <h1 class="auth-title">${isLogin ? 'Bem-vindo de volta' : 'Criar sua conta'}</h1>
+            <p class="auth-subtitle">${isLogin ? 'Entre com suas credenciais para acessar o painel' : 'Preencha os dados abaixo para criar sua conta'}</p>
           </div>
 
           <div id="auth-error-container"></div>
@@ -993,8 +954,8 @@ function renderAuthScreen() {
                   <option value="Desenvolvedor">💻 Solicitar Acesso Desenvolvedor</option>
                 </select>
               </div>
-              <div id="auth-master-key-box" class="form-group" style="display: block; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
-                <label class="form-label" for="auth-master-key" style="color: #38bdf8; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              <div id="auth-master-key-box" class="form-group" style="display: block; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                <label class="form-label" for="auth-master-key" style="color: #a5b4fc; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                   <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Chave Master (Opcional):
                 </label>
                 <input type="password" id="auth-master-key" class="form-input" placeholder="Digite a chave se possuir">
@@ -1016,7 +977,7 @@ function renderAuthScreen() {
                 </button>
               </div>
             </div>
-            <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 6px; padding: 12px; font-size: 0.95rem; font-weight: 700; background: #0284c7; border: none; box-shadow: 0 2px 10px rgba(2,132,199,0.35);">
+            <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 6px; padding: 12px; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em;">
               <i class="fa-solid fa-${isLogin ? 'right-to-bracket' : 'user-plus'}" style="margin-right: 8px;"></i>
               ${isLogin ? 'Entrar no Sistema' : 'Criar Conta'}
             </button>
@@ -1026,13 +987,13 @@ function renderAuthScreen() {
 
           <div class="auth-toggle">
             ${isLogin
-              ? 'Não tem uma conta? <a id="toggle-auth">Solicitar credencial</a>'
+              ? 'Não tem uma conta? <a id="toggle-auth">Cadastre-se gratuitamente</a>'
               : 'Já tem uma conta? <a id="toggle-auth">Fazer login</a>'}
           </div>
 
           <div class="auth-form-footer">
-            <i class="fa-solid fa-hospital-user" style="margin-right: 4px; color: #0d9488;"></i>
-            Health Nexus &bull; Ambiente Clínico Seguro
+            <i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i>
+            Desenvolvido por @mazzarowysk &amp; @_coltri_
           </div>
         </div>
       </div>
@@ -1212,10 +1173,10 @@ function initConstellationCanvas() {
   const resizeObserver = new ResizeObserver(() => resize());
   resizeObserver.observe(parent);
 
-  // Nós da rede neural clínica
-  const nodeCount = Math.floor(Math.min(width, 700) / 16);
+  // Nós da rede tecnológica
+  const nodeCount = Math.floor(Math.min(width, 700) / 13);
   const nodes = [];
-  const palette = ['#0284c7', '#0ea5e9', '#0d9488', '#38bdf8', '#64748b'];
+  const palette = ['#00f2fe', '#a855f7', '#e026b8', '#38bdf8', '#818cf8', '#34d399'];
 
   const mouse = { x: null, y: null, radius: 180 };
 
@@ -1239,11 +1200,11 @@ function initConstellationCanvas() {
     constructor() {
       this.x = Math.random() * width;
       this.y = Math.random() * height;
-      this.vx = (Math.random() - 0.5) * 0.7;
-      this.vy = (Math.random() - 0.5) * 0.7;
-      this.radius = Math.random() * 1.8 + 1.0;
+      this.vx = (Math.random() - 0.5) * 0.9;
+      this.vy = (Math.random() - 0.5) * 0.9;
+      this.radius = Math.random() * 2.2 + 1.2;
       this.color = palette[Math.floor(Math.random() * palette.length)];
-      this.pulseSpeed = Math.random() * 0.02 + 0.01;
+      this.pulseSpeed = Math.random() * 0.03 + 0.01;
       this.pulse = Math.random() * Math.PI;
     }
 
@@ -1262,19 +1223,19 @@ function initConstellationCanvas() {
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < mouse.radius && dist > 0) {
           const force = (mouse.radius - dist) / mouse.radius;
-          this.x += (dx / dist) * force * 0.6;
-          this.y += (dy / dist) * force * 0.6;
+          this.x += (dx / dist) * force * 0.8;
+          this.y += (dy / dist) * force * 0.8;
         }
       }
     }
 
     draw() {
-      const currentRadius = this.radius + Math.sin(this.pulse) * 0.4;
+      const currentRadius = this.radius + Math.sin(this.pulse) * 0.6;
       ctx.beginPath();
       ctx.arc(this.x, this.y, Math.max(0.5, currentRadius), 0, Math.PI * 2);
       ctx.fillStyle = this.color;
       ctx.shadowColor = this.color;
-      ctx.shadowBlur = 6;
+      ctx.shadowBlur = 10;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
@@ -1284,7 +1245,7 @@ function initConstellationCanvas() {
     nodes.push(new Node());
   }
 
-  const maxDist = 130;
+  const maxDist = 140;
 
   const animate = () => {
     ctx.clearRect(0, 0, width, height);
@@ -1300,29 +1261,29 @@ function initConstellationCanvas() {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < maxDist) {
-          const alpha = (1 - dist / maxDist) * 0.35;
+          const alpha = (1 - dist / maxDist) * 0.55;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
           ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = `rgba(2, 132, 199, ${alpha})`;
+          ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
           ctx.lineWidth = 1;
           ctx.stroke();
         }
       }
 
-      // Conexão sutil com o cursor do mouse
+      // Conexão cintilante com o cursor do mouse
       if (mouse.x !== null && mouse.y !== null) {
         const dx = nodes[i].x - mouse.x;
         const dy = nodes[i].y - mouse.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < mouse.radius) {
-          const alpha = (1 - dist / mouse.radius) * 0.55;
+          const alpha = (1 - dist / mouse.radius) * 0.75;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
           ctx.lineTo(mouse.x, mouse.y);
-          ctx.strokeStyle = `rgba(13, 148, 136, ${alpha})`;
-          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = `rgba(168, 85, 247, ${alpha})`;
+          ctx.lineWidth = 1.3;
           ctx.stroke();
         }
       }
@@ -1790,8 +1751,6 @@ function initGlobalSystemSearch() {
             setTimeout(() => { document.getElementById('btn-open-patient-modal')?.click(); }, 350);
           } else if (act === 'switchTab') {
             switchTab(tgt);
-          } else if (act === 'requestPushNotifications') {
-            if (typeof window.requestPushNotifications === 'function') window.requestPushNotifications();
           } else if (act === 'openManual') {
             if (typeof showInteractiveManualModal === 'function') showInteractiveManualModal(tgt);
           }
@@ -2480,17 +2439,17 @@ window.openVitalDetailModal = function(vitalKey) {
   modal.style.zIndex = '999999';
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 580px; width: 92%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.7);">
-      <div class="modal-header" style="padding: 18px 24px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+      <div class="modal-header" style="padding: 20px 24px; background: linear-gradient(135deg, #1e1b4b, #2e1065); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 40px; height: 40px; border-radius: 10px; background: ${info.color}22; border: 1px solid ${info.color}55; display: flex; align-items: center; justify-content: center; color: ${info.color}; font-size: 1.15rem;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: ${info.color}22; border: 1px solid ${info.color}55; display: flex; align-items: center; justify-content: center; color: ${info.color}; font-size: 1.2rem;">
             <i class="fa-solid ${info.icon}"></i>
           </div>
           <div>
             <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff;">${info.title}</h3>
-            <span style="font-size: 0.78rem; color: #94a3b8;">Guia Clínico & Padrões Médicos Normais</span>
+            <span style="font-size: 0.78rem; color: #c4b5fd;">Guia Clínico & Padrões Médicos Normais</span>
           </div>
         </div>
-        <button type="button" class="modal-close" onclick="document.getElementById('vital-detail-modal').remove()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <button type="button" class="modal-close" onclick="document.getElementById('vital-detail-modal').remove()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -2566,65 +2525,54 @@ window.updateVitalValueInPEP = function(targetId) {
   if (modal) modal.remove();
 };
 
-// Modal de Assinatura Digital ICP-Brasil (Nuvem e A1)
+// Modal de Assinatura
 window.openSignModal = function() {
-  const patientName = document.getElementById('pep-patient-name')?.textContent || 'Paciente';
-  const doctorInfo = {
-    name: state.user?.name || 'Dr. Médico Assistente',
-    crm: state.user?.crm || '123456',
-    uf: state.user?.uf || 'SP'
-  };
-
-  renderDigitalSignatureModal({
-    docTitle: 'Evolução Clínica SOAPE & Prescrição Médica',
-    docType: 'PEP_SOAP',
-    docId: currentPEPEncounterId || 'ENC-001',
-    patientName,
-    doctorInfo,
-    onSignSuccess: async (sigData) => {
-      await savePEPDraft();
-      try {
-        const res = await apiFetch(`${API_URL}/encounters/${currentPEPEncounterId}/sign`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            passwordVerification: 'icp_brasil_verified',
-            signatureMetadata: sigData
-          })
-        });
-        
-        if (res.ok) {
-          if (typeof window.showFlowCompletionNotification === 'function') {
-            window.showFlowCompletionNotification({
-              actionTitle: 'Prontuário Assinado (ICP-Brasil)',
-              message: `Assinatura qualificada via ${sigData.providerName} (Código: ${sigData.verificationCode}) com Carimbo de Tempo e QR Code ITI/CFM.`,
-              targetTab: 'atendimento',
-              targetTabLabel: 'Atendimentos'
-            });
-          } else {
-            showToast(`✅ Prontuário assinado via ${sigData.providerName} (${sigData.verificationCode})!`);
-          }
-          if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
-          if (typeof closePEPModal === 'function') closePEPModal();
-        } else {
-          showToast('Prontuário assinado e gravado com sucesso no dispositivo!');
-          if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
-          if (typeof closePEPModal === 'function') closePEPModal();
-        }
-      } catch (err) {
-        console.error('[confirmSignPEP]', err);
-        showToast('Assinatura registrada localmente com sucesso!');
-        if (typeof closePEPModal === 'function') closePEPModal();
-      }
-    }
-  });
+  document.getElementById('sign-modal').style.display = 'flex';
+  document.getElementById('sign-password').value = '';
 };
 
 window.closeSignModal = function() {
-  const modal = document.getElementById('digital-signature-modal');
-  if (modal) modal.remove();
-  const oldModal = document.getElementById('sign-modal');
-  if (oldModal) oldModal.style.display = 'none';
+  document.getElementById('sign-modal').style.display = 'none';
+};
+
+window.confirmSignPEP = async function() {
+  if (!currentPEPEncounterId) return;
+  
+  const password = document.getElementById('sign-password').value;
+  if (!password) {
+    showToast('Informe sua senha para assinar.');
+    return;
+  }
+  
+  await savePEPDraft();
+  
+  try {
+    const res = await apiFetch(`${API_URL}/encounters/${currentPEPEncounterId}/sign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passwordVerification: password })
+    });
+    
+    if (res.ok) {
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: 'Prontuário Assinado Digitalmente',
+          message: 'O prontuário foi assinado com sucesso com certificado digital CFM.',
+          targetTab: 'atendimento',
+          targetTabLabel: 'Atendimentos'
+        });
+      } else {
+        showToast('Prontuário assinado com sucesso!');
+      }
+      closeSignModal();
+      if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
+    } else {
+      showToast('Senha incorreta ou erro ao assinar.');
+    }
+  } catch (err) {
+    console.error('[confirmSignPEP]', err);
+    showToast('Erro ao assinar prontuário.');
+  }
 };
 
 // =========================================================
@@ -2658,42 +2606,11 @@ window.generatePatientPDF = async function(patientId, patientName) {
       susNumber: '898 0001 2345 6789'
     };
 
-    const encounters = (db.encounters || []).filter(e => e.patientId === patient.id || e.patientName === patient.fullName || (patient.name && e.patientName === patient.name));
-    const hospitalizations = (db.hospitalizations || []).filter(h => h.patientId === patient.id || h.patientName === patient.fullName || (patient.name && h.patientName === patient.name));
-    const clinicalNotes = (db.clinical_notes || []).filter(n => n.patientId === patient.id || n.patientName === patient.fullName || (patient.name && n.patientName === patient.name));
-    const appointments = (db.appointments || []).filter(a => a.patientId === patient.id || a.patientName === patient.fullName || (patient.name && a.patientName === patient.name));
-    let prescriptions = (db.prescriptions || []).filter(p => p.patientId === patient.id || p.patientName === patient.fullName || (patient.name && p.patientName === patient.name));
-
-    // Se a tabela de prescrições estiver vazia, extrair itens de clinical_notes e encounters
-    if (prescriptions.length === 0) {
-      clinicalNotes.forEach(cn => {
-        if (cn.planContent || cn.plan) {
-          prescriptions.push({
-            created_at: cn.created_at || cn.createdAt,
-            name: cn.planContent || cn.plan,
-            dosage: 'Conforme prescrição médica detalhada',
-            route: 'Oral / EV / SC',
-            instructions: 'Uso conforme plano terapêutico',
-            doctorName: cn.doctorName || 'Dr. Médico Assistente'
-          });
-        }
-      });
-      encounters.forEach(enc => {
-        if (enc.planContent || enc.prescription || enc.notes) {
-          const content = enc.planContent || enc.prescription || enc.notes;
-          if (!prescriptions.some(p => p.name === content)) {
-            prescriptions.push({
-              created_at: enc.created_at || enc.admitted_at,
-              name: content,
-              dosage: 'Dose terapêutica prescrita',
-              route: 'Oral / Injetável',
-              instructions: 'Conforme evolução clínica',
-              doctorName: enc.doctorName || 'Dr. Carlos Silva (CRM 123456-SP)'
-            });
-          }
-        }
-      });
-    }
+    const encounters = (db.encounters || []).filter(e => e.patientId === patient.id || e.patientName === patient.fullName);
+    const hospitalizations = (db.hospitalizations || []).filter(h => h.patientId === patient.id || h.patientName === patient.fullName);
+    const clinicalNotes = (db.clinical_notes || []).filter(n => n.patientId === patient.id || n.patientName === patient.fullName);
+    const appointments = (db.appointments || []).filter(a => a.patientId === patient.id || a.patientName === patient.fullName);
+    const prescriptions = (db.prescriptions || []).filter(p => p.patientId === patient.id || p.patientName === patient.fullName);
 
     data = {
       patient,
@@ -2726,39 +2643,7 @@ window.generatePatientPDF = async function(patientId, patientName) {
   const encounters = data.encounters || [];
   const hospitalizations = data.hospitalizations || [];
   const notes = data.clinical_notes || [];
-  let prescriptions = data.prescriptions || [];
-
-  // Fallback inteligente para prescrições
-  if (prescriptions.length === 0) {
-    notes.forEach(cn => {
-      if (cn.planContent || cn.plan) {
-        prescriptions.push({
-          created_at: cn.created_at || cn.createdAt,
-          name: cn.planContent || cn.plan,
-          dosage: 'Conforme prescrição médica',
-          route: 'Oral / EV',
-          instructions: 'Administração assistida',
-          doctorName: cn.doctorName || 'Dr. Médico Assistente'
-        });
-      }
-    });
-    encounters.forEach(enc => {
-      if (enc.planContent || enc.prescription || enc.notes) {
-        const content = enc.planContent || enc.prescription || enc.notes;
-        if (!prescriptions.some(p => p.name === content)) {
-          prescriptions.push({
-            created_at: enc.created_at || enc.admitted_at,
-            name: content,
-            dosage: 'Dose prescrita no PEP',
-            route: 'Oral / Injetável',
-            instructions: 'Conforme conduta médica',
-            doctorName: enc.doctorName || 'Dr. Carlos Silva (CRM 123456-SP)'
-          });
-        }
-      }
-    });
-  }
-
+  const prescriptions = data.prescriptions || [];
   const appointments = data.appointments || [];
   const triages = data.triages || [];
   const tvCalls = data.tv_calls || [];
@@ -2839,35 +2724,29 @@ window.generatePatientPDF = async function(patientId, patientName) {
       const docName = enc.doctorName || 'Dr. Carlos Silva (CRM 123456-SP)';
       const room = enc.room || tv.room_name || 'Consultório 01';
       const status = enc.status || 'Finalizado';
-      const cid = enc.diagnosis || enc.assessmentContent || enc.cid || 'R10 (Dor Abdominal)';
-
-      const soapSummary = [
-        enc.subjectiveContent ? `S: ${enc.subjectiveContent.slice(0, 70)}...` : '',
-        enc.objectiveContent ? `O: ${enc.objectiveContent.slice(0, 70)}...` : '',
-        enc.planContent ? `P: ${enc.planContent.slice(0, 70)}...` : ''
-      ].filter(Boolean).join('\n');
+      const cid = enc.cid || 'R10 (Dor Abdominal)';
 
       return [
         dateFormatted,
         `${enc.type || 'Pronto Socorro'}\n[${room}]`,
         `Triagem: ${enc.manchesterColor || tr.manchester_priority || 'AMARELO'}\n${vitalsText}`,
-        `${docName}\nCID: ${cid}\n${soapSummary ? soapSummary + '\n' : ''}Assinatura: ✅ CFM Digital`,
+        `${docName}\nCID: ${cid}\nAssinatura: ✅ CFM Digital`,
         status
       ];
     });
 
     doc.autoTable({
       startY: currentY,
-      head: [['Data / Hora', 'Tipo / Local', 'Triagem & Sinais Vitais', 'Médico Assistente & Evolução SOAP', 'Status']],
+      head: [['Data / Hora', 'Tipo / Local', 'Triagem & Sinais Vitais', 'Médico Assistente & Diagnóstico', 'Status']],
       body: encRows,
       theme: 'grid',
       headStyles: { fillColor: primaryColor, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
       styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
       columnStyles: {
         0: { cellWidth: 28 },
-        1: { cellWidth: 30 },
-        2: { cellWidth: 46 },
-        3: { cellWidth: 62 },
+        1: { cellWidth: 32 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 56 },
         4: { cellWidth: 20 }
       },
       margin: { left: 12, right: 12 }
@@ -2979,18 +2858,18 @@ window.generatePatientPDF = async function(patientId, patientName) {
 
     doc.autoTable({
       startY: currentY,
-      head: [['Data', 'Medicamento / Item', 'Posologia / Dose', 'Via', 'Instruções de Uso', 'Médico Prescritor']],
+      head: [['Data', 'Medicamento / Solução', 'Dosagem', 'Via', 'Frequência / Instruções', 'Prescritor']],
       body: prescRows,
       theme: 'grid',
       headStyles: { fillColor: accentAmber, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
       styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
       columnStyles: {
-        0: { cellWidth: 24 },
+        0: { cellWidth: 20 },
         1: { cellWidth: 42 },
-        2: { cellWidth: 32 },
-        3: { cellWidth: 24 },
-        4: { cellWidth: 36 },
-        5: { cellWidth: 28 }
+        2: { cellWidth: 25 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 42 },
+        5: { cellWidth: 35 }
       },
       margin: { left: 12, right: 12 }
     });
@@ -2998,107 +2877,20 @@ window.generatePatientPDF = async function(patientId, patientName) {
     currentY = doc.lastAutoTable.finalY + 12;
   }
 
-  // --- SEÇÃO 4: FARMACOVIGILÂNCIA, SEGURANÇA DO PACIENTE & CDSS 4D ---
-  if (currentY > 220) {
+  // Verificar quebra de página
+  if (currentY > 230) {
     doc.addPage();
     currentY = 20;
   }
 
-  const cdssRed = [220, 38, 38];
-  doc.setFillColor(...cdssRed);
-  doc.rect(12, currentY, 4, 10, 'F');
-  doc.setTextColor(...darkColor);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('4. FARMACOVIGILÂNCIA, SEGURANÇA DO PACIENTE & SUPORTE À DECISÃO CLÍNICA (CDSS 4D)', 20, currentY + 7);
-  currentY += 14;
-
-  const allPrescriptionTexts = [
-    ...prescriptions.map(p => p.name || p.medication || ''),
-    ...encounters.map(e => e.planContent || e.prescription || ''),
-    ...notes.map(n => n.planContent || '')
-  ].filter(Boolean).join('\n');
-
-  const allClinicalContext = [
-    patient.allergies || '',
-    patient.chronicDiseases || '',
-    ...encounters.map(e => `${e.complaints || ''} ${e.subjectiveContent || ''} ${e.objectiveContent || ''} ${e.diagnosis || ''} ${e.assessmentContent || ''}`),
-    ...notes.map(n => `${n.subjectiveContent || ''} ${n.objectiveContent || ''} ${n.assessmentContent || ''}`)
-  ].filter(Boolean).join(' | ');
-
-  let cdssAlertsList = [];
-  if (allPrescriptionTexts && typeof checkDrugInteractions === 'function') {
-    cdssAlertsList = checkDrugInteractions(allPrescriptionTexts, allClinicalContext);
-  }
-
-  const cleanPdfText = (str) => {
-    if (!str) return '';
-    return String(str)
-      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '')
-      .replace(/[^\x00-\xFF]/g, '') // Garante compatibilidade total com codificação Latin-1 do PDF
-      .trim();
-  };
-
-  if (cdssAlertsList.length === 0) {
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(22, 101, 52);
-    doc.text('[OK] Avaliacao CDSS 4D Concluida: Nenhuma contraindicacao critica ou interacao medicamentosa grave identificada.', 20, currentY);
-    currentY += 10;
-  } else {
-    const cdssRows = cdssAlertsList.map(alert => {
-      const sevLabel = alert.severity === 'Critica' ? 'CRÍTICA' : (alert.severity === 'Grave' ? 'GRAVE' : (alert.severity || 'MODERADA').toUpperCase());
-      const cleanTitle = cleanPdfText(alert.title || 'Alerta Farmacológico');
-      const cleanDesc = cleanPdfText(alert.desc || 'Risco de evento adverso farmacológico associado.');
-      const cleanAction = cleanPdfText(alert.action || 'Avaliar ajuste posológico e monitoração intensiva.');
-
-      return [
-        sevLabel,
-        cleanTitle,
-        cleanDesc,
-        `${cleanAction}\n(Ciência e Justificativa CFM nº 1.821/2007)`
-      ];
-    });
-
-    doc.autoTable({
-      startY: currentY,
-      head: [['Severidade', 'Contraindicação / Interação', 'Mecanismo & Risco Clínico', 'Conduta Recomendada & Auditoria']],
-      body: cdssRows,
-      theme: 'grid',
-      headStyles: { fillColor: cdssRed, textColor: 255, fontSize: 8, fontStyle: 'bold', halign: 'left' },
-      styles: { 
-        fontSize: 7.2, 
-        cellPadding: 2.2, 
-        textColor: [30, 41, 59], 
-        overflow: 'linebreak',
-        lineHeightFactor: 1.18,
-        font: 'helvetica'
-      },
-      columnStyles: {
-        0: { cellWidth: 20, fontStyle: 'bold', halign: 'center' },
-        1: { cellWidth: 42, fontStyle: 'bold' },
-        2: { cellWidth: 62 },
-        3: { cellWidth: 62 }
-      },
-      margin: { left: 12, right: 12 }
-    });
-
-    currentY = doc.lastAutoTable.finalY + 12;
-  }
-
-  // --- EVOLUÇÕES CLÍNICAS E ANOTAÇÕES ADICIONAIS ---
+  // --- EVOLUÇÕES CLÍNICAS E ANOTAÇÕES ---
   if (notes.length > 0) {
-    if (currentY > 220) {
-      doc.addPage();
-      currentY = 20;
-    }
-
     doc.setFillColor(79, 70, 229);
     doc.rect(12, currentY, 4, 10, 'F');
     doc.setTextColor(...darkColor);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('5. EVOLUÇÕES CLÍNICAS & ANOTAÇÕES MULTIPROFISSIONAIS', 20, currentY + 7);
+    doc.text('4. EVOLUÇÕES CLÍNICAS & ANOTAÇÕES MULTIPROFISSIONAIS', 20, currentY + 7);
     currentY += 14;
 
     const noteRows = notes.map(n => {
@@ -3283,7 +3075,7 @@ async function loadConsultingRooms() {
     
     dashboard.innerHTML = rooms.map(r => {
       const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name || (r.name === 'Consultório 01' && !a.roomName && !a.room)));
-      const roomEncs = encounters.filter(e => (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento' || e.status === 'Em_Observacao' || e.status === 'Observacao'))));
+      const roomEncs = encounters.filter(e => (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
       const roomTvCalls = tvCalls.filter(c => c.roomName === r.name || c.room === r.name);
       
       const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
@@ -3291,27 +3083,22 @@ async function loadConsultingRooms() {
       const inProgressTv = roomTvCalls.length > 0 ? roomTvCalls[0] : null;
       const inProgress = inProgressEnc || inProgressApt || inProgressTv;
 
-      const obsEncs = roomEncs.filter(e => 
-        (e.status === 'Em_Observacao' || e.status === 'Observacao' || (!!e.observation_started_at && e.status !== 'Alta' && e.status !== 'Finalizado')) &&
-        e !== inProgress
-      );
-
-      const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress && !obsEncs.includes(e));
+      const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
       const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
       const waiting = [...waitingEncs, ...waitingApts];
       
       const hasPatient = !!inProgress;
-      const roomStatus = hasPatient ? 'Em Uso' : (obsEncs.length > 0 ? 'Observação Ativa' : (r.status || 'Disponível'));
+      const roomStatus = hasPatient ? 'Em Uso' : (r.status || 'Disponível');
       const doctorDisplay = r.currentDoctor || r.doctorName || 'Dr. Carlos Silva';
       const patientNameDisplay = inProgress ? (inProgress.patientName || inProgress.name || 'Paciente') : null;
       const patientTargetId = inProgressEnc ? inProgressEnc.id : (inProgress ? (inProgress.patientId || inProgress.id || inProgress.patientName) : '');
       
       return `
-        <div class="interactive-card ${patientNameDisplay && patientNameDisplay.toLowerCase().includes('marcelo') ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : (obsEncs.length > 0 ? 'rgba(245, 158, 11, 0.4)' : 'var(--border-color)')}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+        <div class="interactive-card ${patientNameDisplay && patientNameDisplay.toLowerCase().includes('marcelo') ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">
-                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : (obsEncs.length > 0 ? '#fbbf24' : 'var(--color-primary)')};"></i> ${r.name}
+                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : 'var(--color-primary)'};"></i> ${r.name}
               </h3>
               <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">${r.specialty || 'Uso Geral / Pronto Atendimento'}</div>
             </div>
@@ -3321,24 +3108,13 @@ async function loadConsultingRooms() {
           </div>
           
           <div style="margin-top: 4px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; background: ${hasPatient ? 'rgba(99,102,241,0.2)' : (obsEncs.length > 0 ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.15)')}; color: ${hasPatient ? '#a5b4fc' : (obsEncs.length > 0 ? '#fbbf24' : '#34d399')}; border: 1px solid ${hasPatient ? 'rgba(99,102,241,0.4)' : (obsEncs.length > 0 ? 'rgba(245,158,11,0.4)' : 'rgba(16,185,129,0.3)')};">
+            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; background: ${hasPatient ? 'rgba(99,102,241,0.2)' : 'rgba(16,185,129,0.15)'}; color: ${hasPatient ? '#a5b4fc' : '#34d399'}; border: 1px solid ${hasPatient ? 'rgba(99,102,241,0.4)' : 'rgba(16,185,129,0.3)'};">
               <i class="fa-solid fa-circle" style="font-size: 0.45rem;"></i> ${roomStatus}
             </span>
             <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-user-doctor" style="color: #38bdf8;"></i> ${doctorDisplay}
             </span>
           </div>
-
-          <!-- ÁREA DE OBSERVAÇÃO DO CONSULTÓRIO (DESTAQUE NO CARD) -->
-          ${obsEncs.length > 0 ? `
-            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-              <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #fbbf24; font-weight: 700;">
-                <i class="fa-solid fa-bed-pulse"></i>
-                <span>${obsEncs.length} em Observação na Sala</span>
-              </div>
-              <span style="font-size: 0.68rem; background: rgba(245,158,11,0.25); color: #fde68a; padding: 2px 6px; border-radius: 4px; font-weight: 800;">MONITORANDO</span>
-            </div>
-          ` : ''}
 
           <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
             ${patientNameDisplay ? `
@@ -3355,7 +3131,7 @@ async function loadConsultingRooms() {
                 </div>
               </div>
             ` : `
-              <div style="font-size: 0.82rem; color: var(--text-muted); padding: 4px 0;"><i class="fa-regular fa-clock"></i> Mesa de consulta livre</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); padding: 6px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento em andamento</div>
             `}
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
               <span style="color: var(--text-muted);">Próximos na Fila:</span>
@@ -3389,7 +3165,7 @@ async function openConsultorioDetailsModal(roomName) {
   const tvCalls = tvRes.ok ? (await tvRes.json()).data || [] : [];
 
   const roomApts = apts.filter(a => (a.roomName === roomName || a.room === roomName || (roomName === 'Consultório 01' && !a.roomName && !a.room)));
-  const roomEncs = encs.filter(e => (e.room === roomName || e.roomName === roomName || (roomName === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento' || e.status === 'Em_Observacao' || e.status === 'Observacao'))));
+  const roomEncs = encs.filter(e => (e.room === roomName || e.roomName === roomName || (roomName === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
   const roomTvCalls = tvCalls.filter(c => c.roomName === roomName || c.room === roomName);
   
   const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
@@ -3397,12 +3173,7 @@ async function openConsultorioDetailsModal(roomName) {
   const inProgressTv = roomTvCalls.length > 0 ? roomTvCalls[0] : null;
   const inProgress = inProgressEnc || inProgressApt || inProgressTv;
 
-  const obsEncs = roomEncs.filter(e => 
-    (e.status === 'Em_Observacao' || e.status === 'Observacao' || (!!e.observation_started_at && e.status !== 'Alta' && e.status !== 'Finalizado')) &&
-    e !== inProgress
-  );
-
-  const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress && !obsEncs.includes(e));
+  const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
   const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
   const waiting = [...waitingEncs, ...waitingApts];
 
@@ -3413,14 +3184,14 @@ async function openConsultorioDetailsModal(roomName) {
 
   const modalHtml = `
     <div id="consultorio-details-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.85); backdrop-filter: blur(10px);">
-      <div class="modal-content" style="max-width: 780px; width: 95vw; max-height: 92vh; background: var(--bg-secondary); border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
+      <div class="modal-content" style="max-width: 720px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
         
         <div style="background: linear-gradient(135deg, #6366f1, #00f2fe); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-door-open" style="font-size: 1.3rem;"></i>
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Painel do ${roomName}</h3>
-              <small style="color: rgba(255,255,255,0.85);">Gestão de Atendimento, Área de Observação &amp; Prontuário</small>
+              <small style="color: rgba(255,255,255,0.85);">Gestão de Atendimento Médico &amp; Prontuário</small>
             </div>
           </div>
           <button onclick="document.getElementById('consultorio-details-modal').remove()" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
@@ -3428,11 +3199,11 @@ async function openConsultorioDetailsModal(roomName) {
 
         <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
           
-          <!-- SEÇÃO 1: MESA DE ATENDIMENTO (Paciente Chamado / Ativo) -->
+          <!-- Paciente em Atendimento -->
           <div style="background: var(--bg-tertiary); border: 1.5px solid ${inProgress ? '#6366f1' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
             <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-              <span><i class="fa-solid fa-user-doctor" style="color: #6366f1;"></i> 1. Mesa de Atendimento / Paciente em Consulta</span>
-              ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Ativo na Mesa</span>' : ''}
+              <span><i class="fa-solid fa-user-doctor" style="color: #6366f1;"></i> Paciente em Atendimento / Chamado</span>
+              ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Ativo na Sala</span>' : ''}
             </div>
 
             ${inProgress ? `
@@ -3463,80 +3234,17 @@ async function openConsultorioDetailsModal(roomName) {
                 </div>
               </div>
             ` : `
-              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0; text-align: center;">
-                <i class="fa-solid fa-chair" style="font-size: 1.3rem; color: var(--border-color); display: block; margin-bottom: 4px;"></i>
-                Mesa de atendimento livre. Chame o próximo paciente da fila abaixo.
+              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 14px 0; text-align: center;">
+                <i class="fa-solid fa-door-open" style="font-size: 1.5rem; color: var(--border-color); display: block; margin-bottom: 6px;"></i>
+                Nenhum paciente está sendo atendido nesta sala no momento.
               </div>
             `}
           </div>
 
-          <!-- SEÇÃO 2: ÁREA DE OBSERVAÇÃO DO CONSULTÓRIO (Poltronas & Leitos de Decisão Clínica) -->
-          <div style="background: var(--bg-tertiary); border: 1.5px solid ${obsEncs.length > 0 ? 'rgba(245, 158, 11, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
-            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-              <span style="display: flex; align-items: center; gap: 8px; color: #fbbf24;">
-                <i class="fa-solid fa-bed-pulse"></i> 2. Área de Observação deste Consultório (${obsEncs.length})
-              </span>
-              ${obsEncs.length > 0 ? `<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">${obsEncs.length} Leito(s) Ativo(s)</span>` : ''}
-            </div>
-
-            ${obsEncs.length > 0 ? `
-              <div style="display: flex; flex-direction: column; gap: 10px;">
-                ${obsEncs.map((obs, idx) => {
-                  const obsStart = new Date(obs.observation_started_at || obs.admitted_at || Date.now()).getTime();
-                  const diffMs = Math.max(0, Date.now() - obsStart);
-                  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                  const isLimit = diffHours >= 12;
-                  const isWarning = diffHours >= 10;
-
-                  return `
-                    <div style="background: var(--bg-secondary); border: 1px solid ${isLimit ? '#ef4444' : (isWarning ? '#f59e0b' : 'rgba(99,102,241,0.3)')}; border-left: 4px solid ${isLimit ? '#ef4444' : '#f59e0b'}; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
-                      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
-                        <div>
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 0.72rem; background: rgba(245,158,11,0.2); color: #fbbf24; padding: 2px 8px; border-radius: 6px; font-weight: 800;">
-                              <i class="fa-solid fa-bed"></i> Leito Obs ${idx + 1}
-                            </span>
-                            <strong style="color: #f8fafc; font-size: 1rem;">${obs.patientName || 'Paciente'}</strong>
-                          </div>
-                          <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap;">
-                            <span>Tempo em Observação: <strong style="color: ${isLimit ? '#ef4444' : (isWarning ? '#fbbf24' : '#60a5fa')};">${diffHours}h ${diffMins}m / 12h máx</strong></span>
-                            ${obs.manchesterColor ? `&bull; <span>Manchester: <strong>${obs.manchesterColor}</strong></span>` : ''}
-                          </div>
-                        </div>
-                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                          <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${obs.id || obs.patientId || obs.patientName}');" title="Reavaliar Evolução no PEP">
-                            <i class="fa-solid fa-stethoscope"></i> Reavaliar (PEP)
-                          </button>
-                          <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('${obs.id}', '${obs.patientName}');" title="Ver ou Ajustar Prescrição">
-                            <i class="fa-solid fa-pills"></i> Prescrição
-                          </button>
-                          <button class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" onclick="window.dischargeFromObservation('${obs.id}', '${roomName}')" title="Concluir Observação e Dar Alta">
-                            <i class="fa-solid fa-check"></i> Dar Alta
-                          </button>
-                        </div>
-                      </div>
-                      ${obs.complaints || obs.clinicalNotes ? `
-                        <div style="font-size: 0.78rem; color: #cbd5e1; background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 6px; font-style: italic;">
-                          "${obs.complaints || obs.clinicalNotes}"
-                        </div>
-                      ` : ''}
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            ` : `
-              <div style="color: var(--text-muted); font-size: 0.82rem; padding: 12px 0; text-align: center;">
-                <i class="fa-solid fa-bed" style="color: var(--border-color); font-size: 1.3rem; display: block; margin-bottom: 4px;"></i>
-                Nenhum paciente alocado na área de observação deste consultório no momento.
-              </div>
-            `}
-          </div>
-
-          <!-- SEÇÃO 3: PACIENTES AGUARDANDO NA FILA -->
+          <!-- Pacientes Aguardando -->
           <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
             <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
-              <span><i class="fa-solid fa-users" style="color: #60a5fa;"></i> 3. Fila de Espera para ${roomName} (${waiting.length})</span>
+              <span><i class="fa-solid fa-users" style="color: #f59e0b;"></i> Fila de Espera para ${roomName} (${waiting.length})</span>
             </div>
 
             ${waiting.length > 0 ? `
@@ -3601,38 +3309,6 @@ async function openConsultorioDetailsModal(roomName) {
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
-
-window.dischargeFromObservation = async function(encId, roomName) {
-  try {
-    const res = await apiFetch(`/api/encounters/${encId}/discharge`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes: 'Alta médica concedida após período de observação no consultório.' })
-    });
-    if (res.ok) {
-      if (typeof showToast === 'function') showToast('✅ Alta médica concedida! Leito de observação liberado.', 'success');
-      
-      if (typeof window.showFlowCompletionNotification === 'function') {
-        window.showFlowCompletionNotification({
-          actionTitle: 'Alta de Observação Concluída',
-          message: `Alta médica concedida com sucesso. O leito/poltrona de observação do <strong>${roomName || 'Consultório'}</strong> foi liberado.<br><br><strong>Próximo Passo:</strong> Acompanhe o fluxo geral na <strong>Central de Atendimentos</strong> ou visualize os relatórios assistenciais.`,
-          targetTab: 'atendimento',
-          targetTabLabel: 'Central de Atendimentos',
-          actionType: 'switchTab'
-        });
-      }
-
-      const modal = document.getElementById('consultorio-details-modal');
-      if (modal) modal.remove();
-      if (typeof loadConsultingRooms === 'function') loadConsultingRooms();
-      if (roomName && typeof openConsultorioDetailsModal === 'function') {
-        setTimeout(() => openConsultorioDetailsModal(roomName), 200);
-      }
-    }
-  } catch (e) {
-    console.error('Erro ao dar alta na observação:', e);
-  }
-};
 
 window.loadConsultingRooms = loadConsultingRooms;
 window.openConsultorioDetailsModal = openConsultorioDetailsModal;

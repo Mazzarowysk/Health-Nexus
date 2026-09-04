@@ -213,9 +213,9 @@ export function initDashboardCharts(data) {
   const appointmentsCtx = document.getElementById('appointmentsChart');
 
   const occupancyData = (data.occupancyData && data.occupancyData.length > 0) ? data.occupancyData : [
-    { label: 'UTI Adulto', value: 0, color: '#ef4444' },
-    { label: 'Enfermaria', value: 0, color: '#0284c7' },
-    { label: 'Pediatria', value: 0, color: '#0ea5e9' },
+    { label: 'UTI Adulto', value: 0, color: '#f43f5e' },
+    { label: 'Enfermaria', value: 0, color: '#6366f1' },
+    { label: 'Pediatria', value: 0, color: '#00f2fe' },
     { label: 'Maternidade', value: 0, color: '#f59e0b' },
     { label: 'Disponíveis', value: 100, color: '#10b981' }
   ];
@@ -236,15 +236,15 @@ export function initDashboardCharts(data) {
     return;
   }
 
-  // 1. Gráfico Híbrido de Ocupação de Leitos (Doughnut + KPI Central + Progress Bars)
+  // 1. Gráfico Híbrido de Ocupação de Leitos (Doughnut Neon + KPI Central + Progress Bars)
   if (occupancyCtx) {
     if (occupancyCtx._chartInstance) occupancyCtx._chartInstance.destroy();
     occupancyCtx.style.cursor = 'pointer';
 
     const ctx = occupancyCtx.getContext('2d');
 
-    const clinicalColors = [
-      '#ef4444', '#0284c7', '#0ea5e9', '#f59e0b', '#10b981'
+    const neonColors = [
+      '#f43f5e', '#6366f1', '#00f2fe', '#f59e0b', '#10b981'
     ];
 
     let totalBeds = 0;
@@ -262,7 +262,7 @@ export function initDashboardCharts(data) {
 
     const statusBadge = document.getElementById('occupancy-total-badge');
     if (statusBadge) {
-      const statusColor = occupancyPct > 85 ? '#ef4444' : (occupancyPct > 70 ? '#f59e0b' : '#10b981');
+      const statusColor = occupancyPct > 85 ? '#f43f5e' : (occupancyPct > 70 ? '#f59e0b' : '#10b981');
       const statusText = occupancyPct > 85 ? 'Lotação Crítica' : (occupancyPct > 70 ? 'Alta Demanda' : 'Estável');
       statusBadge.style.borderColor = statusColor;
       statusBadge.style.color = statusColor;
@@ -275,44 +275,43 @@ export function initDashboardCharts(data) {
       const wardIcons = {
         'UTI Adulto': 'fa-heart-pulse',
         'Enfermaria': 'fa-hospital-user',
-        'Pediatria': 'fa-child',
-        'Maternidade': 'fa-baby',
+        'Pediatria': 'fa-baby',
+        'Maternidade': 'fa-person-breastfeeding',
         'Disponíveis': 'fa-bed'
       };
 
       occupancyData.forEach((item, idx) => {
+        const color = item.color || neonColors[idx % neonColors.length];
         const pct = totalBeds > 0 ? Math.round((item.value / totalBeds) * 100) : 0;
-        const icon = wardIcons[item.label] || 'fa-bed';
-        const color = item.color || clinicalColors[idx % clinicalColors.length];
+        const icon = wardIcons[item.label] || 'fa-procedures';
 
-        const row = document.createElement('div');
-        row.className = 'ward-progress-item';
-        row.style.display = 'flex';
-        row.style.flexDirection = 'column';
-        row.style.gap = '4px';
-        row.style.cursor = 'pointer';
-        row.title = `Filtrar Leitos: ${item.label}`;
-        row.onclick = () => {
+        const wardItem = document.createElement('div');
+        wardItem.className = 'ward-progress-item';
+        wardItem.style.cursor = 'pointer';
+        wardItem.onclick = () => {
           if (item.label === 'Disponíveis') {
             window.currentLeitosStatusFilter = 'Vago';
           } else {
             window.currentLeitosStatusFilter = 'Ocupado';
           }
-          if (typeof window.switchTab === 'function') window.switchTab('leitos');
+          if (typeof window.switchTab === 'function') window.switchTab('leitos'); 
         };
 
-        row.innerHTML = `
-          <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: #cbd5e1;">
-            <span style="display: flex; align-items: center; gap: 6px;">
-              <i class="fa-solid ${icon}" style="color: ${color}; width: 14px;"></i> ${item.label}
+        wardItem.innerHTML = `
+          <div class="ward-progress-header">
+            <span class="ward-name">
+              <i class="fa-solid ${icon}" style="color: ${color}; width: 14px;"></i>
+              ${item.label}
             </span>
-            <span style="color: #ffffff; font-weight: 700;">${item.value} leitos <small style="color: #94a3b8; font-weight: 500;">(${pct}%)</small></span>
+            <span class="ward-stats">
+              <strong style="color: ${color}; font-size: 0.88rem;">${item.value}</strong> leitos <span style="opacity: 0.65; font-size: 0.75rem;">(${pct}%)</span>
+            </span>
           </div>
-          <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
-            <div style="width: ${pct}%; height: 100%; background: ${color}; border-radius: 4px; transition: width 0.8s ease-out;"></div>
+          <div class="ward-bar-track">
+            <div class="ward-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, ${color}, ${color}dd); box-shadow: 0 0 10px ${color}88;"></div>
           </div>
         `;
-        progressListEl.appendChild(row);
+        progressListEl.appendChild(wardItem);
       });
     }
 
@@ -322,19 +321,19 @@ export function initDashboardCharts(data) {
         labels: occupancyData.map(item => item.label),
         datasets: [{
           data: occupancyData.map(item => item.value),
-          backgroundColor: occupancyData.map((item, idx) => item.color || clinicalColors[idx % clinicalColors.length]),
+          backgroundColor: occupancyData.map((item, idx) => window.createChartGradient ? window.createChartGradient(ctx, item.color || neonColors[idx % neonColors.length], 'ee', '33') : item.color),
           borderWidth: 2,
-          borderColor: '#0f172a',
-          borderRadius: 6,
-          spacing: 3,
-          hoverOffset: 6
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: 8,
+          spacing: 4,
+          hoverOffset: 10
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '78%',
-        animation: { animateScale: true, animateRotate: true, duration: 1000, easing: 'easeOutQuart' },
+        animation: { animateScale: true, animateRotate: true, duration: 1200, easing: 'easeOutQuart' },
         onClick: (e, elements) => {
           if (elements && elements.length > 0) {
             const index = elements[0].index;
@@ -355,16 +354,16 @@ export function initDashboardCharts(data) {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#0f172a',
-            titleColor: '#38bdf8',
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#00f2fe',
             bodyColor: '#f8fafc',
-            borderColor: '#334155',
+            borderColor: 'rgba(0, 242, 254, 0.35)',
             borderWidth: 1,
             padding: 12,
             boxPadding: 6,
             usePointStyle: true,
-            titleFont: { family: 'Outfit', size: 12, weight: 'bold' },
-            bodyFont: { family: 'Inter', size: 11 },
+            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+            bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
             callbacks: {
               label: (context) => {
                 const label = context.label || '';
@@ -381,16 +380,16 @@ export function initDashboardCharts(data) {
     occupancyCtx._chartInstance = inst;
   }
 
-  // 2. Gráfico de Histórico Mensal/Semanal (Line Area Wave)
+  // 2. Gráfico de Histórico Mensal/Semanal (Line Area Wave Neon)
   if (appointmentsCtx) {
     if (appointmentsCtx._chartInstance) appointmentsCtx._chartInstance.destroy();
     appointmentsCtx.style.cursor = 'pointer';
 
     const ctx2 = appointmentsCtx.getContext('2d');
     const fillGradient = ctx2.createLinearGradient(0, 0, 0, 220);
-    fillGradient.addColorStop(0, 'rgba(2, 132, 199, 0.25)');
-    fillGradient.addColorStop(0.5, 'rgba(13, 148, 136, 0.08)');
-    fillGradient.addColorStop(1, 'rgba(15, 23, 42, 0.0)');
+    fillGradient.addColorStop(0, 'rgba(0, 242, 254, 0.38)');
+    fillGradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.15)');
+    fillGradient.addColorStop(1, 'rgba(11, 8, 22, 0.0)');
 
     const labels = apptHistory.map(item => item.label);
     const valuesTotal = apptHistory.map(item => (item.urgencia || 0) + (item.ambulatorial || 0));
@@ -406,27 +405,27 @@ export function initDashboardCharts(data) {
             data: valuesTotal,
             fill: true,
             backgroundColor: fillGradient,
-            borderColor: '#0284c7',
-            borderWidth: 3,
-            tension: 0.35,
-            pointBackgroundColor: '#0284c7',
+            borderColor: '#00f2fe',
+            borderWidth: 3.5,
+            tension: 0.4,
+            pointBackgroundColor: '#00f2fe',
             pointBorderColor: '#ffffff',
             pointBorderWidth: 2,
-            pointRadius: 4.5,
-            pointHoverRadius: 7,
+            pointRadius: 5,
+            pointHoverRadius: 8,
             pointHoverBackgroundColor: '#ffffff',
-            pointHoverBorderColor: '#0284c7',
-            pointHoverBorderWidth: 2.5
+            pointHoverBorderColor: '#00f2fe',
+            pointHoverBorderWidth: 3
           },
           {
             label: 'Urgência (Triagem)',
             data: valuesUrgencia,
             fill: false,
-            borderColor: '#ef4444',
-            borderWidth: 2.2,
+            borderColor: '#e026b8',
+            borderWidth: 2.5,
             borderDash: [5, 5],
-            tension: 0.35,
-            pointBackgroundColor: '#ef4444',
+            tension: 0.4,
+            pointBackgroundColor: '#e026b8',
             pointBorderColor: '#ffffff',
             pointBorderWidth: 1.5,
             pointRadius: 3.5,
@@ -437,7 +436,7 @@ export function initDashboardCharts(data) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: { duration: 1000, easing: 'easeOutQuart' },
+        animation: { duration: 1200, easing: 'easeOutQuart' },
         onClick: () => {
           if (typeof window.switchTab === 'function') window.switchTab('atendimento');
         },
@@ -451,33 +450,33 @@ export function initDashboardCharts(data) {
             align: 'end',
             labels: {
               color: '#cbd5e1',
-              font: { family: 'Outfit', size: 11, weight: '600' },
+              font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
               usePointStyle: true,
               boxWidth: 8,
               padding: 14
             }
           },
           tooltip: {
-            backgroundColor: '#0f172a',
-            titleColor: '#38bdf8',
+            backgroundColor: 'rgba(18, 14, 34, 0.92)',
+            titleColor: '#00f2fe',
             bodyColor: '#f8fafc',
-            borderColor: '#334155',
+            borderColor: 'rgba(0, 242, 254, 0.35)',
             borderWidth: 1,
             padding: 12,
             boxPadding: 6,
             usePointStyle: true,
-            titleFont: { family: 'Outfit', size: 12, weight: 'bold' },
-            bodyFont: { family: 'Inter', size: 11 }
+            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+            bodyFont: { family: 'Plus Jakarta Sans', size: 11 }
           }
         },
         scales: {
           x: {
             grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11, weight: '500' } }
+            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' } }
           },
           y: {
             grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11, weight: '500' } }
+            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' } }
           }
         }
       }
@@ -485,7 +484,7 @@ export function initDashboardCharts(data) {
     appointmentsCtx._chartInstance = inst2;
   }
 
-  // 3. Gráfico de Classificação de Risco Manchester
+  // 3. Gráfico de Classificação de Risco Manchester (Doughnut Risco PS Dinâmico)
   const manchesterCtx = document.getElementById('manchesterChart');
   if (manchesterCtx) {
     if (manchesterCtx._chartInstance) manchesterCtx._chartInstance.destroy();
@@ -501,19 +500,19 @@ export function initDashboardCharts(data) {
         labels: ['Vermelho (Emergência)', 'Laranja (Muito Urgente)', 'Amarelo (Urgente)', 'Verde (Pouco Urgente)', 'Azul (Não Urgente)'],
         datasets: [{
           data: mData,
-          backgroundColor: ['#ef4444', '#f97316', '#eab308', '#10b981', '#0284c7'],
+          backgroundColor: ['#ef4444', '#f97316', '#eab308', '#10b981', '#3b82f6'].map(c => window.createChartGradient ? window.createChartGradient(ctxM, c, 'ee', '33') : c),
           borderWidth: 2,
-          borderColor: '#0f172a',
-          borderRadius: 6,
-          spacing: 3,
-          hoverOffset: 6
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: 8,
+          spacing: 4,
+          hoverOffset: 8
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '65%',
-        animation: { duration: 1000, easing: 'easeOutQuart' },
+        animation: { duration: 1200, easing: 'easeOutQuart' },
         onClick: () => {
           if (typeof window.switchTab === 'function') window.switchTab('estagnacao');
         },
@@ -526,17 +525,17 @@ export function initDashboardCharts(data) {
             position: 'right',
             labels: {
               color: '#cbd5e1',
-              font: { family: 'Inter', size: 10, weight: '600' },
+              font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
               usePointStyle: true,
               boxWidth: 8,
               padding: 10
             }
           },
           tooltip: {
-            backgroundColor: '#0f172a',
-            titleColor: '#38bdf8',
+            backgroundColor: 'rgba(18, 14, 34, 0.92)',
+            titleColor: '#00f2fe',
             bodyColor: '#f8fafc',
-            borderColor: '#334155',
+            borderColor: 'rgba(239, 68, 68, 0.35)',
             borderWidth: 1,
             padding: 10,
             callbacks: {
@@ -568,9 +567,9 @@ export function initDashboardCharts(data) {
     } catch(e) {}
     
     const sectors = [
-      { id: 'pronto_socorro', label: 'PS (Obs)', color: '#0284c7' },
+      { id: 'pronto_socorro', label: 'PS (Obs)', color: '#3b82f6' },
       { id: 'corredor_internacao', label: 'Corredor', color: '#f59e0b' },
-      { id: 'clinica_cirurgica', label: 'Cirúrgica', color: '#0ea5e9' },
+      { id: 'clinica_cirurgica', label: 'Cirúrgica', color: '#8b5cf6' },
       { id: 'clinica_medica', label: 'Clínica Médica', color: '#10b981' },
       { id: 'uti', label: 'UTI', color: '#ef4444' }
     ];
@@ -584,7 +583,7 @@ export function initDashboardCharts(data) {
         datasets: [{
           label: 'Pacientes no Kanban',
           data: sectorCounts,
-          backgroundColor: sectors.map(s => s.color),
+          backgroundColor: sectors.map(s => window.createChartGradient ? window.createChartGradient(dashboardKanbanCtx.getContext('2d'), s.color, 'ff', '44', 300) : s.color),
           borderColor: sectors.map(s => s.color),
           borderWidth: 1,
           borderRadius: 6,
@@ -601,10 +600,10 @@ export function initDashboardCharts(data) {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#0f172a',
-            titleColor: '#38bdf8',
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#818cf8',
             bodyColor: '#f8fafc',
-            borderColor: '#334155',
+            borderColor: 'rgba(99, 102, 241, 0.35)',
             borderWidth: 1,
             padding: 10,
             callbacks: {
@@ -615,11 +614,11 @@ export function initDashboardCharts(data) {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 10, weight: '600' } }
+            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } }
           },
           y: {
             grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 10, weight: '500' } },
+            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 }, precision: 0 },
             beginAtZero: true
           }
         }

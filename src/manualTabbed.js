@@ -8,20 +8,8 @@ export const removeAccents = (str) => {
 
 // Dicionário de Expansão Semântica e Sinônimos
 export const SEMANTIC_SYNONYMS = {
-  // Telemedicina / WebRTC / Consulta Online
-  telemedicina: ['telemedicina', 'teleconsulta', 'videochamada', 'video', 'webrtc', 'consulta online', 'chamada de video', 'camera', 'microfone', 'atendimento remoto', 'teleatendimento', 'consulta virtual', 'sala virtual', 'p2p'],
-  // Ditado Clínico por Voz / Voice-to-SOAP
-  voz: ['ditado', 'voz', 'ditar', 'microfone', 'voice-to-soap', 'fala', 'transcricao', 'audio', 'ditado clinico', 'reconhecimento de fala', 'pontuacao automatica'],
-  // Escore Preditivo MEWS & Sepse
-  mews: ['mews', 'sepse', 'alerta sepse', 'escore', 'preditivo', 'deterioracao', 'sinais vitais', 'choque', 'avpu', 'risco clinico', 'gravidade', 'classificacao preditiva', 'trava de risco', 'qsofa'],
-  // Interações Medicamentosas & Farmacologia
-  interacao: ['interacao', 'interacoes', 'incompatibilidade', 'interacao medicamentosa', 'farmacologia', 'concomitante', 'risco de sangramento', 'contraindicacao', 'bulario', 'alerta farmacologico'],
-  // WhatsApp / Mensagens Móveis
-  whatsapp: ['whatsapp', 'zap', 'mensagem', 'notificacao paciente', 'envio receita', 'receita celular', 'aviso celular', 'notificar', 'despacho whatsapp'],
-  // Linha do Cuidado / Patient Journey HUD
-  jornada: ['linha do cuidado', 'patient journey', 'jornada', 'trajetoria', 'rastreabilidade', 'stepper', 'hud', 'periodo de atendimento', 'tempo de permanencia'],
   // Ações de Exclusão / Cancelamento
-  excluir: ['excluir', 'exclusao', 'deletar', 'apagar', 'remover', 'remocao', 'inativar', 'inativacao', 'desativar', 'desativacao', 'cancelar', 'cancelamento', 'lixeira', 'desligar', 'estornar', 'descartar', 'eliminar', 'purga', 'limpeza'],
+  excluir: ['excluir', 'exclusao', 'deletar', 'apagar', 'remover', 'remocao', 'inativar', 'inativacao', 'desativar', 'desativacao', 'cancelar', 'cancelamento', 'lixeira', 'desligar', 'estornar', 'descartar', 'eliminar'],
   // Ações de Cadastro / Criação
   cadastrar: ['cadastrar', 'cadastro', 'criar', 'criacao', 'novo', 'nova', 'novos', 'incluir', 'inclusao', 'adicionar', 'adicao', 'inserir', 'registrar', 'registro', 'admitir', 'admissao'],
   // Ações de Edição / Atualização
@@ -31,23 +19,17 @@ export const SEMANTIC_SYNONYMS = {
   // Entidades: Pacientes
   paciente: ['paciente', 'pacientes', 'cliente', 'clientes', 'doente', 'internado', 'internada', 'usuario sus', 'prontuario', 'ficha'],
   // Entidades: Medicamentos
-  medicamento: ['medicamento', 'medicamentos', 'remedio', 'remedios', 'droga', 'drogas', 'farmaco', 'insumo', 'insumos', 'posologia', 'comprimido', 'ampola', 'prescricao'],
+  medicamento: ['medicamento', 'medicamentos', 'remedio', 'remedios', 'droga', 'drogas', 'farmaco', 'insumo', 'insumos', 'posologia', 'comprimido', 'ampola'],
   // Entidades: Agendamento / Consultas
   consulta: ['consulta', 'consultas', 'agendamento', 'agendamentos', 'agendar', 'marcar', 'horario', 'compromisso', 'reserva'],
   // Entidades: Leitos / Internação
-  leito: ['leito', 'leitos', 'vaga', 'vagas', 'quarto', 'acomodacao', 'internacao', 'internar', 'enfermaria', 'uti', 'censo', 'higienizacao'],
+  leito: ['leito', 'leitos', 'vaga', 'vagas', 'quarto', 'acomodacao', 'internacao', 'internar', 'enfermaria', 'uti'],
   // Entidades: Salas / Consultórios
   consultorio: ['consultorio', 'consultorios', 'sala', 'salas', 'posto', 'ambulatorio'],
-  // Assinatura Digital ICP-Brasil
-  icp_brasil: ['icp-brasil', 'icp', 'assinatura digital', 'certificado digital', 'birdid', 'neoid', 'certisign', 'vidaas', 'a1', 'a3', 'validar', 'carimbo de tempo', 'sha256', 'qr code', 'autenticidade', 'cfm 2299', 'mp 2200', 'assinatura nuvem'],
-  // Faturamento TISS 4.01 XML & TUSS (ANS)
-  tiss: ['tiss', 'tuss', 'xml', 'guia tiss', 'ans', 'operadora', 'lote tiss', 'faturamento tiss', 'padrao tiss', '4.01', 'convenio xml', 'guia consulta', 'guia sadt', 'hash md5', 'exportar tiss', 'lote guias'],
-  // PWA & Notificações Push de Sobreaviso
-  pwa: ['pwa', 'service worker', 'push', 'notificacao push', 'notificacoes', 'sobreaviso', 'offline', 'alerta plantao', 'alerta celular', 'mobile', 'aplicativo', 'instalavel'],
   // Entidades: Financeiro / Faturamento
-  financeiro: ['financeiro', 'faturamento', 'cobranca', 'fatura', 'parcela', 'baixa', 'pagamento', 'convenio', 'receita', 'despesa', 'dre', 'tiss', 'tuss', 'xml'],
+  financeiro: ['financeiro', 'faturamento', 'cobranca', 'fatura', 'parcela', 'baixa', 'pagamento', 'convenio', 'receita', 'despesa'],
   // Relatórios / Impressão
-  relatorio: ['relatorio', 'relatorios', 'exportar', 'exportacao', 'imprimir', 'impressao', 'pdf', 'excel', 'planilha', 'csv', 'grafico', 'metricas', 'indicadores', 'kpi', 'tiss', 'xml']
+  relatorio: ['relatorio', 'relatorios', 'exportar', 'exportacao', 'imprimir', 'impressao', 'pdf', 'excel', 'planilha', 'csv', 'grafico', 'metricas', 'indicadores', 'kpi']
 };
 
 export const expandQueryTokens = (rawQuery) => {
@@ -156,16 +138,6 @@ export const manualData = [
         shortcut: 'Cronômetro ativo no badge de status',
         rules: 'Executa automaticamente a cada 15 minutos.',
         keywords: ['15 minutos', 'cronômetro', 'auto-sync', 'comparativo', 'banco de dados', 'alterações pendentes', 'temporizador', 'sincronizar']
-      },
-      {
-        icon: 'fa-mobile-screen-button',
-        name: '📲 App Mobile PWA & Notificações Push de Plantão',
-        type: 'Mobile & Notificações',
-        color: '#06b6d4',
-        description: 'Transforma o Health Nexus em aplicativo standalone instalável em celulares e tablets, com Service Worker para navegação ultrarrápida e notificações push para médicos de sobreaviso e alertas de emergência.',
-        shortcut: 'Configurações / Notificações',
-        rules: 'Funciona em Android, iOS e Windows com suporte offline.',
-        keywords: ['pwa', 'aplicativo celular', 'mobile', 'push', 'notificações push', 'sobreaviso', 'service worker', 'instalar app', 'offline']
       },
       {
         icon: 'fa-moon-sun',
@@ -356,66 +328,6 @@ export const manualData = [
         keywords: ['triagem manchester', 'classificação de risco', 'sinais vitais', 'pressão alta', 'febre', 'spo2', 'dor']
       },
       {
-        icon: 'fa-video',
-        name: '📹 Sala Virtual de Telemedicina WebRTC',
-        type: 'Telemedicina / P2P',
-        color: '#06b6d4',
-        description: 'Inicia videochamada médica criptografada ponta a ponta (WebRTC) em tela dividida direto dentro do PEP. Permite ao médico realizar teleconsulta com áudio/vídeo HD enquanto examina, prescreve medicamentos, emite atestados e registra o SOAP simultaneamente.',
-        shortcut: 'Botão "Telemedicina" no topo do Prontuário',
-        rules: 'Funciona nativamente no navegador sem exigir softwares externos. Permite compartilhar o link da sala com o paciente por WhatsApp ou e-mail.',
-        keywords: ['telemedicina', 'teleconsulta', 'videochamada', 'webrtc', 'consulta online', 'chamada de video', 'camera', 'microfone', 'atendimento remoto', 'teleatendimento', 'consulta virtual', 'sala virtual']
-      },
-      {
-        icon: 'fa-microphone-lines',
-        name: '🎙️ Ditado Clínico por Voz (Voice-to-SOAP)',
-        type: 'Inteligência Clínica / PLN',
-        color: '#a855f7',
-        description: 'Mecanismo de reconhecimento de voz com pontuação automática (vírgula, ponto final, nova linha, dois pontos) e PLN em português integrado aos campos de Anamnese, Exame Físico e Conduta.',
-        shortcut: 'Botão "Ditar" com microfone nos campos SOAP',
-        rules: 'Requer permissão de microfone no navegador. O texto transcrito é formatado em tempo real com vocabulário clínico otimizado.',
-        keywords: ['ditado', 'voz', 'ditar', 'microfone', 'voice-to-soap', 'fala', 'transcricao', 'audio', 'ditado clinico', 'reconhecimento de fala', 'pontuacao automatica']
-      },
-      {
-        icon: 'fa-triangle-exclamation',
-        name: '⚠️ Escore Preditivo MEWS & Alerta de Sepse',
-        type: 'Predição Clínica / Segurança',
-        color: '#ef4444',
-        description: 'Algoritmo preditivo de deterioração fisiológica baseado no Modified Early Warning Score e critérios de sepse rápida (qSOFA). Se a pontuação indicar gravidade (MEWS ≥ 5 ou sepse), auto-seleciona a classificação de risco máxima e bloqueia o rebaixamento de urgência.',
-        shortcut: 'Painel Superior de Sinais Vitais / Triagem',
-        rules: 'Cruza Pressão Sistólica, Frequência Cardíaca, Frequência Respiratória, Temperatura, Saturação O2 e Nível AVPU de Consciência.',
-        keywords: ['mews', 'sepse', 'alerta sepse', 'escore', 'preditivo', 'deterioracao', 'sinais vitais', 'choque', 'avpu', 'risco clinico', 'gravidade', 'classificacao preditiva', 'trava de risco', 'qsofa']
-      },
-      {
-        icon: 'fa-capsules',
-        name: '💊 Verificador de Interações Medicamentosas',
-        type: 'Farmacologia Clínica',
-        color: '#f59e0b',
-        description: 'Cruza em tempo real todos os medicamentos selecionados na prescrição contra a base farmacológica integrada, emitindo avisos imediatos de contraindicação com recomendações de conduta (ex: monitoramento de INR, ajuste de dose ou substituição terapêutica).',
-        shortcut: 'Automático ao prescrever / Aba Farmácia',
-        rules: 'Alerta sobre interações graves (ex: Varfarina + AAS, Tramadol + Fluoxetina, Enalapril + Espironolactona) antes de assinar a receita.',
-        keywords: ['interacao', 'interacoes', 'incompatibilidade', 'interacao medicamentosa', 'farmacologia', 'concomitante', 'risco de sangramento', 'contraindicacao', 'bulario', 'alerta farmacologico']
-      },
-      {
-        icon: 'fa-brands fa-whatsapp',
-        name: '📲 Despacho de Prescrições via WhatsApp',
-        type: 'Comunicação / Notificação',
-        color: '#22c55e',
-        description: 'Dispara a receita médica digital, atestados e orientações da consulta diretamente para o WhatsApp do paciente com um clique, facilitando o cumprimento do plano terapêutico.',
-        shortcut: 'Botão "WhatsApp" na Prescrição e PEP',
-        rules: 'Formata a mensagem com cabeçalho hospitalar oficial, assinatura do médico e link seguro de visualização.',
-        keywords: ['whatsapp', 'zap', 'mensagem', 'notificacao paciente', 'envio receita', 'receita celular', 'aviso celular', 'notificar', 'despacho whatsapp']
-      },
-      {
-        icon: 'fa-route',
-        name: '🧭 Linha do Cuidado (Patient Journey HUD)',
-        type: 'Rastreabilidade Assistencial',
-        color: '#38bdf8',
-        description: 'Rastreador visual da trajetória completa do paciente desde o acolhimento na Recepção até o desfecho hospitalar (Triagem, Chamada TV, Atendimento Médico, Prescrição, Dispensação na Farmácia e Internação/Alta). Permite auditar tempos de espera e consultar o histórico cronológico de cada período.',
-        shortcut: 'Barra superior do Prontuário e Atendimentos',
-        rules: 'Permite alternar entre períodos anteriores de atendimento e o atendimento ativo.',
-        keywords: ['linha do cuidado', 'patient journey', 'jornada', 'trajetoria', 'rastreabilidade', 'stepper', 'hud', 'periodo de atendimento', 'tempo de permanencia']
-      },
-      {
         icon: 'fa-notes-medical',
         name: '🩺 Iniciar Atendimento',
         type: 'Ação Clínica',
@@ -446,21 +358,11 @@ export const manualData = [
         keywords: ['cid-10', 'diagnóstico', 'código doença', 'cid', 'hipótese diagnóstica']
       },
       {
-        icon: 'fa-signature',
-        name: '🔐 Assinatura Digital ICP-Brasil em Nuvem (BirdID / NeoID / Certisign)',
-        type: 'Assinatura Qualificada / CFM',
-        color: '#0284c7',
-        description: 'Assina digitalmente evoluções clínicas, prescrições e atestados com validade jurídica nacional (MP 2.200-2/2001 e Resolução CFM 2.299/2021) via provedores em nuvem (BirdID, NeoID, Certisign, VIDaaS) ou certificado A1, inserindo carimbo de tempo, Hash SHA-256 e QR Code ITI.',
-        shortcut: 'Botão "Assinar e Finalizar" no PEP',
-        rules: 'Exige autenticação por senha PIN, OTP ou token do certificado.',
-        keywords: ['icp-brasil', 'assinatura digital', 'certificado digital', 'birdid', 'neoid', 'certisign', 'vidaas', 'a1', 'a3', 'validar', 'cfm 2299', 'mp 2200', 'carimbo de tempo', 'sha256', 'qr code', 'receita controlada', 'antibióticos']
-      },
-      {
         icon: 'fa-file-signature',
         name: '📄 Emissão de Atestado / Declaração',
         type: 'Documentação / PDF',
         color: '#ec4899',
-        description: 'Gera atestado médico configurável (dias de afastamento, repouso ou declaração de comparecimento) com validação de CRM e assinatura ICP-Brasil.',
+        description: 'Gera atestado médico configurável (dias de afastamento, repouso ou declaração de comparecimento) com validação de CRM.',
         shortcut: 'Botão Atestado',
         rules: 'Preenche automaticamente os dados do médico logado.',
         keywords: ['emitir atestado', 'atestado médico', 'afastamento', 'declaração de comparecimento', 'imprimir atestado', 'laudo']
@@ -480,7 +382,7 @@ export const manualData = [
         name: '🏁 Finalizar Consulta',
         type: 'Encerramento',
         color: '#059669',
-        description: 'Salva todas as informações no prontuário definitivo, grava o selo ICP-Brasil e conclui o atendimento do paciente.',
+        description: 'Salva todas as informações no prontuário definitivo e conclui o atendimento do paciente.',
         shortcut: 'Botão Concluir no rodapé',
         rules: 'Libera o médico para chamar o próximo paciente na TV.',
         keywords: ['finalizar consulta', 'concluir atendimento', 'fechar prontuário', 'dar alta médica', 'encerrar']
@@ -497,15 +399,13 @@ export const manualData = [
       }
     ],
     workflow: [
-      { step: 1, title: 'Triagem & Sinais Vitais', desc: 'Enfermagem afere sinais vitais; o sistema calcula MEWS e cor Manchester com trava preditiva de risco.' },
-      { step: 2, title: 'Anamnese ou Telemedicina', desc: 'Médico inicia a consulta presencial ou sala virtual WebRTC, usando ditado por voz para preencher o SOAP.' },
-      { step: 3, title: 'Prescrição & Checagem', desc: 'Médico vincula o CID-10 e prescreve medicamentos; o validador de interações checa incompatibilidades farmacológicas.' },
-      { step: 4, title: 'Despacho & Finalização', desc: 'Emite atestado, envia receita via WhatsApp para o paciente e clica em Finalizar Consulta.' }
+      { step: 1, title: 'Triagem', desc: 'Enfermagem registra sinais vitais e define a cor do protocolo Manchester.' },
+      { step: 2, title: 'Anamnese', desc: 'Médico inicia o atendimento, registra a queixa principal e exame físico.' },
+      { step: 3, title: 'Prescrição & CID-10', desc: 'Médico seleciona os medicamentos na farmácia e vincula o CID-10.' },
+      { step: 4, title: 'Finalização', desc: 'Emite o atestado/receita impressa e clica em Finalizar Consulta.' }
     ],
     faq: [
-      { q: 'Como iniciar uma consulta por Telemedicina?', a: 'No Prontuário Eletrônico, clique no botão "Telemedicina" no topo. A sala virtual WebRTC será aberta em tela dividida, permitindo atender por vídeo e prescrever ao mesmo tempo.' },
-      { q: 'Como usar o Ditado por Voz nos prontuários?', a: 'Basta clicar no ícone de Microfone ao lado do campo de Anamnese ou Exame Físico e começar a falar. Diga "vírgula", "ponto final" ou "novo parágrafo" para pontuar.' },
-      { q: 'Como consultar o histórico anterior do paciente na Linha do Cuidado?', a: 'No cabeçalho do Prontuário, o seletor de "Período de Atendimento" e o histórico lateral exibem todas as passagens cronológicas anteriores com sinais vitais e receitas registradas.' }
+      { q: 'Como consultar o histórico anterior do paciente?', a: 'No lado direito do prontuário, há a aba "Histórico de Atendimentos" com todas as consultas passadas registradas no sistema.' }
     ]
   },
   {
@@ -1058,16 +958,6 @@ export const manualData = [
         shortcut: 'Botão Exportar Excel',
         rules: 'Compatível com Microsoft Excel, Google Sheets e PowerBI.',
         keywords: ['exportar excel', 'baixar planilha', 'exportar csv', 'tabela excel', 'dados brutos']
-      },
-      {
-        icon: 'fa-file-code',
-        name: '📑 Exportação de Lotes TISS 4.01 XML (Padrão ANS)',
-        type: 'Faturamento & Convênios',
-        color: '#0284c7',
-        description: 'Gera lotes eletrônicos de guias de consulta, SADT e honorários médicos no padrão TISS Versão 4.01.00 da ANS, com códigos TUSS mapeados e hash MD5 de integridade para envio direto às operadoras de saúde.',
-        shortcut: 'Botão "Exportar Lote TISS 4.01 (XML ANS)"',
-        rules: 'Calcula hash criptográfico MD5 sobre o XML para evitar glosas e rejeições de lotes.',
-        keywords: ['tiss', 'tuss', 'xml', 'guia tiss', 'ans', 'faturamento convênio', 'lote tiss', '4.01', 'exportar tiss', 'hash md5', 'guia de consulta', 'sadt']
       }
     ],
     workflow: [
@@ -1608,7 +1498,7 @@ export const showCardDetailModal = (buttonItem, moduleItem) => {
   document.body.appendChild(overlay);
 
   const handleClose = (e) => {
-    if (e.target.id === 'card-detail-close-btn' || e.target.closest('#card-detail-close-btn') || e.target.id === 'card-detail-close-btn-footer') {
+    if (e.target.id === 'card-detail-close-btn' || e.target.closest('#card-detail-close-btn') || e.target.id === 'card-detail-close-btn-footer' || e.target === overlay) {
       overlay.remove();
       document.removeEventListener('keydown', handleEsc);
     }
@@ -2238,7 +2128,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral', targetBtnName
       return;
     }
 
-    if (e.target.id === 'manual-modal-close' || e.target.closest('#manual-modal-close')) {
+    if (e.target.id === 'manual-modal-close' || e.target.closest('#manual-modal-close') || e.target === overlay) {
       overlay.remove();
       document.removeEventListener('keydown', handleEsc);
     }

@@ -116,7 +116,7 @@ function renderReportsTab(contentArea) {
         </div>
 
         <!-- Botões de Exportação -->
-        <div class="report-actions" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="report-actions" style="margin-top: 20px;">
           <button id="btn-export-pdf" class="btn btn-primary" style="background: var(--danger-color)">
             <i class="fa-solid fa-file-pdf"></i> Exportar PDF
           </button>
@@ -125,9 +125,6 @@ function renderReportsTab(contentArea) {
           </button>
           <button id="btn-export-csv" class="btn btn-outline">
             <i class="fa-solid fa-file-csv"></i> Exportar CSV
-          </button>
-          <button id="btn-export-tiss" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); font-weight: 700;">
-            <i class="fa-solid fa-file-code"></i> Exportar Lote TISS 4.01 (XML ANS)
           </button>
         </div>
       </div>
@@ -153,38 +150,6 @@ function renderReportsTab(contentArea) {
   const btnPdf = document.getElementById('btn-export-pdf');
   const btnXls = document.getElementById('btn-export-xls');
   const btnCsv = document.getElementById('btn-export-csv');
-  const btnTiss = document.getElementById('btn-export-tiss');
-
-  if (btnTiss) {
-    btnTiss.addEventListener('click', () => {
-      const listToExport = currentFilteredList && currentFilteredList.length > 0 ? currentFilteredList : encountersList;
-      if (typeof window.generateTISS401XML === 'function') {
-        const tissResult = window.generateTISS401XML({
-          numeroLote: String(Math.floor(1000 + Math.random() * 9000)),
-          registroANS: '359012',
-          cnpjPrestador: '12345678000199',
-          cnesHospital: '7654321',
-          nomeHospital: 'Hospital & Maternidade Health Nexus',
-          atendimentos: listToExport.map(item => ({
-            paciente_nome: item.patientName || item.fullName || item.name || 'Paciente Beneficiário',
-            carteirinha: (item.susNumber || item.cpf ? item.cpf.replace(/\D/g, '') : '3254980001234567'),
-            medico_nome: item.doctorName || item.triageNurse || 'Dr. Médico Assistente',
-            medico_crm: item.doctorCrm || '123456',
-            data: (item.created_at || item.entryTime || new Date().toISOString()).split('T')[0],
-            tipo: item.manchesterColor === 'VERMELHO' || item.manchesterColor === 'LARANJA' ? 'urgencia' : 'consulta',
-            cid: item.cid || 'Z00.0'
-          }))
-        });
-
-        if (typeof window.downloadTISSFile === 'function') {
-          window.downloadTISSFile(tissResult.xml, `LOTE_TISS_4_01_LOTE_${tissResult.numeroLote}.xml`);
-        }
-        if (typeof showToast === 'function') {
-          showToast(`📦 Lote TISS 4.01 gerado com sucesso (${tissResult.totalGuias} guias, Hash MD5: ${tissResult.hashMD5.substring(0, 8)}...)!`);
-        }
-      }
-    });
-  }
 
   let finPieChartInstance = null;
   let finBarChartInstance = null;
@@ -548,7 +513,7 @@ function renderReportsTab(contentArea) {
           </div>
           <div class="filter-group" style="grid-column: 1 / -1; margin-top: 8px; display: flex; gap: 12px;">
             <button type="button" onclick="document.getElementById('filter-date-start-fin').value=''; document.getElementById('filter-date-end-fin').value=''; document.getElementById('filter-fin-type').value='Todos'; document.getElementById('filter-fin-search').value=''; document.querySelectorAll('.filter-fin-item, .filter-fin-cat-item, .filter-fin-method-item').forEach(c=>c.checked=true); typeof filterAndRender==='function' && filterAndRender();" class="btn" style="flex: 1; max-width: 160px; height: 44px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Limpar Filtros"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar</button>
-            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;height:44px;background:#0284c7;color:#fff;font-weight:700;font-size:0.88rem;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 10px rgba(2,132,199,0.35);cursor:pointer;border:none;">
+            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;height:44px;background:linear-gradient(135deg, #6366f1, #4f46e5);color:#fff;font-weight:700;font-size:0.88rem;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(99,102,241,0.35);cursor:pointer;border:none;">
               <i class="fa-solid fa-window-restore"></i> Visualizar Listagem em Janela Dedicada
             </button>
           </div>
@@ -1591,25 +1556,25 @@ function renderReportsTab(contentArea) {
       summaryContainer.innerHTML = `
         <!-- KPI Cards Atendimentos -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;">
-          ${kpiCard(total, 'Total Atendimentos', '#0284c7', 'fa-notes-medical', 'all', '')}
+          ${kpiCard(total, 'Total Atendimentos', '#ec4899', 'fa-notes-medical', 'all', '')}
           ${kpiCard(urgencias, 'Urgências', '#ef4444', 'fa-truck-medical', 'type', 'Urgencia')}
-          ${kpiCard(ambulatorio, 'Ambulatório', '#0ea5e9', 'fa-hospital', 'type', 'Ambulatorio')}
-          ${kpiCard(pctFin + '%', 'Concluídos', '#10b981', 'fa-circle-check', 'status', 'Finalizado')}
+          ${kpiCard(ambulatorio, 'Ambulatório', '#818cf8', 'fa-hospital', 'type', 'Ambulatorio')}
+          ${kpiCard(pctFin + '%', 'Concluídos', '#34d399', 'fa-circle-check', 'status', 'Finalizado')}
         </div>
 
         <!-- Charts row -->
         <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;margin-bottom:20px;">
 
           <!-- DONUT — Classificação Manchester -->
-          <div class="chart-card" style="padding:20px;border-radius:16px;border:1px solid #1e293b;background:#111827;">
+          <div class="glass-card" style="padding:20px;border-radius:16px;border:1px solid rgba(236,72,153,0.2);background:rgba(236,72,153,0.04);">
             <h4 style="margin:0 0 14px;font-size:0.88rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-              <i class="fa-solid fa-shield-halved" style="color:#0284c7;"></i> Classificação Manchester
+              <i class="fa-solid fa-shield-halved" style="color:#ec4899;"></i> Classificação Manchester
               <span style="margin-left:auto;font-size:0.68rem;color:var(--text-muted);font-weight:400;">Clique para filtrar</span>
             </h4>
             <div style="position:relative;width:180px;height:180px;margin:0 auto 14px;">
               <canvas id="chart-enc-manchester"></canvas>
               <div id="manch-donut-kpi" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
-                <span style="font-family:'Outfit';font-size:2rem;font-weight:900;color:#ffffff;display:block;line-height:1;">${total}</span>
+                <span style="font-family:'Outfit';font-size:2rem;font-weight:900;color:#ec4899;display:block;line-height:1;filter:drop-shadow(0 0 8px rgba(236,72,153,0.4));">${total}</span>
                 <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">TOTAL</span>
               </div>
             </div>
@@ -2589,9 +2554,9 @@ function renderReportsTab(contentArea) {
           </div>
           
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button id="btn-copy-linha-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(2,132,199,0.4);"><i class="fa-solid fa-copy"></i> Copiar Linha</button>
+            <button id="btn-copy-linha-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(99,102,241,0.4);"><i class="fa-solid fa-copy"></i> Copiar Linha</button>
             <button id="btn-copy-pix-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(52,211,153,0.4); color: #34d399;"><i class="fa-solid fa-qrcode"></i> Copiar Pix</button>
-            <button id="btn-print-boleto" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 14px; background: #0284c7;"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
+            <button id="btn-print-boleto" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 14px; background: linear-gradient(135deg, #6366f1, #4f46e5);"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
             <button id="close-boleto-modal" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Fechar Janela (ESC)"><i class="fa-solid fa-xmark"></i></button>
           </div>
         </div>
@@ -2907,7 +2872,7 @@ function renderReportsTab(contentArea) {
         <!-- BOTÕES DE FECHAMENTO DO MODAL -->
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px;">
           <button id="btn-close-boleto-foot" class="btn btn-outline" style="font-size: 0.85rem; padding: 8px 18px;">Fechar Visualização</button>
-          <button id="btn-print-boleto-foot" class="btn btn-primary" style="background: #0284c7; font-size: 0.85rem; padding: 8px 20px; box-shadow: 0 2px 10px rgba(2,132,199,0.35);"><i class="fa-solid fa-print"></i> Imprimir Boleto FEBRABAN</button>
+          <button id="btn-print-boleto-foot" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); font-size: 0.85rem; padding: 8px 20px;"><i class="fa-solid fa-print"></i> Imprimir Boleto FEBRABAN</button>
         </div>
       </div>
     `;
@@ -2921,7 +2886,11 @@ function renderReportsTab(contentArea) {
 
     document.getElementById('close-boleto-modal')?.addEventListener('click', close);
     document.getElementById('btn-close-boleto-foot')?.addEventListener('click', close);
-    // Não fecha ao clicar fora para evitar perda de dados
+
+    // Fechar ao clicar fora do cartão (no fundo escuro)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) close();
+    });
 
     // Fechar com a tecla ESC (Escape)
     const escHandler = (e) => {
@@ -3493,7 +3462,7 @@ async function openEncounterReportDetail(encId) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   overlay.innerHTML = `<div style="color:#818cf8;font-size:1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando atendimento...</div>`;
   document.body.appendChild(overlay);
-  // Fechar apenas pelo botão fechar da interface
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 
   try {
     const [encRes, triageRes, patRes, noteRes] = await Promise.all([
@@ -3726,7 +3695,7 @@ async function openEncounterReportDetail(encId) {
                   </div>
                   <div style="font-size:0.92rem;font-weight:700;color:#475569;margin-bottom:6px;">Sem nota clínica</div>
                   <div style="font-size:0.78rem;color:#334155;margin-bottom:16px;">A nota SOAP será criada durante o atendimento médico.</div>
-                  ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:#0284c7;border:none;color:#fff;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;box-shadow:0 2px 8px rgba(2,132,199,0.35);"><i class="fa-solid fa-pen-to-square"></i> Criar Nota no PEP</button>` : ''}
+                  ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i> Criar Nota no PEP</button>` : ''}
                 </div>`}
           </div>
 
@@ -3778,7 +3747,7 @@ async function openEncounterReportDetail(encId) {
 
         <!-- FOOTER -->
         <div style="padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:9px;justify-content:flex-end;flex-shrink:0;">
-          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:#0284c7;border:none;color:#fff;border-radius:10px;padding:8px 17px;font-weight:700;font-size:0.81rem;cursor:pointer;box-shadow:0 2px 8px rgba(2,132,199,0.35);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
+          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:8px 17px;font-weight:700;font-size:0.81rem;cursor:pointer;box-shadow:0 4px 14px rgba(236,72,153,0.28);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
           <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#94a3b8;border-radius:10px;padding:8px 17px;font-weight:600;font-size:0.81rem;cursor:pointer;">Fechar</button>
         </div>
       </div>

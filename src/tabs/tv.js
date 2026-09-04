@@ -1,7 +1,5 @@
 import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
-import { checkDrugInteractions } from '../modules/clinicalAI.js';
-import { showCDSSCriticalOverrideModal } from './doctors.js';
 
 const API_URL = '/api';
 
@@ -21,7 +19,7 @@ async function renderTVPanelTab() {
           </p>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: #0284c7; border: none; box-shadow: 0 2px 8px rgba(2,132,199,0.35);">
+          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none;">
             <i class="fa-solid fa-bullhorn"></i> Chamar Paciente no Painel
           </button>
         </div>
@@ -433,7 +431,8 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
     });
   });
 
-  // Fechar apenas pelo botão cancelar ou confirmar
+  // Fechar clicando fora
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   document.getElementById('btn-tv-modal-cancel').addEventListener('click', () => overlay.remove());
 
   document.getElementById('btn-tv-modal-confirm').addEventListener('click', async () => {
@@ -743,10 +742,10 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
             <i class="fa-solid fa-file-signature"></i> Nova Prescrição Médica (Planilha)
           </h4>
 
-          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr; gap: 10px; margin-bottom: 8px;" id="rx-item-inputs">
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr; gap: 10px; margin-bottom: 10px;" id="rx-item-inputs">
             <div>
               <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Medicamento</label>
-              <input type="text" id="rx-med-name" class="form-input" placeholder="Ex: Dipirona, Tramadol, Amox..." style="width: 100%; font-size: 0.83rem;">
+              <input type="text" id="rx-med-name" class="form-input" placeholder="Ex: Dipirona Sódica" style="width: 100%; font-size: 0.83rem;">
             </div>
             <div>
               <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Dose</label>
@@ -759,7 +758,6 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
                 <option value="EV">EV (Endovenoso)</option>
                 <option value="IM">IM (Intramuscular)</option>
                 <option value="SC">SC (Subcutâneo)</option>
-                <option value="Sublingual">Sublingual</option>
                 <option value="Tópica">Tópica</option>
                 <option value="Inalatória">Inalatória</option>
               </select>
@@ -771,49 +769,27 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
                 <option value="De 6 em 6h">De 6/6h</option>
                 <option value="De 12 em 12h">De 12/12h</option>
                 <option value="1x ao dia">1x ao dia</option>
-                <option value="1x ao dia (manhã)">1x ao dia (manhã)</option>
-                <option value="1x ao dia (noite)">1x ao dia (noite)</option>
                 <option value="Se dor/febre">Se dor/febre</option>
                 <option value="Dose Única">Dose Única</option>
-                <option value="Contínua">Contínua</option>
               </select>
             </div>
             <div>
               <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Instruções</label>
               <div style="display: flex; gap: 6px;">
-                <input type="text" id="rx-med-notes" class="form-input" placeholder="Diluir em 100ml SF" style="flex: 1; min-width: 130px; font-size: 0.83rem;">
-                <button type="button" id="btn-add-rx-item" class="btn" style="padding: 0 12px; font-size: 0.8rem; height: 38px; border-radius: 8px; font-weight: 700; background: rgba(99,102,241,0.2); border: 1px solid #6366f1; color: #c7d2fe; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer;" title="Adicionar este medicamento à lista da planilha">
-                  <i class="fa-solid fa-plus"></i> Adicionar
-                </button>
-                <button type="button" id="btn-prescribe-direct" class="btn btn-primary" style="padding: 0 14px; font-size: 0.8rem; height: 38px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; background: linear-gradient(135deg, #059669, #10b981); border: none; color: #fff;" title="Adicionar e Prescrever Imediatamente">
-                  <i class="fa-solid fa-paper-plane"></i> Prescrever
+                <input type="text" id="rx-med-notes" class="form-input" placeholder="Diluir em 100ml SF" style="flex: 1; font-size: 0.83rem;">
+                <button type="button" id="btn-add-rx-item" class="btn btn-primary" style="padding: 0 12px; font-size: 0.8rem; height: 38px; border-radius: 8px;" title="Adicionar item à lista">
+                  <i class="fa-solid fa-plus"></i>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- DICA DE POSOLOGIA INTELIGENTE -->
-          <div id="rx-posology-smart-tip" style="display: none; font-size: 0.78rem; color: #a5b4fc; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); padding: 6px 12px; border-radius: 8px; margin-bottom: 12px;"></div>
-
           <!-- RASCUNHO DA TABELA DE MEDICAÇÕES -->
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-top: 4px;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-              <span><i class="fa-solid fa-table-list" style="color: #6366f1; margin-right: 6px;"></i> Planilha da Prescrição Atual:</span>
-              <span style="font-size: 0.72rem; font-weight: 400; color: var(--text-muted);">Itens serão encaminhados para a Farmácia</span>
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; margin-top: 12px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Planilha da Prescrição Atual:</div>
+            <div id="rx-draft-table" style="max-height: 140px; overflow-y: auto;">
+              <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+).</div>
             </div>
-            <div id="rx-draft-table" style="max-height: 180px; overflow-y: auto;">
-              <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+ Adicionar).</div>
-            </div>
-
-            <!-- BANNER DINÂMICO DE INTERAÇÕES MEDICAMENTOSAS -->
-            <div id="rx-drug-interactions-alert" style="display: none; margin-top: 12px; padding: 12px 16px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); border: 1.5px solid #ef4444; color: #fca5a5; font-size: 0.83rem;">
-              <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #fff; margin-bottom: 4px;">
-                <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444; font-size: 1.1rem;"></i> <span id="rx-inter-title">Alerta de Interação Medicamentosa Cruzada</span>
-              </div>
-              <div id="rx-inter-desc" style="font-size: 0.8rem; line-height: 1.4; margin-bottom: 4px;"></div>
-              <div id="rx-inter-action" style="font-size: 0.8rem; font-weight: 600; color: #fde047;"></div>
-            </div>
-
             <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
               <button type="button" id="btn-save-rx" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" disabled>
                 <i class="fa-solid fa-floppy-disk"></i> Salvar Prescrição Médica
@@ -839,85 +815,14 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 
   modal.style.display = 'flex';
 
-  // Carregar catálogo de medicamentos se necessário
+  // Autocomplete de Medicamentos (ANVISA/RENAME)
   if (!window.medicationsCatalog) {
     fetch('/assets/medicamentos.json')
       .then(res => res.json())
       .then(data => window.medicationsCatalog = data)
       .catch(err => console.error('Erro ao carregar medicamentos', err));
   }
-
-  // Buscar dados cadastrais e histórico clínico atualizado do paciente
-  let pat = {};
-  let enc = {};
-  let patientNotes = [];
-  try {
-    const allPatients = (state.patients || (window.localDB ? window.localDB.list('patients') : [])) || [];
-    pat = allPatients.find(p => 
-      (patientId && String(p.id) === String(patientId)) || 
-      (patientName && p.fullName && p.fullName.toLowerCase().trim() === patientName.toLowerCase().trim())
-    ) || {};
-
-    const allEncs = (state.encounters || (window.localDB ? window.localDB.list('encounters') : [])) || [];
-    enc = allEncs.find(e => 
-      String(e.id) === String(encounterId) || 
-      (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim())
-    ) || {};
-
-    const allNotes = (window.localDB ? window.localDB.list('clinical_notes') : []) || [];
-    patientNotes = allNotes.filter(n => 
-      (patientId && String(n.patientId) === String(patientId)) || 
-      (enc.id && String(n.encounterId) === String(enc.id))
-    );
-  } catch(e) {}
-
-  const patientHistoryContext = [
-    pat.allergies ? `Alergias Cadastradas: ${pat.allergies}` : '',
-    pat.alergias ? `Alergias: ${pat.alergias}` : '',
-    pat.chronicDiseases ? `Doenças Crônicas: ${pat.chronicDiseases}` : '',
-    pat.continuousMedications ? `Medicamentos em Uso Contínuo: ${pat.continuousMedications}` : '',
-    enc.complaints ? `Queixa / Triagem: ${enc.complaints}` : '',
-    enc.subjectiveContent ? `Subjetivo: ${enc.subjectiveContent}` : '',
-    enc.objectiveContent ? `Objetivo: ${enc.objectiveContent}` : '',
-    enc.diagnosis ? `Diagnóstico: ${enc.diagnosis}` : '',
-    enc.assessmentContent ? `Avaliação: ${enc.assessmentContent}` : '',
-    enc.bloodPressure ? `Pressão Arterial: ${enc.bloodPressure}` : '',
-    enc.heartRateBpm ? `Frequência Cardíaca: ${enc.heartRateBpm} bpm` : '',
-    ...patientNotes.map(n => `${n.subjectiveContent || ''} ${n.assessmentContent || ''}`)
-  ].filter(Boolean).join(' | ');
-
-  // Aplicar Posologia Inteligente (Smart Dosing)
-  const applySmartPosology = (medName) => {
-    const fnSmart = (typeof getSmartPosologyForMedication === 'function') ? getSmartPosologyForMedication : window.getSmartPosologyForMedication;
-    const posology = (typeof fnSmart === 'function') ? fnSmart(medName) : null;
-    
-    const doseInput = document.getElementById('rx-med-dose');
-    const routeSelect = document.getElementById('rx-med-route');
-    const freqSelect = document.getElementById('rx-med-freq');
-    const notesInput = document.getElementById('rx-med-notes');
-    const tipEl = document.getElementById('rx-posology-smart-tip');
-
-    if (posology) {
-      if (doseInput) doseInput.value = posology.dose;
-      if (routeSelect) {
-        const matchOpt = Array.from(routeSelect.options).find(o => o.value.toLowerCase() === posology.route.toLowerCase() || o.text.toLowerCase().includes(posology.route.toLowerCase()));
-        if (matchOpt) routeSelect.value = matchOpt.value;
-      }
-      if (freqSelect) {
-        const matchFreq = Array.from(freqSelect.options).find(o => o.value.toLowerCase().includes(posology.frequency.toLowerCase().slice(0, 4)));
-        if (matchFreq) freqSelect.value = matchFreq.value;
-      }
-      if (notesInput) notesInput.value = posology.instructions;
-      
-      if (tipEl) {
-        tipEl.style.display = 'block';
-        tipEl.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles" style="color:#60a5fa;"></i> Posologia Padrão Sugerida: <strong>${posology.dose}</strong> &bull; Via: <strong>${posology.route}</strong> &bull; <strong>${posology.frequency}</strong>`;
-      }
-    } else if (tipEl) {
-      tipEl.style.display = 'none';
-    }
-  };
-
+  
   setTimeout(() => {
     const medNameInput = document.getElementById('rx-med-name');
     let acDropdown = document.getElementById('rx-med-autocomplete');
@@ -925,14 +830,14 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
       acDropdown = document.createElement('div');
       acDropdown.id = 'rx-med-autocomplete';
       acDropdown.style.position = 'absolute';
-      acDropdown.style.background = '#0f172a';
-      acDropdown.style.border = '1.5px solid rgba(99,102,241,0.5)';
-      acDropdown.style.borderRadius = '10px';
-      acDropdown.style.maxHeight = '220px';
+      acDropdown.style.background = 'var(--bg-secondary)';
+      acDropdown.style.border = '1px solid var(--border-color)';
+      acDropdown.style.borderRadius = '8px';
+      acDropdown.style.maxHeight = '200px';
       acDropdown.style.overflowY = 'auto';
       acDropdown.style.zIndex = '3600';
       acDropdown.style.width = '100%';
-      acDropdown.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+      acDropdown.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
       acDropdown.style.display = 'none';
       
       if (medNameInput && medNameInput.parentElement) {
@@ -947,59 +852,42 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
       medNameInput.addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         const cleanVal = removeAccents(val);
-
-        // Auto-sugestão de posologia instantânea enquanto digita
-        applySmartPosology(val);
-
-        if (val.length < 2) {
+        if (val.length < 2 || !window.medicationsCatalog) {
           acDropdown.style.display = 'none';
           return;
         }
-
-        // Itens da base SMART_POSOLOGY_DATABASE + Catálogo Anvisa
-        const smartMatches = (window.SMART_POSOLOGY_DATABASE || []).filter(item => 
-          item.keys.some(k => removeAccents(k).includes(cleanVal)) || removeAccents(item.name.toLowerCase()).includes(cleanVal)
-        );
-
-        const catalogMatches = (window.medicationsCatalog || []).filter(m => {
+        
+        const matches = window.medicationsCatalog.filter(m => {
           return removeAccents(m.nome.toLowerCase()).includes(cleanVal);
-        }).slice(0, 20);
-
-        const allSuggestions = [
-          ...smartMatches.map(s => ({ nome: s.name, dose: s.dose, via: s.route, isProtocol: true })),
-          ...catalogMatches.map(c => ({ nome: c.nome, dose: c.dose, via: c.via, isProtocol: false }))
-        ];
-
-        if (allSuggestions.length === 0) {
+        }).slice(0, 30);
+        
+        if (matches.length === 0) {
           acDropdown.style.display = 'none';
           return;
         }
         
         acDropdown.innerHTML = '';
-        allSuggestions.slice(0, 25).forEach(m => {
+        matches.forEach(m => {
           const item = document.createElement('div');
           item.style.padding = '8px 12px';
           item.style.cursor = 'pointer';
-          item.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
+          item.style.borderBottom = '1px solid var(--border-color)';
           item.style.fontSize = '0.8rem';
-          item.style.color = '#fff';
-          item.style.display = 'flex';
-          item.style.justifyContent = 'space-between';
-          item.style.alignItems = 'center';
-          item.innerHTML = `
-            <div>
-              <strong>${m.nome}</strong> 
-              <span style="color:#94a3b8; font-size:0.75rem;">— ${m.dose} (${m.via})</span>
-            </div>
-            ${m.isProtocol ? `<span style="font-size:0.65rem; background:rgba(99,102,241,0.25); color:#a5b4fc; padding:2px 6px; border-radius:4px; font-weight:700;">PROTOCOLO</span>` : ''}
-          `;
+          item.style.color = 'var(--text-primary)';
+          item.innerHTML = `<strong>${m.nome}</strong> <span style="color:var(--text-muted); font-size:0.75rem;">- ${m.dose} (${m.via})</span>`;
           
-          item.addEventListener('mouseover', () => item.style.background = 'rgba(99,102,241,0.25)');
+          item.addEventListener('mouseover', () => item.style.background = 'var(--bg-tertiary)');
           item.addEventListener('mouseout', () => item.style.background = 'transparent');
           
           item.addEventListener('click', () => {
             medNameInput.value = m.nome;
-            applySmartPosology(m.nome);
+            const doseInput = document.getElementById('rx-med-dose');
+            const routeSelect = document.getElementById('rx-med-route');
+            if (doseInput && !doseInput.value) doseInput.value = m.dose;
+            if (routeSelect) {
+              const opt = Array.from(routeSelect.options).find(o => o.value === m.via);
+              if (opt) routeSelect.value = m.via;
+            }
             acDropdown.style.display = 'none';
           });
           acDropdown.appendChild(item);
@@ -1017,88 +905,26 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 
   let draftItems = [];
 
-  const checkRxInteractions = () => {
-    const fnCheck = (typeof checkDrugInteractions === 'function') ? checkDrugInteractions : window.checkDrugInteractions;
-    const planText = draftItems.map(i => `${i.name} ${i.dosage || ''} ${i.route || ''} ${i.frequency || ''}`).join('\n');
-    const interactions = (typeof fnCheck === 'function' && planText) ? fnCheck(planText, patientHistoryContext) : [];
-    
-    const alertBox = document.getElementById('rx-drug-interactions-alert');
-    if (!alertBox) return interactions;
-
-    if (interactions && interactions.length > 0) {
-      alertBox.style.display = 'block';
-      
-      const hasCritical = interactions.some(i => i.severity === 'Critica' || i.isBlocker);
-      const hasSevere = interactions.some(i => i.severity === 'Grave');
-      
-      alertBox.style.background = hasCritical ? 'rgba(239, 68, 68, 0.15)' : (hasSevere ? 'rgba(245, 158, 11, 0.15)' : 'rgba(99, 102, 241, 0.15)');
-      alertBox.style.border = hasCritical ? '1.5px solid #ef4444' : (hasSevere ? '1.5px solid #f59e0b' : '1.5px solid #6366f1');
-
-      let alertHtml = `
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <div style="font-weight: 800; color: #fff; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-shield-virus" style="color: ${hasCritical ? '#ef4444' : '#f59e0b'}; font-size: 1.1rem;"></i>
-            Avaliação de Segurança CDSS 4D (${interactions.length} alerta${interactions.length > 1 ? 's' : ''})
-          </div>
-          <span style="font-size: 0.68rem; background: ${hasCritical ? '#ef4444' : '#f59e0b'}; color: #fff; padding: 2px 7px; border-radius: 6px; font-weight: 800;">
-            ${hasCritical ? 'CONTRAINDICAÇÃO CRÍTICA' : 'INTERAÇÃO IDENTIFICADA'}
-          </span>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-      `;
-
-      interactions.forEach(item => {
-        const badgeBg = item.severity === 'Critica' ? '#ef4444' : (item.severity === 'Grave' ? '#f59e0b' : '#3b82f6');
-        alertHtml += `
-          <div style="background: rgba(15,23,42,0.85); border-left: 3px solid ${badgeBg}; padding: 8px 12px; border-radius: 6px;">
-            <div style="font-weight: 700; color: #fff; font-size: 0.82rem; margin-bottom: 2px;">
-              <span style="background: ${badgeBg}; color: #fff; font-size: 0.62rem; padding: 1px 5px; border-radius: 3px; font-weight: 800; margin-right: 5px;">${item.severity.toUpperCase()}</span>
-              ${item.title}
-            </div>
-            <div style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.35; margin-bottom: 4px;">${item.desc}</div>
-            <div style="font-size: 0.76rem; color: #fde047; font-weight: 600;">💡 <strong>Conduta Recomendada:</strong> ${item.action}</div>
-          </div>
-        `;
-      });
-
-      alertHtml += `</div>`;
-      alertBox.innerHTML = alertHtml;
-    } else {
-      alertBox.style.display = 'block';
-      alertBox.style.background = 'rgba(16, 185, 129, 0.12)';
-      alertBox.style.border = '1px solid rgba(16, 185, 129, 0.35)';
-      alertBox.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px; color: #34d399; font-size: 0.82rem; font-weight: 600;">
-          <i class="fa-solid fa-circle-check"></i>
-          <span>Segurança Farmacológica Verificada: Nenhum conflito ou alergia detectada nas medicações prescritas.</span>
-        </div>
-      `;
-    }
-    return interactions;
-  };
-
   const updateDraftTable = () => {
     const tableEl = document.getElementById('rx-draft-table');
     const saveBtn = document.getElementById('btn-save-rx');
     if (draftItems.length === 0) {
-      tableEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+ Adicionar).</div>';
+      tableEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 14px;">Nenhum medicamento adicionado ainda. Preencha os campos acima e clique em (+).</div>';
       saveBtn.disabled = true;
-      const alertBox = document.getElementById('rx-drug-interactions-alert');
-      if (alertBox) alertBox.style.display = 'none';
       return;
     }
     saveBtn.disabled = false;
 
     let html = `
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; table-layout: fixed;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
         <thead>
           <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-muted);">
-            <th style="padding: 8px 6px; width: 26%;">Medicamento</th>
-            <th style="padding: 8px 6px; width: 18%;">Dose</th>
-            <th style="padding: 8px 6px; width: 10%;">Via</th>
-            <th style="padding: 8px 6px; width: 15%;">Frequência</th>
-            <th style="padding: 8px 6px; width: 26%;">Instruções</th>
-            <th style="padding: 8px 6px; width: 5%; text-align: right;">Ação</th>
+            <th style="padding: 6px;">Medicamento</th>
+            <th style="padding: 6px;">Dose</th>
+            <th style="padding: 6px;">Via</th>
+            <th style="padding: 6px;">Frequência</th>
+            <th style="padding: 6px;">Instruções</th>
+            <th style="padding: 6px; text-align: right;">Ação</th>
           </tr>
         </thead>
         <tbody>
@@ -1107,13 +933,13 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     draftItems.forEach((item, idx) => {
       html += `
         <tr style="border-bottom: 1px solid var(--border-color);">
-          <td style="padding: 8px 6px; font-weight: 600; color: var(--text-primary); word-break: break-word;">${item.name}</td>
-          <td style="padding: 8px 6px; color: var(--text-secondary); word-break: break-word;">${item.dosage || '—'}</td>
-          <td style="padding: 8px 6px;"><span style="background: rgba(99,102,241,0.15); color: #a78bfa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${item.route}</span></td>
-          <td style="padding: 8px 6px; color: var(--text-secondary); word-break: break-word;">${item.frequency}</td>
-          <td style="padding: 8px 6px; color: var(--text-muted); word-break: break-word;">${item.instructions || '—'}</td>
-          <td style="padding: 8px 6px; text-align: right;">
-            <button type="button" class="btn-remove-rx-draft" data-idx="${idx}" style="background: transparent; border: none; color: var(--danger-color); cursor: pointer; padding: 4px;" title="Remover"><i class="fa-solid fa-trash"></i></button>
+          <td style="padding: 6px; font-weight: 600; color: var(--text-primary);">${item.name}</td>
+          <td style="padding: 6px; color: var(--text-secondary);">${item.dosage || '—'}</td>
+          <td style="padding: 6px;"><span style="background: rgba(99,102,241,0.15); color: #a78bfa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${item.route}</span></td>
+          <td style="padding: 6px; color: var(--text-secondary);">${item.frequency}</td>
+          <td style="padding: 6px; color: var(--text-muted);">${item.instructions || '—'}</td>
+          <td style="padding: 6px; text-align: right;">
+            <button type="button" class="btn-remove-rx-draft" data-idx="${idx}" style="background: transparent; border: none; color: var(--danger-color); cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
       `;
@@ -1129,68 +955,26 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
         updateDraftTable();
       });
     });
-
-    checkRxInteractions();
   };
 
-  const addItemFromInputs = () => {
+  document.getElementById('btn-add-rx-item').onclick = () => {
     const name = document.getElementById('rx-med-name').value.trim();
     const dosage = document.getElementById('rx-med-dose').value.trim();
     const route = document.getElementById('rx-med-route').value;
     const frequency = document.getElementById('rx-med-freq').value;
     const instructions = document.getElementById('rx-med-notes').value.trim();
 
-    if (!name) return false;
+    if (!name) { alert('Digite o nome do medicamento.'); return; }
 
     draftItems.push({ name, dosage, route, frequency, instructions });
     document.getElementById('rx-med-name').value = '';
     document.getElementById('rx-med-dose').value = '';
     document.getElementById('rx-med-notes').value = '';
-    const tipEl = document.getElementById('rx-posology-smart-tip');
-    if (tipEl) tipEl.style.display = 'none';
     updateDraftTable();
-    return true;
   };
-
-  document.getElementById('btn-add-rx-item').onclick = () => {
-    const name = document.getElementById('rx-med-name').value.trim();
-    if (!name) { 
-      if (typeof showToast === 'function') showToast('Digite ou selecione o nome do medicamento para adicionar.', 'warning');
-      else alert('Digite o nome do medicamento.'); 
-      return; 
-    }
-    addItemFromInputs();
-  };
-
-  const btnPrescribeDirect = document.getElementById('btn-prescribe-direct');
-  if (btnPrescribeDirect) {
-    btnPrescribeDirect.onclick = async () => {
-      const name = document.getElementById('rx-med-name').value.trim();
-      if (name) {
-        addItemFromInputs();
-      }
-
-      if (draftItems.length === 0) {
-        if (typeof showToast === 'function') showToast('Preencha os dados do medicamento antes de prescrever.', 'warning');
-        else alert('Preencha os dados do medicamento antes de prescrever.');
-        return;
-      }
-
-      document.getElementById('btn-save-rx').click();
-    };
-  }
 
   document.getElementById('btn-save-rx').onclick = async () => {
     if (draftItems.length === 0) return;
-    
-    // Verificação de segurança contra contraindicações e interações
-    const currentInteractions = checkRxInteractions();
-    const severeInteractions = currentInteractions.filter(i => i.severity === 'Grave' || i.severity === 'Critica' || i.isBlocker);
-    if (severeInteractions.length > 0) {
-      const confirmSave = await showCDSSCriticalOverrideModal(severeInteractions);
-      if (!confirmSave) return;
-    }
-
     const doctorName = state.user ? state.user.name : 'Dr. Médico Plantonista';
     try {
       const res = await apiFetch(`/api/encounters/${encounterId}/prescriptions`, {

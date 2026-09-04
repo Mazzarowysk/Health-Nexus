@@ -162,41 +162,7 @@ async function renderLeitosTab() {
             b.status = 'Ocupado';
             b.patientName = (matchingHosp && matchingHosp.patientName) || (matchingEnc && matchingEnc.patientName) || b.patientName;
             b.patientId = (matchingHosp && matchingHosp.patient_id) || (matchingEnc && matchingEnc.patientId) || b.patientId;
-            b.pepNumber = (matchingHosp && matchingHosp.pepNumber) || (matchingEnc && matchingEnc.pepNumber) || b.pepNumber;
             b.admittedAt = (matchingHosp && matchingHosp.admitted_at) || (matchingEnc && matchingEnc.hospitalized_at) || b.admittedAt || new Date().toISOString();
-          }
-        });
-
-        // Deduplicação Estrita (Anti-Duplicidade): Garante que nenhum paciente conste em mais de 1 leito simultaneamente
-        const seenPatients = new Map();
-        const occupiedBeds = beds.filter(b => b.status === 'Ocupado' && (b.patientId || b.patientName));
-        occupiedBeds.sort((a, b) => new Date(b.admittedAt || 0) - new Date(a.admittedAt || 0));
-
-        occupiedBeds.forEach(b => {
-          const pKey = (b.patientId ? String(b.patientId) : '') || (b.patientName ? b.patientName.toLowerCase().trim() : '');
-          if (!pKey) return;
-          if (seenPatients.has(pKey)) {
-            // Leito anterior duplicado detectado: libera o leito anterior para higienização
-            b.status = 'Higienizacao';
-            b.patientId = null;
-            b.patientName = null;
-            b.encounterId = null;
-            b.pepNumber = null;
-            b.admittedAt = null;
-            if (typeof window.localDB !== 'undefined' && localDB.update) {
-              localDB.update('beds', b.id, {
-                ...b,
-                status: 'Higienizacao',
-                patientId: null,
-                patientName: null,
-                encounterId: null,
-                pepNumber: null,
-                admittedAt: null,
-                updated_at: new Date().toISOString()
-              });
-            }
-          } else {
-            seenPatients.set(pKey, b.id);
           }
         });
 
@@ -215,7 +181,7 @@ async function renderLeitosTab() {
                   <i class="fa-solid fa-clock"></i> Aguardando Leito (${q.room || '-'})
                 </div>
               </div>
-              <button class="btn btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}', '${q.patientId || ''}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.transform='scale(1.02)';" onmouseleave="this.style.transform='none';">
+              <button class="btn btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.transform='scale(1.02)';" onmouseleave="this.style.transform='none';">
                 <i class="fa-solid fa-bed-pulse"></i> Alocar
               </button>
             </div>
@@ -294,15 +260,8 @@ async function renderLeitosTab() {
               </div>
               ${b.status === 'Ocupado' ? `
                 <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(239,68,68,0.1)); padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid rgba(99,102,241,0.3);">
-                  <div style="font-size: 0.98rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                    <span style="display: flex; align-items: center; gap: 6px;">
-                      <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${b.patientName || 'Paciente'}
-                    </span>
-                    ${b.pepNumber ? `
-                      <span style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-family: monospace; font-weight: 700;">
-                        ${b.pepNumber}
-                      </span>
-                    ` : ''}
+                  <div style="font-size: 0.98rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${b.patientName || 'Paciente'}
                   </div>
                   <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">
                     <span><i class="fa-solid fa-calendar-check" style="color: #a5b4fc;"></i> Entrada: ${b.admittedAt ? new Date(b.admittedAt).toLocaleTimeString().slice(0,5) : 'Hoje'}</span>
@@ -318,7 +277,7 @@ async function renderLeitosTab() {
                 </button>
               ` : ''}
               ${b.status === 'Ocupado' ? `
-                <button class="btn btn-sm" onclick="if(typeof window.openPEPModal === 'function') window.openPEPModal('${b.encounterId || b.patientId || b.patientName}');" style="background: #0284c7; color: #fff; border: none; font-size: 0.76rem; padding: 7px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.3);">
+                <button class="btn btn-sm" onclick="if(typeof window.openPEPModal === 'function') window.openPEPModal('${b.patientId || b.patientName}');" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 7px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
                   <i class="fa-solid fa-file-medical"></i> PEP
                 </button>
                 <button class="btn btn-sm btn-danger" onclick="window.dischargeBed('${b.id}')" style="flex: 1; border-radius: 8px; font-weight:700; font-size: 0.76rem; padding: 7px 10px; background: linear-gradient(135deg, #be5a6e, #9e3a52); border:none; color: #fff;">
@@ -341,7 +300,7 @@ async function renderLeitosTab() {
   };
 
   // Carregar Pacientes no Modal (Busca Direta & Rápida)
-  window.loadPatientsModal = async (selectedPatientId = null, selectedPatientName = null) => {
+  const loadPatientsModal = async () => {
     try {
       const res = await apiFetch(`${API_URL}/patients`);
       if (!res.ok) throw new Error();
@@ -355,26 +314,9 @@ async function renderLeitosTab() {
       const pHiddenInput = document.getElementById('admit-patient-id');
 
       if (pComboContainer && pHiddenInput) {
-        window.admitPatientCustomSelect = setupCustomSelect(pComboContainer, pHiddenInput, patientList, 'Selecione o paciente...');
-        
-        // Auto-selecionar se veio pré-definido
-        if (selectedPatientId || selectedPatientName) {
-          const normQuery = (selectedPatientName || '').toLowerCase().trim();
-          const found = patientList.find(p => 
-            (selectedPatientId && String(p.id) === String(selectedPatientId)) ||
-            (normQuery && (
-              (p.fullName || '').toLowerCase().trim() === normQuery ||
-              (p.fullName || '').toLowerCase().includes(normQuery) ||
-              normQuery.includes((p.fullName || '').toLowerCase())
-            ))
-          );
-          if (found && window.admitPatientCustomSelect) {
-            window.admitPatientCustomSelect.setValue(found.id);
-          }
-        }
+        setupCustomSelect(pComboContainer, pHiddenInput, patientList, 'Selecione o paciente...');
       }
     } catch (e) {
-      console.error('Erro ao carregar pacientes no modal de leito:', e);
       const pComboContainer = document.getElementById('admit-patient-combo');
       if (pComboContainer) pComboContainer.innerHTML = '<div class="form-input">Erro ao carregar pacientes</div>';
     }
@@ -425,24 +367,18 @@ async function renderLeitosTab() {
 
   // Modal Handlers
   const modal = document.getElementById('modal-admit-bed');
-  document.getElementById('btn-open-admit-modal')?.addEventListener('click', () => { 
-    modal.style.display = 'flex'; 
-    if (window.admitPatientCustomSelect) {
-      window.admitPatientCustomSelect.clear();
-    } else {
-      window.loadPatientsModal(); 
-    }
-  });
-  document.getElementById('btn-close-admit-modal')?.addEventListener('click', () => { modal.style.display = 'none'; });
-  document.getElementById('btn-cancel-admit-modal')?.addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-open-admit-modal')?.addEventListener('click', () => { modal.style.display = 'flex'; loadPatientsModal(); });
+  document.getElementById('btn-close-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-cancel-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
 
-  document.getElementById('form-admit-bed')?.addEventListener('submit', async (e) => {
+  document.getElementById('form-admit-bed').addEventListener('submit', async (e) => {
     e.preventDefault();
     const bedId = document.getElementById('admit-bed-id').value;
-    const pHiddenInput = document.getElementById('admit-patient-id');
+    const pSelect = document.getElementById('admit-patient-id');
     const encInput = document.getElementById('admit-encounter-id');
-    const patientId = pHiddenInput ? pHiddenInput.value : '';
-    const patientName = pHiddenInput ? (pHiddenInput.dataset.name || '') : '';
+    const selectedOption = pSelect.options ? pSelect.options[pSelect.selectedIndex] : null;
+    const patientId = pSelect.value;
+    const patientName = selectedOption ? selectedOption.dataset.name : (pSelect.dataset.name || '');
     const encounterId = encInput ? encInput.value : null;
 
     if (!bedId || !patientId) {
@@ -460,17 +396,6 @@ async function renderLeitosTab() {
         showToast('Paciente internado com sucesso!');
         modal.style.display = 'none';
         
-        if (typeof window.showFlowCompletionNotification === 'function') {
-          window.showFlowCompletionNotification({
-            actionTitle: 'Internação em Leito Concluída',
-            message: `O paciente <strong>${patientName || 'selecionado'}</strong> foi alocado no <strong>Leito ${bedId}</strong> com sucesso.<br><br><strong>Acompanhamento:</strong> O leito foi atualizado no mapa abaixo. Caso deseje acompanhar o quadro geral, você também pode acessar a aba <strong>Kanban de Internação</strong>.`,
-            targetTab: 'leitos',
-            targetTabLabel: 'Mapa de Leitos',
-            targetPatientName: patientName,
-            autoSwitch: false
-          });
-        }
-
         loadBeds();
       } else {
         const d = await res.json();
@@ -482,10 +407,10 @@ async function renderLeitosTab() {
   });
 
   loadBeds();
-  window.loadPatientsModal();
+  loadPatientsModal();
 }
 
-window.quickAdmitBed = async (bedId, encounterId = null, patientName = null, patientId = null) => {
+window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
   const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
   if (!perms.canManageBeds) {
     showCustomAlert({
@@ -505,9 +430,51 @@ window.quickAdmitBed = async (bedId, encounterId = null, patientName = null, pat
     const encInput = document.getElementById('admit-encounter-id');
     if (encInput) encInput.value = encounterId || '';
 
-    // Carregar e auto-selecionar o paciente no combo
-    if (window.loadPatientsModal) {
-      await window.loadPatientsModal(patientId, patientName);
+    const pSelect = document.getElementById('admit-patient-id');
+    const pSearch = document.getElementById('admit-patient-search');
+    if (pSearch) pSearch.value = patientName || ''; // preenche se veio da fila
+
+    if (pSelect) {
+      apiFetch(`${API_URL}/patients`).then(r => r.json()).then(patients => {
+        const list = Array.isArray(patients) ? patients : (patients.data || []);
+        
+        // Ordenação Alfabética A-Z por nome completo
+        list.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'pt-BR', { sensitivity: 'base' }));
+
+        const renderOptions = (items) => {
+          pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
+            items.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
+          
+          // Auto-selecionar se patientName foi fornecido e encontrado
+          if (patientName) {
+            const found = items.find(p => (p.fullName || '').toLowerCase() === patientName.toLowerCase());
+            if (found) {
+              pSelect.value = found.id;
+            }
+          }
+        };
+
+        renderOptions(list);
+
+        if (pSearch && !pSearch.dataset.bound) {
+          pSearch.dataset.bound = 'true';
+          pSearch.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            if (!query) {
+              renderOptions(list);
+            } else {
+              const filtered = list.filter(p => {
+                const nameMatch = (p.fullName || '').toLowerCase().includes(query);
+                const cpfDigits = (p.cpf || '').replace(/\D/g, '');
+                const queryDigits = query.replace(/\D/g, '');
+                const cpfMatch = queryDigits ? cpfDigits.includes(queryDigits) : (p.cpf || '').toLowerCase().includes(query);
+                return nameMatch || cpfMatch;
+              });
+              renderOptions(filtered);
+            }
+          });
+        }
+      }).catch(() => {});
     }
   }
 };
@@ -673,11 +640,11 @@ window.openBedDetailsModal = async function(bedId) {
 
     const modalHtml = `
       <div id="bed-details-modal" class="modal-overlay" style="position: fixed; top:0; left:0; width:100vw; height:100vh; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(5,7,20,0.85); backdrop-filter: blur(10px);">
-        <div class="modal-content" style="max-width: 680px; width: 95vw; max-height: 90vh; background: #0f172a; border: 1.5px solid #334155; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8); animation: slideIn 0.3s ease-out;">
+        <div class="modal-content" style="max-width: 680px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99,102,241,0.45); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8); animation: slideIn 0.3s ease-out;">
           
-          <div style="background: #1e293b; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid #334155;">
+          <div style="background: linear-gradient(135deg, #1e1b4b, #311b92); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.2rem;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.3rem;">
                 <i class="fa-solid fa-bed"></i>
               </div>
               <div>
@@ -685,7 +652,7 @@ window.openBedDetailsModal = async function(bedId) {
                   Leito ${bedNum}
                   <span style="font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; background: ${statusBadgeBg}; color: ${statusBadgeColor}; border: 1px solid ${statusBadgeColor}; font-weight: 700;">${bed.status}</span>
                 </h3>
-                <small style="color: #94a3b8; font-size: 0.82rem;">Setor: <strong>${bed.sector || bed.type || 'Enfermaria'}</strong> &bull; Ala: ${bed.ward || 'Geral'}</small>
+                <small style="color: #c4b5fd; font-size: 0.82rem;">Setor: <strong>${bed.sector || bed.type || 'Enfermaria'}</strong> &bull; Ala: ${bed.ward || 'Geral'}</small>
               </div>
             </div>
             <button onclick="document.getElementById('bed-details-modal').remove()" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
@@ -716,10 +683,10 @@ window.openBedDetailsModal = async function(bedId) {
 
                   <!-- Ações do Paciente Internado -->
                   <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
-                    <button class="btn" style="background: #0284c7; color: #fff; border: none; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(2,132,199,0.35);" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${bed.patientId || bed.patientName}');">
+                    <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${bed.patientId || bed.patientName}');">
                       <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
                     </button>
-                    <button class="btn" style="background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${bed.patientId || bed.patientName}', '${(bed.patientName||'').replace(/'/g, "\\'")}');">
+                    <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${bed.patientId || bed.patientName}', '${(bed.patientName||'').replace(/'/g, "\\'")}');">
                       <i class="fa-solid fa-timeline"></i> Ver Jornada Completa
                     </button>
                     <button class="btn" style="background: linear-gradient(135deg, #be5a6e, #9e3a52); border: none; color: #fff; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-left: auto;" onclick="document.getElementById('bed-details-modal').remove(); window.dischargeBed('${bed.id}');">

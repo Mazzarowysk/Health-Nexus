@@ -263,92 +263,14 @@ function renderCard(hosp, col) {
   `;
 }
 
-function normalizeSector(sec) {
-  if (!sec) return 'pronto_socorro';
-  const s = String(sec).toLowerCase().trim().replace(/-/g, '_').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  if (s.includes('ps') || s.includes('socorro') || s.includes('observ') || s.includes('pronto') || s.includes('emerg')) return 'pronto_socorro';
-  if (s.includes('corredor') || s.includes('maca') || s.includes('espera')) return 'corredor_internacao';
-  if (s.includes('cirurg') || s.includes('bloco') || s.includes('oper') || s.includes('cc') || s.includes('trauma')) return 'clinica_cirurgica';
-  if (s.includes('medica') || s.includes('enf') || s.includes('clinica') || s.includes('sus') || s.includes('geral') || s.includes('intern')) return 'clinica_medica';
-  if (s.includes('uti') || s.includes('cti') || s.includes('intensiv') || s.includes('critico')) return 'uti';
-  return 'pronto_socorro';
-}
-
-function ensureKanbanData() {
-  let all = localDB.list('hospitalizations') || [];
-  // Se não houver internações ativas ou lista muito vazia, povoar com internações realistas
-  const activeCount = all.filter(h => h.status !== 'Alta').length;
-  if (activeCount < 5) {
-    const patients = localDB.list('patients') || [];
-    const doctors = (localDB.list('users') || []).filter(u => ['Medico', 'Master'].includes(u.role));
-    if (patients.length > 0) {
-      const sectors = ['pronto_socorro', 'corredor_internacao', 'clinica_cirurgica', 'clinica_medica', 'uti'];
-      const diagnoses = ['Pneumonia Comunitária', 'IAM com Supra', 'Sepse Foco Pulmonar', 'Pós-op Apendicectomia', 'Insuficiência Cardíaca Descompensada', 'AVC Isquêmico Agudo', 'Trauma Abdominal Fechado', 'Cetoacidose Diabética'];
-      const notesList = [
-        'Paciente lúcido, orientado, estável hemodinamicamente. Aguardando exames de controle.',
-        'Em uso de antibioticoterapia venosa. Melhora dos parâmetros inflamatórios.',
-        'Programada reavaliação cirúrgica no período vespertino. Ferida operatória limpa.',
-        'Mantendo suporte ventilatório não-invasivo com boa resposta. Sinais vitais estáveis.'
-      ];
-
-      // Criar internações para distribuir pelos 5 setores
-      for (let i = 0; i < 15; i++) {
-        const p = patients[i % patients.length];
-        const doc = doctors.length > 0 ? doctors[i % doctors.length] : { id: 'doc-1', name: 'Dr. Roberto Silva' };
-        const sec = sectors[i % sectors.length];
-        const hoursAgo = (i + 1) * 6 + Math.floor(Math.random() * 12);
-        const admDate = new Date(Date.now() - hoursAgo * 3600000).toISOString();
-        const sectorDate = new Date(Date.now() - Math.floor(hoursAgo * 0.6) * 3600000).toISOString();
-        
-        let bedName = 'S/ Leito';
-        if (sec === 'pronto_socorro') bedName = `Box PS-0${(i % 5) + 1}`;
-        else if (sec === 'corredor_internacao') bedName = `Maca COR-0${(i % 5) + 1}`;
-        else if (sec === 'clinica_cirurgica') bedName = `Quarto CIR-${101 + (i % 8)}`;
-        else if (sec === 'clinica_medica') bedName = `Enf MED-${201 + (i % 8)}`;
-        else if (sec === 'uti') bedName = `Leito UTI-0${(i % 6) + 1}`;
-
-        localDB.insert('hospitalizations', {
-          id: `HOSP-KN-${Date.now().toString(36)}-${i+1}`,
-          patient_id: p.id,
-          patientName: p.fullName || p.name,
-          current_sector: sec,
-          sector_entry_date: sectorDate,
-          admission_date: admDate,
-          bed: bedName,
-          diagnosis: diagnoses[i % diagnoses.length],
-          doctor_id: doc.id,
-          doctor_name: doc.name || doc.username || 'Dr. Plantonista',
-          notes: notesList[i % notesList.length],
-          status: 'Internado',
-          evolutions: [
-            { ts: admDate, text: 'Admissão no setor de internação. Conduta inicial estabelecida.', author: doc.name || 'Médico Plantonista' },
-            { ts: sectorDate, text: notesList[i % notesList.length], author: 'Enfermagem' }
-          ],
-          created_at: admDate,
-          updated_at: new Date().toISOString()
-        });
-      }
-    }
-  }
-}
-
 function loadAndRenderKanban() {
   const board = document.getElementById('kanban-board');
   if (!board) return;
-
-  ensureKanbanData();
-
-  const all = localDB.list('hospitalizations') || [];
-  const patients = localDB.list('patients') || [];
-
+  const all = localDB.list('hospitalizations');
+  const patients = localDB.list('patients');
   const active = all.filter(h => h.status !== 'Alta').map(h => {
     const pat = patients.find(p => p.id === h.patient_id) || {};
-    const normSector = normalizeSector(h.current_sector);
-    return { 
-      ...h, 
-      current_sector: normSector, 
-      patientName: pat.fullName || pat.name || h.patientName || 'Paciente' 
-    };
+    return { ...h, patientName: pat.fullName || pat.name || 'Desconhecido' };
   });
 
   // Update filter counters
@@ -391,6 +313,7 @@ function loadAndRenderKanban() {
   
   const filtersRow = document.getElementById('kanban-filters-row');
   if (filtersRow) {
+    // Keep filters in a scrollable horizontal row if isolated
     filtersRow.style.minWidth = currentFilter === 'all' ? 'auto' : '1400px'; 
   }
 
@@ -462,21 +385,7 @@ function setupDND() {
       if(hosp && hosp.current_sector!==newCol) {
         localDB.update('hospitalizations',hospId,{current_sector:newCol,sector_entry_date:new Date().toISOString()});
         const name=KANBAN_COLUMNS.find(c=>c.id===newCol)?.label||newCol;
-        const pat=(localDB.list('patients').find(p=>p.id===hosp?.patient_id)||{});
-        const patName = pat.fullName || pat.name || 'Paciente';
-
         if(window.showToast) window.showToast('Paciente movido para '+name);
-
-        if (typeof window.showFlowCompletionNotification === 'function') {
-          window.showFlowCompletionNotification({
-            actionTitle: 'Transferência de Setor Realizada',
-            message: `O paciente <strong>${patName}</strong> foi transferido para o setor <strong>${name}</strong>.<br><br><strong>Próximo Passo:</strong> O tempo de permanência (SLA) foi reiniciado para o novo setor.`,
-            targetTab: 'kanban',
-            targetTabLabel: 'Kanban de Internação',
-            actionType: 'switchTab'
-          });
-        }
-
         loadAndRenderKanban();
       }
     });
@@ -566,26 +475,9 @@ window.saveKanbanPatient = function() {
   const doctorName=docEl.selectedIndex>0?docEl.options[docEl.selectedIndex].text:'';
   const notes=document.getElementById('kanban-notes').value.trim();
   const admDate=admRaw?new Date(admRaw).toISOString():new Date().toISOString();
-  
-  const patObj = localDB.list('patients')?.find(p => p.id === patId) || {};
-  const patName = patObj.fullName || patObj.name || 'Paciente';
-  const sectorLabel = KANBAN_COLUMNS.find(c => c.id === sectorId)?.label || sectorId;
-
   localDB.insert('hospitalizations',{patient_id:patId,current_sector:sectorId,sector_entry_date:admDate,admission_date:admDate,bed,diagnosis,doctor_id:doctorId,doctor_name:doctorName,notes,status:'Internado'});
   document.getElementById('kanban-modal').remove();
-  
   if(window.showToast) window.showToast('Paciente adicionado ao Kanban!');
-
-  if (typeof window.showFlowCompletionNotification === 'function') {
-    window.showFlowCompletionNotification({
-      actionTitle: 'Paciente Alocado no Kanban',
-      message: `O paciente <strong>${patName}</strong> foi inserido no setor <strong>${sectorLabel}</strong> (Leito: ${bed || 'Aguardando'}).<br><br><strong>Próximo Passo:</strong> Acompanhe a meta de permanência (SLA) e lance novas evoluções diárias no cartão.`,
-      targetTab: 'kanban',
-      targetTabLabel: 'Kanban de Internação',
-      actionType: 'switchTab'
-    });
-  }
-
   loadAndRenderKanban();
 };
 
@@ -640,17 +532,17 @@ window.moveKanbanCard = function(hospId) {
     <div id="kanban-move-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,7,20,0.85);z-index:100200;backdrop-filter:blur(10px);">
       <div style="background:#131326;padding:26px 28px;border-radius:18px;width:92%;max-width:400px;box-shadow:0 25px 70px rgba(0,0,0,0.9), 0 0 30px rgba(99,102,241,0.25);border:1.5px solid rgba(139,92,246,0.5);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(139,92,246,0.25);">
-          <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-arrow-right-arrow-left" style="color:#38bdf8;"></i> Mover Setor</h3>
+          <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-arrow-right-arrow-left" style="color:#818cf8;"></i> Mover Setor</h3>
           <button onclick="document.getElementById('kanban-move-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <p style="font-size:0.92rem;color:#e2e8f0;margin:0 0 18px;font-weight:600;">Paciente: <strong style="color:#38bdf8;">${pat.fullName || pat.name||'Paciente'}</strong></p>
         <div><label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;">Novo Setor Destino</label>
-          <select id="move-sector-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#ffffff;font-size:0.92rem;font-weight:600;">
+          <select id="move-sector-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.5);background:#0f172a;color:#ffffff;font-size:0.92rem;font-weight:600;">
             ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id===hosp.current_sector?'selected':''} style="background:#0f172a;color:#ffffff;">${c.label}</option>`).join('')}
           </select></div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
-          <button onclick="document.getElementById('kanban-move-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;">Cancelar</button>
-          <button onclick="confirmMoveKanban('${hospId}')" style="padding:9px 18px;border-radius:8px;background:#0284c7;color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 2px 10px rgba(2,132,199,0.35);"><i class="fa-solid fa-check"></i> Mover</button>
+          <button onclick="document.getElementById('kanban-move-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;">Cancelar</button>
+          <button onclick="confirmMoveKanban('${hospId}')" style="padding:9px 18px;border-radius:8px;background:linear-gradient(135deg, #6366f1, #8b5cf6);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 14px rgba(99,102,241,0.4);"><i class="fa-solid fa-check"></i> Mover</button>
         </div>
       </div>
     </div>`);
@@ -659,23 +551,10 @@ window.moveKanbanCard = function(hospId) {
 window.confirmMoveKanban = function(hospId) {
   const ns=document.getElementById('move-sector-select').value;
   const hosp=localDB.get('hospitalizations',hospId);
-  const pat=(localDB.list('patients').find(p=>p.id===hosp?.patient_id)||{});
-  const patName = pat.fullName || pat.name || 'Paciente';
-
   if(hosp && hosp.current_sector!==ns) {
     localDB.update('hospitalizations',hospId,{current_sector:ns,sector_entry_date:new Date().toISOString()});
     const name=KANBAN_COLUMNS.find(c=>c.id===ns)?.label||ns;
     if(window.showToast) window.showToast('Paciente movido para '+name);
-
-    if (typeof window.showFlowCompletionNotification === 'function') {
-      window.showFlowCompletionNotification({
-        actionTitle: 'Transferência de Setor Realizada',
-        message: `O paciente <strong>${patName}</strong> foi transferido para o setor <strong>${name}</strong>.<br><br><strong>Próximo Passo:</strong> O cronômetro de permanência (SLA) foi iniciado para o novo setor.`,
-        targetTab: 'kanban',
-        targetTabLabel: 'Kanban de Internação',
-        actionType: 'switchTab'
-      });
-    }
   }
   document.getElementById('kanban-move-modal').remove();
   loadAndRenderKanban();
@@ -762,82 +641,9 @@ window.saveKanbanEvolution = function(hospId) {
 
 // ──── Alta ────
 window.dischargePatient = function(hospId) {
-  if(confirm('Registrar ALTA para este paciente? Ele sai do Kanban e o leito será liberado para Higienização.')) {
-    const hosp = localDB.get('hospitalizations', hospId);
-    const pat = (localDB.list('patients').find(p => p.id === hosp?.patient_id) || {});
-    const patName = pat.fullName || pat.name || (hosp ? hosp.patientName : 'Paciente');
-    const nowIso = new Date().toISOString();
-
-    // 1. Atualizar Hospitalização para Alta
-    localDB.update('hospitalizations', hospId, {
-      status: 'Alta',
-      discharge_date: nowIso,
-      discharged_at: nowIso
-    });
-
-    // 2. Liberar Leito correspondente para Higienização
-    const allBeds = localDB.list('beds') || [];
-    allBeds.forEach(bed => {
-      const matchBed = (hosp && hosp.bed_id && String(bed.id) === String(hosp.bed_id)) ||
-                       (hosp && hosp.bed && (bed.bedNumber === hosp.bed || bed.number === hosp.bed)) ||
-                       (hosp && hosp.patient_id && String(bed.patientId) === String(hosp.patient_id)) ||
-                       (patName && bed.patientName && bed.patientName.toLowerCase().trim() === patName.toLowerCase().trim());
-      if (matchBed) {
-        localDB.update('beds', bed.id, {
-          ...bed,
-          status: 'Higienizacao',
-          patientId: null,
-          patientName: null,
-          encounterId: null,
-          pepNumber: null,
-          admittedAt: null,
-          dischargedAt: nowIso,
-          updated_at: nowIso
-        });
-      }
-    });
-
-    // 3. Finalizar Encounter de Internação
-    const allEncs = localDB.list('encounters') || [];
-    allEncs.forEach(enc => {
-      const matchEnc = (hosp && hosp.encounter_id && String(enc.id) === String(hosp.encounter_id)) ||
-                       (hosp && hosp.patient_id && String(enc.patientId) === String(hosp.patient_id)) ||
-                       (patName && enc.patientName && enc.patientName.toLowerCase().trim() === patName.toLowerCase().trim());
-      if (matchEnc && (enc.status === 'Internado' || enc.status === 'Em_Atendimento')) {
-        localDB.update('encounters', enc.id, {
-          ...enc,
-          status: 'Finalizado',
-          dischargeType: 'Alta Hospitalar',
-          discharged_at: nowIso,
-          completed_at: nowIso,
-          lastStatusUpdate: nowIso
-        });
-      }
-    });
-
-    // 4. Inserir Anotação Clínica de Alta
-    if (hosp && hosp.patient_id) {
-      localDB.insert('clinical_notes', {
-        id: 'NOTE-' + Date.now(),
-        patientId: hosp.patient_id,
-        text: `✅ Alta Hospitalar concedida via Kanban (${hosp.current_sector || 'Setor'}). Paciente desinternado e leito liberado para higienização.`,
-        created_at: nowIso,
-        author: hosp.doctor_name || 'Médico Assistente'
-      });
-    }
-
-    if(window.showToast) window.showToast('✅ Alta registrada com sucesso! Leito liberado para higienização.');
-
-    if (typeof window.showFlowCompletionNotification === 'function') {
-      window.showFlowCompletionNotification({
-        actionTitle: 'Alta Médica Hospitalar Concluída',
-        message: `O paciente <strong>${patName}</strong> recebeu alta médica. O leito hospitalar foi encaminhado automaticamente para a <strong>Fila de Higienização</strong>.`,
-        targetTab: 'leitos',
-        targetTabLabel: 'Gestão de Leitos & Internação',
-        actionType: 'switchTab'
-      });
-    }
-
+  if(confirm('Registrar ALTA para este paciente? Ele sai do Kanban.')) {
+    localDB.update('hospitalizations',hospId,{status:'Alta',discharge_date:new Date().toISOString()});
+    if(window.showToast) window.showToast('Alta registrada com sucesso!');
     loadAndRenderKanban();
   }
 };
@@ -916,129 +722,109 @@ function initKanbanChart(activePatients) {
 
   // 2. Render Sector Chart (Interativo com clique)
   const ctxSector = document.getElementById('kanbanSectorChart');
-  if (ctxSector && ChartClass) {
-    try {
-      if (kanbanSectorChartInstance) {
-        kanbanSectorChartInstance.destroy();
-        kanbanSectorChartInstance = null;
-      }
-      
-      const dataMap = {};
-      KANBAN_COLUMNS.forEach(col => dataMap[col.id] = 0);
-      activePatients.forEach(p => { if (dataMap[p.current_sector] !== undefined) dataMap[p.current_sector]++; });
+  if (ctxSector) {
+    if (kanbanSectorChartInstance) kanbanSectorChartInstance.destroy();
+    
+    const dataMap = {};
+    KANBAN_COLUMNS.forEach(col => dataMap[col.id] = 0);
+    activePatients.forEach(p => { if (dataMap[p.current_sector] !== undefined) dataMap[p.current_sector]++; });
 
-      const centerVal = document.getElementById('kanban-chart-center-val');
-      if (centerVal) centerVal.textContent = activePatients.length;
+    const centerVal = document.getElementById('kanban-chart-center-val');
+    if (centerVal) centerVal.textContent = activePatients.length;
 
-      const sectorContext = ctxSector.getContext ? ctxSector.getContext('2d') : ctxSector;
-
-      kanbanSectorChartInstance = new ChartClass(sectorContext, {
-        type: 'doughnut',
-        data: {
-          labels: KANBAN_COLUMNS.map(c => c.shortLabel),
-          datasets: [{
-            data: KANBAN_COLUMNS.map(c => dataMap[c.id]),
-            backgroundColor: KANBAN_COLUMNS.map(c => (window.createChartGradient ? window.createChartGradient(ctxSector, c.color, 'ee', '33') : c.color)),
-            borderWidth: 2,
-            borderColor: 'rgba(255, 255, 255, 0.08)',
-            borderRadius: 8,
-            spacing: 4,
-            hoverOffset: 8
-          }]
+    kanbanSectorChartInstance = new ChartClass(ctxSector, {
+      type: 'doughnut',
+      data: {
+        labels: KANBAN_COLUMNS.map(c => c.shortLabel),
+        datasets: [{
+          data: KANBAN_COLUMNS.map(c => dataMap[c.id]),
+          backgroundColor: KANBAN_COLUMNS.map(c => window.createChartGradient(ctxSector, c.color, 'ee', '33')),
+          borderWidth: 2,
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: 8,
+          spacing: 4,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        onClick: (evt, activeEls) => {
+          if (activeEls && activeEls.length > 0) {
+            const idx = activeEls[0].index;
+            const sector = KANBAN_COLUMNS[idx];
+            if (sector) setKanbanFilter(sector.id);
+          } else {
+            openKanbanSectorBreakdownModal();
+          }
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '72%',
-          animation: { duration: 500 },
-          onClick: (evt, activeEls) => {
-            if (activeEls && activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              const sector = KANBAN_COLUMNS[idx];
-              if (sector) setKanbanFilter(sector.id);
-            } else {
-              openKanbanSectorBreakdownModal();
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(18, 14, 34, 0.94)',
-              titleColor: '#818cf8',
-              bodyColor: '#f8fafc',
-              borderColor: 'rgba(129, 140, 248, 0.35)',
-              borderWidth: 1,
-              padding: 8,
-              callbacks: {
-                label: (context) => ` ${context.label}: ${context.raw} paciente(s) (Clique para filtrar)`
-              }
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#818cf8',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(129, 140, 248, 0.35)',
+            borderWidth: 1,
+            padding: 8,
+            callbacks: {
+              label: (context) => ` ${context.label}: ${context.raw} paciente(s) (Clique para filtrar)`
             }
           }
         }
-      });
-    } catch(err) {
-      console.warn('Erro ao renderizar kanbanSectorChart:', err);
-    }
+      }
+    });
   }
 
   // 3. Render SLA Chart (Interativo com clique no status)
   const ctxSla = document.getElementById('kanbanSlaChart');
-  if (ctxSla && ChartClass) {
-    try {
-      if (kanbanSlaChartInstance) {
-        kanbanSlaChartInstance.destroy();
-        kanbanSlaChartInstance = null;
-      }
+  if (ctxSla) {
+    if (kanbanSlaChartInstance) kanbanSlaChartInstance.destroy();
 
-      const slaContext = ctxSla.getContext ? ctxSla.getContext('2d') : ctxSla;
-
-      kanbanSlaChartInstance = new ChartClass(slaContext, {
-        type: 'doughnut',
-        data: {
-          labels: ['No Prazo', 'Atenção', 'Meta Excedida'],
-          datasets: [{
-            data: [onTime, warning, exceeded],
-            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'].map(c => (window.createChartGradient ? window.createChartGradient(ctxSla, c, 'ee', '33') : c)),
-            borderWidth: 2,
-            borderColor: 'rgba(255, 255, 255, 0.08)',
-            borderRadius: 8,
-            spacing: 4,
-            hoverOffset: 8
-          }]
+    kanbanSlaChartInstance = new ChartClass(ctxSla, {
+      type: 'doughnut',
+      data: {
+        labels: ['No Prazo', 'Atenção', 'Meta Excedida'],
+        datasets: [{
+          data: [onTime, warning, exceeded],
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'].map(c => window.createChartGradient(ctxSla, c, 'ee', '33')),
+          borderWidth: 2,
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: 8,
+          spacing: 4,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        onClick: (evt, activeEls) => {
+          if (activeEls && activeEls.length > 0) {
+            const idx = activeEls[0].index;
+            const slaTypes = ['ontime', 'warning', 'exceeded'];
+            setKanbanSlaFilter(slaTypes[idx]);
+          } else {
+            openKanbanSlaAuditModal();
+          }
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '72%',
-          animation: { duration: 500 },
-          onClick: (evt, activeEls) => {
-            if (activeEls && activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              const slaTypes = ['ontime', 'warning', 'exceeded'];
-              setKanbanSlaFilter(slaTypes[idx]);
-            } else {
-              openKanbanSlaAuditModal();
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(18, 14, 34, 0.94)',
-              titleColor: '#f59e0b',
-              bodyColor: '#f8fafc',
-              borderColor: 'rgba(245, 158, 11, 0.35)',
-              borderWidth: 1,
-              padding: 8,
-              callbacks: {
-                label: (context) => ` ${context.label}: ${context.raw} paciente(s) (Clique para filtrar)`
-              }
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(18, 14, 34, 0.94)',
+            titleColor: '#f59e0b',
+            bodyColor: '#f8fafc',
+            borderColor: 'rgba(245, 158, 11, 0.35)',
+            borderWidth: 1,
+            padding: 8,
+            callbacks: {
+              label: (context) => ` ${context.label}: ${context.raw} paciente(s) (Clique para filtrar)`
             }
           }
         }
-      });
-    } catch(err) {
-      console.warn('Erro ao renderizar kanbanSlaChart:', err);
-    }
+      }
+    });
   }
 }
 

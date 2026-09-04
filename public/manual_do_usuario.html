@@ -346,9 +346,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.9.0)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.7.3)</h1>
 <blockquote>
-<p><strong>Health Nexus — Sistema de Gestão Hospitalar &amp; Prontuário Eletrônico (PEP SOAP)</strong><br>Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.</p>
+<p>**Health Nexus — Sistema de Gestão Hospitalar &amp; Prontuário Eletr&gt; Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.</p>
 </blockquote>
 <hr>
 <h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.3)</h2>
@@ -750,8 +750,99 @@ graph TD
 <h3>�� Perfis de Acesso &amp; Matriz de Permissões</h3>
 <p>| Perfil | Acesso Visual às Abas | Prontuário (PEP) | Triagem Manchester | Prescrição Planilha | Gestão de Leitos | Financeiro | Lixeira / Sync |</p>
 <p>|---|---|---|---|---|---|---|---|</p>
-<p>| <strong>�� Master / Admin</strong> | Todas as abas | Total | Total | Total | Total | Total | Exclusivo |
-| Botão do Modal | Ação | Resultado |</p>
+<p>| <strong>�� Master / Admin</strong> | Todas as abas | Total | Total | Total | Total | Total | Exclusivo |</p>
+<p>| <strong>�� Médico</strong> | Dashboard, Pacientes, Atendimento, Leitos, Farmácia, Relatórios | Assinatura SOAPE | Consulta | Criação de Planilha | Solicitação | Bloqueado | Bloqueado |</p>
+<p>| <strong>�� Enfermeiro(a)</strong> | Dashboard, Pacientes, Atendimento, Leitos, Farmácia | Leitura | Execução Manchester | Checagem de Doses | Gestão / Transferência | Bloqueado | Bloqueado |</p>
+<p>| <strong>�� Recepcionista</strong> | Dashboard, Pacientes, Agenda, Atendimento, Painel TV, Caixa | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Apenas Entradas | Bloqueado |</p>
+<p>| <strong>�� Farmacêutico(a)</strong>| Dashboard, Pacientes, Farmácia, Relatórios | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado |</p>
+<h3>�� Assistente de IA Local (Manual Interativo)</h3>
+<p>O sistema possui um <strong>Assistente IA Integrado</strong> na busca do Manual. Ao fazer perguntas em linguagem natural (ex: &quot;como incluir um paciente?&quot;), a IA correlaciona a intenção com os botões e módulos do sistema.</p>
+<p><strong>Segurança RBAC na IA:</strong> A IA tem plena consciência do perfil de acesso do usuário. Se um usuário pesquisar por uma funcionalidade restrita a um perfil superior (ex: um Médico pesquisando sobre &quot;Controle de Perfis&quot;), a IA não instruirá sobre o módulo; em vez disso, informará claramente que o usuário logado não possui permissão para executar a ação solicitada, citando os perfis autorizados.</p>
+<hr>
+<h2 id="sec-2">2. Central de Atendimentos & Painel Kanban</h2><h3 id="sec-2-1">2.1. Cards Métricos e Filtros de Fila</h3><p>No topo da aba <strong>Atendimentos</strong>, encontram-se os 4 <strong>Cards Métricos Clicáveis</strong> para controle imediato do fluxo:</p>
+<p>| Card | Ãcone | Cor Tema | Ação ao Clicar | Descrição / Objetivo |</p>
+<p>| :--- | :---: | :---: | :--- | :--- |</p>
+<p>| <strong>Triagem</strong> |  | Roxo (<code>#8b5cf6</code>) | <code>filterKanbanColumn(&#39;triage&#39;)</code> | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem da enfermagem. |</p>
+<p>| <strong>Ag. Médico</strong> | âŒ› | Amarelo (<code>#f59e0b</code>) | <code>filterKanbanColumn(&#39;waiting&#39;)</code> | Filtra a tela para exibir apenas os pacientes triados aguardando chamada do médico. |</p>
+<p>| <strong>Em Consulta</strong> |  | Verde (<code>#10b981</code>) | <code>filterKanbanColumn(&#39;active&#39;)</code> | Filtra a tela para focar nos atendimentos em andamento e em observação no PS. |</p>
+<p>| <strong>Ver Todos</strong> |  | Neutro (<code>#94a3b8</code>) | <code>filterKanbanColumn(&#39;all&#39;)</code> | Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban. |</p>
+<hr>
+<h3 id="sec-2-2">2.2. Fila 1: Aguardando Triagem (Protocolo de Manchester)</h3><p>Pacientes admitidos na recepção dão entrada nesta fila para classificação de risco pela enfermagem.</p>
+<h4>Tabela de Campos do Modal de Triagem</h4>
+<p>| Campo do Formulário | Tipo de Entrada | Valores de Referência / Validação | Função Clínica |</p>
+<p>| :--- | :--- | :--- | :--- |</p>
+<p>| <strong>Pressão Arterial (PA)</strong> | Texto (ex: <code>120/80</code>) | NORMOTENSO: 120/80 mmHg | Avaliação hemodinâmica inicial (máscara autocompletável). |</p>
+<p>| <strong>Frequência Cardíaca (FC)</strong> | Número (bpm) | NORMOFAGIA: 60 - 100 bpm | Detecção de taquicardia ou bradicardia. |</p>
+<p>| <strong>Temperatura (°C)</strong> | Número (°C) | AFEBRIL: 36.1°C - 37.2°C (Febre: &gt;= 37.8°C) | Identificação de febre ou hipotermia. |</p>
+<p>| <strong>Peso (kg)</strong> | Número (kg) | Exemplo: 70.5 kg | Cálculo de dosagem de medicamentos e anestésicos. |</p>
+<p>| <strong>Saturação de O2 (SpO2)</strong> | Número (%) | NORMAL: &gt;= 95% (Hipóxia: &lt; 92%) | Avaliação de insuficiência respiratória. |</p>
+<p>| <strong>Escala de Dor</strong> | Seletor (0 a 10) | 0: Sem dor / 10: Pior dor imaginável | Escala analógica visual de dor. |</p>
+<p>| <strong>Queixa Principal</strong> | Ãrea de Texto | Mínimo 5 caracteres | Registro narrativo dos sintomas do paciente. |</p>
+<h4>Tabela de Classificação de Risco (Manchester)</h4>
+<p>| Cor de Risco | Nível de Gravidade | Tempo Máximo de Espera | Sinalização Visual | Ação Recomendada |</p>
+<p>| :---: | :--- | :---: | :---: | :--- |</p>
+<p>|  <strong>Vermelho</strong> | Emergência Absoluta | <strong>0 minutos</strong> (Imediato) | Card Vermelho Piscando | Paciente em risco iminente de morte. Sala Vermelha imediata. |</p>
+<p>|  <strong>Laranja</strong> | Muito Urgente | <strong>10 minutos</strong> | Border Laranja | Risco significativo de perda de função/vida. Atendimento rápido. |</p>
+<p>|  <strong>Amarelo</strong> | Urgente | <strong>60 minutos</strong> | Border Amarelo | Condição estável com necessidade de avaliação médica em até 1h. |</p>
+<p>|  <strong>Verde</strong> | Pouco Urgente | <strong>120 minutos</strong> | Border Verde | Quadro leve sem risco de agravamento rápido. Fila regular. |</p>
+<p>|  <strong>Azul</strong> | Não Urgente | <strong>240 minutos</strong> | Border Azul | Queixa crnica ou consulta simples. Atendimento eletivo. |</p>
+<hr>
+<h3 id="sec-2-3">2.3. Fila 2: Aguardando Médico (Chamada de Consultório)</h3><p>Nesta coluna, os pacientes são ordenados por <strong>Gravidade Manchester</strong> e <strong>Tempo de Espera</strong>.</p>
+<h4>Tabela de Ações do Card de Espera Médica</h4>
+<p>| Ação no Card | Ãcone | Função Técnica | Resultado no Sistema |</p>
+<p>| :--- | :---: | :--- | :--- |</p>
+<p>| <strong>Chamar para Consulta</strong> |  | Dispara websockets/eventos locais para a recepção. | 1. Toca sinal sonoro no Painel TV.<br>2. Exibe o nome do paciente no painel central.<br>3. Move o atendimento para a coluna <em>Em Atendimento</em>. |</p>
+<hr>
+<h3 id="sec-2-4">2.4. Fila 3: Em Atendimento (Ações do Médico)</h3><p>Coluna onde o médico realiza o atendimento ativo. Cada card contém 5 botões de ação:</p>
+<h4>Tabela Completa de Botões do Médico</h4>
+<p>| Botão | Ãcone | Função do Botão | Resultado ao Clicar |</p>
+<p>| :--- | :---: | :--- | :--- |</p>
+<p>| <strong>PEP</strong> |  | Prontuário Eletr
+| <strong>Prescrição</strong> |  | Receituário Médico | Abre a tela para prescrever medicamentos, posologias, via de administração e orientações. |</p>
+<p>| <strong>Observação</strong> |  | Observação no PS (12h max) | Inicia a contagem do cronmetro de permanência contínua e exibe badge de tempo no card. |</p>
+<p>| <strong>Transferir Leito</strong> | ï¸ | Internação / Leito | Abre o modal para selecionar e alocar o paciente em um leito livre da Enfermaria ou UTI. |</p>
+<p>| <strong>Finalizar</strong> | âœ… | Alta Médica / Conclusão | Encerra a consulta, grava a alta no sistema e move o atendimento para o Histórico Pós-Alta. |</p>
+<hr>
+<h2 id="sec-3">3. Prontuário Eletr<h3 id="sec-3-1">3.1. Estrutura SOAP</h3><p>| Bloco SOAP | Elemento | Descrição do Preenchimento | Exemplo de Preenchimento |</p>
+<p>| :---: | :--- | :--- | :--- |</p>
+<p>| <strong>S</strong> | <strong>Subjetivo</strong> | Anamnese, queixa principal, tempo de evolução dos sintomas e histórico. | <em>&quot;Paciente relata dor torácica há 2 horas com irradiação para braço esquerdo.&quot;</em> |</p>
+<p>| <strong>O</strong> | <strong>Objetivo</strong> | Exame físico, ausculta cardíaca/pulmonar, sinais vitais e exames complementares. | <em>&quot;PA: 140/90, FC: 98bpm, ausculta cardíaca sem sopros. ECG com elevação ST.&quot;</em> |</p>
+<p>| <strong>A</strong> | <strong>Avaliação</strong> | Hipótese diagnóstica principal e busca do código <strong>CID-10</strong>. | <em>&quot;I21.9 — Infarto agudo do miocárdio não especificado.&quot;</em> |</p>
+<p>| <strong>P</strong> | <strong>Plano</strong> | Conduta terapêutica, prescrição farmacológica, solicitações de exames e recomendações de alta/retorno. | <em>&quot;Administrado AAS 300mg + Clopidogrel 300mg. Solicitada Vaga na UTI Coronariana.&quot;</em> |</p>
+<h3 id="sec-3-2">3.2. Autocomplete CID-10</h3><p>No campo <strong>Avaliação</strong>, ao digitar o código ou nome da doença, o sistema lista sugestões oficiais.</p>
+<h3 id="sec-3-3">3.3. Assinatura Eletrnica e Exportação PDF</h3><p>Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.</p>
+<hr>
+<h2 id="sec-4">4. Guia Completo de Todos os Modais do Sistema</h2><p>Abaixo encontra-se o detalhamento técnico de cada janela modal presente no sistema, seus botões, validações e comportamentos.</p>
+<h3 id="sec-4-1">4.1. Modal de Triagem de Manchester</h3><ul>
+<li><p><strong>Como Acessar:</strong> Clique no botão <code> Realizar Triagem</code> na primeira coluna do Kanban.</p>
+</li>
+<li><p><strong>Campos de Entrada:</strong> <code>triage-pa</code>, <code>triage-fc</code>, <code>triage-temp</code>, <code>triage-peso</code>, <code>triage-spo2</code>, <code>triage-dor</code>, <code>manchesterColor</code>, <code>triage-queixa</code>.</p>
+</li>
+</ul>
+<p>| Botão do Modal | Classe / ID | Comportamento ao Clicar |</p>
+<p>| :--- | :--- | :--- |</p>
+<p>| <strong>Confirmar Triagem</strong> | <code>button[type=&quot;submit&quot;]</code> | Valida cor obrigatória e queixa. Altera status para <code>Aguardando_Atendimento</code> e fecha modal. |</p>
+<p>| <strong>Cancelar</strong> | <code>#btn-cancel-triage</code> | Cancela a operação, limpa o formulário e fecha a janela sem alterar o paciente. |</p>
+<p>| <strong>Fechar (X)</strong> | <code>#close-triage-modal</code> | Fecha a janela modal imediatamente. |</p>
+<h3 id="sec-4-2">4.2. Modal de Prescrição & Receituário Médico</h3><ul>
+<li><p><strong>Como Acessar:</strong> Clique no botão <code> Prescrição</code> na 3ª coluna do Kanban (<em>Em Atendimento</em>).</p>
+</li>
+<li><p><strong>Campos de Entrada:</strong> <code>rx-med-name</code>, <code>rx-dosage</code>, <code>rx-route</code>, <code>rx-frequency</code>, <code>rx-notes</code>.</p>
+</li>
+</ul>
+<p>| Botão do Modal | Ação | Resultado |</p>
+<p>| :--- | :--- | :--- |</p>
+<p>| <strong>âž• Adicionar Item</strong> | Insere o medicamento na lista temporária da receita | Atualiza a tabela interna do receituário. |</p>
+<p>| <strong>ï¸ Remover Item</strong> | Exclui o item selecionado da lista da receita | Remove o fármaco da lista atual. |</p>
+<p>| ** Salvar &amp; Dispensar**| Registra a receita e conecta com a farmácia | Envia pedido de baixa para o estoque da farmácia. |</p>
+<p>| <strong>ï¸ Imprimir PDF</strong> | Gera a receita médica formatada em PDF | Baixa o arquivo de receita com cabeçalho médico. |</p>
+<h3 id="sec-4-3">4.3. Modal de Transferência & Alocação de Leito</h3><ul>
+<li><p><strong>Como Acessar:</strong> Clique no botão <code>ï¸ Transferir Leito</code> no card do paciente em consulta.</p>
+</li>
+<li><p><strong>Campos de Entrada:</strong> <code>bed-sector</code>, <code>bed-target</code>, <code>bed-notes</code>.</p>
+</li>
+</ul>
+<p>| Botão do Modal | Ação | Resultado |</p>
 <p>| :--- | :--- | :--- |</p>
 <p>| <strong>Confirmar Transferência</strong>| Associa o paciente ao leito escolhido | Altera o status do leito para <code>Ocupado</code> e atualiza a aba <em>Leitos</em>. |</p>
 <p>| <strong>Solicitar Higienização</strong> | Marca o leito de origem para limpeza | Altera o leito anterior para status <code>Higienização</code>. |</p>
@@ -1526,76 +1617,15 @@ Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de
 <li><strong>Botões de Ação Rápida:</strong><ul>
 <li><code>🛡️ Padrão Oficial</code>: Restaura a seleção para as contas oficiais padrão.</li>
 <li><code>✅ Marcar Todos</code>: Protege todos os usuários contra exclusão.</li>
+<li><code>❌ Desmarcar</code>: Desmarca todos os usuários (exceto o Master).</li>
 </ul>
 </li>
+<li><strong>Contador Dinâmico em Tempo Real:</strong> Exibe a contagem exata de contas que serão preservadas vs contas que serão eliminadas.</li>
 </ul>
 </li>
+<li>Clique em <strong><code>Executar Limpeza</code></strong> e confirme o diálogo de segurança.</li>
+<li>O sistema atualiza o banco de dados local, sincroniza com a nuvem (Turso Cloud) e registra um evento de auditoria no histórico da sessão.</li>
 </ol>
-<hr>
-<h2 id="sec-25">25. Inteligência Assistencial Clínica, Voice-to-SOAP & Telemedicina WebRTC (v2.8.0) 🧠🎙️</h2><p>A versão <strong>v2.8.0</strong> do Health Nexus introduz um conjunto revolucionário de inteligência clínica e conectividade:</p>
-<h3>25.1. Ditado Clínico por Voz (<em>Voice-to-SOAP</em>)</h3>
-<ul>
-<li>Nos campos <strong>Subjetivo</strong>, <strong>Objetivo</strong>, <strong>Avaliação</strong> e <strong>Plano</strong> do PEP, médicos podem clicar em <strong><code>🎙️ Ditar</code></strong> para transcrever anamneses e hipóteses por voz com pontuação automática em português (<code>pt-BR</code>).</li>
-</ul>
-<h3>25.2. Escore Preditivo MEWS &amp; Alerta Precoce de Sepse</h3>
-<ul>
-<li>O sistema calcula em tempo real o escore <strong>MEWS (Modified Early Warning Score)</strong> a partir de PA, FC, Temperatura, SpO2 e Dor tanto na <strong>Triagem Manchester</strong> quanto no <strong>PEP</strong>:<ul>
-<li>🟢 <strong>Escore 0–2 (Baixo Risco):</strong> Parâmetros estáveis.</li>
-<li>🟡 <strong>Escore 3–4 (Risco Moderado):</strong> Monitorização reforçada a cada 30 min.</li>
-<li>🔴 <strong>Escore ≥ 5 (Alto Risco / Crítico):</strong> Alerta visual e sonoro com protocolo de sepse e acionamento de emergência/UTI.</li>
-</ul>
-</li>
-</ul>
-<h3>25.3. Verificador em Tempo Real de Interações Medicamentosas</h3>
-<ul>
-<li>Ao prescrever no campo <em>Plano Terapêutico</em>, o sistema analisa combinações de risco (ex: Varfarina + AAS, Ciprofloxacino + Teofilina, Omeprazol + Clopidogrel, Enalapril + Espironolactona) e exibe um alerta com a conduta médica recomendada.</li>
-</ul>
-<h3>25.4. Sala Virtual de Telemedicina WebRTC</h3>
-<ul>
-<li>Médicos podem iniciar chamadas de vídeo criptografadas de ponta a ponta com o paciente diretamente pelo PEP ou pelo HUD Flutuante, com controles de áudio, vídeo, compartilhamento de tela e painel de anotações simultâneo.</li>
-</ul>
-<h3>25.5. Integração com WhatsApp &amp; Autenticação Digital CFM</h3>
-<ul>
-<li>Envio formatado de orientações clínicas, receitas médicas e chamados de fila diretamente para o WhatsApp do paciente com 1 clique.</li>
-<li>Documentos assinados com conformidade digital da Resolução CFM nº 1.821/2007.</li>
-</ul>
-<hr>
-<h2 id="sec-26">26. Assinatura ICP-Brasil em Nuvem, Faturamento TISS 4.01 XML & App PWA (v2.9.0) 🔐📑📲</h2><p>A versão <strong>v2.9.0</strong> consolida o Health Nexus no patamar mais elevado de interoperabilidade, segurança jurídica e mobilidade hospitalar no Brasil:</p>
-<h3>26.1. Assinatura Digital ICP-Brasil em Nuvem &amp; A1 (Padrão CFM / ITI)</h3>
-<ul>
-<li><strong>Validade Jurídica Incontestável:</strong> Em conformidade estrita com a <strong>MP nº 2.200-2/2001</strong> e com a <strong>Resolução CFM nº 2.299/2021</strong>, possibilitando a emissão de receitas digitais para medicamentos de controle especial (Portaria SVS/MS nº 344/1998) e antimicrobianos.</li>
-<li><strong>Múltiplos Provedores em Nuvem Homologados:</strong><ul>
-<li>🦅 <strong>BirdID (Soluti)</strong></li>
-<li>🏛️ <strong>NeoID (Serpro)</strong></li>
-<li>🔐 <strong>Certisign RemoteID</strong></li>
-<li>🛡️ <strong>VIDaaS (Valid)</strong></li>
-<li>💻 <strong>Certificado A1 Local (.PFX / .P12)</strong></li>
-</ul>
-</li>
-<li><strong>Segurança Criptográfica &amp; Validação Pública:</strong><ul>
-<li>Geração automática de <strong>Hash SHA-256</strong> sobre o prontuário/receita.</li>
-<li>Inserção de <strong>Carimbo de Tempo Oficial (Timestamping)</strong>.</li>
-<li>Emissão de link público e QR Code para auditoria instantânea no portal federal <code>https://validar.iti.gov.br</code>.</li>
-</ul>
-</li>
-</ul>
-<h3>26.2. Faturamento Eletrônico TISS Versão 4.01.00 XML (Padrão ANS)</h3>
-<ul>
-<li><strong>Conformidade Regulatória ANS:</strong> Emissão de lotes de guias no padrão XML oficial <code>ans:mensagemTISS</code> versão <strong>4.01.00</strong>, aceito universalmente por operadoras de planos de saúde (Unimed, Bradesco Saúde, Amil, SulAmérica, NotreDame Intermédica, etc.).</li>
-<li><strong>Tabela TUSS Embarcada:</strong> Mapeamento nativo de códigos TUSS para consultas ambulatoriais (<code>10101012</code>), pronto-socorro/urgência (<code>10101039</code>), SADT e diárias hospitalares.</li>
-<li><strong>Hash de Integridade MD5:</strong> Cálculo criptográfico do Hash MD5 no elemento <code>&lt;ans:epilogo&gt;</code> para assegurar a inviolabilidade do lote e prevenir rejeições ou glosas técnicas por parte das operadoras.</li>
-<li><strong>Exportação com 1 Clique:</strong> Na aba <strong>Relatórios &amp; Faturamento</strong>, o botão azul <strong><code>Exportar Lote TISS 4.01 (XML ANS)</code></strong> gera e faz o download imediato do arquivo XML pronto para transmissão.</li>
-</ul>
-<h3>26.3. App Mobile PWA &amp; Notificações Push de Sobreaviso</h3>
-<ul>
-<li><strong>Instalação Standalone PWA:</strong> Suporte a Progressive Web App (PWA) nativo com <code>manifest.webmanifest</code> e ícones adaptativos para instalação direta no Android, iOS (Safari) e Windows Desktop.</li>
-<li><strong>Service Worker de Alto Desempenho:</strong> Arquivo <code>sw.js</code> com estratégia <em>Cache First</em> para recursos estáticos e <em>Network First</em> para APIs, garantindo navegação instantânea e operação offline contínua.</li>
-<li><strong>Notificações Push para Médicos de Sobreaviso:</strong><ul>
-<li>Disparo de notificações push nativas no celular de médicos plantonistas ao identificar pacientes críticos na triagem (MEWS ≥ 5 / Manchester Vermelho).</li>
-<li>Ação rápida na notificação para abrir instantaneamente o prontuário do paciente no dispositivo móvel.</li>
-</ul>
-</li>
-</ul>
 <hr>
 
     </main>

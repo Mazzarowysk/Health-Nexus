@@ -12,17 +12,17 @@ async function renderPharmacyTab() {
       <div class="tab-header-banner" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
           <h2 style="font-size: 1.5rem; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-pills" style="color: #0d9488;"></i> Farmácia Hospitalar &amp; Controle de Estoque
+            <i class="fa-solid fa-pills" style="color: #ec4899;"></i> Farmácia Hospitalar &amp; Controle de Estoque
           </h2>
           <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
             Gerenciamento de medicamentos, dispensação para leitos e alertas de estoque crítico.
           </p>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button id="btn-dispense-med" class="btn btn-secondary" style="border-color: #0d9488; color: #14b8a6;">
+          <button id="btn-dispense-med" class="btn btn-secondary" style="border-color: #ec4899; color: #f472b6;">
             <i class="fa-solid fa-hand-holding-medical"></i> Dispensar Medicação
           </button>
-          <button id="btn-add-pharm-item" class="btn btn-primary" style="background: #0284c7; border: none; box-shadow: 0 2px 8px rgba(2,132,199,0.35);">
+          <button id="btn-add-pharm-item" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none;">
             <i class="fa-solid fa-plus"></i> Novo Medicamento
           </button>
         </div>
@@ -245,19 +245,16 @@ function renderPharmacyTable(items) {
 
       return `
         <tr data-search="${searchTxt}" style="border-bottom: 1px solid var(--border-color); font-size: 0.88rem;">
-          <td style="padding: 12px; font-family: monospace; font-weight: 700; color: #0ea5e9;">${item.id}</td>
-          <td style="padding: 12px;">
-            <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">${item.name}</div>
-            <div style="font-size: 0.78rem; color: var(--text-muted);">${item.activePrinciple || 'Princípio Ativo N/D'}</div>
-          </td>
-          <td style="padding: 12px; color: var(--text-secondary); font-size: 0.88rem;">${item.dosage}</td>
+          <td style="padding: 12px; font-family: monospace; font-weight: 700; color: #ec4899;">${item.id}</td>
+          <td style="padding: 12px; font-weight: 600; color: var(--text-primary);">${item.name}</td>
+          <td style="padding: 12px; color: var(--text-secondary);">${item.dosage || '-'} (${item.form || 'Und'})</td>
           <td style="padding: 12px; color: var(--text-secondary);">${item.lotNumber || '-'} / <span style="color: var(--text-primary);">${item.expirationDate || '-'}</span></td>
           <td style="padding: 12px; font-weight: 700; color: ${isCritical ? '#ef4444' : 'var(--text-primary)'};">${qty} unds</td>
           <td style="padding: 12px;">${statusBadge}</td>
           <td style="padding: 12px; color: var(--text-primary); font-weight: 600;">R$ ${price.toFixed(2)}</td>
           <td style="padding: 12px; text-align: right;">
             <div class="actions-cell" style="justify-content: flex-end;">
-              <button class="btn-icon btn-edit-pharm" data-id="${item.id}" title="Editar Medicamento" style="color: #0284c7;">
+              <button class="btn-icon btn-edit-pharm" data-id="${item.id}" title="Editar Medicamento" style="color: #ec4899;">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
               <button class="btn-icon btn-del-pharm" data-id="${item.id}" data-name="${item.name}" title="Excluir Medicamento" style="color: var(--color-danger);">
@@ -348,7 +345,7 @@ function openAddPharmModal(itemToEdit = null) {
   const modalHtml = `
     <div id="modal-pharm-add-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 10, 20, 0.82); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 16px;">
       <div style="background: #1e1c2e; border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 16px; width: 100%; max-width: 560px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; animation: fadeInModal 0.25s ease-out;">
-        <div style="background: #1e293b; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid #334155;">
+        <div style="background: linear-gradient(135deg, #be185d, #ec4899); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
           <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid ${isEdit ? 'fa-pen-to-square' : 'fa-pills'}"></i> ${isEdit ? 'Editar Medicamento' : 'Cadastrar Novo Medicamento'}
           </h3>
@@ -439,7 +436,7 @@ function openAddPharmModal(itemToEdit = null) {
             <button type="button" id="btn-cancel-pharm-add" class="btn btn-secondary" style="padding: 10px 18px;">
               Cancelar
             </button>
-            <button type="submit" class="btn btn-primary" style="background: #0284c7; border: none; padding: 10px 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(2,132,199,0.35);">
+            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none; padding: 10px 20px; font-weight: 600;">
               <i class="fa-solid fa-check" style="margin-right: 6px;"></i> ${isEdit ? 'Salvar Alterações' : 'Salvar Medicamento'}
             </button>
           </div>
@@ -575,17 +572,6 @@ function openAddPharmModal(itemToEdit = null) {
       if (res.ok) {
         closeModal();
         showCustomAlert({ title: 'Sucesso', message: `Medicamento "${name}" ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`, type: 'success' });
-        
-        if (typeof window.showFlowCompletionNotification === 'function') {
-          window.showFlowCompletionNotification({
-            actionTitle: 'Estoque da Farmácia Atualizado',
-            message: `O medicamento <strong>${name}</strong> (${dosage || form || 'Geral'}) foi salvo com saldo de <strong>${stockQuantity} unids</strong>.<br><br><strong>Próximo Passo:</strong> O fármaco está disponível para prescrição médica imediata no <strong>Prontuário PEP</strong> e na <strong>Central de Atendimentos</strong>.`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Central de Atendimentos',
-            actionType: 'switchTab'
-          });
-        }
-
         await loadPharmacyData();
       } else {
         const errData = await res.json();
@@ -618,7 +604,7 @@ function openDispenseMedModal() {
   const modalHtml = `
     <div id="modal-pharm-dispense-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 10, 20, 0.82); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 16px;">
       <div style="background: #1e1c2e; border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; animation: fadeInModal 0.25s ease-out;">
-        <div style="background: #1e293b; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid #334155;">
+        <div style="background: linear-gradient(135deg, #ec4899, #be185d); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
           <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-hand-holding-medical"></i> Dispensação de Medicação
           </h3>
@@ -650,7 +636,7 @@ function openDispenseMedModal() {
             <button type="button" id="btn-cancel-pharm-disp" class="btn btn-secondary" style="padding: 10px 18px;">
               Cancelar
             </button>
-            <button type="submit" class="btn btn-primary" style="background: #0284c7; border: none; padding: 10px 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(2,132,199,0.35);">
+            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none; padding: 10px 20px; font-weight: 600;">
               <i class="fa-solid fa-check" style="margin-right: 6px;"></i> Confirmar Baixa
             </button>
           </div>
@@ -687,17 +673,6 @@ function openDispenseMedModal() {
       if (res.ok) {
         closeModal();
         showCustomAlert({ title: 'Sucesso', message: 'Dispensação realizada com sucesso!', type: 'success' });
-        
-        if (typeof window.showFlowCompletionNotification === 'function') {
-          window.showFlowCompletionNotification({
-            actionTitle: 'Dispensação Farmacêutica Concluída',
-            message: `Baixa de <strong>${quantity} unidade(s)</strong> registrada no estoque da farmácia.<br><br><strong>Próximo Passo:</strong> A enfermagem pode administrar o medicamento e acompanhar a evolução na <strong>Central de Atendimentos</strong> ou na <strong>Gestão de Leitos</strong>.`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Central de Atendimentos',
-            actionType: 'switchTab'
-          });
-        }
-
         await loadPharmacyData();
       } else {
         const errData = await res.json();

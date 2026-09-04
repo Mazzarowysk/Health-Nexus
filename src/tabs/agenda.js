@@ -650,17 +650,6 @@ async function renderAgendaTab() {
       if (res.ok) {
         showToast('Consulta agendada com sucesso!');
         modal.style.display = 'none';
-
-        if (typeof window.showFlowCompletionNotification === 'function') {
-          const dateFormatted = appointmentDate ? new Date(appointmentDate + 'T12:00:00').toLocaleDateString('pt-BR') : 'Data agendada';
-          window.showFlowCompletionNotification({
-            actionTitle: '📅 Consulta Agendada com Sucesso',
-            message: `A consulta para <strong>${patientName}</strong> com o(a) <strong>${doctorName}</strong> foi agendada para <strong>${dateFormatted} às ${appointmentTime}</strong> (${roomName || 'Consultório'}).<br><br><strong>Próximo Passo:</strong> No dia do atendimento, confirme a presença e inicie o fluxo na <strong>Central de Atendimentos</strong> ou no <strong>Painel TV</strong>.`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Central de Atendimentos',
-            actionType: 'switchTab'
-          });
-        }
         
         for (const key of dataCache.keys()) {
           if (typeof key === 'string' && key.startsWith('appointments_')) { dataCache.delete(key); dataCacheTimestamps.delete(key); }
