@@ -1136,6 +1136,87 @@ window.admitPatientFromPatientsTab = function(patientId, fullName, cpf) {
   }, 200);
 };
 
+window.getPatientCurrentLocation = function(patientId, patientName) {
+  const db = (typeof localDB !== 'undefined' && localDB.getFullDB) ? localDB.getFullDB() : {};
+  const beds = db.beds || [];
+  const encounters = db.encounters || [];
+  const triages = db.triages || [];
+
+  const normPid = String(patientId || '').toLowerCase();
+  const normPname = String(patientName || '').toLowerCase().trim();
+
+  // 1. Leitos ocupados (Internação / UTI / Observação)
+  const bed = beds.find(b => (b.status === 'Ocupado' || b.status === 'Ocupada') && (
+    (b.patientId && String(b.patientId).toLowerCase() === normPid) ||
+    (b.patientName && normPname && b.patientName.toLowerCase().includes(normPname))
+  ));
+  if (bed) {
+    const sec = bed.sector || bed.ward || 'Internação';
+    const bedName = bed.bedNumber || bed.number || bed.name || bed.id || 'Leito';
+    return {
+      text: `Internado(a) — ${sec} (${bedName})`,
+      sector: sec,
+      bed: bedName,
+      status: 'Internado em Leito',
+      color: '#f87171',
+      bg: 'rgba(239,68,68,0.15)',
+      borderColor: 'rgba(239,68,68,0.4)',
+      icon: 'fa-bed-pulse'
+    };
+  }
+
+  // 2. Encounters ativos (Em Atendimento / Observação / Consultório)
+  const activeEnc = encounters.find(e => (e.status === 'Em Atendimento' || e.status === 'Aguardando Atendimento' || e.status === 'Em Observação') && (
+    (e.patientId && String(e.patientId).toLowerCase() === normPid) ||
+    (e.id && String(e.id).toLowerCase() === normPid) ||
+    (e.patientName && normPname && e.patientName.toLowerCase().includes(normPname))
+  ));
+  if (activeEnc) {
+    const sec = activeEnc.sector || activeEnc.room || 'Atendimento Médico';
+    const st = activeEnc.status || 'Em Atendimento';
+    return {
+      text: `${st} — ${sec}`,
+      sector: sec,
+      bed: activeEnc.room || null,
+      status: st,
+      color: '#60a5fa',
+      bg: 'rgba(59,130,246,0.15)',
+      borderColor: 'rgba(59,130,246,0.4)',
+      icon: 'fa-user-doctor'
+    };
+  }
+
+  // 3. Triagem ativa
+  const activeTriage = triages.find(t => (t.status === 'Aguardando Atendimento' || t.status === 'Em Triagem') && (
+    (t.patientId && String(t.patientId).toLowerCase() === normPid) ||
+    (t.patientName && normPname && t.patientName.toLowerCase().includes(normPname))
+  ));
+  if (activeTriage) {
+    return {
+      text: `Aguardando Médico — Triagem / Recepção`,
+      sector: 'Triagem / Recepção',
+      bed: null,
+      status: 'Na Fila de Espera',
+      color: '#facc15',
+      bg: 'rgba(250,204,21,0.15)',
+      borderColor: 'rgba(250,204,21,0.4)',
+      icon: 'fa-clipboard-list'
+    };
+  }
+
+  // 4. Fora da unidade
+  return {
+    text: `Sem Atendimento Ativo (Alta / Fora da Unidade)`,
+    sector: 'Sem Registro Ativo',
+    bed: null,
+    status: 'Finalizado / Alta',
+    color: '#94a3b8',
+    bg: 'rgba(148,163,184,0.12)',
+    borderColor: 'rgba(148,163,184,0.3)',
+    icon: 'fa-person-walking-arrow-right'
+  };
+};
+
 window.openPatientHistoryModal = async function(patientId, patientName) {
   const existing = document.getElementById('patient-history-modal');
   if (existing) existing.remove();
@@ -1419,8 +1500,34 @@ modal.style.left = '0';
       uti: 'UTI'
     };
     const sectorName = activeHosp ? (KANBAN_SECTORS[activeHosp.current_sector] || activeHosp.current_sector || 'Enfermaria') : (latestDischargedHosp ? (KANBAN_SECTORS[latestDischargedHosp.current_sector] || latestDischargedHosp.current_sector || 'Enfermaria') : 'Enfermaria');
+    const patLoc = window.getPatientCurrentLocation(patient.id || patientId, patient.fullName || patientName);
 
     let html = `
+      <!-- CARD PRINCIPAL DE RASTREAMENTO E LOCALIZAÇÃO ATUAL DO PACIENTE -->
+      <div style="background: linear-gradient(135deg, #1e1b4b, #111124); border: 1.5px solid ${patLoc.borderColor}; border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: ${patLoc.bg}; border: 1px solid ${patLoc.borderColor}; display: flex; align-items: center; justify-content: center; color: ${patLoc.color}; font-size: 1.4rem; flex-shrink: 0;">
+            <i class="fa-solid ${patLoc.icon}"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.74rem; color: #a78bfa; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📍 LOCALIZAÇÃO E STATUS ATUAL DO PACIENTE</div>
+            <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-top: 2px;">
+              ${patLoc.text}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; display: flex; gap: 14px; flex-wrap: wrap;">
+              <span>Setor: <strong style="color: #fff;">${patLoc.sector}</strong></span>
+              ${patLoc.bed ? `<span>Leito/Sala: <strong style="color: #f87171; font-weight: 800;">${patLoc.bed}</strong></span>` : ''}
+              <span>Status: <strong style="color: ${patLoc.color};">${patLoc.status}</strong></span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <span style="background: ${patLoc.bg}; color: ${patLoc.color}; border: 1px solid ${patLoc.borderColor}; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid ${patLoc.icon}"></i> ${patLoc.status}
+          </span>
+        </div>
+      </div>
+
       <!-- Card de Informações do Paciente -->
       <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
@@ -1890,7 +1997,8 @@ window.openPEPModal = async function(encounterId) {
 
     const subtitleEl = document.getElementById('pep-modal-subtitle');
     if (subtitleEl) {
-      subtitleEl.innerHTML = `Paciente: <strong style="color:#fff;">${enc.patientName || 'Paciente'}</strong> · Sala: <span style="color:#34d399;">${enc.room || 'Consultório 01'}</span>`;
+      const pepLoc = (typeof window.getPatientCurrentLocation === 'function') ? window.getPatientCurrentLocation(enc.patientId || enc.id, enc.patientName) : { text: enc.room || 'Consultório', color: '#34d399' };
+      subtitleEl.innerHTML = `Paciente: <strong style="color:#fff;">${enc.patientName || 'Paciente'}</strong> · 📍 Localização: <span style="color:${pepLoc.color}; font-weight:700;">${pepLoc.text}</span>`;
     }
 
     // Botões de Cabeçalho (Telemedicina e WhatsApp)

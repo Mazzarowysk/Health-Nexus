@@ -252,6 +252,7 @@ export function renderPatientsTab(contentArea) {
           <tr>
             <th>ID</th>
             <th>Nome Completo</th>
+            <th>📍 Localização Atual</th>
             <th>CPF</th>
             <th>Data Nasc.</th>
             <th>Cidade</th>
@@ -271,11 +272,17 @@ export function renderPatientsTab(contentArea) {
       }
       
       const phones = [p.phone, p.cellphone].filter(Boolean).join(' / ');
+      const loc = (typeof window.getPatientCurrentLocation === 'function') ? window.getPatientCurrentLocation(p.id, p.fullName) : { text: 'Fora da Unidade', color: '#94a3b8', icon: 'fa-user', bg: 'rgba(148,163,184,0.12)', borderColor: 'rgba(148,163,184,0.3)' };
       
       tableHtml += `
         <tr>
           <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${p.id}</td>
           <td style="font-weight: 500;">${p.fullName}<br><small style="color: var(--text-muted); font-size: 0.76rem;">Mãe: ${p.motherName || '-'}</small></td>
+          <td>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700; background: ${loc.bg}; color: ${loc.color}; border: 1px solid ${loc.borderColor}; whitespace: nowrap;">
+              <i class="fa-solid ${loc.icon}"></i> ${loc.sector || loc.text} ${loc.bed ? `(${loc.bed})` : ''}
+            </span>
+          </td>
           <td style="font-family: monospace; font-size: 0.9rem;">${p.cpf}</td>
           <td>${formattedDate}</td>
           <td>${p.city || '-'}</td>
