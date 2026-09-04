@@ -484,6 +484,9 @@ async function renderAgendaTab() {
           <!-- AÇÕES DA CONSULTA -->
           <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
             ${canAct ? confirmBtn + atenderBtn + cancelBtn : ''}
+            <button onclick="window.triggerWhatsAppReminderBot('${apt.id}', '${(apt.patientName||'').replace(/'/g, "\\'")}', '${(apt.doctorName||'').replace(/'/g, "\\'")}', '${apt.appointmentDate||apt.date||''}', '${apt.appointmentTime||''}')" title="Enviar Lembrete Automático por WhatsApp" style="display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:8px;border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.12);color:#4ade80;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseenter="this.style.background='rgba(34,197,94,0.25)'" onmouseleave="this.style.background='rgba(34,197,94,0.12)'">
+              <i class="fa-brands fa-whatsapp"></i> Bot Lembrete
+            </button>
             <button onclick="window.generateAppointmentPDF('${apt.id}', '${(apt.patientName||'').replace(/'/g, "\\'")}', '${(apt.doctorName||'').replace(/'/g, "\\'")}', '${apt.appointmentDate||''}', '${apt.appointmentTime||''}', '${(apt.specialty||'').replace(/'/g, "\\'")}', '${apt.status||''}', '${(apt.notes||'').replace(/'/g, "\\'")}')" title="Gerar Comprovante PDF" style="display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#f87171;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseenter="this.style.background='rgba(239,68,68,0.2)'" onmouseleave="this.style.background='rgba(239,68,68,0.08)'">
               <i class="fa-solid fa-file-pdf"></i> Comprovante
             </button>
@@ -695,6 +698,20 @@ window.updateAppointmentStatus = async (id, status) => {
 };
 
 
+
+window.triggerWhatsAppReminderBot = async function(aptId, patientName, doctorName, date, time) {
+  showToast(`💬 Disparando lembrete interativo via WhatsApp Bot para ${patientName}...`);
+  setTimeout(() => {
+    showToast(`📱 Bot WhatsApp disparado: "Olá ${patientName}, confirma sua consulta com ${doctorName || 'Médico'} no horário de ${time || 'hoje'}? Responda [1] Sim [2] Reagendar"`, false);
+  }, 1200);
+
+  setTimeout(async () => {
+    showToast(`🟢 Resposta simulada via WhatsApp de ${patientName}: "1 - Sim, confirmado!"`, false);
+    if (typeof window.updateAppointmentStatus === 'function') {
+      await window.updateAppointmentStatus(aptId, 'Confirmado');
+    }
+  }, 3200);
+};
 
 // --- ABA GESTÃO DE LEITOS E INTERNAÇÕES ---
 

@@ -15,7 +15,10 @@ import { renderSchedulesTab } from './tabs/escalas.js';
 import { renderDashboardTab, fetchDashboardData, initDashboardCharts, initInteractiveFunnel } from './tabs/dashboard.js';
 import { renderPatientsTab } from './tabs/patients.js';
 import { renderAttendanceTab } from './tabs/attendance.js';
+import { renderTISSTab } from './tabs/tiss.js';
 import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.js';
+
+window.renderTISSTab = renderTISSTab;
 import { realtimeHub } from './modules/realtime.js';
 import { setActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD, initFloatingWorkflowGuide, updateFloatingWorkflowGuide } from './modules/journey.js';
 import { generateMockData } from './mockDataGenerator.js';
@@ -1920,6 +1923,7 @@ function renderAppStructure() {
     { id: 'kanban', label: 'Kanban', icon: 'fa-table-columns' },
     { id: 'farmacia', label: 'Farmácia & Estoque', icon: 'fa-pills' },
     { id: 'financeiro', label: 'Financeiro', icon: 'fa-hand-holding-dollar' },
+    { id: 'tiss', label: 'Faturamento TISS', icon: 'fa-file-invoice-dollar' },
     { id: 'medicos', label: 'Profissionais', icon: 'fa-user-nurse' },
     { id: 'consultorios', label: 'Consultórios', icon: 'fa-door-open' },
     { id: 'relatorios', label: 'Relatórios', icon: 'fa-file-contract' },
@@ -2680,6 +2684,7 @@ function switchTab(tabName, isBack = false) {
     leitos:        'Gestão de Leitos',
     kanban:        'Kanban de Internação',
     financeiro:    'Gestão Financeira & Títulos',
+    tiss:          'Faturamento TISS / TUSS & ANS',
     relatorios:    'Relatórios',
     configuracoes: 'Configurações'
   };
@@ -2721,6 +2726,7 @@ function updateGlobalBackButton() {
     leitos: 'Leitos',
     kanban: 'Kanban',
     financeiro: 'Financeiro',
+    tiss: 'TISS',
     relatorios: 'Relatórios',
     configuracoes: 'Configurações'
   };
@@ -2780,6 +2786,8 @@ async function renderTabContent() {
       const btnFin = document.getElementById('tab-btn-financial');
       if (btnFin) btnFin.click();
     }, 20);
+  } else if (state.activeTab === 'tiss' || state.activeTab === 'faturamento') {
+    renderTISSTab(contentArea);
   } else if (state.activeTab === 'relatorios') {
     renderReportsTab(contentArea);
   } else if (state.activeTab === 'configuracoes') {

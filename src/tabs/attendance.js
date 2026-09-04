@@ -6,6 +6,7 @@ import { realtimeHub } from '../modules/realtime.js';
 import { setActivePatientContext, renderPatientJourneyStepper } from '../modules/journey.js';
 import { getRolePermissions } from '../modules/auth.js';
 import { calculateMEWS, generateWhatsAppClinicalMessage, sendToWhatsApp } from '../modules/clinicalAI.js';
+import { detectEmergencyProtocolByComplaint, startEmergencyProtocol } from '../modules/emergencyProtocols.js';
 
 export function renderAttendanceTab(contentArea) {
   contentArea.innerHTML = `
@@ -832,7 +833,15 @@ export function renderAttendanceTab(contentArea) {
       });
       if (res.ok) {
         const pName = document.getElementById('triage-patient-name').textContent || 'Paciente';
+        const complaintsText = document.getElementById('triage-complaints')?.value || '';
         closeTriageModal();
+
+        // 🚨 Ativação automática de Protocolo de Emergência (IAM, AVC, Sepse)
+        const protoMatch = detectEmergencyProtocolByComplaint(complaintsText);
+        if (protoMatch) {
+          startEmergencyProtocol(protoMatch.protocol.id, pName, encId);
+          showToast(`🚨 Protocolo de Emergência (${protoMatch.protocol.name}) ativado com sucesso! Cronômetro iniciado.`, false);
+        }
 
         setActivePatientContext({
           id: encId,

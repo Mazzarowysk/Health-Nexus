@@ -1,11 +1,11 @@
-# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.7.4)
+# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.8.0)
 
-> **Health Nexus v2.7.4 — Sistema de Gestão Hospitalar & Prontuário Eletrônico Inteligente**
-> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas e protocolos assistenciais.
+> **Health Nexus v2.8.0 — Plataforma Hospitalar de Alta Complexidade, Suporte Assistencial Avançado & Faturamento TISS 4.01**
+> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas, cronômetro de protocolos de emergência (IAM, AVC, Sepse), IA preditiva de exames, QR Code de autenticidade CFM, visualizador PACS DICOM interativo e faturamento TISS/TUSS com auditoria anti-glosa.
 
 ---
 
-## 🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.4)
+## 🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.8.0)
 
 O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:
 
@@ -1482,4 +1482,40 @@ A ferramenta de **Limpeza de Simulação** permite expurgar todos os usuários d
 5. O sistema atualiza o banco de dados local, sincroniza com a nuvem (Turso Cloud) e registra um evento de auditoria no histórico da sessão.
 
 ---
+
+<h2 id="sec-25">25. Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0) 🚀</h2>
+
+O **Health Nexus v2.8.0** consolida 6 pilares de alta complexidade hospitalar e inteligência clínica:
+
+### 25.1. ⏱️ Protocolos de Emergência Aguda (IAM, AVC, Sepse)
+- **Ativação Automática no Pronto-Socorro:** O sistema detecta termos críticos durante a Triagem Manchester (ex: "dor no peito", "assimetria facial", "febre alta") e inicia o cronômetro do protocolo de imediato.
+- **Linha de Metas Clínicas:**
+  - **IAM com Supra:** ECG em até 10 minutos; Porta-Balão < 90 minutos.
+  - **AVC Isquêmico Agudo:** TC de crânio sem contraste e janela trombolítica em 4,5 horas.
+  - **Sepse / Choque Séptico:** Pacote de 1ª hora (Lactato, Hemoculturas, Antibiótico de Amplo Espectro e Reposição Volêmica).
+- **Indicador no Prontuário:** Exibe badge dinâmico com contagem regressiva e status de cumprimento de metas.
+
+### 25.2. 🤖 IA Preditiva & Resumo Clínico 2.0 no PEP
+- **Resumo Clínico em 3 Linhas:** Síntese executiva gerada automaticamente no topo do PEP com base na Queixa Principal, Sinais Vitais (MEWS), Exame Físico e Histórico.
+- **Sugestão Preditiva de Exames:** Botão inteligente que analisa a hipótese diagnóstica e insere exames laboratoriais e de imagem com 1 clique (ex: Troponina, ECG, D-Dímero para Dor Torácica).
+
+### 25.3. 📜 QR Code de Autenticidade CFM & Validação Pública
+- **Assinatura Digital SHA-256:** Cada prescrição médica impressa em PDF gera um hash criptográfico exclusivo de 256 bits registrado no sistema.
+- **QR Code Impresso:** Impresso no rodapé da receita para validação por farmácias e pacientes via câmera do celular ou modal público de conferência (`openPublicPrescriptionValidator`).
+
+### 25.4. 💬 Bot de Confirmação Automática por WhatsApp
+- **Confirmação Inteligente na Agenda:** Disparo automático de mensagens de lembrete com botões interativos (`[1] Confirmar`, `[2] Reagendar`).
+- **Sincronização com a Agenda:** Resposta do paciente altera o status do agendamento de "Agendado" para "Confirmado" em tempo real sem intervenção da recepção.
+
+### 25.5. 🩻 Visualizador DICOM / PACS no PEP & Alertas LIS
+- **Visualizador Radiológico Interativo:** Modal integrado no PEP para análise de exames de imagem (Raio-X, Tomografia, Ressonância, Ultrassom).
+- **Controles Avançados no Canvas:** Zoom, pan, ajuste de brilho/contraste, inversão de cores e ferramenta de régua de medição milimétrica.
+
+### 25.6. 💰 Módulo de Faturamento TISS / TUSS & ANS v4.01.00
+- **Aba Exclusiva de Faturamento:** Gestão de guias de Atendimento Ambulatorial (SADT) e Resumo de Internação Hospitalar.
+- **Gerador de Lotes XML TISS 4.01.00:** Exportação de arquivos XML validados com o esquema oficial da ANS.
+- **Motor Anti-Glosa:** Verificação prévia de matricula do beneficiário, código TUSS, CID-10 e carimbos de auditoria médica.
+
+---
+
 

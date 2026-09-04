@@ -1,8 +1,10 @@
 import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 import * as localDB from '../localDB.js';
-import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from '../modules/clinicalAI.js';
+import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp, generateClinicalSummary3Lines, getSuggestedOrdersByComplaint } from '../modules/clinicalAI.js';
 import { openTelemedicineModal } from '../modules/telemedicina.js';
+import { openPACSViewerModal } from '../modules/pacsViewer.js';
+import { generatePrescriptionValidationHash, generateQRCodeSVGDataURL, openPublicPrescriptionValidator } from '../modules/prescriptionQRCode.js';
 
 const API_URL = '/api';
 
@@ -2238,6 +2240,8 @@ window.openPEPModal = async function(encounterId) {
 
     // Cálculo do Escore MEWS e Risco Clínico
     const mewsData = calculateMEWS(enc);
+    const summary3Lines = (typeof generateClinicalSummary3Lines === 'function') ? generateClinicalSummary3Lines(enc) : null;
+    const suggestedOrders = (typeof getSuggestedOrdersByComplaint === 'function') ? getSuggestedOrdersByComplaint(enc.complaints || enc.subjectiveContent || '') : null;
 
     bodyEl.innerHTML = `
       ${isReadOnly ? `
@@ -2246,6 +2250,23 @@ window.openPEPModal = async function(encounterId) {
           <div>
             <strong>Modo Somente Leitura (Auditoria):</strong> Seu perfil (<strong>${perms.label}</strong>) possui acesso para consulta ao prontuário. A evolução clínica, prescrição e assinatura médica são restritas a médicos habilitados (CFM/CRM).
           </div>
+        </div>
+      ` : ''}
+
+      ${summary3Lines ? `
+        <!-- Banner AI Copilot 2.0 (Resumo Clínico em 3 Linhas) -->
+        <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15)); border: 1.5px solid rgba(99,102,241,0.35); border-radius: 12px; padding: 12px 18px; margin-bottom: 16px; font-size: 0.8rem; color: #e2e8f0; line-height: 1.5; box-shadow: 0 4px 14px rgba(99,102,241,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-weight: 700; color: #a5b4fc; display: flex; align-items: center; gap: 6px; font-size: 0.83rem;">
+              <i class="fa-solid fa-wand-magic-sparkles" style="color: #ec4899;"></i> Resumo Clínico Preditivo por IA (Copilot 2.0)
+            </span>
+            <button type="button" id="btn-pep-open-pacs-inline" class="btn btn-sm" style="background: rgba(14,165,233,0.2); border: 1px solid rgba(14,165,233,0.4); color: #38bdf8; font-size: 0.74rem; font-weight: 700; border-radius: 6px; padding: 3px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fa-solid fa-x-ray"></i> Imagens PACS (DICOM)
+            </button>
+          </div>
+          <div>${summary3Lines.line1}</div>
+          <div>${summary3Lines.line2}</div>
+          <div>${summary3Lines.line3}</div>
         </div>
       ` : ''}
 
@@ -2321,7 +2342,10 @@ window.openPEPModal = async function(encounterId) {
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Plano Terapêutico & Prescrição:</label>
-            ${!isReadOnly ? `<button type="button" id="btn-voice-plan" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
+            <div style="display: flex; gap: 6px; align-items: center;">
+              ${suggestedOrders ? `<button type="button" id="btn-pep-insert-suggested-orders" class="btn btn-sm" style="font-size:0.72rem; padding:2px 10px; border-radius:6px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); cursor:pointer;"><i class="fa-solid fa-wand-magic-sparkles"></i> Incluir ${suggestedOrders.title}</button>` : ''}
+              ${!isReadOnly ? `<button type="button" id="btn-voice-plan" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
+            </div>
           </div>
           <textarea id="pep-plan" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || enc.planContent || ''}</textarea>
           
@@ -2377,6 +2401,22 @@ window.openPEPModal = async function(encounterId) {
         </div>
       </form>
     `;
+
+    // Evento do botão de visualização PACS DICOM embutido
+    document.getElementById('btn-pep-open-pacs-inline')?.addEventListener('click', () => {
+      openPACSViewerModal(enc.patientName || 'Marcelo Mazaro');
+    });
+
+    // Evento de Inclusão Preditiva de Exames (1-Clique)
+    document.getElementById('btn-pep-insert-suggested-orders')?.addEventListener('click', () => {
+      const planEl = document.getElementById('pep-plan');
+      if (planEl && suggestedOrders) {
+        const currentVal = planEl.value ? planEl.value + '\n\n' : '';
+        planEl.value = currentVal + `[${suggestedOrders.title.toUpperCase()}]\n` + suggestedOrders.ordersText;
+        checkPlanInteractions(planEl.value);
+        if (typeof showToast === 'function') showToast(`✨ Exames do ${suggestedOrders.title} incluídos no plano!`);
+      }
+    });
 
     // Evento do botão de nova evolução diária no banner
     document.getElementById('btn-start-new-daily-evolution-banner')?.addEventListener('click', () => {

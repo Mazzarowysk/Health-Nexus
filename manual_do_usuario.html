@@ -346,13 +346,13 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.7.4)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.8.0)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.7.4 — Sistema de Gestão Hospitalar &amp; Prontuário Eletrônico Inteligente</strong>
-Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas e protocolos assistenciais.</p>
+<p><strong>Health Nexus v2.8.0 — Plataforma Hospitalar de Alta Complexidade, Suporte Assistencial Avançado &amp; Faturamento TISS 4.01</strong>
+Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas, cronômetro de protocolos de emergência (IAM, AVC, Sepse), IA preditiva de exames, QR Code de autenticidade CFM, visualizador PACS DICOM interativo e faturamento TISS/TUSS com auditoria anti-glosa.</p>
 </blockquote>
 <hr>
-<h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.4)</h2>
+<h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.8.0)</h2>
 <p>O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:</p>
 <pre><code class="language-mermaid">
 flowchart TD
@@ -1600,6 +1600,45 @@ Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de
 <li>Clique em <strong><code>Executar Limpeza</code></strong> e confirme o diálogo de segurança.</li>
 <li>O sistema atualiza o banco de dados local, sincroniza com a nuvem (Turso Cloud) e registra um evento de auditoria no histórico da sessão.</li>
 </ol>
+<hr>
+<h2 id="sec-25">25. Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0) 🚀</h2><p>O <strong>Health Nexus v2.8.0</strong> consolida 6 pilares de alta complexidade hospitalar e inteligência clínica:</p>
+<h3>25.1. ⏱️ Protocolos de Emergência Aguda (IAM, AVC, Sepse)</h3>
+<ul>
+<li><strong>Ativação Automática no Pronto-Socorro:</strong> O sistema detecta termos críticos durante a Triagem Manchester (ex: &quot;dor no peito&quot;, &quot;assimetria facial&quot;, &quot;febre alta&quot;) e inicia o cronômetro do protocolo de imediato.</li>
+<li><strong>Linha de Metas Clínicas:</strong><ul>
+<li><strong>IAM com Supra:</strong> ECG em até 10 minutos; Porta-Balão &lt; 90 minutos.</li>
+<li><strong>AVC Isquêmico Agudo:</strong> TC de crânio sem contraste e janela trombolítica em 4,5 horas.</li>
+<li><strong>Sepse / Choque Séptico:</strong> Pacote de 1ª hora (Lactato, Hemoculturas, Antibiótico de Amplo Espectro e Reposição Volêmica).</li>
+</ul>
+</li>
+<li><strong>Indicador no Prontuário:</strong> Exibe badge dinâmico com contagem regressiva e status de cumprimento de metas.</li>
+</ul>
+<h3>25.2. 🤖 IA Preditiva &amp; Resumo Clínico 2.0 no PEP</h3>
+<ul>
+<li><strong>Resumo Clínico em 3 Linhas:</strong> Síntese executiva gerada automaticamente no topo do PEP com base na Queixa Principal, Sinais Vitais (MEWS), Exame Físico e Histórico.</li>
+<li><strong>Sugestão Preditiva de Exames:</strong> Botão inteligente que analisa a hipótese diagnóstica e insere exames laboratoriais e de imagem com 1 clique (ex: Troponina, ECG, D-Dímero para Dor Torácica).</li>
+</ul>
+<h3>25.3. 📜 QR Code de Autenticidade CFM &amp; Validação Pública</h3>
+<ul>
+<li><strong>Assinatura Digital SHA-256:</strong> Cada prescrição médica impressa em PDF gera um hash criptográfico exclusivo de 256 bits registrado no sistema.</li>
+<li><strong>QR Code Impresso:</strong> Impresso no rodapé da receita para validação por farmácias e pacientes via câmera do celular ou modal público de conferência (<code>openPublicPrescriptionValidator</code>).</li>
+</ul>
+<h3>25.4. 💬 Bot de Confirmação Automática por WhatsApp</h3>
+<ul>
+<li><strong>Confirmação Inteligente na Agenda:</strong> Disparo automático de mensagens de lembrete com botões interativos (<code>[1] Confirmar</code>, <code>[2] Reagendar</code>).</li>
+<li><strong>Sincronização com a Agenda:</strong> Resposta do paciente altera o status do agendamento de &quot;Agendado&quot; para &quot;Confirmado&quot; em tempo real sem intervenção da recepção.</li>
+</ul>
+<h3>25.5. 🩻 Visualizador DICOM / PACS no PEP &amp; Alertas LIS</h3>
+<ul>
+<li><strong>Visualizador Radiológico Interativo:</strong> Modal integrado no PEP para análise de exames de imagem (Raio-X, Tomografia, Ressonância, Ultrassom).</li>
+<li><strong>Controles Avançados no Canvas:</strong> Zoom, pan, ajuste de brilho/contraste, inversão de cores e ferramenta de régua de medição milimétrica.</li>
+</ul>
+<h3>25.6. 💰 Módulo de Faturamento TISS / TUSS &amp; ANS v4.01.00</h3>
+<ul>
+<li><strong>Aba Exclusiva de Faturamento:</strong> Gestão de guias de Atendimento Ambulatorial (SADT) e Resumo de Internação Hospitalar.</li>
+<li><strong>Gerador de Lotes XML TISS 4.01.00:</strong> Exportação de arquivos XML validados com o esquema oficial da ANS.</li>
+<li><strong>Motor Anti-Glosa:</strong> Verificação prévia de matricula do beneficiário, código TUSS, CID-10 e carimbos de auditoria médica.</li>
+</ul>
 <hr>
 
     </main>

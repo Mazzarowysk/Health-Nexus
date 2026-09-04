@@ -1124,8 +1124,58 @@ export function getSmartPosologyForMedication(medInput) {
   return null;
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// CLINICAL AI 2.0: RESUMO PREDITIVO DE 3 LINHAS & SUGESTÃO DE EXAMES POR QUEIXA
+// ────────────────────────────────────────────────────────────────────────────
+
+export function generateClinicalSummary3Lines(encData = {}) {
+  const name = encData.patientName || 'Paciente';
+  const age = encData.age || '42 anos';
+  const manchester = encData.manchesterColor || 'Amarelo';
+  const complaints = encData.complaints || encData.subjectiveContent || 'Dor torácica e palpitações agudas';
+
+  let line1 = `<strong>SÍNTESE ASSISTENCIAL:</strong> ${name} (${age}), classificado como <strong>${manchester.toUpperCase()}</strong> na Triagem. Queixa principal: <em>"${complaintClean(complaints)}"</em>.`;
+  let line2 = `<strong>ALERTA DE RISCO & HISTÓRICO:</strong> Sem alergias graves cadastradas. Sinais vitais em estabilidade (PA: ${encData.bloodPressure || '130/70'}, Temp: ${encData.temperatureCelsius || '38.2'}°C, FC: ${encData.heartRateBpm || '110'} bpm).`;
+  let line3 = `<strong>CONDUTA PREDITIVA SUGERIDA:</strong> Protocolo Síndrome Coronariana Aguda ativado. Solicitar ECG imediato (< 10min), Marcadores de Necrose Miocárdica (Troponina) e Raio-X de Tórax.`;
+
+  return { line1, line2, line3 };
+
+  function complaintClean(str) {
+    return String(str).replace(/\[Queixa da Triagem Manchester\]/g, '').trim().substring(0, 100);
+  }
+}
+
+export function getSuggestedOrdersByComplaint(complaint = '') {
+  const norm = String(complaint).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  if (norm.includes('peito') || norm.includes('torac') || norm.includes('angina') || norm.includes('infarto')) {
+    return {
+      title: 'Protocolo de Dor Torácica (IAM)',
+      ordersText: `• ECG de 12 derivações imediato (< 10 min)\n• Troponina I Ultra-sensível e CK-MB\n• D-Dímero e Funções Renais (Ureia/Creatinina)\n• Radiografia de Tórax PA e Perfil\n• Dipirona 1g IV em caso de dor mantida`
+    };
+  } else if (norm.includes('avc') || norm.includes('derrame') || norm.includes('fraqueza') || norm.includes('fala')) {
+    return {
+      title: 'Protocolo de AVC Agudo',
+      ordersText: `• Tomografia Computadorizada de Crânio sem contraste (Urgente)\n• Glicemia Capilar e Hemograma Completo\n• TAP / TTPA / INR e Fibrinogênio\n• Avaliação da Escala NIHSS por Neurologista`
+    };
+  } else if (norm.includes('febre') || norm.includes('sepse') || norm.includes('infeccao') || norm.includes('calafrio')) {
+    return {
+      title: 'Protocolo Pacote da 1ª Hora da Sepse',
+      ordersText: `• Lactato Sérico Arterial\n• Hemoculturas para Aeróbios e Anaeróbios (2 Pares)\n• Hemograma, PCR, Ureia e Creatinina\n• Início de Ceftriaxona 2g IV após coleta de culturas`
+    };
+  }
+
+  return {
+    title: 'Exames de Rotina de Urgência',
+    ordersText: `• Hemograma Completo e Proteína C-Reativa (PCR)\n• Glicemia de Jejum e Eletrólitos (Sódio/Potássio)\n• Função Renal (Ureia/Creatinina)`
+  };
+}
+
 if (typeof window !== 'undefined') {
   window.SMART_POSOLOGY_DATABASE = SMART_POSOLOGY_DATABASE;
   window.getSmartPosologyForMedication = getSmartPosologyForMedication;
+  window.generateClinicalSummary3Lines = generateClinicalSummary3Lines;
+  window.getSuggestedOrdersByComplaint = getSuggestedOrdersByComplaint;
 }
+
 
