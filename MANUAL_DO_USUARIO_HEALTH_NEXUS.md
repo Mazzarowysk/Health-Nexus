@@ -53,7 +53,7 @@ flowchart TD
 
 
 
-    subgraph MOD_AGENDA ["ï¸ 3. Agenda de Consultas"]
+    subgraph MOD_AGENDA [" 3. Agenda de Consultas"]
 
         AG_BOOK["Agendamento de Consultas & Seleção de Médico/Consultório"]
 

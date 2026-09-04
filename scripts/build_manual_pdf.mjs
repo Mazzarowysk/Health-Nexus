@@ -9,15 +9,25 @@ async function generateManual() {
   const htmlPath = path.resolve('manual_do_usuario.html');
   const mdContent = fs.readFileSync(mdPath, 'utf8');
 
-  // Standard clean markdown parsing
-  const renderedBody = await marked.parse(mdContent);
+  // Convert raw marked code blocks for mermaid into <div class="mermaid">
+  let renderedBody = await marked.parse(mdContent);
+  renderedBody = renderedBody
+    .replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g, (match, p1) => {
+      const decoded = p1
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, '&');
+      return `<div class="mermaid">\n${decoded}\n</div>`;
+    });
 
   const fullHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual do Usuário — Health Nexus</title>
+  <title>Manual do Usuário — Health Nexus v2.8.0</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -38,10 +48,7 @@ async function generateManual() {
     }
 
     * { box-sizing: border-box; }
-
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -56,22 +63,11 @@ async function generateManual() {
     /* CAPA EXECUTIVA */
     .cover-page {
       background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
-      padding: 60px 40px;
+      padding: 65px 40px;
       border-bottom: 4px solid #6366f1;
       text-align: center;
       position: relative;
       overflow: hidden;
-    }
-
-    .cover-page::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 60%);
-      pointer-events: none;
     }
 
     .brand-badge {
@@ -101,9 +97,9 @@ async function generateManual() {
     }
 
     .cover-subtitle {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       color: #cbd5e1;
-      max-width: 700px;
+      max-width: 760px;
       margin: 0 auto 30px;
       font-weight: 400;
     }
@@ -125,7 +121,7 @@ async function generateManual() {
     /* CONTAINER PRINCIPAL COM SIDEBAR */
     .layout-container {
       display: flex;
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
       padding: 40px 20px;
       gap: 40px;
@@ -210,7 +206,6 @@ async function generateManual() {
       min-width: 0;
     }
 
-    /* TYPOGRAPHY MD */
     h1 {
       font-family: 'Outfit', sans-serif;
       font-size: 2rem;
@@ -246,11 +241,9 @@ async function generateManual() {
     }
 
     p { margin-bottom: 16px; color: #cbd5e1; }
-
     ul, ol { padding-left: 24px; margin-bottom: 20px; }
     li { margin-bottom: 8px; color: #cbd5e1; }
 
-    /* CALLOUT BOXES */
     blockquote {
       background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(56,189,248,0.05));
       border: 1px solid rgba(99,102,241,0.3);
@@ -261,7 +254,6 @@ async function generateManual() {
       color: #e2e8f0;
     }
 
-    /* TABELAS ELEGANTES */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -321,6 +313,7 @@ async function generateManual() {
       border: 1px solid #334155;
       margin: 24px 0;
       text-align: center;
+      overflow-x: auto;
     }
 
     @media (max-width: 900px) {
@@ -334,14 +327,14 @@ async function generateManual() {
 
   <div class="cover-page">
     <div class="brand-badge">
-      <i class="fa-solid fa-hospital-user"></i> Health Nexus v1.2.1
+      <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.8.0
     </div>
-    <h1 class="cover-title">Manual do Usuário & Guia Operacional</h1>
-    <p class="cover-subtitle">Documentação técnica e passo a passo detalhado de todas as telas, botões, protocolos médicos e fluxos da plataforma hospitalar.</p>
+    <h1 class="cover-title">Manual do Usuário & Guia Operacional Definitivo</h1>
+    <p class="cover-subtitle">Documentação técnica publicação-grade de todas as telas, botões, protocolos de emergência, IA preditiva, QR Code CFM, PACS DICOM e faturamento TISS 4.01.</p>
     <div class="cover-meta">
       <span><i class="fa-solid fa-book-open"></i> Edição Oficial 2026</span>
-      <span><i class="fa-solid fa-shield-halved"></i> Compatível com Protocolo Manchester</span>
-      <span><i class="fa-solid fa-file-pdf"></i> Exportação Prontuário PDF</span>
+      <span><i class="fa-solid fa-shield-halved"></i> Triagem Manchester & CDSS</span>
+      <span><i class="fa-solid fa-file-invoice-dollar"></i> TISS v4.01.00 ANS</span>
     </div>
   </div>
 
@@ -354,7 +347,7 @@ async function generateManual() {
       </div>
       <nav>
         <ul id="sidebar-nav">
-          <!-- Populated dynamically via JavaScript for 100% accurate heading targets -->
+          <!-- Populated dynamically via JavaScript -->
         </ul>
       </nav>
     </aside>
@@ -366,7 +359,7 @@ async function generateManual() {
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+      mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
 
       const mainContent = document.getElementById('doc-main-content');
       const sidebarNav = document.getElementById('sidebar-nav');
@@ -390,7 +383,6 @@ async function generateManual() {
 
       sidebarNav.innerHTML = navHtml;
 
-      // Live search input filtering
       const searchInput = document.getElementById('sidebar-search-input');
       if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -406,7 +398,6 @@ async function generateManual() {
         });
       }
 
-      // Smooth click handling
       sidebarNav.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', (e) => {
           e.preventDefault();
@@ -418,27 +409,6 @@ async function generateManual() {
           }
         });
       });
-
-      // Highlight active section on scroll (ScrollSpy)
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const id = entry.target.id;
-            sidebarNav.querySelectorAll('a').forEach(a => {
-              if (a.getAttribute('data-target') === id) {
-                a.classList.add('active');
-                a.scrollIntoView({ block: 'nearest' });
-              } else {
-                a.classList.remove('active');
-              }
-            });
-          }
-        });
-      }, { rootMargin: '-10% 0px -70% 0px' });
-
-      headingElements.forEach(item => {
-        observer.observe(item.el);
-      });
     });
   </script>
 </body>
@@ -447,129 +417,301 @@ async function generateManual() {
   fs.writeFileSync(htmlPath, fullHtml, 'utf8');
   console.log(`HTML gerado com sucesso em: ${htmlPath}`);
 
-  // PDF RENDERING VIA PUPPETEER WITH STUNNING LIGHT/PRINT STYLES
+  // PDF HTML COM RENDERIZAÇÃO DE VETOR E EXCELÊNCIA VISUAL
   const pdfHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Manual do Usuário — Health Nexus</title>
+  <title>Manual do Usuário — Health Nexus v2.8.0</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     * { box-sizing: border-box; }
+    
+    @page {
+      size: A4;
+      margin: 18mm 14mm 18mm 14mm;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       color: #1e293b;
       line-height: 1.6;
-      font-size: 13px;
+      font-size: 11.5pt;
       margin: 0;
       padding: 0;
+      background: #ffffff;
     }
-    .pdf-header {
-      background: linear-gradient(135deg, #1e1b4b, #311b92);
-      color: #fff;
-      padding: 40px 30px;
-      border-radius: 12px;
+
+    /* CAPA COMPLETA DO PDF */
+    .pdf-cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
+      color: #ffffff;
+      padding: 60px 40px;
+      border-radius: 16px;
+      page-break-after: always;
+      min-height: 800px;
+      box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+    }
+
+    .pdf-cover .badge {
+      display: inline-block;
+      background: rgba(99,102,241,0.25);
+      border: 1px solid rgba(165,180,252,0.4);
+      color: #c4b5fd;
+      padding: 8px 22px;
+      border-radius: 30px;
+      font-size: 10pt;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       margin-bottom: 30px;
     }
-    .pdf-header h1 {
+
+    .pdf-cover h1 {
       font-family: 'Outfit', sans-serif;
-      margin: 0 0 8px;
-      font-size: 2.2rem;
-      color: #fff;
+      font-size: 28pt;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0 0 16px;
+      line-height: 1.2;
+      border: none;
+      padding: 0;
     }
-    .pdf-header p {
-      color: #c4b5fd;
-      margin: 0;
-      font-size: 1rem;
+
+    .pdf-cover p {
+      font-size: 12pt;
+      color: #cbd5e1;
+      max-width: 600px;
+      margin: 0 0 40px;
+      line-height: 1.5;
     }
+
+    .pdf-cover .meta-box {
+      display: flex;
+      gap: 20px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 9.5pt;
+      color: #a5b4fc;
+    }
+
+    /* TYPOGRAPHY DO PDF */
     h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.6rem;
+      font-size: 18pt;
       font-weight: 800;
       color: #1e1b4b;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 8px;
-      margin-top: 30px;
+      border-bottom: 2.5px solid #4338ca;
+      padding-bottom: 6px;
+      margin-top: 32px;
+      margin-bottom: 14px;
       page-break-after: avoid;
+      break-after: avoid;
     }
+
     h2 {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.25rem;
+      font-size: 14pt;
       font-weight: 700;
-      color: #4338ca;
-      margin-top: 24px;
+      color: #3730a3;
+      margin-top: 26px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
       page-break-after: avoid;
+      break-after: avoid;
     }
+
     h3 {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.05rem;
+      font-size: 12pt;
       font-weight: 600;
       color: #0284c7;
       margin-top: 18px;
+      margin-bottom: 10px;
       page-break-after: avoid;
+      break-after: avoid;
     }
-    p, li { color: #334155; }
+
+    p, li {
+      color: #334155;
+      font-size: 10.5pt;
+      margin-bottom: 10px;
+    }
+
+    ul, ol {
+      margin-top: 4px;
+      margin-bottom: 14px;
+      padding-left: 20px;
+    }
+
     blockquote {
-      background: #f1f5f9;
+      background: #f8fafc;
       border-left: 4px solid #6366f1;
-      padding: 12px 16px;
-      margin: 16px 0;
-      border-radius: 0 8px 8px 0;
+      border: 1px solid #e2e8f0;
+      border-left-width: 4px;
+      border-left-color: #6366f1;
+      padding: 12px 18px;
+      margin: 18px 0;
+      border-radius: 6px;
+      color: #334155;
       font-style: italic;
-      color: #475569;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
+
+    /* TABELAS EM PDF - RESISTENTES A QUEBRA E OVERFLOW */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 16px 0;
+      margin: 18px 0;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
+
+    thead {
+      display: table-header-group;
+    }
+
+    tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
     th {
       background: #1e1b4b;
       color: #ffffff;
       font-family: 'Outfit', sans-serif;
-      font-size: 0.8rem;
+      font-size: 9pt;
       font-weight: 700;
       text-transform: uppercase;
-      padding: 8px 12px;
+      letter-spacing: 0.03em;
+      padding: 9px 12px;
       border: 1px solid #cbd5e1;
+      text-align: left;
     }
+
     td {
       border: 1px solid #cbd5e1;
       padding: 8px 12px;
-      font-size: 0.85rem;
       color: #334155;
+      vertical-align: top;
+      word-break: break-word;
     }
-    tr:nth-child(even) { background: #f8fafc; }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
     code {
       font-family: 'JetBrains Mono', monospace;
-      background: #e2e8f0;
+      background: #f1f5f9;
       color: #4338ca;
       padding: 2px 6px;
       border-radius: 4px;
-      font-size: 0.88em;
+      font-size: 9pt;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre code {
+      display: block;
+      padding: 14px;
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 8px;
+      font-size: 8.5pt;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .mermaid {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 16px;
+      border-radius: 10px;
+      margin: 18px 0;
+      text-align: center;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
   </style>
 </head>
 <body>
-  <div class="pdf-header">
-    <h1>🏥 Health Nexus — Manual do Usuário</h1>
-    <p>Manual Operacional Oficial & Guia de Uso do Sistema</p>
+
+  <div class="pdf-cover">
+    <div class="badge">
+      <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.8.0
+    </div>
+    <h1>Manual do Usuário & Guia Operacional Definitivo</h1>
+    <p>Documentação técnica e manual oficial de operações da plataforma hospitalar Health Nexus.</p>
+    <div class="meta-box">
+      <span><b>Edição:</b> Oficial 2026</span>
+      <span><b>Padrão:</b> Triagem Manchester & CDSS</span>
+      <span><b>Faturamento:</b> TISS 4.01 ANS</span>
+    </div>
   </div>
+
   ${renderedBody}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.mermaid) {
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+      }
+    });
+  </script>
 </body>
 </html>`;
 
   try {
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const page = await browser.newPage();
+    
     await page.setContent(pdfHtml, { waitUntil: 'networkidle0' });
+
+    // Ensure Mermaid diagrams are rendered to SVG before printing to PDF
+    await page.evaluate(async () => {
+      if (window.mermaid) {
+        await window.mermaid.run();
+      }
+    });
+
+    // Short wait to ensure SVG fonts and canvas elements settle
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
     await page.pdf({
       path: pdfPath,
       format: 'A4',
-      margin: { top: '15mm', right: '15mm', bottom: '15mm', left: '15mm' },
-      printBackground: true
+      margin: { top: '18mm', right: '15mm', bottom: '18mm', left: '15mm' },
+      printBackground: true,
+      displayHeaderFooter: true,
+      headerTemplate: `
+        <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+          <span>🏥 Health Nexus — Sistema de Gestão Hospitalar (v2.8.0)</span>
+          <span>Manual do Usuário Oficial</span>
+        </div>`,
+      footerTemplate: `
+        <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 4px;">
+          <span>Confidencial · Uso Hospitalar & Clínico</span>
+          <span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
+        </div>`
     });
+
     await browser.close();
     console.log(`PDF do Manual compilado com sucesso em: ${pdfPath}`);
   } catch (err) {
