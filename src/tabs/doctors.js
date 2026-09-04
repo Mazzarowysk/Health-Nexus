@@ -1557,28 +1557,39 @@ window.openPEPModal = async function(encounterId) {
   modal.style.backdropFilter = 'blur(10px)';
   modal.style.zIndex = '100000';
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: #111124; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99, 102, 241, 0.15);">
+    <div class="modal-content" style="max-width: 900px; width: 92%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; background: #111124; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99, 102, 241, 0.15);">
       
-      <div class="modal-header" style="padding: 18px 24px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.4); display: flex; align-items: center; justify-content: center; color: #f472b6;">
-            <i class="fa-solid fa-file-medical" style="font-size: 1.2rem;"></i>
+      <div class="modal-header" style="padding: 16px 24px 0; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.4); display: flex; align-items: center; justify-content: center; color: #f472b6;">
+              <i class="fa-solid fa-file-medical" style="font-size: 1.2rem;"></i>
+            </div>
+            <div>
+              <h3 style="font-family: Outfit, sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin: 0;">Prontuário Eletrônico (PEP)</h3>
+              <div id="pep-modal-subtitle" style="font-size: 0.8rem; color: #c4b5fd;">Carregando dados do paciente...</div>
+            </div>
           </div>
-          <div>
-            <h3 style="font-family: Outfit, sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin: 0;">Prontuário Eletrônico (PEP)</h3>
-            <div id="pep-modal-subtitle" style="font-size: 0.8rem; color: #c4b5fd;">Carregando dados do paciente...</div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+              <i class="fa-solid fa-video"></i> Teleconsulta
+            </button>
+            <button type="button" id="btn-pep-whatsapp-header" class="btn" style="background: rgba(37,211,102,0.18); border: 1px solid rgba(37,211,102,0.4); color: #4ade80; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </button>
+            <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
-            <i class="fa-solid fa-video"></i> Teleconsulta
+        <!-- ABAS DO PEP -->
+        <div style="display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,0.08);">
+          <button id="pep-tab-soap" onclick="window._pepSwitchTab('soap')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #a78bfa; background: transparent; border: none; border-bottom: 2.5px solid #7c3aed; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
+            <i class="fa-solid fa-stethoscope"></i> Evolução Atual
           </button>
-          <button type="button" id="btn-pep-whatsapp-header" class="btn" style="background: rgba(37,211,102,0.18); border: 1px solid rgba(37,211,102,0.4); color: #4ade80; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
-            <i class="fa-brands fa-whatsapp"></i> WhatsApp
-          </button>
-          <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-            <i class="fa-solid fa-xmark"></i>
+          <button id="pep-tab-history" onclick="window._pepSwitchTab('history')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #94a3b8; background: transparent; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
+            <i class="fa-solid fa-clock-rotate-left"></i> Histórico de Evoluções <span id="pep-history-badge" style="background: rgba(99,102,241,0.25); color: #a5b4fc; border-radius: 20px; padding: 1px 8px; font-size: 0.72rem;">...</span>
           </button>
         </div>
       </div>
@@ -1589,12 +1600,49 @@ window.openPEPModal = async function(encounterId) {
           <div>Buscando atendimento no banco...</div>
         </div>
       </div>
+
+      <!-- Painel de Histórico (oculto por padrão) -->
+      <div id="pep-history-panel" style="display:none; padding: 22px 24px; overflow-y: auto; flex: 1;">
+        <div style="text-align:center; color: var(--text-muted); padding:30px;">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> Carregando histórico...
+        </div>
+      </div>
     </div>
   `;
   document.body.appendChild(modal);
 
+  // Controle de abas
+  window._pepSwitchTab = function(tab) {
+    const soapBody = document.getElementById('pep-modal-body');
+    const histPanel = document.getElementById('pep-history-panel');
+    const btnSoap = document.getElementById('pep-tab-soap');
+    const btnHist = document.getElementById('pep-tab-history');
+    if (tab === 'soap') {
+      soapBody.style.display = 'block';
+      histPanel.style.display = 'none';
+      btnSoap.style.color = '#a78bfa';
+      btnSoap.style.borderBottom = '2.5px solid #7c3aed';
+      btnHist.style.color = '#94a3b8';
+      btnHist.style.borderBottom = '2.5px solid transparent';
+    } else {
+      soapBody.style.display = 'none';
+      histPanel.style.display = 'block';
+      btnSoap.style.color = '#94a3b8';
+      btnSoap.style.borderBottom = '2.5px solid transparent';
+      btnHist.style.color = '#a78bfa';
+      btnHist.style.borderBottom = '2.5px solid #7c3aed';
+      // Renderizar histórico na primeira abertura
+      if (histPanel.dataset.loaded !== '1') {
+        histPanel.dataset.loaded = '1';
+        window._renderPEPHistory(histPanel, encounterId);
+      }
+    }
+  };
+
   document.getElementById('close-pep-modal').addEventListener('click', () => {
     stopVoiceDictation();
+    delete window._pepSwitchTab;
+    delete window._renderPEPHistory;
     modal.remove();
   });
 
@@ -1894,6 +1942,176 @@ window.openPEPModal = async function(encounterId) {
       window.setupCidAutocomplete();
     }
 
+    // Pré-carregar contagem do histórico para o badge da aba
+    window._renderPEPHistory = async function(container, currentEncId) {
+      const sectorIcons = {
+        'Triagem': 'fa-clipboard-list',
+        'Emergência': 'fa-truck-medical',
+        'Consultório': 'fa-stethoscope',
+        'Observação': 'fa-eye',
+        'Internação': 'fa-bed',
+        'UTI': 'fa-heart-pulse',
+        'Centro Cirúrgico': 'fa-scalpel',
+        'Alta': 'fa-door-open'
+      };
+      function iconForSector(sector) {
+        if (!sector) return 'fa-file-medical';
+        for (const [key, icon] of Object.entries(sectorIcons)) {
+          if (sector.toLowerCase().includes(key.toLowerCase())) return icon;
+        }
+        return 'fa-file-medical';
+      }
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      try {
+        // Buscar todos os encounters do paciente no localDB
+        const db = window.localDB ? window.localDB.getFullDB() : {};
+        const allEncs = db.encounters || [];
+        // Identificar o patientId do encounter atual
+        const currentEnc = allEncs.find(e => String(e.id) === String(currentEncId)) ||
+          (db.appointments || []).find(a => String(a.id) === String(currentEncId)) || {};
+        const pid = currentEnc.patientId || currentEnc.id || currentEncId;
+
+        // Filtrar todos os encounters do mesmo paciente, ordenar por data desc
+        let history = allEncs
+          .filter(e => String(e.patientId) === String(pid) || String(e.id) === String(pid))
+          .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+        // Atualizar badge
+        const badge = document.getElementById('pep-history-badge');
+        if (badge) badge.textContent = history.length;
+
+        if (history.length === 0) {
+          container.innerHTML = `
+            <div style="text-align:center; color:var(--text-muted); padding:48px 20px;">
+              <i class="fa-solid fa-timeline" style="font-size:2.5rem; margin-bottom:16px; display:block; color:#4f46e5;"></i>
+              <div style="font-size:0.9rem;">Nenhum PEP anterior encontrado para este paciente.</div>
+              <div style="font-size:0.78rem; margin-top:6px;">Os registros aparecerão aqui conforme o paciente passar pelas alas.</div>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = `
+          <div style="margin-bottom:18px;">
+            <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin:0 0 4px;"><i class="fa-solid fa-timeline" style="color:#818cf8; margin-right:6px;"></i>Linha do Cuidado</h4>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Todas as evoluções clínicas deste paciente por setor, em ordem cronológica decrescente.</p>
+          </div>
+          <div id="pep-history-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+        `;
+        const listEl = container.querySelector('#pep-history-list');
+
+        history.forEach((h, idx) => {
+          const isCurrent = String(h.id) === String(currentEncId);
+          const sector = h.sector || h.room || 'Atendimento';
+          const icon = iconForSector(sector);
+          const card = document.createElement('div');
+          card.style.cssText = `
+            background: ${isCurrent ? 'rgba(99,102,241,0.12)' : 'var(--bg-secondary)'};
+            border: 1.5px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'};
+            border-radius: 12px; padding: 14px 18px;
+            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+            ${isCurrent ? 'box-shadow: 0 0 14px rgba(99,102,241,0.18);' : ''}
+          `;
+          card.innerHTML = `
+            <!-- Ícone do setor -->
+            <div style="width:40px; height:40px; border-radius:10px; flex-shrink:0;
+              background: ${isCurrent ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)'};
+              border: 1px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'};
+              display:flex; align-items:center; justify-content:center;
+              color: ${isCurrent ? '#a78bfa' : '#64748b'};">
+              <i class="fa-solid ${icon}"></i>
+            </div>
+            <!-- Info principal -->
+            <div style="flex:1; min-width:180px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-weight:700; font-size:0.88rem; color:${isCurrent ? '#c4b5fd' : 'var(--text-primary)'};">Ala: ${sector}</span>
+                ${isCurrent ? '<span style="background:rgba(99,102,241,0.3); color:#a5b4fc; border-radius:20px; padding:1px 9px; font-size:0.72rem; font-weight:700;">ATUAL</span>' : ''}
+                ${h.status === 'Finalizado' ? '<span style="background:rgba(16,185,129,0.15); color:#34d399; border-radius:20px; padding:1px 9px; font-size:0.72rem;">Finalizado</span>' : ''}
+              </div>
+              <div style="font-size:0.78rem; color:var(--text-muted); margin-top:3px; display:flex; gap:12px; flex-wrap:wrap;">
+                <span><i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${fmtDate(h.created_at)}</span>
+                ${h.signed_by ? `<span><i class="fa-solid fa-user-doctor" style="margin-right:4px;"></i>${h.signed_by}</span>` : ''}
+                ${h.assessmentContent ? `<span><i class="fa-solid fa-tag" style="margin-right:4px;"></i>${h.assessmentContent.substring(0, 40)}${h.assessmentContent.length > 40 ? '...' : ''}</span>` : ''}
+              </div>
+            </div>
+            <!-- Botão Ver (somente se não for o atual) -->
+            ${!isCurrent ? `
+              <button class="btn btn-sm" data-hist-id="${h.id}" style="background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.3); color:#a78bfa; padding:6px 14px; font-size:0.78rem; border-radius:8px; cursor:pointer; flex-shrink:0;">
+                <i class="fa-solid fa-eye" style="margin-right:5px;"></i>Ver PEP
+              </button>
+            ` : `
+              <span style="font-size:0.75rem; color:#64748b; flex-shrink:0;">Editando agora</span>
+            `}
+          `;
+
+          // Evento do botão Ver
+          const btn = card.querySelector('[data-hist-id]');
+          if (btn) {
+            btn.addEventListener('click', () => {
+              window._showReadonlyPEP(h, container);
+            });
+          }
+          listEl.appendChild(card);
+        });
+      } catch (err) {
+        container.innerHTML = `<div style="color:#f87171; padding:20px;">Erro ao carregar histórico: ${err.message}</div>`;
+      }
+    };
+
+    // Função para exibir PEP histórico em modo leitura dentro do painel
+    window._showReadonlyPEP = function(h, container) {
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+      const soapFields = [
+        { label: 'Subjetivo (Anamnese & Queixa)', value: h.subjectiveContent || h.notes?.subjectiveContent },
+        { label: 'Objetivo (Exame Físico)', value: h.objectiveContent || h.notes?.objectiveContent },
+        { label: 'Avaliação / CID-10', value: h.assessmentContent || h.notes?.assessmentContent },
+        { label: 'Plano Terapêutico', value: h.planContent || h.notes?.planContent },
+      ];
+      container.innerHTML = `
+        <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px;">
+          <button onclick="window._renderPEPHistory(document.getElementById('pep-history-panel'), '${h.id}'); document.getElementById('pep-history-panel').dataset.loaded='1';" 
+            style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem;">
+            <i class="fa-solid fa-arrow-left" style="margin-right:6px;"></i>Voltar ao Histórico
+          </button>
+          <div>
+            <span style="font-weight:700; color:#c4b5fd;">Ala: ${h.sector || h.room || 'Atendimento'}</span>
+            <span style="color:var(--text-muted); font-size:0.78rem; margin-left:10px;">${fmtDate(h.created_at)}</span>
+            ${h.signed_by ? `<span style="color:var(--text-muted); font-size:0.78rem; margin-left:8px;">· ${h.signed_by}</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          ${soapFields.map(f => f.value ? `
+            <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px; padding:14px 16px;">
+              <div style="font-size:0.75rem; font-weight:700; color:#818cf8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;">${f.label}</div>
+              <div style="font-size:0.875rem; color:var(--text-primary); white-space:pre-wrap; line-height:1.6;">${f.value}</div>
+            </div>
+          ` : '').join('')}
+          ${soapFields.every(f => !f.value) ? '<div style="color:var(--text-muted); text-align:center; padding:24px;">Nenhuma evolução registrada neste atendimento.</div>' : ''}
+        </div>
+      `;
+    };
+
+    // Inicializar badge do histórico
+    (async () => {
+      try {
+        const db = window.localDB ? window.localDB.getFullDB() : {};
+        const allEncs = db.encounters || [];
+        const currentEnc = allEncs.find(e => String(e.id) === String(encounterId)) || {};
+        const pid = currentEnc.patientId || encounterId;
+        const count = allEncs.filter(e => String(e.patientId) === String(pid)).length;
+        const badge = document.getElementById('pep-history-badge');
+        if (badge) badge.textContent = count;
+      } catch(e) {}
+    })();
+
   } catch (e) {
     document.getElementById('pep-modal-body').innerHTML = `
       <div style="text-align: center; color: #f87171; padding: 40px;">Erro ao carregar prontuário do paciente.</div>
@@ -1919,6 +2137,25 @@ async function savePEPData(encounterId, shouldFinalize) {
   const outcomeElement = document.getElementById('pep-outcome');
   const outcome = outcomeElement ? outcomeElement.value : 'alta';
 
+  // Gravar conteúdo SOAP e metadados de setor/assinatura no encounter local
+  if (typeof localDB !== 'undefined' && localDB.update) {
+    try {
+      const encs = localDB.list('encounters');
+      const localEnc = encs.find(e => e.id === encounterId);
+      if (localEnc) {
+        localDB.update('encounters', encounterId, {
+          subjectiveContent,
+          objectiveContent,
+          assessmentContent,
+          planContent,
+          signed_by: state?.user?.name || localEnc.doctorName || '',
+          sector: localEnc.sector || localEnc.room || 'Consultório',
+          updated_at: new Date().toISOString()
+        });
+      }
+    } catch(e) { console.warn('[PEP] Falha ao gravar SOAP local:', e); }
+  }
+
   try {
     await apiFetch('/api/encounters/' + encounterId + '/notes', {
       method: 'POST',
@@ -1937,7 +2174,27 @@ async function savePEPData(encounterId, shouldFinalize) {
       const enc = encounters.find(e => e.id === encounterId) || {};
       const patientName = enc.patientName || 'Paciente';
 
+      // Helper: criar novo encounter de continuidade em outro setor
+      function _createContinuationEncounter(targetSector) {
+        if (typeof localDB === 'undefined' || !localDB.insert) return;
+        try {
+          const admId = enc.admission_id || encounterId;
+          localDB.insert('encounters', {
+            patientId: enc.patientId || enc.id,
+            patientName: enc.patientName,
+            doctorName: enc.doctorName || state?.user?.name || '',
+            room: targetSector,
+            sector: targetSector,
+            admission_id: admId,
+            manchesterColor: enc.manchesterColor || 'Amarelo',
+            status: 'Em Atendimento',
+            origin_encounter_id: encounterId
+          });
+        } catch(e) { console.warn('[PEP] Falha ao criar encounter de continuidade:', e); }
+      }
+
       if (outcome === 'observacao') {
+        _createContinuationEncounter('Observação');
         await apiFetch(`/api/encounters/${encounterId}/start-observation`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -1953,6 +2210,7 @@ async function savePEPData(encounterId, shouldFinalize) {
           });
         }
       } else if (outcome === 'internacao') {
+        _createContinuationEncounter('Internação');
         const modal = document.getElementById('pep-modal');
         if (modal) modal.remove();
         
