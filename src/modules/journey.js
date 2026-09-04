@@ -157,15 +157,44 @@ export function getManchesterColor(color) {
 // ─── INICIALIZAÇÃO DO CARD FLUTUANTE GUIA DE FLUXO (SMART FLOW GUIDE) ────────
 
 export function initFloatingWorkflowGuide() {
+  // Remove duplicatas
+  document.querySelectorAll('#floating-flow-guide').forEach((el, i) => {
+    if (i > 0) el.remove();
+  });
+
   let guide = document.getElementById('floating-flow-guide');
   if (!guide) {
     guide = document.createElement('div');
     guide.id = 'floating-flow-guide';
+    // Estilos críticos inline para garantir visibilidade independente do CSS
+    guide.style.cssText = `
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      width: 300px !important;
+      max-width: calc(100vw - 32px) !important;
+      z-index: 2147483647 !important;
+      font-family: 'Outfit', system-ui, sans-serif !important;
+      color: #f8fafc !important;
+      background: linear-gradient(160deg, rgba(13,18,35,0.97), rgba(22,30,52,0.98)) !important;
+      border: 1px solid rgba(99,102,241,0.4) !important;
+      border-radius: 14px !important;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 20px rgba(99,102,241,0.2) !important;
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px) !important;
+      user-select: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+    `;
     guide.className = 'floating-flow-guide';
     document.body.appendChild(guide);
   }
 
-  updateFloatingWorkflowGuide(currentActiveTabId);
+  try {
+    updateFloatingWorkflowGuide(currentActiveTabId);
+  } catch (e) {
+    console.error('[FlowGuide] Erro ao renderizar card:', e);
+  }
 }
 
 export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = null) {
