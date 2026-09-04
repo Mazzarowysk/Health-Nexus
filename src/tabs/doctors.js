@@ -1338,7 +1338,10 @@ modal.style.left = '0';
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 880px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: #111124; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99, 102, 241, 0.15);">
       
-      <div class="modal-header" style="padding: 16px 24px 0; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0;">
+      <div class="modal-header" style="position: relative; padding: 16px 65px 0 24px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0;">
+        <button type="button" class="modal-close" id="close-history-modal" style="position: absolute; top: 16px; right: 20px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10;" onmouseover="this.style.background='rgba(239,68,68,0.4)'; this.style.borderColor='#ef4444';" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.borderColor='rgba(255,255,255,0.2)';" title="Fechar Prontuário">
+          <i class="fa-solid fa-xmark" style="font-size: 1.15rem;"></i>
+        </button>
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 14px;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139,92,246,0.25); border: 1px solid rgba(139,92,246,0.4); display: flex; align-items: center; justify-content: center; color: #a78bfa;">
@@ -1357,9 +1360,6 @@ modal.style.left = '0';
               <i class="fa-solid fa-upload"></i> Anexar Exame
             </button>
             <input type="file" id="import-exam-input" style="display:none;" onchange="window.handleExamImport(event, '${patientId}')">
-            <button type="button" class="modal-close" id="close-history-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
           </div>
         </div>
 
@@ -1931,7 +1931,10 @@ window.openPEPModal = async function(encounterId) {
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 900px; width: 92%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; background: #111124; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99, 102, 241, 0.15);">
       
-      <div class="modal-header" style="padding: 16px 24px 0; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0;">
+      <div class="modal-header" style="position: relative; padding: 16px 65px 0 24px; background: linear-gradient(135deg, #1e1b4b, #311b92); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0;">
+        <button type="button" class="modal-close" id="close-pep-modal" style="position: absolute; top: 16px; right: 20px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10;" onmouseover="this.style.background='rgba(239,68,68,0.4)'; this.style.borderColor='#ef4444';" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.borderColor='rgba(255,255,255,0.2)';" title="Fechar Prontuário">
+          <i class="fa-solid fa-xmark" style="font-size: 1.15rem;"></i>
+        </button>
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 14px;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.4); display: flex; align-items: center; justify-content: center; color: #f472b6;">
@@ -1951,9 +1954,6 @@ window.openPEPModal = async function(encounterId) {
             </button>
             <button type="button" id="btn-pep-whatsapp-header" class="btn" style="background: rgba(37,211,102,0.18); border: 1px solid rgba(37,211,102,0.4); color: #4ade80; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
               <i class="fa-brands fa-whatsapp"></i> WhatsApp
-            </button>
-            <button type="button" class="modal-close" id="close-pep-modal" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-              <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         </div>
