@@ -551,6 +551,12 @@ export function renderSettingsTab(contentArea) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Limpando...';
         try {
           localDB.clear();
+          if (typeof window.setActivePatientContext === 'function') {
+            window.setActivePatientContext(null);
+          }
+          if (typeof window.updateFloatingWorkflowGuide === 'function') {
+            window.updateFloatingWorkflowGuide(typeof state !== 'undefined' ? state?.activeTab : 'dashboard');
+          }
           await apiFetch('/api/settings/reset', { method: 'POST' }).catch(() => {});
           if (typeof window.clearDataCache === 'function') window.clearDataCache();
           

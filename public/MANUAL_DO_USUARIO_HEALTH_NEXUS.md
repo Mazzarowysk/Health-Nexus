@@ -1,10 +1,11 @@
-# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.7.3)
+# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.7.4)
 
-> **Health Nexus — Sistema de Gestão Hospitalar & Prontuário Eletr> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.
+> **Health Nexus v2.7.4 — Sistema de Gestão Hospitalar & Prontuário Eletrônico Inteligente**
+> Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas e protocolos assistenciais.
 
 ---
 
-## 🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.3)
+## 🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.4)
 
 O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:
 
@@ -573,73 +574,6 @@ Coluna onde o médico realiza o atendimento ativo. Cada card contém 5 botões d
 <h3 id="sec-3-1">3.1. Estrutura SOAP</h3>
 
 | Bloco SOAP | Elemento | Descrição do Preenchimento | Exemplo de Preenchimento |
-
-| :---: | :--- | :--- | :--- |
-
-| **S** | **Subjetivo** | Anamnese, queixa principal, tempo de evolução dos sintomas e histórico. | *"Paciente relata dor torácica há 2 horas com irradiação para braço esquerdo."* |
-
-| **O** | **Objetivo** | Exame físico, ausculta cardíaca/pulmonar, sinais vitais e exames complementares. | *"PA: 140/90, FC: 98bpm, ausculta cardíaca sem sopros. ECG com elevação ST."* |
-
-| **A** | **Avaliação** | Hipótese diagnóstica principal e busca do código **CID-10**. | *"I21.9 — Infarto agudo do miocárdio não especificado."* |
-
-| **P** | **Plano** | Conduta terapêutica, prescrição farmacológica, solicitações de exames e recomendações de alta/retorno. | *"Administrado AAS 300mg + Clopidogrel 300mg. Solicitada Vaga na UTI Coronariana."* |
-
-
-
-<h3 id="sec-3-2">3.2. Autocomplete CID-10</h3>
-
-No campo **Avaliação**, ao digitar o código ou nome da doença, o sistema lista sugestões oficiais.
-
-
-
-<h3 id="sec-3-3">3.3. Assinatura Eletrnica e Exportação PDF</h3>
-
-Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.
-
-
-
----
-
-
-
-<h2 id="sec-4">4. Guia Completo de Todos os Modais do Sistema</h2>
-
-
-
-Abaixo encontra-se o detalhamento técnico de cada janela modal presente no sistema, seus botões, validações e comportamentos.
-
-
-
-<h3 id="sec-4-1">4.1. Modal de Triagem de Manchester</h3>
-
-- **Como Acessar:** Clique no botão ` Realizar Triagem` na primeira coluna do Kanban.
-
-- **Campos de Entrada:** `triage-pa`, `triage-fc`, `triage-temp`, `triage-peso`, `triage-spo2`, `triage-dor`, `manchesterColor`, `triage-queixa`.
-
-
-
-| Botão do Modal | Classe / ID | Comportamento ao Clicar |
-
-| :--- | :--- | :--- |
-
-| **Confirmar Triagem** | `button[type="submit"]` | Valida cor obrigatória e queixa. Altera status para `Aguardando_Atendimento` e fecha modal. |
-
-| **Cancelar** | `#btn-cancel-triage` | Cancela a operação, limpa o formulário e fecha a janela sem alterar o paciente. |
-
-| **Fechar (X)** | `#close-triage-modal` | Fecha a janela modal imediatamente. |
-
-
-
-<h3 id="sec-4-2">4.2. Modal de Prescrição & Receituário Médico</h3>
-
-- **Como Acessar:** Clique no botão ` Prescrição` na 3ª coluna do Kanban (*Em Atendimento*).
-
-- **Campos de Entrada:** `rx-med-name`, `rx-dosage`, `rx-route`, `rx-frequency`, `rx-notes`.
-
-
-
-| Botão do Modal | Ação | Resultado |
-
 | :--- | :--- | :--- |
 
 | **âž• Adicionar Item** | Insere o medicamento na lista temporária da receita | Atualiza a tabela interna do receituário. |

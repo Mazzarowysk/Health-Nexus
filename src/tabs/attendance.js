@@ -176,9 +176,10 @@ export function renderAttendanceTab(contentArea) {
                 <label class="form-label">* Queixa Principal / Sintomatologia:</label>
                 <textarea id="triage-complaints" class="form-input" required rows="3" placeholder="Descreva a queixa principal do paciente..."></textarea>
               </div>
-              <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+              <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap;">
                 <button type="button" id="btn-cancel-triage" class="btn" style="background:var(--bg-tertiary); color:var(--text-primary); border-color:var(--border-color);">Cancelar</button>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Salvar Triagem</button>
+                <button type="submit" id="btn-submit-triage-only" class="btn" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff;"><i class="fa-solid fa-floppy-disk"></i> Apenas Salvar Triagem</button>
+                <button type="submit" id="btn-submit-triage-and-call" class="btn btn-primary" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); border:none; color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(59,130,246,0.35);"><i class="fa-solid fa-bullhorn"></i> Salvar &amp; Chamar na TV 📺</button>
               </div>
             </form>
           </div>
@@ -795,6 +796,14 @@ export function renderAttendanceTab(contentArea) {
   document.getElementById('triage-glicemia')?.addEventListener('input', updateTriageMEWS);
   document.getElementById('triage-peso')?.addEventListener('input', updateTriageMEWS);
 
+  let isTriageCallTvClicked = false;
+  document.getElementById('btn-submit-triage-and-call')?.addEventListener('click', () => {
+    isTriageCallTvClicked = true;
+  });
+  document.getElementById('btn-submit-triage-only')?.addEventListener('click', () => {
+    isTriageCallTvClicked = false;
+  });
+
   document.getElementById('triage-form')?.addEventListener('submit', async e => {
     e.preventDefault();
     let radio = document.querySelector('input[name="manchesterColor"]:checked');
@@ -805,8 +814,8 @@ export function renderAttendanceTab(contentArea) {
     const colorValue = radio ? radio.value : 'Amarelo';
     const encId = document.getElementById('triage-encounter-id').value;
 
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+    const btn = e.target.querySelector('button[type="submit"]:disabled') || e.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...'; }
     try {
       const res = await apiFetch(`/api/encounters/${encId}/triage`, {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -832,25 +841,37 @@ export function renderAttendanceTab(contentArea) {
           manchesterColor: colorValue
         });
 
-        if (typeof window.createSmartFlowGuideCard === 'function') {
-          window.createSmartFlowGuideCard('atendimento', `Triagem concluída: Manchester ${colorValue}`);
-        }
-
-        if (typeof window.showFlowCompletionNotification === 'function') {
-          window.showFlowCompletionNotification({
-            actionTitle: '🩺 Triagem Manchester Registrada',
-            message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue}</strong> e está pronto para o atendimento médico.<br><br><strong>Próxima Etapa:</strong> Chame o paciente no <strong>Painel TV</strong> ou abra o <strong>PEP / Prontuário</strong> para iniciar a consulta.`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Fila de Consultório / PEP',
-            targetPatientName: pName,
-            persistent: true
-          });
+        if (isTriageCallTvClicked) {
+          await updateStatus(encId, 'Em_Atendimento', pName, colorValue);
+          showToast(`📺 ${pName} triado(a) e chamado(a) no Painel TV para Consultório 01!`);
+        } else {
+          if (typeof window.createSmartFlowGuideCard === 'function') {
+            window.createSmartFlowGuideCard('atendimento', `Triagem concluída: Manchester ${colorValue}`);
+          }
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: '🩺 Triagem Manchester Registrada',
+              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue}</strong> e está pronto para o atendimento médico.<br><br><strong>Próxima Etapa:</strong> Chame o paciente no <strong>Painel TV</strong> ou abra o <strong>PEP / Prontuário</strong> para iniciar a consulta.`,
+              targetTab: 'atendimento',
+              targetTabLabel: 'Fila de Consultório / PEP',
+              targetPatientName: pName,
+              persistent: true
+            });
+          }
         }
         await loadAndRenderKanban();
       }
       else { const d=await res.json(); showToast(`❌ ${d.message||'Erro ao salvar triagem.'}`,true); }
     } catch { showToast('❌ Erro de conexão ao salvar triagem.',true); }
-    finally { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Salvar Triagem'; }
+    finally { 
+      document.querySelectorAll('#triage-form button[type="submit"]').forEach(b => {
+        b.disabled = false;
+      });
+      const bOnly = document.getElementById('btn-submit-triage-only');
+      if (bOnly) bOnly.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Apenas Salvar Triagem';
+      const bCall = document.getElementById('btn-submit-triage-and-call');
+      if (bCall) bCall.innerHTML = '<i class="fa-solid fa-bullhorn"></i> Salvar &amp; Chamar na TV 📺';
+    }
   });
 
   const renderHistory = (list) => {

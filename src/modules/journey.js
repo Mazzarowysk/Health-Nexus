@@ -137,7 +137,10 @@ const TAB_NEXT_RECOMMENDATION = {
 // ─── GERENCIAMENTO DE CONTEXTO DO PACIENTE ───────────────────────────────────
 
 export const setActivePatientContext = (patient) => {
-  activePatientContext = patient;
+  activePatientContext = patient || null;
+  if (!patient) {
+    try { localStorage.removeItem('activePatientContext'); } catch(e) {}
+  }
   updateFloatingWorkflowGuide(currentActiveTabId);
 };
 

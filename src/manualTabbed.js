@@ -1,4 +1,4 @@
-// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.7.2) ────────────────────────
+// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.7.4) ────────────────────────
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 
 // Normalizador de strings e remoção de acentos
@@ -19,7 +19,7 @@ export const SEMANTIC_SYNONYMS = {
   // Entidades: Pacientes
   paciente: ['paciente', 'pacientes', 'cliente', 'clientes', 'doente', 'internado', 'internada', 'usuario sus', 'prontuario', 'ficha'],
   // Entidades: Medicamentos
-  medicamento: ['medicamento', 'medicamentos', 'remedio', 'remedios', 'droga', 'drogas', 'farmaco', 'insumo', 'insumos', 'posologia', 'comprimido', 'ampola'],
+  medicamento: ['medicamento', 'medicamentos', 'remedio', 'remedios', 'droga', 'drogas', 'farmaco', 'insumo', 'insumos', 'posologia', 'comprimido', 'ampola', 'interacao', 'alerta', 'cdss', 'openfda'],
   // Entidades: Agendamento / Consultas
   consulta: ['consulta', 'consultas', 'agendamento', 'agendamentos', 'agendar', 'marcar', 'horario', 'compromisso', 'reserva'],
   // Entidades: Leitos / Internação
@@ -59,6 +59,16 @@ export const manualData = [
     summary: 'Visão holística da arquitetura do Health Nexus, fluxo do paciente e papéis de acesso do sistema.',
     roles: ['Master', 'Médico', 'Enfermeiro', 'Recepcionista', 'Farmacêutico'],
     buttons: [
+      {
+        icon: 'fa-triangle-exclamation',
+        name: 'Motor CDSS & Alertas de Interações Medicamentosas',
+        type: 'Apoio à Decisão Clínica',
+        color: '#ef4444',
+        description: 'Motor preditivo analítico que varre a prescrição médica em tempo real no PEP para detectar interações medicamento-medicamento (DDI), alergias cadastradas, contraindicações clínicas e duplicidade terapêutica. Exibe banners com severidade (Crítica/Grave/Moderada), justificativa farmacológica e conduta médica sugerida, além de dados da OpenFDA.',
+        shortcut: 'PEP -> Campo Plano Terapêutico & Prescrição',
+        rules: 'Alerta instantâneo enquanto o médico dita ou digita os medicamentos. O aviso desaparece assim que os fármacos incompatíveis são removidos ou substituídos.',
+        keywords: ['cdss', 'interação medicamentosa', 'interações', 'alerta farmaco', 'medicamentos', 'openfda', 'sildenafila', 'isossorbida', 'varfarina', 'ibuprofeno', 'prescrição', 'segurança do paciente']
+      },
       {
         icon: 'fa-shield-halved',
         name: 'Controle de Perfis (RBAC)',

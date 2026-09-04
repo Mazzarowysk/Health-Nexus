@@ -346,12 +346,13 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.7.3)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional Definitivo — Health Nexus (v2.7.4)</h1>
 <blockquote>
-<p>**Health Nexus — Sistema de Gestão Hospitalar &amp; Prontuário Eletr&gt; Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais e protocolos clínicos.</p>
+<p><strong>Health Nexus v2.7.4 — Sistema de Gestão Hospitalar &amp; Prontuário Eletrônico Inteligente</strong>
+Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas e protocolos assistenciais.</p>
 </blockquote>
 <hr>
-<h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.3)</h2>
+<h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.4)</h2>
 <p>O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:</p>
 <pre><code class="language-mermaid">
 flowchart TD
@@ -803,35 +804,8 @@ graph TD
 <p>| <strong>Transferir Leito</strong> | ï¸ | Internação / Leito | Abre o modal para selecionar e alocar o paciente em um leito livre da Enfermaria ou UTI. |</p>
 <p>| <strong>Finalizar</strong> | âœ… | Alta Médica / Conclusão | Encerra a consulta, grava a alta no sistema e move o atendimento para o Histórico Pós-Alta. |</p>
 <hr>
-<h2 id="sec-3">3. Prontuário Eletr<h3 id="sec-3-1">3.1. Estrutura SOAP</h3><p>| Bloco SOAP | Elemento | Descrição do Preenchimento | Exemplo de Preenchimento |</p>
-<p>| :---: | :--- | :--- | :--- |</p>
-<p>| <strong>S</strong> | <strong>Subjetivo</strong> | Anamnese, queixa principal, tempo de evolução dos sintomas e histórico. | <em>&quot;Paciente relata dor torácica há 2 horas com irradiação para braço esquerdo.&quot;</em> |</p>
-<p>| <strong>O</strong> | <strong>Objetivo</strong> | Exame físico, ausculta cardíaca/pulmonar, sinais vitais e exames complementares. | <em>&quot;PA: 140/90, FC: 98bpm, ausculta cardíaca sem sopros. ECG com elevação ST.&quot;</em> |</p>
-<p>| <strong>A</strong> | <strong>Avaliação</strong> | Hipótese diagnóstica principal e busca do código <strong>CID-10</strong>. | <em>&quot;I21.9 — Infarto agudo do miocárdio não especificado.&quot;</em> |</p>
-<p>| <strong>P</strong> | <strong>Plano</strong> | Conduta terapêutica, prescrição farmacológica, solicitações de exames e recomendações de alta/retorno. | <em>&quot;Administrado AAS 300mg + Clopidogrel 300mg. Solicitada Vaga na UTI Coronariana.&quot;</em> |</p>
-<h3 id="sec-3-2">3.2. Autocomplete CID-10</h3><p>No campo <strong>Avaliação</strong>, ao digitar o código ou nome da doença, o sistema lista sugestões oficiais.</p>
-<h3 id="sec-3-3">3.3. Assinatura Eletrnica e Exportação PDF</h3><p>Recursos de rascunho, assinatura médica com senha e geração de laudo PDF.</p>
-<hr>
-<h2 id="sec-4">4. Guia Completo de Todos os Modais do Sistema</h2><p>Abaixo encontra-se o detalhamento técnico de cada janela modal presente no sistema, seus botões, validações e comportamentos.</p>
-<h3 id="sec-4-1">4.1. Modal de Triagem de Manchester</h3><ul>
-<li><p><strong>Como Acessar:</strong> Clique no botão <code> Realizar Triagem</code> na primeira coluna do Kanban.</p>
-</li>
-<li><p><strong>Campos de Entrada:</strong> <code>triage-pa</code>, <code>triage-fc</code>, <code>triage-temp</code>, <code>triage-peso</code>, <code>triage-spo2</code>, <code>triage-dor</code>, <code>manchesterColor</code>, <code>triage-queixa</code>.</p>
-</li>
-</ul>
-<p>| Botão do Modal | Classe / ID | Comportamento ao Clicar |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>Confirmar Triagem</strong> | <code>button[type=&quot;submit&quot;]</code> | Valida cor obrigatória e queixa. Altera status para <code>Aguardando_Atendimento</code> e fecha modal. |</p>
-<p>| <strong>Cancelar</strong> | <code>#btn-cancel-triage</code> | Cancela a operação, limpa o formulário e fecha a janela sem alterar o paciente. |</p>
-<p>| <strong>Fechar (X)</strong> | <code>#close-triage-modal</code> | Fecha a janela modal imediatamente. |</p>
-<h3 id="sec-4-2">4.2. Modal de Prescrição & Receituário Médico</h3><ul>
-<li><p><strong>Como Acessar:</strong> Clique no botão <code> Prescrição</code> na 3ª coluna do Kanban (<em>Em Atendimento</em>).</p>
-</li>
-<li><p><strong>Campos de Entrada:</strong> <code>rx-med-name</code>, <code>rx-dosage</code>, <code>rx-route</code>, <code>rx-frequency</code>, <code>rx-notes</code>.</p>
-</li>
-</ul>
-<p>| Botão do Modal | Ação | Resultado |</p>
-<p>| :--- | :--- | :--- |</p>
+<h2 id="sec-3">3. Prontuário Eletr<h3 id="sec-3-1">3.1. Estrutura SOAP</h3><p>| Bloco SOAP | Elemento | Descrição do Preenchimento | Exemplo de Preenchimento |
+| :--- | :--- | :--- |</p>
 <p>| <strong>âž• Adicionar Item</strong> | Insere o medicamento na lista temporária da receita | Atualiza a tabela interna do receituário. |</p>
 <p>| <strong>ï¸ Remover Item</strong> | Exclui o item selecionado da lista da receita | Remove o fármaco da lista atual. |</p>
 <p>| ** Salvar &amp; Dispensar**| Registra a receita e conecta com a farmácia | Envia pedido de baixa para o estoque da farmácia. |</p>
