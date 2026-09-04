@@ -2640,6 +2640,18 @@ function switchTab(tabName, isBack = false) {
   state.activeTab = tabName;
   updateGlobalBackButton();
 
+  // Fechar quaisquer modais de atendimento/PEP para não bloquear a visão da nova aba
+  if (typeof stopVoiceDictation === 'function') stopVoiceDictation();
+  delete window._pepSwitchTab;
+  delete window._renderPEPHistory;
+  delete window._histSwitchTab;
+  delete window._renderHistPEPs;
+
+  ['pep-modal', 'patient-history-modal', 'consultorio-details-modal', 'enc-report-detail-modal', 'bed-details-modal'].forEach(id => {
+    const modalEl = document.getElementById(id);
+    if (modalEl) modalEl.remove();
+  });
+
   // Atualizar Card Flutuante Guia de Fluxo (legacy journey.js)
   if (typeof updateFloatingWorkflowGuide === 'function') {
     updateFloatingWorkflowGuide(tabName);
