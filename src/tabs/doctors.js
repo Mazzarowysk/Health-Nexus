@@ -2032,57 +2032,93 @@ window.openPEPModal = async function(encounterId) {
       }
     } catch(e) {}
 
-    enc = encounters.find(e => 
+    let matchedEncs = encounters.filter(e => 
       String(e.id) === String(encounterId) || 
       String(e.patientId) === String(encounterId) ||
       (e.patientName && encounterId && e.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
-    ) || {};
+    );
 
-    if (!enc.id && window.localDB) {
+    if (matchedEncs.length === 0 && window.localDB) {
       const db = window.localDB.getFullDB();
       const localEncs = db.encounters || [];
-      const foundEnc = localEncs.find(e => 
+      matchedEncs = localEncs.filter(e => 
         String(e.id) === String(encounterId) || 
         String(e.patientId) === String(encounterId) ||
         (e.patientName && encounterId && e.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
       );
-      if (foundEnc) {
-        enc = { ...foundEnc };
+    }
+
+    if (matchedEncs.length > 0) {
+      // Ordenar priorizando encontros que já possuem preenchimento SOAP e os mais recentes
+      matchedEncs.sort((a, b) => {
+        const aHasSoap = !!(a.subjectiveContent || a.objectiveContent || a.assessmentContent || a.planContent);
+        const bHasSoap = !!(b.subjectiveContent || b.objectiveContent || b.assessmentContent || b.planContent);
+        if (aHasSoap && !bHasSoap) return -1;
+        if (!aHasSoap && bHasSoap) return 1;
+        return new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0);
+      });
+      enc = { ...matchedEncs[0] };
+    }
+
+    if (!enc.id && window.localDB) {
+      const db = window.localDB.getFullDB();
+      const localApts = db.appointments || [];
+      const foundApt = localApts.find(a => 
+        String(a.id) === String(encounterId) || 
+        String(a.patientId) === String(encounterId) ||
+        (a.patientName && encounterId && a.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
+      );
+      if (foundApt) {
+        enc = {
+          id: foundApt.id,
+          patientId: foundApt.patientId,
+          patientName: foundApt.patientName,
+          doctorName: foundApt.doctorName,
+          room: foundApt.roomName || foundApt.room || 'Consultório 01',
+          complaints: foundApt.complaints || foundApt.notes || 'Consulta ambulatorial',
+          manchesterColor: foundApt.manchesterColor || 'Verde',
+          status: foundApt.status || 'Em Atendimento'
+        };
       } else {
-        const localApts = db.appointments || [];
-        const foundApt = localApts.find(a => 
-          String(a.id) === String(encounterId) || 
-          String(a.patientId) === String(encounterId) ||
-          (a.patientName && encounterId && a.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
+        const localPatients = db.patients || [];
+        const foundPat = localPatients.find(p => 
+          String(p.id) === String(encounterId) || 
+          (p.fullName && encounterId && p.fullName.toLowerCase().includes(String(encounterId).toLowerCase()))
         );
-        if (foundApt) {
+        if (foundPat) {
           enc = {
-            id: foundApt.id,
-            patientId: foundApt.patientId,
-            patientName: foundApt.patientName,
-            doctorName: foundApt.doctorName,
-            room: foundApt.roomName || foundApt.room || 'Consultório 01',
-            complaints: foundApt.complaints || foundApt.notes || 'Consulta ambulatorial',
-            manchesterColor: foundApt.manchesterColor || 'Verde',
-            status: foundApt.status || 'Em Atendimento'
+            id: 'ENC-' + Date.now(),
+            patientId: foundPat.id,
+            patientName: foundPat.fullName,
+            room: 'Consultório 01',
+            manchesterColor: 'Verde',
+            status: 'Em Atendimento'
           };
-        } else {
-          const localPatients = db.patients || [];
-          const foundPat = localPatients.find(p => 
-            String(p.id) === String(encounterId) || 
-            (p.fullName && encounterId && p.fullName.toLowerCase().includes(String(encounterId).toLowerCase()))
-          );
-          if (foundPat) {
-            enc = {
-              id: 'ENC-' + Date.now(),
-              patientId: foundPat.id,
-              patientName: foundPat.fullName,
-              room: 'Consultório 01',
-              manchesterColor: 'Verde',
-              status: 'Em Atendimento'
-            };
-          }
         }
+      }
+    }
+
+    // Se o encontro atual ainda não possui conteúdo SOAP, buscar o histórico recente do mesmo paciente no localDB
+    if (window.localDB) {
+      const db = window.localDB.getFullDB();
+      const localEncs = db.encounters || [];
+      const pidNorm = String(enc.patientId || enc.id || encounterId).toLowerCase();
+      const pnameNorm = String(enc.patientName || '').toLowerCase().trim();
+
+      const patientEncsWithSoap = localEncs.filter(e => {
+        const matchesPid = (e.patientId && String(e.patientId).toLowerCase() === pidNorm) || String(e.id).toLowerCase() === pidNorm;
+        const matchesPname = e.patientName && pnameNorm && e.patientName.toLowerCase().includes(pnameNorm);
+        const hasSoap = e.subjectiveContent || e.objectiveContent || e.assessmentContent || e.planContent;
+        return (matchesPid || matchesPname) && hasSoap;
+      }).sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+
+      if (patientEncsWithSoap.length > 0) {
+        const best = patientEncsWithSoap[0];
+        if (!enc.subjectiveContent && best.subjectiveContent) enc.subjectiveContent = best.subjectiveContent;
+        if (!enc.objectiveContent && best.objectiveContent) enc.objectiveContent = best.objectiveContent;
+        if (!enc.assessmentContent && best.assessmentContent) enc.assessmentContent = best.assessmentContent;
+        if (!enc.planContent && best.planContent) enc.planContent = best.planContent;
+        if (!enc.signed_by && best.signed_by) enc.signed_by = best.signed_by;
       }
     }
 
@@ -2183,10 +2219,11 @@ window.openPEPModal = async function(encounterId) {
       }
     } catch (e) {}
 
-    // Preservar a queixa da triagem Manchester no campo Subjetivo se estiver sem nota gravada
-    if (!notes.subjectiveContent && enc.complaints) {
-      notes.subjectiveContent = `[Queixa da Triagem Manchester] ${enc.complaints}`;
-    }
+    // Mesclar notas trazidas da API com o conteúdo gravado no próprio encounter do localDB
+    notes.subjectiveContent = notes.subjectiveContent || enc.subjectiveContent || (enc.complaints ? `[Queixa da Triagem Manchester] ${enc.complaints}` : '');
+    notes.objectiveContent = notes.objectiveContent || enc.objectiveContent || '';
+    notes.assessmentContent = notes.assessmentContent || enc.assessmentContent || '';
+    notes.planContent = notes.planContent || enc.planContent || '';
 
     const bodyEl = document.getElementById('pep-modal-body');
     if (!bodyEl) return;
@@ -2258,7 +2295,7 @@ window.openPEPModal = async function(encounterId) {
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Subjetivo (Anamnese & Queixa):</label>
             ${!isReadOnly ? `<button type="button" id="btn-voice-subj" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
           </div>
-          <textarea id="pep-subjective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Relato do paciente, evolução dos sintomas...">${notes.subjectiveContent || enc.complaints || ''}</textarea>
+          <textarea id="pep-subjective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Relato do paciente, evolução dos sintomas...">${notes.subjectiveContent || enc.subjectiveContent || (enc.complaints ? `[Queixa da Triagem Manchester] ${enc.complaints}` : '')}</textarea>
         </div>
 
         <div>
@@ -2266,7 +2303,7 @@ window.openPEPModal = async function(encounterId) {
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Objetivo (Exame Físico / Achados):</label>
             ${!isReadOnly ? `<button type="button" id="btn-voice-obj" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
           </div>
-          <textarea id="pep-objective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || ''}</textarea>
+          <textarea id="pep-objective" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Exame físico, ausculta, estado geral...">${notes.objectiveContent || enc.objectiveContent || ''}</textarea>
         </div>
 
         <div class="autocomplete-container" style="position:relative;">
@@ -2274,7 +2311,7 @@ window.openPEPModal = async function(encounterId) {
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Avaliação (Diagnóstico / CID-10):</label>
             ${!isReadOnly ? `<button type="button" id="btn-voice-ass" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
           </div>
-          <textarea id="pep-assessment" class="form-input pep-cid-input" ${isReadOnly ? 'readonly style="width:100%; min-height:55px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:55px; resize:vertical;"'} placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || ''}</textarea>
+          <textarea id="pep-assessment" class="form-input pep-cid-input" ${isReadOnly ? 'readonly style="width:100%; min-height:55px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:55px; resize:vertical;"'} placeholder="Hipótese diagnóstica ou CID-10..." autocomplete="off">${notes.assessmentContent || enc.assessmentContent || ''}</textarea>
           <div id="pep-cid-dropdown" class="autocomplete-dropdown"></div>
         </div>
 
@@ -2283,7 +2320,7 @@ window.openPEPModal = async function(encounterId) {
             <label class="form-label" style="font-weight:600; color:var(--text-primary); margin: 0; font-size: 0.88rem;">Plano Terapêutico & Prescrição:</label>
             ${!isReadOnly ? `<button type="button" id="btn-voice-plan" class="btn btn-sm btn-voice-dictation" style="font-size:0.72rem; padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.15); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); cursor:pointer;"><i class="fa-solid fa-microphone"></i> Ditar</button>` : ''}
           </div>
-          <textarea id="pep-plan" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || ''}</textarea>
+          <textarea id="pep-plan" class="form-input" ${isReadOnly ? 'readonly style="width:100%; min-height:65px; resize:none; opacity:0.85; cursor:not-allowed;"' : 'style="width:100%; min-height:65px; resize:vertical;"'} placeholder="Conduta médica, medicação receitada, orientações de alta...">${notes.planContent || enc.planContent || ''}</textarea>
           
           <!-- Banner Dinâmico de Interações Medicamentosas -->
           <div id="pep-drug-interactions-alert" style="display: none; margin-top: 8px; padding: 10px 14px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1.5px solid #ef4444; color: #fca5a5; font-size: 0.82rem;">
@@ -2601,18 +2638,48 @@ async function savePEPData(encounterId, shouldFinalize) {
   const outcome = outcomeElement ? outcomeElement.value : 'alta';
 
   // Gravar conteúdo SOAP e metadados de setor/assinatura no encounter local
-  if (typeof localDB !== 'undefined' && localDB.update) {
+  if (typeof localDB !== 'undefined') {
     try {
-      const encs = localDB.list('encounters');
-      const localEnc = encs.find(e => e.id === encounterId);
-      if (localEnc) {
-        localDB.update('encounters', encounterId, {
+      const db = localDB.getFullDB();
+      const encs = db.encounters || [];
+      const pidNorm = String(encounterId).toLowerCase();
+
+      let targetEnc = encs.find(e => String(e.id) === String(encounterId));
+      if (!targetEnc) {
+        targetEnc = encs.find(e => 
+          (e.patientId && String(e.patientId).toLowerCase() === pidNorm) ||
+          (e.patientName && e.patientName.toLowerCase().includes(pidNorm))
+        );
+      }
+
+      if (targetEnc) {
+        localDB.update('encounters', targetEnc.id, {
           subjectiveContent,
           objectiveContent,
           assessmentContent,
           planContent,
-          signed_by: state?.user?.name || localEnc.doctorName || '',
-          sector: localEnc.sector || localEnc.room || 'Consultório',
+          signed_by: state?.user?.name || targetEnc.doctorName || 'Dr. Médico Assistente',
+          sector: targetEnc.sector || targetEnc.room || 'Consultório',
+          updated_at: new Date().toISOString()
+        });
+      } else {
+        const newEncId = String(encounterId).startsWith('ENC-') ? encounterId : 'ENC-' + Date.now();
+        const activePat = (typeof activePatientContext !== 'undefined') ? activePatientContext : {};
+        localDB.insert('encounters', {
+          id: newEncId,
+          patientId: activePat.id || encounterId,
+          patientName: activePat.fullName || activePat.patientName || 'Paciente',
+          doctorName: state?.user?.name || 'Dr. Médico Assistente',
+          room: 'Consultório 01',
+          sector: 'Consultório',
+          manchesterColor: 'Verde',
+          status: 'Em Atendimento',
+          subjectiveContent,
+          objectiveContent,
+          assessmentContent,
+          planContent,
+          signed_by: state?.user?.name || 'Dr. Médico Assistente',
+          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
       }
