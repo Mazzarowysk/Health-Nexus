@@ -165,6 +165,147 @@ export {
   openConsultorioDetailsModal, openRoomModal, deleteRoom, saveRoom
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SMART FLOW GUIDE — Card flutuante passo a passo (100% self-contained)
+// ═══════════════════════════════════════════════════════════════════════════════
+const _SFG = {
+  minimized: false,
+  activeTab: 'dashboard',
+  steps: [
+    { tab: 'pacientes',    icon: '🏥', label: 'Recepção'  },
+    { tab: 'atendimento',  icon: '🩺', label: 'Triagem'   },
+    { tab: 'consultorios', icon: '👨‍⚕️', label: 'Médico'    },
+    { tab: 'farmacia',     icon: '💊', label: 'Farmácia'  },
+    { tab: 'leitos',       icon: '🛏️', label: 'Leitos'    }
+  ],
+  recs: {
+    dashboard:    { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Iniciar Fluxo Hospitalar',   desc:'Cadastre um paciente ou localize um existente para iniciar o atendimento.' },
+    pacientes:    { next:'atendimento',  nl:'Triagem Manchester',     title:'Classificar Risco Clínico',  desc:'Encaminhe o paciente para triagem e aferição de sinais vitais.' },
+    atendimento:  { next:'consultorios', nl:'Consultório / PEP',      title:'Abrir Consultório Médico',   desc:'Paciente triado! Chame no painel TV ou abra o prontuário eletrônico.' },
+    consultorios: { next:'farmacia',     nl:'Farmácia & Estoque',     title:'Dispensar Medicação',        desc:'Prescrição realizada! Envie para farmácia ou solicite leito de internação.' },
+    medicos:      { next:'consultorios', nl:'Consultórios',           title:'Ir para Consultórios',       desc:'Acompanhe as salas médicas ativas e atenda os pacientes na fila.' },
+    farmacia:     { next:'leitos',       nl:'Gestão de Leitos',       title:'Alocar em Leito / Internar', desc:'Medicamentos dispensados. Gerencie a internação no mapa de leitos.' },
+    leitos:       { next:'kanban',       nl:'Kanban Hospitalar',      title:'Monitorar via Kanban',       desc:'Acompanhe o fluxo de internação e previsão de altas em tempo real.' },
+    kanban:       { next:'financeiro',   nl:'Faturamento & TISS',     title:'Faturar Atendimento',        desc:'Gere os lotes eletrônicos TISS 4.01 e feche a conta hospitalar.' },
+    financeiro:   { next:'relatorios',   nl:'Relatórios & Métricas',  title:'Analisar Relatórios',        desc:'Consulte indicadores, DRE e taxas de resolutividade hospitalar.' },
+    relatorios:   { next:'dashboard',    nl:'Dashboard Principal',    title:'Voltar ao Dashboard',        desc:'Visualize o panorama geral e KPIs operacionais do hospital.' },
+    tv_panel:     { next:'consultorios', nl:'Consultórios',           title:'Atender no Consultório',     desc:'Paciente chamado na TV! Inicie a anamnese e registre no PEP.' },
+    agenda:       { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Recepcionar Agendado',       desc:'Confirme a chegada do paciente agendado e encaminhe à triagem.' },
+    estagnacao:   { next:'atendimento',  nl:'Central de Atendimento', title:'Destravar Pacientes',        desc:'Agilize casos críticos com tempo de espera elevado no PS.' },
+    configuracoes:{ next:'dashboard',    nl:'Dashboard Principal',    title:'Retornar à Operação',        desc:'Ajustes salvos. Retorne ao painel operacional do hospital.' },
+    escalas:      { next:'dashboard',    nl:'Dashboard Principal',    title:'Ver Dashboard',              desc:'Escalas configuradas. Acompanhe o turno atual no painel geral.' }
+  }
+};
+
+function createSmartFlowGuideCard(tabId) {
+  const old = document.getElementById('hn-flow-guide');
+  if (old) old.remove();
+
+  _SFG.activeTab = tabId || 'dashboard';
+  const rec = _SFG.recs[_SFG.activeTab] || _SFG.recs.dashboard;
+  const stepIdx = _SFG.steps.findIndex(function(s){ return s.tab === _SFG.activeTab; });
+
+  const card = document.createElement('div');
+  card.id = 'hn-flow-guide';
+  card.setAttribute('style', [
+    'position:fixed !important',
+    'bottom:20px !important',
+    'right:20px !important',
+    'width:295px !important',
+    'background:linear-gradient(160deg,#0d1223,#161e34)',
+    'border:1px solid rgba(99,102,241,0.45)',
+    'border-radius:14px',
+    'box-shadow:0 16px 48px rgba(0,0,0,0.75),0 0 24px rgba(99,102,241,0.25)',
+    'font-family:Outfit,system-ui,sans-serif',
+    'color:#f8fafc',
+    'z-index:2147483647 !important',
+    'overflow:hidden',
+    'user-select:none'
+  ].join(';'));
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.id = 'hn-fg-header';
+  hdr.setAttribute('style','display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.07);cursor:grab;background:rgba(255,255,255,0.025)');
+  hdr.innerHTML = '<div style="display:flex;align-items:center;gap:7px">'
+    + '<span style="font-size:0.95rem">🗺️</span>'
+    + '<span style="font-weight:800;font-size:0.82rem;color:#f1f5f9">Guia de Fluxo</span>'
+    + '<span style="font-size:0.6rem;font-weight:800;text-transform:uppercase;color:#38bdf8;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);padding:1px 6px;border-radius:8px">Passo a Passo</span>'
+    + '</div>'
+    + '<button id="hn-fg-min" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:1.1rem;line-height:1;padding:1px 5px" title="Minimizar">&#8722;</button>';
+
+  // Steps track
+  const track = document.createElement('div');
+  track.id = 'hn-fg-track';
+  track.setAttribute('style','display:flex;align-items:center;padding:8px 10px 6px;border-bottom:1px solid rgba(255,255,255,0.06)');
+  track.innerHTML = _SFG.steps.map(function(s, i) {
+    const done = stepIdx > i, now = stepIdx === i;
+    const col = done ? '#10b981' : now ? '#38bdf8' : '#475569';
+    const bg  = done ? 'rgba(16,185,129,0.18)' : now ? 'rgba(56,189,248,0.18)' : 'rgba(255,255,255,0.04)';
+    const bdr = done ? 'rgba(16,185,129,0.5)'  : now ? 'rgba(56,189,248,0.6)'  : 'rgba(255,255,255,0.1)';
+    const sep = i < _SFG.steps.length-1
+      ? '<div style="flex-shrink:0;width:8px;height:1.5px;background:' + (done?'#10b981':'rgba(255,255,255,0.12)') + ';margin-bottom:13px"></div>'
+      : '';
+    return '<button onclick="window.switchTab(\'' + s.tab + '\')" title="' + s.label + '" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 1px;border:none;background:none;cursor:pointer;border-radius:6px">'
+      + '<div style="width:26px;height:26px;border-radius:50%;background:' + bg + ';border:1.5px solid ' + bdr + ';display:flex;align-items:center;justify-content:center;font-size:0.72rem">'
+      + (done ? '✓' : s.icon) + '</div>'
+      + '<span style="font-size:0.56rem;font-weight:' + (now?800:600) + ';color:' + col + ';white-space:nowrap">' + s.label + '</span>'
+      + '</button>' + sep;
+  }).join('');
+
+  // Body
+  const body = document.createElement('div');
+  body.id = 'hn-fg-body';
+  body.setAttribute('style','padding:10px 12px');
+  body.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'
+    + '<span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#a5b4fc">&#9889; Próximo Passo</span>'
+    + '<span style="font-size:0.62rem;color:#64748b">📍 ' + (_SFG.activeTab.charAt(0).toUpperCase()+_SFG.activeTab.slice(1)) + '</span>'
+    + '</div>'
+    + '<div style="font-size:0.88rem;font-weight:800;color:#fff;margin-bottom:3px">' + rec.title + '</div>'
+    + '<div style="font-size:0.72rem;color:#94a3b8;line-height:1.4;margin-bottom:10px">' + rec.desc + '</div>'
+    + '<button onclick="window.switchTab(\'' + rec.next + '\')" style="width:100%;padding:8px 12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:9px;font-weight:800;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(16,185,129,0.4)">'
+    + 'Ir para: <strong>' + rec.nl + '</strong>&nbsp;&#8594;'
+    + '</button>';
+
+  card.appendChild(hdr);
+  card.appendChild(track);
+  card.appendChild(body);
+  document.body.appendChild(card);
+
+  // Minimizar
+  var minBtn = card.querySelector('#hn-fg-min');
+  if (minBtn) {
+    minBtn.addEventListener('click', function() {
+      _SFG.minimized = !_SFG.minimized;
+      track.style.display = _SFG.minimized ? 'none' : 'flex';
+      body.style.display  = _SFG.minimized ? 'none' : 'block';
+      minBtn.innerHTML = _SFG.minimized ? '&#43;' : '&#8722;';
+      card.style.width = _SFG.minimized ? 'auto' : '295px';
+    });
+  }
+
+  // Drag
+  var dx = 0, dy = 0, dragging = false;
+  hdr.addEventListener('mousedown', function(e) {
+    dragging = true;
+    var r = card.getBoundingClientRect();
+    dx = e.clientX - r.left; dy = e.clientY - r.top;
+    hdr.style.cursor = 'grabbing';
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    card.style.left = (e.clientX - dx) + 'px';
+    card.style.top  = (e.clientY - dy) + 'px';
+    card.style.right = 'auto'; card.style.bottom = 'auto';
+  });
+  document.addEventListener('mouseup', function() { dragging = false; hdr.style.cursor = 'grab'; });
+
+  console.log('[SmartFlowGuide] Card criado para aba:', _SFG.activeTab);
+  return card;
+}
+
+window.createSmartFlowGuideCard = createSmartFlowGuideCard;
+
 const initializeApp = async () => {
   initTheme();
 
@@ -247,22 +388,15 @@ const initializeApp = async () => {
       }, 120);
       checkInitialSync();
 
-      // ─── GUIA DE FLUXO FLUTUANTE: Inicialização garantida pós-login ───
-      // Chamada com delay para garantir que o DOM já está totalmente renderizado
+      // ─── SMART FLOW GUIDE: Card flutuante self-contained ───────────────────
+      setTimeout(() => { 
+          if(typeof createSmartFlowGuideCard === 'function') createSmartFlowGuideCard('dashboard'); 
+      }, 800);
       setTimeout(() => {
-        try {
-          initFloatingWorkflowGuide();
-        } catch (e) {
-          console.warn('[FlowGuide] Erro na inicialização:', e);
+        if (!document.getElementById('hn-flow-guide') && typeof createSmartFlowGuideCard === 'function') {
+          createSmartFlowGuideCard('dashboard');
         }
-      }, 700);
-      // Verificação de segurança adicional: re-inicializa caso o card não tenha sido criado
-      setTimeout(() => {
-        if (!document.getElementById('floating-flow-guide')) {
-          console.log('[FlowGuide] Card não encontrado, re-inicializando...');
-          try { initFloatingWorkflowGuide(); } catch (e) {}
-        }
-      }, 2000);
+      }, 2500);
       
     } else {
       logout();
@@ -2054,9 +2188,13 @@ function switchTab(tabName, isBack = false) {
   state.activeTab = tabName;
   updateGlobalBackButton();
 
-  // Atualizar Card Flutuante Guia de Fluxo
+  // Atualizar Card Flutuante Guia de Fluxo (legacy journey.js)
   if (typeof updateFloatingWorkflowGuide === 'function') {
     updateFloatingWorkflowGuide(tabName);
+  }
+  // Atualizar Smart Flow Guide Card (novo, self-contained)
+  if (typeof createSmartFlowGuideCard === 'function') {
+    createSmartFlowGuideCard(tabName);
   }
 
   // Remover notificação de fluxo pendente para esta aba de destino se houver
