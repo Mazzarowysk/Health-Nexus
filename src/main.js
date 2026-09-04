@@ -171,6 +171,7 @@ export {
 const _SFG = {
   minimized: false,
   activeTab: 'dashboard',
+  pos: null,
   steps: [
     { tab: 'pacientes',    icon: '🏥', label: 'Recepção'  },
     { tab: 'atendimento',  icon: '🩺', label: 'Triagem'   },
@@ -179,93 +180,477 @@ const _SFG = {
     { tab: 'leitos',       icon: '🛏️', label: 'Leitos'    }
   ],
   recs: {
-    dashboard:    { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Iniciar Fluxo Hospitalar',   desc:'Cadastre um paciente ou localize um existente para iniciar o atendimento.' },
-    pacientes:    { next:'atendimento',  nl:'Triagem Manchester',     title:'Classificar Risco Clínico',  desc:'Encaminhe o paciente para triagem e aferição de sinais vitais.' },
-    atendimento:  { next:'consultorios', nl:'Consultório / PEP',      title:'Abrir Consultório Médico',   desc:'Paciente triado! Chame no painel TV ou abra o prontuário eletrônico.' },
-    consultorios: { next:'farmacia',     nl:'Farmácia & Estoque',     title:'Dispensar Medicação',        desc:'Prescrição realizada! Envie para farmácia ou solicite leito de internação.' },
-    medicos:      { next:'consultorios', nl:'Consultórios',           title:'Ir para Consultórios',       desc:'Acompanhe as salas médicas ativas e atenda os pacientes na fila.' },
-    farmacia:     { next:'leitos',       nl:'Gestão de Leitos',       title:'Alocar em Leito / Internar', desc:'Medicamentos dispensados. Gerencie a internação no mapa de leitos.' },
-    leitos:       { next:'kanban',       nl:'Kanban Hospitalar',      title:'Monitorar via Kanban',       desc:'Acompanhe o fluxo de internação e previsão de altas em tempo real.' },
-    kanban:       { next:'financeiro',   nl:'Faturamento & TISS',     title:'Faturar Atendimento',        desc:'Gere os lotes eletrônicos TISS 4.01 e feche a conta hospitalar.' },
-    financeiro:   { next:'relatorios',   nl:'Relatórios & Métricas',  title:'Analisar Relatórios',        desc:'Consulte indicadores, DRE e taxas de resolutividade hospitalar.' },
-    relatorios:   { next:'dashboard',    nl:'Dashboard Principal',    title:'Voltar ao Dashboard',        desc:'Visualize o panorama geral e KPIs operacionais do hospital.' },
-    tv_panel:     { next:'consultorios', nl:'Consultórios',           title:'Atender no Consultório',     desc:'Paciente chamado na TV! Inicie a anamnese e registre no PEP.' },
-    agenda:       { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Recepcionar Agendado',       desc:'Confirme a chegada do paciente agendado e encaminhe à triagem.' },
-    estagnacao:   { next:'atendimento',  nl:'Central de Atendimento', title:'Destravar Pacientes',        desc:'Agilize casos críticos com tempo de espera elevado no PS.' },
-    configuracoes:{ next:'dashboard',    nl:'Dashboard Principal',    title:'Retornar à Operação',        desc:'Ajustes salvos. Retorne ao painel operacional do hospital.' },
-    escalas:      { next:'dashboard',    nl:'Dashboard Principal',    title:'Ver Dashboard',              desc:'Escalas configuradas. Acompanhe o turno atual no painel geral.' }
+    dashboard:    { next:'pacientes',    nl:'Recepção & Pacientes',   title:'🏥 Chegada do Paciente (Recepção)', desc:'Inicie o acolhimento: cadastre o paciente que acaba de chegar ou localize o cadastro existente para dar entrada na Triagem.' },
+    pacientes:    { next:'atendimento',  nl:'Triagem Manchester',     title:'🩺 Encaminhar para Triagem',        desc:'Paciente na recepção! Encaminhe para a Triagem Manchester para aferição de sinais vitais e classificação de gravidade.' },
+    atendimento:  { next:'consultorios', nl:'Consultório / PEP',      title:'👨‍⚕️ Abrir Consultório Médico',     desc:'Paciente triado! Chame no painel TV ou abra o prontuário eletrônico conforme a prioridade clínica.' },
+    consultorios: { next:'farmacia',     nl:'Farmácia & Estoque',     title:'💊 Dispensar Prescrição Médica',    desc:'Prescrição emitida no PEP! Envie para dispensação na farmácia ou solicite leito se houver indicação de internação.' },
+    medicos:      { next:'consultorios', nl:'Consultórios',           title:'Ir para Consultórios',              desc:'Acompanhe as salas médicas ativas e atenda os pacientes na fila.' },
+    farmacia:     { next:'leitos',       nl:'Gestão de Leitos',       title:'🛏️ Alocar em Leito / Internar',     desc:'Medicamentos dispensados. Se o paciente necessita de suporte hospitalar, gerencie a vaga no mapa de leitos.' },
+    leitos:       { next:'kanban',       nl:'Kanban Hospitalar',      title:'📊 Monitorar no Kanban',            desc:'Acompanhe o fluxo de internação, evolução diária e previsão de altas em tempo real.' },
+    kanban:       { next:'financeiro',   nl:'Faturamento & TISS',     title:'💰 Faturar Atendimento',            desc:'Gere os lotes eletrônicos TISS 4.01 e feche a conta hospitalar.' },
+    financeiro:   { next:'relatorios',   nl:'Relatórios & Métricas',  title:'📈 Analisar Indicadores',           desc:'Consulte indicadores de ocupação, DRE e tempo médio de permanência hospitalar.' },
+    relatorios:   { next:'dashboard',    nl:'Dashboard Principal',    title:'Voltar ao Dashboard',               desc:'Visualize o panorama geral e KPIs operacionais do complexo hospitalar.' },
+    tv_panel:     { next:'consultorios', nl:'Consultórios',           title:'Atender no Consultório',            desc:'Paciente chamado na TV! Inicie a anamnese e registre no prontuário eletrônico.' },
+    agenda:       { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Recepcionar Agendado',              desc:'Confirme a chegada do paciente agendado e encaminhe para a triagem.' },
+    estagnacao:   { next:'atendimento',  nl:'Central de Atendimento', title:'Destravar Pacientes',               desc:'Agilize casos críticos com tempo de espera elevado no PS.' },
+    configuracoes:{ next:'dashboard',    nl:'Dashboard Principal',    title:'Retornar à Operação',               desc:'Ajustes do sistema salvos. Retorne ao painel operacional do hospital.' },
+    escalas:      { next:'dashboard',    nl:'Dashboard Principal',    title:'Ver Dashboard',                     desc:'Escalas configuradas. Acompanhe a escala médica de plantão.' }
   }
 };
 
-function createSmartFlowGuideCard(tabId) {
-  const old = document.getElementById('hn-flow-guide');
-  if (old) old.remove();
+function createSmartFlowGuideCard(tabId, customMessage) {
+  // Verificar autenticação (aceita sessionStorage como fallback)
+  const hasToken = state.isAuthenticated || !!sessionStorage.getItem('hn_token');
+  const onLoginScreen = !!document.getElementById('auth-form') || !!document.querySelector('.auth-container');
+  if (!hasToken || onLoginScreen) return null;
 
-  _SFG.activeTab = tabId || 'dashboard';
+  // Se o card já existe, apenas atualizar o conteúdo sem destruir/recriar (evita flicker)
+  const existing = document.getElementById('hn-flow-guide');
+  if (existing && !customMessage) {
+    // Remove duplicatas extras, mantém o primeiro
+    const all = document.querySelectorAll('#hn-flow-guide, .floating-flow-guide');
+    all.forEach(function(el, idx) { if (idx > 0) el.remove(); });
+    // Força rebuild completo via remoção apenas do existente
+    existing.remove();
+  } else if (!existing) {
+    // Remove qualquer instância órfã de outros IDs
+    document.querySelectorAll('#floating-flow-guide').forEach(function(el) { el.remove(); });
+  } else {
+    // Remove tudo e reconstrói
+    document.querySelectorAll('#hn-flow-guide, #floating-flow-guide, .floating-flow-guide').forEach(function(el) { el.remove(); });
+  }
+
+  _SFG.activeTab = tabId || state.activeTab || 'dashboard';
   const rec = _SFG.recs[_SFG.activeTab] || _SFG.recs.dashboard;
   const stepIdx = _SFG.steps.findIndex(function(s){ return s.tab === _SFG.activeTab; });
 
+  const activePatient = (typeof window.getActivePatientContext === 'function') 
+    ? window.getActivePatientContext() 
+    : null;
+
   const card = document.createElement('div');
   card.id = 'hn-flow-guide';
+  card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '');
+  
+  // Posicionamento
+  const defaultPos = 'bottom:22px !important;right:22px !important;';
+  const customPos = (_SFG.pos && _SFG.pos.left && _SFG.pos.top)
+    ? 'left:' + _SFG.pos.left + ' !important;top:' + _SFG.pos.top + ' !important;bottom:auto !important;right:auto !important;'
+    : defaultPos;
+
+  // Tamanho retangular ampliado conforme pedido do usuário (430px)
+  const cardWidth = _SFG.minimized ? 'auto !important' : '430px !important';
+
   card.setAttribute('style', [
     'position:fixed !important',
-    'bottom:20px !important',
-    'right:20px !important',
-    'width:295px !important',
-    'background:linear-gradient(160deg,#0d1223,#161e34)',
+    customPos,
+    'width:' + cardWidth,
+    'max-width:calc(100vw - 32px) !important',
+    'background:linear-gradient(165deg, rgba(13,18,35,0.98), rgba(22,30,52,0.99))',
     'border:1px solid rgba(99,102,241,0.45)',
     'border-radius:14px',
-    'box-shadow:0 16px 48px rgba(0,0,0,0.75),0 0 24px rgba(99,102,241,0.25)',
+    'box-shadow:0 18px 50px rgba(0,0,0,0.75), 0 0 26px rgba(99,102,241,0.25)',
     'font-family:Outfit,system-ui,sans-serif',
     'color:#f8fafc',
     'z-index:2147483647 !important',
     'overflow:hidden',
-    'user-select:none'
+    'user-select:none',
+    'transition:width 0.2s ease, box-shadow 0.2s ease'
   ].join(';'));
+
+  if (_SFG.minimized) {
+    const miniPill = document.createElement('div');
+    miniPill.setAttribute('style', 'display:flex;align-items:center;gap:10px;padding:9px 16px;background:linear-gradient(135deg,#1e1b4b,#0f172a);border:1px solid rgba(99,102,241,0.6);border-radius:26px;box-shadow:0 6px 20px rgba(0,0,0,0.6);cursor:pointer;');
+    miniPill.innerHTML = '<span style="font-size:1rem">🧭</span>'
+      + '<span style="font-size:0.8rem;font-weight:700;color:#f1f5f9">Guia: <strong style="color:#38bdf8">' + rec.nl + '</strong></span>'
+      + '<span style="font-size:0.9rem;color:#818cf8;margin-left:4px">&#43;</span>';
+    miniPill.addEventListener('click', function() {
+      _SFG.minimized = false;
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+    card.appendChild(miniPill);
+    document.body.appendChild(card);
+    return card;
+  }
 
   // Header
   const hdr = document.createElement('div');
   hdr.id = 'hn-fg-header';
-  hdr.setAttribute('style','display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.07);cursor:grab;background:rgba(255,255,255,0.025)');
-  hdr.innerHTML = '<div style="display:flex;align-items:center;gap:7px">'
-    + '<span style="font-size:0.95rem">🗺️</span>'
-    + '<span style="font-weight:800;font-size:0.82rem;color:#f1f5f9">Guia de Fluxo</span>'
-    + '<span style="font-size:0.6rem;font-weight:800;text-transform:uppercase;color:#38bdf8;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);padding:1px 6px;border-radius:8px">Passo a Passo</span>'
+  hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.08);cursor:grab;background:rgba(255,255,255,0.03)');
+  hdr.innerHTML = '<div style="display:flex;align-items:center;gap:8px">'
+    + '<span style="font-size:1.05rem">🧭</span>'
+    + '<span style="font-weight:800;font-size:0.88rem;color:#f8fafc;letter-spacing:0.2px">Guia de Fluxo Hospitalar</span>'
+    + '<span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 7px;border-radius:8px">Passo a Passo</span>'
     + '</div>'
-    + '<button id="hn-fg-min" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:1.1rem;line-height:1;padding:1px 5px" title="Minimizar">&#8722;</button>';
+    + '<div style="display:flex;align-items:center;gap:4px">'
+    + '<button id="hn-fg-min" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.2rem;line-height:1;padding:2px 6px;border-radius:4px;transition:color 0.2s" title="Minimizar">&#8722;</button>'
+    + '</div>';
 
-  // Steps track
+  // Track (5 etapas do fluxo)
   const track = document.createElement('div');
   track.id = 'hn-fg-track';
-  track.setAttribute('style','display:flex;align-items:center;padding:8px 10px 6px;border-bottom:1px solid rgba(255,255,255,0.06)');
+  track.setAttribute('style', 'display:flex;align-items:center;padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.15)');
   track.innerHTML = _SFG.steps.map(function(s, i) {
     const done = stepIdx > i, now = stepIdx === i;
-    const col = done ? '#10b981' : now ? '#38bdf8' : '#475569';
-    const bg  = done ? 'rgba(16,185,129,0.18)' : now ? 'rgba(56,189,248,0.18)' : 'rgba(255,255,255,0.04)';
-    const bdr = done ? 'rgba(16,185,129,0.5)'  : now ? 'rgba(56,189,248,0.6)'  : 'rgba(255,255,255,0.1)';
-    const sep = i < _SFG.steps.length-1
-      ? '<div style="flex-shrink:0;width:8px;height:1.5px;background:' + (done?'#10b981':'rgba(255,255,255,0.12)') + ';margin-bottom:13px"></div>'
+    const col = done ? '#10b981' : now ? '#38bdf8' : '#64748b';
+    const bg  = done ? 'rgba(16,185,129,0.2)' : now ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.04)';
+    const bdr = done ? 'rgba(16,185,129,0.6)' : now ? 'rgba(56,189,248,0.7)' : 'rgba(255,255,255,0.1)';
+    const sep = i < _SFG.steps.length - 1
+      ? '<div style="flex-shrink:0;width:12px;height:1.5px;background:' + (done ? '#10b981' : 'rgba(255,255,255,0.12)') + ';margin-bottom:15px"></div>'
       : '';
-    return '<button onclick="window.switchTab(\'' + s.tab + '\')" title="' + s.label + '" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 1px;border:none;background:none;cursor:pointer;border-radius:6px">'
-      + '<div style="width:26px;height:26px;border-radius:50%;background:' + bg + ';border:1.5px solid ' + bdr + ';display:flex;align-items:center;justify-content:center;font-size:0.72rem">'
+    return '<button onclick="window.switchTab(\'' + s.tab + '\')" title="' + s.label + '" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;border:none;background:none;cursor:pointer;border-radius:8px;transition:transform 0.15s">'
+      + '<div style="width:30px;height:30px;border-radius:50%;background:' + bg + ';border:1.5px solid ' + bdr + ';display:flex;align-items:center;justify-content:center;font-size:0.8rem;box-shadow:' + (now ? '0 0 10px rgba(56,189,248,0.4)' : 'none') + '">'
       + (done ? '✓' : s.icon) + '</div>'
-      + '<span style="font-size:0.56rem;font-weight:' + (now?800:600) + ';color:' + col + ';white-space:nowrap">' + s.label + '</span>'
+      + '<span style="font-size:0.62rem;font-weight:' + (now ? 800 : 600) + ';color:' + col + ';white-space:nowrap">' + s.label + '</span>'
       + '</button>' + sep;
   }).join('');
 
   // Body
   const body = document.createElement('div');
   body.id = 'hn-fg-body';
-  body.setAttribute('style','padding:10px 12px');
-  body.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'
-    + '<span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#a5b4fc">&#9889; Próximo Passo</span>'
-    + '<span style="font-size:0.62rem;color:#64748b">📍 ' + (_SFG.activeTab.charAt(0).toUpperCase()+_SFG.activeTab.slice(1)) + '</span>'
+  body.setAttribute('style', 'padding:12px 16px 14px');
+
+  // Metadados completos por tela do sistema
+  const screenDetails = {
+    dashboard: {
+      name: 'Health Nexus',
+      badge: 'Painel Geral',
+      summary: 'Visão operacional e ocupação do complexo hospitalar'
+    },
+    pacientes: {
+      name: 'Recepção & Pacientes',
+      badge: 'Acolhimento',
+      summary: 'Identificação, cadastro e admissão de pacientes no PS'
+    },
+    atendimento: {
+      name: 'Triagem Manchester',
+      badge: 'Classificação de Risco',
+      summary: 'Aferição de sinais vitais, cálculo MEWS e gravidade clínica'
+    },
+    consultorios: {
+      name: 'Consultórios Médicos',
+      badge: 'Atendimento Clínico',
+      summary: 'Anamnese SOAP, hipótese CID-10 e prescrição no PEP'
+    },
+    medicos: {
+      name: 'Corpo Clínico & Salas',
+      badge: 'Profissionais',
+      summary: 'Gestão médica e distribuição dos consultórios'
+    },
+    farmacia: {
+      name: 'Farmácia Hospitalar',
+      badge: 'Dispensação',
+      summary: 'Separação e liberação de medicamentos e insumos'
+    },
+    leitos: {
+      name: 'Gestão de Leitos',
+      badge: 'Internação',
+      summary: 'Mapa de vagas, enfermarias e leitos de UTI'
+    },
+    kanban: {
+      name: 'Kanban Hospitalar',
+      badge: 'Linha de Cuidado',
+      summary: 'Evolução clínica, exames e previsão de alta'
+    },
+    financeiro: {
+      name: 'Faturamento & TISS',
+      badge: 'Gestão Financeira',
+      summary: 'Fechamento de contas e lotes eletrônicos TISS 4.01'
+    },
+    relatorios: {
+      name: 'Relatórios & Métricas',
+      badge: 'Indicadores',
+      summary: 'KPIs, tempo médio de permanência e DRE hospitalar'
+    },
+    tv_panel: {
+      name: 'Painel TV (Chamador)',
+      badge: 'Sala de Espera',
+      summary: 'Chamada audiovisual de senhas e consultórios'
+    },
+    agenda: {
+      name: 'Agenda Médica',
+      badge: 'Agendamentos',
+      summary: 'Marcações de consultas e procedimentos'
+    },
+    escalas: {
+      name: 'Escalas de Plantão',
+      badge: 'Gestão de Equipes',
+      summary: 'Escalas médicas e de enfermagem por turno'
+    },
+    estagnacao: {
+      name: 'Alertas & Estagnação',
+      badge: 'Gargalos no PS',
+      summary: 'Pacientes com tempo limite de espera excedido'
+    },
+    configuracoes: {
+      name: 'Configurações',
+      badge: 'Sistema & Turso',
+      summary: 'Parâmetros, permissões de usuários e nuvem'
+    }
+  };
+
+  const curScreen = screenDetails[_SFG.activeTab] || {
+    name: _SFG.activeTab.charAt(0).toUpperCase() + _SFG.activeTab.slice(1),
+    badge: 'Módulo',
+    summary: 'Operação hospitalar'
+  };
+
+  // Faixa do paciente ativo (se houver)
+  let patientStrip = '';
+  let mColor = '';
+  if (activePatient) {
+    const pName = activePatient.fullName || activePatient.patientName || 'Paciente Selecionado';
+    mColor = (activePatient.manchesterColor || '').toLowerCase();
+    
+    const riskColors = {
+      vermelho: { bg: 'rgba(239,68,68,0.2)', border: '#ef4444', text: '#fca5a5', label: '🔴 Vermelho (Emergência - Imediato)' },
+      laranja:  { bg: 'rgba(249,115,22,0.2)', border: '#f97316', text: '#fdba74', label: '🟠 Laranja (Muito Urgente - 10 min)' },
+      amarelo:  { bg: 'rgba(234,179,8,0.2)',  border: '#eab308', text: '#fde047', label: '🟡 Amarelo (Urgente - 60 min)' },
+      verde:    { bg: 'rgba(16,185,129,0.2)', border: '#10b981', text: '#86efac', label: '🟢 Verde (Pouco Urgente - 120 min)' },
+      azul:     { bg: 'rgba(59,130,246,0.2)', border: '#3b82f6', text: '#93c5fd', label: '🔵 Azul (Não Urgente - 240 min)' }
+    };
+    const rInfo = riskColors[mColor] || { bg: 'rgba(99,102,241,0.15)', border: 'rgba(129,140,248,0.4)', text: '#a5b4fc', label: '👤 Em Atendimento' };
+
+    patientStrip = '<div style="display:flex;align-items:center;justify-content:space-between;background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';border-radius:10px;padding:7px 10px;margin-bottom:10px;gap:8px">'
+      + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
+      + '<span style="font-size:0.95rem">👤</span>'
+      + '<div style="min-width:0;line-height:1.25">'
+      + '<div style="font-size:0.8rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px">' + pName + '</div>'
+      + '<div style="font-size:0.68rem;color:' + rInfo.text + ';font-weight:700">' + rInfo.label + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  // Aviso customizado ou alerta de gravidade
+  let customNotice = '';
+  if (customMessage) {
+    customNotice = '<div style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.5);border-radius:8px;padding:6px 10px;font-size:0.75rem;color:#93c5fd;margin-bottom:10px;display:flex;align-items:center;gap:6px">'
+      + '<span>ℹ️</span> <span>' + customMessage + '</span></div>';
+  } else if (mColor === 'vermelho') {
+  customNotice = '<div style="background:rgba(239,68,68,0.25);border:1.5px solid #ef4444;border-radius:8px;padding:7px 10px;font-size:0.76rem;color:#fca5a5;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px;animation:pulse 1.5s infinite">'
+      + '<span>🚨</span> <span>PACIENTE CRÍTICO: Atendimento médico imediato na Sala Vermelha!</span></div>';
+  } else if (mColor === 'laranja') {
+    customNotice = '<div style="background:rgba(249,115,22,0.2);border:1px solid #f97316;border-radius:8px;padding:7px 10px;font-size:0.76rem;color:#fdba74;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px">'
+      + '<span>⚠️</span> <span>MUITO URGENTE: Priorizar chamada médica em até 10 minutos!</span></div>';
+  }
+
+  // Definir título, descrição, próximo passo e ações específicas por tela
+  let stepTitle = '';
+  let stepDesc = '';
+  let targetTab = 'dashboard';
+  let btnText = 'Próxima Etapa ➔';
+  let btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+  let extraActions = '';
+
+  switch (_SFG.activeTab) {
+    case 'dashboard':
+      stepTitle = '🏥 Chegada do Paciente (Recepção)';
+      stepDesc = 'O fluxo hospitalar começa aqui: acolha o paciente que acabou de chegar, faça um novo cadastro ou consulte o registro existente para iniciar a triagem.';
+      targetTab = 'pacientes';
+      btnText = 'Ir para Recepção & Pacientes ➔';
+      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.openNewPatientModal && window.openNewPatientModal()" style="padding:9px 10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:9px;font-weight:800;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 10px rgba(37,99,235,0.35);transition:filter 0.15s">'
+        + '<span>➕</span> Novo Cadastro</button>'
+        + '<button onclick="window.focusPatientSearch && window.focusPatientSearch()" style="padding:9px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#f1f5f9;border-radius:9px;font-weight:800;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.15s">'
+        + '<span>🔍</span> Consultar / Buscar</button>'
+        + '</div>';
+      break;
+
+    case 'pacientes':
+      stepTitle = '🩺 Encaminhar para Triagem Manchester';
+      stepDesc = activePatient 
+        ? 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' identificado na recepção! O próximo passo clínico obrigatório é aferir os sinais vitais e classificar a gravidade na Triagem.' 
+        : 'Com o paciente cadastrado na recepção, o próximo passo clínico é encaminhá-lo para a Triagem Manchester para aferição de sinais vitais e gravidade.';
+      targetTab = 'atendimento';
+      btnText = '🩺 Ir para Triagem Manchester ➔';
+      btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.openNewPatientModal && window.openNewPatientModal()" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>➕</span> Novo Cadastro</button>'
+        + '<button onclick="window.focusPatientSearch && window.focusPatientSearch()" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🔍</span> Buscar CPF/Nome</button>'
+        + '</div>';
+      break;
+
+    case 'atendimento':
+      if (mColor === 'vermelho' || mColor === 'laranja') {
+        stepTitle = '🚨 Atendimento Médico Prioritário (Emergência)';
+        stepDesc = 'Paciente com gravidade ALTA (' + mColor.toUpperCase() + ')! Encaminhe imediatamente para a Sala Vermelha ou Consultório Médico com prioridade zero.';
+        targetTab = 'consultorios';
+        btnText = '🚨 Abrir Consultório / Sala Vermelha ➔';
+        btnBg = 'linear-gradient(135deg, #ef4444, #dc2626)';
+      } else {
+        stepTitle = '👨‍⚕️ Chamar no Painel TV e Abrir Consultório';
+        stepDesc = 'Triagem Manchester realizada e sinais vitais registrados! O próximo passo é acionar a chamada do paciente no Painel TV e iniciar o atendimento médico no PEP.';
+        targetTab = 'consultorios';
+        btnText = '👨‍⚕️ Ir para Consultórios & PEP ➔';
+        btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+      }
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.openAttendanceTriage && window.openAttendanceTriage()" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🩺</span> Aferir Sinais Vitais</button>'
+        + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>📺</span> Chamar na TV</button>'
+        + '</div>';
+      break;
+
+    case 'consultorios':
+    case 'medicos':
+      stepTitle = '💊 Dispensar Medicamentos / Solicitar Leito';
+      stepDesc = 'Atendimento médico e evolução SOAP concluídos no PEP! Próximo passo: enviar a receita para dispensação na farmácia hospitalar ou solicitar vaga de internação caso indicado.';
+      targetTab = 'farmacia';
+      btnText = '💊 Ir para Farmácia Hospitalar ➔';
+      btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.4);color:#67e8f9;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🛏️</span> Solicitar Leito</button>'
+        + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>📺</span> Chamar Próximo</button>'
+        + '</div>';
+      break;
+
+    case 'farmacia':
+      stepTitle = '🛏️ Alocar em Leito ou Acompanhar Internação';
+      stepDesc = 'Medicamentos e insumos dispensados! Se o paciente necessita de observação clínica ou internação, aloque a vaga no mapa de leitos; caso em observação, acompanhe no Kanban.';
+      targetTab = 'leitos';
+      btnText = '🛏️ Ir para Gestão de Leitos ➔';
+      btnBg = 'linear-gradient(135deg, #06b6d4, #0891b2)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>📊</span> Ver no Kanban</button>'
+        + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>💰</span> Faturamento</button>'
+        + '</div>';
+      break;
+
+    case 'leitos':
+      stepTitle = '📊 Monitorar Linha de Cuidado no Kanban';
+      stepDesc = 'Paciente acomodado no leito! O próximo passo da equipe multidisciplinar é acompanhar a evolução clínica, exames pendentes e previsão de alta na esteira Kanban.';
+      targetTab = 'kanban';
+      btnText = '📊 Ir para Kanban Hospitalar ➔';
+      btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>👨‍⚕️</span> Evolução no PEP</button>'
+        + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>💰</span> Faturamento</button>'
+        + '</div>';
+      break;
+
+    case 'kanban':
+      stepTitle = '💰 Faturamento Hospitalar & Guias TISS 4.01';
+      stepDesc = 'Com a alta médica concedida ou procedimentos concluídos, o próximo passo administrativo é fechar a conta do paciente e gerar o lote eletrônico padrão TISS 4.01.';
+      targetTab = 'financeiro';
+      btnText = '💰 Ir para Faturamento & TISS ➔';
+      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🛏️</span> Mapa de Leitos</button>'
+        + '<button onclick="window.switchTab(\'relatorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>📈</span> Indicadores</button>'
+        + '</div>';
+      break;
+
+    case 'financeiro':
+      stepTitle = '📈 Analisar Indicadores & Performance';
+      stepDesc = 'Contas fechadas e lotes TISS gerados! Próximo passo: avaliar o tempo médio de permanência (TMP), taxa de ocupação dos leitos e DRE consolidado.';
+      targetTab = 'relatorios';
+      btnText = '📈 Ir para Relatórios & Métricas ➔';
+      btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'dashboard\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🏥</span> Voltar ao Dashboard</button>'
+        + '</div>';
+      break;
+
+    case 'relatorios':
+      stepTitle = '🏥 Retornar ao Dashboard Central';
+      stepDesc = 'Indicadores e relatórios avaliados! Retorne ao painel central para acompanhar os novos atendimentos e a rotatividade do hospital em tempo real.';
+      targetTab = 'dashboard';
+      btnText = '🏥 Voltar ao Dashboard Principal ➔';
+      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      break;
+
+    case 'tv_panel':
+      stepTitle = '👨‍⚕️ Atender Paciente no Consultório';
+      stepDesc = 'Paciente chamado no painel de TV da sala de espera! O próximo passo é recebê-lo na sala de atendimento e abrir o prontuário no consultório médico.';
+      targetTab = 'consultorios';
+      btnText = '👨‍⚕️ Ir para Consultórios & PEP ➔';
+      btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+      break;
+
+    case 'agenda':
+      stepTitle = '📋 Confirmar Chegada na Recepção';
+      stepDesc = 'Confira os pacientes agendados para hoje. Ao se apresentarem na unidade, confirme a presença e inicie o acolhimento na Recepção para a triagem.';
+      targetTab = 'pacientes';
+      btnText = '📋 Ir para Recepção & Pacientes ➔';
+      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      break;
+
+    case 'escalas':
+      stepTitle = '👨‍⚕️ Verificar Consultórios Médicos Ativos';
+      stepDesc = 'Escalas de trabalho definidas. O próximo passo é conferir os consultórios abertos e os médicos atendendo na unidade.';
+      targetTab = 'consultorios';
+      btnText = '👨‍⚕️ Ver Consultórios Ativos ➔';
+      btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+      break;
+
+    case 'estagnacao':
+      stepTitle = '⚡ Destravar Atendimentos Estagnados';
+      stepDesc = 'Pacientes com tempo limite de espera excedido identificados! Priorize o chamado imediato desses pacientes na triagem ou no consultório médico.';
+      targetTab = 'atendimento';
+      btnText = '🩺 Destravar na Central de Atendimento ➔';
+      btnBg = 'linear-gradient(135deg, #f59e0b, #d97706)';
+      break;
+
+    case 'configuracoes':
+      stepTitle = '🏥 Retornar à Operação Hospitalar';
+      stepDesc = 'Parâmetros e banco de dados Turso configurados. Retorne ao painel operacional para dar andamento aos atendimentos dos pacientes.';
+      targetTab = 'dashboard';
+      btnText = '🏥 Ir para Dashboard Principal ➔';
+      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      break;
+
+    default:
+      stepTitle = rec.title || '🏥 Próxima Etapa Hospitalar';
+      stepDesc = rec.desc || 'Siga o fluxo clínico de atendimento.';
+      targetTab = rec.next || 'dashboard';
+      btnText = 'Avançar no Fluxo ➔';
+      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      break;
+  }
+
+  // Bloco de Identificação da Tela Atual (Compreensão de Tela)
+  const currentScreenHtml = '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:9px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
+    + '<div style="min-width:0">'
+    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
+    + '<span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8">📍 Tela Atual</span>'
+    + '<span style="font-size:0.58rem;font-weight:800;text-transform:uppercase;color:#38bdf8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.3);padding:1px 6px;border-radius:6px">' + curScreen.badge + '</span>'
     + '</div>'
-    + '<div style="font-size:0.88rem;font-weight:800;color:#fff;margin-bottom:3px">' + rec.title + '</div>'
-    + '<div style="font-size:0.72rem;color:#94a3b8;line-height:1.4;margin-bottom:10px">' + rec.desc + '</div>'
-    + '<button onclick="window.switchTab(\'' + rec.next + '\')" style="width:100%;padding:8px 12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:9px;font-weight:800;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(16,185,129,0.4)">'
-    + 'Ir para: <strong>' + rec.nl + '</strong>&nbsp;&#8594;'
-    + '</button>';
+    + '<div style="font-size:0.86rem;font-weight:800;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + curScreen.name + '</div>'
+    + '<div style="font-size:0.68rem;color:#94a3b8;line-height:1.2;margin-top:2px">' + curScreen.summary + '</div>'
+    + '</div>'
+    + '</div>';
+
+  // Bloco do Próximo Passo Sugerido
+  const nextStepHtml = '<div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:10px;padding:10px 12px;margin-bottom:10px">'
+    + '<div style="display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#a5b4fc;margin-bottom:4px">'
+    + '<span>⚡</span> <span>Próximo Passo Recomendado</span>'
+    + '</div>'
+    + '<div style="font-size:0.9rem;font-weight:800;color:#ffffff;margin-bottom:4px">' + stepTitle + '</div>'
+    + '<div style="font-size:0.76rem;color:#cbd5e1;line-height:1.4">' + stepDesc + '</div>'
+    + '</div>';
+
+  body.innerHTML = currentScreenHtml
+    + patientStrip
+    + customNotice
+    + nextStepHtml
+    + '<button onclick="window.switchTab(\'' + targetTab + '\')" style="width:100%;padding:10px 14px;background:' + btnBg + ';color:#fff;border:none;border-radius:10px;font-weight:800;font-size:0.84rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(16,185,129,0.4);transition:filter 0.15s" onmouseover="this.style.filter=\'brightness(1.1)\'" onmouseout="this.style.filter=\'none\'">'
+    + btnText
+    + '</button>'
+    + extraActions;
 
   card.appendChild(hdr);
   card.appendChild(track);
@@ -273,38 +658,89 @@ function createSmartFlowGuideCard(tabId) {
   document.body.appendChild(card);
 
   // Minimizar
-  var minBtn = card.querySelector('#hn-fg-min');
+  const minBtn = card.querySelector('#hn-fg-min');
   if (minBtn) {
-    minBtn.addEventListener('click', function() {
-      _SFG.minimized = !_SFG.minimized;
-      track.style.display = _SFG.minimized ? 'none' : 'flex';
-      body.style.display  = _SFG.minimized ? 'none' : 'block';
-      minBtn.innerHTML = _SFG.minimized ? '&#43;' : '&#8722;';
-      card.style.width = _SFG.minimized ? 'auto' : '295px';
+    minBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _SFG.minimized = true;
+      createSmartFlowGuideCard(_SFG.activeTab);
     });
   }
 
-  // Drag
-  var dx = 0, dy = 0, dragging = false;
+  // Drag & drop com persistência de posição
+  let dx = 0, dy = 0, dragging = false;
   hdr.addEventListener('mousedown', function(e) {
+    if (e.target === minBtn) return;
     dragging = true;
-    var r = card.getBoundingClientRect();
-    dx = e.clientX - r.left; dy = e.clientY - r.top;
+    const r = card.getBoundingClientRect();
+    dx = e.clientX - r.left;
+    dy = e.clientY - r.top;
     hdr.style.cursor = 'grabbing';
   });
   document.addEventListener('mousemove', function(e) {
     if (!dragging) return;
-    card.style.left = (e.clientX - dx) + 'px';
-    card.style.top  = (e.clientY - dy) + 'px';
-    card.style.right = 'auto'; card.style.bottom = 'auto';
+    const newLeft = (e.clientX - dx);
+    const newTop = (e.clientY - dy);
+    card.style.left = newLeft + 'px';
+    card.style.top  = newTop + 'px';
+    card.style.right = 'auto';
+    card.style.bottom = 'auto';
   });
-  document.addEventListener('mouseup', function() { dragging = false; hdr.style.cursor = 'grab'; });
+  document.addEventListener('mouseup', function() {
+    if (dragging) {
+      dragging = false;
+      hdr.style.cursor = 'grab';
+      _SFG.pos = { left: card.style.left, top: card.style.top };
+    }
+  });
 
   console.log('[SmartFlowGuide] Card criado para aba:', _SFG.activeTab);
   return card;
 }
 
 window.createSmartFlowGuideCard = createSmartFlowGuideCard;
+
+window.openNewPatientModal = function() {
+  if (typeof window.switchTab === 'function') {
+    window.switchTab('pacientes');
+    setTimeout(function() {
+      var btn = document.getElementById('btn-new-patient');
+      if (btn) btn.click();
+      else {
+        var modal = document.getElementById('patient-modal-overlay');
+        if (modal) modal.style.display = 'flex';
+      }
+    }, 180);
+  }
+};
+
+window.focusPatientSearch = function() {
+  if (typeof window.switchTab === 'function') {
+    window.switchTab('pacientes');
+    setTimeout(function() {
+      var search = document.getElementById('search-input');
+      if (search) {
+        search.focus();
+        search.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 180);
+  }
+};
+
+window.openAttendanceTriage = function() {
+  if (typeof window.switchTab === 'function') {
+    window.switchTab('atendimento');
+    setTimeout(function() {
+      const triageButtons = document.querySelectorAll('.btn-triage, [data-action="triage"], button[onclick*="triage"]');
+      if (triageButtons.length > 0) {
+        triageButtons[0].click();
+      } else {
+        const modal = document.getElementById('triage-modal');
+        if (modal) modal.style.display = 'flex';
+      }
+    }, 220);
+  }
+};
 
 const initializeApp = async () => {
   initTheme();
@@ -388,15 +824,18 @@ const initializeApp = async () => {
       }, 120);
       checkInitialSync();
 
-      // ─── SMART FLOW GUIDE: Card flutuante self-contained ───────────────────
-      setTimeout(() => { 
-          if(typeof createSmartFlowGuideCard === 'function') createSmartFlowGuideCard('dashboard'); 
-      }, 800);
+      // ─── SMART FLOW GUIDE: Card flutuante — aparece logo após o login ──────
+      setTimeout(() => {
+        if (typeof createSmartFlowGuideCard === 'function') {
+          createSmartFlowGuideCard('dashboard');
+        }
+      }, 300);
+      // Fallback caso o DOM ainda não estivesse pronto no primeiro disparo
       setTimeout(() => {
         if (!document.getElementById('hn-flow-guide') && typeof createSmartFlowGuideCard === 'function') {
           createSmartFlowGuideCard('dashboard');
         }
-      }, 2500);
+      }, 1200);
       
     } else {
       logout();
@@ -1242,6 +1681,12 @@ function renderAuthScreen() {
             state.user = data.user;
             showToast('Login realizado com sucesso!');
             initializeApp();
+            // Garante que o card aparece logo após o login
+            setTimeout(() => {
+              if (typeof createSmartFlowGuideCard === 'function' && !document.getElementById('hn-flow-guide')) {
+                createSmartFlowGuideCard('dashboard');
+              }
+            }, 500);
           } else {
             showToast(data.message || 'Cadastro realizado com sucesso!');
             isLogin = true;
@@ -1797,6 +2242,13 @@ function renderAppStructure() {
 
   // Renderizar o conteúdo da aba ativa
   renderTabContent();
+
+  // Card Guia: garantir que aparece mesmo se renderTabContent tiver delay
+  setTimeout(function() {
+    if (!document.getElementById('hn-flow-guide') && typeof createSmartFlowGuideCard === 'function') {
+      createSmartFlowGuideCard(state.activeTab || 'dashboard');
+    }
+  }, 600);
 }
 
 // ─── MECANISMO DE BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND K) ──────────────
@@ -2192,10 +2644,7 @@ function switchTab(tabName, isBack = false) {
   if (typeof updateFloatingWorkflowGuide === 'function') {
     updateFloatingWorkflowGuide(tabName);
   }
-  // Atualizar Smart Flow Guide Card (novo, self-contained)
-  if (typeof createSmartFlowGuideCard === 'function') {
-    createSmartFlowGuideCard(tabName);
-  }
+  // Atualizar Smart Flow Guide Card (novo, self-contained) - via renderTabContent que chama ao final
 
   // Remover notificação de fluxo pendente para esta aba de destino se houver
   const existingFlowToast = document.querySelector(`[data-flow-target-tab="${tabName}"]`);
@@ -2324,6 +2773,14 @@ async function renderTabContent() {
   } else if (state.activeTab === 'configuracoes') {
     renderSettingsTab(contentArea);
   }
+
+  // Garantir que o Card Guia acompanhe e compreenda a tela renderizada
+  // Pequeno delay para deixar o DOM da aba estabilizar antes de criar o card
+  setTimeout(function() {
+    if (typeof createSmartFlowGuideCard === 'function') {
+      createSmartFlowGuideCard(state.activeTab);
+    }
+  }, 150);
 }
 
 // --- MÁSCARAS DE INPUT ---
@@ -2410,48 +2867,116 @@ let currentPEPEncounterId = null;
 // Catálogo de CID-10
 let cidCatalog = [];
 
+// Fallback embutido — CIDs mais frequentes no PS/Emergência (garante funcionamento offline)
+const CID_FALLBACK = [
+  {code:'A09',description:'Diarréia e gastroenterite de origem infecciosa presumível',search:'a09 diarreia gastroenterite'},
+  {code:'A90',description:'Dengue [dengue clássico]',search:'a90 dengue'},
+  {code:'A41',description:'Sepse',search:'a41 sepse septicemia'},
+  {code:'B34.9',description:'Infecção viral não especificada',search:'b34 infeccao viral'},
+  {code:'E10',description:'Diabetes mellitus tipo 1 (insulino-dependente)',search:'e10 diabetes tipo 1'},
+  {code:'E11',description:'Diabetes mellitus tipo 2 (não-insulino-dependente)',search:'e11 diabetes tipo 2'},
+  {code:'E14',description:'Diabetes mellitus não especificado',search:'e14 diabetes'},
+  {code:'E11.9',description:'Diabetes mellitus não especificado sem complicações',search:'e11 diabetes sem complicacoes'},
+  {code:'E66',description:'Obesidade',search:'e66 obesidade'},
+  {code:'E87.6',description:'Hipocalemia',search:'e87 hipocalemia'},
+  {code:'F32',description:'Episódio depressivo',search:'f32 depressao episodio depressivo'},
+  {code:'F41.1',description:'Transtorno de ansiedade generalizada',search:'f41 ansiedade'},
+  {code:'G43',description:'Enxaqueca [Migrânea]',search:'g43 enxaqueca migranea'},
+  {code:'G89.0',description:'Dor aguda',search:'g89 dor aguda'},
+  {code:'I10',description:'Hipertensão arterial sistêmica essencial (primária)',search:'i10 hipertensao arterial has'},
+  {code:'I20',description:'Angina pectoris',search:'i20 angina pectoris'},
+  {code:'I21',description:'Infarto agudo do miocárdio (IAM)',search:'i21 infarto iam miocardio'},
+  {code:'I21.9',description:'IAM — Infarto agudo do miocárdio não especificado',search:'i21 iam infarto agudo nao especificado'},
+  {code:'I25',description:'Doença cardíaca isquêmica crônica',search:'i25 isquemica coronariana cronica'},
+  {code:'I48',description:'Fibrilação e flutter atrial',search:'i48 fibrilacao flutter atrial'},
+  {code:'I50',description:'Insuficiência cardíaca congestiva (ICC)',search:'i50 insuficiencia cardiaca icc'},
+  {code:'I63',description:'AVC Isquêmico — Infarto cerebral',search:'i63 avc isquemic infarto cerebral'},
+  {code:'I64',description:'AVC Hemorrágico — não especificado',search:'i64 avc hemorragico'},
+  {code:'J00',description:'Rinofaringite aguda [resfriado comum]',search:'j00 resfriado comum rinofaringite'},
+  {code:'J03',description:'Amigdalite aguda',search:'j03 amigdalite angina'},
+  {code:'J06',description:'Infecções agudas das vias aéreas superiores (IVAS)',search:'j06 ivas vias aereas superiores'},
+  {code:'J11',description:'Influenza [Gripe] — vírus não identificado',search:'j11 gripe influenza'},
+  {code:'J18',description:'Pneumonia não especificada',search:'j18 pneumonia'},
+  {code:'J44',description:'DPOC — Doença pulmonar obstrutiva crônica',search:'j44 dpoc doenca pulmonar obstrutiva cronica'},
+  {code:'J45',description:'Asma brônquica',search:'j45 asma bronquica'},
+  {code:'K21',description:'Doença de refluxo gastroesofágico (DRGE)',search:'k21 refluxo drge gastroesofagico'},
+  {code:'K25',description:'Úlcera gástrica',search:'k25 ulcera gastrica'},
+  {code:'K29',description:'Gastrite e duodenite',search:'k29 gastrite duodenite'},
+  {code:'K35',description:'Apendicite aguda',search:'k35 apendicite'},
+  {code:'K57',description:'Doença diverticular do intestino',search:'k57 diverticulite diverticulo'},
+  {code:'K80',description:'Colelitíase [cálculo na vesícula biliar]',search:'k80 calculose colelitiase vesicula biliar colecistite'},
+  {code:'K92.1',description:'Melena',search:'k92 melena hematoquezia sangramento digestivo'},
+  {code:'L03',description:'Celulite [erisipela]',search:'l03 celulite erisipela'},
+  {code:'M54.5',description:'Lombalgia / Dor lombar',search:'m54 lombalgia dor lombar'},
+  {code:'M79.3',description:'Paniculite',search:'m79 mialgia dor muscular'},
+  {code:'N10',description:'Pielonefrite aguda / ITU alta',search:'n10 pielonefrite itu infeccao urinaria'},
+  {code:'N23',description:'Cólica renal não especificada',search:'n23 colica renal nefritica urolitiase'},
+  {code:'N39.0',description:'Infecção do trato urinário (ITU)',search:'n39 itu infeccao urinaria cistite'},
+  {code:'R00',description:'Palpitação / Arritmia',search:'r00 palpitacao arritmia'},
+  {code:'R05',description:'Tosse',search:'r05 tosse'},
+  {code:'R06.0',description:'Dispneia / Falta de ar',search:'r06 dispneia falta de ar'},
+  {code:'R07',description:'Dor precordial / Dor no peito',search:'r07 dor precordial peito toracica'},
+  {code:'R10',description:'Dor abdominal',search:'r10 dor abdominal'},
+  {code:'R11',description:'Náuseas e vômitos',search:'r11 nausea vomito'},
+  {code:'R17',description:'Icterícia não especificada',search:'r17 ictericia'},
+  {code:'R42',description:'Tontura e vertigem',search:'r42 tontura vertigem'},
+  {code:'R50',description:'Febre de causa desconhecida',search:'r50 febre causa desconhecida'},
+  {code:'R51',description:'Cefaleia / Dor de cabeça',search:'r51 cefaleia dor de cabeca'},
+  {code:'R55',description:'Síncope e colapso',search:'r55 sincope desmaio colapso'},
+  {code:'R73',description:'Glicose elevada / Hiperglicemia',search:'r73 hiperglicemia glicose elevada'},
+  {code:'S00-T98',description:'Trauma / Lesão não especificada',search:'trauma lesao fratura ferimento'},
+  {code:'S06',description:'Traumatismo intracraniano (TCE)',search:'s06 tce trauma craniano'},
+  {code:'S72',description:'Fratura do fêmur / quadril',search:'s72 fratura femur quadril'},
+  {code:'T14.0',description:'Ferida aberta de região não especificada',search:'t14 ferida aberta laceracao'},
+  {code:'Z03',description:'Exame / Observação médica — sem diagnóstico',search:'z03 observacao exame sem diagnostico'},
+  {code:'Z51.1',description:'Quimioterapia',search:'z51 quimioterapia'},
+];
+
 // Configurar Autocomplete do CID
 window.setupCidAutocomplete = async function setupCidAutocomplete() {
   const input = document.getElementById('pep-assessment');
   const dropdown = document.getElementById('pep-cid-dropdown');
-  
+
   if (!input || !dropdown) return;
-  
-  // Buscar os CIDs apenas uma vez
+
+  // Evitar registrar listeners duplicados
+  if (input.dataset.cidAutocompleteReady === '1') return;
+  input.dataset.cidAutocompleteReady = '1';
+
+  // Usar fallback imediatamente enquanto carrega o JSON completo
   if (cidCatalog.length === 0) {
-    const originalPlaceholder = input.placeholder;
-    input.placeholder = "Carregando banco de dados CID-10...";
-    input.disabled = true;
+    cidCatalog = CID_FALLBACK;
+  }
+
+  // Carregar o catálogo completo em background (sem travar o campo)
+  (async () => {
     try {
       const res = await fetch('/assets/cid10.json');
       if (res.ok) {
-        // Forçar decodificação UTF-8 para evitar caracteres estranhos
         const buffer = await res.arrayBuffer();
         const text = new TextDecoder('utf-8').decode(buffer);
-        cidCatalog = JSON.parse(text);
-      } else {
-        console.warn('Falha ao carregar o CID-10:', res.status);
-        input.placeholder = "Erro ao carregar CID-10";
+        const full = JSON.parse(text);
+        if (full && full.length > 0) {
+          cidCatalog = full;
+        }
       }
     } catch (e) {
-      console.warn('Erro na requisição do CID-10:', e);
-      input.placeholder = "Erro de conexão CID-10";
+      // Silencioso — fallback já está ativo
+      console.warn('[CID-10] JSON completo indisponível, usando catálogo de emergência embutido.');
     }
-    if (cidCatalog.length > 0) {
-      input.placeholder = originalPlaceholder;
-    }
-    input.disabled = false;
-  }
+  })();
 
   function removeAccents(str) {
     return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
-  
-  input.setAttribute('autocomplete', 'new-password'); // Forçar o navegador a ignorar o autocomplete nativo
+
+  input.setAttribute('autocomplete', 'new-password');
 
   input.addEventListener('input', (e) => {
     const val = e.target.value;
-    const term = removeAccents(val.trim());
+    // Para textarea: buscar apenas na última linha digitada
+    const lastLine = val.includes('\n') ? val.split('\n').pop() : val;
+    const term = removeAccents(lastLine.trim());
     dropdown.innerHTML = '';
     
     if (term.length < 2) {

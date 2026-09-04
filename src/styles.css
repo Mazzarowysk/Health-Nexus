@@ -5291,7 +5291,7 @@ body.compact-mode .modal-content {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 300px;
+  width: 430px;
   max-width: calc(100vw - 32px);
   background: linear-gradient(160deg, rgba(13, 18, 35, 0.97), rgba(22, 30, 52, 0.98));
   border: 1px solid rgba(99, 102, 241, 0.35);

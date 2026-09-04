@@ -682,11 +682,18 @@ export function renderPatientsTab(contentArea) {
           if (modalOverlay) modalOverlay.style.display = 'none';
         }
 
-        try {
-          dataCache.delete('patients');
-          await loadAndRenderTable();
-        } catch (e) {
-          console.warn('Erro ao recarregar tabela:', e);
+        if (!isEdit && typeof window.setActivePatientContext === 'function') {
+          window.setActivePatientContext({
+            id: savedPatientId,
+            fullName: fullName,
+            patientName: fullName,
+            cpf: cpf,
+            status: 'Aguardando Triagem'
+          });
+        }
+
+        if (!shouldDirectlyAdmit && typeof window.createSmartFlowGuideCard === 'function') {
+          window.createSmartFlowGuideCard('pacientes', `Paciente ${fullName} cadastrado! Encaminhe para a Triagem.`);
         }
 
         if (shouldDirectlyAdmit && !isEdit) {

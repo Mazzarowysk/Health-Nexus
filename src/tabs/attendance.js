@@ -166,9 +166,9 @@ export function renderAttendanceTab(contentArea) {
 
               <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin:16px 0 12px; color:var(--text-primary); border-left:3px solid #8b5cf6; padding-left:8px;">* Classificação de Risco</h4>
               <div class="manchester-selector">
-                <div class="manchester-option vermelho"><input type="radio" id="color-vermelho" name="manchesterColor" value="Vermelho" required><label for="color-vermelho" class="manchester-label"><i class="fa-solid fa-triangle-exclamation"></i><span>Emergência</span></label></div>
+                <div class="manchester-option vermelho"><input type="radio" id="color-vermelho" name="manchesterColor" value="Vermelho"><label for="color-vermelho" class="manchester-label"><i class="fa-solid fa-triangle-exclamation"></i><span>Emergência</span></label></div>
                 <div class="manchester-option laranja"><input type="radio" id="color-laranja" name="manchesterColor" value="Laranja"><label for="color-laranja" class="manchester-label"><i class="fa-solid fa-circle-exclamation"></i><span>Muito Urgente</span></label></div>
-                <div class="manchester-option amarelo"><input type="radio" id="color-amarelo" name="manchesterColor" value="Amarelo"><label for="color-amarelo" class="manchester-label"><i class="fa-solid fa-circle-info"></i><span>Urgente</span></label></div>
+                <div class="manchester-option amarelo"><input type="radio" id="color-amarelo" name="manchesterColor" value="Amarelo" checked><label for="color-amarelo" class="manchester-label"><i class="fa-solid fa-circle-info"></i><span>Urgente</span></label></div>
                 <div class="manchester-option verde"><input type="radio" id="color-verde" name="manchesterColor" value="Verde"><label for="color-verde" class="manchester-label"><i class="fa-solid fa-circle-check"></i><span>Pouco Urgente</span></label></div>
                 <div class="manchester-option azul"><input type="radio" id="color-azul" name="manchesterColor" value="Azul"><label for="color-azul" class="manchester-label"><i class="fa-solid fa-circle"></i><span>Não Urgente</span></label></div>
               </div>
@@ -723,12 +723,25 @@ export function renderAttendanceTab(contentArea) {
 
     document.getElementById('triage-encounter-id').value = id;
     document.getElementById('triage-patient-name').textContent = name;
+    
+    // Pre-seleção padrão para garantir estado válido
+    const defRadio = document.getElementById('color-amarelo') || document.querySelector('input[name="manchesterColor"]');
+    if (defRadio) defRadio.checked = true;
+
     document.getElementById('triage-modal').style.display = 'flex';
   };
   const closeTriageModal = () => { document.getElementById('triage-modal').style.display = 'none'; document.getElementById('triage-form').reset(); };
   document.getElementById('close-triage-modal')?.addEventListener('click', closeTriageModal);
   document.getElementById('btn-cancel-triage')?.addEventListener('click', closeTriageModal);
   document.getElementById('triage-modal')?.addEventListener('click', e => { if (e.target === document.getElementById('triage-modal')) closeTriageModal(); });
+
+  // Garantir clique suave em toda a área das opções Manchester
+  document.querySelectorAll('.manchester-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const r = opt.querySelector('input[type="radio"]');
+      if (r) r.checked = true;
+    });
+  });
 
   const updateTriageMEWS = () => {
     const pa = document.getElementById('triage-pa')?.value || '';
@@ -755,10 +768,16 @@ export function renderAttendanceTab(contentArea) {
 
       if (mews.isSepsisAlert) {
         suggestEl.innerHTML = '<strong style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ALERTA SEPSE / EMERGÊNCIA</strong>';
+        const rad = document.getElementById('color-vermelho');
+        if (rad) rad.checked = true;
       } else if (mews.score >= 5) {
-        suggestEl.innerHTML = '<span style="color: #f87171; font-weight:700;">Recomendado: Vermelho/Laranja</span>';
+        suggestEl.innerHTML = '<span style="color: #f87171; font-weight:700;">Recomendado: Laranja</span>';
+        const rad = document.getElementById('color-laranja');
+        if (rad) rad.checked = true;
       } else if (mews.score >= 3) {
         suggestEl.innerHTML = '<span style="color: #fbbf24; font-weight:600;">Recomendado: Amarelo</span>';
+        const rad = document.getElementById('color-amarelo');
+        if (rad) rad.checked = true;
       } else {
         suggestEl.innerHTML = '<span style="color: #34d399;">Sinais Vitais Estáveis</span>';
       }
@@ -773,32 +792,54 @@ export function renderAttendanceTab(contentArea) {
   document.getElementById('triage-temp')?.addEventListener('input', updateTriageMEWS);
   document.getElementById('triage-fc')?.addEventListener('input', updateTriageMEWS);
   document.getElementById('triage-spo2')?.addEventListener('input', updateTriageMEWS);
+  document.getElementById('triage-glicemia')?.addEventListener('input', updateTriageMEWS);
+  document.getElementById('triage-peso')?.addEventListener('input', updateTriageMEWS);
 
   document.getElementById('triage-form')?.addEventListener('submit', async e => {
     e.preventDefault();
-    const radio = document.querySelector('input[name="manchesterColor"]:checked');
-    if (!radio) { showToast('❌ Selecione a classificação de risco.', true); return; }
+    let radio = document.querySelector('input[name="manchesterColor"]:checked');
+    if (!radio) {
+      const fallbackRad = document.getElementById('color-amarelo') || document.querySelector('input[name="manchesterColor"]');
+      if (fallbackRad) { fallbackRad.checked = true; radio = fallbackRad; }
+    }
+    const colorValue = radio ? radio.value : 'Amarelo';
+    const encId = document.getElementById('triage-encounter-id').value;
+
     const btn = e.target.querySelector('button[type="submit"]');
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
     try {
-      const res = await apiFetch(`/api/encounters/${document.getElementById('triage-encounter-id').value}/triage`, {
+      const res = await apiFetch(`/api/encounters/${encId}/triage`, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          manchesterColor: radio.value,
-          bloodPressure: document.getElementById('triage-pa').value,
-          temperatureCelsius: document.getElementById('triage-temp').value,
-          heartRateBpm: document.getElementById('triage-fc').value,
-          weightKg: document.getElementById('triage-peso').value,
-          complaints: document.getElementById('triage-complaints').value
+          manchesterColor: colorValue,
+          bloodPressure: document.getElementById('triage-pa')?.value || '',
+          temperatureCelsius: document.getElementById('triage-temp')?.value || '',
+          heartRateBpm: document.getElementById('triage-fc')?.value || '',
+          spo2: document.getElementById('triage-spo2')?.value || '',
+          weightKg: document.getElementById('triage-peso')?.value || '',
+          glicemia: document.getElementById('triage-glicemia')?.value || '',
+          complaints: document.getElementById('triage-complaints')?.value || ''
         })
       });
       if (res.ok) {
         const pName = document.getElementById('triage-patient-name').textContent || 'Paciente';
         closeTriageModal();
+
+        setActivePatientContext({
+          id: encId,
+          fullName: pName,
+          patientName: pName,
+          manchesterColor: colorValue
+        });
+
+        if (typeof window.createSmartFlowGuideCard === 'function') {
+          window.createSmartFlowGuideCard('atendimento', `Triagem concluída: Manchester ${colorValue}`);
+        }
+
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
             actionTitle: '🩺 Triagem Manchester Registrada',
-            message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${radio.value}</strong> e está pronto para o atendimento médico.<br><br><strong>Próxima Etapa:</strong> Chame o paciente no <strong>Painel TV</strong> ou abra o <strong>PEP / Prontuário</strong> para iniciar a consulta.`,
+            message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue}</strong> e está pronto para o atendimento médico.<br><br><strong>Próxima Etapa:</strong> Chame o paciente no <strong>Painel TV</strong> ou abra o <strong>PEP / Prontuário</strong> para iniciar a consulta.`,
             targetTab: 'atendimento',
             targetTabLabel: 'Fila de Consultório / PEP',
             targetPatientName: pName,
@@ -808,7 +849,7 @@ export function renderAttendanceTab(contentArea) {
         await loadAndRenderKanban();
       }
       else { const d=await res.json(); showToast(`❌ ${d.message||'Erro ao salvar triagem.'}`,true); }
-    } catch { showToast('❌ Erro de conexão.',true); }
+    } catch { showToast('❌ Erro de conexão ao salvar triagem.',true); }
     finally { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Salvar Triagem'; }
   });
 

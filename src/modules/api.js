@@ -433,40 +433,56 @@ export const apiFetch = async (url, options = {}) => {
       const encounterId = match ? match[1] : null;
       if (encounterId) {
         const allEncounters = localDB.list('encounters') || [];
-        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
-        if (enc) {
-          const updatedEncounter = {
-            ...enc,
-            manchesterColor: body.manchesterColor || enc.manchesterColor || 'Verde',
-            bloodPressure: body.bloodPressure || enc.bloodPressure || '',
-            temperatureCelsius: body.temperatureCelsius || enc.temperatureCelsius || '',
-            heartRateBpm: body.heartRateBpm || enc.heartRateBpm || '',
-            weightKg: body.weightKg || enc.weightKg || '',
-            complaints: body.complaints || enc.complaints || '',
-            status: 'Aguardando_Atendimento', // Transita da coluna Triagem para Aguardando Atendimento
-            triaged_at: new Date().toISOString(),
-            lastStatusUpdate: new Date().toISOString()
+        let enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        
+        if (!enc) {
+          const patients = localDB.list('patients') || [];
+          const pat = patients.find(p => String(p.id) === String(encounterId)) || {};
+          enc = {
+            id: encounterId.startsWith('enc-') ? encounterId : `enc-${Date.now()}`,
+            patientId: pat.id || encounterId,
+            patientName: pat.fullName || pat.name || 'Paciente',
+            type: 'Urgencia',
+            status: 'Aguardando_Atendimento',
+            admitted_at: new Date().toISOString()
           };
-          localDB.update('encounters', enc.id, updatedEncounter);
-
-          localDB.insert('triages', {
-            id: `tri-${Date.now()}`,
-            encounterId: enc.id,
-            patientId: enc.patientId,
-            patientName: enc.patientName,
-            manchesterColor: body.manchesterColor || 'Verde',
-            bloodPressure: body.bloodPressure || '',
-            temperatureCelsius: body.temperatureCelsius || '',
-            heartRateBpm: body.heartRateBpm || '',
-            weightKg: body.weightKg || '',
-            complaints: body.complaints || '',
-            triaged_at: new Date().toISOString()
-          });
-
-          responseData = { status: 'success', data: updatedEncounter, message: 'Triagem registrada com sucesso.' };
-        } else {
-          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+          localDB.insert('encounters', enc);
         }
+
+        const updatedEncounter = {
+          ...enc,
+          manchesterColor: body.manchesterColor || enc.manchesterColor || 'Amarelo',
+          bloodPressure: body.bloodPressure || enc.bloodPressure || '',
+          temperatureCelsius: body.temperatureCelsius || enc.temperatureCelsius || '',
+          heartRateBpm: body.heartRateBpm || enc.heartRateBpm || '',
+          weightKg: body.weightKg || enc.weightKg || '',
+          spo2: body.spo2 || body.oxygenSaturation || enc.spo2 || '',
+          glicemia: body.glicemia || body.glucose || enc.glicemia || '',
+          mewsScore: body.mewsScore || enc.mewsScore || '',
+          complaints: body.complaints || enc.complaints || '',
+          status: 'Aguardando_Atendimento',
+          triaged_at: new Date().toISOString(),
+          lastStatusUpdate: new Date().toISOString()
+        };
+        localDB.update('encounters', enc.id, updatedEncounter);
+
+        localDB.insert('triages', {
+          id: `tri-${Date.now()}`,
+          encounterId: enc.id,
+          patientId: enc.patientId,
+          patientName: enc.patientName,
+          manchesterColor: body.manchesterColor || 'Amarelo',
+          bloodPressure: body.bloodPressure || '',
+          temperatureCelsius: body.temperatureCelsius || '',
+          heartRateBpm: body.heartRateBpm || '',
+          spo2: body.spo2 || '',
+          glicemia: body.glicemia || '',
+          weightKg: body.weightKg || '',
+          complaints: body.complaints || '',
+          triaged_at: new Date().toISOString()
+        });
+
+        responseData = { status: 'success', data: updatedEncounter, message: 'Triagem registrada com sucesso.' };
       }
     }
     else if (url.includes('/api/encounters/') && url.includes('/status') && method === 'PUT') {
