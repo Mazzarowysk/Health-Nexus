@@ -1736,6 +1736,9 @@ window.openPEPModal = async function(encounterId) {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btn-pep-new-evolution-header" class="btn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 14px; border: none; display: flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 2px 10px rgba(99,102,241,0.35);" title="Criar Nova Folha de Evolução Diária no PEP">
+              <i class="fa-solid fa-file-circle-plus"></i> Nova Evolução Diária
+            </button>
             <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
               <i class="fa-solid fa-video"></i> Teleconsulta
             </button>
@@ -1910,6 +1913,35 @@ window.openPEPModal = async function(encounterId) {
       sendToWhatsApp(enc.phone || '', msg);
     });
 
+    // Botão de Nova Evolução Diária (Cabeçalho)
+    document.getElementById('btn-pep-new-evolution-header')?.addEventListener('click', () => {
+      const pid = enc.patientId || enc.id || encounterId;
+      const targetSector = enc.sector || enc.room || 'Internação';
+      const admId = enc.admission_id || enc.id;
+      const newEncId = 'ENC-INT-' + Date.now();
+
+      if (typeof localDB !== 'undefined' && localDB.insert) {
+        localDB.insert('encounters', {
+          id: newEncId,
+          patientId: pid,
+          patientName: enc.patientName || 'Paciente',
+          doctorName: state?.user?.name || enc.doctorName || '',
+          room: targetSector,
+          sector: targetSector,
+          admission_id: admId,
+          manchesterColor: enc.manchesterColor || 'Amarelo',
+          status: 'Em Atendimento',
+          created_at: new Date().toISOString(),
+          subjectiveContent: '',
+          objectiveContent: '',
+          assessmentContent: '',
+          planContent: ''
+        });
+      }
+      if (typeof showToast === 'function') showToast('✨ Nova folha de evolução diária iniciada!');
+      window.openPEPModal(newEncId);
+    });
+
     let notes = {};
     try {
       const notesRes = await apiFetch('/api/encounters/' + (enc.id || encounterId) + '/notes');
@@ -1924,6 +1956,8 @@ window.openPEPModal = async function(encounterId) {
 
     const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canSignPEP: true, label: 'Usuário' };
     const isReadOnly = !perms.canSignPEP;
+    const isInterned = (enc.sector && enc.sector.toLowerCase().includes('intern')) || (enc.room && (enc.room.toLowerCase().includes('intern') || enc.room.toLowerCase().includes('leito') || enc.room.toLowerCase().includes('uti'))) || enc.status === 'Internado';
+    const isFinalizedOrSigned = enc.status === 'Finalizado' || !!notes.signed_by || !!enc.signed_by;
 
     // Cálculo do Escore MEWS e Risco Clínico
     const mewsData = calculateMEWS(enc);
@@ -1935,6 +1969,21 @@ window.openPEPModal = async function(encounterId) {
           <div>
             <strong>Modo Somente Leitura (Auditoria):</strong> Seu perfil (<strong>${perms.label}</strong>) possui acesso para consulta ao prontuário. A evolução clínica, prescrição e assinatura médica são restritas a médicos habilitados (CFM/CRM).
           </div>
+        </div>
+      ` : ''}
+
+      ${isFinalizedOrSigned ? `
+        <div style="background: rgba(99,102,241,0.12); border: 1.5px solid rgba(99,102,241,0.4); border-radius: 12px; padding: 12px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 14px rgba(99,102,241,0.15);">
+          <div style="font-size: 0.84rem; color: #c4b5fd; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-circle-check" style="color: #34d399; font-size: 1.2rem;"></i>
+            <div>
+              <strong style="color: #fff;">Evolução Anterior Registrada:</strong> Assinada por <span style="color:#a78bfa;">${notes.signed_by || enc.signed_by || 'Profissional da Saúde'}</span>.
+              <div style="font-size:0.76rem; color: var(--text-muted); margin-top:2px;">Esta folha foi finalizada. Para registrar uma nova evolução deste plantão/dia, clique no botão ao lado.</div>
+            </div>
+          </div>
+          <button type="button" id="btn-start-new-daily-evolution-banner" class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; font-size: 0.8rem; font-weight: 700; border-radius: 10px; padding: 8px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(236,72,153,0.35);">
+            <i class="fa-solid fa-file-circle-plus"></i> Iniciar Nova Evolução Diária
+          </button>
         </div>
       ` : ''}
 
@@ -2014,9 +2063,16 @@ window.openPEPModal = async function(encounterId) {
             <i class="fa-solid fa-route" style="color: #6366f1; margin-right: 6px;"></i> Desfecho do Atendimento:
           </label>
           <select id="pep-outcome" class="form-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
-            <option value="alta" selected>Alta Médica (Encerrar Consulta)</option>
-            <option value="observacao">Manter em Observação Médica (PS)</option>
-            <option value="internacao">Solicitar Internação (Transferência de Leito)</option>
+            ${isInterned ? `
+              <option value="manter_internado" selected>Manter Internado (Salvar Evolução Diária)</option>
+              <option value="alta">Alta Hospitalar (Encerrar Internação & Liberar Leito)</option>
+              <option value="observacao">Manter em Observação (PS)</option>
+              <option value="internacao">Transferir de Leito / UTI</option>
+            ` : `
+              <option value="alta" selected>Alta Médica (Encerrar Consulta)</option>
+              <option value="observacao">Manter em Observação Médica (PS)</option>
+              <option value="internacao">Solicitar Internação (Transferência de Leito)</option>
+            `}
           </select>
         </div>
 
@@ -2044,6 +2100,11 @@ window.openPEPModal = async function(encounterId) {
         </div>
       </form>
     `;
+
+    // Evento do botão de nova evolução diária no banner
+    document.getElementById('btn-start-new-daily-evolution-banner')?.addEventListener('click', () => {
+      document.getElementById('btn-pep-new-evolution-header')?.click();
+    });
 
     // Eventos de Ditado por Voz para cada campo SOAP
     if (!isReadOnly) {
@@ -2358,7 +2419,26 @@ async function savePEPData(encounterId, shouldFinalize) {
         } catch(e) { console.warn('[PEP] Falha ao criar encounter de continuidade:', e); }
       }
 
-      if (outcome === 'observacao') {
+      if (outcome === 'manter_internado') {
+        if (typeof localDB !== 'undefined' && localDB.update) {
+          localDB.update('encounters', encounterId, { status: 'Finalizado', updated_at: new Date().toISOString() });
+        }
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: 'Evolução Diária de Internação Salva',
+            message: `A evolução do paciente <strong>${patientName}</strong> foi salva e assinada. O paciente permanece internado no leito.`,
+            targetTab: 'leitos',
+            targetTabLabel: 'Gestão de Leitos'
+          });
+        } else if (typeof showToast === 'function') {
+          showToast('⚡ Evolução diária de internação salva com sucesso!');
+        }
+        const modal = document.getElementById('pep-modal');
+        if (modal) modal.remove();
+        if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
+        if (typeof renderTabContent === 'function' && state.activeTab === 'atendimento') renderTabContent();
+        return;
+      } else if (outcome === 'observacao') {
         _createContinuationEncounter('Observação');
         await apiFetch(`/api/encounters/${encounterId}/start-observation`, {
           method: 'PUT',
