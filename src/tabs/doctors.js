@@ -1352,7 +1352,10 @@ modal.style.left = '0';
               <div style="font-size: 0.8rem; color: #c4b5fd;">Paciente: <strong style="color: #fff;">${patientName}</strong></div>
             </div>
           </div>
-          <div style="display: flex; gap: 8px; align-items: center;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" onclick="document.getElementById('patient-history-modal')?.remove(); if (typeof window.openPEPModal === 'function') window.openPEPModal('${patientId || patientName}');" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(236,72,153,0.35); display: inline-flex; align-items: center; gap: 6px;" title="Abrir Folha de Evolução Médica e Prescrição (PEP)">
+              <i class="fa-solid fa-file-medical"></i> Abrir PEP (Prescrição)
+            </button>
             <button type="button" onclick="window.generateHistoryReport('${patientId}', '${patientName || ''}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" title="Exportar Histórico Completo">
               <i class="fa-solid fa-file-pdf"></i> Gerar PDF
             </button>
