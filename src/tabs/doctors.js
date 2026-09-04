@@ -1226,6 +1226,47 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
     };
   }
 
+  // 3.5 Chamadas no Painel / TV do Consultório
+  const tvCalls = db.tv_calls || db.tvCalls || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('tv_calls') : []) || [];
+  const activeTv = tvCalls.find(tv => (
+    (tv.patientId && String(tv.patientId).toLowerCase() === normPid) ||
+    (tv.patient_id && String(tv.patient_id).toLowerCase() === normPid) ||
+    (tv.patientName && normPname && tv.patientName.toLowerCase().includes(normPname))
+  ));
+  if (activeTv) {
+    const room = activeTv.room || activeTv.roomName || activeTv.sector || 'Consultório 01';
+    return {
+      text: `Chamado no Painel — ${room}`,
+      sector: room,
+      bed: null,
+      status: 'Em Atendimento',
+      color: '#38bdf8',
+      bg: 'rgba(56,189,248,0.15)',
+      borderColor: 'rgba(56,189,248,0.4)',
+      icon: 'fa-desktop'
+    };
+  }
+
+  // 3.6 Consultas agendadas / ativas
+  const appointments = db.appointments || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('appointments') : []) || [];
+  const activeApt = appointments.find(a => a.status !== 'Finalizado' && a.status !== 'Cancelado' && (
+    (a.patientId && String(a.patientId).toLowerCase() === normPid) ||
+    (a.patientName && normPname && a.patientName.toLowerCase().includes(normPname))
+  ));
+  if (activeApt) {
+    const room = activeApt.room || activeApt.roomName || activeApt.doctorName || 'Consultório';
+    return {
+      text: `Em Consulta / Agendado — ${room}`,
+      sector: room,
+      bed: null,
+      status: activeApt.status || 'Em Consulta',
+      color: '#a78bfa',
+      bg: 'rgba(167,139,250,0.15)',
+      borderColor: 'rgba(167,139,250,0.4)',
+      icon: 'fa-user-doctor'
+    };
+  }
+
   // 4. Fora da unidade
   return {
     text: `Sem Atendimento Ativo (Alta / Fora da Unidade)`,
