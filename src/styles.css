@@ -5291,12 +5291,12 @@ body.compact-mode .modal-content {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 380px;
+  width: 300px;
   max-width: calc(100vw - 32px);
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.96));
-  border: 1.5px solid rgba(99, 102, 241, 0.4);
-  border-radius: 18px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 24px rgba(99, 102, 241, 0.25);
+  background: linear-gradient(160deg, rgba(13, 18, 35, 0.97), rgba(22, 30, 52, 0.98));
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.18);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: 99999;
@@ -5304,31 +5304,33 @@ body.compact-mode .modal-content {
   color: #f8fafc;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
   user-select: none;
 }
 
 .floating-flow-guide:hover {
-  border-color: rgba(56, 189, 248, 0.6);
-  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.75), 0 0 30px rgba(56, 189, 248, 0.35);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(56, 189, 248, 0.25);
 }
 
 .floating-flow-guide.minimized {
   width: auto;
-  border-radius: 30px;
-  padding: 0;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 18px rgba(99, 102, 241, 0.3);
+  background: none;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
+/* --- LEGACY CLASSES (kept for compat) --- */
 .floating-flow-guide-header {
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 9px 12px 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: grab;
+  border-radius: 14px 14px 0 0;
 }
 
 .floating-flow-guide-header:active {
@@ -5336,19 +5338,19 @@ body.compact-mode .modal-content {
 }
 
 .floating-flow-guide-body {
-  padding: 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .flow-step-mini-track {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 8px 10px;
-  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 8px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -5356,15 +5358,15 @@ body.compact-mode .modal-content {
   background: none;
   border: none;
   color: #94a3b8;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 8px;
+  padding: 4px 5px;
+  border-radius: 7px;
   transition: all 0.2s ease;
 }
 
@@ -5376,6 +5378,6 @@ body.compact-mode .modal-content {
 
 .flow-step-mini-btn.active {
   color: #38bdf8;
-  background: rgba(56, 189, 248, 0.18);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }

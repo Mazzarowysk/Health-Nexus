@@ -185,21 +185,23 @@ export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = nu
     guide.className = 'floating-flow-guide minimized';
     guide.innerHTML = `
       <div id="flow-guide-mini-btn" style="
-        background: linear-gradient(135deg, #4f46e5, #06b6d4);
-        padding: 10px 18px;
-        border-radius: 30px;
+        background: linear-gradient(135deg, #1e1b4b, #0f172a);
+        border: 1px solid rgba(99,102,241,0.5);
+        padding: 8px 14px;
+        border-radius: 24px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        cursor: pointer;
-        box-shadow: 0 8px 24px rgba(79, 70, 229, 0.5);
+        gap: 8px;
+        cursor: grab;
+        box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
         color: #ffffff;
         font-weight: 700;
-        font-size: 0.82rem;
+        font-size: 0.78rem;
+        white-space: nowrap;
       " title="Clique para expandir o Guia de Fluxo">
-        <i class="fa-solid fa-compass" style="font-size: 1.1rem; animation: spin-slow 8s linear infinite;"></i>
-        <span>Guia de Fluxo: <strong>${rec.nextLabel}</strong></span>
-        <i class="fa-solid fa-chevron-up" style="font-size: 0.75rem; opacity: 0.8;"></i>
+        <i class="fa-solid fa-route" style="color:#38bdf8; font-size: 0.85rem;"></i>
+        <span style="color:#a5b4fc;">Próximo:</span> <strong style="color:#fff;">${rec.nextLabel}</strong>
+        <i class="fa-solid fa-chevron-up" style="font-size: 0.65rem; opacity: 0.7; margin-left: 2px;"></i>
       </div>
     `;
 
@@ -210,104 +212,123 @@ export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = nu
         updateFloatingWorkflowGuide(currentActiveTabId);
       });
     }
-
     makeDraggable(guide, miniBtn);
     return;
   }
 
+  // ─── CARD EXPANDIDO: RETÂNGULO COMPACTO E LEGÍVEL ───
+  const stepActiveIdx = WORKFLOW_STEPS.findIndex(s => s.tab === currentActiveTabId);
+
   guide.className = 'floating-flow-guide';
   guide.innerHTML = `
-    <!-- Cabeçalho Arrastável -->
-    <div class="floating-flow-guide-header" id="flow-guide-drag-handle">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="color: #38bdf8; font-size: 0.9rem;"><i class="fa-solid fa-compass fa-spin" style="--fa-animation-duration: 12s;"></i></span>
-        <strong style="font-size: 0.85rem; letter-spacing: 0.3px; color: #f8fafc;">Guia Interativo de Fluxo</strong>
-        <span style="font-size: 0.65rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 7px; border-radius: 10px; font-weight: 800; text-transform: uppercase;">
-          Passo a Passo
-        </span>
+    <!-- Cabeçalho (handle de arrasto) -->
+    <div id="flow-guide-drag-handle" style="
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      cursor: grab;
+      background: rgba(255,255,255,0.03);
+      border-radius: 14px 14px 0 0;
+    ">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <i class="fa-solid fa-route" style="color:#38bdf8;font-size:0.85rem;"></i>
+        <span style="font-weight:800;font-size:0.82rem;color:#f1f5f9;letter-spacing:0.2px;">Guia de Fluxo</span>
+        <span style="font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);padding:1px 6px;border-radius:8px;">Passo a Passo</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <button id="btn-minimize-flow-guide" style="background: rgba(255,255,255,0.08); border: none; color: #cbd5e1; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;" title="Minimizar Guia">
-          <i class="fa-solid fa-minus"></i>
-        </button>
-      </div>
+      <button id="btn-minimize-flow-guide" title="Minimizar" style="
+        background:none;border:none;color:#64748b;cursor:pointer;
+        font-size:0.8rem;padding:2px 5px;border-radius:5px;
+        transition:color 0.2s;
+      " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#64748b'">
+        <i class="fa-solid fa-minus"></i>
+      </button>
     </div>
 
-    <!-- Corpo do Guia Interativo -->
-    <div class="floating-flow-guide-body">
-      <!-- Trilha das 5 Etapas do Hospital -->
-      <div class="flow-step-mini-track">
-        ${WORKFLOW_STEPS.map(step => {
-          const isActive = currentActiveTabId === step.tab;
-          return `
-            <button class="flow-step-mini-btn ${isActive ? 'active' : ''}" onclick="window.switchTab('${step.tab}')" title="Ir para ${step.label}">
-              <i class="fa-solid ${step.icon}"></i>
-              <span>${step.label.split(' ')[1]}</span>
-            </button>
-          `;
-        }).join('')}
+    <!-- Trilha de Etapas (horizontal compacta) -->
+    <div style="
+      display:flex;
+      align-items:center;
+      padding:8px 10px 6px 10px;
+      gap:0;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+    ">
+      ${WORKFLOW_STEPS.map((step, idx) => {
+        const isDone = stepActiveIdx > idx;
+        const isNow = stepActiveIdx === idx;
+        const color = isDone ? '#10b981' : isNow ? '#38bdf8' : '#475569';
+        const bg = isDone ? 'rgba(16,185,129,0.15)' : isNow ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.04)';
+        const border = isDone ? 'rgba(16,185,129,0.4)' : isNow ? 'rgba(56,189,248,0.5)' : 'rgba(255,255,255,0.08)';
+        return `
+          <button onclick="window.switchTab('${step.tab}')" title="${step.label}" style="
+            flex:1;display:flex;flex-direction:column;align-items:center;
+            gap:3px;padding:5px 2px;border:none;background:none;cursor:pointer;
+            border-radius:8px;transition:background 0.2s;
+          " onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='none'">
+            <div style="
+              width:28px;height:28px;border-radius:50%;
+              background:${bg};border:1.5px solid ${border};
+              display:flex;align-items:center;justify-content:center;
+            ">
+              <i class="fa-solid ${isDone ? 'fa-check' : step.icon}" style="font-size:0.7rem;color:${color};"></i>
+            </div>
+            <span style="font-size:0.58rem;font-weight:${isNow?'800':'600'};color:${color};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px;">
+              ${step.label.replace(/^\d+\.\s*/, '')}
+            </span>
+          </button>
+          ${idx < WORKFLOW_STEPS.length - 1 ? `<div style="flex-shrink:0;width:10px;height:1px;background:${isDone?'#10b981':'rgba(255,255,255,0.1)'};margin-bottom:14px;"></div>` : ''}
+        `;
+      }).join('')}
+    </div>
+
+    <!-- Próxima Ação: compacta -->
+    <div style="padding:10px 12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+        <span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#a5b4fc;display:flex;align-items:center;gap:4px;">
+          <span style="color:#fbbf24;">⚡</span> Próximo Passo
+        </span>
+        <span style="font-size:0.62rem;color:#64748b;display:flex;align-items:center;gap:3px;">
+          <i class="fa-solid fa-location-dot" style="color:#38bdf8;font-size:0.6rem;"></i>
+          ${rec.currentLabel}
+        </span>
       </div>
 
-      <!-- Próxima Ação Recomendada -->
-      <div style="background: rgba(99, 102, 241, 0.14); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <span style="font-size: 0.68rem; text-transform: uppercase; font-weight: 800; color: #a5b4fc; letter-spacing: 0.4px;">
-            ⚡ Próximo Passo Recomendado
-          </span>
-          <span style="font-size: 0.7rem; color: #94a3b8;"><i class="fa-solid fa-location-dot" style="color:#38bdf8;"></i> ${rec.currentLabel}</span>
-        </div>
-        <div>
-          <strong style="font-size: 0.88rem; color: #ffffff; display: block;">${rec.title}</strong>
-          <p style="font-size: 0.76rem; color: #cbd5e1; margin: 2px 0 8px 0; line-height: 1.35;">${rec.desc}</p>
-        </div>
-        <button onclick="window.switchTab('${rec.nextTab}')" style="
-          background: linear-gradient(135deg, #10b981, #059669);
-          color: #ffffff;
-          border: none;
-          padding: 7px 14px;
-          border-radius: 8px;
-          font-weight: 800;
-          font-size: 0.78rem;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
-          transition: all 0.2s ease;
-        " onmouseover="this.style.filter='brightness(1.15)';" onmouseout="this.style.filter='none';">
-          <span>Avançar para: <strong>${rec.nextLabel}</strong></span>
-          <i class="fa-solid fa-arrow-right"></i>
-        </button>
+      <div style="margin-bottom:8px;">
+        <div style="font-size:0.86rem;font-weight:800;color:#ffffff;margin-bottom:2px;">${rec.title}</div>
+        <div style="font-size:0.73rem;color:#94a3b8;line-height:1.35;">${rec.desc}</div>
       </div>
 
-      <!-- Paciente em Foco (Se houver) -->
+      <button onclick="window.switchTab('${rec.nextTab}')" style="
+        width:100%;padding:8px 12px;
+        background:linear-gradient(135deg,#10b981,#059669);
+        color:#fff;border:none;border-radius:9px;
+        font-weight:800;font-size:0.78rem;
+        cursor:pointer;display:flex;align-items:center;justify-content:center;
+        gap:6px;box-shadow:0 3px 12px rgba(16,185,129,0.35);
+        transition:filter 0.2s;
+      " onmouseover="this.style.filter='brightness(1.12)'" onmouseout="this.style.filter='none'">
+        Avançar para: <strong>${rec.nextLabel}</strong>
+        <i class="fa-solid fa-arrow-right" style="font-size:0.72rem;"></i>
+      </button>
+
       ${activePatientContext ? `
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></div>
-            <div style="min-width: 0;">
-              <span style="font-size: 0.65rem; color: #6ee7b7; font-weight: 700; text-transform: uppercase;">Paciente em Foco</span>
-              <div style="font-size: 0.78rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${activePatientContext.fullName || activePatientContext.patientName}
-              </div>
+        <div style="
+          margin-top:8px;display:flex;align-items:center;justify-content:space-between;
+          background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);
+          border-radius:8px;padding:6px 10px;gap:6px;
+        ">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+            <div style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;flex-shrink:0;"></div>
+            <div style="min-width:0;">
+              <div style="font-size:0.6rem;color:#6ee7b7;font-weight:700;text-transform:uppercase;">Paciente</div>
+              <div style="font-size:0.76rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${activePatientContext.fullName || activePatientContext.patientName}</div>
             </div>
           </div>
-          <div style="display: flex; gap: 4px; flex-shrink: 0;">
-            <button onclick="window.openPEPModal('${activePatientContext.id}')" style="background: rgba(99, 102, 241, 0.3); border: 1px solid rgba(99, 102, 241, 0.5); color: #a5b4fc; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Abrir PEP">
-              PEP
-            </button>
-            <button onclick="window.showClinicalHandoffModal()" style="background: rgba(245, 158, 11, 0.3); border: 1px solid rgba(245, 158, 11, 0.5); color: #fbbf24; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer;" title="Desfecho">
-              Desfecho
-            </button>
+          <div style="display:flex;gap:4px;flex-shrink:0;">
+            <button onclick="window.openPEPModal('${activePatientContext.id}')" style="background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:3px 8px;border-radius:6px;font-size:0.68rem;font-weight:700;cursor:pointer;">PEP</button>
+            <button onclick="window.showClinicalHandoffModal()" style="background:rgba(245,158,11,0.25);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;padding:3px 8px;border-radius:6px;font-size:0.68rem;font-weight:700;cursor:pointer;">Alta</button>
           </div>
-        </div>
-      ` : ''}
-
-      ${lastActionMessage ? `
-        <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-clock-rotate-left" style="color: #64748b;"></i>
-          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Último: ${lastActionMessage}</span>
         </div>
       ` : ''}
     </div>
