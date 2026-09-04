@@ -335,262 +335,211 @@
 Guia completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas, cronômetro de protocolos de emergência (IAM, AVC, Sepse), IA preditiva de exames, QR Code de autenticidade CFM, visualizador PACS DICOM interativo e faturamento TISS/TUSS com auditoria anti-glosa.</p>
 </blockquote>
 <hr>
-<h2>🗺️ 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.8.0)</h2>
-<p>O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:</p>
+<h2>🗺️ Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.8.0)</h2>
+<p>O fluxograma abaixo mapeia a correlação completa entre todas as 13 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:</p>
 <div class="mermaid">
-
 flowchart TD
-
-    subgraph MOD_AUTH [" 1. Autenticação & Gestão de Acessos (RBAC)"]
-
+    subgraph MOD_AUTH ["1. Autenticação & Gestão de Acessos (RBAC)"]
         AUTH_LOGIN["Login JWT com 24 Contas (Médicos, Enfermeiros, Admin, Devs)"]
-
         AUTH_RBAC["Controle de Permissões (Master, Clínico, Dev)"]
-
         AUTH_PRESERVE["Preservação Inteligente de Usuários em Limpezas"]
-
         AUTH_AUDIT["Auditoria de Logins (Últimos 5 / Histórico 100)"]
-
     end
 
-
-
-    subgraph MOD_DASH [" 2. Dashboard Executivo & KPIs"]
-
+    subgraph MOD_DASH ["2. Dashboard Executivo & KPIs"]
         DASH_KPI["KPIs Gerenciais em Tempo Real"]
-
         DASH_CHARTS["Gráficos Interativos Chart.js (Filtros Clicáveis)"]
-
     end
 
-
-
-    subgraph MOD_ESCALAS [" 11. Escalas de Trabalho & Plantões (Diferencial)"]
-
+    subgraph MOD_ESCALAS ["11. Escalas de Trabalho & Plantões"]
         ESC_TAB["Sub-abas: Escala de Médicos vs Escala de Enfermeiros"]
-
         ESC_SHIFT["Turnos: Manhã (6h), Tarde (6h), Noite (12h), 24h, 12x36"]
-
         ESC_SECTOR["Alocação de Setor / Consultório & CRM/COREN"]
-
         ESC_TODAY["Garantia de Cobertura de Plantão para HOJE"]
-
     end
 
-
-
-    subgraph MOD_AGENDA [" 3. Agenda de Consultas"]
-
+    subgraph MOD_AGENDA ["3. Agenda de Consultas"]
         AG_BOOK["Agendamento de Consultas & Seleção de Médico/Consultório"]
-
         AG_KPI["KPI Cards de Status (Confirmado, Atendimento, Concluído)"]
-
+        AG_WA["Bot WhatsApp Lembrete Interativo [1] Confirmar / [2] Reagendar"]
     end
 
-
-
-    subgraph MOD_PACIENTES [" 4. Admissão de Pacientes (SUS)"]
-
+    subgraph MOD_PACIENTES ["4. Admissão de Pacientes (SUS)"]
         PAC_FORM["Admissão 11 Campos SUS + Validação Responsável Legal"]
-
         PAC_CEP["Autopreenchimento de Endereço via API ViaCEP"]
-
         PAC_SEARCH["Busca Unificada por Nome e CPF"]
-
         PAC_TRASH["Lixeira de Pacientes (Soft-Delete & Restauração)"]
-
     end
 
-
-
-    subgraph MOD_ATEND [" 5. Atendimentos & Triagem Manchester"]
-
-        TRI_MANCHESTER["Enfermagem: Triagem Manchester (5 Níveis de Risco)"]
-
-        TRI_QUEUE["Fila PS: Sorting por Prioridade Clínica Automática"]
-
+    subgraph MOD_ATEND ["5. Atendimentos & Triagem Manchester"]
+        ATD_CARDS["4 Cards Clicáveis de Fila (Triagem, Ag. Médico, Em Consulta)"]
+        ATD_MANCH["Triagem Manchester 5 Cores & Validação MEWS"]
+        ATD_CALL["Botão 1-Clique Chamar no Painel TV (Viva-Voz Web Speech)"]
+        ATD_EMERG["Disparo Automático de Protocolos IAM, AVC, Sepse"]
     end
 
-
-
-    subgraph MOD_TV [" 6. Painel TV (Chamador Inteligente)"]
-
-        TV_SPEECH["Web Speech API: Anúncio de Paciente por Voz Sintetizada"]
-
-        TV_DISPLAY["Exibição em Tela Cheia para Sala de Espera"]
-
+    subgraph MOD_TV ["6. Painel TV (Chamador Audiovisual)"]
+        TV_FULL["Modo Fullscreen / Sala de Espera"]
+        TV_SPEECH["Sintetizador de Voz em Português (pt-BR)"]
+        TV_CARD["Card do Último Paciente Chamado"]
     end
 
-
-
-    subgraph MOD_PEP [" 7. Prontuário Eletr
-        PEP_SOAPE["Atendimento Médico: Método SOAPE & CID-10 Offline"]
-
-        PEP_PRESCR["Prescrição Médica em Planilha + Dose/Via/Frequência"]
-
-        PEP_ENF["Matriz da Enfermagem: Checagem de Aplicação de Doses"]
-
-        PEP_PDF["Emissão de PDF A4 Oficial (Receituário & Histórico)"]
-
+    subgraph MOD_PEP ["7. Prontuário Eletrônico Médico (PEP SOAPE)"]
+        PEP_SOAPE["Formulário SOAPE + CID-10 Offline + Alertas CDSS"]
+        PEP_RX["Prescrição de Medicamentos com Alerta de Interações"]
+        PEP_SUMMARY["Resumo Clínico em 3 Linhas (IA 2.0)"]
+        PEP_EXAMS["Sugestão Preditiva de Exames (1-Clique)"]
+        PEP_QR["Assinatura Digital SHA-256 & QR Code CFM"]
+        PEP_PACS["Visualizador Radiológico DICOM / PACS"]
     end
 
-
-
-    subgraph MOD_FARMACIA [" 10. Farmácia & Estoque"]
-
-        FARM_SEARCH["Pesquisa Global de Fármacos (OpenFDA & ANVISA)"]
-
-        FARM_STOCK["Controle de Lote, Validade e Estoque Mínimo"]
-
+    subgraph MOD_ESTAG ["8. Alertas de Permanência & Estagnação"]
+        EST_TIMER["Cronômetro Contínuo de Permanência PS 12h"]
+        EST_ALERT["Badges Alertas (Azul <10h / Amarelo 10-12h / Vermelho >12h)"]
+        EST_REASSIGN["Modal de Reatribuição Rápida de Consultório"]
     end
 
-
-
-    subgraph MOD_ESTAG ["â±ï¸ 8. Alertas de Estagnação & Timer PS 12h"]
-
-        EST_TIMER["Timer PS 12h (Azul <10h / Amarelo 10-12h / Vermelho >12h)"]
-
-        EST_ALERT["Alerta Pulsante de Permanência Máxima Excedida"]
-
+    subgraph MOD_LEITOS ["9. Gestão de Leitos & Censo Hospitalar"]
+        BED_MAP["Mapa Tricolor (Verde Vago / Vermelho Ocupado / Amarelo Limpeza)"]
+        BED_DETAIL["Modal com Histórico Completo de Internações por Leito"]
+        BED_DISCHARGE["Alta Médica com Transição para Higienização"]
     end
 
-
-
-    subgraph MOD_LEITOS ["ï¸ 9. Censo Hospitalar & Mapa de Leitos"]
-
-        BED_MAP["Grid de Leitos Tricolor (Verde=Vago, Vermelho=Ocupado, Amarelo=Higienização)"]
-
-        BED_CLEAN["Troca Automática do Leito para Higienização pós-alta"]
-
+    subgraph MOD_KANBAN ["10. Kanban de Internação & Linha de Cuidado"]
+        KANB_COLS["5 Setores (PS, Enfermaria, UTI, Cirúrgico, Isola)"]
+        KANB_SLA["SLA Preditivo de Permenência por Diagnóstico"]
+        KANB_EVOL["Linha do Tempo de Evolução Diária & Exames"]
     end
 
-
-
-    subgraph MOD_KANBAN [" 10. Kanban de Internação & SLAs (5 Setores)"]
-
-        KANB_COLS["5 Setores: PS (24h), Corredor (1d), Cirúrgica (7d), Médica (10d), UTI (5d)"]
-
-        KANB_SLA["Indicadores Visuais de SLA (Progresso Verde -> Âmbar -> Rosê)"]
-
-        KANB_EVOL["Timeline de Evolução Clínica com Timestamp"]
-
-        KANB_AUDIT["Modal de Auditoria de SLAs & Detalhamento por Ala"]
-
+    subgraph MOD_FARMACIA ["12. Farmácia & Controle de Insumos"]
+        FARM_STOCK["Estoque com Alertas de Validade e Estoque Mínimo"]
+        FARM_DISP["Dispensação Conectada ao PEP Médico"]
+        FARM_FDA["Pesquisa Global via OpenFDA / ANVISA"]
     end
 
-
-
-    subgraph MOD_REPORTS [" 12. Relatórios & Exportação (5 Cards)"]
-
-        REP_CARDS["5 Cards: Finanças, Atendimentos, PEP, Leitos e ESCALAS"]
-
-        REP_EXP["Exportação Relatorial Multiformato: PDF, Excel (XLSX) e CSV"]
-
+    subgraph MOD_TISS ["13. Faturamento TISS / TUSS & ANS"]
+        TISS_BATCH["Gerador de Lote XML TISS v4.01.00 ANS"]
+        TISS_AUDIT["Motor Anti-Glosa de Guias SADT e Internação"]
     end
 
-
-
-    %% CORRELAÇÕES E FLUXO OPERACIONAL INTEGRADO
-
-    AUTH_LOGIN --> AUTH_RBAC
-
-    AUTH_RBAC -->|Médicos & Enfermeiros| ESC_TAB
-
-    ESC_TAB -->|Profissionais Alocados| ESC_TODAY
-
-    
-
-    PAC_FORM -->|Validação OK| TRI_MANCHESTER
-
-    AG_BOOK -->|Chegada do Paciente| TRI_MANCHESTER
-
-    
-
-    TRI_MANCHESTER -->|Sorting de Risco| TRI_QUEUE
-
-    TRI_QUEUE -->|Chamada de Paciente| TV_SPEECH
-
-    TV_SPEECH -->|Encaminhado para Consultório| PEP_SOAPE
-
-    
-
-    ESC_TODAY -.->|Atendimento Médico/Enf| PEP_SOAPE
-
-    PEP_SOAPE --> PEP_PRESCR
-
-    PEP_PRESCR --> PEP_ENF
-
-    PEP_ENF -->|Baixa de Insumos| FARM_STOCK
-
-    
-
-    PEP_SOAPE -->|Decisão Clínica| DECISION{Decisão Assistencial}
-
-    
-
-    DECISION -->|1. Alta Médica| PEP_PDF
-
-    PEP_PDF --> REP_CARDS
-
-    
-
-    DECISION -->|2. Permanência PS| EST_TIMER
-
+    %% CONEXÕES DO FLUXO PRINCIPAL
+    AUTH_LOGIN --> DASH_KPI
+    AUTH_RBAC --> MOD_PACIENTES
+    ESC_TODAY --> ATD_CALL
+    AG_BOOK --> PAC_FORM
+    PAC_FORM --> ATD_MANCH
+    ATD_MANCH -->|Classificação Manchester| ATD_CARDS
+    ATD_MANCH -->|Identificação de Emergência| ATD_EMERG
+    ATD_CALL --> TV_FULL
+    TV_FULL --> TV_SPEECH
+    TV_CARD --> PEP_SOAPE
+    PEP_SOAPE -->|Decisão Clínica| PEP_SUMMARY
+    PEP_SOAPE --> PEP_EXAMS
+    PEP_SOAPE --> PEP_QR
+    PEP_SOAPE --> PEP_PACS
+    PEP_SOAPE -->|Permanência PS| EST_TIMER
     EST_TIMER -->|Aproximação 12h| EST_ALERT
-
-    EST_ALERT -->|Necessidade de Internação| BED_MAP
-
-    
-
-    DECISION -->|3. Internação Direta| BED_MAP
-
-    BED_MAP -->|Alocação em Leito Vago| KANB_COLS
-
-    
-
-    KANB_COLS --> KANB_SLA
-
-    KANB_SLA --> KANB_EVOL
-
-    KANB_EVOL -->|Alta Hospitalar| BED_CLEAN
-
-    BED_CLEAN -->|Liberação do Leito| BED_MAP
-
-    
-
-    %% CONEXÕES DE AUDITORIA E RELATÓRIOS
-
-    PEP_SOAPE -.-> DASH_KPI
-
-    KANB_AUDIT -.-> DASH_CHARTS
-
-    ESC_TAB -.-> REP_CARDS
-
-    BED_MAP -.-> REP_CARDS
-
-    REP_CARDS --> REP_EXP
-
-
+    EST_ALERT -->|Necessidade de Leito| BED_MAP
+    BED_MAP --> KANB_COLS
+    KANB_COLS --> KANB_EVOL
+    KANB_EVOL --> BED_DISCHARGE
+    PEP_RX --> FARM_DISP
+    PEP_SOAPE --> TISS_BATCH
+    TISS_BATCH --> TISS_AUDIT
 
 </div>
-<h3>Particularidades e Diferenciais das Abas do Health Nexus</h3>
-<p>| # | Aba / Módulo | Funcionalidades Principais | Diferencial &amp; Particularidades |</p>
-<p>|---|---|---|---|</p>
-<p>| <strong>1</strong> | ** Autenticação &amp; RBAC** | Login JWT, 24 contas clínicas/devs, perfis de acesso | Preservação de usuários em limpezas, lixeira com confirmação, auditoria de acessos (5/100). |</p>
-<p>| <strong>2</strong> | ** Dashboard Executivo** | KPIs em tempo real, receita, volume de atendimentos | Gráficos Chart.js clicáveis como botões de filtro ativo que direcionam para as abas. |</p>
-<p>| <strong>3</strong> | <strong>ï¸ Agenda de Consultas</strong> | Marcação de consultas, seleção de médico e sala | KPI cards clicáveis por status (Confirmado, Atendimento, Concluído). |</p>
-<p>| <strong>4</strong> | ** Pacientes (SUS)** | Admissão 11 campos SUS, CEP automático ViaCEP | Validação rigorosa de responsável legal (&lt;18/&gt;65), busca por Nome/CPF, Lixeira soft-delete. |</p>
-<p>| <strong>5</strong> | ** Atendimentos &amp; Triagem** | Fila visual Kanban, classificação de risco Manchester | Sorting de prioridade por cor de risco automático + chamada no Painel TV. |</p>
-<p>| <strong>6</strong> | ** Painel TV (Chamador)** | Anúncio para sala de espera em tela cheia | <strong>Web Speech API</strong>: chamada em viva voz sintetizada em português. |</p>
-<p>| <strong>7</strong> | ** Prontuário PEP (SOAPE)** | Atendimento médico, CID-10, prescrições e evoluções | Busca CID-10 offline, prescrição em planilha, Matriz da Enfermagem para checagem, PDF A4. |</p>
-<p>| <strong>8</strong> | <strong>â±ï¸ Alertas &amp; Estagnação</strong> | Monitoramento de gargalos e permanência PS | Timer PS 12h (Azul &lt;10h / Amarelo 10-12h / Vermelho &gt;12h pulsante). |</p>
-<p>| <strong>9</strong> | <strong>ï¸ Censo de Leitos</strong> | Mapa visual de leitos hospitalares | Cards tricolores (Verde=Vago, Vermelho=Ocupado, Amarelo=Higienização automática pós-alta). |</p>
-<p>| <strong>10</strong> | ** Kanban de Internação** | Gestão de internados por 5 setores | Metas de permanência (SLA) dinâmicas, timeline de evolução clínica, auditoria de atrasos. |</p>
-<p>| <strong>11</strong> | ** Escalas de Trabalho** | Gestão de plantões de Médicos e Enfermeiros | Orelhas/sub-abas dedicadas, turnos (6h, 12h, 24h, 12x36), garantia de plantão ativado para HOJE. |</p>
-<p>| <strong>12</strong> | ** Farmácia &amp; Estoque** | Controle de estoque de medicamentos e insumos | Pesquisa global de fármacos em tempo real via OpenFDA / ANVISA por princípio ativo. |</p>
-<p>| <strong>13</strong> | ** Relatórios &amp; Exportação**| 5 cards especializados de emissão relatorial | Exportação multiformato (<strong>PDF</strong>, <strong>Excel XLSX</strong>, <strong>CSV</strong>) para Finanças, Atendimentos, PEP, Leitos e Escalas. |</p>
 <hr>
-<h2>Sumário Executivo</h2>
+<h3>Particularidades e Diferenciais das Abas do Health Nexus</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Aba / Módulo</th>
+<th>Funcionalidades Principais</th>
+<th>Diferencial &amp; Particularidades</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1</strong></td>
+<td><strong>Autenticação &amp; RBAC</strong></td>
+<td>Login JWT, 24 contas clínicas/devs, perfis de acesso</td>
+<td>Preservação de usuários em limpezas, lixeira com confirmação, auditoria de acessos.</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td><strong>Dashboard Executivo</strong></td>
+<td>KPIs em tempo real, receita, volume de atendimentos</td>
+<td>Gráficos Chart.js clicáveis como botões de filtro ativo que direcionam para as abas.</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td><strong>Agenda de Consultas</strong></td>
+<td>Marcação de consultas, seleção de médico e sala</td>
+<td>Bot de WhatsApp Lembrete Interativo com resposta simulada [1] Confirmar / [2] Reagendar.</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td><strong>Pacientes (SUS)</strong></td>
+<td>Admissão 11 campos SUS, CEP automático ViaCEP</td>
+<td>Validação de responsável legal, busca unificada por Nome/CPF, Lixeira soft-delete.</td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td><strong>Atendimentos &amp; Triagem</strong></td>
+<td>Fila visual Kanban, classificação de risco Manchester</td>
+<td>Cálculo MEWS, protocolos de emergência (IAM, AVC, Sepse) + chamada no Painel TV.</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td><strong>Painel TV (Chamador)</strong></td>
+<td>Anúncio para sala de espera em tela cheia</td>
+<td><strong>Web Speech API</strong>: chamada em viva voz sintetizada em português (pt-BR).</td>
+</tr>
+<tr>
+<td><strong>7</strong></td>
+<td><strong>Prontuário PEP (SOAPE)</strong></td>
+<td>Atendimento médico, CID-10, prescrições e evoluções</td>
+<td>Resumo em 3-linhas (IA 2.0), exames preditivos, QR Code CFM SHA-256, PACS DICOM.</td>
+</tr>
+<tr>
+<td><strong>8</strong></td>
+<td><strong>Alertas &amp; Estagnação</strong></td>
+<td>Monitoramento de gargalos e permanência PS</td>
+<td>Timer PS 12h (Azul &lt;10h / Amarelo 10-12h / Vermelho &gt;12h pulsante).</td>
+</tr>
+<tr>
+<td><strong>9</strong></td>
+<td><strong>Censo de Leitos</strong></td>
+<td>Mapa visual de leitos hospitalares</td>
+<td>Cards tricolores (Verde=Vago, Vermelho=Ocupado, Amarelo=Higienização pós-alta).</td>
+</tr>
+<tr>
+<td><strong>10</strong></td>
+<td><strong>Kanban de Internação</strong></td>
+<td>Gestão de internados por 5 setores</td>
+<td>Metas de permanência (SLA) dinâmicas, timeline de evolução clínica, auditoria de atrasos.</td>
+</tr>
+<tr>
+<td><strong>11</strong></td>
+<td><strong>Escalas de Trabalho</strong></td>
+<td>Gestão de plantões de Médicos e Enfermeiros</td>
+<td>Sub-abas dedicadas, turnos (6h, 12h, 24h, 12x36), garantia de plantão ativado para HOJE.</td>
+</tr>
+<tr>
+<td><strong>12</strong></td>
+<td><strong>Farmácia &amp; Estoque</strong></td>
+<td>Controle de estoque de medicamentos e insumos</td>
+<td>Pesquisa global de fármacos em tempo real via OpenFDA / ANVISA por princípio ativo.</td>
+</tr>
+<tr>
+<td><strong>13</strong></td>
+<td><strong>Faturamento TISS / ANS</strong></td>
+<td>Emissão de lotes XML TISS v4.01.00 e auditoria TUSS</td>
+<td>Motor Anti-Glosa, verificação de carência e validação de procedimentos TUSS.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>📌 Sumário Executivo</h2>
 <ul>
 <li><ol>
 <li><a href="#sec-1">Visão Geral &amp; Arquitetura do Fluxo Hospitalar</a></li>
@@ -600,48 +549,33 @@ flowchart TD
 <li><a href="#sec-2">Central de Atendimentos &amp; Painel Kanban</a></li>
 </ol>
 <ul>
-<li><p>2.1. <a href="#sec-2-1">Cards Métricos e Filtros de Fila</a></p>
-</li>
-<li><p>2.2. <a href="#sec-2-2">Fila 1: Aguardando Triagem (Protocolo de Manchester)</a></p>
-</li>
-<li><p>2.3. <a href="#sec-2-3">Fila 2: Aguardando Médico (Chamada de Consultório)</a></p>
-</li>
-<li><p>2.4. <a href="#sec-2-4">Fila 3: Em Atendimento (Ações do Médico)</a></p>
-</li>
+<li>2.1. <a href="#sec-2-1">Cards Métricos e Filtros de Fila</a></li>
+<li>2.2. <a href="#sec-2-2">Fila 1: Aguardando Triagem (Protocolo Manchester)</a></li>
+<li>2.3. <a href="#sec-2-3">Fila 2: Aguardando Médico (Chamada de Consultório)</a></li>
+<li>2.4. <a href="#sec-2-4">Fila 3: Em Atendimento (Ações do Médico)</a></li>
 </ul>
 </li>
 <li><ol start="3">
-<li>[Prontuário Eletr</li>
+<li><a href="#sec-3">Prontuário Eletrônico Médico (PEP)</a></li>
 </ol>
 <ul>
-<li><p>3.1. <a href="#sec-3-1">Estrutura SOAP</a></p>
-</li>
-<li><p>3.2. <a href="#sec-3-2">Autocomplete CID-10</a></p>
-</li>
-<li><p>3.3. <a href="#sec-3-3">Assinatura Eletrnica e Exportação PDF</a></p>
-</li>
+<li>3.1. <a href="#sec-3-1">Estrutura SOAPE</a></li>
+<li>3.2. <a href="#sec-3-2">Autocomplete CID-10</a></li>
+<li>3.3. <a href="#sec-3-3">Assinatura Eletrônica, Hash SHA-256 e PDF</a></li>
 </ul>
 </li>
 <li><ol start="4">
 <li><a href="#sec-4">Guia Completo de Todos os Modais do Sistema</a></li>
 </ol>
 <ul>
-<li><p>4.1. <a href="#sec-4-1">Modal de Triagem de Manchester</a></p>
-</li>
-<li><p>4.2. <a href="#sec-4-2">Modal de Prescrição &amp; Receituário Médico</a></p>
-</li>
-<li><p>4.3. <a href="#sec-4-3">Modal de Transferência &amp; Alocação de Leito</a></p>
-</li>
-<li><p>4.4. <a href="#sec-4-4">Modal de Nova Admissão &amp; Entrada de Paciente</a></p>
-</li>
-<li><p>4.5. <a href="#sec-4-5">Modal de Direcionamento &amp; Reatribuição de Fila</a></p>
-</li>
-<li><p>4.6. <a href="#sec-4-6">Modal de Histórico Pós-Alta &amp; Prontuário Consolidado</a></p>
-</li>
-<li><p>4.7. <a href="#sec-4-7">Modal de Aprovação de Acesso de Usuários</a></p>
-</li>
-<li><p>4.8. <a href="#sec-4-8">Modal de Gestão de Usuários &amp; Troca de Perfil</a></p>
-</li>
+<li>4.1. <a href="#sec-4-1">Modal de Triagem Manchester</a></li>
+<li>4.2. <a href="#sec-4-2">Modal de Prescrição &amp; Receituário Médico</a></li>
+<li>4.3. <a href="#sec-4-3">Modal de Transferência &amp; Alocação de Leito</a></li>
+<li>4.4. <a href="#sec-4-4">Modal de Nova Admissão &amp; Entrada de Paciente</a></li>
+<li>4.5. <a href="#sec-4-5">Modal de Direcionamento &amp; Reatribuição de Fila</a></li>
+<li>4.6. <a href="#sec-4-6">Modal de Histórico Pós-Alta &amp; Prontuário Consolidado</a></li>
+<li>4.7. <a href="#sec-4-7">Modal de Aprovação de Acesso de Usuários</a></li>
+<li>4.8. <a href="#sec-4-8">Modal de Gestão de Usuários &amp; Troca de Perfil</a></li>
 </ul>
 </li>
 <li><ol start="5">
@@ -700,157 +634,546 @@ flowchart TD
 <li><a href="#sec-18">Solução de Dúvidas Frequentes &amp; Erros Comuns (FAQ)</a></li>
 </ol>
 </li>
+<li><ol start="25">
+<li><a href="#sec-25">Novas Funcionalidades Avançadas Assistenciais &amp; Tecnológicas (v2.8.0)</a></li>
+</ol>
+</li>
 </ul>
 <hr>
 <h2 id="sec-1">1. Visão Geral & Arquitetura do Fluxo Hospitalar</h2><p>O <strong>Health Nexus</strong> organiza a jornada assistencial do paciente desde a recepção até a alta definitiva ou internação em UTI/Enfermaria.</p>
-<h3>Diagrama de Fluxo da Jornada Assistencial</h3>
+<h3>🧭 Diagrama de Fluxo da Jornada Assistencial</h3>
 <div class="mermaid">
-
 graph TD
-
-    A[" Recepção / Admissão"] --> B[" Triagem de Manchester"]
-
+    A["1. Recepção / Admissão"] --> B["2. Triagem de Manchester"]
     B --> C{"Classificação de Risco"}
-
-    C -->|" Vermelho (0m)"| D1[" Sala Vermelha (Emergência)"]
-
-    C -->|" Laranja (10m)"| D2["âš¡ Atendimento Imediato"]
-
-    C -->|" Amarelo (60m)"| D3["â³ Fila Urgente"]
-
-    C -->|" Verde (120m)"| D4["â³ Fila Pouco Urgente"]
-
-    C -->|" Azul (240m)"| D5["â³ Fila Não Urgente"]
-
-    D1 & D2 & D3 & D4 & D5 --> E[" Chamada Painel TV / Consultório"]
-
-    E --> F[" Atendimento Médico (PEP SOAP)"]
-
+    C -->|"Vermelho (0m)"| D1["Sala Vermelha (Emergência)"]
+    C -->|"Laranja (10m)"| D2["Atendimento Imediato"]
+    C -->|"Amarelo (60m)"| D3["Fila Urgente"]
+    C -->|"Verde (120m)"| D4["Fila Pouco Urgente"]
+    C -->|"Azul (240m)"| D5["Fila Não Urgente"]
+    D1 & D2 & D3 & D4 & D5 --> E["Chamada Painel TV / Consultório"]
+    E --> F["Atendimento Médico (PEP SOAP)"]
     F --> G{"Conduta Final"}
-
-    G -->|"Alta Médica"| H["âœ… Conclusão & Receita"]
-
-    G -->|"Observação PS (12h max)"| I[" Card de Observação com Cronmetro"]
-
-    G -->|"Necessidade de Leito"| J["ï¸ Transferência para Enfermaria / UTI"]
+    G -->|"Alta Médica"| H["Conclusão & Receita"]
+    G -->|"Observação PS (12h max)"| I["Card de Observação com Cronômetro"]
+    G -->|"Necessidade de Leito"| J["Transferência para Enfermaria / UTI"]
 
 </div>
-<h3>�� Perfis de Acesso &amp; Matriz de Permissões</h3>
-<p>| Perfil | Acesso Visual às Abas | Prontuário (PEP) | Triagem Manchester | Prescrição Planilha | Gestão de Leitos | Financeiro | Lixeira / Sync |</p>
-<p>|---|---|---|---|---|---|---|---|</p>
-<p>| <strong>�� Master / Admin</strong> | Todas as abas | Total | Total | Total | Total | Total | Exclusivo |</p>
-<p>| <strong>�� Médico</strong> | Dashboard, Pacientes, Atendimento, Leitos, Farmácia, Relatórios | Assinatura SOAPE | Consulta | Criação de Planilha | Solicitação | Bloqueado | Bloqueado |</p>
-<p>| <strong>�� Enfermeiro(a)</strong> | Dashboard, Pacientes, Atendimento, Leitos, Farmácia | Leitura | Execução Manchester | Checagem de Doses | Gestão / Transferência | Bloqueado | Bloqueado |</p>
-<p>| <strong>�� Recepcionista</strong> | Dashboard, Pacientes, Agenda, Atendimento, Painel TV, Caixa | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Apenas Entradas | Bloqueado |</p>
-<p>| <strong>�� Farmacêutico(a)</strong>| Dashboard, Pacientes, Farmácia, Relatórios | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Bloqueado |</p>
-<h3>�� Assistente de IA Local (Manual Interativo)</h3>
-<p>O sistema possui um <strong>Assistente IA Integrado</strong> na busca do Manual. Ao fazer perguntas em linguagem natural (ex: &quot;como incluir um paciente?&quot;), a IA correlaciona a intenção com os botões e módulos do sistema.</p>
-<p><strong>Segurança RBAC na IA:</strong> A IA tem plena consciência do perfil de acesso do usuário. Se um usuário pesquisar por uma funcionalidade restrita a um perfil superior (ex: um Médico pesquisando sobre &quot;Controle de Perfis&quot;), a IA não instruirá sobre o módulo; em vez disso, informará claramente que o usuário logado não possui permissão para executar a ação solicitada, citando os perfis autorizados.</p>
+<h3>🔒 Perfis de Acesso &amp; Matriz de Permissões</h3>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>Acesso Visual às Abas</th>
+<th>Prontuário (PEP)</th>
+<th>Triagem Manchester</th>
+<th>Prescrição Planilha</th>
+<th>Gestão de Leitos</th>
+<th>Financeiro / TISS</th>
+<th>Lixeira / Sync</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Master / Admin</strong></td>
+<td>Todas as abas</td>
+<td>Total</td>
+<td>Total</td>
+<td>Total</td>
+<td>Total</td>
+<td>Total</td>
+<td>Exclusivo</td>
+</tr>
+<tr>
+<td><strong>Médico</strong></td>
+<td>Dashboard, Pacientes, Atendimento, Leitos, Farmácia, Relatórios</td>
+<td>Assinatura SOAPE</td>
+<td>Consulta</td>
+<td>Criação de Planilha</td>
+<td>Solicitação</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+</tr>
+<tr>
+<td><strong>Enfermeiro(a)</strong></td>
+<td>Dashboard, Pacientes, Atendimento, Leitos, Farmácia</td>
+<td>Leitura</td>
+<td>Execução Manchester</td>
+<td>Checagem de Doses</td>
+<td>Gestão / Transferência</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+</tr>
+<tr>
+<td><strong>Recepcionista</strong></td>
+<td>Dashboard, Pacientes, Agenda, Atendimento, Painel TV, Caixa</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Apenas Entradas</td>
+<td>Bloqueado</td>
+</tr>
+<tr>
+<td><strong>Farmacêutico(a)</strong></td>
+<td>Dashboard, Pacientes, Farmácia, Relatórios</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+</tr>
+<tr>
+<td><strong>Gestor Financeiro</strong></td>
+<td>Dashboard, Pacientes, Financeiro, TISS, Relatorios</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Bloqueado</td>
+<td>Total (TISS/ANS)</td>
+<td>Bloqueado</td>
+</tr>
+</tbody></table>
 <hr>
 <h2 id="sec-2">2. Central de Atendimentos & Painel Kanban</h2><h3 id="sec-2-1">2.1. Cards Métricos e Filtros de Fila</h3><p>No topo da aba <strong>Atendimentos</strong>, encontram-se os 4 <strong>Cards Métricos Clicáveis</strong> para controle imediato do fluxo:</p>
-<p>| Card | Ãcone | Cor Tema | Ação ao Clicar | Descrição / Objetivo |</p>
-<p>| :--- | :---: | :---: | :--- | :--- |</p>
-<p>| <strong>Triagem</strong> |  | Roxo (<code>#8b5cf6</code>) | <code>filterKanbanColumn(&#39;triage&#39;)</code> | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem da enfermagem. |</p>
-<p>| <strong>Ag. Médico</strong> | âŒ› | Amarelo (<code>#f59e0b</code>) | <code>filterKanbanColumn(&#39;waiting&#39;)</code> | Filtra a tela para exibir apenas os pacientes triados aguardando chamada do médico. |</p>
-<p>| <strong>Em Consulta</strong> |  | Verde (<code>#10b981</code>) | <code>filterKanbanColumn(&#39;active&#39;)</code> | Filtra a tela para focar nos atendimentos em andamento e em observação no PS. |</p>
-<p>| <strong>Ver Todos</strong> |  | Neutro (<code>#94a3b8</code>) | <code>filterKanbanColumn(&#39;all&#39;)</code> | Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Card</th>
+<th align="center">Ícone</th>
+<th align="center">Cor Tema</th>
+<th align="left">Ação ao Clicar</th>
+<th align="left">Descrição / Objetivo</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Triagem</strong></td>
+<td align="center">🩺</td>
+<td align="center">Roxo (<code>#8b5cf6</code>)</td>
+<td align="left"><code>filterKanbanColumn(&#39;triage&#39;)</code></td>
+<td align="left">Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem.</td>
+</tr>
+<tr>
+<td align="left"><strong>Ag. Médico</strong></td>
+<td align="center">⏳</td>
+<td align="center">Amarelo (<code>#f59e0b</code>)</td>
+<td align="left"><code>filterKanbanColumn(&#39;waiting&#39;)</code></td>
+<td align="left">Filtra a tela para exibir apenas os pacientes triados aguardando chamada do médico.</td>
+</tr>
+<tr>
+<td align="left"><strong>Em Consulta</strong></td>
+<td align="center">👨‍⚕️</td>
+<td align="center">Verde (<code>#10b981</code>)</td>
+<td align="left"><code>filterKanbanColumn(&#39;active&#39;)</code></td>
+<td align="left">Filtra a tela para focar nos atendimentos em andamento e em observação no PS.</td>
+</tr>
+<tr>
+<td align="left"><strong>Ver Todos</strong></td>
+<td align="center">📊</td>
+<td align="center">Neutro (<code>#94a3b8</code>)</td>
+<td align="left"><code>filterKanbanColumn(&#39;all&#39;)</code></td>
+<td align="left">Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban.</td>
+</tr>
+</tbody></table>
 <hr>
 <h3 id="sec-2-2">2.2. Fila 1: Aguardando Triagem (Protocolo de Manchester)</h3><p>Pacientes admitidos na recepção dão entrada nesta fila para classificação de risco pela enfermagem.</p>
 <h4>Tabela de Campos do Modal de Triagem</h4>
-<p>| Campo do Formulário | Tipo de Entrada | Valores de Referência / Validação | Função Clínica |</p>
-<p>| :--- | :--- | :--- | :--- |</p>
-<p>| <strong>Pressão Arterial (PA)</strong> | Texto (ex: <code>120/80</code>) | NORMOTENSO: 120/80 mmHg | Avaliação hemodinâmica inicial (máscara autocompletável). |</p>
-<p>| <strong>Frequência Cardíaca (FC)</strong> | Número (bpm) | NORMOFAGIA: 60 - 100 bpm | Detecção de taquicardia ou bradicardia. |</p>
-<p>| <strong>Temperatura (°C)</strong> | Número (°C) | AFEBRIL: 36.1°C - 37.2°C (Febre: &gt;= 37.8°C) | Identificação de febre ou hipotermia. |</p>
-<p>| <strong>Peso (kg)</strong> | Número (kg) | Exemplo: 70.5 kg | Cálculo de dosagem de medicamentos e anestésicos. |</p>
-<p>| <strong>Saturação de O2 (SpO2)</strong> | Número (%) | NORMAL: &gt;= 95% (Hipóxia: &lt; 92%) | Avaliação de insuficiência respiratória. |</p>
-<p>| <strong>Escala de Dor</strong> | Seletor (0 a 10) | 0: Sem dor / 10: Pior dor imaginável | Escala analógica visual de dor. |</p>
-<p>| <strong>Queixa Principal</strong> | Ãrea de Texto | Mínimo 5 caracteres | Registro narrativo dos sintomas do paciente. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Campo do Formulário</th>
+<th align="left">Tipo de Entrada</th>
+<th align="left">Valores de Referência / Validação</th>
+<th align="left">Função Clínica</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Pressão Arterial (PA)</strong></td>
+<td align="left">Texto (ex: <code>120/80</code>)</td>
+<td align="left">NORMOTENSO: 120/80 mmHg</td>
+<td align="left">Avaliação hemodinâmica inicial (máscara autocompletável).</td>
+</tr>
+<tr>
+<td align="left"><strong>Frequência Cardíaca (FC)</strong></td>
+<td align="left">Número (bpm)</td>
+<td align="left">NORMOFAGIA: 60 - 100 bpm</td>
+<td align="left">Detecção de taquicardia ou bradicardia.</td>
+</tr>
+<tr>
+<td align="left"><strong>Temperatura (°C)</strong></td>
+<td align="left">Número (°C)</td>
+<td align="left">AFEBRIL: 36.1°C - 37.2°C (Febre: &gt;= 37.8°C)</td>
+<td align="left">Identificação de febre ou hipotermia.</td>
+</tr>
+<tr>
+<td align="left"><strong>Peso (kg)</strong></td>
+<td align="left">Número (kg)</td>
+<td align="left">Exemplo: 70.5 kg</td>
+<td align="left">Cálculo de dosagem de medicamentos e anestésicos.</td>
+</tr>
+<tr>
+<td align="left"><strong>Saturação de O2 (SpO2)</strong></td>
+<td align="left">Número (%)</td>
+<td align="left">NORMAL: &gt;= 95% (Hipóxia: &lt; 92%)</td>
+<td align="left">Avaliação de insuficiência respiratória.</td>
+</tr>
+<tr>
+<td align="left"><strong>Escala de Dor</strong></td>
+<td align="left">Seletor (0 a 10)</td>
+<td align="left">0: Sem dor / 10: Pior dor imaginável</td>
+<td align="left">Escala analógica visual de dor.</td>
+</tr>
+<tr>
+<td align="left"><strong>Queixa Principal</strong></td>
+<td align="left">Área de Texto</td>
+<td align="left">Mínimo 5 caracteres</td>
+<td align="left">Registro narrativo dos sintomas do paciente.</td>
+</tr>
+</tbody></table>
 <h4>Tabela de Classificação de Risco (Manchester)</h4>
-<p>| Cor de Risco | Nível de Gravidade | Tempo Máximo de Espera | Sinalização Visual | Ação Recomendada |</p>
-<p>| :---: | :--- | :---: | :---: | :--- |</p>
-<p>|  <strong>Vermelho</strong> | Emergência Absoluta | <strong>0 minutos</strong> (Imediato) | Card Vermelho Piscando | Paciente em risco iminente de morte. Sala Vermelha imediata. |</p>
-<p>|  <strong>Laranja</strong> | Muito Urgente | <strong>10 minutos</strong> | Border Laranja | Risco significativo de perda de função/vida. Atendimento rápido. |</p>
-<p>|  <strong>Amarelo</strong> | Urgente | <strong>60 minutos</strong> | Border Amarelo | Condição estável com necessidade de avaliação médica em até 1h. |</p>
-<p>|  <strong>Verde</strong> | Pouco Urgente | <strong>120 minutos</strong> | Border Verde | Quadro leve sem risco de agravamento rápido. Fila regular. |</p>
-<p>|  <strong>Azul</strong> | Não Urgente | <strong>240 minutos</strong> | Border Azul | Queixa crnica ou consulta simples. Atendimento eletivo. |</p>
+<table>
+<thead>
+<tr>
+<th align="center">Cor de Risco</th>
+<th align="left">Nível de Gravidade</th>
+<th align="center">Tempo Máximo de Espera</th>
+<th align="center">Sinalização Visual</th>
+<th align="left">Ação Recomendada</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Vermelho</strong></td>
+<td align="left">Emergência Absoluta</td>
+<td align="center"><strong>0 minutos</strong> (Imediato)</td>
+<td align="center">Card Vermelho Piscando</td>
+<td align="left">Paciente em risco iminente de morte. Sala Vermelha imediata.</td>
+</tr>
+<tr>
+<td align="center"><strong>Laranja</strong></td>
+<td align="left">Muito Urgente</td>
+<td align="center"><strong>10 minutos</strong></td>
+<td align="center">Border Laranja</td>
+<td align="left">Risco significativo de perda de função/vida. Atendimento rápido.</td>
+</tr>
+<tr>
+<td align="center"><strong>Amarelo</strong></td>
+<td align="left">Urgente</td>
+<td align="center"><strong>60 minutos</strong></td>
+<td align="center">Border Amarelo</td>
+<td align="left">Condição estável com necessidade de avaliação médica em até 1h.</td>
+</tr>
+<tr>
+<td align="center"><strong>Verde</strong></td>
+<td align="left">Pouco Urgente</td>
+<td align="center"><strong>120 minutos</strong></td>
+<td align="center">Border Verde</td>
+<td align="left">Quadro leve sem risco de agravamento rápido. Fila regular.</td>
+</tr>
+<tr>
+<td align="center"><strong>Azul</strong></td>
+<td align="left">Não Urgente</td>
+<td align="center"><strong>240 minutos</strong></td>
+<td align="center">Border Azul</td>
+<td align="left">Queixa crônica ou consulta simples. Atendimento eletivo.</td>
+</tr>
+</tbody></table>
 <hr>
 <h3 id="sec-2-3">2.3. Fila 2: Aguardando Médico (Chamada de Consultório)</h3><p>Nesta coluna, os pacientes são ordenados por <strong>Gravidade Manchester</strong> e <strong>Tempo de Espera</strong>.</p>
 <h4>Tabela de Ações do Card de Espera Médica</h4>
-<p>| Ação no Card | Ãcone | Função Técnica | Resultado no Sistema |</p>
-<p>| :--- | :---: | :--- | :--- |</p>
-<p>| <strong>Chamar para Consulta</strong> |  | Dispara websockets/eventos locais para a recepção. | 1. Toca sinal sonoro no Painel TV.<br>2. Exibe o nome do paciente no painel central.<br>3. Move o atendimento para a coluna <em>Em Atendimento</em>. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Ação no Card</th>
+<th align="center">Ícone</th>
+<th align="left">Função Técnica</th>
+<th align="left">Resultado no Sistema</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Chamar para Consulta</strong></td>
+<td align="center">📢</td>
+<td align="left">Dispara websockets/eventos locais para a recepção</td>
+<td align="left">1. Toca sinal sonoro no Painel TV.<br>2. Exibe o nome do paciente no painel central.<br>3. Move o atendimento para a coluna <em>Em Atendimento</em>.</td>
+</tr>
+</tbody></table>
 <hr>
 <h3 id="sec-2-4">2.4. Fila 3: Em Atendimento (Ações do Médico)</h3><p>Coluna onde o médico realiza o atendimento ativo. Cada card contém 5 botões de ação:</p>
 <h4>Tabela Completa de Botões do Médico</h4>
-<p>| Botão | Ãcone | Função do Botão | Resultado ao Clicar |</p>
-<p>| :--- | :---: | :--- | :--- |</p>
-<p>| <strong>PEP</strong> |  | Prontuário Eletr
-| <strong>Prescrição</strong> |  | Receituário Médico | Abre a tela para prescrever medicamentos, posologias, via de administração e orientações. |</p>
-<p>| <strong>Observação</strong> |  | Observação no PS (12h max) | Inicia a contagem do cronmetro de permanência contínua e exibe badge de tempo no card. |</p>
-<p>| <strong>Transferir Leito</strong> | ï¸ | Internação / Leito | Abre o modal para selecionar e alocar o paciente em um leito livre da Enfermaria ou UTI. |</p>
-<p>| <strong>Finalizar</strong> | âœ… | Alta Médica / Conclusão | Encerra a consulta, grava a alta no sistema e move o atendimento para o Histórico Pós-Alta. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Botão</th>
+<th align="center">Ícone</th>
+<th align="left">Função do Botão</th>
+<th align="left">Resultado ao Clicar</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>PEP</strong></td>
+<td align="center">🩺</td>
+<td align="left">Prontuário Eletrônico SOAPE</td>
+<td align="left">Abre o modal completo de atendimento médico SOAP.</td>
+</tr>
+<tr>
+<td align="left"><strong>Prescrição</strong></td>
+<td align="center">📜</td>
+<td align="left">Receituário Médico</td>
+<td align="left">Abre a tela para prescrever medicamentos, posologias e orientações.</td>
+</tr>
+<tr>
+<td align="left"><strong>Observação</strong></td>
+<td align="center">⏱️</td>
+<td align="left">Observação no PS (12h max)</td>
+<td align="left">Inicia a contagem do cronômetro de permanência contínua no card.</td>
+</tr>
+<tr>
+<td align="left"><strong>Transferir Leito</strong></td>
+<td align="center">🛏️</td>
+<td align="left">Internação / Leito</td>
+<td align="left">Abre o modal para alocar o paciente em leito livre da Enfermaria ou UTI.</td>
+</tr>
+<tr>
+<td align="left"><strong>Finalizar</strong></td>
+<td align="center">✅</td>
+<td align="left">Alta Médica / Conclusão</td>
+<td align="left">Encerra a consulta, grava a alta no sistema e move para o Histórico.</td>
+</tr>
+</tbody></table>
 <hr>
-<h2 id="sec-3">3. Prontuário Eletr<h3 id="sec-3-1">3.1. Estrutura SOAP</h3><p>| Bloco SOAP | Elemento | Descrição do Preenchimento | Exemplo de Preenchimento |
-| :--- | :--- | :--- |</p>
-<p>| <strong>âž• Adicionar Item</strong> | Insere o medicamento na lista temporária da receita | Atualiza a tabela interna do receituário. |</p>
-<p>| <strong>ï¸ Remover Item</strong> | Exclui o item selecionado da lista da receita | Remove o fármaco da lista atual. |</p>
-<p>| ** Salvar &amp; Dispensar**| Registra a receita e conecta com a farmácia | Envia pedido de baixa para o estoque da farmácia. |</p>
-<p>| <strong>ï¸ Imprimir PDF</strong> | Gera a receita médica formatada em PDF | Baixa o arquivo de receita com cabeçalho médico. |</p>
+<h2 id="sec-3">3. Prontuário Eletrônico Médico (PEP)</h2><h3 id="sec-3-1">3.1. Estrutura SOAPE</h3><table>
+<thead>
+<tr>
+<th align="left">Bloco SOAP</th>
+<th align="left">Elemento</th>
+<th align="left">Descrição do Preenchimento</th>
+<th align="left">Exemplo de Preenchimento</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Subjetivo</strong></td>
+<td align="left">Anamnese &amp; Queixa</td>
+<td align="left">Relato dos sintomas trazidos pelo paciente</td>
+<td align="left"><em>&quot;Paciente refere dor torácica há 2h...&quot;</em></td>
+</tr>
+<tr>
+<td align="left"><strong>Objetivo</strong></td>
+<td align="left">Exame Físico</td>
+<td align="left">Sinais vitais e achados de palpação/ausculta</td>
+<td align="left"><em>&quot;PA: 130/80, Murmúrio vesicular presente bilateralmente...&quot;</em></td>
+</tr>
+<tr>
+<td align="left"><strong>Avaliação</strong></td>
+<td align="left">Hipótese Diagnóstica</td>
+<td align="left">Hipótese clínica e código CID-10</td>
+<td align="left"><em>&quot;I20 — Angina Pectoris / Suspeita de SCA&quot;</em></td>
+</tr>
+<tr>
+<td align="left"><strong>Plano</strong></td>
+<td align="left">Conduta &amp; Tratamento</td>
+<td align="left">Medidas terapêuticas e prescrição de exames</td>
+<td align="left"><em>&quot;ECG imediato, Troponina I, Isordil 5mg SL...&quot;</em></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="sec-4">4. Guia Completo de Todos os Modais do Sistema</h2><h3 id="sec-4-1">4.1. Modal de Triagem Manchester</h3><ul>
+<li><strong>Como Acessar:</strong> Clique no botão <code>Realizar Triagem</code> na 1ª coluna do Kanban.</li>
+<li><strong>Campos de Entrada:</strong> <code>triage-pa</code>, <code>triage-temp</code>, <code>triage-fc</code>, <code>triage-spo2</code>, <code>triage-peso</code>, <code>triage-glicemia</code>, <code>triage-complaints</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">Botão do Modal</th>
+<th align="left">Ação</th>
+<th align="left">Resultado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Salvar &amp; Chamar na TV</strong></td>
+<td align="left">Conclui triagem e dispara chamada no Painel TV</td>
+<td align="left">Grava a cor Manchester e emite sinal sonoro na sala de espera.</td>
+</tr>
+<tr>
+<td align="left"><strong>Apenas Salvar Triagem</strong></td>
+<td align="left">Salva a triagem na fila de espera</td>
+<td align="left">Move o paciente para a coluna <em>Aguardando Médico</em>.</td>
+</tr>
+<tr>
+<td align="left"><strong>Cancelar</strong></td>
+<td align="left">Fecha o modal sem salvar</td>
+<td align="left">Mantém o paciente na fila de triagem.</td>
+</tr>
+</tbody></table>
+<h3 id="sec-4-2">4.2. Modal de Prescrição & Receituário Médico</h3><ul>
+<li><strong>Como Acessar:</strong> Clique no botão <code>Prescrição</code> ou acesse pelo PEP.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">Botão do Modal</th>
+<th align="left">Ação</th>
+<th align="left">Resultado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Adicionar Item</strong></td>
+<td align="left">Insere o medicamento na lista da receita</td>
+<td align="left">Atualiza a tabela interna do receituário.</td>
+</tr>
+<tr>
+<td align="left"><strong>Remover Item</strong></td>
+<td align="left">Exclui o item selecionado</td>
+<td align="left">Remove o fármaco da lista atual.</td>
+</tr>
+<tr>
+<td align="left"><strong>Salvar &amp; Dispensar</strong></td>
+<td align="left">Registra a receita e conecta com a farmácia</td>
+<td align="left">Envia pedido de baixa para o estoque da farmácia.</td>
+</tr>
+<tr>
+<td align="left"><strong>Imprimir PDF</strong></td>
+<td align="left">Gera a receita médica formatada em PDF</td>
+<td align="left">Baixa o arquivo de receita com QR Code CFM SHA-256.</td>
+</tr>
+</tbody></table>
 <h3 id="sec-4-3">4.3. Modal de Transferência & Alocação de Leito</h3><ul>
-<li><p><strong>Como Acessar:</strong> Clique no botão <code>ï¸ Transferir Leito</code> no card do paciente em consulta.</p>
-</li>
-<li><p><strong>Campos de Entrada:</strong> <code>bed-sector</code>, <code>bed-target</code>, <code>bed-notes</code>.</p>
-</li>
+<li><strong>Como Acessar:</strong> Clique no botão <code>Transferir Leito</code> no card do paciente.</li>
 </ul>
-<p>| Botão do Modal | Ação | Resultado |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>Confirmar Transferência</strong>| Associa o paciente ao leito escolhido | Altera o status do leito para <code>Ocupado</code> e atualiza a aba <em>Leitos</em>. |</p>
-<p>| <strong>Solicitar Higienização</strong> | Marca o leito de origem para limpeza | Altera o leito anterior para status <code>Higienização</code>. |</p>
-<p>| <strong>Cancelar</strong> | Cancela o procedimento | Fecha o modal sem alterar o local do paciente. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Botão do Modal</th>
+<th align="left">Ação</th>
+<th align="left">Resultado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Confirmar Transferência</strong></td>
+<td align="left">Associa o paciente ao leito escolhido</td>
+<td align="left">Altera o status do leito para <code>Ocupado</code> e atualiza a aba <em>Leitos</em>.</td>
+</tr>
+<tr>
+<td align="left"><strong>Solicitar Higienização</strong></td>
+<td align="left">Marca o leito de origem para limpeza</td>
+<td align="left">Altera o leito anterior para status <code>Higienização</code>.</td>
+</tr>
+<tr>
+<td align="left"><strong>Cancelar</strong></td>
+<td align="left">Cancela o procedimento</td>
+<td align="left">Fecha o modal sem alterar o local do paciente.</td>
+</tr>
+</tbody></table>
 <h3 id="sec-4-4">4.4. Modal de Nova Admissão & Entrada de Paciente</h3><ul>
-<li><p><strong>Como Acessar:</strong> Clique no botão <code>+ Nova Admissão</code> no topo da Central de Atendimentos.</p>
-</li>
-<li><p><strong>Campos de Entrada:</strong> <code>admission-patient-id</code>, <code>admission-type</code>, <code>admission-specialty</code>, <code>admission-priority</code>.</p>
-</li>
+<li><strong>Como Acessar:</strong> Clique no botão <code>+ Nova Admissão</code> no topo da Central de Atendimentos.</li>
 </ul>
-<p>| Botão do Modal | Ação | Resultado |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>Confirmar Admissão</strong> | Cria o novo atendimento | Insere o paciente na 1ª coluna do Kanban (<em>Aguardando Triagem</em>). |</p>
-<p>| <strong>+ Cadastrar Novo Paciente</strong>| Abre embutido o cadastro rápido | Permite criar o cadastro caso o paciente nunca tenha vindo ao hospital. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Botão do Modal</th>
+<th align="left">Ação</th>
+<th align="left">Resultado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Confirmar Admissão</strong></td>
+<td align="left">Cria o novo atendimento</td>
+<td align="left">Insere o paciente na 1ª coluna do Kanban (<em>Aguardando Triagem</em>).</td>
+</tr>
+<tr>
+<td align="left"><strong>+ Cadastrar Novo Paciente</strong></td>
+<td align="left">Abre o cadastro rápido</td>
+<td align="left">Permite criar o cadastro caso o paciente seja novo.</td>
+</tr>
+</tbody></table>
 <h3 id="sec-4-5">4.5. Modal de Direcionamento & Reatribuição de Fila</h3><ul>
-<li><p><strong>Como Acessar:</strong> Na aba <strong>Estagnação</strong>, clique no botão <code>Direcionar</code> ao lado de um paciente com atraso.</p>
-</li>
-<li><p><strong>Campos de Entrada:</strong> <code>reassign-room</code>, <code>reassign-status</code>.</p>
-</li>
+<li><strong>Como Acessar:</strong> Na aba <strong>Estagnação</strong>, clique no botão <code>Direcionar</code> ao lado de um paciente em atraso.</li>
 </ul>
-<p>| Botão do Modal | Ação | Resultado |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>Confirmar Direcionamento</strong>| Atualiza consultório e status | Move o paciente imediatamente no Kanban desobstruindo o gargalo. |</p>
-<p>| <strong>ï¸ Solicitar Internação</strong> | Solicitação direta de leito | Define o status para <code>Aguardando_Leito</code> e envia alerta para a Central de Leitos. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Botão do Modal</th>
+<th align="left">Ação</th>
+<th align="left">Resultado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Confirmar Direcionamento</strong></td>
+<td align="left">Atualiza consultório e status</td>
+<td align="left">Move o paciente no Kanban desobstruindo o gargalo.</td>
+</tr>
+<tr>
+<td align="left"><strong>Solicitar Internação</strong></td>
+<td align="left">Solicitação direta de leito</td>
+<td align="left">Define o status para <code>Aguardando_Leito</code> na Central de Leitos.</td>
+</tr>
+</tbody></table>
 <h3 id="sec-4-6">4.6. Modal de Histórico Pós-Alta & Prontuário Consolidado</h3><ul>
 <li><strong>Como Acessar:</strong> Clique no botão <code>Histórico</code> no topo da Central de Atendimentos ou na aba <em>Pacientes</em>.</li>
 </ul>
-<p>| Botão do Modal | Ação | Resultado |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>ï¸ Imprimir PDF Consolidado</strong>| Gera o prontuário impresso em PDF | Baixa o relatório PDF completo com todas as consultas do histórico. |</p>
-<p>| <strong>Fechar</strong> | Fecha a exibição do histórico | Retorna Ã  navegação normal. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Botão do Modal</th>
+<th align="left">Ação</th>
+<th align="left">Resultado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Imprimir PDF Consolidado</strong></td>
+<td align="left">Gera o prontuário impresso em PDF</td>
+<td align="left">Baixa o relatório PDF completo com todas as consultas do histórico.</td>
+</tr>
+<tr>
+<td align="left"><strong>Fechar</strong></td>
+<td align="left">Fecha a exibição do histórico</td>
+<td align="left">Retorna à navegação normal.</td>
+</tr>
+</tbody></table>
 <h3 id="sec-4-7">4.7. Modal de Aprovação de Acesso de Usuários</h3><ul>
 <li><strong>Como Acessar:</strong> Exclusivo para o perfil <strong>Administrador Master</strong> na aba <em>Estagnação</em>.</li>
 </ul>
-<p>| Botão do Modal | Ação | Resultado |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>ï¸  Aprovar Acesso</strong> | Concede o perfil solicitado | Libera as permissões de acordo com o cargo cadastrado. |</p>
-<p>| <strong>â Œ Recusar Solicitação</strong> | Define o perfil como <code>Médico</code> padrão | Nega privilégios de administrador mantendo acesso de médico. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Botão do Modal</th>
+<th align="left">Ação</th>
+<th align="left">Resultado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Aprovar Acesso</strong></td>
+<td align="left">Concede o perfil solicitado</td>
+<td align="left">Libera as permissões de acordo com o cargo cadastrado.</td>
+</tr>
+<tr>
+<td align="left"><strong>Recusar Solicitação</strong></td>
+<td align="left">Define o perfil como <code>Médico</code> padrão</td>
+<td align="left">Nega privilégios de administrador mantendo acesso comum.</td>
+</tr>
+</tbody></table>
 <h3 id="sec-4-8">4.8. Modal de Gestão de Usuários & Troca de Perfil</h3><ul>
-<li><strong>Como Acessar:</strong> Clique no nome do usuário logado no canto superior direito do menu.</li>
+<li><strong>Como Acessar:</strong> Clique no nome do usuário logado no canto superior direito.</li>
 </ul>
-<p>| Botão do Modal | Ação | Resultado |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>Salvar Alterações</strong> | Atualiza a senha e dados do operador | Grava no banco e emite toast de confirmação. |</p>
-<p>| <strong>Sair / Logout</strong> | Encerra a sessão atual | Redireciona para a tela de Login. |</p>
+<table>
+<thead>
+<tr>
+<th align="left">Botão do Modal</th>
+<th align="left">Ação</th>
+<th align="left">Resultado</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Salvar Alterações</strong></td>
+<td align="left">Atualiza a senha e dados do operador</td>
+<td align="left">Grava no banco e emite toast de confirmação.</td>
+</tr>
+<tr>
+<td align="left"><strong>Sair / Logout</strong></td>
+<td align="left">Encerra a sessão atual</td>
+<td align="left">Redireciona para a tela de Login.</td>
+</tr>
+</tbody></table>
 <hr>
-<h2 id="sec-5">5. Gestão de Pacientes &amp; Linha do Cuidado Completa</h2><p>Na aba <strong>Pacientes</strong>, o hospital mantém o cadastro centralizado e o acesso à trajetória clínica completa de cada paciente.</p>
+<h2 id="sec-5">5. Gestão de Pacientes & Linha do Cuidado Completa</h2><p>Na aba <strong>Pacientes</strong>, o hospital mantém o cadastro centralizado e o acesso à trajetória clínica completa.</p>
 <h3>📋 Tabela de Campos Cadastrais do Paciente</h3>
 <table>
 <thead>
@@ -898,17 +1221,8 @@ graph TD
 <td align="left"><code>Bradesco Saúde</code></td>
 </tr>
 </tbody></table>
-<h3>🧭 Linha do Cuidado &amp; Trajetória do Paciente (Patient Journey Timeline)</h3>
-<p>Ao clicar no botão de <strong>Prontuário &amp; Histórico</strong> de qualquer paciente (ou pesquisá-lo pelo nome), o sistema abre a visualização da <strong>Linha do Cuidado</strong>, dividida em períodos de atendimento:</p>
-<ol>
-<li><strong>🎟️ 1. Recepção:</strong> Data/hora de admissão, ficha cadastral e queixa principal relatada.</li>
-<li><strong>🩺 2. Triagem Manchester:</strong> Cor do risco (<em>Vermelho, Laranja, Amarelo, Verde, Azul</em>), sinais vitais (PA, FC, Temp).</li>
-<li><strong>📢 3. Chamada de TV:</strong> Registro do disparo sonoro, consultório médico e profissional responsável.</li>
-<li><strong>👨‍⚕️ 4. Consulta Médica (PEP):</strong> Evolução SOAP (<em>Subjetivo, Objetivo, Avaliação, Plano</em>), hipótese diagnóstica CID-10 e prescrição.</li>
-<li><strong>🛌 5. Desfecho Assistencial:</strong> Leito alocado (<em>Ex: 101A</em>), setor de internação ou alta hospitalar registrada.</li>
-</ol>
 <hr>
-<h2 id="sec-6">6. Gestão da Equipe Médica &amp; Corpo Clínico</h2><p>Na aba <strong>Médicos</strong>, gerencia-se o corpo clínico do hospital.</p>
+<h2 id="sec-6">6. Gestão da Equipe Médica & Corpo Clínico</h2><p>Na aba <strong>Médicos</strong>, gerencia-se o corpo clínico do hospital.</p>
 <h3>🩺 Tabela de Campos e Ações dos Médicos</h3>
 <table>
 <thead>
@@ -951,7 +1265,7 @@ graph TD
 </tr>
 </tbody></table>
 <hr>
-<h2 id="sec-7">7. Gestão de Consultórios &amp; Integração com Painel TV</h2><p>Na aba <strong>Consultórios</strong>, controla-se a ocupação das salas médicas e o atendimento em tempo real.</p>
+<h2 id="sec-7">7. Gestão de Consultórios & Integração com Painel TV</h2><p>Na aba <strong>Consultórios</strong>, controla-se a ocupação das salas médicas e o atendimento em tempo real.</p>
 <h3>🚪 Tabela de Status e Gestão das Salas</h3>
 <table>
 <thead>
@@ -997,11 +1311,8 @@ graph TD
 <td align="left"><code>Transferir Paciente</code></td>
 </tr>
 </tbody></table>
-<blockquote>
-<p><strong>Vínculo em Tempo Real:</strong> Ao emitir a chamada no Painel TV, o consultório correspondente exibe automaticamente o nome do paciente chamado com botão de <strong>1-clique para abrir o Prontuário Eletrônico (PEP)</strong>.</p>
-</blockquote>
 <hr>
-<h2 id="sec-8">8. Gestão Avançada de Leitos, Censo &amp; Histórico</h2><p>Na aba <strong>Leitos</strong>, a equipe hospitalar gerencia a ocupação em tempo real com controle de capacidade por leito individual.</p>
+<h2 id="sec-8">8. Gestão Avançada de Leitos, Censo & Histórico</h2><p>Na aba <strong>Leitos</strong>, a equipe hospitalar gerencia a ocupação em tempo real com controle por leito individual.</p>
 <h3>🛏️ Tabela de Gestão de Leitos</h3>
 <table>
 <thead>
@@ -1047,560 +1358,215 @@ graph TD
 <td align="left"><code>✨ Liberar Leito</code></td>
 </tr>
 </tbody></table>
-<h3>🔒 Regras Operacionais de Leito (Segurança do Paciente):</h3>
-<ol>
-<li><strong>Bloqueio de Dupla Alocação:</strong> Quando um leito individual está <code>Ocupado</code>, o botão de alocação de novo paciente é <strong>automaticamente inabilitado</strong> para evitar duplicidades.</li>
-<li><strong>Painel Detalhado do Leito:</strong> Ao clicar no card de qualquer leito, abre-se o modal do leito com:<ul>
-<li>Ficha do ocupante atual, data/hora da internação e dias de permanência.</li>
-<li><strong>Histórico Completo de Internações:</strong> Relação de todos os pacientes que já ocuparam aquele leito no passado com data de entrada e saída.</li>
-<li>Controles operacionais para alternar status (<em>Vago</em>, <em>Higienização</em>, <em>Manutenção</em>).</li>
-</ul>
-</li>
-<li><strong>Ciclo de Higienização:</strong> Ao conceder alta médica, o leito passa imediatamente para o status 🟡 <code>Higienização</code> até ser liberado pela equipe de limpeza.</li>
-</ol>
 <hr>
 <h2 id="sec-9">9. Agenda, Escala Médica & Consultas Eletivas</h2><p>Na aba <strong>Agenda</strong>, realiza-se a marcação e controle de horários.</p>
-<h3>Tabela de Operações da Agenda</h3>
-<p>| Operação | Parâmetros Necessários | Ação do Sistema | Resultado Gerado |</p>
-<p>| :--- | :--- | :--- | :--- |</p>
-<p>| <strong>Novo Agendamento</strong> | Paciente, Médico, Data, Horário | Grava a consulta na grade. | Insere na agenda e habilita emissão de PDF. |</p>
-<p>| <strong>Imprimir Comprovante</strong>| ID do Agendamento | Gera documento PDF formatado. | Baixa o ticket impresso para entrega ao paciente. |</p>
-<p>| <strong>Cancelar Horário</strong> | Motivo do cancelamento | Altera status para <code>Cancelado</code>. | Libera a vaga no horário para nova marcação. |</p>
-<hr>
-<h2 id="sec-10">10. Farmácia & Dispensação de Medicamentos</h2><p>Na aba <strong>Farmácia</strong>, faz-se a gestão de estoque e rastreabilidade de medicamentos.</p>
-<h3>Tabela de Controle de Farmácia e Estoque</h3>
-<p>| Medicamento | Apresentação / Via | Lote | Data Validade | Estoque Atual | Estoque Mín. | Status Estoque |</p>
-<p>| :--- | :--- | :--- | :---: | :---: | :---: | :---: |</p>
-<p>| <strong>Dipirona Sódica</strong> | Ampola 500mg/ml (EV/IM)| <code>L-9821</code> | 2027-12-31 | 450 un | 100 un |  OK |</p>
-<p>| <strong>Amoxicilina 500mg</strong> | Comprimido (VO) | <code>L-4410</code> | 2026-09-15 | 85 un | 100 un |  Abaixo Mínimo |</p>
-<p>| <strong>Fentanil 0.05mg/ml</strong>| Ampola (EV) | <code>L-1102</code> | 2026-08-20 | 12 un | 20 un |  Alerta Validade/Estoque |</p>
-<hr>
-<h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2><p>Na aba <strong>Faturamento</strong>, acompanha-se a receita e os repasses dos convênios.</p>
-<h3>Tabela de Lançamentos Financeiros</h3>
-<p>| Código Atendimento | Paciente | Convênio / Plano | Valor dos Serviços | Valor Taxas/Exames | Status Financeiro | Ações Disponíveis |</p>
-<p>| :--- | :--- | :--- | :---: | :---: | :---: | :--- |</p>
-<p>| <code>#ATD-2026-081</code> | Renato Ramos | Unimed Saúde | R$ 350,00 | R$ 120,00 |  <code>Pendente</code> | <code>Dar Baixa</code>, <code>Editar</code> |</p>
-<p>| <code>#ATD-2026-082</code> | Camila Ferreira | SUS / Público | R$ 180,00 | R$ 0,00 |  <code>Faturado</code> | <code>Ver Detalhes</code> |</p>
-<p>| <code>#ATD-2026-083</code> | Lucas Mendes | Particular | R$ 450,00 | R$ 200,00 |  <code>Pago</code> | <code>Imprimir Recibo</code> |</p>
-<hr>
-<h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2><p>Na aba <strong>Relatórios</strong>, o gestor visualiza os gráficos e indicadores de desempenho.</p>
-<h3>Tabela de Indicadores Gerenciais</h3>
-<p>| Relatório / Métrica | Indicador Analisado | Período Selecionável | Formato de Exportação |</p>
-<p>| :--- | :--- | :---: | :---: |</p>
-<p>| <strong>Taxa de Ocupação de Leitos</strong> | % de leitos ocupados vs leitos totais | Hoje / 7 dias / 30 dias | PDF / Excel |</p>
-<p>| <strong>Tempo Médio de Espera (SLA)</strong> | Minutos médios de espera por Manchester | Hoje / Mensal | PDF / Excel |</p>
-<p>| <strong>Volume de Atendimentos</strong> | Quantidade de pacientes atendidos por especialidade | Mensal / Anual | Excel / CSV |</p>
-<p>| <strong>Faturamento Por Convênio</strong> | Total arrecadado discriminado por plano de saúde | Mensal | Excel / PDF |</p>
-<hr>
-<h2 id="sec-13">13. Painel de Chamada TV (Recepção)</h2><p>Na aba <strong>Painel TV</strong>, a recepção gerencia as chamadas na televisão da sala de espera.</p>
-<h3>Tabela de Recursos do Painel TV</h3>
-<p>| Recurso | Descrição Técnica | Resultado Visual / Sonoro |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>Chamada Sonora (Chime)</strong> | Reproduz o sinal de áudio sintetizado em alto-falante. | Atrai a atenção dos pacientes na recepção. |</p>
-<p>| <strong>Placa Visual Principal</strong> | Exibe o Nome do Paciente e o Consultório em fonte gigante. | Pisca em cor de alto contraste na tela da TV. |</p>
-<p>| <strong>Lista de Chamadas Recentes</strong> | Histórico das últimas 5 chamadas no canto da tela. | Permite ao paciente verificar se seu nome foi chamado. |</p>
-<hr>
-<h2 id="sec-14">14. Central de Estagnação & Aprovações de Acesso</h2><p>Na aba <strong>Estagnação</strong>, o sistema monitora gargalos e pendências de acesso de novos usuários. Todo novo usuário cadastrado sem a chave master precisará de aprovação.</p>
-<h3>Tabela de Alertas de Estagnação &amp; Aprovações</h3>
-<p>| Tipo de Alerta | Critério de Disparo | Cor do Badge | Ação Recomendada |</p>
-<p>| :--- | :---: | :---: | :--- |</p>
-<p>| <strong>Alerta de Espera</strong> | Tempo de espera &gt; <strong>15 min</strong> |  Amarelo | Acionar o médico da sala ou agilizar a triagem. |</p>
-<p>| <strong>Alerta Crítico</strong> | Tempo de espera &gt; <strong>30 min</strong> |  Vermelho | Remanejar paciente para consultório vago. |</p>
-<p>| <strong>Observação Excedida</strong> | Permaneceu &gt; <strong>12h em Obs no PS</strong> |  Piscando | Solicitar internação imediata em leito de enfermaria. |</p>
-<p>| <strong>Solicitação de Acesso</strong> | Usuário realizou cadastro pendente |  Laranja | Botão <code>Aprovar Acesso</code> exclusivo do Administrador Master. |</p>
-<hr>
-<h2 id="sec-15">15. Configurações, Backup e Sincronização em Nuvem</h2><p>Na aba <strong>Configurações</strong>, realiza-se a manutenção do banco de dados local e nuvem.</p>
-<h3>âš™ï¸ Tabela de Operações de Configuração</h3>
-<p>| Operação | Botão | Ação / Quando Utilizar |</p>
-<p>| :--- | :---: | :--- |</p>
-<p>| <strong>Sincronização Nuvem</strong> | <code>Sincronizar</code> | Conecta ao banco de dados Turso/SQLite na nuvem para sincronização em tempo real. |</p>
-<p>| <strong>Exportar Backup JSON</strong> | <code>Exportar JSON</code> | Baixa o arquivo completo de backup do banco de dados para segurança externa. |</p>
-<p>| <strong>Importar Backup JSON</strong> | <code>Importar JSON</code> | Restaura a base de dados a partir de um arquivo de backup previamente salvo. |</p>
-<p>| <strong>Popular Banco (Seed)</strong> | <code>Gerar Dados Teste</code> | Cria pacientes e atendimentos fictícios para treinamentos ou testes. |</p>
-<p>| <strong>Resetar Banco</strong> | <code>Limpar Dados</code> | Apaga os dados locais (requer confirmação da senha Master). |</p>
-<hr>
-<h2 id="sec-16">16. Sistema de Avisos, Notificações & Toasts</h2><p>| Tipo de Notificação | Cor do Toast | Duração na Tela | Exemplo de Mensagem |</p>
-<p>| :--- | :---: | :---: | :--- |</p>
-<p>| <strong>Sucesso</strong> |  Verde | 3 segundos | <code>âœ… Prontuário assinado com sucesso!</code> |</p>
-<p>| <strong>Alerta / Aviso</strong> |  Amarelo | 4 segundos | <code>â±ï¸ Paciente colocado em Observação Médica (Cronmetro 12h iniciado)</code> |</p>
-<p>| <strong>Erro / Falha</strong> |  Vermelho | 5 segundos | <code>âŒ Selecione a classificação de risco obrigatória.</code> |</p>
-<hr>
-<h2 id="sec-17">17. Tabela de Máscaras, Atalhos & Teclas de Atalho</h2><p>| Atalho / Clique | Função | Onde Funciona |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <code>Mascara PA (120/80)</code> | Formata números em formato sistólica/diastólica | Campo Pressão Arterial na Triagem |</p>
-<p>| <code>Mascara CPF (000.000.000-00)</code> | Formata 11 dígitos com pontos e hífen | Cadastro de Paciente |</p>
-<p>| <code>Clique no Card Triagem</code> | Filtra para ver apenas a fila de Triagem | Aba Atendimentos |</p>
-<p>| <code>Clique no Card Ag. Médico</code>| Filtra para ver apenas os pacientes aguardando médico | Aba Atendimentos |</p>
-<p>| <code>Clique no Card Em Consulta</code>| Filtra para ver os atendimentos ativos | Aba Atendimentos |</p>
-<p>| <code>Clique em Ver Todos</code> | Exibe as 3 colunas do Kanban lado a lado | Aba Atendimentos |</p>
-<p>| <code>Botão Imprimir / PDF</code> | Imprime laudo oficial em PDF do PEP | Modal do PEP |</p>
-<hr>
-<h2 id="sec-18">18. Solução de Dúvidas Frequentes & Erros Comuns (FAQ)</h2><p>| Problema Encontrado | Causa Provável | Solução Passo a Passo |</p>
-<p>| :--- | :--- | :--- |</p>
-<p>| <strong>Ao clicar no PEP exibe erro no console</strong> | O atendimento não foi inicializado | Verifique se o atendimento está na coluna <em>Em Consulta</em> antes de abrir o PEP. |</p>
-<p>| <strong>Prontuário gerado em PDF com campos vazios</strong> | Paciente sem CPF/dados cadastrais | Acesse a aba <em>Pacientes</em>, complete o cadastro do paciente e tente gerar novamente. |</p>
-<p>| <strong>Histórico exibe &quot;Nenhum atendimento registrado&quot;</strong> | Consulta recém-criada sem triagem | Certifique-se de realizar a Triagem de Manchester antes de buscar o histórico. |</p>
-<p>| <strong>O cronmetro do card não está atualizando</strong> | Intervalo de atualização pausado | Clique no botão <code>Atualizar</code> na barra superior ou recarregue a aba <em>Atendimentos</em>. |</p>
-<hr>
-<p><em>Health Nexus — Manual do Usuário v1.0 | Sistema de Gestão Hospitalar de Alta Performance</em></p>
-<hr>
-<h2 id="sec-22">22.  Atualizações Recentes (Agosto/2026)</h2><p>O Health Nexus recebeu uma série de melhorias para otimizar o fluxo de trabalho e garantir a segurança das informações operacionais:</p>
-<h3>22.1. Controle de Acesso e Permissões (Roles)</h3>
-<p>A aba de <strong>Configurações Globais</strong> agora conta com um controle de acesso rigoroso:</p>
-<ul>
-<li><p><strong>MASTER:</strong> Possui acesso integral a todos os painéis, incluindo &quot;Gerenciamento de Usuários&quot;, &quot;Simulação de Dados&quot; e demais configurações avançadas (identificadas em vermelho).</p>
-</li>
-<li><p><strong>Desenvolvedor:</strong> Recebe acesso apenas aos agrupamentos técnicos essenciais (destacados em vermelho), permitindo realizar sincronização de banco de dados (Turso) e operações técnicas, mantendo restrições de gerenciamento de equipe.</p>
-</li>
-<li><p><strong>Demais perfis:</strong> Acesso bloqueado Ã  aba de Configurações para garantir a segurança dos dados.</p>
-</li>
-</ul>
-<h3>22.2. Botões de Limpeza de Filtros (&quot;Limpar Filtros&quot;)</h3>
-<p>Visando aumentar a agilidade operacional, foram incluídos botões dedicados com o ícone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em <strong>todas as abas principais</strong>:</p>
-<ul>
-<li><p><strong>Pacientes, Médicos, Agenda, Farmácia e Relatórios.</strong></p>
-</li>
-<li><p>Um único clique zera instantaneamente todas as buscas de texto e recoloca os <em>checkboxes</em> de filtro em seus estados padrão, permitindo buscas fluídas.</p>
-</li>
-</ul>
-<h3>22.3. Busca de Pacientes Aprimorada (Nome e CPF)</h3>
-<p>O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em modais de admissão, prescrição e financeiro) foi reescrito. Agora:</p>
-<ul>
-<li><p>A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do <strong>CPF</strong>.</p>
-</li>
-<li><p>O <strong>CPF</strong> é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de homnimos na hora do atendimento.</p>
-</li>
-</ul>
-<h3>22.4. Ãcones Visuais de Forma de Pagamento</h3>
-<p>A interface da seção de Relatórios Financeiros foi enriquecida com representações gráficas (Emojis):</p>
-<ul>
-<li><p>Pix ()</p>
-</li>
-<li><p>Dinheiro ()</p>
-</li>
-<li><p>Cartão de Crédito ()</p>
-</li>
-<li><p>Cartão de Débito ()</p>
-</li>
-<li><p>Boleto ()</p>
-</li>
-</ul>
-<p>Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.</p>
-<hr>
-<hr>
-<h2 id="sec-22">22.  Atualizações Recentes (Agosto/2026)</h2><p>O Health Nexus recebeu uma série de melhorias para otimizar o fluxo de trabalho e garantir a segurança das informações operacionais:</p>
-<h3>22.1. Controle de Acesso e Permissões (Roles)</h3>
-<p>A aba de <strong>Configurações Globais</strong> agora conta com um controle de acesso rigoroso:</p>
-<ul>
-<li><p><strong>MASTER:</strong> Possui acesso integral a todos os painéis, incluindo &quot;Gerenciamento de Usuários&quot;, &quot;Simulação de Dados&quot; e demais configurações avançadas (identificadas em vermelho).</p>
-</li>
-<li><p><strong>Desenvolvedor:</strong> Recebe acesso apenas aos agrupamentos técnicos essenciais (destacados em vermelho), permitindo realizar sincronização de banco de dados (Turso) e operações técnicas, mantendo restrições de gerenciamento de equipe.</p>
-</li>
-<li><p><strong>Demais perfis:</strong> Acesso bloqueado Ã  aba de Configurações para garantir a segurança dos dados.</p>
-</li>
-</ul>
-<h3>22.2. Botões de Limpeza de Filtros (&quot;Limpar Filtros&quot;)</h3>
-<p>Visando aumentar a agilidade operacional, foram incluídos botões dedicados com o ícone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em <strong>todas as abas principais</strong>:</p>
-<ul>
-<li><p><strong>Pacientes, Médicos, Agenda, Farmácia e Relatórios.</strong></p>
-</li>
-<li><p>Um único clique zera instantaneamente todas as buscas de texto e recoloca os <em>checkboxes</em> de filtro em seus estados padrão, permitindo buscas fluídas.</p>
-</li>
-</ul>
-<h3>22.3. Busca de Pacientes Aprimorada (Nome e CPF)</h3>
-<p>O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em modais de admissão, prescrição e financeiro) foi reescrito. Agora:</p>
-<ul>
-<li><p>A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do <strong>CPF</strong>.</p>
-</li>
-<li><p>O <strong>CPF</strong> é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de homnimos na hora do atendimento.</p>
-</li>
-</ul>
-<h3>22.4. Ãcones Visuais de Forma de Pagamento</h3>
-<p>A interface da seção de Relatórios Financeiros foi enriquecida com representações gráficas (Emojis):</p>
-<ul>
-<li><p>Pix ()</p>
-</li>
-<li><p>Dinheiro ()</p>
-</li>
-<li><p>Cartão de Crédito ()</p>
-</li>
-<li><p>Cartão de Débito ()</p>
-</li>
-<li><p>Boleto ()</p>
-</li>
-</ul>
-<p>Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.</p>
-<h3>22.5. Validação Estrita de Senhas no Login</h3>
-<p>A tela de autenticação foi atualizada para exigir a validação exata da senha cadastrada de cada usuário:</p>
-<ul>
-<li><p>Tentativas com senhas incorretas são imediatamente rejeitadas (HTTP 401).</p>
-</li>
-<li><p>Garantia de que contas individuais (ex: <code>ljordao</code>, <code>bcoltri</code>, <code>admin</code>) só possuem acesso liberado mediante a apresentação da senha cadastrada correspondente.</p>
-</li>
-</ul>
-<hr>
-<hr>
-<h2 id="sec-22">22. �� Atualizações Recentes (Agosto/2026)</h2><p>O Health Nexus recebeu uma série de melhorias para otimizar o fluxo de trabalho e garantir a segurança das informações operacionais:</p>
-<h3>22.1. Controle de Acesso e Permissões (Roles)</h3>
-<p>A aba de <strong>Configurações Globais</strong> agora conta com um controle de acesso rigoroso:</p>
-<ul>
-<li><p><strong>MASTER:</strong> Possui acesso integral a todos os painéis, incluindo &quot;Gerenciamento de Usuários&quot;, &quot;Simulação de Dados&quot; e demais configurações avançadas (identificadas em vermelho).</p>
-</li>
-<li><p><strong>Desenvolvedor:</strong> Recebe acesso apenas aos agrupamentos técnicos essenciais (destacados em vermelho), permitindo realizar sincronização de banco de dados (Turso) e operações técnicas, mantendo restrições de gerenciamento de equipe.</p>
-</li>
-<li><p><strong>Demais perfis:</strong> Acesso bloqueado à aba de Configurações para garantir a segurança dos dados.</p>
-</li>
-</ul>
-<h3>22.2. Botões de Limpeza de Filtros (&quot;Limpar Filtros&quot;)</h3>
-<p>Visando aumentar a agilidade operacional, foram incluídos botões dedicados com o ícone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em <strong>todas as abas principais</strong>:</p>
-<ul>
-<li><p><strong>Pacientes, Médicos, Agenda, Farmácia e Relatórios.</strong></p>
-</li>
-<li><p>Um único clique zera instantaneamente todas as buscas de texto e recoloca os <em>checkboxes</em> de filtro em seus estados padrão, permitindo buscas fluídas.</p>
-</li>
-</ul>
-<h3>22.3. Busca de Pacientes Aprimorada (Nome e CPF)</h3>
-<p>O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em modais de admissão, prescrição e financeiro) foi reescrito. Agora:</p>
-<ul>
-<li><p>A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do <strong>CPF</strong>.</p>
-</li>
-<li><p>O <strong>CPF</strong> é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de hom</p>
-</li>
-</ul>
-<h3>22.4. Ícones Visuais de Forma de Pagamento ����</h3>
-<p>A interface da seção de Relatórios Financeiros foi enriquecida com representações gráficas (Emojis):</p>
-<ul>
-<li><p>Pix (��)</p>
-</li>
-<li><p>Dinheiro (��)</p>
-</li>
-<li><p>Cartão de Crédito (��)</p>
-</li>
-<li><p>Cartão de Débito (��)</p>
-</li>
-<li><p>Boleto (��)</p>
-</li>
-</ul>
-<p>Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.</p>
-<h3>22.5. Validação Estrita de Senhas no Login ��</h3>
-<p>A tela de autenticação foi atualizada para exigir a validação exata da senha cadastrada de cada usuário:</p>
-<ul>
-<li><p>Tentativas com senhas incorretas são imediatamente rejeitadas (HTTP 401).</p>
-</li>
-<li><p>Garantia de que contas individuais (ex: <code>ljordao</code>, <code>bcoltri</code>, <code>admin</code>) só possuem acesso liberado mediante a apresentação da senha cadastrada correspondente.</p>
-</li>
-</ul>
-<h3>22.6. IA Copilot no Manual Interativo com RBAC ��</h3>
-<p>O sistema de pesquisa do <strong>Manual Interativo</strong> foi integrado ao motor de Inteligência Artificial <strong>Copilot</strong>.</p>
-<ul>
-<li><p><strong>Pesquisa em Tempo Real:</strong> A pesquisa agora é processada instantaneamente sem a necessidade de múltiplos cliques.</p>
-</li>
-<li><p><strong>Consciência de Acesso (RBAC):</strong> O assistente virtual compreende as permissões do usuário logado e exibe botões de ação contextuais apenas para funções que o usuário tem autorização. Respostas e ações para áreas restritas exibirão mensagens de bloqueio, garantindo máxima segurança.</p>
-</li>
-</ul>
-<hr>
-<h2>🔄 2. Fluxograma Geral Integrado de Todas as Abas e Correlações (v2.7.0)</h2>
-<p>O fluxograma abaixo mapeia a correlação completa entre todas as 12 abas do sistema, destacando os diferenciais operacionais e particularidades de cada módulo:</p>
-<div class="mermaid">
-flowchart TD
-    subgraph MOD_AUTH ["🔒 1. Autenticação & Gestão de Acessos (RBAC)"]
-        AUTH_LOGIN["Login JWT com 24 Contas (Médicos, Enfermeiros, Admin, Devs)"]
-        AUTH_RBAC["Controle de Permissões (Master, Clínico, Dev)"]
-        AUTH_PRESERVE["Preservação Inteligente de Usuários em Limpezas"]
-        AUTH_AUDIT["Auditoria de Logins (Últimos 5 / Histórico 100)"]
-    end
-
-    subgraph MOD_DASH ["📊 2. Dashboard Executivo & KPIs"]
-        DASH_KPI["KPIs Gerenciais em Tempo Real"]
-        DASH_CHARTS["Gráficos Interativos Chart.js (Filtros Clicáveis)"]
-    end
-
-    subgraph MOD_ESCALAS ["🩺 11. Escalas de Trabalho & Plantões (Diferencial)"]
-        ESC_TAB["Sub-abas: Escala de Médicos vs Escala de Enfermeiros"]
-        ESC_SHIFT["Turnos: Manhã (6h), Tarde (6h), Noite (12h), 24h, 12x36"]
-        ESC_SECTOR["Alocação de Setor / Consultório & CRM/COREN"]
-        ESC_TODAY["Garantia de Cobertura de Plantão para HOJE"]
-    end
-
-    subgraph MOD_AGENDA ["🗓️ 3. Agenda de Consultas"]
-        AG_BOOK["Agendamento de Consultas & Seleção de Médico/Consultório"]
-        AG_KPI["KPI Cards de Status (Confirmado, Atendimento, Concluído)"]
-    end
-
-    subgraph MOD_PACIENTES ["👥 4. Admissão de Pacientes (SUS)"]
-        PAC_FORM["Admissão 11 Campos SUS + Validação Responsável Legal"]
-        PAC_CEP["Autopreenchimento de Endereço via API ViaCEP"]
-        PAC_SEARCH["Busca Unificada por Nome e CPF"]
-        PAC_TRASH["Lixeira de Pacientes (Soft-Delete & Restauração)"]
-    end
-
-    subgraph MOD_ATEND ["🚨 5. Atendimentos & Triagem Manchester"]
-        TRI_MANCHESTER["Enfermagem: Triagem Manchester (5 Níveis de Risco)"]
-        TRI_QUEUE["Fila PS: Sorting por Prioridade Clínica Automática"]
-    end
-
-    subgraph MOD_TV ["📺 6. Painel TV (Chamador Inteligente)"]
-        TV_SPEECH["Web Speech API: Anúncio de Paciente por Voz Sintetizada"]
-        TV_DISPLAY["Exibição em Tela Cheia para Sala de Espera"]
-    end
-
-    subgraph MOD_PEP ["🩺 7. Prontuário Eletr        PEP_SOAPE["Atendimento Médico: Método SOAPE & CID-10 Offline"]
-        PEP_PRESCR["Prescrição Médica em Planilha + Dose/Via/Frequência"]
-        PEP_ENF["Matriz da Enfermagem: Checagem de Aplicação de Doses"]
-        PEP_PDF["Emissão de PDF A4 Oficial (Receituário & Histórico)"]
-    end
-
-    subgraph MOD_FARMACIA ["💊 10. Farmácia & Estoque"]
-        FARM_SEARCH["Pesquisa Global de Fármacos (OpenFDA & ANVISA)"]
-        FARM_STOCK["Controle de Lote, Validade e Estoque Mínimo"]
-    end
-
-    subgraph MOD_ESTAG ["⏱️ 8. Alertas de Estagnação & Timer PS 12h"]
-        EST_TIMER["Timer PS 12h (Azul <10h / Amarelo 10-12h / Vermelho >12h)"]
-        EST_ALERT["Alerta Pulsante de Permanência Máxima Excedida"]
-    end
-
-    subgraph MOD_LEITOS ["🛏️ 9. Censo Hospitalar & Mapa de Leitos"]
-        BED_MAP["Grid de Leitos Tricolor (Verde=Vago, Vermelho=Ocupado, Amarelo=Higienização)"]
-        BED_CLEAN["Troca Automática do Leito para Higienização pós-alta"]
-    end
-
-    subgraph MOD_KANBAN ["📊 10. Kanban de Internação & SLAs (5 Setores)"]
-        KANB_COLS["5 Setores: PS (24h), Corredor (1d), Cirúrgica (7d), Médica (10d), UTI (5d)"]
-        KANB_SLA["Indicadores Visuais de SLA (Progresso Verde -> Âmbar -> Rosê)"]
-        KANB_EVOL["Timeline de Evolução Clínica com Timestamp"]
-        KANB_AUDIT["Modal de Auditoria de SLAs & Detalhamento por Ala"]
-    end
-
-    subgraph MOD_REPORTS ["📈 12. Relatórios & Exportação (5 Cards)"]
-        REP_CARDS["5 Cards: Finanças, Atendimentos, PEP, Leitos e ESCALAS"]
-        REP_EXP["Exportação Relatorial Multiformato: PDF, Excel (XLSX) e CSV"]
-    end
-
-    %% CORRELAÇÕES E FLUXO OPERACIONAL INTEGRADO
-    AUTH_LOGIN --> AUTH_RBAC
-    AUTH_RBAC -->|Médicos & Enfermeiros| ESC_TAB
-    ESC_TAB -->|Profissionais Alocados| ESC_TODAY
-    
-    PAC_FORM -->|Validação OK| TRI_MANCHESTER
-    AG_BOOK -->|Chegada do Paciente| TRI_MANCHESTER
-    
-    TRI_MANCHESTER -->|Sorting de Risco| TRI_QUEUE
-    TRI_QUEUE -->|Chamada de Paciente| TV_SPEECH
-    TV_SPEECH -->|Encaminhado para Consultório| PEP_SOAPE
-    
-    ESC_TODAY -.->|Atendimento Médico/Enf| PEP_SOAPE
-    PEP_SOAPE --> PEP_PRESCR
-    PEP_PRESCR --> PEP_ENF
-    PEP_ENF -->|Baixa de Insumos| FARM_STOCK
-    
-    PEP_SOAPE -->|Decisão Clínica| DECISION{Decisão Assistencial}
-    
-    DECISION -->|1. Alta Médica| PEP_PDF
-    PEP_PDF --> REP_CARDS
-    
-    DECISION -->|2. Permanência PS| EST_TIMER
-    EST_TIMER -->|Aproximação 12h| EST_ALERT
-    EST_ALERT -->|Necessidade de Internação| BED_MAP
-    
-    DECISION -->|3. Internação Direta| BED_MAP
-    BED_MAP -->|Alocação em Leito Vago| KANB_COLS
-    
-    KANB_COLS --> KANB_SLA
-    KANB_SLA --> KANB_EVOL
-    KANB_EVOL -->|Alta Hospitalar| BED_CLEAN
-    BED_CLEAN -->|Liberação do Leito| BED_MAP
-    
-    %% CONEXÕES DE AUDITORIA E RELATÓRIOS
-    PEP_SOAPE -.-> DASH_KPI
-    KANB_AUDIT -.-> DASH_CHARTS
-    ESC_TAB -.-> REP_CARDS
-    BED_MAP -.-> REP_CARDS
-    REP_CARDS --> REP_EXP
-
-</div>
-<h3>🌟 Particularidades e Diferenciais das Abas do Health Nexus</h3>
+<h3>📅 Tabela de Operações da Agenda</h3>
 <table>
 <thead>
 <tr>
-<th>#</th>
-<th>Aba / Módulo</th>
-<th>Funcionalidades Principais</th>
-<th>Diferencial &amp; Particularidades</th>
+<th align="left">Operação</th>
+<th align="left">Parâmetros Necessários</th>
+<th align="left">Ação do Sistema</th>
+<th align="left">Resultado Gerado</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>1</strong></td>
-<td><strong>🔒 Autenticação &amp; RBAC</strong></td>
-<td>Login JWT, 24 contas clínicas/devs, perfis de acesso</td>
-<td>Preservação de usuários em limpezas, lixeira com confirmação, auditoria de acessos (5/100).</td>
+<td align="left"><strong>Novo Agendamento</strong></td>
+<td align="left">Paciente, Médico, Data, Horário</td>
+<td align="left">Grava a consulta na grade.</td>
+<td align="left">Insere na agenda e habilita emissão de PDF.</td>
 </tr>
 <tr>
-<td><strong>2</strong></td>
-<td><strong>📊 Dashboard Executivo</strong></td>
-<td>KPIs em tempo real, receita, volume de atendimentos</td>
-<td>Gráficos Chart.js clicáveis como botões de filtro ativo que direcionam para as abas.</td>
+<td align="left"><strong>WhatsApp Bot</strong></td>
+<td align="left">Agendamento selecionado</td>
+<td align="left">Envia lembrete interativo.</td>
+<td align="left">Sincroniza resposta [1] Confirmar com a grade.</td>
 </tr>
 <tr>
-<td><strong>3</strong></td>
-<td><strong>🗓️ Agenda de Consultas</strong></td>
-<td>Marcação de consultas, seleção de médico e sala</td>
-<td>KPI cards clicáveis por status (Confirmado, Atendimento, Concluído).</td>
+<td align="left"><strong>Imprimir Comprovante</strong></td>
+<td align="left">ID do Agendamento</td>
+<td align="left">Gera documento PDF formatado.</td>
+<td align="left">Baixa o ticket impresso para o paciente.</td>
 </tr>
 <tr>
-<td><strong>4</strong></td>
-<td><strong>👥 Pacientes (SUS)</strong></td>
-<td>Admissão 11 campos SUS, CEP automático ViaCEP</td>
-<td>Validação rigorosa de responsável legal (&lt;18/&gt;65), busca por Nome/CPF, Lixeira soft-delete.</td>
-</tr>
-<tr>
-<td><strong>5</strong></td>
-<td><strong>🚨 Atendimentos &amp; Triagem</strong></td>
-<td>Fila visual Kanban, classificação de risco Manchester</td>
-<td>Sorting de prioridade por cor de risco automático + chamada no Painel TV.</td>
-</tr>
-<tr>
-<td><strong>6</strong></td>
-<td><strong>📺 Painel TV (Chamador)</strong></td>
-<td>Anúncio para sala de espera em tela cheia</td>
-<td><strong>Web Speech API</strong>: chamada em viva voz sintetizada em português.</td>
-</tr>
-<tr>
-<td><strong>7</strong></td>
-<td><strong>🩺 Prontuário PEP (SOAPE)</strong></td>
-<td>Atendimento médico, CID-10, prescrições e evoluções</td>
-<td>Busca CID-10 offline, prescrição em planilha, Matriz da Enfermagem para checagem, PDF A4.</td>
-</tr>
-<tr>
-<td><strong>8</strong></td>
-<td><strong>⏱️ Alertas &amp; Estagnação</strong></td>
-<td>Monitoramento de gargalos e permanência PS</td>
-<td>Timer PS 12h (Azul &lt;10h / Amarelo 10-12h / Vermelho &gt;12h pulsante).</td>
-</tr>
-<tr>
-<td><strong>9</strong></td>
-<td><strong>🛏️ Censo de Leitos</strong></td>
-<td>Mapa visual de leitos hospitalares</td>
-<td>Cards tricolores (Verde=Vago, Vermelho=Ocupado, Amarelo=Higienização automática pós-alta).</td>
-</tr>
-<tr>
-<td><strong>10</strong></td>
-<td><strong>📊 Kanban de Internação</strong></td>
-<td>Gestão de internados por 5 setores</td>
-<td>Metas de permanência (SLA) dinâmicas, timeline de evolução clínica, auditoria de atrasos.</td>
-</tr>
-<tr>
-<td><strong>11</strong></td>
-<td><strong>🩺 Escalas de Trabalho</strong></td>
-<td>Gestão de plantões de Médicos e Enfermeiros</td>
-<td>Orelhas/sub-abas dedicadas, turnos (6h, 12h, 24h, 12x36), garantia de plantão ativado para HOJE.</td>
-</tr>
-<tr>
-<td><strong>12</strong></td>
-<td><strong>💊 Farmácia &amp; Estoque</strong></td>
-<td>Controle de estoque de medicamentos e insumos</td>
-<td>Pesquisa global de fármacos em tempo real via OpenFDA / ANVISA por princípio ativo.</td>
-</tr>
-<tr>
-<td><strong>13</strong></td>
-<td><strong>📈 Relatórios &amp; Exportação</strong></td>
-<td>5 cards especializados de emissão relatorial</td>
-<td>Exportação multiformato (<strong>PDF</strong>, <strong>Excel XLSX</strong>, <strong>CSV</strong>) para Finanças, Atendimentos, PEP, Leitos e Escalas.</td>
+<td align="left"><strong>Cancelar Horário</strong></td>
+<td align="left">Motivo do cancelamento</td>
+<td align="left">Altera status para <code>Cancelado</code>.</td>
+<td align="left">Libera a vaga no horário para nova marcação.</td>
 </tr>
 </tbody></table>
 <hr>
-<h2 id="sec-22">22. 🆕 Atualizações Recentes (Agosto/2026)</h2><p>O Health Nexus recebeu uma série de melhorias para otimizar o fluxo de trabalho e garantir a segurança das informações operacionais:</p>
-<h3>22.1. Controle de Acesso e Permissões (Roles)</h3>
-<p>A aba de <strong>Configurações Globais</strong> agora conta com um controle de acesso rigoroso:</p>
-<ul>
-<li><strong>MASTER:</strong> Possui acesso integral a todos os painéis, incluindo &quot;Gerenciamento de Usuários&quot;, &quot;Simulação de Dados&quot; e demais configurações avançadas (identificadas em vermelho).</li>
-<li><strong>Desenvolvedor:</strong> Recebe acesso apenas aos agrupamentos técnicos essenciais (destacados em vermelho), permitindo realizar sincronização de banco de dados (Turso) e operações técnicas, mantendo restrições de gerenciamento de equipe.</li>
-<li><strong>Demais perfis:</strong> Acesso bloqueado à aba de Configurações para garantir a segurança dos dados.</li>
-</ul>
-<h3>22.2. Botões de Limpeza de Filtros (&quot;Limpar Filtros&quot;)</h3>
-<p>Visando aumentar a agilidade operacional, foram incluídos botões dedicados com o ícone <i class="fa-solid fa-filter-circle-xmark"></i> (Limpar Filtros) em <strong>todas as abas principais</strong>:</p>
-<ul>
-<li><strong>Pacientes, Médicos, Agenda, Farmácia e Relatórios.</strong></li>
-<li>Um único clique zera instantaneamente todas as buscas de texto e recoloca os <em>checkboxes</em> de filtro em seus estados padrão, permitindo buscas fluídas.</li>
-</ul>
-<h3>22.3. Busca de Pacientes Aprimorada (Nome e CPF)</h3>
-<p>O componente unificado de busca de pacientes (Dropdown dinâmico utilizado em modais de admissão, prescrição e financeiro) foi reescrito. Agora:</p>
-<ul>
-<li>A pesquisa procura não apenas pelo Nome do Paciente, mas também verifica ocorrências do <strong>CPF</strong>.</li>
-<li>O <strong>CPF</strong> é exibido diretamente na lista de opções (formato reduzido), facilitando a identificação de hom</li>
-</ul>
-<h3>22.4. Ícones Visuais de Forma de Pagamento 💵💳</h3>
-<p>A interface da seção de Relatórios Financeiros foi enriquecida com representações gráficas (Emojis):</p>
-<ul>
-<li>Pix (💠)</li>
-<li>Dinheiro (💵)</li>
-<li>Cartão de Crédito (💳)</li>
-<li>Cartão de Débito (💳)</li>
-<li>Boleto (📄)
-Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de caixa.</li>
-</ul>
-<h3>22.5. Validação Estrita de Senhas no Login 🔒</h3>
-<p>A tela de autenticação foi atualizada para exigir a validação exata da senha cadastrada de cada usuário:</p>
-<ul>
-<li>Tentativas com senhas incorretas são imediatamente rejeitadas (HTTP 401).</li>
-<li>Garantia de que contas individuais (ex: <code>ljordao</code>, <code>bcoltri</code>, <code>admin</code>) só possuem acesso liberado mediante a apresentação da senha cadastrada correspondente.</li>
-</ul>
+<h2 id="sec-10">10. Farmácia & Dispensação de Medicamentos</h2><p>Na aba <strong>Farmácia</strong>, faz-se a gestão de estoque e rastreabilidade de medicamentos.</p>
+<h3>💊 Tabela de Controle de Farmácia e Estoque</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Medicamento</th>
+<th align="left">Apresentação / Via</th>
+<th align="left">Lote</th>
+<th align="center">Data Validade</th>
+<th align="center">Estoque Actual</th>
+<th align="center">Estoque Mín.</th>
+<th align="center">Status Estoque</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Dipirona Sódica</strong></td>
+<td align="left">Ampola 500mg/ml (EV/IM)</td>
+<td align="left"><code>L-9821</code></td>
+<td align="center">2027-12-31</td>
+<td align="center">450 un</td>
+<td align="center">100 un</td>
+<td align="center">🟢 OK</td>
+</tr>
+<tr>
+<td align="left"><strong>Amoxicilina 500mg</strong></td>
+<td align="left">Comprimido (VO)</td>
+<td align="left"><code>L-4410</code></td>
+<td align="center">2026-09-15</td>
+<td align="center">85 un</td>
+<td align="center">100 un</td>
+<td align="center">🟡 Abaixo Mínimo</td>
+</tr>
+<tr>
+<td align="left"><strong>Fentanil 0.05mg/ml</strong></td>
+<td align="left">Ampola (EV)</td>
+<td align="left"><code>L-1102</code></td>
+<td align="center">2026-08-20</td>
+<td align="center">12 un</td>
+<td align="center">20 un</td>
+<td align="center">🔴 Alerta Validade</td>
+</tr>
+</tbody></table>
 <hr>
-<p># # #   2 2 . 6 .   S i n c r o n i z a � � o   M a n u a l   c o m   T u r s o   C l o u d 
- F o i   a d i c i o n a d a   a   o p � � o   d e   a t i v a r   a   S i n c r o n i z a � � o   M a n u a l   n a s   c o n f i g u r a � � e s   d e   B a n c o   d e   D a d o s .   I s s o   d e s a t i v a   a   v e r i f i c a � � o   a u t o m � t i c a   a   c a d a   1 5   m i n u t o s ,   p e r m i t i n d o   q u e   a   s i n c r o n i z a � � o   o c o r r a   a p e n a s   a o   c l i c a r   n o   b o t � o   &#39; S i n c r o n i z a r   A g o r a &#39;   o u   a t r a v � s   d o   b o t � o   n a   b a r r a   s u p e r i o r   ( q u e   e x i b i r �   a   e t i q u e t a   &#39; M A N U A L &#39; ) . 
- 
- </p>
-<h3>22.3. Sincronização com Turso Cloud</h3>
-<p>Na tela de Configurações Globais, os usuários Master ou Desenvolvedores podem configurar as credenciais do banco de dados Turso. A sincronização ocorre automaticamente a cada 15 minutos, mas é possível ativar a opção <strong>Habilitar Sincronização Manual</strong>, que desativa a verificação automática, permitindo que a sincronização de dados (upload/download) seja feita exclusivamente clicando no botão <strong>Sincronizar Agora</strong>.</p>
+<h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2><p>Na aba <strong>Faturamento TISS</strong>, acompanha-se o faturamento de convênios e lotes ANS.</p>
+<h3>💰 Tabela de Guias &amp; Lotes TISS</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Guia ID</th>
+<th align="left">Beneficiário</th>
+<th align="left">Convenio / Plano</th>
+<th align="center">Tabela TUSS</th>
+<th align="center">Valor Total</th>
+<th align="center">Status TISS</th>
+<th align="left">Ações Disponíveis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>#GUIA-801</code></td>
+<td align="left">Renato Ramos</td>
+<td align="left">Unimed Saúde</td>
+<td align="center">10101012 (Consulta)</td>
+<td align="center">R$ 350,00</td>
+<td align="center">🟡 <code>Pendente Auditoria</code></td>
+<td align="left"><code>🛡️ Auditar</code>, <code>Editar</code></td>
+</tr>
+<tr>
+<td align="left"><code>#GUIA-802</code></td>
+<td align="left">Camila Ferreira</td>
+<td align="left">Bradesco Saúde</td>
+<td align="center">40304310 (Hemograma)</td>
+<td align="center">R$ 180,00</td>
+<td align="center">🟢 <code>Aprovado Lote</code></td>
+<td align="left"><code>📦 Gerar XML</code></td>
+</tr>
+<tr>
+<td align="left"><code>#GUIA-803</code></td>
+<td align="left">Lucas Mendes</td>
+<td align="left">SulAmérica</td>
+<td align="center">40801010 (Raio-X Tórax)</td>
+<td align="center">R$ 250,00</td>
+<td align="center">🟢 <code>Faturado</code></td>
+<td align="left"><code>📄 Imprimir Guia</code></td>
+</tr>
+</tbody></table>
 <hr>
-<h2 id="sec-23">23. Linha de Cuidado Guiada, HUD Flutuante & Desfecho em 1-Clique (v2.7.2) 🚀</h2><p>O <strong>Health Nexus v2.7.2</strong> introduziu o conceito de <strong>Patient Flow Orchestrator (Orquestrador da Jornada do Paciente)</strong>:</p>
-<h3>23.1. Barra Visual da Linha de Cuidado (<em>Patient Journey Stepper</em>)</h3>
-<p>No topo das abas assistenciais (Atendimentos, Triagem, Consultórios e Leitos), o sistema renderiza uma esteira de progresso dinâmico:
-<code>[1. Recepção ✅] ➔ [2. Triagem Manchester 🔵] ➔ [3. Consulta Médica ⏳] ➔ [4. Farmácia &amp; Exames ⚪] ➔ [5. Desfecho Clínico ⚪]</code></p>
-<ul>
-<li><strong>Navegação com 1 Clique:</strong> O profissional pode clicar em qualquer etapa autorizada para ser transportado imediatamente para a tela correspondente.</li>
-</ul>
-<h3>23.2. Widget Flutuante do Paciente em Foco (<em>Floating Patient HUD</em>)</h3>
-<p>No canto inferior direito da tela, um card translúcido inteligente (<em>Glass HUD</em>) mantém o paciente ativo visível em tempo real:</p>
-<ul>
-<li>Exibe o nome do paciente, indicador pulsante de atendimento e botões de atalho direto para o <strong>Prontuário (PEP)</strong> e <strong>Desfecho Rápido</strong>.</li>
-</ul>
+<h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2><p>Na aba <strong>Relatórios</strong>, gera-se inteligência operacional em 5 painéis especializados.</p>
+<h3>📈 Tabela de Relatórios Executivos</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Painel</th>
+<th align="left">Indicadores Apresentados</th>
+<th align="center">Formato de Exportação</th>
+<th align="left">Público-Alvo</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>DRE &amp; Finanças</strong></td>
+<td align="left">Receita bruta, ticket médio, glosas</td>
+<td align="center">PDF / XLSX / CSV</td>
+<td align="left">Diretoria Financeira</td>
+</tr>
+<tr>
+<td align="left"><strong>Atendimentos PS</strong></td>
+<td align="left">Volume por hora, gravidade Manchester</td>
+<td align="center">PDF / XLSX</td>
+<td align="left">Coordenação de Enfermagem</td>
+</tr>
+<tr>
+<td align="left"><strong>Ocupação de Leitos</strong></td>
+<td align="left">Taxa de ocupação, giro de leitos, permanência</td>
+<td align="center">PDF / XLSX</td>
+<td align="left">Regulação Médica / Censo</td>
+</tr>
+<tr>
+<td align="left"><strong>Produtividade Médica</strong></td>
+<td align="left">Consultas finalizadas por profissional</td>
+<td align="center">PDF / XLSX</td>
+<td align="left">Gestão de Corpo Clínico</td>
+</tr>
+</tbody></table>
 <hr>
-<h2 id="sec-24">24. Limpeza de Usuários de Simulação & Lista de Exceções (*Whitelist*) (v2.7.3) 🧹</h2><p>O <strong>Health Nexus v2.7.3</strong> disponibiliza uma ferramenta administrativa avançada exclusiva para o <strong>Usuário Master (<code>mazzarowysk</code>)</strong> no modal de <strong>Gerenciamento de Usuários</strong>:</p>
-<h3>24.1. Objetivo da Funcionalidade</h3>
-<p>Durante testes de estresse ou homologação, a geração de massa fictícia de dados (<em>Seed</em>) cria dezenas de usuários de teste (<code>USR-DOC-001</code>, <code>dr.carloseduard</code>, <code>enf.patricia</code>, etc.).<br>A ferramenta de <strong>Limpeza de Simulação</strong> permite expurgar todos os usuários de teste em lote sem afetar as contas oficiais do hospital ou funcionários cadastrados.</p>
-<h3>24.2. Como Utilizar o Recurso</h3>
-<ol>
-<li>Acesse a aba <strong>Configurações</strong> e abra o painel <strong>Gerenciamento de Usuários</strong>.</li>
-<li>Clique no botão vermelho <strong><code>🧹 Limpar Simulação</code></strong> (disponível apenas para contas Master).</li>
-<li>No modal de purga:<ul>
-<li><strong>Lista de Exceções Protegidas:</strong> As contas vitais do sistema (<code>mazzarowysk</code>, <code>bcoltri</code>, <code>ffacco</code>, <code>admin</code>, <code>pforte</code>) vêm pré-selecionadas como protegidas.</li>
-<li><strong>Trava de Segurança Master:</strong> A conta <code>mazzarowysk</code> é permanentemente travada contra exclusão acidental.</li>
-<li><strong>Seleção Flexível:</strong> O Master pode marcar qualquer usuário adicional da lista para ser <strong>PRESERVADO</strong> ou desmarcar para ser <strong>EXCLUÍDO</strong>.</li>
-<li><strong>Botões de Ação Rápida:</strong><ul>
-<li><code>🛡️ Padrão Oficial</code>: Restaura a seleção para as contas oficiais padrão.</li>
-<li><code>✅ Marcar Todos</code>: Protege todos os usuários contra exclusão.</li>
-<li><code>❌ Desmarcar</code>: Desmarca todos os usuários (exceto o Master).</li>
+<h2 id="sec-13">13. Painel de Chamada TV (Recepção)</h2><p>O <strong>Painel TV</strong> opera em tela cheia na sala de espera para direcionamento sonoro e visual dos pacientes.</p>
+<hr>
+<h2 id="sec-14">14. Central de Estagnação & Aprovações de Acesso</h2><p>Painel de controle de gargalos clínicos e permanência de pacientes em observação no PS acima de 12h.</p>
+<hr>
+<h2 id="sec-15">15. Configurações, Backup e Sincronização em Nuvem</h2><p>Administração global do sistema, parâmetros do Turso Cloud DB e permissões de usuários RBAC.</p>
+<hr>
+<h2 id="sec-16">16. Sistema de Avisos, Notificações & Toasts</h2><p>Sistema centralizado de alertas visuais instantâneos (<em>Toasts</em>) e avisos de fluxo assistencial.</p>
+<hr>
+<h2 id="sec-17">17. Tabela de Máscaras, Atalhos & Teclas de Atalho</h2><table>
+<thead>
+<tr>
+<th align="left">Ação / Atalho</th>
+<th align="left">Tecla / Evento</th>
+<th align="left">Função</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Busca Global</strong></td>
+<td align="left"><code>Ctrl + K</code> / Input Topo</td>
+<td align="left">Abre a busca Spotlight em todo o sistema.</td>
+</tr>
+<tr>
+<td align="left"><strong>Voltar Tela</strong></td>
+<td align="left"><code>Alt + Seta Esquerda</code></td>
+<td align="left">Retorna à aba anterior no histórico.</td>
+</tr>
+<tr>
+<td align="left"><strong>Nova Consulta</strong></td>
+<td align="left"><code>Alt + N</code></td>
+<td align="left">Abre o modal de novo agendamento.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="sec-18">18. Solução de Dúvidas Frequentes & Erros Comuns (FAQ)</h2><ul>
+<li><strong>Como recuperar o acesso de um usuário?</strong> Na aba Configurações -&gt; Gerenciar Usuários -&gt; Ícone Chave (Reset Senha).</li>
+<li><strong>Como gerar o XML TISS 4.01?</strong> Na aba Faturamento TISS -&gt; Selecionar Lote -&gt; Botão Exportar XML TISS.</li>
 </ul>
-</li>
-<li><strong>Contador Dinâmico em Tempo Real:</strong> Exibe a contagem exata de contas que serão preservadas vs contas que serão eliminadas.</li>
-</ul>
-</li>
-<li>Clique em <strong><code>Executar Limpeza</code></strong> e confirme o diálogo de segurança.</li>
-<li>O sistema atualiza o banco de dados local, sincroniza com a nuvem (Turso Cloud) e registra um evento de auditoria no histórico da sessão.</li>
-</ol>
 <hr>
 <h2 id="sec-25">25. Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0) 🚀</h2><p>O <strong>Health Nexus v2.8.0</strong> consolida 6 pilares de alta complexidade hospitalar e inteligência clínica:</p>
 <h3>25.1. ⏱️ Protocolos de Emergência Aguda (IAM, AVC, Sepse)</h3>
 <ul>
-<li><strong>Ativação Automática no Pronto-Socorro:</strong> O sistema detecta termos críticos durante a Triagem Manchester (ex: &quot;dor no peito&quot;, &quot;assimetria facial&quot;, &quot;febre alta&quot;) e inicia o cronômetro do protocolo de imediato.</li>
+<li><strong>Ativação Automática no Pronto-Socorro:</strong> O sistema detecta termos críticos durante a Triagem Manchester (ex: <em>&quot;dor no peito&quot;</em>, <em>&quot;assimetria facial&quot;</em>, <em>&quot;febre alta&quot;</em>) e inicia o cronômetro do protocolo de imediato.</li>
 <li><strong>Linha de Metas Clínicas:</strong><ul>
 <li><strong>IAM com Supra:</strong> ECG em até 10 minutos; Porta-Balão &lt; 90 minutos.</li>
 <li><strong>AVC Isquêmico Agudo:</strong> TC de crânio sem contraste e janela trombolítica em 4,5 horas.</li>
 <li><strong>Sepse / Choque Séptico:</strong> Pacote de 1ª hora (Lactato, Hemoculturas, Antibiótico de Amplo Espectro e Reposição Volêmica).</li>
 </ul>
 </li>
-<li><strong>Indicador no Prontuário:</strong> Exibe badge dinâmico com contagem regressiva e status de cumprimento de metas.</li>
 </ul>
 <h3>25.2. 🤖 IA Preditiva &amp; Resumo Clínico 2.0 no PEP</h3>
 <ul>
@@ -1628,7 +1594,6 @@ Isso reduz o tempo de reconhecimento visual do atendente durante o fechamento de
 <li><strong>Gerador de Lotes XML TISS 4.01.00:</strong> Exportação de arquivos XML validados com o esquema oficial da ANS.</li>
 <li><strong>Motor Anti-Glosa:</strong> Verificação prévia de matricula do beneficiário, código TUSS, CID-10 e carimbos de auditoria médica.</li>
 </ul>
-<hr>
 
     </main>
   </div>
