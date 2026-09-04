@@ -17,7 +17,7 @@ import { renderPatientsTab } from './tabs/patients.js';
 import { renderAttendanceTab } from './tabs/attendance.js';
 import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.js';
 import { realtimeHub } from './modules/realtime.js';
-import { setActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD } from './modules/journey.js';
+import { setActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD, initFloatingWorkflowGuide, updateFloatingWorkflowGuide } from './modules/journey.js';
 import { generateMockData } from './mockDataGenerator.js';
 import { renderEmbeddedTabbedManual, showInteractiveManualModal, manualData, showCardDetailModal, searchManualEngine, showManualReturnBeacon } from './manualTabbed.js';
 import { getNexusAICopilotResponse } from './aiCopilot.js';
@@ -28,6 +28,8 @@ import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugIntera
 window.setActivePatientContext = setActivePatientContext;
 window.renderPatientJourneyStepper = renderPatientJourneyStepper;
 window.renderFloatingPatientHUD = renderFloatingPatientHUD;
+window.initFloatingWorkflowGuide = initFloatingWorkflowGuide;
+window.updateFloatingWorkflowGuide = updateFloatingWorkflowGuide;
 window.showSimulationSummaryModal = showSimulationSummaryModal;
 window.openTelemedicineModal = openTelemedicineModal;
 window.startVoiceDictation = startVoiceDictation;
@@ -2001,6 +2003,11 @@ function initGlobalSystemSearch() {
       searchInput.select();
     }
   });
+
+  // Inicializar Card Flutuante Interativo de Guia de Fluxo (Smart Flow Guide HUD)
+  if (typeof initFloatingWorkflowGuide === 'function') {
+    initFloatingWorkflowGuide();
+  }
 }
 
 // --- CONTROLE DE MUDANÇA DE ABA COM PERMISSÃO (RBAC) & NAVEGAÇÃO DE RETORNO ---
@@ -2030,6 +2037,11 @@ function switchTab(tabName, isBack = false) {
   state.activeTab = tabName;
   updateGlobalBackButton();
 
+  // Atualizar Card Flutuante Guia de Fluxo
+  if (typeof updateFloatingWorkflowGuide === 'function') {
+    updateFloatingWorkflowGuide(tabName);
+  }
+
   // Remover notificação de fluxo pendente para esta aba de destino se houver
   const existingFlowToast = document.querySelector(`[data-flow-target-tab="${tabName}"]`);
   if (existingFlowToast) {
@@ -2037,7 +2049,7 @@ function switchTab(tabName, isBack = false) {
     existingFlowToast.style.opacity = '0';
     setTimeout(() => existingFlowToast.remove(), 300);
   }
-  
+
   // Mapa de nomes de exibição por aba
   const tabLabels = {
     dashboard:     'Health Nexus',
