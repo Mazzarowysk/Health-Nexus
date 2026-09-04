@@ -246,6 +246,23 @@ const initializeApp = async () => {
         updateSyncBadge();
       }, 120);
       checkInitialSync();
+
+      // ─── GUIA DE FLUXO FLUTUANTE: Inicialização garantida pós-login ───
+      // Chamada com delay para garantir que o DOM já está totalmente renderizado
+      setTimeout(() => {
+        try {
+          initFloatingWorkflowGuide();
+        } catch (e) {
+          console.warn('[FlowGuide] Erro na inicialização:', e);
+        }
+      }, 700);
+      // Verificação de segurança adicional: re-inicializa caso o card não tenha sido criado
+      setTimeout(() => {
+        if (!document.getElementById('floating-flow-guide')) {
+          console.log('[FlowGuide] Card não encontrado, re-inicializando...');
+          try { initFloatingWorkflowGuide(); } catch (e) {}
+        }
+      }, 2000);
       
     } else {
       logout();

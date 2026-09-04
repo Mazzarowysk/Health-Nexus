@@ -507,12 +507,6 @@ if (typeof window !== 'undefined') {
   window.showClinicalHandoffModal = showClinicalHandoffModal;
   window.executeHandoffAction = executeHandoffAction;
 
-  // Auto-inicializar com segurança assim que o documento carregar
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(initFloatingWorkflowGuide, 300);
-  } else {
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(initFloatingWorkflowGuide, 300);
-    });
-  }
+  // NOTA: O card só é inicializado pelo main.js APÓS autenticação.
+  // Não auto-inicializar aqui para evitar criar o card na tela de login.
 }
