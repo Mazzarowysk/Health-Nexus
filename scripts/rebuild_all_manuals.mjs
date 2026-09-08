@@ -37,6 +37,45 @@ function cleanMojibake(text) {
     .replace(/Âº/g, 'º');
 }
 
+function embedScreenshotsAsBase64(html) {
+  return html.replace(/(?:<p>\s*)?<img\s+([^>]*?)src="([^"]+)"([^>]*?)>(?:\s*<\/p>)?/gi, (match, before, src, after) => {
+    const altMatch = (before + after).match(/alt="([^"]*)"/i);
+    const alt = altMatch ? altMatch[1] : '';
+
+    let localPath = null;
+    if (src.includes('screenshots/')) {
+      const filename = path.basename(src);
+      const candidates = [
+        path.resolve('public/docs/screenshots', filename),
+        path.resolve('docs/screenshots', filename)
+      ];
+      for (const cand of candidates) {
+        if (fs.existsSync(cand)) {
+          localPath = cand;
+          break;
+        }
+      }
+    }
+
+    if (localPath) {
+      try {
+        const fileBuffer = fs.readFileSync(localPath);
+        const b64 = fileBuffer.toString('base64');
+        const mime = localPath.endsWith('.png') ? 'image/png' : 'image/jpeg';
+        const dataUri = `data:${mime};base64,${b64}`;
+        return `
+        <figure class="screenshot-figure">
+          <img src="${dataUri}" alt="${alt}" class="manual-screenshot" />
+          ${alt ? `<figcaption><i class="fa-solid fa-camera"></i> ${alt}</figcaption>` : ''}
+        </figure>`;
+      } catch (err) {
+        console.warn('Failed to embed screenshot:', localPath, err.message);
+      }
+    }
+    return match;
+  });
+}
+
 export async function rebuildAllManuals() {
   console.log('--- REBUILDING ALL MANUALS IN HEALTH NEXUS (v2.8.0) ---');
 
@@ -58,7 +97,8 @@ export async function rebuildAllManuals() {
   }
 
   // 2. Generate src/manual.html
-  const renderedDocHtml = await marked.parse(fullMd);
+  const rawDocHtml = await marked.parse(fullMd);
+  const renderedDocHtml = embedScreenshotsAsBase64(rawDocHtml);
   const fullSrcManualHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -72,6 +112,9 @@ export async function rebuildAllManuals() {
     tr:nth-child(even) td { background: #f8fafc; }
     code { background: #f1f5f9; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
     pre { background: #0f172a; color: #fff; padding: 16px; border-radius: 8px; overflow-x: auto; }
+    .screenshot-figure { margin: 24px 0; padding: 12px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; text-align: center; }
+    .manual-screenshot { max-width: 100%; max-height: 460px; height: auto; border-radius: 8px; border: 1px solid #cbd5e1; }
+    .screenshot-figure figcaption { margin-top: 8px; font-size: 13px; color: #64748b; font-style: italic; }
   </style>
 </head>
 <body>
@@ -92,6 +135,7 @@ export async function rebuildAllManuals() {
       .replace(/&amp;/g, '&');
     return `<div class="mermaid">\n${decoded}\n</div>`;
   });
+  renderedBody = embedScreenshotsAsBase64(renderedBody);
 
   // 4. Generate Interactive Web Manual HTML
   const webHtml = `<!DOCTYPE html>
@@ -287,6 +331,37 @@ export async function rebuildAllManuals() {
       margin: 24px 0;
       text-align: center;
     }
+    .screenshot-figure {
+      margin: 32px 0;
+      padding: 16px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .manual-screenshot {
+      max-width: 100%;
+      max-height: 480px;
+      width: auto;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      display: block;
+      margin: 0 auto;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .screenshot-figure figcaption {
+      margin-top: 14px;
+      font-size: 0.88rem;
+      color: #94a3b8;
+      font-style: italic;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
   </style>
 </head>
 <body>
@@ -363,19 +438,25 @@ export async function rebuildAllManuals() {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
     @page {
       size: A4;
       margin: 16mm 12mm 16mm 12mm;
     }
     body {
       font-family: 'Inter', sans-serif;
-      color: #1e293b;
+      color: #0f172a;
       line-height: 1.5;
-      font-size: 10pt;
+      font-size: 9pt;
       margin: 0;
       padding: 0;
       background: #ffffff;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
     .pdf-cover {
       display: flex;
@@ -383,7 +464,7 @@ export async function rebuildAllManuals() {
       justify-content: center;
       align-items: center;
       text-align: center;
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%) !important;
       color: #ffffff;
       padding: 50px 30px;
       border-radius: 12px;
@@ -393,8 +474,8 @@ export async function rebuildAllManuals() {
     }
     .pdf-cover .badge {
       display: inline-block;
-      background: rgba(99,102,241,0.25);
-      border: 1px solid rgba(165,180,252,0.4);
+      background: rgba(99,102,241,0.25) !important;
+      border: 1px solid rgba(165,180,252,0.4) !important;
       color: #c4b5fd;
       padding: 8px 22px;
       border-radius: 30px;
@@ -415,12 +496,12 @@ export async function rebuildAllManuals() {
     .pdf-cover .meta-box {
       display: flex;
       gap: 20px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08) !important;
+      border: 1px solid rgba(255,255,255,0.2) !important;
       padding: 12px 20px;
       border-radius: 10px;
       font-size: 9pt;
-      color: #a5b4fc;
+      color: #c7d2fe;
     }
     h1 {
       font-family: 'Outfit', sans-serif;
@@ -438,7 +519,7 @@ export async function rebuildAllManuals() {
       font-size: 13pt;
       font-weight: 700;
       color: #3730a3;
-      margin-top: 26px;
+      margin-top: 24px;
       margin-bottom: 10px;
       border-bottom: 1.5px solid #e2e8f0;
       padding-bottom: 4px;
@@ -451,49 +532,77 @@ export async function rebuildAllManuals() {
     }
     h3 {
       font-family: 'Outfit', sans-serif;
-      font-size: 11pt;
+      font-size: 10.5pt;
       font-weight: 600;
       color: #0284c7;
-      margin-top: 18px;
-      margin-bottom: 8px;
+      margin-top: 16px;
+      margin-bottom: 6px;
       page-break-after: avoid;
       break-after: avoid;
     }
     h4 {
       font-family: 'Outfit', sans-serif;
-      font-size: 9.5pt;
+      font-size: 9pt;
       font-weight: 600;
       color: #475569;
       margin-top: 12px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       page-break-after: avoid;
       break-after: avoid;
     }
     p, li {
-      color: #334155;
-      font-size: 9pt;
-      margin-bottom: 8px;
+      color: #1e293b;
+      font-size: 8.8pt;
+      margin-bottom: 6px;
     }
     ul, ol {
       margin-top: 4px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       padding-left: 18px;
     }
     blockquote {
-      background: #f8fafc;
-      border-left: 4px solid #6366f1;
-      border: 1px solid #e2e8f0;
-      padding: 10px 14px;
-      margin: 14px 0;
+      background: #f8fafc !important;
+      border-left: 4px solid #6366f1 !important;
+      border: 1px solid #e2e8f0 !important;
+      padding: 8px 12px;
+      margin: 12px 0;
       border-radius: 6px;
       page-break-inside: avoid;
       break-inside: avoid;
     }
+    .screenshot-figure {
+      margin: 12px 0 16px 0;
+      padding: 8px;
+      background: #f8fafc !important;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 8px;
+      text-align: center;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .manual-screenshot {
+      max-width: 95%;
+      max-height: 250px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      display: block;
+      margin: 0 auto;
+    }
+    .screenshot-figure figcaption {
+      margin-top: 6px;
+      font-size: 7.8pt;
+      color: #475569;
+      font-style: italic;
+      font-weight: 600;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 12px 0 16px 0;
-      font-size: 8.2pt;
+      margin: 10px 0 14px 0;
+      font-size: 7.8pt;
       page-break-inside: auto;
       break-inside: auto;
     }
@@ -505,50 +614,52 @@ export async function rebuildAllManuals() {
       break-inside: avoid;
     }
     th {
-      background: #1e1b4b;
-      color: #ffffff;
+      background: #1e1b4b !important;
+      color: #ffffff !important;
       font-family: 'Outfit', sans-serif;
-      font-size: 8pt;
+      font-size: 7.8pt;
       font-weight: 700;
       text-transform: uppercase;
       padding: 6px 8px;
-      border: 1px solid #cbd5e1;
+      border: 1px solid #64748b !important;
       text-align: left;
     }
     td {
-      border: 1px solid #cbd5e1;
+      border: 1px solid #cbd5e1 !important;
       padding: 5px 8px;
-      color: #334155;
-      vertical-align: top;
+      color: #0f172a !important;
+      vertical-align: middle;
       word-break: break-word;
     }
-    tr:nth-child(even) td { background: #f8fafc; }
+    tr:nth-child(even) td {
+      background: #f1f5f9 !important;
+    }
     code {
       font-family: 'JetBrains Mono', monospace;
-      background: #f1f5f9;
-      color: #4338ca;
+      background: #ede9fe !important;
+      color: #4338ca !important;
       padding: 2px 5px;
       border-radius: 4px;
-      font-size: 8pt;
-      border: 1px solid #e2e8f0;
+      font-size: 7.6pt;
+      border: 1px solid #c7d2fe !important;
     }
     pre code {
       display: block;
-      padding: 12px;
-      background: #0f172a;
-      color: #f8fafc;
+      padding: 10px;
+      background: #0f172a !important;
+      color: #f8fafc !important;
       border-radius: 8px;
-      font-size: 7.8pt;
+      font-size: 7.4pt;
       white-space: pre-wrap;
       page-break-inside: avoid;
       break-inside: avoid;
     }
     .mermaid {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      padding: 12px;
+      background: #f8fafc !important;
+      border: 1px solid #cbd5e1 !important;
+      padding: 10px;
       border-radius: 8px;
-      margin: 14px 0;
+      margin: 12px 0;
       text-align: center;
       page-break-inside: avoid;
       break-inside: avoid;
@@ -601,11 +712,16 @@ export async function rebuildAllManuals() {
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
   const page = await browser.newPage();
-  await page.setContent(pdfHtml, { waitUntil: 'networkidle0' });
+  page.setDefaultTimeout(120000);
+  page.setDefaultNavigationTimeout(120000);
+  await page.setContent(pdfHtml, { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(async () => {
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
     if (window.mermaid) await window.mermaid.run();
   });
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 2500));
 
   const pdfPath = path.resolve('Manual_do_Usuario_Health_Nexus.pdf');
   const publicPdfPath = path.resolve('public/Manual_do_Usuario_Health_Nexus.pdf');

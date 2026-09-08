@@ -104,6 +104,8 @@ flowchart TD
 
 O **Health Nexus** organiza a jornada assistencial do paciente desde a recepção até a alta definitiva ou internação em UTI/Enfermaria, respeitando os níveis de autorização definidos pela matriz de segurança.
 
+![Figura 1.1: Dashboard Executivo Health Nexus — Visão Geral e Indicadores Hospitalares](docs/screenshots/01-dashboard.png)
+
 ### 🔒 Perfis de Acesso & Matriz de Permissões (RBAC)
 
 | Perfil | Acesso Visual às Abas | Prontuário (PEP) | Triagem Manchester | Prescrição Médica | Gestão de Leitos | Faturamento / TISS | Configurações / Nuvem |
@@ -119,6 +121,8 @@ O **Health Nexus** organiza a jornada assistencial do paciente desde a recepçã
 ---
 
 <h2 id="sec-2">2. Central de Atendimentos & Painel Kanban</h2>
+
+![Figura 2.1: Painel Kanban da Central de Atendimentos — Triagem Manchester e Filas Clínicas](docs/screenshots/03-triagem-kanban.png)
 
 <h3 id="sec-2-1">2.1. Cards Métricos e Filtros de Fila</h3>
 
@@ -153,7 +157,7 @@ Pacientes admitidos na recepção dão entrada nesta fila para classificação d
 #### Tabela de Classificação de Risco (Manchester) e Metas de Tempo
 
 | Cor de Risco | Gravidade Clínica | Meta Máxima de Espera | Sinalização Visual no Card | Protocolo Automático Associado | Ação Obrigatória da Equipe |
-|:---:|:---|:---:|:---:|:---|:---|
+|:---:|:---|:---:|:---|:---:|:---|
 | **Vermelho** | Emergência Absoluta | **Imediato (0 min)** | Card Vermelho Piscante com Sirene | Protocolo de Ressuscitação / Parada / Choque | Conduzir imediatamente à Sala Vermelha sem burocracia. |
 | **Laranja** | Muito Urgente | **10 minutos** | Borda Laranja com Badge Alerta | Protocolo IAM / AVC Isquêmico / Dor Torácica | Prioridade máxima na fila; chamar médico de plantão. |
 | **Amarelo** | Urgente | **60 minutos** | Borda Amarela com Contador | Protocolo de Sepse / Crise Asmática / Fraturas | Monitorização periódica de sinais vitais a cada 30 min. |
@@ -195,6 +199,8 @@ Coluna onde o médico realiza o atendimento ativo. Cada card contém 5 botões d
 ---
 
 <h2 id="sec-3">3. Prontuário Eletrônico Médico (PEP SOAPE)</h2>
+
+![Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição](docs/screenshots/11-prontuario-pep.png)
 
 <h3 id="sec-3-1">3.1. Estrutura SOAPE</h3>
 
@@ -439,6 +445,8 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 Na aba **Pacientes**, o hospital mantém o cadastro centralizado e o acesso à trajetória clínica completa.
 
+![Figura 5.1: Módulo de Pacientes — Admissão com 11 Campos SUS e Linha do Cuidado](docs/screenshots/02-pacientes.png)
+
 ### 📋 Tabela de Campos Cadastrais do Paciente (Padrão 11 Campos SUS)
 
 | # | Campo Cadastral | Identificador HTML | Tipo de Dado | Regra de Validação | Exemplo de Preenchimento Válido |
@@ -472,6 +480,8 @@ Na aba **Pacientes**, o hospital mantém o cadastro centralizado e o acesso à t
 
 Na aba **Médicos**, gerencia-se o corpo clínico, especialidades, consultórios e status de plantão ativo.
 
+![Figura 6.1: Corpo Clínico — Escala de Plantões e Especialidades Médicas](docs/screenshots/12-medicos.png)
+
 ### 🩺 Tabela de Cadastro e Status do Corpo Clínico
 
 | Médico(a) | CRM / UF | Especialidade RQE | Consultório Alocado | Turno de Trabalho | Status Plantão | Ações Disponíveis |
@@ -482,6 +492,8 @@ Na aba **Médicos**, gerencia-se o corpo clínico, especialidades, consultórios
 | **Dra. Fernanda Lima** | \`456789/SP\` | Emergência e Terapia Int.| Sala Vermelha | Noite 12h (19h às 07h)| 🟢 \`Em Plantão\` | \`🚨 Sala Vermelha\`, \`Histórico\` |
 | **Dr. André Guimarães** | \`567890/SP\` | Cirurgia Geral (RQE 21094) | Centro Cirúrgico | Plantão 24 horas | 🟢 \`Em Cirurgia\` | \`Avisar Retorno\`, \`Substituto\` |
 | **Dra. Beatriz Santos** | \`678901/SP\` | Ginecologia e Obstetrícia | Consultório 04 | Tarde (13h às 19h) | 🟡 \`Intervalo\` | \`Retornar à Sala\`, \`Transferir\` |
+| **Dra. Juliana Costa** | \`789012/SP\` | Cardiologia Intensiva | Consultório 01 | Noite 12h (19h às 07h)| 🟢 \`Em Plantão\` | \`🩺 Abrir PEP\`, \`Escala\`, \`Plantão\` |
+| **Enf. Patrícia Lima** | \`COREN-SP 18920\`| Enfermagem de Emergência | Sala de Triagem | Manhã (07h às 13h) | 🟢 \`Em Plantão\` | \`🩺 Triagem MEWS\`, \`Troca Turno\`|
 
 ### ⚙️ Tabela de Operações de Gestão do Corpo Clínico
 
@@ -498,6 +510,8 @@ Na aba **Médicos**, gerencia-se o corpo clínico, especialidades, consultórios
 
 Na aba **Consultórios**, gerencia-se a infraestrutura física de atendimento ambulatorial e emergencial.
 
+![Figura 7.1: Painel de Consultórios — Ocupação de Salas e Médicos Plantonistas](docs/screenshots/04-consultorios.png)
+
 ### 🚪 Tabela de Status e Ocupação das Salas de Atendimento
 
 | Sala / Consultório | Ala / Bloco | Especialidade Principal | Médico Responsável | Status Atual | Tempo na Situação | Ações Rápidas |
@@ -510,12 +524,18 @@ Na aba **Consultórios**, gerencia-se a infraestrutura física de atendimento am
 | **Sala Amarela** | Ala de Urgência | Observação Rápida Adulto | Dra. Fernanda Lima | 🔴 \`Capacidade Máxima\`| 2h 15m | \`Transferir para Leito\`, \`Reavaliar\` |
 | **Sala Vermelha** | Emergência Crítica | Ressuscitação & Politrauma | Equipe de Choque Plantonista | 🟢 \`Prontidão Total\` | Prontidão Permanente | \`🚨 Receber Emergência\`, \`Checklist\` |
 | **Sala de Sutura** | Urgência Cirúrgica | Pequenos Procedimentos | Dr. André Guimarães | 🟢 \`Disponível\` | 8 min | \`Encaminhar Paciente\`, \`Repor Material\` |
+| **Obs. Pediátrica**| Ala Infantil | Suporte Respiratório Pediátrico | Dra. Mariana Costa | 🟢 \`Disponível\` | 15 min | \`Acolher Criança\`, \`Oxigenoterapia\` |
+| **Sala de Gesso** | Ortopedia | Imobilizações e Tala Gessada | Dr. Roberto Alves | 🟢 \`Disponível\` | 30 min | \`Realizar Redução\`, \`Imobilizar\` |
 
 ---
 
 <h2 id="sec-8">8. Gestão Avançada de Leitos, Censo & Histórico</h2>
 
 Na aba **Leitos**, o hospital monitora a taxa de ocupação em tempo real, giros de leito e desinfecção.
+
+![Figura 8.1: Censo de Leitos — Cards Tricolores de Vagas (Vago, Ocupado e Higienização)](docs/screenshots/05-censo-leitos.png)
+
+![Figura 8.2: Kanban Hospitalar — Gestão de Pacientes Internados por Setor](docs/screenshots/06-kanban-internacao.png)
 
 ### 🛏️ Tabela do Censo Hospitalar e Mapa de Leitos
 
@@ -525,9 +545,11 @@ Na aba **Leitos**, o hospital monitora a taxa de ocupação em tempo real, giros
 | **Leito 101-B** | Enfermaria Geral Adulto | Flávio Augusto Oliveira | Pós-operatório de Colecistectomia | 1 dia | 🔴 \`Ocupado\` | \`🩺 PEP\`, \`📋 Prescrição\`, \`🚪 Alta\` |
 | **Leito 102-A** | Enfermaria Geral Adulto | Vago para Admissão | Aguardando paciente regulado | 0h | 🟢 \`Vago\` | \`🛏️ Internar Paciente\`, \`Bloquear\` |
 | **Leito 102-B** | Enfermaria Geral Adulto | Em Desinfecção Terminal | Procedimento pós-alta de paciente | 35 min | 🟡 \`Higienização\` | \`✨ Concluir Limpeza & Liberar\` |
+| **Leito 103-A** | Enfermaria Geral Adulto | Carlos Eduardo Santos | Descompensação de ICC Classe III | 3 dias | 🔴 \`Ocupado\` | \`🩺 PEP\`, \`Ecocardiograma\`, \`Diuréticos\` |
 | **Leito UTI-01** | UTI Geral Adulto | José Ramos dos Santos | Choque Séptico / Foco Pulmonar | 5 dias | 🔴 \`Ocupado\` | \`🚨 Acompanhar UTI\`, \`Exames\` |
 | **Leito UTI-02** | UTI Geral Adulto | Vago com Ventilador Pronto | Vaga regulada para emergência | 0h | 🟢 \`Vago\` | \`🛏️ Internar Paciente Crítico\` |
 | **Leito UTI-03** | UTI Geral Adulto | Helena Albuquerque | IAM com Supra pós-angioplastia | 3 dias | 🔴 \`Ocupado\` | \`🩺 PEP\`, \`Curva Enzimática\` |
+| **Leito UTI-04** | UTI Geral Adulto | Amanda Vasconcelos | Pós-PCR revertida em monitorização | 1 dia | 🔴 \`Ocupado\` | \`🚨 Gasometria 2/2h\`, \`Sedação Contínua\`|
 | **Leito ISOL-01**| Isolamento Respiratório | Lucas Mendes Neves | Suspeita de Tuberculose Bacilífera | 4 dias | 🔴 \`Ocupado\` | \`🛡️ Protocolo Isolamento\`, \`Evolução\` |
 | **Leito ISOL-02**| Isolamento Respiratório | Vago com Pressão Negativa | Pronto para paciente infectocontagioso| 0h | 🟢 \`Vago\` | \`🛏️ Alocar Caso Suspeito\` |
 | **Leito PED-01** | Enfermaria Pediátrica | Enzo Gabriel Ferreira (3 anos) | Bronquiolite Viral Aguda | 1 dia | 🔴 \`Ocupado\` | \`🩺 PEP Pediátrico\`, \`Acompanhante\` |
@@ -537,6 +559,8 @@ Na aba **Leitos**, o hospital monitora a taxa de ocupação em tempo real, giros
 <h2 id="sec-9">9. Agenda, Escala Médica & Consultas Eletivas</h2>
 
 Na aba **Agenda**, realiza-se a marcação, controle de presença e integração com lembretes via WhatsApp.
+
+![Figura 9.1: Agenda de Consultas — Grade Horária e Lembretes WhatsApp](docs/screenshots/13-agenda.png)
 
 ### 📅 Tabela de Operações da Grade de Agendamentos
 
@@ -565,6 +589,8 @@ Na aba **Agenda**, realiza-se a marcação, controle de presença e integração
 
 Na aba **Farmácia**, faz-se a gestão de estoque, lotes, validade e rastreabilidade de medicamentos críticos.
 
+![Figura 10.1: Farmácia Hospitalar — Estoque, Lotes e Rastreabilidade de Medicamentos](docs/screenshots/07-farmacia.png)
+
 ### 💊 Tabela de Catálogo de Medicamentos de Alto Giro e Emergência
 
 | Fármaco / Princípio Ativo | Apresentação / Via | Número do Lote | Data de Validade | Estoque Atual | Estoque Mínimo | Status do Estoque |
@@ -579,12 +605,16 @@ Na aba **Farmácia**, faz-se a gestão de estoque, lotes, validade e rastreabili
 | **Amiodarona 50mg/ml** | Ampola 3ml (EV - Antiarrítmico)| \`L-8841\` | 2026-10-30 | 38 ampolas | 25 ampolas | 🟢 \`Estoque Regular\` |
 | **Morfina 10mg/ml** | Ampola 1ml (EV - Entorpecente)| \`L-0092\` | 2027-04-12 | 22 ampolas | 15 ampolas | 🟢 \`Estoque Controlado\` |
 | **Soro Fisiológico 0,9% 500ml** | Bolsa Plástica Sistema Fechado| \`L-6612\` | 2028-01-15 | 580 bolsas | 150 bolsas | 🟢 \`Estoque Regular\` |
+| **Metoclopramida 10mg/2ml** | Ampola 2ml (EV/IM - Antiemético)| \`L-1834\` | 2027-07-22 | 190 ampolas | 60 ampolas | 🟢 \`Estoque Regular\` |
+| **Omeprazol Sódico 40mg** | Frasco-ampola Pó Liofilizado| \`L-9022\` | 2026-12-18 | 130 frascos | 50 frascos | 🟢 \`Estoque Regular\` |
 
 ---
 
 <h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2>
 
 Na aba **Faturamento TISS**, gerenciam-se as guias de convênio, auditoria de procedimentos e arquivos XML ANS.
+
+![Figura 11.1: Faturamento TISS — Auditoria Preventiva e Procedimentos TUSS](docs/screenshots/08-faturamento-tiss.png)
 
 ### 💰 Tabela de Guias e Lotes de Faturamento TISS
 
@@ -596,6 +626,8 @@ Na aba **Faturamento TISS**, gerenciam-se as guias de convênio, auditoria de pr
 | \`#GUIA-804\` | José Ramos dos Santos | Amil Assistência Médica | \`20101015\` (Diária UTI Adulto) | R$ 2.800,00 | 🟡 \`Aguardando Carência\` | \`🛡️ Validar Contrato\`, \`Auditar\` |
 | \`#GUIA-805\` | Helena Albuquerque | Particular com Recibo | \`30101020\` (Sutura Cirúrgica) | R$ 420,00 | 🟢 \`Quitado via PIX\` | \`🧾 Emitir Recibo Fiscal\`, \`DRE\` |
 | \`#GUIA-806\` | Flávio Augusto Oliveira | Porto Seguro Saúde | \`31001017\` (Colecistectomia) | R$ 4.600,00 | 🔴 \`Glosa Detectada\` | \`⚠️ Recurso Anti-Glosa\`, \`Corrigir\` |
+| \`#GUIA-807\` | Amanda Vasconcelos | Bradesco Saúde Top | \`40101010\` (ECG 12 Derivações) | R$ 95,00 | 🟢 \`Aprovado no Lote\` | \`📦 Gerar XML TISS\`, \`Ver Detalhes\` |
+| \`#GUIA-808\` | Carlos Eduardo Santos | Unimed Saúde Cooperativa | \`40901122\` (Ecocardiograma Transtorácico)| R$ 480,00 | 🟡 \`Pendente Auditoria\` | \`🛡️ Auditar\`, \`Anexar Laudo\` |
 
 ### 📊 Tabela de Procedimentos Frequentes da Tabela TUSS
 
@@ -613,6 +645,8 @@ Na aba **Faturamento TISS**, gerenciam-se as guias de convênio, auditoria de pr
 
 Na aba **Relatórios**, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria.
 
+![Figura 12.1: Relatórios Analytics & Indicadores Hospitalares — DRE e Ocupação](docs/screenshots/14-relatorios.png)
+
 ### 📈 Tabela de Painéis Analíticos Hospitalares
 
 | Painel Analítico | Principais Indicadores Consolidados | Granularidade Temporal | Formatos de Exportação | Público Decisor |
@@ -628,6 +662,8 @@ Na aba **Relatórios**, o sistema consolida inteligência de dados clínicos e f
 <h2 id="sec-13">13. Painel de Chamada TV & Sala de Espera</h2>
 
 O **Painel TV** opera em tela cheia na sala de espera para direcionamento sonoro e visual dos pacientes por viva-voz sintetizado.
+
+![Figura 13.1: Painel TV — Chamador Audiovisual de Senhas com Voz Sintetizada pt-BR](docs/screenshots/09-painel-tv.png)
 
 ### 📺 Tabela de Elementos do Painel TV
 
@@ -653,10 +689,12 @@ O **Painel TV** opera em tela cheia na sala de espera para direcionamento sonoro
 
 Painel de controle de gargalos clínicos e permanência de pacientes em observação no PS acima de 12 horas.
 
+![Figura 14.1: Central de Estagnação — Monitoramento de Permanência Prolongada no PS](docs/screenshots/10-estagnacao.png)
+
 ### ⏳ Tabela de Níveis de Alerta de Permanência (PS 12h)
 
 | Nível de Alerta | Faixa de Tempo | Cor Visual do Badge | Risco Assistencial | Ação Obrigatória da Equipe |
-|:---|:---:|:---:|:---|:---|
+|:---|:---:|:---|:---|:---|
 | **Estável** | Menos de 10 horas | 🔵 Azul | Quadro dentro da janela esperada de observação | Reavaliação clínica regular e checagem de exames. |
 | **Atenção** | Entre 10h e 12 horas | 🟡 Amarelo | Risco iminente de ultrapassar teto de observação | Definir desfecho (alta médica ou solicitação de leito). |
 | **Crítico (Estagnado)**| Mais de 12 horas | 🔴 Vermelho Pulsante | **Gargalo assistencial estagnado** | Reatribuição imediata de consultório ou vaga urgente em leito. |
@@ -674,6 +712,8 @@ Painel de controle de gargalos clínicos e permanência de pacientes em observa�
 <h2 id="sec-15">15. Configurações, Backup e Sincronização em Nuvem (Turso Cloud)</h2>
 
 Administração global do sistema, parâmetros do banco local-first e sincronização distribuída com Turso Cloud DB.
+
+![Figura 15.1: Painel de Configurações — Sincronização Turso Cloud e Backup JSON](docs/screenshots/15-configuracoes.png)
 
 ### ☁️ Tabela de Recursos de Sincronização e Banco de Dados
 
@@ -694,7 +734,7 @@ Sistema centralizado de alertas visuais instantâneos (*Toasts*) e direcionament
 ### 🔔 Tabela de Tipos de Notificações do Sistema
 
 | Tipo de Aviso | Cor / Ícone | Duração em Tela | Gatilho Típico | Comportamento Interativo |
-|:---|:---:|:---:|:---|:---|
+|:---|:---:|:---|:---|:---|
 | **Sucesso (Success)** | 🟢 Verde (\`#10b981\`) | 3,5 segundos | Paciente admitido, consulta salva, receita emitida | Desaparece automaticamente com animação fade-out. |
 | **Alerta (Warning)** | 🟡 Amarelo (\`#f59e0b\`) | 5,0 segundos | Medicamento abaixo do estoque, permanência >10h | Alerta a equipe sobre necessidade de atenção imediata. |
 | **Erro (Danger)** | 🔴 Vermelho (\`#ef4444\`) | 6,0 segundos | Falha de validação, interação medicamentosa grave | Exige confirmação ou ajuste imediato pelo operador. |
