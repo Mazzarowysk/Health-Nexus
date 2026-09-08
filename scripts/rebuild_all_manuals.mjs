@@ -3,6 +3,7 @@ import path from 'path';
 import { marked } from 'marked';
 import puppeteer from 'puppeteer';
 import { buildCompleteManualMarkdown } from './generate_complete_manual.mjs';
+import { buildFluxoOperacionalManual } from './generate_fluxo_operacional.mjs';
 
 marked.setOptions({
   gfm: true,
@@ -82,6 +83,7 @@ function formatContentForPdf(html) {
   // 1. Convert status color circles to crisp CSS badges
   res = res.replace(/🟢\s*`?([^`<]+)`?/g, '<span class="status-badge status-green">$1</span>');
   res = res.replace(/🔴\s*`?([^`<]+)`?/g, '<span class="status-badge status-red">$1</span>');
+  res = res.replace(/🟠\s*`?([^`<]+)`?/g, '<span class="status-badge status-orange">$1</span>');
   res = res.replace(/🟡\s*`?([^`<]+)`?/g, '<span class="status-badge status-yellow">$1</span>');
   res = res.replace(/🔵\s*`?([^`<]+)`?/g, '<span class="status-badge status-blue">$1</span>');
   res = res.replace(/⚪\s*`?([^`<]+)`?/g, '<span class="status-badge status-gray">$1</span>');
@@ -89,6 +91,7 @@ function formatContentForPdf(html) {
   // 2. Convert standalone status circles
   res = res.replace(/🟢/g, '<span class="status-dot dot-green"></span>');
   res = res.replace(/🔴/g, '<span class="status-dot dot-red"></span>');
+  res = res.replace(/🟠/g, '<span class="status-dot dot-orange"></span>');
   res = res.replace(/🟡/g, '<span class="status-dot dot-yellow"></span>');
   res = res.replace(/🔵/g, '<span class="status-dot dot-blue"></span>');
   res = res.replace(/⚪/g, '<span class="status-dot dot-gray"></span>');
@@ -745,6 +748,11 @@ export async function rebuildAllManuals() {
       color: #b91c1c !important;
       border: 1px solid #fca5a5 !important;
     }
+    .status-orange {
+      background: #ffedd5 !important;
+      color: #c2410c !important;
+      border: 1px solid #fdba74 !important;
+    }
     .status-yellow {
       background: #fef9c3 !important;
       color: #a16207 !important;
@@ -770,6 +778,7 @@ export async function rebuildAllManuals() {
     }
     .dot-green { background: #22c55e !important; }
     .dot-red { background: #ef4444 !important; }
+    .dot-orange { background: #ea580c !important; }
     .dot-yellow { background: #eab308 !important; }
     .dot-blue { background: #3b82f6 !important; }
     .dot-gray { background: #94a3b8 !important; }
@@ -866,6 +875,11 @@ export async function rebuildAllManuals() {
   await browser.close();
   fs.copyFileSync(pdfPath, publicPdfPath);
   console.log('✓ Manual_do_Usuario_Health_Nexus.pdf and public PDF compiled cleanly.');
+
+  // Compilar também o Manual de Fluxo Operacional
+  console.log('--- AGORA COMPILANDO MANUAL DE FLUXO OPERACIONAL ---');
+  await buildFluxoOperacionalManual();
+
   console.log('--- ALL MANUALS REBUILT SUCCESSFULLY ---');
 }
 
