@@ -357,7 +357,7 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
 }
 
 
-function generateHospitalizations(patients, doctors, count = 35) {
+export function generateHospitalizations(patients, doctors, count = 35) {
   const hospitalizations = [];
   const sectors = ['pronto_socorro', 'corredor_internacao', 'clinica_cirurgica', 'clinica_medica', 'uti'];
   

@@ -1216,6 +1216,16 @@ window.openTransferBedModal = async function(encounterId, patientName) {
         body: JSON.stringify({ bedId, patientName })
       });
       if (res.ok) {
+        if (typeof window.setActivePatientContext === 'function') {
+          const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : {};
+          window.setActivePatientContext({
+            ...curCtx,
+            fullName: patientName,
+            patientName: patientName,
+            status: 'Internado',
+            bedId: bedId
+          });
+        }
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
             actionTitle: 'Internação Iniciada',

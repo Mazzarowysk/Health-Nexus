@@ -1,4 +1,8 @@
-# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.8.0)
+import fs from 'fs';
+import path from 'path';
+
+export function buildCompleteManualMarkdown() {
+  return `# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.8.0)
 
 > **Health Nexus v2.8.0 — Plataforma Hospitalar de Alta Complexidade, Suporte Assistencial Avançado & Faturamento TISS 4.01**  
 > Guia operacional completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas, cronômetro de protocolos de emergência (IAM, AVC, Sepse), IA preditiva de exames, QR Code de autenticidade CFM, visualizador PACS DICOM interativo e faturamento TISS/TUSS com auditoria anti-glosa.
@@ -9,7 +13,7 @@
 
 O fluxograma abaixo mapeia a correlação contínua entre as etapas assistenciais e operacionais da plataforma Health Nexus:
 
-```mermaid
+\`\`\`mermaid
 flowchart TD
     subgraph S1 ["ETAPA 1: Recepção & Triagem"]
         A["1. Recepção (Admissão SUS / Convênios)"] --> B["2. Triagem Manchester (5 Cores & MEWS)"]
@@ -32,7 +36,7 @@ flowchart TD
         H & J --> K["7. Faturamento TISS/TUSS & Motor Anti-Glosa"]
         K --> L["8. Relatórios Analytics & DRE Executivo"]
     end
-```
+\`\`\`
 
 ---
 
@@ -122,10 +126,10 @@ No topo da aba **Atendimentos**, encontram-se os 4 **Cards Métricos Clicáveis*
 
 | Card | Ícone | Cor Tema | Ação ao Clicar | Descrição / Objetivo | Meta Operacional |
 |:---|:---:|:---:|:---|:---|:---|
-| **Triagem** | 🩺 | Roxo (`#8b5cf6`) | `filterKanbanColumn('triage')` | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem. | Fila zero / Espera < 10 min |
-| **Ag. Médico** | ⏳ | Amarelo (`#f59e0b`) | `filterKanbanColumn('waiting')` | Filtra a tela para exibir apenas os pacientes triados aguardando chamada do médico. | Respeitar SLA Manchester |
-| **Em Consulta** | 👨‍⚕️ | Verde (`#10b981`) | `filterKanbanColumn('active')` | Filtra a tela para focar nos atendimentos em andamento e em observação no PS. | Giro de consultório ágil |
-| **Ver Todos** | 📊 | Neutro (`#94a3b8`) | `filterKanbanColumn('all')` | Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban integrado. | Visão global do pronto-socorro |
+| **Triagem** | 🩺 | Roxo (\`#8b5cf6\`) | \`filterKanbanColumn('triage')\` | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem. | Fila zero / Espera < 10 min |
+| **Ag. Médico** | ⏳ | Amarelo (\`#f59e0b\`) | \`filterKanbanColumn('waiting')\` | Filtra a tela para exibir apenas os pacientes triados aguardando chamada do médico. | Respeitar SLA Manchester |
+| **Em Consulta** | 👨‍⚕️ | Verde (\`#10b981\`) | \`filterKanbanColumn('active')\` | Filtra a tela para focar nos atendimentos em andamento e em observação no PS. | Giro de consultório ágil |
+| **Ver Todos** | 📊 | Neutro (\`#94a3b8\`) | \`filterKanbanColumn('all')\` | Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban integrado. | Visão global do pronto-socorro |
 
 ---
 
@@ -137,7 +141,7 @@ Pacientes admitidos na recepção dão entrada nesta fila para classificação d
 
 | Parâmetro Clínico | Unidade / Formato | Faixa de Referência Normal | Limiar de Alerta Moderado | Limiar Crítico de Emergência | Conduta Imediata no Sistema |
 |:---|:---:|:---|:---|:---|:---|
-| **Pressão Arterial (PA)** | mmHg (`000/00`) | 110/70 a 120/80 mmHg | 140/90 a 179/109 mmHg | PAS >= 180 ou PAD >= 110 mmHg | Aciona Protocolo de Crise Hipertensiva |
+| **Pressão Arterial (PA)** | mmHg (\`000/00\`) | 110/70 a 120/80 mmHg | 140/90 a 179/109 mmHg | PAS >= 180 ou PAD >= 110 mmHg | Aciona Protocolo de Crise Hipertensiva |
 | **Frequência Cardíaca (FC)** | bpm | 60 a 100 bpm | 101 a 120 bpm ou 50 a 59 bpm | FC > 130 bpm ou FC < 40 bpm | Alerta de Taquiarritmia / Bradicardia Grave |
 | **Frequência Respiratória** | irpm | 12 a 20 irpm | 21 a 24 irpm | FR > 28 irpm ou FR < 10 irpm | Alerta de Insuficiência Respiratória Aguda |
 | **Temperatura Axilar** | °C | 36,0°C a 37,2°C | 37,8°C a 38,9°C (Febre) | Temp >= 39,5°C ou Temp < 35,0°C | Protocolo de Sepse / Manta Térmica |
@@ -251,139 +255,139 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 <h3 id="sec-4-1">4.1. Modal de Triagem Manchester</h3>
 
-- **Gatilho de Abertura:** Clique no botão `Realizar Triagem` na coluna 1 do Kanban de Atendimentos.
+- **Gatilho de Abertura:** Clique no botão \`Realizar Triagem\` na coluna 1 do Kanban de Atendimentos.
 - **Campos de Entrada do Formulário:**
 
 | Campo | Identificador HTML | Tipo de Entrada | Regra de Validação | Exemplo de Preenchimento Válido |
 |:---|:---|:---|:---|:---|
-| **Pressão Arterial** | `#triage-pa` | Texto formatado | Máscara `000/00`, PAS 50-300, PAD 30-200 | `120/80` |
-| **Frequência Cardíaca** | `#triage-fc` | Numérico | Inteiro positivo entre 30 e 250 bpm | `78` |
-| **Frequência Respiratória**| `#triage-fr` | Numérico | Inteiro positivo entre 8 e 60 irpm | `16` |
-| **Temperatura** | `#triage-temp` | Decimal (`00.0`) | Valor entre 32.0 e 43.0 °C | `36.6` |
-| **Saturação de O2** | `#triage-spo2` | Numérico | Porcentagem entre 50% e 100% | `98` |
-| **Glicemia Capilar** | `#triage-glicemia` | Numérico | Valor entre 20 e 800 mg/dL | `95` |
-| **Escala de Dor** | `#triage-dor` | Seletor (0 a 10) | Escala visual numérica obrigatória | `3 - Dor Leve` |
-| **Queixa Principal** | `#triage-complaints` | Área de texto | Mínimo de 10 caracteres explicativos | `Cefaleia holocraniana pulsátil há 1 dia.` |
+| **Pressão Arterial** | \`#triage-pa\` | Texto formatado | Máscara \`000/00\`, PAS 50-300, PAD 30-200 | \`120/80\` |
+| **Frequência Cardíaca** | \`#triage-fc\` | Numérico | Inteiro positivo entre 30 e 250 bpm | \`78\` |
+| **Frequência Respiratória**| \`#triage-fr\` | Numérico | Inteiro positivo entre 8 e 60 irpm | \`16\` |
+| **Temperatura** | \`#triage-temp\` | Decimal (\`00.0\`) | Valor entre 32.0 e 43.0 °C | \`36.6\` |
+| **Saturação de O2** | \`#triage-spo2\` | Numérico | Porcentagem entre 50% e 100% | \`98\` |
+| **Glicemia Capilar** | \`#triage-glicemia\` | Numérico | Valor entre 20 e 800 mg/dL | \`95\` |
+| **Escala de Dor** | \`#triage-dor\` | Seletor (0 a 10) | Escala visual numérica obrigatória | \`3 - Dor Leve\` |
+| **Queixa Principal** | \`#triage-complaints\` | Área de texto | Mínimo de 10 caracteres explicativos | \`Cefaleia holocraniana pulsátil há 1 dia.\` |
 
 - **Botões e Ações do Modal:**
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Salvar & Chamar na TV**| `#btn-triage-save-call` | Salva triagem e aciona chamada sonora | Todos os campos vitais preenchidos | Grava cor, toca chime e anuncia paciente na TV. |
-| **Apenas Salvar Triagem** | `#btn-triage-save-only` | Conclui sem acionar a chamada de voz | Todos os campos vitais preenchidos | Move o paciente para a coluna "Aguardando Médico". |
-| **Cancelar** | `#btn-triage-cancel` | Fecha modal sem persistir dados | Nenhuma validação exigida | Descarta alterações e mantém o status anterior. |
+| **Salvar & Chamar na TV**| \`#btn-triage-save-call\` | Salva triagem e aciona chamada sonora | Todos os campos vitais preenchidos | Grava cor, toca chime e anuncia paciente na TV. |
+| **Apenas Salvar Triagem** | \`#btn-triage-save-only\` | Conclui sem acionar a chamada de voz | Todos os campos vitais preenchidos | Move o paciente para a coluna "Aguardando Médico". |
+| **Cancelar** | \`#btn-triage-cancel\` | Fecha modal sem persistir dados | Nenhuma validação exigida | Descarta alterações e mantém o status anterior. |
 
 ---
 
 <h3 id="sec-4-2">4.2. Modal de Prescrição & Receituário Médico</h3>
 
-- **Gatilho de Abertura:** Clique no botão `Prescrição` no card do paciente ou dentro do PEP Médico.
+- **Gatilho de Abertura:** Clique no botão \`Prescrição\` no card do paciente ou dentro do PEP Médico.
 - **Campos de Entrada do Formulário:**
 
 | Campo | Identificador HTML | Tipo de Entrada | Opções / Regras | Exemplo de Preenchimento Válido |
 |:---|:---|:---|:---|:---|
-| **Fármaco / Medicamento** | `#prescription-drug-search` | Autocomplete | Busca por nome comercial ou princípio ativo | `Amoxicilina + Clavulanato 875mg` |
-| **Dose Unitária** | `#prescription-dosage` | Texto curto | Valor e unidade de medida | `1 comprimido` ou `500 mg` |
-| **Via de Administração** | `#prescription-route` | Seletor | VO, EV, IM, SC, SL, Inalatória, Tópica | `Via Oral (VO)` |
-| **Posologia / Frequência** | `#prescription-freq` | Seletor / Texto | 8/8h, 12/12h, 1x ao dia, Se necessário | `De 8 em 8 horas por 7 dias` |
-| **Orientações Especiais** | `#prescription-notes` | Área de texto | Instruções para o paciente e enfermagem | `Tomar após as principais refeições com água.` |
+| **Fármaco / Medicamento** | \`#prescription-drug-search\` | Autocomplete | Busca por nome comercial ou princípio ativo | \`Amoxicilina + Clavulanato 875mg\` |
+| **Dose Unitária** | \`#prescription-dosage\` | Texto curto | Valor e unidade de medida | \`1 comprimido\` ou \`500 mg\` |
+| **Via de Administração** | \`#prescription-route\` | Seletor | VO, EV, IM, SC, SL, Inalatória, Tópica | \`Via Oral (VO)\` |
+| **Posologia / Frequência** | \`#prescription-freq\` | Seletor / Texto | 8/8h, 12/12h, 1x ao dia, Se necessário | \`De 8 em 8 horas por 7 dias\` |
+| **Orientações Especiais** | \`#prescription-notes\` | Área de texto | Instruções para o paciente e enfermagem | \`Tomar após as principais refeições com água.\` |
 
 - **Botões e Ações do Modal:**
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Adicionar Fármaco** | `#btn-add-drug-item` | Insere o medicamento na lista ativa | Fármaco e posologia preenchidos | Valida interação CDSS e inclui linha na receita. |
-| **Salvar & Dispensar** | `#btn-save-dispense` | Envia pedido direto à farmácia | Ao menos 1 medicamento na lista | Envia ordem de separação com baixa no estoque. |
-| **Imprimir Receita (PDF)**| `#btn-print-rx-pdf` | Gera PDF oficial padrão CFM com QR Code| Prescrição salva no sistema | Download de documento com carimbo digital SHA-256. |
-| **Fechar** | `#btn-close-prescription`| Encerra a visualização | Salva rascunho automático | Retorna à aba sem perder itens adicionados. |
+| **Adicionar Fármaco** | \`#btn-add-drug-item\` | Insere o medicamento na lista ativa | Fármaco e posologia preenchidos | Valida interação CDSS e inclui linha na receita. |
+| **Salvar & Dispensar** | \`#btn-save-dispense\` | Envia pedido direto à farmácia | Ao menos 1 medicamento na lista | Envia ordem de separação com baixa no estoque. |
+| **Imprimir Receita (PDF)**| \`#btn-print-rx-pdf\` | Gera PDF oficial padrão CFM com QR Code| Prescrição salva no sistema | Download de documento com carimbo digital SHA-256. |
+| **Fechar** | \`#btn-close-prescription\`| Encerra a visualização | Salva rascunho automático | Retorna à aba sem perder itens adicionados. |
 
 ---
 
 <h3 id="sec-4-3">4.3. Modal de Transferência & Alocação de Leito</h3>
 
-- **Gatilho de Abertura:** Clique no botão `Transferir Leito` no card do paciente na Central de Atendimentos.
+- **Gatilho de Abertura:** Clique no botão \`Transferir Leito\` no card do paciente na Central de Atendimentos.
 - **Campos de Entrada do Formulário:**
 
 | Campo | Identificador HTML | Tipo de Entrada | Regra de Negócio | Exemplo de Preenchimento Válido |
 |:---|:---|:---|:---|:---|
-| **Paciente Selecionado** | `#transfer-patient-name` | Texto somente-leitura | Pré-carregado com nome e prontuário | `Marcelo Mazaro (Prontuário #0042)` |
-| **Setor Hospitalar Destino**| `#transfer-sector-select`| Seletor de opções | Enfermaria Geral, UTI Adulto, Isolamento | `UTI Adulto - Bloco B` |
-| **Leito Vago Disponível** | `#transfer-bed-select` | Seletor dinâmico | Apenas leitos com status "Vago" | `Leito UTI-03 (Vago / Higienizado)` |
-| **Justificativa Clínica** | `#transfer-reason` | Área de texto | Mínimo 15 caracteres para auditoria | `Necessidade de suporte ventilatório mecânico invasivo.`|
+| **Paciente Selecionado** | \`#transfer-patient-name\` | Texto somente-leitura | Pré-carregado com nome e prontuário | \`Marcelo Mazaro (Prontuário #0042)\` |
+| **Setor Hospitalar Destino**| \`#transfer-sector-select\`| Seletor de opções | Enfermaria Geral, UTI Adulto, Isolamento | \`UTI Adulto - Bloco B\` |
+| **Leito Vago Disponível** | \`#transfer-bed-select\` | Seletor dinâmico | Apenas leitos com status "Vago" | \`Leito UTI-03 (Vago / Higienizado)\` |
+| **Justificativa Clínica** | \`#transfer-reason\` | Área de texto | Mínimo 15 caracteres para auditoria | \`Necessidade de suporte ventilatório mecânico invasivo.\`|
 
 - **Botões e Ações do Modal:**
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Confirmar Transferência**| `#btn-confirm-transfer` | Ocupa o novo leito e move paciente | Leito de destino vago selecionado | Altera status do leito para Ocupado e gera log. |
-| **Solicitar Higienização** | `#btn-request-cleaning` | Envia leito anterior para limpeza | Leito de origem desocupado | Marca leito anterior como "Higienização". |
-| **Cancelar** | `#btn-cancel-transfer` | Fecha janela sem alterações | Nenhuma validação exigida | Mantém o paciente no local atual. |
+| **Confirmar Transferência**| \`#btn-confirm-transfer\` | Ocupa o novo leito e move paciente | Leito de destino vago selecionado | Altera status do leito para Ocupado e gera log. |
+| **Solicitar Higienização** | \`#btn-request-cleaning\` | Envia leito anterior para limpeza | Leito de origem desocupado | Marca leito anterior como "Higienização". |
+| **Cancelar** | \`#btn-cancel-transfer\` | Fecha janela sem alterações | Nenhuma validação exigida | Mantém o paciente no local atual. |
 
 ---
 
 <h3 id="sec-4-4">4.4. Modal de Nova Admissão & Entrada de Paciente</h3>
 
-- **Gatilho de Abertura:** Clique no botão `+ Nova Admissão` no topo da Central de Atendimentos ou tecle `Alt + N`.
+- **Gatilho de Abertura:** Clique no botão \`+ Nova Admissão\` no topo da Central de Atendimentos ou tecle \`Alt + N\`.
 - **Campos de Entrada do Formulário:**
 
 | Campo | Identificador HTML | Tipo de Entrada | Regra de Validação | Exemplo de Preenchimento Válido |
 |:---|:---|:---|:---|:---|
-| **Paciente** | `#admissao-patient-select`| Autocomplete / Busca | Paciente cadastrado no banco | `Camila Ferreira de Souza` |
-| **Tipo de Atendimento** | `#admissao-type` | Seletor | Emergência, Urgência, Consulta Eletiva | `Pronto-Socorro Adulto` |
-| **Convênio / Plano de Saúde**| `#admissao-insurance`| Seletor | SUS, Unimed, Bradesco, Particular | `Unimed Saúde Nacional` |
-| **Número da Carteirinha** | `#admissao-card-number`| Texto alfanumérico | Obrigatório se convênio privado | `0034.9812.3340.01-8` |
-| **Queixa Inicial / Motivo** | `#admissao-chief-complaint`| Texto curto | Descreve o motivo da procura médica | `Febre persistente há 3 dias e tosse produtiva.`|
+| **Paciente** | \`#admissao-patient-select\`| Autocomplete / Busca | Paciente cadastrado no banco | \`Camila Ferreira de Souza\` |
+| **Tipo de Atendimento** | \`#admissao-type\` | Seletor | Emergência, Urgência, Consulta Eletiva | \`Pronto-Socorro Adulto\` |
+| **Convênio / Plano de Saúde**| \`#admissao-insurance\`| Seletor | SUS, Unimed, Bradesco, Particular | \`Unimed Saúde Nacional\` |
+| **Número da Carteirinha** | \`#admissao-card-number\`| Texto alfanumérico | Obrigatório se convênio privado | \`0034.9812.3340.01-8\` |
+| **Queixa Inicial / Motivo** | \`#admissao-chief-complaint\`| Texto curto | Descreve o motivo da procura médica | \`Febre persistente há 3 dias e tosse produtiva.\`|
 
 - **Botões e Ações do Modal:**
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Confirmar Entrada** | `#btn-confirm-admissao` | Cria novo atendimento ativo | Paciente e motivo preenchidos | Insere o paciente na Fila 1 (Aguardando Triagem). |
-| **+ Cadastrar Novo Paciente**| `#btn-quick-new-patient`| Abre modal de cadastro rápido | Nenhuma exigência prévia | Permite cadastrar paciente novo sem sair do fluxo. |
-| **Fechar** | `#btn-close-admissao` | Cancela a admissão | Nenhuma validação | Fecha o modal sem registrar atendimento. |
+| **Confirmar Entrada** | \`#btn-confirm-admissao\` | Cria novo atendimento ativo | Paciente e motivo preenchidos | Insere o paciente na Fila 1 (Aguardando Triagem). |
+| **+ Cadastrar Novo Paciente**| \`#btn-quick-new-patient\`| Abre modal de cadastro rápido | Nenhuma exigência prévia | Permite cadastrar paciente novo sem sair do fluxo. |
+| **Fechar** | \`#btn-close-admissao\` | Cancela a admissão | Nenhuma validação | Fecha o modal sem registrar atendimento. |
 
 ---
 
 <h3 id="sec-4-5">4.5. Modal de Direcionamento & Reatribuição de Fila</h3>
 
-- **Gatilho de Abertura:** Na aba **Estagnação**, clique no botão `Direcionar` de um paciente com tempo excedido.
+- **Gatilho de Abertura:** Na aba **Estagnação**, clique no botão \`Direcionar\` de um paciente com tempo excedido.
 - **Campos de Entrada do Formulário:**
 
 | Campo | Identificador HTML | Tipo de Entrada | Regra de Negócio | Exemplo de Preenchimento Válido |
 |:---|:---|:---|:---|:---|
-| **Paciente Estagnado** | `#stagnation-patient` | Somente leitura | Dados do atendimento com tempo em atraso | `Lucas Mendes (Tempo decorrido: 13h 40min)` |
-| **Novo Consultório** | `#stagnation-room` | Seletor de salas | Salas disponíveis com médico ativo | `Consultório 03 (Dr. Roberto Alves)` |
-| **Conduta Imediata** | `#stagnation-action` | Seletor | Reavaliar agora, Alta assistida, Vaga UTI | `Reavaliação Médica Imediata` |
-| **Observações da Regulação**| `#stagnation-notes` | Área de texto | Justificativa do remanejamento urgente | `Paciente aguarda laudo de tomografia para desfecho.`|
+| **Paciente Estagnado** | \`#stagnation-patient\` | Somente leitura | Dados do atendimento com tempo em atraso | \`Lucas Mendes (Tempo decorrido: 13h 40min)\` |
+| **Novo Consultório** | \`#stagnation-room\` | Seletor de salas | Salas disponíveis com médico ativo | \`Consultório 03 (Dr. Roberto Alves)\` |
+| **Conduta Imediata** | \`#stagnation-action\` | Seletor | Reavaliar agora, Alta assistida, Vaga UTI | \`Reavaliação Médica Imediata\` |
+| **Observações da Regulação**| \`#stagnation-notes\` | Área de texto | Justificativa do remanejamento urgente | \`Paciente aguarda laudo de tomografia para desfecho.\`|
 
 - **Botões e Ações do Modal:**
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Confirmar Reatribuição**| `#btn-confirm-reassign` | Move paciente para topo da fila médica | Novo consultório selecionado | Zera alertas vermelhos e notifica médico da sala. |
-| **Solicitar Internação** | `#btn-request-bed-urgent`| Converte observação em internação | Laudo de solicitação preenchido | Cria chamado urgente na Central de Leitos. |
-| **Cancelar** | `#btn-cancel-reassign` | Descarta a operação | Nenhuma validação | Mantém paciente na fila de alerta de estagnação. |
+| **Confirmar Reatribuição**| \`#btn-confirm-reassign\` | Move paciente para topo da fila médica | Novo consultório selecionado | Zera alertas vermelhos e notifica médico da sala. |
+| **Solicitar Internação** | \`#btn-request-bed-urgent\`| Converte observação em internação | Laudo de solicitação preenchido | Cria chamado urgente na Central de Leitos. |
+| **Cancelar** | \`#btn-cancel-reassign\` | Descarta a operação | Nenhuma validação | Mantém paciente na fila de alerta de estagnação. |
 
 ---
 
 <h3 id="sec-4-6">4.6. Modal de Histórico Pós-Alta & Prontuário Consolidado</h3>
 
-- **Gatilho de Abertura:** Clique no botão `Histórico` no cabeçalho ou na aba **Pacientes**.
+- **Gatilho de Abertura:** Clique no botão \`Histórico\` no cabeçalho ou na aba **Pacientes**.
 - **Campos e Filtros do Histórico:**
 
 | Campo / Filtro | Identificador HTML | Tipo de Controle | Regra de Filtro | Exemplo de Uso |
 |:---|:---|:---|:---|:---|
-| **Busca por Nome ou CPF**| `#history-search-input` | Campo de busca instantânea| Filtra registros em tempo real | `Renato Ramos` ou `341.890` |
-| **Filtro por Período** | `#history-date-range` | Seletor de datas | Hoje, Últimos 7 dias, Mês, Personalizado| `Últimos 30 dias` |
-| **Filtro por Desfecho** | `#history-outcome-filter`| Seletor | Alta médica, Internação, Transferência | `Alta Médica Curada` |
+| **Busca por Nome ou CPF**| \`#history-search-input\` | Campo de busca instantânea| Filtra registros em tempo real | \`Renato Ramos\` ou \`341.890\` |
+| **Filtro por Período** | \`#history-date-range\` | Seletor de datas | Hoje, Últimos 7 dias, Mês, Personalizado| \`Últimos 30 dias\` |
+| **Filtro por Desfecho** | \`#history-outcome-filter\`| Seletor | Alta médica, Internação, Transferência | \`Alta Médica Curada\` |
 
 - **Botões e Ações do Modal:**
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Imprimir Prontuário (PDF)**| `#btn-print-consolidated-pdf`| Gera PDF com toda a linha do cuidado | Atendimento selecionado | Baixa histórico completo com todas as evoluções. |
-| **Visualizar Evolução** | `#btn-view-timeline` | Abre linha do tempo detalhada | Seleção de registro | Exibe todos os passos da admissão até a alta. |
-| **Fechar** | `#btn-close-history` | Fecha modal de histórico | Nenhuma validação | Retorna à tela anterior. |
+| **Imprimir Prontuário (PDF)**| \`#btn-print-consolidated-pdf\`| Gera PDF com toda a linha do cuidado | Atendimento selecionado | Baixa histórico completo com todas as evoluções. |
+| **Visualizar Evolução** | \`#btn-view-timeline\` | Abre linha do tempo detalhada | Seleção de registro | Exibe todos os passos da admissão até a alta. |
+| **Fechar** | \`#btn-close-history\` | Fecha modal de histórico | Nenhuma validação | Retorna à tela anterior. |
 
 ---
 
@@ -394,18 +398,18 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 | Campo Informativo | Identificador HTML | Origem do Dado | Função de Auditoria |
 |:---|:---|:---|:---|
-| **Nome Completo do Solicitante**| `#user-req-name` | Cadastro inicial | Identificação nominal do colaborador. |
-| **E-mail Institucional** | `#user-req-email` | Cadastro inicial | Validação de domínio corporativo (`@hospital.com`). |
-| **Perfil Solicitado** | `#user-req-role` | Formulário de registro | Cargo pretendido (Médico, Enfermagem, etc.). |
-| **Registro Profissional** | `#user-req-council` | CRM / COREN informado | Checagem de regularidade no conselho de classe. |
+| **Nome Completo do Solicitante**| \`#user-req-name\` | Cadastro inicial | Identificação nominal do colaborador. |
+| **E-mail Institucional** | \`#user-req-email\` | Cadastro inicial | Validação de domínio corporativo (\`@hospital.com\`). |
+| **Perfil Solicitado** | \`#user-req-role\` | Formulário de registro | Cargo pretendido (Médico, Enfermagem, etc.). |
+| **Registro Profissional** | \`#user-req-council\` | CRM / COREN informado | Checagem de regularidade no conselho de classe. |
 
 - **Botões e Ações do Modal:**
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Aprovar Acesso Total** | `#btn-approve-user` | Ativa credencial com perfil solicitado | Auditoria de CRM/COREN positiva | Libera login no sistema e sincroniza com Turso Cloud. |
-| **Aprovar com Restrição** | `#btn-approve-restricted`| Ativa perfil com permissões limitadas | Seleção de novo papel restrito | Usuário acessa apenas visualização básica. |
-| **Recusar Solicitação** | `#btn-reject-user` | Exclui cadastro pendente | Confirmação do administrador | Bloqueia credencial e envia notificação de recusa. |
+| **Aprovar Acesso Total** | \`#btn-approve-user\` | Ativa credencial com perfil solicitado | Auditoria de CRM/COREN positiva | Libera login no sistema e sincroniza com Turso Cloud. |
+| **Aprovar com Restrição** | \`#btn-approve-restricted\`| Ativa perfil com permissões limitadas | Seleção de novo papel restrito | Usuário acessa apenas visualização básica. |
+| **Recusar Solicitação** | \`#btn-reject-user\` | Exclui cadastro pendente | Confirmação do administrador | Bloqueia credencial e envia notificação de recusa. |
 
 ---
 
@@ -416,18 +420,18 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 | Campo | Identificador HTML | Tipo de Entrada | Regra de Validação | Exemplo de Preenchimento Válido |
 |:---|:---|:---|:---|:---|
-| **Nome de Exibição** | `#profile-display-name` | Texto | Mínimo de 3 caracteres | `Dr. Carlos Eduardo Silva` |
-| **Senha Atual** | `#profile-current-password`| Senha | Obrigatória para validar alterações | `********` |
-| **Nova Senha** | `#profile-new-password` | Senha forte | Mínimo 8 dígitos, letras e números | `Nexus@2026Secure` |
-| **Confirmar Nova Senha** | `#profile-confirm-password`| Senha idêntica | Deve coincidir com a nova senha | `Nexus@2026Secure` |
+| **Nome de Exibição** | \`#profile-display-name\` | Texto | Mínimo de 3 caracteres | \`Dr. Carlos Eduardo Silva\` |
+| **Senha Atual** | \`#profile-current-password\`| Senha | Obrigatória para validar alterações | \`********\` |
+| **Nova Senha** | \`#profile-new-password\` | Senha forte | Mínimo 8 dígitos, letras e números | \`Nexus@2026Secure\` |
+| **Confirmar Nova Senha** | \`#profile-confirm-password\`| Senha idêntica | Deve coincidir com a nova senha | \`Nexus@2026Secure\` |
 
 - **Botões e Ações do Modal:**
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Salvar Alterações** | `#btn-save-profile` | Atualiza senha e dados cadastrais | Senha atual válida e confirmação correta | Emite toast de sucesso e atualiza a sessão. |
-| **Encerrar Sessão (Logout)**| `#btn-logout` | Efetua logout seguro do sistema | Confirmação do operador | Destrói o token JWT local e volta à tela de login. |
-| **Fechar** | `#btn-close-profile` | Encerra sem alterar dados | Nenhuma validação | Mantém as configurações originais da conta. |
+| **Salvar Alterações** | \`#btn-save-profile\` | Atualiza senha e dados cadastrais | Senha atual válida e confirmação correta | Emite toast de sucesso e atualiza a sessão. |
+| **Encerrar Sessão (Logout)**| \`#btn-logout\` | Efetua logout seguro do sistema | Confirmação do operador | Destrói o token JWT local e volta à tela de login. |
+| **Fechar** | \`#btn-close-profile\` | Encerra sem alterar dados | Nenhuma validação | Mantém as configurações originais da conta. |
 
 ---
 
@@ -439,23 +443,23 @@ Na aba **Pacientes**, o hospital mantém o cadastro centralizado e o acesso à t
 
 | # | Campo Cadastral | Identificador HTML | Tipo de Dado | Regra de Validação | Exemplo de Preenchimento Válido |
 |:---:|:---|:---|:---|:---|:---|
-| **1** | **Nome Completo** | `#paciente-nome` | Texto alfabético | Mínimo 3 caracteres, sem abreviações | `Renato Ramos Machado` |
-| **2** | **CPF** | `#paciente-cpf` | Numérico formatado | 11 dígitos com cálculo de dígitos verificadores | `341.890.128-44` |
-| **3** | **Data de Nascimento** | `#paciente-nascimento` | Data (`AAAA-MM-DD`) | Não pode ser data futura; calcula idade automática | `1985-04-12` (41 anos) |
-| **4** | **Sexo / Gênero** | `#paciente-sexo` | Seletor de opções | Masculino, Feminino, Outro | `Masculino` |
-| **5** | **Nome Completo da Mãe**| `#paciente-mae` | Texto alfabético | Campo obrigatório para cruzamento no SUS | `Maria das Dores Machado` |
-| **6** | **Cartão Nacional SUS**| `#paciente-cns` | Numérico formatado | 15 dígitos padrão Ministério da Saúde | `700 1234 5678 9012` |
-| **7** | **Telefone / WhatsApp** | `#paciente-telefone` | Formato `(00) 00000-0000` | DDD de 2 dígitos + número de 9 dígitos | `(11) 98765-4321` |
-| **8** | **CEP Residencial** | `#paciente-cep` | Formato `00000-000` | 8 dígitos; autopreenchimento via API ViaCEP | `01310-100` |
-| **9** | **Logradouro & Número**| `#paciente-endereco` | Texto | Preenchido automaticamente via CEP + número | `Avenida Paulista, 1578, Apto 82` |
-| **10**| **Bairro, Cidade & UF** | `#paciente-cidade-uf` | Texto | Autopreenchido pelo CEP com sigla do estado | `Bela Vista - São Paulo / SP` |
-| **11**| **Responsável Legal** | `#paciente-responsavel` | Texto e telefone | Obrigatório se idade < 18 anos ou > 65 anos | `Tereza Ramos (Mãe) - (11) 98877-6655`|
+| **1** | **Nome Completo** | \`#paciente-nome\` | Texto alfabético | Mínimo 3 caracteres, sem abreviações | \`Renato Ramos Machado\` |
+| **2** | **CPF** | \`#paciente-cpf\` | Numérico formatado | 11 dígitos com cálculo de dígitos verificadores | \`341.890.128-44\` |
+| **3** | **Data de Nascimento** | \`#paciente-nascimento\` | Data (\`AAAA-MM-DD\`) | Não pode ser data futura; calcula idade automática | \`1985-04-12\` (41 anos) |
+| **4** | **Sexo / Gênero** | \`#paciente-sexo\` | Seletor de opções | Masculino, Feminino, Outro | \`Masculino\` |
+| **5** | **Nome Completo da Mãe**| \`#paciente-mae\` | Texto alfabético | Campo obrigatório para cruzamento no SUS | \`Maria das Dores Machado\` |
+| **6** | **Cartão Nacional SUS**| \`#paciente-cns\` | Numérico formatado | 15 dígitos padrão Ministério da Saúde | \`700 1234 5678 9012\` |
+| **7** | **Telefone / WhatsApp** | \`#paciente-telefone\` | Formato \`(00) 00000-0000\` | DDD de 2 dígitos + número de 9 dígitos | \`(11) 98765-4321\` |
+| **8** | **CEP Residencial** | \`#paciente-cep\` | Formato \`00000-000\` | 8 dígitos; autopreenchimento via API ViaCEP | \`01310-100\` |
+| **9** | **Logradouro & Número**| \`#paciente-endereco\` | Texto | Preenchido automaticamente via CEP + número | \`Avenida Paulista, 1578, Apto 82\` |
+| **10**| **Bairro, Cidade & UF** | \`#paciente-cidade-uf\` | Texto | Autopreenchido pelo CEP com sigla do estado | \`Bela Vista - São Paulo / SP\` |
+| **11**| **Responsável Legal** | \`#paciente-responsavel\` | Texto e telefone | Obrigatório se idade < 18 anos ou > 65 anos | \`Tereza Ramos (Mãe) - (11) 98877-6655\`|
 
 ### 🛡️ Tabela de Ações e Operações da Aba Pacientes
 
 | Ação no Painel | Ícone / Botão | Finalidade Operacional | Regra de Segurança | Resultado no Banco de Dados |
 |:---|:---:|:---|:---|:---|
-| **Novo Paciente** | `+ Adicionar` | Cadastra novo prontuário | CPF único obrigatório | Cria registro com timestamp e ID sequencial. |
+| **Novo Paciente** | \`+ Adicionar\` | Cadastra novo prontuário | CPF único obrigatório | Cria registro com timestamp e ID sequencial. |
 | **Busca Spotlight** | 🔍 | Localiza prontuários rapidamente | Busca por CPF ou parte do nome | Filtra a listagem em tempo real na tela. |
 | **Editar Cadastro** | ✏️ | Atualiza telefone, endereço ou convênio | Apenas operadores autorizados | Grava nova versão com registro de auditoria. |
 | **Linha do Cuidado** | 📜 | Exibe histórico completo de consultas | Qualquer profissional clínico | Abre timeline com todas as passagens no hospital. |
@@ -472,21 +476,21 @@ Na aba **Médicos**, gerencia-se o corpo clínico, especialidades, consultórios
 
 | Médico(a) | CRM / UF | Especialidade RQE | Consultório Alocado | Turno de Trabalho | Status Plantão | Ações Disponíveis |
 |:---|:---:|:---|:---:|:---:|:---:|:---|
-| **Dr. Carlos Eduardo Silva** | `123456/SP` | Cardiologia (RQE 45102) | Consultório 01 | Manhã (07h às 13h) | 🟢 `Em Plantão` | `🩺 Abrir PEP`, `Escala`, `Editar` |
-| **Dra. Mariana Costa** | `234567/SP` | Pediatria (RQE 38921) | Consultório 02 | Manhã (07h às 13h) | 🟢 `Em Plantão` | `🩺 Abrir PEP`, `Escala`, `Editar` |
-| **Dr. Roberto Alves** | `345678/SP` | Ortopedia e Traumatologia| Consultório 03 | Tarde (13h às 19h) | ⚪ `Folga` | `Ativar Plantão`, `Ver Agenda` |
-| **Dra. Fernanda Lima** | `456789/SP` | Emergência e Terapia Int.| Sala Vermelha | Noite 12h (19h às 07h)| 🟢 `Em Plantão` | `🚨 Sala Vermelha`, `Histórico` |
-| **Dr. André Guimarães** | `567890/SP` | Cirurgia Geral (RQE 21094) | Centro Cirúrgico | Plantão 24 horas | 🟢 `Em Cirurgia` | `Avisar Retorno`, `Substituto` |
-| **Dra. Beatriz Santos** | `678901/SP` | Ginecologia e Obstetrícia | Consultório 04 | Tarde (13h às 19h) | 🟡 `Intervalo` | `Retornar à Sala`, `Transferir` |
+| **Dr. Carlos Eduardo Silva** | \`123456/SP\` | Cardiologia (RQE 45102) | Consultório 01 | Manhã (07h às 13h) | 🟢 \`Em Plantão\` | \`🩺 Abrir PEP\`, \`Escala\`, \`Editar\` |
+| **Dra. Mariana Costa** | \`234567/SP\` | Pediatria (RQE 38921) | Consultório 02 | Manhã (07h às 13h) | 🟢 \`Em Plantão\` | \`🩺 Abrir PEP\`, \`Escala\`, \`Editar\` |
+| **Dr. Roberto Alves** | \`345678/SP\` | Ortopedia e Traumatologia| Consultório 03 | Tarde (13h às 19h) | ⚪ \`Folga\` | \`Ativar Plantão\`, \`Ver Agenda\` |
+| **Dra. Fernanda Lima** | \`456789/SP\` | Emergência e Terapia Int.| Sala Vermelha | Noite 12h (19h às 07h)| 🟢 \`Em Plantão\` | \`🚨 Sala Vermelha\`, \`Histórico\` |
+| **Dr. André Guimarães** | \`567890/SP\` | Cirurgia Geral (RQE 21094) | Centro Cirúrgico | Plantão 24 horas | 🟢 \`Em Cirurgia\` | \`Avisar Retorno\`, \`Substituto\` |
+| **Dra. Beatriz Santos** | \`678901/SP\` | Ginecologia e Obstetrícia | Consultório 04 | Tarde (13h às 19h) | 🟡 \`Intervalo\` | \`Retornar à Sala\`, \`Transferir\` |
 
 ### ⚙️ Tabela de Operações de Gestão do Corpo Clínico
 
 | Operação | Gatilho / Botão | Descrição do Procedimento | Requisito Prévio | Efeito Prático na Recepção e TV |
 |:---|:---:|:---|:---|:---|
-| **Cadastrar Médico** | `+ Novo Médico` | Registra nome, CRM, RQE e contatos | Validação de CRM junto ao CFM | Habilita o médico para escalas e assinaturas no PEP. |
-| **Alocar Consultório** | `Alocar Sala` | Define em qual sala física o médico atende | Consultório vago selecionado | Direciona o painel TV para chamar pacientes para a sala correta. |
-| **Alternar Plantão** | `Ativar / Pausar`| Alterna status entre Ativo, Intervalo e Folga | Seleção do profissional | Atualiza o contador de médicos disponíveis no Dashboard. |
-| **Substituição de Emergência**| `Substituir`| Transfere a fila de um médico para outro | Ausência justificada de médico | Move todos os pacientes em espera para o novo médico sem atraso. |
+| **Cadastrar Médico** | \`+ Novo Médico\` | Registra nome, CRM, RQE e contatos | Validação de CRM junto ao CFM | Habilita o médico para escalas e assinaturas no PEP. |
+| **Alocar Consultório** | \`Alocar Sala\` | Define em qual sala física o médico atende | Consultório vago selecionado | Direciona o painel TV para chamar pacientes para a sala correta. |
+| **Alternar Plantão** | \`Ativar / Pausar\`| Alterna status entre Ativo, Intervalo e Folga | Seleção do profissional | Atualiza o contador de médicos disponíveis no Dashboard. |
+| **Substituição de Emergência**| \`Substituir\`| Transfere a fila de um médico para outro | Ausência justificada de médico | Move todos os pacientes em espera para o novo médico sem atraso. |
 
 ---
 
@@ -498,14 +502,14 @@ Na aba **Consultórios**, gerencia-se a infraestrutura física de atendimento am
 
 | Sala / Consultório | Ala / Bloco | Especialidade Principal | Médico Responsável | Status Atual | Tempo na Situação | Ações Rápidas |
 |:---|:---|:---|:---|:---:|:---:|:---|
-| **Consultório 01** | Térreo - Bloco A | Clínica Médica / Geral | Dr. Carlos Eduardo Silva | 🟢 `Em Atendimento` | 18 min | `🩺 Ver Atendimento`, `Finalizar` |
-| **Consultório 02** | Térreo - Bloco A | Pediatria Ambulatorial | Dra. Mariana Costa | 🟢 `Disponível` | 4 min | `📢 Chamar Próximo`, `Pausar` |
-| **Consultório 03** | Térreo - Bloco A | Ortopedia e Imobilizações | Dr. Roberto Alves | 🟡 `Higienização` | 12 min | `✨ Liberar Sala`, `Alocar Médico` |
-| **Consultório 04** | Térreo - Bloco B | Ginecologia e Obstetrícia | Dra. Beatriz Santos | 🟢 `Em Atendimento` | 25 min | `🩺 Ver Atendimento`, `Pausar` |
-| **Consultório 05** | 1º Andar - Especialidades | Neurologia Clínica | Dr. Marcos Vinicius | ⚪ `Fechado` | Fora de Turno | `Abrir Sala`, `Definir Escala` |
-| **Sala Amarela** | Ala de Urgência | Observação Rápida Adulto | Dra. Fernanda Lima | 🔴 `Capacidade Máxima`| 2h 15m | `Transferir para Leito`, `Reavaliar` |
-| **Sala Vermelha** | Emergência Crítica | Ressuscitação & Politrauma | Equipe de Choque Plantonista | 🟢 `Prontidão Total` | Prontidão Permanente | `🚨 Receber Emergência`, `Checklist` |
-| **Sala de Sutura** | Urgência Cirúrgica | Pequenos Procedimentos | Dr. André Guimarães | 🟢 `Disponível` | 8 min | `Encaminhar Paciente`, `Repor Material` |
+| **Consultório 01** | Térreo - Bloco A | Clínica Médica / Geral | Dr. Carlos Eduardo Silva | 🟢 \`Em Atendimento\` | 18 min | \`🩺 Ver Atendimento\`, \`Finalizar\` |
+| **Consultório 02** | Térreo - Bloco A | Pediatria Ambulatorial | Dra. Mariana Costa | 🟢 \`Disponível\` | 4 min | \`📢 Chamar Próximo\`, \`Pausar\` |
+| **Consultório 03** | Térreo - Bloco A | Ortopedia e Imobilizações | Dr. Roberto Alves | 🟡 \`Higienização\` | 12 min | \`✨ Liberar Sala\`, \`Alocar Médico\` |
+| **Consultório 04** | Térreo - Bloco B | Ginecologia e Obstetrícia | Dra. Beatriz Santos | 🟢 \`Em Atendimento\` | 25 min | \`🩺 Ver Atendimento\`, \`Pausar\` |
+| **Consultório 05** | 1º Andar - Especialidades | Neurologia Clínica | Dr. Marcos Vinicius | ⚪ \`Fechado\` | Fora de Turno | \`Abrir Sala\`, \`Definir Escala\` |
+| **Sala Amarela** | Ala de Urgência | Observação Rápida Adulto | Dra. Fernanda Lima | 🔴 \`Capacidade Máxima\`| 2h 15m | \`Transferir para Leito\`, \`Reavaliar\` |
+| **Sala Vermelha** | Emergência Crítica | Ressuscitação & Politrauma | Equipe de Choque Plantonista | 🟢 \`Prontidão Total\` | Prontidão Permanente | \`🚨 Receber Emergência\`, \`Checklist\` |
+| **Sala de Sutura** | Urgência Cirúrgica | Pequenos Procedimentos | Dr. André Guimarães | 🟢 \`Disponível\` | 8 min | \`Encaminhar Paciente\`, \`Repor Material\` |
 
 ---
 
@@ -517,16 +521,16 @@ Na aba **Leitos**, o hospital monitora a taxa de ocupação em tempo real, giros
 
 | Leito ID | Setor / Ala Hospitalar | Paciente Alocado | Diagnóstico de Internação | Tempo Internado | Status do Leito | Ações Permitidas |
 |:---|:---|:---|:---|:---:|:---:|:---|
-| **Leito 101-A** | Enfermaria Geral Adulto | Marcelo Mazaro | Pneumonia Comunitária Grave | 2 dias | 🔴 `Ocupado` | `🩺 PEP`, `📋 Prescrição`, `🚪 Alta` |
-| **Leito 101-B** | Enfermaria Geral Adulto | Flávio Augusto Oliveira | Pós-operatório de Colecistectomia | 1 dia | 🔴 `Ocupado` | `🩺 PEP`, `📋 Prescrição`, `🚪 Alta` |
-| **Leito 102-A** | Enfermaria Geral Adulto | Vago para Admissão | Aguardando paciente regulado | 0h | 🟢 `Vago` | `🛏️ Internar Paciente`, `Bloquear` |
-| **Leito 102-B** | Enfermaria Geral Adulto | Em Desinfecção Terminal | Procedimento pós-alta de paciente | 35 min | 🟡 `Higienização` | `✨ Concluir Limpeza & Liberar` |
-| **Leito UTI-01** | UTI Geral Adulto | José Ramos dos Santos | Choque Séptico / Foco Pulmonar | 5 dias | 🔴 `Ocupado` | `🚨 Acompanhar UTI`, `Exames` |
-| **Leito UTI-02** | UTI Geral Adulto | Vago com Ventilador Pronto | Vaga regulada para emergência | 0h | 🟢 `Vago` | `🛏️ Internar Paciente Crítico` |
-| **Leito UTI-03** | UTI Geral Adulto | Helena Albuquerque | IAM com Supra pós-angioplastia | 3 dias | 🔴 `Ocupado` | `🩺 PEP`, `Curva Enzimática` |
-| **Leito ISOL-01**| Isolamento Respiratório | Lucas Mendes Neves | Suspeita de Tuberculose Bacilífera | 4 dias | 🔴 `Ocupado` | `🛡️ Protocolo Isolamento`, `Evolução` |
-| **Leito ISOL-02**| Isolamento Respiratório | Vago com Pressão Negativa | Pronto para paciente infectocontagioso| 0h | 🟢 `Vago` | `🛏️ Alocar Caso Suspeito` |
-| **Leito PED-01** | Enfermaria Pediátrica | Enzo Gabriel Ferreira (3 anos) | Bronquiolite Viral Aguda | 1 dia | 🔴 `Ocupado` | `🩺 PEP Pediátrico`, `Acompanhante` |
+| **Leito 101-A** | Enfermaria Geral Adulto | Marcelo Mazaro | Pneumonia Comunitária Grave | 2 dias | 🔴 \`Ocupado\` | \`🩺 PEP\`, \`📋 Prescrição\`, \`🚪 Alta\` |
+| **Leito 101-B** | Enfermaria Geral Adulto | Flávio Augusto Oliveira | Pós-operatório de Colecistectomia | 1 dia | 🔴 \`Ocupado\` | \`🩺 PEP\`, \`📋 Prescrição\`, \`🚪 Alta\` |
+| **Leito 102-A** | Enfermaria Geral Adulto | Vago para Admissão | Aguardando paciente regulado | 0h | 🟢 \`Vago\` | \`🛏️ Internar Paciente\`, \`Bloquear\` |
+| **Leito 102-B** | Enfermaria Geral Adulto | Em Desinfecção Terminal | Procedimento pós-alta de paciente | 35 min | 🟡 \`Higienização\` | \`✨ Concluir Limpeza & Liberar\` |
+| **Leito UTI-01** | UTI Geral Adulto | José Ramos dos Santos | Choque Séptico / Foco Pulmonar | 5 dias | 🔴 \`Ocupado\` | \`🚨 Acompanhar UTI\`, \`Exames\` |
+| **Leito UTI-02** | UTI Geral Adulto | Vago com Ventilador Pronto | Vaga regulada para emergência | 0h | 🟢 \`Vago\` | \`🛏️ Internar Paciente Crítico\` |
+| **Leito UTI-03** | UTI Geral Adulto | Helena Albuquerque | IAM com Supra pós-angioplastia | 3 dias | 🔴 \`Ocupado\` | \`🩺 PEP\`, \`Curva Enzimática\` |
+| **Leito ISOL-01**| Isolamento Respiratório | Lucas Mendes Neves | Suspeita de Tuberculose Bacilífera | 4 dias | 🔴 \`Ocupado\` | \`🛡️ Protocolo Isolamento\`, \`Evolução\` |
+| **Leito ISOL-02**| Isolamento Respiratório | Vago com Pressão Negativa | Pronto para paciente infectocontagioso| 0h | 🟢 \`Vago\` | \`🛏️ Alocar Caso Suspeito\` |
+| **Leito PED-01** | Enfermaria Pediátrica | Enzo Gabriel Ferreira (3 anos) | Bronquiolite Viral Aguda | 1 dia | 🔴 \`Ocupado\` | \`🩺 PEP Pediátrico\`, \`Acompanhante\` |
 
 ---
 
@@ -565,16 +569,16 @@ Na aba **Farmácia**, faz-se a gestão de estoque, lotes, validade e rastreabili
 
 | Fármaco / Princípio Ativo | Apresentação / Via | Número do Lote | Data de Validade | Estoque Atual | Estoque Mínimo | Status do Estoque |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|
-| **Dipirona Sódica 500mg/ml** | Ampola 2ml (EV/IM) | `L-9821` | 2027-12-31 | 450 ampolas | 100 ampolas | 🟢 `Estoque Regular` |
-| **Amoxicilina + Clavulanato 875mg**| Comprimido Revestido (VO)| `L-4410` | 2026-11-20 | 85 caixas | 100 caixas | 🟡 `Abaixo do Mínimo` |
-| **Fentanil 0,05mg/ml** | Ampola 10ml (EV - Psicotrópico)| `L-1102` | 2026-09-15 | 14 ampolas | 20 ampolas | 🔴 `Alerta Reposição Crítica`|
-| **Ceftriaxona Dissódica 1g** | Frasco-ampola Pó (EV) | `L-7734` | 2027-08-30 | 320 frascos | 80 frascos | 🟢 `Estoque Regular` |
-| **Adrenalina 1mg/ml (Epinefrina)**| Ampola 1ml (EV/SC - Carrinho)| `L-3390` | 2027-05-10 | 95 ampolas | 30 ampolas | 🟢 `Estoque Regular` |
-| **Enoxaparina Sódica 40mg/0,4ml**| Seringa Preenchida (SC) | `L-5521` | 2026-12-05 | 45 seringas | 50 seringas | 🟡 `Abaixo do Mínimo` |
-| **Midazolam 5mg/ml** | Ampola 3ml (EV - Psicotrópico)| `L-2219` | 2027-03-18 | 60 ampolas | 40 ampolas | 🟢 `Estoque Regular` |
-| **Amiodarona 50mg/ml** | Ampola 3ml (EV - Antiarrítmico)| `L-8841` | 2026-10-30 | 38 ampolas | 25 ampolas | 🟢 `Estoque Regular` |
-| **Morfina 10mg/ml** | Ampola 1ml (EV - Entorpecente)| `L-0092` | 2027-04-12 | 22 ampolas | 15 ampolas | 🟢 `Estoque Controlado` |
-| **Soro Fisiológico 0,9% 500ml** | Bolsa Plástica Sistema Fechado| `L-6612` | 2028-01-15 | 580 bolsas | 150 bolsas | 🟢 `Estoque Regular` |
+| **Dipirona Sódica 500mg/ml** | Ampola 2ml (EV/IM) | \`L-9821\` | 2027-12-31 | 450 ampolas | 100 ampolas | 🟢 \`Estoque Regular\` |
+| **Amoxicilina + Clavulanato 875mg**| Comprimido Revestido (VO)| \`L-4410\` | 2026-11-20 | 85 caixas | 100 caixas | 🟡 \`Abaixo do Mínimo\` |
+| **Fentanil 0,05mg/ml** | Ampola 10ml (EV - Psicotrópico)| \`L-1102\` | 2026-09-15 | 14 ampolas | 20 ampolas | 🔴 \`Alerta Reposição Crítica\`|
+| **Ceftriaxona Dissódica 1g** | Frasco-ampola Pó (EV) | \`L-7734\` | 2027-08-30 | 320 frascos | 80 frascos | 🟢 \`Estoque Regular\` |
+| **Adrenalina 1mg/ml (Epinefrina)**| Ampola 1ml (EV/SC - Carrinho)| \`L-3390\` | 2027-05-10 | 95 ampolas | 30 ampolas | 🟢 \`Estoque Regular\` |
+| **Enoxaparina Sódica 40mg/0,4ml**| Seringa Preenchida (SC) | \`L-5521\` | 2026-12-05 | 45 seringas | 50 seringas | 🟡 \`Abaixo do Mínimo\` |
+| **Midazolam 5mg/ml** | Ampola 3ml (EV - Psicotrópico)| \`L-2219\` | 2027-03-18 | 60 ampolas | 40 ampolas | 🟢 \`Estoque Regular\` |
+| **Amiodarona 50mg/ml** | Ampola 3ml (EV - Antiarrítmico)| \`L-8841\` | 2026-10-30 | 38 ampolas | 25 ampolas | 🟢 \`Estoque Regular\` |
+| **Morfina 10mg/ml** | Ampola 1ml (EV - Entorpecente)| \`L-0092\` | 2027-04-12 | 22 ampolas | 15 ampolas | 🟢 \`Estoque Controlado\` |
+| **Soro Fisiológico 0,9% 500ml** | Bolsa Plástica Sistema Fechado| \`L-6612\` | 2028-01-15 | 580 bolsas | 150 bolsas | 🟢 \`Estoque Regular\` |
 
 ---
 
@@ -586,12 +590,12 @@ Na aba **Faturamento TISS**, gerenciam-se as guias de convênio, auditoria de pr
 
 | Guia ID | Beneficiário | Convênio / Operadora | Código TUSS Principal | Valor Total | Status de Faturamento | Ações Disponíveis |
 |:---|:---|:---|:---:|:---:|:---:|:---|
-| `#GUIA-801` | Renato Ramos Machado | Unimed Saúde Cooperativa | `10101012` (Consulta PS) | R$ 350,00 | 🟡 `Pendente Auditoria` | `🛡️ Auditar`, `Editar`, `Anexar Laudo` |
-| `#GUIA-802` | Camila Ferreira de Souza | Bradesco Saúde Top | `40304310` (Hemograma Completo)| R$ 180,00 | 🟢 `Aprovado no Lote` | `📦 Gerar XML TISS`, `Ver Detalhes` |
-| `#GUIA-803` | Lucas Mendes Neves | SulAmérica Saúde Especial | `40801010` (Radiografia Tórax) | R$ 250,00 | 🟢 `Faturado e Enviado` | `📄 Imprimir Guia Oficial`, `Recibo` |
-| `#GUIA-804` | José Ramos dos Santos | Amil Assistência Médica | `20101015` (Diária UTI Adulto) | R$ 2.800,00 | 🟡 `Aguardando Carência` | `🛡️ Validar Contrato`, `Auditar` |
-| `#GUIA-805` | Helena Albuquerque | Particular com Recibo | `30101020` (Sutura Cirúrgica) | R$ 420,00 | 🟢 `Quitado via PIX` | `🧾 Emitir Recibo Fiscal`, `DRE` |
-| `#GUIA-806` | Flávio Augusto Oliveira | Porto Seguro Saúde | `31001017` (Colecistectomia) | R$ 4.600,00 | 🔴 `Glosa Detectada` | `⚠️ Recurso Anti-Glosa`, `Corrigir` |
+| \`#GUIA-801\` | Renato Ramos Machado | Unimed Saúde Cooperativa | \`10101012\` (Consulta PS) | R$ 350,00 | 🟡 \`Pendente Auditoria\` | \`🛡️ Auditar\`, \`Editar\`, \`Anexar Laudo\` |
+| \`#GUIA-802\` | Camila Ferreira de Souza | Bradesco Saúde Top | \`40304310\` (Hemograma Completo)| R$ 180,00 | 🟢 \`Aprovado no Lote\` | \`📦 Gerar XML TISS\`, \`Ver Detalhes\` |
+| \`#GUIA-803\` | Lucas Mendes Neves | SulAmérica Saúde Especial | \`40801010\` (Radiografia Tórax) | R$ 250,00 | 🟢 \`Faturado e Enviado\` | \`📄 Imprimir Guia Oficial\`, \`Recibo\` |
+| \`#GUIA-804\` | José Ramos dos Santos | Amil Assistência Médica | \`20101015\` (Diária UTI Adulto) | R$ 2.800,00 | 🟡 \`Aguardando Carência\` | \`🛡️ Validar Contrato\`, \`Auditar\` |
+| \`#GUIA-805\` | Helena Albuquerque | Particular com Recibo | \`30101020\` (Sutura Cirúrgica) | R$ 420,00 | 🟢 \`Quitado via PIX\` | \`🧾 Emitir Recibo Fiscal\`, \`DRE\` |
+| \`#GUIA-806\` | Flávio Augusto Oliveira | Porto Seguro Saúde | \`31001017\` (Colecistectomia) | R$ 4.600,00 | 🔴 \`Glosa Detectada\` | \`⚠️ Recurso Anti-Glosa\`, \`Corrigir\` |
 
 ### 📊 Tabela de Procedimentos Frequentes da Tabela TUSS
 
@@ -638,7 +642,7 @@ O **Painel TV** opera em tela cheia na sala de espera para direcionamento sonoro
 
 | Ação / Controle | Atalho / Botão | Descrição da Operação | Perfil Autorizado |
 |:---|:---:|:---|:---|
-| **Modo Tela Cheia** | Tecla `F11` ou Botão Fullscreen | Oculta barras de navegação do browser para uso em Smart TVs. | Qualquer colaborador |
+| **Modo Tela Cheia** | Tecla \`F11\` ou Botão Fullscreen | Oculta barras de navegação do browser para uso em Smart TVs. | Qualquer colaborador |
 | **Testar Voz do Sistema** | Botão "Testar Voz" | Executa áudio de teste calibrando volume e velocidade da voz pt-BR. | Recepção / TI |
 | **Repetir Última Chamada** | Botão "Chamar Novamente" | Dispara novamente o sinal sonoro e voz do paciente atual. | Recepção / Triagem |
 | **Calibração de Chime** | Seletor de Áudio | Escolhe entre sinal sonoro Clássico, Suave ou Emergencial. | TI / Recepção |
@@ -691,9 +695,9 @@ Sistema centralizado de alertas visuais instantâneos (*Toasts*) e direcionament
 
 | Tipo de Aviso | Cor / Ícone | Duração em Tela | Gatilho Típico | Comportamento Interativo |
 |:---|:---:|:---:|:---|:---|
-| **Sucesso (Success)** | 🟢 Verde (`#10b981`) | 3,5 segundos | Paciente admitido, consulta salva, receita emitida | Desaparece automaticamente com animação fade-out. |
-| **Alerta (Warning)** | 🟡 Amarelo (`#f59e0b`) | 5,0 segundos | Medicamento abaixo do estoque, permanência >10h | Alerta a equipe sobre necessidade de atenção imediata. |
-| **Erro (Danger)** | 🔴 Vermelho (`#ef4444`) | 6,0 segundos | Falha de validação, interação medicamentosa grave | Exige confirmação ou ajuste imediato pelo operador. |
+| **Sucesso (Success)** | 🟢 Verde (\`#10b981\`) | 3,5 segundos | Paciente admitido, consulta salva, receita emitida | Desaparece automaticamente com animação fade-out. |
+| **Alerta (Warning)** | 🟡 Amarelo (\`#f59e0b\`) | 5,0 segundos | Medicamento abaixo do estoque, permanência >10h | Alerta a equipe sobre necessidade de atenção imediata. |
+| **Erro (Danger)** | 🔴 Vermelho (\`#ef4444\`) | 6,0 segundos | Falha de validação, interação medicamentosa grave | Exige confirmação ou ajuste imediato pelo operador. |
 | **Notificação de Fluxo**| 🟣 Roxo / Gradiente | Fixa até ação | Paciente chamado para consultório ou internado | Botão **"IR PARA A ABA ➔"** com rolagem suave e efeito Glow. |
 
 ---
@@ -704,24 +708,24 @@ Sistema centralizado de alertas visuais instantâneos (*Toasts*) e direcionament
 
 | Tecla de Atalho | Contexto de Uso | Função Executada no Sistema |
 |:---:|:---|:---|
-| **`Ctrl + K`** (ou `Cmd + K`) | Em qualquer tela do sistema | Foca a **Busca Global Spotlight** no topo da tela. |
-| **`Alt + M`** | Em qualquer tela do sistema | Retorna ao **Manual do Usuário** no tópico pesquisado com efeito pulsar. |
-| **`Alt + N`** | Aba Atendimentos / Agenda | Abre o modal de **Nova Admissão / Agendamento**. |
-| **`Alt + Seta Esquerda`** | Em qualquer tela do sistema | Volta para a aba visualizada anteriormente no histórico. |
-| **`F11`** | Aba Painel TV | Alterna para o **Modo Fullscreen** para monitores de sala de espera. |
-| **`Esc`** | Em qualquer modal aberto | Fecha o modal ativo e retorna ao painel sem salvar dados parciais. |
+| **\`Ctrl + K\`** (ou \`Cmd + K\`) | Em qualquer tela do sistema | Foca a **Busca Global Spotlight** no topo da tela. |
+| **\`Alt + M\`** | Em qualquer tela do sistema | Retorna ao **Manual do Usuário** no tópico pesquisado com efeito pulsar. |
+| **\`Alt + N\`** | Aba Atendimentos / Agenda | Abre o modal de **Nova Admissão / Agendamento**. |
+| **\`Alt + Seta Esquerda\`** | Em qualquer tela do sistema | Volta para a aba visualizada anteriormente no histórico. |
+| **\`F11\`** | Aba Painel TV | Alterna para o **Modo Fullscreen** para monitores de sala de espera. |
+| **\`Esc\`** | Em qualquer modal aberto | Fecha o modal ativo e retorna ao painel sem salvar dados parciais. |
 
 ### 📝 Tabela de Máscaras e Formatos de Entrada de Dados
 
 | Campo Clínico / Cadastral | Máscara de Entrada | Expressão / Formato | Exemplo de Preenchimento Válido |
 |:---|:---:|:---|:---|
-| **CPF** | `000.000.000-00` | 11 dígitos numéricos com dígitos verificadores | `341.890.128-44` |
-| **Cartão SUS (CNS)** | `000 0000 0000 0000` | 15 dígitos padrão Ministério da Saúde | `700 1234 5678 9012` |
-| **Pressão Arterial (PA)** | `000/00` | Milímetros de mercúrio (mmHg) sistólica/diastólica | `120/80` |
-| **Telefone / WhatsApp** | `(00) 00000-0000` | DDD de 2 dígitos + número com 9 dígitos | `(11) 98765-4321` |
-| **CEP** | `00000-000` | 8 dígitos com busca automática ViaCEP | `01310-100` |
-| **Registro Médico (CRM)**| `000000/UF` | Número do conselho + sigla do estado federativo | `123456/SP` |
-| **Código TUSS ANS** | `00000000` | Código terminológico unificado de 8 dígitos | `10101012` (Consulta em consultório) |
+| **CPF** | \`000.000.000-00\` | 11 dígitos numéricos com dígitos verificadores | \`341.890.128-44\` |
+| **Cartão SUS (CNS)** | \`000 0000 0000 0000\` | 15 dígitos padrão Ministério da Saúde | \`700 1234 5678 9012\` |
+| **Pressão Arterial (PA)** | \`000/00\` | Milímetros de mercúrio (mmHg) sistólica/diastólica | \`120/80\` |
+| **Telefone / WhatsApp** | \`(00) 00000-0000\` | DDD de 2 dígitos + número com 9 dígitos | \`(11) 98765-4321\` |
+| **CEP** | \`00000-000\` | 8 dígitos com busca automática ViaCEP | \`01310-100\` |
+| **Registro Médico (CRM)**| \`000000/UF\` | Número do conselho + sigla do estado federativo | \`123456/SP\` |
+| **Código TUSS ANS** | \`00000000\` | Código terminológico unificado de 8 dígitos | \`10101012\` (Consulta em consultório) |
 
 ---
 
@@ -735,7 +739,7 @@ Sistema centralizado de alertas visuais instantâneos (*Toasts*) e direcionament
 | **O Painel TV não está emitindo som na chamada** | Bloqueio de autoplay do navegador | Clique uma vez em qualquer parte da tela da TV para conceder permissão de áudio à Web Speech API. |
 | **O lote de guias TISS deu divergência na exportação** | Código TUSS ou carência ausente | Acesse a aba **Faturamento TISS**, clique em **🛡️ Auditar Guia** para identificar e corrigir os campos glosados. |
 | **Como dar alta a um paciente e liberar o leito?** | Finalização do ciclo de internação | No card do leito ocupado, clique em **Alta Hospitalar**. O sistema move o leito para **Higienização** e após limpeza clique em **Liberar Leito**. |
-| **O gráfico de fluxo Kanban está zerado no Dashboard** | Falha de sincronização localDB | O sistema agora conta com auto-seed sob demanda. Pressione `Ctrl + Shift + R` para atualizar a página. |
+| **O gráfico de fluxo Kanban está zerado no Dashboard** | Falha de sincronização localDB | O sistema agora conta com auto-seed sob demanda. Pressione \`Ctrl + Shift + R\` para atualizar a página. |
 | **Como imprimir a receita médica com QR Code CFM?** | Conclusão do atendimento PEP | No modal do PEP, clique em **Imprimir PDF**. O documento é gerado com hash SHA-256 e QR Code de validação pública. |
 | **O paciente não aparece na busca rápida Spotlight** | Digitação incompleta ou lixeira | Digite ao menos 3 letras do nome ou os 6 primeiros dígitos do CPF; confira se o paciente não está na Lixeira de Pacientes. |
 | **A sincronização com a nuvem Turso exibe alerta amarelo**| Instabilidade temporária de rede | O sistema aciona o Fallback HTTP nativo automaticamente. Se persistir, clique em "Sincronizar Agora" nas Configurações. |
@@ -767,11 +771,13 @@ O **Health Nexus v2.8.0** consolida 6 pilares de alta complexidade hospitalar e 
 
 | Regra de Auditoria | Código de Validação | Falha Detectada | Ação Corretiva do Sistema |
 |:---|:---:|:---|:---|
-| **Validação de Matrícula** | `GLOSA-1001` | Número de carteirinha com dígitos inválidos | Bloqueia exportação do lote até correção do cadastro do beneficiário. |
-| **Compatibilidade TUSS x Especialidade**| `GLOSA-2045` | Procedimento cirúrgico prescrito por especialidade incompatível | Alerta o faturamento para reclassificar o prestador executante. |
-| **Justificativa Clínica de SADT** | `GLOSA-3012` | Exame de alta complexidade sem CID-10 associado | Exige vinculação de hipótese diagnóstica no prontuário antes do faturamento. |
-| **Carência Contratual** | `GLOSA-4099` | Procedimento realizado antes do término de carência | Sinaliza a guia como *Pendente de Recurso Administrativo*. |
+| **Validação de Matrícula** | \`GLOSA-1001\` | Número de carteirinha com dígitos inválidos | Bloqueia exportação do lote até correção do cadastro do beneficiário. |
+| **Compatibilidade TUSS x Especialidade**| \`GLOSA-2045\` | Procedimento cirúrgico prescrito por especialidade incompatível | Alerta o faturamento para reclassificar o prestador executante. |
+| **Justificativa Clínica de SADT** | \`GLOSA-3012\` | Exame de alta complexidade sem CID-10 associado | Exige vinculação de hipótese diagnóstica no prontuário antes do faturamento. |
+| **Carência Contratual** | \`GLOSA-4099\` | Procedimento realizado antes do término de carência | Sinaliza a guia como *Pendente de Recurso Administrativo*. |
 
 ---
 
 *Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.8.0 do Health Nexus. Todos os direitos reservados.*
+`;
+}

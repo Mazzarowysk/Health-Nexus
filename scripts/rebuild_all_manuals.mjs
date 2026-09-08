@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { marked } from 'marked';
 import puppeteer from 'puppeteer';
+import { buildCompleteManualMarkdown } from './generate_complete_manual.mjs';
 
-// Configure marked options
 marked.setOptions({
   gfm: true,
   breaks: false
@@ -11,7 +11,6 @@ marked.setOptions({
 
 function cleanMojibake(text) {
   return text
-    // Specific emoji mojibake fixes
     .replace(/â\s*±\s*ï\s*¸/g, '⏱️')
     .replace(/âœ…/g, '✅')
     .replace(/ï\s*¸/g, '')
@@ -38,63 +37,29 @@ function cleanMojibake(text) {
     .replace(/Âº/g, 'º');
 }
 
-// Ensure markdown tables are formatted properly without blank lines
-function fixMarkdownTableSyntax(mdText) {
-  let cleaned = cleanMojibake(mdText);
-  
-  // Fix cases where table rows are separated by empty lines or have broken pipe syntax
-  const lines = cleaned.split('\n');
-  const resultLines = [];
-  let inTable = false;
+export async function rebuildAllManuals() {
+  console.log('--- REBUILDING ALL MANUALS IN HEALTH NEXUS (v2.8.0) ---');
 
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
+  // 1. Generate master markdown content
+  const fullMd = buildCompleteManualMarkdown();
 
-    // Check if line looks like a table row: starts and ends with |
-    const isTableRow = /^\s*\|.*\|\s*$/.test(line);
-    const isTableSeparator = /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/.test(line);
+  // Save to all relevant markdown paths
+  const mdPaths = [
+    path.resolve('MANUAL_DO_USUARIO_HEALTH_NEXUS.md'),
+    path.resolve('public/MANUAL_DO_USUARIO_HEALTH_NEXUS.md'),
+    path.resolve('public/manual.md'),
+    path.resolve('docs/10-Manuais/02-manual-operacional-do-usuario.md')
+  ];
 
-    if (isTableRow) {
-      if (!inTable) {
-        inTable = true;
-      }
-      resultLines.push(line.trim());
-    } else if (inTable && line.trim() === '') {
-      // Look ahead to see if table continues after blank line
-      let nextRowIdx = i + 1;
-      while (nextRowIdx < lines.length && lines[nextRowIdx].trim() === '') {
-        nextRowIdx++;
-      }
-      if (nextRowIdx < lines.length && /^\s*\|.*\|\s*$/.test(lines[nextRowIdx])) {
-        // Skip empty line inside table!
-        continue;
-      } else {
-        inTable = false;
-        resultLines.push(line);
-      }
-    } else {
-      inTable = false;
-      resultLines.push(line);
-    }
+  for (const p of mdPaths) {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, fullMd, 'utf8');
+    console.log(`✓ Saved ${path.relative('.', p)}`);
   }
 
-  return resultLines.join('\n');
-}
-
-async function rebuildAllManuals() {
-  console.log('--- REBUILDING ALL MANUALS IN HEALTH NEXUS ---');
-
-  // 1. Fix docs/10-Manuais/02-manual-operacional-do-usuario.md
-  const doc2Path = path.resolve('docs/10-Manuais/02-manual-operacional-do-usuario.md');
-  if (fs.existsSync(doc2Path)) {
-    const rawDoc2 = fs.readFileSync(doc2Path, 'utf8');
-    const fixedDoc2 = fixMarkdownTableSyntax(rawDoc2);
-    fs.writeFileSync(doc2Path, fixedDoc2, 'utf8');
-    console.log('✓ docs/10-Manuais/02-manual-operacional-do-usuario.md cleaned and saved.');
-
-    // Also convert doc2 to src/manual.html
-    const renderedDoc2Html = await marked.parse(fixedDoc2);
-    const fullSrcManualHtml = `<!DOCTYPE html>
+  // 2. Generate src/manual.html
+  const renderedDocHtml = await marked.parse(fullMd);
+  const fullSrcManualHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -110,22 +75,14 @@ async function rebuildAllManuals() {
   </style>
 </head>
 <body>
-  ${renderedDoc2Html}
+  ${renderedDocHtml}
 </body>
 </html>`;
-    fs.writeFileSync(path.resolve('src/manual.html'), fullSrcManualHtml, 'utf8');
-    console.log('✓ src/manual.html generated cleanly from markdown.');
-  }
+  fs.writeFileSync(path.resolve('src/manual.html'), fullSrcManualHtml, 'utf8');
+  console.log('✓ src/manual.html generated cleanly from markdown.');
 
-  // 2. Fix MANUAL_DO_USUARIO_HEALTH_NEXUS.md
-  const mainMdPath = path.resolve('MANUAL_DO_USUARIO_HEALTH_NEXUS.md');
-  const rawMainMd = fs.readFileSync(mainMdPath, 'utf8');
-  const fixedMainMd = fixMarkdownTableSyntax(rawMainMd);
-  fs.writeFileSync(mainMdPath, fixedMainMd, 'utf8');
-  console.log('✓ MANUAL_DO_USUARIO_HEALTH_NEXUS.md cleaned and saved.');
-
-  // 3. Rebuild PDF and HTML using build_manual_pdf.mjs logic
-  let renderedBody = await marked.parse(fixedMainMd);
+  // 3. Render body with Mermaid replacement
+  let renderedBody = await marked.parse(fullMd);
   renderedBody = renderedBody.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g, (match, p1) => {
     const decoded = p1
       .replace(/&lt;/g, '<')
@@ -136,7 +93,8 @@ async function rebuildAllManuals() {
     return `<div class="mermaid">\n${decoded}\n</div>`;
   });
 
-  const fullHtml = `<!DOCTYPE html>
+  // 4. Generate Interactive Web Manual HTML
+  const webHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -192,7 +150,7 @@ async function rebuildAllManuals() {
     .cover-subtitle {
       font-size: 1.1rem;
       color: #cbd5e1;
-      max-width: 760px;
+      max-width: 820px;
       margin: 0 auto 30px;
     }
     .cover-meta {
@@ -277,15 +235,6 @@ async function rebuildAllManuals() {
       margin-top: 28px;
     }
     p, li { color: #cbd5e1; }
-    blockquote {
-      background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(56,189,248,0.05));
-      border: 1px solid rgba(99,102,241,0.3);
-      border-left: 4px solid #6366f1;
-      border-radius: 12px;
-      padding: 18px 22px;
-      margin: 24px 0;
-      color: #e2e8f0;
-    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -307,10 +256,10 @@ async function rebuildAllManuals() {
       border-bottom: 1px solid #334155;
     }
     td {
-      padding: 14px 18px;
+      padding: 12px 16px;
       border-bottom: 1px solid #1e293b;
       color: #cbd5e1;
-      font-size: 0.92rem;
+      font-size: 0.90rem;
     }
     tr:last-child td { border-bottom: none; }
     tr:nth-child(even) { background: rgba(255,255,255,0.02); }
@@ -346,7 +295,7 @@ async function rebuildAllManuals() {
       <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.8.0
     </div>
     <h1 class="cover-title">Manual do Usuário & Guia Operacional Definitivo</h1>
-    <p class="cover-subtitle">Documentação técnica publicação-grade de todas as telas, botões, protocolos de emergência, IA preditiva, QR Code CFM, PACS DICOM e faturamento TISS 4.01.</p>
+    <p class="cover-subtitle">Documentação técnica publicação-grade de todas as telas, modais, botões, protocolos de emergência, IA preditiva, QR Code CFM, PACS DICOM e faturamento TISS 4.01.</p>
     <div class="cover-meta">
       <span><i class="fa-solid fa-book-open"></i> Edição Oficial 2026</span>
       <span><i class="fa-solid fa-shield-halved"></i> Triagem Manchester & CDSS</span>
@@ -400,11 +349,11 @@ async function rebuildAllManuals() {
 </body>
 </html>`;
 
-  fs.writeFileSync(path.resolve('manual_do_usuario.html'), fullHtml, 'utf8');
-  fs.writeFileSync(path.resolve('public/manual_do_usuario.html'), fullHtml, 'utf8');
+  fs.writeFileSync(path.resolve('manual_do_usuario.html'), webHtml, 'utf8');
+  fs.writeFileSync(path.resolve('public/manual_do_usuario.html'), webHtml, 'utf8');
   console.log('✓ manual_do_usuario.html and public/manual_do_usuario.html generated cleanly.');
 
-  // PDF Generation with Puppeteer
+  // 5. PDF Generation with Puppeteer
   const pdfHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -415,12 +364,15 @@ async function rebuildAllManuals() {
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     * { box-sizing: border-box; }
-    @page { size: A4; margin: 18mm 14mm 18mm 14mm; }
+    @page {
+      size: A4;
+      margin: 16mm 12mm 16mm 12mm;
+    }
     body {
       font-family: 'Inter', sans-serif;
       color: #1e293b;
-      line-height: 1.6;
-      font-size: 11pt;
+      line-height: 1.5;
+      font-size: 10pt;
       margin: 0;
       padding: 0;
       background: #ffffff;
@@ -433,10 +385,11 @@ async function rebuildAllManuals() {
       text-align: center;
       background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
       color: #ffffff;
-      padding: 60px 40px;
-      border-radius: 16px;
+      padding: 50px 30px;
+      border-radius: 12px;
       page-break-after: always;
-      min-height: 800px;
+      break-after: page;
+      min-height: 750px;
     }
     .pdf-cover .badge {
       display: inline-block;
@@ -448,89 +401,123 @@ async function rebuildAllManuals() {
       font-size: 10pt;
       font-weight: 700;
       text-transform: uppercase;
-      margin-bottom: 30px;
+      margin-bottom: 24px;
     }
     .pdf-cover h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 28pt;
+      font-size: 26pt;
       font-weight: 800;
       color: #ffffff;
-      margin: 0 0 16px;
+      margin: 0 0 14px;
       line-height: 1.2;
     }
-    .pdf-cover p { font-size: 12pt; color: #cbd5e1; max-width: 600px; margin: 0 0 40px; }
+    .pdf-cover p { font-size: 11pt; color: #cbd5e1; max-width: 620px; margin: 0 0 35px; }
     .pdf-cover .meta-box {
       display: flex;
       gap: 20px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.15);
-      padding: 14px 24px;
-      border-radius: 12px;
-      font-size: 9.5pt;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 9pt;
       color: #a5b4fc;
     }
     h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 18pt;
+      font-size: 16pt;
       font-weight: 800;
       color: #1e1b4b;
-      border-bottom: 2.5px solid #4338ca;
-      padding-bottom: 6px;
-      margin-top: 32px;
+      border-bottom: 2px solid #4338ca;
+      padding-bottom: 4px;
+      margin-top: 24px;
       page-break-after: avoid;
+      break-after: avoid;
     }
     h2 {
       font-family: 'Outfit', sans-serif;
-      font-size: 14pt;
+      font-size: 13pt;
       font-weight: 700;
       color: #3730a3;
       margin-top: 26px;
-      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 10px;
+      border-bottom: 1.5px solid #e2e8f0;
       padding-bottom: 4px;
       page-break-after: avoid;
+      break-after: avoid;
+    }
+    h1 + p, h2 + p, h3 + p, h4 + p {
+      page-break-after: avoid;
+      break-after: avoid;
     }
     h3 {
       font-family: 'Outfit', sans-serif;
-      font-size: 12pt;
+      font-size: 11pt;
       font-weight: 600;
       color: #0284c7;
       margin-top: 18px;
+      margin-bottom: 8px;
       page-break-after: avoid;
+      break-after: avoid;
     }
-    p, li { color: #334155; font-size: 10pt; margin-bottom: 10px; }
-    ul, ol { margin-top: 4px; margin-bottom: 14px; padding-left: 20px; }
+    h4 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 9.5pt;
+      font-weight: 600;
+      color: #475569;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    p, li {
+      color: #334155;
+      font-size: 9pt;
+      margin-bottom: 8px;
+    }
+    ul, ol {
+      margin-top: 4px;
+      margin-bottom: 12px;
+      padding-left: 18px;
+    }
     blockquote {
       background: #f8fafc;
       border-left: 4px solid #6366f1;
       border: 1px solid #e2e8f0;
-      padding: 12px 18px;
-      margin: 18px 0;
+      padding: 10px 14px;
+      margin: 14px 0;
       border-radius: 6px;
       page-break-inside: avoid;
+      break-inside: avoid;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 18px 0;
-      font-size: 9pt;
-      page-break-inside: avoid;
+      margin: 12px 0 16px 0;
+      font-size: 8.2pt;
+      page-break-inside: auto;
+      break-inside: auto;
     }
-    thead { display: table-header-group; }
-    tr { page-break-inside: avoid; }
+    thead {
+      display: table-header-group;
+    }
+    tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
     th {
       background: #1e1b4b;
       color: #ffffff;
       font-family: 'Outfit', sans-serif;
-      font-size: 8.5pt;
+      font-size: 8pt;
       font-weight: 700;
       text-transform: uppercase;
-      padding: 8px 10px;
+      padding: 6px 8px;
       border: 1px solid #cbd5e1;
       text-align: left;
     }
     td {
       border: 1px solid #cbd5e1;
-      padding: 7px 10px;
+      padding: 5px 8px;
       color: #334155;
       vertical-align: top;
       word-break: break-word;
@@ -540,29 +527,37 @@ async function rebuildAllManuals() {
       font-family: 'JetBrains Mono', monospace;
       background: #f1f5f9;
       color: #4338ca;
-      padding: 2px 6px;
+      padding: 2px 5px;
       border-radius: 4px;
-      font-size: 8.5pt;
+      font-size: 8pt;
       border: 1px solid #e2e8f0;
     }
     pre code {
       display: block;
-      padding: 14px;
+      padding: 12px;
       background: #0f172a;
       color: #f8fafc;
       border-radius: 8px;
-      font-size: 8pt;
+      font-size: 7.8pt;
       white-space: pre-wrap;
       page-break-inside: avoid;
+      break-inside: avoid;
     }
     .mermaid {
       background: #f8fafc;
       border: 1px solid #cbd5e1;
-      padding: 16px;
-      border-radius: 10px;
-      margin: 18px 0;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 14px 0;
       text-align: center;
       page-break-inside: avoid;
+      break-inside: avoid;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .mermaid svg {
+      max-width: 100% !important;
+      height: auto !important;
     }
   </style>
 </head>
@@ -585,13 +580,22 @@ async function rebuildAllManuals() {
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.mermaid) {
-        mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: 'neutral',
+          themeVariables: {
+            fontSize: '13px',
+            fontFamily: 'Inter, sans-serif'
+          },
+          securityLevel: 'loose'
+        });
       }
     });
   </script>
 </body>
 </html>`;
 
+  console.log('Launching Puppeteer to compile PDF...');
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -601,7 +605,7 @@ async function rebuildAllManuals() {
   await page.evaluate(async () => {
     if (window.mermaid) await window.mermaid.run();
   });
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
   const pdfPath = path.resolve('Manual_do_Usuario_Health_Nexus.pdf');
   const publicPdfPath = path.resolve('public/Manual_do_Usuario_Health_Nexus.pdf');
@@ -609,16 +613,16 @@ async function rebuildAllManuals() {
   await page.pdf({
     path: pdfPath,
     format: 'A4',
-    margin: { top: '18mm', right: '15mm', bottom: '18mm', left: '15mm' },
+    margin: { top: '16mm', right: '12mm', bottom: '16mm', left: '12mm' },
     printBackground: true,
     displayHeaderFooter: true,
     headerTemplate: `
-      <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+      <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 12mm; display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
         <span>🏥 Health Nexus — Sistema de Gestão Hospitalar (v2.8.0)</span>
         <span>Manual do Usuário Oficial</span>
       </div>`,
     footerTemplate: `
-      <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 4px;">
+      <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 12mm; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 4px;">
         <span>Confidencial · Uso Hospitalar & Clínico</span>
         <span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
       </div>`
@@ -630,4 +634,7 @@ async function rebuildAllManuals() {
   console.log('--- ALL MANUALS REBUILT SUCCESSFULLY ---');
 }
 
-rebuildAllManuals();
+// Auto-run if executed directly
+if (process.argv[1] && process.argv[1].endsWith('rebuild_all_manuals.mjs')) {
+  rebuildAllManuals();
+}

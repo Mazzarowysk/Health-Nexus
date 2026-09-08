@@ -1,5 +1,6 @@
 import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
+import * as localDB from '../localDB.js';
 
 const API_URL = '/api';
 
@@ -244,10 +245,12 @@ async function renderLeitosTab() {
           borderTop = '4px solid #facc15';
         }
 
-        const isMarcelo = b.patientName && b.patientName.toLowerCase().includes('marcelo');
+        const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+        const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
+        const isSelectedPatient = !!(activePatName && b.patientName && (b.patientName.toLowerCase().trim() === activePatName));
 
         return `
-          <div class="card ${isMarcelo ? 'patient-pulse-selected' : ''}" style="padding: 20px; border-top: ${borderTop}; border-left: 1.5px solid ${isMarcelo ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; border-right: 1.5px solid ${isMarcelo ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; border-bottom: 1.5px solid ${isMarcelo ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;" onclick="window.openBedDetailsModal('${b.id}')" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
+          <div class="card ${isSelectedPatient ? 'patient-pulse-selected' : ''}" style="padding: 20px; border-top: ${borderTop}; border-left: 1.5px solid ${isSelectedPatient ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; border-right: 1.5px solid ${isSelectedPatient ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; border-bottom: 1.5px solid ${isSelectedPatient ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;" onclick="window.openBedDetailsModal('${b.id}')" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); display:flex; align-items:center; gap: 6px;">
@@ -395,7 +398,17 @@ async function renderLeitosTab() {
       if (res.ok) {
         showToast('Paciente internado com sucesso!');
         modal.style.display = 'none';
-        
+        if (typeof window.setActivePatientContext === 'function') {
+          const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : {};
+          window.setActivePatientContext({
+            ...curCtx,
+            id: patientId,
+            fullName: patientName,
+            patientName: patientName,
+            status: 'Internado',
+            bedId: bedId
+          });
+        }
         loadBeds();
       } else {
         const d = await res.json();

@@ -239,3 +239,20 @@ export function clear() {
   }
 }
 
+if (typeof window !== 'undefined') {
+  window.localDB = {
+    getFullDB,
+    saveFullDB,
+    getConfig,
+    saveConfig,
+    getLocalUpdatedAt,
+    generateId,
+    list,
+    get,
+    insert,
+    update,
+    remove,
+    overwriteLocal,
+    clear
+  };
+}

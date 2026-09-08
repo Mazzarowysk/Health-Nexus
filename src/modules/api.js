@@ -555,6 +555,9 @@ export const apiFetch = async (url, options = {}) => {
           localDB.update('encounters', enc.id, {
             ...enc,
             status: 'Internado',
+            room: null,
+            roomName: null,
+            previousRoom: enc.room || enc.roomName || null,
             bed: bed.bedNumber || bed.number,
             bedId: bed.id,
             hospitalized_at: new Date().toISOString(),
@@ -607,18 +610,22 @@ export const apiFetch = async (url, options = {}) => {
         };
         localDB.update('beds', bed.id, updatedBed);
 
-        if (encounterId) {
-          const encs = localDB.list('encounters') || [];
-          const enc = encs.find(e => String(e.id) === String(encounterId));
-          if (enc) {
-            localDB.update('encounters', enc.id, {
-              ...enc,
-              status: 'Internado',
-              bed: bed.bedNumber || bed.number,
-              bedId: bed.id,
-              lastStatusUpdate: new Date().toISOString()
-            });
-          }
+        const encs = localDB.list('encounters') || [];
+        const enc = encounterId
+          ? encs.find(e => String(e.id) === String(encounterId))
+          : encs.find(e => (String(e.patientId) === String(patientId) || (e.patientName && patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim())) && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento' || e.status === 'Triado'));
+        if (enc) {
+          localDB.update('encounters', enc.id, {
+            ...enc,
+            status: 'Internado',
+            room: null,
+            roomName: null,
+            previousRoom: enc.room || enc.roomName || null,
+            bed: bed.bedNumber || bed.number,
+            bedId: bed.id,
+            hospitalized_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          });
         }
 
         const hosps = localDB.list('hospitalizations') || [];

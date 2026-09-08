@@ -21,7 +21,10 @@ import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.j
 window.renderTISSTab = renderTISSTab;
 import { realtimeHub } from './modules/realtime.js';
 import { setActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD, initFloatingWorkflowGuide, updateFloatingWorkflowGuide } from './modules/journey.js';
-import { generateMockData } from './mockDataGenerator.js';
+import { generateMockData, generateHospitalizations } from './mockDataGenerator.js';
+if (typeof window !== 'undefined') {
+  window.localDB = localDB;
+}
 import { renderEmbeddedTabbedManual, showInteractiveManualModal, manualData, showCardDetailModal, searchManualEngine, showManualReturnBeacon } from './manualTabbed.js';
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 import { inject } from '@vercel/analytics';
@@ -431,11 +434,13 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     customNotice = '<div style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.5);border-radius:8px;padding:6px 10px;font-size:0.75rem;color:#93c5fd;margin-bottom:10px;display:flex;align-items:center;gap:6px">'
       + '<span>ℹ️</span> <span>' + customMessage + '</span></div>';
   } else if (mColor === 'vermelho') {
-  customNotice = '<div style="background:rgba(239,68,68,0.25);border:1.5px solid #ef4444;border-radius:8px;padding:7px 10px;font-size:0.76rem;color:#fca5a5;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px;animation:pulse 1.5s infinite">'
-      + '<span>🚨</span> <span>PACIENTE CRÍTICO: Atendimento médico imediato na Sala Vermelha!</span></div>';
+    const patNameLabel = activePatient ? (activePatient.fullName || activePatient.patientName || 'Paciente') : 'Paciente';
+    customNotice = '<div style="background:rgba(239,68,68,0.25);border:1.5px solid #ef4444;border-radius:8px;padding:7px 10px;font-size:0.76rem;color:#fca5a5;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px;animation:pulse 1.5s infinite">'
+      + '<span>🚨</span> <span>PACIENTE CRÍTICO (' + patNameLabel + '): Triagem Vermelha — Atendimento médico imediato na Sala Vermelha!</span></div>';
   } else if (mColor === 'laranja') {
+    const patNameLabel = activePatient ? (activePatient.fullName || activePatient.patientName || 'Paciente') : 'Paciente';
     customNotice = '<div style="background:rgba(249,115,22,0.2);border:1px solid #f97316;border-radius:8px;padding:7px 10px;font-size:0.76rem;color:#fdba74;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px">'
-      + '<span>⚠️</span> <span>MUITO URGENTE: Priorizar chamada médica em até 10 minutos!</span></div>';
+      + '<span>⚠️</span> <span>MUITO URGENTE (' + patNameLabel + '): Triagem Laranja — Priorizar chamada médica em até 10 minutos!</span></div>';
   }
 
   // Definir título, descrição, próximo passo e ações específicas por tela
@@ -501,14 +506,22 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
     case 'consultorios':
     case 'medicos':
-      stepTitle = '💊 Dispensar Medicamentos / Solicitar Leito';
-      stepDesc = 'Atendimento médico e evolução SOAP concluídos no PEP! Próximo passo: enviar a receita para dispensação na farmácia hospitalar ou solicitar vaga de internação caso indicado.';
-      targetTab = 'farmacia';
-      btnText = '💊 Ir para Farmácia Hospitalar ➔';
-      btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+      if (activePatient && (activePatient.status === 'Internado' || activePatient.bed)) {
+        stepTitle = '🛏️ Paciente Internado em Leito Hospitalar';
+        stepDesc = 'O paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' já foi transferido para internação' + (activePatient.bed ? ' no Leito ' + activePatient.bed : '') + '. Acompanhe a evolução clínica e o plano terapêutico no Censo de Leitos e Kanban.';
+        targetTab = 'leitos';
+        btnText = '🛏️ Acompanhar no Mapa de Leitos ➔';
+        btnBg = 'linear-gradient(135deg, #06b6d4, #0891b2)';
+      } else {
+        stepTitle = '💊 Dispensar Medicamentos / Solicitar Leito';
+        stepDesc = 'Atendimento médico e evolução SOAP concluídos no PEP! Próximo passo: enviar a receita para dispensação na farmácia hospitalar ou solicitar vaga de internação caso indicado.';
+        targetTab = 'farmacia';
+        btnText = '💊 Ir para Farmácia Hospitalar ➔';
+        btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+      }
       extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
         + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.4);color:#67e8f9;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🛏️</span> Solicitar Leito</button>'
+        + '<span>🛏️</span> Mapa de Leitos</button>'
         + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
         + '<span>📺</span> Chamar Próximo</button>'
         + '</div>';
@@ -792,6 +805,14 @@ const initializeApp = async () => {
       if (Object.keys(fullDB).length === 0 || (fullDB.medications && fullDB.medications.length > 0 && fullDB.medications[0].stockQuantity === undefined)) {
         console.log('[Init] Banco de dados vazio detectado. Gerando dados simulados iniciais...');
         await generateMockData();
+      } else if (!fullDB.hospitalizations || fullDB.hospitalizations.length === 0) {
+        console.log('[Init] Tabela hospitalizations ausente ou vazia. Gerando internações para Kanban...');
+        const patients = fullDB.patients || [];
+        const doctors = fullDB.doctors || [];
+        if (patients.length > 0 && doctors.length > 0) {
+          fullDB.hospitalizations = generateHospitalizations(patients, doctors, 35);
+          localDB.saveFullDB(fullDB);
+        }
       }
       renderAppStructure();
       const logoutBtn = document.getElementById('btn-logout');
@@ -3785,10 +3806,30 @@ async function loadConsultingRooms() {
       ];
     }
     
+    const activePatContext = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+    const activePatName = activePatContext ? (activePatContext.fullName || activePatContext.patientName || '').toLowerCase().trim() : '';
+    const allBeds = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('beds') || []) : [];
+
     dashboard.innerHTML = rooms.map(r => {
-      const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name || (r.name === 'Consultório 01' && !a.roomName && !a.room)));
-      const roomEncs = encounters.filter(e => (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
-      const roomTvCalls = tvCalls.filter(c => c.roomName === r.name || c.room === r.name);
+      const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name || (r.name === 'Consultório 01' && !a.roomName && !a.room && a.status !== 'Finalizado' && a.status !== 'Cancelado')));
+      
+      const roomEncs = encounters.filter(e => {
+        if (e.status === 'Internado' || e.status === 'Finalizado' || e.status === 'Alta') return false;
+        const ePatName = (e.patientName || '').toLowerCase().trim();
+        const isInBed = allBeds.some(b => b.status === 'Ocupado' && (b.patientName || '').toLowerCase().trim() === ePatName);
+        if (isInBed) return false;
+        return (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && !e.room && !e.roomName && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento')));
+      });
+
+      const roomTvCalls = tvCalls.filter(c => {
+        if (c.roomName !== r.name && c.room !== r.name) return false;
+        const pName = (c.patientName || c.name || '').toLowerCase().trim();
+        const enc = encounters.find(e => (e.patientName || '').toLowerCase().trim() === pName);
+        if (enc && (enc.status === 'Internado' || enc.status === 'Finalizado' || enc.status === 'Alta')) return false;
+        const isInBed = allBeds.some(b => b.status === 'Ocupado' && (b.patientName || '').toLowerCase().trim() === pName);
+        if (isInBed) return false;
+        return true;
+      });
       
       const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
       const inProgressApt = roomApts.find(a => a.status === 'Em Atendimento' || a.status === 'Em_Atendimento');
@@ -3805,8 +3846,10 @@ async function loadConsultingRooms() {
       const patientNameDisplay = inProgress ? (inProgress.patientName || inProgress.name || 'Paciente') : null;
       const patientTargetId = inProgressEnc ? inProgressEnc.id : (inProgress ? (inProgress.patientId || inProgress.id || inProgress.patientName) : '');
       
+      const isSelectedPatient = !!(activePatName && patientNameDisplay && (patientNameDisplay.toLowerCase().trim() === activePatName));
+
       return `
-        <div class="interactive-card ${patientNameDisplay && patientNameDisplay.toLowerCase().includes('marcelo') ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+        <div class="interactive-card ${isSelectedPatient ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">

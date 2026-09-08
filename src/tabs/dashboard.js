@@ -1,6 +1,7 @@
-// ─── MÓDULO DA ABA DASHBOARD & MÉTRICAS (HEALTH NEXUS v2.7.2) ───────────────────
 import { state } from '../state.js';
 import { apiFetch } from '../modules/api.js';
+import * as localDB from '../localDB.js';
+import { generateHospitalizations } from '../mockDataGenerator.js';
 
 export async function fetchDashboardData() {
   state.loading = true;
@@ -561,10 +562,25 @@ export function initDashboardCharts(data) {
     
     let activeHosps = [];
     try {
-      if (typeof window.localDB !== 'undefined' && window.localDB.list) {
-        activeHosps = window.localDB.list('hospitalizations').filter(h => h.status !== 'Alta');
+      const db = (typeof localDB !== 'undefined' && localDB.list) ? localDB : (window.localDB || null);
+      if (db && db.list) {
+        let allHosps = db.list('hospitalizations') || [];
+        // Se a tabela hospitalizations estiver vazia no banco do usuário, gera sob demanda usando pacientes e médicos existentes
+        if (allHosps.length === 0) {
+          const fullDB = db.getFullDB ? db.getFullDB() : {};
+          const patients = fullDB.patients || (db.list('patients') || []);
+          const doctors = fullDB.doctors || (db.list('doctors') || []);
+          if (patients.length > 0 && doctors.length > 0 && typeof generateHospitalizations === 'function') {
+            allHosps = generateHospitalizations(patients, doctors, 35);
+            fullDB.hospitalizations = allHosps;
+            if (db.saveFullDB) db.saveFullDB(fullDB);
+          }
+        }
+        activeHosps = allHosps.filter(h => h.status !== 'Alta');
       }
-    } catch(e) {}
+    } catch(e) {
+      console.warn('Erro ao carregar dados do Kanban para o dashboard:', e);
+    }
     
     const sectors = [
       { id: 'pronto_socorro', label: 'PS (Obs)', color: '#3b82f6' },
@@ -575,6 +591,21 @@ export function initDashboardCharts(data) {
     ];
 
     const sectorCounts = sectors.map(s => activeHosps.filter(h => h.current_sector === s.id).length);
+    const totalActive = sectorCounts.reduce((acc, c) => acc + c, 0);
+
+    // Atualizar badge no cabeçalho do card
+    const kanbanTotalBadge = document.getElementById('dashboard-kanban-total-badge');
+    if (kanbanTotalBadge) {
+      kanbanTotalBadge.innerHTML = `<i class="fa-solid fa-bed-pulse"></i> ${totalActive} Internados`;
+    }
+
+    // Toggle mensagem de estado vazio
+    const emptyMsg = document.getElementById('dashboard-kanban-empty-msg');
+    if (emptyMsg) {
+      emptyMsg.style.display = totalActive === 0 ? 'flex' : 'none';
+    }
+
+    const maxCount = Math.max(...sectorCounts, 0);
 
     const instK = new ChartClass(dashboardKanbanCtx.getContext('2d'), {
       type: 'bar',
@@ -585,8 +616,8 @@ export function initDashboardCharts(data) {
           data: sectorCounts,
           backgroundColor: sectors.map(s => window.createChartGradient ? window.createChartGradient(dashboardKanbanCtx.getContext('2d'), s.color, 'ff', '44', 300) : s.color),
           borderColor: sectors.map(s => s.color),
-          borderWidth: 1,
-          borderRadius: 6,
+          borderWidth: 1.5,
+          borderRadius: 8,
           borderSkipped: false
         }]
       },
@@ -618,8 +649,9 @@ export function initDashboardCharts(data) {
           },
           y: {
             grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 }, precision: 0 },
-            beginAtZero: true
+            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 }, precision: 0, stepSize: 1 },
+            beginAtZero: true,
+            suggestedMax: Math.max(5, maxCount + 1)
           }
         }
       }
@@ -829,16 +861,26 @@ export async function renderDashboardTab(contentArea) {
 
         <!-- Card 5: Kanban de Internação -->
         <div class="chart-card" onclick="if(typeof window.switchTab==='function') window.switchTab('kanban')" style="cursor: pointer; transition: transform 0.2s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='none'" title="Clique para abrir a aba Kanban de Internação">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <h4 class="chart-card-title" style="margin-bottom: 0;">
               <i class="fa-solid fa-table-columns" style="color: #6366f1;"></i> Fluxo Kanban de Internação
             </h4>
-            <span class="badge-status-pill" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #818cf8; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Kanban
-            </span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="dashboard-kanban-total-badge" class="badge-status-pill" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #818cf8; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
+                <i class="fa-solid fa-bed-pulse"></i> Calculando...
+              </span>
+              <span class="badge-status-pill" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #818cf8; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Kanban
+              </span>
+            </div>
           </div>
           <div class="chart-container" style="height: 240px; position: relative;">
             <canvas id="dashboardKanbanChart"></canvas>
+            <div id="dashboard-kanban-empty-msg" style="display: none; position: absolute; inset: 0; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: rgba(15, 23, 42, 0.75); border-radius: 8px; backdrop-filter: blur(4px);">
+              <i class="fa-solid fa-bed-pulse" style="font-size: 2rem; color: #818cf8; margin-bottom: 8px; opacity: 0.8;"></i>
+              <p style="margin: 0; font-size: 0.9rem; color: #f8fafc; font-weight: 600;">Nenhum paciente internado no momento</p>
+              <span style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Clique para abrir a aba Kanban e gerenciar o fluxo</span>
+            </div>
           </div>
         </div>
       </div>
