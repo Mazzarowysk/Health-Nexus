@@ -76,6 +76,85 @@ function embedScreenshotsAsBase64(html) {
   });
 }
 
+function formatContentForPdf(html) {
+  let res = html;
+
+  // 1. Convert status color circles to crisp CSS badges
+  res = res.replace(/🟢\s*`?([^`<]+)`?/g, '<span class="status-badge status-green">$1</span>');
+  res = res.replace(/🔴\s*`?([^`<]+)`?/g, '<span class="status-badge status-red">$1</span>');
+  res = res.replace(/🟡\s*`?([^`<]+)`?/g, '<span class="status-badge status-yellow">$1</span>');
+  res = res.replace(/🔵\s*`?([^`<]+)`?/g, '<span class="status-badge status-blue">$1</span>');
+  res = res.replace(/⚪\s*`?([^`<]+)`?/g, '<span class="status-badge status-gray">$1</span>');
+
+  // 2. Convert standalone status circles
+  res = res.replace(/🟢/g, '<span class="status-dot dot-green"></span>');
+  res = res.replace(/🔴/g, '<span class="status-dot dot-red"></span>');
+  res = res.replace(/🟡/g, '<span class="status-dot dot-yellow"></span>');
+  res = res.replace(/🔵/g, '<span class="status-dot dot-blue"></span>');
+  res = res.replace(/⚪/g, '<span class="status-dot dot-gray"></span>');
+
+  // 3. Convert action emojis in table cells or text
+  const iconReplacements = {
+    '📢': '[TV]',
+    '🩺': '[PEP]',
+    '🔄': '[Retorno]',
+    '💉': '[Medicação]',
+    '🏃': '[Evasão]',
+    '📜': '[Prescrição]',
+    '⏱️': '[Tempo]',
+    '🛏️': '[Leito]',
+    '✅': '[OK]',
+    '🚨': '[Urgência]',
+    '✨': '[Limpeza]',
+    '🛡️': '[Segurança]',
+    '🚪': '[Alta]',
+    '📋': '[Lista]',
+    '🔍': '[Buscar]',
+    '✏️': '[Editar]',
+    '🗑️': '[Lixeira]',
+    '♻️': '[Restaurar]',
+    '📦': '[XML TISS]',
+    '📄': '[Guia]',
+    '🧾': '[Recibo]',
+    '⚠️': '[Atenção]',
+    '☀️': '[Contraste]',
+    '📏': '[Régua]',
+    '🔔': '[Aviso]',
+    '⌨️': '[Atalho]',
+    '❓': '[FAQ]',
+    '🚀': '',
+    '👑': '[Master]',
+    '💻': '[Dev]',
+    '🛠️': '[Admin]',
+    '👨‍⚕️': '[Médico]',
+    '💊': '[Farmácia]',
+    '💰': '[Financeiro]',
+    '📊': '[Relatório]',
+    '📈': '[Analytics]',
+    '📺': '[TV]',
+    '⏳': '[Espera]',
+    '🗺️': '',
+    '📌': '',
+    '🔒': '',
+    '📅': '',
+    '🎛️': '',
+    '☁️': '',
+    '📝': '',
+    '🩻': '',
+    '🏥': ''
+  };
+
+  for (const [emoji, text] of Object.entries(iconReplacements)) {
+    res = res.replaceAll(emoji, text);
+  }
+
+  // 4. Strip any other remaining Unicode emoji sequences
+  const remainingEmojis = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}\u{FE00}-\u{FE0F}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu;
+  res = res.replace(remainingEmojis, '');
+
+  return res;
+}
+
 export async function rebuildAllManuals() {
   console.log('--- REBUILDING ALL MANUALS IN HEALTH NEXUS (v2.8.0) ---');
 
@@ -429,13 +508,13 @@ export async function rebuildAllManuals() {
   console.log('✓ manual_do_usuario.html and public/manual_do_usuario.html generated cleanly.');
 
   // 5. PDF Generation with Puppeteer
+  const pdfBody = formatContentForPdf(renderedBody);
   const pdfHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Manual do Usuário — Health Nexus v2.8.0</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     * {
@@ -448,10 +527,10 @@ export async function rebuildAllManuals() {
       margin: 16mm 12mm 16mm 12mm;
     }
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Segoe UI', Arial, -apple-system, sans-serif;
       color: #0f172a;
-      line-height: 1.5;
-      font-size: 9pt;
+      line-height: 1.45;
+      font-size: 8.8pt;
       margin: 0;
       padding: 0;
       background: #ffffff;
@@ -485,7 +564,6 @@ export async function rebuildAllManuals() {
       margin-bottom: 24px;
     }
     .pdf-cover h1 {
-      font-family: 'Outfit', sans-serif;
       font-size: 26pt;
       font-weight: 800;
       color: #ffffff;
@@ -504,23 +582,21 @@ export async function rebuildAllManuals() {
       color: #c7d2fe;
     }
     h1 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 16pt;
+      font-size: 15pt;
       font-weight: 800;
       color: #1e1b4b;
       border-bottom: 2px solid #4338ca;
       padding-bottom: 4px;
-      margin-top: 24px;
+      margin-top: 22px;
       page-break-after: avoid;
       break-after: avoid;
     }
     h2 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 13pt;
+      font-size: 12.5pt;
       font-weight: 700;
       color: #3730a3;
-      margin-top: 24px;
-      margin-bottom: 10px;
+      margin-top: 22px;
+      margin-bottom: 8px;
       border-bottom: 1.5px solid #e2e8f0;
       padding-bottom: 4px;
       page-break-after: avoid;
@@ -531,21 +607,19 @@ export async function rebuildAllManuals() {
       break-after: avoid;
     }
     h3 {
-      font-family: 'Outfit', sans-serif;
       font-size: 10.5pt;
-      font-weight: 600;
+      font-weight: 700;
       color: #0284c7;
-      margin-top: 16px;
+      margin-top: 14px;
       margin-bottom: 6px;
       page-break-after: avoid;
       break-after: avoid;
     }
     h4 {
-      font-family: 'Outfit', sans-serif;
       font-size: 9pt;
-      font-weight: 600;
+      font-weight: 700;
       color: #475569;
-      margin-top: 12px;
+      margin-top: 10px;
       margin-bottom: 4px;
       page-break-after: avoid;
       break-after: avoid;
@@ -601,7 +675,7 @@ export async function rebuildAllManuals() {
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 10px 0 14px 0;
+      margin: 8px 0 12px 0;
       font-size: 7.8pt;
       page-break-inside: auto;
       break-inside: auto;
@@ -616,17 +690,16 @@ export async function rebuildAllManuals() {
     th {
       background: #1e1b4b !important;
       color: #ffffff !important;
-      font-family: 'Outfit', sans-serif;
       font-size: 7.8pt;
       font-weight: 700;
       text-transform: uppercase;
       padding: 6px 8px;
-      border: 1px solid #64748b !important;
+      border: 1px solid #475569 !important;
       text-align: left;
     }
     td {
       border: 1px solid #cbd5e1 !important;
-      padding: 5px 8px;
+      padding: 5px 7px;
       color: #0f172a !important;
       vertical-align: middle;
       word-break: break-word;
@@ -635,12 +708,12 @@ export async function rebuildAllManuals() {
       background: #f1f5f9 !important;
     }
     code {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Consolas', 'Courier New', monospace;
       background: #ede9fe !important;
       color: #4338ca !important;
-      padding: 2px 5px;
+      padding: 2px 4px;
       border-radius: 4px;
-      font-size: 7.6pt;
+      font-size: 7.5pt;
       border: 1px solid #c7d2fe !important;
     }
     pre code {
@@ -654,6 +727,52 @@ export async function rebuildAllManuals() {
       page-break-inside: avoid;
       break-inside: avoid;
     }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 7.2pt;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .status-green {
+      background: #dcfce7 !important;
+      color: #15803d !important;
+      border: 1px solid #86efac !important;
+    }
+    .status-red {
+      background: #fee2e2 !important;
+      color: #b91c1c !important;
+      border: 1px solid #fca5a5 !important;
+    }
+    .status-yellow {
+      background: #fef9c3 !important;
+      color: #a16207 !important;
+      border: 1px solid #fde047 !important;
+    }
+    .status-blue {
+      background: #e0f2fe !important;
+      color: #0369a1 !important;
+      border: 1px solid #7dd3fc !important;
+    }
+    .status-gray {
+      background: #f1f5f9 !important;
+      color: #475569 !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .dot-green { background: #22c55e !important; }
+    .dot-red { background: #ef4444 !important; }
+    .dot-yellow { background: #eab308 !important; }
+    .dot-blue { background: #3b82f6 !important; }
+    .dot-gray { background: #94a3b8 !important; }
     .mermaid {
       background: #f8fafc !important;
       border: 1px solid #cbd5e1 !important;
@@ -686,7 +805,7 @@ export async function rebuildAllManuals() {
     </div>
   </div>
 
-  ${renderedBody}
+  ${pdfBody}
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -696,7 +815,7 @@ export async function rebuildAllManuals() {
           theme: 'neutral',
           themeVariables: {
             fontSize: '13px',
-            fontFamily: 'Inter, sans-serif'
+            fontFamily: 'Segoe UI, sans-serif'
           },
           securityLevel: 'loose'
         });
@@ -733,12 +852,12 @@ export async function rebuildAllManuals() {
     printBackground: true,
     displayHeaderFooter: true,
     headerTemplate: `
-      <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 12mm; display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
-        <span>🏥 Health Nexus — Sistema de Gestão Hospitalar (v2.8.0)</span>
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 12mm; display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+        <span>Health Nexus — Sistema de Gestão Hospitalar (v2.8.0)</span>
         <span>Manual do Usuário Oficial</span>
       </div>`,
     footerTemplate: `
-      <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 12mm; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 4px;">
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 12mm; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 4px;">
         <span>Confidencial · Uso Hospitalar & Clínico</span>
         <span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
       </div>`
