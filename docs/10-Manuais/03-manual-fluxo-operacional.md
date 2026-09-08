@@ -16,27 +16,42 @@ Este manual descreve o **ciclo completo de fluxo operacional** — desde a prime
 3. **Visibilidade Operacional em Tempo Real:** Painéis dinâmicos de chamada por síntese de voz (Web Speech API), censo visual de leitos hospitalares e telemetria de estagnação garantem que a equipe multidisciplinar identifique gargalos instantaneamente.
 4. **Rastreabilidade e Não Repúdio:** Todas as transações, prescrições, mudanças de status e registros no prontuário eletrônico (PEP) são carimbadas com identificador do profissional, timestamp auditável e assinatura digital.
 
----
+<div class="page-break"></div>
 
 ## 2. ARQUITETURA GERAL DA JORNADA DO PACIENTE
 
-O diagrama abaixo ilustra as 10 etapas sequenciais e conectadas que estruturam a jornada do paciente dentro do ecossistema hospitalar do Health Nexus:
+O fluxo hospitalar no Health Nexus é organizado em **três macrofases sequenciais** e integradas:
+
+1. **Porta de Entrada & Classificação de Risco (Etapas 01 a 03):** Recepção com validação de CPF e preenchimento de endereço via ViaCEP, Triagem de Enfermagem pelo Protocolo de Manchester e chamada sonora na sala de espera via Painel TV (Web Speech API pt-BR).
+2. **Assistência Clínica, Farmácia & Telemetria (Etapas 04 a 07):** Atendimento no consultório com prontuário estruturado SOAPE, Prescrição Eletrônica protegida por CDSS (alertas de alergias e interações medicamentosas), dispensação rastreável na Farmácia Hospitalar e monitoramento do tempo de permanência no Pronto-Socorro.
+3. **Regulação, Internação & Alta Hospitalar (Etapas 08 a 10):** Regulação de leitos pelo NIR com mapa do censo hospitalar (UTI e Enfermarias), acompanhamento multidisciplinar no Kanban de Internação por especialidade e encerramento com Alta Segura, receita com QR Code autenticável pelo CFM e geração de guias TISS 4.01 (ANS).
 
 ```mermaid
-graph TD
-    A[01. Recepção & Acolhimento] -->|Validação CPF/CEP| B[02. Triagem de Enfermagem]
-    B -->|Protocolo de Manchester & MEWS| C[03. Fila de Espera & Painel TV]
-    C -->|Chamada Sonora Web Speech| D[04. Consultório Médico & PEP SOAPE]
-    D -->|Prescrição com CDSS| E[05. Farmácia Hospitalar]
-    D -->|Tempo > 2h / Exames| F[06. Telemetria de Estagnação PS]
-    D -->|Necessidade de Leito| G[07. Regulação & Censo de Leitos]
-    E -->|Dispensação Rastreável| G
-    G -->|Internação Ativa| H[08. Kanban de Internação]
-    H -->|Evolução Multidisciplinar| I[09. Preparação para Desospitalização]
-    I -->|Sumário de Alta & QR Code| J[10. Faturamento TISS 4.01 & Pós-Alta]
+flowchart TD
+    subgraph S1["1. Entrada e Triagem"]
+        A["01. Recepção e Acolhimento"] --> B["02. Triagem Manchester"]
+        B --> C["03. Fila e Painel TV"]
+    end
+    subgraph S2["2. Assistência e Farmácia"]
+        C --> D["04. Consultório PEP SOAPE"]
+        D --> E["05. Prescrição CDSS"]
+        E --> F["06. Farmácia Hospitalar"]
+    end
+    subgraph S3["3. Internação e Desfecho"]
+        D --> G["07. Estagnação no PS"]
+        D --> H["08. Regulação e Censo Leitos"]
+        H --> I["09. Kanban de Internação"]
+        I --> J["10. Alta Segura e QR Code CFM"]
+    end
 ```
 
----
+| Macrofase Operacional | Etapas do Sistema | Perfis Envolvidos | Meta Assistencial e Governança |
+| :--- | :--- | :--- | :--- |
+| **1. Porta de Entrada & Risco** | 01. Recepção · 02. Triagem · 03. TV | Recepção & Enfermagem | Admissão rápida (< 5 min) e priorização imediata por risco vital |
+| **2. Assistência & Farmácia** | 04. Consultório · 05. Prescrição · 06. Farmácia · 07. Estagnação | Médicos & Farmacêuticos | Registro SOAPE completo e bloqueio de interações graves |
+| **3. Governança & Desfecho** | 08. Regulação · 09. Kanban · 10. Alta e TISS | NIR, Assistenciais e Faturamento | Otimização do giro de leitos, alta com QR Code e faturamento ANS |
+
+<div class="page-break"></div>
 
 ## 3. DETALHAMENTO DAS ETAPAS OPERACIONAIS COM PRINTS EXCLUSIVOS
 

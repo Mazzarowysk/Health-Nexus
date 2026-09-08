@@ -186,25 +186,61 @@
 <li><strong>Visibilidade Operacional em Tempo Real:</strong> Painéis dinâmicos de chamada por síntese de voz (Web Speech API), censo visual de leitos hospitalares e telemetria de estagnação garantem que a equipe multidisciplinar identifique gargalos instantaneamente.</li>
 <li><strong>Rastreabilidade e Não Repúdio:</strong> Todas as transações, prescrições, mudanças de status e registros no prontuário eletrônico (PEP) são carimbadas com identificador do profissional, timestamp auditável e assinatura digital.</li>
 </ol>
-<hr>
-<h2>2. ARQUITETURA GERAL DA JORNADA DO PACIENTE</h2>
-<p>O diagrama abaixo ilustra as 10 etapas sequenciais e conectadas que estruturam a jornada do paciente dentro do ecossistema hospitalar do Health Nexus:</p>
+<div class="page-break"></div><h2>2. ARQUITETURA GERAL DA JORNADA DO PACIENTE</h2>
+<p>O fluxo hospitalar no Health Nexus é organizado em <strong>três macrofases sequenciais</strong> e integradas:</p>
+<ol>
+<li><strong>Porta de Entrada &amp; Classificação de Risco (Etapas 01 a 03):</strong> Recepção com validação de CPF e preenchimento de endereço via ViaCEP, Triagem de Enfermagem pelo Protocolo de Manchester e chamada sonora na sala de espera via Painel TV (Web Speech API pt-BR).</li>
+<li><strong>Assistência Clínica, Farmácia &amp; Telemetria (Etapas 04 a 07):</strong> Atendimento no consultório com prontuário estruturado SOAPE, Prescrição Eletrônica protegida por CDSS (alertas de alergias e interações medicamentosas), dispensação rastreável na Farmácia Hospitalar e monitoramento do tempo de permanência no Pronto-Socorro.</li>
+<li><strong>Regulação, Internação &amp; Alta Hospitalar (Etapas 08 a 10):</strong> Regulação de leitos pelo NIR com mapa do censo hospitalar (UTI e Enfermarias), acompanhamento multidisciplinar no Kanban de Internação por especialidade e encerramento com Alta Segura, receita com QR Code autenticável pelo CFM e geração de guias TISS 4.01 (ANS).</li>
+</ol>
 <div class="mermaid">
-graph TD
-    A[01. Recepção & Acolhimento] -->|Validação CPF/CEP| B[02. Triagem de Enfermagem]
-    B -->|Protocolo de Manchester & MEWS| C[03. Fila de Espera & Painel TV]
-    C -->|Chamada Sonora Web Speech| D[04. Consultório Médico & PEP SOAPE]
-    D -->|Prescrição com CDSS| E[05. Farmácia Hospitalar]
-    D -->|Tempo > 2h / Exames| F[06. Telemetria de Estagnação PS]
-    D -->|Necessidade de Leito| G[07. Regulação & Censo de Leitos]
-    E -->|Dispensação Rastreável| G
-    G -->|Internação Ativa| H[08. Kanban de Internação]
-    H -->|Evolução Multidisciplinar| I[09. Preparação para Desospitalização]
-    I -->|Sumário de Alta & QR Code| J[10. Faturamento TISS 4.01 & Pós-Alta]
+flowchart TD
+    subgraph S1["1. Entrada e Triagem"]
+        A["01. Recepção e Acolhimento"] --> B["02. Triagem Manchester"]
+        B --> C["03. Fila e Painel TV"]
+    end
+    subgraph S2["2. Assistência e Farmácia"]
+        C --> D["04. Consultório PEP SOAPE"]
+        D --> E["05. Prescrição CDSS"]
+        E --> F["06. Farmácia Hospitalar"]
+    end
+    subgraph S3["3. Internação e Desfecho"]
+        D --> G["07. Estagnação no PS"]
+        D --> H["08. Regulação e Censo Leitos"]
+        H --> I["09. Kanban de Internação"]
+        I --> J["10. Alta Segura e QR Code CFM"]
+    end
 
 </div>
-<hr>
-<h2>3. DETALHAMENTO DAS ETAPAS OPERACIONAIS COM PRINTS EXCLUSIVOS</h2>
+<table>
+<thead>
+<tr>
+<th align="left">Macrofase Operacional</th>
+<th align="left">Etapas do Sistema</th>
+<th align="left">Perfis Envolvidos</th>
+<th align="left">Meta Assistencial e Governança</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>1. Porta de Entrada &amp; Risco</strong></td>
+<td align="left">01. Recepção · 02. Triagem · 03. TV</td>
+<td align="left">Recepção &amp; Enfermagem</td>
+<td align="left">Admissão rápida (&lt; 5 min) e priorização imediata por risco vital</td>
+</tr>
+<tr>
+<td align="left"><strong>2. Assistência &amp; Farmácia</strong></td>
+<td align="left">04. Consultório · 05. Prescrição · 06. Farmácia · 07. Estagnação</td>
+<td align="left">Médicos &amp; Farmacêuticos</td>
+<td align="left">Registro SOAPE completo e bloqueio de interações graves</td>
+</tr>
+<tr>
+<td align="left"><strong>3. Governança &amp; Desfecho</strong></td>
+<td align="left">08. Regulação · 09. Kanban · 10. Alta e TISS</td>
+<td align="left">NIR, Assistenciais e Faturamento</td>
+<td align="left">Otimização do giro de leitos, alta com QR Code e faturamento ANS</td>
+</tr>
+</tbody></table>
+<div class="page-break"></div><h2>3. DETALHAMENTO DAS ETAPAS OPERACIONAIS COM PRINTS EXCLUSIVOS</h2>
 <h3>ETAPA 01: ACOLHIMENTO, ADMISSÃO E PREVENÇÃO DE DUPLICIDADES (RECEPÇÃO)</h3>
 <p>A recepção é a porta de entrada física e digital do paciente no complexo de saúde. O objetivo operacional é registrar a admissão com agilidade máxima (&lt; 5 minutos por ficha), eliminando homônimos e prontuários duplicados.</p>
 <h4>Rotina Operacional da Recepção:</h4>
