@@ -4359,18 +4359,41 @@ async function loadConsultingRooms() {
     const tvCalls = Array.isArray(tvResult) ? tvResult : (tvResult.data || []);
 
     if (rooms.length === 0) {
-      const defaultRooms = [
-        { id: 'room-1', name: 'Consultório 01', specialty: 'Clínica Geral / Pronto Atendimento', currentDoctor: 'Dr. Marcelo Mazaro', status: 'Disponível' },
-        { id: 'room-2', name: 'Consultório 02', specialty: 'Pediatria', currentDoctor: 'Dra. Wanessa Ribeiro', status: 'Disponível' },
-        { id: 'room-3', name: 'Consultório 03', specialty: 'Ortopedia / Trauma', currentDoctor: 'Dr. Felipe Dias', status: 'Disponível' },
-        { id: 'room-4', name: 'Consultório 04', specialty: 'Cardiologia', currentDoctor: 'Dra. Helena Rocha', status: 'Disponível' },
-      ];
-      if (typeof localDB !== 'undefined' && localDB.getFullDB) {
-        const currentDb = localDB.getFullDB();
-        currentDb.consultorios = defaultRooms;
-        localDB.saveFullDB(currentDb);
-      }
-      rooms = defaultRooms;
+      dashboard.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--bg-secondary); border-radius: 16px; border: 1.5px dashed var(--border-color);">
+          <i class="fa-solid fa-door-closed" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 16px; display: inline-block;"></i>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Nenhum Consultório Cadastrado</h3>
+          <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 20px auto; font-size: 0.9rem;">
+            A base de dados foi limpa e não há consultórios configurados no momento. Cadastre novas salas ou inicialize os 4 consultórios padrão do pronto atendimento.
+          </p>
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="if(typeof window.openRoomModal === 'function') window.openRoomModal();" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 20px; border-radius: 10px;">
+              <i class="fa-solid fa-plus"></i> Novo Consultório
+            </button>
+            <button id="btn-load-default-rooms" class="btn" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 20px; border-radius: 10px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
+              <i class="fa-solid fa-arrows-rotate"></i> Carregar 4 Consultórios Padrão
+            </button>
+          </div>
+        </div>
+      `;
+      document.getElementById('btn-load-default-rooms')?.addEventListener('click', async () => {
+        const defaultRooms = [
+          { id: 'room-1', name: 'Consultório 01', specialty: 'Clínica Geral / Pronto Atendimento', currentDoctor: 'Dr. Marcelo Mazaro', status: 'Disponível' },
+          { id: 'room-2', name: 'Consultório 02', specialty: 'Pediatria', currentDoctor: 'Dra. Wanessa Ribeiro', status: 'Disponível' },
+          { id: 'room-3', name: 'Consultório 03', specialty: 'Ortopedia / Trauma', currentDoctor: 'Dr. Felipe Dias', status: 'Disponível' },
+          { id: 'room-4', name: 'Consultório 04', specialty: 'Cardiologia', currentDoctor: 'Dra. Helena Rocha', status: 'Disponível' },
+        ];
+        if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+          const currentDb = localDB.getFullDB();
+          currentDb.consultorios = defaultRooms;
+          localDB.saveFullDB(currentDb);
+        }
+        if (typeof showToast === 'function') {
+          showToast('✅ 4 Consultórios padrão inicializados!');
+        }
+        await loadConsultingRooms();
+      });
+      return;
     }
     
     const activePatContext = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
