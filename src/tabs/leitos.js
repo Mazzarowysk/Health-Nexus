@@ -452,8 +452,13 @@ async function renderLeitosTab() {
             fullName: patientName,
             patientName: patientName,
             status: 'Internado',
+            bed: bedId,
+            bedNumber: bedId,
             bedId: bedId
           });
+        }
+        if (typeof window.createSmartFlowGuideCard === 'function') {
+          window.createSmartFlowGuideCard('leitos');
         }
         loadBeds();
       } else {

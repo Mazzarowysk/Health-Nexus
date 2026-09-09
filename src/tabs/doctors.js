@@ -2103,8 +2103,8 @@ window.openPEPModal = async function(encounterId) {
       }
     }
 
-    // Se o encontro atual ainda não possui conteúdo SOAP, buscar o histórico recente do mesmo paciente no localDB
-    if (window.localDB) {
+    // Se o encontro atual ainda não possui conteúdo SOAP, buscar o histórico recente do mesmo paciente no localDB (apenas se não for nova evolução diária)
+    if (window.localDB && !enc.isNewDailyEvolution) {
       const db = window.localDB.getFullDB();
       const localEncs = db.encounters || [];
       const pidNorm = String(enc.patientId || enc.id || encounterId).toLowerCase();
@@ -2204,6 +2204,7 @@ window.openPEPModal = async function(encounterId) {
           admission_id: admId,
           manchesterColor: enc.manchesterColor || 'Amarelo',
           status: 'Em Atendimento',
+          isNewDailyEvolution: true,
           created_at: new Date().toISOString(),
           subjectiveContent: '',
           objectiveContent: '',
@@ -2211,6 +2212,9 @@ window.openPEPModal = async function(encounterId) {
           planContent: ''
         });
       }
+      const curModal = document.getElementById('pep-modal');
+      if (curModal) curModal.remove();
+
       if (typeof showToast === 'function') showToast('✨ Nova folha de evolução diária iniciada!');
       window.openPEPModal(newEncId);
     });
@@ -2236,7 +2240,7 @@ window.openPEPModal = async function(encounterId) {
     const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canSignPEP: true, label: 'Usuário' };
     const isReadOnly = !perms.canSignPEP;
     const isInterned = (enc.sector && enc.sector.toLowerCase().includes('intern')) || (enc.room && (enc.room.toLowerCase().includes('intern') || enc.room.toLowerCase().includes('leito') || enc.room.toLowerCase().includes('uti'))) || enc.status === 'Internado';
-    const isFinalizedOrSigned = enc.status === 'Finalizado' || !!notes.signed_by || !!enc.signed_by;
+    const isFinalizedOrSigned = (enc.status === 'Finalizado' || !!notes.signed_by || !!enc.signed_by) && !enc.isNewDailyEvolution;
 
     // Cálculo do Escore MEWS e Risco Clínico
     const mewsData = calculateMEWS(enc);

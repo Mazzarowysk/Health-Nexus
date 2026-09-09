@@ -511,12 +511,23 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       agenda:       { icon: '📅', label: 'Agendamento' }
     };
 
-    let locationIcon = '📍';
-    let locationLabel = '';
+    // Resolver localização dinâmica via getPatientCurrentLocation se disponível
+    const patLoc = (typeof window.getPatientCurrentLocation === 'function' && effectivePatient)
+      ? window.getPatientCurrentLocation(effectivePatient.id, effectivePatient.fullName || effectivePatient.patientName)
+      : null;
 
-    if (effectivePatient.bed || effectivePatient.bedNumber) {
+    if (patLoc && patLoc.bed) {
+      effectivePatient.bed = patLoc.bed;
+      effectivePatient.sector = patLoc.sector || effectivePatient.sector;
+      effectivePatient.status = 'Internado';
+    }
+
+    if (patLoc && patLoc.text) {
+      locationIcon = (patLoc.icon && patLoc.icon.includes('bed')) ? '🛏️' : '📍';
+      locationLabel = patLoc.text;
+    } else if (effectivePatient.bed || effectivePatient.bedNumber || effectivePatient.bedId) {
       // Paciente internado — exibe leito e ala
-      const bed = effectivePatient.bed || effectivePatient.bedNumber || '—';
+      const bed = effectivePatient.bed || effectivePatient.bedNumber || effectivePatient.bedId || '—';
       const ward = effectivePatient.ward || effectivePatient.ala || effectivePatient.sector || '';
       locationIcon = '🛏️';
       locationLabel = 'Leito ' + bed + (ward ? ' · ' + ward : '');
@@ -788,9 +799,16 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
         const firstName = safePName.split(' ')[0];
         const safePNameEsc = safePName.replace(/'/g, "\\'");
-        const isWaitingBed = activePatient.status === 'Aguardando_Leito' || (!activePatient.bed && !activePatient.bedNumber);
 
-        if (isWaitingBed) {
+        const patLoc = (typeof window.getPatientCurrentLocation === 'function')
+          ? window.getPatientCurrentLocation(activePatient.id, safePName)
+          : null;
+
+        const isInterned = activePatient.status === 'Internado' || (patLoc && patLoc.status && patLoc.status.includes('Internado'));
+        const bedName = (patLoc && patLoc.bed) ? patLoc.bed : (activePatient.bed || activePatient.bedNumber || activePatient.bedId || '');
+        const secName = (patLoc && patLoc.sector) ? patLoc.sector : (activePatient.sector || activePatient.ward || 'Internação');
+
+        if (!isInterned && !bedName) {
           stepTitle = '🛏️ Alocar Leito para ' + firstName;
           stepDesc = 'Paciente ' + safePName + ' está na Fila de Internação. Selecione um leito vago no mapa ou clique no botão Alocar para efetivar a internação.';
           targetTab = 'leitos';
@@ -803,16 +821,16 @@ function createSmartFlowGuideCard(tabId, customMessage) {
             + '<span>📊</span> Ver no Kanban</button>'
             + '</div>';
         } else {
-          stepTitle = '🛏️ Acompanhar ' + firstName + ' (Leito ' + (activePatient.bed || activePatient.bedNumber || '') + ')';
-          stepDesc = 'Paciente ' + safePName + ' acomodado no leito! O próximo passo é acompanhar a evolução clínica, exames e previsão de alta na esteira Kanban.';
+          stepTitle = '🛏️ ' + firstName + ' Internado(a)' + (bedName ? ' (' + bedName + ')' : '');
+          stepDesc = 'Paciente ' + safePName + ' acomodado em ' + secName + (bedName ? ' no Leito ' + bedName : '') + '! Acompanhe a evolução médica diária no PEP ou na esteira Kanban.';
           targetTab = 'kanban';
           btnText = '📊 Ir para Kanban Hospitalar ➔';
           btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
           extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-            + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-            + '<span>👨‍⚕️</span> Evolução no PEP</button>'
-            + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-            + '<span>💰</span> Faturamento</button>'
+            + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(236,72,153,0.2);border:1px solid rgba(236,72,153,0.5);color:#f472b6;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>🩺</span> Evolução no PEP</button>'
+            + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>📊</span> Ver no Kanban</button>'
             + '</div>';
         }
       } else {
