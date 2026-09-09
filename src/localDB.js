@@ -131,6 +131,8 @@ export function insert(table, data) {
   return newItem;
 }
 
+export const create = insert;
+
 export function update(table, id, data) {
   const db = getFullDB();
   ensureTable(db, table);
@@ -269,7 +271,7 @@ export function clear() {
     tiss_guides: [],
     tiss_batches: [],
     exam_requests: [],
-    beds: getDefaultBeds()
+    beds: []
   };
 
   const freshTimestamp = Date.now().toString();

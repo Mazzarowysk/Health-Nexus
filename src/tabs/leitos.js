@@ -227,6 +227,31 @@ async function renderLeitosTab() {
       const grid = document.getElementById('beds-grid');
 
       if (filtered.length === 0) {
+        if (beds.length === 0) {
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--glass-bg); border-radius: 16px; border: 1.5px dashed var(--glass-border); backdrop-filter: var(--glass-blur);">
+              <i class="fa-solid fa-bed" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 16px; display: inline-block;"></i>
+              <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Nenhum Leito Cadastrado</h3>
+              <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 20px auto; font-size: 0.9rem;">
+                A base de dados foi limpa e não há leitos registrados no momento. Você pode inicializar a grade hospitalar com os 22 leitos padrão (UTI, Enfermaria, Pediatria e Maternidade) com 1 clique.
+              </p>
+              <button id="btn-load-default-beds" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 22px; border-radius: 10px;">
+                <i class="fa-solid fa-arrows-rotate"></i> Carregar 22 Leitos Padrão
+              </button>
+            </div>
+          `;
+          document.getElementById('btn-load-default-beds')?.addEventListener('click', async () => {
+            const defaultBeds = localDB.getDefaultBeds();
+            const currentDb = localDB.getFullDB();
+            currentDb.beds = defaultBeds;
+            localDB.saveFullDB(currentDb);
+            if (typeof showToast === 'function') {
+              showToast('✅ 22 Leitos padrão inicializados com sucesso!');
+            }
+            await loadBeds();
+          });
+          return;
+        }
         grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary);">Nenhum leito encontrado neste setor.</div>`;
         return;
       }

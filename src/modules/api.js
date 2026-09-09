@@ -226,7 +226,7 @@ export const apiFetch = async (url, options = {}) => {
       });
 
       // 4. Ocupação de Leitos por Ala
-      const totalBeds = beds.length || 22;
+      const totalBeds = beds.length;
       const occupiedBeds = beds.filter(b => b.status === 'Ocupado').length;
       const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
 

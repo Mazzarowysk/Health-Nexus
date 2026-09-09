@@ -5,6 +5,7 @@
 //        Farmácia, Escalas, Estagnação
 // ============================================================
 import { getFullDB, saveFullDB } from './localDB.js';
+import { MOCK_TISS_BATCHES } from './tabs/tiss.js';
 
 // ──────────────────────────────────────────────
 // DADOS BASE
@@ -835,6 +836,8 @@ export async function generateMockData(baseAmount = 300) {
     medications,
     duty_schedules,
     consultorios,
+    tiss_batches: JSON.parse(JSON.stringify(MOCK_TISS_BATCHES)),
+    tiss_guides: [],
   };
 
   localStorage.setItem('healthNexusDados', JSON.stringify(db));

@@ -1,4 +1,6 @@
 // src/tabs/tiss.js — Módulo de Faturamento TISS / TUSS & Auditoria ANS (Health Nexus v2.8.0)
+import * as localDB from '../localDB.js';
+import { showToast, showCustomAlert } from '../main.js';
 
 export const MOCK_TISS_BATCHES = [
   {
@@ -39,6 +41,21 @@ export const MOCK_TISS_BATCHES = [
 export function renderTISSTab(container) {
   if (!container) return;
 
+  const batches = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('tiss_batches') || []) : [];
+  const guides = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('tiss_guides') || []) : [];
+
+  const totalBilled = batches.reduce((sum, b) => sum + (parseFloat(b.totalValue) || 0), 0);
+  const totalGuides = batches.reduce((sum, b) => sum + (parseInt(b.guideCount, 10) || 0), guides.length);
+
+  const glosadosCount = batches.filter(b => (b.status || '').toLowerCase().includes('glosa')).length;
+  const glosasRate = batches.length > 0 ? ((glosadosCount / batches.length) * 100).toFixed(1) : '0.0';
+
+  const uniquePlans = [...new Set(batches.map(b => b.healthPlan).filter(Boolean))];
+  const operatorsBadgeText = batches.length > 0 ? `${uniquePlans.length} Ativa(s)` : '0 Ativas';
+  const operatorsSubtitle = batches.length > 0
+    ? (uniquePlans.length > 0 ? uniquePlans.slice(0, 3).join(', ') : 'Operadoras Ativas')
+    : 'Nenhum lote faturado';
+
   container.innerHTML = `
     <div style="padding: 24px; color: var(--text-primary);">
       
@@ -68,26 +85,26 @@ export function renderTISSTab(container) {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px;">
           <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Faturado (Mês)</div>
-          <div style="font-family: Outfit, sans-serif; font-size: 1.6rem; font-weight: 800; color: #34d399; margin-top: 4px;">R$ 65.540,50</div>
-          <div style="font-size: 0.74rem; color: #a7f3d0; margin-top: 4px;"><i class="fa-solid fa-arrow-trend-up"></i> +14.2% em relação ao mês anterior</div>
+          <div style="font-family: Outfit, sans-serif; font-size: 1.6rem; font-weight: 800; color: #34d399; margin-top: 4px;">R$ ${totalBilled.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div style="font-size: 0.74rem; color: #a7f3d0; margin-top: 4px;">${batches.length > 0 ? '<i class="fa-solid fa-arrow-trend-up"></i> Faturamento apurado' : 'Nenhuma fatura emitida'}</div>
         </div>
 
         <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px;">
           <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Guias Processadas</div>
-          <div style="font-family: Outfit, sans-serif; font-size: 1.6rem; font-weight: 800; color: #60a5fa; margin-top: 4px;">45 Guias</div>
+          <div style="font-family: Outfit, sans-serif; font-size: 1.6rem; font-weight: 800; color: #60a5fa; margin-top: 4px;">${totalGuides} Guia${totalGuides === 1 ? '' : 's'}</div>
           <div style="font-size: 0.74rem; color: #93c5fd; margin-top: 4px;">Padrão TISS v4.01.00 (ANS)</div>
         </div>
 
         <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px;">
           <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Índice de Glosas</div>
-          <div style="font-family: Outfit, sans-serif; font-size: 1.6rem; font-weight: 800; color: #f59e0b; margin-top: 4px;">1.8%</div>
-          <div style="font-size: 0.74rem; color: #fde68a; margin-top: 4px;">Abaixo do limite de tolerância (3.0%)</div>
+          <div style="font-family: Outfit, sans-serif; font-size: 1.6rem; font-weight: 800; color: #f59e0b; margin-top: 4px;">${glosasRate}%</div>
+          <div style="font-size: 0.74rem; color: #fde68a; margin-top: 4px;">${batches.length > 0 ? (parseFloat(glosasRate) <= 3.0 ? 'Abaixo do limite de tolerância (3.0%)' : 'Atenção às pendências') : 'Nenhuma glosa registrada'}</div>
         </div>
 
         <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px;">
           <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status das Operadoras</div>
-          <div style="font-family: Outfit, sans-serif; font-size: 1.6rem; font-weight: 800; color: #a78bfa; margin-top: 4px;">100% Ativas</div>
-          <div style="font-size: 0.74rem; color: #c4b5fd; margin-top: 4px;">Unimed, Bradesco, SulAmérica</div>
+          <div style="font-family: Outfit, sans-serif; font-size: 1.6rem; font-weight: 800; color: #a78bfa; margin-top: 4px;">${operatorsBadgeText}</div>
+          <div style="font-size: 0.74rem; color: #c4b5fd; margin-top: 4px;">${operatorsSubtitle}</div>
         </div>
       </div>
 
@@ -112,18 +129,31 @@ export function renderTISSTab(container) {
               </tr>
             </thead>
             <tbody>
-              ${MOCK_TISS_BATCHES.map(b => `
+              ${batches.length === 0 ? `
+                <tr>
+                  <td colspan="7" style="padding: 50px 20px; text-align: center; color: var(--text-muted);">
+                    <i class="fa-solid fa-file-invoice-dollar" style="font-size: 2.5rem; opacity: 0.4; margin-bottom: 12px; display: block;"></i>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Nenhum Lote de Faturamento TISS</div>
+                    <div style="font-size: 0.85rem; max-width: 440px; margin: 0 auto 16px auto;">
+                      A base de dados foi limpa e não existem lotes ou guias TISS faturadas no momento.
+                    </div>
+                    <button id="btn-tiss-create-sample" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; padding: 8px 16px; border-radius: 8px;">
+                      <i class="fa-solid fa-plus"></i> Gerar Lotes de Demonstração
+                    </button>
+                  </td>
+                </tr>
+              ` : batches.map(b => `
                 <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
                   <td style="padding: 14px 18px; font-weight: 700; color: #c4b5fd; font-family: monospace;">${b.id}</td>
-                  <td style="padding: 14px 18px; font-weight: 600; color: var(--text-primary);">${b.healthPlan} <span style="font-size:0.72rem; color:var(--text-muted);">(ANS ${b.ansCode})</span></td>
+                  <td style="padding: 14px 18px; font-weight: 600; color: var(--text-primary);">${b.healthPlan} <span style="font-size:0.72rem; color:var(--text-muted);">(ANS ${b.ansCode || '358941'})</span></td>
                   <td style="padding: 14px 18px;">${b.guideCount} guias</td>
-                  <td style="padding: 14px 18px; font-weight: 700; color: #34d399;">R$ ${b.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td style="padding: 14px 18px; font-weight: 700; color: #34d399;">R$ ${(parseFloat(b.totalValue) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td style="padding: 14px 18px;">
-                    <span style="padding: 3px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 700; background: ${b.status.includes('Pronto') ? 'rgba(16,185,129,0.18)' : b.status.includes('Glosado') ? 'rgba(239,68,68,0.18)' : 'rgba(99,102,241,0.18)'}; color: ${b.status.includes('Pronto') ? '#34d399' : b.status.includes('Glosado') ? '#fca5a5' : '#a5b4fc'}; border: 1px solid ${b.status.includes('Pronto') ? 'rgba(16,185,129,0.4)' : b.status.includes('Glosado') ? 'rgba(239,68,68,0.4)' : 'rgba(99,102,241,0.4)'};">
-                      ${b.status}
+                    <span style="padding: 3px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 700; background: ${(b.status || '').includes('Pronto') ? 'rgba(16,185,129,0.18)' : (b.status || '').includes('Glosa') ? 'rgba(239,68,68,0.18)' : 'rgba(99,102,241,0.18)'}; color: ${(b.status || '').includes('Pronto') ? '#34d399' : (b.status || '').includes('Glosa') ? '#fca5a5' : '#a5b4fc'}; border: 1px solid ${(b.status || '').includes('Pronto') ? 'rgba(16,185,129,0.4)' : (b.status || '').includes('Glosa') ? 'rgba(239,68,68,0.4)' : 'rgba(99,102,241,0.4)'};">
+                      ${b.status || 'Processado'}
                     </span>
                   </td>
-                  <td style="padding: 14px 18px; color: var(--text-muted); font-size: 0.78rem;">${b.createdAt}</td>
+                  <td style="padding: 14px 18px; color: var(--text-muted); font-size: 0.78rem;">${b.createdAt || '-'}</td>
                   <td style="padding: 14px 18px; text-align: right;">
                     <button onclick="window.exportTISSBatchXML('${b.id}')" class="btn btn-sm" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">
                       <i class="fa-solid fa-download" style="margin-right: 4px;"></i> Baixar XML TISS
@@ -139,15 +169,61 @@ export function renderTISSTab(container) {
   `;
 
   // Manipuladores de Evento
+  const seedBatches = () => {
+    if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+      const currentDb = localDB.getFullDB();
+      currentDb.tiss_batches = JSON.parse(JSON.stringify(MOCK_TISS_BATCHES));
+      localDB.saveFullDB(currentDb);
+      if (typeof showToast === 'function') {
+        showToast('✨ Lotes TISS demonstrativos gerados com sucesso!');
+      }
+      renderTISSTab(container);
+    }
+  };
+
+  document.getElementById('btn-tiss-create-sample')?.addEventListener('click', seedBatches);
+
   document.getElementById('btn-tiss-new-batch')?.addEventListener('click', () => {
-    window.exportTISSBatchXML('LOTE-2026-09-001');
+    if (batches.length === 0) {
+      seedBatches();
+    } else {
+      const newId = `LOTE-2026-09-${String(batches.length + 1).padStart(3, '0')}`;
+      const newBatch = {
+        id: newId,
+        providerName: 'Health Nexus Hospital & Centro de Medicina',
+        cnpj: '12.345.678/0001-90',
+        ansCode: '358941',
+        healthPlan: 'Unimed Central',
+        guideCount: 8,
+        totalValue: 11200.00,
+        status: 'Pronto para Envio',
+        createdAt: new Date().toLocaleString('pt-BR').slice(0, 16)
+      };
+      if (typeof localDB !== 'undefined' && localDB.insert) {
+        localDB.insert('tiss_batches', newBatch);
+      }
+      if (typeof showToast === 'function') {
+        showToast(`✨ Novo lote ${newId} gerado no padrão TISS!`);
+      }
+      renderTISSTab(container);
+    }
   });
 
   document.getElementById('btn-tiss-audit')?.addEventListener('click', () => {
+    if (batches.length === 0) {
+      if (typeof showCustomAlert === 'function') {
+        showCustomAlert({
+          title: 'Auditoria Anti-Glosa ANS',
+          message: 'Nenhum lote ou guia encontrado para auditoria. A base de faturamento está limpa.',
+          type: 'info'
+        });
+      }
+      return;
+    }
     if (typeof showCustomAlert === 'function') {
       showCustomAlert({
         title: 'Auditoria Anti-Glosa Concluída',
-        message: '<strong>Auditoria ANS executada em 45 guias:</strong> Nenhuma inconformidade de codificação TUSS ou duplicidade detectada. Taxa de conformidade: <strong>100%</strong>.',
+        message: `<strong>Auditoria ANS executada em ${totalGuides} guias (${batches.length} lotes):</strong> Nenhuma inconsistência crítica detectada. Índice de conformidade regulatória: <strong>98.2%</strong>.`,
         type: 'success'
       });
     }
@@ -155,7 +231,9 @@ export function renderTISSTab(container) {
 }
 
 export function exportTISSBatchXML(batchId) {
-  const batch = MOCK_TISS_BATCHES.find(b => b.id === batchId) || MOCK_TISS_BATCHES[0];
+  const batches = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('tiss_batches') || []) : [];
+  const batch = batches.find(b => b.id === batchId) || MOCK_TISS_BATCHES.find(b => b.id === batchId) || MOCK_TISS_BATCHES[0];
+  const cnpjClean = (batch.cnpj || '12345678000190').replace(/\D/g, '');
   const xmlContent = `<?xml version="1.0" encoding="ISO-8859-1"?>
 <ans:mensagemTISS xmlns:ans="http://www.ans.gov.br/padroes/tiss/schemas">
   <ans:cabecalho>
@@ -166,11 +244,11 @@ export function exportTISSBatchXML(batchId) {
     </ans:identificacaoTransacao>
     <ans:origem>
       <ans:identificacaoPrestador>
-        <ans:CNPJ>${batch.cnpj.replace(/\D/g, '')}</ans:CNPJ>
+        <ans:CNPJ>${cnpjClean}</ans:CNPJ>
       </ans:identificacaoPrestador>
     </ans:origem>
     <ans:destino>
-      <ans:registroANS>${batch.ansCode}</ans:registroANS>
+      <ans:registroANS>${batch.ansCode || '358941'}</ans:registroANS>
     </ans:destino>
     <ans:versaoPadrao>4.01.00</ans:versaoPadrao>
   </ans:cabecalho>
