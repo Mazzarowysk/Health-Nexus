@@ -237,9 +237,9 @@ window.loadTVWaitingQueue = async function() {
   }).join('');
 };
 
-window._tvQuickCall = async function(patientName, manchesterColor) {
+window._tvQuickCall = async function(patientName, manchesterColor, roomName = '') {
   // Abre o modal já com o paciente pré-selecionado
-  await openTVCallModal(patientName.trim(), (manchesterColor || 'Verde').trim());
+  await openTVCallModal(patientName.trim(), (manchesterColor || 'Verde').trim(), roomName);
 };
 
 function renderTVCallsUI(calls) {
@@ -290,7 +290,7 @@ function renderTVCallsUI(calls) {
   }
 }
 
-async function openTVCallModal(preselectedName = '', preselectedColor = '') {
+async function openTVCallModal(preselectedName = '', preselectedColor = '', preselectedRoom = '') {
   let waitingPatients = [];
   try {
     const res = await apiFetch('/api/encounters');
@@ -315,8 +315,8 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
     { v: 'Verde',    l: 'Pouco Urgente (Verde)',    c: '#16a34a' },
     { v: 'Amarelo',  l: 'Urgente (Amarelo)',         c: '#d97706' },
     { v: 'Laranja',  l: 'Muito Urgente (Laranja)',   c: '#ea580c' },
-    { v: 'Vermelho', l: 'Emerg\u00eancia (Vermelho)', c: '#dc2626' },
-    { v: 'Azul',     l: 'N\u00e3o Urgente (Azul)',   c: '#0284c7' },
+    { v: 'Vermelho', l: 'Emergência (Vermelho)', c: '#dc2626' },
+    { v: 'Azul',     l: 'Não Urgente (Azul)',   c: '#0284c7' },
   ];
 
   const statusLabel = (s) => {
@@ -330,7 +330,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
     ? `<div style="text-align:center; padding: 20px; color: #64748b; font-size: 0.85rem; grid-column: 1/-1;">
          <i class="fa-solid fa-chair" style="font-size:1.8rem; display:block; margin-bottom:8px;"></i>
          Nenhum paciente na fila no momento.<br>
-         <span style="font-size:0.78rem;">Voc&#234; ainda pode digitar o nome manualmente abaixo.</span>
+         <span style="font-size:0.78rem;">Você ainda pode digitar o nome manualmente abaixo.</span>
        </div>`
     : waitingPatients.map(p => {
         const mKey = (p.manchesterColor || 'verde').toLowerCase().replace(/[^a-z]/g, '');
@@ -381,18 +381,18 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
           <input type="text" id="tv-modal-patient-name" placeholder="Digite ou selecione acima..." value="${preselectedName}" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155; font-size: 0.9rem; box-sizing: border-box;" />
         </div>
 
-        <!-- CONSULTÓRIO -->
+        <!-- CONSULTÓRIO / SALA -->
         <div>
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
-            <i class="fa-solid fa-door-open"></i> Consultório / Sala de Destino:
+            <i class="fa-solid fa-door-open"></i> Sala de Destino / Consultório:
           </label>
           <select id="tv-modal-room" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
-            <option value="Consultório 01">Consultório 01</option>
-            <option value="Consultório 02">Consultório 02</option>
-            <option value="Consultório 03">Consultório 03</option>
-            <option value="Sala de Triagem">Sala de Triagem</option>
-            <option value="Exames / Raio-X">Exames / Raio-X</option>
-            <option value="Recepção">Recepção</option>
+            <option value="Sala de Triagem" ${preselectedRoom === 'Sala de Triagem' ? 'selected' : ''}>Sala de Triagem</option>
+            <option value="Consultório 01" ${(preselectedRoom === 'Consultório 01' || (!preselectedRoom && preselectedColor)) ? 'selected' : (!preselectedRoom ? '' : '')}>Consultório 01</option>
+            <option value="Consultório 02" ${preselectedRoom === 'Consultório 02' ? 'selected' : ''}>Consultório 02</option>
+            <option value="Consultório 03" ${preselectedRoom === 'Consultório 03' ? 'selected' : ''}>Consultório 03</option>
+            <option value="Exames / Raio-X" ${preselectedRoom === 'Exames / Raio-X' ? 'selected' : ''}>Exames / Raio-X</option>
+            <option value="Recepção" ${preselectedRoom === 'Recepção' ? 'selected' : ''}>Recepção</option>
           </select>
         </div>
 
@@ -523,6 +523,9 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
           targetTabLabel: isTriageRoom ? 'Triagem Manchester (Atendimentos)' : `${roomName} (Salas & Consultórios)`,
           targetColumn: isTriageRoom ? 'col-triage' : roomName,
           targetPatientName: patientName,
+          targetStatus: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',
+          targetRoom: roomName,
+          actionType: isTriageRoom ? 'start_triage' : 'open_consultorio',
           persistent: true
         });
       }
@@ -1478,3 +1481,4 @@ window.deleteDutySchedule = async function(id) {
 
 window.renderTVPanelTab = renderTVPanelTab;
 window.renderTVCallsUI = renderTVCallsUI;
+window.openTVCallModal = openTVCallModal;

@@ -692,24 +692,9 @@ export function renderPatientsTab(contentArea) {
           if (modalOverlay) modalOverlay.style.display = 'none';
         }
 
-        if (!isEdit && typeof window.setActivePatientContext === 'function') {
-          window.setActivePatientContext({
-            id: savedPatientId,
-            fullName: fullName,
-            patientName: fullName,
-            cpf: cpf,
-            status: 'Aguardando Triagem'
-          });
-        }
-
-        if (!shouldDirectlyAdmit && typeof window.createSmartFlowGuideCard === 'function') {
-          window.createSmartFlowGuideCard('pacientes', `Paciente ${fullName} cadastrado! Encaminhe para a Triagem.`);
-        }
-
-        if (shouldDirectlyAdmit && !isEdit) {
-          shouldDirectlyAdmit = false;
+        if (!isEdit) {
           try {
-            const encRes = await apiFetch(`/api/encounters`, {
+            await apiFetch(`/api/encounters`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -720,38 +705,38 @@ export function renderPatientsTab(contentArea) {
                 admitted_at: new Date().toISOString()
               })
             });
-            if (encRes.ok) {
-              showToast(`✅ ${fullName} cadastrado e admitido no PS!`);
-              if (typeof window.showFlowCompletionNotification === 'function') {
-                window.showFlowCompletionNotification({
-                  actionTitle: '📺 Chamar Paciente no Painel TV',
-                  message: `O paciente <strong>${fullName}</strong> foi cadastrado e aguarda na sala de espera.<br><br><strong>Próximo Passo:</strong> Acione a chamada audiovisual no <strong>Painel TV</strong> para convocá-lo à <strong>Sala de Triagem Manchester</strong>.`,
-                  targetTab: 'tv_panel',
-                  targetTabLabel: 'Painel TV (Chamador)',
-                  targetColumn: 'col-triage',
-                  targetPatientName: fullName,
-                  persistent: true
-                });
-              }
-            }
           } catch (e) {
-            console.error('Erro ao auto-admitir:', e);
+            console.error('Erro ao admitir no PS:', e);
           }
-        } else if (!isEdit) {
+
+          if (typeof window.setActivePatientContext === 'function') {
+            window.setActivePatientContext({
+              id: savedPatientId,
+              fullName: fullName,
+              patientName: fullName,
+              cpf: cpf,
+              status: 'Aguardando_Triagem',
+              manchesterColor: null
+            });
+          }
+
           if (typeof window.showFlowCompletionNotification === 'function') {
             window.showFlowCompletionNotification({
-              actionTitle: '✅ Cadastro de Paciente Concluído',
-              message: `O paciente <strong>${fullName}</strong> foi cadastrado com sucesso no sistema SUS.<br><br><strong>Próximo Passo:</strong> Clique no botão abaixo para acionar o <strong>Painel TV</strong> ou admitir na <strong>Triagem Manchester</strong>.`,
+              actionTitle: '📺 Chamar Paciente no Painel TV (Triagem)',
+              message: `O paciente <strong>${fullName}</strong> foi cadastrado e acolhido no Pronto-Socorro.<br><br><strong>Próximo Passo Assistencial:</strong> Acione a chamada audiovisual no <strong>Painel TV</strong> para convocá-lo à <strong>Sala de Triagem Manchester</strong>.`,
               targetTab: 'tv_panel',
               targetTabLabel: 'Painel TV (Chamador)',
-              targetPatientId: savedPatientId,
+              targetColumn: 'col-triage',
               targetPatientName: fullName,
+              targetPatientId: savedPatientId,
               targetPatientCpf: cpf,
-              actionType: 'admit_patient',
+              targetStatus: 'Aguardando_Triagem',
+              targetRoom: 'Sala de Triagem',
+              actionType: 'call_tv_triage',
               persistent: true
             });
           } else {
-            showToast(`✅ Paciente ${isEdit ? 'atualizado' : 'cadastrado'} com sucesso!`);
+            showToast(`✅ Paciente ${fullName} cadastrado e encaminhado para Triagem!`);
           }
         } else {
           showToast(`✅ Paciente atualizado com sucesso!`);

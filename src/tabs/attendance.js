@@ -348,6 +348,15 @@ export function renderAttendanceTab(contentArea) {
       if (res.ok) {
         showToast(`✅ ${patientName} admitido(a)!`);
         closeAdmissionPanel();
+        if (typeof window.setActivePatientContext === 'function') {
+          window.setActivePatientContext({
+            id: d.data?.id || patientId,
+            fullName: patientName,
+            patientName: patientName,
+            status: 'Aguardando_Triagem',
+            manchesterColor: null
+          });
+        }
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
             actionTitle: '📺 Chamar Paciente no Painel TV (Sala de Triagem)',
@@ -356,6 +365,10 @@ export function renderAttendanceTab(contentArea) {
             targetTabLabel: 'Painel TV (Chamador)',
             targetColumn: 'col-triage',
             targetPatientName: patientName,
+            targetPatientId: patientId,
+            targetStatus: 'Aguardando_Triagem',
+            targetRoom: 'Sala de Triagem',
+            actionType: 'call_tv_triage',
             persistent: true
           });
         }
@@ -522,7 +535,7 @@ export function renderAttendanceTab(contentArea) {
       </div>
       <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;"><i class="fa-solid fa-tag" style="color:#8b5cf6;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}</div>
       <div style="display:flex;gap:6px;margin-top:6px;">
-        <button class="btn btn-secondary btn-quick-tv-triage" onclick="if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${(e.patientName||'').replace(/'/g, "\\'")}', 'Verde'); } else if(typeof window.switchTab==='function'){ window.switchTab('tv_panel'); }" style="font-size:0.75rem;padding:7px 10px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#d8b4fe;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px;" title="Chamar no Painel TV para Sala de Triagem">
+        <button class="btn btn-secondary btn-quick-tv-triage" onclick="if(typeof window.openTVCallModal==='function'){ window.switchTab('tv_panel'); setTimeout(() => window.openTVCallModal('${(e.patientName||'').replace(/'/g, "\\'")}', 'Verde', 'Sala de Triagem'), 200); } else if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${(e.patientName||'').replace(/'/g, "\\'")}', 'Verde', 'Sala de Triagem'); } else if(typeof window.switchTab==='function'){ window.switchTab('tv_panel'); }" style="font-size:0.75rem;padding:7px 10px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#d8b4fe;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px;" title="Chamar no Painel TV para Sala de Triagem">
           <i class="fa-solid fa-bullhorn"></i> TV
         </button>
         <button class="btn btn-primary btn-triar" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;cursor:pointer;">
@@ -549,7 +562,7 @@ export function renderAttendanceTab(contentArea) {
         ${e.bloodPressure||e.temperatureCelsius?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">${e.bloodPressure?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">PA</span><br><strong style="color:var(--text-primary);">${e.bloodPressure}</strong></div>`:''} ${e.temperatureCelsius?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">Temp.</span><br><strong style="color:var(--text-primary);">${e.temperatureCelsius}°C</strong></div>`:''}</div>`:''}
         ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
         <div style="display:flex;gap:6px;margin-top:6px;">
-          <button class="btn btn-primary btn-call-consult" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;cursor:pointer;">
+          <button class="btn btn-primary btn-call-consult" data-enc-id="${e.id}" onclick="if(typeof window.openTVCallModal==='function'){ window.switchTab('tv_panel'); setTimeout(() => window.openTVCallModal('${(e.patientName||'').replace(/'/g, "\\'")}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'), 200); } else if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${(e.patientName||'').replace(/'/g, "\\'")}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'); }" style="flex:1;font-size:0.78rem;padding:7px;cursor:pointer;">
             <i class="fa-solid fa-bullhorn"></i> Chamar
           </button>
           <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);color:#f472b6;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
@@ -857,17 +870,33 @@ export function renderAttendanceTab(contentArea) {
         if (isTriageCallTvClicked) {
           await updateStatus(encId, 'Em_Atendimento', pName, colorValue);
           showToast(`📺 ${pName} triado(a) e chamado(a) no Painel TV para Consultório 01!`);
-        } else {
-          if (typeof window.createSmartFlowGuideCard === 'function') {
-            window.createSmartFlowGuideCard('atendimento', `Triagem concluída: Manchester ${colorValue}`);
-          }
           if (typeof window.showFlowCompletionNotification === 'function') {
             window.showFlowCompletionNotification({
-              actionTitle: '🩺 Triagem Manchester Registrada',
-              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue}</strong> e está pronto para o atendimento médico.<br><br><strong>Próxima Etapa:</strong> Chame o paciente no <strong>Painel TV</strong> ou abra o <strong>PEP / Prontuário</strong> para iniciar a consulta.`,
-              targetTab: 'atendimento',
-              targetTabLabel: 'Fila de Consultório / PEP',
+              actionTitle: '👨‍⚕️ Chamado no Consultório 01',
+              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue}</strong> e chamado no Painel TV.<br><br><strong>Próxima Etapa:</strong> Iniciar a consulta médica no <strong>PEP</strong>.`,
+              targetTab: 'consultorios',
+              targetTabLabel: 'Salas & Consultórios (PEP)',
+              targetColumn: 'Consultório 01',
               targetPatientName: pName,
+              targetManchesterColor: colorValue,
+              targetStatus: 'Em_Atendimento',
+              actionType: 'open_consultorio',
+              persistent: true
+            });
+          }
+        } else {
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: '📺 Chamar no Painel TV para Consultório',
+              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue}</strong>.<br><br><strong>Próxima Etapa Assistencial:</strong> Chamar o paciente no <strong>Painel TV</strong> para o <strong>Consultório 01</strong> e iniciar a consulta no PEP.`,
+              targetTab: 'tv_panel',
+              targetTabLabel: 'Painel TV (Chamador)',
+              targetColumn: 'col-waiting',
+              targetPatientName: pName,
+              targetManchesterColor: colorValue,
+              targetRoom: 'Consultório 01',
+              targetStatus: 'Aguardando_Atendimento',
+              actionType: 'call_tv_doctor',
               persistent: true
             });
           }

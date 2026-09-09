@@ -13,10 +13,11 @@ let lastActionMessage = null;
 
 const WORKFLOW_STEPS = [
   { id: 'recepcao', tab: 'pacientes', label: '1. Recepção', icon: 'fa-id-card' },
-  { id: 'triagem', tab: 'atendimento', label: '2. Triagem', icon: 'fa-user-nurse' },
-  { id: 'consulta', tab: 'consultorios', label: '3. Médico/PEP', icon: 'fa-user-doctor' },
-  { id: 'farmacia', tab: 'farmacia', label: '4. Farmácia', icon: 'fa-pills' },
-  { id: 'leitos', tab: 'leitos', label: '5. Leitos/Alta', icon: 'fa-bed-pulse' }
+  { id: 'chamador', tab: 'tv_panel', label: '2. Chamada TV', icon: 'fa-tv' },
+  { id: 'triagem', tab: 'atendimento', label: '3. Triagem', icon: 'fa-user-nurse' },
+  { id: 'consulta', tab: 'consultorios', label: '4. Médico/PEP', icon: 'fa-user-doctor' },
+  { id: 'farmacia', tab: 'farmacia', label: '5. Farmácia', icon: 'fa-pills' },
+  { id: 'leitos', tab: 'leitos', label: '6. Leitos/Alta', icon: 'fa-bed-pulse' }
 ];
 
 const TAB_NEXT_RECOMMENDATION = {
@@ -30,8 +31,16 @@ const TAB_NEXT_RECOMMENDATION = {
   },
   pacientes: {
     currentLabel: 'Recepção & Pacientes',
-    title: 'Classificar Risco Clínico',
-    desc: 'Encaminhe o paciente para Triagem Manchester e Sinais Vitais.',
+    title: 'Chamar no Painel TV (Triagem)',
+    desc: 'Paciente cadastrado! Chame o paciente na TV para comparecer à Sala de Triagem.',
+    nextTab: 'tv_panel',
+    nextLabel: 'Painel TV (Chamador)',
+    icon: 'fa-tv'
+  },
+  tv_panel: {
+    currentLabel: 'Painel TV (Chamador)',
+    title: 'Realizar Triagem Manchester',
+    desc: 'Paciente chamado na tela! Direcione para a aferição de sinais vitais e classificação de risco.',
     nextTab: 'atendimento',
     nextLabel: 'Central de Atendimento (Triagem)',
     icon: 'fa-user-nurse'
