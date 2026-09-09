@@ -207,6 +207,27 @@ const _SFG = {
   }
 };
 
+function playFlowChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.03);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.18);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.2);
+    }
+  } catch(e) {}
+}
+
 function createSmartFlowGuideCard(tabId, customMessage) {
   // Verificar autenticação (aceita sessionStorage e estado ativo como fallback)
   const hasToken = state.isAuthenticated || !!sessionStorage.getItem('hn_token') || !!sessionStorage.getItem('hn_user');
@@ -336,7 +357,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   hdr.innerHTML = '<div style="display:flex;align-items:center;gap:8px">'
     + '<span style="font-size:1.05rem">🧭</span>'
     + '<span style="font-weight:800;font-size:0.88rem;color:#f8fafc;letter-spacing:0.2px">Guia de Fluxo Hospitalar</span>'
-    + '<span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 7px;border-radius:8px">Passo a Passo</span>'
+    + '<span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 7px;border-radius:8px">Etapa ' + (stepIdx >= 0 ? stepIdx + 1 : 1) + ' de 6</span>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:4px">'
     + '<button id="hn-fg-min" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.2rem;line-height:1;padding:2px 6px;border-radius:4px;transition:color 0.2s" title="Minimizar para barra compacta">&#8722;</button>'
@@ -1093,6 +1114,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   if (execBtn && _SFG.pendingAction) {
     execBtn.addEventListener('click', function(e) {
       e.stopPropagation();
+      playFlowChime();
       const act = _SFG.pendingAction;
       _SFG.pendingAction = null;
 
@@ -1580,11 +1602,11 @@ export function executePatientHighlight(targetPatientName, targetColumn) {
 
     if (targetEl) {
       targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-      targetEl.classList.add('patient-pulse-selected');
+      targetEl.classList.add('patient-pulse-selected', 'patient-spotlight-glow');
       
-      targetEl.style.animation = 'patientCardPulse 1.2s infinite ease-in-out';
-      targetEl.style.border = '2.5px solid #10b981';
-      targetEl.style.boxShadow = '0 0 40px rgba(16, 185, 129, 0.95), inset 0 0 18px rgba(16, 185, 129, 0.35)';
+      targetEl.style.animation = 'patientSpotlightGlow 1.4s ease-in-out 3';
+      targetEl.style.border = '2.5px solid #38bdf8';
+      targetEl.style.boxShadow = '0 0 40px rgba(56, 189, 248, 0.95), inset 0 0 18px rgba(56, 189, 248, 0.35)';
 
       // Adiciona badge temporário de paciente em foco/selecionado se não houver
       let badge = targetEl.querySelector('.patient-selected-flow-badge');
@@ -1592,18 +1614,18 @@ export function executePatientHighlight(targetPatientName, targetColumn) {
         badge = document.createElement('span');
         badge.className = 'patient-selected-flow-badge';
         badge.innerHTML = '<i class="fa-solid fa-crosshairs fa-spin"></i> Selecionado';
-        badge.style.cssText = 'position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:0.72rem;font-weight:800;padding:3px 9px;border-radius:12px;box-shadow:0 3px 10px rgba(16,185,129,0.55);z-index:99;pointer-events:none;letter-spacing:0.5px;';
+        badge.style.cssText = 'position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.72rem;font-weight:800;padding:3px 9px;border-radius:12px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:99;pointer-events:none;letter-spacing:0.5px;';
         targetEl.appendChild(badge);
       }
 
       setTimeout(() => {
-        targetEl.classList.remove('patient-pulse-selected');
+        targetEl.classList.remove('patient-pulse-selected', 'patient-spotlight-glow');
         targetEl.style.animation = '';
         targetEl.style.boxShadow = '';
-        // Mantém sutil contorno verde e estado ativo indicando que este paciente está selecionado
-        targetEl.style.borderColor = '#10b981';
+        // Mantém sutil contorno de foco indicando que este paciente está selecionado
+        targetEl.style.borderColor = '#38bdf8';
         if (badge) badge.remove();
-      }, 7000);
+      }, 5000);
       return true;
     }
     return false;
