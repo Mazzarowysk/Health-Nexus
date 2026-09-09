@@ -1237,34 +1237,88 @@ window.ensureSmartFlowGuideMounted = function(forcedTab) {
 window.openAttendanceTriage = function(patientName) {
   if (typeof window.switchTab === 'function') {
     window.switchTab('atendimento');
-    let tries = 0;
-    const checkInterval = setInterval(function() {
-      tries++;
-      if (patientName) {
-        const card = document.querySelector(`[data-patient-card-name="${patientName}"]`) ||
-                     Array.from(document.querySelectorAll('.patient-card-item')).find(el => el.textContent.toLowerCase().includes(patientName.toLowerCase()));
-        if (card) {
-          const btnTriar = card.querySelector('.btn-triar, .btn-triage, [data-action="triage"]');
-          if (btnTriar) {
-            clearInterval(checkInterval);
-            btnTriar.click();
-            return;
-          }
+  }
+
+  let tries = 0;
+  const checkInterval = setInterval(function() {
+    tries++;
+
+    if (patientName && String(patientName).trim()) {
+      const cleanTarget = removeAccents(String(patientName).trim().toLowerCase());
+      const targetParts = cleanTarget.split(' ').filter(Boolean);
+      const firstName = targetParts[0] || cleanTarget;
+
+      const cards = Array.from(document.querySelectorAll('.patient-card-item'));
+      let card = cards.find(el => {
+        const cardAttr = removeAccents((el.getAttribute('data-patient-card-name') || '').toLowerCase());
+        const cardText = removeAccents((el.textContent || '').toLowerCase());
+        return (cardAttr && (cardAttr.includes(cleanTarget) || cleanTarget.includes(cardAttr))) ||
+               cardText.includes(cleanTarget) ||
+               (firstName.length >= 3 && cardText.includes(firstName));
+      });
+
+      if (card) {
+        const btnTriar = card.querySelector('.btn-triar, .btn-triage, [data-action="triage"]');
+        if (btnTriar) {
+          clearInterval(checkInterval);
+          btnTriar.click();
+          return;
         }
       }
+    } else {
+      // Nenhum paciente específico solicitado: seleciona o primeiro disponível
       const anyBtn = document.querySelector('.btn-triar, .btn-triage');
       if (anyBtn && tries > 3) {
         clearInterval(checkInterval);
         anyBtn.click();
         return;
       }
-      if (tries >= 15) {
-        clearInterval(checkInterval);
+    }
+
+    // Após 12 tentativas (~1.8s), se paciente específico foi solicitado e card não está visível, abre modal diretamente para ELE
+    if (tries >= 12) {
+      clearInterval(checkInterval);
+      if (patientName && String(patientName).trim()) {
+        const cleanTarget = removeAccents(String(patientName).trim().toLowerCase());
+        let encId = null;
+        let matchedName = String(patientName).trim();
+
+        try {
+          if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+            const db = localDB.getFullDB();
+            const encounters = db.encounters || [];
+            const matchEnc = encounters.find(e => removeAccents((e.patientName || '').toLowerCase()).includes(cleanTarget));
+            if (matchEnc) {
+              encId = matchEnc.id;
+              matchedName = matchEnc.patientName || matchedName;
+            } else {
+              const patients = db.patients || [];
+              const matchPat = patients.find(p => removeAccents((p.fullName || p.patientName || '').toLowerCase()).includes(cleanTarget));
+              if (matchPat) {
+                matchedName = matchPat.fullName || matchPat.patientName || matchedName;
+                encId = 'enc-' + (matchPat.id || Date.now());
+              }
+            }
+          }
+        } catch(e) {}
+
+        if (!encId) encId = 'enc-' + Date.now();
+
+        const inputEnc = document.getElementById('triage-encounter-id');
+        const inputName = document.getElementById('triage-patient-name');
+        const modal = document.getElementById('triage-modal');
+        if (inputEnc) inputEnc.value = encId;
+        if (inputName) inputName.textContent = matchedName;
+        if (typeof window.setActivePatientContext === 'function') {
+          window.setActivePatientContext({ id: encId, fullName: matchedName, patientName: matchedName, manchesterColor: 'Amarelo' });
+        }
+        if (modal) modal.style.display = 'flex';
+      } else {
         const modal = document.getElementById('triage-modal');
         if (modal) modal.style.display = 'flex';
       }
-    }, 120);
-  }
+    }
+  }, 150);
 };
 
 window.openDoctorConsultingRoom = function(roomName = 'Consultório 01', patientName = '') {
@@ -1282,13 +1336,24 @@ window.openDoctorConsultingRoom = function(roomName = 'Consultório 01', patient
       clearInterval(checkInterval);
 
       let targetCard = null;
-      if (patientName) {
-        targetCard = Array.from(cards).find(c => c.textContent.toLowerCase().includes(patientName.toLowerCase()));
+      if (patientName && String(patientName).trim()) {
+        const cleanName = removeAccents(String(patientName).trim().toLowerCase());
+        targetCard = Array.from(cards).find(c => {
+          const txt = removeAccents(c.textContent.toLowerCase());
+          return txt.includes(cleanName);
+        });
       }
-      if (!targetCard && roomName) {
-        targetCard = Array.from(cards).find(c => c.textContent.toLowerCase().includes(roomName.toLowerCase()));
+      if (!targetCard && roomName && String(roomName).trim()) {
+        const cleanRoom = removeAccents(String(roomName).trim().toLowerCase());
+        targetCard = Array.from(cards).find(c => {
+          const txt = removeAccents(c.textContent.toLowerCase());
+          return txt.includes(cleanRoom);
+        });
       }
-      if (!targetCard) targetCard = cards[0];
+      // Apenas faz fallback para cards[0] se nem paciente nem sala foram especificados
+      if (!targetCard && !patientName && !roomName) {
+        targetCard = cards[0];
+      }
 
       if (targetCard) {
         targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1302,6 +1367,8 @@ window.openDoctorConsultingRoom = function(roomName = 'Consultório 01', patient
         } else if (patientName && typeof window.openPEPModal === 'function') {
           setTimeout(() => window.openPEPModal(patientName), 250);
         }
+      } else if (patientName && typeof window.openPEPModal === 'function') {
+        setTimeout(() => window.openPEPModal(patientName), 250);
       }
       return;
     }

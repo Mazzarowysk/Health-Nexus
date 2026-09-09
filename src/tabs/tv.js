@@ -424,6 +424,21 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
   const inputEl = document.getElementById('tv-modal-patient-name');
   const colorEl = document.getElementById('tv-modal-color');
 
+  // Destacar card pré-selecionado se informado
+  if (preselectedName) {
+    const cleanPre = (preselectedName || '').trim().toLowerCase();
+    document.querySelectorAll('.tv-queue-patient-card').forEach(card => {
+      const cardName = (card.dataset.name || '').trim().toLowerCase();
+      if (cardName && (cardName.includes(cleanPre) || cleanPre.includes(cardName))) {
+        card.style.background = 'rgba(139,92,246,0.18)';
+        card.style.borderColor = '#8b5cf6';
+        if (card.dataset.manchester && !preselectedColor) {
+          colorEl.value = card.dataset.manchester;
+        }
+      }
+    });
+  }
+
   // Clique nos cards da fila seleciona o paciente
   document.querySelectorAll('.tv-queue-patient-card').forEach(card => {
     card.addEventListener('click', () => {
