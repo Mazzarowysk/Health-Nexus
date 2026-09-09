@@ -587,24 +587,33 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
     case 'pacientes':
       if (activePatient) {
-        stepTitle = '📺 Chamar Paciente no Painel TV (Sala de Triagem)';
-        stepDesc = 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' acolhido e cadastrado! Ele aguarda na sala de espera. O próximo passo assistencial é acionar a chamada audiovisual no Painel TV para convocá-lo à Sala de Triagem.';
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        stepTitle = '📺 Chamar ' + firstName + ' no Painel TV (Triagem)';
+        stepDesc = 'Paciente ' + safePName + ' acolhido e cadastrado! Ele aguarda na recepção. O próximo passo assistencial é convocá-lo pelo Painel TV para a Sala de Triagem Manchester.';
         targetTab = 'tv_panel';
-        btnText = '📺 Chamar no Painel TV ➔';
+        btnText = '📺 Chamar ' + firstName + ' na TV (Triagem) ➔';
         btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'Verde\', \'Sala de Triagem\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📺</span> Chamar na TV</button>'
+          + '<button onclick="if(typeof window.openAttendanceTriage===\'function\'){ window.openAttendanceTriage(\'' + safePNameEsc + '\'); } else { window.switchTab(\'atendimento\'); }" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Ir para Triagem</button>'
+          + '</div>';
       } else {
         stepTitle = '📋 Recepção: Cadastrar ou Localizar Paciente';
         stepDesc = 'Faça o cadastro da admissão do paciente recém-chegado ou consulte na lista abaixo para dar início ao acolhimento e triagem.';
         targetTab = 'pacientes';
         btnText = '➕ Abrir Formulário de Novo Paciente ➔';
         btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(168,85,247,0.18);border:1px solid rgba(168,85,247,0.45);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📺</span> Chamar na TV</button>'
+          + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Ir para Triagem</button>'
+          + '</div>';
       }
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(168,85,247,0.18);border:1px solid rgba(168,85,247,0.45);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>📺</span> Chamar na TV</button>'
-        + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🩺</span> Ir para Triagem</button>'
-        + '</div>';
       break;
 
     case 'atendimento':
@@ -613,42 +622,49 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       const isNotTriaged = activePatient && (!hasManchester || ['aguardando_triagem', 'aguardando triagem', 'admitido', 'recepção', 'cadastrado'].includes(pStatus));
 
       if (isNotTriaged) {
-        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente').replace(/'/g, "\\'");
-        stepTitle = '📺 Chamar Paciente no Painel TV (Sala de Triagem)';
-        stepDesc = 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' acolhido e aguardando na recepção! O próximo passo assistencial é convocá-lo pelo Painel TV para comparecer à Sala de Triagem Manchester.';
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        stepTitle = '📺 Chamar ' + firstName + ' no Painel TV (Sala de Triagem)';
+        stepDesc = 'Paciente ' + safePName + ' acolhido e aguardando na recepção! O próximo passo assistencial é convocá-lo pelo Painel TV para comparecer à Sala de Triagem Manchester.';
         targetTab = 'tv_panel';
-        btnText = '📺 Chamar no Painel TV ➔';
+        btnText = '📺 Chamar ' + firstName + ' na TV (Triagem) ➔';
         btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePName + '\', \'Verde\', \'Sala de Triagem\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'Verde\', \'Sala de Triagem\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
-          + '<button onclick="window.openAttendanceTriage && window.openAttendanceTriage(\'' + safePName + '\')" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openAttendanceTriage===\'function\'){ window.openAttendanceTriage(\'' + safePNameEsc + '\'); } else { window.switchTab(\'atendimento\'); }" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>🩺</span> Iniciar Triagem</button>'
           + '</div>';
       } else if (mColor === 'vermelho' || mColor === 'laranja') {
-        stepTitle = '🚨 Atendimento Médico Prioritário (Emergência)';
-        stepDesc = 'Paciente com gravidade ALTA (' + mColor.toUpperCase() + ')! Encaminhe imediatamente para a Sala Vermelha ou Consultório Médico com prioridade zero.';
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        stepTitle = '🚨 Atendimento Prioritário de ' + firstName + ' (Emergência)';
+        stepDesc = 'Paciente ' + safePName + ' com gravidade ALTA (' + mColor.toUpperCase() + ')! Encaminhe imediatamente para a Sala Vermelha / Consultório 01 com prioridade máxima.';
         targetTab = 'consultorios';
         btnText = '🚨 Abrir Consultório / Sala Vermelha ➔';
         btnBg = 'linear-gradient(135deg, #ef4444, #dc2626)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-          + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);color:#fca5a5;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openDoctorConsultingRoom===\'function\'){ window.openDoctorConsultingRoom(\'Consultório 01\', \'' + safePNameEsc + '\'); } else { window.switchTab(\'consultorios\'); }" style="padding:8px 10px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);color:#fca5a5;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>👨‍⚕️</span> Sala Vermelha</button>'
-          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'") + '\', \'' + (activePatient.manchesterColor || 'Vermelho') + '\', \'Consultório 01\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'' + (activePatient.manchesterColor || 'Vermelho') + '\', \'Consultório 01\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
           + '</div>';
       } else if (hasManchester) {
-        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente').replace(/'/g, "\\'");
-        stepTitle = '📺 Chamar no Painel TV para Consultório Médico';
-        stepDesc = 'Triagem Manchester realizada (' + activePatient.manchesterColor + ') e sinais vitais registrados! O próximo passo é acionar a chamada do paciente no Painel TV para o Consultório 01 e iniciar o atendimento médico no PEP.';
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        stepTitle = '📺 Chamar ' + firstName + ' na TV (Consultório 01)';
+        stepDesc = 'Triagem Manchester de ' + safePName + ' realizada (' + activePatient.manchesterColor + ')! Acione a chamada no Painel TV para o Consultório 01 para dar início ao atendimento médico no PEP.';
         targetTab = 'tv_panel';
-        btnText = '📺 Chamar na TV para Consultório ➔';
+        btnText = '📺 Chamar ' + firstName + ' na TV (Consultório 01) ➔';
         btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePName + '\', \'' + (activePatient.manchesterColor || 'Amarelo') + '\', \'Consultório 01\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'' + (activePatient.manchesterColor || 'Amarelo') + '\', \'Consultório 01\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
-          + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-          + '<span>👨‍⚕️</span> Abrir PEP</button>'
+          + '<button onclick="if(typeof window.openDoctorConsultingRoom===\'function\'){ window.openDoctorConsultingRoom(\'Consultório 01\', \'' + safePNameEsc + '\'); } else { window.switchTab(\'consultorios\'); }" style="padding:8px 10px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>👨‍⚕️</span> Entrar no Consultório</button>'
           + '</div>';
       } else {
         stepTitle = '🩺 Triagem Manchester: Próximo Paciente';
@@ -668,24 +684,158 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     case 'consultorios':
     case 'medicos':
       if (activePatient && (activePatient.status === 'Internado' || activePatient.bed)) {
-        stepTitle = '🛏️ Paciente Internado em Leito Hospitalar';
-        stepDesc = 'O paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' já foi transferido para internação' + (activePatient.bed ? ' no Leito ' + activePatient.bed : '') + '. Acompanhe a evolução clínica e o plano terapêutico no Censo de Leitos e Kanban.';
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        stepTitle = '🛏️ Paciente ' + firstName + ' Internado em Leito';
+        stepDesc = 'O paciente ' + safePName + ' já foi transferido para internação' + (activePatient.bed ? ' no Leito ' + activePatient.bed : '') + '. Acompanhe a evolução clínica no Censo de Leitos.';
         targetTab = 'leitos';
-        btnText = '🛏️ Acompanhar no Mapa de Leitos ➔';
+        btnText = '🛏️ Acompanhar ' + firstName + ' no Mapa de Leitos ➔';
         btnBg = 'linear-gradient(135deg, #06b6d4, #0891b2)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.4);color:#67e8f9;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🛏️</span> Ver Leitos</button>'
+          + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📊</span> Ver no Kanban</button>'
+          + '</div>';
+      } else if (activePatient) {
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        const safeRoom = activePatient.room || 'Consultório 01';
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        
+        stepTitle = '👨‍⚕️ Atendimento Médico: ' + firstName + ' (' + safeRoom + ')';
+        stepDesc = 'O paciente ' + safePName + ' foi convocado para o ' + safeRoom + '! Clique no botão abaixo para abrir a Folha de Evolução Médica (PEP SOAP) e registrar o atendimento.';
+        targetTab = 'consultorios';
+        btnText = '🩺 Abrir Prontuário (PEP) de ' + firstName + ' ➔';
+        btnBg = 'linear-gradient(135deg, #ec4899, #be185d)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(236,72,153,0.2);border:1px solid rgba(236,72,153,0.5);color:#f472b6;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Abrir PEP</button>'
+          + '<button onclick="window.switchTab(\'farmacia\')" style="padding:8px 10px;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.4);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>💊</span> Farmácia</button>'
+          + '</div>';
       } else {
-        stepTitle = '💊 Dispensar Medicamentos / Solicitar Leito';
-        stepDesc = 'Atendimento médico e evolução SOAP concluídos no PEP! Próximo passo: enviar a receita para dispensação na farmácia hospitalar ou solicitar vaga de internação caso indicado.';
-        targetTab = 'farmacia';
-        btnText = '💊 Ir para Farmácia Hospitalar ➔';
-        btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+        stepTitle = '👨‍⚕️ Selecione ou Chame um Paciente';
+        stepDesc = 'Consulte os consultórios abaixo ou chame o próximo paciente no Painel TV para dar início ao atendimento médico no PEP.';
+        targetTab = 'tv_panel';
+        btnText = '📺 Chamar Próximo no Painel TV ➔';
+        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Ver Triagem</button>'
+          + '<button onclick="window.switchTab(\'farmacia\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>💊</span> Farmácia</button>'
+          + '</div>';
       }
+      break;
+
+    case 'farmacia':
+      stepTitle = '🛏️ Alocar em Leito ou Acompanhar Internação';
+      stepDesc = 'Medicamentos e insumos dispensados! Se o paciente necessita de observação clínica ou internação, aloque a vaga no mapa de leitos; caso em observação, acompanhe no Kanban.';
+      targetTab = 'leitos';
+      btnText = '🛏️ Ir para Gestão de Leitos ➔';
+      btnBg = 'linear-gradient(135deg, #06b6d4, #0891b2)';
       extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.4);color:#67e8f9;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🛏️</span> Mapa de Leitos</button>'
-        + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>📺</span> Chamar Próximo</button>'
+        + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>📊</span> Ver no Kanban</button>'
+        + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>💰</span> Faturamento</button>'
         + '</div>';
+      break;
+
+    case 'leitos':
+      stepTitle = '📊 Monitorar Linha de Cuidado no Kanban';
+      stepDesc = 'Paciente acomodado no leito! O próximo passo da equipe multidisciplinar é acompanhar a evolução clínica, exames pendentes e previsão de alta na esteira Kanban.';
+      targetTab = 'kanban';
+      btnText = '📊 Ir para Kanban Hospitalar ➔';
+      btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>👨‍⚕️</span> Evolução no PEP</button>'
+        + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>💰</span> Faturamento</button>'
+        + '</div>';
+      break;
+
+    case 'kanban':
+      stepTitle = '💰 Faturamento Hospitalar & Guias TISS 4.01';
+      stepDesc = 'Com a alta médica concedida ou procedimentos concluídos, o próximo passo administrativo é fechar a conta do paciente e gerar o lote eletrônico padrão TISS 4.01.';
+      targetTab = 'financeiro';
+      btnText = '💰 Ir para Faturamento & TISS ➔';
+      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🛏️</span> Mapa de Leitos</button>'
+        + '<button onclick="window.switchTab(\'relatorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>📈</span> Indicadores</button>'
+        + '</div>';
+      break;
+
+    case 'financeiro':
+      stepTitle = '📈 Analisar Indicadores & Performance';
+      stepDesc = 'Contas fechadas e lotes TISS gerados! Próximo passo: avaliar o tempo médio de permanência (TMP), taxa de ocupação dos leitos e DRE consolidado.';
+      targetTab = 'relatorios';
+      btnText = '📈 Ir para Relatórios & Métricas ➔';
+      btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+      extraActions = '<div style="display:grid;grid-template-columns:1fr;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'dashboard\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🏥</span> Voltar ao Dashboard</button>'
+        + '</div>';
+      break;
+
+    case 'relatorios':
+      stepTitle = '🏥 Retornar ao Dashboard Central';
+      stepDesc = 'Indicadores e relatórios avaliados! Retorne ao painel central para acompanhar os novos atendimentos e a rotatividade do hospital em tempo real.';
+      targetTab = 'dashboard';
+      btnText = '🏥 Voltar ao Dashboard Principal ➔';
+      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      break;
+
+    case 'tv_panel':
+      if (activePatient && (activePatient.manchesterColor || activePatient.status === 'Triado')) {
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        const safeRoom = activePatient.room || 'Consultório 01';
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        stepTitle = '👨‍⚕️ Ir para ' + safeRoom + ' & Atender ' + firstName;
+        stepDesc = 'Paciente ' + safePName + ' triado (' + (activePatient.manchesterColor || 'Manchester') + ') convocado no Painel TV para o ' + safeRoom + '! Clique no botão abaixo para ir direto ao ' + safeRoom + ' e abrir o PEP.';
+        targetTab = 'consultorios';
+        btnText = '👨‍⚕️ Entrar no ' + safeRoom + ' (' + firstName + ') ➔';
+        btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="if(typeof window.openDoctorConsultingRoom===\'function\'){ window.openDoctorConsultingRoom(\'' + safeRoom + '\', \'' + safePNameEsc + '\'); } else { window.switchTab(\'consultorios\'); }" style="padding:8px 10px;background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.5);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>👨‍⚕️</span> Ir p/ ' + safeRoom + '</button>'
+          + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(236,72,153,0.18);border:1px solid rgba(236,72,153,0.4);color:#f472b6;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Abrir PEP</button>'
+          + '</div>';
+      } else if (activePatient) {
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        stepTitle = '🩺 Iniciar Triagem Manchester de ' + firstName;
+        stepDesc = 'Paciente ' + safePName + ' convocado no Painel TV para a Sala de Triagem! Clique abaixo para abrir a ficha de sinais vitais e definir a classificação de gravidade.';
+        targetTab = 'atendimento';
+        btnText = '🩺 Iniciar Triagem de ' + firstName + ' ➔';
+        btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="if(typeof window.openAttendanceTriage===\'function\'){ window.openAttendanceTriage(\'' + safePNameEsc + '\'); } else { window.switchTab(\'atendimento\'); }" style="padding:8px 10px;background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Ir para Triagem</button>'
+          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.openTVCallModal(\'' + safePNameEsc + '\', \'Verde\', \'Sala de Triagem\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.18);border:1px solid rgba(168,85,247,0.4);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📺</span> Nova Chamada</button>'
+          + '</div>';
+      } else {
+        stepTitle = '📺 Painel TV (Chamador Audiovisual)';
+        stepDesc = 'Acione a chamada sonora e visual para convocar os pacientes da fila à Triagem ou aos Consultórios Médicos.';
+        targetTab = 'tv_panel';
+        btnText = '📢 Chamar Paciente no Painel ➔';
+        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.45);color:#a5b4fc;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Ir para Triagem</button>'
+          + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>👨‍⚕️</span> Consultórios</button>'
+          + '</div>';
+      }
       break;
 
     case 'farmacia':
@@ -968,6 +1118,14 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         }
       }
 
+      // Se for ação de abrir consultório médico ou PEP
+      if (act.actionType === 'open_consultorio' || act.actionType === 'open_pep' || (act.targetTab === 'consultorios' && act.targetPatientName)) {
+        if (typeof window.openDoctorConsultingRoom === 'function') {
+          window.openDoctorConsultingRoom(act.targetRoom || 'Consultório 01', act.targetPatientName);
+          return;
+        }
+      }
+
       // 2. Se for ação de admitir paciente na Central de Atendimentos
       if (act.actionType === 'admit_patient' || (act.targetTab === 'atendimento' && act.targetPatientId && !act.targetStatus)) {
         if (typeof window.admitPatientFromPatientsTab === 'function') {
@@ -1107,6 +1265,54 @@ window.openAttendanceTriage = function(patientName) {
       }
     }, 120);
   }
+};
+
+window.openDoctorConsultingRoom = function(roomName = 'Consultório 01', patientName = '') {
+  if (typeof window.switchTab === 'function') {
+    window.switchTab('consultorios');
+  }
+  let tries = 0;
+  const checkInterval = setInterval(function() {
+    tries++;
+    const emptyBtn = document.getElementById('btn-load-default-rooms');
+    if (emptyBtn) emptyBtn.click();
+
+    const cards = document.querySelectorAll('.interactive-card, .patient-card-item');
+    if (cards.length > 0) {
+      clearInterval(checkInterval);
+
+      let targetCard = null;
+      if (patientName) {
+        targetCard = Array.from(cards).find(c => c.textContent.toLowerCase().includes(patientName.toLowerCase()));
+      }
+      if (!targetCard && roomName) {
+        targetCard = Array.from(cards).find(c => c.textContent.toLowerCase().includes(roomName.toLowerCase()));
+      }
+      if (!targetCard) targetCard = cards[0];
+
+      if (targetCard) {
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetCard.style.outline = '3px solid #ec4899';
+        targetCard.style.borderRadius = '14px';
+        setTimeout(() => targetCard.style.outline = '', 3500);
+
+        const pepBtn = targetCard.querySelector('button[onclick*="openPEPModal"]');
+        if (pepBtn) {
+          setTimeout(() => pepBtn.click(), 250);
+        } else if (patientName && typeof window.openPEPModal === 'function') {
+          setTimeout(() => window.openPEPModal(patientName), 250);
+        }
+      }
+      return;
+    }
+
+    if (tries >= 15) {
+      clearInterval(checkInterval);
+      if (patientName && typeof window.openPEPModal === 'function') {
+        window.openPEPModal(patientName);
+      }
+    }
+  }, 150);
 };
 
 const initializeApp = async () => {
@@ -4153,41 +4359,18 @@ async function loadConsultingRooms() {
     const tvCalls = Array.isArray(tvResult) ? tvResult : (tvResult.data || []);
 
     if (rooms.length === 0) {
-      dashboard.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--bg-secondary); border-radius: 16px; border: 1.5px dashed var(--border-color);">
-          <i class="fa-solid fa-door-closed" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 16px; display: inline-block;"></i>
-          <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Nenhum Consultório Cadastrado</h3>
-          <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 20px auto; font-size: 0.9rem;">
-            A base de dados foi limpa e não há consultórios configurados no momento. Cadastre novas salas ou inicialize os 4 consultórios padrão do pronto atendimento.
-          </p>
-          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="if(typeof window.openRoomModal === 'function') window.openRoomModal();" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 20px; border-radius: 10px;">
-              <i class="fa-solid fa-plus"></i> Novo Consultório
-            </button>
-            <button id="btn-load-default-rooms" class="btn" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 20px; border-radius: 10px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
-              <i class="fa-solid fa-arrows-rotate"></i> Carregar 4 Consultórios Padrão
-            </button>
-          </div>
-        </div>
-      `;
-      document.getElementById('btn-load-default-rooms')?.addEventListener('click', async () => {
-        const defaultRooms = [
-          { id: 'room-1', name: 'Consultório 01', specialty: 'Clínica Geral / Pronto Atendimento', currentDoctor: '', status: 'Disponível' },
-          { id: 'room-2', name: 'Consultório 02', specialty: 'Pediatria', currentDoctor: '', status: 'Disponível' },
-          { id: 'room-3', name: 'Consultório 03', specialty: 'Ortopedia / Trauma', currentDoctor: '', status: 'Disponível' },
-          { id: 'room-4', name: 'Consultório 04', specialty: 'Cardiologia', currentDoctor: '', status: 'Disponível' },
-        ];
-        if (typeof localDB !== 'undefined' && localDB.getFullDB) {
-          const currentDb = localDB.getFullDB();
-          currentDb.consultorios = defaultRooms;
-          localDB.saveFullDB(currentDb);
-        }
-        if (typeof showToast === 'function') {
-          showToast('✅ 4 Consultórios padrão inicializados!');
-        }
-        await loadConsultingRooms();
-      });
-      return;
+      const defaultRooms = [
+        { id: 'room-1', name: 'Consultório 01', specialty: 'Clínica Geral / Pronto Atendimento', currentDoctor: 'Dr. Marcelo Mazaro', status: 'Disponível' },
+        { id: 'room-2', name: 'Consultório 02', specialty: 'Pediatria', currentDoctor: 'Dra. Wanessa Ribeiro', status: 'Disponível' },
+        { id: 'room-3', name: 'Consultório 03', specialty: 'Ortopedia / Trauma', currentDoctor: 'Dr. Felipe Dias', status: 'Disponível' },
+        { id: 'room-4', name: 'Consultório 04', specialty: 'Cardiologia', currentDoctor: 'Dra. Helena Rocha', status: 'Disponível' },
+      ];
+      if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+        const currentDb = localDB.getFullDB();
+        currentDb.consultorios = defaultRooms;
+        localDB.saveFullDB(currentDb);
+      }
+      rooms = defaultRooms;
     }
     
     const activePatContext = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
