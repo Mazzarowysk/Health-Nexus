@@ -511,6 +511,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       agenda:       { icon: '📅', label: 'Agendamento' }
     };
 
+    let locationIcon = '📍';
+    let locationLabel = '';
+
     // Resolver localização dinâmica via getPatientCurrentLocation se disponível
     const patLoc = (typeof window.getPatientCurrentLocation === 'function' && effectivePatient)
       ? window.getPatientCurrentLocation(effectivePatient.id, effectivePatient.fullName || effectivePatient.patientName)
