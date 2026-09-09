@@ -308,17 +308,17 @@ export const apiFetch = async (url, options = {}) => {
 
       // 7. Funil de Atendimento Hospitalar Dinâmico
       const stage1_recepcao = encounters.length > 0 ? encounters.length : patients.length;
-      const stage2_triagem = triages.length > 0 ? triages.length : Math.round(stage1_recepcao * 0.85);
-      const stage3_consultorio = encounters.filter(e => ['Em_Atendimento', 'Aguardando_Exames', 'Aguardando_Resultado', 'Alta', 'Finalizado'].includes(e.status)).length || Math.round(stage2_triagem * 0.75);
-      const stage4_exames = prescriptions.length > 0 ? prescriptions.length : encounters.filter(e => ['Aguardando_Exames', 'Aguardando_Resultado'].includes(e.status)).length || Math.round(stage3_consultorio * 0.45);
-      const stage5_alta = encounters.filter(e => e.status === 'Alta' || e.status === 'Finalizado').length || Math.round(stage3_consultorio * 0.35);
+      const stage2_triagem = triages.length > 0 ? triages.length : (stage1_recepcao > 0 ? Math.round(stage1_recepcao * 0.85) : 0);
+      const stage3_consultorio = encounters.filter(e => ['Em_Atendimento', 'Aguardando_Exames', 'Aguardando_Resultado', 'Alta', 'Finalizado'].includes(e.status)).length || (stage2_triagem > 0 ? Math.round(stage2_triagem * 0.75) : 0);
+      const stage4_exames = prescriptions.length > 0 ? prescriptions.length : encounters.filter(e => ['Aguardando_Exames', 'Aguardando_Resultado'].includes(e.status)).length || (stage3_consultorio > 0 ? Math.round(stage3_consultorio * 0.45) : 0);
+      const stage5_alta = encounters.filter(e => e.status === 'Alta' || e.status === 'Finalizado').length || (stage3_consultorio > 0 ? Math.round(stage3_consultorio * 0.35) : 0);
 
       const funnelData = {
-        recepcao: Math.max(1, stage1_recepcao),
-        triagem: Math.max(1, stage2_triagem),
-        consultorio: Math.max(1, stage3_consultorio),
-        exames: Math.max(1, stage4_exames),
-        alta: Math.max(1, stage5_alta)
+        recepcao: stage1_recepcao,
+        triagem: stage2_triagem,
+        consultorio: stage3_consultorio,
+        exames: stage4_exames,
+        alta: stage5_alta
       };
 
       // 8. Dados do Fluxo Kanban de Internação Dinâmico

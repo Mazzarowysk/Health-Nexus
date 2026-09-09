@@ -86,20 +86,30 @@ export function initInteractiveFunnel(funnelData) {
   const stageEls = document.querySelectorAll('.funnel-stage, .funnel-legend-item');
 
   const fd = funnelData || {
-    recepcao: 1250, triagem: 1080, consultorio: 890, exames: 420, alta: 385
+    recepcao: 0, triagem: 0, consultorio: 0, exames: 0, alta: 0
   };
-  const totR = fd.recepcao || 100;
-  const totT = fd.triagem || Math.round(totR * 0.864);
-  const totC = fd.consultorio || Math.round(totT * 0.824);
-  const totE = fd.exames || Math.round(totC * 0.471);
-  const totA = fd.alta || Math.round(totC * 0.432);
+  const totR = fd.recepcao || 0;
+  const totT = fd.triagem || 0;
+  const totC = fd.consultorio || 0;
+  const totE = fd.exames || 0;
+  const totA = fd.alta || 0;
 
   const buildPeriod = (factor) => {
+    if (totR === 0) {
+      return {
+        nums: ['0 (0%)', '0 (0%)', '0 (0%)', '0 (0%)', '0 (0%)'],
+        legs: ['0', '0', '0', '0', '0'],
+        resRate: '0,0%',
+        goalText: '(0% da meta)',
+        goalWidth: '0%'
+      };
+    }
+
     const r = Math.max(1, Math.round(totR * factor));
-    const t = Math.max(1, Math.round(totT * factor));
-    const c = Math.max(1, Math.round(totC * factor));
-    const e = Math.max(1, Math.round(totE * factor));
-    const a = Math.max(1, Math.round(totA * factor));
+    const t = Math.round(totT * factor);
+    const c = Math.round(totC * factor);
+    const e = Math.round(totE * factor);
+    const a = Math.round(totA * factor);
 
     const pT = r > 0 ? (t / r * 100).toFixed(1).replace('.', ',') : '0';
     const pC = r > 0 ? (c / r * 100).toFixed(1).replace('.', ',') : '0';
@@ -109,7 +119,7 @@ export function initInteractiveFunnel(funnelData) {
     const rateNum = r > 0 ? (a / r * 100) : 0;
     const resRate = `${rateNum.toFixed(1).replace('.', ',')}%`;
     const meta = 35.0;
-    const goalPct = Math.min(100, Math.max(5, Math.round((rateNum / meta) * 100)));
+    const goalPct = Math.min(100, Math.max(0, Math.round((rateNum / meta) * 100)));
 
     return {
       nums: [
@@ -500,22 +510,30 @@ export function initDashboardCharts(data) {
     if (manchesterCtx._chartInstance) manchesterCtx._chartInstance.destroy();
     const ctxM = manchesterCtx.getContext('2d');
     
-    const mData = (data.manchesterData && data.manchesterData.some(v => v > 0))
-      ? data.manchesterData
-      : [8, 18, 42, 24, 8];
+    const isManchesterEmpty = !data.manchesterData || data.manchesterData.every(v => v === 0);
+    const mData = isManchesterEmpty ? [0, 0, 0, 0, 0] : data.manchesterData;
+
+    const manchesterEmptyMsg = document.getElementById('dashboard-manchester-empty-msg');
+    if (manchesterEmptyMsg) {
+      manchesterEmptyMsg.style.display = isManchesterEmpty ? 'flex' : 'none';
+    }
 
     const instM = new ChartClass(ctxM, {
       type: 'doughnut',
       data: {
-        labels: ['Vermelho (Emergência)', 'Laranja (Muito Urgente)', 'Amarelo (Urgente)', 'Verde (Pouco Urgente)', 'Azul (Não Urgente)'],
+        labels: isManchesterEmpty
+          ? ['Sem Atendimentos Triados']
+          : ['Vermelho (Emergência)', 'Laranja (Muito Urgente)', 'Amarelo (Urgente)', 'Verde (Pouco Urgente)', 'Azul (Não Urgente)'],
         datasets: [{
-          data: mData,
-          backgroundColor: ['#ef4444', '#f97316', '#eab308', '#10b981', '#3b82f6'].map(c => window.createChartGradient ? window.createChartGradient(ctxM, c, 'ee', '33') : c),
+          data: isManchesterEmpty ? [1] : mData,
+          backgroundColor: isManchesterEmpty
+            ? ['rgba(255, 255, 255, 0.05)']
+            : ['#ef4444', '#f97316', '#eab308', '#10b981', '#3b82f6'].map(c => window.createChartGradient ? window.createChartGradient(ctxM, c, 'ee', '33') : c),
           borderWidth: 2,
           borderColor: 'rgba(255, 255, 255, 0.08)',
           borderRadius: 8,
-          spacing: 4,
-          hoverOffset: 8
+          spacing: isManchesterEmpty ? 0 : 4,
+          hoverOffset: isManchesterEmpty ? 0 : 8
         }]
       },
       options: {
@@ -531,7 +549,7 @@ export function initDashboardCharts(data) {
         },
         plugins: {
           legend: {
-            display: true,
+            display: !isManchesterEmpty,
             position: 'right',
             labels: {
               color: '#cbd5e1',
@@ -542,6 +560,7 @@ export function initDashboardCharts(data) {
             }
           },
           tooltip: {
+            enabled: !isManchesterEmpty,
             backgroundColor: 'rgba(18, 14, 34, 0.92)',
             titleColor: '#00f2fe',
             bodyColor: '#f8fafc',
@@ -577,24 +596,14 @@ export function initDashboardCharts(data) {
       if (db && db.list) {
         let allHosps = db.list('hospitalizations') || [];
         const fullDB = db.getFullDB ? db.getFullDB() : {};
-        const patients = fullDB.patients || (db.list('patients') || []);
-        const doctors = fullDB.doctors || (db.list('doctors') || []);
         const beds = fullDB.beds || (db.list('beds') || []);
-
-        // Se hospitalizations estiver vazia no banco, gera sob demanda a partir dos pacientes existentes
-        if (allHosps.length === 0 && patients.length > 0 && doctors.length > 0 && typeof generateHospitalizations === 'function') {
-          const numHosp = Math.min(35, Math.max(12, Math.round(patients.length * 0.4)));
-          allHosps = generateHospitalizations(patients, doctors, numHosp);
-          fullDB.hospitalizations = allHosps;
-          if (db.saveFullDB) db.saveFullDB(fullDB);
-        }
 
         activeHosps = allHosps.filter(h => {
           const st = (h.status || '').toLowerCase().trim();
           return st !== 'alta' && st !== 'cancelado' && st !== 'finalizado' && st !== 'óbito';
         });
 
-        // Fallback complementar: se activeHosps ainda estiver vazio mas há leitos ocupados, deriva das ocupações
+        // Fallback complementar: se activeHosps estiver vazio mas há leitos ocupados reais, deriva das ocupações
         if (activeHosps.length === 0 && beds.length > 0) {
           const occupiedBeds = beds.filter(b => b.status === 'Ocupado');
           if (occupiedBeds.length > 0) {
@@ -653,33 +662,9 @@ export function initDashboardCharts(data) {
       return activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', s.id)).length;
     });
 
-    // Se data.kanbanData veio da API com dados válidos, utiliza como fonte prioritária
-    if (data && data.kanbanData && Array.isArray(data.kanbanData.counts) && data.kanbanData.counts.some(c => c > 0)) {
+    // Se data.kanbanData veio da API, utiliza como fonte prioritária
+    if (data && data.kanbanData && Array.isArray(data.kanbanData.counts)) {
       sectorCounts = data.kanbanData.counts;
-    }
-
-    // Se ainda assim for tudo zero, gera internações realistas no banco sob demanda
-    if (sectorCounts.every(c => c === 0)) {
-      try {
-        const db = (typeof localDB !== 'undefined' && localDB.list) ? localDB : (window.localDB || null);
-        if (db) {
-          const patients = db.list('patients') || [];
-          const doctors = db.list('doctors') || [];
-          if (patients.length > 0 && doctors.length > 0 && typeof generateHospitalizations === 'function') {
-            const newHosps = generateHospitalizations(patients, doctors, 28);
-            const fullDB = db.getFullDB ? db.getFullDB() : {};
-            fullDB.hospitalizations = newHosps;
-            if (db.saveFullDB) db.saveFullDB(fullDB);
-            activeHosps = newHosps.filter(h => (h.status || '').toLowerCase().trim() !== 'alta');
-            sectorCounts = sectors.map(s => activeHosps.filter(h => matchKanbanSector(h.current_sector || '', s.id)).length);
-          }
-        }
-      } catch(e) {}
-
-      // Garantia final: distribuição padrão realista de 28 pacientes nos 5 setores do complexo hospitalar
-      if (sectorCounts.every(c => c === 0)) {
-        sectorCounts = [8, 4, 6, 7, 3];
-      }
     }
 
     const totalActive = sectorCounts.reduce((acc, c) => acc + c, 0);
@@ -688,9 +673,9 @@ export function initDashboardCharts(data) {
     const kanbanTotalBadge = document.getElementById('dashboard-kanban-total-badge');
     if (kanbanTotalBadge) {
       kanbanTotalBadge.innerHTML = `<i class="fa-solid fa-bed-pulse"></i> ${totalActive} Internados`;
-      kanbanTotalBadge.style.color = '#38bdf8';
-      kanbanTotalBadge.style.borderColor = 'rgba(56,189,248,0.5)';
-      kanbanTotalBadge.style.background = 'rgba(56,189,248,0.14)';
+      kanbanTotalBadge.style.color = totalActive > 0 ? '#38bdf8' : '#94a3b8';
+      kanbanTotalBadge.style.borderColor = totalActive > 0 ? 'rgba(56,189,248,0.5)' : 'rgba(255,255,255,0.15)';
+      kanbanTotalBadge.style.background = totalActive > 0 ? 'rgba(56,189,248,0.14)' : 'rgba(255,255,255,0.05)';
     }
 
     // Toggle mensagem de estado vazio
@@ -937,8 +922,13 @@ export async function renderDashboardTab(contentArea) {
               <i class="fa-solid fa-triangle-exclamation"></i> Triagem PS
             </span>
           </div>
-          <div class="chart-container" style="height: 240px;">
+          <div class="chart-container" style="height: 240px; position: relative;">
             <canvas id="manchesterChart"></canvas>
+            <div id="dashboard-manchester-empty-msg" style="display: none; position: absolute; inset: 0; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: rgba(15, 23, 42, 0.75); border-radius: 8px; backdrop-filter: blur(4px);">
+              <i class="fa-solid fa-shield-halved" style="font-size: 2rem; color: #f87171; margin-bottom: 8px; opacity: 0.8;"></i>
+              <p style="margin: 0; font-size: 0.9rem; color: #f8fafc; font-weight: 600;">Nenhum paciente classificado</p>
+              <span style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Aguardando atendimentos na Triagem Manchester</span>
+            </div>
           </div>
         </div>
 
