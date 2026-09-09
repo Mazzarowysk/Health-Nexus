@@ -5417,3 +5417,45 @@ tr.patient-pulse-selected td {
   color: #ffffff !important;
   font-weight: 600 !important;
 }
+
+/* --- DESTAQUE DE CHAMADA TV PULSANTE --- */
+@keyframes tvCallPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.9);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 28px 8px rgba(236, 72, 153, 0.95);
+    transform: scale(1.04);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
+    transform: scale(1);
+  }
+}
+
+.btn-tv-call-pulsing {
+  animation: tvCallPulse 1.2s infinite ease-in-out !important;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.85) !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  font-weight: 800 !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-tv-call-pulsing:hover {
+  transform: scale(1.08) !important;
+  filter: brightness(1.15) !important;
+  box-shadow: 0 0 32px rgba(236, 72, 153, 0.95) !important;
+}
+

@@ -203,6 +203,7 @@ window.loadTVWaitingQueue = async function() {
 
   const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
   const activeCtxName = activeCtx ? (activeCtx.fullName || activeCtx.patientName || '').toLowerCase().trim() : '';
+  const highlightName = (window._highlightPatientName || '').toLowerCase().trim();
 
   queueEl.innerHTML = patients.map((p, idx) => {
     const key = (p.manchesterColor || 'verde').toLowerCase().replace(/[^a-z]/g, '');
@@ -212,26 +213,36 @@ window.loadTVWaitingQueue = async function() {
     const sub = p.doctorName ? ('Dr. ' + p.doctorName + (p.appointmentTime ? ' · ' + p.appointmentTime : '')) : col.label;
     const safeName  = (p.patientName || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const safeColor = (p.manchesterColor || 'Verde').replace(/'/g, "\\'");
-    const isSelected = !!(activeCtxName && (p.patientName || '').toLowerCase().trim() === activeCtxName);
+    const pNameClean = (p.patientName || '').toLowerCase().trim();
+    const isSelected = !!((activeCtxName && pNameClean === activeCtxName) || (highlightName && pNameClean.includes(highlightName)));
 
     return `<div onclick="window._tvQuickCall('${safeName}','${safeColor}')"
       class="patient-card-item ${isSelected ? 'patient-pulse-selected' : ''}"
       data-patient-card-name="${safeName.toLowerCase()}"
-      title="Clique para chamar ${p.patientName || ''}"
-      style="background:var(--bg-secondary,#1e293b);border:1px solid rgba(255,255,255,0.08);border-left:4px solid ${col.bg};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;"
-      onmouseenter="this.style.background='rgba(139,92,246,0.1)';this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(139,92,246,0.2)';"
-      onmouseleave="this.style.background='var(--bg-secondary,#1e293b)';this.style.transform='';this.style.boxShadow='';">
+      title="Clique para chamar ${p.patientName || ''} na TV"
+      style="position:relative;background:var(--bg-secondary,#1e293b);border:${isSelected ? '2px solid #a855f7' : '1px solid rgba(255,255,255,0.08)'};border-left:4px solid ${col.bg};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;box-shadow:${isSelected ? '0 0 24px rgba(168,85,247,0.45)' : 'none'};"
+      onmouseenter="this.style.background='rgba(139,92,246,0.12)';this.style.transform='translateY(-2px)';"
+      onmouseleave="this.style.background='var(--bg-secondary,#1e293b)';this.style.transform='';">
+      
       <div style="width:44px;height:44px;border-radius:50%;background:${col.bg};display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;flex-shrink:0;">${ini}</div>
+      
       <div style="flex:1;min-width:0;">
+        ${isSelected ? `<div style="font-size:0.65rem;font-weight:800;color:#e9d5ff;background:rgba(168,85,247,0.3);border:1px solid #a855f7;padding:1px 7px;border-radius:8px;margin-bottom:4px;display:inline-flex;align-items:center;gap:4px;letter-spacing:0.4px;"><i class="fa-solid fa-bullhorn fa-bounce"></i> PACIENTE SELECIONADO &bull; CHAMAR NA TV</div>` : ''}
         <div style="font-weight:700;font-size:0.95rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName || 'Paciente'}</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
           <span style="font-size:0.72rem;font-weight:700;background:${st.color}22;color:${st.color};border:1px solid ${st.color}44;padding:1px 7px;border-radius:20px;">${st.text}</span>
           <span style="font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid ${col.icon}"></i> ${sub}</span>
         </div>
       </div>
+
       <div style="flex-shrink:0;text-align:right;">
-        <span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;">#${String(idx+1).padStart(2,'0')}</span>
-        <div style="margin-top:4px;font-size:0.72rem;color:#8b5cf6;font-weight:600;"><i class="fa-solid fa-bullhorn"></i> Chamar</div>
+        <span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;display:block;margin-bottom:4px;">#${String(idx+1).padStart(2,'0')}</span>
+        <button type="button"
+                onclick="event.stopPropagation(); window._tvQuickCall('${safeName}','${safeColor}')"
+                class="${isSelected ? 'btn-tv-call-pulsing' : 'btn-tv-call-standard'}"
+                style="${isSelected ? '' : 'background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.45);color:#d8b4fe;padding:6px 12px;border-radius:16px;font-weight:700;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;gap:5px;'}">
+          <i class="fa-solid fa-bullhorn ${isSelected ? 'fa-bounce' : ''}"></i> ${isSelected ? 'CHAMAR NA TV' : 'Chamar'}
+        </button>
       </div>
     </div>`;
   }).join('');
@@ -570,13 +581,14 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
       showCustomAlert({ title: 'Chamada Emitida!', message: `&#128266; ${patientName} &rarr; ${roomName}`, type: 'success' });
       if (typeof window.showFlowCompletionNotification === 'function') {
         const isTriageRoom = (roomName || '').toLowerCase().includes('triag');
+        const firstName = patientName.split(' ')[0];
         window.showFlowCompletionNotification({
-          actionTitle: isTriageRoom ? `🩺 Chamada de Triagem Emitida` : `📢 Chamada Emitida no Painel TV`,
+          actionTitle: isTriageRoom ? `🩺 Chamada Emitida para Triagem!` : `📢 Chamada Emitida no Painel TV!`,
           message: isTriageRoom
-            ? `Paciente <strong>${patientName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br><strong>Próximo Passo Assistencial:</strong> Dirija-se à <strong>Triagem Manchester</strong> para aferir sinais vitais e classificar a gravidade.`
-            : `Paciente <strong>${patientName}</strong> chamado(a) para <strong>${roomName}</strong>.<br><br><strong>Próximo Passo Assistencial:</strong> Iniciar consulta e prontuário médico no PEP.`,
+            ? `Paciente <strong>${patientName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir a Triagem Manchester e aferir os sinais vitais!</strong>`
+            : `Paciente <strong>${patientName}</strong> chamado(a) no Painel TV para o <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir o ${roomName} e dar início ao Prontuário (PEP)!</strong>`,
           targetTab: isTriageRoom ? 'atendimento' : 'consultorios',
-          targetTabLabel: isTriageRoom ? 'Triagem Manchester (Atendimentos)' : `${roomName} (Salas & Consultórios)`,
+          targetTabLabel: isTriageRoom ? `🩺 Iniciar Triagem Manchester de ${firstName} ➔` : `👨‍⚕️ Abrir ${roomName} (${firstName}) ➔`,
           targetColumn: isTriageRoom ? 'col-triage' : roomName,
           targetPatientName: patientName,
           targetStatus: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',

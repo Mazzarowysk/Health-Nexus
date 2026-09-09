@@ -1020,8 +1020,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         <div style="font-size: 0.77rem; color: #cbd5e1; line-height: 1.45; margin-bottom: 12px;">
           ${pending.message}
         </div>
-        <button id="hn-fg-exec-action" style="width: 100%; padding: 10px 14px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 9px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.45); text-transform: uppercase; letter-spacing: 0.4px; transition: transform 0.15s, filter 0.15s;" onmouseover="this.style.transform='scale(1.02)'; this.style.filter='brightness(1.1)'" onmouseout="this.style.transform='scale(1)'; this.style.filter='none'">
-          <span>🚀</span> ${destLabel ? 'Ir para ' + destLabel : 'Avançar para Próxima Etapa'} ➔
+        <button id="hn-fg-exec-action" style="width: 100%; padding: 11px 14px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 9px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.7); text-transform: uppercase; letter-spacing: 0.4px; transition: transform 0.15s, filter 0.15s; animation: tvCallPulse 1.2s infinite ease-in-out;" onmouseover="this.style.transform='scale(1.02)'; this.style.filter='brightness(1.15)'" onmouseout="this.style.transform='scale(1)'; this.style.filter='none'">
+          <span>🚀</span> ${destLabel ? (destLabel.includes('➔') ? destLabel : destLabel + ' ➔') : 'Avançar para Próxima Etapa ➔'}
         </button>
       </div>
     `;
