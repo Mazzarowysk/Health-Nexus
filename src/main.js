@@ -520,6 +520,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       const ward = effectivePatient.ward || effectivePatient.ala || effectivePatient.sector || '';
       locationIcon = '🛏️';
       locationLabel = 'Leito ' + bed + (ward ? ' · ' + ward : '');
+    } else if (effectivePatient.status === 'Aguardando_Leito') {
+      locationIcon = '⏳';
+      locationLabel = 'Fila de Internação (Aguardando Leito)';
     } else if (effectivePatient.room || effectivePatient.roomName) {
       // Em consultório / sala específica
       locationIcon = '🚪';
@@ -765,17 +768,50 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       break;
 
     case 'leitos':
-      stepTitle = '📊 Monitorar Linha de Cuidado no Kanban';
-      stepDesc = 'Paciente acomodado no leito! O próximo passo da equipe multidisciplinar é acompanhar a evolução clínica, exames pendentes e previsão de alta na esteira Kanban.';
-      targetTab = 'kanban';
-      btnText = '📊 Ir para Kanban Hospitalar ➔';
-      btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>👨‍⚕️</span> Evolução no PEP</button>'
-        + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>💰</span> Faturamento</button>'
-        + '</div>';
+      if (activePatient) {
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        const isWaitingBed = activePatient.status === 'Aguardando_Leito' || (!activePatient.bed && !activePatient.bedNumber);
+
+        if (isWaitingBed) {
+          stepTitle = '🛏️ Alocar Leito para ' + firstName;
+          stepDesc = 'Paciente ' + safePName + ' está na Fila de Internação. Selecione um leito vago no mapa ou clique no botão Alocar para efetivar a internação.';
+          targetTab = 'leitos';
+          btnText = '🛏️ Alocar Leito para ' + firstName + ' ➔';
+          btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+          extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+            + '<button onclick="if(typeof window.quickAdmitBed===\'function\'){ window.quickAdmitBed(null, null, \'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.5);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>🛏️</span> Alocar Leito</button>'
+            + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>📊</span> Ver no Kanban</button>'
+            + '</div>';
+        } else {
+          stepTitle = '🛏️ Acompanhar ' + firstName + ' (Leito ' + (activePatient.bed || activePatient.bedNumber || '') + ')';
+          stepDesc = 'Paciente ' + safePName + ' acomodado no leito! O próximo passo é acompanhar a evolução clínica, exames e previsão de alta na esteira Kanban.';
+          targetTab = 'kanban';
+          btnText = '📊 Ir para Kanban Hospitalar ➔';
+          btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+          extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+            + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>👨‍⚕️</span> Evolução no PEP</button>'
+            + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>💰</span> Faturamento</button>'
+            + '</div>';
+        }
+      } else {
+        stepTitle = '📊 Monitorar Linha de Cuidado no Kanban';
+        stepDesc = 'Censo e mapa de leitos hospitalares. Acompanhe a ocupação em tempo real ou selecione um paciente para internar.';
+        targetTab = 'kanban';
+        btnText = '📊 Ir para Kanban Hospitalar ➔';
+        btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>👨‍⚕️</span> Evolução no PEP</button>'
+          + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>💰</span> Faturamento</button>'
+          + '</div>';
+      }
       break;
 
     case 'kanban':

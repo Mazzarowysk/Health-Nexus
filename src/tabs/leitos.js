@@ -174,19 +174,39 @@ async function renderLeitosTab() {
         
         if (queue.length > 0) {
           queueContainer.style.display = 'block';
-          queueList.innerHTML = queue.map(q => `
-            <div class="patient-card-item" data-patient-card-name="${(q.patientName||'').toLowerCase().replace(/"/g, '&quot;')}" style="background: var(--glass-bg); border-top: 4px solid var(--danger); border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); backdrop-filter: var(--glass-blur); padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease;" onmouseenter="this.style.transform='translateY(-2px)';" onmouseleave="this.style.transform='none';">
-              <div>
-                <div style="font-weight: 700; color: var(--text-primary); font-size: 1.05rem;">${q.patientName}</div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-                  <i class="fa-solid fa-clock"></i> Aguardando Leito (${q.room || '-'})
+          const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+          const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
+
+          queueList.innerHTML = queue.map(q => {
+            const qName = (q.patientName || '').trim();
+            const isSelectedInQueue = !!(activePatName && qName.toLowerCase().trim() === activePatName);
+            const safeQNameEsc = qName.replace(/'/g, "\\'");
+
+            return `
+              <div class="patient-card-item ${isSelectedInQueue ? 'patient-pulse-selected patient-spotlight-glow' : ''}" 
+                data-patient-card-name="${qName.toLowerCase().replace(/"/g, '&quot;')}" 
+                style="background: var(--glass-bg); border-top: 4px solid var(--danger); border-left: ${isSelectedInQueue ? '2.5px solid #38bdf8' : '1px solid var(--glass-border)'}; border-right: ${isSelectedInQueue ? '2.5px solid #38bdf8' : '1px solid var(--glass-border)'}; border-bottom: ${isSelectedInQueue ? '2.5px solid #38bdf8' : '1px solid var(--glass-border)'}; backdrop-filter: var(--glass-blur); padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: ${isSelectedInQueue ? '0 0 25px rgba(56,189,248,0.6)' : 'var(--shadow-sm)'}; transition: transform 0.2s ease; position: relative;"
+                onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${q.id}', fullName: '${safeQNameEsc}', patientName: '${safeQNameEsc}', status: 'Aguardando_Leito' });">
+                
+                ${isSelectedInQueue ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:16px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.7rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
+
+                <div>
+                  <div style="font-weight: 700; color: var(--text-primary); font-size: 1.05rem; display:flex; align-items:center; gap:8px;">
+                    ${q.patientName}
+                  </div>
+                  <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                    <i class="fa-solid fa-clock"></i> Aguardando Leito (${q.room || '-'})
+                  </div>
                 </div>
+                <button class="btn btn-sm ${isSelectedInQueue ? 'btn-tv-call-pulsing' : ''}" 
+                  onclick="event.stopPropagation(); if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${q.id}', fullName: '${safeQNameEsc}', patientName: '${safeQNameEsc}', status: 'Aguardando_Leito' }); quickAdmitBed(null, '${q.id}', '${safeQNameEsc}')" 
+                  style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" 
+                  onmouseenter="this.style.transform='scale(1.02)';" onmouseleave="this.style.transform='none';">
+                  <i class="fa-solid fa-bed-pulse"></i> Alocar Leito
+                </button>
               </div>
-              <button class="btn btn-sm" onclick="quickAdmitBed(null, '${q.id}', '${(q.patientName||'').replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.transform='scale(1.02)';" onmouseleave="this.style.transform='none';">
-                <i class="fa-solid fa-bed-pulse"></i> Alocar
-              </button>
-            </div>
-          `).join('');
+            `;
+          }).join('');
         } else {
           queueContainer.style.display = 'none';
         }
@@ -275,7 +295,8 @@ async function renderLeitosTab() {
         const isSelectedPatient = !!(activePatName && b.patientName && (b.patientName.toLowerCase().trim() === activePatName));
 
         return `
-          <div class="card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(b.patientName || '').toLowerCase().replace(/"/g, '&quot;')}" style="padding: 20px; border-top: ${borderTop}; border-left: 1.5px solid ${isSelectedPatient ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; border-right: 1.5px solid ${isSelectedPatient ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; border-bottom: 1.5px solid ${isSelectedPatient ? 'rgba(99,102,241,0.6)' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;" onclick="window.openBedDetailsModal('${b.id}')" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
+          <div class="card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(b.patientName || '').toLowerCase().replace(/"/g, '&quot;')}" style="padding: 20px; border-top: ${borderTop}; border-left: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-right: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-bottom: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: ${isSelectedPatient ? '0 0 25px rgba(56,189,248,0.6)' : 'var(--shadow-sm)'}; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;" onclick="if(b.patientName && typeof setActivePatientContext==='function') setActivePatientContext({ id: '${b.patientId || b.id}', fullName: '${(b.patientName||'').replace(/'/g, "\\'")}', patientName: '${(b.patientName||'').replace(/'/g, "\\'")}', bedId: '${b.id}', status: 'Internado' }); window.openBedDetailsModal('${b.id}')" onmouseenter="this.style.transform='translateY(-4px)';" onmouseleave="this.style.transform='none';">
+            ${isSelectedPatient ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:16px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.7rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); display:flex; align-items:center; gap: 6px;">
