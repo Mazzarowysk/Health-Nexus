@@ -63,39 +63,12 @@ function ensureTable(db, table) {
       { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', password: 'T@zm4n1c0054180', status: 'Ativo' },
       { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', password: 'bcoltritupa', status: 'Ativo' },
       { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', password: 'admin123', status: 'Ativo' },
-      { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', password: 'caliope', status: 'Ativo' }
-    ];
-
-    const defaultClinicalUsers = [
-      // Médicos (Corpo Clínico)
-      { id: 'USR-DOC-001', name: 'Dr. Carlos Eduardo Silva', username: 'dr.carloseduard', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-002', name: 'Dra. Ana Maria Costa', username: 'dra.anamaria', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-003', name: 'Dr. João Pedro Santos', username: 'dr.joaopedro', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-004', name: 'Dra. Beatriz Oliveira', username: 'dra.beatriz', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-005', name: 'Dr. Roberto Fernandes', username: 'dr.roberto', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-006', name: 'Dra. Mariana Lima', username: 'dra.mariana', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-007', name: 'Dr. Fábio Rodrigues', username: 'dr.fabio', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-008', name: 'Dr. André Mendes', username: 'dr.andre', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-009', name: 'Dra. Cristina Souza', username: 'dra.cristina', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-010', name: 'Dr. Marcelo Andrade', username: 'dr.marcelo', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-011', name: 'Dra. Renata Carvalho', username: 'dra.renata', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-DOC-012', name: 'Dr. Thiago Martins', username: 'dr.thiago', role: 'Médico', password: 'Health@2026', status: 'Ativo' },
-
-      // Enfermeiros (Equipe Enfermagem)
-      { id: 'USR-NUR-001', name: 'Enf. Sílvia Regina Santos', username: 'silviacwb', role: 'Enfermeiro', password: 'silvia2013', status: 'Ativo' },
-      { id: 'USR-NUR-002', name: 'Enf. Patrícia Oliveira Lima', username: 'enf.patricia', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-NUR-003', name: 'Enf. Marcos Vinícius Souza', username: 'enf.marcos', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-NUR-004', name: 'Enf. Juliana Ferreira Costa', username: 'enf.juliana', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-NUR-005', name: 'Enf. Rodrigo Alves Ribeiro', username: 'enf.rodrigo', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-NUR-006', name: 'Enf. Camila Rocha Silva', username: 'enf.camila', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-NUR-007', name: 'Enf. Lucas Mendes Freitas', username: 'enf.lucas', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
-      { id: 'USR-NUR-008', name: 'Enf. Tatiane Barbosa Cruz', username: 'enf.tatiane', role: 'Enfermeiro', password: 'Health@2026', status: 'Ativo' },
+      { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', password: 'caliope', status: 'Ativo' },
       { id: 'USR-PFORTE', name: 'Dra. Paula Forte', username: 'pforte', role: 'Médico', password: 'pfortesantos', status: 'Ativo' }
     ];
 
     if (db[table].length === 0) {
-      const initialUsers = [...coreSystemUsers, ...defaultClinicalUsers];
-      initialUsers.forEach(reqUser => {
+      coreSystemUsers.forEach(reqUser => {
         db[table].push({
           ...reqUser,
           created_at: new Date().toISOString()
@@ -245,19 +218,37 @@ export function clear() {
   const savedSettings = db.settings || [];
   const savedSessions = db.user_sessions || [];
 
-  // Filtrar usuários de simulação automática (médicos e enfermeiros criados em lote pelo mock generator)
-  // Mantém os usuários fundadores e contas administrativas/profissionais criadas manualmente
+  // Preservar usuários principais do sistema:
   const coreUsernames = ['mazzarowysk', 'bcoltri', 'admin', 'ffacco', 'pforte'];
+  const defaultCoreUsers = [
+    { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', password: 'T@zm4n1c0054180', status: 'Ativo' },
+    { id: 'USR-BCOLTRI', name: 'Breno Coltri', username: 'bcoltri', role: 'Desenvolvedor', password: 'bcoltritupa', status: 'Ativo' },
+    { id: 'USR-ADMIN', name: 'Administrador Hospitalar', username: 'admin', role: 'Administrador', password: 'admin123', status: 'Ativo' },
+    { id: 'USR-FFACCO', name: 'Franciele Facco de Carvalho', username: 'ffacco', role: 'Desenvolvedor', password: 'caliope', status: 'Ativo' },
+    { id: 'USR-PFORTE', name: 'Dra. Paula Forte', username: 'pforte', role: 'Médico', password: 'pfortesantos', status: 'Ativo' }
+  ];
+
+  // Filtrar rigorosamente médicos e enfermeiros criados em lote pelo mock generator (ignorando maiúsculas/minúsculas)
   const preservedUsers = rawUsers.filter(u => {
     if (!u) return false;
-    if (coreUsernames.includes(u.username)) return true;
-    if (u.id && (u.id.startsWith('USR-doc-') || u.id.startsWith('USR-nur-'))) return false;
+    const un = (u.username || '').toLowerCase().trim();
+    if (coreUsernames.includes(un)) return true;
+    const uid = (u.id || '').toLowerCase().trim();
+    if (uid.startsWith('usr-doc') || uid.startsWith('usr-nur')) return false;
+    if (un.startsWith('dr.') || un.startsWith('dra.') || un.startsWith('enf.')) return false;
     return true;
+  });
+
+  // Assegurar que as 5 contas principais do sistema existam obrigatoriamente
+  defaultCoreUsers.forEach(core => {
+    if (!preservedUsers.some(u => (u.username || '').toLowerCase().trim() === core.username)) {
+      preservedUsers.push(core);
+    }
   });
 
   const emptyDB = {
     settings: savedSettings,
-    users: preservedUsers.length > 0 ? preservedUsers : rawUsers,
+    users: preservedUsers,
     user_sessions: savedSessions,
     patients: [],
     encounters: [],
@@ -281,11 +272,48 @@ export function clear() {
     beds: getDefaultBeds()
   };
 
+  const freshTimestamp = Date.now().toString();
   localStorage.setItem(DB_KEY, JSON.stringify(emptyDB));
-  localStorage.setItem(UPDATED_AT_KEY, Date.now().toString());
+  localStorage.setItem(UPDATED_AT_KEY, freshTimestamp);
 
-  if (typeof window !== 'undefined' && typeof window.clearDataCache === 'function') {
-    window.clearDataCache();
+  // Limpeza de chaves adicionais de armazenamento local e de sessão
+  try {
+    localStorage.removeItem('protocolos_emergencia_ativos');
+    localStorage.removeItem('activePatientContext');
+    localStorage.removeItem('realtime_events');
+    localStorage.removeItem('healthNexusLastBackup');
+    localStorage.removeItem('hn_pending_flow_action');
+  } catch (e) {}
+
+  try {
+    sessionStorage.removeItem('hn_notified_pending');
+  } catch (e) {}
+
+  // Limpar variáveis de contexto, destaques e caches em memória
+  if (typeof window !== 'undefined') {
+    window._highlightPatientName = null;
+    window._highlightTargetColumn = null;
+    window._highlightPatientId = null;
+    window._lastAdmittedPatientId = null;
+    window.__hn_realtime_events = [];
+    window.__hn_recent_triages = [];
+    window.__hn_recent_tv_calls = [];
+
+    if (window._SFG) {
+      window._SFG.pendingAction = null;
+    }
+    if (typeof window.clearFlowNotification === 'function') {
+      window.clearFlowNotification();
+    }
+    if (typeof window.dismissFlowGuide === 'function') {
+      window.dismissFlowGuide();
+    }
+    if (typeof window.setActivePatientContext === 'function') {
+      window.setActivePatientContext(null);
+    }
+    if (typeof window.clearDataCache === 'function') {
+      window.clearDataCache();
+    }
   }
 
   return emptyDB;

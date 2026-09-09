@@ -373,8 +373,8 @@ export class SyncManager {
     };
   }
 
-  async pushToCloud(showToastMessage = true) {
-    if (this.syncInProgress) return false;
+  async pushToCloud(showToastMessage = true, force = false) {
+    if (this.syncInProgress && !force) return false;
     this.syncInProgress = true;
 
     try {
@@ -433,6 +433,8 @@ export class SyncManager {
         localStorage.setItem('healthNexusUpdatedAt', newUpdatedAt.toString());
         localStorage.setItem('ultimoSync', new Date(newUpdatedAt).toLocaleString('pt-BR'));
         this.lastLocalUpdate = newUpdatedAt;
+        this.lastCheckTime = newUpdatedAt;
+        this.timerCountdownSeconds = 15 * 60;
         if (showToastMessage) {
           showToast(`✅ Nuvem Atualizada com Sucesso! (${recordSummary || 'dados gravados'})`);
         }

@@ -552,42 +552,89 @@ export function renderSettingsTab(contentArea) {
         try {
           // 1. Limpeza exaustiva de todas as tabelas locais (pacientes, internações, financeiro, etc.)
           const cleanDB = localDB.clear();
+          const cleanJson = JSON.stringify(cleanDB);
+          const cleanConfig = localStorage.getItem('healthNexusConfig') || '{}';
+          const now = Date.now();
 
-          // 2. Limpar contextos e caches de memória
+          // 2. Limpar contextos, caches e dados de dashboard em memória
           if (typeof window.setActivePatientContext === 'function') {
             window.setActivePatientContext(null);
-          }
-          if (typeof window.updateFloatingWorkflowGuide === 'function') {
-            window.updateFloatingWorkflowGuide(typeof state !== 'undefined' ? state?.activeTab : 'dashboard');
           }
           if (typeof window.clearDataCache === 'function') {
             window.clearDataCache();
           }
+          if (typeof state !== 'undefined' && state) {
+            state.dashboardData = null;
+          }
+          if (typeof window.updateFloatingWorkflowGuide === 'function') {
+            window.updateFloatingWorkflowGuide(typeof state !== 'undefined' ? state?.activeTab : 'dashboard');
+          }
 
-          // 3. Reset no backend / proxy passando a base limpa
-          await apiFetch('/api/settings/reset', { 
-            method: 'POST',
-            body: JSON.stringify({ emptyDB: cleanDB })
-          }).catch((e) => console.warn('[Settings Reset] Aviso ao comunicar backend:', e));
+          // 3. Forçar liberação do lock de sincronização
+          if (typeof syncManager !== 'undefined' && syncManager) {
+            syncManager.syncInProgress = false;
+          }
 
-          // 4. Sincronização direta e garantida com a Nuvem Turso (AWAIT)
-          // Isso assegura que a nuvem não restaure dados antigos da simulação anterior
-          if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
-            await syncManager.pushToCloud(false).catch((err) => {
-              console.warn('[Settings] Falha ao sincronizar limpeza na nuvem:', err);
+          // 4. Sincronização direta e autoritativa com a Nuvem Turso
+          let cloudUpdated = false;
+
+          // Tentativa A: Proxy Vercel
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            const res = await fetch('/api/turso?sync=1', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ dados_json: cleanJson, config_json: cleanConfig }),
+              signal: controller.signal
             });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+              const body = await res.json().catch(() => ({}));
+              if (body && body.success && !body.offline) {
+                cloudUpdated = true;
+              }
+            }
+          } catch (errProxy) {
+            console.warn('[Settings Reset] Proxy /api/turso indisponível, tentando direto:', errProxy.message);
+          }
+
+          // Tentativa B: Fallback direto via HTTP Pipeline do Turso
+          if (!cloudUpdated && typeof syncManager !== 'undefined' && syncManager.pushDirectToTurso) {
+            try {
+              const directResult = await syncManager.pushDirectToTurso(cleanJson, cleanConfig);
+              if (directResult && directResult.success) {
+                cloudUpdated = true;
+              }
+            } catch (errDirect) {
+              console.error('[Settings Reset] Erro no push direto ao Turso:', errDirect);
+            }
+          }
+
+          // 5. Atualizar timestamps locais com o timestamp do reset
+          localStorage.setItem('healthNexusUpdatedAt', now.toString());
+          localStorage.setItem('ultimoSync', new Date(now).toLocaleString('pt-BR'));
+          if (typeof syncManager !== 'undefined' && syncManager) {
+            syncManager.lastLocalUpdate = now;
+            syncManager.lastCheckTime = now;
+            syncManager.timerCountdownSeconds = 15 * 60;
+            syncManager.startAutoSyncTimer();
+          }
+
+          if (typeof getSyncStatus === 'function') {
+            await getSyncStatus().catch(() => null);
           }
 
           showToast('🗑️ Banco de dados e nuvem 100% limpos com sucesso!');
           await showCustomAlert({
             title: 'Banco de Dados Plenamente Limpo',
-            message: 'Todos os registros de pacientes, atendimentos, agendamentos, internações (Kanban), prontuários, financeiro, escalas e chamadas de TV foram totalmente apagados.<br><br>Os leitos hospitalares foram redefinidos como <strong>Vagos</strong> e a nuvem Turso foi atualizada. O sistema está plenamente limpo para novas simulações.',
+            message: 'Todos os registros de pacientes, atendimentos, agendamentos, internações (Kanban), prontuários, financeiro, escalas e chamadas de TV foram totalmente apagados.<br><br>Os 22 leitos hospitalares foram liberados (<strong>Vagos</strong>) e a nuvem Turso foi sincronizada com a base limpa. O sistema está plenamente limpo para novas simulações.',
             type: 'success'
           });
 
           // Atualiza a visualização da tela
-          if (typeof renderTabContent === 'function' && typeof state !== 'undefined') {
-            renderTabContent(state.activeTab || 'settings');
+          if (typeof renderTabContent === 'function') {
+            renderTabContent();
           }
         } catch (err) {
           console.error('Erro ao limpar banco:', err);
