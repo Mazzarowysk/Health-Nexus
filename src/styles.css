@@ -5382,15 +5382,15 @@ body.compact-mode .modal-content {
   border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
-/* --- DESTAQUE PULSANTE DO FLUXO HOSPITALAR (PACIENTES) --- */
+/* --- DESTAQUE PULSANTE DO FLUXO HOSPITALAR (PACIENTES SELECIONADOS) --- */
 @keyframes patientCardPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.85);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 35px 8px rgba(16, 185, 129, 0.95);
-    transform: scale(1.02);
+    box-shadow: 0 0 45px 10px rgba(16, 185, 129, 0.95), inset 0 0 20px rgba(16, 185, 129, 0.35);
+    transform: scale(1.025);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
@@ -5400,6 +5400,20 @@ body.compact-mode .modal-content {
 
 .patient-pulse-selected {
   animation: patientCardPulse 1.2s infinite ease-in-out !important;
-  border: 2px solid #10b981 !important;
-  box-shadow: 0 0 35px rgba(16, 185, 129, 0.95), inset 0 0 15px rgba(16, 185, 129, 0.3) !important;
+  border: 2.5px solid #10b981 !important;
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.95), inset 0 0 15px rgba(16, 185, 129, 0.3) !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+tr.patient-pulse-selected {
+  background: rgba(16, 185, 129, 0.22) !important;
+  outline: 2.5px solid #10b981 !important;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.7) !important;
+}
+
+tr.patient-pulse-selected td {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
 }

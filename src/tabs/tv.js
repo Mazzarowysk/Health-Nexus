@@ -201,6 +201,9 @@ window.loadTVWaitingQueue = async function() {
     'Em Atendimento':     { text: 'Em Atendimento',  color: '#10b981' },
   };
 
+  const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+  const activeCtxName = activeCtx ? (activeCtx.fullName || activeCtx.patientName || '').toLowerCase().trim() : '';
+
   queueEl.innerHTML = patients.map((p, idx) => {
     const key = (p.manchesterColor || 'verde').toLowerCase().replace(/[^a-z]/g, '');
     const col = colorMap[key] || colorMap.verde;
@@ -209,7 +212,11 @@ window.loadTVWaitingQueue = async function() {
     const sub = p.doctorName ? ('Dr. ' + p.doctorName + (p.appointmentTime ? ' · ' + p.appointmentTime : '')) : col.label;
     const safeName  = (p.patientName || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const safeColor = (p.manchesterColor || 'Verde').replace(/'/g, "\\'");
+    const isSelected = !!(activeCtxName && (p.patientName || '').toLowerCase().trim() === activeCtxName);
+
     return `<div onclick="window._tvQuickCall('${safeName}','${safeColor}')"
+      class="patient-card-item ${isSelected ? 'patient-pulse-selected' : ''}"
+      data-patient-card-name="${safeName.toLowerCase()}"
       title="Clique para chamar ${p.patientName || ''}"
       style="background:var(--bg-secondary,#1e293b);border:1px solid rgba(255,255,255,0.08);border-left:4px solid ${col.bg};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;"
       onmouseenter="this.style.background='rgba(139,92,246,0.1)';this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(139,92,246,0.2)';"
@@ -506,12 +513,15 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
       overlay.remove();
       showCustomAlert({ title: 'Chamada Emitida!', message: `&#128266; ${patientName} &rarr; ${roomName}`, type: 'success' });
       if (typeof window.showFlowCompletionNotification === 'function') {
+        const isTriageRoom = (roomName || '').toLowerCase().includes('triag');
         window.showFlowCompletionNotification({
-          actionTitle: `📢 Chamada Emitida no Painel TV`,
-          message: `Paciente <strong>${patientName}</strong> chamado(a) para <strong>${roomName}</strong>.`,
-          targetTab: 'consultorios',
-          targetTabLabel: `${roomName} (Salas & Consultórios)`,
-          targetColumn: roomName,
+          actionTitle: isTriageRoom ? `🩺 Chamada de Triagem Emitida` : `📢 Chamada Emitida no Painel TV`,
+          message: isTriageRoom
+            ? `Paciente <strong>${patientName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br><strong>Próximo Passo Assistencial:</strong> Dirija-se à <strong>Triagem Manchester</strong> para aferir sinais vitais e classificar a gravidade.`
+            : `Paciente <strong>${patientName}</strong> chamado(a) para <strong>${roomName}</strong>.<br><br><strong>Próximo Passo Assistencial:</strong> Iniciar consulta e prontuário médico no PEP.`,
+          targetTab: isTriageRoom ? 'atendimento' : 'consultorios',
+          targetTabLabel: isTriageRoom ? 'Triagem Manchester (Atendimentos)' : `${roomName} (Salas & Consultórios)`,
+          targetColumn: isTriageRoom ? 'col-triage' : roomName,
           targetPatientName: patientName,
           persistent: true
         });

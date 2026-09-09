@@ -350,10 +350,11 @@ export function renderAttendanceTab(contentArea) {
         closeAdmissionPanel();
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: '🏥 Admissão Hospitalar Realizada',
-            message: `O paciente <strong>${patientName}</strong> foi admitido no fluxo de <strong>${type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</strong>.<br><br><strong>Próximo Passo:</strong> O paciente está na coluna <strong>Aguardando Triagem</strong>. Clique em 'Realizar Triagem' para aferir sinais vitais e definir a cor Manchester.`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Fila de Triagem Manchester',
+            actionTitle: '📺 Chamar Paciente no Painel TV (Sala de Triagem)',
+            message: `O paciente <strong>${patientName}</strong> foi admitido no fluxo de <strong>${type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</strong> e aguarda na recepção.<br><br><strong>Próximo Passo Assistencial:</strong> Acione a chamada audiovisual no <strong>Painel TV</strong> para convocá-lo à <strong>Sala de Triagem Manchester</strong>.`,
+            targetTab: 'tv_panel',
+            targetTabLabel: 'Painel TV (Chamador)',
+            targetColumn: 'col-triage',
             targetPatientName: patientName,
             persistent: true
           });
@@ -521,6 +522,9 @@ export function renderAttendanceTab(contentArea) {
       </div>
       <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;"><i class="fa-solid fa-tag" style="color:#8b5cf6;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}</div>
       <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="btn btn-secondary btn-quick-tv-triage" onclick="if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${(e.patientName||'').replace(/'/g, "\\'")}', 'Verde'); } else if(typeof window.switchTab==='function'){ window.switchTab('tv_panel'); }" style="font-size:0.75rem;padding:7px 10px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#d8b4fe;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px;" title="Chamar no Painel TV para Sala de Triagem">
+          <i class="fa-solid fa-bullhorn"></i> TV
+        </button>
         <button class="btn btn-primary btn-triar" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;cursor:pointer;">
           <i class="fa-solid fa-user-nurse"></i> Realizar Triagem
         </button>

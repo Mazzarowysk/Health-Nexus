@@ -207,9 +207,11 @@ function renderCard(hosp, col) {
 
   // Safe escape for name if it contains single quotes
   const safeName = (hosp.patientName || '').replace(/'/g, "\\'");
+  const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+  const isSelected = !!(activeCtx && (activeCtx.fullName || activeCtx.patientName || '').toLowerCase().trim() === (hosp.patientName || '').toLowerCase().trim());
 
   return `
-    <div class="kanban-card" onclick="if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${hosp.patient_id}', '${safeName}');" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--glass-bg, var(--bg-secondary)); backdrop-filter:var(--glass-blur, blur(10px)); -webkit-backdrop-filter:var(--glass-blur, blur(10px)); border:1px solid var(--glass-border, var(--border-color)); border-top:6px solid ${statusColor}; border-radius:12px; padding:24px; cursor:pointer; box-shadow:var(--shadow-sm); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease; display:flex; flex-direction:column; gap:16px;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
+    <div class="kanban-card patient-card-item ${isSelected ? 'patient-pulse-selected' : ''}" data-patient-card-name="${safeName.toLowerCase()}" onclick="if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${hosp.patient_id}', '${safeName}');" draggable="true" data-hosp-id="${hosp.id}" style="background:var(--glass-bg, var(--bg-secondary)); backdrop-filter:var(--glass-blur, blur(10px)); -webkit-backdrop-filter:var(--glass-blur, blur(10px)); border:1px solid var(--glass-border, var(--border-color)); border-top:6px solid ${statusColor}; border-radius:12px; padding:24px; cursor:pointer; box-shadow:var(--shadow-sm); position:relative; transition: transform 0.2s ease, box-shadow 0.2s ease; display:flex; flex-direction:column; gap:16px;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
       
       <!-- Top: User Info & ID -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">

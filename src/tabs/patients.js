@@ -274,8 +274,11 @@ export function renderPatientsTab(contentArea) {
       const phones = [p.phone, p.cellphone].filter(Boolean).join(' / ');
       const loc = (typeof window.getPatientCurrentLocation === 'function') ? window.getPatientCurrentLocation(p.id, p.fullName) : { text: 'Fora da Unidade', color: '#94a3b8', icon: 'fa-user', bg: 'rgba(148,163,184,0.12)', borderColor: 'rgba(148,163,184,0.3)' };
       
+      const activePatCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      const isSelectedPat = !!(activePatCtx && (activePatCtx.fullName || activePatCtx.patientName || '').toLowerCase().trim() === (p.fullName || '').toLowerCase().trim());
+
       tableHtml += `
-        <tr>
+        <tr class="patient-card-item ${isSelectedPat ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(p.fullName||'').toLowerCase().replace(/"/g, '&quot;')}" data-patient-id="${p.id}">
           <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${p.id}</td>
           <td style="font-weight: 500;">${p.fullName}<br><small style="color: var(--text-muted); font-size: 0.76rem;">Mãe: ${p.motherName || '-'}</small></td>
           <td onclick="window.handleLocationBadgeClick('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" style="cursor: pointer;" title="Clique para ir direto ao atendimento / PEP do paciente no ${loc.sector || 'Consultório'}">
@@ -718,16 +721,13 @@ export function renderPatientsTab(contentArea) {
               })
             });
             if (encRes.ok) {
-              showToast(`✅ ${fullName} cadastrado e admitido na Triagem!`);
-              if (typeof window.switchTab === 'function') {
-                window.switchTab('atendimento');
-              }
+              showToast(`✅ ${fullName} cadastrado e admitido no PS!`);
               if (typeof window.showFlowCompletionNotification === 'function') {
                 window.showFlowCompletionNotification({
-                  actionTitle: '🏥 Admissão no PS Concluída',
-                  message: `O paciente <strong>${fullName}</strong> já está na fila de <strong>Aguardando Triagem</strong>.<br><br><strong>Próximo Passo:</strong> Clique no botão <strong>Realizar Triagem</strong> do card para registrar os sinais vitais e a classificação Manchester.`,
-                  targetTab: 'atendimento',
-                  targetTabLabel: 'Fila de Triagem Manchester',
+                  actionTitle: '📺 Chamar Paciente no Painel TV',
+                  message: `O paciente <strong>${fullName}</strong> foi cadastrado e aguarda na sala de espera.<br><br><strong>Próximo Passo:</strong> Acione a chamada audiovisual no <strong>Painel TV</strong> para convocá-lo à <strong>Sala de Triagem Manchester</strong>.`,
+                  targetTab: 'tv_panel',
+                  targetTabLabel: 'Painel TV (Chamador)',
                   targetColumn: 'col-triage',
                   targetPatientName: fullName,
                   persistent: true
@@ -741,9 +741,9 @@ export function renderPatientsTab(contentArea) {
           if (typeof window.showFlowCompletionNotification === 'function') {
             window.showFlowCompletionNotification({
               actionTitle: '✅ Cadastro de Paciente Concluído',
-              message: `O paciente <strong>${fullName}</strong> foi cadastrado com sucesso no sistema SUS.<br><br><strong>Próximo Passo:</strong> Clique no botão abaixo para abrir a <strong>Central de Atendimentos</strong> com <strong>${fullName}</strong> pré-selecionado para admissão imediata.`,
-              targetTab: 'atendimento',
-              targetTabLabel: 'Admitir para Triagem',
+              message: `O paciente <strong>${fullName}</strong> foi cadastrado com sucesso no sistema SUS.<br><br><strong>Próximo Passo:</strong> Clique no botão abaixo para acionar o <strong>Painel TV</strong> ou admitir na <strong>Triagem Manchester</strong>.`,
+              targetTab: 'tv_panel',
+              targetTabLabel: 'Painel TV (Chamador)',
               targetPatientId: savedPatientId,
               targetPatientName: fullName,
               targetPatientCpf: cpf,

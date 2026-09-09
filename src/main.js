@@ -182,6 +182,7 @@ const _SFG = {
   pos: null,
   steps: [
     { tab: 'pacientes',    icon: '🏥', label: 'Recepção'  },
+    { tab: 'tv_panel',     icon: '📺', label: 'Chamar TV' },
     { tab: 'atendimento',  icon: '🩺', label: 'Triagem'   },
     { tab: 'consultorios', icon: '👨‍⚕️', label: 'Médico'    },
     { tab: 'farmacia',     icon: '💊', label: 'Farmácia'  },
@@ -189,7 +190,8 @@ const _SFG = {
   ],
   recs: {
     dashboard:    { next:'pacientes',    nl:'Recepção & Pacientes',   title:'🏥 Chegada do Paciente (Recepção)', desc:'Inicie o acolhimento: cadastre o paciente que acaba de chegar ou localize o cadastro existente para dar entrada na Triagem.' },
-    pacientes:    { next:'atendimento',  nl:'Triagem Manchester',     title:'🩺 Encaminhar para Triagem',        desc:'Paciente na recepção! Encaminhe para a Triagem Manchester para aferição de sinais vitais e classificação de gravidade.' },
+    pacientes:    { next:'tv_panel',     nl:'Painel TV (Chamador)',   title:'📺 Chamar no Painel TV para Triagem', desc:'Paciente acolhido na recepção! Acione a chamada audiovisual no Painel TV para que ele se dirija à Sala de Triagem Manchester.' },
+    tv_panel:     { next:'atendimento',  nl:'Triagem Manchester',     title:'🩺 Realizar Triagem Manchester',     desc:'Paciente chamado no telão! Receba-o na Sala de Triagem para aferição de sinais vitais e classificação de gravidade Manchester.' },
     atendimento:  { next:'consultorios', nl:'Consultório / PEP',      title:'👨‍⚕️ Abrir Consultório Médico',     desc:'Paciente triado! Chame no painel TV ou abra o prontuário eletrônico conforme a prioridade clínica.' },
     consultorios: { next:'farmacia',     nl:'Farmácia & Estoque',     title:'💊 Dispensar Prescrição Médica',    desc:'Prescrição emitida no PEP! Envie para dispensação na farmácia ou solicite leito se houver indicação de internação.' },
     medicos:      { next:'consultorios', nl:'Consultórios',           title:'Ir para Consultórios',              desc:'Acompanhe as salas médicas ativas e atenda os pacientes na fila.' },
@@ -198,7 +200,6 @@ const _SFG = {
     kanban:       { next:'financeiro',   nl:'Faturamento & TISS',     title:'💰 Faturar Atendimento',            desc:'Gere os lotes eletrônicos TISS 4.01 e feche a conta hospitalar.' },
     financeiro:   { next:'relatorios',   nl:'Relatórios & Métricas',  title:'📈 Analisar Indicadores',           desc:'Consulte indicadores de ocupação, DRE e tempo médio de permanência hospitalar.' },
     relatorios:   { next:'dashboard',    nl:'Dashboard Principal',    title:'Voltar ao Dashboard',               desc:'Visualize o panorama geral e KPIs operacionais do complexo hospitalar.' },
-    tv_panel:     { next:'consultorios', nl:'Consultórios',           title:'Atender no Consultório',            desc:'Paciente chamado na TV! Inicie a anamnese e registre no prontuário eletrônico.' },
     agenda:       { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Recepcionar Agendado',              desc:'Confirme a chegada do paciente agendado e encaminhe para a triagem.' },
     estagnacao:   { next:'atendimento',  nl:'Central de Atendimento', title:'Destravar Pacientes',               desc:'Agilize casos críticos com tempo de espera elevado no PS.' },
     configuracoes:{ next:'dashboard',    nl:'Dashboard Principal',    title:'Retornar à Operação',               desc:'Ajustes do sistema salvos. Retorne ao painel operacional do hospital.' },
@@ -586,11 +587,11 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
     case 'pacientes':
       if (activePatient) {
-        stepTitle = '🩺 Encaminhar para Triagem Manchester';
-        stepDesc = 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' identificado na recepção! O próximo passo clínico obrigatório é aferir os sinais vitais e classificar a gravidade na Triagem Manchester.';
-        targetTab = 'atendimento';
-        btnText = '🩺 Ir para Triagem Manchester ➔';
-        btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+        stepTitle = '📺 Chamar Paciente no Painel TV (Sala de Triagem)';
+        stepDesc = 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' acolhido e cadastrado! Ele aguarda na sala de espera. O próximo passo assistencial é acionar a chamada audiovisual no Painel TV para convocá-lo à Sala de Triagem.';
+        targetTab = 'tv_panel';
+        btnText = '📺 Chamar no Painel TV ➔';
+        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
       } else {
         stepTitle = '📋 Recepção: Cadastrar ou Localizar Paciente';
         stepDesc = 'Faça o cadastro da admissão do paciente recém-chegado ou consulte na lista abaixo para dar início ao acolhimento e triagem.';
@@ -599,33 +600,51 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         btnBg = 'linear-gradient(135deg, #10b981, #059669)';
       }
       extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.openNewPatientModal && window.openNewPatientModal()" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>➕</span> Novo Cadastro</button>'
-        + '<button onclick="window.focusPatientSearch && window.focusPatientSearch()" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🔍</span> Buscar CPF/Nome</button>'
+        + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(168,85,247,0.18);border:1px solid rgba(168,85,247,0.45);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>📺</span> Chamar na TV</button>'
+        + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🩺</span> Ir para Triagem</button>'
         + '</div>';
       break;
 
     case 'atendimento':
-      if (mColor === 'vermelho' || mColor === 'laranja') {
+      if (activePatient && (!activePatient.manchesterColor && (activePatient.status === 'Aguardando_Triagem' || !activePatient.status || activePatient.status === 'Admitido'))) {
+        stepTitle = '📺 Chamar Paciente no Painel TV (Sala de Triagem)';
+        stepDesc = 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' acolhido e aguardando na recepção! O próximo passo assistencial é convocá-lo pelo Painel TV para comparecer à Sala de Triagem Manchester.';
+        targetTab = 'tv_panel';
+        btnText = '📺 Chamar no Painel TV ➔';
+        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📺</span> Chamar na TV</button>'
+          + '<button onclick="window.openAttendanceTriage && window.openAttendanceTriage()" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Iniciar Triagem</button>'
+          + '</div>';
+      } else if (mColor === 'vermelho' || mColor === 'laranja') {
         stepTitle = '🚨 Atendimento Médico Prioritário (Emergência)';
         stepDesc = 'Paciente com gravidade ALTA (' + mColor.toUpperCase() + ')! Encaminhe imediatamente para a Sala Vermelha ou Consultório Médico com prioridade zero.';
         targetTab = 'consultorios';
         btnText = '🚨 Abrir Consultório / Sala Vermelha ➔';
         btnBg = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.openAttendanceTriage && window.openAttendanceTriage()" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Aferir Sinais Vitais</button>'
+          + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📺</span> Chamar na TV</button>'
+          + '</div>';
       } else {
         stepTitle = '👨‍⚕️ Chamar no Painel TV e Abrir Consultório';
         stepDesc = 'Triagem Manchester realizada e sinais vitais registrados! O próximo passo é acionar a chamada do paciente no Painel TV e iniciar o atendimento médico no PEP.';
         targetTab = 'consultorios';
         btnText = '👨‍⚕️ Ir para Consultórios & PEP ➔';
         btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.openAttendanceTriage && window.openAttendanceTriage()" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Aferir Sinais Vitais</button>'
+          + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📺</span> Chamar na TV</button>'
+          + '</div>';
       }
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.openAttendanceTriage && window.openAttendanceTriage()" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🩺</span> Aferir Sinais Vitais</button>'
-        + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>📺</span> Chamar na TV</button>'
-        + '</div>';
       break;
 
     case 'consultorios':
@@ -714,11 +733,25 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       break;
 
     case 'tv_panel':
-      stepTitle = '👨‍⚕️ Atender Paciente no Consultório';
-      stepDesc = 'Paciente chamado no painel de TV da sala de espera! O próximo passo é recebê-lo na sala de atendimento e abrir o prontuário no consultório médico.';
-      targetTab = 'consultorios';
-      btnText = '👨‍⚕️ Ir para Consultórios & PEP ➔';
-      btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+      if (activePatient && (activePatient.manchesterColor || activePatient.status === 'Triado')) {
+        stepTitle = '👨‍⚕️ Atender Paciente no Consultório Médico';
+        stepDesc = 'Paciente triado chamado no painel de TV da sala de espera! O próximo passo é recebê-lo no consultório médico e abrir o prontuário no PEP SOAP.';
+        targetTab = 'consultorios';
+        btnText = '👨‍⚕️ Ir para Consultórios & PEP ➔';
+        btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+      } else {
+        stepTitle = '🩺 Realizar Triagem Manchester';
+        stepDesc = 'Paciente chamado no Painel TV para a triagem! Receba o paciente na Sala de Triagem para aferir sinais vitais (PA, FC, SpO2, Temp) e definir a classificação Manchester.';
+        targetTab = 'atendimento';
+        btnText = '🩺 Ir para Triagem Manchester ➔';
+        btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+      }
+      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+        + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.45);color:#a5b4fc;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🩺</span> Ir para Triagem</button>'
+        + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>👨‍⚕️</span> Consultórios</button>'
+        + '</div>';
       break;
 
     case 'agenda':
@@ -1159,27 +1192,47 @@ window.logout = logout;
 window.initializeApp = initializeApp;
 
 export function executePatientHighlight(targetPatientName, targetColumn) {
+  if (targetPatientName) {
+    window._highlightPatientName = targetPatientName;
+  }
+  if (targetColumn) {
+    window._highlightTargetColumn = targetColumn;
+  }
+
   const highlightTarget = () => {
     let targetEl = null;
 
     if (targetPatientName) {
       const cleanName = targetPatientName.trim().toLowerCase();
-      
-      // Tenta 1: por atributo exato data-patient-card-name (criado especialmente para os cards Kanban)
+      const parts = cleanName.split(' ').filter(Boolean);
+      const firstName = parts[0] || cleanName;
+      const firstTwo = parts.slice(0, 2).join(' ');
+
+      // Tenta 1: por atributo exato ou parcial data-patient-card-name
       targetEl = document.querySelector(`[data-patient-card-name*="${cleanName.replace(/"/g, '')}"]`);
-      
-      // Tenta 2: por texto direto nos elementos de card do contêiner ativo
-      if (!targetEl) {
-        const candidateCards = Array.from(document.querySelectorAll('#main-content .tab-section.active .patient-card-item, #main-content .tab-section.active .interactive-card, #main-content .tab-section.active .kanban-column > div, #main-content .tab-section.active tr'));
-        targetEl = candidateCards.find(el => (el.textContent || '').toLowerCase().includes(cleanName));
+      if (!targetEl && firstTwo && firstTwo.length >= 4) {
+        targetEl = document.querySelector(`[data-patient-card-name*="${firstTwo.replace(/"/g, '')}"]`);
+      }
+      if (!targetEl && firstName && firstName.length >= 3) {
+        targetEl = document.querySelector(`[data-patient-card-name*="${firstName.replace(/"/g, '')}"]`);
       }
 
-      // Tenta 3: fallback para qualquer elemento dentro da seção ativa contendo o nome (limite de filhos p/ não pegar o board todo)
+      // Tenta 2: por texto direto nos elementos de card ou linhas de tabela do contêiner ativo
       if (!targetEl) {
-        const allElements = Array.from(document.querySelectorAll('#main-content .tab-section.active div'));
+        const candidateCards = Array.from(document.querySelectorAll('#main-content .patient-card-item, #main-content .interactive-card, #main-content .kanban-card, #main-content .card, #main-content tr'));
+        targetEl = candidateCards.find(el => {
+          const txt = (el.textContent || '').toLowerCase();
+          return txt.includes(cleanName) || (firstTwo && firstTwo.length >= 4 && txt.includes(firstTwo));
+        });
+      }
+
+      // Tenta 3: fallback para qualquer elemento dentro da aba ativa contendo o nome
+      if (!targetEl) {
+        const allElements = Array.from(document.querySelectorAll('#main-content div, #main-content li'));
         targetEl = allElements.find(el => {
           const txt = (el.textContent || '').toLowerCase();
-          return txt.includes(cleanName) && el.children.length > 0 && el.children.length <= 15;
+          const match = txt.includes(cleanName) || (firstTwo && firstTwo.length >= 4 && txt.includes(firstTwo));
+          return match && el.children.length > 0 && el.children.length <= 15;
         });
       }
     }
@@ -1193,21 +1246,33 @@ export function executePatientHighlight(targetPatientName, targetColumn) {
       targetEl.classList.add('patient-pulse-selected');
       
       targetEl.style.animation = 'patientCardPulse 1.2s infinite ease-in-out';
-      targetEl.style.border = '2px solid #10b981';
-      targetEl.style.boxShadow = '0 0 35px rgba(16, 185, 129, 0.95), inset 0 0 15px rgba(16, 185, 129, 0.3)';
+      targetEl.style.border = '2.5px solid #10b981';
+      targetEl.style.boxShadow = '0 0 40px rgba(16, 185, 129, 0.95), inset 0 0 18px rgba(16, 185, 129, 0.35)';
+
+      // Adiciona badge temporário de paciente em foco/selecionado se não houver
+      let badge = targetEl.querySelector('.patient-selected-flow-badge');
+      if (!badge && targetEl.tagName !== 'TR') {
+        badge = document.createElement('span');
+        badge.className = 'patient-selected-flow-badge';
+        badge.innerHTML = '<i class="fa-solid fa-crosshairs fa-spin"></i> Selecionado';
+        badge.style.cssText = 'position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:0.72rem;font-weight:800;padding:3px 9px;border-radius:12px;box-shadow:0 3px 10px rgba(16,185,129,0.55);z-index:99;pointer-events:none;letter-spacing:0.5px;';
+        targetEl.appendChild(badge);
+      }
 
       setTimeout(() => {
         targetEl.classList.remove('patient-pulse-selected');
         targetEl.style.animation = '';
-        targetEl.style.border = '';
         targetEl.style.boxShadow = '';
-      }, 5000);
+        // Mantém sutil contorno verde e estado ativo indicando que este paciente está selecionado
+        targetEl.style.borderColor = '#10b981';
+        if (badge) badge.remove();
+      }, 7000);
       return true;
     }
     return false;
   };
 
-  const attempts = [50, 200, 500, 1000, 1500, 2500, 3500];
+  const attempts = [50, 150, 350, 700, 1200, 2000, 3000, 4500];
   let attemptIndex = 0;
   
   const tryHighlight = () => {
@@ -1247,6 +1312,8 @@ export function showFlowCompletionNotification(options = {}) {
       cpf: targetPatientCpf,
       status: 'Em Atendimento'
     });
+    window._highlightPatientName = targetPatientName;
+    window._highlightTargetColumn = targetColumn;
   }
 
   // 3. Alimenta o Guia Único Inteligente (Smart Flow Guide)
@@ -1266,6 +1333,9 @@ export function showFlowCompletionNotification(options = {}) {
   if (autoSwitch && targetTab && typeof switchTab === 'function') {
     setTimeout(() => {
       switchTab(targetTab);
+      if (targetPatientName && typeof window.executePatientHighlight === 'function') {
+        window.executePatientHighlight(targetPatientName, targetColumn);
+      }
     }, 1200);
   }
 }
@@ -2935,6 +3005,16 @@ function switchTab(tabName, isBack = false) {
 
   // Re-renderiza a área de conteúdo
   renderTabContent();
+
+  // Disparar destaque pulsante e seleção do paciente na nova aba aberta
+  setTimeout(() => {
+    const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+    const patName = window._highlightPatientName || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) || (activePat && (activePat.fullName || activePat.patientName));
+    const targetCol = window._highlightTargetColumn || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetColumn);
+    if (patName && typeof window.executePatientHighlight === 'function') {
+      window.executePatientHighlight(patName, targetCol);
+    }
+  }, 200);
 }
 
 function updateGlobalBackButton() {
@@ -4057,7 +4137,7 @@ async function loadConsultingRooms() {
       const isSelectedPatient = !!(activePatName && patientNameDisplay && (patientNameDisplay.toLowerCase().trim() === activePatName));
 
       return `
-        <div class="interactive-card ${isSelectedPatient ? 'patient-pulse-selected' : ''}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+        <div class="interactive-card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(patientNameDisplay || '').toLowerCase().replace(/"/g, '&quot;')}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">
