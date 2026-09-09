@@ -5381,3 +5381,25 @@ body.compact-mode .modal-content {
   background: rgba(56, 189, 248, 0.15);
   border: 1px solid rgba(56, 189, 248, 0.35);
 }
+
+/* --- DESTAQUE PULSANTE DO FLUXO HOSPITALAR (PACIENTES) --- */
+@keyframes patientCardPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 35px 8px rgba(16, 185, 129, 0.95);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    transform: scale(1);
+  }
+}
+
+.patient-pulse-selected {
+  animation: patientCardPulse 1.2s infinite ease-in-out !important;
+  border: 2px solid #10b981 !important;
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.95), inset 0 0 15px rgba(16, 185, 129, 0.3) !important;
+}

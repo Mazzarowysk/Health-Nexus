@@ -321,6 +321,40 @@ export const apiFetch = async (url, options = {}) => {
         alta: Math.max(1, stage5_alta)
       };
 
+      // 8. Dados do Fluxo Kanban de Internação Dinâmico
+      const matchKanbanSector = (sectorStr, targetId) => {
+        if (!sectorStr) return false;
+        const s = String(sectorStr).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const t = String(targetId).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        if (s === t || s === t.replace(/_/g, '') || s === t.replace(/_/g, ' ')) return true;
+        switch (targetId) {
+          case 'pronto_socorro': return s.includes('pronto') || s.includes('socorro') || s === 'ps' || s.startsWith('ps') || s.includes('(ps)') || s.includes('obs');
+          case 'corredor_internacao': return s.includes('corredor');
+          case 'clinica_cirurgica': return s.includes('cirurg') || s.includes('cirurgia');
+          case 'clinica_medica': return s.includes('medic') || s.includes('enferm') || s.includes('sus') || s === 'clinica';
+          case 'uti': return s.includes('uti') || s.includes('intensiv');
+          default: return s.includes(targetId);
+        }
+      };
+
+      const activeHosps = hospitalizations.filter(h => {
+        const st = (h.status || '').toLowerCase().trim();
+        return st !== 'alta' && st !== 'cancelado' && st !== 'finalizado' && st !== 'óbito';
+      });
+
+      const kanbanCounts = [
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'pronto_socorro')).length,
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'corredor_internacao')).length,
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'clinica_cirurgica')).length,
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'clinica_medica')).length,
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'uti')).length,
+      ];
+      const kanbanTotal = kanbanCounts.reduce((a, b) => a + b, 0);
+      const kanbanData = {
+        counts: kanbanCounts,
+        total: kanbanTotal
+      };
+
       responseData = {
         activePatients,
         occupancyRate,
@@ -330,7 +364,8 @@ export const apiFetch = async (url, options = {}) => {
         occupancyData,
         appointmentsHistory,
         manchesterData,
-        funnelData
+        funnelData,
+        kanbanData
       };
     }
     else if (url.includes('/api/stagnation/alerts')) {
@@ -850,7 +885,7 @@ export const apiFetch = async (url, options = {}) => {
       if (table === 'pharmacy') table = 'medications';
       if (table === 'consulting-rooms') table = 'consultorios';
       if (table === 'beds') table = 'beds';
-      if (table === 'financial') { table = 'financial_installments'; if (id === 'installments') id = undefined; }
+      if (table === 'financial') { table = 'financial_installments'; if (id === 'installments' || id === 'receitas') id = undefined; }
       if (table === 'tv') { table = 'tv_calls'; id = undefined; }
 
       if (method === 'GET') {

@@ -21,6 +21,7 @@ export const dataCacheTimestamps = new Map();
 export function clearDataCache() {
   dataCache.clear();
   dataCacheTimestamps.clear();
+  state.dashboardData = null;
 }
 
 if (typeof window !== 'undefined') {

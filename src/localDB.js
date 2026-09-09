@@ -212,31 +212,83 @@ export function overwriteLocal(cloudPayload) {
   }
 }
 
+export function getDefaultBeds() {
+  return [
+    { id: 'BED-001', bedNumber: '101A', number: '101A', type: 'Enfermaria', sector: 'Enfermaria', ward: 'Clínica Médica', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-002', bedNumber: '101B', number: '101B', type: 'Enfermaria', sector: 'Enfermaria', ward: 'Clínica Médica', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-003', bedNumber: '102A', number: '102A', type: 'Enfermaria', sector: 'Enfermaria', ward: 'Clínica Médica', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-004', bedNumber: '102B', number: '102B', type: 'Enfermaria', sector: 'Enfermaria', ward: 'Clínica Médica', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-005', bedNumber: '103A', number: '103A', type: 'Enfermaria', sector: 'Enfermaria', ward: 'Clínica Médica', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-006', bedNumber: '103B', number: '103B', type: 'Enfermaria', sector: 'Enfermaria', ward: 'Clínica Médica', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-007', bedNumber: '201A', number: '201A', type: 'Enfermaria', sector: 'Pediatria', ward: 'Pediatria', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-008', bedNumber: '201B', number: '201B', type: 'Enfermaria', sector: 'Pediatria', ward: 'Pediatria', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-009', bedNumber: '202A', number: '202A', type: 'Enfermaria', sector: 'Pediatria', ward: 'Pediatria', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-010', bedNumber: 'UTI-01', number: 'UTI-01', type: 'UTI Adulto', sector: 'UTI Adulto', ward: 'UTI', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-011', bedNumber: 'UTI-02', number: 'UTI-02', type: 'UTI Adulto', sector: 'UTI Adulto', ward: 'UTI', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-012', bedNumber: 'UTI-03', number: 'UTI-03', type: 'UTI Adulto', sector: 'UTI Adulto', ward: 'UTI', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-013', bedNumber: 'UTI-04', number: 'UTI-04', type: 'UTI Adulto', sector: 'UTI Adulto', ward: 'UTI', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-014', bedNumber: 'UTIP-01', number: 'UTIP-01', type: 'UTI Pediátrica', sector: 'Pediatria', ward: 'UTI Pediátrica', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-015', bedNumber: 'UTIP-02', number: 'UTIP-02', type: 'UTI Pediátrica', sector: 'Pediatria', ward: 'UTI Pediátrica', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-016', bedNumber: 'ISO-01', number: 'ISO-01', type: 'Isolamento', sector: 'Isolamento', ward: 'Isolamento', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-017', bedNumber: 'ISO-02', number: 'ISO-02', type: 'Isolamento', sector: 'Isolamento', ward: 'Isolamento', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-018', bedNumber: 'OBS-01', number: 'OBS-01', type: 'Observação', sector: 'Observação', ward: 'Observação', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-019', bedNumber: 'OBS-02', number: 'OBS-02', type: 'Observação', sector: 'Observação', ward: 'Observação', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-020', bedNumber: 'OBS-03', number: 'OBS-03', type: 'Observação', sector: 'Observação', ward: 'Observação', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-021', bedNumber: 'MAT-01', number: 'MAT-01', type: 'Maternidade', sector: 'Maternidade', ward: 'Maternidade', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null },
+    { id: 'BED-022', bedNumber: 'MAT-02', number: 'MAT-02', type: 'Maternidade', sector: 'Maternidade', ward: 'Maternidade', status: 'Vago', patientId: null, patientName: null, encounterId: null, admittedAt: null }
+  ];
+}
+
 export function clear() {
   const db = getFullDB();
-  const savedUsers = db.users || [];
+  const rawUsers = db.users || [];
   const savedSettings = db.settings || [];
   const savedSessions = db.user_sessions || [];
 
+  // Filtrar usuários de simulação automática (médicos e enfermeiros criados em lote pelo mock generator)
+  // Mantém os usuários fundadores e contas administrativas/profissionais criadas manualmente
+  const coreUsernames = ['mazzarowysk', 'bcoltri', 'admin', 'ffacco', 'pforte'];
+  const preservedUsers = rawUsers.filter(u => {
+    if (!u) return false;
+    if (coreUsernames.includes(u.username)) return true;
+    if (u.id && (u.id.startsWith('USR-doc-') || u.id.startsWith('USR-nur-'))) return false;
+    return true;
+  });
+
   const emptyDB = {
-    users: savedUsers,
+    settings: savedSettings,
+    users: preservedUsers.length > 0 ? preservedUsers : rawUsers,
     user_sessions: savedSessions,
     patients: [],
     encounters: [],
     appointments: [],
     triages: [],
     prescriptions: [],
+    clinical_notes: [],
+    hospitalizations: [],
+    financial_installments: [],
+    financial_transactions: [],
+    tv_calls: [],
     duty_schedules: [],
     stagnation_alerts: [],
-    beds: [],
-    settings: savedSettings
+    doctors: [],
+    nurses: [],
+    medications: [],
+    consultorios: [],
+    tiss_guides: [],
+    tiss_batches: [],
+    exam_requests: [],
+    beds: getDefaultBeds()
   };
 
   localStorage.setItem(DB_KEY, JSON.stringify(emptyDB));
   localStorage.setItem(UPDATED_AT_KEY, Date.now().toString());
+
   if (typeof window !== 'undefined' && typeof window.clearDataCache === 'function') {
     window.clearDataCache();
   }
+
+  return emptyDB;
 }
 
 if (typeof window !== 'undefined') {
@@ -253,6 +305,7 @@ if (typeof window !== 'undefined') {
     update,
     remove,
     overwriteLocal,
+    getDefaultBeds,
     clear
   };
 }

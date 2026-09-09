@@ -725,7 +725,13 @@ export async function generateMockData(baseAmount = 300) {
   })();
 
   const existingUsers = Array.isArray(currentDB.users) ? currentDB.users : [];
-  const preservedUsers = [...existingUsers];
+  const coreUsernames = ['mazzarowysk', 'bcoltri', 'admin', 'ffacco', 'pforte'];
+  const preservedUsers = existingUsers.filter(u => {
+    if (!u) return false;
+    if (coreUsernames.includes(u.username)) return true;
+    if (u.id && (u.id.startsWith('USR-doc-') || u.id.startsWith('USR-nur-'))) return false;
+    return true;
+  });
 
   const defaultSystemUsers = [
     { id: 'USR-MAZZAROWYSK', name: 'Marcelo Mazaro', username: 'mazzarowysk', role: 'Master', status: 'Ativo', created_at: new Date().toISOString() },

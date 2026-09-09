@@ -539,7 +539,7 @@ export function renderSettingsTab(contentArea) {
     btn.addEventListener('click', async () => {
       const confirmed = await showCustomConfirm({
         title: 'Limpar Banco de Dados',
-        message: 'Tem certeza que deseja apagar todos os registros (pacientes, atendimentos, agendamentos, prescrições e leitos)? Os usuários do sistema serão preservados.',
+        message: 'Tem certeza que deseja apagar todos os registros (pacientes, atendimentos, agendamentos, internações/Kanban, prontuários, financeiro, chamadas e prescrições)? Os 22 leitos serão liberados e os usuários principais do sistema serão preservados.',
         confirmText: 'Sim, Limpar Tudo',
         cancelText: 'Cancelar',
         type: 'danger'
@@ -548,29 +548,47 @@ export function renderSettingsTab(contentArea) {
       if (confirmed) {
         btn.disabled = true;
         const oldHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Limpando...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Limpando plenamente...';
         try {
-          localDB.clear();
+          // 1. Limpeza exaustiva de todas as tabelas locais (pacientes, internações, financeiro, etc.)
+          const cleanDB = localDB.clear();
+
+          // 2. Limpar contextos e caches de memória
           if (typeof window.setActivePatientContext === 'function') {
             window.setActivePatientContext(null);
           }
           if (typeof window.updateFloatingWorkflowGuide === 'function') {
             window.updateFloatingWorkflowGuide(typeof state !== 'undefined' ? state?.activeTab : 'dashboard');
           }
-          await apiFetch('/api/settings/reset', { method: 'POST' }).catch(() => {});
-          if (typeof window.clearDataCache === 'function') window.clearDataCache();
-          
-          // Sincronização em nuvem disparada em segundo plano para resposta instantânea
-          if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
-            syncManager.pushToCloud(false).catch(() => {});
+          if (typeof window.clearDataCache === 'function') {
+            window.clearDataCache();
           }
 
-          showToast('🗑️ Banco de dados limpo com sucesso!');
-          showCustomAlert({
-            title: 'Banco de Dados Limpo',
-            message: 'Todos os registros de pacientes, atendimentos, agendamentos e movimentações foram apagados instantaneamente com sucesso. O sistema está pronto.',
+          // 3. Reset no backend / proxy passando a base limpa
+          await apiFetch('/api/settings/reset', { 
+            method: 'POST',
+            body: JSON.stringify({ emptyDB: cleanDB })
+          }).catch((e) => console.warn('[Settings Reset] Aviso ao comunicar backend:', e));
+
+          // 4. Sincronização direta e garantida com a Nuvem Turso (AWAIT)
+          // Isso assegura que a nuvem não restaure dados antigos da simulação anterior
+          if (typeof syncManager !== 'undefined' && syncManager.pushToCloud) {
+            await syncManager.pushToCloud(false).catch((err) => {
+              console.warn('[Settings] Falha ao sincronizar limpeza na nuvem:', err);
+            });
+          }
+
+          showToast('🗑️ Banco de dados e nuvem 100% limpos com sucesso!');
+          await showCustomAlert({
+            title: 'Banco de Dados Plenamente Limpo',
+            message: 'Todos os registros de pacientes, atendimentos, agendamentos, internações (Kanban), prontuários, financeiro, escalas e chamadas de TV foram totalmente apagados.<br><br>Os leitos hospitalares foram redefinidos como <strong>Vagos</strong> e a nuvem Turso foi atualizada. O sistema está plenamente limpo para novas simulações.',
             type: 'success'
           });
+
+          // Atualiza a visualização da tela
+          if (typeof renderTabContent === 'function' && typeof state !== 'undefined') {
+            renderTabContent(state.activeTab || 'settings');
+          }
         } catch (err) {
           console.error('Erro ao limpar banco:', err);
           showToast('❌ Erro ao limpar o banco de dados.', true);

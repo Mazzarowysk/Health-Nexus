@@ -39,27 +39,32 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignora requisições de API e banco de dados externo
-  if (event.request.url.includes('/api/') || event.request.url.includes('turso.io')) {
+  // Ignora requisições de API, banco de dados externo e desenvolvimento local
+  if (
+    event.request.url.includes('/api/') ||
+    event.request.url.includes('turso.io') ||
+    event.request.url.includes('localhost') ||
+    event.request.url.includes('127.0.0.1') ||
+    event.request.url.includes('/src/') ||
+    event.request.url.includes('.js') ||
+    event.request.url.includes('.css')
+  ) {
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
-        }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
+    fetch(event.request).then((networkResponse) => {
+      if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
         return networkResponse;
-      }).catch(() => {
-        // Fallback offline para navegação principal
+      }
+      const responseToCache = networkResponse.clone();
+      caches.open(CACHE_NAME).then((cache) => {
+        cache.put(event.request, responseToCache);
+      });
+      return networkResponse;
+    }).catch(() => {
+      return caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
         if (event.request.mode === 'navigate') {
           return caches.match('/index.html');
         }

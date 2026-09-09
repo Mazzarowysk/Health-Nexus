@@ -176,6 +176,8 @@ export {
 // ═══════════════════════════════════════════════════════════════════════════════
 const _SFG = {
   minimized: false,
+  hidden: false,
+  pendingAction: null,
   activeTab: 'dashboard',
   pos: null,
   steps: [
@@ -205,30 +207,76 @@ const _SFG = {
 };
 
 function createSmartFlowGuideCard(tabId, customMessage) {
-  // Verificar autenticação (aceita sessionStorage como fallback)
-  const hasToken = state.isAuthenticated || !!sessionStorage.getItem('hn_token');
-  const onLoginScreen = !!document.getElementById('auth-form') || !!document.querySelector('.auth-container');
-  if (!hasToken || onLoginScreen) return null;
-
-  // Se o card já existe, apenas atualizar o conteúdo sem destruir/recriar (evita flicker)
-  const existing = document.getElementById('hn-flow-guide');
-  if (existing && !customMessage) {
-    // Remove duplicatas extras, mantém o primeiro
-    const all = document.querySelectorAll('#hn-flow-guide, .floating-flow-guide');
-    all.forEach(function(el, idx) { if (idx > 0) el.remove(); });
-    // Força rebuild completo via remoção apenas do existente
-    existing.remove();
-  } else if (!existing) {
-    // Remove qualquer instância órfã de outros IDs
-    document.querySelectorAll('#floating-flow-guide').forEach(function(el) { el.remove(); });
-  } else {
-    // Remove tudo e reconstrói
-    document.querySelectorAll('#hn-flow-guide, #floating-flow-guide, .floating-flow-guide').forEach(function(el) { el.remove(); });
+  // Verificar autenticação (aceita sessionStorage e estado ativo como fallback)
+  const hasToken = state.isAuthenticated || !!sessionStorage.getItem('hn_token') || !!sessionStorage.getItem('hn_user');
+  const mainContentExists = !!document.getElementById('main-content') || !!document.querySelector('.app-layout') || !!document.querySelector('.main-content') || !!document.querySelector('.app-container');
+  const onLoginScreen = (!!document.getElementById('auth-form') || !!document.querySelector('.auth-container')) && !mainContentExists;
+  if (!hasToken || onLoginScreen) {
+    const ex = document.getElementById('hn-flow-guide');
+    if (ex) ex.remove();
+    const launcher = document.getElementById('hn-fg-launcher');
+    if (launcher) launcher.remove();
+    return null;
   }
+
+  // Remove qualquer container flutuante de notificação redundante
+  const legacyNotif = document.getElementById('hn-flow-notifications-container');
+  if (legacyNotif) legacyNotif.remove();
+  document.querySelectorAll('[data-flow-target-tab]').forEach(function(el) { el.remove(); });
 
   _SFG.activeTab = tabId || state.activeTab || 'dashboard';
   const rec = _SFG.recs[_SFG.activeTab] || _SFG.recs.dashboard;
   const stepIdx = _SFG.steps.findIndex(function(s){ return s.tab === _SFG.activeTab; });
+
+  // Se o usuário optou por ocultar o card flutuante, exibe apenas a elegante bússola de acesso rápido
+  if (_SFG.hidden) {
+    const existing = document.getElementById('hn-flow-guide');
+    if (existing) existing.remove();
+    document.querySelectorAll('#floating-flow-guide, .floating-flow-guide').forEach(function(el) { el.remove(); });
+
+    let launcher = document.getElementById('hn-fg-launcher');
+    if (!launcher) {
+      launcher = document.createElement('button');
+      launcher.id = 'hn-fg-launcher';
+      launcher.title = 'Abrir Guia de Fluxo Hospitalar (Passo a Passo)';
+      launcher.setAttribute('style', [
+        'position:fixed !important',
+        'bottom:22px !important',
+        'right:22px !important',
+        'width:46px !important',
+        'height:46px !important',
+        'border-radius:50% !important',
+        'background:linear-gradient(135deg,#1e1b4b,#0f172a) !important',
+        'border:1.5px solid rgba(99,102,241,0.65) !important',
+        'box-shadow:0 8px 24px rgba(0,0,0,0.65), 0 0 16px rgba(99,102,241,0.3) !important',
+        'color:#38bdf8 !important',
+        'font-size:1.3rem !important',
+        'cursor:pointer !important',
+        'display:flex !important',
+        'align-items:center !important',
+        'justify-content:center !important',
+        'z-index:2147483647 !important',
+        'transition:transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease !important'
+      ].join(';'));
+      launcher.addEventListener('mouseenter', function() { this.style.transform = 'scale(1.1)'; });
+      launcher.addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
+      launcher.addEventListener('click', function() {
+        _SFG.hidden = false;
+        _SFG.minimized = false;
+        createSmartFlowGuideCard(_SFG.activeTab);
+      });
+      document.body.appendChild(launcher);
+    }
+    launcher.innerHTML = '🧭' + (_SFG.pendingAction ? '<span style="position:absolute;top:-2px;right:-2px;width:12px;height:12px;background:#10b981;border-radius:50%;border:2px solid #0f172a;box-shadow:0 0 8px #10b981;animation:pulse 1.5s infinite"></span>' : '');
+    return launcher;
+  }
+
+  // Se não estiver oculto, remove o launcher flutuante
+  const launcher = document.getElementById('hn-fg-launcher');
+  if (launcher) launcher.remove();
+
+  // Limpa instâncias anteriores
+  document.querySelectorAll('#hn-flow-guide, #floating-flow-guide, .floating-flow-guide').forEach(function(el) { el.remove(); });
 
   const activePatient = (typeof window.getActivePatientContext === 'function') 
     ? window.getActivePatientContext() 
@@ -244,7 +292,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     ? 'left:' + _SFG.pos.left + ' !important;top:' + _SFG.pos.top + ' !important;bottom:auto !important;right:auto !important;'
     : defaultPos;
 
-  // Tamanho retangular ampliado conforme pedido do usuário (430px)
+  // Tamanho retangular (430px)
   const cardWidth = _SFG.minimized ? 'auto !important' : '430px !important';
 
   card.setAttribute('style', [
@@ -266,9 +314,10 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
   if (_SFG.minimized) {
     const miniPill = document.createElement('div');
-    miniPill.setAttribute('style', 'display:flex;align-items:center;gap:10px;padding:9px 16px;background:linear-gradient(135deg,#1e1b4b,#0f172a);border:1px solid rgba(99,102,241,0.6);border-radius:26px;box-shadow:0 6px 20px rgba(0,0,0,0.6);cursor:pointer;');
+    miniPill.setAttribute('style', 'display:flex;align-items:center;gap:10px;padding:9px 16px;background:linear-gradient(135deg,#1e1b4b,#0f172a);border:1.5px solid rgba(99,102,241,0.6);border-radius:26px;box-shadow:0 8px 24px rgba(0,0,0,0.65);cursor:pointer;');
     miniPill.innerHTML = '<span style="font-size:1rem">🧭</span>'
       + '<span style="font-size:0.8rem;font-weight:700;color:#f1f5f9">Guia: <strong style="color:#38bdf8">' + rec.nl + '</strong></span>'
+      + (_SFG.pendingAction ? '<span style="font-size:0.68rem;background:rgba(16,185,129,0.25);border:1px solid #10b981;color:#6ee7b7;font-weight:800;padding:2px 7px;border-radius:10px;animation:pulse 1.5s infinite">⚡ 1 Próximo Passo</span>' : '')
       + '<span style="font-size:0.9rem;color:#818cf8;margin-left:4px">&#43;</span>';
     miniPill.addEventListener('click', function() {
       _SFG.minimized = false;
@@ -279,7 +328,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     return card;
   }
 
-  // Header
+  // Header com Minimizar [-] e Ocultar [✕]
   const hdr = document.createElement('div');
   hdr.id = 'hn-fg-header';
   hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.08);cursor:grab;background:rgba(255,255,255,0.03)');
@@ -289,27 +338,31 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     + '<span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 7px;border-radius:8px">Passo a Passo</span>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:4px">'
-    + '<button id="hn-fg-min" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.2rem;line-height:1;padding:2px 6px;border-radius:4px;transition:color 0.2s" title="Minimizar">&#8722;</button>'
+    + '<button id="hn-fg-min" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.2rem;line-height:1;padding:2px 6px;border-radius:4px;transition:color 0.2s" title="Minimizar para barra compacta">&#8722;</button>'
+    + '<button id="hn-fg-close" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;line-height:1;padding:3px 7px;border-radius:4px;transition:all 0.2s" title="Ocultar Guia de Fluxo" onmouseover="this.style.color=\'#f87171\';this.style.background=\'rgba(239,68,68,0.15)\'" onmouseout="this.style.color=\'#94a3b8\';this.style.background=\'none\'">&#10005;</button>'
     + '</div>';
 
-  // Track (5 etapas do fluxo)
+  // Track (5 etapas do fluxo) com destaque visual se houver etapa recomendada
   const track = document.createElement('div');
   track.id = 'hn-fg-track';
   track.setAttribute('style', 'display:flex;align-items:center;padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.15)');
   track.innerHTML = _SFG.steps.map(function(s, i) {
     const done = stepIdx > i, now = stepIdx === i;
-    const col = done ? '#10b981' : now ? '#38bdf8' : '#64748b';
-    const bg  = done ? 'rgba(16,185,129,0.2)' : now ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.04)';
-    const bdr = done ? 'rgba(16,185,129,0.6)' : now ? 'rgba(56,189,248,0.7)' : 'rgba(255,255,255,0.1)';
+    const isTarget = _SFG.pendingAction && _SFG.pendingAction.targetTab === s.tab;
+    const col = done ? '#10b981' : isTarget ? '#38bdf8' : now ? '#38bdf8' : '#64748b';
+    const bg  = done ? 'rgba(16,185,129,0.2)' : isTarget ? 'rgba(56,189,248,0.28)' : now ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.04)';
+    const bdr = done ? 'rgba(16,185,129,0.6)' : isTarget ? '#38bdf8' : now ? 'rgba(56,189,248,0.7)' : 'rgba(255,255,255,0.1)';
+    const shadow = isTarget ? '0 0 14px rgba(56,189,248,0.8)' : now ? '0 0 10px rgba(56,189,248,0.4)' : 'none';
     const sep = i < _SFG.steps.length - 1
       ? '<div style="flex-shrink:0;width:12px;height:1.5px;background:' + (done ? '#10b981' : 'rgba(255,255,255,0.12)') + ';margin-bottom:15px"></div>'
       : '';
     return '<button onclick="window.switchTab(\'' + s.tab + '\')" title="' + s.label + '" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;border:none;background:none;cursor:pointer;border-radius:8px;transition:transform 0.15s">'
-      + '<div style="width:30px;height:30px;border-radius:50%;background:' + bg + ';border:1.5px solid ' + bdr + ';display:flex;align-items:center;justify-content:center;font-size:0.8rem;box-shadow:' + (now ? '0 0 10px rgba(56,189,248,0.4)' : 'none') + '">'
+      + '<div style="width:30px;height:30px;border-radius:50%;background:' + bg + ';border:1.5px solid ' + bdr + ';display:flex;align-items:center;justify-content:center;font-size:0.8rem;box-shadow:' + shadow + '">'
       + (done ? '✓' : s.icon) + '</div>'
-      + '<span style="font-size:0.62rem;font-weight:' + (now ? 800 : 600) + ';color:' + col + ';white-space:nowrap">' + s.label + '</span>'
+      + '<span style="font-size:0.62rem;font-weight:' + ((now || isTarget) ? 800 : 600) + ';color:' + col + ';white-space:nowrap">' + s.label + '</span>'
       + '</button>' + sep;
   }).join('');
+
 
   // Body
   const body = document.createElement('div');
@@ -401,13 +454,19 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     summary: 'Operação hospitalar'
   };
 
-  // Faixa do paciente ativo (se houver)
+  // Faixa do paciente ativo (se houver no contexto ou na ação pendente)
   let patientStrip = '';
   let mColor = '';
-  if (activePatient) {
-    const pName = activePatient.fullName || activePatient.patientName || 'Paciente Selecionado';
-    mColor = (activePatient.manchesterColor || '').toLowerCase();
-    
+  const effectivePatient = activePatient || (_SFG.pendingAction && _SFG.pendingAction.targetPatientName ? {
+    fullName: _SFG.pendingAction.targetPatientName,
+    patientName: _SFG.pendingAction.targetPatientName,
+    status: 'Em Atendimento'
+  } : null);
+
+  if (effectivePatient) {
+    const pName = effectivePatient.fullName || effectivePatient.patientName || 'Paciente Selecionado';
+    mColor = (effectivePatient.manchesterColor || '').toLowerCase();
+
     const riskColors = {
       vermelho: { bg: 'rgba(239,68,68,0.2)', border: '#ef4444', text: '#fca5a5', label: '🔴 Vermelho (Emergência - Imediato)' },
       laranja:  { bg: 'rgba(249,115,22,0.2)', border: '#f97316', text: '#fdba74', label: '🟠 Laranja (Muito Urgente - 10 min)' },
@@ -417,16 +476,65 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     };
     const rInfo = riskColors[mColor] || { bg: 'rgba(99,102,241,0.15)', border: 'rgba(129,140,248,0.4)', text: '#a5b4fc', label: '👤 Em Atendimento' };
 
-    patientStrip = '<div style="display:flex;align-items:center;justify-content:space-between;background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';border-radius:10px;padding:7px 10px;margin-bottom:10px;gap:8px">'
+    // ── Localização do paciente ──────────────────────────────────────────────
+    // Resolução hierárquica: leito > sala/room > ala > etapa do fluxo
+    const tabLocationMap = {
+      pacientes:    { icon: '🏥', label: 'Recepção / Cadastro' },
+      atendimento:  { icon: '🩺', label: 'Triagem Manchester' },
+      consultorios: { icon: '👨‍⚕️', label: 'Consultório Médico / PEP' },
+      farmacia:     { icon: '💊', label: 'Farmácia Hospitalar' },
+      leitos:       { icon: '🛏️', label: 'Leito de Internação' },
+      kanban:       { icon: '📊', label: 'Acompanhamento Hospitalar' },
+      tv_panel:     { icon: '📺', label: 'Sala de Espera' },
+      agenda:       { icon: '📅', label: 'Agendamento' }
+    };
+
+    let locationIcon = '📍';
+    let locationLabel = '';
+
+    if (effectivePatient.bed || effectivePatient.bedNumber) {
+      // Paciente internado — exibe leito e ala
+      const bed = effectivePatient.bed || effectivePatient.bedNumber || '—';
+      const ward = effectivePatient.ward || effectivePatient.ala || effectivePatient.sector || '';
+      locationIcon = '🛏️';
+      locationLabel = 'Leito ' + bed + (ward ? ' · ' + ward : '');
+    } else if (effectivePatient.room || effectivePatient.roomName) {
+      // Em consultório / sala específica
+      locationIcon = '🚪';
+      locationLabel = effectivePatient.room || effectivePatient.roomName;
+    } else if (effectivePatient.currentTab || effectivePatient.stage) {
+      // Etapa registrada no objeto paciente
+      const tabKey = effectivePatient.currentTab || effectivePatient.stage;
+      const loc = tabLocationMap[tabKey];
+      locationIcon = loc ? loc.icon : '📍';
+      locationLabel = loc ? loc.label : tabKey;
+    } else {
+      // Inferir pela aba ativa atual
+      const loc = tabLocationMap[_SFG.activeTab];
+      locationIcon = loc ? loc.icon : '📍';
+      locationLabel = loc ? loc.label : 'Em Atendimento';
+    }
+
+    patientStrip = '<div style="background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';border-radius:10px;padding:8px 10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px">'
+      // Linha 1: nome + badge de risco
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
       + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
       + '<span style="font-size:0.95rem">👤</span>'
       + '<div style="min-width:0;line-height:1.25">'
-      + '<div style="font-size:0.8rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px">' + pName + '</div>'
-      + '<div style="font-size:0.68rem;color:' + rInfo.text + ';font-weight:700">' + rInfo.label + '</div>'
+      + '<div style="font-size:0.8rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">' + pName + '</div>'
+      + '<div style="font-size:0.67rem;color:' + rInfo.text + ';font-weight:700">' + rInfo.label + '</div>'
       + '</div>'
+      + '</div>'
+      + '</div>'
+      // Linha 2: localização atual destacada
+      + '<div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);border-radius:7px;padding:4px 8px">'
+      + '<span style="font-size:0.85rem">' + locationIcon + '</span>'
+      + '<span style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#94a3b8;flex-shrink:0">Localização:</span>'
+      + '<span style="font-size:0.74rem;font-weight:800;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + locationLabel + '</span>'
       + '</div>'
       + '</div>';
   }
+
 
   // Aviso customizado ou alerta de gravidade
   let customNotice = '';
@@ -453,27 +561,43 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
   switch (_SFG.activeTab) {
     case 'dashboard':
-      stepTitle = '🏥 Chegada do Paciente (Recepção)';
-      stepDesc = 'O fluxo hospitalar começa aqui: acolha o paciente que acabou de chegar, faça um novo cadastro ou consulte o registro existente para iniciar a triagem.';
-      targetTab = 'pacientes';
-      btnText = 'Ir para Recepção & Pacientes ➔';
-      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      if (activePatient) {
+        stepTitle = '🩺 Dar Andamento ao Atendimento Clínico';
+        stepDesc = 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' em atendimento ativo. Prossiga para a Triagem Manchester, Consultório Médico ou Leito conforme a fase clínica.';
+        targetTab = activePatient.status === 'Internado' ? 'leitos' : (activePatient.manchesterColor ? 'consultorios' : 'atendimento');
+        btnText = 'Ir para ' + (targetTab === 'leitos' ? 'Mapa de Leitos' : (targetTab === 'consultorios' ? 'Consultórios & PEP' : 'Triagem Manchester')) + ' ➔';
+        btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+      } else {
+        stepTitle = '🏥 1. Início do Fluxo: Cadastrar Novo Paciente';
+        stepDesc = 'O fluxo de cuidado hospitalar começa aqui! Para iniciar o acolhimento, realize o cadastro do paciente na recepção ou busque seu prontuário para dar entrada na Triagem Manchester.';
+        targetTab = 'pacientes';
+        btnText = '➕ Cadastrar Novo Paciente Agora ➔';
+        btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      }
       extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
         + '<button onclick="window.openNewPatientModal && window.openNewPatientModal()" style="padding:9px 10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:9px;font-weight:800;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 10px rgba(37,99,235,0.35);transition:filter 0.15s">'
         + '<span>➕</span> Novo Cadastro</button>'
         + '<button onclick="window.focusPatientSearch && window.focusPatientSearch()" style="padding:9px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#f1f5f9;border-radius:9px;font-weight:800;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.15s">'
         + '<span>🔍</span> Consultar / Buscar</button>'
-        + '</div>';
+        + '</div>'
+        + '<button onclick="window.switchTab(\'pacientes\')" style="width:100%;margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#94a3b8;border-radius:8px;font-weight:700;font-size:0.74rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<span>🏥</span> Ir para Recepção & Pacientes ➔</button>';
       break;
 
     case 'pacientes':
-      stepTitle = '🩺 Encaminhar para Triagem Manchester';
-      stepDesc = activePatient 
-        ? 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' identificado na recepção! O próximo passo clínico obrigatório é aferir os sinais vitais e classificar a gravidade na Triagem.' 
-        : 'Com o paciente cadastrado na recepção, o próximo passo clínico é encaminhá-lo para a Triagem Manchester para aferição de sinais vitais e gravidade.';
-      targetTab = 'atendimento';
-      btnText = '🩺 Ir para Triagem Manchester ➔';
-      btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+      if (activePatient) {
+        stepTitle = '🩺 Encaminhar para Triagem Manchester';
+        stepDesc = 'Paciente ' + (activePatient.fullName || activePatient.patientName || '').split(' ')[0] + ' identificado na recepção! O próximo passo clínico obrigatório é aferir os sinais vitais e classificar a gravidade na Triagem Manchester.';
+        targetTab = 'atendimento';
+        btnText = '🩺 Ir para Triagem Manchester ➔';
+        btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+      } else {
+        stepTitle = '📋 Recepção: Cadastrar ou Localizar Paciente';
+        stepDesc = 'Faça o cadastro da admissão do paciente recém-chegado ou consulte na lista abaixo para dar início ao acolhimento e triagem.';
+        targetTab = 'pacientes';
+        btnText = '➕ Abrir Formulário de Novo Paciente ➔';
+        btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+      }
       extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
         + '<button onclick="window.openNewPatientModal && window.openNewPatientModal()" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
         + '<span>➕</span> Novo Cadastro</button>'
@@ -650,22 +774,76 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     + '</div>'
     + '</div>';
 
-  // Bloco do Próximo Passo Sugerido
-  const nextStepHtml = '<div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:10px;padding:10px 12px;margin-bottom:10px">'
-    + '<div style="display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#a5b4fc;margin-bottom:4px">'
-    + '<span>⚡</span> <span>Próximo Passo Recomendado</span>'
-    + '</div>'
-    + '<div style="font-size:0.9rem;font-weight:800;color:#ffffff;margin-bottom:4px">' + stepTitle + '</div>'
-    + '<div style="font-size:0.76rem;color:#cbd5e1;line-height:1.4">' + stepDesc + '</div>'
-    + '</div>';
+  // Bloco de Orientação de Fluxo (Integrado: Ação Concluída ou Próximo Passo Contextual)
+  let actionBlockHtml = '';
+  if (_SFG.pendingAction) {
+    const pending = _SFG.pendingAction;
+    const tabShortLabels = {
+      dashboard: 'Health Nexus',
+      pacientes: 'Recepção & Pacientes',
+      medicos: 'Corpo Clínico & Médicos',
+      consultorios: 'Consultórios & PEP',
+      farmacia: 'Farmácia Hospitalar',
+      tv_panel: 'Painel TV',
+      agenda: 'Agenda Médica',
+      atendimento: 'Triagem Manchester',
+      estagnacao: 'Alertas & Estagnação',
+      leitos: 'Gestão de Leitos',
+      kanban: 'Kanban Hospitalar',
+      financeiro: 'Faturamento & TISS',
+      relatorios: 'Relatórios & Métricas',
+      configuracoes: 'Configurações'
+    };
+    const destLabel = pending.targetTabLabel || (pending.targetTab ? (tabShortLabels[pending.targetTab] || pending.targetTab) : 'Próxima Etapa');
+
+    actionBlockHtml = `
+      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(6, 95, 70, 0.25)); border: 1.5px solid rgba(16, 185, 129, 0.55); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; animation: pulse 1.5s infinite"></span>
+            Ação Concluída &bull; Próximo Passo
+          </span>
+          <button id="hn-fg-dismiss-action" title="Dispensar aviso desta etapa" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #94a3b8; cursor: pointer; font-size: 0.75rem; padding: 2px 7px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
+            ✕
+          </button>
+        </div>
+        <div style="font-size: 0.92rem; font-weight: 800; color: #ffffff; margin-bottom: 4px; display: flex; align-items: center; gap: 7px;">
+          <i class="fa-solid fa-bullhorn" style="color: #10b981; font-size: 0.95rem;"></i> ${pending.actionTitle}
+        </div>
+        <div style="font-size: 0.77rem; color: #cbd5e1; line-height: 1.45; margin-bottom: 12px;">
+          ${pending.message}
+        </div>
+        <button id="hn-fg-exec-action" style="width: 100%; padding: 10px 14px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 9px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.45); text-transform: uppercase; letter-spacing: 0.4px; transition: transform 0.15s, filter 0.15s;" onmouseover="this.style.transform='scale(1.02)'; this.style.filter='brightness(1.1)'" onmouseout="this.style.transform='scale(1)'; this.style.filter='none'">
+          <span>🚀</span> ${destLabel ? 'Ir para ' + destLabel : 'Avançar para Próxima Etapa'} ➔
+        </button>
+      </div>
+    `;
+  } else {
+    let mainActionClick = `window.switchTab('${targetTab}')`;
+    if (_SFG.activeTab === 'dashboard' && !activePatient) {
+      mainActionClick = "window.openNewPatientModal ? window.openNewPatientModal() : window.switchTab('pacientes')";
+    } else if (_SFG.activeTab === 'pacientes' && !activePatient) {
+      mainActionClick = "window.openNewPatientModal ? window.openNewPatientModal() : window.switchTab('pacientes')";
+    }
+
+    actionBlockHtml = `
+      <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#a5b4fc;margin-bottom:4px">
+          <span>⚡</span> <span>Próximo Passo Recomendado</span>
+        </div>
+        <div style="font-size:0.9rem;font-weight:800;color:#ffffff;margin-bottom:4px">${stepTitle}</div>
+        <div style="font-size:0.76rem;color:#cbd5e1;line-height:1.4">${stepDesc}</div>
+      </div>
+      <button onclick="${mainActionClick}" style="width:100%;padding:10px 14px;background:${btnBg};color:#fff;border:none;border-radius:10px;font-weight:800;font-size:0.84rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(16,185,129,0.4);transition:filter 0.15s" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+        ${btnText}
+      </button>
+    `;
+  }
 
   body.innerHTML = currentScreenHtml
     + patientStrip
     + customNotice
-    + nextStepHtml
-    + '<button onclick="window.switchTab(\'' + targetTab + '\')" style="width:100%;padding:10px 14px;background:' + btnBg + ';color:#fff;border:none;border-radius:10px;font-weight:800;font-size:0.84rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(16,185,129,0.4);transition:filter 0.15s" onmouseover="this.style.filter=\'brightness(1.1)\'" onmouseout="this.style.filter=\'none\'">'
-    + btnText
-    + '</button>'
+    + actionBlockHtml
     + extraActions;
 
   card.appendChild(hdr);
@@ -683,10 +861,59 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     });
   }
 
+  // Ocultar / Fechar completamente
+  const closeBtn = card.querySelector('#hn-fg-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _SFG.hidden = true;
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+  }
+
+  // Dispensar Ação Recente
+  const dismissBtn = card.querySelector('#hn-fg-dismiss-action');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _SFG.pendingAction = null;
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+  }
+
+  // Executar Ação Recente Integrada
+  const execBtn = card.querySelector('#hn-fg-exec-action');
+  if (execBtn && _SFG.pendingAction) {
+    execBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const act = _SFG.pendingAction;
+      _SFG.pendingAction = null;
+
+      // 1. Se for ação de admitir paciente na Central de Atendimentos
+      if (act.actionType === 'admit_patient' || (act.targetTab === 'atendimento' && act.targetPatientId)) {
+        if (typeof window.admitPatientFromPatientsTab === 'function') {
+          window.admitPatientFromPatientsTab(act.targetPatientId, act.targetPatientName, act.targetPatientCpf);
+          createSmartFlowGuideCard('atendimento');
+          return;
+        }
+      }
+
+      // 2. Muda para a aba de destino
+      if (act.targetTab && typeof window.switchTab === 'function') {
+        window.switchTab(act.targetTab);
+      }
+
+      // 3. Procura o card do paciente e aplica animação pulsante
+      if (typeof window.executePatientHighlight === 'function') {
+        window.executePatientHighlight(act.targetPatientName, act.targetColumn);
+      }
+    });
+  }
+
   // Drag & drop com persistência de posição
   let dx = 0, dy = 0, dragging = false;
   hdr.addEventListener('mousedown', function(e) {
-    if (e.target === minBtn) return;
+    if (e.target === minBtn || e.target === closeBtn) return;
     dragging = true;
     const r = card.getBoundingClientRect();
     dx = e.clientX - r.left;
@@ -710,36 +937,63 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     }
   });
 
-  console.log('[SmartFlowGuide] Card criado para aba:', _SFG.activeTab);
   return card;
 }
 
 window.createSmartFlowGuideCard = createSmartFlowGuideCard;
 
 window.openNewPatientModal = function() {
-  if (typeof window.switchTab === 'function') {
+  if (typeof window.switchTab === 'function' && state.activeTab !== 'pacientes') {
     window.switchTab('pacientes');
-    setTimeout(function() {
-      var btn = document.getElementById('btn-new-patient');
-      if (btn) btn.click();
-      else {
-        var modal = document.getElementById('patient-modal-overlay');
-        if (modal) modal.style.display = 'flex';
-      }
-    }, 180);
   }
+  let tries = 0;
+  const timer = setInterval(function() {
+    tries++;
+    const btn = document.getElementById('btn-new-patient') || document.getElementById('btn-open-patient-modal') || document.querySelector('[data-action="new-patient"]');
+    if (btn) {
+      clearInterval(timer);
+      btn.click();
+      setTimeout(function() {
+        const firstInput = document.querySelector('#patient-modal-overlay input, #patient-modal input');
+        if (firstInput) firstInput.focus();
+      }, 150);
+      return;
+    }
+    const modal = document.getElementById('patient-modal-overlay') || document.getElementById('patient-modal');
+    if (modal) {
+      clearInterval(timer);
+      modal.style.display = 'flex';
+      return;
+    }
+    if (tries >= 12) clearInterval(timer);
+  }, 100);
 };
 
 window.focusPatientSearch = function() {
-  if (typeof window.switchTab === 'function') {
+  if (typeof window.switchTab === 'function' && state.activeTab !== 'pacientes') {
     window.switchTab('pacientes');
-    setTimeout(function() {
-      var search = document.getElementById('search-input');
-      if (search) {
-        search.focus();
-        search.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 180);
+  }
+  let tries = 0;
+  const timer = setInterval(function() {
+    tries++;
+    const search = document.getElementById('patient-search') || document.getElementById('search-input') || document.querySelector('input[placeholder*="Buscar"]');
+    if (search) {
+      clearInterval(timer);
+      search.focus();
+      search.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (tries >= 10) clearInterval(timer);
+  }, 100);
+};
+
+window.ensureSmartFlowGuideMounted = function(forcedTab) {
+  const hasToken = state.isAuthenticated || !!sessionStorage.getItem('hn_token') || !!sessionStorage.getItem('hn_user');
+  if (!hasToken) return;
+  const mainContent = document.getElementById('main-content');
+  if (!mainContent) return;
+  if (!_SFG.hidden && !document.getElementById('hn-flow-guide')) {
+    createSmartFlowGuideCard(forcedTab || state.activeTab || 'dashboard');
   }
 };
 
@@ -770,32 +1024,34 @@ const initializeApp = async () => {
     }
   }, 1500);
 
-  if (state.isAuthenticated && state.token) {
-    let authValid = false;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const res = await apiFetch(`${API_URL}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${state.token}` },
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+  if (state.isAuthenticated && (state.token || state.user)) {
+    let authValid = !!state.user;
+    if (!authValid && state.token) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await apiFetch(`${API_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${state.token}` },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.user) {
-          state.user = data.user;
-          sessionStorage.setItem('hn_user', JSON.stringify(data.user));
-          authValid = true;
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            state.user = data.user;
+            sessionStorage.setItem('hn_user', JSON.stringify(data.user));
+            authValid = true;
+          }
+        } else {
+          clearTimeout(loaderSafetyTimer);
+          logout();
+          return;
         }
-      } else {
-        clearTimeout(loaderSafetyTimer);
-        logout();
-        return;
+      } catch (e) {
+        console.warn('Servidor inacessível ou tempo esgotado na verificação de sessão. Usando sessão em cache.');
+        if (state.user) authValid = true;
       }
-    } catch (e) {
-      console.warn('Servidor inacessível ou tempo esgotado na verificação de sessão. Usando sessão em cache.');
-      if (state.user) authValid = true;
     }
 
     clearTimeout(loaderSafetyTimer);
@@ -849,17 +1105,22 @@ const initializeApp = async () => {
       checkInitialSync();
 
       // ─── SMART FLOW GUIDE: Card flutuante — aparece logo após o login ──────
+      _SFG.hidden = false;
+      _SFG.minimized = false;
+      _SFG.activeTab = state.activeTab || 'dashboard';
+      if (typeof createSmartFlowGuideCard === 'function') {
+        createSmartFlowGuideCard(_SFG.activeTab);
+      }
       setTimeout(() => {
         if (typeof createSmartFlowGuideCard === 'function') {
-          createSmartFlowGuideCard('dashboard');
+          createSmartFlowGuideCard(state.activeTab || 'dashboard');
         }
-      }, 300);
-      // Fallback caso o DOM ainda não estivesse pronto no primeiro disparo
+      }, 200);
       setTimeout(() => {
         if (!document.getElementById('hn-flow-guide') && typeof createSmartFlowGuideCard === 'function') {
-          createSmartFlowGuideCard('dashboard');
+          createSmartFlowGuideCard(state.activeTab || 'dashboard');
         }
-      }, 1200);
+      }, 800);
       
     } else {
       logout();
@@ -897,6 +1158,66 @@ window.renderAuthScreen = renderAuthScreen;
 window.logout = logout;
 window.initializeApp = initializeApp;
 
+export function executePatientHighlight(targetPatientName, targetColumn) {
+  const highlightTarget = () => {
+    let targetEl = null;
+
+    if (targetPatientName) {
+      const cleanName = targetPatientName.trim().toLowerCase();
+      
+      // Tenta 1: por atributo exato data-patient-card-name (criado especialmente para os cards Kanban)
+      targetEl = document.querySelector(`[data-patient-card-name*="${cleanName.replace(/"/g, '')}"]`);
+      
+      // Tenta 2: por texto direto nos elementos de card do contêiner ativo
+      if (!targetEl) {
+        const candidateCards = Array.from(document.querySelectorAll('#main-content .tab-section.active .patient-card-item, #main-content .tab-section.active .interactive-card, #main-content .tab-section.active .kanban-column > div, #main-content .tab-section.active tr'));
+        targetEl = candidateCards.find(el => (el.textContent || '').toLowerCase().includes(cleanName));
+      }
+
+      // Tenta 3: fallback para qualquer elemento dentro da seção ativa contendo o nome (limite de filhos p/ não pegar o board todo)
+      if (!targetEl) {
+        const allElements = Array.from(document.querySelectorAll('#main-content .tab-section.active div'));
+        targetEl = allElements.find(el => {
+          const txt = (el.textContent || '').toLowerCase();
+          return txt.includes(cleanName) && el.children.length > 0 && el.children.length <= 15;
+        });
+      }
+    }
+
+    if (!targetEl && targetColumn) {
+      targetEl = document.getElementById(targetColumn) || (document.querySelector(`[data-enc-id="${targetColumn}"]`)?.closest('.kanban-column') || document.querySelector('.kanban-column'));
+    }
+
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      targetEl.classList.add('patient-pulse-selected');
+      
+      targetEl.style.animation = 'patientCardPulse 1.2s infinite ease-in-out';
+      targetEl.style.border = '2px solid #10b981';
+      targetEl.style.boxShadow = '0 0 35px rgba(16, 185, 129, 0.95), inset 0 0 15px rgba(16, 185, 129, 0.3)';
+
+      setTimeout(() => {
+        targetEl.classList.remove('patient-pulse-selected');
+        targetEl.style.animation = '';
+        targetEl.style.border = '';
+        targetEl.style.boxShadow = '';
+      }, 5000);
+      return true;
+    }
+    return false;
+  };
+
+  const attempts = [50, 200, 500, 1000, 1500, 2500, 3500];
+  let attemptIndex = 0;
+  
+  const tryHighlight = () => {
+    if (!highlightTarget() && attemptIndex < attempts.length) {
+      setTimeout(tryHighlight, attempts[attemptIndex++]);
+    }
+  };
+  tryHighlight();
+}
+
 export function showFlowCompletionNotification(options = {}) {
   const {
     actionTitle = 'Próxima Etapa do Atendimento',
@@ -912,236 +1233,49 @@ export function showFlowCompletionNotification(options = {}) {
     persistent = false
   } = options;
 
-  let container = document.getElementById('hn-flow-notifications-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'hn-flow-notifications-container';
-    container.style.cssText = `
-      position: fixed;
-      top: 76px;
-      right: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      z-index: 1000000;
-      pointer-events: none;
-      width: 420px;
-      max-width: 92vw;
-    `;
-    document.body.appendChild(container);
-  }
+  // 1. Remove qualquer container flutuante legado para garantir que NUNCA haja 2 cards na tela
+  const legacyContainer = document.getElementById('hn-flow-notifications-container');
+  if (legacyContainer) legacyContainer.remove();
+  document.querySelectorAll('[data-flow-target-tab]').forEach(el => el.remove());
 
-  const tabLabelsMap = {
-    dashboard:     'Visão Geral (Health Nexus)',
-    pacientes:     'Recepção & Pacientes',
-    medicos:        'Corpo Clínico & Médicos',
-    consultorios:  'Salas & Consultórios',
-    farmacia:      'Farmácia & Estoque',
-    tv_panel:      'Painel TV (Chamador)',
-    agenda:        'Agenda & Consultas',
-    atendimento:   'Central de Atendimentos',
-    estagnacao:    'Alertas & Estagnação',
-    leitos:        'Gestão de Leitos & Internação',
-    kanban:        'Kanban Hospitalar',
-    financeiro:    'Faturamento & Financeiro',
-    relatorios:    'Relatórios & Métricas',
-    configuracoes: 'Configurações & Turso DB'
-  };
-
-  const finalDestinationLabel = targetTabLabel || (targetTab ? tabLabelsMap[targetTab] : null);
-
-  const card = document.createElement('div');
-  if (targetTab) {
-    card.setAttribute('data-flow-target-tab', targetTab);
-  }
-  card.style.cssText = `
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.99));
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    color: #f8fafc;
-    border: 1.5px solid rgba(16, 185, 129, 0.6);
-    border-left: 6px solid #10b981;
-    padding: 16px 18px;
-    border-radius: 16px;
-    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(16, 185, 129, 0.35);
-    pointer-events: auto;
-    transform: translateX(120%);
-    opacity: 0;
-    transition: all 0.38s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: relative;
-  `;
-
-  card.innerHTML = `
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-      <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.68rem; font-weight: 800; padding: 3px 9px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.35); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;">
-        <i class="fa-solid fa-route" style="color: #38bdf8;"></i> Sequência do Fluxo &bull; Próximo Passo
-      </span>
-      <button class="flow-toast-close" title="Fechar notificação" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.85rem; padding: 3px 8px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-
-    <div style="display: flex; align-items: flex-start; gap: 12px;">
-      <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
-        <i class="fa-solid fa-bullhorn" style="font-size: 1.1rem; color: #10b981;"></i>
-      </div>
-      <div style="flex: 1; min-width: 0;">
-        <strong style="color: #ffffff; font-size: 0.95rem; display: block; font-weight: 700; margin-bottom: 2px;">
-          ${actionTitle}
-        </strong>
-        <p style="color: #cbd5e1; font-size: 0.85rem; margin: 0; line-height: 1.4;">
-          ${message}
-        </p>
-      </div>
-    </div>
-
-    ${finalDestinationLabel ? `
-      <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 10px 14px; margin-top: 2px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-        <span style="font-size: 0.8rem; color: #a5b4fc; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-location-dot" style="color: #38bdf8; font-size: 0.9rem;"></i>
-          Destino: <strong style="color: #ffffff; font-weight: 800;">${finalDestinationLabel}</strong>
-        </span>
-        ${targetTab ? `
-          <button class="btn-goto-flow-tab" style="
-            background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none;
-            padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 800;
-            cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.45); text-transform: uppercase; letter-spacing: 0.3px;
-          " onmouseover="this.style.transform='scale(1.05)'; this.style.background='#047857';" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #10b981, #059669)';">
-            Ir para a Aba <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem;"></i>
-          </button>
-        ` : ''}
-      </div>
-    ` : ''}
-  `;
-
-  container.appendChild(card);
-
-  setTimeout(() => {
-    card.style.transform = 'translateX(0)';
-    card.style.opacity = '1';
-  }, 20);
-
-  const closeBtn = card.querySelector('.flow-toast-close');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      card.style.transform = 'translateX(120%)';
-      card.style.opacity = '0';
-      setTimeout(() => card.remove(), 300);
+  // 2. Se houver paciente no evento, atualiza o contexto ativo global
+  if (targetPatientName && typeof window.setActivePatientContext === 'function') {
+    window.setActivePatientContext({
+      fullName: targetPatientName,
+      patientName: targetPatientName,
+      id: targetPatientId,
+      cpf: targetPatientCpf,
+      status: 'Em Atendimento'
     });
   }
 
-  const gotoBtn = card.querySelector('.btn-goto-flow-tab');
-  if (gotoBtn && targetTab) {
-    gotoBtn.addEventListener('click', () => {
-      // 1. Fecha o card imediatamente
-      card.style.transform = 'translateX(120%)';
-      card.style.opacity = '0';
-      setTimeout(() => card.remove(), 300);
+  // 3. Alimenta o Guia Único Inteligente (Smart Flow Guide)
+  _SFG.pendingAction = options;
+  _SFG.hidden = false;
+  _SFG.minimized = false; // Garante visibilidade expandida do Guia
 
-      // Se for ação de admitir paciente na Central de Atendimentos
-      if (actionType === 'admit_patient' || (targetTab === 'atendimento' && targetPatientId)) {
-        if (typeof window.admitPatientFromPatientsTab === 'function') {
-          window.admitPatientFromPatientsTab(targetPatientId, targetPatientName, targetPatientCpf);
-          return;
-        }
-      }
-
-      // 2. Muda para a aba de destino
-      if (typeof switchTab === 'function') {
-        switchTab(targetTab);
-      }
-
-      // 3. Procura o card do paciente pelo nome ou pela coluna e aplica a animação de pré-seleção pulsante
-      const highlightTarget = () => {
-        let targetEl = null;
-
-        if (targetPatientName) {
-          const cleanName = targetPatientName.trim().toLowerCase();
-          
-          // Tenta 1: por atributo exato data-patient-card-name (criado especialmente para os cards Kanban)
-          targetEl = document.querySelector(`[data-patient-card-name*="${cleanName.replace(/"/g, '')}"]`);
-          
-          // Tenta 2: por texto direto nos elementos de card do contêiner ativo
-          if (!targetEl) {
-            const candidateCards = Array.from(document.querySelectorAll('#main-content .tab-section.active .patient-card-item, #main-content .tab-section.active .interactive-card, #main-content .tab-section.active .kanban-column > div, #main-content .tab-section.active tr'));
-            targetEl = candidateCards.find(el => (el.textContent || '').toLowerCase().includes(cleanName));
-          }
-
-          // Tenta 3: fallback para qualquer elemento dentro da seção ativa contendo o nome (limite de filhos p/ não pegar o board todo)
-          if (!targetEl) {
-            const allElements = Array.from(document.querySelectorAll('#main-content .tab-section.active div'));
-            targetEl = allElements.find(el => {
-              const txt = (el.textContent || '').toLowerCase();
-              return txt.includes(cleanName) && el.children.length > 0 && el.children.length <= 15;
-            });
-          }
-        }
-
-        if (!targetEl && targetColumn) {
-          targetEl = document.getElementById(targetColumn) || (document.querySelector(`[data-enc-id="${targetColumn}"]`)?.closest('.kanban-column') || document.querySelector('.kanban-column'));
-        }
-
-        if (targetEl) {
-          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-          targetEl.classList.add('patient-pulse-selected');
-          
-          // Aplica estilos inline diretamente para garantir animação visível mesmo se o CSS principal demorar ou falhar
-          targetEl.style.animation = 'patientCardPulse 1.2s infinite ease-in-out';
-          targetEl.style.border = '2px solid #10b981';
-          targetEl.style.boxShadow = '0 0 35px rgba(16, 185, 129, 0.95), inset 0 0 15px rgba(16, 185, 129, 0.3)';
-
-          setTimeout(() => {
-            targetEl.classList.remove('patient-pulse-selected');
-            targetEl.style.animation = '';
-            targetEl.style.border = '';
-            targetEl.style.boxShadow = '';
-          }, 5000);
-          return true;
-        }
-        return false;
-      };
-
-      // Tenta destacar com polling caso a rede demore para carregar a aba alvo (ex: Kanban)
-      const attempts = [50, 200, 500, 1000, 1500, 2500, 3500];
-      let attemptIndex = 0;
-      
-      const tryHighlight = () => {
-        if (!highlightTarget() && attemptIndex < attempts.length) {
-          setTimeout(tryHighlight, attempts[attemptIndex++]);
-        }
-      };
-      tryHighlight();
-    });
+  // 4. Emite micro-toast padrão no topo da tela (sem sobreposição no canto inferior)
+  if (typeof showToast === 'function' && actionTitle) {
+    showToast(actionTitle);
   }
 
+  // 5. Renderiza o Guia Unificado imediatamente com o bloco de Ação Concluída & Próximo Passo
+  createSmartFlowGuideCard(_SFG.activeTab || state.activeTab || 'dashboard');
+
+  // 6. Se tiver autoSwitch configurado
   if (autoSwitch && targetTab && typeof switchTab === 'function') {
     setTimeout(() => {
       switchTab(targetTab);
     }, 1200);
   }
-
-  // Se NÃO for persistente e NÃO tiver uma aba de destino, remove automaticamente após 8 segundos
-  if (!persistent && !targetTab) {
-    setTimeout(() => {
-      if (card.parentNode) {
-        card.style.transform = 'translateX(120%)';
-        card.style.opacity = '0';
-        setTimeout(() => card.remove(), 300);
-      }
-    }, 8000);
-  }
 }
 
 if (typeof window !== 'undefined') {
+  window.executePatientHighlight = executePatientHighlight;
   window.showFlowCompletionNotification = showFlowCompletionNotification;
 }
 
-// --- MODAL DE INSTRUÇÕES DE LOGIN E SENHA ("Pequena Janela") ---
+// --- MODAL DE INSTRUÇÕES DE ACESSO E ESPECIFICAÇÕES DE LOGIN ---
 function openLoginInstructionsModal() {
   const existing = document.getElementById('login-instructions-modal');
   if (existing) existing.remove();
@@ -1149,67 +1283,95 @@ function openLoginInstructionsModal() {
   const modal = document.createElement('div');
   modal.id = 'login-instructions-modal';
   modal.className = 'modal-overlay';
-  modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,8,22,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:99999;animation:fadeIn 0.25s ease-out;';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,8,22,0.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;box-sizing:border-box;animation:fadeIn 0.25s ease-out;';
 
   modal.innerHTML = `
-    <div style="background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 20px; width: 90%; max-width: 440px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
-      <!-- Botão Fechar -->
-      <button id="close-instructions-modal" type="button" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; padding: 4px; transition: color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='#94a3b8'">
+    <div style="background: linear-gradient(145deg, #17153b 0%, #0d1322 100%); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
+      <!-- Botão Fechar Topo -->
+      <button id="close-instructions-modal" type="button" title="Fechar orientações" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; width: 32px; height: 32px; color: #94a3b8; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseenter="this.style.color='#fff'; this.style.background='rgba(255,255,255,0.15)'" onmouseleave="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
       <!-- Cabeçalho da Janela -->
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(129, 140, 248, 0.4); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.25rem;">
-          <i class="fa-solid fa-key"></i>
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-right: 36px;">
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(129, 140, 248, 0.45); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.35rem; flex-shrink: 0;">
+          <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
-          <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; color: #ffffff;">Instruções de Acesso</h3>
-          <span style="font-size: 0.8rem; color: #94a3b8;">Orientações para login no Health Nexus</span>
+          <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.25rem; color: #ffffff; letter-spacing: -0.01em;">Instruções de Acesso</h3>
+          <span style="font-size: 0.82rem; color: #94a3b8;">Orientações para modos e especificações de login</span>
         </div>
       </div>
 
       <!-- Texto de Orientação -->
-      <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 18px; background: rgba(255,255,255,0.03); padding: 12px 14px; border-radius: 10px; border-left: 3px solid #818cf8;">
-        Para acessar o sistema de demonstração, utilize uma das contas pré-configuradas abaixo ou selecione <strong>"Preencher"</strong> para aplicar automaticamente.
+      <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.55; margin-bottom: 18px; background: rgba(255,255,255,0.03); padding: 12px 14px; border-radius: 12px; border-left: 4px solid #818cf8;">
+        O acesso ao <strong>Health Nexus</strong> é pessoal, sigiloso e segmentado por perfil profissional. Confira abaixo os modos disponíveis e as especificações para autenticação no sistema.
       </p>
 
-      <!-- Cartões de Credenciais -->
-      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px;">
-        <!-- Perfil Médico -->
-        <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-              <i class="fa-solid fa-user-doctor"></i> Perfil Médico
-            </div>
-            <div style="font-size: 0.82rem; color: #94a3b8; font-family: monospace;">
-              Usuário: <strong style="color: #fff;">medico123</strong> &nbsp;|&nbsp; Senha: <strong style="color: #fff;">medico123</strong>
-            </div>
-          </div>
-          <button type="button" class="btn-fill-cred" data-user="medico123" data-pass="medico123" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='rgba(56, 189, 248, 0.3)'" onmouseleave="this.style.background='rgba(56, 189, 248, 0.15)'">
-            Preencher
-          </button>
+      <!-- Seção: Modos de Acesso -->
+      <div style="margin-bottom: 18px;">
+        <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.85rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-layer-group"></i> Modos de Acesso &amp; Perfis
         </div>
 
-        <!-- Perfil Admin -->
-        <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(192, 132, 252, 0.3); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #c084fc; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-              <i class="fa-solid fa-user-shield"></i> Perfil Administrador
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Modo Assistencial / Clínico -->
+          <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fa-solid fa-stethoscope"></i> Modo Clínico &amp; Assistencial
             </div>
-            <div style="font-size: 0.82rem; color: #94a3b8; font-family: monospace;">
-              Usuário: <strong style="color: #fff;">admin</strong> &nbsp;|&nbsp; Senha: <strong style="color: #fff;">admin123</strong>
+            <div style="font-size: 0.78rem; color: #93c5fd; font-weight: 500; margin-bottom: 4px;">
+              Médicos, Enfermagem, Farmácia e Laboratório
             </div>
+            <p style="margin: 0; font-size: 0.81rem; color: #94a3b8; line-height: 1.45;">
+              Habilita o atendimento ao paciente, Prontuário Eletrônico (PEP), prescrições digitais, classificação Manchester e laudos de exames.
+            </p>
           </div>
-          <button type="button" class="btn-fill-cred" data-user="admin" data-pass="admin123" style="background: rgba(192, 132, 252, 0.15); border: 1px solid rgba(192, 132, 252, 0.4); color: #c084fc; padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='rgba(192, 132, 252, 0.3)'" onmouseleave="this.style.background='rgba(192, 132, 252, 0.15)'">
-            Preencher
-          </button>
+
+          <!-- Modo Gestão / Administrativo -->
+          <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(192, 132, 252, 0.3); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #c084fc; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fa-solid fa-hospital-user"></i> Modo Gestão &amp; Administrativo
+            </div>
+            <div style="font-size: 0.78rem; color: #d8b4fe; font-weight: 500; margin-bottom: 4px;">
+              Administração, Recepção, Regulação e Faturamento
+            </div>
+            <p style="margin: 0; font-size: 0.81rem; color: #94a3b8; line-height: 1.45;">
+              Acesso à gestão e regulação de leitos, agendamentos, recepção, faturamento hospitalar, relatórios analíticos e controle de usuários.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção: Especificações do Login -->
+      <div style="margin-bottom: 22px;">
+        <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.85rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-list-check"></i> Especificações de Autenticação
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(129, 140, 248, 0.2); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; color: #cbd5e1; line-height: 1.45;">
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-id-badge" style="color: #818cf8; margin-top: 3px; font-size: 0.85rem;"></i>
+            <div><strong>Identificador Único:</strong> Informe seu nome de usuário cadastrado previamente pela equipe institucional.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-key" style="color: #818cf8; margin-top: 3px; font-size: 0.85rem;"></i>
+            <div><strong>Credencial Segura:</strong> A senha é estritamente confidencial, protegida com criptografia ponta a ponta e controle JWT.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-user-shield" style="color: #818cf8; margin-top: 3px; font-size: 0.85rem;"></i>
+            <div><strong>Novos Cadastros:</strong> Usuários recém-registrados necessitam de homologação pelo Administrador Master ou validação via Chave Master.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: #818cf8; margin-top: 3px; font-size: 0.85rem;"></i>
+            <div><strong>Segurança Hospitalar:</strong> Encerre sempre a sua sessão ao se ausentar da estação de trabalho para preservar os dados dos pacientes.</div>
+          </div>
         </div>
       </div>
 
       <!-- Footer da Janela -->
       <div style="display: flex; justify-content: flex-end;">
-        <button id="btn-close-instructions-modal" type="button" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; border: none; padding: 10px 22px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4); transition: transform 0.2s;" onmouseenter="this.style.transform='scale(1.02)'" onmouseleave="this.style.transform='scale(1)'">
+        <button id="btn-close-instructions-modal" type="button" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(99, 102, 241, 0.5)'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px rgba(99, 102, 241, 0.4)'">
           Entendi, Fechar
         </button>
       </div>
@@ -1222,18 +1384,18 @@ function openLoginInstructionsModal() {
   document.getElementById('close-instructions-modal').addEventListener('click', closeModal);
   document.getElementById('btn-close-instructions-modal').addEventListener('click', closeModal);
 
-  modal.querySelectorAll('.btn-fill-cred').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const u = btn.getAttribute('data-user');
-      const p = btn.getAttribute('data-pass');
-      const userInput = document.getElementById('auth-username');
-      const passInput = document.getElementById('auth-password');
-      if (userInput) userInput.value = u;
-      if (passInput) passInput.value = p;
-      showToast(`✨ Credenciais de ${u} preenchidas!`);
-      closeModal();
-    });
+  // Fecha clicando fora do card ou pressionando ESC
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
   });
+
+  const onKeydown = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      document.removeEventListener('keydown', onKeydown);
+    }
+  };
+  document.addEventListener('keydown', onKeydown);
 }
 
 // --- MODAL DE AUTENTICAÇÃO DO GOOGLE DRIVE (PADRÃO VISUAL DO SISTEMA) ---
@@ -1703,14 +1865,26 @@ function renderAuthScreen() {
             state.isAuthenticated = true;
             state.token = data.token;
             state.user = data.user;
+            _SFG.hidden = false;
+            _SFG.minimized = false;
+            _SFG.pos = null;
+            _SFG.pendingAction = null;
+            _SFG.activeTab = 'dashboard';
             showToast('Login realizado com sucesso!');
             initializeApp();
-            // Garante que o card aparece logo após o login
+            // Garante que o card de fluxo aparece imediatamente logo após o login
             setTimeout(() => {
-              if (typeof createSmartFlowGuideCard === 'function' && !document.getElementById('hn-flow-guide')) {
+              _SFG.hidden = false;
+              _SFG.minimized = false;
+              if (typeof createSmartFlowGuideCard === 'function') {
                 createSmartFlowGuideCard('dashboard');
               }
-            }, 500);
+            }, 100);
+            setTimeout(() => {
+              if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+                window.ensureSmartFlowGuideMounted('dashboard');
+              }
+            }, 400);
           } else {
             showToast(data.message || 'Cadastro realizado com sucesso!');
             isLogin = true;
@@ -2040,6 +2214,9 @@ function renderAppStructure() {
           <span id="sync-status-badge" style="font-size: 0.82rem; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border-color); background: rgba(59,130,246,0.08); color: var(--text-primary);">
             Verificando Turso...
           </span>
+          <button id="btn-toggle-flow-guide" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 14px; height: 40px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; gap: 6px; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Guia de Fluxo Hospitalar (Passo a Passo)">
+            <i class="fa-solid fa-compass" style="color: #38bdf8;"></i> <span id="flow-guide-btn-label">Guia de Fluxo</span>
+          </button>
           <button id="btn-density-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 14px; height: 40px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; gap: 6px; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Densidade Visual (Modo Normal / Modo Compacto Hospitalar)">
             <i class="fa-solid fa-compress" id="density-icon"></i> <span id="density-label">Modo Compacto</span>
           </button>
@@ -2250,6 +2427,19 @@ function renderAppStructure() {
     });
   }
 
+  // Botão de alternar exibição do Guia de Fluxo Hospitalar
+  const flowGuideToggle = document.getElementById('btn-toggle-flow-guide');
+  if (flowGuideToggle) {
+    flowGuideToggle.addEventListener('click', () => {
+      _SFG.hidden = !_SFG.hidden;
+      if (!_SFG.hidden) {
+        _SFG.minimized = false;
+      }
+      createSmartFlowGuideCard(_SFG.activeTab);
+      showToast(_SFG.hidden ? 'Guia de Fluxo ocultado. Clique no ícone de bússola para reabrir.' : '🧭 Guia de Fluxo Hospitalar aberto!');
+    });
+  }
+
   const backBtn = document.getElementById('global-back-btn');
   if (backBtn) {
     backBtn.addEventListener('click', goBack);
@@ -2268,12 +2458,22 @@ function renderAppStructure() {
   // Renderizar o conteúdo da aba ativa
   renderTabContent();
 
-  // Card Guia: garantir que aparece mesmo se renderTabContent tiver delay
+  // Card Guia: garantir que aparece com prioridade logo após a montagem do app
+  _SFG.hidden = false;
+  _SFG.minimized = false;
+  if (typeof createSmartFlowGuideCard === 'function') {
+    createSmartFlowGuideCard(state.activeTab || 'dashboard');
+  }
   setTimeout(function() {
-    if (!document.getElementById('hn-flow-guide') && typeof createSmartFlowGuideCard === 'function') {
-      createSmartFlowGuideCard(state.activeTab || 'dashboard');
+    if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+      window.ensureSmartFlowGuideMounted(state.activeTab || 'dashboard');
     }
-  }, 600);
+  }, 100);
+  setTimeout(function() {
+    if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+      window.ensureSmartFlowGuideMounted(state.activeTab || 'dashboard');
+    }
+  }, 450);
 }
 
 // ─── MECANISMO DE BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND K) ──────────────
@@ -2677,11 +2877,19 @@ function switchTab(tabName, isBack = false) {
     if (modalEl) modalEl.remove();
   });
 
+  // Se chegamos à aba da ação recomendada no Guia de Fluxo, limpa o aviso pendente
+  if (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetTab === tabName) {
+    _SFG.pendingAction = null;
+  }
+
   // Atualizar Card Flutuante Guia de Fluxo (legacy journey.js)
   if (typeof updateFloatingWorkflowGuide === 'function') {
     updateFloatingWorkflowGuide(tabName);
   }
-  // Atualizar Smart Flow Guide Card (novo, self-contained) - via renderTabContent que chama ao final
+  // Atualizar Smart Flow Guide Card (novo, self-contained)
+  if (typeof createSmartFlowGuideCard === 'function') {
+    createSmartFlowGuideCard(tabName);
+  }
 
   // Remover notificação de fluxo pendente para esta aba de destino se houver
   const existingFlowToast = document.querySelector(`[data-flow-target-tab="${tabName}"]`);

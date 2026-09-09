@@ -56,8 +56,15 @@ export const getMaxTimestamp = (timestampsObj = {}) => {
 // --- MODAL LARANJA: "Sincronização Pendente!" (Disparado em CRUD) ---
 export const showSyncPromptModal = (syncData = {}) => {
   return new Promise((resolve) => {
+    // Modo de captura de screenshots: não abrir nenhum modal
+    if (window.__SCREENSHOT_MODE__ || window.__syncModalSuppressed__) {
+      resolve(false);
+      return;
+    }
+
     const existing = document.getElementById('sync-prompt-modal');
     if (existing) existing.remove();
+
 
     const overlay = document.createElement('div');
     overlay.id = 'sync-prompt-modal';

@@ -56,6 +56,19 @@
       <p class="loader-text">Inicializando o Sistema...</p>
     </div>
   </div>
+  <!-- Limpeza automática de cache e Service Worker para ambiente de desenvolvimento -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var r of regs) r.unregister();
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        for (var k of keys) caches.delete(k);
+      });
+    }
+  </script>
   <!-- Script de Entrada SPA -->
   <script type="module" src="/src/main.js"></script>
 </body>

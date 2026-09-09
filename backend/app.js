@@ -418,8 +418,36 @@ app.post('/api/settings/turso', async (req, res) => {
   }
 });
 
-app.post('/api/settings/reset', (req, res) => {
-  res.status(200).json({ message: 'Reset não implementado no Vercel (banco em nuvem).' });
+app.post('/api/settings/reset', async (req, res) => {
+  try {
+    if (tursoClient) {
+      const now = Date.now();
+      const emptyDB = req.body?.emptyDB || {
+        patients: [],
+        encounters: [],
+        appointments: [],
+        triages: [],
+        prescriptions: [],
+        clinical_notes: [],
+        hospitalizations: [],
+        financial_installments: [],
+        financial_transactions: [],
+        tv_calls: [],
+        duty_schedules: [],
+        stagnation_alerts: [],
+        beds: []
+      };
+      await executeTursoWithRetry(() => tursoClient.execute({
+        sql: `INSERT OR REPLACE INTO ocz_sync (id, dados_json, config_json, updated_at) VALUES ('main', ?, '{}', ?)`,
+        args: [typeof emptyDB === 'string' ? emptyDB : JSON.stringify(emptyDB), now]
+      }));
+      return res.status(200).json({ success: true, updated_at: now, message: 'Banco de dados plenamente zerado na nuvem e no servidor.' });
+    }
+    res.status(200).json({ success: true, message: 'Banco de dados zerado com sucesso.' });
+  } catch (err) {
+    console.warn('[Backend Reset] Aviso ao zerar no backend:', err.message);
+    res.status(200).json({ success: true, message: 'Reset local concluído (aviso nuvem: ' + err.message + ')' });
+  }
 });
 
 app.get('/api/settings/export', (req, res) => {

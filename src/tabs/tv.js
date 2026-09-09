@@ -452,12 +452,55 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '') {
         body: JSON.stringify({ patientName, roomName, manchesterColor })
       });
 
-      if ('speechSynthesis' in window) {
-        const text = `Aten\u00e7\u00e3o: Paciente ${patientName}, favor dirigir-se ao ${roomName}.`;
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
+      if (r && r.ok) {
+        // ── Chamada Sonora ───────────────────────────────────────────────────
+        // 1) Beep de atenção via Web Audio API (funciona mesmo sem interação prévia)
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            const ctx = new AudioCtx();
+            const playBeep = (freq, start, dur) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.type = 'sine';
+              osc.frequency.value = freq;
+              gain.gain.setValueAtTime(0, ctx.currentTime + start);
+              gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + start + 0.04);
+              gain.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
+              osc.start(ctx.currentTime + start);
+              osc.stop(ctx.currentTime + start + dur + 0.05);
+            };
+            // Três bipes de atenção: DÓ-MI-SOL
+            playBeep(523.25, 0,    0.22);
+            playBeep(659.25, 0.28, 0.22);
+            playBeep(783.99, 0.56, 0.40);
+          }
+        } catch (_) {}
+
+        // 2) Síntese de voz pt-BR após 1.2s (após os bipes)
+        if ('speechSynthesis' in window) {
+          // Cancelar qualquer fala anterior antes de iniciar nova
+          window.speechSynthesis.cancel();
+          const text = `Atenção. Paciente ${patientName}, favor dirigir-se ao ${roomName}.`;
+          const speak = () => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 0.88;
+            utterance.pitch = 1.05;
+            utterance.volume = 1;
+            window.speechSynthesis.speak(utterance);
+          };
+          // Aguarda os bipes e garante que vozes estejam carregadas
+          setTimeout(() => {
+            if (window.speechSynthesis.getVoices().length === 0) {
+              window.speechSynthesis.addEventListener('voiceschanged', speak, { once: true });
+            } else {
+              speak();
+            }
+          }, 1200);
+        }
       }
 
       overlay.remove();
