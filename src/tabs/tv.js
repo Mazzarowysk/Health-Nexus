@@ -249,9 +249,121 @@ window.loadTVWaitingQueue = async function() {
 };
 
 window._tvQuickCall = async function(patientName, manchesterColor, roomName = '') {
-  // Abre o modal já com o paciente pré-selecionado
-  await openTVCallModal(patientName.trim(), (manchesterColor || 'Verde').trim(), roomName);
+  await executeTVCall(patientName, roomName, manchesterColor);
 };
+
+window._tvDirectCall = async function(patientName, manchesterColor, roomName = '') {
+  await executeTVCall(patientName, roomName, manchesterColor);
+};
+
+async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
+  const cleanName = (patientName || '').trim();
+  if (!cleanName) {
+    showCustomAlert({ title: 'Atenção', message: 'Por favor, informe o nome do paciente.', type: 'warning' });
+    return false;
+  }
+
+  // Inferir sala se não fornecida
+  if (!roomName) {
+    let matched = null;
+    try {
+      const res = await apiFetch('/api/encounters');
+      if (res.ok) {
+        const data = await res.json();
+        const arr = Array.isArray(data) ? data : (data.data || []);
+        const cleanLower = cleanName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        matched = arr.find(e => (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(cleanLower));
+      }
+    } catch(e) {}
+    const isTriaged = matched && (matched.status === 'Aguardando_Atendimento' || matched.status === 'Em_Atendimento' || !!matched.manchesterColor);
+    roomName = isTriaged ? 'Consultório 01' : 'Sala de Triagem';
+  }
+
+  if (!manchesterColor) manchesterColor = 'Verde';
+
+  try {
+    const r = await apiFetch('/api/tv/call', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patientName: cleanName, roomName, manchesterColor })
+    });
+
+    if (r && r.ok) {
+      // 1) Beep de atenção via Web Audio API (DÓ-MI-SOL)
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const playBeep = (freq, start, dur) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, ctx.currentTime + start);
+            gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + start + 0.04);
+            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
+            osc.start(ctx.currentTime + start);
+            osc.stop(ctx.currentTime + start + dur + 0.05);
+          };
+          playBeep(523.25, 0,    0.22);
+          playBeep(659.25, 0.28, 0.22);
+          playBeep(783.99, 0.56, 0.40);
+        }
+      } catch (_) {}
+
+      // 2) Síntese de voz pt-BR após 1.2s
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const text = `Atenção. Paciente ${cleanName}, favor dirigir-se ao ${roomName}.`;
+        const speak = () => {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'pt-BR';
+          utterance.rate = 0.88;
+          utterance.pitch = 1.05;
+          utterance.volume = 1;
+          window.speechSynthesis.speak(utterance);
+        };
+        setTimeout(() => {
+          if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.addEventListener('voiceschanged', speak, { once: true });
+          } else {
+            speak();
+          }
+        }, 1200);
+      }
+    }
+
+    showCustomAlert({ title: 'Chamada Emitida!', message: `📢 ${cleanName} → ${roomName}`, type: 'success' });
+    if (typeof window.showFlowCompletionNotification === 'function') {
+      const isTriageRoom = (roomName || '').toLowerCase().includes('triag');
+      const firstName = cleanName.split(' ')[0];
+      window.showFlowCompletionNotification({
+        actionTitle: isTriageRoom ? `🩺 Chamada Emitida para Triagem!` : `📢 Chamada Emitida no Painel TV!`,
+        message: isTriageRoom
+          ? `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir a Triagem Manchester e aferir os sinais vitais!</strong>`
+          : `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para o <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir o ${roomName} e dar início ao Prontuário (PEP)!</strong>`,
+        targetTab: isTriageRoom ? 'atendimento' : 'consultorios',
+        targetTabLabel: isTriageRoom ? `🩺 Iniciar Triagem Manchester de ${firstName} ➔` : `👨‍⚕️ Abrir ${roomName} (${firstName}) ➔`,
+        targetColumn: isTriageRoom ? 'col-triage' : roomName,
+        targetPatientName: cleanName,
+        targetStatus: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',
+        targetRoom: roomName,
+        actionType: isTriageRoom ? 'start_triage' : 'open_consultorio',
+        persistent: true
+      });
+    }
+
+    loadTVCalls();
+    if (typeof loadTVWaitingQueue === 'function') loadTVWaitingQueue();
+    return true;
+  } catch (e) {
+    showCustomAlert({ title: 'Erro', message: 'Falha ao emitir chamada na TV.', type: 'danger' });
+    return false;
+  }
+}
+window.executeTVCall = executeTVCall;
 
 function renderTVCallsUI(calls) {
   const lastEl = document.getElementById('tv-last-patient');
@@ -514,94 +626,8 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
     const roomName = document.getElementById('tv-modal-room').value;
     const manchesterColor = colorEl.value;
 
-    if (!patientName) {
-      showCustomAlert({ title: 'Aten&#231;&#227;o', message: 'Por favor, informe o nome do paciente.', type: 'warning' });
-      return;
-    }
-
-    try {
-      const r = await apiFetch('/api/tv/call', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientName, roomName, manchesterColor })
-      });
-
-      if (r && r.ok) {
-        // ── Chamada Sonora ───────────────────────────────────────────────────
-        // 1) Beep de atenção via Web Audio API (funciona mesmo sem interação prévia)
-        try {
-          const AudioCtx = window.AudioContext || window.webkitAudioContext;
-          if (AudioCtx) {
-            const ctx = new AudioCtx();
-            const playBeep = (freq, start, dur) => {
-              const osc = ctx.createOscillator();
-              const gain = ctx.createGain();
-              osc.connect(gain);
-              gain.connect(ctx.destination);
-              osc.type = 'sine';
-              osc.frequency.value = freq;
-              gain.gain.setValueAtTime(0, ctx.currentTime + start);
-              gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + start + 0.04);
-              gain.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
-              osc.start(ctx.currentTime + start);
-              osc.stop(ctx.currentTime + start + dur + 0.05);
-            };
-            // Três bipes de atenção: DÓ-MI-SOL
-            playBeep(523.25, 0,    0.22);
-            playBeep(659.25, 0.28, 0.22);
-            playBeep(783.99, 0.56, 0.40);
-          }
-        } catch (_) {}
-
-        // 2) Síntese de voz pt-BR após 1.2s (após os bipes)
-        if ('speechSynthesis' in window) {
-          // Cancelar qualquer fala anterior antes de iniciar nova
-          window.speechSynthesis.cancel();
-          const text = `Atenção. Paciente ${patientName}, favor dirigir-se ao ${roomName}.`;
-          const speak = () => {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'pt-BR';
-            utterance.rate = 0.88;
-            utterance.pitch = 1.05;
-            utterance.volume = 1;
-            window.speechSynthesis.speak(utterance);
-          };
-          // Aguarda os bipes e garante que vozes estejam carregadas
-          setTimeout(() => {
-            if (window.speechSynthesis.getVoices().length === 0) {
-              window.speechSynthesis.addEventListener('voiceschanged', speak, { once: true });
-            } else {
-              speak();
-            }
-          }, 1200);
-        }
-      }
-
-      overlay.remove();
-      showCustomAlert({ title: 'Chamada Emitida!', message: `&#128266; ${patientName} &rarr; ${roomName}`, type: 'success' });
-      if (typeof window.showFlowCompletionNotification === 'function') {
-        const isTriageRoom = (roomName || '').toLowerCase().includes('triag');
-        const firstName = patientName.split(' ')[0];
-        window.showFlowCompletionNotification({
-          actionTitle: isTriageRoom ? `🩺 Chamada Emitida para Triagem!` : `📢 Chamada Emitida no Painel TV!`,
-          message: isTriageRoom
-            ? `Paciente <strong>${patientName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir a Triagem Manchester e aferir os sinais vitais!</strong>`
-            : `Paciente <strong>${patientName}</strong> chamado(a) no Painel TV para o <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir o ${roomName} e dar início ao Prontuário (PEP)!</strong>`,
-          targetTab: isTriageRoom ? 'atendimento' : 'consultorios',
-          targetTabLabel: isTriageRoom ? `🩺 Iniciar Triagem Manchester de ${firstName} ➔` : `👨‍⚕️ Abrir ${roomName} (${firstName}) ➔`,
-          targetColumn: isTriageRoom ? 'col-triage' : roomName,
-          targetPatientName: patientName,
-          targetStatus: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',
-          targetRoom: roomName,
-          actionType: isTriageRoom ? 'start_triage' : 'open_consultorio',
-          persistent: true
-        });
-      }
-      loadTVCalls();
-      if (typeof loadTVWaitingQueue === 'function') loadTVWaitingQueue();
-    } catch (e) {
-      showCustomAlert({ title: 'Erro', message: 'Falha ao emitir chamada na TV.', type: 'danger' });
-    }
+    const ok = await executeTVCall(patientName, roomName, manchesterColor);
+    if (ok) overlay.remove();
   });
 }
 
