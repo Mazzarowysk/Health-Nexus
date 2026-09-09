@@ -303,6 +303,42 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
     }
   } catch(e) {}
 
+  // Resolução inteligente dos dados do paciente (cor e sala recomendada)
+  let matchedPatient = null;
+  const targetName = preselectedName || (typeof activePatientContext !== 'undefined' && activePatientContext ? activePatientContext.patientName || activePatientContext.fullName : '');
+
+  if (targetName) {
+    const cleanTarget = (targetName || '').trim().toLowerCase();
+    matchedPatient = waitingPatients.find(p =>
+      removeAccents((p.patientName || '').toLowerCase()).includes(removeAccents(cleanTarget))
+    );
+    if (!matchedPatient && typeof localDB !== 'undefined' && localDB.getFullDB) {
+      try {
+        const db = localDB.getFullDB();
+        const encs = db.encounters || [];
+        matchedPatient = encs.find(e =>
+          removeAccents((e.patientName || '').toLowerCase()).includes(removeAccents(cleanTarget))
+        );
+      } catch(e) {}
+    }
+  }
+
+  let effectiveColor = preselectedColor;
+  let effectiveRoom = preselectedRoom;
+
+  if (matchedPatient) {
+    if (!effectiveColor && matchedPatient.manchesterColor) {
+      effectiveColor = matchedPatient.manchesterColor;
+    }
+    const isTriaged = matchedPatient.status === 'Aguardando_Atendimento' || matchedPatient.status === 'Em_Atendimento' || !!matchedPatient.manchesterColor;
+    if (!effectiveRoom) {
+      effectiveRoom = isTriaged ? 'Consultório 01' : 'Sala de Triagem';
+    }
+  }
+
+  if (!effectiveColor) effectiveColor = 'Verde';
+  if (!effectiveRoom) effectiveRoom = 'Sala de Triagem';
+
   const existingModal = document.getElementById('hn-tv-call-modal');
   if (existingModal) existingModal.remove();
 
@@ -338,14 +374,14 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
         const bg = mColorMap[mKey] || '#16a34a';
         const initials = (p.patientName || '?').split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
         const sLabel = statusLabel(p.status);
-        return `<div class="tv-queue-patient-card" data-name="${(p.patientName||'').replace(/"/g,'&quot;')}" data-manchester="${p.manchesterColor||'Verde'}"
+        return `<div class="tv-queue-patient-card" data-name="${(p.patientName||'').replace(/"/g,'&quot;')}" data-manchester="${p.manchesterColor||'Verde'}" data-status="${p.status||''}"
              style="background:#1e293b; border:1px solid #334155; border-left:4px solid ${bg}; border-radius:10px; padding:10px 14px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all 0.18s;"
              onmouseenter="this.style.background='rgba(139,92,246,0.12)'; this.style.borderColor='#8b5cf6';"
              onmouseleave="this.style.background='#1e293b'; this.style.borderColor='#334155'; this.style.borderLeftColor='${bg}';">
           <div style="width:38px;height:38px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:0.9rem;flex-shrink:0;">${initials}</div>
           <div style="flex:1;min-width:0;">
             <div style="font-weight:700;font-size:0.9rem;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName||'Paciente'}</div>
-            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">${sLabel} &bull; ${p.manchesterColor||'Verde'}</div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">${sLabel} &bull; ${p.manchesterColor||'Sem Triagem'}</div>
           </div>
           <i class="fa-solid fa-hand-pointer" style="color:#8b5cf6;font-size:0.85rem;flex-shrink:0;"></i>
         </div>`;
@@ -378,7 +414,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
             <i class="fa-solid fa-user"></i> Nome do Paciente:
           </label>
-          <input type="text" id="tv-modal-patient-name" placeholder="Digite ou selecione acima..." value="${preselectedName}" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155; font-size: 0.9rem; box-sizing: border-box;" />
+          <input type="text" id="tv-modal-patient-name" placeholder="Digite ou selecione acima..." value="${preselectedName || (matchedPatient ? matchedPatient.patientName : '')}" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155; font-size: 0.9rem; box-sizing: border-box;" />
         </div>
 
         <!-- CONSULTÓRIO / SALA -->
@@ -387,12 +423,12 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
             <i class="fa-solid fa-door-open"></i> Sala de Destino / Consultório:
           </label>
           <select id="tv-modal-room" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
-            <option value="Sala de Triagem" ${preselectedRoom === 'Sala de Triagem' ? 'selected' : ''}>Sala de Triagem</option>
-            <option value="Consultório 01" ${(preselectedRoom === 'Consultório 01' || (!preselectedRoom && preselectedColor)) ? 'selected' : (!preselectedRoom ? '' : '')}>Consultório 01</option>
-            <option value="Consultório 02" ${preselectedRoom === 'Consultório 02' ? 'selected' : ''}>Consultório 02</option>
-            <option value="Consultório 03" ${preselectedRoom === 'Consultório 03' ? 'selected' : ''}>Consultório 03</option>
-            <option value="Exames / Raio-X" ${preselectedRoom === 'Exames / Raio-X' ? 'selected' : ''}>Exames / Raio-X</option>
-            <option value="Recepção" ${preselectedRoom === 'Recepção' ? 'selected' : ''}>Recepção</option>
+            <option value="Consultório 01" ${effectiveRoom === 'Consultório 01' ? 'selected' : ''}>Consultório 01 (Atendimento Médico)</option>
+            <option value="Consultório 02" ${effectiveRoom === 'Consultório 02' ? 'selected' : ''}>Consultório 02 (Pediatria)</option>
+            <option value="Consultório 03" ${effectiveRoom === 'Consultório 03' ? 'selected' : ''}>Consultório 03 (Ortopedia)</option>
+            <option value="Sala de Triagem" ${effectiveRoom === 'Sala de Triagem' ? 'selected' : ''}>Sala de Triagem (Enfermagem)</option>
+            <option value="Exames / Raio-X" ${effectiveRoom === 'Exames / Raio-X' ? 'selected' : ''}>Exames / Raio-X</option>
+            <option value="Recepção" ${effectiveRoom === 'Recepção' ? 'selected' : ''}>Recepção</option>
           </select>
         </div>
 
@@ -402,7 +438,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
             <i class="fa-solid fa-notes-medical"></i> Classificação Manchester:
           </label>
           <select id="tv-modal-color" style="width: 100%; padding: 10px 12px; border-radius: 8px; background: #1e293b; color: #fff; border: 1px solid #334155;">
-            ${manchesterOpts.map(o => `<option value="${o.v}" ${o.v === (preselectedColor || 'Verde') ? 'selected' : ''}>${o.l}</option>`).join('')}
+            ${manchesterOpts.map(o => `<option value="${o.v}" ${o.v === effectiveColor ? 'selected' : ''}>${o.l}</option>`).join('')}
           </select>
         </div>
 
@@ -423,23 +459,22 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
 
   const inputEl = document.getElementById('tv-modal-patient-name');
   const colorEl = document.getElementById('tv-modal-color');
+  const roomEl = document.getElementById('tv-modal-room');
 
   // Destacar card pré-selecionado se informado
-  if (preselectedName) {
-    const cleanPre = (preselectedName || '').trim().toLowerCase();
+  const cleanTargetName = preselectedName || (matchedPatient ? matchedPatient.patientName : '');
+  if (cleanTargetName) {
+    const cleanPre = (cleanTargetName || '').trim().toLowerCase();
     document.querySelectorAll('.tv-queue-patient-card').forEach(card => {
       const cardName = (card.dataset.name || '').trim().toLowerCase();
       if (cardName && (cardName.includes(cleanPre) || cleanPre.includes(cardName))) {
         card.style.background = 'rgba(139,92,246,0.18)';
         card.style.borderColor = '#8b5cf6';
-        if (card.dataset.manchester && !preselectedColor) {
-          colorEl.value = card.dataset.manchester;
-        }
       }
     });
   }
 
-  // Clique nos cards da fila seleciona o paciente
+  // Clique nos cards da fila seleciona o paciente e resolve sala e cor automaticamente
   document.querySelectorAll('.tv-queue-patient-card').forEach(card => {
     card.addEventListener('click', () => {
       document.querySelectorAll('.tv-queue-patient-card').forEach(c => {
@@ -449,7 +484,13 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
       card.style.borderColor = '#8b5cf6';
       inputEl.value = card.dataset.name;
       const m = card.dataset.manchester;
-      if (m) colorEl.value = m;
+      if (m && m !== 'Sem Triagem') colorEl.value = m;
+
+      const pStatus = card.dataset.status;
+      const isTriaged = pStatus === 'Aguardando_Atendimento' || pStatus === 'Em_Atendimento' || (m && m !== 'Sem Triagem');
+      if (roomEl) {
+        roomEl.value = isTriaged ? 'Consultório 01' : 'Sala de Triagem';
+      }
     });
   });
 
