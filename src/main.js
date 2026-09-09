@@ -754,17 +754,33 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       break;
 
     case 'farmacia':
-      stepTitle = '🛏️ Alocar em Leito ou Acompanhar Internação';
-      stepDesc = 'Medicamentos e insumos dispensados! Se o paciente necessita de observação clínica ou internação, aloque a vaga no mapa de leitos; caso em observação, acompanhe no Kanban.';
-      targetTab = 'leitos';
-      btnText = '🛏️ Ir para Gestão de Leitos ➔';
-      btnBg = 'linear-gradient(135deg, #06b6d4, #0891b2)';
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>📊</span> Ver no Kanban</button>'
-        + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>💰</span> Faturamento</button>'
-        + '</div>';
+      if (activePatient) {
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        stepTitle = '💊 Dispensar Medicamentos de ' + firstName;
+        stepDesc = 'Medicamentos e insumos de ' + safePName + ' em separação/dispensação. Após a entrega, direcione o paciente para internação no Mapa de Leitos ou acompanhe no Kanban.';
+        targetTab = 'leitos';
+        btnText = '🛏️ Alojar ' + firstName + ' em Leito ➔';
+        btnBg = 'linear-gradient(135deg, #06b6d4, #0891b2)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📊</span> Ver no Kanban</button>'
+          + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>💰</span> Faturamento</button>'
+          + '</div>';
+      } else {
+        stepTitle = '🛏️ Alocar em Leito ou Acompanhar Internação';
+        stepDesc = 'Medicamentos e insumos dispensados! Se o paciente necessita de observação clínica ou internação, aloque a vaga no mapa de leitos; caso em observação, acompanhe no Kanban.';
+        targetTab = 'leitos';
+        btnText = '🛏️ Ir para Gestão de Leitos ➔';
+        btnBg = 'linear-gradient(135deg, #06b6d4, #0891b2)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📊</span> Ver no Kanban</button>'
+          + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>💰</span> Faturamento</button>'
+          + '</div>';
+      }
       break;
 
     case 'leitos':
@@ -815,17 +831,33 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       break;
 
     case 'kanban':
-      stepTitle = '💰 Faturamento Hospitalar & Guias TISS 4.01';
-      stepDesc = 'Com a alta médica concedida ou procedimentos concluídos, o próximo passo administrativo é fechar a conta do paciente e gerar o lote eletrônico padrão TISS 4.01.';
-      targetTab = 'financeiro';
-      btnText = '💰 Ir para Faturamento & TISS ➔';
-      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🛏️</span> Mapa de Leitos</button>'
-        + '<button onclick="window.switchTab(\'relatorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>📈</span> Indicadores</button>'
-        + '</div>';
+      if (activePatient) {
+        const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
+        const firstName = safePName.split(' ')[0];
+        stepTitle = '📊 Acompanhar ' + firstName + ' no Kanban';
+        stepDesc = 'Linha de cuidado de ' + safePName + ' em evolução no Kanban! Acompanhe exames, procedimentos e alta clínica. Após a alta, prossiga para Faturamento TISS.';
+        targetTab = 'financeiro';
+        btnText = '💰 Ir para Faturamento & TISS (' + firstName + ') ➔';
+        btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🛏️</span> Mapa de Leitos</button>'
+          + '<button onclick="window.switchTab(\'relatorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📈</span> Indicadores</button>'
+          + '</div>';
+      } else {
+        stepTitle = '💰 Faturamento Hospitalar & Guias TISS 4.01';
+        stepDesc = 'Com a alta médica concedida ou procedimentos concluídos, o próximo passo administrativo é fechar a conta do paciente e gerar o lote eletrônico padrão TISS 4.01.';
+        targetTab = 'financeiro';
+        btnText = '💰 Ir para Faturamento & TISS ➔';
+        btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🛏️</span> Mapa de Leitos</button>'
+          + '<button onclick="window.switchTab(\'relatorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📈</span> Indicadores</button>'
+          + '</div>';
+      }
       break;
 
     case 'financeiro':
