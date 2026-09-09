@@ -1259,22 +1259,73 @@ window.openTransferBedModal = async function(encounterId, patientName) {
 
   modal.style.display = 'flex';
 
-  // Carregar leitos vagos
-  try {
-    const beds = await cachedApiGet('/api/beds', 'beds');
-    const vagoBeds = (beds || []).filter(b => b.status === 'Vago');
+  const loadVagoBeds = async () => {
     const select = document.getElementById('transfer-bed-select');
+    const confirmBtn = document.getElementById('btn-confirm-transfer-bed');
+    if (!select || !confirmBtn) return;
 
-    if (vagoBeds.length === 0) {
-      select.innerHTML = '<option value="">Nenhum leito vago disponível no momento</option>';
-      document.getElementById('btn-confirm-transfer-bed').disabled = true;
-    } else {
-      select.innerHTML = '<option value="">Escolha o leito...</option>' + 
-        vagoBeds.map(b => `<option value="${b.id}">Leito ${b.bedNumber} — Setor: ${b.sector}</option>`).join('');
+    try {
+      let beds = await cachedApiGet('/api/beds', 'beds');
+      if (!Array.isArray(beds)) beds = [];
+
+      // Se a base de dados não tiver leitos (ex: banco limpo), inicializa os 22 leitos padrão automaticamente
+      if (beds.length === 0 && typeof localDB !== 'undefined' && localDB.getDefaultBeds) {
+        const defaultBeds = localDB.getDefaultBeds();
+        const currentDb = localDB.getFullDB();
+        currentDb.beds = defaultBeds;
+        localDB.saveFullDB(currentDb);
+        beds = defaultBeds;
+        if (typeof invalidateCacheForUrl === 'function') {
+          invalidateCacheForUrl('/api/beds');
+        }
+      }
+
+      let vagoBeds = beds.filter(b => b.status === 'Vago');
+
+      if (vagoBeds.length === 0) {
+        select.innerHTML = '<option value="">Nenhum leito vago disponível no momento</option>';
+        confirmBtn.disabled = true;
+
+        // Se a lista de leitos no banco continuar vazia ou sem vagas, injeta o botão de carregar leitos padrão
+        let actionBox = document.getElementById('bed-modal-auto-seed-box');
+        if (!actionBox) {
+          actionBox = document.createElement('div');
+          actionBox.id = 'bed-modal-auto-seed-box';
+          actionBox.style.cssText = 'margin-top: 12px; padding: 12px; background: rgba(99,102,241,0.12); border: 1px dashed rgba(99,102,241,0.3); border-radius: 10px; text-align: center;';
+          actionBox.innerHTML = `
+            <div style="font-size: 0.8rem; color: #a5b4fc; margin-bottom: 8px;">Deseja carregar a estrutura de 22 leitos padrão do hospital?</div>
+            <button type="button" id="btn-modal-load-default-beds" class="btn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; padding: 8px 16px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; cursor: pointer;">
+              <i class="fa-solid fa-arrows-rotate"></i> Carregar 22 Leitos Hospitalares
+            </button>
+          `;
+          select.parentElement.appendChild(actionBox);
+          document.getElementById('btn-modal-load-default-beds')?.addEventListener('click', async () => {
+            if (typeof localDB !== 'undefined' && localDB.getDefaultBeds) {
+              const defaultBeds = localDB.getDefaultBeds();
+              const currentDb = localDB.getFullDB();
+              currentDb.beds = defaultBeds;
+              localDB.saveFullDB(currentDb);
+              if (typeof invalidateCacheForUrl === 'function') invalidateCacheForUrl('/api/beds');
+              actionBox.remove();
+              await loadVagoBeds();
+            }
+          });
+        }
+      } else {
+        confirmBtn.disabled = false;
+        const autoBox = document.getElementById('bed-modal-auto-seed-box');
+        if (autoBox) autoBox.remove();
+
+        select.innerHTML = '<option value="">Escolha o leito de internação...</option>' + 
+          vagoBeds.map(b => `<option value="${b.id}">Leito ${b.bedNumber} — Setor: ${b.sector} (${b.ward || b.type || 'Internação'})</option>`).join('');
+      }
+    } catch(e) {
+      console.error('Erro ao carregar leitos vagos:', e);
+      select.innerHTML = '<option value="">Erro ao carregar leitos.</option>';
     }
-  } catch(e) {
-    document.getElementById('transfer-bed-select').innerHTML = '<option value="">Erro ao carregar leitos.</option>';
-  }
+  };
+
+  await loadVagoBeds();
 
   document.getElementById('btn-confirm-transfer-bed').onclick = async () => {
     const bedId = document.getElementById('transfer-bed-select').value;
