@@ -4893,7 +4893,7 @@ async function loadConsultingRooms() {
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">
-                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : 'var(--color-primary)');"></i> ${r.name}
+                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : 'var(--color-primary)'}; "></i> ${r.name}
               </h3>
               <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">${r.specialty || 'Uso Geral / Pronto Atendimento'}</div>
             </div>
