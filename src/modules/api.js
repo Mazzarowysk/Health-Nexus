@@ -947,6 +947,8 @@ export const apiFetch = async (url, options = {}) => {
           body.calledAt = new Date().toISOString();
           const pName = (body.patientName || '').trim();
           const targetRoom = body.roomName || body.room || 'Consultório 01';
+          body.roomName = targetRoom;
+          body.room = targetRoom;
           if (body.patientId || pName) {
             const allEncounters = localDB.list('encounters') || [];
             const enc = allEncounters.find(e => 
