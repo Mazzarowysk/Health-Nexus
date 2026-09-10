@@ -3613,15 +3613,82 @@ function maskPhone(value) {
   }
 }
 
-function maskCurrency(value) {
-  let v = value.replace(/\D/g, "");
-  if (!v) return "R$ 0,00";
-  let number = (parseInt(v, 10) / 100).toFixed(2);
-  let parts = number.split(".");
-  let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  let decimalPart = parts[1];
-  return `R$ ${integerPart},${decimalPart}`;
+function maskCurrency(value, isLiveInput = false) {
+  if (value === null || value === undefined) return isLiveInput ? "" : "R$ 0,00";
+  let str = String(value).trim();
+  if (!str) return isLiveInput ? "" : "R$ 0,00";
+
+  let integerStr = "";
+  let decimalStr = "";
+
+  if (str.includes(",")) {
+    const parts = str.split(",");
+    integerStr = parts[0].replace(/\D/g, "");
+    decimalStr = parts[1].replace(/\D/g, "");
+
+    if (decimalStr.startsWith("00")) {
+      const extraDigits = decimalStr.slice(2);
+      integerStr = integerStr + extraDigits;
+      decimalStr = "";
+    } else if (decimalStr.length > 2) {
+      decimalStr = decimalStr.slice(0, 2);
+    }
+  } else if (/\.\d{1,2}$/.test(str.replace(/^[^\d]+/, '')) && !/\d+\.\d{3}/.test(str)) {
+    const parts = str.split(".");
+    integerStr = parts[0].replace(/\D/g, "");
+    decimalStr = parts[1].replace(/\D/g, "");
+    if (decimalStr.length > 2) decimalStr = decimalStr.slice(0, 2);
+  } else {
+    integerStr = str.replace(/\D/g, "");
+    decimalStr = "";
+  }
+
+  if (!integerStr && !decimalStr) {
+    return isLiveInput ? "" : "R$ 0,00";
+  }
+
+  let formattedInteger = "0";
+  if (integerStr) {
+    const num = parseInt(integerStr, 10);
+    formattedInteger = isNaN(num) ? "0" : num.toLocaleString('pt-BR');
+  }
+
+  if (str.includes(",") && decimalStr !== "") {
+    if (isLiveInput) {
+      return `R$ ${formattedInteger},${decimalStr}`;
+    } else {
+      let paddedDecimal = (decimalStr + "00").slice(0, 2);
+      return `R$ ${formattedInteger},${paddedDecimal}`;
+    }
+  }
+
+  return `R$ ${formattedInteger},00`;
 }
+
+window.maskCurrency = maskCurrency;
+
+// Event delegation global para campos financeiros
+document.addEventListener('input', (e) => {
+  if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
+    e.target.value = maskCurrency(e.target.value, true);
+  }
+});
+
+document.addEventListener('blur', (e) => {
+  if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
+    if (e.target.value.trim() !== "") {
+      e.target.value = maskCurrency(e.target.value, false);
+    }
+  }
+}, true);
+
+document.addEventListener('focus', (e) => {
+  if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
+    if (!e.target.value || e.target.value === "0") {
+      e.target.value = "R$ 0,00";
+    }
+  }
+}, true);
 
 function applyInputMasks() {
   const cpfInput = document.getElementById('cpf');
@@ -3646,7 +3713,10 @@ function applyInputMasks() {
   }
   if (billingValueInput) {
     billingValueInput.addEventListener('input', (e) => {
-      e.target.value = maskCurrency(e.target.value);
+      e.target.value = maskCurrency(e.target.value, true);
+    });
+    billingValueInput.addEventListener('blur', (e) => {
+      e.target.value = maskCurrency(e.target.value, false);
     });
     billingValueInput.addEventListener('focus', (e) => {
       if (!e.target.value) e.target.value = "R$ 0,00";

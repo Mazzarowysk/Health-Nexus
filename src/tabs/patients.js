@@ -173,7 +173,7 @@ export function renderPatientsTab(contentArea) {
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="billingValue">Valor Consulta/Tabela:</label>
-                  <input type="text" id="billingValue" class="form-input" placeholder="R$ 0,00">
+                  <input type="text" id="billingValue" class="form-input currency-mask" placeholder="R$ 0,00">
                 </div>
               </div>
             </div>
