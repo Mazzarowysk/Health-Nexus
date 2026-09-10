@@ -1,5 +1,6 @@
 import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
+import { evaluatePrescriptionCDSS } from '../modules/clinicalAI.js';
 
 const API_URL = '/api';
 
@@ -1095,7 +1096,32 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
       `;
     });
 
-    html += '</tbody></table>';
+    let cdssHtml = '';
+    if (typeof evaluatePrescriptionCDSS === 'function') {
+      const medNames = draftItems.map(i => i.name).join(' ');
+      const alerts = evaluatePrescriptionCDSS(medNames);
+      if (alerts && alerts.length > 0) {
+        const top = alerts[0];
+        cdssHtml = `
+          <div style="margin-top: 10px; padding: 10px 14px; border-radius: 10px; background: ${top.color || '#ef4444'}22; border: 1.5px solid ${top.color || '#ef4444'}; color: #ffffff;">
+            <div style="font-size: 0.82rem; font-weight: 800; color: ${top.color || '#fca5a5'}; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-triangle-exclamation"></i> ALERTA DE INTERAÇÃO MEDICAMENTOSA (${top.severity || 'Alerta'}): ${top.title}
+            </div>
+            <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 4px; line-height: 1.4;">${top.desc}</div>
+            <div style="font-size: 0.75rem; color: #6ee7b7; font-weight: 700; margin-top: 4px;">💡 Conduta Recomendada: ${top.action}</div>
+          </div>
+        `;
+      } else {
+        cdssHtml = `
+          <div style="margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7; font-size: 0.78rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-shield-check" style="font-size: 0.95rem; color: #34d399;"></i>
+            <span><strong>Análise CDSS Concluída:</strong> Nenhuma contraindicação grave ou interação medicamentosa crítica detectada nesta prescrição.</span>
+          </div>
+        `;
+      }
+    }
+
+    html += '</tbody></table>' + cdssHtml;
     tableEl.innerHTML = html;
 
     tableEl.querySelectorAll('.btn-remove-rx-draft').forEach(btn => {
