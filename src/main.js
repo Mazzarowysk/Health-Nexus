@@ -3616,7 +3616,7 @@ function maskPhone(value) {
 function maskCurrency(value, isLiveInput = false) {
   if (value === null || value === undefined) return isLiveInput ? "" : "R$ 0,00";
   let str = String(value).trim();
-  if (!str) return isLiveInput ? "" : "R$ 0,00";
+  if (!str || str === "R$" || str === "R$ ") return isLiveInput ? "" : "R$ 0,00";
 
   let integerStr = "";
   let decimalStr = "";
@@ -3626,9 +3626,11 @@ function maskCurrency(value, isLiveInput = false) {
     integerStr = parts[0].replace(/\D/g, "");
     decimalStr = parts[1].replace(/\D/g, "");
 
-    if (decimalStr.startsWith("00")) {
+    if (decimalStr.startsWith("00") && decimalStr.length > 2) {
       const extraDigits = decimalStr.slice(2);
       integerStr = integerStr + extraDigits;
+      decimalStr = "";
+    } else if (decimalStr === "00") {
       decimalStr = "";
     } else if (decimalStr.length > 2) {
       decimalStr = decimalStr.slice(0, 2);
@@ -3667,7 +3669,57 @@ function maskCurrency(value, isLiveInput = false) {
 
 window.maskCurrency = maskCurrency;
 
+function handleCurrencyKeydown(e) {
+  const input = e.target;
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    const val = input.value;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+
+    if (start !== end) {
+      if (start === 0 && end === val.length) {
+        e.preventDefault();
+        input.value = "";
+        return;
+      }
+      return;
+    }
+
+    if (e.key === 'Backspace') {
+      if (val.includes(",")) {
+        const parts = val.split(",");
+        const dec = parts[1];
+        if (dec === "00" || dec === "") {
+          e.preventDefault();
+          const intDigits = parts[0].replace(/\D/g, "");
+          if (intDigits.length <= 1) {
+            input.value = "";
+          } else {
+            const newIntDigits = intDigits.slice(0, -1);
+            const num = parseInt(newIntDigits, 10);
+            input.value = `R$ ${num.toLocaleString('pt-BR')},00`;
+          }
+          return;
+        }
+      } else {
+        const digits = val.replace(/\D/g, "");
+        if (digits.length <= 1) {
+          e.preventDefault();
+          input.value = "";
+          return;
+        }
+      }
+    }
+  }
+}
+
 // Event delegation global para campos financeiros
+document.addEventListener('keydown', (e) => {
+  if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
+    handleCurrencyKeydown(e);
+  }
+});
+
 document.addEventListener('input', (e) => {
   if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
     e.target.value = maskCurrency(e.target.value, true);
