@@ -1441,78 +1441,113 @@ window.openAttendanceTriage = function(patientName) {
   }, 150);
 };
 
-window.openDoctorConsultingRoom = function(roomName = 'Consultório 01', patientName = '') {
+window.openDoctorConsultingRoom = function(roomName, patientName) {
+  roomName = roomName || 'ConsultÃ³rio 01';
+  patientName = patientName || '';
+
   if (typeof window.switchTab === 'function') {
     window.switchTab('consultorios');
   }
-  let tries = 0;
-  const checkInterval = setInterval(function() {
+
+  // Garante CSS de pulsaÃ§Ã£o no documento
+  if (!document.getElementById('_patientCardPulseStyle')) {
+    var styleEl = document.createElement('style');
+    styleEl.id = '_patientCardPulseStyle';
+    styleEl.textContent = [
+      '@keyframes patientCardPulse {',
+      '  0%   { box-shadow: 0 0 0 0 rgba(236,72,153,0.8); outline-color: #ec4899; }',
+      '  50%  { box-shadow: 0 0 0 14px rgba(236,72,153,0); outline-color: #f472b6; }',
+      '  100% { box-shadow: 0 0 0 0 rgba(236,72,153,0); outline-color: #ec4899; }',
+      '}',
+      '.room-card-pulsing {',
+      '  outline: 3px solid #ec4899 !important;',
+      '  border-radius: 14px !important;',
+      '  animation: patientCardPulse 1.4s ease-in-out infinite !important;',
+      '}',
+      '.room-convocado-badge {',
+      '  display: flex; align-items: center; gap: 8px;',
+      '  font-size: 0.82rem; color: #fff; font-weight: 700;',
+      '  background: linear-gradient(135deg, rgba(236,72,153,0.35), rgba(190,24,93,0.25));',
+      '  padding: 8px 12px; border-radius: 10px;',
+      '  border: 1px solid rgba(236,72,153,0.5);',
+      '  margin-top: 4px;',
+      '}'
+    ].join('\n');
+    document.head.appendChild(styleEl);
+  }
+
+  var tries = 0;
+  var checkInterval = setInterval(function() {
     tries++;
-    const emptyBtn = document.getElementById('btn-load-default-rooms');
-    if (emptyBtn) emptyBtn.click();
 
-    const cards = document.querySelectorAll('.interactive-card, .patient-card-item');
-    if (cards.length > 0) {
-      clearInterval(checkInterval);
-
-      let targetCard = null;
-      if (patientName && String(patientName).trim()) {
-        const cleanName = removeAccents(String(patientName).trim().toLowerCase());
-        targetCard = Array.from(cards).find(c => {
-          const txt = removeAccents(c.textContent.toLowerCase());
-          return txt.includes(cleanName);
-        });
-      }
-      if (!targetCard && !patientName && roomName && String(roomName).trim()) {
-        const cleanRoom = removeAccents(String(roomName).trim().toLowerCase());
-        targetCard = Array.from(cards).find(c => {
-          const txt = removeAccents(c.textContent.toLowerCase());
-          return txt.includes(cleanRoom);
-        });
-      }
-      // Apenas faz fallback para cards[0] se nem paciente nem sala foram especificados
-      if (!targetCard && !patientName && !roomName) {
-        targetCard = cards[0];
-      }
-
-      if (targetCard) {
-        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Aplica efeito de pulsação no card para indicar paciente aguardando atendimento
-        // NÃO abre o PEP automaticamente — o médico clica quando estiver pronto
-        targetCard.style.outline = '3px solid #ec4899';
-        targetCard.style.borderRadius = '14px';
-        targetCard.style.boxShadow = '0 0 0 0 rgba(236, 72, 153, 0.7)';
-        targetCard.style.animation = 'patientCardPulse 1.5s ease-in-out infinite';
-        // Garante que a keyframe de pulsação existe no documento
-        if (!document.getElementById('_patientCardPulseStyle')) {
-          const styleEl = document.createElement('style');
-          styleEl.id = '_patientCardPulseStyle';
-          styleEl.textContent = `
-            @keyframes patientCardPulse {
-              0%   { box-shadow: 0 0 0 0 rgba(236,72,153,0.7); outline-color: #ec4899; }
-              50%  { box-shadow: 0 0 0 12px rgba(236,72,153,0); outline-color: #f472b6; }
-              100% { box-shadow: 0 0 0 0 rgba(236,72,153,0); outline-color: #ec4899; }
-            }
-          `;
-          document.head.appendChild(styleEl);
-        }
-        // Remove o efeito após 6 segundos
-        setTimeout(() => {
-          targetCard.style.outline = '';
-          targetCard.style.boxShadow = '';
-          targetCard.style.animation = '';
-          targetCard.style.borderRadius = '';
-        }, 6000);
+    var allCards = document.querySelectorAll('.interactive-card, .patient-card-item');
+    if (allCards.length === 0) {
+      if (tries >= 20) {
+        clearInterval(checkInterval);
+        console.warn('[openDoctorConsultingRoom] Nenhum card encontrado apÃ³s timeout.');
       }
       return;
     }
 
-    if (tries >= 15) {
-      clearInterval(checkInterval);
-      // Timeout sem abrir PEP automaticamente — apenas loga
-      console.warn('[openDoctorConsultingRoom] Card do paciente não encontrado após timeout:', patientName);
+    clearInterval(checkInterval);
+
+    var ra = typeof removeAccents === 'function' ? removeAccents : function(s) { return s; };
+    var cleanRoom = ra(String(roomName).trim().toLowerCase());
+
+    // 1) Procura o card da SALA pelo h3 (nome da sala)
+    var roomCard = null;
+    for (var i = 0; i < allCards.length; i++) {
+      var card = allCards[i];
+      var h3 = card.querySelector('h3');
+      if (h3 && ra(h3.textContent.toLowerCase()).includes(cleanRoom)) {
+        roomCard = card;
+        break;
+      }
     }
-  }, 150);
+
+    // 2) Fallback: textContent geral do card
+    if (!roomCard) {
+      for (var j = 0; j < allCards.length; j++) {
+        if (ra(allCards[j].textContent.toLowerCase()).includes(cleanRoom)) {
+          roomCard = allCards[j];
+          break;
+        }
+      }
+    }
+
+    if (!roomCard) {
+      console.warn('[openDoctorConsultingRoom] Card da sala nÃ£o encontrado:', roomName);
+      return;
+    }
+
+    // Scroll e efeito pulsante no card da SALA
+    roomCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    roomCard.classList.add('room-card-pulsing');
+
+    // Injeta badge "Paciente Convocado" se o paciente ainda nÃ£o estÃ¡ no card
+    if (patientName && String(patientName).trim()) {
+      var existingBadge = roomCard.querySelector('.room-convocado-badge');
+      var pClean = ra(String(patientName).trim().toLowerCase());
+      var alreadyInCard = ra(roomCard.textContent.toLowerCase()).includes(pClean);
+
+      if (!existingBadge && !alreadyInCard) {
+        var bottomSection = roomCard.querySelector('[style*="border-top"]');
+        if (bottomSection) {
+          var badge = document.createElement('div');
+          badge.className = 'room-convocado-badge';
+          badge.innerHTML = '<i class="fa-solid fa-bullhorn" style="color:#f9a8d4;"></i> <span>Paciente Convocado:</span> <strong>' + String(patientName).trim() + '</strong>';
+          bottomSection.insertBefore(badge, bottomSection.firstChild);
+        }
+      }
+    }
+
+    // Remove efeito apÃ³s 8 segundos
+    setTimeout(function() {
+      roomCard.classList.remove('room-card-pulsing');
+      var b = roomCard.querySelector('.room-convocado-badge');
+      if (b) b.remove();
+    }, 8000);
+  }, 200);
 };
 
 // Proteção Global: impedir que qualquer janela modal ativa seja fechada ao clicar na área externa (backdrop/overlay)
