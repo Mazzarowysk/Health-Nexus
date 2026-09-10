@@ -528,14 +528,65 @@ export const apiFetch = async (url, options = {}) => {
         const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
         if (enc) {
           const newStatus = body.status || enc.status;
+          const nowIso = new Date().toISOString();
           const updatedEncounter = {
             ...enc,
             status: newStatus,
-            lastStatusUpdate: new Date().toISOString(),
-            ...(newStatus === 'Finalizado' ? { completed_at: new Date().toISOString() } : {}),
-            ...(newStatus === 'Em_Atendimento' ? { called_at: new Date().toISOString() } : {})
+            lastStatusUpdate: nowIso,
+            ...(newStatus === 'Finalizado' ? { completed_at: nowIso, discharged_at: nowIso } : {}),
+            ...(newStatus === 'Em_Atendimento' ? { called_at: nowIso } : {})
           };
           localDB.update('encounters', enc.id, updatedEncounter);
+
+          if (newStatus === 'Finalizado') {
+            const pId = enc.patientId || enc.patient_id || enc.id;
+            const pName = enc.patientName;
+
+            // 1. Finalizar triagens do paciente
+            const triages = localDB.list('triages') || [];
+            triages.forEach(t => {
+              const matchPat = (pId && String(t.patientId) === String(pId)) ||
+                               (pName && t.patientName && t.patientName.toLowerCase().trim() === pName.toLowerCase().trim()) ||
+                               String(t.encounterId) === String(encounterId) ||
+                               String(t.id) === String(encounterId);
+              if (matchPat && t.status !== 'Finalizado') {
+                localDB.update('triages', t.id, { ...t, status: 'Finalizado', completed_at: nowIso });
+              }
+            });
+
+            // 2. Remover chamadas de TV ativas deste paciente
+            const tvCalls = localDB.list('tv_calls') || [];
+            tvCalls.forEach(tv => {
+              const matchPat = (pId && (String(tv.patientId) === String(pId) || String(tv.patient_id) === String(pId))) ||
+                               (pName && tv.patientName && tv.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+              if (matchPat) {
+                localDB.remove('tv_calls', tv.id);
+              }
+            });
+
+            // 3. Finalizar agendamentos ativos
+            const apts = localDB.list('appointments') || [];
+            apts.forEach(a => {
+              const matchPat = (pId && String(a.patientId) === String(pId)) ||
+                               (pName && a.patientName && a.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+              if (matchPat && a.status !== 'Finalizado' && a.status !== 'Cancelado') {
+                localDB.update('appointments', a.id, { ...a, status: 'Finalizado', completed_at: nowIso });
+              }
+            });
+
+            // 4. Registrar Alta no cadastro do Paciente
+            const patients = localDB.list('patients') || [];
+            const pat = patients.find(p => String(p.id) === String(pId) || (pName && p.fullName && p.fullName.toLowerCase().trim() === pName.toLowerCase().trim()));
+            if (pat) {
+              localDB.update('patients', pat.id, {
+                ...pat,
+                discharged_at: nowIso,
+                last_discharge_date: nowIso,
+                status: 'Alta'
+              });
+            }
+          }
+
           responseData = { status: 'success', data: updatedEncounter };
         } else {
           status = 404; responseData = { message: 'Atendimento não encontrado.' };

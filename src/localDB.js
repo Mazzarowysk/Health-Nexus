@@ -175,6 +175,8 @@ export function remove(table, id) {
   return true;
 }
 
+export const deleteItem = remove;
+
 export function overwriteLocal(cloudPayload) {
   if (cloudPayload.dados_json) {
     localStorage.setItem(DB_KEY, cloudPayload.dados_json);

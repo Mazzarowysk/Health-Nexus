@@ -1269,10 +1269,48 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
     };
   }
 
-  // 4. Fora da unidade
+  // 4. Última Alta Concluída ou Sem Atendimento Ativo
+  const patients = db.patients || [];
+  const patObj = patients.find(p => (
+    (p.id && String(p.id).toLowerCase() === normPid) ||
+    (p.fullName && normPname && p.fullName.toLowerCase().trim() === normPname)
+  ));
+
+  const finishedEncs = encounters.filter(e => e.status === 'Finalizado' && (
+    (e.patientId && String(e.patientId).toLowerCase() === normPid) ||
+    (e.patientName && normPname && e.patientName.toLowerCase().includes(normPname))
+  )).sort((a, b) => new Date(b.completed_at || b.discharged_at || b.lastStatusUpdate || 0) - new Date(a.completed_at || a.discharged_at || a.lastStatusUpdate || 0));
+
+  const lastFinished = finishedEncs[0];
+  const lastDischargeIso = (patObj && (patObj.discharged_at || patObj.last_discharge_date)) || (lastFinished && (lastFinished.completed_at || lastFinished.discharged_at || lastFinished.lastStatusUpdate));
+
+  let dischargeDateStr = '';
+  if (lastDischargeIso) {
+    const d = new Date(lastDischargeIso);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      dischargeDateStr = `${day}/${month}/${year}`;
+    }
+  }
+
+  if (dischargeDateStr) {
+    return {
+      text: `Última Alta em ${dischargeDateStr}`,
+      sector: `Última Alta em ${dischargeDateStr}`,
+      bed: null,
+      status: 'Alta Médica',
+      color: '#10b981',
+      bg: 'rgba(16, 185, 129, 0.15)',
+      borderColor: 'rgba(16, 185, 129, 0.4)',
+      icon: 'fa-circle-check'
+    };
+  }
+
   return {
-    text: `Sem Atendimento Ativo (Alta / Fora da Unidade)`,
-    sector: 'Sem Registro Ativo',
+    text: `Sem Atendimento Ativo (Fora da Unidade)`,
+    sector: `Sem Atendimento Ativo`,
     bed: null,
     status: 'Finalizado / Alta',
     color: '#94a3b8',
