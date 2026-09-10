@@ -427,7 +427,7 @@ async function renderLeitosTab() {
     const encInput = document.getElementById('admit-encounter-id');
     const selectedOption = pSelect.options ? pSelect.options[pSelect.selectedIndex] : null;
     const patientId = pSelect.value;
-    const patientName = selectedOption ? selectedOption.dataset.name : (pSelect.dataset.name || '');
+    const patientName = selectedOption ? (selectedOption.getAttribute('data-name') || selectedOption.text.split(' (CPF')[0].trim()) : (pSelect.getAttribute('data-name') || '');
     const encounterId = encInput ? encInput.value : null;
 
     if (!bedId || !patientId) {
@@ -485,6 +485,9 @@ window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
     return;
   }
 
+  const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+  const targetPatientName = patientName || (activeCtx ? (activeCtx.fullName || activeCtx.patientName) : null);
+
   const modal = document.getElementById('modal-admit-bed');
   if (modal) {
     modal.style.display = 'flex';
@@ -496,7 +499,7 @@ window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
 
     const pSelect = document.getElementById('admit-patient-id');
     const pSearch = document.getElementById('admit-patient-search');
-    if (pSearch) pSearch.value = patientName || ''; // preenche se veio da fila
+    if (pSearch) pSearch.value = targetPatientName || '';
 
     if (pSelect) {
       apiFetch(`${API_URL}/patients`).then(r => r.json()).then(patients => {
@@ -509,11 +512,12 @@ window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
           pSelect.innerHTML = '<option value="" style="background-color: #19142c; color: #ffffff;">Selecione o paciente...</option>' + 
             items.map(p => `<option value="${p.id}" data-name="${p.fullName}" style="background-color: #19142c; color: #ffffff;">${p.fullName} (CPF: ${p.cpf})</option>`).join('');
           
-          // Auto-selecionar se patientName foi fornecido e encontrado
-          if (patientName) {
-            const found = items.find(p => (p.fullName || '').toLowerCase() === patientName.toLowerCase());
+          // Auto-selecionar se targetPatientName foi fornecido ou está ativo no contexto
+          if (targetPatientName) {
+            const found = items.find(p => (p.fullName || '').toLowerCase().trim() === targetPatientName.toLowerCase().trim());
             if (found) {
               pSelect.value = found.id;
+              if (pSearch) pSearch.value = found.fullName;
             }
           }
         };

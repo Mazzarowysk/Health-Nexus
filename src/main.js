@@ -3591,13 +3591,45 @@ async function renderTabContent() {
 
 // --- MÁSCARAS DE INPUT ---
 function maskCPF(value) {
-  return value
-    .replace(/\D/g, "")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
-    .substring(0, 14);
+  if (!value) return "";
+  let v = String(value).replace(/\D/g, "").substring(0, 11);
+  if (v.length === 0) {
+    return "";
+  } else if (v.length <= 3) {
+    return v;
+  } else if (v.length <= 6) {
+    return `${v.slice(0, 3)}.${v.slice(3)}`;
+  } else if (v.length <= 9) {
+    return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6)}`;
+  } else {
+    return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
+  }
 }
+
+window.maskCPF = maskCPF;
+
+function isCPFInput(el) {
+  if (!el) return false;
+  const id = el.id || '';
+  const cls = el.className || '';
+  const dataMask = el.getAttribute ? (el.getAttribute('data-mask') || '') : '';
+
+  return (
+    id === 'cpf' ||
+    id === 'responsibleCpf' ||
+    id === 'search-cpf' ||
+    (typeof cls === 'string' && cls.includes('cpf-mask')) ||
+    dataMask === 'cpf' ||
+    /cpf/i.test(id)
+  );
+}
+
+// Event delegation global para CPF
+document.addEventListener('input', (e) => {
+  if (e.target && isCPFInput(e.target)) {
+    e.target.value = maskCPF(e.target.value);
+  }
+});
 
 function maskPhone(value) {
   if (!value) return "";
