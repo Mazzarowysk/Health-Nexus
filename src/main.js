@@ -477,6 +477,15 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   };
 
   // Faixa do paciente ativo (se houver no contexto ou na ação pendente)
+  // Se houver uma ação pendente registrada para outro paciente diferente do contexto ativo, limpa a ação para não sobrepor o paciente atual
+  if (activePatient && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) {
+    const actName = (_SFG.pendingAction.targetPatientName || '').toLowerCase().trim();
+    const curName = (activePatient.fullName || activePatient.patientName || '').toLowerCase().trim();
+    if (actName && curName && actName !== curName) {
+      _SFG.pendingAction = null;
+    }
+  }
+
   let patientStrip = '';
   let mColor = '';
   const effectivePatient = activePatient || (_SFG.pendingAction && _SFG.pendingAction.targetPatientName ? {
