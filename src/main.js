@@ -4885,6 +4885,30 @@ async function loadConsultingRooms() {
       
       const isSelectedPatient = !!(activePatName && patientNameDisplay && (patientNameDisplay.toLowerCase().trim() === activePatName));
 
+      // Constrói a lista de todos os pacientes na fila (waiting) com nome e botão PEP
+      const waitingListHTML = waiting.length > 0
+        ? waiting.map((w, idx) => {
+            const wName = w.patientName || w.name || 'Paciente';
+            const wId   = w.id || w.patientId || wName;
+            const wStatus = w.status === 'Aguardando_Atendimento' ? 'Aguardando'
+                          : (w.status === 'Confirmado' || w.status === 'Agendado') ? 'Agendado'
+                          : (w.status || 'Na Fila');
+            return `
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;color:#d1d5db;background:rgba(255,255,255,0.04);padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);flex-wrap:wrap;gap:6px;">
+                <div style="display:flex;align-items:center;gap:7px;overflow:hidden;">
+                  <span style="color:#94a3b8;font-size:0.72rem;font-weight:700;min-width:18px;">${idx + 1}.</span>
+                  <i class="fa-solid fa-user" style="color:#64748b;font-size:0.78rem;"></i>
+                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;" title="${wName}">${wName}</span>
+                  <span style="font-size:0.68rem;background:rgba(251,191,36,0.18);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);padding:1px 6px;border-radius:5px;font-weight:700;white-space:nowrap;">${wStatus}</span>
+                </div>
+                <button class="btn" style="background:rgba(236,72,153,0.18);border:1px solid rgba(236,72,153,0.35);color:#f9a8d4;font-size:0.7rem;padding:3px 8px;border-radius:6px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" onclick="event.stopPropagation(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${wId || wName}');" title="Abrir Prontuário">
+                  <i class="fa-solid fa-file-medical"></i> PEP
+                </button>
+              </div>
+            `;
+          }).join('')
+        : '';
+
       return `
         <div class="interactive-card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(patientNameDisplay || '').toLowerCase().replace(/"/g, '&quot;')}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -4914,6 +4938,7 @@ async function loadConsultingRooms() {
                 <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; min-width: 140px;">
                   <i class="fa-solid fa-user-check" style="color: #38bdf8; font-size: 1rem;"></i>
                   <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${patientNameDisplay}</strong>
+                  <span style="font-size:0.68rem;background:rgba(99,102,241,0.3);color:#a5b4fc;border:1px solid rgba(99,102,241,0.4);padding:1px 6px;border-radius:5px;font-weight:700;white-space:nowrap;">Em Atend.</span>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
                   <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(236,72,153,0.3);" onclick="event.stopPropagation(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientNameDisplay}');" title="Abrir Prontuário Eletrônico">
@@ -4925,10 +4950,15 @@ async function loadConsultingRooms() {
             ` : `
               <div style="font-size: 0.82rem; color: var(--text-muted); padding: 6px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento em andamento</div>
             `}
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
-              <span style="color: var(--text-muted);">Próximos na Fila:</span>
-              <span style="font-weight: 700; color: var(--text-primary); background: var(--bg-tertiary); padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border-color);">${waiting.length} paciente(s)</span>
-            </div>
+            ${waiting.length > 0 ? `
+              <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;display:flex;align-items:center;gap:6px;">
+                <i class="fa-solid fa-list-ol" style="color:#94a3b8;"></i>
+                Fila de Espera — ${waiting.length} paciente(s)
+              </div>
+              ${waitingListHTML}
+            ` : `
+              ${!patientNameDisplay ? '' : ''}
+            `}
           </div>
         </div>
       `;
