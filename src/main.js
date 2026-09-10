@@ -1493,6 +1493,35 @@ window.openDoctorConsultingRoom = function(roomName = 'Consultório 01', patient
   }, 150);
 };
 
+// Proteção Global: impedir que qualquer janela modal ativa seja fechada ao clicar na área externa (backdrop/overlay)
+if (typeof window !== 'undefined' && !window._modalBackdropProtectionBound) {
+  window._modalBackdropProtectionBound = true;
+  document.addEventListener('click', function(e) {
+    if (!e.target) return;
+    const isOverlayTarget = e.target.classList && (
+      e.target.classList.contains('modal-overlay') || 
+      e.target.classList.contains('modal-backdrop') ||
+      e.target.id === 'patient-modal-overlay' ||
+      e.target.id === 'triage-modal' ||
+      e.target.id === 'history-panel' ||
+      e.target.id === 'modal-admit-bed' ||
+      e.target.id === 'bed-details-modal' ||
+      e.target.id === 'consultorio-details-modal' ||
+      e.target.id === 'discharge-confirm-modal' ||
+      e.target.id === 'enc-report-detail-modal' ||
+      e.target.id === 'pep-modal' ||
+      e.target.id === 'hn-sessions-modal' ||
+      e.target.id === 'modal-doctor' ||
+      e.target.id === 'modal-appointment'
+    );
+    if (isOverlayTarget) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }
+  }, true);
+}
+
 const initializeApp = async () => {
   initTheme();
 
@@ -1905,10 +1934,7 @@ function openLoginInstructionsModal() {
   document.getElementById('close-instructions-modal').addEventListener('click', closeModal);
   document.getElementById('btn-close-instructions-modal').addEventListener('click', closeModal);
 
-  // Fecha clicando fora do card ou pressionando ESC
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
+
 
   const onKeydown = (e) => {
     if (e.key === 'Escape') {
