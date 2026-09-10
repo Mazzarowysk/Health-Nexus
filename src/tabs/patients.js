@@ -165,11 +165,11 @@ export function renderPatientsTab(contentArea) {
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="phone">Telefone Fixo:</label>
-                  <input type="text" id="phone" class="form-input" placeholder="(18) 3528-5022">
+                  <input type="text" id="phone" class="form-input phone-mask" placeholder="(18) 3528-5022">
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="cellphone">Celular / WhatsApp:</label>
-                  <input type="text" id="cellphone" class="form-input" placeholder="(18) 98817-5809">
+                  <input type="text" id="cellphone" class="form-input phone-mask" placeholder="(18) 98817-5809">
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="billingValue">Valor Consulta/Tabela:</label>
@@ -202,7 +202,7 @@ export function renderPatientsTab(contentArea) {
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="responsiblePhone">Telefone Responsável:</label>
-                  <input type="text" id="responsiblePhone" class="form-input" placeholder="(18) 99999-0000">
+                  <input type="text" id="responsiblePhone" class="form-input phone-mask" placeholder="(18) 99999-0000">
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="responsibleRelationship">Grau de Parentesco:</label>

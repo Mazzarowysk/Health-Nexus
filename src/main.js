@@ -3600,10 +3600,14 @@ function maskCPF(value) {
 }
 
 function maskPhone(value) {
-  let v = value.replace(/\D/g, "");
+  if (!value) return "";
+  let v = String(value).replace(/\D/g, "");
   if (v.length > 11) v = v.substring(0, 11);
-  if (v.length <= 2) {
-    return v;
+
+  if (v.length === 0) {
+    return "";
+  } else if (v.length <= 2) {
+    return `(${v}`;
   } else if (v.length <= 6) {
     return `(${v.slice(0, 2)}) ${v.slice(2)}`;
   } else if (v.length <= 10) {
@@ -3612,6 +3616,34 @@ function maskPhone(value) {
     return `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
   }
 }
+
+window.maskPhone = maskPhone;
+
+function isPhoneInput(el) {
+  if (!el) return false;
+  const id = el.id || '';
+  const cls = el.className || '';
+  const dataMask = el.getAttribute ? (el.getAttribute('data-mask') || '') : '';
+  const type = el.type || '';
+
+  return (
+    id === 'phone' ||
+    id === 'cellphone' ||
+    id === 'responsiblePhone' ||
+    id === 'doc-phone' ||
+    (typeof cls === 'string' && cls.includes('phone-mask')) ||
+    dataMask === 'phone' ||
+    type === 'tel' ||
+    /phone|telefone|celular/i.test(id)
+  );
+}
+
+// Event delegation global para telefones
+document.addEventListener('input', (e) => {
+  if (e.target && isPhoneInput(e.target)) {
+    e.target.value = maskPhone(e.target.value);
+  }
+});
 
 function maskCurrency(value, isLiveInput = false) {
   if (value === null || value === undefined) return isLiveInput ? "" : "R$ 0,00";

@@ -181,7 +181,7 @@ async function renderDoctorsTab() {
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
             <div class="form-group">
               <label for="doc-phone">Telefone / Celular</label>
-              <input type="text" id="doc-phone" class="form-input" placeholder="(11) 98765-4321">
+              <input type="text" id="doc-phone" class="form-input phone-mask" placeholder="(11) 98765-4321">
             </div>
             <div class="form-group">
               <label for="doc-email">E-mail Corporativo</label>
