@@ -190,6 +190,11 @@ Quando o médico assistente define pela necessidade de internação, o paciente 
 3. **Aguardando Higienização (Amarelo):** Paciente recebeu alta ou foi transferido; a equipe de hotelaria/limpeza é acionada para desinfecção terminal.
 4. **Em Manutenção (Cinza):** Bloqueio técnico para reparos de infraestrutura, gases medicinais ou isolamento epidemiológico.
 
+#### Inovações e Sincronização em Tempo Real (v2.8.1):
+- **Destaque Visual Spotlight Pulsante:** Ao alocar um paciente (admissão direta ou transferência via prontuário PEP), o sistema sincroniza e invalida o cache de leitos e atendimentos de forma imediata. O card correspondente passa a pulsar visualmente (`patient-pulse-selected patient-spotlight-glow`), recebe o selo `⚡ Paciente em Foco` e o mapa de leitos realiza auto-scroll centralizado para fácil localização.
+- **Proteção Automática de Filtros:** Se o filtro de setor da tela de leitos estiver em uma ala divergente (ex: focado em *Pediatria* para um leito de *Observação*), o sistema automaticamente restaura a exibição para *Todos os Setores*, evitando que o leito ocupado fique invisível.
+- **Foco Assistencial no Guia de Fluxo (Smart Flow Guide):** Na Etapa 6 de 6 (Leitos), o card do fluxo mantém o foco na internação ativa: o botão primário abre a **Evolução Médica no PEP** e oferece ações secundárias para **Conceder Alta**, **Focar no Leito** e **Ver no Kanban**, garantindo que o faturamento só seja sugerido após a efetiva alta hospitalar.
+
 ![Censo de Leitos e Mapa de Ocupação Hospitalar](screenshots/05-censo-leitos.png)
 
 ---

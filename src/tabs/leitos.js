@@ -48,10 +48,12 @@ async function renderLeitosTab() {
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
           <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Filtrar Setor:</span>
           <button class="btn btn-sm btn-primary bed-sector-filter active" data-sector="Todos">Todos os Setores</button>
+          <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Observação">Observação</button>
           <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="UTI Adulto">UTI Adulto</button>
           <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Enfermaria">Enfermaria</button>
           <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Pediatria">Pediatria</button>
           <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Maternidade">Maternidade</button>
+          <button class="btn btn-sm btn-outline bed-sector-filter" data-sector="Isolamento">Isolamento</button>
           <button type="button" id="btn-clear-leitos-filter" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 4px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; transition: all 0.2s ease; margin-left: auto;" title="Limpar Filtros" onmouseover="this.style.color='var(--text-primary)'; this.style.borderColor='var(--color-primary)'" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='var(--border-color)'">
             <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
           </button>
@@ -155,6 +157,10 @@ async function renderLeitosTab() {
         const hosps = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('hospitalizations') || []) : [];
         const activeHosps = hosps.filter(h => h.status !== 'Alta');
 
+        const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+        const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
+        const activePatBedId = activePat ? String(activePat.bedId || activePat.bed || activePat.bedNumber || '') : '';
+
         beds.forEach(b => {
           const matchingHosp = activeHosps.find(h => String(h.bed_id) === String(b.id) || h.bed === b.bedNumber || h.bed === b.number);
           const matchingEnc = encList.find(e => (e.status === 'Internado' || e.status === 'Em_Atendimento') && (String(e.bedId) === String(b.id) || e.bed === b.bedNumber || e.bed === b.number));
@@ -165,6 +171,20 @@ async function renderLeitosTab() {
             b.patientId = (matchingHosp && matchingHosp.patient_id) || (matchingEnc && matchingEnc.patientId) || b.patientId;
             b.admittedAt = (matchingHosp && matchingHosp.admitted_at) || (matchingEnc && matchingEnc.hospitalized_at) || b.admittedAt || new Date().toISOString();
           }
+
+          // Sincronização direta com o paciente ativo recém-admitido no contexto
+          const isContextBed = activePat && (activePat.status === 'Internado') && (
+            (activePatBedId && (String(b.id) === activePatBedId || b.bedNumber === activePatBedId || b.number === activePatBedId)) ||
+            (activePat.bedId && String(b.id) === String(activePat.bedId)) ||
+            (activePat.bed && (b.bedNumber === activePat.bed || b.number === activePat.bed)) ||
+            (activePat.bedNumber && (b.bedNumber === activePat.bedNumber || b.number === activePat.bedNumber))
+          );
+          if (isContextBed) {
+            b.status = 'Ocupado';
+            b.patientName = b.patientName || activePat.fullName || activePat.patientName;
+            b.patientId = b.patientId || activePat.id;
+            b.admittedAt = b.admittedAt || new Date().toISOString();
+          }
         });
 
         // Buscar Fila de Internação
@@ -174,8 +194,6 @@ async function renderLeitosTab() {
         
         if (queue.length > 0) {
           queueContainer.style.display = 'block';
-          const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-          const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
 
           queueList.innerHTML = queue.map(q => {
             const qName = (q.patientName || '').trim();
@@ -212,6 +230,36 @@ async function renderLeitosTab() {
         }
       } catch (err) {
         console.error('Erro ao carregar fila de internação:', err);
+      }
+
+      // Garantir que o leito do paciente ativo não seja ocultado por filtro de setor ou status
+      const activePatCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      if (activePatCtx && (activePatCtx.status === 'Internado')) {
+        const pBedIdent = String(activePatCtx.bed || activePatCtx.bedNumber || activePatCtx.bedId || '');
+        const pNameIdent = (activePatCtx.fullName || activePatCtx.patientName || '').toLowerCase().trim();
+        const foundBed = beds.find(b => 
+          (pBedIdent && (String(b.id) === pBedIdent || b.bedNumber === pBedIdent || b.number === pBedIdent)) ||
+          (pNameIdent && b.patientName && b.patientName.toLowerCase().trim().includes(pNameIdent))
+        );
+        if (foundBed) {
+          if (currentSector !== 'Todos' && foundBed.sector !== currentSector) {
+            currentSector = 'Todos';
+            document.querySelectorAll('.bed-sector-filter').forEach(btn => {
+              const isAll = btn.getAttribute('data-sector') === 'Todos';
+              btn.classList.toggle('active', isAll);
+              btn.classList.toggle('btn-primary', isAll);
+              btn.classList.toggle('btn-outline', !isAll);
+            });
+          }
+          if (currentStatus !== 'Todos' && foundBed.status !== currentStatus) {
+            currentStatus = 'Todos';
+            document.querySelectorAll('.kpi-leitos-filter').forEach(c => {
+              c.classList.remove('active');
+              c.style.border = '1px solid transparent';
+              c.style.background = '';
+            });
+          }
+        }
       }
 
       // Filtrar por Setor (para KPIs)
@@ -292,14 +340,29 @@ async function renderLeitosTab() {
 
         const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
         const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
-        const isSelectedPatient = !!(activePatName && b.patientName && (
+        const isSelectedBed = !!(activePat && (
+          (activePat.bedId && String(b.id) === String(activePat.bedId)) ||
+          (activePat.bed && (String(b.bedNumber) === String(activePat.bed) || String(b.number) === String(activePat.bed))) ||
+          (activePat.bedNumber && (String(b.bedNumber) === String(activePat.bedNumber) || String(b.number) === String(activePat.bedNumber)))
+        ));
+
+        const isSelectedPatient = !!((activePatName && b.patientName && (
           b.patientName.toLowerCase().trim() === activePatName ||
           b.patientName.toLowerCase().trim().includes(activePatName) ||
           activePatName.includes(b.patientName.toLowerCase().trim())
-        ));
+        )) || (isSelectedBed && b.status === 'Ocupado'));
+
+        const cardPatientName = (b.patientName || (isSelectedBed ? (activePat.fullName || activePat.patientName) : '') || '').toLowerCase().replace(/"/g, '&quot;');
 
         return `
-          <div class="card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(b.patientName || '').toLowerCase().replace(/"/g, '&quot;')}" style="padding: 20px; border-top: ${borderTop}; border-left: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-right: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-bottom: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: ${isSelectedPatient ? '0 0 25px rgba(56,189,248,0.6)' : 'var(--shadow-sm)'}; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;" onclick="if(b.patientName && typeof setActivePatientContext==='function') setActivePatientContext({ id: '${b.patientId || b.id}', fullName: '${(b.patientName||'').replace(/'/g, "\\'")}', patientName: '${(b.patientName||'').replace(/'/g, "\\'")}', bedId: '${b.id}', status: 'Internado' }); window.openBedDetailsModal('${b.id}')" onmouseenter="this.style.transform='translateY(-4px)';" onmouseleave="this.style.transform='none';">
+          <div class="card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected patient-spotlight-glow' : ''}" 
+            data-patient-card-name="${cardPatientName}" 
+            data-bed-id="${b.id}"
+            data-bed-number="${b.bedNumber || b.number || ''}"
+            style="padding: 20px; border-top: ${borderTop}; border-left: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-right: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-bottom: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: ${isSelectedPatient ? '0 0 25px rgba(56,189,248,0.6)' : 'var(--shadow-sm)'}; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;" 
+            onclick="if(b.patientName && typeof setActivePatientContext==='function') setActivePatientContext({ id: '${b.patientId || b.id}', fullName: '${(b.patientName||'').replace(/'/g, "\\'")}', patientName: '${(b.patientName||'').replace(/'/g, "\\'")}', bedId: '${b.id}', status: 'Internado' }); window.openBedDetailsModal('${b.id}')" 
+            onmouseenter="this.style.transform='translateY(-4px)';" 
+            onmouseleave="this.style.transform='none';">
             ${isSelectedPatient ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:16px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.7rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -346,6 +409,14 @@ async function renderLeitosTab() {
           </div>
         `;
       }).join('');
+
+      // Acionar destaque pulsante e foco no leito do paciente selecionado
+      const patNameToHighlight = window._highlightPatientName || activePatName;
+      if (typeof window.executePatientHighlight === 'function' && (patNameToHighlight || isSelectedBed)) {
+        setTimeout(() => {
+          window.executePatientHighlight(patNameToHighlight);
+        }, 120);
+      }
     } catch (e) {
       console.error(e);
       document.getElementById('beds-grid').innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--color-danger); padding: 20px;">Erro ao carregar mapa de leitos.</div>`;
@@ -448,6 +519,12 @@ async function renderLeitosTab() {
       if (res.ok) {
         modal.style.display = 'none';
         
+        const bSelect = document.getElementById('admit-bed-id');
+        const selectedBedOpt = bSelect?.options ? bSelect.options[bSelect.selectedIndex] : null;
+        const bedOptText = selectedBedOpt ? selectedBedOpt.text : '';
+        const bedNumberLabel = bedOptText.includes(' — ') ? bedOptText.split(' — ')[0].trim() : bedId;
+        const bedSectorLabel = bedOptText.includes(' — ') ? bedOptText.split(' — ')[1].trim() : 'Internação';
+
         // 1. Atualizar Contexto Ativo do Paciente
         if (typeof window.setActivePatientContext === 'function') {
           const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : {};
@@ -457,17 +534,19 @@ async function renderLeitosTab() {
             fullName: patientName,
             patientName: patientName,
             status: 'Internado',
-            bed: bedId,
-            bedNumber: bedId,
-            bedId: bedId
+            bed: bedNumberLabel,
+            bedNumber: bedNumberLabel,
+            bedId: bedId,
+            sector: bedSectorLabel,
+            ward: bedSectorLabel
           });
         }
 
         // 2. Notificação e Sincronização do Guia Flutuante
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: `Internação Iniciada (${bedId})`,
-            message: `O paciente <strong>${patientName}</strong> foi acomodado com sucesso no Leito ${bedId}! Acompanhe a evolução no PEP ou Kanban.`,
+            actionTitle: `Internação Iniciada (${bedNumberLabel})`,
+            message: `O paciente <strong>${patientName}</strong> foi acomodado com sucesso no Leito ${bedNumberLabel}! Prossiga com a evolução clínica no PEP ou acompanhamento no mapa de leitos.`,
             targetTab: 'leitos',
             targetTabLabel: 'Gestão de Leitos',
             targetPatientName: patientName,

@@ -535,6 +535,26 @@ export const manualData = [
         keywords: ['higienização', 'limpeza leito', 'sanitização', 'leito livre', 'concluir limpeza']
       },
       {
+        icon: 'fa-stethoscope',
+        name: '🩺 Evolução Médica no PEP (Paciente Internado)',
+        type: 'Assistencial / PEP',
+        color: '#10b981',
+        description: 'Abre diretamente o prontuário eletrônico para registrar a evolução clínica diária, exames e conduta terapêutica no leito.',
+        shortcut: 'Card do Smart Flow Guide ou botão PEP no leito ocupado',
+        rules: 'Permite acompanhar o paciente internado sem que o fluxo se perca antes da alta médica.',
+        keywords: ['evolução leito', 'pep internado', 'prontuário leito', 'evolução clínica', 'acompanhar internado']
+      },
+      {
+        icon: 'fa-bolt',
+        name: '⚡ Focar no Leito (Spotlight Pulsante)',
+        type: 'Navegação Visual',
+        color: '#38bdf8',
+        description: 'Localiza e destaca o leito do paciente selecionado com pulso visual e rolagem automática.',
+        shortcut: 'Botão Focar no Leito no Smart Flow Guide',
+        rules: 'Redefine automaticamente os filtros de setor para que o leito ocupado não fique oculto.',
+        keywords: ['focar leito', 'destaque leito', 'paciente em foco', 'spotlight', 'localizar leito']
+      },
+      {
         icon: 'fa-trash-can',
         name: '🗑️ Cancelar / Excluir Internação ou Desativar Leito',
         type: 'Ação Crítica / Exclusão',
@@ -546,12 +566,13 @@ export const manualData = [
       }
     ],
     workflow: [
-      { step: 1, title: 'Solicitação', desc: 'Ordem de internação emitida no prontuário médico.' },
-      { step: 2, title: 'Alocação', desc: 'Enfermagem clica em Internar em um leito com status Verde (Livre).' },
-      { step: 3, title: 'Alta & Limpeza', desc: 'Ao dar Alta, o leito passa para Amarelo (Higienização). Após a limpeza, clica em Concluir Higienização.' }
+      { step: 1, title: 'Solicitação & Alocação', desc: 'Indicação de internação no PEP ou admissão direta alocando um leito Livre (Verde).' },
+      { step: 2, title: 'Destaque & Cuidados no Leito', desc: 'Leito passa para Vermelho (Ocupado), pulsa em destaque (⚡ Paciente em Foco) e recebe evoluções médicas diárias no PEP.' },
+      { step: 3, title: 'Alta Médica & Higienização', desc: 'Ao conceder Alta, o fluxo avança para Faturamento TISS e o leito passa para Amarelo (Higienização) até a sanitização final.' }
     ],
     faq: [
-      { q: 'O que indicam as cores dos leitos?', a: 'Verde = Livre | Vermelho = Ocupado | Amarelo = Em Higienização | Cinza = Manutenção/Bloqueado.' }
+      { q: 'O que indicam as cores dos leitos?', a: 'Verde = Livre | Vermelho = Ocupado | Amarelo = Em Higienização | Cinza = Manutenção/Bloqueado.' },
+      { q: 'Por que o leito pulsa com a etiqueta "⚡ Paciente em Foco"?', a: 'Para facilitar a localização imediata do paciente recém-internado ou transferido, com ajuste automático de filtros de setor.' }
     ]
   },
   {

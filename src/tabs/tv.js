@@ -1484,6 +1484,19 @@ window.openTransferBedModal = async function(encounterId, patientName) {
       });
       if (res.ok) {
         modal.style.display = 'none';
+
+        const allBeds = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('beds') || []) : [];
+        const bedObj = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+        const bedNum = bedObj ? (bedObj.bedNumber || bedObj.number) : bedId;
+        const bedSec = bedObj ? (bedObj.sector || bedObj.type || 'Internação') : 'Internação';
+
+        if (typeof invalidateCacheForUrl === 'function') {
+          invalidateCacheForUrl('/api/beds');
+          invalidateCacheForUrl('/api/encounters');
+        }
+
+        window._highlightPatientName = patientName;
+
         if (typeof window.setActivePatientContext === 'function') {
           const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : {};
           window.setActivePatientContext({
@@ -1491,36 +1504,31 @@ window.openTransferBedModal = async function(encounterId, patientName) {
             fullName: patientName,
             patientName: patientName,
             status: 'Internado',
-            bed: bedId,
-            bedNumber: bedId,
-            bedId: bedId
+            bed: bedNum,
+            bedNumber: bedNum,
+            bedId: bedObj ? bedObj.id : bedId,
+            sector: bedSec,
+            ward: bedSec
           });
         }
+
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: `Internação Iniciada (${bedId})`,
-            message: `O paciente <strong>${patientName}</strong> foi transferido e acomodado com sucesso no Leito ${bedId}.`,
+            actionTitle: `Internação Confirmada (${bedNum})`,
+            message: `O paciente <strong>${patientName}</strong> foi acomodado com sucesso no Leito ${bedNum} (${bedSec}).`,
             targetTab: 'leitos',
             targetTabLabel: 'Gestão de Leitos',
             targetPatientName: patientName,
             targetStatus: 'Internado',
-            bedId: bedId
+            bedId: bedObj ? bedObj.id : bedId,
+            bedNumber: bedNum,
+            autoSwitch: true
           });
         } else {
-          showToast(`🛌 Paciente ${patientName} transferido(a) para internação no Leito ${bedId}!`);
-        }
-
-        if (typeof renderLeitosTab === 'function') {
-          renderLeitosTab();
-        }
-        if (typeof window.executePatientHighlight === 'function') {
-          setTimeout(() => {
-            window.executePatientHighlight(patientName);
-          }, 200);
-        }
-
-        if (state.activeTab === 'atendimento' && typeof renderTabContent === 'function') {
-          renderTabContent();
+          showToast(`🛌 Paciente ${patientName} acomodado(a) no Leito ${bedNum}!`);
+          if (typeof switchTab === 'function') {
+            switchTab('leitos');
+          }
         }
       }
     } catch(e) {

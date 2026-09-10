@@ -550,6 +550,11 @@ Na aba **Leitos**, o hospital monitora a taxa de ocupação em tempo real, giros
 | **Leito ISOL-02**| Isolamento Respiratório | Vago com Pressão Negativa | Pronto para paciente infectocontagioso| 0h | 🟢 `Vago` | `🛏️ Alocar Caso Suspeito` |
 | **Leito PED-01** | Enfermaria Pediátrica | Enzo Gabriel Ferreira (3 anos) | Bronquiolite Viral Aguda | 1 dia | 🔴 `Ocupado` | `🩺 PEP Pediátrico`, `Acompanhante` |
 
+#### ⚡ Destaque Spotlight Pulsante & Sincronização em Tempo Real (v2.8.1)
+- **Realce Imediato no Mapa:** Ao confirmar uma internação pelo PEP (desfecho "Solicitar Internação" &rarr; modal de leitos) ou pelo botão "Alocar Leito", o sistema invalida de forma imediata o cache em memória do navegador (`invalidateCacheForUrl`). O card do leito é instantaneamente destacado com animação de pulso luminoso (`patient-pulse-selected patient-spotlight-glow`), badge `⚡ Paciente em Foco` e scroll suave centralizado.
+- **Proteção contra Filtros Ocultos:** Caso o filtro de setor esteja focado em uma ala diferente do leito alocado (ex: filtro em *UTI* para leito de *Observação*), o sistema redefine automaticamente o filtro para *Todos os Setores*, assegurando 100% de visibilidade para a equipe multidisciplinar.
+- **Preservação do Foco Assistencial no Guia de Fluxo (Smart Flow Guide):** Na Etapa 6 de 6 (Gestão de Leitos), quando o paciente está internado, o card inteligente fixa o foco na assistência médica diária (`🩺 Evolução Médica no PEP` como ação principal de 1-clique). Ficam disponíveis botões secundários para `🚪 Conceder Alta`, `🎯 Focar no Leito` e `📊 Ver no Kanban`. O avanço para o Faturamento TISS é bloqueado até que a alta médica seja homologada, garantindo a integridade da linha de cuidado.
+
 ---
 
 <h2 id="sec-9">9. Agenda, Escala Médica & Consultas Eletivas</h2>

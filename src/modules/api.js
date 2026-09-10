@@ -34,26 +34,38 @@ export const anonymizeCPF = (cpf) => {
 };
 
 export const invalidateCacheForUrl = (url) => {
-  if (url.startsWith(`${API_URL}/patients`)) {
+  if (!url) return;
+
+  if (url.includes('/patients')) {
     dataCache.delete('patients');
     dataCacheTimestamps.delete('patients');
   }
 
-  if (url.startsWith(`${API_URL}/appointments`) || url.startsWith(`${API_URL}/encounters`)) {
+  if (url.includes('/appointments') || url.includes('/encounters') || url.includes('/transfer-to-bed') || url.includes('hospitalizations')) {
+    dataCache.delete('encounters');
+    dataCacheTimestamps.delete('encounters');
+    dataCache.delete('appointments');
+    dataCacheTimestamps.delete('appointments');
     for (const key of dataCache.keys()) {
-      if (typeof key === 'string' && (key.startsWith(`${API_URL}/appointments`) || key.startsWith(`${API_URL}/encounters`))) {
+      if (typeof key === 'string' && (key.includes('/appointments') || key.includes('/encounters') || key === 'encounters' || key === 'appointments')) {
         dataCache.delete(key);
         dataCacheTimestamps.delete(key);
       }
     }
   }
 
-  if (url.startsWith(`${API_URL}/beds`)) {
+  if (url.includes('/beds') || url.includes('/transfer-to-bed') || url.includes('hospitalizations')) {
     dataCache.delete('beds');
     dataCacheTimestamps.delete('beds');
+    for (const key of dataCache.keys()) {
+      if (typeof key === 'string' && (key.includes('/beds') || key === 'beds')) {
+        dataCache.delete(key);
+        dataCacheTimestamps.delete(key);
+      }
+    }
   }
 
-  if (url === `${API_URL}/dashboard/summary`) {
+  if (url.includes('/dashboard') || url.includes('/beds') || url.includes('/transfer-to-bed') || url.includes('/encounters')) {
     dataCache.delete('dashboard');
     dataCacheTimestamps.delete('dashboard');
   }

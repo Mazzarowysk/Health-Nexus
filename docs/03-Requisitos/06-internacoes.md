@@ -33,6 +33,8 @@ stateDiagram-v2
 3.  **Painel Detalhado do Leito & Histórico de Ocupantes**: Ao clicar em qualquer leito no mapa, o sistema abre modal com ficha do ocupante atual, data de admissão, dias de permanência e a relação histórica de todas as internações anteriores naquele leito.
 4.  **Autorização prévia de AIH/Guia**: Para internações eletivas, o sistema exige a validação do número da AIH (SUS) ou Guia de Internação (Convênio) para autorizar a admissão física. Para internações de urgência, o sistema permite a alocação imediata e dá um prazo de 48 horas para regularização do documento.
 5.  **Ciclo de Higienização Automatizado**: Ao registrar a alta médica do paciente, o status do leito é alterado automaticamente para `Higienização`, com botão de liberação em 1 clique para retorno a `Vago`.
+6.  **Sincronização Atômica e Destaque Spotlight Pulsante**: Ao concluir a alocação de leito ou transferência do PEP, o sistema invalida de forma imediata o cache local de leitos e atendimentos (`/transfer-to-bed`, `/admit`), aplicando destaque visual pulsante (`patient-pulse-selected patient-spotlight-glow`) e badge `⚡ Paciente em Foco` no card do leito recém-ocupado, com scroll suave centralizado.
+7.  **Preservação do Foco Clínico no Guia de Fluxo (Smart Flow Guide)**: Na etapa de leitos com paciente internado ativo, o card do fluxo hospitalar prioriza a assistência médica diária (`Evolução Médica no PEP` como ação primária), disponibilizando atalhos secundários para concessão de alta, foco no leito e visualização no Kanban. O direcionamento para Faturamento TISS é condicionado estritamente à homologação prévia da alta médica.
 
 ---
 

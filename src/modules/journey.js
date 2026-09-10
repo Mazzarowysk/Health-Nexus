@@ -79,11 +79,11 @@ const TAB_NEXT_RECOMMENDATION = {
   },
   leitos: {
     currentLabel: 'Gestão de Leitos',
-    title: 'Acompanhar Fluxo no Kanban',
-    desc: 'Monitore as alas hospitalares e a previsão de altas em tempo real.',
-    nextTab: 'kanban',
-    nextLabel: 'Kanban Hospitalar',
-    icon: 'fa-table-columns'
+    title: 'Evolução Clínica & Cuidado no Leito',
+    desc: 'Paciente internado! Conduza a evolução diária no PEP e monitore a assistência até a alta.',
+    nextTab: 'leitos',
+    nextLabel: 'Evolução no PEP / Leitos',
+    icon: 'fa-user-doctor'
   },
   kanban: {
     currentLabel: 'Kanban Hospitalar',

@@ -196,8 +196,8 @@ const _SFG = {
     consultorios: { next:'farmacia',     nl:'Farmácia & Estoque',     title:'💊 Dispensar Prescrição Médica',    desc:'Prescrição emitida no PEP! Envie para dispensação na farmácia ou solicite leito se houver indicação de internação.' },
     medicos:      { next:'consultorios', nl:'Consultórios',           title:'Ir para Consultórios',              desc:'Acompanhe as salas médicas ativas e atenda os pacientes na fila.' },
     farmacia:     { next:'leitos',       nl:'Gestão de Leitos',       title:'🛏️ Alocar em Leito / Internar',     desc:'Medicamentos dispensados. Se o paciente necessita de suporte hospitalar, gerencie a vaga no mapa de leitos.' },
-    leitos:       { next:'kanban',       nl:'Kanban Hospitalar',      title:'📊 Monitorar no Kanban',            desc:'Acompanhe o fluxo de internação, evolução diária e previsão de altas em tempo real.' },
-    kanban:       { next:'financeiro',   nl:'Faturamento & TISS',     title:'💰 Faturar Atendimento',            desc:'Gere os lotes eletrônicos TISS 4.01 e feche a conta hospitalar.' },
+    leitos:       { next:'leitos',       nl:'Evolução Médica & Leitos', title:'🛏️ Acompanhamento no Leito & PEP', desc:'Paciente internado! Realize evoluções clínicas diárias no PEP, monitore a prescrição e conduza o plano terapêutico até a alta.' },
+    kanban:       { next:'leitos',       nl:'Gestão de Leitos & Alta', title:'📊 Linha de Cuidado & Leitos',       desc:'Acompanhe o fluxo assistencial multidisciplinar e o planejamento de desospitalização/alta médica.' },
     financeiro:   { next:'relatorios',   nl:'Relatórios & Métricas',  title:'📈 Analisar Indicadores',           desc:'Consulte indicadores de ocupação, DRE e tempo médio de permanência hospitalar.' },
     relatorios:   { next:'dashboard',    nl:'Dashboard Principal',    title:'Voltar ao Dashboard',               desc:'Visualize o panorama geral e KPIs operacionais do complexo hospitalar.' },
     agenda:       { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Recepcionar Agendado',              desc:'Confirme a chegada do paciente agendado e encaminhe para a triagem.' },
@@ -833,27 +833,33 @@ function createSmartFlowGuideCard(tabId, customMessage) {
             + '<span>📊</span> Ver no Kanban</button>'
             + '</div>';
         } else {
-          stepTitle = '🛏️ ' + firstName + ' Internado(a)' + (bedName ? ' (' + bedName + ')' : '');
-          stepDesc = 'Paciente ' + safePName + ' acomodado em ' + secName + (bedName ? ' no Leito ' + bedName : '') + '! Acompanhe a evolução médica diária no PEP ou na esteira Kanban.';
-          targetTab = 'kanban';
-          btnText = '📊 Ir para Kanban Hospitalar ➔';
-          btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+          stepTitle = '🛏️ ' + firstName + ' Internado(a)' + (bedName ? ' no Leito ' + bedName : '');
+          stepDesc = 'Paciente ' + safePName + ' acomodado em ' + secName + (bedName ? ' (' + bedName + ')' : '') + '! Prossiga com a evolução médica diária no PEP, monitoramento clínico ou desospitalização/alta.';
+          targetTab = 'leitos';
+          btnText = '🩺 Evolução Médica no PEP (' + firstName + ') ➔';
+          btnBg = 'linear-gradient(135deg, #059669, #047857)';
           extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-            + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(236,72,153,0.2);border:1px solid rgba(236,72,153,0.5);color:#f472b6;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-            + '<span>🩺</span> Evolução no PEP</button>'
-            + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.5);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>🩺</span> Evolução PEP</button>'
+            + '<button onclick="if(typeof window.executeDischarge===\'function\'){ window.executeDischarge(); } else if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>🚪</span> Conceder Alta</button>'
+            + '</div>'
+            + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'
+            + '<button onclick="if(typeof window.executePatientHighlight===\'function\'){ window.executePatientHighlight(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + '<span>🎯</span> Focar no Leito</button>'
+            + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
             + '<span>📊</span> Ver no Kanban</button>'
             + '</div>';
         }
       } else {
-        stepTitle = '📊 Monitorar Linha de Cuidado no Kanban';
-        stepDesc = 'Censo e mapa de leitos hospitalares. Acompanhe a ocupação em tempo real ou selecione um paciente para internar.';
-        targetTab = 'kanban';
-        btnText = '📊 Ir para Kanban Hospitalar ➔';
-        btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+        stepTitle = '🛏️ Gestão e Mapa de Leitos Hospitalares';
+        stepDesc = 'Acompanhe a ocupação e disponibilidade dos leitos em tempo real. Selecione um paciente para internar ou evoluir prontuário no PEP.';
+        targetTab = 'leitos';
+        btnText = '🛏️ Atualizar Mapa de Leitos ➔';
+        btnBg = 'linear-gradient(135deg, #059669, #047857)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-          + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-          + '<span>👨‍⚕️</span> Evolução no PEP</button>'
+          + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>📊</span> Ver Kanban</button>'
           + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>💰</span> Faturamento</button>'
           + '</div>';
@@ -864,28 +870,39 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       if (activePatient) {
         const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
         const firstName = safePName.split(' ')[0];
-        stepTitle = '📊 Acompanhar ' + firstName + ' no Kanban';
-        stepDesc = 'Linha de cuidado de ' + safePName + ' em evolução no Kanban! Acompanhe exames, procedimentos e alta clínica. Após a alta, prossiga para Faturamento TISS.';
-        targetTab = 'financeiro';
-        btnText = '💰 Ir para Faturamento & TISS (' + firstName + ') ➔';
-        btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+        const safePNameEsc = safePName.replace(/'/g, "\\'");
+        const isDischarged = activePatient.status === 'Alta' || activePatient.status === 'Finalizado';
+
+        if (isDischarged) {
+          stepTitle = '💰 Faturar Atendimento (' + firstName + ')';
+          stepDesc = 'Alta médica concedida a ' + safePName + '! Encaminhe o atendimento para conferência de procedimentos e fechamento no padrão TISS 4.01.';
+          targetTab = 'financeiro';
+          btnText = '💰 Ir para Faturamento & TISS (' + firstName + ') ➔';
+          btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+        } else {
+          stepTitle = '📊 Acompanhar ' + firstName + ' no Leito / Kanban';
+          stepDesc = 'Linha de cuidado de ' + safePName + ' ativa no leito. Acompanhe exames e procedimentos no Kanban ou evolua a conduta clínica no PEP.';
+          targetTab = 'leitos';
+          btnText = '🩺 Evolução no PEP / Leito (' + firstName + ') ➔';
+          btnBg = 'linear-gradient(135deg, #059669, #047857)';
+        }
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-          + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>🛏️</span> Mapa de Leitos</button>'
-          + '<button onclick="window.switchTab(\'relatorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-          + '<span>📈</span> Indicadores</button>'
+          + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Prontuário PEP</button>'
           + '</div>';
       } else {
-        stepTitle = '💰 Faturamento Hospitalar & Guias TISS 4.01';
-        stepDesc = 'Com a alta médica concedida ou procedimentos concluídos, o próximo passo administrativo é fechar a conta do paciente e gerar o lote eletrônico padrão TISS 4.01.';
-        targetTab = 'financeiro';
-        btnText = '💰 Ir para Faturamento & TISS ➔';
-        btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+        stepTitle = '📊 Linha de Cuidado Hospitalar (Kanban)';
+        stepDesc = 'Acompanhe a permanência e a previsão de alta dos pacientes internados. Quando a alta for concedida, proceda ao faturamento das contas.';
+        targetTab = 'leitos';
+        btnText = '🛏️ Ir para Gestão de Leitos ➔';
+        btnBg = 'linear-gradient(135deg, #059669, #047857)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>🛏️</span> Mapa de Leitos</button>'
-          + '<button onclick="window.switchTab(\'relatorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-          + '<span>📈</span> Indicadores</button>'
+          + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>💰</span> Faturamento</button>'
           + '</div>';
       }
       break;
@@ -957,95 +974,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       }
       break;
 
-    case 'farmacia':
-      stepTitle = '🛏️ Alocar em Leito ou Acompanhar Internação';
-      stepDesc = 'Medicamentos e insumos dispensados! Se o paciente necessita de observação clínica ou internação, aloque a vaga no mapa de leitos; caso em observação, acompanhe no Kanban.';
-      targetTab = 'leitos';
-      btnText = '🛏️ Ir para Gestão de Leitos ➔';
-      btnBg = 'linear-gradient(135deg, #06b6d4, #0891b2)';
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'kanban\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>📊</span> Ver no Kanban</button>'
-        + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>💰</span> Faturamento</button>'
-        + '</div>';
-      break;
 
-    case 'leitos':
-      stepTitle = '📊 Monitorar Linha de Cuidado no Kanban';
-      stepDesc = 'Paciente acomodado no leito! O próximo passo da equipe multidisciplinar é acompanhar a evolução clínica, exames pendentes e previsão de alta na esteira Kanban.';
-      targetTab = 'kanban';
-      btnText = '📊 Ir para Kanban Hospitalar ➔';
-      btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>👨‍⚕️</span> Evolução no PEP</button>'
-        + '<button onclick="window.switchTab(\'financeiro\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>💰</span> Faturamento</button>'
-        + '</div>';
-      break;
-
-    case 'kanban':
-      stepTitle = '💰 Faturamento Hospitalar & Guias TISS 4.01';
-      stepDesc = 'Com a alta médica concedida ou procedimentos concluídos, o próximo passo administrativo é fechar a conta do paciente e gerar o lote eletrônico padrão TISS 4.01.';
-      targetTab = 'financeiro';
-      btnText = '💰 Ir para Faturamento & TISS ➔';
-      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'leitos\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🛏️</span> Mapa de Leitos</button>'
-        + '<button onclick="window.switchTab(\'relatorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>📈</span> Indicadores</button>'
-        + '</div>';
-      break;
-
-    case 'financeiro':
-      stepTitle = '📈 Analisar Indicadores & Performance';
-      stepDesc = 'Contas fechadas e lotes TISS gerados! Próximo passo: avaliar o tempo médio de permanência (TMP), taxa de ocupação dos leitos e DRE consolidado.';
-      targetTab = 'relatorios';
-      btnText = '📈 Ir para Relatórios & Métricas ➔';
-      btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
-      extraActions = '<div style="display:grid;grid-template-columns:1fr;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'dashboard\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🏥</span> Voltar ao Dashboard</button>'
-        + '</div>';
-      break;
-
-    case 'relatorios':
-      stepTitle = '🏥 Retornar ao Dashboard Central';
-      stepDesc = 'Indicadores e relatórios avaliados! Retorne ao painel central para acompanhar os novos atendimentos e a rotatividade do hospital em tempo real.';
-      targetTab = 'dashboard';
-      btnText = '🏥 Voltar ao Dashboard Principal ➔';
-      btnBg = 'linear-gradient(135deg, #10b981, #059669)';
-      break;
-
-    case 'tv_panel':
-      if (activePatient && (activePatient.manchesterColor || activePatient.status === 'Triado')) {
-        stepTitle = '👨‍⚕️ Atender Paciente no Consultório Médico';
-        stepDesc = 'Paciente triado (' + (activePatient.manchesterColor || '') + ') chamado no painel da sala de espera! O próximo passo assistencial é recebê-lo no Consultório Médico e abrir o prontuário no PEP SOAP.';
-        targetTab = 'consultorios';
-        btnText = '👨‍⚕️ Ir para Consultórios & PEP ➔';
-        btnBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
-      } else if (activePatient) {
-        stepTitle = '🩺 Realizar Triagem Manchester';
-        stepDesc = 'Paciente chamado no Painel TV para a Sala de Triagem! Receba o paciente na Sala de Triagem para aferir sinais vitais (PA, FC, SpO2, Temp) e definir a classificação Manchester.';
-        targetTab = 'atendimento';
-        btnText = '🩺 Ir para Triagem Manchester ➔';
-        btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
-      } else {
-        stepTitle = '📺 Painel TV (Chamador Audiovisual)';
-        stepDesc = 'Acione a chamada sonora e visual para convocar os pacientes da fila à Triagem ou aos Consultórios Médicos.';
-        targetTab = 'tv_panel';
-        btnText = '📢 Chamar Paciente no Painel ➔';
-        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
-      }
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.45);color:#a5b4fc;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🩺</span> Ir para Triagem</button>'
-        + '<button onclick="window.switchTab(\'consultorios\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>👨‍⚕️</span> Consultórios</button>'
-        + '</div>';
-      break;
 
     case 'agenda':
       stepTitle = '📋 Confirmar Chegada na Recepção';
@@ -1157,6 +1086,17 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
       const safeRoom = activePatient.room || 'Consultório 01';
       mainActionClick = `if(typeof window.openDoctorConsultingRoom === 'function') window.openDoctorConsultingRoom('${safeRoom}', '${safePNameEsc}'); else window.switchTab('consultorios');`;
+    } else if (_SFG.activeTab === 'leitos' && activePatient) {
+      const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
+      mainActionClick = `if(typeof window.openPEPModal === 'function') window.openPEPModal('${safePNameEsc}'); else window.switchTab('leitos');`;
+    } else if (_SFG.activeTab === 'kanban' && activePatient) {
+      const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
+      const isDischarged = activePatient.status === 'Alta' || activePatient.status === 'Finalizado';
+      if (isDischarged) {
+        mainActionClick = "window.switchTab('financeiro')";
+      } else {
+        mainActionClick = `if(typeof window.openPEPModal === 'function') window.openPEPModal('${safePNameEsc}'); else window.switchTab('leitos');`;
+      }
     }
 
     actionBlockHtml = `
@@ -1867,6 +1807,16 @@ export function executePatientHighlight(targetPatientName, targetColumn) {
       }
       if (!targetEl && firstName && firstName.length >= 3) {
         targetEl = document.querySelector(`[data-patient-card-name*="${firstName.replace(/"/g, '')}"]`);
+      }
+
+      // Tenta 1.5: se estiver na aba de leitos ou se o paciente ativo tiver leito associado
+      if (!targetEl) {
+        const ap = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+        const bId = ap?.bedId || ap?.bed || ap?.bedNumber;
+        if (bId) {
+          const cleanBId = String(bId).trim();
+          targetEl = document.querySelector(`[data-bed-id="${cleanBId}"], [data-bed-number="${cleanBId}"]`);
+        }
       }
 
       // Tenta 2: por texto direto nos elementos de card ou linhas de tabela do contêiner ativo

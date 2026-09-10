@@ -1,15 +1,16 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.7.3`  
-**Status:** Em desenvolvimento ativo (Production-Ready)  
-**Última atualização:** Agosto 2026
+**Versão:** `2.8.1`  
+**Status:** Em produção (Production-Ready)  
+**Última atualização:** Setembro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
 
 - 🧭 **Linha do Cuidado & Trajetória Completa do Paciente (Patient Journey Timeline):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.
-- 🛏️ **Gestão Inteligente de Leitos & Censo Hospitalar:** Bloqueio automático de leitos ocupados, Painel Detalhado com ocupante atual, tempo de permanência, histórico completo de internações anteriores por leito e ciclo de higienização automatizado.
+- 🛏️ **Gestão de Leitos em Tempo Real & Destaque Spotlight Pulsante:** Alocação de leitos (observação, enfermaria, UTI, isolamento) com sincronização imediata de cache (`/transfer-to-bed`, `/admit`), realce visual pulsante no mapa de leitos (`⚡ Paciente em Foco`) e proteção contra filtros que possam ocultar o leito selecionado.
+- 🎯 **Smart Flow Guide (Guia de Fluxo Inteligente Assistencial):** Na etapa de Leitos e Internação, mantém foco clínico estrito na condução terapêutica do paciente internado (Evolução Médica no PEP como ação primária, com opções de alta, foco no leito e acompanhamento no Kanban), impedindo desvios prematuros para fechamento de conta antes da alta médica definitiva.
 - 🌐 **Manual Interativo por Abas (SPA):** Acessível diretamente pelo botão `📖 Manual do Usuário` no topo do sistema ou pela busca global `Ctrl + K`.
 - 🧩 **Arquitetura Frontend Modular (`src/modules/`):** Código desacoplado em módulos de responsabilidade única (`ui.js`, `sync.js`, `api.js`, `auth.js`, `journey.js`) garantindo alta manutenibilidade, isolamento de escopo e facilidade para testes automatizados.
 - 📌 **Navegação Assistida & Retorno Rápido:** Ao pesquisar e navegar para qualquer tela pelo manual, um widget flutuante de retorno (*Floating Return Beacon*) é ativado no canto inferior direito (`Alt + M`) com destaque visual do card (*Smart Highlight Pulse*).
@@ -476,10 +477,10 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 *Desenvolvido por @mazzarowysk & @_coltri_*
 
 
-## Nova Atualização: Gráficos e Interatividade
-- **Dashboard Principal**: Agora conta com visualização completa de ocupação através de gráficos interativos.
-- **Kanban Interativo**: 
-  - Gráfico 'Distribuição Geral' para análise em tempo real dos pacientes por setor.
-  - Cartões de pacientes agora são **clicáveis**, exibindo o histórico detalhado do paciente.
-  - Áreas vazias de colunas permitem o rápido cadastro de admissão no setor.
-- **Relatórios**: A sessão de Relatórios e Exportação foi refinada e padronizada.
+## Nova Atualização: v2.8.1 — Gestão de Leitos, Foco Assistencial & Destaque Spotlight
+- **Guia de Fluxo Hospitalar (Smart Flow Guide):** Preservação do foco clínico na internação ativa. Ao alocar ou transferir para leito, a recomendação primária passa a ser a Evolução Médica no PEP (`openPEPModal`), com ações secundárias para conceder alta, focar no leito e acompanhar no Kanban, evitando avanço precoce para Faturamento TISS antes da alta médica homologada.
+- **Destaque Visual Pulsante nos Leitos:** Ao confirmar alocação/transferência, o leito e paciente são imediatamente carregados com o status "Ocupado", classe `patient-pulse-selected patient-spotlight-glow`, badge `⚡ Paciente em Foco` e scroll suave centralizado.
+- **Invalidação Atômica de Cache de Leitos:** Invalidação sincronizada das chaves `'beds'`, `'encounters'` e rotas relacionadas no client-cache (`src/modules/api.js`).
+- **Filtros Expandidos:** Novos filtros para leitos de Observação e Isolamento, com autocorreção caso o leito do paciente ativo pertença a setor diferente do filtro em exibição.
+- **Manual e Documentações Sincronizados:** Manuais em PDF, Markdown, HTML e módulos interativos atualizados com as regras do fluxo hospitalar contínuo.
+
