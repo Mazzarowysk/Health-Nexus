@@ -859,8 +859,33 @@ window.generatePrescriptionPDF = async function(prescription, administrations = 
   doc.save(`prescricao_${safeName}_#${prescription.id}.pdf`);
 };
 
-// 2. MODAL DE PRESCRIÇÃO MÉDICA E PLANILHA DE ADMINISTRAÇÃO DA ENFERMAGEM
 window.openPrescriptionModal = async function(encounterId, patientName, patientId = '') {
+  // Resolução inteligente do encontro clínico caso seja chamado por paciente ou leito
+  if (typeof localDB !== 'undefined' && localDB.list) {
+    const allEncounters = localDB.list('encounters') || [];
+    const encMatch = allEncounters.find(e => 
+      (encounterId && e.id === encounterId) ||
+      (patientName && (e.patientName || '').trim().toLowerCase() === (patientName || '').trim().toLowerCase()) ||
+      (patientId && e.patientId === patientId)
+    );
+    if (encMatch) {
+      encounterId = encMatch.id;
+      patientName = patientName || encMatch.patientName;
+      patientId = patientId || encMatch.patientId;
+    } else if (!encounterId || !encounterId.startsWith('enc-')) {
+      const newEnc = {
+        id: 'enc-' + Date.now(),
+        patientId: patientId || 'P-' + Date.now(),
+        patientName: patientName || 'Paciente em Observação',
+        status: 'Em_Observacao',
+        room: 'Observação (OBS-01)',
+        created_at: new Date().toISOString()
+      };
+      localDB.save('encounters', newEnc);
+      encounterId = newEnc.id;
+    }
+  }
+
   let modal = document.getElementById('modal-prescription-rx');
   if (!modal) {
     modal = document.createElement('div');

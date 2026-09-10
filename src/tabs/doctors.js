@@ -1396,6 +1396,9 @@ modal.style.left = '0';
             <button type="button" onclick="document.getElementById('patient-history-modal')?.remove(); if (typeof window.openPEPModal === 'function') window.openPEPModal('${patientId || patientName}');" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(236,72,153,0.35); display: inline-flex; align-items: center; gap: 6px;" title="Abrir Folha de Evolução Médica e Prescrição (PEP)">
               <i class="fa-solid fa-file-medical"></i> Abrir PEP (Prescrição)
             </button>
+            <button type="button" onclick="document.getElementById('patient-history-modal')?.remove(); if (typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('', '${(patientName || '').replace(/'/g, "\\'")}', '${patientId || ''}');" style="background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.5); color: #c7d2fe; padding: 6px 13px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px;" title="Abrir Planilha de Prescrição Médica Estruturada (Aprazamento)">
+              <i class="fa-solid fa-pills"></i> Prescrição Estruturada
+            </button>
             <button type="button" onclick="window.generateHistoryReport('${patientId}', '${patientName || ''}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;" title="Exportar Histórico Completo">
               <i class="fa-solid fa-file-pdf"></i> Gerar PDF
             </button>

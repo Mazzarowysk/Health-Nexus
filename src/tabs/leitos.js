@@ -790,6 +790,9 @@ window.openBedDetailsModal = async function(bedId) {
                     <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${bed.patientId || bed.patientName}');">
                       <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
                     </button>
+                    <button class="btn" style="background: rgba(99,102,241,0.22); border: 1px solid rgba(99,102,241,0.45); color: #c7d2fe; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('', '${(bed.patientName||'').replace(/'/g, "\\'")}', '${bed.patientId || ''}');" title="Prescrever Medicações para o Leito">
+                      <i class="fa-solid fa-pills"></i> Prescrição Médica
+                    </button>
                     <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${bed.patientId || bed.patientName}', '${(bed.patientName||'').replace(/'/g, "\\'")}');">
                       <i class="fa-solid fa-timeline"></i> Ver Jornada Completa
                     </button>
