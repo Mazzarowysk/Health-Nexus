@@ -1477,27 +1477,40 @@ window.openDoctorConsultingRoom = function(roomName = 'Consultório 01', patient
 
       if (targetCard) {
         targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Aplica efeito de pulsação no card para indicar paciente aguardando atendimento
+        // NÃO abre o PEP automaticamente — o médico clica quando estiver pronto
         targetCard.style.outline = '3px solid #ec4899';
         targetCard.style.borderRadius = '14px';
-        setTimeout(() => targetCard.style.outline = '', 3500);
-
-        const pepBtn = targetCard.querySelector('button[onclick*="openPEPModal"]');
-        if (pepBtn) {
-          setTimeout(() => pepBtn.click(), 250);
-        } else if (patientName && typeof window.openPEPModal === 'function') {
-          setTimeout(() => window.openPEPModal(patientName), 250);
+        targetCard.style.boxShadow = '0 0 0 0 rgba(236, 72, 153, 0.7)';
+        targetCard.style.animation = 'patientCardPulse 1.5s ease-in-out infinite';
+        // Garante que a keyframe de pulsação existe no documento
+        if (!document.getElementById('_patientCardPulseStyle')) {
+          const styleEl = document.createElement('style');
+          styleEl.id = '_patientCardPulseStyle';
+          styleEl.textContent = `
+            @keyframes patientCardPulse {
+              0%   { box-shadow: 0 0 0 0 rgba(236,72,153,0.7); outline-color: #ec4899; }
+              50%  { box-shadow: 0 0 0 12px rgba(236,72,153,0); outline-color: #f472b6; }
+              100% { box-shadow: 0 0 0 0 rgba(236,72,153,0); outline-color: #ec4899; }
+            }
+          `;
+          document.head.appendChild(styleEl);
         }
-      } else if (patientName && typeof window.openPEPModal === 'function') {
-        setTimeout(() => window.openPEPModal(patientName), 250);
+        // Remove o efeito após 6 segundos
+        setTimeout(() => {
+          targetCard.style.outline = '';
+          targetCard.style.boxShadow = '';
+          targetCard.style.animation = '';
+          targetCard.style.borderRadius = '';
+        }, 6000);
       }
       return;
     }
 
     if (tries >= 15) {
       clearInterval(checkInterval);
-      if (patientName && typeof window.openPEPModal === 'function') {
-        window.openPEPModal(patientName);
-      }
+      // Timeout sem abrir PEP automaticamente — apenas loga
+      console.warn('[openDoctorConsultingRoom] Card do paciente não encontrado após timeout:', patientName);
     }
   }, 150);
 };
