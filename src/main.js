@@ -1463,7 +1463,7 @@ window.openDoctorConsultingRoom = function(roomName = 'Consultório 01', patient
           return txt.includes(cleanName);
         });
       }
-      if (!targetCard && roomName && String(roomName).trim()) {
+      if (!targetCard && !patientName && roomName && String(roomName).trim()) {
         const cleanRoom = removeAccents(String(roomName).trim().toLowerCase());
         targetCard = Array.from(cards).find(c => {
           const txt = removeAccents(c.textContent.toLowerCase());
