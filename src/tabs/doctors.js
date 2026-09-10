@@ -2786,8 +2786,15 @@ async function savePEPData(encounterId, shouldFinalize) {
 
     if (shouldFinalize) {
       const encounters = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('encounters') : [];
-      const enc = encounters.find(e => e.id === encounterId) || {};
-      const patientName = enc.patientName || 'Paciente';
+      const pidNorm = String(encounterId).toLowerCase();
+      const enc = encounters.find(e => 
+        String(e.id) === String(encounterId) || 
+        String(e.patientId) === String(encounterId) ||
+        (e.patientName && pidNorm.includes(e.patientName.toLowerCase()))
+      ) || {};
+      
+      const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      const patientName = enc.patientName || (activeCtx ? (activeCtx.fullName || activeCtx.patientName) : null) || (typeof encounterId === 'string' && isNaN(encounterId) && !encounterId.startsWith('ENC-') ? encounterId : 'Paciente');
 
       // Helper: criar novo encounter de continuidade em outro setor
       function _createContinuationEncounter(targetSector) {
@@ -2796,12 +2803,12 @@ async function savePEPData(encounterId, shouldFinalize) {
           const admId = enc.admission_id || encounterId;
           localDB.insert('encounters', {
             patientId: enc.patientId || enc.id,
-            patientName: enc.patientName,
+            patientName: patientName,
             doctorName: enc.doctorName || state?.user?.name || '',
             room: targetSector,
             sector: targetSector,
             admission_id: admId,
-            manchesterColor: enc.manchesterColor || 'Amarelo',
+            manchesterColor: enc.manchesterColor || (activeCtx ? activeCtx.manchesterColor : 'Amarelo') || 'Amarelo',
             status: 'Em Atendimento',
             origin_encounter_id: encounterId
           });
@@ -2817,7 +2824,8 @@ async function savePEPData(encounterId, shouldFinalize) {
             actionTitle: 'Evolução Diária de Internação Salva',
             message: `A evolução do paciente <strong>${patientName}</strong> foi salva e assinada. O paciente permanece internado no leito.`,
             targetTab: 'leitos',
-            targetTabLabel: 'Gestão de Leitos'
+            targetTabLabel: 'Gestão de Leitos',
+            targetPatientName: patientName
           });
         } else if (typeof showToast === 'function') {
           showToast('⚡ Evolução diária de internação salva com sucesso!');
@@ -2854,6 +2862,7 @@ async function savePEPData(encounterId, shouldFinalize) {
             message: `O prontuário foi assinado. O paciente <strong>${patientName}</strong> requer internação. Selecione o Leito Vago a seguir para concluir a transferência.`,
             targetTab: 'leitos',
             targetTabLabel: 'Gestão de Leitos (Transferência)',
+            targetPatientName: patientName,
             persistent: true
           });
         }

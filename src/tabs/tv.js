@@ -1315,6 +1315,21 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 
 // 3. MODAL DE TRANSFERÊNCIA DE LEITO (SUBIR PARA INTERNAÇÃO)
 window.openTransferBedModal = async function(encounterId, patientName) {
+  const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+  const realPatientName = (patientName && patientName !== 'Paciente') 
+    ? patientName 
+    : (activeCtx ? (activeCtx.fullName || activeCtx.patientName) : null) || (typeof encounterId === 'string' && isNaN(encounterId) && !encounterId.startsWith('ENC-') ? encounterId : 'Paciente');
+
+  if (realPatientName && typeof window.setActivePatientContext === 'function') {
+    const curCtx = activeCtx || {};
+    window.setActivePatientContext({
+      ...curCtx,
+      fullName: realPatientName,
+      patientName: realPatientName,
+      status: 'Aguardando_Leito'
+    });
+  }
+
   let modal = document.getElementById('modal-transfer-bed-drawer');
   if (!modal) {
     modal = document.createElement('div');
@@ -1342,7 +1357,7 @@ window.openTransferBedModal = async function(encounterId, patientName) {
       <div class="modal-body">
         <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
           <div style="font-size: 0.82rem; color: var(--text-muted);">Paciente em Transferência:</div>
-          <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">${patientName}</div>
+          <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">${realPatientName}</div>
         </div>
 
         <div class="form-group" style="margin-bottom: 20px;">
