@@ -4875,8 +4875,16 @@ async function loadConsultingRooms() {
 
       const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
       const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
-      const waiting = [...waitingEncs, ...waitingApts];
+      // Inclui pacientes convocados via TV na fila (badge do card)
+      const _ipName = (inProgress ? (inProgress.patientName || inProgress.name || '') : '').toLowerCase().trim();
+      const _existingWaitNames = new Set([...waitingEncs, ...waitingApts].map(x => (x.patientName || x.name || '').toLowerCase().trim()));
+      const tvWaitingCard = roomTvCalls.filter(c => {
+        const cn = (c.patientName || c.name || '').toLowerCase().trim();
+        return cn && cn !== _ipName && !_existingWaitNames.has(cn);
+      }).map(c => ({ patientName: c.patientName || c.name, name: c.patientName || c.name, status: 'Convocado_TV' }));
+      const waiting = [...waitingEncs, ...waitingApts, ...tvWaitingCard];
       
+
       const hasPatient = !!inProgress;
       const roomStatus = hasPatient ? 'Em Uso' : (r.status || 'Disponível');
       const doctorDisplay = r.currentDoctor || r.doctorName || 'Sem Médico Escalado';
@@ -4974,9 +4982,32 @@ async function openConsultorioDetailsModal(roomName) {
 
   const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
   const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
-  const waiting = [...waitingEncs, ...waitingApts];
+
+  // Inclui chamadas de TV na fila (pacientes convocados para esta sala que ainda não estão em atendimento)
+  const inProgressName = (inProgress ? (inProgress.patientName || inProgress.name || '') : '').toLowerCase().trim();
+  const tvWaiting = roomTvCalls
+    .filter(c => {
+      const cName = (c.patientName || c.name || '').toLowerCase().trim();
+      return cName && cName !== inProgressName;
+    })
+    .map(c => ({
+      id: c.patientId || c.encounterId || null,
+      patientId: c.patientId || null,
+      patientName: c.patientName || c.name,
+      manchesterColor: c.manchesterColor || null,
+      time: c.calledAt ? new Date(c.calledAt).toLocaleTimeString().slice(0,5) : null,
+      status: 'Convocado_TV',
+      _fromTV: true
+    }));
+
+  // Deduplica: não duplicar pacientes que já estão em waitingEncs/waitingApts
+  const existingNames = new Set([...waitingEncs, ...waitingApts].map(x => (x.patientName || x.name || '').toLowerCase().trim()));
+  const tvWaitingUnique = tvWaiting.filter(t => !existingNames.has((t.patientName || '').toLowerCase().trim()));
+
+  const waiting = [...waitingEncs, ...waitingApts, ...tvWaitingUnique];
 
   const recentCalls = roomTvCalls.slice(0, 8);
+
 
   const patientTargetId = inProgressEnc ? inProgressEnc.id : (inProgress ? (inProgress.patientId || inProgress.id || inProgress.patientName) : '');
   const patientTargetName = inProgress ? (inProgress.patientName || inProgress.name || 'Paciente') : '';
@@ -5064,7 +5095,7 @@ async function openConsultorioDetailsModal(roomName) {
                       <span style="width: 26px; height: 26px; border-radius: 50%; background: rgba(99,102,241,0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink:0;">${idx + 1}</span>
                       <div style="overflow:hidden;">
                         <strong style="color: #f8fafc; font-size: 0.88rem; display: block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.patientName || w.name}</strong>
-                        <small style="color: var(--text-muted); font-size: 0.74rem;">${w.manchesterColor ? `Triagem: <strong style="color:#38bdf8">${w.manchesterColor}</strong>` : (w.time ? `Horário: ${w.time}` : 'Aguardando')}</small>
+                        <small style="color: var(--text-muted); font-size: 0.74rem;">${w._fromTV || w.status === 'Convocado_TV' ? '<span style="color:#38bdf8;font-weight:700;">📺 Convocado na TV</span>' + (w.time ? ` · ${w.time}` : '') : (w.manchesterColor ? `Triagem: <strong style="color:#38bdf8">${w.manchesterColor}</strong>` : (w.time ? `Horário: ${w.time}` : 'Aguardando'))}</small>
                       </div>
                     </div>
                     <div style="display: flex; gap: 6px; flex-wrap:wrap;">
