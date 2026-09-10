@@ -292,7 +292,11 @@ async function renderLeitosTab() {
 
         const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
         const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
-        const isSelectedPatient = !!(activePatName && b.patientName && (b.patientName.toLowerCase().trim() === activePatName));
+        const isSelectedPatient = !!(activePatName && b.patientName && (
+          b.patientName.toLowerCase().trim() === activePatName ||
+          b.patientName.toLowerCase().trim().includes(activePatName) ||
+          activePatName.includes(b.patientName.toLowerCase().trim())
+        ));
 
         return `
           <div class="card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(b.patientName || '').toLowerCase().replace(/"/g, '&quot;')}" style="padding: 20px; border-top: ${borderTop}; border-left: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-right: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-bottom: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: ${isSelectedPatient ? '0 0 25px rgba(56,189,248,0.6)' : 'var(--shadow-sm)'}; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;" onclick="if(b.patientName && typeof setActivePatientContext==='function') setActivePatientContext({ id: '${b.patientId || b.id}', fullName: '${(b.patientName||'').replace(/'/g, "\\'")}', patientName: '${(b.patientName||'').replace(/'/g, "\\'")}', bedId: '${b.id}', status: 'Internado' }); window.openBedDetailsModal('${b.id}')" onmouseenter="this.style.transform='translateY(-4px)';" onmouseleave="this.style.transform='none';">
@@ -442,8 +446,9 @@ async function renderLeitosTab() {
         body: JSON.stringify({ bedId, patientId, patientName, encounterId })
       });
       if (res.ok) {
-        showToast('Paciente internado com sucesso!');
         modal.style.display = 'none';
+        
+        // 1. Atualizar Contexto Ativo do Paciente
         if (typeof window.setActivePatientContext === 'function') {
           const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : {};
           window.setActivePatientContext({
@@ -457,10 +462,31 @@ async function renderLeitosTab() {
             bedId: bedId
           });
         }
-        if (typeof window.createSmartFlowGuideCard === 'function') {
+
+        // 2. Notificação e Sincronização do Guia Flutuante
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: `Internação Iniciada (${bedId})`,
+            message: `O paciente <strong>${patientName}</strong> foi acomodado com sucesso no Leito ${bedId}! Acompanhe a evolução no PEP ou Kanban.`,
+            targetTab: 'leitos',
+            targetTabLabel: 'Gestão de Leitos',
+            targetPatientName: patientName,
+            targetPatientId: patientId,
+            targetStatus: 'Internado',
+            bedId: bedId
+          });
+        } else if (typeof window.createSmartFlowGuideCard === 'function') {
           window.createSmartFlowGuideCard('leitos');
         }
-        loadBeds();
+
+        // 3. Recarrega os leitos e aplica o destaque visual (spotlight/pulse) no card do paciente recém-internado
+        await loadBeds();
+
+        if (typeof window.executePatientHighlight === 'function') {
+          setTimeout(() => {
+            window.executePatientHighlight(patientName);
+          }, 200);
+        }
       } else {
         const d = await res.json();
         alert(d.message || 'Erro ao internar paciente.');
@@ -487,6 +513,16 @@ window.quickAdmitBed = (bedId, encounterId = null, patientName = null) => {
 
   const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
   const targetPatientName = patientName || (activeCtx ? (activeCtx.fullName || activeCtx.patientName) : null);
+
+  if (targetPatientName && typeof window.setActivePatientContext === 'function') {
+    window.setActivePatientContext({
+      ...(activeCtx || {}),
+      fullName: targetPatientName,
+      patientName: targetPatientName,
+      status: 'Aguardando_Leito',
+      bedId: bedId || undefined
+    });
+  }
 
   const modal = document.getElementById('modal-admit-bed');
   if (modal) {

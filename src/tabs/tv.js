@@ -1417,6 +1417,7 @@ window.openTransferBedModal = async function(encounterId, patientName) {
         body: JSON.stringify({ bedId, patientName })
       });
       if (res.ok) {
+        modal.style.display = 'none';
         if (typeof window.setActivePatientContext === 'function') {
           const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : {};
           window.setActivePatientContext({
@@ -1424,22 +1425,35 @@ window.openTransferBedModal = async function(encounterId, patientName) {
             fullName: patientName,
             patientName: patientName,
             status: 'Internado',
+            bed: bedId,
+            bedNumber: bedId,
             bedId: bedId
           });
         }
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: 'Internação Iniciada',
-            message: `O paciente <strong>${patientName}</strong> foi transferido. O leito agora consta como Ocupado.`,
+            actionTitle: `Internação Iniciada (${bedId})`,
+            message: `O paciente <strong>${patientName}</strong> foi transferido e acomodado com sucesso no Leito ${bedId}.`,
             targetTab: 'leitos',
             targetTabLabel: 'Gestão de Leitos',
-            targetPatientName: patientName
+            targetPatientName: patientName,
+            targetStatus: 'Internado',
+            bedId: bedId
           });
         } else {
-          showToast(`🛌 Paciente ${patientName} transferido(a) para internação hospitalar!`);
+          showToast(`🛌 Paciente ${patientName} transferido(a) para internação no Leito ${bedId}!`);
         }
-        modal.style.display = 'none';
-        if (state.activeTab === 'atendimento') {
+
+        if (typeof renderLeitosTab === 'function') {
+          renderLeitosTab();
+        }
+        if (typeof window.executePatientHighlight === 'function') {
+          setTimeout(() => {
+            window.executePatientHighlight(patientName);
+          }, 200);
+        }
+
+        if (state.activeTab === 'atendimento' && typeof renderTabContent === 'function') {
           renderTabContent();
         }
       }
