@@ -4885,79 +4885,56 @@ async function loadConsultingRooms() {
       
       const isSelectedPatient = !!(activePatName && patientNameDisplay && (patientNameDisplay.toLowerCase().trim() === activePatName));
 
-      // Constrói a lista de todos os pacientes na fila (waiting) com nome e botão PEP
-      const waitingListHTML = waiting.length > 0
-        ? waiting.map((w, idx) => {
-            const wName = w.patientName || w.name || 'Paciente';
-            const wId   = w.id || w.patientId || wName;
-            const wStatus = w.status === 'Aguardando_Atendimento' ? 'Aguardando'
-                          : (w.status === 'Confirmado' || w.status === 'Agendado') ? 'Agendado'
-                          : (w.status || 'Na Fila');
-            return `
-              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;color:#d1d5db;background:rgba(255,255,255,0.04);padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);flex-wrap:wrap;gap:6px;">
-                <div style="display:flex;align-items:center;gap:7px;overflow:hidden;">
-                  <span style="color:#94a3b8;font-size:0.72rem;font-weight:700;min-width:18px;">${idx + 1}.</span>
-                  <i class="fa-solid fa-user" style="color:#64748b;font-size:0.78rem;"></i>
-                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;" title="${wName}">${wName}</span>
-                  <span style="font-size:0.68rem;background:rgba(251,191,36,0.18);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);padding:1px 6px;border-radius:5px;font-weight:700;white-space:nowrap;">${wStatus}</span>
+      // PrÃ³ximo paciente na fila (preview no card)
+      const nextPatient = waiting.length > 0 ? (waiting[0].patientName || waiting[0].name || '') : '';
+
+      return `
+        <div class="interactive-card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(patientNameDisplay || '').toLowerCase().replace(/"/g, '&quot;')}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">
+                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : 'var(--color-primary)');"></i> ${r.name}
+              </h3>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">${r.specialty || 'Uso Geral / Pronto Atendimento'}</div>
+            </div>
+            <button class="btn btn-icon btn-outline" style="width: 26px; height: 26px; flex-shrink:0;" onclick="event.stopPropagation(); openRoomModal('${r.id}')" title="Editar sala"><i class="fa-solid fa-pen" style="font-size: 0.7rem;"></i></button>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: ${hasPatient ? 'rgba(99,102,241,0.2)' : 'rgba(16,185,129,0.15)'}; color: ${hasPatient ? '#a5b4fc' : '#34d399'}; border: 1px solid ${hasPatient ? 'rgba(99,102,241,0.4)' : 'rgba(16,185,129,0.3)'};">
+              <i class="fa-solid fa-circle" style="font-size: 0.4rem;"></i> ${roomStatus}
+            </span>
+            <span style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; overflow:hidden; max-width:160px; text-overflow:ellipsis; white-space:nowrap;">
+              <i class="fa-solid fa-user-doctor" style="color: #38bdf8; flex-shrink:0;"></i> ${doctorDisplay}
+            </span>
+          </div>
+          <div style="padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 7px;">
+            ${patientNameDisplay ? `
+              <div style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(79,70,229,0.12)); padding: 9px 11px; border-radius: 9px; border: 1px solid rgba(129,140,248,0.3); gap: 8px; flex-wrap:wrap;">
+                <div style="display: flex; align-items: center; gap: 7px; overflow: hidden; flex:1; min-width:0;">
+                  <i class="fa-solid fa-user-check" style="color: #38bdf8; font-size:0.9rem; flex-shrink:0;"></i>
+                  <span style="font-weight:700; font-size:0.84rem; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${patientNameDisplay}">${patientNameDisplay}</span>
+                  <span style="font-size:0.65rem; background:rgba(99,102,241,0.35); color:#c7d2fe; border-radius:4px; padding:1px 5px; font-weight:700; white-space:nowrap; flex-shrink:0;">Em Atend.</span>
                 </div>
-                <button class="btn" style="background:rgba(236,72,153,0.18);border:1px solid rgba(236,72,153,0.35);color:#f9a8d4;font-size:0.7rem;padding:3px 8px;border-radius:6px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" onclick="event.stopPropagation(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${wId || wName}');" title="Abrir Prontuário">
+                <button class="btn" style="background:linear-gradient(135deg,#ec4899,#be185d);color:#fff;border:none;font-size:0.72rem;padding:4px 9px;border-radius:6px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(236,72,153,0.3);flex-shrink:0;" onclick="event.stopPropagation(); if(typeof window.openPEPModal==='function') window.openPEPModal('${patientTargetId || patientNameDisplay}');" title="Abrir Prontuario">
                   <i class="fa-solid fa-file-medical"></i> PEP
                 </button>
               </div>
-            `;
-          }).join('')
-        : '';
-
-      return `
-        <div class="interactive-card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(patientNameDisplay || '').toLowerCase().replace(/"/g, '&quot;')}" style="background: var(--bg-secondary); border: 1.5px solid ${hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)'}; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-              <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">
-                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : 'var(--color-primary)'};"></i> ${r.name}
-              </h3>
-              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">${r.specialty || 'Uso Geral / Pronto Atendimento'}</div>
-            </div>
-            <div style="display: flex; gap: 6px;">
-              <button class="btn btn-icon btn-outline" style="width: 28px; height: 28px;" onclick="event.stopPropagation(); openRoomModal('${r.id}')" title="Editar"><i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i></button>
-            </div>
-          </div>
-          
-          <div style="margin-top: 4px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; background: ${hasPatient ? 'rgba(99,102,241,0.2)' : 'rgba(16,185,129,0.15)'}; color: ${hasPatient ? '#a5b4fc' : '#34d399'}; border: 1px solid ${hasPatient ? 'rgba(99,102,241,0.4)' : 'rgba(16,185,129,0.3)'};">
-              <i class="fa-solid fa-circle" style="font-size: 0.45rem;"></i> ${roomStatus}
-            </span>
-            <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
-              <i class="fa-solid fa-user-doctor" style="color: #38bdf8;"></i> ${doctorDisplay}
-            </span>
-          </div>
-
-          <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
-            ${patientNameDisplay ? `
-              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: #ffffff; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(79,70,229,0.15)); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(129,140,248,0.35); flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; min-width: 140px;">
-                  <i class="fa-solid fa-user-check" style="color: #38bdf8; font-size: 1rem;"></i>
-                  <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${patientNameDisplay}</strong>
-                  <span style="font-size:0.68rem;background:rgba(99,102,241,0.3);color:#a5b4fc;border:1px solid rgba(99,102,241,0.4);padding:1px 6px;border-radius:5px;font-weight:700;white-space:nowrap;">Em Atend.</span>
-                </div>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                  <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(236,72,153,0.3);" onclick="event.stopPropagation(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientNameDisplay}');" title="Abrir Prontuário Eletrônico">
-                    <i class="fa-solid fa-file-medical"></i> PEP
-                  </button>
-                  <span style="font-size: 0.7rem; background: #6366f1; color: #fff; padding: 2px 7px; border-radius: 6px; font-weight: 700;">Chamado</span>
-                </div>
-              </div>
             ` : `
-              <div style="font-size: 0.82rem; color: var(--text-muted); padding: 6px 0;"><i class="fa-regular fa-clock"></i> Nenhum atendimento em andamento</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); padding:4px 0; display:flex; align-items:center; gap:6px;">
+                <i class="fa-regular fa-clock" style="color:#475569;"></i> Sala disponivel para atendimento
+              </div>
             `}
             ${waiting.length > 0 ? `
-              <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;display:flex;align-items:center;gap:6px;">
-                <i class="fa-solid fa-list-ol" style="color:#94a3b8;"></i>
-                Fila de Espera — ${waiting.length} paciente(s)
-              </div>
-              ${waitingListHTML}
+              <button onclick="event.stopPropagation(); openConsultorioDetailsModal('${r.name}');" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:8px;padding:7px 11px;cursor:pointer;gap:8px;transition:background 0.2s;" onmouseover="this.style.background='rgba(251,191,36,0.15)'" onmouseout="this.style.background='rgba(251,191,36,0.08)'">
+                <div style="display:flex;align-items:center;gap:7px;">
+                  <i class="fa-solid fa-users" style="color:#fbbf24;font-size:0.8rem;"></i>
+                  <span style="font-size:0.78rem;font-weight:700;color:#fcd34d;">${waiting.length} na fila</span>
+                  ${nextPatient ? `<span style="font-size:0.72rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;">Â· Prox: ${nextPatient.split(' ')[0]}</span>` : ''}
+                </div>
+                <span style="font-size:0.7rem;color:#fbbf24;display:flex;align-items:center;gap:4px;flex-shrink:0;font-weight:600;">Ver fila <i class="fa-solid fa-chevron-right"></i></span>
+              </button>
             ` : `
-              ${!patientNameDisplay ? '' : ''}
+              ${!patientNameDisplay ? '<div style="font-size:0.74rem;color:var(--text-muted);text-align:center;padding:2px 0;"><i class="fa-solid fa-check-circle" style="color:#34d399;"></i> Fila vazia</div>' : ''}
             `}
           </div>
         </div>
@@ -5065,24 +5042,37 @@ async function openConsultorioDetailsModal(roomName) {
 
           <!-- Pacientes Aguardando -->
           <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
-            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
-              <span><i class="fa-solid fa-users" style="color: #f59e0b;"></i> Fila de Espera para ${roomName} (${waiting.length})</span>
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap:wrap; gap:8px;">
+              <span><i class="fa-solid fa-users" style="color: #f59e0b;"></i> Fila de Espera &mdash; ${waiting.length} paciente(s)</span>
+              ${waiting.length > 0 ? `
+                <button class="btn" style="background: linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; border:none; font-size:0.75rem; padding:6px 12px; border-radius:8px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(14,165,233,0.3);" onclick="
+                  var next = ${JSON.stringify(waiting[0] ? (waiting[0].patientName || waiting[0].name || '') : '')};
+                  var rn   = ${JSON.stringify(roomName)};
+                  if(next && typeof window.callPatientToTV === 'function') { window.callPatientToTV(next, rn); }
+                  else if(next && typeof window.switchTab === 'function') { window.switchTab('tv'); }
+                ">
+                  <i class="fa-solid fa-tv"></i> Chamar Pr&oacute;ximo na TV
+                </button>
+              ` : ''}
             </div>
 
             ${waiting.length > 0 ? `
-              <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; flex-direction: column; gap: 8px; max-height:340px; overflow-y:auto; padding-right:2px;">
                 ${waiting.map((w, idx) => `
                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                      <span style="width: 26px; height: 26px; border-radius: 50%; background: rgba(99,102,241,0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">${idx + 1}</span>
-                      <div>
-                        <strong style="color: #f8fafc; font-size: 0.9rem; display: block;">${w.patientName || w.name}</strong>
-                        <small style="color: var(--text-muted); font-size: 0.76rem;">${w.manchesterColor ? `Manchester: <strong>${w.manchesterColor}</strong>` : (w.time ? `Horário: ${w.time}` : 'Aguardando Médico')}</small>
+                    <div style="display: flex; align-items: center; gap: 10px; flex:1; min-width:0;">
+                      <span style="width: 26px; height: 26px; border-radius: 50%; background: rgba(99,102,241,0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink:0;">${idx + 1}</span>
+                      <div style="overflow:hidden;">
+                        <strong style="color: #f8fafc; font-size: 0.88rem; display: block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.patientName || w.name}</strong>
+                        <small style="color: var(--text-muted); font-size: 0.74rem;">${w.manchesterColor ? `Triagem: <strong style="color:#38bdf8">${w.manchesterColor}</strong>` : (w.time ? `Horário: ${w.time}` : 'Aguardando')}</small>
                       </div>
                     </div>
-                    <div style="display: flex; gap: 6px;">
-                      <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${w.id || w.patientId || w.patientName}');">
-                        <i class="fa-solid fa-file-medical"></i> Atender (PEP)
+                    <div style="display: flex; gap: 6px; flex-wrap:wrap;">
+                      <button class="btn" style="background:rgba(14,165,233,0.18);border:1px solid rgba(14,165,233,0.35);color:#38bdf8;font-size:0.72rem;padding:5px 10px;border-radius:7px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" onclick="var rn=${JSON.stringify(roomName)}; var pn=${JSON.stringify(w.patientName||w.name||'')}; if(pn && typeof window.callPatientToTV==='function'){window.callPatientToTV(pn,rn);}else if(typeof window.switchTab==='function'){window.switchTab('tv');}" title="Chamar na TV">
+                        <i class="fa-solid fa-tv"></i> TV
+                      </button>
+                      <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.72rem; padding: 5px 10px; border-radius: 7px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow:0 2px 6px rgba(236,72,153,0.25);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${w.id || w.patientId || w.patientName}');">
+                        <i class="fa-solid fa-file-medical"></i> Atender
                       </button>
                     </div>
                   </div>
