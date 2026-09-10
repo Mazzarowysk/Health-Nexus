@@ -2190,7 +2190,7 @@ function renderAuthScreen() {
               <div class="auth-brand-name">
                 Health Nexus
                 <span class="auth-brand-subtag">
-                  <i class="fa-solid fa-shield-halved" style="color: #818cf8; margin-right: 5px;"></i> Sistema de Gestão Hospitalar
+                  <i class="fa-solid fa-shield-halved" style="color: #818cf8; margin-right: 5px;"></i> Sistema de Gestão Hospitalar &bull; <strong>v2.7.3</strong>
                 </span>
               </div>
             </div>
@@ -2238,7 +2238,7 @@ function renderAuthScreen() {
 
           <div class="auth-brand-footer">
             <i class="fa-solid fa-shield-halved" style="margin-right: 5px; color: var(--color-accent);"></i>
-            Dados protegidos com criptografia JWT &mdash; v1.0.1
+            Dados protegidos com criptografia JWT &mdash; <strong>v2.7.3</strong>
           </div>
         </div>
 
@@ -2316,9 +2316,9 @@ function renderAuthScreen() {
               : 'Já tem uma conta? <a id="toggle-auth">Fazer login</a>'}
           </div>
 
-          <div class="auth-form-footer">
-            <i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i>
-            Desenvolvido por @mazzarowysk &amp; @_coltri_
+          <div class="auth-form-footer" style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+            <span><i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i> Desenvolvido por @mazzarowysk &amp; @_coltri_</span>
+            <span style="background: rgba(99, 102, 241, 0.18); border: 1px solid rgba(129, 140, 248, 0.4); color: #a5b4fc; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; font-family: monospace;">v2.7.3</span>
           </div>
         </div>
       </div>
