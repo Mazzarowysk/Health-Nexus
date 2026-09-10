@@ -2,10 +2,10 @@ import fs from 'fs';
 import path from 'path';
 
 export function buildCompleteManualMarkdown() {
-  return `# 📘 Manual do Usuário Completo & Guia Operacional Definitivo — Health Nexus (v2.8.0)
+  return `# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.8.1)
 
-> **Health Nexus v2.8.0 — Plataforma Hospitalar de Alta Complexidade, Suporte Assistencial Avançado & Faturamento TISS 4.01**  
-> Guia operacional completo, exaustivo e publicação-grade de navegação, modais, formulários, botões, máscaras de entrada, fluxos operacionais, motor de decisão clínica (CDSS), alertas de interações medicamentosas, cronômetro de protocolos de emergência (IAM, AVC, Sepse), IA preditiva de exames, QR Code de autenticidade CFM, visualizador PACS DICOM interativo e faturamento TISS/TUSS com auditoria anti-glosa.
+> **Health Nexus v2.8.1 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
 

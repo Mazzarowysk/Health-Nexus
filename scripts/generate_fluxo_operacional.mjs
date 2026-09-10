@@ -141,8 +141,8 @@ function formatContentForPdf(html) {
  */
 export function buildFluxoOperacionalMarkdown() {
   return `# Manual de Fluxo Operacional & Jornada Assistencial do Paciente
-## Arquitetura de Processos Clínicos, Triagem Manchester, Chamadas com Voz, CDSS e Regulação Hospitalar
-### Health Nexus v2.8.0 — Documentação Oficial de Engenharia Hospitalar & Gestão Clínica
+## Processos Clínicos, Triagem Manchester, Chamadas com Voz, Apoio à Decisão e Regulação Hospitalar
+### Health Nexus v2.8.1 — Documentação Operacional de Gestão Clínica & Hospitalar
 
 ---
 
@@ -634,9 +634,9 @@ export async function buildFluxoOperacionalManual() {
 </head>
 <body>
   <div class="cover-banner">
-    <div class="cover-badge"><i class="fa-solid fa-hospital"></i> Health Nexus v2.8.0</div>
+    <div class="cover-badge"><i class="fa-solid fa-hospital"></i> Health Nexus v2.8.1</div>
     <h1>Manual de Fluxo Operacional & Jornada do Paciente</h1>
-    <p>Arquitetura de Processos Clínicos, Triagem Manchester, Chamadas de TV com Voz, CDSS e Regulação Hospitalar</p>
+    <p>Processos Clínicos, Triagem Manchester, Chamadas de TV com Voz, Apoio à Decisão e Regulação Hospitalar</p>
     <div>
       <a href="Manual_Fluxo_Operacional_Health_Nexus.pdf" class="btn-download-pdf" download>
         <i class="fa-solid fa-file-pdf"></i> Baixar Manual em PDF Oficial

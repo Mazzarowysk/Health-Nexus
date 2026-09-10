@@ -862,7 +862,7 @@ export async function rebuildAllManuals() {
     displayHeaderFooter: true,
     headerTemplate: `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 12mm; display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
-        <span>Health Nexus — Sistema de Gestão Hospitalar (v2.8.0)</span>
+        <span>Health Nexus — Sistema de Gestão Hospitalar (v2.8.1)</span>
         <span>Manual do Usuário Oficial</span>
       </div>`,
     footerTemplate: `

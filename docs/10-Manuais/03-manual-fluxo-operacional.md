@@ -1,6 +1,6 @@
 # Manual de Fluxo Operacional & Jornada Assistencial do Paciente
-## Arquitetura de Processos Clínicos, Triagem Manchester, Chamadas com Voz, CDSS e Regulação Hospitalar
-### Health Nexus v2.8.0 — Documentação Oficial de Engenharia Hospitalar & Gestão Clínica
+## Processos Clínicos, Triagem Manchester, Chamadas com Voz, Apoio à Decisão e Regulação Hospitalar
+### Health Nexus v2.8.1 — Documentação Operacional de Gestão Clínica & Hospitalar
 
 ---
 
