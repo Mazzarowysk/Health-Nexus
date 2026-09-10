@@ -818,8 +818,27 @@ export function renderAttendanceTab(contentArea) {
   };
 
   document.getElementById('triage-pa')?.addEventListener('input', e => {
-    let v = e.target.value.replace(/\D/g,'').substring(0,6);
-    e.target.value = v.length <= 3 ? v : v.slice(0,3)+'/'+v.slice(3);
+    let raw = e.target.value;
+    if (raw.includes('/')) {
+      const parts = raw.split('/');
+      const sys = parts[0].replace(/\D/g, '').slice(0, 3);
+      const dia = parts[1].replace(/\D/g, '').slice(0, 3);
+      e.target.value = (parts.length > 1 || raw.endsWith('/')) ? `${sys}/${dia}` : sys;
+    } else {
+      let digits = raw.replace(/\D/g, '').slice(0, 6);
+      if (digits.length === 4) {
+        const firstTwo = parseInt(digits.slice(0, 2), 10);
+        if (firstTwo >= 60 && firstTwo <= 99) {
+          e.target.value = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+        } else {
+          e.target.value = digits;
+        }
+      } else if (digits.length >= 5) {
+        e.target.value = `${digits.slice(0, 3)}/${digits.slice(3)}`;
+      } else {
+        e.target.value = digits;
+      }
+    }
     updateTriageMEWS();
   });
   document.getElementById('triage-temp')?.addEventListener('input', updateTriageMEWS);
