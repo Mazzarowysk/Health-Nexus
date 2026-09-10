@@ -1,4 +1,4 @@
-// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.8.0) ────────────────────────
+// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.8.1) ────────────────────────
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 
 // Normalizador de strings e remoção de acentos
@@ -1081,7 +1081,7 @@ export const manualData = [
   },
   {
     id: 'tiss',
-    title: 'Faturamento TISS / TUSS & ANS (v2.8.0)',
+    title: 'Faturamento TISS / TUSS & ANS (v2.8.1)',
     icon: 'fa-file-invoice-dollar',
     color: '#10b981',
     summary: 'Módulo completo de faturamento eletrônico de guias TISS 4.01.00, tabelas TUSS, auditoria anti-glosa e lote XML para operadoras.',

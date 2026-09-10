@@ -1,4 +1,4 @@
-// src/modules/pacsViewer.js — Visualizador PACS / DICOM Interativo no PEP (Health Nexus v2.8.0)
+// src/modules/pacsViewer.js — Visualizador PACS / DICOM Interativo no PEP (Health Nexus v2.8.1)
 
 export const MOCK_DICOM_STUDIES = [
   {

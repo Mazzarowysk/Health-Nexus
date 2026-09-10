@@ -1,4 +1,4 @@
-// src/tabs/tiss.js — Módulo de Faturamento TISS / TUSS & Auditoria ANS (Health Nexus v2.8.0)
+// src/tabs/tiss.js — Módulo de Faturamento TISS / TUSS & Auditoria ANS (Health Nexus v2.8.1)
 import * as localDB from '../localDB.js';
 import { showToast, showCustomAlert } from '../main.js';
 

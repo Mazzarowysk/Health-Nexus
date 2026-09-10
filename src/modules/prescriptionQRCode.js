@@ -1,4 +1,4 @@
-// src/modules/prescriptionQRCode.js — Geração de QRCode & Autenticador Digital CFM (Health Nexus v2.8.0)
+// src/modules/prescriptionQRCode.js — Geração de QRCode & Autenticador Digital CFM (Health Nexus v2.8.1)
 
 export function generatePrescriptionValidationHash(patientName, doctorName, prescriptionText, timestamp = Date.now()) {
   const rawStr = `${patientName}|${doctorName}|${prescriptionText}|${timestamp}|CFM-1821`;

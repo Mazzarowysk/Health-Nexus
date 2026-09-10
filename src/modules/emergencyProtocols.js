@@ -1,4 +1,4 @@
-// src/modules/emergencyProtocols.js — Protocolos de Emergência Aguda & Cronômetros Assistenciais (Health Nexus v2.8.0)
+// src/modules/emergencyProtocols.js — Protocolos de Emergência Aguda & Cronômetros Assistenciais (Health Nexus v2.8.1)
 
 export const EMERGENCY_PROTOCOLS_DEF = {
   IAM: {
