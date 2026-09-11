@@ -639,6 +639,25 @@ export const apiFetch = async (url, options = {}) => {
         const pId = patientId || (enc ? enc.patientId : null) || 'pat-' + Date.now();
         const pName = patientName || (enc ? enc.patientName : 'Paciente');
 
+        // Liberar automaticamente qualquer outro leito previamente ocupado pelo mesmo paciente
+        allBeds.forEach(oldBed => {
+          if (String(oldBed.id) !== String(bed.id)) {
+            const isSamePatient = (pId && oldBed.patientId && String(oldBed.patientId) === String(pId)) ||
+                                  (pName && oldBed.patientName && oldBed.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+            if (isSamePatient && oldBed.status === 'Ocupado') {
+              localDB.update('beds', oldBed.id, {
+                ...oldBed,
+                status: 'Higienizacao',
+                previousPatientName: oldBed.patientName || pName,
+                patientId: null,
+                patientName: null,
+                encounterId: null,
+                dischargedAt: new Date().toISOString()
+              });
+            }
+          }
+        });
+
         const updatedBed = {
           ...bed,
           status: 'Ocupado',
@@ -698,6 +717,25 @@ export const apiFetch = async (url, options = {}) => {
       const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
 
       if (bed) {
+        // Liberar automaticamente qualquer outro leito previamente ocupado pelo mesmo paciente
+        allBeds.forEach(oldBed => {
+          if (String(oldBed.id) !== String(bed.id)) {
+            const isSamePatient = (patientId && oldBed.patientId && String(oldBed.patientId) === String(patientId)) ||
+                                  (patientName && oldBed.patientName && oldBed.patientName.toLowerCase().trim() === patientName.toLowerCase().trim());
+            if (isSamePatient && oldBed.status === 'Ocupado') {
+              localDB.update('beds', oldBed.id, {
+                ...oldBed,
+                status: 'Higienizacao',
+                previousPatientName: oldBed.patientName || patientName,
+                patientId: null,
+                patientName: null,
+                encounterId: null,
+                dischargedAt: new Date().toISOString()
+              });
+            }
+          }
+        });
+
         const updatedBed = {
           ...bed,
           status: 'Ocupado',
@@ -774,52 +812,63 @@ export const apiFetch = async (url, options = {}) => {
         };
         localDB.update('beds', bed.id, updatedBed);
 
-        // Dar alta em todas as internações correspondentes
-        const hosps = localDB.list('hospitalizations') || [];
-        hosps.forEach(h => {
-          const matchBed = String(h.bed_id) === String(bed.id) || String(h.bedId) === String(bed.id) || 
-                           h.bed === bed.bedNumber || h.bed === bed.number ||
-                           (h.bed && bed.bedNumber && (h.bed.includes(bed.bedNumber) || bed.bedNumber.includes(h.bed))) ||
-                           (h.bed && bed.number && (h.bed.includes(bed.number) || bed.number.includes(h.bed)));
-          const matchPatient = (prevPatientId && (String(h.patient_id) === String(prevPatientId) || String(h.patientId) === String(prevPatientId))) ||
-                               (prevPatientName && h.patientName && h.patientName.toLowerCase() === prevPatientName.toLowerCase());
-          
-          if ((matchBed || matchPatient) && h.status !== 'Alta') {
-            localDB.update('hospitalizations', h.id, {
-              ...h,
-              status: 'Alta',
-              discharge_date: nowIso,
-              discharged_at: nowIso
-            });
-          }
-        });
+        // Verificar se o paciente ainda está ativo em outro leito antes de dar alta geral
+        const currentBeds = localDB.list('beds') || [];
+        const otherActiveBed = currentBeds.find(other => 
+          String(other.id) !== String(bed.id) && 
+          other.status === 'Ocupado' && 
+          ((prevPatientId && String(other.patientId) === String(prevPatientId)) ||
+           (prevPatientName && other.patientName && other.patientName.toLowerCase().trim() === prevPatientName.toLowerCase().trim()))
+        );
 
-        // Dar alta nos encounters ativos do paciente
-        if (prevPatientId || prevPatientName) {
-          const encs = localDB.list('encounters') || [];
-          encs.forEach(enc => {
-            const matchPatient = (prevPatientId && (String(enc.patientId) === String(prevPatientId) || String(enc.patient_id) === String(prevPatientId))) ||
-                                 (prevPatientName && enc.patientName && enc.patientName.toLowerCase() === prevPatientName.toLowerCase());
-            if (matchPatient && (enc.status === 'Internado' || enc.status === 'Em_Atendimento' || enc.status === 'Aguardando_Atendimento')) {
-              localDB.update('encounters', enc.id, {
-                ...enc,
-                status: 'Finalizado',
-                dischargeType: 'Alta Hospitalar',
-                discharged_at: nowIso,
-                completed_at: nowIso,
-                lastStatusUpdate: nowIso
+        // Dar alta em todas as internações correspondentes apenas se não estiver em outro leito
+        if (!otherActiveBed) {
+          const hosps = localDB.list('hospitalizations') || [];
+          hosps.forEach(h => {
+            const matchBed = String(h.bed_id) === String(bed.id) || String(h.bedId) === String(bed.id) || 
+                             h.bed === bed.bedNumber || h.bed === bed.number ||
+                             (h.bed && bed.bedNumber && (h.bed.includes(bed.bedNumber) || bed.bedNumber.includes(h.bed))) ||
+                             (h.bed && bed.number && (h.bed.includes(bed.number) || bed.number.includes(h.bed)));
+            const matchPatient = (prevPatientId && (String(h.patient_id) === String(prevPatientId) || String(h.patientId) === String(prevPatientId))) ||
+                                 (prevPatientName && h.patientName && h.patientName.toLowerCase() === prevPatientName.toLowerCase());
+            
+            if ((matchBed || matchPatient) && h.status !== 'Alta') {
+              localDB.update('hospitalizations', h.id, {
+                ...h,
+                status: 'Alta',
+                discharge_date: nowIso,
+                discharged_at: nowIso
               });
             }
           });
 
-          // Registrar anotação clínica de alta
-          localDB.insert('clinical_notes', {
-            id: 'NOTE-' + Math.floor(Math.random() * 1000000),
-            patientId: prevPatientId || 'pat-01',
-            text: `✅ Alta Hospitalar realizada no Leito ${bed.number || bed.bedNumber || bed.id}. Paciente liberado e leito encaminhado para Higienização.`,
-            created_at: nowIso,
-            author: 'Gestão de Leitos (Sistema)'
-          });
+          // Dar alta nos encounters ativos do paciente
+          if (prevPatientId || prevPatientName) {
+            const encs = localDB.list('encounters') || [];
+            encs.forEach(enc => {
+              const matchPatient = (prevPatientId && (String(enc.patientId) === String(prevPatientId) || String(enc.patient_id) === String(prevPatientId))) ||
+                                   (prevPatientName && enc.patientName && enc.patientName.toLowerCase() === prevPatientName.toLowerCase());
+              if (matchPatient && (enc.status === 'Internado' || enc.status === 'Em_Atendimento' || enc.status === 'Aguardando_Atendimento')) {
+                localDB.update('encounters', enc.id, {
+                  ...enc,
+                  status: 'Finalizado',
+                  dischargeType: 'Alta Hospitalar',
+                  discharged_at: nowIso,
+                  completed_at: nowIso,
+                  lastStatusUpdate: nowIso
+                });
+              }
+            });
+
+            // Registrar anotação clínica de alta
+            localDB.insert('clinical_notes', {
+              id: 'NOTE-' + Math.floor(Math.random() * 1000000),
+              patientId: prevPatientId || 'pat-01',
+              text: `✅ Alta Hospitalar realizada no Leito ${bed.number || bed.bedNumber || bed.id}. Paciente liberado e leito encaminhado para Higienização.`,
+              created_at: nowIso,
+              author: 'Gestão de Leitos (Sistema)'
+            });
+          }
         }
 
         responseData = { status: 'success', data: updatedBed, message: 'Alta concedida e leito encaminhado para higienização.' };
@@ -852,41 +901,51 @@ export const apiFetch = async (url, options = {}) => {
           };
           localDB.update('beds', bed.id, updatedBed);
 
-          // Se estava ocupado e foi para higienização/vago, dar alta nas internações
+          // Se estava ocupado e foi para higienização/vago, dar alta nas internações apenas se não houver outro leito ativo
           if (isClearingPatient && (prevPatientId || prevPatientName)) {
-            const hosps = localDB.list('hospitalizations') || [];
-            hosps.forEach(h => {
-              const matchBed = String(h.bed_id) === String(bed.id) || String(h.bedId) === String(bed.id) || 
-                               h.bed === bed.bedNumber || h.bed === bed.number ||
-                               (h.bed && bed.bedNumber && (h.bed.includes(bed.bedNumber) || bed.bedNumber.includes(h.bed))) ||
-                               (h.bed && bed.number && (h.bed.includes(bed.number) || bed.number.includes(h.bed)));
-              const matchPatient = (prevPatientId && (String(h.patient_id) === String(prevPatientId) || String(h.patientId) === String(prevPatientId))) ||
-                                   (prevPatientName && h.patientName && h.patientName.toLowerCase() === prevPatientName.toLowerCase());
-              if ((matchBed || matchPatient) && h.status !== 'Alta') {
-                localDB.update('hospitalizations', h.id, {
-                  ...h,
-                  status: 'Alta',
-                  discharge_date: nowIso,
-                  discharged_at: nowIso
-                });
-              }
-            });
+            const currentBeds = localDB.list('beds') || [];
+            const otherActiveBed = currentBeds.find(other => 
+              String(other.id) !== String(bed.id) && 
+              other.status === 'Ocupado' && 
+              ((prevPatientId && String(other.patientId) === String(prevPatientId)) ||
+               (prevPatientName && other.patientName && other.patientName.toLowerCase().trim() === prevPatientName.toLowerCase().trim()))
+            );
 
-            const encs = localDB.list('encounters') || [];
-            encs.forEach(enc => {
-              const matchPatient = (prevPatientId && (String(enc.patientId) === String(prevPatientId) || String(enc.patient_id) === String(prevPatientId))) ||
-                                   (prevPatientName && enc.patientName && enc.patientName.toLowerCase() === prevPatientName.toLowerCase());
-              if (matchPatient && (enc.status === 'Internado' || enc.status === 'Em_Atendimento')) {
-                localDB.update('encounters', enc.id, {
-                  ...enc,
-                  status: 'Finalizado',
-                  dischargeType: 'Alta Hospitalar',
-                  discharged_at: nowIso,
-                  completed_at: nowIso,
-                  lastStatusUpdate: nowIso
-                });
-              }
-            });
+            if (!otherActiveBed) {
+              const hosps = localDB.list('hospitalizations') || [];
+              hosps.forEach(h => {
+                const matchBed = String(h.bed_id) === String(bed.id) || String(h.bedId) === String(bed.id) || 
+                                 h.bed === bed.bedNumber || h.bed === bed.number ||
+                                 (h.bed && bed.bedNumber && (h.bed.includes(bed.bedNumber) || bed.bedNumber.includes(h.bed))) ||
+                                 (h.bed && bed.number && (h.bed.includes(bed.number) || bed.number.includes(h.bed)));
+                const matchPatient = (prevPatientId && (String(h.patient_id) === String(prevPatientId) || String(h.patientId) === String(prevPatientId))) ||
+                                     (prevPatientName && h.patientName && h.patientName.toLowerCase() === prevPatientName.toLowerCase());
+                if ((matchBed || matchPatient) && h.status !== 'Alta') {
+                  localDB.update('hospitalizations', h.id, {
+                    ...h,
+                    status: 'Alta',
+                    discharge_date: nowIso,
+                    discharged_at: nowIso
+                  });
+                }
+              });
+
+              const encs = localDB.list('encounters') || [];
+              encs.forEach(enc => {
+                const matchPatient = (prevPatientId && (String(enc.patientId) === String(prevPatientId) || String(enc.patient_id) === String(prevPatientId))) ||
+                                     (prevPatientName && enc.patientName && enc.patientName.toLowerCase() === prevPatientName.toLowerCase());
+                if (matchPatient && (enc.status === 'Internado' || enc.status === 'Em_Atendimento')) {
+                  localDB.update('encounters', enc.id, {
+                    ...enc,
+                    status: 'Finalizado',
+                    dischargeType: 'Alta Hospitalar',
+                    discharged_at: nowIso,
+                    completed_at: nowIso,
+                    lastStatusUpdate: nowIso
+                  });
+                }
+              });
+            }
           }
 
           responseData = { status: 'success', data: updatedBed };

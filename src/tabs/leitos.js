@@ -187,6 +187,73 @@ async function renderLeitosTab() {
           }
         });
 
+        // Auto-reconciliação: Sanitizar qualquer leito duplicado para o mesmo paciente
+        const occupiedByPatient = {};
+        beds.forEach(b => {
+          if (b.status === 'Ocupado' && b.patientName) {
+            const key = b.patientName.toLowerCase().trim();
+            if (!occupiedByPatient[key]) occupiedByPatient[key] = [];
+            occupiedByPatient[key].push(b);
+          }
+        });
+
+        for (const key in occupiedByPatient) {
+          const pBeds = occupiedByPatient[key];
+          if (pBeds.length > 1) {
+            // Identificar o leito oficial:
+            // 1º: Leito correspondente ao contexto ativo do paciente
+            // 2º: Leito vinculado no encounter ou hospitalization ativa
+            // 3º: Leito com admittedAt mais recente
+            let officialBed = null;
+            if (activePat && (activePat.fullName || activePat.patientName || '').toLowerCase().trim() === key) {
+              officialBed = pBeds.find(b => 
+                (activePatBedId && (String(b.id) === activePatBedId || b.bedNumber === activePatBedId || b.number === activePatBedId)) ||
+                (activePat.bedId && String(b.id) === String(activePat.bedId)) ||
+                (activePat.bed && (b.bedNumber === activePat.bed || b.number === activePat.bed)) ||
+                (activePat.bedNumber && (b.bedNumber === activePat.bedNumber || b.number === activePat.bedNumber))
+              );
+            }
+
+            if (!officialBed) {
+              officialBed = pBeds.find(b => {
+                const bNum = b.bedNumber || b.number;
+                const matchEnc = encList.some(e => (e.status === 'Internado' || e.status === 'Em_Atendimento') && (String(e.bedId) === String(b.id) || e.bed === bNum));
+                const matchHosp = activeHosps.some(h => String(h.bed_id) === String(b.id) || h.bed === bNum);
+                return matchEnc || matchHosp;
+              });
+            }
+
+            if (!officialBed) {
+              // Em caso de empate, manter o leito com o admittedAt mais recente ou o primeiro
+              officialBed = pBeds.sort((a, b) => new Date(b.admittedAt || 0) - new Date(a.admittedAt || 0))[0] || pBeds[0];
+            }
+
+            // Liberar leitos residuais/duplicados para Higienização
+            pBeds.forEach(b => {
+              if (b !== officialBed) {
+                console.warn(`[Leitos] Duplicidade detectada para ${b.patientName}. Liberando leito anterior ${b.bedNumber || b.number} (Leito oficial mantido: ${officialBed.bedNumber || officialBed.number}).`);
+                b.status = 'Higienizacao';
+                b.previousPatientName = b.patientName;
+                b.patientId = null;
+                b.patientName = null;
+                b.encounterId = null;
+                b.dischargedAt = new Date().toISOString();
+
+                if (typeof localDB !== 'undefined' && localDB.update) {
+                  localDB.update('beds', b.id, {
+                    ...b,
+                    status: 'Higienizacao',
+                    patientId: null,
+                    patientName: null,
+                    encounterId: null,
+                    dischargedAt: new Date().toISOString()
+                  });
+                }
+              }
+            });
+          }
+        }
+
         // Buscar Fila de Internação
         const queue = encList.filter(e => e.status === 'Aguardando_Leito');
         const queueContainer = document.getElementById('internacao-queue-container');
@@ -874,6 +941,9 @@ window.openBedDetailsModal = async function(bedId) {
                     </button>
                     <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal('${bed.patientId || bed.patientName}', '${(bed.patientName||'').replace(/'/g, "\\'")}');">
                       <i class="fa-solid fa-timeline"></i> Ver Jornada Completa
+                    </button>
+                    <button class="btn" style="background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('bed-details-modal').remove(); window.updateBedStatus('${bed.id}', 'Higienizacao');" title="Desocupar este leito e enviar para higienização sem cancelar atendimento geral do paciente">
+                      <i class="fa-solid fa-broom"></i> Desocupar p/ Higienização
                     </button>
                     <button class="btn" style="background: linear-gradient(135deg, #be5a6e, #9e3a52); border: none; color: #fff; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-left: auto;" onclick="document.getElementById('bed-details-modal').remove(); window.dischargeBed('${bed.id}');">
                       <i class="fa-solid fa-door-open"></i> Dar Alta Hospitalar

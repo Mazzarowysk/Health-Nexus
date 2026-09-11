@@ -1339,7 +1339,7 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 };
 
 // 3. MODAL DE TRANSFERÊNCIA DE LEITO (SUBIR PARA INTERNAÇÃO)
-window.openTransferBedModal = async function(encounterId, patientName) {
+window.openTransferBedModal = async function(encounterId, patientName, clinicalContext = {}) {
   const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
   const realPatientName = (patientName && patientName !== 'Paciente') 
     ? patientName 
@@ -1355,6 +1355,59 @@ window.openTransferBedModal = async function(encounterId, patientName) {
     });
   }
 
+  const encounters = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('encounters') || []) : [];
+  const enc = encounters.find(e => 
+    String(e.id) === String(encounterId) || 
+    (realPatientName && e.patientName && e.patientName.toLowerCase().trim() === realPatientName.toLowerCase().trim())
+  ) || {};
+
+  const manchesterColor = clinicalContext.manchesterColor || enc.manchesterColor || (activeCtx ? activeCtx.manchesterColor : 'Amarelo') || 'Amarelo';
+  const cidOrDiagnosis = clinicalContext.cid || clinicalContext.assessmentContent || enc.assessmentContent || enc.cid || (activeCtx ? activeCtx.cid : '') || 'Internação indicada por conduta médica';
+  const planNotes = clinicalContext.planContent || enc.planContent || (activeCtx ? activeCtx.planContent : '') || 'Acomodação em leito hospitalar para monitoramento e suporte clínico.';
+
+  const manchesterMap = {
+    Vermelho: { bg: '#ef4444', text: '#fff', label: 'Emergência (Imediato)', icon: 'fa-triangle-exclamation' },
+    Laranja: { bg: '#f97316', text: '#fff', label: 'Muito Urgente (10 min)', icon: 'fa-circle-exclamation' },
+    Amarelo: { bg: '#eab308', text: '#000', label: 'Urgente (60 min)', icon: 'fa-circle-info' },
+    Verde: { bg: '#22c55e', text: '#fff', label: 'Pouco Urgente (120 min)', icon: 'fa-circle-check' },
+    Azul: { bg: '#3b82f6', text: '#fff', label: 'Não Urgente (240 min)', icon: 'fa-circle' }
+  };
+  const mInfo = manchesterMap[manchesterColor] || manchesterMap.Amarelo;
+
+  // Detecção inteligente de setor sugerido baseado no quadro clínico
+  const textCheck = (cidOrDiagnosis + ' ' + planNotes + ' ' + (enc.notes || '')).toLowerCase();
+  let suggestedSector = 'Enfermaria';
+  let sectorBadgeBg = 'rgba(56, 189, 248, 0.15)';
+  let sectorBadgeColor = '#38bdf8';
+  let sectorIcon = 'fa-bed';
+  
+  if (textCheck.includes('uti') || textCheck.includes('choque') || textCheck.includes('sepse') || textCheck.includes('infarto') || textCheck.includes('intub') || textCheck.includes('grave') || manchesterColor === 'Vermelho') {
+    suggestedSector = 'UTI Adulto';
+    sectorBadgeBg = 'rgba(239, 68, 68, 0.18)';
+    sectorBadgeColor = '#f87171';
+    sectorIcon = 'fa-heart-pulse';
+  } else if (textCheck.includes('pediat') || textCheck.includes('criança') || textCheck.includes('utip')) {
+    suggestedSector = 'Pediatria';
+    sectorBadgeBg = 'rgba(244, 114, 182, 0.18)';
+    sectorBadgeColor = '#f472b6';
+    sectorIcon = 'fa-child-reaching';
+  } else if (textCheck.includes('isolar') || textCheck.includes('isolamento') || textCheck.includes('covid') || textCheck.includes('tuberculose')) {
+    suggestedSector = 'Isolamento';
+    sectorBadgeBg = 'rgba(251, 191, 36, 0.18)';
+    sectorBadgeColor = '#fbbf24';
+    sectorIcon = 'fa-shield-virus';
+  } else if (textCheck.includes('gestan') || textCheck.includes('parto') || textCheck.includes('materni')) {
+    suggestedSector = 'Maternidade';
+    sectorBadgeBg = 'rgba(232, 121, 249, 0.18)';
+    sectorBadgeColor = '#e879f9';
+    sectorIcon = 'fa-baby';
+  } else if (textCheck.includes('observa') || textCheck.includes('12h')) {
+    suggestedSector = 'Observação';
+    sectorBadgeBg = 'rgba(167, 139, 250, 0.18)';
+    sectorBadgeColor = '#a78bfa';
+    sectorIcon = 'fa-clock';
+  }
+
   let modal = document.getElementById('modal-transfer-bed-drawer');
   if (!modal) {
     modal = document.createElement('div');
@@ -1365,37 +1418,85 @@ window.openTransferBedModal = async function(encounterId, patientName) {
   }
 
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 550px; width: 95vw; padding: 24px; border-radius: 16px;">
-      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); display: flex; align-items: center; justify-content: center; color: #f87171;">
-            <i class="fa-solid fa-bed-pulse" style="font-size: 1.15rem;"></i>
+    <div class="modal-content" style="max-width: 600px; width: 95vw; padding: 26px; border-radius: 20px; background: var(--bg-secondary, #121026); border: 1.5px solid rgba(99,102,241,0.4); box-shadow: 0 25px 70px rgba(0,0,0,0.75);">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(2,132,199,0.2), rgba(99,102,241,0.2)); border: 1px solid rgba(56,189,248,0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.3rem;">
+            <i class="fa-solid fa-bed-pulse"></i>
           </div>
           <div>
-            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Subir para Internação</h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Transferir paciente do PS para Leito Hospitalar</span>
+            <h3 style="margin: 0; font-size: 1.22rem; font-weight: 800; color: #ffffff;">Alocação &amp; Internação em Leito</h3>
+            <span style="font-size: 0.82rem; color: #94a3b8;">Transferência clínica do paciente para acomodação hospitalar</span>
           </div>
         </div>
-        <button class="btn-close" onclick="document.getElementById('modal-transfer-bed-drawer').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+        <button class="btn-close" onclick="document.getElementById('modal-transfer-bed-drawer').style.display='none'" style="background: rgba(255,255,255,0.08); border: none; color: #94a3b8; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="modal-body">
-        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
-          <div style="font-size: 0.82rem; color: var(--text-muted);">Paciente em Transferência:</div>
-          <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">${realPatientName}</div>
+        <!-- Card Paciente em Foco com Contexto Clínico -->
+        <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.7), rgba(15, 23, 42, 0.8)); border: 1.5px solid rgba(56, 189, 248, 0.4); border-left: 5px solid ${mInfo.bg}; border-radius: 14px; padding: 18px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); position: relative;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+            <div>
+              <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: #38bdf8; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; animation: pulse 1.5s infinite;"></span>
+                ⚡ Paciente em Foco para Internação
+              </div>
+              <div style="font-size: 1.3rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-hospital-user" style="color: #38bdf8; font-size: 1.15rem;"></i> ${realPatientName}
+              </div>
+            </div>
+
+            <!-- Badge Manchester -->
+            <span style="background: ${mInfo.bg}; color: ${mInfo.text}; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+              <i class="fa-solid ${mInfo.icon}"></i> Triagem ${manchesterColor}
+            </span>
+          </div>
+
+          <!-- Quadro Clínico Resumido -->
+          <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 0.84rem; color: #e2e8f0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <strong style="color: #a5b4fc;"><i class="fa-solid fa-stethoscope"></i> Diagnóstico / Hipótese:</strong> 
+              <span style="color: #ffffff; font-weight: 600;">${cidOrDiagnosis}</span>
+            </div>
+            ${planNotes ? `
+              <div style="font-size: 0.78rem; color: #94a3b8; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <strong style="color: #cbd5e1;"><i class="fa-solid fa-notes-medical"></i> Conduta PEP:</strong> 
+                <span>${planNotes}</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Indicação Clínica Recomendada -->
+          <div style="display: flex; align-items: center; gap: 8px; background: ${sectorBadgeBg}; border: 1px solid ${sectorBadgeColor}; border-radius: 10px; padding: 8px 12px; font-size: 0.82rem; font-weight: 700; color: #ffffff;">
+            <i class="fa-solid ${sectorIcon}" style="color: ${sectorBadgeColor}; font-size: 1rem;"></i>
+            <span>Setor Clínico Recomendado: <strong style="color: ${sectorBadgeColor};">${suggestedSector}</strong></span>
+          </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 20px;">
-          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 8px;">Selecione o Leito Vago *</label>
-          <select id="transfer-bed-select" class="form-input" style="width: 100%; font-size: 0.9rem; padding: 10px;">
-            <option value="">Carregando leitos vagos...</option>
+        <!-- Seletor de Leitos Inteligente -->
+        <div class="form-group" style="margin-bottom: 22px;">
+          <label style="font-size: 0.88rem; font-weight: 700; color: #ffffff; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span><i class="fa-solid fa-bed" style="color: #38bdf8;"></i> Selecione o Leito Hospitalar Disponível *</span>
+            <span id="transfer-beds-count-badge" style="font-size: 0.74rem; color: #4ade80; font-weight: 600;"></span>
+          </label>
+          <select id="transfer-bed-select" class="form-input" style="width: 100%; font-size: 0.92rem; padding: 12px; border-radius: 10px; background: #19142c; color: #ffffff; border: 1.5px solid rgba(99,102,241,0.4);">
+            <option value="">Carregando leitos disponíveis...</option>
           </select>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 6px;">
+            <i class="fa-solid fa-circle-info" style="color: #38bdf8;"></i> Os leitos indicados para o quadro clínico do paciente aparecem priorizados no topo.
+          </div>
         </div>
 
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button class="btn btn-secondary" onclick="document.getElementById('modal-transfer-bed-drawer').style.display='none'">Cancelar</button>
-          <button class="btn btn-primary" id="btn-confirm-transfer-bed" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">
-            <i class="fa-solid fa-bed"></i> Confirmar Internação
+        <!-- Botões de Ação -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button class="btn btn-secondary" onclick="document.getElementById('modal-transfer-bed-drawer').style.display='none'" style="padding: 10px 20px; border-radius: 10px; font-weight: 600;">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" id="btn-confirm-transfer-bed" style="background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px 24px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 4px 16px rgba(16,185,129,0.35); display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-bed"></i> Confirmar Internação &amp; Alocar Leito ➔
           </button>
         </div>
       </div>
@@ -1427,11 +1528,18 @@ window.openTransferBedModal = async function(encounterId, patientName) {
 
       let vagoBeds = beds.filter(b => b.status === 'Vago');
 
+      // Ordenar leitos colocando os do setor recomendado no topo
+      vagoBeds.sort((a, b) => {
+        const aIsMatch = (a.sector === suggestedSector || (a.type && a.type.includes(suggestedSector))) ? 1 : 0;
+        const bIsMatch = (b.sector === suggestedSector || (b.type && b.type.includes(suggestedSector))) ? 1 : 0;
+        if (bIsMatch !== aIsMatch) return bIsMatch - aIsMatch;
+        return (a.bedNumber || a.number || '').localeCompare(b.bedNumber || b.number || '');
+      });
+
       if (vagoBeds.length === 0) {
         select.innerHTML = '<option value="">Nenhum leito vago disponível no momento</option>';
         confirmBtn.disabled = true;
 
-        // Se a lista de leitos no banco continuar vazia ou sem vagas, injeta o botão de carregar leitos padrão
         let actionBox = document.getElementById('bed-modal-auto-seed-box');
         if (!actionBox) {
           actionBox = document.createElement('div');
@@ -1461,8 +1569,23 @@ window.openTransferBedModal = async function(encounterId, patientName) {
         const autoBox = document.getElementById('bed-modal-auto-seed-box');
         if (autoBox) autoBox.remove();
 
-        select.innerHTML = '<option value="">Escolha o leito de internação...</option>' + 
-          vagoBeds.map(b => `<option value="${b.id}">Leito ${b.bedNumber} — Setor: ${b.sector} (${b.ward || b.type || 'Internação'})</option>`).join('');
+        select.innerHTML = '<option value="">Selecione o leito...</option>' + 
+          vagoBeds.map(b => {
+            const isMatch = (b.sector === suggestedSector || (b.type && b.type.includes(suggestedSector)));
+            const tag = isMatch ? '⭐ [INDICADO] ' : '';
+            return `<option value="${b.id}">${tag}Leito ${b.bedNumber || b.number} — Setor: ${b.sector} (${b.ward || b.type || 'Geral'})</option>`;
+          }).join('');
+
+        // Pré-selecionar o primeiro leito recomendado se existir
+        const firstMatch = vagoBeds.find(b => b.sector === suggestedSector || (b.type && b.type.includes(suggestedSector)));
+        if (firstMatch) {
+          select.value = firstMatch.id;
+        } else if (vagoBeds.length > 0) {
+          select.value = vagoBeds[0].id;
+        }
+
+        const countBadge = document.getElementById('transfer-beds-count-badge');
+        if (countBadge) countBadge.textContent = `${vagoBeds.length} leito(s) vago(s)`;
       }
     } catch(e) {
       console.error('Erro ao carregar leitos vagos:', e);
@@ -1480,7 +1603,7 @@ window.openTransferBedModal = async function(encounterId, patientName) {
       const res = await apiFetch(`/api/encounters/${encounterId}/transfer-to-bed`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bedId, patientName })
+        body: JSON.stringify({ bedId, patientName: realPatientName })
       });
       if (res.ok) {
         modal.style.display = 'none';
@@ -1495,14 +1618,14 @@ window.openTransferBedModal = async function(encounterId, patientName) {
           invalidateCacheForUrl('/api/encounters');
         }
 
-        window._highlightPatientName = patientName;
+        window._highlightPatientName = realPatientName;
 
         if (typeof window.setActivePatientContext === 'function') {
           const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : {};
           window.setActivePatientContext({
             ...curCtx,
-            fullName: patientName,
-            patientName: patientName,
+            fullName: realPatientName,
+            patientName: realPatientName,
             status: 'Internado',
             bed: bedNum,
             bedNumber: bedNum,
@@ -1512,24 +1635,32 @@ window.openTransferBedModal = async function(encounterId, patientName) {
           });
         }
 
+        // Navega diretamente e suavemente para o Mapa de Leitos
+        if (typeof window.switchTab === 'function') {
+          window.switchTab('leitos');
+        }
+
+        // Atualiza a notificação do Guia Flutuante diretamente para a fase de Leitos
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: `Internação Confirmada (${bedNum})`,
-            message: `O paciente <strong>${patientName}</strong> foi acomodado com sucesso no Leito ${bedNum} (${bedSec}).`,
+            actionTitle: `Acomodado no Leito ${bedNum}`,
+            message: `O paciente <strong>${realPatientName}</strong> foi acomodado com sucesso no Leito ${bedNum} (${bedSec}). Prossiga com a evolução diária no PEP.`,
             targetTab: 'leitos',
-            targetTabLabel: 'Gestão de Leitos',
-            targetPatientName: patientName,
+            targetTabLabel: 'Evolução no PEP',
+            targetPatientName: realPatientName,
             targetStatus: 'Internado',
             bedId: bedObj ? bedObj.id : bedId,
-            bedNumber: bedNum,
-            autoSwitch: true
+            bedNumber: bedNum
           });
         } else {
-          showToast(`🛌 Paciente ${patientName} acomodado(a) no Leito ${bedNum}!`);
-          if (typeof switchTab === 'function') {
-            switchTab('leitos');
-          }
+          showToast(`🛌 Paciente ${realPatientName} acomodado(a) no Leito ${bedNum}!`);
         }
+
+        setTimeout(() => {
+          if (typeof window.executePatientHighlight === 'function') {
+            window.executePatientHighlight(realPatientName);
+          }
+        }, 300);
       }
     } catch(e) {
       alert('Erro ao transferir leito.');

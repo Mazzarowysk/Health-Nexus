@@ -2858,19 +2858,31 @@ async function savePEPData(encounterId, shouldFinalize) {
         _createContinuationEncounter('Internação');
         const modal = document.getElementById('pep-modal');
         if (modal) modal.remove();
+
+        const clinicalContext = {
+          assessmentContent,
+          planContent,
+          subjectiveContent,
+          objectiveContent,
+          manchesterColor: enc.manchesterColor || (activeCtx ? activeCtx.manchesterColor : null) || 'Amarelo',
+          cid: assessmentContent || enc.cid || (activeCtx ? activeCtx.cid : '') || 'Internação solicitada pelo médico assistente',
+          encounterId: encounterId
+        };
         
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: 'Solicitação de Internação',
-            message: `O prontuário foi assinado. O paciente <strong>${patientName}</strong> requer internação. Selecione o Leito Vago a seguir para concluir a transferência.`,
+            actionTitle: 'Aguardando Alocação no Leito',
+            message: `O prontuário foi assinado. O paciente <strong>${patientName}</strong> requer internação. Selecione o Leito Vago no modal para concluir a acomodação.`,
             targetTab: 'leitos',
-            targetTabLabel: 'Gestão de Leitos (Transferência)',
+            targetTabLabel: 'Alocar Leito no Modal',
             targetPatientName: patientName,
+            actionType: 'transfer_bed',
+            encounterId: encounterId,
             persistent: true
           });
         }
         if (typeof window.openTransferBedModal === 'function') {
-          window.openTransferBedModal(encounterId, patientName);
+          window.openTransferBedModal(encounterId, patientName, clinicalContext);
         }
         return;
       } else {

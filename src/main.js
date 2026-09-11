@@ -1193,6 +1193,19 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         }
       }
 
+      // Se for ação de transferência / alocação de leito hospitalar
+      if (act.actionType === 'transfer_bed') {
+        const modal = document.getElementById('modal-transfer-bed-drawer');
+        if (modal && modal.style.display !== 'none') {
+          modal.querySelector('.modal-content')?.classList.add('patient-spotlight-glow');
+          setTimeout(() => modal.querySelector('.modal-content')?.classList.remove('patient-spotlight-glow'), 1200);
+          return;
+        } else if (typeof window.openTransferBedModal === 'function') {
+          window.openTransferBedModal(act.encounterId, act.targetPatientName);
+          return;
+        }
+      }
+
       // 2. Se for ação de admitir paciente na Central de Atendimentos
       if (act.actionType === 'admit_patient' || (act.targetTab === 'atendimento' && act.targetPatientId && !act.targetStatus)) {
         if (typeof window.admitPatientFromPatientsTab === 'function') {
