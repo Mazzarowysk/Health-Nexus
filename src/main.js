@@ -535,7 +535,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       effectivePatient.status = 'Internado';
     }
 
-    if (patLoc && patLoc.text) {
+    if (patLoc && patLoc.text && !patLoc.text.includes('Fora da Unidade')) {
       locationIcon = (patLoc.icon && patLoc.icon.includes('bed')) ? '🛏️' : '📍';
       locationLabel = patLoc.text;
     } else if (effectivePatient.bed || effectivePatient.bedNumber || effectivePatient.bedId) {
@@ -547,6 +547,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     } else if (effectivePatient.status === 'Aguardando_Leito') {
       locationIcon = '⏳';
       locationLabel = 'Fila de Internação (Aguardando Leito)';
+    } else if (effectivePatient.status === 'Aguardando_Triagem' || (!effectivePatient.manchesterColor && effectivePatient.status !== 'Internado')) {
+      locationIcon = '🩺';
+      locationLabel = 'Recepção / Aguardando Triagem';
     } else if (effectivePatient.room || effectivePatient.roomName) {
       // Em consultório / sala específica
       locationIcon = '🚪';
@@ -674,16 +677,16 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
         const firstName = safePName.split(' ')[0];
         const safePNameEsc = safePName.replace(/'/g, "\\'");
-        stepTitle = '📺 Chamar ' + firstName + ' no Painel TV (Sala de Triagem)';
-        stepDesc = 'Paciente ' + safePName + ' acolhido e aguardando na recepção! O próximo passo assistencial é convocá-lo pelo Painel TV para comparecer à Sala de Triagem Manchester.';
-        targetTab = 'tv_panel';
-        btnText = '📺 Chamar ' + firstName + ' na TV (Triagem) ➔';
+        stepTitle = '🩺 Realizar Triagem Manchester de ' + firstName;
+        stepDesc = 'Paciente ' + safePName + ' acolhido(a) na Sala de Triagem! Aferir sinais vitais (PA, FC, SpO2, Temp) e definir a classificação de gravidade Manchester.';
+        targetTab = 'atendimento';
+        btnText = '🩺 Abrir Triagem de ' + firstName + ' ➔';
         btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'Verde\', \'Sala de Triagem\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openAttendanceTriage===\'function\'){ window.openAttendanceTriage(\'' + safePNameEsc + '\'); } else { window.switchTab(\'atendimento\'); }" style="padding:8px 10px;background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🩺</span> Abrir Triagem</button>'
+          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'Verde\', \'Sala de Triagem\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.18);border:1px solid rgba(168,85,247,0.4);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
-          + '<button onclick="if(typeof window.openAttendanceTriage===\'function\'){ window.openAttendanceTriage(\'' + safePNameEsc + '\'); } else { window.switchTab(\'atendimento\'); }" style="padding:8px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-          + '<span>🩺</span> Iniciar Triagem</button>'
           + '</div>';
       } else if (mColor === 'vermelho' || mColor === 'laranja') {
         const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
@@ -1102,8 +1105,14 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       mainActionClick = `if(typeof window.openPEPModal === 'function') window.openPEPModal('${safePNameEsc}'); else window.switchTab('consultorios');`;
     } else if (_SFG.activeTab === 'tv_panel' && activePatient) {
       const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
-      const safeRoom = activePatient.room || 'Consultório 01';
-      mainActionClick = `if(typeof window.openDoctorConsultingRoom === 'function') window.openDoctorConsultingRoom('${safeRoom}', '${safePNameEsc}'); else window.switchTab('consultorios');`;
+      const pStatus = (activePatient.status || '').toLowerCase().trim();
+      const isTriaged = !!(activePatient.manchesterColor || ['aguardando_atendimento', 'aguardando atendimento', 'triado', 'em_atendimento', 'em atendimento'].includes(pStatus));
+      if (isTriaged) {
+        const safeRoom = activePatient.room || 'Consultório 01';
+        mainActionClick = `if(typeof window.openDoctorConsultingRoom === 'function') window.openDoctorConsultingRoom('${safeRoom}', '${safePNameEsc}'); else window.switchTab('consultorios');`;
+      } else {
+        mainActionClick = `if(typeof window.openAttendanceTriage === 'function') window.openAttendanceTriage('${safePNameEsc}'); else window.switchTab('atendimento');`;
+      }
     } else if (_SFG.activeTab === 'leitos' && activePatient) {
       const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
       mainActionClick = `if(typeof window.openPEPModal === 'function') window.openPEPModal('${safePNameEsc}'); else window.switchTab('leitos');`;
@@ -1334,6 +1343,16 @@ window.ensureSmartFlowGuideMounted = function(forcedTab) {
 };
 
 window.openAttendanceTriage = function(patientName) {
+  if (patientName && typeof window.setActivePatientContext === 'function') {
+    window.setActivePatientContext({
+      fullName: patientName,
+      patientName: patientName,
+      status: 'Aguardando_Triagem',
+      currentStep: 3,
+      room: 'Sala de Triagem'
+    });
+  }
+
   if (typeof window.switchTab === 'function') {
     window.switchTab('atendimento');
   }
@@ -1347,7 +1366,8 @@ window.openAttendanceTriage = function(patientName) {
       const targetParts = cleanTarget.split(' ').filter(Boolean);
       const firstName = targetParts[0] || cleanTarget;
 
-      const cards = Array.from(document.querySelectorAll('.patient-card-item'));
+      const triageCol = document.getElementById('col-triage');
+      const cards = triageCol ? Array.from(triageCol.querySelectorAll('.patient-card-item')) : Array.from(document.querySelectorAll('.patient-card-item'));
       let card = cards.find(el => {
         const cardAttr = removeAccents((el.getAttribute('data-patient-card-name') || '').toLowerCase());
         const cardText = removeAccents((el.textContent || '').toLowerCase());
@@ -1357,6 +1377,12 @@ window.openAttendanceTriage = function(patientName) {
       });
 
       if (card) {
+        const encId = card.getAttribute('data-enc-id');
+        if (encId && typeof window.openTriageModal === 'function') {
+          clearInterval(checkInterval);
+          window.openTriageModal(encId, patientName);
+          return;
+        }
         const btnTriar = card.querySelector('.btn-triar, .btn-triage, [data-action="triage"]');
         if (btnTriar) {
           clearInterval(checkInterval);
@@ -1366,8 +1392,8 @@ window.openAttendanceTriage = function(patientName) {
       }
     } else {
       // Nenhum paciente específico solicitado: seleciona o primeiro disponível
-      const anyBtn = document.querySelector('.btn-triar, .btn-triage');
-      if (anyBtn && tries > 3) {
+      const anyBtn = document.querySelector('#col-triage .btn-triar, .btn-triar, .btn-triage');
+      if (anyBtn && tries > 2) {
         clearInterval(checkInterval);
         anyBtn.click();
         return;
@@ -1991,6 +2017,12 @@ export function showFlowCompletionNotification(options = {}) {
             window.openTVCallModal(targetPatientName, mCol, destRoom);
           }
         }, 300);
+      } else if (actionType === 'start_triage' || (targetTab === 'atendimento' && targetPatientName)) {
+        setTimeout(() => {
+          if (typeof window.openAttendanceTriage === 'function') {
+            window.openAttendanceTriage(targetPatientName);
+          }
+        }, 350);
       }
     }, 700);
   }

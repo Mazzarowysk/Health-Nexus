@@ -753,7 +753,7 @@ export function renderAttendanceTab(contentArea) {
       return;
     }
 
-    setActivePatientContext({ id, fullName: name, patientName: name, manchesterColor: 'Amarelo', status: 'Aguardando_Triagem', currentStep: 2 });
+    setActivePatientContext({ id, fullName: name, patientName: name, manchesterColor: 'Amarelo', status: 'Aguardando_Triagem', currentStep: 3, room: 'Sala de Triagem' });
     const stepperContainer = document.getElementById('atd-journey-stepper-container');
     if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'triagem');
 
@@ -766,6 +766,7 @@ export function renderAttendanceTab(contentArea) {
 
     document.getElementById('triage-modal').style.display = 'flex';
   };
+  window.openTriageModal = openTriageModal;
   const closeTriageModal = () => { document.getElementById('triage-modal').style.display = 'none'; document.getElementById('triage-form').reset(); };
   document.getElementById('close-triage-modal')?.addEventListener('click', closeTriageModal);
   document.getElementById('btn-cancel-triage')?.addEventListener('click', closeTriageModal);

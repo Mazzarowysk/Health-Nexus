@@ -236,14 +236,22 @@ window.loadTVWaitingQueue = async function() {
         </div>
       </div>
 
-      <div style="flex-shrink:0;text-align:right;">
-        <span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;display:block;margin-bottom:4px;">#${String(idx+1).padStart(2,'0')}</span>
-        <button type="button"
-                onclick="event.stopPropagation(); window._tvQuickCall('${safeName}','${safeColor}')"
-                class="${isSelected ? 'btn-tv-call-pulsing' : 'btn-tv-call-standard'}"
-                style="${isSelected ? '' : 'background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.45);color:#d8b4fe;padding:6px 12px;border-radius:16px;font-weight:700;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;gap:5px;'}">
-          <i class="fa-solid fa-bullhorn ${isSelected ? 'fa-bounce' : ''}"></i> ${isSelected ? 'CHAMAR NA TV' : 'Chamar'}
-        </button>
+      <div style="flex-shrink:0;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+        <span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;display:block;">#${String(idx+1).padStart(2,'0')}</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button type="button"
+                  onclick="event.stopPropagation(); window._tvQuickCall('${safeName}','${safeColor}')"
+                  class="${isSelected ? 'btn-tv-call-pulsing' : 'btn-tv-call-standard'}"
+                  style="${isSelected ? '' : 'background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.45);color:#d8b4fe;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;'}">
+            <i class="fa-solid fa-bullhorn ${isSelected ? 'fa-bounce' : ''}"></i> ${isSelected ? 'CHAMAR' : 'Chamar'}
+          </button>
+          <button type="button"
+                  onclick="event.stopPropagation(); if(typeof window.openAttendanceTriage==='function'){ window.openAttendanceTriage('${safeName}'); } else { window.switchTab('atendimento'); }"
+                  style="background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.45);color:#6ee7b7;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;"
+                  title="Abrir Triagem Manchester para este paciente">
+            <i class="fa-solid fa-user-nurse"></i> Triagem
+          </button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -336,14 +344,27 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
       }
     }
 
-    showCustomAlert({ title: 'Chamada Emitida!', message: `📢 ${cleanName} → ${roomName}`, type: 'success' });
+    showToast(`📢 ${cleanName} convocado(a) no Painel TV para ${roomName}!`);
+
+    const isTriageRoom = (roomName || '').toLowerCase().includes('triag');
+    const firstName = cleanName.split(' ')[0];
+
+    if (typeof window.setActivePatientContext === 'function') {
+      window.setActivePatientContext({
+        fullName: cleanName,
+        patientName: cleanName,
+        status: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',
+        currentStep: isTriageRoom ? 3 : 4,
+        room: roomName,
+        tvCalled: true
+      });
+    }
+
     if (typeof window.showFlowCompletionNotification === 'function') {
-      const isTriageRoom = (roomName || '').toLowerCase().includes('triag');
-      const firstName = cleanName.split(' ')[0];
       window.showFlowCompletionNotification({
-        actionTitle: isTriageRoom ? `🩺 Chamada Emitida para Triagem!` : `📢 Chamada Emitida no Painel TV!`,
+        actionTitle: isTriageRoom ? `🩺 Conduzindo Paciente para Triagem!` : `📢 Chamada Emitida no Painel TV!`,
         message: isTriageRoom
-          ? `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir a Triagem Manchester e aferir os sinais vitais!</strong>`
+          ? `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>Direcionando para a <strong>Sala de Triagem</strong> para aferição de sinais vitais...`
           : `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para o <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir o ${roomName} e dar início ao Prontuário (PEP)!</strong>`,
         targetTab: isTriageRoom ? 'atendimento' : 'consultorios',
         targetTabLabel: isTriageRoom ? `🩺 Iniciar Triagem Manchester de ${firstName} ➔` : `👨‍⚕️ Abrir ${roomName} (${firstName}) ➔`,
@@ -352,6 +373,7 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
         targetStatus: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',
         targetRoom: roomName,
         actionType: isTriageRoom ? 'start_triage' : 'open_consultorio',
+        autoSwitch: isTriageRoom,
         persistent: true
       });
     }
