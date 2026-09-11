@@ -621,15 +621,15 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         targetTab = 'pacientes';
         btnText = '➕ Cadastrar Novo Paciente Agora ➔';
         btnBg = 'linear-gradient(135deg, #10b981, #059669)';
+        extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
+          + '<button onclick="window.focusPatientSearch && window.focusPatientSearch()" style="padding:9px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#f1f5f9;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.15s" title="Localizar paciente já cadastrado pelo nome ou CPF">'
+          + '<span>🔍</span> Localizar Paciente</button>'
+          + '<button onclick="window.switchTab(\'atendimento\')" style="padding:9px 10px;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);color:#7dd3fc;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.15s" title="Ver fila de atendimento na Triagem Manchester">'
+          + '<span>🩺</span> Ver Fila de Triagem</button>'
+          + '</div>'
+          + '<button onclick="window.switchTab(\'pacientes\')" style="width:100%;margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;border-radius:8px;font-weight:700;font-size:0.74rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<span>🏥</span> Ir para Recepção & Pacientes ➔</button>';
       }
-      extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-        + '<button onclick="window.openNewPatientModal && window.openNewPatientModal()" style="padding:9px 10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:9px;font-weight:800;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 10px rgba(37,99,235,0.35);transition:filter 0.15s">'
-        + '<span>➕</span> Novo Cadastro</button>'
-        + '<button onclick="window.focusPatientSearch && window.focusPatientSearch()" style="padding:9px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#f1f5f9;border-radius:9px;font-weight:800;font-size:0.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.15s">'
-        + '<span>🔍</span> Consultar / Buscar</button>'
-        + '</div>'
-        + '<button onclick="window.switchTab(\'pacientes\')" style="width:100%;margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#94a3b8;border-radius:8px;font-weight:700;font-size:0.74rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
-        + '<span>🏥</span> Ir para Recepção & Pacientes ➔</button>';
       break;
 
     case 'pacientes':
