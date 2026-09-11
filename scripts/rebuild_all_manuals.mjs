@@ -231,7 +231,7 @@ export async function rebuildAllManuals() {
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     :root {
-      --primary: #4f46e5;
+      --primary: #0284c7;
       --bg-card: #1e293b;
       --text: #f8fafc;
       --border: #334155;
@@ -247,20 +247,20 @@ export async function rebuildAllManuals() {
       font-size: 15px;
     }
     .cover-page {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
+      background: linear-gradient(135deg, #0b0f17 0%, #0f172a 50%, #0369a1 100%);
       padding: 65px 40px;
-      border-bottom: 4px solid #6366f1;
+      border-bottom: 4px solid #0284c7;
       text-align: center;
     }
     .brand-badge {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: rgba(99,102,241,0.2);
-      border: 1px solid rgba(99,102,241,0.4);
+      background: rgba(2,132,199,0.18);
+      border: 1px solid rgba(2,132,199,0.4);
       padding: 8px 20px;
       border-radius: 999px;
-      color: #a5b4fc;
+      color: #38bdf8;
       font-weight: 700;
       font-size: 0.9rem;
       text-transform: uppercase;
@@ -310,7 +310,7 @@ export async function rebuildAllManuals() {
       font-size: 0.85rem;
       font-weight: 700;
       text-transform: uppercase;
-      color: #6366f1;
+      color: #0284c7;
       margin-bottom: 14px;
     }
     .sidebar nav ul { list-style: none; padding: 0; margin: 0; }
@@ -324,7 +324,7 @@ export async function rebuildAllManuals() {
       border-radius: 8px;
     }
     .sidebar nav a.level-3 { padding-left: 24px; font-size: 0.78rem; color: #64748b; }
-    .sidebar nav a:hover { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .sidebar nav a:hover { background: rgba(2,132,199,0.15); color: #38bdf8; }
     .content-area {
       flex: 1;
       background: #1e293b;
@@ -546,7 +546,7 @@ export async function rebuildAllManuals() {
       justify-content: center;
       align-items: center;
       text-align: center;
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%) !important;
+      background: linear-gradient(135deg, #0b0f17 0%, #0f172a 50%, #0369a1 100%) !important;
       color: #ffffff;
       padding: 50px 30px;
       border-radius: 12px;
@@ -556,9 +556,9 @@ export async function rebuildAllManuals() {
     }
     .pdf-cover .badge {
       display: inline-block;
-      background: rgba(99,102,241,0.25) !important;
-      border: 1px solid rgba(165,180,252,0.4) !important;
-      color: #c4b5fd;
+      background: rgba(2,132,199,0.22) !important;
+      border: 1px solid rgba(56,189,248,0.4) !important;
+      color: #38bdf8;
       padding: 8px 22px;
       border-radius: 30px;
       font-size: 10pt;
@@ -582,13 +582,13 @@ export async function rebuildAllManuals() {
       padding: 12px 20px;
       border-radius: 10px;
       font-size: 9pt;
-      color: #c7d2fe;
+      color: #bae6fd;
     }
     h1 {
       font-size: 15pt;
       font-weight: 800;
-      color: #1e1b4b;
-      border-bottom: 2px solid #4338ca;
+      color: #0f172a;
+      border-bottom: 2px solid #0284c7;
       padding-bottom: 4px;
       margin-top: 22px;
       page-break-after: avoid;
@@ -597,7 +597,7 @@ export async function rebuildAllManuals() {
     h2 {
       font-size: 12.5pt;
       font-weight: 700;
-      color: #3730a3;
+      color: #0369a1;
       margin-top: 22px;
       margin-bottom: 8px;
       border-bottom: 1.5px solid #e2e8f0;
@@ -639,7 +639,7 @@ export async function rebuildAllManuals() {
     }
     blockquote {
       background: #f8fafc !important;
-      border-left: 4px solid #6366f1 !important;
+      border-left: 4px solid #0284c7 !important;
       border: 1px solid #e2e8f0 !important;
       padding: 8px 12px;
       margin: 12px 0;
@@ -691,13 +691,14 @@ export async function rebuildAllManuals() {
       break-inside: avoid;
     }
     th {
-      background: #1e1b4b !important;
+      background: #0f172a !important;
       color: #ffffff !important;
       font-size: 7.8pt;
       font-weight: 700;
       text-transform: uppercase;
       padding: 6px 8px;
-      border: 1px solid #475569 !important;
+      border: 1px solid #334155 !important;
+      border-bottom: 2px solid #0284c7 !important;
       text-align: left;
     }
     td {
@@ -712,12 +713,12 @@ export async function rebuildAllManuals() {
     }
     code {
       font-family: 'Consolas', 'Courier New', monospace;
-      background: #ede9fe !important;
-      color: #4338ca !important;
+      background: #f0f9ff !important;
+      color: #0369a1 !important;
       padding: 2px 4px;
       border-radius: 4px;
       font-size: 7.5pt;
-      border: 1px solid #c7d2fe !important;
+      border: 1px solid #bae6fd !important;
     }
     pre code {
       display: block;

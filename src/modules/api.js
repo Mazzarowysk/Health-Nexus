@@ -251,7 +251,7 @@ export const apiFetch = async (url, options = {}) => {
 
       const occupancyData = [
         { label: 'UTI Adulto', value: utiCount, color: '#f43f5e' },
-        { label: 'Enfermaria', value: enfCount, color: '#6366f1' },
+        { label: 'Enfermaria', value: enfCount, color: '#0d9488' },
         { label: 'Pediatria', value: pedCount, color: '#00f2fe' },
         { label: 'Maternidade', value: matCount, color: '#f59e0b' },
         { label: 'Disponíveis', value: freeBeds, color: '#10b981' }

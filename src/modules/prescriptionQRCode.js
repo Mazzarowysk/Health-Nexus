@@ -21,38 +21,38 @@ export function generateQRCodeSVGDataURL(textData) {
       <!-- Finders Top Left -->
       <rect x="10" y="10" width="30" height="30" fill="#1e1b4b" rx="4"/>
       <rect x="16" y="16" width="18" height="18" fill="#ffffff" rx="2"/>
-      <rect x="21" y="21" width="8" height="8" fill="#4f46e5" rx="1"/>
+      <rect x="21" y="21" width="8" height="8" fill="#0369a1" rx="1"/>
       <!-- Finders Top Right -->
       <rect x="80" y="10" width="30" height="30" fill="#1e1b4b" rx="4"/>
       <rect x="86" y="16" width="18" height="18" fill="#ffffff" rx="2"/>
-      <rect x="91" y="21" width="8" height="8" fill="#4f46e5" rx="1"/>
+      <rect x="91" y="21" width="8" height="8" fill="#0369a1" rx="1"/>
       <!-- Finders Bottom Left -->
       <rect x="10" y="80" width="30" height="30" fill="#1e1b4b" rx="4"/>
       <rect x="16" y="86" width="18" height="18" fill="#ffffff" rx="2"/>
-      <rect x="21" y="91" width="8" height="8" fill="#4f46e5" rx="1"/>
+      <rect x="21" y="91" width="8" height="8" fill="#0369a1" rx="1"/>
       <!-- Data Pattern Matrix -->
       <rect x="46" y="12" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="56" y="18" width="6" height="6" fill="#4f46e5"/>
+      <rect x="56" y="18" width="6" height="6" fill="#0369a1"/>
       <rect x="66" y="12" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="46" y="28" width="6" height="6" fill="#4f46e5"/>
+      <rect x="46" y="28" width="6" height="6" fill="#0369a1"/>
       <rect x="60" y="32" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="12" y="46" width="6" height="6" fill="#4f46e5"/>
+      <rect x="12" y="46" width="6" height="6" fill="#0369a1"/>
       <rect x="24" y="56" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="36" y="46" width="6" height="6" fill="#4f46e5"/>
-      <rect x="48" y="48" width="8" height="8" fill="#ec4899" rx="2"/>
+      <rect x="36" y="46" width="6" height="6" fill="#0369a1"/>
+      <rect x="48" y="48" width="8" height="8" fill="#0284c7" rx="2"/>
       <rect x="60" y="48" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="72" y="56" width="6" height="6" fill="#4f46e5"/>
+      <rect x="72" y="56" width="6" height="6" fill="#0369a1"/>
       <rect x="84" y="46" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="96" y="56" width="6" height="6" fill="#4f46e5"/>
+      <rect x="96" y="56" width="6" height="6" fill="#0369a1"/>
       <rect x="104" y="46" width="6" height="6" fill="#1e1b4b"/>
       <rect x="46" y="66" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="58" y="72" width="6" height="6" fill="#4f46e5"/>
+      <rect x="58" y="72" width="6" height="6" fill="#0369a1"/>
       <rect x="68" y="66" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="48" y="84" width="6" height="6" fill="#4f46e5"/>
+      <rect x="48" y="84" width="6" height="6" fill="#0369a1"/>
       <rect x="60" y="92" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="72" y="84" width="6" height="6" fill="#4f46e5"/>
+      <rect x="72" y="84" width="6" height="6" fill="#0369a1"/>
       <rect x="84" y="92" width="6" height="6" fill="#1e1b4b"/>
-      <rect x="96" y="84" width="6" height="6" fill="#4f46e5"/>
+      <rect x="96" y="84" width="6" height="6" fill="#0369a1"/>
     </svg>
   `;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(qrSvg);

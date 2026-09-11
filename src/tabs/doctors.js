@@ -234,8 +234,8 @@ async function renderDoctorsTab() {
           <i class="fa-solid fa-circle-check" style="color:#10b981;margin-right:5px;"></i>
           <span style="color:#10b981;font-weight:700;">CRM Verificado no CFM</span>
           ${data.nome ? ` · <span style="color:var(--text-secondary);">${data.nome}</span>` : ''}
-          ${data.especialidade ? ` · <span style="color:#818cf8;">${data.especialidade}</span>` : ''}
-          <a href="${data.portalCfm || 'https://portal.cfm.org.br/busca-medicos/?q=' + encodeURIComponent(crmVal)}" target="_blank" style="color:#6366f1;margin-left:8px;font-size:0.72rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver no CFM</a>`;
+          ${data.especialidade ? ` · <span style="color:#38bdf8;">${data.especialidade}</span>` : ''}
+          <a href="${data.portalCfm || 'https://portal.cfm.org.br/busca-medicos/?q=' + encodeURIComponent(crmVal)}" target="_blank" style="color:#0284c7;margin-left:8px;font-size:0.72rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver no CFM</a>`;
         verifyCrmBtn.style.background = 'rgba(16,185,129,0.15)';
         verifyCrmBtn.style.borderColor = 'rgba(16,185,129,0.4)';
         verifyCrmBtn.style.color = '#10b981';
@@ -244,7 +244,7 @@ async function renderDoctorsTab() {
         crmStatus.innerHTML = `
           <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;margin-right:5px;"></i>
           <span style="color:#f59e0b;font-weight:600;">${data.mensagem}</span>
-          <a href="${data.portalCfm}" target="_blank" style="color:#6366f1;margin-left:8px;font-size:0.72rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Verificar no CFM</a>`;
+          <a href="${data.portalCfm}" target="_blank" style="color:#0284c7;margin-left:8px;font-size:0.72rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Verificar no CFM</a>`;
         verifyCrmBtn.style.background = 'rgba(245,158,11,0.12)';
         verifyCrmBtn.style.borderColor = 'rgba(245,158,11,0.4)';
         verifyCrmBtn.style.color = '#f59e0b';
@@ -269,9 +269,9 @@ async function renderDoctorsTab() {
   crmInput?.addEventListener('input', () => {
     // Reset badge when user types
     crmStatus.style.display = 'none';
-    verifyCrmBtn.style.background = 'rgba(99,102,241,0.15)';
-    verifyCrmBtn.style.borderColor = 'rgba(99,102,241,0.4)';
-    verifyCrmBtn.style.color = '#818cf8';
+    verifyCrmBtn.style.background = 'rgba(2,132,199,0.15)';
+    verifyCrmBtn.style.borderColor = 'rgba(2,132,199,0.4)';
+    verifyCrmBtn.style.color = '#38bdf8';
     verifyCrmBtn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Verificar';
   });
   // ---- End CFM Verification ----
@@ -279,7 +279,7 @@ async function renderDoctorsTab() {
   const updateCardStyles = () => {
     const curFilter = window.currentDocFilter;
     const configs = [
-      { id: 'kpi-doc-total',  color: '#a78bfa', active: curFilter === 'all' },
+      { id: 'kpi-doc-total',  color: '#38bdf8', active: curFilter === 'all' },
       { id: 'kpi-doc-active', color: '#34d399', active: curFilter === 'Ativo' },
       { id: 'kpi-doc-specs',  color: '#67e8f9', active: typeof curFilter === 'string' && curFilter !== 'all' && curFilter !== 'Ativo' },
     ];
@@ -324,7 +324,7 @@ async function renderDoctorsTab() {
         <div class="interactive-card" id="kpi-doc-total"
           title="Clique para exibir todos os médicos"
           style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.22s ease;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25); display: flex; align-items: center; justify-content: center; color: #a78bfa; flex-shrink: 0;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(2,132,199,0.12); border: 1px solid rgba(2,132,199,0.25); display: flex; align-items: center; justify-content: center; color: #38bdf8; flex-shrink: 0;">
             <i class="fa-solid fa-user-doctor" style="font-size: 1.2rem;"></i>
           </div>
           <div>
@@ -406,14 +406,14 @@ async function renderDoctorsTab() {
         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s;" onmouseenter="this.style.background='var(--bg-tertiary)'" onmouseleave="this.style.background='transparent'">
           <td style="padding: 16px 20px;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.78rem; color: #a78bfa;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.3); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.78rem; color: #38bdf8;">
                 ${initials}
               </div>
               <div>
                 <strong style="font-size: 0.95rem; color: var(--text-primary); display: block;">${d.name}</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">
                   ${!d.role || d.role === 'Médico(a)' ? 'CRM' : (d.role.includes('Enferm') ? 'COREN' : (d.role === 'Fisioterapeuta' ? 'CREFITO' : (d.role === 'Nutricionista' ? 'CRN' : (d.role.includes('Psic') ? 'CRP' : 'Registro'))))}: ${d.crm}
-                  ${(!d.role || d.role === 'Médico(a)') ? `<a href="https://portal.cfm.org.br/busca-medicos/?q=${encodeURIComponent((d.crm || '').replace(/[^0-9]/g,''))}&uf=${encodeURIComponent((d.crm || '').replace(/[^a-zA-Z]/g,'').toUpperCase() || 'SP')}" target="_blank" title="Verificar CRM no portal CFM" style="margin-left: 5px; color: #6366f1; text-decoration: none; font-size: 0.72rem;" onclick="event.stopPropagation()">
+                  ${(!d.role || d.role === 'Médico(a)') ? `<a href="https://portal.cfm.org.br/busca-medicos/?q=${encodeURIComponent((d.crm || '').replace(/[^0-9]/g,''))}&uf=${encodeURIComponent((d.crm || '').replace(/[^a-zA-Z]/g,'').toUpperCase() || 'SP')}" target="_blank" title="Verificar CRM no portal CFM" style="margin-left: 5px; color: #0284c7; text-decoration: none; font-size: 0.72rem;" onclick="event.stopPropagation()">
                     <i class="fa-solid fa-shield-halved"></i>
                   </a>` : ''}
                 </span>
@@ -436,7 +436,7 @@ async function renderDoctorsTab() {
           </td>
           <td style="padding: 16px 20px; text-align: right;">
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
-              <button class="btn-doctor-activity" onclick="openDoctorActivityModal('${d.name}', '${d.specialty}', '${d.crm}')" title="Ver Atendimentos, Procedimentos e Solicitações do Médico" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.3); background: rgba(99,102,241,0.12); color: #818cf8; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;" onmouseenter="this.style.background='rgba(99,102,241,0.22)'" onmouseleave="this.style.background='rgba(99,102,241,0.12)'">
+              <button class="btn-doctor-activity" onclick="openDoctorActivityModal('${d.name}', '${d.specialty}', '${d.crm}')" title="Ver Atendimentos, Procedimentos e Solicitações do Médico" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(2,132,199,0.3); background: rgba(2,132,199,0.12); color: #38bdf8; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;" onmouseenter="this.style.background='rgba(2,132,199,0.22)'" onmouseleave="this.style.background='rgba(2,132,199,0.12)'">
                 <i class="fa-solid fa-clipboard-user"></i> Atividades
               </button>
               <button class="btn-edit-doctor" data-id="${d.id}" title="Editar" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center;">
@@ -821,11 +821,11 @@ window.openDoctorActivityModal = async function(doctorName, specialty, crm) {
         padding: 22px 28px;
         border-bottom: 1px solid var(--border-color);
         display: flex; align-items: center; gap: 16px;
-        background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+        background: linear-gradient(135deg, rgba(2,132,199,0.12), rgba(3,105,161,0.08));
       ">
         <div style="
           width: 52px; height: 52px; border-radius: 14px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: linear-gradient(135deg, #0284c7, #0369a1);
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
         ">
@@ -1393,7 +1393,7 @@ modal.style.left = '0';
             </div>
           </div>
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button type="button" onclick="document.getElementById('patient-history-modal')?.remove(); if (typeof window.openPEPModal === 'function') window.openPEPModal('${patientId || patientName}');" style="background: linear-gradient(135deg, #ec4899, #be185d); border: none; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(236,72,153,0.35); display: inline-flex; align-items: center; gap: 6px;" title="Abrir Folha de Evolução Médica e Prescrição (PEP)">
+            <button type="button" onclick="document.getElementById('patient-history-modal')?.remove(); if (typeof window.openPEPModal === 'function') window.openPEPModal('${patientId || patientName}');" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(2,132,199,0.35); display: inline-flex; align-items: center; gap: 6px;" title="Abrir Folha de Evolução Médica e Prescrição (PEP)">
               <i class="fa-solid fa-file-medical"></i> Abrir PEP (Prescrição)
             </button>
             <button type="button" onclick="document.getElementById('patient-history-modal')?.remove(); if (typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('', '${(patientName || '').replace(/'/g, "\\'")}', '${patientId || ''}');" style="background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.5); color: #c7d2fe; padding: 6px 13px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px;" title="Abrir Planilha de Prescrição Médica Estruturada (Aprazamento)">
@@ -1490,7 +1490,7 @@ modal.style.left = '0';
 
       if (list.length === 0) {
         container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:60px 20px;">
-          <i class="fa-solid fa-timeline" style="font-size:2.5rem;display:block;margin-bottom:16px;color:#4f46e5;"></i>
+          <i class="fa-solid fa-timeline" style="font-size:2.5rem;display:block;margin-bottom:16px;color:#0284c7;"></i>
           <div>Nenhuma evolução SOAP registrada para este paciente ainda.</div>
           <div style="font-size:0.78rem;margin-top:8px;">As evoluções aparecerão aqui conforme o paciente passar por cada ala e o médico assinar o PEP.</div>
         </div>`;
@@ -1534,7 +1534,7 @@ modal.style.left = '0';
               <i class="fa-solid fa-eye" style="margin-right:5px;"></i>Ver PEP
             </button>
           ` : `
-            <button onclick="openPEPModal('${h.id}')" style="background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);color:#f472b6;padding:6px 14px;font-size:0.78rem;border-radius:8px;cursor:pointer;flex-shrink:0;">
+            <button onclick="openPEPModal('${h.id}')" style="background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;padding:6px 14px;font-size:0.78rem;border-radius:8px;cursor:pointer;flex-shrink:0;">
               <i class="fa-solid fa-file-medical" style="margin-right:5px;"></i>Abrir PEP
             </button>
           `}
@@ -1806,7 +1806,7 @@ modal.style.left = '0';
               else if (mColor === 'Azul') { badgeBg = 'rgba(59, 130, 246, 0.2)'; badgeColor = '#60a5fa'; }
 
               return `
-                <div style="background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-left: 5px solid ${isInternado ? '#ef4444' : (isDischarged ? '#10b981' : '#6366f1')}; border-radius: 14px; padding: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <div style="background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-left: 5px solid ${isInternado ? '#ef4444' : (isDischarged ? '#10b981' : '#0284c7')}; border-radius: 14px; padding: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
                   
                   <!-- Topo do Atendimento -->
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
@@ -1898,7 +1898,7 @@ modal.style.left = '0';
 
                   <!-- Botões de Ação do Período -->
                   <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-sm" onclick="openPEPModal('${enc.id}')" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; font-size: 0.82rem; border-radius: 8px; padding: 7px 16px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(236,72,153,0.35);">
+                    <button type="button" class="btn btn-sm" onclick="openPEPModal('${enc.id}')" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-size: 0.82rem; border-radius: 8px; padding: 7px 16px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2,132,199,0.35);">
                       <i class="fa-solid fa-file-medical"></i> Abrir Prontuário Eletrônico (PEP Completo)
                     </button>
                     ${isInternado ? `
@@ -1983,7 +1983,7 @@ window.openPEPModal = async function(encounterId) {
         </button>
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 14px;">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.4); display: flex; align-items: center; justify-content: center; color: #f472b6;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(2,132,199,0.2); border: 1px solid rgba(2,132,199,0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8;">
               <i class="fa-solid fa-file-medical" style="font-size: 1.2rem;"></i>
             </div>
             <div>
@@ -1992,7 +1992,7 @@ window.openPEPModal = async function(encounterId) {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button type="button" id="btn-pep-new-evolution-header" class="btn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 14px; border: none; display: flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 2px 10px rgba(99,102,241,0.35);" title="Criar Nova Folha de Evolução Diária no PEP">
+            <button type="button" id="btn-pep-new-evolution-header" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 14px; border: none; display: flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 2px 10px rgba(2,132,199,0.35);" title="Criar Nova Folha de Evolução Diária no PEP">
               <i class="fa-solid fa-file-circle-plus"></i> Nova Evolução Diária
             </button>
             <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
@@ -2303,7 +2303,7 @@ window.openPEPModal = async function(encounterId) {
         <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15)); border: 1.5px solid rgba(99,102,241,0.35); border-radius: 12px; padding: 12px 18px; margin-bottom: 16px; font-size: 0.8rem; color: #e2e8f0; line-height: 1.5; box-shadow: 0 4px 14px rgba(99,102,241,0.1);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-weight: 700; color: #a5b4fc; display: flex; align-items: center; gap: 6px; font-size: 0.83rem;">
-              <i class="fa-solid fa-wand-magic-sparkles" style="color: #ec4899;"></i> Resumo Clínico Preditivo por IA (Copilot 2.0)
+              <i class="fa-solid fa-wand-magic-sparkles" style="color: #0284c7;"></i> Resumo Clínico Preditivo por IA (Copilot 2.0)
             </span>
             <button type="button" id="btn-pep-open-pacs-inline" class="btn btn-sm" style="background: rgba(14,165,233,0.2); border: 1px solid rgba(14,165,233,0.4); color: #38bdf8; font-size: 0.74rem; font-weight: 700; border-radius: 6px; padding: 3px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
               <i class="fa-solid fa-x-ray"></i> Imagens PACS (DICOM)
@@ -2324,7 +2324,7 @@ window.openPEPModal = async function(encounterId) {
               <div style="font-size:0.76rem; color: var(--text-muted); margin-top:2px;">Esta folha foi finalizada. Para registrar uma nova evolução deste plantão/dia, clique no botão ao lado.</div>
             </div>
           </div>
-          <button type="button" id="btn-start-new-daily-evolution-banner" class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; font-size: 0.8rem; font-weight: 700; border-radius: 10px; padding: 8px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(236,72,153,0.35);">
+          <button type="button" id="btn-start-new-daily-evolution-banner" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-size: 0.8rem; font-weight: 700; border-radius: 10px; padding: 8px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(2,132,199,0.35);">
             <i class="fa-solid fa-file-circle-plus"></i> Iniciar Nova Evolução Diária
           </button>
         </div>
@@ -2406,7 +2406,7 @@ window.openPEPModal = async function(encounterId) {
 
         <div style="margin-top: 6px; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">
-            <i class="fa-solid fa-route" style="color: #6366f1; margin-right: 6px;"></i> Desfecho do Atendimento:
+            <i class="fa-solid fa-route" style="color: #0284c7; margin-right: 6px;"></i> Desfecho do Atendimento:
           </label>
           <select id="pep-outcome" class="form-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
             ${isInterned ? `
@@ -2438,7 +2438,7 @@ window.openPEPModal = async function(encounterId) {
               <button type="button" id="btn-save-pep" class="btn" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 16px;">
                 <i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Salvar Rascunho
               </button>
-              <button type="submit" class="btn btn-primary" style="padding:8px 20px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
+              <button type="submit" class="btn btn-primary" style="padding:8px 20px; background:linear-gradient(135deg, #0284c7, #0369a1);">
                 <i class="fa-solid fa-file-signature" style="margin-right:6px;"></i> Assinar & Encaminhar
               </button>
             `}
@@ -2576,7 +2576,7 @@ window.openPEPModal = async function(encounterId) {
         if (history.length === 0) {
           container.innerHTML = `
             <div style="text-align:center; color:var(--text-muted); padding:48px 20px;">
-              <i class="fa-solid fa-timeline" style="font-size:2.5rem; margin-bottom:16px; display:block; color:#4f46e5;"></i>
+              <i class="fa-solid fa-timeline" style="font-size:2.5rem; margin-bottom:16px; display:block; color:#0284c7;"></i>
               <div style="font-size:0.9rem;">Nenhum PEP anterior encontrado para este paciente.</div>
               <div style="font-size:0.78rem; margin-top:6px;">Os registros aparecerão aqui conforme o paciente passar pelas alas.</div>
             </div>`;

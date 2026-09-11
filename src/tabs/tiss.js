@@ -111,7 +111,7 @@ export function renderTISSTab(container) {
       <!-- Tabela de Lotes TISS -->
       <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden;">
         <div style="padding: 16px 20px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;"><i class="fa-solid fa-list-check" style="color: #6366f1; margin-right: 8px;"></i>Lotes de Faturamento Recentes</h3>
+          <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;"><i class="fa-solid fa-list-check" style="color: #0284c7; margin-right: 8px;"></i>Lotes de Faturamento Recentes</h3>
           <span style="font-size: 0.78rem; color: var(--text-muted);">Padrão ANS TISS Versão 4.01.00</span>
         </div>
 

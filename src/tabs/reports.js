@@ -16,12 +16,12 @@ function renderReportsTab(contentArea) {
       <div class="report-tabs-selector" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; width: 100%; box-sizing: border-box; margin-bottom: 24px;">
         
         <!-- CARD 1: PACIENTES -->
-        <div id="tab-btn-patients" class="report-tab-card active" style="background: rgba(99,102,241,0.08); border: 1.5px solid rgba(99,102,241,0.5); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; box-shadow: 0 4px 20px rgba(99,102,241,0.15); display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(99,102,241,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+        <div id="tab-btn-patients" class="report-tab-card active" style="background: rgba(99,102,241,0.08); border: 1.5px solid rgba(99,102,241,0.5); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; box-shadow: 0 4px 20px rgba(99,102,241,0.15); display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(2,132,199,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
           <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;">
             <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.25rem;">
               <i class="fa-solid fa-users"></i>
             </div>
-            <span class="card-status-badge" style="font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(99,102,241,0.2); color: #c4b5fd; border: 1px solid rgba(99,102,241,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
+            <span class="card-status-badge" style="font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(99,102,241,0.2); color: #c4b5fd; border: 1px solid rgba(2,132,199,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
           </div>
           <div>
             <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Pacientes</h4>
@@ -32,10 +32,10 @@ function renderReportsTab(contentArea) {
         <!-- CARD 2: ATENDIMENTOS -->
         <div id="tab-btn-encounters" class="report-tab-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(236,72,153,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
           <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.3); display: flex; align-items: center; justify-content: center; color: #f472b6; font-size: 1.25rem;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.25rem;">
               <i class="fa-solid fa-notes-medical"></i>
             </div>
-            <span class="card-status-badge" style="display: none; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(236,72,153,0.2); color: #f472b6; border: 1px solid rgba(236,72,153,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
+            <span class="card-status-badge" style="display: none; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(2,132,199,0.2); color: #38bdf8; border: 1px solid rgba(2,132,199,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
           </div>
           <div>
             <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Atendimentos &amp; PEP</h4>
@@ -513,7 +513,7 @@ function renderReportsTab(contentArea) {
           </div>
           <div class="filter-group" style="grid-column: 1 / -1; margin-top: 8px; display: flex; gap: 12px;">
             <button type="button" onclick="document.getElementById('filter-date-start-fin').value=''; document.getElementById('filter-date-end-fin').value=''; document.getElementById('filter-fin-type').value='Todos'; document.getElementById('filter-fin-search').value=''; document.querySelectorAll('.filter-fin-item, .filter-fin-cat-item, .filter-fin-method-item').forEach(c=>c.checked=true); typeof filterAndRender==='function' && filterAndRender();" class="btn" style="flex: 1; max-width: 160px; height: 44px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Limpar Filtros"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar</button>
-            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;height:44px;background:linear-gradient(135deg, #6366f1, #4f46e5);color:#fff;font-weight:700;font-size:0.88rem;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(99,102,241,0.35);cursor:pointer;border:none;">
+            <button id="btn-open-fin-window-top" class="btn btn-primary" style="width:100%;height:44px;background:linear-gradient(135deg, #0284c7, #0369a1);color:#fff;font-weight:700;font-size:0.88rem;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(2,132,199,0.35);cursor:pointer;border:none;">
               <i class="fa-solid fa-window-restore"></i> Visualizar Listagem em Janela Dedicada
             </button>
           </div>
@@ -836,7 +836,7 @@ function renderReportsTab(contentArea) {
             if (inst.status === 'Pagas') color = '#34d399';
             if (inst.status === 'Vencidas') color = '#f43f5e';
             if (inst.status === 'Bonificadas') color = '#fbbf24';
-            if (inst.status === 'Suspensas') color = '#a855f7';
+            if (inst.status === 'Suspensas') color = '#64748b';
             if (inst.status === 'Canceladas') color = '#f97316';
             if (inst.status === 'Excluídas') color = '#dc2626';
 
@@ -872,7 +872,7 @@ function renderReportsTab(contentArea) {
         { label: 'A Vencer', count: aVencerCount, totalValue: aVencerVal, color: '#00f2fe' },
         { label: 'Vencidas', count: vencidasCount, totalValue: vencidasVal, color: '#f43f5e' },
         { label: 'Bonificadas', count: bonificadasCount, totalValue: bonificadasVal, color: '#fbbf24' },
-        { label: 'Suspensas', count: suspensasCount, totalValue: suspensasVal, color: '#a855f7' },
+        { label: 'Suspensas', count: suspensasCount, totalValue: suspensasVal, color: '#64748b' },
         { label: 'Canceladas', count: canceladasCount, totalValue: canceladasVal, color: '#f97316' },
         { label: 'Excluídas', count: excluidasCount, totalValue: excluidasVal, color: '#dc2626' }
       ];
@@ -1308,8 +1308,8 @@ function renderReportsTab(contentArea) {
               <td style="font-size:0.8rem;color:var(--text-secondary);">${dateStr}</td>
               <td style="text-align:center;" onclick="event.stopPropagation()">
                 <div style="display:flex;gap:5px;justify-content:center;">
-                  <button class="btn-report-detail" data-enc-id="${e.id}" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.4);color:#818cf8;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Ver detalhes completos"><i class="fa-solid fa-eye"></i> Detalhes</button>
-                  ${hasPEP ? `<button class="btn-report-pep" data-enc-id="${e.id}" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#f472b6;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Abrir Prontuário Eletrônico"><i class="fa-solid fa-file-medical"></i> PEP</button>` : ''}
+                  <button class="btn-report-detail" data-enc-id="${e.id}" style="background:rgba(99,102,241,0.15);border:1px solid rgba(2,132,199,0.4);color:#818cf8;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Ver detalhes completos"><i class="fa-solid fa-eye"></i> Detalhes</button>
+                  ${hasPEP ? `<button class="btn-report-pep" data-enc-id="${e.id}" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.4);color:#38bdf8;border-radius:8px;padding:4px 9px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Abrir Prontuário Eletrônico"><i class="fa-solid fa-file-medical"></i> PEP</button>` : ''}
                 </div>
               </td>
             </tr>
@@ -1370,9 +1370,9 @@ function renderReportsTab(contentArea) {
         if (dynTableBody) dynTableBody.innerHTML = currentFilteredList.map(s => {
           const isMed = s.category === 'medico' || (s.crm_coren && s.crm_coren.includes('CRM'));
           const dateStr = s.shiftDate ? new Date(s.shiftDate + 'T00:00:00').toLocaleDateString('pt-BR') : '-';
-          const statusColors = { 'Em Andamento': '#fbbf24', 'Confirmado': '#38bdf8', 'Concluído': '#34d399', 'Troca Solicitada': '#f472b6' };
+          const statusColors = { 'Em Andamento': '#fbbf24', 'Confirmado': '#38bdf8', 'Concluído': '#34d399', 'Troca Solicitada': '#f59e0b' };
           const stColor = statusColors[s.status] || '#94a3b8';
-          const catBadge = isMed ? `<span style="padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:700;background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3);">Médico</span>` : `<span style="padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:700;background:rgba(236,72,153,0.15);color:#f472b6;border:1px solid rgba(236,72,153,0.3);">Enfermeiro</span>`;
+          const catBadge = isMed ? `<span style="padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:700;background:rgba(2,132,199,0.15);color:#38bdf8;border:1px solid rgba(2,132,199,0.3);">Médico</span>` : `<span style="padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:700;background:rgba(13,148,136,0.15);color:#2dd4bf;border:1px solid rgba(13,148,136,0.3);">Enfermeiro</span>`;
 
           return `
             <tr style="border-bottom:1px solid var(--border-color);">
@@ -1479,7 +1479,7 @@ function renderReportsTab(contentArea) {
         setTimeout(() => {
           const cityLabels = Object.keys(cityCounts).slice(0, 8);
           const cityVals = cityLabels.map(c => cityCounts[c]);
-          const palette = ['#818cf8','#34d399','#fbbf24','#00f2fe','#f472b6','#a78bfa','#6ee7b7','#fcd34d'];
+          const palette = ['#0284c7','#0d9488','#fbbf24','#0ea5e9','#10b981','#0284c7','#6ee7b7','#fcd34d'];
 
           const ctxCity = document.getElementById('chart-patients-city');
           if (ctxCity) new ChartClass(ctxCity.getContext('2d'), {
@@ -1556,7 +1556,7 @@ function renderReportsTab(contentArea) {
       summaryContainer.innerHTML = `
         <!-- KPI Cards Atendimentos -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;">
-          ${kpiCard(total, 'Total Atendimentos', '#ec4899', 'fa-notes-medical', 'all', '')}
+          ${kpiCard(total, 'Total Atendimentos', '#0284c7', 'fa-notes-medical', 'all', '')}
           ${kpiCard(urgencias, 'Urgências', '#ef4444', 'fa-truck-medical', 'type', 'Urgencia')}
           ${kpiCard(ambulatorio, 'Ambulatório', '#818cf8', 'fa-hospital', 'type', 'Ambulatorio')}
           ${kpiCard(pctFin + '%', 'Concluídos', '#34d399', 'fa-circle-check', 'status', 'Finalizado')}
@@ -1568,13 +1568,13 @@ function renderReportsTab(contentArea) {
           <!-- DONUT — Classificação Manchester -->
           <div class="glass-card" style="padding:20px;border-radius:16px;border:1px solid rgba(236,72,153,0.2);background:rgba(236,72,153,0.04);">
             <h4 style="margin:0 0 14px;font-size:0.88rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-              <i class="fa-solid fa-shield-halved" style="color:#ec4899;"></i> Classificação Manchester
+              <i class="fa-solid fa-shield-halved" style="color:#0284c7;"></i> Classificação Manchester
               <span style="margin-left:auto;font-size:0.68rem;color:var(--text-muted);font-weight:400;">Clique para filtrar</span>
             </h4>
             <div style="position:relative;width:180px;height:180px;margin:0 auto 14px;">
               <canvas id="chart-enc-manchester"></canvas>
               <div id="manch-donut-kpi" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
-                <span style="font-family:'Outfit';font-size:2rem;font-weight:900;color:#ec4899;display:block;line-height:1;filter:drop-shadow(0 0 8px rgba(236,72,153,0.4));">${total}</span>
+                <span style="font-family:'Outfit';font-size:2rem;font-weight:900;color:#0284c7;display:block;line-height:1;filter:drop-shadow(0 0 8px rgba(2,132,199,0.4));">${total}</span>
                 <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">TOTAL</span>
               </div>
             </div>
@@ -1821,11 +1821,11 @@ function renderReportsTab(contentArea) {
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Relatório Health Nexus</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
       <body style="font-family: Arial; padding: 20px;">
-        <h2 style="color: #4f46e5;">Health Nexus — Relatório Oficial</h2>
+        <h2 style="color: #0284c7;">Health Nexus — Relatório Oficial</h2>
         <p style="color: #64748b; font-size: 0.9rem;">Emissão: ${new Date().toLocaleString('pt-BR')}</p>
         <table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial;">
           <thead>
-            <tr style="background-color: #4f46e5; color: #ffffff; font-weight: bold;">
+            <tr style="background-color: #0369a1; color: #ffffff; font-weight: bold;">
               ${columns.map(col => `<th style="padding: 10px; text-align: left;">${col}</th>`).join('')}
             </tr>
           </thead>
@@ -1868,7 +1868,7 @@ function renderReportsTab(contentArea) {
     // ---- Bloco de Resumo Financeiro (opcional) ----
     const summaryBlock = financialSummary ? `
       <div style="margin-bottom: 22px;">
-        <div style="font-size: 11pt; font-weight: 700; color: #1e1b4b; border-bottom: 2px solid #6366f1; padding-bottom: 6px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+        <div style="font-size: 11pt; font-weight: 700; color: #1e1b4b; border-bottom: 2px solid #0284c7; padding-bottom: 6px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
           📊 Resumo Executivo do Filtro
         </div>
 
@@ -1935,7 +1935,7 @@ function renderReportsTab(contentArea) {
           .meta { text-align: right; font-size: 8.5pt; color: #64748b; }
           h1 { font-size: 15pt; color: #0f172a; margin-top: 0; margin-bottom: 12px; }
           table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-          th { background-color: #4f46e5; color: #ffffff; text-align: left; padding: 7px 9px; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; }
+          th { background-color: #0369a1; color: #ffffff; text-align: left; padding: 7px 9px; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; }
           td { padding: 7px 9px; border-bottom: 1px solid #e2e8f0; font-size: 9pt; }
           tr:nth-child(even) td { background-color: #f8fafc; }
           .footer { margin-top: 25px; border-top: 1px solid #cbd5e1; padding-top: 8px; font-size: 8pt; color: #94a3b8; text-align: center; }
@@ -1950,7 +1950,7 @@ function renderReportsTab(contentArea) {
         </style>
       </head>
       <body>
-        <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6366f1; padding-bottom: 14px; margin-bottom: 20px;">
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 14px; margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 14px;">
             <div style="background: #ffffff; padding: 6px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: center;">
               <img src="/assets/logo.png" alt="Health Nexus" style="height: 42px; width: auto; object-fit: contain;">
@@ -2194,7 +2194,7 @@ function renderReportsTab(contentArea) {
         <!-- CABEÇALHO STICKY -->
         <div style="position: sticky; top: -24px; z-index: 40; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 14px 20px; margin: -24px -24px 0 -24px; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; backdrop-filter: blur(12px);">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #00f2fe, #4f46e5); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: #fff; box-shadow: 0 4px 14px rgba(0,242,254,0.3);">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #0ea5e9, #0284c7); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: #fff; box-shadow: 0 4px 14px rgba(0,242,254,0.3);">
               <i class="fa-solid fa-chart-line"></i>
             </div>
             <div>
@@ -2264,7 +2264,7 @@ function renderReportsTab(contentArea) {
           <!-- Gráfico de Barras: Volume por Forma de Pagamento -->
           <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
             <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <i class="fa-solid fa-chart-bar" style="color:#a855f7;"></i> Volume por Forma de Pagamento (R$)
+              <i class="fa-solid fa-chart-bar" style="color:#0284c7;"></i> Volume por Forma de Pagamento (R$)
             </div>
             <div style="position: relative; height: 190px;">
               <canvas id="modal-fin-bar-chart"></canvas>
@@ -2335,7 +2335,7 @@ function renderReportsTab(contentArea) {
           { label: 'A Vencer', value: aVencerVal, color: '#00f2fe' },
           { label: 'Vencidas', value: vencidasVal, color: '#f43f5e' },
           { label: 'Bonificadas', value: bonificadasVal, color: '#fbbf24' },
-          { label: 'Suspensas', value: suspensasVal, color: '#a855f7' },
+          { label: 'Suspensas', value: suspensasVal, color: '#64748b' },
           { label: 'Canceladas', value: canceladasVal, color: '#f97316' },
           { label: 'Excluídas', value: excluidasVal, color: '#dc2626' },
         ].filter(d => d.value > 0);
@@ -2368,7 +2368,7 @@ function renderReportsTab(contentArea) {
       const barCtx = document.getElementById('modal-fin-bar-chart');
       if (barCtx && window.Chart) {
         const methods = Object.keys(methodMap);
-        const methodColors = ['#6366f1','#34d399','#00f2fe','#f43f5e','#fbbf24','#a855f7'];
+        const methodColors = ['#0284c7','#0d9488','#0ea5e9','#f43f5e','#fbbf24','#64748b'];
         new window.Chart(barCtx, {
           type: 'bar',
           data: {
@@ -2544,7 +2544,7 @@ function renderReportsTab(contentArea) {
         <!-- CABEÇALHO DO MODAL COM AÇÕES RÃPIDAS (FIXO AO ROLAR) -->
         <div style="position: sticky; top: -24px; z-index: 30; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 14px 24px; margin: -24px -24px 18px -24px; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; backdrop-filter: blur(12px);">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #4f46e5, #3730a3); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,0.3);">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #0284c7, #0369a1); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; box-shadow: 0 4px 12px rgba(2,132,199,0.3);">
               <i class="fa-solid fa-barcode"></i>
             </div>
             <div>
@@ -2554,9 +2554,9 @@ function renderReportsTab(contentArea) {
           </div>
           
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button id="btn-copy-linha-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(99,102,241,0.4);"><i class="fa-solid fa-copy"></i> Copiar Linha</button>
+            <button id="btn-copy-linha-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(2,132,199,0.4);"><i class="fa-solid fa-copy"></i> Copiar Linha</button>
             <button id="btn-copy-pix-top" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(52,211,153,0.4); color: #34d399;"><i class="fa-solid fa-qrcode"></i> Copiar Pix</button>
-            <button id="btn-print-boleto" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 14px; background: linear-gradient(135deg, #6366f1, #4f46e5);"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
+            <button id="btn-print-boleto" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 14px; background: linear-gradient(135deg, #0284c7, #0369a1);"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
             <button id="close-boleto-modal" class="btn-icon" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Fechar Janela (ESC)"><i class="fa-solid fa-xmark"></i></button>
           </div>
         </div>
@@ -2589,7 +2589,7 @@ function renderReportsTab(contentArea) {
                   <img src="/assets/logo.png" alt="Health Nexus" style="height: 32px; width: auto; object-fit: contain;">
                 </div>
                 <div>
-                  <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
+                  <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #0284c7;">NEXUS</span></div>
                   <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK • GESTÃO HOSPITALAR</div>
                 </div>
               </div>
@@ -2654,7 +2654,7 @@ function renderReportsTab(contentArea) {
                   <img src="/assets/logo.png" alt="Health Nexus" style="height: 32px; width: auto; object-fit: contain;">
                 </div>
                 <div>
-                  <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #4f46e5;">NEXUS</span></div>
+                  <div style="font-size: 1.15rem; font-weight: 900; color: #1e1b4b; font-family: 'Outfit', sans-serif; line-height: 1; letter-spacing: -0.4px;">HEALTH <span style="color: #0284c7;">NEXUS</span></div>
                   <div style="font-size: 0.58rem; font-weight: 800; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px;">BANK • GESTÃO HOSPITALAR</div>
                 </div>
               </div>
@@ -2872,7 +2872,7 @@ function renderReportsTab(contentArea) {
         <!-- BOTÕES DE FECHAMENTO DO MODAL -->
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px;">
           <button id="btn-close-boleto-foot" class="btn btn-outline" style="font-size: 0.85rem; padding: 8px 18px;">Fechar Visualização</button>
-          <button id="btn-print-boleto-foot" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); font-size: 0.85rem; padding: 8px 20px;"><i class="fa-solid fa-print"></i> Imprimir Boleto FEBRABAN</button>
+          <button id="btn-print-boleto-foot" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-size: 0.85rem; padding: 8px 20px;"><i class="fa-solid fa-print"></i> Imprimir Boleto FEBRABAN</button>
         </div>
       </div>
     `;
@@ -3208,7 +3208,7 @@ function renderReportsTab(contentArea) {
           <div class="chart-card tilt-card-3d" id="card-doc-completion" style="padding:18px;height:250px;position:relative;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
               <h4 style="margin:0;font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-                <i class="fa-solid fa-chart-pie" style="color:#a855f7;"></i> Distribuição Geral
+                <i class="fa-solid fa-chart-pie" style="color:#0284c7;"></i> Distribuição Geral
               </h4>
             </div>
             <div style="position:relative;height:185px;width:100%;display:flex;align-items:center;justify-content:center;">
@@ -3283,7 +3283,7 @@ function renderReportsTab(contentArea) {
           gradProgress.addColorStop(0, '#fbbf24'); gradProgress.addColorStop(1, '#d97706');
 
           const gradPending = c2d.createLinearGradient(0, 0, 0, 180);
-          gradPending.addColorStop(0, '#6366f1'); gradPending.addColorStop(1, '#00f2fe');
+          gradPending.addColorStop(0, '#0284c7'); gradPending.addColorStop(1, '#0ea5e9');
 
           const labels = docStats.map(d => d.name.replace(/^(Dr\.|Dra\.)\s*/i, '').split(' ')[0]);
 
@@ -3294,7 +3294,7 @@ function renderReportsTab(contentArea) {
               datasets: [
                 { label: 'Concluídos', data: docStats.map(d => d.done), backgroundColor: mode === 'line' ? 'rgba(52, 211, 153, 0.15)' : gradDone, borderColor: '#10b981', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' },
                 { label: 'Em Atend.', data: docStats.map(d => d.inProgress), backgroundColor: mode === 'line' ? 'rgba(251, 191, 36, 0.15)' : gradProgress, borderColor: '#f59e0b', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' },
-                { label: 'Pendentes', data: docStats.map(d => Math.max(0, d.total - d.done - d.inProgress)), backgroundColor: mode === 'line' ? 'rgba(99, 102, 241, 0.15)' : gradPending, borderColor: '#6366f1', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' }
+                { label: 'Pendentes', data: docStats.map(d => Math.max(0, d.total - d.done - d.inProgress)), backgroundColor: mode === 'line' ? 'rgba(2, 132, 199, 0.15)' : gradPending, borderColor: '#0284c7', borderWidth: 2, borderRadius: 6, tension: 0.4, fill: mode === 'line' }
               ]
             },
             options: {
@@ -3375,7 +3375,7 @@ function renderReportsTab(contentArea) {
               labels: ['Concluídos', 'Em Atendimento', 'Pendentes'],
               datasets: [{
                 data: [totalDone, totalInProgress, pendingCount],
-                backgroundColor: ['#34d399', '#fbbf24', '#6366f1'],
+                backgroundColor: ['#34d399', '#fbbf24', '#0284c7'],
                 borderWidth: 3,
                 borderColor: 'rgba(11, 8, 22, 0.95)',
                 borderRadius: 6,
@@ -3605,7 +3605,7 @@ async function openEncounterReportDetail(encId) {
           <!-- Tabs -->
           <div style="display:flex;gap:4px;margin-top:14px;">
             <button class="enc-tab-btn active" data-tab="resumo"
-              style="padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(99,102,241,0.4);background:rgba(99,102,241,0.14);color:#818cf8;transition:all .2s;">
+              style="padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(2,132,199,0.4);background:rgba(99,102,241,0.14);color:#818cf8;transition:all .2s;">
               <i class="fa-solid fa-stethoscope"></i> Resumo
             </button>
             <button class="enc-tab-btn" data-tab="soap"
@@ -3650,13 +3650,13 @@ async function openEncounterReportDetail(encId) {
 
             <!-- Sinais Vitais -->
             <div style="margin-bottom:16px;">
-              <div style="font-size:0.72rem;font-weight:700;color:#f472b6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;display:flex;align-items:center;gap:6px;">
+              <div style="font-size:0.72rem;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;display:flex;align-items:center;gap:6px;">
                 <i class="fa-solid fa-heart-pulse"></i> Sinais Vitais
                 <span style="font-size:0.6rem;color:#475569;font-weight:400;">${triage ? '— da triagem' : '— dados parciais'}</span>
               </div>
               <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;">
                 ${vCard('fa-droplet','PA',bp,'mmHg','#818cf8','')}
-                ${vCard('fa-heart','FC',hr,'bpm','#f472b6','hr')}
+                ${vCard('fa-heart','FC',hr,'bpm','#ef4444','hr')}
                 ${vCard('fa-thermometer-half','Temp',temp,'°C','#fb923c','temp')}
                 ${vCard('fa-weight-scale','Peso',weight,'kg','#34d399','')}
                 ${vCard('fa-lungs','SpO₂',spo2,'%','#38bdf8','spo2')}
@@ -3695,7 +3695,7 @@ async function openEncounterReportDetail(encId) {
                   </div>
                   <div style="font-size:0.92rem;font-weight:700;color:#475569;margin-bottom:6px;">Sem nota clínica</div>
                   <div style="font-size:0.78rem;color:#334155;margin-bottom:16px;">A nota SOAP será criada durante o atendimento médico.</div>
-                  ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i> Criar Nota no PEP</button>` : ''}
+                  ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#0284c7,#0369a1);border:none;color:#fff;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i> Criar Nota no PEP</button>` : ''}
                 </div>`}
           </div>
 
@@ -3747,7 +3747,7 @@ async function openEncounterReportDetail(encId) {
 
         <!-- FOOTER -->
         <div style="padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:9px;justify-content:flex-end;flex-shrink:0;">
-          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:#fff;border-radius:10px;padding:8px 17px;font-weight:700;font-size:0.81rem;cursor:pointer;box-shadow:0 4px 14px rgba(236,72,153,0.28);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
+          ${isClinical ? `<button onclick="document.getElementById('enc-report-detail-modal').remove();if(typeof window.openPEPModal==='function')window.openPEPModal('${encId}');" style="background:linear-gradient(135deg,#0284c7,#0369a1);border:none;color:#fff;border-radius:10px;padding:8px 17px;font-weight:700;font-size:0.81rem;cursor:pointer;box-shadow:0 4px 14px rgba(2,132,199,0.28);"><i class="fa-solid fa-file-medical"></i> Abrir PEP</button>` : ''}
           <button onclick="document.getElementById('enc-report-detail-modal').remove()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#94a3b8;border-radius:10px;padding:8px 17px;font-weight:600;font-size:0.81rem;cursor:pointer;">Fechar</button>
         </div>
       </div>
@@ -3760,7 +3760,7 @@ async function openEncounterReportDetail(encId) {
         overlay.querySelectorAll('.enc-tab-btn').forEach(b => {
           b.style.cssText = 'padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.07);background:transparent;color:#475569;transition:all .2s;';
         });
-        btn.style.cssText = 'padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(99,102,241,0.4);background:rgba(99,102,241,0.14);color:#818cf8;transition:all .2s;';
+        btn.style.cssText = 'padding:6px 15px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(2,132,199,0.4);background:rgba(99,102,241,0.14);color:#818cf8;transition:all .2s;';
         overlay.querySelectorAll('.enc-tab-panel').forEach(p => { p.style.display = 'none'; });
         const panel = overlay.querySelector(`#enc-tab-${tab}`);
         if (panel) panel.style.display = 'block';
@@ -3769,29 +3769,29 @@ async function openEncounterReportDetail(encId) {
 
     // PDF / Print
     const genDoc = () => {
-      const manchColor = manchesterHex[mc] || '#6366f1';
+      const manchColor = manchesterHex[mc] || '#0284c7';
       const vRow = (l, v) => `<tr><td style="padding:5px 10px;font-size:9pt;color:#475569;border-bottom:1px solid #f1f5f9;width:32%;">${l}</td><td style="padding:5px 10px;font-size:9pt;font-weight:600;color:#0f172a;border-bottom:1px solid #f1f5f9;">${v||'—'}</td></tr>`;
       return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Atendimento — ${enc.patientName}</title>
       <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;background:#fff;padding:26px 30px;}
-      .hdr{display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:3px solid #6366f1;margin-bottom:18px;}
+      .hdr{display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:3px solid #0284c7;margin-bottom:18px;}
       .logo{width:48px;height:48px;border-radius:11px;background:${manchColor}18;border:2px solid ${manchColor}44;display:flex;align-items:center;justify-content:center;font-size:20pt;color:${manchColor};}
       .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:8pt;font-weight:700;margin-right:4px;}
-      .sec{font-size:8.5pt;font-weight:800;color:#6366f1;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 7px;padding-bottom:4px;border-bottom:1.5px solid #e2e8f0;}
+      .sec{font-size:8.5pt;font-weight:800;color:#0284c7;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 7px;padding-bottom:4px;border-bottom:1.5px solid #e2e8f0;}
       table{width:100%;border-collapse:collapse;}
       .vg{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:7px;}
       .vb{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:9px;text-align:center;}
       .vv{font-size:13pt;font-weight:800;color:#0f172a;}.vl{font-size:7pt;color:#64748b;text-transform:uppercase;margin-top:2px;}
-      .sb{border-left:3px solid #6366f1;padding:7px 12px;margin-bottom:7px;background:#fafafa;border-radius:0 6px 6px 0;}
-      .sl{font-size:8pt;font-weight:800;color:#6366f1;text-transform:uppercase;margin-bottom:3px;}
+      .sb{border-left:3px solid #0284c7;padding:7px 12px;margin-bottom:7px;background:#fafafa;border-radius:0 6px 6px 0;}
+      .sl{font-size:8pt;font-weight:800;color:#0284c7;text-transform:uppercase;margin-bottom:3px;}
       .sc{font-size:9pt;color:#1e293b;line-height:1.6;}
       .ftr{margin-top:24px;padding-top:10px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:7.5pt;color:#94a3b8;}
       @media print{body{padding:14px 18px;}}</style></head><body>
-      <div class="hdr" style="display: flex; gap: 14px; align-items: center; padding-bottom: 14px; border-bottom: 3px solid #6366f1; margin-bottom: 18px;">
+      <div class="hdr" style="display: flex; gap: 14px; align-items: center; padding-bottom: 14px; border-bottom: 3px solid #0284c7; margin-bottom: 18px;">
         <div style="background: #ffffff; padding: 6px 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
           <img src="/assets/logo.png" alt="Health Nexus" style="height: 38px; width: auto; object-fit: contain;">
         </div>
         <div style="flex:1;">
-          <div style="font-size:7.5pt;color:#6366f1;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Health Nexus — Resumo do Atendimento</div>
+          <div style="font-size:7.5pt;color:#0284c7;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Health Nexus — Resumo do Atendimento</div>
           <h1 style="font-size:15pt;font-weight:800;color:#0f172a;margin:3px 0;">${enc.patientName||'Paciente'}</h1>
           <div style="margin-top:5px;">
             ${mc?`<span class="badge" style="background:${manchColor}18;color:${manchColor};border:1px solid ${manchColor}40;">${mc.toUpperCase()}</span>`:''}
@@ -3799,7 +3799,7 @@ async function openEncounterReportDetail(encId) {
             <span style="font-size:8pt;color:#64748b;">${dateStr}</span>
           </div>
         </div>
-        <div style="text-align:right;"><div style="font-size:7pt;color:#94a3b8;">ID</div><div style="font-family:monospace;font-size:7.5pt;color:#6366f1;">${encId.substring(0,20)}…</div></div>
+        <div style="text-align:right;"><div style="font-size:7pt;color:#94a3b8;">ID</div><div style="font-family:monospace;font-size:7.5pt;color:#0284c7;">${encId.substring(0,20)}…</div></div>
       </div>
       <div class="sec">👤 Paciente e Atendimento</div>
       <table><tbody>

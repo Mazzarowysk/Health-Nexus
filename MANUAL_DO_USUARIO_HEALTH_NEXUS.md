@@ -126,7 +126,7 @@ No topo da aba **Atendimentos**, encontram-se os 4 **Cards Métricos Clicáveis*
 
 | Card | Ícone | Cor Tema | Ação ao Clicar | Descrição / Objetivo | Meta Operacional |
 |:---|:---:|:---:|:---|:---|:---|
-| **Triagem** | 🩺 | Roxo (`#8b5cf6`) | `filterKanbanColumn('triage')` | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem. | Fila zero / Espera < 10 min |
+| **Triagem** | 🩺 | Azul Clínico (`#0284c7`) | `filterKanbanColumn('triage')` | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem. | Fila zero / Espera < 10 min |
 | **Ag. Médico** | ⏳ | Amarelo (`#f59e0b`) | `filterKanbanColumn('waiting')` | Filtra a tela para exibir apenas os pacientes triados aguardando chamada do médico. | Respeitar SLA Manchester |
 | **Em Consulta** | 👨‍⚕️ | Verde (`#10b981`) | `filterKanbanColumn('active')` | Filtra a tela para focar nos atendimentos em andamento e em observação no PS. | Giro de consultório ágil |
 | **Ver Todos** | 📊 | Neutro (`#94a3b8`) | `filterKanbanColumn('all')` | Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban integrado. | Visão global do pronto-socorro |

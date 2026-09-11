@@ -72,7 +72,7 @@ export function openPACSViewerModal(patientName = 'Marcelo Mazaro', studyId = 'D
         <button id="pacs-btn-zoom-in" class="btn btn-sm" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15);"><i class="fa-solid fa-magnifying-glass-plus"></i> Zoom +</button>
         <button id="pacs-btn-zoom-out" class="btn btn-sm" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15);"><i class="fa-solid fa-magnifying-glass-minus"></i> Zoom -</button>
         <button id="pacs-btn-invert" class="btn btn-sm" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15);"><i class="fa-solid fa-circle-half-stroke"></i> Inverter Cor</button>
-        <button id="pacs-btn-measure" class="btn btn-sm" style="background:rgba(99,102,241,0.2); color:#a5b4fc; border:1px solid rgba(99,102,241,0.4);"><i class="fa-solid fa-ruler"></i> Régua de Medição</button>
+        <button id="pacs-btn-measure" class="btn btn-sm" style="background:rgba(2,132,199,0.2); color:#a5b4fc; border:1px solid rgba(99,102,241,0.4);"><i class="fa-solid fa-ruler"></i> Régua de Medição</button>
         <button id="pacs-btn-reset" class="btn btn-sm" style="background:rgba(239,68,68,0.2); color:#fca5a5; border:1px solid rgba(239,68,68,0.4);"><i class="fa-solid fa-rotate-left"></i> Resetar Ajustes</button>
         
         <div style="display:flex; align-items:center; gap:8px; margin-left:auto; font-size:0.78rem; color:#94a3b8;">
@@ -89,7 +89,7 @@ export function openPACSViewerModal(patientName = 'Marcelo Mazaro', studyId = 'D
         <div style="width:260px; background:#0f172a; border-right:1px solid rgba(255,255,255,0.08); padding:14px; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
           <div style="font-size:0.75rem; font-weight:700; color:#818cf8; text-transform:uppercase; letter-spacing:.05em;">Séries do Paciente</div>
           ${MOCK_DICOM_STUDIES.map(s => `
-            <div class="pacs-study-item" data-study-id="${s.id}" style="background:${s.id === activeStudy.id ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.03)'}; border:1px solid ${s.id === activeStudy.id ? '#6366f1' : 'rgba(255,255,255,0.08)'}; border-radius:10px; padding:10px; cursor:pointer; transition:0.2s;">
+            <div class="pacs-study-item" data-study-id="${s.id}" style="background:${s.id === activeStudy.id ? 'rgba(2,132,199,0.2)' : 'rgba(255,255,255,0.03)'}; border:1px solid ${s.id === activeStudy.id ? '#0284c7' : 'rgba(255,255,255,0.08)'}; border-radius:10px; padding:10px; cursor:pointer; transition:0.2s;">
               <div style="font-weight:700; font-size:0.82rem; color:#fff;">${s.modality}</div>
               <div style="font-size:0.74rem; color:#94a3b8; margin-top:3px;">📅 ${s.date}</div>
               <div style="font-size:0.72rem; color:#38bdf8; margin-top:3px;">Órgão: ${s.organ}</div>
@@ -212,8 +212,8 @@ export function openPACSViewerModal(patientName = 'Marcelo Mazaro', studyId = 'D
         el.style.background = 'rgba(255,255,255,0.03)';
         el.style.borderColor = 'rgba(255,255,255,0.08)';
       });
-      item.style.background = 'rgba(99,102,241,0.2)';
-      item.style.borderColor = '#6366f1';
+      item.style.background = 'rgba(2,132,199,0.2)';
+      item.style.borderColor = '#0284c7';
     });
   });
 }

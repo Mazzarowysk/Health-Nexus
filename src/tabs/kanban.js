@@ -6,7 +6,7 @@ window.renderKanbanTab = renderKanbanTab;
 const KANBAN_COLUMNS = [
   { id: 'pronto_socorro', label: 'Pronto Socorro (Obs)', shortLabel: 'PS', color: '#3b82f6', maxHours: 24 },
   { id: 'corredor_internacao', label: 'Corredor de Internacao', shortLabel: 'Corredor', color: '#f59e0b', maxDays: 1 },
-  { id: 'clinica_cirurgica', label: 'Clinica Cirurgica', shortLabel: 'Cirurgica', color: '#8b5cf6', maxDays: 7 },
+  { id: 'clinica_cirurgica', label: 'Clinica Cirurgica', shortLabel: 'Cirurgica', color: '#0d9488', maxDays: 7 },
   { id: 'clinica_medica', label: 'Clinica Medica (SUS)', shortLabel: 'Medica', color: '#10b981', maxDays: 10 },
   { id: 'uti', label: 'UTI', shortLabel: 'UTI', color: '#ef4444', maxDays: 5 }
 ];
@@ -23,7 +23,7 @@ export async function renderKanbanTab() {
     { id: 'all', label: 'Visão Geral', icon: 'fa-layer-group', color: '#818cf8', rgb: '129,140,248' },
     { id: 'pronto_socorro', label: 'Pronto Socorro', icon: 'fa-truck-medical', color: '#3b82f6', rgb: '59,130,246' },
     { id: 'corredor_internacao', label: 'Corredor', icon: 'fa-bed-pulse', color: '#f59e0b', rgb: '245,158,11' },
-    { id: 'clinica_cirurgica', label: 'Cirurgica', icon: 'fa-scalpel', color: '#8b5cf6', rgb: '139,92,246' },
+    { id: 'clinica_cirurgica', label: 'Cirurgica', icon: 'fa-scalpel', color: '#0d9488', rgb: '13,148,136' },
     { id: 'clinica_medica', label: 'Clinica Medica', icon: 'fa-stethoscope', color: '#10b981', rgb: '16,185,129' },
     { id: 'uti', label: 'UTI', icon: 'fa-heart-pulse', color: '#ef4444', rgb: '239,68,68' }
   ];
@@ -69,7 +69,7 @@ export async function renderKanbanTab() {
         <!-- Chart 1: Distribuição por Setor (Interativo) -->
         <div class="kanban-chart-card" onclick="openKanbanSectorBreakdownModal()" style="flex: 1; min-width: 200px; background: var(--glass-bg, rgba(30, 41, 59, 0.65)); backdrop-filter: var(--glass-blur, blur(12px)); border: 1px solid var(--glass-border, rgba(255,255,255,0.08)); border-radius: 16px; padding: 16px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s ease;" onmouseenter="this.style.borderColor='var(--color-primary)'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.borderColor='var(--glass-border, rgba(255,255,255,0.08))'; this.style.transform='none';" title="Clique para ver detalhamento de pacientes por setor">
           <h4 style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin: 0 0 8px 0; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;">
-            <i class="fa-solid fa-chart-pie" style="color: #6366f1;"></i> Distribuição por Setor
+            <i class="fa-solid fa-chart-pie" style="color: #0284c7;"></i> Distribuição por Setor
             <i class="fa-solid fa-arrow-pointer" style="font-size:0.65rem; color:var(--text-muted); opacity:0.7;"></i>
           </h4>
           <div style="flex-grow: 1; position: relative; height: 125px;">
@@ -406,7 +406,7 @@ window.openAddPatientKanbanModal = function(preselectedSectorId = null) {
         
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.1);">
           <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:10px;">
-            <i class="fa-solid fa-bed-pulse" style="color:#ec4899;font-size:1.2rem;"></i> Adicionar ao Kanban
+            <i class="fa-solid fa-bed-pulse" style="color:#0284c7;font-size:1.2rem;"></i> Adicionar ao Kanban
           </h3>
           <button onclick="document.getElementById('kanban-modal').remove()" style="background:rgba(255,255,255,0.1);border:none;cursor:pointer;color:#ffffff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">&times;</button>
         </div>
@@ -459,7 +459,7 @@ window.openAddPatientKanbanModal = function(preselectedSectorId = null) {
 
         <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);">
           <button onclick="document.getElementById('kanban-modal').remove()" style="padding:10px 20px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">Cancelar</button>
-          <button onclick="saveKanbanPatient()" style="padding:10px 22px;border-radius:8px;background:linear-gradient(135deg, #ec4899, #8b5cf6);color:#ffffff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 15px rgba(236,72,153,0.4);display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-plus"></i> Adicionar</button>
+          <button onclick="saveKanbanPatient()" style="padding:10px 22px;border-radius:8px;background:linear-gradient(135deg, #0284c7, #0369a1);color:#ffffff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 15px rgba(2,132,199,0.35);display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-plus"></i> Adicionar</button>
         </div>
       </div>
     </div>
@@ -495,7 +495,7 @@ window.openEditKanbanCard = function(hospId) {
     <div id="kanban-edit-modal" style="display:flex;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,7,20,0.85);z-index:100100;backdrop-filter:blur(10px);">
       <div style="background:#131326;padding:26px 28px;border-radius:18px;width:92%;max-width:480px;box-shadow:0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99,102,241,0.15);border:1.5px solid rgba(139,92,246,0.45);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
-          <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;"><i class="fa-regular fa-pen-to-square" style="color:#ec4899;"></i> Evoluir Paciente</h3>
+          <h3 style="margin:0;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;"><i class="fa-regular fa-pen-to-square" style="color:#0284c7;"></i> Evoluir Paciente</h3>
           <button onclick="document.getElementById('kanban-edit-modal').remove()" style="background:rgba(255,255,255,0.1);border:none;cursor:pointer;color:#ffffff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;">&times;</button>
         </div>
         <p style="margin:0 0 16px;font-size:0.92rem;color:#cbd5e1;font-weight:600;">${patName} &middot; <b style="color:#a7f3d0;">${colLabel}</b></p>
@@ -509,7 +509,7 @@ window.openEditKanbanCard = function(hospId) {
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);">
           <button onclick="document.getElementById('kanban-edit-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;">Cancelar</button>
-          <button onclick="saveEditKanbanCard('${hospId}')" style="padding:9px 18px;border-radius:8px;background:linear-gradient(135deg, #ec4899, #8b5cf6);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 14px rgba(236,72,153,0.4);"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+          <button onclick="saveEditKanbanCard('${hospId}')" style="padding:9px 18px;border-radius:8px;background:linear-gradient(135deg, #0284c7, #0369a1);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 14px rgba(2,132,199,0.35);"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
         </div>
       </div>
     </div>`);
@@ -540,12 +540,12 @@ window.moveKanbanCard = function(hospId) {
         </div>
         <p style="font-size:0.92rem;color:#e2e8f0;margin:0 0 18px;font-weight:600;">Paciente: <strong style="color:#38bdf8;">${pat.fullName || pat.name||'Paciente'}</strong></p>
         <div><label style="display:block;margin-bottom:6px;font-size:0.85rem;color:#f1f5f9;font-weight:700;">Novo Setor Destino</label>
-          <select id="move-sector-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(139,92,246,0.5);background:#0f172a;color:#ffffff;font-size:0.92rem;font-weight:600;">
+          <select id="move-sector-select" class="form-control" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid rgba(2,132,199,0.5);background:#0f172a;color:#ffffff;font-size:0.92rem;font-weight:600;">
             ${KANBAN_COLUMNS.map(c=>`<option value="${c.id}" ${c.id===hosp.current_sector?'selected':''} style="background:#0f172a;color:#ffffff;">${c.label}</option>`).join('')}
           </select></div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
           <button onclick="document.getElementById('kanban-move-modal').remove()" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#f1f5f9;cursor:pointer;font-size:0.88rem;font-weight:600;">Cancelar</button>
-          <button onclick="confirmMoveKanban('${hospId}')" style="padding:9px 18px;border-radius:8px;background:linear-gradient(135deg, #6366f1, #8b5cf6);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 14px rgba(99,102,241,0.4);"><i class="fa-solid fa-check"></i> Mover</button>
+          <button onclick="confirmMoveKanban('${hospId}')" style="padding:9px 18px;border-radius:8px;background:linear-gradient(135deg, #0284c7, #0369a1);color:#fff;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;box-shadow:0 4px 14px rgba(2,132,199,0.4);"><i class="fa-solid fa-check"></i> Mover</button>
         </div>
       </div>
     </div>`);
@@ -592,7 +592,7 @@ window.viewKanbanNotes = function(hospId) {
       <div style="background:#131326;padding:26px 28px;border-radius:18px;width:92%;max-width:560px;box-shadow:0 25px 70px rgba(0,0,0,0.85), 0 0 25px rgba(99,102,241,0.15);border:1.5px solid rgba(139,92,246,0.45);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
           <div>
-            <h3 style="margin:0 0 2px;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;"><i class="fa-solid fa-notes-medical" style="color:#ec4899;"></i> Evolução Clínica</h3>
+            <h3 style="margin:0 0 2px;color:#ffffff;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;"><i class="fa-solid fa-notes-medical" style="color:#0284c7;"></i> Evolução Clínica</h3>
             <p style="margin:0;font-size:0.85rem;color:#cbd5e1;font-weight:600;">${pat.fullName||pat.name||'Paciente'} · Leito: <b style="color:#a7f3d0;">${hosp.bed||'—'}</b></p>
           </div>
           <button onclick="document.getElementById('kanban-notes-modal').remove()" style="background:rgba(255,255,255,0.1);border:none;cursor:pointer;color:#ffffff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;">&times;</button>
@@ -894,7 +894,7 @@ window.openKanbanSectorBreakdownModal = function() {
       <div style="background:var(--bg-secondary); border:1px solid var(--glass-border); width:90%; max-width:650px; max-height:85vh; border-radius:24px; display:flex; flex-direction:column; box-shadow:var(--shadow-xl, 0 30px 60px rgba(0,0,0,0.3)); overflow:hidden;">
         <div style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:var(--bg-tertiary);">
           <h3 style="margin:0; font-size:1.1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
-            <i class="fa-solid fa-chart-pie" style="color:#6366f1;"></i> Detalhamento por Setor (${total} Pacientes)
+            <i class="fa-solid fa-chart-pie" style="color:#0284c7;"></i> Detalhamento por Setor (${total} Pacientes)
           </h3>
           <button onclick="document.getElementById('kanban-sector-modal').remove()" style="background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
         </div>

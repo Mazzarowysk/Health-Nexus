@@ -393,7 +393,7 @@ async function renderLeitosTab() {
                 </button>
               ` : ''}
               ${b.status === 'Ocupado' ? `
-                <button class="btn btn-sm" onclick="if(typeof window.openPEPModal === 'function') window.openPEPModal('${b.patientId || b.patientName}');" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 7px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                <button class="btn btn-sm" onclick="if(typeof window.openPEPModal === 'function') window.openPEPModal('${b.patientId || b.patientName}');" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.76rem; padding: 7px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
                   <i class="fa-solid fa-file-medical"></i> PEP
                 </button>
                 <button class="btn btn-sm btn-danger" onclick="window.dischargeBed('${b.id}')" style="flex: 1; border-radius: 8px; font-weight:700; font-size: 0.76rem; padding: 7px 10px; background: linear-gradient(135deg, #be5a6e, #9e3a52); border:none; color: #fff;">
@@ -695,7 +695,7 @@ window.dischargeBed = (bedId) => {
 
         <!-- Info badge -->
         <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; margin-bottom: 28px; display: flex; align-items: center; gap: 10px; text-align: left;">
-          <i class="fa-solid fa-circle-info" style="color: #6366f1; font-size: 1rem; flex-shrink: 0;"></i>
+          <i class="fa-solid fa-circle-info" style="color: #0284c7; font-size: 1rem; flex-shrink: 0;"></i>
           <span style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">O leito será marcado como <em>Em Higienização</em> automaticamente após a confirmação.</span>
         </div>
 
@@ -866,7 +866,7 @@ window.openBedDetailsModal = async function(bedId) {
 
                   <!-- Ações do Paciente Internado -->
                   <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
-                    <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${bed.patientId || bed.patientName}');">
+                    <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2,132,199,0.3);" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${bed.patientId || bed.patientName}');">
                       <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
                     </button>
                     <button class="btn" style="background: rgba(99,102,241,0.22); border: 1px solid rgba(99,102,241,0.45); color: #c7d2fe; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('', '${(bed.patientName||'').replace(/'/g, "\\'")}', '${bed.patientId || ''}');" title="Prescrever Medicações para o Leito">
@@ -896,7 +896,7 @@ window.openBedDetailsModal = async function(bedId) {
             <!-- Histórico de Ocupação do Leito -->
             <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px;">
               <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-history" style="color: #6366f1;"></i> Histórico de Internações neste Leito (${bedHosps.length})
+                <i class="fa-solid fa-history" style="color: #0284c7;"></i> Histórico de Internações neste Leito (${bedHosps.length})
               </div>
 
               ${bedHosps.length > 0 ? `

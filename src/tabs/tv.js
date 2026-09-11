@@ -20,7 +20,7 @@ async function renderTVPanelTab() {
           </p>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none;">
+          <button id="btn-tv-call-modal" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
             <i class="fa-solid fa-bullhorn"></i> Chamar Paciente no Painel
           </button>
         </div>
@@ -194,7 +194,7 @@ window.loadTVWaitingQueue = async function() {
     azul:     { bg: '#0284c7', label: 'Azul',      icon: 'fa-circle' },
   };
   const statusMap = {
-    Aguardando_Triagem:     { text: 'Ag. Triagem',     color: '#8b5cf6' },
+    Aguardando_Triagem:     { text: 'Ag. Triagem',     color: '#0284c7' },
     Aguardando_Atendimento: { text: 'Ag. Atendimento', color: '#f59e0b' },
     Em_Atendimento:         { text: 'Em Atendimento',  color: '#10b981' },
     Agendado:               { text: 'Agendado',        color: '#0284c7' },
@@ -221,14 +221,14 @@ window.loadTVWaitingQueue = async function() {
       class="patient-card-item ${isSelected ? 'patient-pulse-selected' : ''}"
       data-patient-card-name="${safeName.toLowerCase()}"
       title="Clique para chamar ${p.patientName || ''} na TV"
-      style="position:relative;background:var(--bg-secondary,#1e293b);border:${isSelected ? '2px solid #a855f7' : '1px solid rgba(255,255,255,0.08)'};border-left:4px solid ${col.bg};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;box-shadow:${isSelected ? '0 0 24px rgba(168,85,247,0.45)' : 'none'};"
-      onmouseenter="this.style.background='rgba(139,92,246,0.12)';this.style.transform='translateY(-2px)';"
+      style="position:relative;background:var(--bg-secondary,#1e293b);border:${isSelected ? '2px solid #0284c7' : '1px solid rgba(255,255,255,0.08)'};border-left:4px solid ${col.bg};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;box-shadow:${isSelected ? '0 0 24px rgba(2,132,199,0.45)' : 'none'};"
+      onmouseenter="this.style.background='rgba(2,132,199,0.12)';this.style.transform='translateY(-2px)';"
       onmouseleave="this.style.background='var(--bg-secondary,#1e293b)';this.style.transform='';">
       
       <div style="width:44px;height:44px;border-radius:50%;background:${col.bg};display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;flex-shrink:0;">${ini}</div>
       
       <div style="flex:1;min-width:0;">
-        ${isSelected ? `<div style="font-size:0.65rem;font-weight:800;color:#e9d5ff;background:rgba(168,85,247,0.3);border:1px solid #a855f7;padding:1px 7px;border-radius:8px;margin-bottom:4px;display:inline-flex;align-items:center;gap:4px;letter-spacing:0.4px;"><i class="fa-solid fa-bullhorn fa-bounce"></i> PACIENTE SELECIONADO &bull; CHAMAR NA TV</div>` : ''}
+        ${isSelected ? `<div style="font-size:0.65rem;font-weight:800;color:#38bdf8;background:rgba(2,132,199,0.25);border:1px solid #0284c7;padding:1px 7px;border-radius:8px;margin-bottom:4px;display:inline-flex;align-items:center;gap:4px;letter-spacing:0.4px;"><i class="fa-solid fa-bullhorn fa-bounce"></i> PACIENTE SELECIONADO &bull; CHAMAR NA TV</div>` : ''}
         <div style="font-weight:700;font-size:0.95rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName || 'Paciente'}</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
           <span style="font-size:0.72rem;font-weight:700;background:${st.color}22;color:${st.color};border:1px solid ${st.color}44;padding:1px 7px;border-radius:20px;">${st.text}</span>
@@ -500,20 +500,20 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
         const sLabel = statusLabel(p.status);
         return `<div class="tv-queue-patient-card" data-name="${(p.patientName||'').replace(/"/g,'&quot;')}" data-manchester="${p.manchesterColor||'Verde'}" data-status="${p.status||''}"
              style="background:#1e293b; border:1px solid #334155; border-left:4px solid ${bg}; border-radius:10px; padding:10px 14px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all 0.18s;"
-             onmouseenter="this.style.background='rgba(139,92,246,0.12)'; this.style.borderColor='#8b5cf6';"
+             onmouseenter="this.style.background='rgba(2,132,199,0.12)'; this.style.borderColor='#0284c7';"
              onmouseleave="this.style.background='#1e293b'; this.style.borderColor='#334155'; this.style.borderLeftColor='${bg}';">
           <div style="width:38px;height:38px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:0.9rem;flex-shrink:0;">${initials}</div>
           <div style="flex:1;min-width:0;">
             <div style="font-weight:700;font-size:0.9rem;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName||'Paciente'}</div>
             <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">${sLabel} &bull; ${p.manchesterColor||'Sem Triagem'}</div>
           </div>
-          <i class="fa-solid fa-hand-pointer" style="color:#8b5cf6;font-size:0.85rem;flex-shrink:0;"></i>
+          <i class="fa-solid fa-hand-pointer" style="color:#0284c7;font-size:0.85rem;flex-shrink:0;"></i>
         </div>`;
       }).join('');
 
   overlay.innerHTML = `
-    <div class="sync-modal-card" style="max-width: 540px; width: 95%; background: #0f172a; border: 1px solid #8b5cf6; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.7); max-height: 90vh; display: flex; flex-direction: column;">
-      <div style="background: linear-gradient(135deg, #7c3aed, #4f46e5); padding: 16px 20px; flex-shrink: 0;">
+    <div class="sync-modal-card" style="max-width: 540px; width: 95%; background: #0f172a; border: 1px solid #0284c7; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.7); max-height: 90vh; display: flex; flex-direction: column;">
+      <div style="background: linear-gradient(135deg, #0284c7, #0369a1); padding: 16px 20px; flex-shrink: 0;">
         <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px; color: #fff; margin: 0;">
           <i class="fa-solid fa-bullhorn"></i> Chamar Paciente no Painel TV
         </h3>
@@ -568,7 +568,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
 
         <!-- BOTÕES -->
         <div style="display: flex; gap: 10px; margin-top: 4px;">
-          <button id="btn-tv-modal-confirm" class="btn btn-primary" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #7c3aed, #4f46e5); border: none; font-weight: 700; cursor: pointer; border-radius: 8px;">
+          <button id="btn-tv-modal-confirm" class="btn btn-primary" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; font-weight: 700; cursor: pointer; border-radius: 8px;">
             <i class="fa-solid fa-volume-high"></i> Emitir Chamada
           </button>
           <button id="btn-tv-modal-cancel" class="btn" style="flex: 1; padding: 12px; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; cursor: pointer; border-radius: 8px;">
@@ -593,7 +593,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
       const cardName = (card.dataset.name || '').trim().toLowerCase();
       if (cardName && (cardName.includes(cleanPre) || cleanPre.includes(cardName))) {
         card.style.background = 'rgba(139,92,246,0.18)';
-        card.style.borderColor = '#8b5cf6';
+        card.style.borderColor = '#0284c7';
       }
     });
   }
@@ -605,7 +605,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
         c.style.background = '#1e293b'; c.style.borderColor = '#334155';
       });
       card.style.background = 'rgba(139,92,246,0.18)';
-      card.style.borderColor = '#8b5cf6';
+      card.style.borderColor = '#0284c7';
       inputEl.value = card.dataset.name;
       const m = card.dataset.manchester;
       if (m && m !== 'Sem Triagem') colorEl.value = m;
@@ -1436,10 +1436,10 @@ window.openTransferBedModal = async function(encounterId, patientName) {
         if (!actionBox) {
           actionBox = document.createElement('div');
           actionBox.id = 'bed-modal-auto-seed-box';
-          actionBox.style.cssText = 'margin-top: 12px; padding: 12px; background: rgba(99,102,241,0.12); border: 1px dashed rgba(99,102,241,0.3); border-radius: 10px; text-align: center;';
+          actionBox.style.cssText = 'margin-top: 12px; padding: 12px; background: rgba(2,132,199,0.12); border: 1px dashed rgba(2,132,199,0.3); border-radius: 10px; text-align: center;';
           actionBox.innerHTML = `
-            <div style="font-size: 0.8rem; color: #a5b4fc; margin-bottom: 8px;">Deseja carregar a estrutura de 22 leitos padrão do hospital?</div>
-            <button type="button" id="btn-modal-load-default-beds" class="btn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; padding: 8px 16px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; cursor: pointer;">
+            <div style="font-size: 0.8rem; color: #bae6fd; margin-bottom: 8px;">Deseja carregar a estrutura de 22 leitos padrão do hospital?</div>
+            <button type="button" id="btn-modal-load-default-beds" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; padding: 8px 16px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; cursor: pointer;">
               <i class="fa-solid fa-arrows-rotate"></i> Carregar 22 Leitos Hospitalares
             </button>
           `;

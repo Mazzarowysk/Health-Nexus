@@ -29,7 +29,7 @@ export function renderSchedulesTab() {
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
         <div>
           <h2 style="font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-user-clock" style="color: #6366f1;"></i> Escalas de Trabalho &amp; Plantões
+            <i class="fa-solid fa-user-clock" style="color: #0284c7;"></i> Escalas de Trabalho &amp; Plantões
           </h2>
           <p style="color: var(--text-secondary); margin: 4px 0 0 0; font-size: 0.88rem;">
             Gestão operacional de turnos e alocação de Médicos e Enfermeiros.
@@ -39,7 +39,7 @@ export function renderSchedulesTab() {
           <button id="btn-export-schedules" class="btn" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
             <i class="fa-solid fa-print"></i> Imprimir Escala
           </button>
-          <button id="btn-add-schedule" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.3);">
+          <button id="btn-add-schedule" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; box-shadow: 0 4px 12px rgba(2,132,199,0.3);">
             <i class="fa-solid fa-plus"></i> Novo Plantão
           </button>
         </div>
@@ -107,15 +107,15 @@ export function renderSchedulesTab() {
       <!-- Navegação por Orelhas Destacadas (Sub-abas Interativas com Sombreamento Colorido) -->
       <div style="display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; gap: 14px; padding-bottom: 0; align-items: flex-end;">
         <button id="subtab-medicos" class="subtab-orelha subtab-orelha-medicos ${currentSubTab === 'medicos' ? 'active' : ''}" title="Aba Interativa: Clique para alternar para a Escala Médica">
-          <i class="fa-solid fa-user-doctor" style="font-size: 1.15rem; color: ${currentSubTab === 'medicos' ? '#f472b6' : '#fbcfe8'};"></i> 
+          <i class="fa-solid fa-user-doctor" style="font-size: 1.15rem; color: ${currentSubTab === 'medicos' ? '#38bdf8' : 'rgba(56,189,248,0.5)'};"></i> 
           <span>🩺 Escala de Médicos (${rawSchedules.filter(s => s.category === 'medico' || s.crm_coren?.includes('CRM') || !s.category).length})</span>
-          ${currentSubTab === 'medicos' ? '<span style="font-size: 0.68rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #db2777); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(236,72,153,0.35);">ATIVA</span>' : ''}
+          ${currentSubTab === 'medicos' ? '<span style="font-size: 0.68rem; font-weight: 800; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(2,132,199,0.35);">ATIVA</span>' : ''}
         </button>
 
         <button id="subtab-enfermeiros" class="subtab-orelha subtab-orelha-enfermeiros ${currentSubTab === 'enfermeiros' ? 'active' : ''}" title="Aba Interativa: Clique para alternar para a Escala de Enfermagem">
-          <i class="fa-solid fa-user-nurse" style="font-size: 1.15rem; color: ${currentSubTab === 'enfermeiros' ? '#f472b6' : '#fbcfe8'};"></i> 
+          <i class="fa-solid fa-user-nurse" style="font-size: 1.15rem; color: ${currentSubTab === 'enfermeiros' ? '#2dd4bf' : 'rgba(45,212,191,0.5)'};"></i> 
           <span>💉 Escala de Enfermeiros (${rawSchedules.filter(s => s.category === 'enfermeiro' || s.crm_coren?.includes('COREN')).length})</span>
-          ${currentSubTab === 'enfermeiros' ? '<span style="font-size: 0.68rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #db2777); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(236,72,153,0.35);">ATIVA</span>' : ''}
+          ${currentSubTab === 'enfermeiros' ? '<span style="font-size: 0.68rem; font-weight: 800; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; box-shadow: 0 2px 6px rgba(2,132,199,0.35);">ATIVA</span>' : ''}
         </button>
       </div>
 
@@ -216,7 +216,7 @@ function renderScheduleCards(allSchedules, doctors, nurses) {
         <p style="color: var(--text-secondary); margin: 6px 0 16px 0; font-size: 0.9rem;">
           Não há escalas cadastradas para os filtros selecionados (${currentSubTab === 'medicos' ? 'Médicos' : 'Enfermeiros'}).
         </p>
-        <button id="btn-add-schedule-empty" class="btn btn-primary" style="background: #6366f1; color: #fff;">
+        <button id="btn-add-schedule-empty" class="btn btn-primary" style="background: #0284c7; color: #fff;">
           <i class="fa-solid fa-plus"></i> Cadastrar Plantão
         </button>
       </div>
@@ -243,7 +243,7 @@ function renderScheduleCards(allSchedules, doctors, nurses) {
     return `
       <div style="margin-bottom: 24px;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-          <i class="fa-solid fa-calendar-day" style="color: #6366f1;"></i>
+          <i class="fa-solid fa-calendar-day" style="color: #0284c7;"></i>
           <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-primary); text-transform: capitalize;">
             ${formattedDate} ${dateStr === todayStr ? '<span style="background: #10b981; color: #fff; font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; margin-left: 6px;">HOJE</span>' : ''}
           </h3>
@@ -258,14 +258,14 @@ function renderScheduleCards(allSchedules, doctors, nurses) {
             const badgeBg = s.status === 'Em Andamento' ? 'linear-gradient(135deg, #10b981, #059669)' :
                             s.status === 'Troca Solicitada' ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
                             s.status === 'Ausente' ? 'linear-gradient(135deg, #ef4444, #dc2626)' :
-                            'linear-gradient(135deg, #6366f1, #4f46e5)';
+                            'linear-gradient(135deg, #0284c7, #0369a1)';
 
             return `
               <div class="interactive-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; position: relative; transition: all 0.2s;">
                 
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
                   <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 50%; background: ${isMedico ? 'rgba(99, 102, 241, 0.15)' : 'rgba(6, 182, 212, 0.15)'}; display: flex; align-items: center; justify-content: center; color: ${isMedico ? '#6366f1' : '#06b6d4'}; font-size: 1.2rem; font-weight: 700;">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: ${isMedico ? 'rgba(2, 132, 199, 0.15)' : 'rgba(13, 148, 136, 0.15)'}; display: flex; align-items: center; justify-content: center; color: ${isMedico ? '#0284c7' : '#0d9488'}; font-size: 1.2rem; font-weight: 700;">
                       <i class="fa-solid ${isMedico ? 'fa-user-doctor' : 'fa-user-nurse'}"></i>
                     </div>
                     <div>
@@ -284,7 +284,7 @@ function renderScheduleCards(allSchedules, doctors, nurses) {
 
                 <div style="background: var(--bg-tertiary); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.84rem; display: flex; flex-direction: column; gap: 4px;">
                   <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-secondary);"><i class="fa-solid fa-clock" style="margin-right: 6px; color: #6366f1;"></i> Turno:</span>
+                    <span style="color: var(--text-secondary);"><i class="fa-solid fa-clock" style="margin-right: 6px; color: #0284c7;"></i> Turno:</span>
                     <strong style="color: var(--text-primary);">${s.shiftType || 'Manhã'} (${s.workloadHours || 6}h)</strong>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
@@ -461,8 +461,8 @@ function openScheduleModal(scheduleId = null) {
   const customRoomVal = customRooms.join(', ');
 
   overlay.innerHTML = `
-    <div class="modal-card animate-scale-up" style="max-width: 620px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid rgba(129, 140, 248, 0.4); border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.85); color: #f8fafc; overflow: hidden;">
-      <div class="modal-header" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.15); flex-shrink: 0;">
+    <div class="modal-card animate-scale-up" style="max-width: 620px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; background: linear-gradient(145deg, #0f172a 0%, #0b0f17 100%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.85); color: #f8fafc; overflow: hidden;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.15); flex-shrink: 0;">
         <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.15rem; color: #ffffff; display: flex; align-items: center; gap: 10px;">
           <i class="fa-solid fa-calendar-plus" style="color: #fbbf24; font-size: 1.25rem;"></i>
           ${isEdit ? 'Editar Plantão de Escala' : 'Cadastrar Novo Plantão de Escala'}
@@ -473,14 +473,14 @@ function openScheduleModal(scheduleId = null) {
       <form id="form-schedule" style="padding: 22px 26px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
         <div>
           <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.88rem; color: #e2e8f0;">
-            <i class="fa-solid fa-users" style="color: #818cf8; margin-right: 6px;"></i> Categoria do Profissional:
+            <i class="fa-solid fa-users" style="color: #38bdf8; margin-right: 6px;"></i> Categoria do Profissional:
           </label>
-          <div style="display: flex; gap: 16px; background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(129, 140, 248, 0.2);">
+          <div style="display: flex; gap: 16px; background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.2);">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 0.9rem; font-weight: 500;">
-              <input type="radio" name="modal-category" value="medico" ${activeCategory === 'medico' ? 'checked' : ''} style="accent-color: #6366f1; width: 16px; height: 16px;"> 🩺 Médico
+              <input type="radio" name="modal-category" value="medico" ${activeCategory === 'medico' ? 'checked' : ''} style="accent-color: #0284c7; width: 16px; height: 16px;"> 🩺 Médico
             </label>
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 0.9rem; font-weight: 500;">
-              <input type="radio" name="modal-category" value="enfermeiro" ${activeCategory === 'enfermeiro' ? 'checked' : ''} style="accent-color: #06b6d4; width: 16px; height: 16px;"> 💉 Enfermeiro
+              <input type="radio" name="modal-category" value="enfermeiro" ${activeCategory === 'enfermeiro' ? 'checked' : ''} style="accent-color: #0d9488; width: 16px; height: 16px;"> 💉 Enfermeiro
             </label>
           </div>
         </div>
@@ -529,21 +529,21 @@ function openScheduleModal(scheduleId = null) {
             ${availableSectors.map(sec => {
               const isChecked = currentRooms.some(r => r.toLowerCase().trim() === sec.toLowerCase().trim() || (item && (item.roomName || item.sector || '').toLowerCase().includes(sec.toLowerCase())));
               return `
-                <label class="sector-checkbox-card" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #f8fafc; cursor: pointer; padding: 7px 10px; background: ${isChecked ? 'rgba(99, 102, 241, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isChecked ? '#818cf8' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; user-select: none; transition: all 0.2s;">
-                  <input type="checkbox" name="modal-room-checkbox" value="${sec}" ${isChecked ? 'checked' : ''} style="accent-color: #6366f1; width: 16px; height: 16px; cursor: pointer;">
+                <label class="sector-checkbox-card" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #f8fafc; cursor: pointer; padding: 7px 10px; background: ${isChecked ? 'rgba(2, 132, 199, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isChecked ? '#38bdf8' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; user-select: none; transition: all 0.2s;">
+                  <input type="checkbox" name="modal-room-checkbox" value="${sec}" ${isChecked ? 'checked' : ''} style="accent-color: #0284c7; width: 16px; height: 16px; cursor: pointer;">
                   <span>${sec}</span>
                 </label>
               `;
             }).join('')}
           </div>
-          <input type="text" id="modal-room-custom" class="input-field" placeholder="Outro setor ou consultório específico (opcional)..." value="${customRoomVal}" style="margin-top: 8px; width: 100%; height: 38px; font-size: 0.82rem; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.25); color: #fff; border-radius: 8px; padding-left: 10px;">
+          <input type="text" id="modal-room-custom" class="input-field" placeholder="Outro setor ou consultório específico (opcional)..." value="${customRoomVal}" style="margin-top: 8px; width: 100%; height: 38px; font-size: 0.82rem; background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.25); color: #fff; border-radius: 8px; padding-left: 10px;">
         </div>
 
         <div>
           <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.88rem; color: #e2e8f0;">
-            <i class="fa-solid fa-signal" style="color: #818cf8; margin-right: 6px;"></i> Status do Plantão:
+            <i class="fa-solid fa-signal" style="color: #38bdf8; margin-right: 6px;"></i> Status do Plantão:
           </label>
-          <select id="modal-status" class="input-field" style="width: 100%; height: 42px; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.3); color: #fff; border-radius: 10px; padding: 0 12px; font-size: 0.9rem;">
+          <select id="modal-status" class="input-field" style="width: 100%; height: 42px; background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; border-radius: 10px; padding: 0 12px; font-size: 0.9rem;">
             <option value="Confirmado" ${item?.status === 'Confirmado' ? 'selected' : ''}>✅ Confirmado</option>
             <option value="Em Andamento" ${item?.status === 'Em Andamento' ? 'selected' : ''}>⏳ Em Andamento</option>
             <option value="Troca Solicitada" ${item?.status === 'Troca Solicitada' ? 'selected' : ''}>🔄 Troca Solicitada</option>
@@ -554,16 +554,16 @@ function openScheduleModal(scheduleId = null) {
 
         <div>
           <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.88rem; color: #e2e8f0;">
-            <i class="fa-solid fa-note-sticky" style="color: #818cf8; margin-right: 6px;"></i> Observações / Instruções:
+            <i class="fa-solid fa-note-sticky" style="color: #38bdf8; margin-right: 6px;"></i> Observações / Instruções:
           </label>
-          <textarea id="modal-notes" class="input-field" rows="2" placeholder="Notas adicionais sobre o plantão..." style="width: 100%; background: #0f172a; border: 1px solid rgba(129, 140, 248, 0.3); color: #fff; border-radius: 10px; padding: 10px; font-size: 0.88rem; resize: vertical;">${item?.notes || ''}</textarea>
+          <textarea id="modal-notes" class="input-field" rows="2" placeholder="Notas adicionais sobre o plantão..." style="width: 100%; background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; border-radius: 10px; padding: 10px; font-size: 0.88rem; resize: vertical;">${item?.notes || ''}</textarea>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
           <button type="button" id="btn-cancel-modal" class="btn" style="background: rgba(255,255,255,0.06); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer;">
             Cancelar
           </button>
-          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; border-radius: 10px; padding: 10px 22px; font-weight: 600; font-size: 0.92rem; cursor: pointer; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; border-radius: 10px; padding: 10px 22px; font-weight: 600; font-size: 0.92rem; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
             <i class="fa-solid fa-floppy-disk" style="margin-right: 6px;"></i>
             ${isEdit ? 'Salvar Alterações' : 'Cadastrar Plantão'}
           </button>

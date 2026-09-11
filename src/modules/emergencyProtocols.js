@@ -33,9 +33,9 @@ export const EMERGENCY_PROTOCOLS_DEF = {
     id: 'SEPSE',
     name: 'Protocolo de Sepse (Pacote da 1ª Hora)',
     icon: 'fa-triangle-exclamation',
-    color: '#8b5cf6',
+    color: '#0284c7',
     bgColor: 'rgba(139, 92, 246, 0.15)',
-    borderColor: '#8b5cf6',
+    borderColor: '#0284c7',
     targets: [
       { name: 'Dosagem de Lactato Sérico', maxMinutes: 30, key: 'lactate' },
       { name: 'Coleta de Hemoculturas (2 Pares)', maxMinutes: 45, key: 'hemoculture' },

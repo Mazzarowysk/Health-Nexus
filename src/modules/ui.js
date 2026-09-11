@@ -47,9 +47,9 @@ export const setupCustomSelect = (container, hiddenInput, items, placeholder, on
 
   const getLabelHtml = (item) => {
     if (!item) {
-      return `<i class="fa-solid fa-user" style="color: var(--color-primary, #6366f1); margin-right: 8px;"></i> <span>${placeholder || 'Selecione...'}</span>`;
+      return `<i class="fa-solid fa-user" style="color: var(--color-primary, #0284c7); margin-right: 8px;"></i> <span>${placeholder || 'Selecione...'}</span>`;
     }
-    return `<i class="fa-solid fa-user" style="color: var(--color-primary, #6366f1); margin-right: 8px;"></i> <span style="font-weight:600;">${item.fullName}</span> <span style="opacity:0.75; font-size:0.82rem; margin-left:4px;">(CPF: ${item.cpf || 'N/I'})</span>`;
+    return `<i class="fa-solid fa-user" style="color: var(--color-primary, #0284c7); margin-right: 8px;"></i> <span style="font-weight:600;">${item.fullName}</span> <span style="opacity:0.75; font-size:0.82rem; margin-left:4px;">(CPF: ${item.cpf || 'N/I'})</span>`;
   };
 
   let selectedItem = sortedItems.find(i => String(i.id) === String(hiddenInput.value)) || null;
@@ -205,7 +205,7 @@ export const showCustomAlert = ({ title = 'Aviso do Sistema', message = '', type
     overlay.className = 'modal-overlay';
     overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);';
 
-    let headerBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+    let headerBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
     let iconClass = 'fa-circle-info';
 
     if (type === 'success') {
@@ -317,7 +317,7 @@ export const showLoadingModal = (message = 'Carregando...') => {
 
   overlay.innerHTML = `
     <div class="sync-modal-card" style="max-width: 400px; text-align: center; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; background: var(--bg-card, #1e293b); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); border-radius: 16px;">
-      <div style="width: 46px; height: 46px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <div style="width: 46px; height: 46px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #0284c7; border-radius: 50%; animation: spin 1s linear infinite;"></div>
       <h3 style="font-size: 1.1rem; color: var(--text-primary, #f8fafc); font-weight: 600; margin: 0;">${message}</h3>
       <p style="font-size: 0.85rem; color: var(--text-secondary, #94a3b8); margin: 0;">Por favor, aguarde alguns instantes...</p>
     </div>

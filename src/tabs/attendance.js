@@ -22,7 +22,7 @@ export function renderAttendanceTab(contentArea) {
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <div id="atd-kpi-bar" style="display:flex; gap:8px; align-items:center;">
             <div id="card-kpi-triage" class="atd-metric-card" onclick="window.filterKanbanColumn('triage')" title="Filtrar por Fila de Triagem" style="background:rgba(139,92,246,0.12); color:#a78bfa; border:1px solid rgba(139,92,246,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
-              <i class="fa-solid fa-stethoscope" style="font-size:0.9rem; color:#8b5cf6;"></i>
+              <i class="fa-solid fa-stethoscope" style="font-size:0.9rem; color:#0284c7;"></i>
               <strong id="kpi-triagem-num" style="font-size:0.95rem; font-weight:800; color:#a78bfa;">0</strong>
               <span>Triagem</span>
             </div>
@@ -60,12 +60,12 @@ export function renderAttendanceTab(contentArea) {
       <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start;">
         <!-- Coluna Triagem -->
         <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #8b5cf6;">
-            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-nurse" style="color:#8b5cf6;"></i> Aguardando Triagem</span>
-            <span id="count-triage" style="background:rgba(139,92,246,0.2); color:#8b5cf6; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #0284c7;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-nurse" style="color:#0284c7;"></i> Aguardando Triagem</span>
+            <span id="count-triage" style="background:rgba(139,92,246,0.2); color:#0284c7; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
           </div>
           <div id="col-triage" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
-            <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#8b5cf6; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Fila vazia</div>
+            <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#0284c7; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Fila vazia</div>
           </div>
         </div>
 
@@ -131,7 +131,7 @@ export function renderAttendanceTab(contentArea) {
       <div id="triage-modal" class="modal-overlay" style="display:none;">
         <div class="modal-content" style="max-width:580px; width:95vw; max-height:92vh; overflow-y:auto;">
           <div class="modal-header">
-            <h3><i class="fa-solid fa-user-nurse" style="color:#8b5cf6;"></i> Triagem Manchester</h3>
+            <h3><i class="fa-solid fa-user-nurse" style="color:#0284c7;"></i> Triagem Manchester</h3>
             <button type="button" class="modal-close" id="close-triage-modal"><i class="fa-solid fa-xmark"></i></button>
           </div>
           <div class="modal-body">
@@ -141,7 +141,7 @@ export function renderAttendanceTab(contentArea) {
                 <span style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:2px;">Paciente:</span>
                 <strong id="triage-patient-name" style="font-size:1.05rem; color:var(--text-primary);"></strong>
               </div>
-              <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin-bottom:12px; color:var(--text-primary); border-left:3px solid #8b5cf6; padding-left:8px;">Sinais Vitais</h4>
+              <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin-bottom:12px; color:var(--text-primary); border-left:3px solid #0284c7; padding-left:8px;">Sinais Vitais</h4>
               <div class="form-row">
                 <div class="form-group"><label class="form-label">* Pressão Arterial (mmHg):</label><input type="text" id="triage-pa" class="form-input" required placeholder="120/80"></div>
                 <div class="form-group"><label class="form-label">* Temperatura (°C):</label><input type="text" id="triage-temp" class="form-input" required placeholder="36.8" inputmode="decimal"></div>
@@ -165,7 +165,7 @@ export function renderAttendanceTab(contentArea) {
                 <span id="triage-mews-suggest" style="font-size: 0.74rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); padding: 2px 8px; border-radius: 8px;">Sinais Estáveis</span>
               </div>
 
-              <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin:16px 0 12px; color:var(--text-primary); border-left:3px solid #8b5cf6; padding-left:8px;">* Classificação de Risco</h4>
+              <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin:16px 0 12px; color:var(--text-primary); border-left:3px solid #0284c7; padding-left:8px;">* Classificação de Risco</h4>
               <div class="manchester-selector">
                 <div class="manchester-option vermelho"><input type="radio" id="color-vermelho" name="manchesterColor" value="Vermelho"><label for="color-vermelho" class="manchester-label"><i class="fa-solid fa-triangle-exclamation"></i><span>Emergência</span></label></div>
                 <div class="manchester-option laranja"><input type="radio" id="color-laranja" name="manchesterColor" value="Laranja"><label for="color-laranja" class="manchester-label"><i class="fa-solid fa-circle-exclamation"></i><span>Muito Urgente</span></label></div>
@@ -473,7 +473,7 @@ export function renderAttendanceTab(contentArea) {
       items.forEach(e => { bindFn(e); startLiveTimer(e.id, e.admitted_at); });
     };
 
-    setCol('col-triage', triage, '#8b5cf6', 'Fila vazia', buildTriageCard, (e) => {
+    setCol('col-triage', triage, '#0284c7', 'Fila vazia', buildTriageCard, (e) => {
       const b = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-triar`);
       const pepBtn = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-open-pep-direct`);
       if (b) b.addEventListener('click', () => openTriageModal(e.id, e.patientName));
@@ -534,21 +534,21 @@ export function renderAttendanceTab(contentArea) {
     const isSel = !!(activePatName && e.patientName && (e.patientName.toLowerCase().trim() === activePatName));
     const safePName = (e.patientName || '').replace(/'/g, "\\'");
     return `
-    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid var(--border-color)'};border-left:4px solid #8b5cf6;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}' });">
+    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid var(--border-color)'};border-left:4px solid #0284c7;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}' });">
       ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
         <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
-        <span id="timer-${e.id}" style="font-size:0.7rem;color:#8b5cf6;font-family:monospace;background:rgba(139,92,246,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+        <span id="timer-${e.id}" style="font-size:0.7rem;color:#0284c7;font-family:monospace;background:rgba(2,132,199,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
       </div>
-      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;"><i class="fa-solid fa-tag" style="color:#8b5cf6;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;"><i class="fa-solid fa-tag" style="color:#0284c7;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}</div>
       <div style="display:flex;gap:6px;margin-top:6px;">
         <button class="btn btn-secondary btn-quick-tv-triage" onclick="event.stopPropagation(); if(typeof window.openTVCallModal==='function'){ window.switchTab('tv_panel'); setTimeout(() => window.openTVCallModal('${safePName}', 'Verde', 'Sala de Triagem'), 200); } else if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', 'Verde', 'Sala de Triagem'); } else if(typeof window.switchTab==='function'){ window.switchTab('tv_panel'); }" style="font-size:0.75rem;padding:7px 10px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#d8b4fe;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px;" title="Chamar no Painel TV para Sala de Triagem">
           <i class="fa-solid fa-bullhorn"></i> TV
         </button>
-        <button class="btn btn-primary btn-triar" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;cursor:pointer;">
+        <button class="btn btn-primary btn-triar" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:linear-gradient(135deg,#0284c7,#0369a1);border:none;cursor:pointer;">
           <i class="fa-solid fa-user-nurse"></i> Realizar Triagem
         </button>
-        <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);color:#f472b6;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+        <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
           <i class="fa-solid fa-file-medical"></i> PEP
         </button>
       </div>
@@ -576,7 +576,7 @@ export function renderAttendanceTab(contentArea) {
           <button class="btn btn-primary btn-call-consult" data-enc-id="${e.id}" onclick="event.stopPropagation(); if(typeof window.openTVCallModal==='function'){ window.switchTab('tv_panel'); setTimeout(() => window.openTVCallModal('${safePName}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'), 200); } else if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'); }" style="flex:1;font-size:0.78rem;padding:7px;cursor:pointer;">
             <i class="fa-solid fa-bullhorn"></i> Chamar
           </button>
-          <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);color:#f472b6;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+          <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
             <i class="fa-solid fa-file-medical"></i> PEP
           </button>
         </div>

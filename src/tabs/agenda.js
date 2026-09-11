@@ -9,8 +9,8 @@ async function renderAgendaTab() {
   const todayLabel = new Date(todayIso + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 
   const DEFAULT_DOCTOR_COLORS = [
-    { bg: 'rgba(139,92,246,0.12)', border: '#8b5cf6', text: '#c4b5fd' },
-    { bg: 'rgba(236,72,153,0.12)', border: '#ec4899', text: '#f472b6' },
+    { bg: 'rgba(2,132,199,0.12)', border: '#0284c7', text: '#38bdf8' }, // Sapphire Blue
+    { bg: 'rgba(13,148,136,0.12)', border: '#0d9488', text: '#2dd4bf' }, // Surgical Teal
     { bg: 'rgba(34,211,238,0.12)', border: '#22d3ee', text: '#67e8f9' },
     { bg: 'rgba(251,146,60,0.12)', border: '#fb923c', text: '#fdba74' },
     { bg: 'rgba(16,185,129,0.12)', border: '#10b981', text: '#6ee7b7' }

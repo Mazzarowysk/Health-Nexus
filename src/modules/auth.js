@@ -38,7 +38,7 @@ export const getRolePermissions = (user) => {
     return {
       role: 'Desenvolvedor',
       label: '💻 Desenvolvedor',
-      badgeColor: 'linear-gradient(135deg, #a855f7, #7e22ce)',
+      badgeColor: 'linear-gradient(135deg, #0d9488, #0f766e)',
       allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
@@ -57,7 +57,7 @@ export const getRolePermissions = (user) => {
     return {
       role: 'Administrador',
       label: '🛠️ Administrador',
-      badgeColor: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+      badgeColor: 'linear-gradient(135deg, #0284c7, #0369a1)',
       allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
@@ -95,7 +95,7 @@ export const getRolePermissions = (user) => {
     return {
       role: 'Recepcionista',
       label: '📋 Recepcionista',
-      badgeColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+      badgeColor: 'linear-gradient(135deg, #059669, #047857)',
       allowedTabs: ['dashboard', 'pacientes', 'escalas', 'agenda', 'atendimento', 'consultorios', 'tv_panel'],
       canApproveUsers: false,
       canManageUsers: false,
@@ -114,7 +114,7 @@ export const getRolePermissions = (user) => {
     return {
       role: 'Farmacêutico',
       label: '💊 Farmacêutico(a)',
-      badgeColor: 'linear-gradient(135deg, #ec4899, #db2777)',
+      badgeColor: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
       allowedTabs: ['dashboard', 'pacientes', 'farmacia', 'relatorios'],
       canApproveUsers: false,
       canManageUsers: false,
@@ -367,7 +367,7 @@ export const showUserSessionsHistory = (userId, userName) => {
             <i class="fa-solid fa-list-ol" style="margin-right: 4px;"></i> ${showFullAudit ? `Total de ${sessions.length} sessões de auditoria` : 'Listagem de 5 Acessos Recentes'}
           </span>
 
-          <button id="btn-toggle-full-audit" class="btn" style="background: ${showFullAudit ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #6366f1, #4f46e5)'}; color: #fff; border: none; font-size: 0.82rem; font-weight: 700; padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); transition: all 0.2s;">
+          <button id="btn-toggle-full-audit" class="btn" style="background: ${showFullAudit ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0284c7, #0369a1)'}; color: #fff; border: none; font-size: 0.82rem; font-weight: 700; padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: all 0.2s;">
             <i class="fa-solid ${showFullAudit ? 'fa-list-check' : 'fa-shield-halved'}"></i>
             ${showFullAudit ? 'Exibir Apenas os Últimos 5 Acessos' : 'Verificação Completa de Acessos'}
           </button>
@@ -585,7 +585,7 @@ export const showUserManagementModal = async () => {
                     </td>
                     <td style="padding: 12px 10px; text-align: right;">
                       ${isCurrentMaster ? `
-                      <button class="btn-icon btn-history-user" data-uid="${u.id}" data-name="${u.name}" title="Histórico de Sessões" style="color: #8b5cf6; margin-right: 6px;">
+                      <button class="btn-icon btn-history-user" data-uid="${u.id}" data-name="${u.name}" title="Histórico de Sessões" style="color: #0284c7; margin-right: 6px;">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                       </button>
                       ` : ''}
@@ -873,15 +873,15 @@ export const showPurgeSimulationUsersModal = (allUsers = [], onPurgeComplete = n
       } else if (u.role === 'Desenvolvedor') {
         roleColor = '#c084fc'; roleBg = 'rgba(168, 85, 247, 0.15)';
       } else if (u.role === 'Médico') {
-        roleColor = '#f472b6'; roleBg = 'rgba(236, 72, 153, 0.15)';
+        roleColor = '#0ea5e9'; roleBg = 'rgba(14, 165, 233, 0.15)';
       } else if (u.role === 'Enfermeiro') {
         roleColor = '#38bdf8'; roleBg = 'rgba(56, 189, 248, 0.15)';
       }
 
       return `
-        <label style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: ${isChecked ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-secondary)'}; border: 1px solid ${isChecked ? 'rgba(99, 102, 241, 0.3)' : 'var(--border-color)'}; border-radius: 8px; cursor: ${isMaster ? 'not-allowed' : 'pointer'}; transition: 0.15s; gap: 10px;">
+        <label style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: ${isChecked ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-secondary)'}; border: 1px solid ${isChecked ? 'rgba(2, 132, 199, 0.3)' : 'var(--border-color)'}; border-radius: 8px; cursor: ${isMaster ? 'not-allowed' : 'pointer'}; transition: 0.15s; gap: 10px;">
           <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
-            <input type="checkbox" class="purge-user-checkbox" data-username="${un}" ${isChecked ? 'checked' : ''} ${isMaster ? 'disabled' : ''} style="width: 16px; height: 16px; accent-color: #6366f1; cursor: ${isMaster ? 'not-allowed' : 'pointer'};">
+            <input type="checkbox" class="purge-user-checkbox" data-username="${un}" ${isChecked ? 'checked' : ''} ${isMaster ? 'disabled' : ''} style="width: 16px; height: 16px; accent-color: #0284c7; cursor: ${isMaster ? 'not-allowed' : 'pointer'};">
             <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               <strong style="color: #fff; font-size: 0.88rem;">${u.name}</strong>
               <span style="font-family: monospace; font-size: 0.78rem; color: var(--text-secondary); margin-left: 6px;">@${u.username}</span>

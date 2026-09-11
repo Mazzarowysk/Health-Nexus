@@ -95,14 +95,14 @@ export function renderSettingsTab(contentArea) {
             ${getRolePermissions(state.user).role === 'Desenvolvedor' ? `
             <div class="settings-form-group" style="margin-bottom: 16px; margin-top: 16px;">
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="turso-cfg-manual-sync" style="width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;">
+                <input type="checkbox" id="turso-cfg-manual-sync" style="width: 18px; height: 18px; accent-color: #0284c7; cursor: pointer;">
                 <span style="color: var(--text-primary); font-size: 14px; font-weight: 500;">Habilitar Sincronização Manual</span>
               </label>
               <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block; margin-left: 26px;">Desativa a verificação automática e sincroniza apenas pelos botões.</small>
             </div>
             ` : ''}
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-              <button id="btn-save-turso-cfg" style="background-color: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+              <button id="btn-save-turso-cfg" style="background-color: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                 <i class="fa-solid fa-save"></i> Salvar Credenciais
               </button>
               <button id="btn-test-turso-cfg" style="background-color: #334155; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
@@ -161,9 +161,9 @@ export function renderSettingsTab(contentArea) {
         </details>
 
         <!-- Accordion de Backup e Restauração -->
-        <details class="settings-accordion" style="border: 1px solid rgba(129, 140, 248, 0.35);">
-          <summary class="settings-accordion-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(219, 39, 119, 0.15)); font-weight: 700;">
-            <i class="fa-solid fa-box-archive" style="color: #f472b6;"></i> Backup e Restauração
+        <details class="settings-accordion" style="border: 1px solid rgba(56, 189, 248, 0.35);">
+          <summary class="settings-accordion-header" style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(13, 148, 136, 0.15)); font-weight: 700;">
+            <i class="fa-solid fa-box-archive" style="color: #38bdf8;"></i> Backup e Restauração
             <span class="status-badge" style="margin-left: auto; background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3);">
               <i class="fa-brands fa-google-drive" style="margin-right: 4px;"></i> REDUNDÂNCIA ATIVA
             </span>
@@ -174,11 +174,11 @@ export function renderSettingsTab(contentArea) {
               <div class="backup-action-card">
                 <div>
                   <div class="backup-card-header">
-                    <i class="fa-solid fa-download" style="color: #818cf8;"></i> Exportar Backup
+                    <i class="fa-solid fa-download" style="color: #38bdf8;"></i> Exportar Backup
                   </div>
                   <p class="backup-card-desc">Exporte todos os dados do sistema para um arquivo .JSON seguro.</p>
                 </div>
-                <button id="btn-export-json" class="btn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; font-weight: 600; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                <button id="btn-export-json" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-weight: 600; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
                   <i class="fa-solid fa-play"></i> Exportar
                 </button>
               </div>
@@ -222,19 +222,19 @@ export function renderSettingsTab(contentArea) {
             </div>
 
             <div class="backup-status-banner">
-              <i class="fa-solid fa-clock-rotate-left" style="color: #818cf8;"></i>
+              <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i>
               <span>Último backup: <strong id="cfg-last-backup-text" style="color: #e2e8f0;">Nenhum backup realizado</strong></span>
             </div>
 
             <div class="backup-auto-card">
               <div class="backup-auto-header">
-                <i class="fa-solid fa-robot" style="color: #6366f1; font-size: 1.25rem;"></i>
+                <i class="fa-solid fa-clock" style="color: #0284c7; font-size: 1.25rem;"></i>
                 <span>Backup Automático Agendado</span>
               </div>
 
               <div class="backup-auto-field">
                 <label class="backup-auto-label">
-                  <input type="checkbox" id="cfg-autobackup-enable" checked style="width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;">
+                  <input type="checkbox" id="cfg-autobackup-enable" checked style="width: 18px; height: 18px; accent-color: #0284c7; cursor: pointer;">
                   <span>Habilitar backup automático</span>
                 </label>
 
@@ -250,7 +250,7 @@ export function renderSettingsTab(contentArea) {
 
               <div class="backup-auto-field" style="margin-top: 14px;">
                 <label class="backup-auto-label">
-                  <input type="checkbox" id="cfg-autobackup-download" checked style="width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;">
+                  <input type="checkbox" id="cfg-autobackup-download" checked style="width: 18px; height: 18px; accent-color: #0284c7; cursor: pointer;">
                   <span>Baixar automaticamente quando criar backup</span>
                 </label>
 
@@ -720,7 +720,7 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
     <div class="modal-content" style="max-width: 860px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; background: var(--bg-secondary, #131326); border: 1.5px solid rgba(99, 102, 241, 0.6); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 40px rgba(99, 102, 241, 0.35); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
       
       <!-- Header do Modal -->
-      <div style="background: linear-gradient(135deg, #4f46e5, #06b6d4); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; flex-shrink: 0;">
+      <div style="background: linear-gradient(135deg, #0284c7, #0d9488); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; flex-shrink: 0;">
         <div style="display: flex; align-items: center; gap: 14px;">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 1px solid rgba(255,255,255,0.35); box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
             <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
@@ -769,7 +769,7 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
             </div>
 
             <div style="background: var(--bg-tertiary); border: 1px solid rgba(16, 185, 129, 0.35); border-left: 4px solid #10b981; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
-              <i class="fa-solid fa-key" style="font-size: 1.3rem; color: #a855f7;"></i>
+              <i class="fa-solid fa-key" style="font-size: 1.3rem; color: #0284c7;"></i>
               <div>
                 <strong style="font-size: 0.88rem; color: #f8fafc; display: block;">Logins de Usuários</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">&rarr; <strong>${users.length}</strong> contas com acesso</span>

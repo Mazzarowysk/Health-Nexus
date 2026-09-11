@@ -73,7 +73,7 @@ export const manualData = [
         icon: 'fa-shield-halved',
         name: 'Controle de Perfis (RBAC)',
         type: 'Segurança',
-        color: '#6366f1',
+        color: '#0284c7',
         description: 'Gerencia permissões em tempo real. Cada usuário possui acesso restrito estritamente às telas autorizadas pelo seu papel.',
         shortcut: 'Sem atalho',
         rules: 'Apenas usuários Master (mazzarowysk) podem alterar perfis de outros usuários.',
@@ -123,7 +123,7 @@ export const manualData = [
         icon: 'fa-chart-simple',
         name: 'Histórico de Atendimentos Mensais (Linhas)',
         type: 'Gráfico Analítico',
-        color: '#ec4899',
+        color: '#0ea5e9',
         description: 'Gráfico comparativo de tendência de consultas totais vs urgência (PS) ao longo dos dias do mês.',
         shortcut: 'Painel Inferior do Dashboard',
         rules: 'Permite identificar picos de demanda hospitalar por dia da semana.',
@@ -292,7 +292,7 @@ export const manualData = [
         icon: 'fa-right-to-bracket',
         name: '🎟️ Enviar para Fila / Triagem',
         type: 'Ação Operacional',
-        color: '#6366f1',
+        color: '#0284c7',
         description: 'Insere o paciente na Fila de Espera ativa para a Triagem de Enfermagem ou Consultório Médico direto.',
         shortcut: 'Botão Verde no card',
         rules: 'Define o horário exato de entrada para acompanhamento do Tempo de Espera (Estagnação).',
@@ -302,7 +302,7 @@ export const manualData = [
         icon: 'fa-print',
         name: '📄 Imprimir Ficha de Atendimento',
         type: 'Exportação / PDF',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Gera documento PDF formatado com dados cadastrais e espaço para assinatura física do paciente.',
         shortcut: 'Ícone de Impressora',
         rules: 'Disponível para qualquer cadastro existente.',
@@ -361,7 +361,7 @@ export const manualData = [
         icon: 'fa-book-diagnostic',
         name: '📘 Pesquisa Integrada CID-10',
         type: 'Diagnóstico',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Campo inteligente com autocompletar para busca de código internacional de doenças (ex: J06.9, E11, I10).',
         shortcut: 'Campo CID-10',
         rules: 'Busca por código numérico ou palavra-chave do diagnóstico.',
@@ -371,7 +371,7 @@ export const manualData = [
         icon: 'fa-file-signature',
         name: '📄 Emissão de Atestado / Declaração',
         type: 'Documentação / PDF',
-        color: '#ec4899',
+        color: '#0ea5e9',
         description: 'Gera atestado médico configurável (dias de afastamento, repouso ou declaração de comparecimento) com validação de CRM.',
         shortcut: 'Botão Atestado',
         rules: 'Preenche automaticamente os dados do médico logado.',
@@ -430,7 +430,7 @@ export const manualData = [
         icon: 'fa-bullhorn',
         name: '📢 Chamar Paciente na TV',
         type: 'Notificação / Chamada',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Dispara o alarme sonoro e pronuncia o nome do paciente via sintetizador de voz (ex: "Paciente Marcelo Mazaro, favor dirigir-se ao Consultório 01").',
         shortcut: 'Botão Chamada na Agenda/Prontuário',
         rules: 'Exibe a chamada em tela cheia na TV da recepção.',
@@ -508,7 +508,7 @@ export const manualData = [
         icon: 'fa-clipboard-check',
         name: '📋 Aprazamento & Prescrição de Enfermagem',
         type: 'Assistencial',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Permite à enfermagem checar e dar baixa nas medicações administradas por horário.',
         shortcut: 'Aba Aprazamento',
         rules: 'Exibe a lista de medicamentos prescritos pelo médico assistente.',
@@ -655,7 +655,7 @@ export const manualData = [
         icon: 'fa-file-invoice-dollar',
         name: '📥 Entrada de Estoque / Nota Fiscal',
         type: 'Entrada / Compra',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Registra a entrada de novas caixas/lotes com data de validade e fornecedor.',
         shortcut: 'Botão Dar Entrada',
         rules: 'Soma a quantidade ao saldo do estoque existente.',
@@ -723,7 +723,7 @@ export const manualData = [
         icon: 'fa-layer-group',
         name: '📑 Baixa Manual em Lote',
         type: 'Pagamento em Lote',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Seleciona múltiplas parcelas simultaneamente e executa a baixa em massa com uma única confirmação.',
         shortcut: 'Botão "Baixa em Lote"',
         rules: 'Calcula o somatório total das faturas selecionadas automaticamente.',
@@ -781,7 +781,7 @@ export const manualData = [
         icon: 'fa-calendar-days',
         name: '📅 Alocar Plantão de Profissional (Escala)',
         type: 'Escala de Trabalho',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Insere o médico ou enfermeiro na escala de plantão do dia, definindo consultório, turno e horário.',
         shortcut: 'Botão "Escala de Plantão"',
         rules: 'Atualiza o banner de plantonistas do dia na recepção e dashboard.',
@@ -840,7 +840,7 @@ export const manualData = [
         icon: 'fa-eye',
         name: '📊 Monitor de Ocupação em Tempo Real',
         type: 'Monitoramento',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Exibe quais consultórios estão ocupados com atendimentos em andamento e quais estão livres.',
         shortcut: 'Grid de Consultórios',
         rules: 'Atualiza em tempo real via WebSocket/IndexedDB.',
@@ -870,7 +870,7 @@ export const manualData = [
     id: 'escalas',
     title: 'Escalas de Trabalho & Plantões',
     icon: 'fa-calendar-check',
-    color: '#a855f7',
+    color: '#0d9488',
     summary: 'Gerenciamento de turnos e plantões para médicos e enfermeiros com relatórios impressos e aviso de cobertura.',
     roles: ['Master', 'Médico', 'Enfermeiro'],
     buttons: [
@@ -1022,7 +1022,7 @@ export const manualData = [
         icon: 'fa-users-gear',
         name: '👥 Gerenciar Usuários & Permissões (RBAC)',
         type: 'Administração & Segurança',
-        color: '#6366f1',
+        color: '#0284c7',
         description: 'Abre o painel de criação e edição de usuários da clínica (Master, Médico, Enfermeiro, Recepcionista, Farmacêutico).',
         shortcut: 'Botão Gerenciar Usuários',
         rules: 'Apenas acessível pelo usuário Master (mazzarowysk).',
@@ -1032,7 +1032,7 @@ export const manualData = [
         icon: 'fa-key',
         name: '🔑 Reset / Alteração de Senhas',
         type: 'Segurança',
-        color: '#ec4899',
+        color: '#0ea5e9',
         description: 'Permite redefinir a senha de acesso de qualquer funcionário cadastrado no sistema.',
         shortcut: 'Ícone de Chave na lista de usuários',
         rules: 'A senha é criptografada e salva localmente e na nuvem Turso.',
@@ -1062,7 +1062,7 @@ export const manualData = [
         icon: 'fa-clock-rotate-left',
         name: '🛡️ Histórico de Auditoria de Acessos',
         type: 'Auditoria & Logs',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Exibe o registro histórico de logins de cada usuário com validação da data de criação da conta.',
         shortcut: 'Ícone de Escudo / Log',
         rules: 'Filtra e exclui acessos simulados anteriores à data de criação do cadastro.',
@@ -1111,7 +1111,7 @@ export const manualData = [
         icon: 'fa-qrcode',
         name: '📜 QR Code de Autenticidade CFM & Validação Pública',
         type: 'Segurança & Validação',
-        color: '#8b5cf6',
+        color: '#0284c7',
         description: 'Verifica a integridade do QR Code e hash SHA-256 impresso no rodapé das receitas médicas e guias assistenciais.',
         shortcut: 'Rodapé de receitas / Modal openPublicPrescriptionValidator',
         rules: 'Permite consulta pública via câmera de smartphone ou código de validação.',
@@ -1367,7 +1367,7 @@ export const showManualReturnBeacon = (navState) => {
   const beacon = document.createElement('div');
   beacon.id = 'hn-manual-return-beacon';
   beacon.innerHTML = `
-    <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 0 14px rgba(124, 58, 237, 0.6);">
+    <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 0 14px rgba(2, 132, 199, 0.4);">
       <i class="fa-solid fa-book-bookmark"></i>
     </div>
     <div style="display: flex; flex-direction: column; gap: 2px; max-width: 240px;">
@@ -1380,7 +1380,7 @@ export const showManualReturnBeacon = (navState) => {
       </strong>
     </div>
     <button id="btn-return-to-manual-beacon" style="
-      background: linear-gradient(135deg, #6366f1, #7c3aed); color: #ffffff;
+      background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff;
       border: 1px solid rgba(192, 132, 252, 0.4); border-radius: 10px;
       padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
       display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;
@@ -1680,7 +1680,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral', targetBtnName
       if (hasAccess) {
         aiResponseHtml = `
           <div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(79, 70, 229, 0.1)); border: 1px solid rgba(167, 139, 250, 0.35); border-radius: 14px; padding: 16px; display: flex; gap: 14px; animation: hnFadeIn 0.35s ease; margin-bottom: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-            <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 0 16px rgba(124, 58, 237, 0.6);">
+            <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 0 16px rgba(2, 132, 199, 0.4);">
               <i class="fa-solid fa-wand-magic-sparkles"></i>
             </div>
             <div style="flex: 1;">
@@ -1718,7 +1718,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral', targetBtnName
           <button class="manual-nav-tab active" data-tab="${m.id}" style="
             display: flex; align-items: center; gap: 9px; padding: 10px 18px;
             border-radius: 12px; border: 2px solid ${m.color};
-            background: linear-gradient(135deg, ${m.color}EE, #4f46e5);
+            background: linear-gradient(135deg, ${m.color}EE, #0369a1);
             color: #ffffff; font-weight: 700; cursor: pointer; transition: all 0.25s ease;
             white-space: nowrap; font-size: 0.9rem;
             box-shadow: 0 0 20px ${m.color}77, inset 0 1px 0 rgba(255,255,255,0.4);
@@ -1951,7 +1951,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral', targetBtnName
       ">
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="
-            width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #3b82f6);
+            width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #0284c7, #0ea5e9);
             display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.3rem; flex-shrink: 0;
           ">
             <i class="fa-solid fa-book-bookmark"></i>
@@ -1974,7 +1974,7 @@ export const showInteractiveManualModal = (initialTabId = 'geral', targetBtnName
               width: 100%; padding: 8px 12px 8px 34px; background: rgba(255,255,255,0.05);
               border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #f8fafc;
               font-size: 0.85rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;
-            " onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+            " onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
             
             <!-- Dropdown de Resultados da Busca em Tempo Real -->
             <div id="manual-search-dropdown-results" style="
@@ -2268,7 +2268,7 @@ export const renderEmbeddedTabbedManual = (containerId) => {
         return `
           <button class="emb-tab-btn active" data-tab="${m.id}" style="
             padding: 8px 16px; border-radius: 8px; border: 2px solid ${m.color};
-            background: linear-gradient(135deg, ${m.color}DD, #4f46e5); color: #fff;
+            background: linear-gradient(135deg, ${m.color}DD, #0369a1); color: #fff;
             font-size: 0.84rem; font-weight: 700; cursor: pointer; display: inline-flex;
             align-items: center; gap: 6px; white-space: nowrap; transition: all 0.2s;
             box-shadow: 0 0 12px ${m.color}66; flex-shrink: 0;

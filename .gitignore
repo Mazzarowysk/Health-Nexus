@@ -35,5 +35,6 @@ lerna-debug.log*
 scratch/
 local.db
 *.db
+backup_paleta_original/
 
 .vercel

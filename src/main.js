@@ -122,8 +122,8 @@ window.handleCardClick = function(tabName, reportType, message) {
 
   const toast = document.createElement('div');
   toast.className = 'interactive-toast';
-  toast.innerHTML = `<i class="fa-solid fa-bolt" style="color:#a855f7;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
-  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:linear-gradient(135deg, #1e1b4b, #311b92);color:#ffffff;padding:14px 22px;border-radius:14px;border:1px solid #8b5cf6;box-shadow:0 12px 35px rgba(139,92,246,0.45);font-family:Outfit,sans-serif;font-weight:600;font-size:0.9rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:12px;';
+  toast.innerHTML = `<i class="fa-solid fa-bolt" style="color:#0284c7;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
+  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#0f172a;color:#ffffff;padding:14px 22px;border-radius:14px;border:1px solid #0284c7;box-shadow:0 12px 35px rgba(2,132,199,0.35);font-family:Outfit,sans-serif;font-weight:600;font-size:0.9rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:12px;';
   document.body.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
@@ -641,7 +641,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         stepDesc = 'Paciente ' + safePName + ' acolhido e cadastrado! Ele aguarda na recepção. O próximo passo assistencial é convocá-lo pelo Painel TV para a Sala de Triagem Manchester.';
         targetTab = 'tv_panel';
         btnText = '📺 Chamar ' + firstName + ' na TV (Triagem) ➔';
-        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'Verde\', \'Sala de Triagem\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
@@ -676,7 +676,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         stepDesc = 'Paciente ' + safePName + ' acolhido e aguardando na recepção! O próximo passo assistencial é convocá-lo pelo Painel TV para comparecer à Sala de Triagem Manchester.';
         targetTab = 'tv_panel';
         btnText = '📺 Chamar ' + firstName + ' na TV (Triagem) ➔';
-        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'Verde\', \'Sala de Triagem\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
@@ -706,7 +706,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         stepDesc = 'Triagem Manchester de ' + safePName + ' realizada (' + activePatient.manchesterColor + ')! Acione a chamada no Painel TV para o Consultório 01 para dar início ao atendimento médico no PEP.';
         targetTab = 'tv_panel';
         btnText = '📺 Chamar ' + firstName + ' na TV (Consultório 01) ➔';
-        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'' + (activePatient.manchesterColor || 'Amarelo') + '\', \'Consultório 01\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
@@ -718,7 +718,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         stepDesc = 'Receba o próximo paciente na Sala de Triagem para aferição de sinais vitais (PA, FC, SpO2, Temp) e definir a classificação de gravidade Manchester.';
         targetTab = 'atendimento';
         btnText = '🩺 Iniciar Triagem ➔';
-        btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+        btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="window.switchTab(\'tv_panel\')" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Painel TV</button>'
@@ -754,9 +754,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         stepDesc = 'O paciente ' + safePName + ' foi convocado para o ' + safeRoom + '! Clique no botão abaixo para abrir a Folha de Evolução Médica (PEP SOAP) e registrar o atendimento.';
         targetTab = 'consultorios';
         btnText = '🩺 Abrir Prontuário (PEP) de ' + firstName + ' ➔';
-        btnBg = 'linear-gradient(135deg, #ec4899, #be185d)';
+        btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-          + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(236,72,153,0.2);border:1px solid rgba(236,72,153,0.5);color:#f472b6;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(236,72,153,0.2);border:1px solid rgba(236,72,153,0.5);color:#38bdf8;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>🩺</span> Abrir PEP</button>'
           + '<button onclick="window.switchTab(\'farmacia\')" style="padding:8px 10px;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.4);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>💊</span> Farmácia</button>'
@@ -766,7 +766,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         stepDesc = 'Consulte os consultórios abaixo ou chame o próximo paciente no Painel TV para dar início ao atendimento médico no PEP.';
         targetTab = 'tv_panel';
         btnText = '📺 Chamar Próximo no Painel TV ➔';
-        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>🩺</span> Ver Triagem</button>'
@@ -912,7 +912,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       stepDesc = 'Contas fechadas e lotes TISS gerados! Próximo passo: avaliar o tempo médio de permanência (TMP), taxa de ocupação dos leitos e DRE consolidado.';
       targetTab = 'relatorios';
       btnText = '📈 Ir para Relatórios & Métricas ➔';
-      btnBg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+      btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
       extraActions = '<div style="display:grid;grid-template-columns:1fr;margin-top:9px">'
         + '<button onclick="window.switchTab(\'dashboard\')" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
         + '<span>🏥</span> Voltar ao Dashboard</button>'
@@ -941,7 +941,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="if(typeof window.openDoctorConsultingRoom===\'function\'){ window.openDoctorConsultingRoom(\'' + safeRoom + '\', \'' + safePNameEsc + '\'); } else { window.switchTab(\'consultorios\'); }" style="padding:8px 10px;background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.5);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>👨‍⚕️</span> Ir p/ ' + safeRoom + '</button>'
-          + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(236,72,153,0.18);border:1px solid rgba(236,72,153,0.4);color:#f472b6;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openPEPModal===\'function\'){ window.openPEPModal(\'' + safePNameEsc + '\'); }" style="padding:8px 10px;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.4);color:#38bdf8;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>🩺</span> Abrir PEP</button>'
           + '</div>';
       } else if (activePatient) {
@@ -952,7 +952,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         stepDesc = 'Paciente ' + safePName + ' convocado no Painel TV para a Sala de Triagem! Clique abaixo para abrir a ficha de sinais vitais e definir a classificação de gravidade.';
         targetTab = 'atendimento';
         btnText = '🩺 Iniciar Triagem de ' + firstName + ' ➔';
-        btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+        btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="if(typeof window.openAttendanceTriage===\'function\'){ window.openAttendanceTriage(\'' + safePNameEsc + '\'); } else { window.switchTab(\'atendimento\'); }" style="padding:8px 10px;background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>🩺</span> Ir para Triagem</button>'
@@ -964,7 +964,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         stepDesc = 'Acione a chamada sonora e visual para convocar os pacientes da fila à Triagem ou aos Consultórios Médicos.';
         targetTab = 'tv_panel';
         btnText = '📢 Chamar Paciente no Painel ➔';
-        btnBg = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+        btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
           + '<button onclick="window.switchTab(\'atendimento\')" style="padding:8px 10px;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.45);color:#a5b4fc;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>🩺</span> Ir para Triagem</button>'
@@ -989,7 +989,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       stepDesc = 'Escalas de trabalho definidas. O próximo passo é conferir os consultórios abertos e os médicos atendendo na unidade.';
       targetTab = 'consultorios';
       btnText = '👨‍⚕️ Ver Consultórios Ativos ➔';
-      btnBg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+      btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
       break;
 
     case 'estagnacao':
@@ -1412,13 +1412,13 @@ window.openDoctorConsultingRoom = function(roomName, patientName) {
     styleEl.id = '_patientCardPulseStyle';
     styleEl.textContent = `
       @keyframes roomCardGlow {
-        0%   { box-shadow: 0 0 0 0 rgba(236,72,153,0.8); border-color: #ec4899; }
-        50%  { box-shadow: 0 0 0 14px rgba(236,72,153,0); border-color: #f472b6; }
-        100% { box-shadow: 0 0 0 0 rgba(236,72,153,0); border-color: #ec4899; }
+        0%   { box-shadow: 0 0 0 0 rgba(2,132,199,0.8); border-color: #0284c7; }
+        50%  { box-shadow: 0 0 0 14px rgba(2,132,199,0); border-color: #38bdf8; }
+        100% { box-shadow: 0 0 0 0 rgba(2,132,199,0); border-color: #0284c7; }
       }
       .room-card-pulsing {
-        outline: 3px solid #ec4899 !important;
-        border-color: #ec4899 !important;
+        outline: 3px solid #0284c7 !important;
+        border-color: #0284c7 !important;
         animation: roomCardGlow 1.4s ease-in-out infinite !important;
       }
     `;
@@ -2005,7 +2005,7 @@ function openLoginInstructionsModal() {
 
           <!-- Modo Gestão / Administrativo -->
           <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(192, 132, 252, 0.3); border-radius: 12px; padding: 12px 14px;">
-            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #c084fc; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
               <i class="fa-solid fa-hospital-user"></i> Modo Gestão &amp; Administrativo
             </div>
             <div style="font-size: 0.78rem; color: #d8b4fe; font-weight: 500; margin-bottom: 4px;">
@@ -2046,7 +2046,7 @@ function openLoginInstructionsModal() {
 
       <!-- Footer da Janela -->
       <div style="display: flex; justify-content: flex-end;">
-        <button id="btn-close-instructions-modal" type="button" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(99, 102, 241, 0.5)'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px rgba(99, 102, 241, 0.4)'">
+        <button id="btn-close-instructions-modal" type="button" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(2, 132, 199, 0.5)'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px rgba(2, 132, 199, 0.4)'">
           Entendi, Fechar
         </button>
       </div>
@@ -2644,7 +2644,7 @@ function initConstellationCanvas() {
   // Nós da rede tecnológica
   const nodeCount = Math.floor(Math.min(width, 700) / 13);
   const nodes = [];
-  const palette = ['#00f2fe', '#a855f7', '#e026b8', '#38bdf8', '#818cf8', '#34d399'];
+  const palette = ['#0284c7', '#0d9488', '#0ea5e9', '#38bdf8', '#10b981', '#059669'];
 
   const mouse = { x: null, y: null, radius: 180 };
 
@@ -3177,7 +3177,7 @@ function initGlobalSystemSearch() {
     // 2. Pesquisar abas da aplicação
     const allNavItems = [
       { id: 'dashboard', label: 'Health Nexus (Visão Geral)', icon: 'fa-chart-line', tabColor: '#818cf8' },
-      { id: 'escalas', label: 'Escalas de Trabalho & Plantões', icon: 'fa-user-clock', tabColor: '#a855f7' },
+      { id: 'escalas', label: 'Escalas de Trabalho & Plantões', icon: 'fa-user-clock', tabColor: '#0d9488' },
       { id: 'agenda', label: 'Agenda & Consultas', icon: 'fa-calendar-check', tabColor: '#93c5fd' },
       { id: 'pacientes', label: 'Recepção & Pacientes', icon: 'fa-user-injured', tabColor: '#38bdf8' },
       { id: 'atendimento', label: 'Atendimentos & Prontuário Médico', icon: 'fa-stethoscope', tabColor: '#fcd34d' },
@@ -3270,7 +3270,7 @@ function initGlobalSystemSearch() {
       <div style="padding: 12px 14px; background: linear-gradient(135deg, rgba(124, 58, 237, 0.22) 0%, rgba(79, 70, 229, 0.22) 100%); border: 1px solid rgba(167, 139, 250, 0.4); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15);">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
           <strong style="color: #ddd6fe; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-wand-magic-sparkles" style="color: #c084fc;"></i> ${aiCopilot.title}
+            <i class="fa-solid fa-wand-magic-sparkles" style="color: #38bdf8;"></i> ${aiCopilot.title}
           </strong>
           <span style="font-size: 0.65rem; background: rgba(167, 139, 250, 0.25); color: #e9d5ff; padding: 2px 8px; border-radius: 10px; font-weight: 700;">IA Ativa</span>
         </div>
@@ -3345,7 +3345,7 @@ function initGlobalSystemSearch() {
             } else if (activeEnc.status === 'Aguardando_Atendimento') {
               statusBadge = '<span style="font-size: 0.68rem; background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid #f59e0b; padding: 3px 9px; border-radius: 10px; font-weight: 700;">⏳ Aguardando Médico (Atendimentos) ➔</span>';
             } else if (activeEnc.status === 'Aguardando_Triagem') {
-              statusBadge = '<span style="font-size: 0.68rem; background: rgba(139, 92, 246, 0.25); color: #c084fc; border: 1px solid #8b5cf6; padding: 3px 9px; border-radius: 10px; font-weight: 700;">🩺 Aguardando Triagem ➔</span>';
+              statusBadge = '<span style="font-size: 0.68rem; background: rgba(2, 132, 199, 0.2); color: #38bdf8; border: 1px solid #0284c7; padding: 3px 9px; border-radius: 10px; font-weight: 700;">🩺 Aguardando Triagem ➔</span>';
             } else if (activeEnc.status === 'Em_Observacao') {
               statusBadge = '<span style="font-size: 0.68rem; background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid #ef4444; padding: 3px 9px; border-radius: 10px; font-weight: 700;">⏱️ Observação PS ➔</span>';
             }
@@ -5012,7 +5012,7 @@ async function loadConsultingRooms() {
       const cStyle = mColors[cColorKey] || mColors.amarelo;
 
       return `
-        <div class="interactive-card patient-card-item ${isRoomInteracted ? 'room-card-pulsing' : ''}" data-room-name="${r.name.replace(/"/g, '&quot;')}" style="background: var(--bg-secondary); border: 1.5px solid ${isRoomInteracted ? '#ec4899' : (hasPatient ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)')}; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 11px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+        <div class="interactive-card patient-card-item ${isRoomInteracted ? 'room-card-pulsing' : ''}" data-room-name="${r.name.replace(/"/g, '&quot;')}" style="background: var(--bg-secondary); border: 1.5px solid ${isRoomInteracted ? '#0284c7' : (hasPatient ? 'rgba(2, 132, 199, 0.4)' : 'var(--border-color)')}; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 11px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
           
           <!-- TOPO: NOME DO CONSULTÓRIO & MÉDICO -->
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -5027,7 +5027,7 @@ async function loadConsultingRooms() {
 
           <!-- STATUS DA SALA & MÉDICO RESPONSÁVEL -->
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: ${inProgress ? 'rgba(99,102,241,0.2)' : (convocado ? 'rgba(236,72,153,0.2)' : 'rgba(16,185,129,0.15)')}; color: ${inProgress ? '#a5b4fc' : (convocado ? '#f472b6' : '#34d399')}; border: 1px solid ${inProgress ? 'rgba(99,102,241,0.4)' : (convocado ? 'rgba(236,72,153,0.5)' : 'rgba(16,185,129,0.3)')};">
+            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: ${inProgress ? 'rgba(2,132,199,0.2)' : (convocado ? 'rgba(13,148,136,0.2)' : 'rgba(16,185,129,0.15)')}; color: ${inProgress ? '#38bdf8' : (convocado ? '#2dd4bf' : '#34d399')}; border: 1px solid ${inProgress ? 'rgba(2,132,199,0.4)' : (convocado ? 'rgba(13,148,136,0.5)' : 'rgba(16,185,129,0.3)')};">
               <i class="fa-solid fa-circle" style="font-size: 0.4rem;"></i> ${roomStatus}
             </span>
             <span style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; overflow:hidden; max-width:160px; text-overflow:ellipsis; white-space:nowrap;">
@@ -5040,19 +5040,19 @@ async function loadConsultingRooms() {
             
             ${convocado ? `
               <!-- BLOCO DESTACADO: PACIENTE CHAMADO NA TV (PULSA SE FOR O SELECIONADO) -->
-              <div class="${isConvocadoInteracted ? 'patient-pulse-selected' : ''}" style="background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(139,92,246,0.12)); border: 1.5px solid ${isConvocadoInteracted ? '#ec4899' : 'rgba(236,72,153,0.45)'}; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: ${isConvocadoInteracted ? '0 0 16px rgba(236,72,153,0.35)' : 'none'};">
+              <div class="${isConvocadoInteracted ? 'patient-pulse-selected' : ''}" style="background: linear-gradient(135deg, rgba(2,132,199,0.14), rgba(13,148,136,0.12)); border: 1.5px solid ${isConvocadoInteracted ? '#0284c7' : 'rgba(2,132,199,0.45)'}; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: ${isConvocadoInteracted ? '0 0 16px rgba(2,132,199,0.35)' : 'none'};">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
-                  <span style="font-size: 0.72rem; font-weight: 800; color: #f472b6; display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-bullhorn ${isConvocadoInteracted ? 'fa-bounce' : ''}"></i> CHAMADO NA TV &bull; AGUARDANDO ENTRADA
                   </span>
                   ${convocado.manchesterColor ? `<span style="font-size: 0.68rem; font-weight: 700; color: ${cStyle.text}; background: ${cStyle.bg}; border: 1px solid ${cStyle.border}; padding: 1px 7px; border-radius: 6px;">● ${convocado.manchesterColor}</span>` : ''}
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                   <div style="font-weight: 800; font-size: 0.94rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;" title="${convocado.name}">
-                    <i class="fa-solid fa-user-clock" style="color: #f472b6; font-size: 0.85rem;"></i>
+                    <i class="fa-solid fa-user-clock" style="color: #38bdf8; font-size: 0.85rem;"></i>
                     <span>${convocado.name}</span>
                   </div>
-                  <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.75rem; padding: 6px 12px; border-radius: 7px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(236,72,153,0.4); flex-shrink: 0;" onclick="event.stopPropagation(); window.startEncounterPEP('${convocado.targetId}', '${convocado.name.replace(/'/g, "\\'")}', '${r.name}');" title="Iniciar Atendimento no Consultório e Abrir PEP">
+                  <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.75rem; padding: 6px 12px; border-radius: 7px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.4); flex-shrink: 0;" onclick="event.stopPropagation(); window.startEncounterPEP('${convocado.targetId}', '${convocado.name.replace(/'/g, "\\'")}', '${r.name}');" title="Iniciar Atendimento no Consultório e Abrir PEP">
                     <i class="fa-solid fa-file-medical"></i> Atender (PEP)
                   </button>
                 </div>
@@ -5172,9 +5172,9 @@ async function openConsultorioDetailsModal(roomName) {
 
   const modalHtml = `
     <div id="consultorio-details-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.85); backdrop-filter: blur(10px);">
-      <div class="modal-content" style="max-width: 740px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99, 102, 241, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
+      <div class="modal-content" style="max-width: 740px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(2, 132, 199, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
         
-        <div style="background: linear-gradient(135deg, #6366f1, #00f2fe); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
+        <div style="background: linear-gradient(135deg, #0284c7, #0ea5e9); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-door-open" style="font-size: 1.3rem;"></i>
             <div>
@@ -5188,9 +5188,9 @@ async function openConsultorioDetailsModal(roomName) {
         <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
           
           <!-- Paciente em Atendimento -->
-          <div style="background: var(--bg-tertiary); border: 1.5px solid ${inProgress ? '#6366f1' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
+          <div style="background: var(--bg-tertiary); border: 1.5px solid ${inProgress ? '#0284c7' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
             <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-              <span><i class="fa-solid fa-user-doctor" style="color: #6366f1;"></i> Paciente em Atendimento</span>
+              <span><i class="fa-solid fa-user-doctor" style="color: #0284c7;"></i> Paciente em Atendimento</span>
               ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Ativo na Sala</span>' : ''}
             </div>
 
@@ -5210,7 +5210,7 @@ async function openConsultorioDetailsModal(roomName) {
 
                 <!-- Ações Diretas de Consulta / PEP / Prescrição -->
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
-                  <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.85rem; padding: 9px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(236,72,153,0.35);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${patientTargetId}', '${patientTargetName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientTargetName}');">
+                  <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.85rem; padding: 9px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2,132,199,0.35);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${patientTargetId}', '${patientTargetName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientTargetName}');">
                     <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
                   </button>
                   <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.82rem; padding: 9px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('${patientTargetId}', '${patientTargetName}');">
@@ -5260,7 +5260,7 @@ async function openConsultorioDetailsModal(roomName) {
                       <button class="btn" style="background:rgba(14,165,233,0.18);border:1px solid rgba(14,165,233,0.35);color:#38bdf8;font-size:0.72rem;padding:5px 10px;border-radius:7px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" onclick="var rn=${JSON.stringify(roomName)}; var pn=${JSON.stringify(w.patientName||w.name||'')}; if(pn && typeof window.callPatientToTV==='function'){window.callPatientToTV(pn,rn);}else if(typeof window.switchTab==='function'){window.switchTab('tv');}" title="Chamar na TV">
                         <i class="fa-solid fa-tv"></i> TV
                       </button>
-                      <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.72rem; padding: 5px 10px; border-radius: 7px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow:0 2px 6px rgba(236,72,153,0.25);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${w.id || w.patientId || ''}', '${w.patientName || w.name}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${w.id || w.patientId || w.patientName}');">
+                      <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.72rem; padding: 5px 10px; border-radius: 7px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${w.id || w.patientId || ''}', '${w.patientName || w.name}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${w.id || w.patientId || w.patientName}');">
                         <i class="fa-solid fa-file-medical"></i> Atender
                       </button>
                     </div>
@@ -5313,7 +5313,7 @@ async function openConsultorioDetailsModal(roomName) {
                       <span style="color: #94a3b8; font-size: 0.75rem;">Chamado por: <strong>${c.doctorName || 'Dr. Médico Plantonista'}</strong> &bull; ${c.calledAt ? new Date(c.calledAt).toLocaleTimeString().slice(0,5) : 'Recente'}</span>
                     </div>
                     <div style="display: flex; gap: 6px;">
-                      <button class="btn" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; border: none; font-size: 0.76rem; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(236,72,153,0.3);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${c.patientId || ''}', '${c.patientName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${c.patientId || c.patientName}');">
+                      <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.76rem; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.3);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${c.patientId || ''}', '${c.patientName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${c.patientId || c.patientName}');">
                         <i class="fa-solid fa-file-medical"></i> Atender (PEP)
                       </button>
                     </div>

@@ -55,7 +55,7 @@ export async function fetchDashboardData() {
     billingSummary: billingSum,
     occupancyData: (d.occupancyData && d.occupancyData.length > 0) ? d.occupancyData : [
       { label: 'UTI Adulto', value: 0, color: '#818cf8' },
-      { label: 'Enfermaria', value: 0, color: '#f472b6' },
+      { label: 'Enfermaria', value: 0, color: '#0d9488' },
       { label: 'Pediatria', value: 0, color: '#38bdf8' },
       { label: 'Maternidade', value: 0, color: '#fbbf24' },
       { label: 'Disponíveis', value: 100, color: '#34d399' }
@@ -234,7 +234,7 @@ export function initDashboardCharts(data) {
 
   const occupancyData = (data.occupancyData && data.occupancyData.length > 0) ? data.occupancyData : [
     { label: 'UTI Adulto', value: 0, color: '#f43f5e' },
-    { label: 'Enfermaria', value: 0, color: '#6366f1' },
+    { label: 'Enfermaria', value: 0, color: '#0d9488' },
     { label: 'Pediatria', value: 0, color: '#00f2fe' },
     { label: 'Maternidade', value: 0, color: '#f59e0b' },
     { label: 'Disponíveis', value: 100, color: '#10b981' }
@@ -264,7 +264,7 @@ export function initDashboardCharts(data) {
     const ctx = occupancyCtx.getContext('2d');
 
     const neonColors = [
-      '#f43f5e', '#6366f1', '#00f2fe', '#f59e0b', '#10b981'
+      '#f43f5e', '#0284c7', '#0ea5e9', '#f59e0b', '#10b981'
     ];
 
     let totalBeds = 0;
@@ -631,7 +631,7 @@ export function initDashboardCharts(data) {
     const sectors = [
       { id: 'pronto_socorro', label: 'PS (Obs)', color: '#3b82f6' },
       { id: 'corredor_internacao', label: 'Corredor', color: '#f59e0b' },
-      { id: 'clinica_cirurgica', label: 'Cirúrgica', color: '#8b5cf6' },
+      { id: 'clinica_cirurgica', label: 'Cirúrgica', color: '#0d9488' },
       { id: 'clinica_medica', label: 'Clínica Médica', color: '#10b981' },
       { id: 'uti', label: 'UTI', color: '#ef4444' }
     ];
@@ -951,7 +951,7 @@ export async function renderDashboardTab(contentArea) {
         <div class="chart-card" onclick="if(typeof window.switchTab==='function') window.switchTab('kanban')" style="grid-column: 1 / -1; cursor: pointer; transition: transform 0.2s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='none'" title="Clique para abrir a aba Kanban de Internação">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <h4 class="chart-card-title" style="margin-bottom: 0;">
-              <i class="fa-solid fa-table-columns" style="color: #6366f1;"></i> Fluxo Kanban de Internação
+              <i class="fa-solid fa-table-columns" style="color: #0284c7;"></i> Fluxo Kanban de Internação
             </h4>
             <div style="display: flex; align-items: center; gap: 8px;">
               <span id="dashboard-kanban-total-badge" class="badge-status-pill" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #818cf8; font-weight: 700; padding: 4px 11px; border-radius: 20px; font-size: 0.78rem;">
