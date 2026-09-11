@@ -792,14 +792,17 @@ export function renderPatientsTab(contentArea) {
               patientName: fullName,
               cpf: cpf,
               status: 'Aguardando_Triagem',
+              currentStep: 1,
               manchesterColor: null
             });
           }
 
+          showToast(`✅ Paciente ${fullName} cadastrado com sucesso! Direcionando para Chamada no Painel TV...`);
+
           if (typeof window.showFlowCompletionNotification === 'function') {
             window.showFlowCompletionNotification({
-              actionTitle: '📺 Chamar Paciente no Painel TV (Triagem)',
-              message: `O paciente <strong>${fullName}</strong> foi cadastrado e acolhido no Pronto-Socorro.<br><br><strong>Próximo Passo Assistencial:</strong> Acione a chamada audiovisual no <strong>Painel TV</strong> para convocá-lo à <strong>Sala de Triagem Manchester</strong>.`,
+              actionTitle: '📺 Convocando Paciente no Painel TV (Triagem)',
+              message: `O paciente <strong>${fullName}</strong> foi cadastrado e acolhido no Pronto-Socorro.<br><br>Direcionando para o <strong>Painel TV</strong> para convocá-lo à <strong>Sala de Triagem Manchester</strong>...`,
               targetTab: 'tv_panel',
               targetTabLabel: 'Painel TV (Chamador)',
               targetColumn: 'col-triage',
@@ -809,10 +812,18 @@ export function renderPatientsTab(contentArea) {
               targetStatus: 'Aguardando_Triagem',
               targetRoom: 'Sala de Triagem',
               actionType: 'call_tv_triage',
+              autoSwitch: true,
               persistent: true
             });
           } else {
-            showToast(`✅ Paciente ${fullName} cadastrado e encaminhado para Triagem!`);
+            if (typeof window.switchTab === 'function') {
+              window.switchTab('tv_panel');
+              setTimeout(() => {
+                if (typeof window.openTVCallModal === 'function') {
+                  window.openTVCallModal(fullName, 'Verde', 'Sala de Triagem');
+                }
+              }, 300);
+            }
           }
         } else {
           showToast(`✅ Paciente atualizado com sucesso!`);

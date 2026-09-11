@@ -1082,6 +1082,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       mainActionClick = "window.openNewPatientModal ? window.openNewPatientModal() : window.switchTab('pacientes')";
     } else if (_SFG.activeTab === 'pacientes' && !activePatient) {
       mainActionClick = "window.openNewPatientModal ? window.openNewPatientModal() : window.switchTab('pacientes')";
+    } else if (_SFG.activeTab === 'pacientes' && activePatient) {
+      const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
+      mainActionClick = `if(typeof window.openTVCallModal === 'function') { window.switchTab('tv_panel'); setTimeout(() => window.openTVCallModal('${safePNameEsc}', 'Verde', 'Sala de Triagem'), 250); } else window.switchTab('tv_panel');`;
     } else if (_SFG.activeTab === 'atendimento' && activePatient) {
       const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
       if (isTriaged) {
@@ -1980,7 +1983,16 @@ export function showFlowCompletionNotification(options = {}) {
       if (targetPatientName && typeof window.executePatientHighlight === 'function') {
         window.executePatientHighlight(targetPatientName, targetColumn);
       }
-    }, 1200);
+      if (actionType === 'call_tv_triage' || actionType === 'call_tv_doctor' || targetTab === 'tv_panel') {
+        const destRoom = options.targetRoom || (actionType === 'call_tv_doctor' ? 'Consultório 01' : 'Sala de Triagem');
+        const mCol = options.targetManchesterColor || 'Verde';
+        setTimeout(() => {
+          if (typeof window.openTVCallModal === 'function') {
+            window.openTVCallModal(targetPatientName, mCol, destRoom);
+          }
+        }, 300);
+      }
+    }, 700);
   }
 }
 
