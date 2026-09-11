@@ -306,7 +306,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
   const card = document.createElement('div');
   card.id = 'hn-flow-guide';
-  card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '');
+  card.className = 'floating-flow-guide guide-card-pulsing' + (_SFG.minimized ? ' minimized' : '');
   
   // Posicionamento
   const defaultPos = 'bottom:22px !important;right:22px !important;';
@@ -323,9 +323,10 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     'width:' + cardWidth,
     'max-width:calc(100vw - 32px) !important',
     'background:linear-gradient(165deg, rgba(13,18,35,0.98), rgba(22,30,52,0.99))',
-    'border:1px solid rgba(99,102,241,0.45)',
+    'border:1.5px solid #38bdf8 !important',
     'border-radius:14px',
-    'box-shadow:0 18px 50px rgba(0,0,0,0.75), 0 0 26px rgba(99,102,241,0.25)',
+    'box-shadow:0 18px 50px rgba(0,0,0,0.8), 0 0 28px rgba(56,189,248,0.7) !important',
+    'animation:guideCardPulseGlow 2s infinite ease-in-out !important',
     'font-family:Outfit,system-ui,sans-serif',
     'color:#f8fafc',
     'z-index:2147483647 !important',
@@ -666,7 +667,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     case 'atendimento':
       const pStatus = (activePatient?.status || '').toLowerCase().trim();
       const hasManchester = !!(activePatient && activePatient.manchesterColor);
-      const isNotTriaged = activePatient && (!hasManchester || ['aguardando_triagem', 'aguardando triagem', 'admitido', 'recepção', 'cadastrado'].includes(pStatus));
+      const isTriaged = hasManchester || ['aguardando_atendimento', 'aguardando atendimento', 'triado', 'em_atendimento', 'em atendimento'].includes(pStatus);
+      const isNotTriaged = activePatient && !isTriaged;
 
       if (isNotTriaged) {
         const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
@@ -688,7 +690,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         const firstName = safePName.split(' ')[0];
         const safePNameEsc = safePName.replace(/'/g, "\\'");
         stepTitle = '🚨 Atendimento Prioritário de ' + firstName + ' (Emergência)';
-        stepDesc = 'Paciente ' + safePName + ' com gravidade ALTA (' + mColor.toUpperCase() + ')! Encaminhe imediatamente para a Sala Vermelha / Consultório 01 com prioridade máxima.';
+        stepDesc = 'Paciente ' + safePName + ' com gravidade ALTA (' + (activePatient.manchesterColor || 'Emergência').toUpperCase() + ')! Encaminhe imediatamente para a Sala Vermelha / Consultório 01 com prioridade máxima.';
         targetTab = 'consultorios';
         btnText = '🚨 Abrir Consultório / Sala Vermelha ➔';
         btnBg = 'linear-gradient(135deg, #ef4444, #dc2626)';
@@ -698,17 +700,18 @@ function createSmartFlowGuideCard(tabId, customMessage) {
           + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'' + (activePatient.manchesterColor || 'Vermelho') + '\', \'Consultório 01\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
           + '</div>';
-      } else if (hasManchester) {
+      } else if (isTriaged) {
         const safePName = (activePatient.fullName || activePatient.patientName || 'Paciente');
         const firstName = safePName.split(' ')[0];
         const safePNameEsc = safePName.replace(/'/g, "\\'");
+        const colorVal = activePatient.manchesterColor || 'Amarelo';
         stepTitle = '📺 Chamar ' + firstName + ' na TV (Consultório 01)';
-        stepDesc = 'Triagem Manchester de ' + safePName + ' realizada (' + activePatient.manchesterColor + ')! Acione a chamada no Painel TV para o Consultório 01 para dar início ao atendimento médico no PEP.';
+        stepDesc = 'Triagem Manchester de ' + safePName + ' realizada (' + colorVal + ')! Acione a chamada no Painel TV para o Consultório 01 para dar início ao atendimento médico no PEP.';
         targetTab = 'tv_panel';
         btnText = '📺 Chamar ' + firstName + ' na TV (Consultório 01) ➔';
         btnBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
         extraActions = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">'
-          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'' + (activePatient.manchesterColor || 'Amarelo') + '\', \'Consultório 01\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button onclick="if(typeof window.openTVCallModal===\'function\'){ window.switchTab(\'tv_panel\'); setTimeout(() => window.openTVCallModal(\'' + safePNameEsc + '\', \'' + colorVal + '\', \'Consultório 01\'), 200); } else { window.switchTab(\'tv_panel\'); }" style="padding:8px 10px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#d8b4fe;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>📺</span> Chamar na TV</button>'
           + '<button onclick="if(typeof window.openDoctorConsultingRoom===\'function\'){ window.openDoctorConsultingRoom(\'Consultório 01\', \'' + safePNameEsc + '\'); } else { window.switchTab(\'consultorios\'); }" style="padding:8px 10px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:9px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
           + '<span>👨‍⚕️</span> Entrar no Consultório</button>'
@@ -1068,7 +1071,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         <div style="font-size: 0.77rem; color: #cbd5e1; line-height: 1.45; margin-bottom: 12px;">
           ${pending.message}
         </div>
-        <button id="hn-fg-exec-action" style="width: 100%; padding: 11px 14px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 9px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.7); text-transform: uppercase; letter-spacing: 0.4px; transition: transform 0.15s, filter 0.15s; animation: tvCallPulse 1.2s infinite ease-in-out;" onmouseover="this.style.transform='scale(1.02)'; this.style.filter='brightness(1.15)'" onmouseout="this.style.transform='scale(1)'; this.style.filter='none'">
+        <button id="hn-fg-exec-action" class="btn-next-step-pulse" style="width: 100%; padding: 11px 14px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 9px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 0 24px rgba(16, 185, 129, 0.85); text-transform: uppercase; letter-spacing: 0.4px; transition: transform 0.15s, filter 0.15s;" onmouseover="this.style.transform='scale(1.02)'; this.style.filter='brightness(1.15)'" onmouseout="this.style.transform='scale(1)'; this.style.filter='none'">
           <span>🚀</span> ${destLabel ? (destLabel.includes('➔') ? destLabel : destLabel + ' ➔') : 'Avançar para Próxima Etapa ➔'}
         </button>
       </div>
@@ -1079,6 +1082,18 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       mainActionClick = "window.openNewPatientModal ? window.openNewPatientModal() : window.switchTab('pacientes')";
     } else if (_SFG.activeTab === 'pacientes' && !activePatient) {
       mainActionClick = "window.openNewPatientModal ? window.openNewPatientModal() : window.switchTab('pacientes')";
+    } else if (_SFG.activeTab === 'atendimento' && activePatient) {
+      const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
+      if (isTriaged) {
+        if (mColor === 'vermelho' || mColor === 'laranja') {
+          mainActionClick = `if(typeof window.openDoctorConsultingRoom === 'function') window.openDoctorConsultingRoom('Consultório 01', '${safePNameEsc}'); else window.switchTab('consultorios');`;
+        } else {
+          const colorVal = activePatient.manchesterColor || 'Amarelo';
+          mainActionClick = `if(typeof window.openTVCallModal === 'function') { window.switchTab('tv_panel'); setTimeout(() => window.openTVCallModal('${safePNameEsc}', '${colorVal}', 'Consultório 01'), 200); } else window.switchTab('tv_panel');`;
+        }
+      } else {
+        mainActionClick = `if(typeof window.openAttendanceTriage === 'function') window.openAttendanceTriage('${safePNameEsc}'); else window.switchTab('atendimento');`;
+      }
     } else if ((_SFG.activeTab === 'consultorios' || _SFG.activeTab === 'medicos') && activePatient) {
       const safePNameEsc = (activePatient.fullName || activePatient.patientName || '').replace(/'/g, "\\'");
       mainActionClick = `if(typeof window.openPEPModal === 'function') window.openPEPModal('${safePNameEsc}'); else window.switchTab('consultorios');`;
@@ -1100,14 +1115,15 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     }
 
     actionBlockHtml = `
-      <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:10px;padding:10px 12px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#a5b4fc;margin-bottom:4px">
-          <span>⚡</span> <span>Próximo Passo Recomendado</span>
+      <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(56,189,248,0.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;box-shadow:0 0 16px rgba(56,189,248,0.15)">
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;margin-bottom:4px">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px #38bdf8;animation:pulse 1.2s infinite"></span>
+          <span>Próximo Passo Recomendado</span>
         </div>
         <div style="font-size:0.9rem;font-weight:800;color:#ffffff;margin-bottom:4px">${stepTitle}</div>
         <div style="font-size:0.76rem;color:#cbd5e1;line-height:1.4">${stepDesc}</div>
       </div>
-      <button onclick="${mainActionClick}" style="width:100%;padding:10px 14px;background:${btnBg};color:#fff;border:none;border-radius:10px;font-weight:800;font-size:0.84rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(16,185,129,0.4);transition:filter 0.15s" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+      <button id="hn-fg-main-action" onclick="${mainActionClick}" class="btn-next-step-pulse" style="width:100%;padding:11px 14px;background:${btnBg};color:#fff;border:none;border-radius:10px;font-weight:800;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 24px rgba(56,189,248,0.75);letter-spacing:0.3px;transition:filter 0.15s, transform 0.15s" onmouseover="this.style.filter='brightness(1.15)';this.style.transform='scale(1.02)'" onmouseout="this.style.filter='none';this.style.transform='scale(1)'">
         ${btnText}
       </button>
     `;
@@ -1953,6 +1969,9 @@ export function showFlowCompletionNotification(options = {}) {
 
   // 5. Renderiza o Guia Unificado imediatamente com o bloco de Ação Concluída & Próximo Passo
   createSmartFlowGuideCard(_SFG.activeTab || state.activeTab || 'dashboard');
+  if (typeof triggerFlowGuidePulse === 'function') {
+    triggerFlowGuidePulse();
+  }
 
   // 6. Se tiver autoSwitch configurado
   if (autoSwitch && targetTab && typeof switchTab === 'function') {
@@ -1965,9 +1984,26 @@ export function showFlowCompletionNotification(options = {}) {
   }
 }
 
+export function triggerFlowGuidePulse() {
+  const guide = document.getElementById('hn-flow-guide');
+  if (guide) {
+    guide.classList.remove('guide-card-pulsing');
+    void guide.offsetWidth;
+    guide.classList.add('guide-card-pulsing');
+
+    const mainBtn = guide.querySelector('#hn-fg-main-action, #hn-fg-exec-action');
+    if (mainBtn) {
+      mainBtn.classList.remove('btn-next-step-pulse');
+      void mainBtn.offsetWidth;
+      mainBtn.classList.add('btn-next-step-pulse');
+    }
+  }
+}
+
 if (typeof window !== 'undefined') {
   window.executePatientHighlight = executePatientHighlight;
   window.showFlowCompletionNotification = showFlowCompletionNotification;
+  window.triggerFlowGuidePulse = triggerFlowGuidePulse;
 }
 
 // --- MODAL DE INSTRUÇÕES DE ACESSO E ESPECIFICAÇÕES DE LOGIN ---

@@ -534,7 +534,7 @@ export function renderAttendanceTab(contentArea) {
     const isSel = !!(activePatName && e.patientName && (e.patientName.toLowerCase().trim() === activePatName));
     const safePName = (e.patientName || '').replace(/'/g, "\\'");
     return `
-    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid var(--border-color)'};border-left:4px solid #0284c7;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}' });">
+    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid var(--border-color)'};border-left:4px solid #0284c7;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', status: 'Aguardando_Triagem', currentStep: 2 });">
       ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
         <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
@@ -560,7 +560,7 @@ export function renderAttendanceTab(contentArea) {
     const isSel = !!(activePatName && e.patientName && (e.patientName.toLowerCase().trim() === activePatName));
     const safePName = (e.patientName || '').replace(/'/g, "\\'");
     return `
-      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid var(--border-color)'};border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}' });">
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid var(--border-color)'};border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Aguardando_Atendimento', currentStep: 3, room: 'Consultório 01' });">
         ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
@@ -750,7 +750,7 @@ export function renderAttendanceTab(contentArea) {
       return;
     }
 
-    setActivePatientContext({ id, fullName: name, patientName: name, manchesterColor: 'Amarelo' });
+    setActivePatientContext({ id, fullName: name, patientName: name, manchesterColor: 'Amarelo', status: 'Aguardando_Triagem', currentStep: 2 });
     const stepperContainer = document.getElementById('atd-journey-stepper-container');
     if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'triagem');
 
@@ -893,11 +893,17 @@ export function renderAttendanceTab(contentArea) {
           showToast(`🚨 Protocolo de Emergência (${protoMatch.protocol.name}) ativado com sucesso! Cronômetro iniciado.`, false);
         }
 
+        const nextStatus = isTriageCallTvClicked ? 'Em_Atendimento' : 'Aguardando_Atendimento';
+        const nextStepNum = isTriageCallTvClicked ? 4 : 3;
+
         setActivePatientContext({
           id: encId,
           fullName: pName,
           patientName: pName,
-          manchesterColor: colorValue
+          manchesterColor: colorValue,
+          status: nextStatus,
+          currentStep: nextStepNum,
+          room: 'Consultório 01'
         });
 
         if (isTriageCallTvClicked) {
@@ -913,6 +919,7 @@ export function renderAttendanceTab(contentArea) {
               targetPatientName: pName,
               targetManchesterColor: colorValue,
               targetStatus: 'Em_Atendimento',
+              currentStep: 4,
               actionType: 'open_consultorio',
               persistent: true
             });
@@ -929,10 +936,14 @@ export function renderAttendanceTab(contentArea) {
               targetManchesterColor: colorValue,
               targetRoom: 'Consultório 01',
               targetStatus: 'Aguardando_Atendimento',
+              currentStep: 3,
               actionType: 'call_tv_doctor',
               persistent: true
             });
           }
+        }
+        if (typeof window.triggerFlowGuidePulse === 'function') {
+          window.triggerFlowGuidePulse();
         }
         await loadAndRenderKanban();
       }

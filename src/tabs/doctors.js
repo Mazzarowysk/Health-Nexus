@@ -1189,20 +1189,63 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
     };
   }
 
-  // 2. Encounters ativos (Em Atendimento / Observação / Consultório)
-  const activeEnc = encounters.find(e => (e.status === 'Em Atendimento' || e.status === 'Aguardando Atendimento' || e.status === 'Em Observação') && (
-    (e.patientId && String(e.patientId).toLowerCase() === normPid) ||
-    (e.id && String(e.id).toLowerCase() === normPid) ||
-    (e.patientName && normPname && e.patientName.toLowerCase().includes(normPname))
-  ));
+  // 2. Encounters ativos (Triagem / Aguardando Atendimento / Em Atendimento / Observação)
+  const activeEnc = encounters.find(e => {
+    const s = String(e.status || '').toLowerCase().replace(/_/g, ' ').trim();
+    const isAct = ['em atendimento', 'aguardando atendimento', 'aguardando triagem', 'triagem', 'triado', 'em observacao', 'em observação', 'observacao', 'observação', 'admitido'].includes(s);
+    if (!isAct) return false;
+    return (
+      (e.patientId && String(e.patientId).toLowerCase() === normPid) ||
+      (e.id && String(e.id).toLowerCase() === normPid) ||
+      (e.patientName && normPname && e.patientName.toLowerCase().includes(normPname))
+    );
+  });
   if (activeEnc) {
-    const sec = activeEnc.sector || activeEnc.room || 'Atendimento Médico';
-    const st = activeEnc.status || 'Em Atendimento';
+    const s = String(activeEnc.status || '').toLowerCase().replace(/_/g, ' ').trim();
+    if (s.includes('triagem') || s === 'admitido') {
+      return {
+        text: 'Recepção / Triagem — Aguardando Classificação de Risco',
+        sector: 'Sala de Triagem Manchester',
+        bed: null,
+        status: 'Aguardando Triagem',
+        color: '#38bdf8',
+        bg: 'rgba(56,189,248,0.15)',
+        borderColor: 'rgba(56,189,248,0.4)',
+        icon: 'fa-clipboard-list'
+      };
+    }
+    if (s.includes('aguardando') || s === 'triado') {
+      const room = activeEnc.room || 'Consultório 01';
+      return {
+        text: `Recepção / Sala de Espera — Aguardando ${room}`,
+        sector: `Sala de Espera (${room})`,
+        bed: null,
+        status: 'Aguardando Consulta',
+        color: '#facc15',
+        bg: 'rgba(250,204,21,0.15)',
+        borderColor: 'rgba(250,204,21,0.4)',
+        icon: 'fa-clock'
+      };
+    }
+    if (s.includes('observa')) {
+      const room = activeEnc.room || 'Sala de Observação';
+      return {
+        text: `Em Observação Clínica — ${room}`,
+        sector: room,
+        bed: activeEnc.room || null,
+        status: 'Em Observação',
+        color: '#f59e0b',
+        bg: 'rgba(245,158,11,0.15)',
+        borderColor: 'rgba(245,158,11,0.4)',
+        icon: 'fa-bed-pulse'
+      };
+    }
+    const sec = activeEnc.sector || activeEnc.room || 'Consultório 01';
     return {
-      text: `${st} — ${sec}`,
+      text: `Em Atendimento — ${sec}`,
       sector: sec,
       bed: activeEnc.room || null,
-      status: st,
+      status: 'Em Atendimento',
       color: '#60a5fa',
       bg: 'rgba(59,130,246,0.15)',
       borderColor: 'rgba(59,130,246,0.4)',
@@ -1211,10 +1254,15 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
   }
 
   // 3. Triagem ativa
-  const activeTriage = triages.find(t => (t.status === 'Aguardando Atendimento' || t.status === 'Em Triagem') && (
-    (t.patientId && String(t.patientId).toLowerCase() === normPid) ||
-    (t.patientName && normPname && t.patientName.toLowerCase().includes(normPname))
-  ));
+  const activeTriage = triages.find(t => {
+    const s = String(t.status || '').toLowerCase().replace(/_/g, ' ').trim();
+    const isAct = ['aguardando atendimento', 'em triagem', 'aguardando triagem', 'triagem'].includes(s);
+    if (!isAct) return false;
+    return (
+      (t.patientId && String(t.patientId).toLowerCase() === normPid) ||
+      (t.patientName && normPname && t.patientName.toLowerCase().includes(normPname))
+    );
+  });
   if (activeTriage) {
     return {
       text: `Aguardando Médico — Triagem / Recepção`,

@@ -189,8 +189,20 @@ export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = nu
 export function renderPatientJourneyStepper(container, currentStep = 'consulta') {
   if (!container || !activePatientContext) return;
 
-  const stepOrder = ['recepcao', 'triagem', 'consulta', 'farmacia', 'desfecho'];
-  const currentIndex = stepOrder.indexOf(currentStep);
+  const stepOrder = ['recepcao', 'chamador', 'triagem', 'consulta', 'farmacia', 'leitos'];
+  let currentIndex = typeof currentStep === 'number' ? currentStep : stepOrder.indexOf(currentStep);
+  if (currentIndex < 0) {
+    const st = (activePatientContext.status || '').toLowerCase().trim();
+    if (st.includes('aguardando_atendimento') || st.includes('aguardando atendimento') || activePatientContext.manchesterColor) {
+      currentIndex = 3; // Médico/PEP
+    } else if (st.includes('aguardando_triagem') || st.includes('aguardando triagem')) {
+      currentIndex = 2; // Triagem
+    } else if (st.includes('internado') || activePatientContext.bed) {
+      currentIndex = 5; // Leitos
+    } else {
+      currentIndex = 1;
+    }
+  }
 
   container.innerHTML = `
     <div class="patient-journey-stepper">
