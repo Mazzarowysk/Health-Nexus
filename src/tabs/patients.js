@@ -61,7 +61,7 @@ export function renderPatientsTab(contentArea) {
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="birthDate">* Data de Nascimento:</label>
-                  <input type="date" id="birthDate" class="form-input" required>
+                  <input type="text" id="birthDate" class="form-input date-mask" required placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric" autocomplete="off">
                 </div>
               </div>
 
@@ -271,7 +271,10 @@ export function renderPatientsTab(contentArea) {
         formattedDate = `${d}/${m}/${y}`;
       }
       
-      const phones = [p.phone, p.cellphone].filter(Boolean).join(' / ');
+      const phonesList = [p.phone, p.cellphone].filter(Boolean);
+      const phonesDisplay = phonesList.length > 1
+        ? `<div style="font-size: 0.8rem; line-height: 1.25;">${phonesList[0]}<br><span style="color: var(--text-muted); font-size: 0.74rem;">${phonesList[1]}</span></div>`
+        : (phonesList[0] || '—');
       const loc = (typeof window.getPatientCurrentLocation === 'function') ? window.getPatientCurrentLocation(p.id, p.fullName) : { text: 'Fora da Unidade', color: '#94a3b8', icon: 'fa-user', bg: 'rgba(148,163,184,0.12)', borderColor: 'rgba(148,163,184,0.3)' };
       
       const activePatCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
@@ -279,19 +282,19 @@ export function renderPatientsTab(contentArea) {
 
       tableHtml += `
         <tr class="patient-card-item ${isSelectedPat ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(p.fullName||'').toLowerCase().replace(/"/g, '&quot;')}" data-patient-id="${p.id}">
-          <td style="font-family: monospace; font-weight: 600; color: var(--color-primary);">${p.id}</td>
-          <td style="font-weight: 500;">${p.fullName}<br><small style="color: var(--text-muted); font-size: 0.76rem;">Mãe: ${p.motherName || '-'}</small></td>
+          <td style="font-family: monospace; font-weight: 600; font-size: 0.78rem; color: var(--color-primary); white-space: nowrap;">${p.id}</td>
+          <td style="font-weight: 600;">${p.fullName}<br><small style="color: var(--text-muted); font-size: 0.74rem; font-weight: normal;">Mãe: ${p.motherName || '-'}</small></td>
           <td onclick="window.handleLocationBadgeClick('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" style="cursor: pointer;" title="Clique para ir direto ao atendimento / PEP do paciente no ${loc.sector || 'Consultório'}">
-            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 0.77rem; font-weight: 700; background: ${loc.bg}; color: ${loc.color}; border: 1px solid ${loc.borderColor}; whitespace: nowrap; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" onmouseover="this.style.transform='scale(1.06)'; this.style.boxShadow='0 0 14px ${loc.color}50';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.2)';">
-              <i class="fa-solid ${loc.icon}"></i> ${loc.sector || loc.text} ${loc.bed ? `(${loc.bed})` : ''} <i class="fa-solid fa-arrow-right" style="font-size:0.65rem; margin-left:3px; opacity:0.8;"></i>
+            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 16px; font-size: 0.74rem; font-weight: 700; background: ${loc.bg}; color: ${loc.color}; border: 1px solid ${loc.borderColor}; white-space: nowrap; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease;">
+              <i class="fa-solid ${loc.icon}"></i> ${loc.sector || loc.text} ${loc.bed ? `(${loc.bed})` : ''} <i class="fa-solid fa-arrow-right" style="font-size:0.62rem; margin-left:2px; opacity:0.8;"></i>
             </span>
           </td>
-          <td style="font-family: monospace; font-size: 0.9rem;">${p.cpf}</td>
-          <td>${formattedDate}</td>
-          <td>${p.city || '-'}</td>
-          <td style="font-size: 0.85rem; color: var(--text-secondary);">${phones || '-'}</td>
-          <td style="font-family: monospace; font-weight: 500;">${p.billingValue || 'R$ 0,00'}</td>
-          <td>
+          <td style="font-family: monospace; font-size: 0.84rem; white-space: nowrap;">${p.cpf}</td>
+          <td style="white-space: nowrap; font-size: 0.84rem;">${formattedDate}</td>
+          <td style="white-space: nowrap; font-size: 0.84rem;">${p.city || '-'}</td>
+          <td style="white-space: nowrap;">${phonesDisplay}</td>
+          <td style="font-family: monospace; font-weight: 600; font-size: 0.84rem; white-space: nowrap;">${p.billingValue || 'R$ 0,00'}</td>
+          <td style="white-space: nowrap;">
             <div class="actions-cell">
               <button class="btn-icon btn-icon-admit" onclick="window.admitPatientFromPatientsTab('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}', '${p.cpf||''}')" title="Admitir / Atender este Paciente">
                 <i class="fa-solid fa-hospital-user"></i>
@@ -306,7 +309,7 @@ export function renderPatientsTab(contentArea) {
                 data-edit-id="${p.id}" 
                 data-full-name="${p.fullName || ''}" 
                 data-cpf="${p.cpf || ''}" 
-                data-birth-date="${p.birthDate || ''}"
+                data-birth-date="${formattedDate || p.birthDate || ''}"
                 data-mother-name="${p.motherName || ''}"
                 data-father-name="${p.fatherName || ''}"
                 data-organ-donor="${p.organDonor || 'Não Declarado'}"
@@ -346,7 +349,14 @@ export function renderPatientsTab(contentArea) {
         document.getElementById('editId').value = btn.getAttribute('data-edit-id');
         document.getElementById('fullName').value = btn.getAttribute('data-full-name');
         document.getElementById('cpf').value = btn.getAttribute('data-cpf');
-        document.getElementById('birthDate').value = btn.getAttribute('data-birth-date');
+        
+        const rawDate = btn.getAttribute('data-birth-date') || '';
+        let displayBirthDate = rawDate;
+        if (rawDate.includes('-')) {
+          const parts = rawDate.split('-');
+          if (parts.length === 3) displayBirthDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        document.getElementById('birthDate').value = displayBirthDate;
         
         if (document.getElementById('motherName')) document.getElementById('motherName').value = btn.getAttribute('data-mother-name') || '';
         if (document.getElementById('fatherName')) document.getElementById('fatherName').value = btn.getAttribute('data-father-name') || '';
@@ -424,9 +434,34 @@ export function renderPatientsTab(contentArea) {
   };
 
   const checkAgeValidation = () => {
-    const birthVal = document.getElementById('birthDate')?.value;
-    if (!birthVal) return;
-    const birth = new Date(birthVal + 'T12:00:00');
+    const birthVal = document.getElementById('birthDate')?.value?.trim();
+    if (!birthVal || birthVal.length < 10) return;
+
+    let birth = null;
+    if (birthVal.includes('/')) {
+      const parts = birthVal.split('/');
+      if (parts.length === 3) {
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const y = parseInt(parts[2], 10);
+        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+          birth = new Date(y, m - 1, d, 12, 0, 0);
+        }
+      }
+    } else if (birthVal.includes('-')) {
+      const parts = birthVal.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const d = parseInt(parts[2], 10);
+        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+          birth = new Date(y, m - 1, d, 12, 0, 0);
+        }
+      }
+    }
+
+    if (!birth || isNaN(birth.getTime())) return;
+
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();
@@ -458,8 +493,13 @@ export function renderPatientsTab(contentArea) {
 
   const birthInput = document.getElementById('birthDate');
   if (birthInput) {
+    birthInput.addEventListener('input', (e) => {
+      if (typeof window.maskDate === 'function') {
+        e.target.value = window.maskDate(e.target.value);
+      }
+      checkAgeValidation();
+    });
     birthInput.addEventListener('change', checkAgeValidation);
-    birthInput.addEventListener('input', checkAgeValidation);
   }
 
   const cepInput = document.getElementById('cep');
@@ -630,7 +670,43 @@ export function renderPatientsTab(contentArea) {
     const editId = document.getElementById('editId').value;
     const fullName = document.getElementById('fullName').value;
     const cpf = document.getElementById('cpf').value;
-    const birthDate = document.getElementById('birthDate').value;
+    const birthDateInput = (document.getElementById('birthDate')?.value || '').trim();
+    
+    // Validação estrita do formato DD/MM/AAAA
+    let birthDate = birthDateInput;
+    if (birthDateInput.includes('/')) {
+      const parts = birthDateInput.split('/');
+      if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const y = parseInt(parts[2], 10);
+        const currentYear = new Date().getFullYear();
+        if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || y > currentYear) {
+          showCustomAlert({
+            title: 'Data Inválida',
+            message: 'Por favor, informe uma data de nascimento válida no formato DD/MM/AAAA.',
+            type: 'warning'
+          });
+          return;
+        }
+        birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      } else {
+        showCustomAlert({
+          title: 'Data Incompleta',
+          message: 'Por favor, preencha a data de nascimento completa no formato DD/MM/AAAA (10 dígitos).',
+          type: 'warning'
+        });
+        return;
+      }
+    } else if (birthDateInput.length < 10) {
+      showCustomAlert({
+        title: 'Data Incompleta',
+        message: 'Por favor, informe a data de nascimento no formato DD/MM/AAAA.',
+        type: 'warning'
+      });
+      return;
+    }
+
     const motherName = document.getElementById('motherName')?.value || '';
     const fatherName = document.getElementById('fatherName')?.value || '';
     const organDonor = document.getElementById('organDonor')?.value || 'Não Declarado';

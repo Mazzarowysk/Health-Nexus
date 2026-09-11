@@ -1847,9 +1847,13 @@ export function executePatientHighlight(targetPatientName, targetColumn) {
       targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
       targetEl.classList.add('patient-pulse-selected', 'patient-spotlight-glow');
       
-      targetEl.style.animation = 'patientSpotlightGlow 1.4s ease-in-out 3';
-      targetEl.style.border = '2.5px solid #38bdf8';
-      targetEl.style.boxShadow = '0 0 40px rgba(56, 189, 248, 0.95), inset 0 0 18px rgba(56, 189, 248, 0.35)';
+      if (targetEl.tagName === 'TR') {
+        targetEl.style.animation = 'patientDelicateHighlight 0.6s ease-out 1';
+      } else {
+        targetEl.style.animation = 'patientSpotlightGlow 1.4s ease-in-out 2';
+        targetEl.style.border = '1.5px solid #38bdf8';
+        targetEl.style.boxShadow = '0 0 20px rgba(56, 189, 248, 0.4)';
+      }
 
       // Adiciona badge temporário de paciente em foco/selecionado se não houver
       let badge = targetEl.querySelector('.patient-selected-flow-badge');
@@ -1865,10 +1869,13 @@ export function executePatientHighlight(targetPatientName, targetColumn) {
         targetEl.classList.remove('patient-pulse-selected', 'patient-spotlight-glow');
         targetEl.style.animation = '';
         targetEl.style.boxShadow = '';
-        // Mantém sutil contorno de foco indicando que este paciente está selecionado
-        targetEl.style.borderColor = '#38bdf8';
+        if (targetEl.tagName !== 'TR') {
+          targetEl.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+        } else {
+          targetEl.style.border = '';
+        }
         if (badge) badge.remove();
-      }, 5000);
+      }, 3500);
       return true;
     }
     return false;
@@ -3733,6 +3740,22 @@ function maskCPF(value) {
 
 window.maskCPF = maskCPF;
 
+function maskDate(value) {
+  if (!value) return "";
+  let v = String(value).replace(/\D/g, "").substring(0, 8);
+  if (v.length === 0) {
+    return "";
+  } else if (v.length <= 2) {
+    return v;
+  } else if (v.length <= 4) {
+    return `${v.slice(0, 2)}/${v.slice(2)}`;
+  } else {
+    return `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+  }
+}
+
+window.maskDate = maskDate;
+
 function isCPFInput(el) {
   if (!el) return false;
   const id = el.id || '';
@@ -3963,6 +3986,17 @@ function applyInputMasks() {
       if (!e.target.value) e.target.value = "R$ 0,00";
     });
   }
+  const birthDateInput = document.getElementById('birthDate');
+  if (birthDateInput) {
+    birthDateInput.addEventListener('input', (e) => {
+      e.target.value = maskDate(e.target.value);
+    });
+  }
+  document.querySelectorAll('.date-mask').forEach(input => {
+    input.addEventListener('input', (e) => {
+      e.target.value = maskDate(e.target.value);
+    });
+  });
 }
 
 // Heartbeat para manter o servidor rodando apenas enquanto a aba estiver aberta

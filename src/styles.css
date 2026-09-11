@@ -1064,17 +1064,23 @@ body {
   100% { opacity: 0.6; }
 }
 
-@keyframes patientCardPulse {
-  0% { transform: scale(1.02); box-shadow: 0 0 25px rgba(16, 185, 129, 0.85); border-color: #10b981; }
-  50% { transform: scale(1.045); box-shadow: 0 0 45px rgba(16, 185, 129, 1), inset 0 0 15px rgba(16, 185, 129, 0.4); border-color: #34d399; }
-  100% { transform: scale(1.02); box-shadow: 0 0 25px rgba(16, 185, 129, 0.85); border-color: #10b981; }
+@keyframes patientDelicateHighlight {
+  0% {
+    background-color: rgba(2, 132, 199, 0.04);
+  }
+  50% {
+    background-color: rgba(2, 132, 199, 0.14);
+  }
+  100% {
+    background-color: rgba(2, 132, 199, 0.07);
+  }
 }
 
 .patient-pulse-selected {
-  animation: patientCardPulse 1.2s infinite ease-in-out !important;
-  border: 2px solid #10b981 !important;
+  border: 1.5px solid rgba(2, 132, 199, 0.4) !important;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.12) !important;
   position: relative !important;
-  z-index: 99 !important;
+  transition: all 0.25s ease !important;
 }
 
 @keyframes slideIn {
@@ -4666,12 +4672,12 @@ body.compact-mode .modal-content {
 }
 
 /* --- MELHORIAS DE DIAGRAMAÇÃO DE TABELAS --- */
-.data-table, .patients-table {
+.data-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.data-table th, .patients-table th {
+.data-table th {
   padding: 16px 20px;
   font-family: 'Outfit', sans-serif;
   font-size: 0.8rem;
@@ -4683,7 +4689,7 @@ body.compact-mode .modal-content {
   text-align: left;
 }
 
-.data-table td, .patients-table td {
+.data-table td {
   padding: 18px 20px;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-primary);
@@ -4691,15 +4697,68 @@ body.compact-mode .modal-content {
   vertical-align: middle;
 }
 
-.data-table tbody tr, .patients-table tbody tr {
+.data-table tbody tr {
   transition: background var(--transition-fast);
 }
 
-.data-table tbody tr:hover td, .patients-table tbody tr:hover td {
+.data-table tbody tr:hover td {
   background-color: rgba(255, 255, 255, 0.03);
 }
 
-.light-theme .data-table tbody tr:hover td, .light-theme .patients-table tbody tr:hover td {
+.light-theme .data-table tbody tr:hover td {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* --- TABELA DE PACIENTES OTIMIZADA & SEM SCROLLBAR --- */
+#patients-table-wrapper {
+  overflow-x: auto;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+#patients-table-wrapper::-webkit-scrollbar {
+  display: none !important;
+  height: 0px !important;
+}
+
+.patients-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.84rem;
+}
+
+.patients-table th {
+  padding: 10px 12px !important;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-color);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.patients-table td {
+  padding: 10px 12px !important;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.82rem !important;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+.patients-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.patients-table tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.025);
+}
+
+.light-theme .patients-table tbody tr:hover td {
   background-color: rgba(0, 0, 0, 0.02);
 }
 
@@ -5384,40 +5443,49 @@ body.compact-mode .modal-content {
   border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
-/* --- DESTAQUE PULSANTE DO FLUXO HOSPITALAR (PACIENTES SELECIONADOS) --- */
+/* --- DESTAQUE FLUIDO DO FLUXO HOSPITALAR (PACIENTES SELECIONADOS) --- */
 @keyframes patientCardPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.85);
-    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4);
   }
   50% {
-    box-shadow: 0 0 45px 10px rgba(16, 185, 129, 0.95), inset 0 0 20px rgba(16, 185, 129, 0.35);
-    transform: scale(1.025);
+    box-shadow: 0 2px 14px rgba(2, 132, 199, 0.25);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(2, 132, 199, 0);
   }
 }
 
 .patient-pulse-selected {
-  animation: patientCardPulse 1.2s infinite ease-in-out !important;
-  border: 2.5px solid #10b981 !important;
-  box-shadow: 0 0 40px rgba(16, 185, 129, 0.95), inset 0 0 15px rgba(16, 185, 129, 0.3) !important;
+  border: 1.5px solid rgba(2, 132, 199, 0.5) !important;
+  box-shadow: 0 2px 12px rgba(2, 132, 199, 0.15) !important;
   position: relative !important;
-  z-index: 10 !important;
+  z-index: 2 !important;
 }
 
 tr.patient-pulse-selected {
-  background: rgba(16, 185, 129, 0.22) !important;
-  outline: 2.5px solid #10b981 !important;
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.7) !important;
+  background: rgba(2, 132, 199, 0.08) !important;
+  border-left: 3.5px solid #0284c7 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  animation: patientDelicateHighlight 0.6s ease-out 1 !important;
+  transition: background 0.3s ease !important;
 }
 
 tr.patient-pulse-selected td {
-  background: rgba(16, 185, 129, 0.2) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
+}
+
+tr.patient-pulse-selected td:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+tr.patient-pulse-selected td:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 
 /* --- DESTAQUE DE CHAMADA TV PULSANTE --- */
@@ -5461,29 +5529,26 @@ tr.patient-pulse-selected td {
   box-shadow: 0 0 32px rgba(14, 165, 233, 0.95) !important;
 }
 
-/* --- EFEITO HOLOFOTE (SPOTLIGHT GLOW) PARA PACIENTE EM FOCO --- */
+/* --- EFEITO HOLOFOTE (SPOTLIGHT GLOW) PARA PACIENTE EM FOCO (SEM DISTORÇÃO/SCALE) --- */
 @keyframes patientSpotlightGlow {
   0% {
-    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.9);
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.6);
     border-color: #38bdf8;
-    transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 50px 15px rgba(56, 189, 248, 0.95), inset 0 0 25px rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 20px 4px rgba(56, 189, 248, 0.45);
     border-color: #38bdf8;
-    transform: scale(1.03);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
-    border-color: rgba(255, 255, 255, 0.1);
-    transform: scale(1);
+    border-color: rgba(56, 189, 248, 0.3);
   }
 }
 
 .patient-spotlight-glow {
-  animation: patientSpotlightGlow 1.4s ease-in-out 3 !important;
-  border: 2.5px solid #38bdf8 !important;
-  z-index: 100 !important;
+  animation: patientSpotlightGlow 1.2s ease-in-out 2 !important;
+  border: 1.5px solid #38bdf8 !important;
+  z-index: 5 !important;
   position: relative !important;
 }
 
