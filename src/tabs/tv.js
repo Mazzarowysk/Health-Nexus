@@ -116,6 +116,11 @@ async function renderTVPanelTab() {
 
   // Listener para botao de chamar paciente
   document.getElementById('btn-tv-call-modal')?.addEventListener('click', () => openTVCallModal());
+
+  // Garante que o Card Guia de Fluxo permaneça ativo e visível no Painel de TV
+  if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+    window.ensureSmartFlowGuideMounted('tv_panel');
+  }
 }
 
 async function loadTVCalls() {
@@ -255,6 +260,10 @@ window.loadTVWaitingQueue = async function() {
       </div>
     </div>`;
   }).join('');
+
+  if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+    window.ensureSmartFlowGuideMounted('tv_panel');
+  }
 };
 
 window._tvQuickCall = async function(patientName, manchesterColor, roomName = '') {
@@ -362,10 +371,10 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
 
     if (typeof window.showFlowCompletionNotification === 'function') {
       window.showFlowCompletionNotification({
-        actionTitle: isTriageRoom ? `🩺 Conduzindo Paciente para Triagem!` : `📢 Chamada Emitida no Painel TV!`,
+        actionTitle: isTriageRoom ? `🩺 Chamada Concluída! Próximo Passo: Triagem` : `📢 Chamada Concluída! Próximo Passo: Consultório`,
         message: isTriageRoom
-          ? `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>Direcionando para a <strong>Sala de Triagem</strong> para aferição de sinais vitais...`
-          : `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para o <strong>${roomName}</strong>.<br><br>👉 <strong>Clique no botão pulsante abaixo para abrir o ${roomName} e dar início ao Prontuário (PEP)!</strong>`,
+          ? `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>👉 Chamada sonora e visual emitida! Quando estiver pronto, <strong>clique no botão abaixo no Guia de Fluxo</strong> para ir à Sala de Triagem e iniciar a classificação Manchester.`
+          : `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para o <strong>${roomName}</strong>.<br><br>👉 Chamada emitida! <strong>Clique no botão pulsante abaixo</strong> para abrir o ${roomName} e dar início ao Prontuário (PEP).`,
         targetTab: isTriageRoom ? 'atendimento' : 'consultorios',
         targetTabLabel: isTriageRoom ? `🩺 Iniciar Triagem Manchester de ${firstName} ➔` : `👨‍⚕️ Abrir ${roomName} (${firstName}) ➔`,
         targetColumn: isTriageRoom ? 'col-triage' : roomName,
@@ -373,13 +382,16 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
         targetStatus: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',
         targetRoom: roomName,
         actionType: isTriageRoom ? 'start_triage' : 'open_consultorio',
-        autoSwitch: isTriageRoom,
+        autoSwitch: false,
         persistent: true
       });
     }
 
     loadTVCalls();
     if (typeof loadTVWaitingQueue === 'function') loadTVWaitingQueue();
+    if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+      window.ensureSmartFlowGuideMounted('tv_panel');
+    }
     return true;
   } catch (e) {
     showCustomAlert({ title: 'Erro', message: 'Falha ao emitir chamada na TV.', type: 'danger' });

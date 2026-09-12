@@ -358,20 +358,20 @@ export function renderAttendanceTab(contentArea) {
             manchesterColor: null
           });
         }
-        showToast(`✅ ${patientName} admitido(a)! Direcionando para Chamada no Painel TV...`);
+        showToast(`✅ ${patientName} admitido(a)!`);
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: '📺 Convocando Paciente no Painel TV (Triagem)',
-            message: `O paciente <strong>${patientName}</strong> foi admitido no fluxo de <strong>${type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</strong> e aguarda na recepção.<br><br>Direcionando para o <strong>Painel TV</strong> para convocá-lo à <strong>Sala de Triagem Manchester</strong>...`,
+            actionTitle: '📺 Próximo Passo: Chamar no Painel TV (Triagem)',
+            message: `O paciente <strong>${patientName}</strong> foi admitido no fluxo de <strong>${type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</strong> e aguarda na recepção.<br><br>👉 <strong>Clique no botão abaixo no Guia de Fluxo</strong> para ir ao <strong>Painel TV</strong> e convocá-lo à Sala de Triagem.`,
             targetTab: 'tv_panel',
-            targetTabLabel: 'Painel TV (Chamador)',
+            targetTabLabel: `📺 Ir para Painel TV (Chamar ${patientName.split(' ')[0]}) ➔`,
             targetColumn: 'col-triage',
             targetPatientName: patientName,
             targetPatientId: patientId,
             targetStatus: 'Aguardando_Triagem',
             targetRoom: 'Sala de Triagem',
-            actionType: 'call_tv_triage',
-            autoSwitch: true,
+            actionType: 'go_tv_panel',
+            autoSwitch: false,
             persistent: true
           });
         }
