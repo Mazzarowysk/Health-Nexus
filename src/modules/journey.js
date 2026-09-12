@@ -169,14 +169,14 @@ export function getManchesterColor(color) {
 // ─── INICIALIZAÇÃO DO CARD FLUTUANTE GUIA DE FLUXO (SMART FLOW GUIDE) ────────
 
 export function initFloatingWorkflowGuide() {
-  document.querySelectorAll('#floating-flow-guide').forEach(el => el.remove());
+  document.querySelectorAll('#floating-flow-guide, #hn-flow-guide, .floating-flow-guide').forEach(el => el.remove());
   if (typeof window.createSmartFlowGuideCard === 'function') {
     window.createSmartFlowGuideCard(currentActiveTabId);
   }
 }
 
 export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = null) {
-  document.querySelectorAll('#floating-flow-guide').forEach(el => el.remove());
+  document.querySelectorAll('#floating-flow-guide, #hn-flow-guide, .floating-flow-guide').forEach(el => el.remove());
   currentActiveTabId = tabId || 'dashboard';
   if (lastAction) lastActionMessage = lastAction;
   if (typeof window.createSmartFlowGuideCard === 'function') {
