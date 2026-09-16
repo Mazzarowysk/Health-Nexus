@@ -135,6 +135,10 @@ async function renderLeitosTab() {
 
   const loadBeds = async () => {
     try {
+      const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
+      const activePatBedId = activePat ? String(activePat.bedId || activePat.bed || activePat.bedNumber || '') : '';
+
       let rawBeds = await cachedApiGet('/api/beds', 'beds');
       let beds = Array.isArray(rawBeds) ? rawBeds : (rawBeds.data || []);
 
@@ -156,10 +160,6 @@ async function renderLeitosTab() {
 
         const hosps = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('hospitalizations') || []) : [];
         const activeHosps = hosps.filter(h => h.status !== 'Alta');
-
-        const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-        const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
-        const activePatBedId = activePat ? String(activePat.bedId || activePat.bed || activePat.bedNumber || '') : '';
 
         beds.forEach(b => {
           const matchingHosp = activeHosps.find(h => String(h.bed_id) === String(b.id) || h.bed === b.bedNumber || h.bed === b.number);
@@ -405,8 +405,6 @@ async function renderLeitosTab() {
           borderTop = '4px solid #facc15';
         }
 
-        const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-        const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
         const isSelectedBed = !!(activePat && (
           (activePat.bedId && String(b.id) === String(activePat.bedId)) ||
           (activePat.bed && (String(b.bedNumber) === String(activePat.bed) || String(b.number) === String(activePat.bed))) ||
@@ -485,14 +483,14 @@ async function renderLeitosTab() {
       }).join('');
 
       // Acionar destaque pulsante e foco no leito do paciente selecionado
-      const patNameToHighlight = window._highlightPatientName || activePatName;
+      const patNameToHighlight = window._highlightPatientName || (activePat ? (activePat.fullName || activePat.patientName) : '') || activePatName;
       if (typeof window.executePatientHighlight === 'function' && patNameToHighlight) {
         setTimeout(() => {
           window.executePatientHighlight(patNameToHighlight);
         }, 120);
       }
     } catch (e) {
-      console.error(e);
+      console.error('[loadBeds] Erro ao carregar mapa de leitos:', e);
       document.getElementById('beds-grid').innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--color-danger); padding: 20px;">Erro ao carregar mapa de leitos.</div>`;
     }
   };
