@@ -3168,13 +3168,20 @@ export function executePatientHighlight(targetPatientName, targetColumn) {
         targetEl = document.querySelector(`[data-patient-card-name*="${firstName.replace(/"/g, '')}"]`);
       }
 
-      // Tenta 1.5: se estiver na aba de leitos ou se o paciente ativo tiver leito associado
+      // Tenta 1.5: se estiver na aba de leitos ou se o paciente ativo tiver leito associado E for realmente o paciente alvo
       if (!targetEl) {
         const ap = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
         const bId = ap?.bedId || ap?.bed || ap?.bedNumber;
         if (bId) {
           const cleanBId = String(bId).trim();
-          targetEl = document.querySelector(`[data-bed-id="${cleanBId}"], [data-bed-number="${cleanBId}"]`);
+          const bedEl = document.querySelector(`[data-bed-id="${cleanBId}"], [data-bed-number="${cleanBId}"]`);
+          if (bedEl) {
+            const cardTxt = (bedEl.textContent || '').toLowerCase();
+            const cardPat = (bedEl.getAttribute('data-patient-card-name') || '').toLowerCase();
+            if (cardTxt.includes(cleanName) || cardPat.includes(cleanName) || (firstTwo && firstTwo.length >= 4 && (cardTxt.includes(firstTwo) || cardPat.includes(firstTwo)))) {
+              targetEl = bedEl;
+            }
+          }
         }
       }
 
@@ -4986,7 +4993,7 @@ function switchTab(tabName, isBack = false) {
   // Disparar destaque pulsante e seleção do paciente na nova aba aberta
   setTimeout(() => {
     const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-    const patName = window._highlightPatientName || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) || (activePat && (activePat.fullName || activePat.patientName));
+    const patName = (activePat && (activePat.fullName || activePat.patientName)) || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) || window._highlightPatientName;
     const targetCol = window._highlightTargetColumn || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetColumn);
     if (patName && typeof window.executePatientHighlight === 'function') {
       window.executePatientHighlight(patName, targetCol);

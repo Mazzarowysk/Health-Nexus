@@ -411,13 +411,16 @@ async function renderLeitosTab() {
           (activePat.bedNumber && (String(b.bedNumber) === String(activePat.bedNumber) || String(b.number) === String(activePat.bedNumber)))
         ));
 
-        const isSelectedPatient = !!((activePatName && b.patientName && (
+        const isPatientNameMatch = !!(activePatName && b.patientName && (
           b.patientName.toLowerCase().trim() === activePatName ||
           b.patientName.toLowerCase().trim().includes(activePatName) ||
           activePatName.includes(b.patientName.toLowerCase().trim())
-        )) || (isSelectedBed && b.status === 'Ocupado'));
+        ));
 
-        const cardPatientName = (b.patientName || (isSelectedBed ? (activePat.fullName || activePat.patientName) : '') || '').toLowerCase().replace(/"/g, '&quot;');
+        // Só destaca o leito se o paciente internado nele for de fato o paciente em foco no fluxo
+        const isSelectedPatient = isPatientNameMatch || (isSelectedBed && isPatientNameMatch);
+
+        const cardPatientName = (b.patientName || '').toLowerCase().replace(/"/g, '&quot;');
 
         const allBedsRx = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('prescriptions') || []) : [];
         const bPatName = (b.patientName || '').toLowerCase().trim();
@@ -443,30 +446,38 @@ async function renderLeitosTab() {
                 <span class="badge" style="background: ${statusBg}; color: ${statusColor}; font-weight:700; border: 1px solid ${statusBg.replace('0.15', '0.3')}; border-radius: 12px; padding: 4px 10px;">${b.status}</span>
               </div>
               <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 14px;">
-                <i class="fa-solid fa-building-user"></i> ${b.sector}
+                <i class="fa-solid fa-hospital"></i> ${b.sector}
               </div>
               ${b.status === 'Ocupado' ? `
-                <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(239,68,68,0.1)); padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid rgba(99,102,241,0.3);">
-                  <div style="font-size: 0.98rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${b.patientName || 'Paciente'}
+                <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 14px;">
+                  <div style="font-weight: 700; color: var(--text-primary); font-size: 1rem; margin-bottom: 4px; display:flex; align-items:center; gap: 6px;">
+                    <i class="fa-solid fa-hospital-user" style="color: var(--color-primary);"></i> ${b.patientName}
                   </div>
-                  <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                    <span><i class="fa-solid fa-calendar-check" style="color: #a5b4fc;"></i> Entrada: ${b.admittedAt ? new Date(b.admittedAt).toLocaleTimeString().slice(0,5) : 'Hoje'}</span>
-                    ${bMedTotal > 0 ? `<span style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); padding: 1px 7px; border-radius: 6px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-pills"></i> ${bMedTotal} med. ativa(s)</span>` : ''}
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    <i class="fa-regular fa-calendar-check"></i> Entrada: ${b.entryDate || b.admittedAt || 'Hoje'}
                   </div>
+                  ${bMedTotal > 0 ? `
+                    <div style="margin-top: 6px; font-size: 0.75rem; font-weight: 700; color: #38bdf8; display:flex; align-items:center; gap: 4px;">
+                      <i class="fa-solid fa-pills"></i> ${bMedTotal} med. ativa(s)
+                    </div>
+                  ` : ''}
                 </div>
-              ` : '<div style="margin-bottom: 16px; font-size: 0.82rem; color: var(--text-muted);"><i class="fa-regular fa-circle-check"></i> Pronto para receber paciente</div>'}
+              ` : `
+                <div style="padding: 18px 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; font-style: italic;">
+                  ${b.status === 'Vago' ? 'Pronto para receber paciente' : 'Aguardando limpeza'}
+                </div>
+              `}
             </div>
 
-            <div style="display: flex; gap: 6px; margin-top: auto; justify-content: flex-end; flex-wrap: wrap;" onclick="event.stopPropagation();">
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
               ${b.status === 'Vago' ? `
-                <button class="btn btn-sm btn-primary" onclick="window.quickAdmitBed('${b.id}')" style="width: 100%; border-radius: 8px; font-weight:700; padding: 9px 14px;">
-                  <i class="fa-solid fa-bed"></i> Internar Neste Leito
+                <button class="btn btn-sm btn-primary" onclick="window.openAssignBedModal('${b.id}')" style="width: 100%; border-radius: 8px; font-weight:700; background: linear-gradient(135deg, #0284c7, #0369a1); border:none; padding: 9px 14px;">
+                  <i class="fa-solid fa-user-plus"></i> Internar Paciente
                 </button>
               ` : ''}
               ${b.status === 'Ocupado' ? `
-                <button class="btn btn-sm" onclick="if(typeof window.openPEPModal === 'function') window.openPEPModal('${b.patientId || b.patientName}');" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.76rem; padding: 7px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
-                  <i class="fa-solid fa-file-medical"></i> PEP
+                <button class="btn btn-sm btn-primary" onclick="window.openPEP('${b.patientId}')" style="flex: 1; border-radius: 8px; font-weight:700; font-size: 0.76rem; padding: 7px 10px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8;">
+                  <i class="fa-solid fa-notes-medical"></i> PEP
                 </button>
                 <button class="btn btn-sm btn-danger" onclick="window.dischargeBed('${b.id}')" style="flex: 1; border-radius: 8px; font-weight:700; font-size: 0.76rem; padding: 7px 10px; background: linear-gradient(135deg, #be5a6e, #9e3a52); border:none; color: #fff;">
                   <i class="fa-solid fa-door-open"></i> Alta
@@ -483,7 +494,7 @@ async function renderLeitosTab() {
       }).join('');
 
       // Acionar destaque pulsante e foco no leito do paciente selecionado
-      const patNameToHighlight = window._highlightPatientName || (activePat ? (activePat.fullName || activePat.patientName) : '') || activePatName;
+      const patNameToHighlight = (activePat ? (activePat.fullName || activePat.patientName) : '') || window._highlightPatientName || activePatName;
       if (typeof window.executePatientHighlight === 'function' && patNameToHighlight) {
         setTimeout(() => {
           window.executePatientHighlight(patNameToHighlight);

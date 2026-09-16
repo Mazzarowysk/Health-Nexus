@@ -145,23 +145,31 @@ const TAB_NEXT_RECOMMENDATION = {
 export const setActivePatientContext = (patient) => {
   if (!patient) {
     activePatientContext = null;
+    window._highlightPatientName = null;
     try { localStorage.removeItem('activePatientContext'); } catch(e) {}
   } else {
     const existing = activePatientContext || {};
-    const merged = { ...existing };
-    for (const [k, v] of Object.entries(patient)) {
-      if (v !== undefined) {
-        merged[k] = v;
-      }
-    }
-    // Se o nome mudou completamente, limpa dados da sessão anterior
-    if (patient.fullName && existing.fullName && patient.fullName.toLowerCase().trim() !== existing.fullName.toLowerCase().trim()) {
-      activePatientContext = { ...patient };
+    const newName = (patient.fullName || patient.patientName || '').toLowerCase().trim();
+    const oldName = (existing.fullName || existing.patientName || '').toLowerCase().trim();
+
+    // Se o nome mudou ou é um paciente diferente, descarta COMPLETAMENTE os dados da sessão anterior
+    if (newName && oldName && newName !== oldName) {
+      activePatientContext = {
+        ...patient,
+        fullName: patient.fullName || patient.patientName,
+        patientName: patient.patientName || patient.fullName
+      };
     } else {
-      activePatientContext = merged;
+      activePatientContext = {
+        ...existing,
+        ...patient,
+        fullName: patient.fullName || patient.patientName || existing.fullName || existing.patientName,
+        patientName: patient.patientName || patient.fullName || existing.patientName || existing.fullName
+      };
     }
-    try { localStorage.setItem('activePatientContext', JSON.stringify(activePatientContext)); } catch(e) {}
     const pName = activePatientContext.fullName || activePatientContext.patientName;
+    window._highlightPatientName = pName;
+    try { localStorage.setItem('activePatientContext', JSON.stringify(activePatientContext)); } catch(e) {}
     if (pName && typeof window.executePatientHighlight === 'function') {
       setTimeout(() => window.executePatientHighlight(pName), 80);
     }
