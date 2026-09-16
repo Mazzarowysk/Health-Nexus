@@ -431,6 +431,44 @@ export function renderPatientsTab(contentArea) {
         }
       });
     });
+
+    // Seleção de paciente e sincronização com o Agente de Governança Clínica ao clicar em qualquer linha
+    document.querySelectorAll('#patients-table-wrapper tr.patient-card-item').forEach(tr => {
+      tr.addEventListener('click', (e) => {
+        if (e.target.closest('.actions-cell') || e.target.closest('button')) return;
+        const pid = tr.getAttribute('data-patient-id');
+        const pName = tr.querySelector('td:nth-child(2)')?.firstChild?.textContent?.trim() || tr.getAttribute('data-patient-card-name');
+        if (pName && typeof window.setActivePatientContext === 'function') {
+          let curStatus = 'Aguardando_Triagem';
+          let mColor = '';
+          let curRoom = 'Sala de Triagem';
+          if (window.localDB) {
+            const db = window.localDB.getFullDB();
+            const encs = db.encounters || [];
+            const match = encs.find(enc => String(enc.patientId) === String(pid) || (enc.patientName && enc.patientName.toLowerCase() === pName.toLowerCase()));
+            if (match) {
+              curStatus = match.status || curStatus;
+              mColor = match.manchesterColor || '';
+              const isTriaged = !!mColor || ['aguardando_atendimento', 'em_atendimento', 'internado'].includes((curStatus || '').toLowerCase());
+              curRoom = match.room || (isTriaged ? 'Consultório 01' : 'Sala de Triagem');
+            }
+          }
+          window.setActivePatientContext({
+            id: pid,
+            fullName: pName,
+            patientName: pName,
+            manchesterColor: mColor,
+            status: curStatus,
+            room: curRoom
+          });
+          document.querySelectorAll('#patients-table-wrapper tr.patient-card-item').forEach(r => r.classList.remove('patient-pulse-selected'));
+          tr.classList.add('patient-pulse-selected');
+          if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+            window.ensureSmartFlowGuideMounted('pacientes');
+          }
+        }
+      });
+    });
   };
 
   const checkAgeValidation = () => {
@@ -769,8 +807,9 @@ export function renderPatientsTab(contentArea) {
         }
 
         if (!isEdit) {
+          let savedEncounterId = null;
           try {
-            await apiFetch(`/api/encounters`, {
+            const encRes = await apiFetch(`/api/encounters`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -781,40 +820,55 @@ export function renderPatientsTab(contentArea) {
                 admitted_at: new Date().toISOString()
               })
             });
+            if (encRes && encRes.ok) {
+              const encData = await encRes.json();
+              savedEncounterId = encData?.data?.id || encData?.id;
+            }
           } catch (e) {
             console.error('Erro ao admitir no PS:', e);
           }
 
+          window._highlightPatientName = fullName;
+          window._highlightTargetColumn = 'col-triage';
+
           if (typeof window.setActivePatientContext === 'function') {
             window.setActivePatientContext({
               id: savedPatientId,
+              encounterId: savedEncounterId,
               fullName: fullName,
               patientName: fullName,
               cpf: cpf,
               status: 'Aguardando_Triagem',
-              currentStep: 1,
-              manchesterColor: null
+              currentStep: 2,
+              room: 'Sala de Triagem',
+              manchesterColor: null,
+              tvCalled: false
             });
           }
 
-          showToast(`✅ Paciente ${fullName} cadastrado com sucesso!`);
-
           if (typeof window.showFlowCompletionNotification === 'function') {
             window.showFlowCompletionNotification({
-              actionTitle: '📺 Próximo Passo: Chamar no Painel TV (Triagem)',
-              message: `O paciente <strong>${fullName}</strong> foi cadastrado e acolhido no Pronto-Socorro.<br><br>👉 <strong>Clique no botão abaixo</strong> para ir ao <strong>Painel TV</strong> e convocá-lo para a Sala de Triagem Manchester.`,
-              targetTab: 'tv_panel',
-              targetTabLabel: `📺 Ir para Painel TV (Chamar ${fullName.split(' ')[0]}) ➔`,
+              actionTitle: '📢 1ª Chamada TV: Chamar para Triagem',
+              message: `O paciente <strong>${fullName}</strong> foi cadastrado e acolhido no Pronto-Socorro.<br><br>👉 Conduzido à Central de Atendimento! <strong>Chame o paciente no Painel TV para a Sala de Triagem</strong> ou inicie a Triagem Manchester diretamente.`,
+              targetTab: 'atendimento',
+              targetTabLabel: `📢 Chamar ${fullName.split(' ')[0]} na TV (Sala de Triagem) ➔`,
               targetColumn: 'col-triage',
               targetPatientName: fullName,
               targetPatientId: savedPatientId,
               targetPatientCpf: cpf,
               targetStatus: 'Aguardando_Triagem',
               targetRoom: 'Sala de Triagem',
-              actionType: 'go_tv_panel',
-              autoSwitch: false,
+              actionType: 'call_tv_triage',
+              autoSwitch: true,
               persistent: true
             });
+          }
+
+          showToast(`✅ Paciente ${fullName} cadastrado com sucesso! Direcionando para Atendimento...`);
+
+          // Direciona automaticamente para Atendimento para a 1ª chamada na TV / Triagem
+          if (typeof window.switchTab === 'function') {
+            window.switchTab('atendimento');
           }
         } else {
           showToast(`✅ Paciente atualizado com sucesso!`);

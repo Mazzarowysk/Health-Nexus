@@ -12,10 +12,10 @@ async function renderPharmacyTab() {
       <div class="tab-header-banner" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
           <h2 style="font-size: 1.5rem; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-pills" style="color: #059669;"></i> Farmácia Hospitalar &amp; Controle de Estoque
+            <i class="fa-solid fa-pills" style="color: #059669;"></i> Farmácia Hospitalar &amp; Circuito Fechado
           </h2>
           <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
-            Gerenciamento de medicamentos, dispensação para leitos e alertas de estoque crítico.
+            Triagem farmacêutica, validação de prescrições, dispensação para leitos e controle de estoque central.
           </p>
         </div>
         <div style="display: flex; gap: 10px;">
@@ -28,84 +28,203 @@ async function renderPharmacyTab() {
         </div>
       </div>
 
-      <!-- KPI CARDS FARMÁCIA -->
-      <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div id="kpi-card-pharm-all" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--color-primary); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);">
-          <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
-            <span>TOTAL DE ITENS</span>
-            <i class="fa-solid fa-boxes-stacked" style="color: var(--color-primary);"></i>
+      <!-- SUBTABS DE NAVEGAÇÃO INTERNA DA FARMÁCIA -->
+      <div class="pharmacy-subtabs" style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <button type="button" id="subtab-btn-pharm-rx" class="btn" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; font-weight: 700; border-radius: 8px; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
+          <i class="fa-solid fa-clipboard-check"></i> Fila de Prescrições Hospitalares
+          <span id="badge-pending-rx-count" style="background: #f59e0b; color: #000; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-left: 4px; display: none;">0</span>
+        </button>
+        <button type="button" id="subtab-btn-pharm-stock" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 600; border-radius: 8px; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
+          <i class="fa-solid fa-boxes-stacked"></i> Estoque Central &amp; Lotes
+        </button>
+      </div>
+
+      <!-- VIEW 1: FILA DE PRESCRIÇÕES HOSPITALARES (CIRCUITO FECHADO) -->
+      <div id="pharm-view-rx" style="display: block;">
+        <!-- KPI CARDS PRESCRIÇÕES -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div id="kpi-card-rx-pending" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid #f59e0b; padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(245,158,11,0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>AGUARDANDO LIBERAÇÃO</span>
+              <i class="fa-solid fa-hourglass-half" style="color: #f59e0b;"></i>
+            </div>
+            <div id="kpi-rx-pending" style="font-size: 1.8rem; font-weight: 700; color: #f59e0b; margin-top: 8px;">--</div>
           </div>
-          <div id="kpi-pharm-total" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 8px;">--</div>
+
+          <div id="kpi-card-rx-released" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>LIBERADAS PELA FARMÁCIA</span>
+              <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
+            </div>
+            <div id="kpi-rx-released" style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 8px;">--</div>
+          </div>
+
+          <div id="kpi-card-rx-all" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>TOTAL DE PRESCRIÇÕES</span>
+              <i class="fa-solid fa-receipt" style="color: #3b82f6;"></i>
+            </div>
+            <div id="kpi-rx-total" style="font-size: 1.8rem; font-weight: 700; color: #3b82f6; margin-top: 8px;">--</div>
+          </div>
         </div>
 
-        <div id="kpi-card-pharm-critical" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
-          <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
-            <span>ESTOQUE CRÍTICO</span>
-            <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
+        <!-- TABELA DE PRESCRIÇÕES -->
+        <div class="card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-file-prescription" style="color: #10b981;"></i> Fila de Triagem &amp; Liberação Farmacêutica
+              </h3>
+              <p style="margin: 4px 0 0 0; font-size: 0.82rem; color: var(--text-secondary);">
+                Circuito Fechado de Medicamentos: validação técnica antes da checagem e administração pela enfermagem nos leitos.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="pharm-rx-search-input" class="form-input" placeholder="Buscar paciente, médico ou medicamento..." style="min-width: 260px;">
+              <button type="button" id="btn-refresh-pharm-rx" class="btn btn-secondary" style="height: 40px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+                <i class="fa-solid fa-rotate"></i> Atualizar
+              </button>
+            </div>
           </div>
-          <div id="kpi-pharm-critical" style="font-size: 1.8rem; font-weight: 700; color: #ef4444; margin-top: 8px;">--</div>
-        </div>
 
-        <div id="kpi-card-pharm-units" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
-          <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
-            <span>UNIDADES EM ESTOQUE</span>
-            <i class="fa-solid fa-capsules" style="color: #10b981;"></i>
+          <div class="table-responsive">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); text-align: left; font-size: 0.82rem; color: var(--text-secondary);">
+                  <th style="padding: 12px;">PRESCRIÇÃO / DATA</th>
+                  <th style="padding: 12px;">PACIENTE / LEITO</th>
+                  <th style="padding: 12px;">MÉDICO PRESCRITOR</th>
+                  <th style="padding: 12px;">ITENS / APRAZAMENTO</th>
+                  <th style="padding: 12px;">STATUS DO CIRCUITO</th>
+                  <th style="padding: 12px;">AUDITORIA DE LIBERAÇÃO</th>
+                  <th style="padding: 12px; text-align: right;">AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody id="pharm-rx-table-body">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+                    <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Carregando fila de prescrições hospitalares...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div id="kpi-pharm-units" style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 8px;">--</div>
-        </div>
-
-        <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; opacity: 0.8;">
-          <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
-            <span>VALOR EM ESTOQUE</span>
-            <i class="fa-solid fa-brazilian-real-sign" style="color: #3b82f6;"></i>
-          </div>
-          <div id="kpi-pharm-value" style="font-size: 1.8rem; font-weight: 700; color: #3b82f6; margin-top: 8px;">R$ --</div>
         </div>
       </div>
 
-      <!-- TABELA DE ESTOQUE DA FARMÁCIA -->
-      <div class="card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Estoque Central de Medicamentos &amp; Insumos</h3>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="text" id="pharm-search-input" class="form-input" placeholder="Buscar medicamento ou lote..." style="max-width: 240px;">
-            <button type="button" id="btn-clear-pharm-filter" style="background: var(--bg-tertiary, var(--bg-secondary)); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 40px; gap: 6px; font-size: 0.82rem; font-weight: 600; transition: all 0.2s ease; white-space: nowrap;" title="Limpar Filtro" onmouseover="this.style.background='rgba(99,102,241,0.15)'" onmouseout="this.style.background='var(--bg-tertiary, var(--bg-secondary))'">
-              <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
-            </button>
+      <!-- VIEW 2: ESTOQUE CENTRAL & LOTES (ORIGINAL) -->
+      <div id="pharm-view-stock" style="display: none;">
+        <!-- KPI CARDS FARMÁCIA -->
+        <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div id="kpi-card-pharm-all" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--color-primary); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>TOTAL DE ITENS</span>
+              <i class="fa-solid fa-boxes-stacked" style="color: var(--color-primary);"></i>
+            </div>
+            <div id="kpi-pharm-total" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 8px;">--</div>
+          </div>
+
+          <div id="kpi-card-pharm-critical" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>ESTOQUE CRÍTICO</span>
+              <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
+            </div>
+            <div id="kpi-pharm-critical" style="font-size: 1.8rem; font-weight: 700; color: #ef4444; margin-top: 8px;">--</div>
+          </div>
+
+          <div id="kpi-card-pharm-units" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>UNIDADES EM ESTOQUE</span>
+              <i class="fa-solid fa-capsules" style="color: #10b981;"></i>
+            </div>
+            <div id="kpi-pharm-units" style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 8px;">--</div>
+          </div>
+
+          <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; opacity: 0.8;">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>VALOR EM ESTOQUE</span>
+              <i class="fa-solid fa-brazilian-real-sign" style="color: #3b82f6;"></i>
+            </div>
+            <div id="kpi-pharm-value" style="font-size: 1.8rem; font-weight: 700; color: #3b82f6; margin-top: 8px;">R$ --</div>
           </div>
         </div>
 
-        <div class="table-responsive">
-          <table class="data-table" style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="border-bottom: 1px solid var(--border-color); text-align: left; font-size: 0.82rem; color: var(--text-secondary);">
-                <th style="padding: 12px;">ID / CÓDIGO</th>
-                <th style="padding: 12px;">MEDICAMENTO</th>
-                <th style="padding: 12px;">DOSAGEM / APRESENTAÇÃO</th>
-                <th style="padding: 12px;">LOTE / VALIDADE</th>
-                <th style="padding: 12px;">QTD ESTOQUE</th>
-                <th style="padding: 12px;">STATUS</th>
-                <th style="padding: 12px;">PREÇO UNIT.</th>
-                <th style="padding: 12px; text-align: right;">AÇÕES</th>
-              </tr>
-            </thead>
-            <tbody id="pharmacy-table-body">
-              <tr>
-                <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-secondary);">
-                  <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Carregando estoque da farmácia...
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- TABELA DE ESTOQUE DA FARMÁCIA -->
+        <div class="card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Estoque Central de Medicamentos &amp; Insumos</h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="pharm-search-input" class="form-input" placeholder="Buscar medicamento ou lote..." style="max-width: 240px;">
+              <button type="button" id="btn-clear-pharm-filter" style="background: var(--bg-tertiary, var(--bg-secondary)); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 40px; gap: 6px; font-size: 0.82rem; font-weight: 600; transition: all 0.2s ease; white-space: nowrap;" title="Limpar Filtro" onmouseover="this.style.background='rgba(99,102,241,0.15)'" onmouseout="this.style.background='var(--bg-tertiary, var(--bg-secondary))'">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); text-align: left; font-size: 0.82rem; color: var(--text-secondary);">
+                  <th style="padding: 12px;">ID / CÓDIGO</th>
+                  <th style="padding: 12px;">MEDICAMENTO</th>
+                  <th style="padding: 12px;">DOSAGEM / APRESENTAÇÃO</th>
+                  <th style="padding: 12px;">LOTE / VALIDADE</th>
+                  <th style="padding: 12px;">QTD ESTOQUE</th>
+                  <th style="padding: 12px;">STATUS</th>
+                  <th style="padding: 12px;">PREÇO UNIT.</th>
+                  <th style="padding: 12px; text-align: right;">AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody id="pharmacy-table-body">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+                    <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Carregando estoque da farmácia...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   `;
 
-  // Carregar dados da API
-  await loadPharmacyData();
+  // Carregar dados de estoque e prescrições
+  await Promise.all([
+    loadPharmacyData(),
+    loadPharmacyPrescriptions()
+  ]);
 
-  // Event Listeners
+  // Alternar Subtabs
+  document.getElementById('subtab-btn-pharm-rx')?.addEventListener('click', () => switchPharmacySubTab('rx'));
+  document.getElementById('subtab-btn-pharm-stock')?.addEventListener('click', () => switchPharmacySubTab('stock'));
+
+  // Event Listeners Fila de Prescrições
+  document.getElementById('btn-refresh-pharm-rx')?.addEventListener('click', () => loadPharmacyPrescriptions());
+  document.getElementById('pharm-rx-search-input')?.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#pharm-rx-table-body tr[data-search]');
+    rows.forEach(r => {
+      const txt = r.getAttribute('data-search') || '';
+      r.style.display = txt.includes(term) ? '' : 'none';
+    });
+  });
+
+  // KPI Prescrições Filter clicks
+  document.getElementById('kpi-card-rx-pending')?.addEventListener('click', () => {
+    window.currentRxFilter = 'PENDING';
+    renderPharmacyPrescriptions(currentPrescriptions);
+  });
+  document.getElementById('kpi-card-rx-released')?.addEventListener('click', () => {
+    window.currentRxFilter = 'RELEASED';
+    renderPharmacyPrescriptions(currentPrescriptions);
+  });
+  document.getElementById('kpi-card-rx-all')?.addEventListener('click', () => {
+    window.currentRxFilter = 'ALL';
+    renderPharmacyPrescriptions(currentPrescriptions);
+  });
+
+  // Event Listeners Estoque
   document.getElementById('btn-add-pharm-item')?.addEventListener('click', () => openAddPharmModal());
   document.getElementById('btn-dispense-med')?.addEventListener('click', openDispenseMedModal);
   document.getElementById('pharm-search-input')?.addEventListener('input', (e) => {
@@ -130,7 +249,7 @@ async function renderPharmacyTab() {
     renderPharmacyTable(currentPharmacyItems);
   });
 
-  // KPI Filter click listeners
+  // KPI Filter click listeners Estoque
   const updateActiveCardStyle = (activeId, color) => {
     ['kpi-card-pharm-all', 'kpi-card-pharm-critical', 'kpi-card-pharm-units'].forEach(id => {
       const el = document.getElementById(id);
@@ -138,7 +257,7 @@ async function renderPharmacyTab() {
       if (id === activeId) {
         el.style.border = `1px solid ${color}`;
         el.style.transform = 'translateY(-2px)';
-        el.style.boxShadow = `0 4px 12px ${color}26`; // adds transparency to hex color
+        el.style.boxShadow = `0 4px 12px ${color}26`;
       } else {
         el.style.border = '1px solid var(--border-color)';
         el.style.transform = 'none';
@@ -164,7 +283,372 @@ async function renderPharmacyTab() {
     updateActiveCardStyle('kpi-card-pharm-units', '#10b981');
     renderPharmacyTable(currentPharmacyItems);
   });
+
+  // Garante que o Agente de Governança Clínica permaneça visível na aba Farmácia
+  if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+    window.ensureSmartFlowGuideMounted('farmacia');
+  }
 }
+
+window.currentRxFilter = 'ALL';
+let currentPrescriptions = [];
+
+function switchPharmacySubTab(subtab) {
+  const rxView = document.getElementById('pharm-view-rx');
+  const stockView = document.getElementById('pharm-view-stock');
+  const btnRx = document.getElementById('subtab-btn-pharm-rx');
+  const btnStock = document.getElementById('subtab-btn-pharm-stock');
+  if (subtab === 'rx') {
+    if (rxView) rxView.style.display = 'block';
+    if (stockView) stockView.style.display = 'none';
+    if (btnRx) {
+      btnRx.style.background = 'rgba(16,185,129,0.15)';
+      btnRx.style.color = '#10b981';
+      btnRx.style.border = '1px solid #10b981';
+      btnRx.style.fontWeight = '700';
+    }
+    if (btnStock) {
+      btnStock.style.background = 'var(--bg-secondary)';
+      btnStock.style.color = 'var(--text-secondary)';
+      btnStock.style.border = '1px solid var(--border-color)';
+      btnStock.style.fontWeight = '600';
+    }
+  } else {
+    if (rxView) rxView.style.display = 'none';
+    if (stockView) stockView.style.display = 'block';
+    if (btnStock) {
+      btnStock.style.background = 'rgba(16,185,129,0.15)';
+      btnStock.style.color = '#10b981';
+      btnStock.style.border = '1px solid #10b981';
+      btnStock.style.fontWeight = '700';
+    }
+    if (btnRx) {
+      btnRx.style.background = 'var(--bg-secondary)';
+      btnRx.style.color = 'var(--text-secondary)';
+      btnRx.style.border = '1px solid var(--border-color)';
+      btnRx.style.fontWeight = '600';
+    }
+  }
+}
+
+async function loadPharmacyPrescriptions() {
+  const tbody = document.getElementById('pharm-rx-table-body');
+  try {
+    const res = await apiFetch('/api/pharmacy/pending-prescriptions');
+    let allRx = [];
+    if (res.ok) {
+      const data = await res.json();
+      allRx = [ ...(data.data?.pending || []), ...(data.data?.released || []) ];
+    }
+    if (allRx.length === 0 && typeof localDB !== 'undefined' && localDB.list) {
+      allRx = localDB.list('prescriptions') || [];
+    }
+
+    allRx.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
+    currentPrescriptions = allRx;
+
+    const pendingCount = allRx.filter(r => r.status === 'Aguardando_Farmacia' || !r.status || r.status === 'Pendente').length;
+    const releasedCount = allRx.filter(r => r.status === 'Liberado_Farmacia' || r.status === 'Administrada').length;
+
+    const badge = document.getElementById('badge-pending-rx-count');
+    if (badge) {
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    const kpiPending = document.getElementById('kpi-rx-pending');
+    const kpiReleased = document.getElementById('kpi-rx-released');
+    const kpiTotal = document.getElementById('kpi-rx-total');
+    if (kpiPending) kpiPending.textContent = pendingCount;
+    if (kpiReleased) kpiReleased.textContent = releasedCount;
+    if (kpiTotal) kpiTotal.textContent = allRx.length;
+
+    renderPharmacyPrescriptions(currentPrescriptions);
+  } catch (err) {
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 24px; color: #ef4444;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Falha ao carregar prescrições da farmácia.
+          </td>
+        </tr>
+      `;
+    }
+  }
+}
+
+function renderPharmacyPrescriptions(prescriptions) {
+  const tbody = document.getElementById('pharm-rx-table-body');
+  if (!tbody) return;
+
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManagePharmacy: true, label: 'Usuário' };
+  const isMasterOrDev = state?.user && (
+    state.user.role === 'master' || 
+    state.user.role === 'Master' ||
+    state.user.role === 'desenvolvedor' ||
+    state.user.role === 'Desenvolvedor' ||
+    state.user.role === 'dev' ||
+    state.user.role === 'Dev' ||
+    state.user.role === 'admin' || 
+    state.user.role === 'Administrador' ||
+    (state.user.username && (
+      state.user.username.toLowerCase() === 'admin' ||
+      state.user.username.toLowerCase() === 'bcoltri' ||
+      state.user.username.toLowerCase().includes('mazzaro')
+    ))
+  );
+  const canRelease = perms.canManagePharmacy || isMasterOrDev;
+
+  let filtered = prescriptions;
+  if (window.currentRxFilter === 'PENDING') {
+    filtered = prescriptions.filter(r => r.status === 'Aguardando_Farmacia' || !r.status || r.status === 'Pendente');
+  } else if (window.currentRxFilter === 'RELEASED') {
+    filtered = prescriptions.filter(r => r.status === 'Liberado_Farmacia' || r.status === 'Administrada');
+  }
+
+  // Update KPI card styles
+  const activeColor = window.currentRxFilter === 'PENDING' ? '#f59e0b' : window.currentRxFilter === 'RELEASED' ? '#10b981' : 'var(--color-primary)';
+  ['kpi-card-rx-pending', 'kpi-card-rx-released', 'kpi-card-rx-all'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isTarget = (window.currentRxFilter === 'PENDING' && id === 'kpi-card-rx-pending') ||
+                     (window.currentRxFilter === 'RELEASED' && id === 'kpi-card-rx-released') ||
+                     (window.currentRxFilter === 'ALL' && id === 'kpi-card-rx-all');
+    if (isTarget) {
+      el.style.border = `1px solid ${activeColor}`;
+      el.style.boxShadow = `0 4px 12px ${activeColor}26`;
+      el.style.transform = 'translateY(-2px)';
+    } else {
+      el.style.border = '1px solid var(--border-color)';
+      el.style.boxShadow = 'none';
+      el.style.transform = 'none';
+    }
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 28px; color: var(--text-secondary);">
+          <i class="fa-solid fa-file-circle-check" style="font-size: 1.6rem; color: #10b981; margin-bottom: 8px; display: block;"></i>
+          Nenhuma prescrição encontrada para este filtro.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(rx => {
+    const isPending = rx.status === 'Aguardando_Farmacia' || !rx.status || rx.status === 'Pendente';
+    const isReleased = rx.status === 'Liberado_Farmacia';
+    const isDone = rx.status === 'Administrada';
+
+    const urgentBadge = (isPending && rx.priority === 'Urgente')
+      ? `<span class="badge" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #ef4444; padding: 4px 10px; border-radius: 16px; font-weight: 800; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px; animation: pulse 1.5s infinite;"><i class="fa-solid fa-bolt"></i> PRIORITÁRIA</span>`
+      : '';
+
+    const statusBadge = isPending
+      ? `<span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4); padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.76rem; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-clock"></i> Aguardando Liberação</span>`
+      : isReleased
+      ? `<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.4); padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.76rem; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-check-double"></i> Liberada pela Farmácia</span>`
+      : `<span class="badge" style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.4); padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.76rem; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-syringe"></i> Administrada no Leito</span>`;
+
+    const rawDate = rx.created_at || rx.createdAt || Date.now();
+    const dateStr = new Date(rawDate).toLocaleDateString('pt-BR') + ' ' + new Date(rawDate).toLocaleTimeString().slice(0, 5);
+
+    const bedText = rx.bed || (rx.encounterId ? (rx.encounterId.includes('uti') ? 'Leito UTI' : 'Leito Assistencial') : 'Leito Observação');
+
+    const medItems = (rx.medications || []).map(m => {
+      const name = m.name || m.medicamento || 'Medicamento';
+      const dose = m.dosage || m.dose || '';
+      const route = m.route || m.via || '';
+      const freq = m.frequency || m.frequencia || '';
+      return `
+        <div style="font-size: 0.8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <strong style="color: var(--text-primary);">💊 ${name}</strong>
+          <span style="color: var(--text-secondary); font-size: 0.76rem;">${dose ? '· ' + dose : ''} ${route ? '· ' + route : ''} ${freq ? '· ' + freq : ''}</span>
+        </div>
+      `;
+    }).join('') || '<span style="color: var(--text-muted); font-size: 0.78rem;">Itens não discriminados</span>';
+
+    const auditInfo = rx.releasedBy
+      ? `<div style="font-size: 0.76rem; line-height: 1.35;">
+           <div style="color: #10b981; font-weight: 700;"><i class="fa-solid fa-user-check"></i> ${rx.releasedBy}</div>
+           <div style="color: var(--text-secondary);">${rx.releasedAt ? new Date(rx.releasedAt).toLocaleDateString('pt-BR') + ' às ' + new Date(rx.releasedAt).toLocaleTimeString().slice(0, 5) : ''}</div>
+           ${rx.releaseNotes ? `<div style="color: var(--text-muted); font-size: 0.72rem; margin-top: 2px;">"${rx.releaseNotes}"</div>` : ''}
+         </div>`
+      : `<span style="color: var(--text-muted); font-size: 0.76rem; font-style: italic;"><i class="fa-solid fa-hourglass-start"></i> Pendente de conferência farmacêutica</span>`;
+
+    let actionButton = '';
+    if (isPending) {
+      if (canRelease) {
+        actionButton = `
+          <button class="btn btn-primary btn-release-rx-action" data-id="${rx.id}" data-patient="${rx.patientName || 'Paciente'}" style="background: linear-gradient(135deg, #059669, #047857); border: none; font-size: 0.8rem; padding: 8px 14px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 10px rgba(5,150,105,0.25);">
+            <i class="fa-solid fa-check"></i> Validar &amp; Liberar
+          </button>
+        `;
+      } else {
+        actionButton = `
+          <button class="btn btn-secondary btn-notify-pharm-action" data-id="${rx.id}" data-patient="${rx.patientName || 'Paciente'}" style="font-size: 0.8rem; padding: 8px 14px; border-color: #f59e0b; color: #f59e0b; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+            <i class="fa-solid fa-bell"></i> Notificar Farmácia
+          </button>
+        `;
+      }
+    } else {
+      actionButton = `
+        <button class="btn btn-secondary btn-print-rx-action" data-id="${rx.id}" data-patient="${rx.patientName || 'Paciente'}" style="font-size: 0.8rem; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+          <i class="fa-solid fa-print"></i> Etiqueta / Guia
+        </button>
+      `;
+    }
+
+    const searchTerms = `${rx.id} ${rx.patientName} ${rx.doctorName} ${(rx.medications || []).map(m => m.name || '').join(' ')}`.toLowerCase();
+
+    return `
+      <tr data-search="${searchTerms}" style="border-bottom: 1px solid var(--border-color); font-size: 0.86rem;">
+        <td style="padding: 12px; font-family: monospace;">
+          <div style="font-weight: 700; color: #10b981;">#${rx.id.slice(-6)}</div>
+          <div style="color: var(--text-secondary); font-size: 0.75rem;">${dateStr}</div>
+        </td>
+        <td style="padding: 12px;">
+          <strong style="color: var(--text-primary); font-size: 0.9rem; display: block;">${rx.patientName || 'Paciente'}</strong>
+          <span style="color: #818cf8; font-size: 0.76rem; font-weight: 600;"><i class="fa-solid fa-bed"></i> ${bedText}</span>
+        </td>
+        <td style="padding: 12px; color: var(--text-secondary);">
+          <div style="color: var(--text-primary); font-weight: 600;"><i class="fa-solid fa-user-doctor" style="color: #0284c7; margin-right: 4px;"></i>${rx.doctorName || 'Dr(a). Assistente'}</div>
+          <div style="font-size: 0.74rem; color: var(--text-muted);">Corpo Clínico Hospitalar</div>
+        </td>
+        <td style="padding: 12px; max-width: 280px;">
+          ${medItems}
+        </td>
+        <td style="padding: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+            ${statusBadge}
+            ${urgentBadge}
+          </div>
+        </td>
+        <td style="padding: 12px;">
+          ${auditInfo}
+        </td>
+        <td style="padding: 12px; text-align: right;">
+          ${actionButton}
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Event Listeners for action buttons
+  tbody.querySelectorAll('.btn-release-rx-action').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const rxId = btn.dataset.id;
+      const patientName = btn.dataset.patient;
+      await releasePrescriptionById(rxId, patientName);
+    });
+  });
+
+  tbody.querySelectorAll('.btn-notify-pharm-action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rxId = btn.dataset.id;
+      const patientName = btn.dataset.patient || 'Paciente';
+      notifyPharmacyUrgent(rxId, patientName);
+    });
+  });
+
+  tbody.querySelectorAll('.btn-print-rx-action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rxId = btn.dataset.id;
+      const patientName = btn.dataset.patient;
+      showToast(`🖨️ Etiqueta de dispensação #${rxId.slice(-6)} emitida com sucesso para o leito de ${patientName}!`);
+    });
+  });
+}
+
+async function releasePrescriptionById(rxId, patientName = '') {
+  const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManagePharmacy: true, label: 'Usuário' };
+  const isMasterOrDev = state?.user && (
+    state.user.role === 'master' || 
+    state.user.role === 'Master' ||
+    state.user.role === 'desenvolvedor' ||
+    state.user.role === 'Desenvolvedor' ||
+    state.user.role === 'dev' ||
+    state.user.role === 'Dev' ||
+    state.user.role === 'admin' || 
+    state.user.role === 'Administrador' ||
+    (state.user.username && (
+      state.user.username.toLowerCase() === 'admin' ||
+      state.user.username.toLowerCase() === 'bcoltri' ||
+      state.user.username.toLowerCase().includes('mazzaro')
+    ))
+  );
+  const canRelease = perms.canManagePharmacy || isMasterOrDev;
+
+  if (!canRelease) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização técnica para liberar prescrições na Farmácia Hospitalar.`,
+      type: 'warning'
+    });
+    return;
+  }
+
+  const pharmacistName = state?.user?.fullName || state?.user?.username || 'Farmacêutico Responsável';
+
+  try {
+    const res = await apiFetch(`/api/prescriptions/${rxId}/release`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        releasedBy: `${pharmacistName} (CRF-SP / Farmácia Hospitalar)`,
+        notes: 'Prescrição checada e aprovada no circuito fechado. Dosagens, aprazamento e lote validados para administração no leito.'
+      })
+    });
+
+    if (res.ok) {
+      showToast(`Prescrição #${rxId.slice(-6)} validada e liberada com sucesso por ${pharmacistName}!`);
+      await loadPharmacyPrescriptions();
+
+      // Notificar e atualizar Agente de Governança Clínica se estiver ativo
+      if (typeof window.updateSmartFlowGuide === 'function') {
+        window.updateSmartFlowGuide();
+      }
+    } else {
+      showCustomAlert({ title: 'Erro', message: 'Falha ao liberar prescrição no servidor.', type: 'danger' });
+    }
+  } catch (err) {
+    showCustomAlert({ title: 'Erro', message: 'Erro de comunicação ao validar prescrição.', type: 'danger' });
+  }
+}
+
+export function notifyPharmacyUrgent(rxId, patientName = 'Paciente') {
+  try {
+    const allPrescriptions = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('prescriptions') : [];
+    const rx = allPrescriptions.find(p => String(p.id) === String(rxId));
+    if (rx) {
+      rx.priority = 'Urgente';
+      rx.priorityRequestedAt = new Date().toISOString();
+      rx.priorityRequestedBy = (state?.user?.name || state?.user?.fullName || state?.user?.username || 'Equipe Assistencial');
+      if (typeof localDB !== 'undefined' && localDB.save) {
+        localDB.save('prescriptions', rx);
+      }
+    }
+  } catch (err) {
+    console.error('Erro ao marcar prescrição urgente:', err);
+  }
+
+  showToast(`🚨 Notificação prioritária enviada à Farmácia: Prescrição de ${patientName} sinalizada como URGENTE!`);
+  
+  if (typeof loadPharmacyPrescriptions === 'function') {
+    loadPharmacyPrescriptions();
+  }
+  if (typeof window.updateSmartFlowGuide === 'function') {
+    window.updateSmartFlowGuide();
+  }
+}
+
+window.notifyPharmacyUrgent = notifyPharmacyUrgent;
 
 window.currentPharmFilter = 'ALL';
 let currentPharmacyItems = [];
@@ -691,3 +1175,7 @@ function openDispenseMedModal() {
 
 window.renderPharmacyTab = renderPharmacyTab;
 window.renderPharmacyTable = renderPharmacyTable;
+window.loadPharmacyPrescriptions = loadPharmacyPrescriptions;
+window.renderPharmacyPrescriptions = renderPharmacyPrescriptions;
+window.switchPharmacySubTab = switchPharmacySubTab;
+window.releasePrescriptionById = releasePrescriptionById;

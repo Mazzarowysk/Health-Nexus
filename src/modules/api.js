@@ -451,23 +451,32 @@ export const apiFetch = async (url, options = {}) => {
       }
     }
     else if (url.includes('/approve-master') && method === 'PUT') {
-      const match = url.match(/\/api\/users\/([^\/]+)\/approve-master/);
-      const uid = match ? match[1] : null;
-      if (uid) {
-        const u = localDB.get('users', uid);
-        if (u) {
-          const newRole = u.role || 'Médico';
-          const updated = {
-            ...u,
-            role: newRole,
-            status: 'Ativo',
-            master_key_requested: 0,
-            updated_at: new Date().toISOString()
-          };
-          localDB.update('users', uid, updated);
-          responseData = { status: 'success', message: 'Acesso aprovado' };
-        } else {
-          status = 404; responseData = { message: 'Usuário não encontrado' };
+      const currentUser = typeof state !== 'undefined' && state.user ? state.user : null;
+      const cUsername = (currentUser?.username || '').replace('@', '').toLowerCase().trim();
+      const isMasterRequester = cUsername === 'admin' || cUsername === 'mazzarowysk' || currentUser?.role === 'Master';
+      if (!isMasterRequester) {
+        status = 403;
+        responseData = { message: 'Acesso negado: Somente o perfil MASTER pode aprovar ou rejeitar solicitações de acesso.' };
+      } else {
+        const match = url.match(/\/api\/users\/([^\/]+)\/approve-master/);
+        const uid = match ? match[1] : null;
+        if (uid) {
+          const u = localDB.get('users', uid);
+          if (u) {
+            const isReject = body?.action === 'reject';
+            const newRole = isReject ? (body?.role || 'Médico') : (body?.role || u.role || 'Médico');
+            const updated = {
+              ...u,
+              role: newRole,
+              status: isReject ? 'Recusado' : 'Ativo',
+              master_key_requested: 0,
+              updated_at: new Date().toISOString()
+            };
+            localDB.update('users', uid, updated);
+            responseData = { status: 'success', message: isReject ? 'Solicitação recusada.' : 'Acesso aprovado com sucesso!' };
+          } else {
+            status = 404; responseData = { message: 'Usuário não encontrado' };
+          }
         }
       }
     }
@@ -480,7 +489,10 @@ export const apiFetch = async (url, options = {}) => {
       const encounterId = match ? match[1] : null;
       if (encounterId) {
         const allEncounters = localDB.list('encounters') || [];
-        let enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        let enc = allEncounters.slice().reverse().find(e => 
+          (String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId)) &&
+          e.status !== 'Finalizado' && e.status !== 'Alta'
+        ) || allEncounters.slice().reverse().find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
         
         if (!enc) {
           const patients = localDB.list('patients') || [];
@@ -496,9 +508,10 @@ export const apiFetch = async (url, options = {}) => {
           localDB.insert('encounters', enc);
         }
 
+        const colorVal = body.manchesterColor || enc.manchesterColor || 'Amarelo';
         const updatedEncounter = {
           ...enc,
-          manchesterColor: body.manchesterColor || enc.manchesterColor || 'Amarelo',
+          manchesterColor: colorVal,
           bloodPressure: body.bloodPressure || enc.bloodPressure || '',
           temperatureCelsius: body.temperatureCelsius || enc.temperatureCelsius || '',
           heartRateBpm: body.heartRateBpm || enc.heartRateBpm || '',
@@ -506,8 +519,10 @@ export const apiFetch = async (url, options = {}) => {
           spo2: body.spo2 || body.oxygenSaturation || enc.spo2 || '',
           glicemia: body.glicemia || body.glucose || enc.glicemia || '',
           mewsScore: body.mewsScore || enc.mewsScore || '',
-          complaints: body.complaints || enc.complaints || '',
+          complaints: body.complaints || enc.complaints || 'Avaliação clínica no Pronto-Socorro',
+          room: 'Consultório 01',
           status: 'Aguardando_Atendimento',
+          tvCalled: false,
           triaged_at: new Date().toISOString(),
           lastStatusUpdate: new Date().toISOString()
         };
@@ -518,7 +533,9 @@ export const apiFetch = async (url, options = {}) => {
           encounterId: enc.id,
           patientId: enc.patientId,
           patientName: enc.patientName,
-          manchesterColor: body.manchesterColor || 'Amarelo',
+          manchesterColor: colorVal,
+          color: colorVal,
+          classification: colorVal,
           bloodPressure: body.bloodPressure || '',
           temperatureCelsius: body.temperatureCelsius || '',
           heartRateBpm: body.heartRateBpm || '',
@@ -958,28 +975,45 @@ export const apiFetch = async (url, options = {}) => {
       const match = url.match(/\/api\/patients\/([^\/]+)\/history/);
       const patientId = match ? match[1] : null;
       const allPatients = localDB.list('patients') || [];
-      const patient = allPatients.find(p => String(p.id) === String(patientId) || (p.fullName && p.fullName.toLowerCase().includes(patientId.toLowerCase()))) || { id: patientId, fullName: patientId };
+      const cleanTargetId = String(patientId || '').trim();
+      const cleanTargetName = cleanTargetId.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      const patient = allPatients.find(p => 
+        String(p.id) === cleanTargetId || 
+        (p.fullName && p.fullName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(cleanTargetName))
+      ) || { id: patientId, fullName: patientId };
+
+      const normPName = (patient.fullName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+      const matchesPatient = (item, idField = 'patientId') => {
+        if (item[idField] && (String(item[idField]) === String(patient.id) || String(item[idField]) === cleanTargetId)) return true;
+        if (normPName && item.patientName) {
+          const itemPName = item.patientName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          return itemPName === normPName || itemPName.includes(normPName) || normPName.includes(itemPName);
+        }
+        return false;
+      };
 
       const allEncounters = localDB.list('encounters') || [];
-      const encounters = allEncounters.filter(e => String(e.patientId) === String(patient.id) || (patient.fullName && e.patientName && e.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+      const encounters = allEncounters.filter(e => matchesPatient(e, 'patientId'));
 
       const allAppointments = localDB.list('appointments') || [];
-      const appointments = allAppointments.filter(a => String(a.patientId) === String(patient.id) || (patient.fullName && a.patientName && a.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+      const appointments = allAppointments.filter(a => matchesPatient(a, 'patientId'));
 
       const allHosps = localDB.list('hospitalizations') || [];
-      const hospitalizations = allHosps.filter(h => String(h.patient_id) === String(patient.id) || (patient.fullName && h.patientName && h.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+      const hospitalizations = allHosps.filter(h => matchesPatient(h, 'patient_id') || matchesPatient(h, 'patientId'));
 
       const allTv = localDB.list('tv_calls') || [];
-      const tvCalls = allTv.filter(t => String(t.patientId) === String(patient.id) || (patient.fullName && t.patientName && t.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+      const tvCalls = allTv.filter(t => matchesPatient(t, 'patientId'));
 
       const allTriages = localDB.list('triages') || [];
-      const triages = allTriages.filter(t => String(t.patientId) === String(patient.id) || (patient.fullName && t.patientName && t.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+      const triages = allTriages.filter(t => matchesPatient(t, 'patientId'));
 
       const allPrescriptions = localDB.list('prescriptions') || [];
-      const prescriptions = allPrescriptions.filter(p => String(p.patientId) === String(patient.id) || (patient.fullName && p.patientName && p.patientName.toLowerCase() === patient.fullName.toLowerCase()));
+      const prescriptions = allPrescriptions.filter(p => matchesPatient(p, 'patientId'));
 
       const allNotes = localDB.list('clinical_notes') || [];
-      const clinicalNotes = allNotes.filter(n => String(n.patientId) === String(patient.id));
+      const clinicalNotes = allNotes.filter(n => matchesPatient(n, 'patientId'));
 
       responseData = {
         patient,
@@ -991,6 +1025,141 @@ export const apiFetch = async (url, options = {}) => {
         prescriptions,
         clinicalNotes
       };
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/prescriptions')) {
+      const match = url.match(/\/api\/encounters\/([^\/\?]+)\/prescriptions/);
+      const encId = match ? match[1] : '';
+      if (method === 'GET') {
+        const allRx = localDB.list('prescriptions') || [];
+        const allAdmins = localDB.list('prescription_administrations') || [];
+        const allEncs = localDB.list('encounters') || [];
+        const targetEnc = allEncs.find(e => e.id === encId);
+        const pName = targetEnc?.patientName?.toLowerCase()?.trim();
+        const pId = targetEnc?.patientId;
+
+        const filtered = allRx.filter(r => 
+          r.encounterId === encId ||
+          (pId && r.patientId === pId) ||
+          (pName && r.patientName && r.patientName.toLowerCase().trim() === pName)
+        );
+        responseData = {
+          success: true,
+          data: {
+            prescriptions: filtered,
+            administrations: allAdmins.filter(a => filtered.some(f => f.id === a.prescriptionId))
+          }
+        };
+      } else if (method === 'POST') {
+        const newRx = {
+          id: 'rx-' + Date.now(),
+          encounterId: encId,
+          patientId: body?.patientId,
+          patientName: body?.patientName,
+          doctorName: body?.doctorName || 'Dr(a). Médico(a) Assistente',
+          medications: body?.medications || [],
+          status: 'Aguardando_Farmacia',
+          created_at: new Date().toISOString()
+        };
+        localDB.insert('prescriptions', newRx);
+
+        // Registrar auditoria e rastreabilidade na timeline do paciente
+        try {
+          const medSummary = (body?.medications || []).map(m => `${m.name} (${m.dosage || m.dose || ''} ${m.route || m.via || ''})`).join(', ');
+          localDB.insert('clinical_notes', {
+            id: 'note-rx-' + Date.now(),
+            patientId: body?.patientId,
+            patientName: body?.patientName,
+            encounterId: encId,
+            type: 'prescricao',
+            title: 'Prescrição Médica Emitida (Aguardando Farmácia)',
+            content: `Prescrição emitida pelo ${body?.doctorName || 'Dr. Médico'}. Itens: ${medSummary}. Status: Aguardando conferência e liberação da Farmácia Hospitalar.`,
+            author: body?.doctorName || 'Corpo Clínico',
+            created_at: new Date().toISOString()
+          });
+        } catch (e) {}
+
+        responseData = { success: true, data: newRx };
+      }
+    }
+    else if (url.includes('/api/prescriptions/') && url.includes('/release')) {
+      const match = url.match(/\/api\/prescriptions\/([^\/\?]+)\/release/);
+      const presId = match ? match[1] : '';
+      const allRx = localDB.list('prescriptions') || [];
+      const rx = allRx.find(r => r.id === presId);
+      if (rx) {
+        const updatedRx = {
+          ...rx,
+          status: 'Liberado_Farmacia',
+          releasedBy: body?.releasedBy || (typeof state !== 'undefined' && state.user?.name) || 'Farmacêutico Clínico',
+          releasedAt: new Date().toISOString(),
+          releaseNotes: body?.notes || 'Prescrição checada e dispensada para o leito com sucesso.'
+        };
+        localDB.update('prescriptions', presId, updatedRx);
+
+        // Registrar no histórico do paciente a liberação formal
+        try {
+          localDB.insert('clinical_notes', {
+            id: 'note-rel-' + Date.now(),
+            patientId: rx.patientId,
+            patientName: rx.patientName,
+            encounterId: rx.encounterId,
+            type: 'farmacia',
+            title: 'Prescrição Liberada pela Farmácia Hospitalar',
+            content: `Medicamentos liberados e dispensados por ${updatedRx.releasedBy} em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString().slice(0,5)}. Autorizado para administração da enfermagem no leito.`,
+            author: updatedRx.releasedBy,
+            created_at: new Date().toISOString()
+          });
+        } catch (e) {}
+
+        // Atualizar status no cadastro do encontro/paciente como Liberado
+        try {
+          if (rx.encounterId) {
+            const enc = localDB.get('encounters', rx.encounterId);
+            if (enc) {
+              localDB.update('encounters', rx.encounterId, { ...enc, pharmacyStatus: 'Liberado' });
+            }
+          }
+          if (rx.patientId) {
+            const pt = localDB.get('patients', rx.patientId);
+            if (pt) {
+              localDB.update('patients', rx.patientId, { ...pt, pharmacyStatus: 'Liberado' });
+            }
+          }
+        } catch (e) {}
+
+        responseData = { success: true, data: updatedRx };
+      } else {
+        status = 404;
+        responseData = { success: false, message: 'Prescrição não encontrada.' };
+      }
+    }
+    else if (url.includes('/api/pharmacy/pending-prescriptions')) {
+      const allRx = localDB.list('prescriptions') || [];
+      const pending = allRx.filter(r => r.status === 'Aguardando_Farmacia');
+      const released = allRx.filter(r => r.status === 'Liberado_Farmacia');
+      responseData = {
+        success: true,
+        data: {
+          pending,
+          released,
+          totalPending: pending.length,
+          totalReleased: released.length
+        }
+      };
+    }
+    else if (url.includes('/api/prescriptions/') && url.includes('/administer')) {
+      const match = url.match(/\/api\/prescriptions\/([^\/\?]+)\/administer/);
+      const presId = match ? match[1] : '';
+      const newAdmin = {
+        id: 'adm-' + Date.now(),
+        prescriptionId: presId,
+        medicationIndex: body?.medicationIndex ?? 0,
+        administeredBy: body?.administeredBy || 'Equipe de Enfermagem',
+        administeredAt: new Date().toISOString(),
+        notes: body?.notes || 'Medicamento administrado e checado com sucesso.'
+      };
+      localDB.insert('prescription_administrations', newAdmin);
+      responseData = { success: true, data: newAdmin };
     }
     else {
       // Rotas CRUD padrão
@@ -1010,26 +1179,87 @@ export const apiFetch = async (url, options = {}) => {
       if (table === 'financial') { table = 'financial_installments'; if (id === 'installments' || id === 'receitas') id = undefined; }
       if (table === 'tv') { table = 'tv_calls'; id = undefined; }
 
+      // Validação de segurança estrita: Inclusão, alteração e exclusão de usuários permitida SOMENTE para MASTER
+      if (table === 'users' && ['POST', 'PUT', 'DELETE'].includes(method)) {
+        const currentUser = typeof state !== 'undefined' && state.user ? state.user : null;
+        const cUsername = (currentUser?.username || '').replace('@', '').toLowerCase().trim();
+        const isMasterRequester = cUsername === 'admin' || cUsername === 'mazzarowysk' || currentUser?.role === 'Master';
+        if (!isMasterRequester) {
+          status = 403;
+          responseData = { message: 'Acesso negado: Inclusão, alteração e exclusão de usuários é permitida somente pelo perfil MASTER.' };
+          return {
+            ok: false,
+            status: 403,
+            json: async () => responseData,
+            text: async () => JSON.stringify(responseData)
+          };
+        }
+      }
+
+      if (table === 'users' && method === 'DELETE') {
+        const targetUser = localDB.get('users', id);
+        const tUser = (targetUser?.username || '').replace('@', '').toLowerCase().trim();
+        if (tUser === 'mazzarowysk') {
+          status = 403;
+          responseData = { message: 'Operação proibida: O usuário Master principal não pode ser excluído.' };
+          return {
+            ok: false,
+            status: 403,
+            json: async () => responseData,
+            text: async () => JSON.stringify(responseData)
+          };
+        }
+      }
+
       if (method === 'GET') {
         if (id) responseData = localDB.get(table, id);
         else responseData = { data: localDB.list(table) };
       } else if (method === 'POST') {
-        if (table === 'tv_calls') {
+        if (table === 'users') {
+          const users = localDB.list('users') || [];
+          const cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+          const exists = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
+          if (exists) {
+            status = 400;
+            responseData = { message: 'Nome de usuário já existe no sistema.' };
+            return {
+              ok: false,
+              status: 400,
+              json: async () => responseData,
+              text: async () => JSON.stringify(responseData)
+            };
+          }
+          const newUser = {
+            ...body,
+            id: body.id || 'usr-' + Date.now(),
+            status: 'Ativo',
+            created_at: new Date().toISOString()
+          };
+          responseData = { data: localDB.insert(table, newUser), message: 'Usuário cadastrado com sucesso pelo Master!' };
+        } else if (table === 'tv_calls') {
           body.calledAt = new Date().toISOString();
           const pName = (body.patientName || '').trim();
           const targetRoom = body.roomName || body.room || 'Consultório 01';
           body.roomName = targetRoom;
           body.room = targetRoom;
+          const isTriageCall = targetRoom.toLowerCase().includes('triag');
+
           if (body.patientId || pName) {
             const allEncounters = localDB.list('encounters') || [];
-            const enc = allEncounters.find(e => 
+            // Buscar do mais recente para o mais antigo, preferindo encontros não finalizados
+            const activeEncs = allEncounters.filter(e => e.status !== 'Finalizado' && e.status !== 'Alta');
+            const pool = activeEncs.length ? activeEncs : allEncounters;
+            const enc = pool.slice().reverse().find(e => 
               (body.patientId && String(e.patientId) === String(body.patientId)) || 
               (pName && e.patientName && e.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
             );
             if (enc) {
+              const nextStatus = isTriageCall 
+                ? (enc.status || 'Aguardando_Triagem') 
+                : (enc.status === 'Aguardando_Triagem' ? 'Aguardando_Triagem' : 'Em_Atendimento');
               localDB.update('encounters', enc.id, { 
                 ...enc, 
-                status: 'Em_Atendimento',
+                status: nextStatus,
                 room: targetRoom,
                 roomName: targetRoom,
                 called_at: new Date().toISOString(),
@@ -1041,10 +1271,10 @@ export const apiFetch = async (url, options = {}) => {
                 patientName: pName,
                 patientId: body.patientId || ('pat-' + Date.now()),
                 type: 'Urgencia',
-                status: 'Em_Atendimento',
+                status: isTriageCall ? 'Aguardando_Triagem' : 'Em_Atendimento',
                 room: targetRoom,
                 roomName: targetRoom,
-                manchesterColor: body.manchesterColor || 'Verde',
+                manchesterColor: isTriageCall ? null : (body.manchesterColor || 'Verde'),
                 admitted_at: new Date().toISOString(),
                 called_at: new Date().toISOString(),
                 lastStatusUpdate: new Date().toISOString()
@@ -1057,18 +1287,49 @@ export const apiFetch = async (url, options = {}) => {
               (pName && a.patientName && a.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
             );
             if (apt) {
-              localDB.update('appointments', apt.id, {
-                ...apt,
-                status: 'Em Atendimento',
+              localDB.update('appointments', apt.id, { 
+                ...apt, 
+                status: isTriageCall ? 'Aguardando Triagem' : 'Em Atendimento',
                 room: targetRoom,
                 roomName: targetRoom
               });
             }
           }
+          responseData = { data: localDB.insert(table, body) };
+        } else if (table === 'encounters') {
+          const pName = (body.patientName || '').trim().toLowerCase();
+          const pId = body.patientId;
+          // Se for uma nova admissão, arquivar atendimentos anteriores abertos do mesmo paciente para evitar colisões
+          if (pName || pId) {
+            const allEncs = localDB.list('encounters') || [];
+            allEncs.forEach(oldE => {
+              const matches = (pId && String(oldE.patientId) === String(pId)) ||
+                              (pName && oldE.patientName && oldE.patientName.trim().toLowerCase() === pName);
+              if (matches && oldE.status !== 'Finalizado' && oldE.status !== 'Alta') {
+                localDB.update('encounters', oldE.id, {
+                  ...oldE,
+                  status: 'Finalizado',
+                  completed_at: new Date().toISOString(),
+                  dischargeType: 'Novo Atendimento Iniciado'
+                });
+              }
+            });
+          }
+          responseData = { data: localDB.insert(table, body) };
+        } else {
+          responseData = { data: localDB.insert(table, body) };
         }
-        responseData = { data: localDB.insert(table, body) };
       } else if (method === 'PUT') {
-        responseData = { data: localDB.update(table, id, body) };
+        if (table === 'users') {
+          const existing = localDB.get('users', id) || {};
+          const updated = { ...existing, ...body, updated_at: new Date().toISOString() };
+          if (!body.password && existing.password) {
+            updated.password = existing.password;
+          }
+          responseData = { data: localDB.update(table, id, updated), message: 'Usuário alterado com sucesso pelo Master!' };
+        } else {
+          responseData = { data: localDB.update(table, id, body) };
+        }
       } else if (method === 'DELETE') {
         localDB.remove(table, id);
         responseData = { message: 'Removido com sucesso' };

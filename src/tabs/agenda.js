@@ -447,8 +447,12 @@ async function renderAgendaTab() {
         </button>
       `;
 
+      const safePatName = (apt.patientName || '').replace(/'/g, "\\'");
+      const activeCtxAgenda = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      const isSelAgenda = !!(activeCtxAgenda && (activeCtxAgenda.fullName || activeCtxAgenda.patientName || '').toLowerCase().trim() === (apt.patientName || '').toLowerCase().trim());
+
       return `
-        <div style="display: grid; grid-template-columns: 90px 1fr auto; align-items: center; gap: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-left: 4px solid ${sc.color}; border-radius: 12px; padding: 16px 22px; transition: all 0.2s ease; opacity: ${isDone ? '0.6' : '1'};" onmouseenter="this.style.background='var(--bg-tertiary)';this.style.borderColor='rgba(255,255,255,0.15)'" onmouseleave="this.style.background='var(--bg-secondary)';this.style.borderColor='var(--border-color)'">
+        <div data-patient-card-name="${(apt.patientName||'').toLowerCase()}" data-apt-id="${apt.id}" onclick="if(!event.target.closest('button')){if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${apt.patientId}', fullName: '${safePatName}', patientName: '${safePatName}', status: 'Agendado', room: '${(apt.roomName||'Consultório').replace(/'/g,"\\'")}' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('agenda');}" style="display: grid; grid-template-columns: 90px 1fr auto; align-items: center; gap: 20px; background: ${isSelAgenda ? 'rgba(56,189,248,0.08)' : 'var(--bg-secondary)'}; border: ${isSelAgenda ? '1.5px solid #38bdf8' : '1px solid var(--border-color)'}; border-left: 4px solid ${sc.color}; border-radius: 12px; padding: 16px 22px; transition: all 0.2s ease; opacity: ${isDone ? '0.6' : '1'}; cursor: pointer; position: relative; box-shadow: ${isSelAgenda ? '0 0 18px rgba(56,189,248,0.35)' : 'none'};" onmouseenter="if(!${isSelAgenda}) this.style.background='var(--bg-tertiary)';" onmouseleave="if(!${isSelAgenda}) this.style.background='var(--bg-secondary)';">
           
           <!-- HORA DA CONSULTA -->
           <div style="text-align: center; border-right: 1px solid var(--border-color); padding-right: 16px;">
@@ -716,3 +720,12 @@ window.triggerWhatsAppReminderBot = async function(aptId, patientName, doctorNam
 // --- ABA GESTÃO DE LEITOS E INTERNAÇÕES ---
 
 window.renderAgendaTab = renderAgendaTab;
+
+// Garante que o Agente de Governança Clínica persiste na aba Agenda
+const _origRenderAgendaTab = window.renderAgendaTab;
+window.renderAgendaTab = async function() {
+  await _origRenderAgendaTab();
+  if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+    window.ensureSmartFlowGuideMounted('agenda');
+  }
+};

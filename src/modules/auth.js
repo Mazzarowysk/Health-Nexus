@@ -9,6 +9,13 @@ import { apiFetch } from './api.js';
 import { showToast, showCustomAlert, showCustomConfirm } from './ui.js';
 import { syncManager } from './sync.js';
 
+export const isMaster = (user) => {
+  if (!user) return false;
+  const username = (user.username || '').replace('@', '').toLowerCase().trim();
+  const role = (user.role || '').trim();
+  return username === 'admin' || username === 'mazzarowysk' || role === 'Master';
+};
+
 export const getRolePermissions = (user) => {
   const username = (user?.username || '').toLowerCase();
   const role = (user?.role || '').trim();
@@ -59,8 +66,8 @@ export const getRolePermissions = (user) => {
       label: '🛠️ Administrador',
       badgeColor: 'linear-gradient(135deg, #0284c7, #0369a1)',
       allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
-      canApproveUsers: true,
-      canManageUsers: true,
+      canApproveUsers: false,
+      canManageUsers: false,
       canDeleteRecords: true,
       canSignPEP: true,
       canDoTriage: true,
@@ -422,6 +429,15 @@ export const showUserSessionsHistory = (userId, userName) => {
 };
 
 export const showUserManagementModal = async () => {
+  if (!isMaster(state.user)) {
+    showCustomAlert({
+      title: 'Acesso Restrito ao MASTER',
+      message: 'A inclusão, alteração e exclusão de usuários do sistema é uma prerrogativa restrita exclusivamente ao perfil <strong>MASTER</strong>.',
+      type: 'warning'
+    });
+    return;
+  }
+
   const existing = document.getElementById('hn-users-modal');
   if (existing) existing.remove();
 
@@ -432,9 +448,9 @@ export const showUserManagementModal = async () => {
 
   overlay.innerHTML = `
     <div class="sync-modal-card" style="max-width: 720px; width: 92%; max-height: 85vh; display: flex; flex-direction: column;">
-      <div class="sync-header-banner purple" style="padding: 18px 24px; flex-shrink: 0;">
-        <h3 class="sync-header-title" style="display: flex; align-items: center; gap: 10px;">
-          <i class="fa-solid fa-users-gear"></i> Gerenciamento de Usuários & Permissões
+      <div class="sync-header-banner purple" style="padding: 18px 24px; flex-shrink: 0; background: linear-gradient(135deg, #f59e0b, #b45309);">
+        <h3 class="sync-header-title" style="display: flex; align-items: center; gap: 10px; color: #fff;">
+          <i class="fa-solid fa-crown" style="color: #fef08a;"></i> Gerenciamento de Usuários & Permissões (Exclusivo Master)
         </h3>
         <button id="btn-users-modal-close" class="modal-close" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -442,10 +458,10 @@ export const showUserManagementModal = async () => {
       <div class="sync-modal-body" style="padding: 24px; gap: 16px; overflow-y: auto; text-align: left; align-items: stretch;">
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
           <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">
-            Cadastre novos usuários, altere senhas e defina funções do corpo clínico.
+            Cadastre novos usuários, altere senhas e defina funções do corpo clínico. <strong>(Apenas MASTER)</strong>
           </p>
           <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            ${(state.user?.role === 'Master' || state.user?.username === 'mazzarowysk' || state.user?.role === 'Administrador') ? `
+            ${isMaster(state.user) ? `
               <button id="btn-purge-sim-users" class="btn" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; padding: 9px 14px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'" title="Excluir usuários de teste/simulação com lista de exceções protegidas">
                 <i class="fa-solid fa-broom-ball"></i> Limpar Simulação
               </button>
@@ -531,7 +547,7 @@ export const showUserManagementModal = async () => {
             </div>
           `;
         }
-        const isCurrentMaster = state.user && (state.user.role === 'Master' || state.user.role === 'Administrador' || state.user.username === 'mazzarowysk');
+        const isCurrentMaster = isMaster(state.user);
 
         if (usersList.length === 0) {
           container.innerHTML = `
@@ -551,7 +567,7 @@ export const showUserManagementModal = async () => {
                 <th style="padding: 10px;">Nome</th>
                 <th style="padding: 10px;">Usuário</th>
                 <th style="padding: 10px;">Função / Cargo</th>
-                <th style="padding: 10px; text-align: right;">Ações</th>
+                <th style="padding: 10px; text-align: right;">Ações (Master)</th>
               </tr>
             </thead>
             <tbody>
@@ -561,9 +577,12 @@ export const showUserManagementModal = async () => {
                 if (u.status === 'Pendente') {
                   roleBadgeColor = 'rgba(245, 158, 11, 0.25)';
                   roleTextColor = '#fbbf24';
-                } else if (u.role === 'Master' || u.role === 'Administrador' || u.username === 'mazzarowysk') {
+                } else if (u.role === 'Master' || u.username === 'mazzarowysk' || u.username === 'admin') {
                   roleBadgeColor = 'rgba(16, 185, 129, 0.2)';
                   roleTextColor = '#34d399';
+                } else if (u.role === 'Administrador') {
+                  roleBadgeColor = 'rgba(2, 132, 199, 0.2)';
+                  roleTextColor = '#38bdf8';
                 } else if (u.role === 'Enfermeiro') {
                   roleBadgeColor = 'rgba(14, 165, 233, 0.2)';
                   roleTextColor = '#38bdf8';
@@ -588,15 +607,15 @@ export const showUserManagementModal = async () => {
                       <button class="btn-icon btn-history-user" data-uid="${u.id}" data-name="${u.name}" title="Histórico de Sessões" style="color: #0284c7; margin-right: 6px;">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                       </button>
-                      ` : ''}
-                      <button class="btn-icon btn-edit-user" data-user='${JSON.stringify(u)}' title="Editar Usuário" style="margin-right: 6px;">
+                      <button class="btn-icon btn-edit-user" data-user='${JSON.stringify(u)}' title="Editar Usuário (Exclusivo Master)" style="margin-right: 6px;">
                         <i class="fa-solid fa-pen"></i>
                       </button>
                       ${!isSystemUser ? `
-                        <button class="btn-icon btn-del-user" data-id="${u.id}" data-name="${u.name}" title="Excluir Usuário" style="color: var(--color-danger);">
+                        <button class="btn-icon btn-del-user" data-id="${u.id}" data-name="${u.name}" title="Excluir Usuário (Exclusivo Master)" style="color: var(--color-danger);">
                           <i class="fa-solid fa-trash"></i>
                         </button>
                       ` : ''}
+                      ` : `<span style="font-size:0.75rem; color:var(--text-muted);"><i class="fa-solid fa-lock"></i> Exclusivo Master</span>`}
                     </td>
                   </tr>
                 `;
@@ -607,6 +626,10 @@ export const showUserManagementModal = async () => {
 
         container.querySelectorAll('.btn-approve-master').forEach(btn => {
           btn.addEventListener('click', async () => {
+            if (!isMaster(state.user)) {
+              showCustomAlert({ title: 'Acesso Negado', message: 'Somente o perfil MASTER pode aprovar solicitações de acesso.', type: 'danger' });
+              return;
+            }
             const uid = btn.dataset.id;
             try {
               const aprRes = await apiFetch(`/api/users/${uid}/approve-master`, {
@@ -628,6 +651,10 @@ export const showUserManagementModal = async () => {
 
         container.querySelectorAll('.btn-reject-master').forEach(btn => {
           btn.addEventListener('click', async () => {
+            if (!isMaster(state.user)) {
+              showCustomAlert({ title: 'Acesso Negado', message: 'Somente o perfil MASTER pode rejeitar solicitações de acesso.', type: 'danger' });
+              return;
+            }
             const uid = btn.dataset.id;
             try {
               const rejRes = await apiFetch(`/api/users/${uid}/approve-master`, {
@@ -653,32 +680,34 @@ export const showUserManagementModal = async () => {
 
         container.querySelectorAll('.btn-edit-user').forEach(btn => {
           btn.addEventListener('click', () => {
-            const userObj = JSON.parse(btn.dataset.user);
-            const currentUser = state.user || {};
-            
-            const isTargetMaster = userObj.role === 'Master' || userObj.role === 'Administrador' || userObj.username === 'mazzarowysk';
-            const isCurrentMaster = currentUser.role === 'Master' || currentUser.role === 'Administrador' || currentUser.username === 'mazzarowysk';
-            
-            if (isTargetMaster && !isCurrentMaster && currentUser.username !== userObj.username) {
+            if (!isMaster(state.user)) {
               showCustomAlert({ 
                 title: 'Acesso Negado', 
-                message: 'Você não tem permissão para editar este perfil. Apenas um usuário MASTER pode autorizar ou realizar mudanças em contas Master.', 
+                message: 'Você não tem permissão para alterar usuários. Apenas o perfil MASTER pode alterar cadastros e permissões.', 
                 type: 'danger' 
               });
               return;
             }
-
+            const userObj = JSON.parse(btn.dataset.user);
             showUserFormModal(userObj, loadUsersList);
           });
         });
 
         container.querySelectorAll('.btn-del-user').forEach(btn => {
           btn.addEventListener('click', async () => {
+            if (!isMaster(state.user)) {
+              showCustomAlert({ 
+                title: 'Acesso Negado', 
+                message: 'Você não tem permissão para excluir usuários. Apenas o perfil MASTER pode excluir usuários.', 
+                type: 'danger' 
+              });
+              return;
+            }
             const uid = btn.dataset.id;
             const uname = btn.dataset.name;
             const confirmed = await showCustomConfirm({
               title: 'Excluir Usuário',
-              message: `Tem certeza que deseja excluir o usuário <strong>${uname}</strong>?`,
+              message: `Tem certeza que deseja excluir o usuário <strong>${uname}</strong>?<br><small style="color:var(--text-secondary);">Esta ação é restrita e auditada pelo perfil Master.</small>`,
               confirmText: 'Sim, Excluir',
               cancelText: 'Cancelar',
               type: 'danger'
@@ -718,10 +747,26 @@ export const showUserManagementModal = async () => {
   };
 
   document.getElementById('btn-add-new-user')?.addEventListener('click', () => {
+    if (!isMaster(state.user)) {
+      showCustomAlert({
+        title: 'Acesso Restrito ao MASTER',
+        message: 'Somente o perfil MASTER possui autorização para incluir novos usuários.',
+        type: 'warning'
+      });
+      return;
+    }
     showUserFormModal(null, loadUsersList);
   });
 
   document.getElementById('btn-purge-sim-users')?.addEventListener('click', () => {
+    if (!isMaster(state.user)) {
+      showCustomAlert({
+        title: 'Acesso Restrito ao MASTER',
+        message: 'Somente o perfil MASTER possui autorização para limpar usuários de simulação.',
+        type: 'warning'
+      });
+      return;
+    }
     showPurgeSimulationUsersModal(latestUsersList, loadUsersList);
   });
 
@@ -729,6 +774,15 @@ export const showUserManagementModal = async () => {
 };
 
 export const showPurgeSimulationUsersModal = (allUsers = [], onPurgeComplete = null) => {
+  if (!isMaster(state.user)) {
+    showCustomAlert({
+      title: 'Acesso Restrito ao MASTER',
+      message: 'A exclusão em lote de usuários é uma prerrogativa restrita exclusivamente ao usuário <strong>MASTER</strong>.',
+      type: 'warning'
+    });
+    return;
+  }
+
   const existing = document.getElementById('hn-purge-users-modal');
   if (existing) existing.remove();
 
@@ -1017,6 +1071,15 @@ export const showPurgeSimulationUsersModal = (allUsers = [], onPurgeComplete = n
 };
 
 export const showUserFormModal = (userToEdit = null, onSaved = null) => {
+  if (!isMaster(state.user)) {
+    showCustomAlert({
+      title: 'Acesso Restrito ao MASTER',
+      message: 'Apenas o perfil <strong>MASTER</strong> tem permissão para incluir ou alterar usuários do sistema.',
+      type: 'warning'
+    });
+    return;
+  }
+
   const existing = document.getElementById('hn-user-form-modal');
   if (existing) existing.remove();
 

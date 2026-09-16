@@ -132,6 +132,7 @@ export function insert(table, data) {
 }
 
 export const create = insert;
+export const save = (table, data) => (data && data.id && get(table, data.id)) ? update(table, data.id, data) : insert(table, data);
 
 export function update(table, id, data) {
   const db = getFullDB();

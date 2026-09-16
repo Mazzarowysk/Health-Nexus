@@ -421,13 +421,19 @@ async function renderLeitosTab() {
 
         const cardPatientName = (b.patientName || (isSelectedBed ? (activePat.fullName || activePat.patientName) : '') || '').toLowerCase().replace(/"/g, '&quot;');
 
+        const allBedsRx = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('prescriptions') || []) : [];
+        const bPatName = (b.patientName || '').toLowerCase().trim();
+        const bPatId = b.patientId ? String(b.patientId) : '';
+        const bRxMatches = b.status === 'Ocupado' ? allBedsRx.filter(r => (bPatId && String(r.patientId) === bPatId) || (bPatName && r.patientName && r.patientName.toLowerCase().trim() === bPatName)) : [];
+        const bMedTotal = bRxMatches.reduce((acc, r) => acc + (Array.isArray(r.medications) ? r.medications.length : 1), 0);
+
         return `
           <div class="card patient-card-item ${isSelectedPatient ? 'patient-pulse-selected patient-spotlight-glow' : ''}" 
             data-patient-card-name="${cardPatientName}" 
             data-bed-id="${b.id}"
             data-bed-number="${b.bedNumber || b.number || ''}"
             style="padding: 20px; border-top: ${borderTop}; border-left: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-right: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; border-bottom: ${isSelectedPatient ? '2.5px solid #38bdf8' : 'var(--glass-border)'}; background: var(--glass-bg); backdrop-filter: var(--glass-blur); box-shadow: ${isSelectedPatient ? '0 0 25px rgba(56,189,248,0.6)' : 'var(--shadow-sm)'}; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;" 
-            onclick="if(b.patientName && typeof setActivePatientContext==='function') setActivePatientContext({ id: '${b.patientId || b.id}', fullName: '${(b.patientName||'').replace(/'/g, "\\'")}', patientName: '${(b.patientName||'').replace(/'/g, "\\'")}', bedId: '${b.id}', status: 'Internado' }); window.openBedDetailsModal('${b.id}')" 
+            onclick="window.handleBedCardClick('${b.id}', '${(b.patientName||'').replace(/'/g, "\\'")}', '${b.patientId || ''}', '${b.bedNumber || b.number || ''}', '${(b.sector||'').replace(/'/g, "\\'")}')" 
             onmouseenter="this.style.transform='translateY(-4px)';" 
             onmouseleave="this.style.transform='none';">
             ${isSelectedPatient ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:16px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.7rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
@@ -446,8 +452,9 @@ async function renderLeitosTab() {
                   <div style="font-size: 0.98rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${b.patientName || 'Paciente'}
                   </div>
-                  <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">
+                  <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                     <span><i class="fa-solid fa-calendar-check" style="color: #a5b4fc;"></i> Entrada: ${b.admittedAt ? new Date(b.admittedAt).toLocaleTimeString().slice(0,5) : 'Hoje'}</span>
+                    ${bMedTotal > 0 ? `<span style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); padding: 1px 7px; border-radius: 6px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-pills"></i> ${bMedTotal} med. ativa(s)</span>` : ''}
                   </div>
                 </div>
               ` : '<div style="margin-bottom: 16px; font-size: 0.82rem; color: var(--text-muted);"><i class="fa-regular fa-circle-check"></i> Pronto para receber paciente</div>'}
@@ -479,7 +486,7 @@ async function renderLeitosTab() {
 
       // Acionar destaque pulsante e foco no leito do paciente selecionado
       const patNameToHighlight = window._highlightPatientName || activePatName;
-      if (typeof window.executePatientHighlight === 'function' && (patNameToHighlight || isSelectedBed)) {
+      if (typeof window.executePatientHighlight === 'function' && patNameToHighlight) {
         setTimeout(() => {
           window.executePatientHighlight(patNameToHighlight);
         }, 120);
@@ -490,8 +497,8 @@ async function renderLeitosTab() {
     }
   };
 
-  // Carregar Pacientes no Modal (Busca Direta & Rápida)
-  const loadPatientsModal = async () => {
+  // Carregar Pacientes no Modal (Busca Direta & Rápida com Pré-Seleção Automática)
+  const loadPatientsModal = async (preselectedPatientId = null, preselectedPatientName = '') => {
     try {
       const res = await apiFetch(`${API_URL}/patients`);
       if (!res.ok) throw new Error();
@@ -504,12 +511,48 @@ async function renderLeitosTab() {
       const pComboContainer = document.getElementById('admit-patient-combo');
       const pHiddenInput = document.getElementById('admit-patient-id');
 
+      const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      const targetId = preselectedPatientId || activeCtx?.id || activeCtx?.patientId;
+      const targetName = (preselectedPatientName || activeCtx?.fullName || activeCtx?.patientName || '').toLowerCase().trim();
+
       if (pComboContainer && pHiddenInput) {
         setupCustomSelect(pComboContainer, pHiddenInput, patientList, 'Selecione o paciente...');
+
+        // Pré-seleção automática do paciente em foco
+        if (targetId || targetName) {
+          const match = patientList.find(p => (targetId && String(p.id) === String(targetId)) || (targetName && (p.fullName || '').toLowerCase().trim().includes(targetName)));
+          if (match) {
+            pHiddenInput.value = match.id;
+            pHiddenInput.setAttribute('data-name', match.fullName);
+            const triggerEl = pComboContainer.querySelector('.custom-select-trigger, .selected-value, .select-placeholder');
+            if (triggerEl) {
+              triggerEl.textContent = `${match.fullName}${match.cpf ? ' (' + match.cpf + ')' : ''}`;
+              triggerEl.style.color = '#fff';
+            }
+          }
+        }
       }
     } catch (e) {
       const pComboContainer = document.getElementById('admit-patient-combo');
       if (pComboContainer) pComboContainer.innerHTML = '<div class="form-input">Erro ao carregar pacientes</div>';
+    }
+  };
+
+  window.openAdmitBedModal = function(patientId = null, patientName = '', encounterId = null, bedId = null) {
+    const modal = document.getElementById('modal-admit-bed');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    if (encounterId) {
+      const encInput = document.getElementById('admit-encounter-id');
+      if (encInput) encInput.value = encounterId;
+    }
+    if (bedId) {
+      const bSelect = document.getElementById('admit-bed-id');
+      if (bSelect) bSelect.value = bedId;
+    }
+    loadPatientsModal(patientId, patientName);
+    if (typeof window.createSmartFlowGuideCard === 'function') {
+      window.createSmartFlowGuideCard('leitos');
     }
   };
 
@@ -558,11 +601,20 @@ async function renderLeitosTab() {
 
   // Modal Handlers
   const modal = document.getElementById('modal-admit-bed');
-  document.getElementById('btn-open-admit-modal')?.addEventListener('click', () => { modal.style.display = 'flex'; loadPatientsModal(); });
-  document.getElementById('btn-close-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
-  document.getElementById('btn-cancel-admit-modal').addEventListener('click', () => { modal.style.display = 'none'; });
+  document.getElementById('btn-open-admit-modal')?.addEventListener('click', () => {
+    const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+    window.openAdmitBedModal(activeCtx?.id, activeCtx?.fullName || activeCtx?.patientName, activeCtx?.encounterId);
+  });
+  document.getElementById('btn-close-admit-modal')?.addEventListener('click', () => {
+    modal.style.display = 'none';
+    if (typeof window.createSmartFlowGuideCard === 'function') window.createSmartFlowGuideCard('leitos');
+  });
+  document.getElementById('btn-cancel-admit-modal')?.addEventListener('click', () => {
+    modal.style.display = 'none';
+    if (typeof window.createSmartFlowGuideCard === 'function') window.createSmartFlowGuideCard('leitos');
+  });
 
-  document.getElementById('form-admit-bed').addEventListener('submit', async (e) => {
+  document.getElementById('form-admit-bed')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const bedId = document.getElementById('admit-bed-id').value;
     const pSelect = document.getElementById('admit-patient-id');
@@ -592,7 +644,7 @@ async function renderLeitosTab() {
         const bedNumberLabel = bedOptText.includes(' — ') ? bedOptText.split(' — ')[0].trim() : bedId;
         const bedSectorLabel = bedOptText.includes(' — ') ? bedOptText.split(' — ')[1].trim() : 'Internação';
 
-        // 1. Atualizar Contexto Ativo do Paciente
+        // 1. Atualizar Contexto Ativo do Paciente para Internado (Etapa 5)
         if (typeof window.setActivePatientContext === 'function') {
           const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : {};
           window.setActivePatientContext({
@@ -605,21 +657,23 @@ async function renderLeitosTab() {
             bedNumber: bedNumberLabel,
             bedId: bedId,
             sector: bedSectorLabel,
-            ward: bedSectorLabel
+            ward: bedSectorLabel,
+            currentStep: 5
           });
         }
 
         // 2. Notificação e Sincronização do Guia Flutuante
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: `Internação Iniciada (${bedNumberLabel})`,
-            message: `O paciente <strong>${patientName}</strong> foi acomodado com sucesso no Leito ${bedNumberLabel}! Prossiga com a evolução clínica no PEP ou acompanhamento no mapa de leitos.`,
-            targetTab: 'leitos',
-            targetTabLabel: 'Gestão de Leitos',
+            actionTitle: `🛏️ Internação Concluída: Leito ${bedNumberLabel}`,
+            message: `O paciente <strong>${patientName}</strong> foi internado com sucesso no <strong>Leito ${bedNumberLabel} (${bedSectorLabel})</strong>.<br><br>👉 Paciente acomodado! <strong>Clique no botão abaixo para abrir o Prontuário (PEP)</strong> para prescrever a terapia de internação ou acompanhar no mapa de leitos.`,
+            targetTab: 'consultorios',
+            targetTabLabel: `🩺 Abrir PEP de ${patientName.split(' ')[0]} (Leito ${bedNumberLabel}) ➔`,
             targetPatientName: patientName,
             targetPatientId: patientId,
             targetStatus: 'Internado',
-            bedId: bedId
+            bedId: bedId,
+            actionType: 'open_pep'
           });
         } else if (typeof window.createSmartFlowGuideCard === 'function') {
           window.createSmartFlowGuideCard('leitos');
@@ -857,6 +911,26 @@ window.updateBedStatus = async (bedId, status) => {
   } catch (e) {}
 };
 
+window.handleBedCardClick = function(bedId, patientName, patientId, bedNumber, sector) {
+  if (patientName && String(patientName).trim()) {
+    if (typeof setActivePatientContext === 'function') {
+      setActivePatientContext({
+        id: patientId || bedId,
+        fullName: patientName,
+        patientName: patientName,
+        bed: bedNumber,
+        bedNumber: bedNumber,
+        sector: sector || 'Internação',
+        status: 'Internado'
+      });
+    }
+    if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+      window.ensureSmartFlowGuideMounted('leitos');
+    }
+  }
+  window.openBedDetailsModal(bedId);
+};
+
 window.openBedDetailsModal = async function(bedId) {
   const existing = document.getElementById('bed-details-modal');
   if (existing) existing.remove();
@@ -874,9 +948,48 @@ window.openBedDetailsModal = async function(bedId) {
     const bedNum = bed.bedNumber || bed.number || bed.id;
     const isOccupied = bed.status === 'Ocupado';
 
+    if (isOccupied && bed.patientName && typeof setActivePatientContext === 'function') {
+      setActivePatientContext({
+        id: bed.patientId || bed.id,
+        fullName: bed.patientName,
+        patientName: bed.patientName,
+        bed: bedNum,
+        bedNumber: bedNum,
+        sector: bed.sector || bed.type || 'Internação',
+        status: 'Internado'
+      });
+      if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+        window.ensureSmartFlowGuideMounted('leitos');
+      }
+    }
+
     // Buscar histórico de internações deste leito
     const hosps = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('hospitalizations') || []) : [];
     const bedHosps = hosps.filter(h => String(h.bed_id) === String(bed.id) || h.bed === bedNum);
+
+    // Buscar prescrições médicas ativas deste leito
+    const allRxDB = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('prescriptions') || []) : [];
+    const pTargetName = (bed.patientName || '').toLowerCase().trim();
+    const pTargetId = bed.patientId ? String(bed.patientId) : '';
+    const bedPrescriptions = isOccupied ? allRxDB.filter(r => 
+      (pTargetId && String(r.patientId) === pTargetId) ||
+      (pTargetName && r.patientName && r.patientName.toLowerCase().trim() === pTargetName)
+    ) : [];
+
+    let bedMedsList = [];
+    bedPrescriptions.forEach(p => {
+      if (Array.isArray(p.medications)) {
+        p.medications.forEach(m => bedMedsList.push({
+          name: m.name,
+          dosage: m.dosage || m.dose || '',
+          route: m.route || m.via || 'VO',
+          frequency: m.frequency || m.freq || 'De 8 em 8h',
+          instructions: m.instructions || m.notes || '',
+          doctorName: p.doctorName || 'Dr(a). Médico(a) Plantonista',
+          date: p.created_at || p.date || ''
+        }));
+      }
+    });
 
     let statusBadgeColor = '#4ade80';
     let statusBadgeBg = 'rgba(74,222,128,0.15)';
@@ -890,7 +1003,7 @@ window.openBedDetailsModal = async function(bedId) {
 
     const modalHtml = `
       <div id="bed-details-modal" class="modal-overlay" style="position: fixed; top:0; left:0; width:100vw; height:100vh; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(5,7,20,0.85); backdrop-filter: blur(10px);">
-        <div class="modal-content" style="max-width: 680px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99,102,241,0.45); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8); animation: slideIn 0.3s ease-out;">
+        <div class="modal-content" style="max-width: 720px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(99,102,241,0.45); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8); animation: slideIn 0.3s ease-out;">
           
           <div style="background: linear-gradient(135deg, #1e1b4b, #311b92); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -924,9 +1037,10 @@ window.openBedDetailsModal = async function(bedId) {
                       <h4 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${bed.patientName || 'Paciente'}
                       </h4>
-                      <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap;">
+                      <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
                         <span><i class="fa-solid fa-calendar-check" style="color: #a5b4fc;"></i> Admissão: <strong>${bed.admittedAt ? new Date(bed.admittedAt).toLocaleDateString('pt-BR') + ' às ' + new Date(bed.admittedAt).toLocaleTimeString().slice(0,5) : 'Hoje'}</strong></span>
-                        <span><i class="fa-solid fa-bed" style="color: #f87171;"></i> Capacidade: <strong>1 Paciente (Leito Exclusivo)</strong></span>
+                        <span><i class="fa-solid fa-bed" style="color: #f87171;"></i> Capacidade: <strong>1 Paciente</strong></span>
+                        ${bedMedsList.length > 0 ? `<span style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.74rem;"><i class="fa-solid fa-pills"></i> ${bedMedsList.length} medicamento(s) ativo(s)</span>` : ''}
                       </div>
                     </div>
                   </div>
@@ -962,6 +1076,53 @@ window.openBedDetailsModal = async function(bedId) {
                 </div>
               `}
             </div>
+
+            <!-- Seção: Prescrições Médicas & Aprazamento Ativo do Leito -->
+            ${isOccupied ? `
+              <div style="background: var(--bg-tertiary); border: 1.5px solid rgba(99,102,241,0.35); border-radius: 14px; padding: 18px;">
+                <div style="font-size: 0.78rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                  <span style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-pills" style="color: #38bdf8; font-size: 0.95rem;"></i> Prescrições Médicas Ativas deste Leito (${bedMedsList.length})
+                  </span>
+                  <button class="btn btn-sm" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('', '${(bed.patientName||'').replace(/'/g, "\\'")}', '${bed.patientId || ''}');" style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.45); color: #c7d2fe; font-size: 0.74rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-plus"></i> Prescrever Novo Fármaco
+                  </button>
+                </div>
+
+                ${bedMedsList.length > 0 ? `
+                  <div style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
+                    ${bedMedsList.map(m => `
+                      <div style="padding: 10px 14px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <div>
+                          <div style="font-weight: 700; color: #fff; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                            ${m.name}
+                            <span style="background: rgba(99,102,241,0.2); color: #a78bfa; padding: 1px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 700;">${m.route || 'VO'}</span>
+                          </div>
+                          <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 3px;">
+                            Dose: <strong style="color: #cbd5e1;">${m.dosage || 'Conforme prescrição'}</strong> &bull; Frequência: <strong style="color: #cbd5e1;">${m.frequency || 'De 8/8h'}</strong>
+                            ${m.instructions ? ` &bull; <em style="color: #a5b4fc;">${m.instructions}</em>` : ''}
+                          </div>
+                        </div>
+                        <div style="text-align: right; font-size: 0.72rem; color: var(--text-muted);">
+                          <div style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Em Administração</div>
+                          <div>${m.doctorName}</div>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : `
+                  <div style="text-align: center; padding: 14px; color: var(--text-muted); font-size: 0.82rem; background: var(--bg-secondary); border-radius: 8px; border: 1px dashed var(--border-color);">
+                    <i class="fa-solid fa-file-prescription" style="color: #a5b4fc; font-size: 1.2rem; display: block; margin-bottom: 6px;"></i>
+                    Nenhuma prescrição ativa registrada para este leito no momento.
+                    <div style="margin-top: 6px;">
+                      <button class="btn btn-sm btn-primary" onclick="document.getElementById('bed-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('', '${(bed.patientName||'').replace(/'/g, "\\'")}', '${bed.patientId || ''}');" style="font-size: 0.76rem; padding: 5px 12px;">
+                        <i class="fa-solid fa-plus"></i> Emitir Prescrição Agora
+                      </button>
+                    </div>
+                  </div>
+                `}
+              </div>
+            ` : ''}
 
             <!-- Histórico de Ocupação do Leito -->
             <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px;">

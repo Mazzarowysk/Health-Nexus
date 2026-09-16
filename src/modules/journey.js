@@ -6,15 +6,20 @@ import { state } from '../state.js';
 import { showToast, makeDraggable } from './ui.js';
 import { apiFetch } from './api.js';
 
-let activePatientContext = null;
+let activePatientContext = (() => {
+  try {
+    const saved = localStorage.getItem('activePatientContext');
+    return saved ? JSON.parse(saved) : null;
+  } catch(e) { return null; }
+})();
 let isGuideMinimized = false;
 let currentActiveTabId = 'dashboard';
 let lastActionMessage = null;
 
 const WORKFLOW_STEPS = [
   { id: 'recepcao', tab: 'pacientes', label: '1. Recepção', icon: 'fa-id-card' },
-  { id: 'chamador', tab: 'tv_panel', label: '2. Chamada TV', icon: 'fa-tv' },
-  { id: 'triagem', tab: 'atendimento', label: '3. Triagem', icon: 'fa-user-nurse' },
+  { id: 'triagem', tab: 'atendimento', label: '2. Triagem', icon: 'fa-user-nurse' },
+  { id: 'chamador', tab: 'tv_panel', label: '3. Chamada TV', icon: 'fa-tv' },
   { id: 'consulta', tab: 'consultorios', label: '4. Médico/PEP', icon: 'fa-user-doctor' },
   { id: 'farmacia', tab: 'farmacia', label: '5. Farmácia', icon: 'fa-pills' },
   { id: 'leitos', tab: 'leitos', label: '6. Leitos/Alta', icon: 'fa-bed-pulse' }
@@ -31,24 +36,24 @@ const TAB_NEXT_RECOMMENDATION = {
   },
   pacientes: {
     currentLabel: 'Recepção & Pacientes',
-    title: 'Chamar no Painel TV (Triagem)',
-    desc: 'Paciente cadastrado! Chame o paciente na TV para comparecer à Sala de Triagem.',
-    nextTab: 'tv_panel',
-    nextLabel: 'Painel TV (Chamador)',
-    icon: 'fa-tv'
-  },
-  tv_panel: {
-    currentLabel: 'Painel TV (Chamador)',
-    title: 'Realizar Triagem Manchester',
-    desc: 'Paciente chamado na tela! Direcione para a aferição de sinais vitais e classificação de risco.',
+    title: 'Encaminhar para Triagem Manchester',
+    desc: 'Paciente cadastrado! Encaminhe para a aferição de sinais vitais e classificação de risco na Triagem.',
     nextTab: 'atendimento',
     nextLabel: 'Central de Atendimento (Triagem)',
     icon: 'fa-user-nurse'
   },
   atendimento: {
     currentLabel: 'Triagem & Manchester',
-    title: 'Chamar no Consultório / PEP',
-    desc: 'Paciente triado! Abra o consultório ou chame na TV para atendimento médico.',
+    title: 'Chamar no Painel TV (Consultório)',
+    desc: 'Paciente triado! Convoque o paciente no telão do Painel TV para direcioná-lo ao consultório médico.',
+    nextTab: 'tv_panel',
+    nextLabel: 'Painel TV (Chamador)',
+    icon: 'fa-tv'
+  },
+  tv_panel: {
+    currentLabel: 'Painel TV (Chamador)',
+    title: 'Atender no Consultório (PEP)',
+    desc: 'Paciente chamado na TV! Inicie a consulta médica, anamnese SOAP e prescrição no PEP.',
     nextTab: 'consultorios',
     nextLabel: 'Salas & Consultórios / PEP',
     icon: 'fa-user-doctor'
@@ -109,14 +114,6 @@ const TAB_NEXT_RECOMMENDATION = {
     nextLabel: 'Dashboard Principal',
     icon: 'fa-gauge-high'
   },
-  tv_panel: {
-    currentLabel: 'Painel TV (Chamador)',
-    title: 'Atender no Consultório',
-    desc: 'Paciente chamado na TV! Inicie a anamnese e registro no PEP.',
-    nextTab: 'consultorios',
-    nextLabel: 'Salas & Consultórios',
-    icon: 'fa-user-doctor'
-  },
   agenda: {
     currentLabel: 'Agenda & Consultas',
     title: 'Recepção de Agendados',
@@ -146,11 +143,31 @@ const TAB_NEXT_RECOMMENDATION = {
 // ─── GERENCIAMENTO DE CONTEXTO DO PACIENTE ───────────────────────────────────
 
 export const setActivePatientContext = (patient) => {
-  activePatientContext = patient || null;
   if (!patient) {
+    activePatientContext = null;
     try { localStorage.removeItem('activePatientContext'); } catch(e) {}
+  } else {
+    const existing = activePatientContext || {};
+    const merged = { ...existing };
+    for (const [k, v] of Object.entries(patient)) {
+      if (v !== undefined) {
+        merged[k] = v;
+      }
+    }
+    // Se o nome mudou completamente, limpa dados da sessão anterior
+    if (patient.fullName && existing.fullName && patient.fullName.toLowerCase().trim() !== existing.fullName.toLowerCase().trim()) {
+      activePatientContext = { ...patient };
+    } else {
+      activePatientContext = merged;
+    }
+    try { localStorage.setItem('activePatientContext', JSON.stringify(activePatientContext)); } catch(e) {}
+    const pName = activePatientContext.fullName || activePatientContext.patientName;
+    if (pName && typeof window.executePatientHighlight === 'function') {
+      setTimeout(() => window.executePatientHighlight(pName), 80);
+    }
   }
-  updateFloatingWorkflowGuide(currentActiveTabId);
+  const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (currentActiveTabId || 'dashboard');
+  updateFloatingWorkflowGuide(realTab);
 };
 
 export const getActivePatientContext = () => activePatientContext;
@@ -170,17 +187,20 @@ export function getManchesterColor(color) {
 
 export function initFloatingWorkflowGuide() {
   document.querySelectorAll('#floating-flow-guide, #hn-flow-guide, .floating-flow-guide').forEach(el => el.remove());
+  const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (currentActiveTabId || 'dashboard');
+  currentActiveTabId = realTab;
   if (typeof window.createSmartFlowGuideCard === 'function') {
-    window.createSmartFlowGuideCard(currentActiveTabId);
+    window.createSmartFlowGuideCard(realTab);
   }
 }
 
 export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = null) {
   document.querySelectorAll('#floating-flow-guide, #hn-flow-guide, .floating-flow-guide').forEach(el => el.remove());
-  currentActiveTabId = tabId || 'dashboard';
+  const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (tabId || currentActiveTabId || 'dashboard');
+  currentActiveTabId = realTab;
   if (lastAction) lastActionMessage = lastAction;
   if (typeof window.createSmartFlowGuideCard === 'function') {
-    window.createSmartFlowGuideCard(currentActiveTabId, lastAction);
+    window.createSmartFlowGuideCard(realTab, lastAction);
   }
 }
 
@@ -189,18 +209,18 @@ export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = nu
 export function renderPatientJourneyStepper(container, currentStep = 'consulta') {
   if (!container || !activePatientContext) return;
 
-  const stepOrder = ['recepcao', 'chamador', 'triagem', 'consulta', 'farmacia', 'leitos'];
+  const stepOrder = ['recepcao', 'triagem', 'chamador', 'consulta', 'farmacia', 'leitos'];
   let currentIndex = typeof currentStep === 'number' ? currentStep : stepOrder.indexOf(currentStep);
   if (currentIndex < 0) {
     const st = (activePatientContext.status || '').toLowerCase().trim();
-    if (st.includes('aguardando_atendimento') || st.includes('aguardando atendimento') || activePatientContext.manchesterColor) {
-      currentIndex = 3; // Médico/PEP
-    } else if (st.includes('aguardando_triagem') || st.includes('aguardando triagem')) {
-      currentIndex = 2; // Triagem
-    } else if (st.includes('internado') || activePatientContext.bed) {
+    if (st.includes('internado') || activePatientContext.bed) {
       currentIndex = 5; // Leitos
+    } else if (st.includes('aguardando_atendimento') || st.includes('aguardando atendimento') || activePatientContext.manchesterColor) {
+      currentIndex = activePatientContext.tvCalled ? 3 : 2; // Chamador TV ou Médico/PEP
+    } else if (st.includes('aguardando_triagem') || st.includes('aguardando triagem')) {
+      currentIndex = 1; // Triagem
     } else {
-      currentIndex = 1;
+      currentIndex = 0; // Recepção
     }
   }
 
@@ -215,7 +235,7 @@ export function renderPatientJourneyStepper(container, currentStep = 'consulta')
             ${activePatientContext.fullName || activePatientContext.patientName || 'Paciente Ativo'}
           </div>
           <div style="font-size: 0.72rem; color: var(--text-muted);">
-            CPF: ${activePatientContext.cpf || '—'} | Risco: <strong style="color: ${getManchesterColor(activePatientContext.manchesterColor)};">${activePatientContext.manchesterColor || 'Verde'}</strong>
+            CPF: ${activePatientContext.cpf || '—'} | Risco: ${activePatientContext.manchesterColor ? `<strong style="color: ${getManchesterColor(activePatientContext.manchesterColor)};">${activePatientContext.manchesterColor}</strong>` : `<span style="color: #94a3b8; font-style: italic;">Pendente (Não Triado)</span>`}
           </div>
         </div>
       </div>

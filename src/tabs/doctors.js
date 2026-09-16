@@ -1190,7 +1190,8 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
   }
 
   // 2. Encounters ativos (Triagem / Aguardando Atendimento / Em Atendimento / Observação)
-  const activeEnc = encounters.find(e => {
+  // Pesquisar do mais recente para o mais antigo para refletir a última evolução do paciente
+  const activeEnc = encounters.slice().reverse().find(e => {
     const s = String(e.status || '').toLowerCase().replace(/_/g, ' ').trim();
     const isAct = ['em atendimento', 'aguardando atendimento', 'aguardando triagem', 'triagem', 'triado', 'em observacao', 'em observação', 'observacao', 'observação', 'admitido'].includes(s);
     if (!isAct) return false;
@@ -1202,7 +1203,13 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
   });
   if (activeEnc) {
     const s = String(activeEnc.status || '').toLowerCase().replace(/_/g, ' ').trim();
-    if (s.includes('triagem') || s === 'admitido') {
+    // Verificar se já possui triagem cadastrada
+    const hasTriage = triages.some(t =>
+      (t.patientId && String(t.patientId).toLowerCase() === normPid) ||
+      (t.patientName && normPname && t.patientName.toLowerCase().includes(normPname))
+    );
+
+    if ((s.includes('triagem') || s === 'admitido') && !hasTriage && !activeEnc.manchesterColor) {
       return {
         text: 'Recepção / Triagem — Aguardando Classificação de Risco',
         sector: 'Sala de Triagem Manchester',
@@ -1214,7 +1221,7 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
         icon: 'fa-clipboard-list'
       };
     }
-    if (s.includes('aguardando') || s === 'triado') {
+    if (s.includes('aguardando') || s === 'triado' || hasTriage || activeEnc.manchesterColor) {
       const room = activeEnc.room || 'Consultório 01';
       return {
         text: `Recepção / Sala de Espera — Aguardando ${room}`,
@@ -1232,7 +1239,7 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
       return {
         text: `Em Observação Clínica — ${room}`,
         sector: room,
-        bed: activeEnc.room || null,
+        bed: null,
         status: 'Em Observação',
         color: '#f59e0b',
         bg: 'rgba(245,158,11,0.15)',
@@ -1244,7 +1251,7 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
     return {
       text: `Em Atendimento — ${sec}`,
       sector: sec,
-      bed: activeEnc.room || null,
+      bed: null,
       status: 'Em Atendimento',
       color: '#60a5fa',
       bg: 'rgba(59,130,246,0.15)',
@@ -2940,12 +2947,32 @@ async function savePEPData(encounterId, shouldFinalize) {
           body: JSON.stringify({ status: 'Finalizado' })
         });
         
+        if (typeof localDB !== 'undefined' && localDB.update) {
+          try {
+            localDB.update('encounters', encounterId, { status: 'Finalizado', updated_at: new Date().toISOString() });
+          } catch (_) {}
+        }
+
+        if (typeof window.setActivePatientContext === 'function') {
+          window.setActivePatientContext({
+            id: encounterId,
+            fullName: patientName,
+            patientName: patientName,
+            status: 'Alta',
+            currentStep: 6,
+            isDischarged: true
+          });
+        }
+
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
             actionTitle: 'Alta Médica (Atendimento Finalizado)',
-            message: `O prontuário foi assinado e a consulta de ${patientName} foi concluída (Alta).`,
-            targetTab: 'atendimento',
-            targetTabLabel: 'Atendimentos Médicos'
+            message: `O prontuário foi assinado e a consulta de ${patientName} foi concluída com Alta Médica.<br><br>👉 Atendimento finalizado! Proceda ao faturamento e emissão do lote TISS se aplicável.`,
+            targetTab: 'financeiro',
+            targetTabLabel: 'Faturamento & Lotes TISS ➔',
+            targetPatientName: patientName,
+            targetStatus: 'Alta',
+            actionType: 'go_finance'
           });
         } else {
           showToast('⚡ Prontuário assinado e atendimento finalizado com Alta Médica!');

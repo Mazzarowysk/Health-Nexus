@@ -174,13 +174,12 @@ export function renderAttendanceTab(contentArea) {
                 <div class="manchester-option azul"><input type="radio" id="color-azul" name="manchesterColor" value="Azul"><label for="color-azul" class="manchester-label"><i class="fa-solid fa-circle"></i><span>Não Urgente</span></label></div>
               </div>
               <div class="form-group" style="margin-top:18px;">
-                <label class="form-label">* Queixa Principal / Sintomatologia:</label>
-                <textarea id="triage-complaints" class="form-input" required rows="3" placeholder="Descreva a queixa principal do paciente..."></textarea>
+                <label class="form-label">Queixa Principal / Sintomatologia:</label>
+                <textarea id="triage-complaints" class="form-input" rows="3" placeholder="Descreva a queixa principal do paciente (opcional)..."></textarea>
               </div>
               <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap;">
                 <button type="button" id="btn-cancel-triage" class="btn" style="background:var(--bg-tertiary); color:var(--text-primary); border-color:var(--border-color);">Cancelar</button>
-                <button type="submit" id="btn-submit-triage-only" class="btn" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff;"><i class="fa-solid fa-floppy-disk"></i> Apenas Salvar Triagem</button>
-                <button type="submit" id="btn-submit-triage-and-call" class="btn btn-primary" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); border:none; color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(59,130,246,0.35);"><i class="fa-solid fa-bullhorn"></i> Salvar &amp; Chamar na TV 📺</button>
+                <button type="submit" id="btn-submit-triage" class="btn btn-primary" style="background:linear-gradient(135deg,#10b981,#059669); border:none; color:#fff; font-weight:800; font-size:0.88rem; padding:10px 18px; border-radius:8px; box-shadow:0 4px 14px rgba(16,185,129,0.35); cursor:pointer;"><i class="fa-solid fa-check-circle"></i> Salvar Triagem &amp; Encaminhar para Atendimento</button>
               </div>
             </form>
           </div>
@@ -361,16 +360,16 @@ export function renderAttendanceTab(contentArea) {
         showToast(`✅ ${patientName} admitido(a)!`);
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
-            actionTitle: '📺 Próximo Passo: Chamar no Painel TV (Triagem)',
-            message: `O paciente <strong>${patientName}</strong> foi admitido no fluxo de <strong>${type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</strong> e aguarda na recepção.<br><br>👉 <strong>Clique no botão abaixo no Guia de Fluxo</strong> para ir ao <strong>Painel TV</strong> e convocá-lo à Sala de Triagem.`,
-            targetTab: 'tv_panel',
-            targetTabLabel: `📺 Ir para Painel TV (Chamar ${patientName.split(' ')[0]}) ➔`,
+            actionTitle: '🩺 Próxima Etapa: Realizar Triagem Manchester',
+            message: `O paciente <strong>${patientName}</strong> foi admitido no fluxo de <strong>${type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</strong>.<br><br>👉 <strong>Clique no botão abaixo no Guia de Fluxo</strong> para abrir a <strong>Triagem Manchester</strong> e aferir os sinais vitais.`,
+            targetTab: 'atendimento',
+            targetTabLabel: `🩺 Abrir Triagem (${patientName.split(' ')[0]}) ➔`,
             targetColumn: 'col-triage',
             targetPatientName: patientName,
             targetPatientId: patientId,
             targetStatus: 'Aguardando_Triagem',
             targetRoom: 'Sala de Triagem',
-            actionType: 'go_tv_panel',
+            actionType: 'go_triage',
             autoSwitch: false,
             persistent: true
           });
@@ -402,14 +401,35 @@ export function renderAttendanceTab(contentArea) {
       });
     }
   };
+  window.loadAndRenderAttendanceKanban = loadAndRenderKanban;
 
   const renderKanban = (encounters) => {
     activeKanbanTimers.forEach(t => clearInterval(t));
     activeKanbanTimers = [];
 
-    const triage  = encounters.filter(e => e.status === 'Aguardando_Triagem');
-    const waiting = [...encounters.filter(e => e.status === 'Aguardando_Atendimento')].sort((a,b) => (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at));
-    const active  = encounters.filter(e => e.status === 'Em_Atendimento');
+    const triage = [...encounters.filter(e => e.status === 'Aguardando_Triagem')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return new Date(b.admitted_at || b.created_at || 0) - new Date(a.admitted_at || a.created_at || 0);
+    });
+
+    const waiting = [...encounters.filter(e => e.status === 'Aguardando_Atendimento')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at);
+    });
+
+    const active = [...encounters.filter(e => e.status === 'Em_Atendimento')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return 0;
+    });
 
     window.filterKanbanColumn = function(type) {
       const colTriage = document.getElementById('col-triage')?.parentElement;
@@ -521,6 +541,14 @@ export function renderAttendanceTab(contentArea) {
       if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
       if (fin) fin.addEventListener('click', () => updateStatus(e.id, 'Finalizado', e.patientName));
     });
+
+    // Auto-scroll e destaque imediato do paciente em foco
+    setTimeout(() => {
+      const selectedEl = document.querySelector('#main-content .patient-pulse-selected');
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      }
+    }, 120);
   };
 
   const startLiveTimer = (id, since) => {
@@ -530,28 +558,51 @@ export function renderAttendanceTab(contentArea) {
     activeKanbanTimers.push(t);
   };
 
-  const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-  const activePatName = activePat ? (activePat.fullName || activePat.patientName || '').toLowerCase().trim() : '';
+  const getActiveFocusedPatientName = () => {
+    const ap = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+    return (window._highlightPatientName || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) || (ap && (ap.fullName || ap.patientName)) || '').toLowerCase().trim();
+  };
+
+  const isPatientFocused = (patientName) => {
+    if (!patientName) return false;
+    const targetName = getActiveFocusedPatientName();
+    if (!targetName) return false;
+    const cleanCard = patientName.toLowerCase().trim();
+    return cleanCard === targetName || cleanCard.includes(targetName) || targetName.includes(cleanCard);
+  };
 
   const buildTriageCard = (e) => {
-    const isSel = !!(activePatName && e.patientName && (e.patientName.toLowerCase().trim() === activePatName));
+    const isSel = isPatientFocused(e.patientName);
     const safePName = (e.patientName || '').replace(/'/g, "\\'");
+    const isCalled = !!e.called_at || !!e.tvCalled;
+    // Se o paciente está em foco:
+    // Se ainda não foi chamado na TV, o botão "Chamar TV" fica ativado e pulsando!
+    // Se já foi chamado, "Realizar Triagem" fica em destaque pulsante verde e "Re-chamar TV" ativo!
+    const tvBtnClass = (!isCalled && isSel) ? 'btn-call-tv-highlight' : 'btn-secondary';
+    const triarBtnClass = (isCalled && isSel) ? 'btn-triage-highlight' : 'btn-primary';
+
     return `
-    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid var(--border-color)'};border-left:4px solid #0284c7;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', status: 'Aguardando_Triagem', currentStep: 2 });">
-      ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
+    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:${isSel ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(15, 23, 42, 0.98) 100%)' : 'var(--bg-tertiary)'};border:${isSel ? '2px solid #38bdf8' : '1px solid var(--border-color)'};border-left:5px solid #0284c7;border-radius:var(--radius-md);padding:14px;margin-bottom:6px;box-shadow:${isSel ? '0 0 35px rgba(56,189,248,0.75), inset 0 0 16px rgba(56,189,248,0.2)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', status: 'Aguardando_Triagem', currentStep: 2 }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+      ${isSel ? '<span class="patient-selected-flow-badge">⚡ Paciente em Foco</span>' : ''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-        <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
+        <div style="font-weight:700;font-size:0.92rem;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+          ${isSel ? '<span style="width:8px;height:8px;border-radius:50%;background:#38bdf8;display:inline-block;box-shadow:0 0 8px #38bdf8;"></span>' : ''}
+          ${e.patientName}
+        </div>
         <span id="timer-${e.id}" style="font-size:0.7rem;color:#0284c7;font-family:monospace;background:rgba(2,132,199,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
       </div>
-      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;"><i class="fa-solid fa-tag" style="color:#0284c7;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}</div>
-      <div style="display:flex;gap:6px;margin-top:6px;">
-        <button class="btn btn-secondary btn-quick-tv-triage" onclick="event.stopPropagation(); if(typeof window.openTVCallModal==='function'){ window.switchTab('tv_panel'); setTimeout(() => window.openTVCallModal('${safePName}', 'Verde', 'Sala de Triagem'), 200); } else if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', 'Verde', 'Sala de Triagem'); } else if(typeof window.switchTab==='function'){ window.switchTab('tv_panel'); }" style="font-size:0.75rem;padding:7px 10px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#d8b4fe;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px;" title="Chamar no Painel TV para Sala de Triagem">
-          <i class="fa-solid fa-bullhorn"></i> TV
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+        <i class="fa-solid fa-tag" style="color:#0284c7;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}
+        ${isCalled ? '<span style="font-size:0.7rem;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);padding:1px 6px;border-radius:6px;font-weight:600;"><i class="fa-solid fa-bullhorn"></i> Chamado TV</span>' : '<span style="font-size:0.7rem;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);padding:1px 6px;border-radius:6px;font-weight:600;"><i class="fa-solid fa-clock"></i> Aguardando Chamada TV</span>'}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="btn ${tvBtnClass} btn-quick-tv-triage" onclick="event.stopPropagation(); if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', 'Verde', 'Sala de Triagem'); } else if(typeof window.executeTVCall==='function'){ window.executeTVCall('${safePName}', 'Sala de Triagem', 'Verde'); }" style="flex:1;font-size:0.8rem;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Chamar no Painel TV para Sala de Triagem">
+          <i class="fa-solid fa-bullhorn"></i> ${isCalled ? 'Re-chamar TV' : 'Chamar TV'}
         </button>
-        <button class="btn btn-primary btn-triar" data-enc-id="${e.id}" style="flex:1;font-size:0.78rem;padding:7px;background:linear-gradient(135deg,#0284c7,#0369a1);border:none;cursor:pointer;">
+        <button class="btn ${triarBtnClass} btn-triar" data-enc-id="${e.id}" style="flex:1.2;font-size:0.8rem;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Abrir Triagem Manchester">
           <i class="fa-solid fa-user-nurse"></i> Realizar Triagem
         </button>
-        <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+        <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:8px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
           <i class="fa-solid fa-file-medical"></i> PEP
         </button>
       </div>
@@ -560,13 +611,16 @@ export function renderAttendanceTab(contentArea) {
 
   const buildWaitCard = (e) => {
     const mc = getMC(e.manchesterColor);
-    const isSel = !!(activePatName && e.patientName && (e.patientName.toLowerCase().trim() === activePatName));
+    const isSel = isPatientFocused(e.patientName);
     const safePName = (e.patientName || '').replace(/'/g, "\\'");
     return `
-      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid var(--border-color)'};border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Aguardando_Atendimento', currentStep: 3, room: 'Consultório 01' });">
-        ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:${isSel ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(15, 23, 42, 0.98) 100%)' : 'var(--bg-tertiary)'};border:${isSel ? '2px solid #38bdf8' : '1px solid var(--border-color)'};border-left:5px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:6px;box-shadow:${isSel ? '0 0 35px rgba(56,189,248,0.75), inset 0 0 16px rgba(56,189,248,0.2)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Aguardando_Atendimento', currentStep: 3, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+        ${isSel ? '<span class="patient-selected-flow-badge">⚡ Paciente em Foco</span>' : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
+          <div style="font-weight:700;font-size:0.92rem;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+            ${isSel ? '<span style="width:8px;height:8px;border-radius:50%;background:#38bdf8;display:inline-block;box-shadow:0 0 8px #38bdf8;"></span>' : ''}
+            ${e.patientName}
+          </div>
           <span id="timer-${e.id}" style="font-size:0.7rem;color:${mc.text};font-family:monospace;background:${mc.bg};padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${e.bloodPressure||e.temperatureCelsius?'10px':'12px'};">
@@ -575,11 +629,11 @@ export function renderAttendanceTab(contentArea) {
         </div>
         ${e.bloodPressure||e.temperatureCelsius?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">${e.bloodPressure?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">PA</span><br><strong style="color:var(--text-primary);">${e.bloodPressure}</strong></div>`:''} ${e.temperatureCelsius?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">Temp.</span><br><strong style="color:var(--text-primary);">${e.temperatureCelsius}°C</strong></div>`:''}</div>`:''}
         ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <button class="btn btn-primary btn-call-consult" data-enc-id="${e.id}" onclick="event.stopPropagation(); if(typeof window.openTVCallModal==='function'){ window.switchTab('tv_panel'); setTimeout(() => window.openTVCallModal('${safePName}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'), 200); } else if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'); }" style="flex:1;font-size:0.78rem;padding:7px;cursor:pointer;">
-            <i class="fa-solid fa-bullhorn"></i> Chamar
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button class="btn btn-primary btn-call-consult ${isSel ? 'btn-call-tv-highlight' : ''}" data-enc-id="${e.id}" onclick="event.stopPropagation(); if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'); } else if(typeof window.executeTVCall==='function'){ window.executeTVCall('${safePName}', 'Consultório 01', '${e.manchesterColor||'Amarelo'}'); }" style="flex:1;font-size:0.8rem;padding:8px 10px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Emitir 2ª Chamada TV para Consultório 01">
+            <i class="fa-solid fa-bullhorn"></i> Chamar TV
           </button>
-          <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:7px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+          <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:8px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
             <i class="fa-solid fa-file-medical"></i> PEP
           </button>
         </div>
@@ -589,7 +643,7 @@ export function renderAttendanceTab(contentArea) {
   const buildActiveCard = (e) => {
     const mc = getMC(e.manchesterColor);
     const isObs = e.status === 'Em_Observacao' || !!e.observation_started_at;
-    const isSel = !!(activePatName && e.patientName && (e.patientName.toLowerCase().trim() === activePatName));
+    const isSel = isPatientFocused(e.patientName);
     const safePName = (e.patientName || '').replace(/'/g, "\\'");
     let obsBadgeHtml = '';
 
@@ -616,7 +670,7 @@ export function renderAttendanceTab(contentArea) {
     }
 
     return `
-      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(16,185,129,0.3)'};border-left:4px solid ${isObs ? '#f59e0b' : '#10b981'};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;" onclick="if(typeof setActivePatientContext==='function') setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', status: '${e.status}' });">
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(16,185,129,0.3)'};border-left:4px solid ${isObs ? '#f59e0b' : '#10b981'};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: '${e.status}', currentStep: 4, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
         ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
@@ -660,7 +714,17 @@ export function renderAttendanceTab(contentArea) {
       const res = await apiFetch(`/api/encounters/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status }) });
       if (res.ok) {
         if (status === 'Em_Atendimento') {
-          setActivePatientContext({ id, fullName: patientName, patientName, manchesterColor });
+          setActivePatientContext({ 
+            id, 
+            fullName: patientName, 
+            patientName, 
+            manchesterColor,
+            status: 'Em_Atendimento',
+            room: 'Consultório 01',
+            roomName: 'Consultório 01',
+            currentStep: 4,
+            tvCalled: true
+          });
           const stepperContainer = document.getElementById('atd-journey-stepper-container');
           if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'consulta');
 
@@ -698,19 +762,23 @@ export function renderAttendanceTab(contentArea) {
             doctorName: (state.user && state.user.fullName) || 'Dr. Médico Plantonista'
           };
 
-          apiFetch('/api/tv/call', {
-            method: 'POST',
-            body: JSON.stringify(callPayload)
-          }).catch(() => {});
+          if (typeof window.executeTVCall === 'function') {
+            await window.executeTVCall(patientName, 'Consultório 01', manchesterColor || 'Verde');
+          } else {
+            apiFetch('/api/tv/call', {
+              method: 'POST',
+              body: JSON.stringify(callPayload)
+            }).catch(() => {});
 
-          realtimeHub.broadcastTVCall(callPayload);
+            realtimeHub.broadcastTVCall(callPayload);
 
-          if ('speechSynthesis' in window) {
-            const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao Consultório 01.`;
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'pt-BR';
-            utterance.rate = 0.9;
-            window.speechSynthesis.speak(utterance);
+            if ('speechSynthesis' in window) {
+              const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao Consultório 01.`;
+              const utterance = new SpeechSynthesisUtterance(text);
+              utterance.lang = 'pt-BR';
+              utterance.rate = 0.9;
+              window.speechSynthesis.speak(utterance);
+            }
           }
 
           if (typeof window.showFlowCompletionNotification === 'function') {
@@ -753,7 +821,7 @@ export function renderAttendanceTab(contentArea) {
       return;
     }
 
-    setActivePatientContext({ id, fullName: name, patientName: name, manchesterColor: 'Amarelo', status: 'Aguardando_Triagem', currentStep: 3, room: 'Sala de Triagem' });
+    setActivePatientContext({ id, fullName: name, patientName: name, status: 'Aguardando_Triagem', currentStep: 2, room: 'Sala de Triagem' });
     const stepperContainer = document.getElementById('atd-journey-stepper-container');
     if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'triagem');
 
@@ -851,14 +919,6 @@ export function renderAttendanceTab(contentArea) {
   document.getElementById('triage-glicemia')?.addEventListener('input', updateTriageMEWS);
   document.getElementById('triage-peso')?.addEventListener('input', updateTriageMEWS);
 
-  let isTriageCallTvClicked = false;
-  document.getElementById('btn-submit-triage-and-call')?.addEventListener('click', () => {
-    isTriageCallTvClicked = true;
-  });
-  document.getElementById('btn-submit-triage-only')?.addEventListener('click', () => {
-    isTriageCallTvClicked = false;
-  });
-
   document.getElementById('triage-form')?.addEventListener('submit', async e => {
     e.preventDefault();
     let radio = document.querySelector('input[name="manchesterColor"]:checked');
@@ -870,8 +930,9 @@ export function renderAttendanceTab(contentArea) {
     const encId = document.getElementById('triage-encounter-id').value;
 
     const btn = e.target.querySelector('button[type="submit"]:disabled') || e.target.querySelector('button[type="submit"]');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando &amp; Encaminhando...'; }
     try {
+      const complaintsVal = document.getElementById('triage-complaints')?.value?.trim() || 'Avaliação clínica no Pronto-Socorro';
       const res = await apiFetch(`/api/encounters/${encId}/triage`, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -882,85 +943,97 @@ export function renderAttendanceTab(contentArea) {
           spo2: document.getElementById('triage-spo2')?.value || '',
           weightKg: document.getElementById('triage-peso')?.value || '',
           glicemia: document.getElementById('triage-glicemia')?.value || '',
-          complaints: document.getElementById('triage-complaints')?.value || ''
+          complaints: complaintsVal
         })
       });
       if (res.ok) {
-        const pName = document.getElementById('triage-patient-name').textContent || 'Paciente';
-        const complaintsText = document.getElementById('triage-complaints')?.value || '';
+        const pName = document.getElementById('triage-patient-name')?.textContent || 'Paciente';
+        const firstName = pName.split(' ')[0] || pName;
+        const complaintsText = complaintsVal;
         closeTriageModal();
 
-        // 🚨 Ativação automática de Protocolo de Emergência (IAM, AVC, Sepse)
-        const protoMatch = detectEmergencyProtocolByComplaint(complaintsText);
-        if (protoMatch) {
-          startEmergencyProtocol(protoMatch.protocol.id, pName, encId);
-          showToast(`🚨 Protocolo de Emergência (${protoMatch.protocol.name}) ativado com sucesso! Cronômetro iniciado.`, false);
+        // Limpa ação pendente de triagem anterior no Guia de Fluxo
+        if (typeof window !== 'undefined' && window._SFG) {
+          window._SFG.pendingAction = null;
         }
 
-        const nextStatus = isTriageCallTvClicked ? 'Em_Atendimento' : 'Aguardando_Atendimento';
-        const nextStepNum = isTriageCallTvClicked ? 4 : 3;
+        // 🚨 Ativação automática de Protocolo de Emergência (IAM, AVC, Sepse)
+        try {
+          const protoMatch = detectEmergencyProtocolByComplaint(complaintsText);
+          if (protoMatch) {
+            const protoId = protoMatch.id || (protoMatch.protocol && protoMatch.protocol.id);
+            const protoName = protoMatch.name || (protoMatch.protocol && protoMatch.protocol.name) || 'Emergência';
+            if (protoId) {
+              startEmergencyProtocol(encId, pName, protoId);
+              showToast(`🚨 Protocolo de Emergência (${protoName}) ativado com sucesso! Cronômetro iniciado.`, false);
+            }
+          }
+        } catch (protoErr) {
+          console.warn('Aviso ao registrar protocolo de emergência:', protoErr);
+        }
 
+        const isCritical = colorValue === 'Vermelho' || colorValue === 'Laranja';
+
+        // Atualizar contexto ativo global: Paciente encaminhado para Atendimento / Aguardando Médico (Etapa 3)
         setActivePatientContext({
           id: encId,
+          encounterId: encId,
           fullName: pName,
           patientName: pName,
           manchesterColor: colorValue,
-          status: nextStatus,
-          currentStep: nextStepNum,
-          room: 'Consultório 01'
+          status: 'Aguardando_Atendimento',
+          currentStep: 3, // Etapa 3 de 7: Chamada TV Consulta / Aguardando Médico
+          room: 'Consultório 01',
+          tvCalled: false
         });
 
-        if (isTriageCallTvClicked) {
-          await updateStatus(encId, 'Em_Atendimento', pName, colorValue);
-          showToast(`📺 ${pName} triado(a) e chamado(a) no Painel TV para Consultório 01!`);
-          if (typeof window.showFlowCompletionNotification === 'function') {
-            window.showFlowCompletionNotification({
-              actionTitle: '👨‍⚕️ Chamado no Consultório 01',
-              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue}</strong> e chamado no Painel TV.<br><br><strong>Próxima Etapa:</strong> Iniciar a consulta médica no <strong>PEP</strong>.`,
-              targetTab: 'consultorios',
-              targetTabLabel: 'Salas & Consultórios (PEP)',
-              targetColumn: 'Consultório 01',
-              targetPatientName: pName,
-              targetManchesterColor: colorValue,
-              targetStatus: 'Em_Atendimento',
-              currentStep: 4,
-              actionType: 'open_consultorio',
-              persistent: true
-            });
-          }
-        } else {
-          if (typeof window.showFlowCompletionNotification === 'function') {
-            window.showFlowCompletionNotification({
-              actionTitle: '📺 Chamar no Painel TV para Consultório',
-              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue}</strong>.<br><br><strong>Próxima Etapa Assistencial:</strong> Chamar o paciente no <strong>Painel TV</strong> para o <strong>Consultório 01</strong> e iniciar a consulta no PEP.`,
-              targetTab: 'tv_panel',
-              targetTabLabel: 'Painel TV (Chamador)',
-              targetColumn: 'col-waiting',
-              targetPatientName: pName,
-              targetManchesterColor: colorValue,
-              targetRoom: 'Consultório 01',
-              targetStatus: 'Aguardando_Atendimento',
-              currentStep: 3,
-              actionType: 'call_tv_doctor',
-              persistent: true
-            });
-          }
+        const stepperContainer = document.getElementById('atd-journey-stepper-container');
+        if (stepperContainer && typeof renderPatientJourneyStepper === 'function') {
+          renderPatientJourneyStepper(stepperContainer, 'chamador');
         }
+
+        window._highlightPatientName = pName;
+        window._highlightTargetColumn = 'col-waiting';
+
+        showToast(`✅ Triagem de ${pName} salva com sucesso (${colorValue})! Encaminhado para Atendimento.`);
+        
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: `📢 Chamar para Atendimento em Consultório`,
+            message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue.toUpperCase()}</strong> e encaminhado para <strong>Atendimento (Aguardando Médico)</strong>.<br><br>👉 Próxima etapa assistencial: <strong>Convoque o paciente no Painel TV para o Consultório 01</strong> para iniciar a consulta médica.`,
+            targetTab: 'atendimento',
+            targetTabLabel: `📢 Chamar ${firstName} no Painel TV (Consultório 01) ➔`,
+            targetColumn: 'col-waiting',
+            targetPatientName: pName,
+            targetPatientId: encId,
+            targetManchesterColor: colorValue,
+            targetRoom: 'Consultório 01',
+            targetStatus: 'Aguardando_Atendimento',
+            currentStep: 3,
+            actionType: 'call_tv_doctor',
+            persistent: true
+          });
+        }
+
+        if (typeof state !== 'undefined' && state.activeTab !== 'atendimento' && typeof window.switchTab === 'function') {
+          window.switchTab('atendimento');
+        }
+
         if (typeof window.triggerFlowGuidePulse === 'function') {
           window.triggerFlowGuidePulse();
         }
         await loadAndRenderKanban();
       }
       else { const d=await res.json(); showToast(`❌ ${d.message||'Erro ao salvar triagem.'}`,true); }
-    } catch { showToast('❌ Erro de conexão ao salvar triagem.',true); }
+    } catch (err) { 
+      console.error('Erro ao salvar triagem:', err);
+      showToast('❌ Erro ao salvar triagem.', true); 
+    }
     finally { 
       document.querySelectorAll('#triage-form button[type="submit"]').forEach(b => {
         b.disabled = false;
+        b.innerHTML = '<i class="fa-solid fa-check-circle"></i> Salvar Triagem &amp; Encaminhar para Atendimento';
       });
-      const bOnly = document.getElementById('btn-submit-triage-only');
-      if (bOnly) bOnly.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Apenas Salvar Triagem';
-      const bCall = document.getElementById('btn-submit-triage-and-call');
-      if (bCall) bCall.innerHTML = '<i class="fa-solid fa-bullhorn"></i> Salvar &amp; Chamar na TV 📺';
     }
   });
 

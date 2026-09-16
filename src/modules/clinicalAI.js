@@ -327,8 +327,8 @@ export const PHARMACOLOGICAL_TAXONOMY = {
   // 14. Inibidores Enzimáticos CYP3A4 & Azóis / Macrolídeos
   'ATC_J01FA_J02AC': {
     className: 'Macrolídeos & Antifúngicos Azólicos Inibidores Potentes do CYP3A4',
-    substances: ['claritromicina', 'klaricid', 'eritromicina', 'fluconazol', 'diflucan', 'itraconazol', 'sporanox', 'cetoconazol'],
-    mechanism: 'Inibição potente do citocromo CYP3A4 elevando concentrações plasmáticas de substratos'
+    substances: ['claritromicina', 'klaricid', 'eritromicina', 'azitromicina', 'astro', 'zitromax', 'fluconazol', 'diflucan', 'itraconazol', 'sporanox', 'cetoconazol'],
+    mechanism: 'Inibição potente do citocromo CYP3A4 elevando concentrações plasmáticas de substratos e bloqueio de canais hERG IKr (prolongamento do intervalo QT)'
   },
   // 15. Inibidores da Bomba de Prótons (IBP)
   'ATC_A02BC': {
@@ -350,9 +350,9 @@ export const PHARMACOLOGICAL_TAXONOMY = {
   },
   // 18. Antiarrítmicos Classe III
   'ATC_C01BD': {
-    className: 'Antiarrítmicos Bloqueadores dos Canais de Potássio',
-    substances: ['amiodarona', 'ancoron'],
-    mechanism: 'Prolongamento do potencial de ação e período refratário miocárdico'
+    className: 'Antiarrítmicos Bloqueadores dos Canais de Potássio (Prolongadores do QT)',
+    substances: ['amiodarona', 'ancoron', 'cloridrato de amiodarona', 'amiodarone'],
+    mechanism: 'Prolongamento do potencial de ação e período refratário miocárdico com atraso na repolarização ventricular via bloqueio de canais IKr'
   },
   // 19. Suplementos Eletrolíticos
   'ATC_A12BA': {
@@ -523,6 +523,34 @@ export const DRUG_INTERACTIONS_DB = [
     title: 'Risco de Lesão de Mucosa & Sangramento GI (Tramadol + Salicilatos)',
     desc: 'Associação de analgésico opioide com salicilatos pode elevar o risco de desconforto gástrico e sangramento oculto em mucosa predisposta.',
     action: 'Avaliar prescrição de IBP protetor gástrico e orientar tomada após as refeições.'
+  },
+  {
+    classA: 'ATC_C01BD',
+    classB: 'ATC_J01FA_J02AC',
+    severity: 'Critica',
+    color: '#ef4444',
+    title: 'CONTRAINDICADO: Risco Fatal de Torsades de Pointes & Inibição do CYP3A4 (Amiodarona + Claritromicina / Macrolídeos)',
+    desc: 'A associação de Amiodarona com Macrolídeos (Claritromicina, Azitromicina, Eritromicina) ou Azóis causa prolongamento aditivo sinérgico do intervalo QTc (> 500ms), com risco gravíssimo de arritmias ventriculares polimórficas potencialmente fatais (Torsades de Pointes), parada cardiorrespiratória e morte súbita. Além disso, a Claritromicina inibe potentemente o CYP3A4 hepático, acumulando níveis tóxicos de Amiodarona.',
+    action: 'CONTRAINDICAÇÃO CRÍTICA. Evitar o uso combinado. Substituir o antibiótico por agente que não prolongue o intervalo QT e não iniba o CYP3A4 (ex.: Ceftriaxona ou Amoxicilina + Clavulanato). Se imprescindível, manter monitorização contínua de ECG/telemetria e ionograma com dosagem de K+ e Mg2+.',
+    isBlocker: true
+  },
+  {
+    classA: 'ATC_C01BD',
+    classB: 'ATC_J01MA',
+    severity: 'Critica',
+    color: '#ef4444',
+    title: 'Risco Elevado de Prolongamento do QTc & Arritmia Ventricular (Amiodarona + Quinolonas)',
+    desc: 'O uso concomitante de Amiodarona com Fluoroquinolonas (Ciprofloxacino, Levofloxacino) induz duplo bloqueio dos canais IKr de repolarização miocárdica, elevando drasticamente a incidência de Torsades de Pointes.',
+    action: 'Evitar associação. Substituir quinolona por antimicrobiano seguro do ponto de vista eletrofisiológico.'
+  },
+  {
+    classA: 'ATC_J01FA_J02AC',
+    classB: 'ATC_J01MA',
+    severity: 'Grave',
+    color: '#ef4444',
+    title: 'Prolongamento Severo do QTc por Duplo Antimicrobiano (Macrolídeos + Quinolonas)',
+    desc: 'Uso simultâneo de Macrolídeos e Quinolonas causa efeito aditivo no prolongamento do intervalo QT, com risco arritmogênico aumentado.',
+    action: 'Evitar associação de dois fármacos com potencial arritmogênico similar; reavaliar cobertura antimicrobiana.'
   }
 ];
 

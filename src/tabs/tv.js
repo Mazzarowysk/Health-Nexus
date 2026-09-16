@@ -250,12 +250,21 @@ window.loadTVWaitingQueue = async function() {
                   style="${isSelected ? '' : 'background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.45);color:#d8b4fe;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;'}">
             <i class="fa-solid fa-bullhorn ${isSelected ? 'fa-bounce' : ''}"></i> ${isSelected ? 'CHAMAR' : 'Chamar'}
           </button>
-          <button type="button"
-                  onclick="event.stopPropagation(); if(typeof window.openAttendanceTriage==='function'){ window.openAttendanceTriage('${safeName}'); } else { window.switchTab('atendimento'); }"
-                  style="background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.45);color:#6ee7b7;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;"
-                  title="Abrir Triagem Manchester para este paciente">
-            <i class="fa-solid fa-user-nurse"></i> Triagem
-          </button>
+          ${(p.status === 'Aguardando_Atendimento' || p.status === 'Em_Atendimento' || (p.manchesterColor && p.manchesterColor !== 'Branco')) ? `
+            <button type="button"
+                    onclick="event.stopPropagation(); if(typeof window.openDoctorConsultingRoom==='function'){ window.openDoctorConsultingRoom('Consultório 01', '${safeName}'); } else { window.switchTab('consultorios'); }"
+                    style="background:rgba(14,165,233,0.18);border:1px solid rgba(14,165,233,0.45);color:#7dd3fc;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;"
+                    title="Abrir Consultório 01 (PEP) para este paciente">
+              <i class="fa-solid fa-user-doctor"></i> Consultório
+            </button>
+          ` : `
+            <button type="button"
+                    onclick="event.stopPropagation(); if(typeof window.openAttendanceTriage==='function'){ window.openAttendanceTriage('${safeName}'); } else { window.switchTab('atendimento'); }"
+                    style="background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.45);color:#6ee7b7;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;"
+                    title="Abrir Triagem Manchester para este paciente">
+              <i class="fa-solid fa-user-nurse"></i> Triagem
+            </button>
+          `}
         </div>
       </div>
     </div>`;
@@ -281,23 +290,64 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
     return false;
   }
 
-  // Inferir sala se não fornecida
-  if (!roomName) {
-    let matched = null;
+  // Inferir sala e cor de classificação se não fornecidos
+  let matched = null;
+  let matchedTriage = null;
+  const activeCtx = typeof window.getActivePatientContext === 'function' ? window.getActivePatientContext() : null;
+  const cleanLower = cleanName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  if (window.localDB) {
+    try {
+      const db = window.localDB.getFullDB();
+      // Checar triagens recentes primeiro
+      const triages = db.triages || [];
+      matchedTriage = triages.slice().reverse().find(t => (t.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().includes(cleanLower));
+
+      // Checar atendimentos ativos do mais recente para o mais antigo
+      const arr = (db.encounters || []).filter(e => e.status !== 'Finalizado' && e.status !== 'Alta');
+      const pool = arr.length ? arr : (db.encounters || []);
+      if (activeCtx && activeCtx.encounterId) {
+        matched = pool.find(e => String(e.id) === String(activeCtx.encounterId));
+      }
+      if (!matched) {
+        matched = pool.slice().reverse().find(e => (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().includes(cleanLower));
+      }
+    } catch (_) {}
+  }
+
+  if (!matched) {
     try {
       const res = await apiFetch('/api/encounters');
       if (res.ok) {
         const data = await res.json();
         const arr = Array.isArray(data) ? data : (data.data || []);
-        const cleanLower = cleanName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        matched = arr.find(e => (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(cleanLower));
+        const pool = arr.filter(e => e.status !== 'Finalizado' && e.status !== 'Alta');
+        matched = (pool.length ? pool : arr).slice().reverse().find(e => (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(cleanLower));
       }
     } catch(e) {}
-    const isTriaged = matched && (matched.status === 'Aguardando_Atendimento' || matched.status === 'Em_Atendimento' || !!matched.manchesterColor);
+  }
+
+  const isAwaitingTriage = (activeCtx && (activeCtx.status === 'Aguardando_Triagem' || !activeCtx.manchesterColor)) ||
+                           (matched && matched.status === 'Aguardando_Triagem' && !matched.manchesterColor);
+
+  const isTriaged = !isAwaitingTriage && (
+    (matched && !!matched.manchesterColor && matched.status !== 'Aguardando_Triagem') ||
+    (activeCtx && !!activeCtx.manchesterColor && activeCtx.status !== 'Aguardando_Triagem') ||
+    (matchedTriage && matchedTriage.color && matchedTriage.color !== 'null' && (!matched || matched.id === matchedTriage.encounterId))
+  );
+
+  // Se o chamador não especificou a sala, decide com base no status de triagem
+  // Se especificou explicitamente (ex: 'Sala de Triagem' ou 'Consultório 01'), respeita SEMPRE!
+  if (!roomName) {
     roomName = isTriaged ? 'Consultório 01' : 'Sala de Triagem';
   }
 
-  if (!manchesterColor) manchesterColor = 'Verde';
+  if (!manchesterColor) {
+    manchesterColor = (matchedTriage && matchedTriage.color) ||
+                      (activeCtx && activeCtx.manchesterColor) ||
+                      (matched && matched.manchesterColor) ||
+                      (isTriaged ? 'Amarelo' : 'Verde');
+  }
 
   try {
     const r = await apiFetch('/api/tv/call', {
@@ -331,10 +381,11 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
         }
       } catch (_) {}
 
-      // 2) Síntese de voz pt-BR após 1.2s
+      // 2) Síntese de voz pt-BR após 1.2s com gramática correta
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        const text = `Atenção. Paciente ${cleanName}, favor dirigir-se ao ${roomName}.`;
+        const prep = roomName.toLowerCase().startsWith('sala') ? 'à' : 'ao';
+        const text = `Atenção. Paciente ${cleanName}, favor dirigir-se ${prep} ${roomName}.`;
         const speak = () => {
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = 'pt-BR';
@@ -358,28 +409,62 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
     const isTriageRoom = (roomName || '').toLowerCase().includes('triag');
     const firstName = cleanName.split(' ')[0];
 
+    // Se for chamada para consultório médico, sincronizar encounter para 'Em_Atendimento'
+    let enc = matched || null;
+    if (!isTriageRoom && window.localDB) {
+      try {
+        const fullDB = window.localDB.getFullDB();
+        const encs = fullDB.encounters || [];
+        const cleanLower = cleanName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const foundEnc = encs.slice().reverse().find(e => {
+          const eName = (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          return (eName === cleanLower || (cleanLower.length > 3 && (eName.includes(cleanLower) || cleanLower.includes(eName)))) &&
+                 e.status !== 'Finalizado' && e.status !== 'Alta';
+        });
+        if (foundEnc) {
+          enc = foundEnc;
+          window.localDB.update('encounters', enc.id, {
+            ...enc,
+            status: 'Em_Atendimento',
+            room: roomName,
+            roomName: roomName,
+            tvCalled: true,
+            called_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          });
+        }
+      } catch(_) {}
+    }
+
     if (typeof window.setActivePatientContext === 'function') {
       window.setActivePatientContext({
+        ...(activeCtx || {}),
+        id: activeCtx?.id || enc?.id || matched?.id,
+        encounterId: activeCtx?.encounterId || enc?.id || matched?.id,
         fullName: cleanName,
         patientName: cleanName,
-        status: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',
-        currentStep: isTriageRoom ? 3 : 4,
+        status: isTriageRoom ? 'Aguardando_Triagem' : 'Em_Atendimento',
+        currentStep: isTriageRoom ? 2 : 4,
         room: roomName,
-        tvCalled: true
+        manchesterColor: !isTriageRoom ? (manchesterColor || activeCtx?.manchesterColor) : (activeCtx?.manchesterColor || manchesterColor),
+        tvCalled: true,
+        tvCalledTriage: isTriageRoom ? true : activeCtx?.tvCalledTriage,
+        tvCalledDoctor: !isTriageRoom ? true : activeCtx?.tvCalledDoctor
       });
     }
 
     if (typeof window.showFlowCompletionNotification === 'function') {
       window.showFlowCompletionNotification({
-        actionTitle: isTriageRoom ? `🩺 Chamada Concluída! Próximo Passo: Triagem` : `📢 Chamada Concluída! Próximo Passo: Consultório`,
+        actionTitle: isTriageRoom ? `🩺 1ª Chamada TV Concluída: Sala de Triagem` : `📢 2ª Chamada TV Concluída: ${roomName}`,
         message: isTriageRoom
-          ? `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>👉 Chamada sonora e visual emitida! Quando estiver pronto, <strong>clique no botão abaixo no Guia de Fluxo</strong> para ir à Sala de Triagem e iniciar a classificação Manchester.`
-          : `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para o <strong>${roomName}</strong>.<br><br>👉 Chamada emitida! <strong>Clique no botão pulsante abaixo</strong> para abrir o ${roomName} e dar início ao Prontuário (PEP).`,
+          ? `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para a <strong>${roomName}</strong>.<br><br>👉 Chamada emitida no telão! <strong>Clique no botão abaixo no Guia de Fluxo</strong> para ir à Sala de Triagem e realizar a classificação Manchester.`
+          : `Paciente <strong>${cleanName}</strong> chamado(a) no Painel TV para o <strong>${roomName}</strong>.<br><br>👉 Chamada sonora emitida! Quando o paciente adentrar a sala médica, <strong>clique no botão abaixo para abrir o ${roomName} / PEP</strong>.`,
         targetTab: isTriageRoom ? 'atendimento' : 'consultorios',
         targetTabLabel: isTriageRoom ? `🩺 Iniciar Triagem Manchester de ${firstName} ➔` : `👨‍⚕️ Abrir ${roomName} (${firstName}) ➔`,
-        targetColumn: isTriageRoom ? 'col-triage' : roomName,
+        targetColumn: isTriageRoom ? 'col-triage' : 'col-active',
         targetPatientName: cleanName,
-        targetStatus: isTriageRoom ? 'Aguardando_Triagem' : 'Aguardando_Atendimento',
+        targetStatus: isTriageRoom ? 'Aguardando_Triagem' : 'Em_Atendimento',
+        targetManchesterColor: !isTriageRoom ? manchesterColor : undefined,
         targetRoom: roomName,
         actionType: isTriageRoom ? 'start_triage' : 'open_consultorio',
         autoSwitch: false,
@@ -389,11 +474,19 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
 
     loadTVCalls();
     if (typeof loadTVWaitingQueue === 'function') loadTVWaitingQueue();
+    if (typeof window.executePatientHighlight === 'function') {
+      window.executePatientHighlight(cleanName, isTriageRoom ? 'col-triage' : 'col-active');
+    }
+    if (typeof window.loadAndRenderAttendanceKanban === 'function') {
+      window.loadAndRenderAttendanceKanban();
+    }
     if (typeof window.ensureSmartFlowGuideMounted === 'function') {
-      window.ensureSmartFlowGuideMounted('tv_panel');
+      const curTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : 'tv_panel';
+      window.ensureSmartFlowGuideMounted(curTab);
     }
     return true;
   } catch (e) {
+    console.error('[executeTVCall] Erro ao emitir chamada na TV:', e);
     showCustomAlert({ title: 'Erro', message: 'Falha ao emitir chamada na TV.', type: 'danger' });
     return false;
   }
@@ -463,6 +556,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
 
   // Resolução inteligente dos dados do paciente (cor e sala recomendada)
   let matchedPatient = null;
+  let matchedTriageModal = null;
   const targetName = preselectedName || (typeof activePatientContext !== 'undefined' && activePatientContext ? activePatientContext.patientName || activePatientContext.fullName : '');
 
   if (targetName) {
@@ -470,13 +564,19 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
     matchedPatient = waitingPatients.find(p =>
       removeAccents((p.patientName || '').toLowerCase()).includes(removeAccents(cleanTarget))
     );
-    if (!matchedPatient && typeof localDB !== 'undefined' && localDB.getFullDB) {
+    if (typeof localDB !== 'undefined' && localDB.getFullDB) {
       try {
         const db = localDB.getFullDB();
-        const encs = db.encounters || [];
-        matchedPatient = encs.find(e =>
-          removeAccents((e.patientName || '').toLowerCase()).includes(removeAccents(cleanTarget))
+        const triages = db.triages || [];
+        matchedTriageModal = triages.slice().reverse().find(t =>
+          removeAccents((t.patientName || '').toLowerCase()).includes(removeAccents(cleanTarget))
         );
+        if (!matchedPatient) {
+          const encs = db.encounters || [];
+          matchedPatient = encs.slice().reverse().find(e =>
+            removeAccents((e.patientName || '').toLowerCase()).includes(removeAccents(cleanTarget))
+          );
+        }
       } catch(e) {}
     }
   }
@@ -484,11 +584,20 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
   let effectiveColor = preselectedColor;
   let effectiveRoom = preselectedRoom;
 
+  if (matchedTriageModal) {
+    if (!effectiveColor && matchedTriageModal.color) {
+      effectiveColor = matchedTriageModal.color;
+    }
+    if (!effectiveRoom) {
+      effectiveRoom = 'Consultório 01';
+    }
+  }
+
   if (matchedPatient) {
     if (!effectiveColor && matchedPatient.manchesterColor) {
       effectiveColor = matchedPatient.manchesterColor;
     }
-    const isTriaged = matchedPatient.status === 'Aguardando_Atendimento' || matchedPatient.status === 'Em_Atendimento' || !!matchedPatient.manchesterColor;
+    const isTriaged = !!matchedTriageModal || matchedPatient.status === 'Aguardando_Atendimento' || matchedPatient.status === 'Em_Atendimento' || !!matchedPatient.manchesterColor;
     if (!effectiveRoom) {
       effectiveRoom = isTriaged ? 'Consultório 01' : 'Sala de Triagem';
     }
@@ -1059,24 +1168,36 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     if (medNameInput) {
       const removeAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-      medNameInput.addEventListener('input', (e) => {
-        const val = e.target.value.toLowerCase();
-        const cleanVal = removeAccents(val);
-        if (val.length < 2 || !window.medicationsCatalog) {
-          acDropdown.style.display = 'none';
+      let apiSearchTimeout = null;
+
+      const mapRouteToPrescription = (rawRoute = '') => {
+        const r = rawRoute.toLowerCase();
+        if (r.includes('oral') || r.includes('vo')) return 'VO';
+        if (r.includes('intra') && (r.includes('ven') || r.includes('ev'))) return 'EV';
+        if (r.includes('muscul') || r.includes('im')) return 'IM';
+        if (r.includes('subcut') || r.includes('sc')) return 'SC';
+        if (r.includes('inalat') || r.includes('inhal')) return 'Inalatória';
+        if (r.includes('topic') || r.includes('tópica')) return 'Tópica';
+        return 'VO';
+      };
+
+      const renderMatches = (matches = [], apiMatches = [], query = '') => {
+        if (matches.length === 0 && apiMatches.length === 0) {
+          acDropdown.innerHTML = `
+            <div style="padding: 10px 12px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; background: var(--bg-tertiary); border-radius: 6px;">
+              <div style="font-weight: 600; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                <i class="fa-solid fa-circle-info"></i> Medicamento livre / não tabelado
+              </div>
+              <div>"${query}" não está na lista padrão nem na ANVISA, mas <strong>pode ser prescrito normalmente</strong>. Preencha a dose/via e clique em <strong>(+)</strong>.</div>
+            </div>
+          `;
+          acDropdown.style.display = 'block';
           return;
         }
-        
-        const matches = window.medicationsCatalog.filter(m => {
-          return removeAccents(m.nome.toLowerCase()).includes(cleanVal);
-        }).slice(0, 30);
-        
-        if (matches.length === 0) {
-          acDropdown.style.display = 'none';
-          return;
-        }
-        
+
         acDropdown.innerHTML = '';
+
+        // Renderiza primeiro os do catálogo hospitalar
         matches.forEach(m => {
           const item = document.createElement('div');
           item.style.padding = '8px 12px';
@@ -1084,7 +1205,13 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
           item.style.borderBottom = '1px solid var(--border-color)';
           item.style.fontSize = '0.8rem';
           item.style.color = 'var(--text-primary)';
-          item.innerHTML = `<strong>${m.nome}</strong> <span style="color:var(--text-muted); font-size:0.75rem;">- ${m.dose} (${m.via})</span>`;
+          item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>${m.nome}</strong>
+              <span style="font-size: 0.7rem; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 1px 6px; border-radius: 4px;">Hospitalar</span>
+            </div>
+            <div style="color:var(--text-muted); font-size:0.75rem; margin-top: 2px;">${m.dose} · Via <strong>${m.via}</strong></div>
+          `;
           
           item.addEventListener('mouseover', () => item.style.background = 'var(--bg-tertiary)');
           item.addEventListener('mouseout', () => item.style.background = 'transparent');
@@ -1102,9 +1229,98 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
           });
           acDropdown.appendChild(item);
         });
+
+        // Renderiza itens vindos da API ANVISA / OpenFDA
+        apiMatches.forEach(am => {
+          const item = document.createElement('div');
+          item.style.padding = '8px 12px';
+          item.style.cursor = 'pointer';
+          item.style.borderBottom = '1px solid var(--border-color)';
+          item.style.fontSize = '0.8rem';
+          item.style.color = 'var(--text-primary)';
+          const badgeColor = am.fonte && am.fonte.includes('ANVISA') ? '#10b981' : '#a78bfa';
+          const badgeBg = am.fonte && am.fonte.includes('ANVISA') ? 'rgba(16,185,129,0.15)' : 'rgba(167,139,250,0.15)';
+          const badgeLabel = am.fonte && am.fonte.includes('ANVISA') ? 'ANVISA' : 'OpenFDA';
+
+          item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong style="color: #f1f5f9;">${am.nome}</strong>
+              <span style="font-size: 0.68rem; font-weight: 700; color: ${badgeColor}; background: ${badgeBg}; padding: 1px 6px; border-radius: 4px;">⚡ ${badgeLabel}</span>
+            </div>
+            <div style="color:var(--text-muted); font-size:0.74rem; margin-top: 2px;">
+              ${am.principioAtivo && am.principioAtivo !== 'N/D' ? `<span style="color: #34d399;">${am.principioAtivo}</span> · ` : ''}
+              ${am.formaFarmaceutica && am.formaFarmaceutica !== 'N/D' ? `<span>${am.formaFarmaceutica}</span> · ` : ''}
+              <span>Via ${am.viaAdministracao || 'Oral'}</span>
+            </div>
+          `;
+
+          item.addEventListener('mouseover', () => item.style.background = 'var(--bg-tertiary)');
+          item.addEventListener('mouseout', () => item.style.background = 'transparent');
+
+          item.addEventListener('click', () => {
+            medNameInput.value = am.nome;
+            const doseInput = document.getElementById('rx-med-dose');
+            const routeSelect = document.getElementById('rx-med-route');
+            if (doseInput && !doseInput.value && am.formaFarmaceutica && am.formaFarmaceutica !== 'N/D') {
+              doseInput.value = am.formaFarmaceutica;
+            }
+            if (routeSelect) {
+              const mappedRoute = mapRouteToPrescription(am.viaAdministracao || am.formaFarmaceutica || '');
+              const opt = Array.from(routeSelect.options).find(o => o.value === mappedRoute);
+              if (opt) routeSelect.value = mappedRoute;
+            }
+            acDropdown.style.display = 'none';
+          });
+          acDropdown.appendChild(item);
+        });
+
         acDropdown.style.display = 'block';
+      };
+
+      medNameInput.addEventListener('input', (e) => {
+        clearTimeout(apiSearchTimeout);
+        const val = e.target.value.toLowerCase().trim();
+        const cleanVal = removeAccents(val);
+        if (val.length < 2) {
+          acDropdown.style.display = 'none';
+          return;
+        }
+
+        const localMatches = (window.medicationsCatalog || []).filter(m => {
+          return removeAccents(m.nome.toLowerCase()).includes(cleanVal);
+        }).slice(0, 20);
+
+        // Exibe imediatamente os locais
+        renderMatches(localMatches, [], val);
+
+        // Dispara busca assíncrona na API de Medicamentos (ANVISA / OpenFDA) via backend
+        apiSearchTimeout = setTimeout(async () => {
+          try {
+            const res = await fetch(`/api/anvisa/buscar?q=${encodeURIComponent(val)}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.success && Array.isArray(data.resultados) && data.resultados.length > 0) {
+                // Filtra para não duplicar medicamentos que já estão no catálogo local
+                const apiFiltered = data.resultados.filter(ar => {
+                  const arName = removeAccents((ar.nome || '').toLowerCase());
+                  const arPrinc = removeAccents((ar.principioAtivo || '').toLowerCase());
+                  return !localMatches.some(lm => {
+                    const lmName = removeAccents(lm.nome.toLowerCase());
+                    return lmName.includes(arName) || arName.includes(lmName) || (arPrinc && lmName.includes(arPrinc));
+                  });
+                }).slice(0, 15);
+
+                if (apiFiltered.length > 0 || localMatches.length > 0) {
+                  renderMatches(localMatches, apiFiltered, val);
+                }
+              }
+            }
+          } catch (apiErr) {
+            // Em caso de falha de rede/offline, os resultados locais já foram renderizados
+          }
+        }, 300);
       });
-      
+
       document.addEventListener('click', (e) => {
         if (e.target !== medNameInput && e.target !== acDropdown && !acDropdown.contains(e.target)) {
           acDropdown.style.display = 'none';
@@ -1157,8 +1373,14 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 
     let cdssHtml = '';
     if (typeof evaluatePrescriptionCDSS === 'function') {
+      let patientContext = {};
+      if (typeof localDB !== 'undefined' && localDB.list) {
+        const encs = localDB.list('encounters') || [];
+        const found = encs.find(e => (encounterId && e.id === encounterId) || (patientName && e.patientName === patientName) || (patientId && e.patientId === patientId));
+        if (found) patientContext = found;
+      }
       const medNames = draftItems.map(i => i.name).join(' ');
-      const alerts = evaluatePrescriptionCDSS(medNames);
+      const alerts = evaluatePrescriptionCDSS(medNames, patientContext);
       if (alerts && alerts.length > 0) {
         const top = alerts[0];
         cdssHtml = `
@@ -1206,7 +1428,20 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
     document.getElementById('rx-med-dose').value = '';
     document.getElementById('rx-med-notes').value = '';
     updateDraftTable();
+    document.getElementById('rx-med-name').focus();
   };
+
+  ['rx-med-dose', 'rx-med-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById('btn-add-rx-item')?.click();
+        }
+      });
+    }
+  });
 
   document.getElementById('btn-save-rx').onclick = async () => {
     if (draftItems.length === 0) return;
@@ -1251,20 +1486,47 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
       }
 
       let html = '';
+      const isMasterUser = (typeof state !== 'undefined' && state.user && (
+        state.user.role === 'master' || 
+        state.user.role === 'admin' || 
+        (state.user.username || '').toLowerCase().includes('mazzaro') ||
+        (state.user.role || '').toLowerCase().includes('farmac')
+      ));
+
       prescriptions.forEach(p => {
-        let meds = [];
-        try { meds = typeof p.medicationsJson === 'string' ? JSON.parse(p.medicationsJson) : p.medicationsJson; } catch(e) { meds = []; }
+        let meds = p.medications || [];
+        if (!meds || meds.length === 0) {
+          try { meds = typeof p.medicationsJson === 'string' ? JSON.parse(p.medicationsJson) : (p.medicationsJson || []); } catch(e) { meds = []; }
+        }
+
+        const isReleased = p.status === 'Liberado_Farmacia';
 
         html += `
-          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+          <div style="background: var(--bg-tertiary); border: 1.5px solid ${isReleased ? 'rgba(16,185,129,0.35)' : 'rgba(245,158,11,0.35)'}; border-radius: 12px; padding: 14px; margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-              <div>
-                <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">Prescrição #${p.id}</span>
-                <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 10px;">Prescrito por: <strong style="color:var(--text-primary);">${p.doctorName}</strong> em ${new Date(p.created_at).toLocaleString('pt-BR')}</span>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">Prescrição #${p.id}</span>
+                ${isReleased ? `
+                  <span class="badge" style="background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.4); padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 0.74rem; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-circle-check"></i> Liberada pela Farmácia (${p.releasedBy || 'Farmacêutico'})
+                  </span>
+                ` : `
+                  <span class="badge" style="background: rgba(245,158,11,0.18); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 0.74rem; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-hourglass-half fa-spin"></i> Aguardando Liberação da Farmácia
+                  </span>
+                `}
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Prescrito por: <strong style="color:var(--text-primary);">${p.doctorName}</strong> em ${new Date(p.created_at || Date.now()).toLocaleString('pt-BR')}</span>
               </div>
-              <button class="btn btn-primary btn-pdf-rx" data-id="${p.id}" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-file-pdf"></i> Imprimir PDF
-              </button>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                ${(!isReleased && isMasterUser) ? `
+                  <button class="btn btn-sm btn-release-rx-direct" data-id="${p.id}" style="background: linear-gradient(135deg, #059669, #047857); color: #fff; border: none; padding: 5px 12px; font-size: 0.76rem; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" title="Liberar Prescrição como Master/Farmacêutico">
+                    <i class="fa-solid fa-check-double"></i> Liberar Farmácia (Master)
+                  </button>
+                ` : ''}
+                <button class="btn btn-primary btn-pdf-rx" data-id="${p.id}" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-file-pdf"></i> Imprimir PDF
+                </button>
+              </div>
             </div>
 
             <!-- TABELA ESTILO PLANILHA DE ENFERMAGEM -->
@@ -1290,25 +1552,31 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
             <tr style="border-bottom: 1px solid var(--border-color);">
               <td style="padding: 8px;">
                 <strong style="color: var(--text-primary);">${m.name}</strong><br>
-                <span style="font-size: 0.73rem; color: var(--text-muted);">${m.dosage || 'Dose padrão'}</span>
+                <span style="font-size: 0.73rem; color: var(--text-muted);">${m.dosage || m.dose || 'Dose padrão'}</span>
               </td>
               <td style="padding: 8px;">
-                <span style="background: rgba(99,102,241,0.15); color: #a78bfa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${m.route}</span>
-                <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 4px;">${m.frequency}</span>
+                <span style="background: rgba(99,102,241,0.15); color: #a78bfa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${m.route || m.via || 'VO'}</span>
+                <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 4px;">${m.frequency || m.freq || 'De 8/8h'}</span>
               </td>
-              <td style="padding: 8px; color: var(--text-secondary); font-style: italic;">${m.instructions || '—'}</td>
+              <td style="padding: 8px; color: var(--text-secondary); font-style: italic;">${m.instructions || m.notes || '—'}</td>
               <td style="padding: 8px;">
                 ${lastAdm ? `
                   <span style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${new Date(lastAdm.administeredAt).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span><br>
-                  <span style="font-size: 0.7rem; color: var(--text-muted);">Por: ${lastAdm.nurseName}</span>
+                  <span style="font-size: 0.7rem; color: var(--text-muted);">Por: ${lastAdm.nurseName || lastAdm.administeredBy || 'Enfermagem'}</span>
                 ` : `
                   <span style="color: var(--text-muted); font-style: italic;">Pendente</span>
                 `}
               </td>
               <td style="padding: 8px; text-align: right;">
-                <button class="btn btn-administer-med" data-pres-id="${p.id}" data-med-name="${m.name}" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
-                  <i class="fa-solid fa-syringe"></i> Checar / Administrar
-                </button>
+                ${isReleased || isMasterUser ? `
+                  <button class="btn btn-administer-med" data-pres-id="${p.id}" data-med-name="${m.name}" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                    <i class="fa-solid fa-syringe"></i> Checar / Administrar
+                  </button>
+                ` : `
+                  <button class="btn" style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: not-allowed; opacity: 0.85;" title="Aguardando liberação e conferência da Farmácia Hospitalar" onclick="showToast('⏳ Aguarde a validação e liberação deste medicamento pela Farmácia Hospitalar.')">
+                    <i class="fa-solid fa-hourglass-half"></i> Aguardando Farmácia
+                  </button>
+                `}
               </td>
             </tr>
           `;

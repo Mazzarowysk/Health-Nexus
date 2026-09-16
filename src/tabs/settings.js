@@ -4,7 +4,7 @@ import * as localDB from '../localDB.js';
 import { generateMockData } from '../mockDataGenerator.js';
 import { apiFetch } from '../modules/api.js';
 import { showToast, showCustomAlert, showCustomConfirm } from '../modules/ui.js';
-import { getRolePermissions, showUserManagementModal } from '../modules/auth.js';
+import { getRolePermissions, showUserManagementModal, isMaster } from '../modules/auth.js';
 import { syncManager, getSyncStatus, formatSyncDate } from '../modules/sync.js';
 
 export function renderSettingsTab(contentArea) {
@@ -326,22 +326,23 @@ export function renderSettingsTab(contentArea) {
         <details class="settings-accordion">
           <summary class="settings-accordion-header">
             <i class="fa-solid fa-users-gear"></i> Gerenciamento de Usuários
-            ${getRolePermissions(state.user).canManageUsers ? '<span class="status-badge" style="margin-left:auto;"><span class="status-indicator success"></span>' + (getRolePermissions(state.user).role || 'MASTER').toUpperCase() + '</span>' : '<span class="status-badge" style="margin-left:auto; background:rgba(255,0,0,0.1);"><i class="fa-solid fa-lock"></i> BLOQUEADO</span>'}
+            ${isMaster(state.user) ? '<span class="status-badge" style="margin-left:auto; background:rgba(245,158,11,0.2); color:#fbbf24; border:1px solid rgba(245,158,11,0.4);"><i class="fa-solid fa-crown"></i> EXCLUSIVO MASTER</span>' : '<span class="status-badge" style="margin-left:auto; background:rgba(239,68,68,0.15); color:#f87171;"><i class="fa-solid fa-lock"></i> BLOQUEADO (Exclusivo Master)</span>'}
           </summary>
           <div class="settings-accordion-body">
-            ${getRolePermissions(state.user).canManageUsers ? `
+            ${isMaster(state.user) ? `
               <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
-                <strong>Bem-vindo, ${getRolePermissions(state.user).label}.</strong> Aqui você poderá editar perfis, resetar senhas e alterar permissões de outros usuários da clínica.
+                <strong>Acesso Concedido ao MASTER (${state.user?.name || 'Administrador Master'}).</strong> Você possui autorização exclusiva para incluir novos colaboradores, editar perfis, resetar senhas, gerenciar permissões e excluir contas de usuários do sistema.
               </p>
               <div class="settings-actions">
-                <button id="btn-edit-permissions" class="btn btn-primary">
-                  <i class="fa-solid fa-users-gear"></i> Gerenciar Usuários &amp; Permissões
+                <button id="btn-edit-permissions" class="btn btn-primary" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-crown" style="color: #fef08a;"></i> Gerenciar Usuários (Inclusão, Edição e Exclusão)
                 </button>
               </div>
             ` : `
-              <div style="text-align: center; padding: 20px 0; color: var(--color-danger); opacity: 0.8;">
-                <i class="fa-solid fa-shield-halved" style="font-size: 2rem; margin-bottom: 12px;"></i>
-                <p>Acesso negado. Apenas o usuário master (<strong>mazzarowysk</strong>) pode alterar as configurações de outros usuários.</p>
+              <div style="text-align: center; padding: 24px 16px; color: var(--color-danger); background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.3); border-radius: 12px;">
+                <i class="fa-solid fa-shield-halved" style="font-size: 2.2rem; margin-bottom: 12px; color: #f87171;"></i>
+                <h4 style="margin: 0 0 8px 0; color: #f87171; font-weight: 700;">Área Restrita ao Usuário MASTER</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">A inclusão, exclusão e alteração de cadastros de usuários do sistema é uma prerrogativa restrita unicamente ao perfil <strong>MASTER</strong>.</p>
               </div>
             `}
           </div>
@@ -351,7 +352,17 @@ export function renderSettingsTab(contentArea) {
     </div>
   `;
 
-  document.getElementById('btn-edit-permissions')?.addEventListener('click', showUserManagementModal);
+  document.getElementById('btn-edit-permissions')?.addEventListener('click', () => {
+    if (!isMaster(state.user)) {
+      showCustomAlert({
+        title: 'Acesso Negado',
+        message: 'Apenas o perfil MASTER pode gerenciar usuários.',
+        type: 'warning'
+      });
+      return;
+    }
+    showUserManagementModal();
+  });
   document.getElementById('btn-open-tabbed-manual-modal')?.addEventListener('click', () => {
     if (typeof window.showInteractiveManualModal === 'function') window.showInteractiveManualModal('geral');
   });
@@ -367,10 +378,10 @@ export function renderSettingsTab(contentArea) {
       }
 
       const tursoRes = await apiFetch(`/api/settings/turso`);
-      if (tursoRes.ok) {
-        const tursoData = await tursoRes.json();
-        const hasToken = tursoData.hasToken || (tursoData.token && tursoData.token.length > 0 && tursoData.token !== '');
-        const cloudConnected = tursoData.cloud_connected !== undefined ? tursoData.cloud_connected : hasToken;
+      if (tursoRes && tursoRes.ok) {
+        const tursoData = (await tursoRes.json()) || {};
+        const hasToken = !!(tursoData && (tursoData.hasToken || (tursoData.token && tursoData.token.length > 0)));
+        const cloudConnected = (tursoData && tursoData.cloud_connected !== undefined) ? tursoData.cloud_connected : hasToken;
 
         const urlInput = document.getElementById('turso-cfg-url');
         const tokenInput = document.getElementById('turso-cfg-token');
@@ -387,7 +398,7 @@ export function renderSettingsTab(contentArea) {
         }
         const lastSyncEl = document.getElementById('turso-last-sync-time');
         if (lastSyncEl) {
-          lastSyncEl.textContent = tursoData.lastSync ? new Date(tursoData.lastSync).toLocaleString('pt-BR') : 'Nenhuma';
+          lastSyncEl.textContent = (tursoData && tursoData.lastSync) ? new Date(tursoData.lastSync).toLocaleString('pt-BR') : 'Nenhuma';
         }
       }
     } catch (err) {

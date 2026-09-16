@@ -1,5 +1,10 @@
 [
   {
+    "nome": "Aciclovir",
+    "dose": "250mg",
+    "via": "EV"
+  },
+  {
     "nome": "Ácido Acetilsalicílico (AAS)",
     "dose": "100mg",
     "via": "VO"
@@ -10,9 +15,39 @@
     "via": "VO"
   },
   {
+    "nome": "Adenosina",
+    "dose": "6mg/2mL (Bolus rápido)",
+    "via": "EV"
+  },
+  {
+    "nome": "Adrenalina (Epinefrina)",
+    "dose": "1mg/mL (1 amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Adrenalina (Epinefrina)",
+    "dose": "0.5mg (1/2 amp)",
+    "via": "IM"
+  },
+  {
     "nome": "Albendazol",
     "dose": "400mg",
     "via": "VO"
+  },
+  {
+    "nome": "Albumina Humana 20%",
+    "dose": "50mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Alteplase (Actilyse / rt-PA)",
+    "dose": "50mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Amicacina",
+    "dose": "500mg (1 amp)",
+    "via": "EV"
   },
   {
     "nome": "Amiodarona",
@@ -22,6 +57,16 @@
   {
     "nome": "Amiodarona",
     "dose": "150mg (1 amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Amiodarona",
+    "dose": "150mg/3mL (1 amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Amiodarona em Solução",
+    "dose": "300mg + SG 5% 250mL",
     "via": "EV"
   },
   {
@@ -40,6 +85,21 @@
     "via": "VO"
   },
   {
+    "nome": "Anfotericina B Lipossomal",
+    "dose": "50mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Anidulafungina",
+    "dose": "100mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Apixabana (Eliquis)",
+    "dose": "5mg",
+    "via": "VO"
+  },
+  {
     "nome": "Atenolol",
     "dose": "50mg",
     "via": "VO"
@@ -50,14 +110,34 @@
     "via": "VO"
   },
   {
+    "nome": "Atropina (Sulfato de Atropina)",
+    "dose": "0.5mg/mL (1 amp)",
+    "via": "EV"
+  },
+  {
     "nome": "Azitromicina",
     "dose": "500mg",
     "via": "VO"
   },
   {
+    "nome": "Azitromicina",
+    "dose": "500mg (Frasco)",
+    "via": "EV"
+  },
+  {
     "nome": "Beclometasona",
     "dose": "250mcg/jato",
     "via": "Inalatória"
+  },
+  {
+    "nome": "Betametasona",
+    "dose": "4mg",
+    "via": "IM"
+  },
+  {
+    "nome": "Bicarbonato de Sódio 8,4%",
+    "dose": "250mL",
+    "via": "EV"
   },
   {
     "nome": "Brometo de Ipratrópio",
@@ -77,6 +157,11 @@
   {
     "nome": "Bromoprida",
     "dose": "10mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Bromoprida",
+    "dose": "10mg/2mL",
     "via": "EV"
   },
   {
@@ -120,6 +205,26 @@
     "via": "VO"
   },
   {
+    "nome": "Cefazolina",
+    "dose": "1g (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Cefepima",
+    "dose": "1g (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Cefepima",
+    "dose": "2g (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Cefotaxima",
+    "dose": "1g (Frasco)",
+    "via": "EV"
+  },
+  {
     "nome": "Ceftriaxona",
     "dose": "1g",
     "via": "EV"
@@ -128,6 +233,21 @@
     "nome": "Ceftriaxona",
     "dose": "1g",
     "via": "IM"
+  },
+  {
+    "nome": "Ceftriaxona (Rocefin)",
+    "dose": "1g (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Ceftriaxona (Rocefin)",
+    "dose": "2g (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Cetamina (Ketamina)",
+    "dose": "50mg/mL",
+    "via": "EV"
   },
   {
     "nome": "Cetoconazol",
@@ -150,9 +270,34 @@
     "via": "VO"
   },
   {
+    "nome": "Cetoprofeno",
+    "dose": "100mg",
+    "via": "IM"
+  },
+  {
+    "nome": "Cetoprofeno (Profenid)",
+    "dose": "100mg",
+    "via": "EV"
+  },
+  {
     "nome": "Ciprofloxacino",
     "dose": "500mg",
     "via": "VO"
+  },
+  {
+    "nome": "Ciprofloxacino",
+    "dose": "400mg (Bolsa 200mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Cisatracúrio",
+    "dose": "10mg/5mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Claritromicina",
+    "dose": "500mg (Frasco)",
+    "via": "EV"
   },
   {
     "nome": "Clonazepam",
@@ -175,8 +320,33 @@
     "via": "EV"
   },
   {
+    "nome": "Cloreto de Potássio 19,1%",
+    "dose": "10mL (amp)",
+    "via": "EV"
+  },
+  {
     "nome": "Cloreto de Sódio (Soro Fisiológico 0,9%)",
     "dose": "500ml",
+    "via": "EV"
+  },
+  {
+    "nome": "Cloreto de Sódio 0,9% (Soro Fisiológico)",
+    "dose": "250mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Cloreto de Sódio 0,9% (Soro Fisiológico)",
+    "dose": "500mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Cloreto de Sódio 0,9% (Soro Fisiológico)",
+    "dose": "1000mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Cloreto de Sódio 3% (Salina Hipertônica)",
+    "dose": "250mL",
     "via": "EV"
   },
   {
@@ -185,6 +355,16 @@
     "via": "VO"
   },
   {
+    "nome": "Colistina (Colistimetato de Sódio)",
+    "dose": "1.000.000 UI",
+    "via": "EV"
+  },
+  {
+    "nome": "Daptomicina",
+    "dose": "500mg",
+    "via": "EV"
+  },
+  {
     "nome": "Dexametasona",
     "dose": "4mg",
     "via": "VO"
@@ -195,9 +375,24 @@
     "via": "EV"
   },
   {
+    "nome": "Dexametasona",
+    "dose": "4mg/mL (amp 1mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Dexametasona",
+    "dose": "10mg/2.5mL (amp 2.5mL)",
+    "via": "EV"
+  },
+  {
     "nome": "Dexclorfeniramina",
     "dose": "2mg",
     "via": "VO"
+  },
+  {
+    "nome": "Dexmedetomidina (Precedex)",
+    "dose": "200mcg/2mL",
+    "via": "EV"
   },
   {
     "nome": "Diazepam",
@@ -210,6 +405,11 @@
     "via": "VO"
   },
   {
+    "nome": "Diazepam",
+    "dose": "10mg/2mL",
+    "via": "EV"
+  },
+  {
     "nome": "Diclofenaco de Sódio",
     "dose": "50mg",
     "via": "VO"
@@ -218,6 +418,11 @@
     "nome": "Diclofenaco de Sódio",
     "dose": "75mg",
     "via": "IM"
+  },
+  {
+    "nome": "Dimenidrinato + Piridoxina (Dramin B6)",
+    "dose": "1 ampola",
+    "via": "EV"
   },
   {
     "nome": "Dipirona Sódica",
@@ -230,9 +435,34 @@
     "via": "EV"
   },
   {
+    "nome": "Dipirona Sódica",
+    "dose": "1g/2mL (amp 2mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Dipirona Sódica",
+    "dose": "500mg/mL gotas",
+    "via": "VO"
+  },
+  {
+    "nome": "Dipirona Sódica",
+    "dose": "500mg (comprimido)",
+    "via": "VO"
+  },
+  {
+    "nome": "Dobutamina",
+    "dose": "250mg/20mL (1 amp)",
+    "via": "EV"
+  },
+  {
     "nome": "Domperidona",
     "dose": "10mg",
     "via": "VO"
+  },
+  {
+    "nome": "Dopamina",
+    "dose": "50mg/10mL (1 amp)",
+    "via": "EV"
   },
   {
     "nome": "Enalapril",
@@ -243,6 +473,21 @@
     "nome": "Enalapril",
     "dose": "20mg",
     "via": "VO"
+  },
+  {
+    "nome": "Enoxaparina Sódica (Clexane)",
+    "dose": "40mg/0,4mL",
+    "via": "SC"
+  },
+  {
+    "nome": "Enoxaparina Sódica (Clexane)",
+    "dose": "60mg/0,6mL",
+    "via": "SC"
+  },
+  {
+    "nome": "Enoxaparina Sódica (Clexane)",
+    "dose": "80mg/0,8mL",
+    "via": "SC"
   },
   {
     "nome": "Epinefrina (Adrenalina)",
@@ -255,9 +500,39 @@
     "via": "EV"
   },
   {
+    "nome": "Ertapenem",
+    "dose": "1g (Frasco)",
+    "via": "EV"
+  },
+  {
     "nome": "Escitalopram",
     "dose": "10mg",
     "via": "VO"
+  },
+  {
+    "nome": "Esmolol",
+    "dose": "100mg/10mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Espironolactona (Aldactone)",
+    "dose": "25mg",
+    "via": "VO"
+  },
+  {
+    "nome": "Etomidato",
+    "dose": "20mg/10mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Fentanil (Fentanila)",
+    "dose": "50mcg/mL (amp 2mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Fentanil (Fentanila) em Solução (BIC)",
+    "dose": "1000mcg + SF 0,9% 100mL",
+    "via": "EV"
   },
   {
     "nome": "Fluconazol",
@@ -265,9 +540,24 @@
     "via": "VO"
   },
   {
+    "nome": "Fluconazol",
+    "dose": "200mg (Bolsa 100mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Flumazenil",
+    "dose": "0.5mg/5mL",
+    "via": "EV"
+  },
+  {
     "nome": "Fluoxetina",
     "dose": "20mg",
     "via": "VO"
+  },
+  {
+    "nome": "Fondaparinux",
+    "dose": "2.5mg",
+    "via": "SC"
   },
   {
     "nome": "Furosemida",
@@ -277,6 +567,21 @@
   {
     "nome": "Furosemida",
     "dose": "20mg (1 amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Furosemida (Lasix)",
+    "dose": "20mg/2mL (amp 2mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Furosemida (Lasix)",
+    "dose": "40mg",
+    "via": "VO"
+  },
+  {
+    "nome": "Gentamicina",
+    "dose": "80mg/2mL",
     "via": "EV"
   },
   {
@@ -295,6 +600,26 @@
     "via": "EV"
   },
   {
+    "nome": "Glicose Hipertônica 50%",
+    "dose": "10mL (amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Glicose Hipertônica 50%",
+    "dose": "20mL (amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Glucagon",
+    "dose": "1mg",
+    "via": "SC"
+  },
+  {
+    "nome": "Gluconato de Cálcio 10%",
+    "dose": "10mL (amp)",
+    "via": "EV"
+  },
+  {
     "nome": "Haloperidol",
     "dose": "5mg",
     "via": "VO"
@@ -305,12 +630,32 @@
     "via": "IM"
   },
   {
+    "nome": "Heparina Não Fracionada",
+    "dose": "5.000 UI/0,25mL",
+    "via": "SC"
+  },
+  {
+    "nome": "Heparina Não Fracionada (Solução)",
+    "dose": "25.000 UI/5mL",
+    "via": "EV"
+  },
+  {
     "nome": "Hidroclorotiazida",
     "dose": "25mg",
     "via": "VO"
   },
   {
     "nome": "Hidrocortisona",
+    "dose": "500mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Hidrocortisona (Succinato Sódico)",
+    "dose": "100mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Hidrocortisona (Succinato Sódico)",
     "dose": "500mg",
     "via": "EV"
   },
@@ -325,13 +670,33 @@
     "via": "VO"
   },
   {
+    "nome": "Imipenem + Cilastatina",
+    "dose": "500mg (Frasco)",
+    "via": "EV"
+  },
+  {
     "nome": "Insulina NPH",
     "dose": "100 UI/mL",
     "via": "SC"
   },
   {
+    "nome": "Insulina NPH Humana",
+    "dose": "10 UI a 30 UI",
+    "via": "SC"
+  },
+  {
     "nome": "Insulina Regular",
     "dose": "100 UI/mL",
+    "via": "SC"
+  },
+  {
+    "nome": "Insulina Regular em Solução (BIC)",
+    "dose": "100 UI + SF 0,9% 100mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Insulina Regular Humana",
+    "dose": "Escala Móvel conforme HGT",
     "via": "SC"
   },
   {
@@ -345,6 +710,16 @@
     "via": "VO"
   },
   {
+    "nome": "Levofloxacino",
+    "dose": "500mg (Bolsa 100mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Levofloxacino",
+    "dose": "750mg (Bolsa 150mL)",
+    "via": "EV"
+  },
+  {
     "nome": "Levotiroxina Sódica",
     "dose": "50mcg",
     "via": "VO"
@@ -352,6 +727,16 @@
   {
     "nome": "Levotiroxina Sódica",
     "dose": "100mcg",
+    "via": "VO"
+  },
+  {
+    "nome": "Linezolida",
+    "dose": "600mg (Bolsa 300mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Linezolida",
+    "dose": "600mg",
     "via": "VO"
   },
   {
@@ -365,6 +750,16 @@
     "via": "VO"
   },
   {
+    "nome": "Manitol 20%",
+    "dose": "250mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Meropenem",
+    "dose": "1g (Frasco)",
+    "via": "EV"
+  },
+  {
     "nome": "Metformina",
     "dose": "500mg",
     "via": "VO"
@@ -375,6 +770,16 @@
     "via": "VO"
   },
   {
+    "nome": "Metilprednisolona (Solu-Medrol)",
+    "dose": "125mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Metilprednisolona (Solu-Medrol)",
+    "dose": "500mg",
+    "via": "EV"
+  },
+  {
     "nome": "Metoclopramida",
     "dose": "10mg",
     "via": "VO"
@@ -382,6 +787,41 @@
   {
     "nome": "Metoclopramida",
     "dose": "10mg (1 amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Metoclopramida (Plasil)",
+    "dose": "10mg/2mL (amp 2mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Metoclopramida (Plasil)",
+    "dose": "10mg",
+    "via": "VO"
+  },
+  {
+    "nome": "Metoprolol",
+    "dose": "5mg/5mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Metronidazol",
+    "dose": "500mg (Bolsa 100mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Micafungina",
+    "dose": "100mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Midazolam (Dormonid)",
+    "dose": "15mg/3mL (amp 3mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Midazolam (Dormonid)",
+    "dose": "50mg/10mL (amp 10mL)",
     "via": "EV"
   },
   {
@@ -395,9 +835,44 @@
     "via": "IM"
   },
   {
+    "nome": "Morfina (Sulfato de Morfina)",
+    "dose": "10mg/mL (amp 1mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Morfina (Sulfato de Morfina)",
+    "dose": "10mg/mL (amp 1mL)",
+    "via": "SC"
+  },
+  {
+    "nome": "Naloxona (Narcan)",
+    "dose": "0.4mg/mL (amp 1mL)",
+    "via": "EV"
+  },
+  {
     "nome": "Nitazoxanida",
     "dose": "500mg",
     "via": "VO"
+  },
+  {
+    "nome": "Nitroglicerina (Tridil)",
+    "dose": "50mg/10mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Nitroprussiato de Sódio (Nipride)",
+    "dose": "50mg (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Noradrenalina (Hemitartarato de Norepinefrina)",
+    "dose": "4mg/4mL (1 amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Noradrenalina em Solução (BIC)",
+    "dose": "8mg + SG 5% 250mL",
+    "via": "EV"
   },
   {
     "nome": "Omeprazol",
@@ -410,6 +885,11 @@
     "via": "EV"
   },
   {
+    "nome": "Omeprazol Sódico",
+    "dose": "40mg (Frasco)",
+    "via": "EV"
+  },
+  {
     "nome": "Ondansetrona",
     "dose": "4mg",
     "via": "VO"
@@ -420,9 +900,39 @@
     "via": "EV"
   },
   {
+    "nome": "Ondansetrona",
+    "dose": "8mg",
+    "via": "VO"
+  },
+  {
+    "nome": "Ondansetrona (Vonau)",
+    "dose": "4mg/2mL (amp 2mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Ondansetrona (Vonau)",
+    "dose": "8mg/4mL (amp 4mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Oseltamivir (Tamiflu)",
+    "dose": "75mg",
+    "via": "VO"
+  },
+  {
+    "nome": "Pancurônio",
+    "dose": "4mg/2mL",
+    "via": "EV"
+  },
+  {
     "nome": "Pantoprazol",
     "dose": "40mg",
     "via": "VO"
+  },
+  {
+    "nome": "Pantoprazol Sódico",
+    "dose": "40mg (Frasco)",
+    "via": "EV"
   },
   {
     "nome": "Paracetamol",
@@ -433,6 +943,21 @@
     "nome": "Paracetamol",
     "dose": "750mg",
     "via": "VO"
+  },
+  {
+    "nome": "Parecoxibe (Dynastat)",
+    "dose": "40mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Piperacilina + Tazobactam (Tazocin)",
+    "dose": "4,5g (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Polimixina B",
+    "dose": "500.000 UI",
+    "via": "EV"
   },
   {
     "nome": "Prednisona",
@@ -450,8 +975,43 @@
     "via": "IM"
   },
   {
+    "nome": "Propofol 1%",
+    "dose": "200mg/20mL (amp 20mL)",
+    "via": "EV"
+  },
+  {
+    "nome": "Protamina (Sulfato de Protamina)",
+    "dose": "50mg/5mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Remifentanil",
+    "dose": "2mg",
+    "via": "EV"
+  },
+  {
     "nome": "Ringer Lactato",
     "dose": "500ml",
+    "via": "EV"
+  },
+  {
+    "nome": "Ringer Lactato",
+    "dose": "1000mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Rivaroxabana (Xarelto)",
+    "dose": "15mg",
+    "via": "VO"
+  },
+  {
+    "nome": "Rivaroxabana (Xarelto)",
+    "dose": "20mg",
+    "via": "VO"
+  },
+  {
+    "nome": "Rocurônio (Brometo de Rocurônio)",
+    "dose": "50mg/5mL",
     "via": "EV"
   },
   {
@@ -490,8 +1050,23 @@
     "via": "VO"
   },
   {
+    "nome": "Soro Glicosado 10%",
+    "dose": "500mL",
+    "via": "EV"
+  },
+  {
     "nome": "Soro Glicosado 5%",
     "dose": "500ml",
+    "via": "EV"
+  },
+  {
+    "nome": "Soro Glicosado 5%",
+    "dose": "250mL",
+    "via": "EV"
+  },
+  {
+    "nome": "Succinilcolina (Quelicin)",
+    "dose": "100mg",
     "via": "EV"
   },
   {
@@ -505,11 +1080,26 @@
     "via": "VO"
   },
   {
+    "nome": "Sulfato de Magnésio 10%",
+    "dose": "10mL (amp)",
+    "via": "EV"
+  },
+  {
+    "nome": "Sulfato de Magnésio 50%",
+    "dose": "10mL (amp)",
+    "via": "EV"
+  },
+  {
     "nome": "Sulfato Ferroso",
     "dose": "40mg (Ferro Elementar)",
     "via": "VO"
   },
   {
+    "nome": "Tenoxicam (Tilatil)",
+    "dose": "20mg",
+    "via": "EV"
+  },
+  {
     "nome": "Tramadol",
     "dose": "50mg",
     "via": "VO"
@@ -517,6 +1107,26 @@
   {
     "nome": "Tramadol",
     "dose": "50mg",
+    "via": "EV"
+  },
+  {
+    "nome": "Vancomicina",
+    "dose": "500mg (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Vancomicina",
+    "dose": "1g (Frasco)",
+    "via": "EV"
+  },
+  {
+    "nome": "Varfarina Sódica (Marevan)",
+    "dose": "5mg",
+    "via": "VO"
+  },
+  {
+    "nome": "Vasopressina",
+    "dose": "20UI/mL (1 amp)",
     "via": "EV"
   }
 ]
