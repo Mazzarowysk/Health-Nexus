@@ -122,14 +122,15 @@ O **Health Nexus** organiza a jornada assistencial do paciente desde a recepçã
 
 <h3 id="sec-2-1">2.1. Cards Métricos e Filtros de Fila</h3>
 
-No topo da aba **Atendimentos**, encontram-se os 4 **Cards Métricos Clicáveis** para controle imediato do fluxo:
+No topo da aba **Atendimentos**, encontram-se os 5 **Cards Métricos Clicáveis** para controle imediato do fluxo:
 
 | Card | Ícone | Cor Tema | Ação ao Clicar | Descrição / Objetivo | Meta Operacional |
 |:---|:---:|:---:|:---|:---|:---|
 | **Triagem** | 🩺 | Azul Clínico (`#0284c7`) | `filterKanbanColumn('triage')` | Filtra a tela para exibir exclusivamente a coluna de pacientes aguardando triagem. | Fila zero / Espera < 10 min |
 | **Ag. Médico** | ⏳ | Amarelo (`#f59e0b`) | `filterKanbanColumn('waiting')` | Filtra a tela para exibir apenas os pacientes triados aguardando chamada do médico. | Respeitar SLA Manchester |
-| **Em Consulta** | 👨‍⚕️ | Verde (`#10b981`) | `filterKanbanColumn('active')` | Filtra a tela para focar nos atendimentos em andamento e em observação no PS. | Giro de consultório ágil |
-| **Ver Todos** | 📊 | Neutro (`#94a3b8`) | `filterKanbanColumn('all')` | Reseta os filtros e exibe as 3 colunas lado a lado no painel Kanban integrado. | Visão global do pronto-socorro |
+| **Em Consulta** | 👨‍⚕️ | Verde (`#10b981`) | `filterKanbanColumn('active')` | Filtra a tela para focar nos atendimentos em andamento em consultório médico. | Giro de consultório ágil |
+| **Em Observação** | 🛏️ | Âmbar PS (`#f59e0b`) | `filterKanbanColumn('obs')` | Filtra a tela para focar nos pacientes alocados na 4ª coluna de observação do PS. | Reavaliação < 12h / CFM |
+| **Ver Todos** | 📊 | Neutro (`#94a3b8`) | `filterKanbanColumn('all')` | Reseta os filtros e exibe as 4 colunas lado a lado no painel Kanban integrado. | Visão global do pronto-socorro |
 
 ---
 
@@ -178,19 +179,41 @@ Nesta coluna, os pacientes são ordenados por **Gravidade Manchester** e **Tempo
 
 ---
 
-<h3 id="sec-2-4">2.4. Fila 3: Em Atendimento (Ações do Médico)</h3>
+<h3 id="sec-2-4">2.4. Fila 3: Em Consulta (Ações do Médico no Consultório)</h3>
 
-Coluna onde o médico realiza o atendimento ativo. Cada card contém 5 botões de ação:
+Coluna onde o médico realiza a consulta ativa. Cada card contém botões de ação clínica:
 
-#### Tabela de Controles e Botões de Ação do Médico
+#### Tabela de Controles e Botões de Ação do Médico no Consultório
 
 | Botão | Ícone | Ação Executada | Parâmetros Obrigatórios | Resultado no Fluxo Hospitalar |
 |:---|:---:|:---|:---|:---|
 | **PEP** | 🩺 | Abre o Prontuário Eletrônico SOAPE | Login médico ativo e CRM | Acesso total a anamnese, hipóteses diagnósticas e IA preditiva. |
 | **Prescrição** | 📜 | Abre o receituário digital | Seleção de medicamento e posologia | Gera receita com código de barras, QR Code CFM e baixa na farmácia. |
-| **Observação** | ⏱️ | Coloca em observação no PS (12h max)| Motivo clínico e reavaliação | Inicia contagem regressiva de estagnação com alerta aos 10h e 12h. |
-| **Transferir Leito**| 🛏️ | Solicita leito de internação hospitalar| Especialidade médica e tipo de vaga | Envia solicitação formal para o Censo e Kanban de Internação. |
+| **Observação** | ⏱️ | Coloca em observação no PS (12h/24h) | Motivo clínico e reavaliação | Transfere paciente para a Fila 4 (Em Observação) com timer ativo. |
 | **Finalizar** | ✅ | Conclui o atendimento com alta médica | Diagnóstico CID-10 e conduta final | Emite atestado, receita, guia de faturamento e encerra a conta. |
+
+---
+
+<h3 id="sec-2-5">2.5. Fila 4: Em Observação (PS) & Aba Dedicada de Observação</h3>
+
+A 4ª coluna do Kanban e a aba dedicada **Observação do PS** operam em conformidade estrita com a **Resolução CFM nº 2.079/14**:
+
+- **Regulamentação Federal (CFM nº 2.079/14):**
+  - **Tempo Máximo:** O tempo de permanência de um paciente em leito de observação de Pronto-Socorro não deve ultrapassar **24 horas**.
+  - **Meta Assistencial de Reavaliação:** O paciente deve ter seu desfecho definido (alta ou internação em leito hospitalar) em até **12 horas**.
+  - **Classificação Visual de Permanência:**
+    - 🔵 **Seguro (< 6 horas):** Fase de hidratação, analgesia e exames complementares de urgência.
+    - 🟡 **Alerta de Reavaliação (6 a 12 horas):** Reavaliação médica obrigatória de conduta.
+    - 🔴 **Crítico / Limite Excedido (> 12 horas):** Badge pulsante com botão **INTERNAR** em destaque para transferência imediata a leito hospitalar (UTI, Semi-UTI ou Enfermaria).
+
+#### Tabela de Ações Clínicas na Observação do PS
+
+| Botão | Ícone | Ação Executada | Parâmetros Obrigatórios | Efeito Assistencial no Sistema |
+|:---|:---:|:---|:---|:---|
+| **PEP** | 🩺 | Abre o Prontuário Eletrônico | Login ativo | Permite evolução clínica de enfermagem e médica durante a permanência. |
+| **Prescrição** | 📜 | Prescrição de medicações rápidas | Medicamento e via | Prescreve hidratação venosa, analgésicos e antieméticos no PS. |
+| **Internar** | 🛏️ | Abre modal de alocação de leito | Setor (UTI/Enfermaria) | Transfere o paciente para a Central de Leitos e libera a vaga de observação. |
+| **Alta Obs** | 🚶 | Concede alta da observação médica | Confirmação do operador | Finaliza o atendimento no PS, libera a poltrona e atualiza a aba Pacientes com status "Alta" e carimbo de data/hora. |
 
 ---
 
@@ -275,9 +298,9 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Salvar & Chamar na TV**| `#btn-triage-save-call` | Salva triagem e aciona chamada sonora | Todos os campos vitais preenchidos | Grava cor, toca chime e anuncia paciente na TV. |
-| **Apenas Salvar Triagem** | `#btn-triage-save-only` | Conclui sem acionar a chamada de voz | Todos os campos vitais preenchidos | Move o paciente para a coluna "Aguardando Médico". |
-| **Cancelar** | `#btn-triage-cancel` | Fecha modal sem persistir dados | Nenhuma validação exigida | Descarta alterações e mantém o status anterior. |
+| **Encaminhar p/ Consultório** | `#btn-submit-triage-consult` | Salva triagem e direciona para atendimento médico | Sinais vitais e classificação | Move o paciente para a coluna "Aguardando Médico" (Consultório 01). |
+| **Encaminhar p/ Observação (PS)** | `#btn-submit-triage-obs` | Salva triagem e direciona para a Sala de Observação | Sinais vitais e classificação | Move para a coluna "Em Observação (PS)" e aba Observação com cronômetro ativo. |
+| **Cancelar** | `#btn-cancel-triage` | Fecha modal sem persistir dados | Nenhuma validação exigida | Descarta alterações e mantém o paciente na fila de triagem. |
 
 ---
 
@@ -307,13 +330,13 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 <h3 id="sec-4-3">4.3. Modal de Transferência & Alocação de Leito</h3>
 
-- **Gatilho de Abertura:** Clique no botão `Transferir Leito` no card do paciente na Central de Atendimentos.
+- **Gatilho de Abertura:** Clique no botão `Transferir Leito` ou `Internar` no card do paciente na Central de Atendimentos ou na Observação.
 - **Campos de Entrada do Formulário:**
 
 | Campo | Identificador HTML | Tipo de Entrada | Regra de Negócio | Exemplo de Preenchimento Válido |
 |:---|:---|:---|:---|:---|
 | **Paciente Selecionado** | `#transfer-patient-name` | Texto somente-leitura | Pré-carregado com nome e prontuário | `Marcelo Mazaro (Prontuário #0042)` |
-| **Setor Hospitalar Destino**| `#transfer-sector-select`| Seletor de opções | Enfermaria Geral, UTI Adulto, Isolamento | `UTI Adulto - Bloco B` |
+| **Setor Hospitalar Destino**| `#transfer-sector-select`| Seletor de opções | UTI Adulto, Semi-UTI, CTI, Clínica Médica, Cirúrgica, Isolamento | `UTI Adulto - Bloco B` |
 | **Leito Vago Disponível** | `#transfer-bed-select` | Seletor dinâmico | Apenas leitos com status "Vago" | `Leito UTI-03 (Vago / Higienizado)` |
 | **Justificativa Clínica** | `#transfer-reason` | Área de texto | Mínimo 15 caracteres para auditoria | `Necessidade de suporte ventilatório mecânico invasivo.`|
 

@@ -39,6 +39,12 @@ export function renderAttendanceTab(contentArea) {
               <span>Em Consulta</span>
             </div>
 
+            <div id="card-kpi-obs" class="atd-metric-card" onclick="window.filterKanbanColumn('obs')" title="Filtrar por Pacientes em Observação (PS)" style="background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+              <i class="fa-solid fa-bed-pulse" style="font-size:0.9rem; color:#f59e0b;"></i>
+              <strong id="kpi-observacao-num" style="font-size:0.95rem; font-weight:800; color:#fbbf24;">0</strong>
+              <span>Em Observação</span>
+            </div>
+
             <div id="card-kpi-all" class="atd-metric-card active-filter" onclick="window.filterKanbanColumn('all')" title="Exibir Todas as Colunas" style="background:rgba(255,255,255,0.05); color:var(--text-primary); border:1px solid rgba(255,255,255,0.15); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
               <i class="fa-solid fa-layer-group" style="font-size:0.85rem; color:var(--text-muted);"></i>
               <span>Ver Todos</span>
@@ -56,8 +62,8 @@ export function renderAttendanceTab(contentArea) {
       <!-- Container Dinâmico da Linha de Cuidado Guiada (Patient Journey Stepper) -->
       <div id="atd-journey-stepper-container"></div>
 
-      <!-- Painel Kanban -->
-      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start;">
+      <!-- Painel Kanban (4 Colunas) -->
+      <div id="kanban-grid-container" style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; align-items:start;">
         <!-- Coluna Triagem -->
         <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
           <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #0284c7;">
@@ -80,14 +86,25 @@ export function renderAttendanceTab(contentArea) {
           </div>
         </div>
 
-        <!-- Coluna Em Atendimento -->
+        <!-- Coluna Em Consulta -->
         <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
           <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #10b981;">
-            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-doctor" style="color:#10b981;"></i> Em Atendimento</span>
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-doctor" style="color:#10b981;"></i> Em Consulta</span>
             <span id="count-active" style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
           </div>
           <div id="col-active" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
             <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#10b981; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Nenhum em atendimento</div>
+          </div>
+        </div>
+
+        <!-- Coluna Em Observação (PS) -->
+        <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #f59e0b;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-bed-pulse" style="color:#f59e0b;"></i> Em Observação (PS)</span>
+            <span id="count-obs" style="background:rgba(245,158,11,0.2); color:#fbbf24; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
+          </div>
+          <div id="col-obs" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
+            <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#f59e0b; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Nenhum em observação</div>
           </div>
         </div>
       </div>
@@ -179,7 +196,12 @@ export function renderAttendanceTab(contentArea) {
               </div>
               <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap;">
                 <button type="button" id="btn-cancel-triage" class="btn" style="background:var(--bg-tertiary); color:var(--text-primary); border-color:var(--border-color);">Cancelar</button>
-                <button type="submit" id="btn-submit-triage" class="btn btn-primary" style="background:linear-gradient(135deg,#10b981,#059669); border:none; color:#fff; font-weight:800; font-size:0.88rem; padding:10px 18px; border-radius:8px; box-shadow:0 4px 14px rgba(16,185,129,0.35); cursor:pointer;"><i class="fa-solid fa-check-circle"></i> Salvar Triagem &amp; Encaminhar para Atendimento</button>
+                <button type="button" id="btn-submit-triage-obs" class="btn" style="background:linear-gradient(135deg,rgba(245,158,11,0.9),#d97706); border:none; color:#fff; font-weight:800; font-size:0.85rem; padding:10px 14px; border-radius:8px; box-shadow:0 4px 14px rgba(245,158,11,0.35); cursor:pointer;">
+                  <i class="fa-solid fa-bed-pulse"></i> Encaminhar p/ Observação (PS)
+                </button>
+                <button type="submit" id="btn-submit-triage-consult" class="btn btn-primary" style="background:linear-gradient(135deg,#10b981,#059669); border:none; color:#fff; font-weight:800; font-size:0.85rem; padding:10px 16px; border-radius:8px; box-shadow:0 4px 14px rgba(16,185,129,0.35); cursor:pointer;">
+                  <i class="fa-solid fa-stethoscope"></i> Encaminhar p/ Consultório
+                </button>
               </div>
             </form>
           </div>
@@ -395,7 +417,7 @@ export function renderAttendanceTab(contentArea) {
       allEncounters = Array.isArray(json) ? json : (json.data || []);
       renderKanban(allEncounters);
     } catch {
-      ['col-triage','col-waiting','col-active'].forEach(id => {
+      ['col-triage','col-waiting','col-active','col-obs'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = '<div style="text-align:center;color:var(--color-danger);padding:20px;font-size:0.82rem;"><i class="fa-solid fa-circle-xmark"></i><br>Erro ao carregar.</div>';
       });
@@ -423,7 +445,7 @@ export function renderAttendanceTab(contentArea) {
       return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at);
     });
 
-    const active = [...encounters.filter(e => e.status === 'Em_Atendimento')].sort((a, b) => {
+    const active = [...encounters.filter(e => e.status === 'Em_Atendimento' && !e.observation_started_at && e.status !== 'Em_Observacao')].sort((a, b) => {
       const aSel = isPatientFocused(a.patientName);
       const bSel = isPatientFocused(b.patientName);
       if (aSel && !bSel) return -1;
@@ -431,14 +453,23 @@ export function renderAttendanceTab(contentArea) {
       return 0;
     });
 
+    const obs = [...encounters.filter(e => (e.status === 'Em_Observacao' || !!e.observation_started_at) && e.status !== 'Finalizado' && e.status !== 'Alta')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0);
+    });
+
     window.filterKanbanColumn = function(type) {
       const colTriage = document.getElementById('col-triage')?.parentElement;
       const colWaiting = document.getElementById('col-waiting')?.parentElement;
       const colActive = document.getElementById('col-active')?.parentElement;
-      if (!colTriage || !colWaiting || !colActive) return;
+      const colObs = document.getElementById('col-obs')?.parentElement;
+      if (!colTriage || !colWaiting || !colActive || !colObs) return;
       const grid = colTriage.parentElement;
 
-      ['triage', 'waiting', 'active', 'all'].forEach(t => {
+      ['triage', 'waiting', 'active', 'obs', 'all'].forEach(t => {
         const card = document.getElementById(`card-kpi-${t}`);
         if (card) {
           if (t === type) {
@@ -452,25 +483,35 @@ export function renderAttendanceTab(contentArea) {
       });
 
       if (type === 'all') {
-        grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
         colTriage.style.display = 'block';
         colWaiting.style.display = 'block';
         colActive.style.display = 'block';
+        colObs.style.display = 'block';
       } else if (type === 'triage') {
         grid.style.gridTemplateColumns = '1fr';
         colTriage.style.display = 'block';
         colWaiting.style.display = 'none';
         colActive.style.display = 'none';
+        colObs.style.display = 'none';
       } else if (type === 'waiting') {
         grid.style.gridTemplateColumns = '1fr';
         colTriage.style.display = 'none';
         colWaiting.style.display = 'block';
         colActive.style.display = 'none';
+        colObs.style.display = 'none';
       } else if (type === 'active') {
         grid.style.gridTemplateColumns = '1fr';
         colTriage.style.display = 'none';
         colWaiting.style.display = 'none';
         colActive.style.display = 'block';
+        colObs.style.display = 'none';
+      } else if (type === 'obs') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'none';
+        colWaiting.style.display = 'none';
+        colActive.style.display = 'none';
+        colObs.style.display = 'block';
       }
     };
 
@@ -480,6 +521,8 @@ export function renderAttendanceTab(contentArea) {
     if (countWt) countWt.textContent = waiting.length;
     const countAc = document.getElementById('count-active');
     if (countAc) countAc.textContent = active.length;
+    const countOb = document.getElementById('count-obs');
+    if (countOb) countOb.textContent = obs.length;
 
     const kpiTr = document.getElementById('kpi-triagem-num');
     if (kpiTr) kpiTr.textContent = triage.length;
@@ -487,6 +530,15 @@ export function renderAttendanceTab(contentArea) {
     if (kpiWt) kpiWt.textContent = waiting.length;
     const kpiAc = document.getElementById('kpi-consulta-num');
     if (kpiAc) kpiAc.textContent = active.length;
+    const kpiOb = document.getElementById('kpi-observacao-num');
+    if (kpiOb) kpiOb.textContent = obs.length;
+
+    // Atualizar badge lateral de Observação
+    const navObsBadge = document.getElementById('nav-badge-observacao');
+    if (navObsBadge) {
+      navObsBadge.textContent = obs.length;
+      navObsBadge.style.display = obs.length > 0 ? 'inline-block' : 'none';
+    }
 
     const setCol = (id, items, emptyColor, emptyMsg, buildFn, bindFn) => {
       const col = document.getElementById(id);
@@ -511,12 +563,12 @@ export function renderAttendanceTab(contentArea) {
     setCol('col-active', active, '#10b981', 'Nenhum em atendimento', buildActiveCard, (e) => {
       const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
       const rx = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-rx`);
-      const obs = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-start-obs`);
+      const obsBtn = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-start-obs`);
       const bed = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-transfer-bed`);
       const fin = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-finish-consult`);
       if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
       if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
-      if (obs) obs.addEventListener('click', async () => {
+      if (obsBtn) obsBtn.addEventListener('click', async () => {
         try {
           const res = await apiFetch(`/api/encounters/${e.id}/start-observation`, {
             method: 'PUT',
@@ -528,9 +580,10 @@ export function renderAttendanceTab(contentArea) {
             if (typeof window.showFlowCompletionNotification === 'function') {
               window.showFlowCompletionNotification({
                 actionTitle: '⏱️ Observação Médica PS Iniciada',
-                message: `O paciente <strong>${e.patientName}</strong> foi colocado em observação médica. O tempo de permanência de 12 horas está ativo na coluna 'Em Atendimento'.`,
+                message: `O paciente <strong>${e.patientName}</strong> foi colocado em observação médica. O tempo de permanência de 12 horas está ativo na coluna 'Em Observação (PS)'.`,
                 targetTab: 'atendimento',
-                targetTabLabel: 'Atendimentos (Observação 12h PS)',
+                targetTabLabel: 'Ver na Coluna Observação (PS)',
+                targetColumn: 'col-obs',
                 persistent: true
               });
             }
@@ -540,6 +593,43 @@ export function renderAttendanceTab(contentArea) {
       });
       if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
       if (fin) fin.addEventListener('click', () => updateStatus(e.id, 'Finalizado', e.patientName));
+    });
+
+    setCol('col-obs', obs, '#f59e0b', 'Nenhum em observação', buildObsCard, (e) => {
+      const pep = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-pep`);
+      const rx = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-rx`);
+      const bed = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-transfer-bed`);
+      const alta = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-finish-obs`);
+      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
+      if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
+      if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
+      if (alta) alta.addEventListener('click', async () => {
+        if (!confirm(`Confirmar alta da observação para ${e.patientName}? O paciente receberá alta com registro de data e horário no prontuário.`)) return;
+        try {
+          const res = await apiFetch(`/api/encounters/${e.id}/finish-observation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dischargeNotes: 'Alta concedida após período de observação no PS com melhora clínica.' })
+          });
+          if (res.ok) {
+            showToast(`✅ Alta da observação registrada para ${e.patientName}.`);
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: '🏥 Alta da Observação Concedida',
+                message: `O paciente <strong>${e.patientName}</strong> recebeu alta da observação médica do PS. Status atualizado na aba Pacientes.`,
+                targetTab: 'pacientes',
+                targetTabLabel: 'Ver Registro em Pacientes',
+                persistent: true
+              });
+            }
+            await loadAndRenderKanban();
+          } else {
+            showToast('Erro ao registrar alta da observação.', true);
+          }
+        } catch (err) {
+          showToast('Erro de conexão ao dar alta.', true);
+        }
+      });
     });
 
     // Auto-scroll e destaque imediato do paciente em foco
@@ -704,6 +794,66 @@ export function renderAttendanceTab(contentArea) {
           `}
           <button class="btn btn-primary btn-finish-consult" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:linear-gradient(135deg,#10b981,#059669);border:none;cursor:pointer;">
             <i class="fa-solid fa-circle-check"></i> Finalizar
+          </button>
+        </div>
+      </div>`;
+  };
+
+  const buildObsCard = (e) => {
+    const mc = getMC(e.manchesterColor);
+    const isSel = isPatientFocused(e.patientName);
+    const safePName = (e.patientName || '').replace(/'/g, "\\'");
+    const obsStart = new Date(e.observation_started_at || e.admitted_at).getTime();
+    const diffMs = Math.max(0, Date.now() - obsStart);
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    let obsBadgeHtml = '';
+    if (diffHours >= 12) {
+      obsBadgeHtml = `<div style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#f87171; border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; animation:pulse 1.5s infinite;">
+        <span><i class="fa-solid fa-triangle-exclamation"></i> EXCEDEU 12H PS: ${diffHours}h ${diffMins}m</span>
+        <span style="font-size:0.68rem; background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px;">INTERNAR</span>
+      </div>`;
+    } else if (diffHours >= 10) {
+      obsBadgeHtml = `<div style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fbbf24; border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+        <span><i class="fa-solid fa-clock"></i> Limite 12h: ${diffHours}h ${diffMins}m</span>
+      </div>`;
+    } else {
+      obsBadgeHtml = `<div style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#fbbf24; border-radius:8px; padding:5px 10px; font-size:0.73rem; font-weight:600; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+        <span><i class="fa-solid fa-bed-pulse"></i> Obs PS: ${diffHours}h ${diffMins}m / 12h max</span>
+      </div>`;
+    }
+
+    return `
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(245,158,11,0.3)'};border-left:4px solid #f59e0b;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Em_Observacao', currentStep: 4, room: 'Sala de Observação' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+        ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
+          <span id="timer-${e.id}" style="font-size:0.7rem;color:#fbbf24;font-family:monospace;background:rgba(245,158,11,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <span style="width:7px;height:7px;background:#f59e0b;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
+          <span style="font-size:0.75rem;color:#fbbf24;font-weight:600;">Em Observação (PS)</span>
+          ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;margin-left:auto;">${mc.label}</span>`:''}
+        </div>
+        ${obsBadgeHtml}
+        ${e.bloodPressure||e.temperatureCelsius?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">${e.bloodPressure?`<div style="background:var(--bg-secondary);border-radius:6px;padding:4px 6px;font-size:0.7rem;"><span style="color:var(--text-muted);">PA:</span> <strong style="color:var(--text-primary);">${e.bloodPressure}</strong></div>`:''} ${e.temperatureCelsius?`<div style="background:var(--bg-secondary);border-radius:6px;padding:4px 6px;font-size:0.7rem;"><span style="color:var(--text-muted);">Temp:</span> <strong style="color:var(--text-primary);">${e.temperatureCelsius}°C</strong></div>`:''}</div>`:''}
+        ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+          <button class="btn btn-open-pep" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary);border-radius:var(--radius-md);cursor:pointer;" title="Prontuário Eletrônico">
+            <i class="fa-solid fa-file-medical"></i> PEP
+          </button>
+          <button class="btn btn-open-rx" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a78bfa;border-radius:var(--radius-md);cursor:pointer;" title="Prescrição de Medicações">
+            <i class="fa-solid fa-scroll"></i> Prescrição
+          </button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+          <button class="btn btn-transfer-bed" data-enc-id="${e.id}" style="font-size:0.72rem;padding:6px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:var(--radius-md);cursor:pointer;font-weight:700;" title="Subir paciente para leito de internação">
+            <i class="fa-solid fa-bed"></i> Internar
+          </button>
+          <button class="btn btn-finish-obs" data-enc-id="${e.id}" style="font-size:0.72rem;padding:6px;background:linear-gradient(135deg,#10b981,#059669);border:none;color:#fff;border-radius:var(--radius-md);cursor:pointer;font-weight:700;" title="Dar Alta da Observação">
+            <i class="fa-solid fa-person-walking-arrow-right"></i> Alta Obs
           </button>
         </div>
       </div>`;
@@ -919,6 +1069,17 @@ export function renderAttendanceTab(contentArea) {
   document.getElementById('triage-glicemia')?.addEventListener('input', updateTriageMEWS);
   document.getElementById('triage-peso')?.addEventListener('input', updateTriageMEWS);
 
+  let triageSubmitDestination = 'consultorio';
+
+  document.getElementById('btn-submit-triage-obs')?.addEventListener('click', () => {
+    triageSubmitDestination = 'observacao';
+    document.getElementById('triage-form')?.requestSubmit();
+  });
+
+  document.getElementById('btn-submit-triage-consult')?.addEventListener('click', () => {
+    triageSubmitDestination = 'consultorio';
+  });
+
   document.getElementById('triage-form')?.addEventListener('submit', async e => {
     e.preventDefault();
     let radio = document.querySelector('input[name="manchesterColor"]:checked');
@@ -928,15 +1089,22 @@ export function renderAttendanceTab(contentArea) {
     }
     const colorValue = radio ? radio.value : 'Amarelo';
     const encId = document.getElementById('triage-encounter-id').value;
+    const isObsDestination = triageSubmitDestination === 'observacao';
 
-    const btn = e.target.querySelector('button[type="submit"]:disabled') || e.target.querySelector('button[type="submit"]');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando &amp; Encaminhando...'; }
+    const submitBtns = e.target.querySelectorAll('button[type="submit"], button#btn-submit-triage-obs');
+    submitBtns.forEach(btn => {
+      btn.disabled = true;
+    });
+    const consultBtn = document.getElementById('btn-submit-triage-consult');
+    if (consultBtn) consultBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Encaminhando...';
+
     try {
       const complaintsVal = document.getElementById('triage-complaints')?.value?.trim() || 'Avaliação clínica no Pronto-Socorro';
       const res = await apiFetch(`/api/encounters/${encId}/triage`, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
           manchesterColor: colorValue,
+          destination: isObsDestination ? 'observacao' : 'consultorio',
           bloodPressure: document.getElementById('triage-pa')?.value || '',
           temperatureCelsius: document.getElementById('triage-temp')?.value || '',
           heartRateBpm: document.getElementById('triage-fc')?.value || '',
@@ -972,48 +1140,85 @@ export function renderAttendanceTab(contentArea) {
           console.warn('Aviso ao registrar protocolo de emergência:', protoErr);
         }
 
-        const isCritical = colorValue === 'Vermelho' || colorValue === 'Laranja';
-
-        // Atualizar contexto ativo global: Paciente encaminhado para Atendimento / Aguardando Médico (Etapa 3)
-        setActivePatientContext({
-          id: encId,
-          encounterId: encId,
-          fullName: pName,
-          patientName: pName,
-          manchesterColor: colorValue,
-          status: 'Aguardando_Atendimento',
-          currentStep: 3, // Etapa 3 de 7: Chamada TV Consulta / Aguardando Médico
-          room: 'Consultório 01',
-          tvCalled: false
-        });
-
-        const stepperContainer = document.getElementById('atd-journey-stepper-container');
-        if (stepperContainer && typeof renderPatientJourneyStepper === 'function') {
-          renderPatientJourneyStepper(stepperContainer, 'chamador');
-        }
-
-        window._highlightPatientName = pName;
-        window._highlightTargetColumn = 'col-waiting';
-
-        showToast(`✅ Triagem de ${pName} salva com sucesso (${colorValue})! Encaminhado para Atendimento.`);
-        
-        if (typeof window.showFlowCompletionNotification === 'function') {
-          window.showFlowCompletionNotification({
-            actionTitle: `📢 Chamar para Atendimento em Consultório`,
-            message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue.toUpperCase()}</strong> e encaminhado para <strong>Atendimento (Aguardando Médico)</strong>.<br><br>👉 Próxima etapa assistencial: <strong>Convoque o paciente no Painel TV para o Consultório 01</strong> para iniciar a consulta médica.`,
-            targetTab: 'atendimento',
-            targetTabLabel: `📢 Chamar ${firstName} no Painel TV (Consultório 01) ➔`,
-            targetColumn: 'col-waiting',
-            targetPatientName: pName,
-            targetPatientId: encId,
-            targetManchesterColor: colorValue,
-            targetRoom: 'Consultório 01',
-            targetStatus: 'Aguardando_Atendimento',
-            currentStep: 3,
-            actionType: 'call_tv_doctor',
-            persistent: true
+        if (isObsDestination) {
+          // Encaminhado diretamente para Observação do PS
+          setActivePatientContext({
+            id: encId,
+            encounterId: encId,
+            fullName: pName,
+            patientName: pName,
+            manchesterColor: colorValue,
+            status: 'Em_Observacao',
+            currentStep: 4,
+            room: 'Sala de Observação',
+            tvCalled: false
           });
+
+          window._highlightPatientName = pName;
+          window._highlightTargetColumn = 'col-obs';
+
+          showToast(`🛏️ Triagem de ${pName} concluída (${colorValue})! Encaminhado para Sala de Observação.`);
+
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: `🛏️ Paciente Encaminhado para Observação (PS)`,
+              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue.toUpperCase()}</strong> e encaminhado diretamente para a <strong>Observação do Pronto-Socorro</strong>.<br><br>👉 O tempo de permanência de 12 horas está ativo na coluna <strong>Em Observação (PS)</strong> e na aba dedicada <strong>Observação do PS</strong>.`,
+              targetTab: 'observacao',
+              targetTabLabel: `🛏️ Abrir Observação do PS ➔`,
+              targetColumn: 'col-obs',
+              targetPatientName: pName,
+              targetPatientId: encId,
+              targetManchesterColor: colorValue,
+              targetRoom: 'Sala de Observação',
+              targetStatus: 'Em_Observacao',
+              currentStep: 4,
+              persistent: true
+            });
+          }
+        } else {
+          // Encaminhado para Consultório / Aguardando Médico
+          setActivePatientContext({
+            id: encId,
+            encounterId: encId,
+            fullName: pName,
+            patientName: pName,
+            manchesterColor: colorValue,
+            status: 'Aguardando_Atendimento',
+            currentStep: 3, // Etapa 3 de 7: Chamada TV Consulta / Aguardando Médico
+            room: 'Consultório 01',
+            tvCalled: false
+          });
+
+          const stepperContainer = document.getElementById('atd-journey-stepper-container');
+          if (stepperContainer && typeof renderPatientJourneyStepper === 'function') {
+            renderPatientJourneyStepper(stepperContainer, 'chamador');
+          }
+
+          window._highlightPatientName = pName;
+          window._highlightTargetColumn = 'col-waiting';
+
+          showToast(`✅ Triagem de ${pName} salva com sucesso (${colorValue})! Encaminhado para Atendimento.`);
+          
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: `📢 Chamar para Atendimento em Consultório`,
+              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue.toUpperCase()}</strong> e encaminhado para <strong>Atendimento (Aguardando Médico)</strong>.<br><br>👉 Próxima etapa assistencial: <strong>Convoque o paciente no Painel TV para o Consultório 01</strong> para iniciar a consulta médica.`,
+              targetTab: 'atendimento',
+              targetTabLabel: `📢 Chamar ${firstName} no Painel TV (Consultório 01) ➔`,
+              targetColumn: 'col-waiting',
+              targetPatientName: pName,
+              targetPatientId: encId,
+              targetManchesterColor: colorValue,
+              targetRoom: 'Consultório 01',
+              targetStatus: 'Aguardando_Atendimento',
+              currentStep: 3,
+              actionType: 'call_tv_doctor',
+              persistent: true
+            });
+          }
         }
+
+        triageSubmitDestination = 'consultorio';
 
         if (typeof state !== 'undefined' && state.activeTab !== 'atendimento' && typeof window.switchTab === 'function') {
           window.switchTab('atendimento');
@@ -1030,10 +1235,14 @@ export function renderAttendanceTab(contentArea) {
       showToast('❌ Erro ao salvar triagem.', true); 
     }
     finally { 
-      document.querySelectorAll('#triage-form button[type="submit"]').forEach(b => {
+      document.querySelectorAll('#triage-form button[type="submit"], #triage-form button#btn-submit-triage-obs').forEach(b => {
         b.disabled = false;
-        b.innerHTML = '<i class="fa-solid fa-check-circle"></i> Salvar Triagem &amp; Encaminhar para Atendimento';
       });
+      const cBtn = document.getElementById('btn-submit-triage-consult');
+      if (cBtn) cBtn.innerHTML = '<i class="fa-solid fa-stethoscope"></i> Encaminhar p/ Consultório';
+      const oBtn = document.getElementById('btn-submit-triage-obs');
+      if (oBtn) oBtn.innerHTML = '<i class="fa-solid fa-bed-pulse"></i> Encaminhar p/ Observação (PS)';
+      triageSubmitDestination = 'consultorio';
     }
   });
 

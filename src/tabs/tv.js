@@ -1,3 +1,4 @@
+
 import { apiFetch, showToast, abbreviateName, removeAccents, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 import { evaluatePrescriptionCDSS } from '../modules/clinicalAI.js';
@@ -132,10 +133,10 @@ async function loadTVCalls() {
       calls.sort((a, b) => new Date(b.calledAt || 0).getTime() - new Date(a.calledAt || 0).getTime());
       renderTVCallsUI(calls);
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
-window.loadTVWaitingQueue = async function() {
+window.loadTVWaitingQueue = async function () {
   const queueEl = document.getElementById('tv-waiting-queue');
   const countEl = document.getElementById('tv-queue-count');
   if (!queueEl) return;
@@ -149,14 +150,14 @@ window.loadTVWaitingQueue = async function() {
       const data = await res.json();
       const arr = Array.isArray(data) ? data : (data.data || []);
       arr.filter(e => e.status && e.status !== 'Finalizado' && e.status !== 'Cancelado')
-         .forEach(e => patients.push({
-           patientName: e.patientName,
-           manchesterColor: e.manchesterColor || 'Verde',
-           status: e.status,
-           source: 'encounter'
-         }));
+        .forEach(e => patients.push({
+          patientName: e.patientName,
+          manchesterColor: e.manchesterColor || 'Verde',
+          status: e.status,
+          source: 'encounter'
+        }));
     }
-  } catch(e) {}
+  } catch (e) { }
 
   // Complementar com appointments de hoje que ainda nao tem encounter
   try {
@@ -167,17 +168,17 @@ window.loadTVWaitingQueue = async function() {
       const apts = Array.isArray(d2) ? d2 : (d2.data || []);
       const activeStatuses = ['Agendado', 'Confirmado', 'Em Atendimento', 'Aguardando'];
       apts.filter(a => activeStatuses.includes(a.status) && a.patientName)
-          .filter(a => !patients.find(p => p.patientName === a.patientName))
-          .forEach(a => patients.push({
-            patientName: a.patientName,
-            manchesterColor: 'Verde',
-            status: a.status,
-            source: 'appointment',
-            doctorName: a.doctorName,
-            appointmentTime: a.appointmentTime
-          }));
+        .filter(a => !patients.find(p => p.patientName === a.patientName))
+        .forEach(a => patients.push({
+          patientName: a.patientName,
+          manchesterColor: 'Verde',
+          status: a.status,
+          source: 'appointment',
+          doctorName: a.doctorName,
+          appointmentTime: a.appointmentTime
+        }));
     }
-  } catch(e) {}
+  } catch (e) { }
 
   if (countEl) countEl.textContent = patients.length;
 
@@ -193,18 +194,18 @@ window.loadTVWaitingQueue = async function() {
 
   const colorMap = {
     vermelho: { bg: '#dc2626', label: 'Vermelho', icon: 'fa-circle-exclamation' },
-    laranja:  { bg: '#ea580c', label: 'Laranja',  icon: 'fa-triangle-exclamation' },
-    amarelo:  { bg: '#d97706', label: 'Amarelo',  icon: 'fa-circle-info' },
-    verde:    { bg: '#16a34a', label: 'Verde',     icon: 'fa-circle-check' },
-    azul:     { bg: '#0284c7', label: 'Azul',      icon: 'fa-circle' },
+    laranja: { bg: '#ea580c', label: 'Laranja', icon: 'fa-triangle-exclamation' },
+    amarelo: { bg: '#d97706', label: 'Amarelo', icon: 'fa-circle-info' },
+    verde: { bg: '#16a34a', label: 'Verde', icon: 'fa-circle-check' },
+    azul: { bg: '#0284c7', label: 'Azul', icon: 'fa-circle' },
   };
   const statusMap = {
-    Aguardando_Triagem:     { text: 'Ag. Triagem',     color: '#0284c7' },
+    Aguardando_Triagem: { text: 'Ag. Triagem', color: '#0284c7' },
     Aguardando_Atendimento: { text: 'Ag. Atendimento', color: '#f59e0b' },
-    Em_Atendimento:         { text: 'Em Atendimento',  color: '#10b981' },
-    Agendado:               { text: 'Agendado',        color: '#0284c7' },
-    Confirmado:             { text: 'Confirmado',      color: '#0284c7' },
-    'Em Atendimento':     { text: 'Em Atendimento',  color: '#10b981' },
+    Em_Atendimento: { text: 'Em Atendimento', color: '#10b981' },
+    Agendado: { text: 'Agendado', color: '#0284c7' },
+    Confirmado: { text: 'Confirmado', color: '#0284c7' },
+    'Em Atendimento': { text: 'Em Atendimento', color: '#10b981' },
   };
 
   const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
@@ -214,10 +215,10 @@ window.loadTVWaitingQueue = async function() {
   queueEl.innerHTML = patients.map((p, idx) => {
     const key = (p.manchesterColor || 'verde').toLowerCase().replace(/[^a-z]/g, '');
     const col = colorMap[key] || colorMap.verde;
-    const st  = statusMap[p.status] || { text: p.status || 'Aguardando', color: '#64748b' };
+    const st = statusMap[p.status] || { text: p.status || 'Aguardando', color: '#64748b' };
     const ini = (p.patientName || '?').split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
     const sub = p.doctorName ? ('Dr. ' + p.doctorName + (p.appointmentTime ? ' · ' + p.appointmentTime : '')) : col.label;
-    const safeName  = (p.patientName || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const safeName = (p.patientName || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const safeColor = (p.manchesterColor || 'Verde').replace(/'/g, "\\'");
     const pNameClean = (p.patientName || '').toLowerCase().trim();
     const isSelected = !!((activeCtxName && pNameClean === activeCtxName) || (highlightName && pNameClean.includes(highlightName)));
@@ -242,7 +243,7 @@ window.loadTVWaitingQueue = async function() {
       </div>
 
       <div style="flex-shrink:0;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-        <span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;display:block;">#${String(idx+1).padStart(2,'0')}</span>
+        <span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;display:block;">#${String(idx + 1).padStart(2, '0')}</span>
         <div style="display:flex;gap:6px;align-items:center;">
           <button type="button"
                   onclick="event.stopPropagation(); window._tvQuickCall('${safeName}','${safeColor}')"
@@ -275,11 +276,11 @@ window.loadTVWaitingQueue = async function() {
   }
 };
 
-window._tvQuickCall = async function(patientName, manchesterColor, roomName = '') {
+window._tvQuickCall = async function (patientName, manchesterColor, roomName = '') {
   await executeTVCall(patientName, roomName, manchesterColor);
 };
 
-window._tvDirectCall = async function(patientName, manchesterColor, roomName = '') {
+window._tvDirectCall = async function (patientName, manchesterColor, roomName = '') {
   await executeTVCall(patientName, roomName, manchesterColor);
 };
 
@@ -312,7 +313,7 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
       if (!matched) {
         matched = pool.slice().reverse().find(e => (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().includes(cleanLower));
       }
-    } catch (_) {}
+    } catch (_) { }
   }
 
   if (!matched) {
@@ -324,11 +325,11 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
         const pool = arr.filter(e => e.status !== 'Finalizado' && e.status !== 'Alta');
         matched = (pool.length ? pool : arr).slice().reverse().find(e => (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(cleanLower));
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
   const isAwaitingTriage = (activeCtx && (activeCtx.status === 'Aguardando_Triagem' || !activeCtx.manchesterColor)) ||
-                           (matched && matched.status === 'Aguardando_Triagem' && !matched.manchesterColor);
+    (matched && matched.status === 'Aguardando_Triagem' && !matched.manchesterColor);
 
   const isTriaged = !isAwaitingTriage && (
     (matched && !!matched.manchesterColor && matched.status !== 'Aguardando_Triagem') ||
@@ -344,9 +345,9 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
 
   if (!manchesterColor) {
     manchesterColor = (matchedTriage && matchedTriage.color) ||
-                      (activeCtx && activeCtx.manchesterColor) ||
-                      (matched && matched.manchesterColor) ||
-                      (isTriaged ? 'Amarelo' : 'Verde');
+      (activeCtx && activeCtx.manchesterColor) ||
+      (matched && matched.manchesterColor) ||
+      (isTriaged ? 'Amarelo' : 'Verde');
   }
 
   try {
@@ -375,11 +376,11 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
             osc.start(ctx.currentTime + start);
             osc.stop(ctx.currentTime + start + dur + 0.05);
           };
-          playBeep(523.25, 0,    0.22);
+          playBeep(523.25, 0, 0.22);
           playBeep(659.25, 0.28, 0.22);
           playBeep(783.99, 0.56, 0.40);
         }
-      } catch (_) {}
+      } catch (_) { }
 
       // 2) Síntese de voz pt-BR após 1.2s com gramática correta
       if ('speechSynthesis' in window) {
@@ -419,7 +420,7 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
         const foundEnc = encs.slice().reverse().find(e => {
           const eName = (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
           return (eName === cleanLower || (cleanLower.length > 3 && (eName.includes(cleanLower) || cleanLower.includes(eName)))) &&
-                 e.status !== 'Finalizado' && e.status !== 'Alta';
+            e.status !== 'Finalizado' && e.status !== 'Alta';
         });
         if (foundEnc) {
           enc = foundEnc;
@@ -433,7 +434,7 @@ async function executeTVCall(patientName, roomName = '', manchesterColor = '') {
             lastStatusUpdate: new Date().toISOString()
           });
         }
-      } catch(_) {}
+      } catch (_) { }
     }
 
     if (typeof window.setActivePatientContext === 'function') {
@@ -552,7 +553,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
         e.status && e.status !== 'Finalizado' && e.status !== 'Cancelado'
       );
     }
-  } catch(e) {}
+  } catch (e) { }
 
   // Resolução inteligente dos dados do paciente (cor e sala recomendada)
   let matchedPatient = null;
@@ -577,7 +578,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
             removeAccents((e.patientName || '').toLowerCase()).includes(removeAccents(cleanTarget))
           );
         }
-      } catch(e) {}
+      } catch (e) { }
     }
   }
 
@@ -615,17 +616,17 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
   overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);';
 
   const manchesterOpts = [
-    { v: 'Verde',    l: 'Pouco Urgente (Verde)',    c: '#16a34a' },
-    { v: 'Amarelo',  l: 'Urgente (Amarelo)',         c: '#d97706' },
-    { v: 'Laranja',  l: 'Muito Urgente (Laranja)',   c: '#ea580c' },
+    { v: 'Verde', l: 'Pouco Urgente (Verde)', c: '#16a34a' },
+    { v: 'Amarelo', l: 'Urgente (Amarelo)', c: '#d97706' },
+    { v: 'Laranja', l: 'Muito Urgente (Laranja)', c: '#ea580c' },
     { v: 'Vermelho', l: 'Emergência (Vermelho)', c: '#dc2626' },
-    { v: 'Azul',     l: 'Não Urgente (Azul)',   c: '#0284c7' },
+    { v: 'Azul', l: 'Não Urgente (Azul)', c: '#0284c7' },
   ];
 
   const statusLabel = (s) => {
-    if (s === 'Aguardando_Triagem')     return 'Ag. Triagem';
+    if (s === 'Aguardando_Triagem') return 'Ag. Triagem';
     if (s === 'Aguardando_Atendimento') return 'Ag. Atendimento';
-    if (s === 'Em_Atendimento')         return 'Em Consulta';
+    if (s === 'Em_Atendimento') return 'Em Consulta';
     return s || 'Aguardando';
   };
 
@@ -636,23 +637,23 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
          <span style="font-size:0.78rem;">Você ainda pode digitar o nome manualmente abaixo.</span>
        </div>`
     : waitingPatients.map(p => {
-        const mKey = (p.manchesterColor || 'verde').toLowerCase().replace(/[^a-z]/g, '');
-        const mColorMap = { vermelho: '#dc2626', laranja: '#ea580c', amarelo: '#d97706', verde: '#16a34a', azul: '#0284c7' };
-        const bg = mColorMap[mKey] || '#16a34a';
-        const initials = (p.patientName || '?').split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
-        const sLabel = statusLabel(p.status);
-        return `<div class="tv-queue-patient-card" data-name="${(p.patientName||'').replace(/"/g,'&quot;')}" data-manchester="${p.manchesterColor||'Verde'}" data-status="${p.status||''}"
+      const mKey = (p.manchesterColor || 'verde').toLowerCase().replace(/[^a-z]/g, '');
+      const mColorMap = { vermelho: '#dc2626', laranja: '#ea580c', amarelo: '#d97706', verde: '#16a34a', azul: '#0284c7' };
+      const bg = mColorMap[mKey] || '#16a34a';
+      const initials = (p.patientName || '?').split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+      const sLabel = statusLabel(p.status);
+      return `<div class="tv-queue-patient-card" data-name="${(p.patientName || '').replace(/"/g, '&quot;')}" data-manchester="${p.manchesterColor || 'Verde'}" data-status="${p.status || ''}"
              style="background:#1e293b; border:1px solid #334155; border-left:4px solid ${bg}; border-radius:10px; padding:10px 14px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all 0.18s;"
              onmouseenter="this.style.background='rgba(2,132,199,0.12)'; this.style.borderColor='#0284c7';"
              onmouseleave="this.style.background='#1e293b'; this.style.borderColor='#334155'; this.style.borderLeftColor='${bg}';">
           <div style="width:38px;height:38px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:0.9rem;flex-shrink:0;">${initials}</div>
           <div style="flex:1;min-width:0;">
-            <div style="font-weight:700;font-size:0.9rem;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName||'Paciente'}</div>
-            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">${sLabel} &bull; ${p.manchesterColor||'Sem Triagem'}</div>
+            <div style="font-weight:700;font-size:0.9rem;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName || 'Paciente'}</div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">${sLabel} &bull; ${p.manchesterColor || 'Sem Triagem'}</div>
           </div>
           <i class="fa-solid fa-hand-pointer" style="color:#0284c7;font-size:0.85rem;flex-shrink:0;"></i>
         </div>`;
-      }).join('');
+    }).join('');
 
   overlay.innerHTML = `
     <div class="sync-modal-card" style="max-width: 540px; width: 95%; background: #0f172a; border: 1px solid #0284c7; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.7); max-height: 90vh; display: flex; flex-direction: column;">
@@ -778,7 +779,7 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
 // =========================================================
 // MODAL DE LIXEIRA (Soft Delete)
 // =========================================================
-window.showTrashModal = async function(type) {
+window.showTrashModal = async function (type) {
   const old = document.getElementById('modal-trash');
   if (old) old.remove();
 
@@ -817,16 +818,16 @@ window.showTrashModal = async function(type) {
       const data = await res.json();
       const items = Array.isArray(data) ? data : (data.data || []);
       const container = document.getElementById('trash-list-container');
-      
+
       if (items.length === 0) {
         container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 40px;"><i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: 0.5;"></i><div style="font-size: 1.1rem; font-weight: 600;">Lixeira vazia</div><div style="font-size: 0.85rem; margin-top: 4px;">Nenhum item foi removido recentemente.</div></div>`;
       } else {
         let html = '<table style="width: 100%; border-collapse: collapse; text-align: left;"><thead><tr><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">ID / Nome</th><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Removido em</th><th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; text-align: right;">Ação</th></tr></thead><tbody>';
-        
+
         items.forEach(item => {
           const name = item.name || item.fullName || 'Desconhecido';
           const delDate = item.deleted_at ? new Date(item.deleted_at).toLocaleString('pt-BR') : 'Data desconhecida';
-          
+
           html += `
             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;" onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
               <td style="padding: 12px 10px;">
@@ -842,21 +843,21 @@ window.showTrashModal = async function(type) {
             </tr>
           `;
         });
-        
+
         html += '</tbody></table>';
         container.innerHTML = html;
-        
+
         document.querySelectorAll('.btn-restore-item').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
-            if(confirm('Tem certeza de que deseja restaurar este item? Ele voltará para a listagem ativa.')) {
+            if (confirm('Tem certeza de que deseja restaurar este item? Ele voltará para a listagem ativa.')) {
               try {
                 const rRes = await apiFetch(`/api/${type}/${id}/restore`, { method: 'POST' });
                 if (rRes.ok) {
                   showCustomAlert({ title: 'Sucesso', message: 'Item restaurado com sucesso!', type: 'success' });
                   dataCache.delete(type);
                   overlay.remove();
-                  
+
                   // Atualizar aba correspondente
                   if (type === 'patients') {
                     // Força recarregamento aba de pacientes
@@ -868,7 +869,7 @@ window.showTrashModal = async function(type) {
                 } else {
                   showCustomAlert({ title: 'Erro', message: 'Falha ao restaurar item. Verifique os logs.', type: 'danger' });
                 }
-              } catch(err) {
+              } catch (err) {
                 showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'danger' });
               }
             }
@@ -878,7 +879,7 @@ window.showTrashModal = async function(type) {
     } else {
       document.getElementById('trash-list-container').innerHTML = '<div style="text-align: center; color: var(--danger-color); padding: 40px;">Erro ao carregar itens da lixeira.</div>';
     }
-  } catch(e) {
+  } catch (e) {
     document.getElementById('trash-list-container').innerHTML = '<div style="text-align: center; color: var(--danger-color); padding: 40px;">Erro de conexão. Verifique o console.</div>';
     console.error(e);
   }
@@ -891,7 +892,7 @@ window.switchTab = switchTab;
 // --- FASE 2: PRESCRIÇÃO MÉDICA, TIMER DE OBSERVAÇÃO 12H E TRANSFERÊNCIA DE LEITO ---
 
 // 1. PDF DA PRESCRIÇÃO MÉDICA
-window.generatePrescriptionPDF = async function(prescription, administrations = []) {
+window.generatePrescriptionPDF = async function (prescription, administrations = []) {
   if (!window.jspdf) { alert('⚠️ Biblioteca PDF não carregada.'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -930,7 +931,7 @@ window.generatePrescriptionPDF = async function(prescription, administrations = 
   let medications = [];
   try {
     medications = typeof prescription.medicationsJson === 'string' ? JSON.parse(prescription.medicationsJson) : prescription.medicationsJson;
-  } catch(e) { medications = []; }
+  } catch (e) { medications = []; }
 
   const tableData = medications.map((m, idx) => [
     `${idx + 1}. ${m.name}`,
@@ -1002,11 +1003,11 @@ window.generatePrescriptionPDF = async function(prescription, administrations = 
   doc.save(`prescricao_${safeName}_#${prescription.id}.pdf`);
 };
 
-window.openPrescriptionModal = async function(encounterId, patientName, patientId = '') {
+window.openPrescriptionModal = async function (encounterId, patientName, patientId = '') {
   // Resolução inteligente do encontro clínico caso seja chamado por paciente ou leito
   if (typeof localDB !== 'undefined' && localDB.list) {
     const allEncounters = localDB.list('encounters') || [];
-    const encMatch = allEncounters.find(e => 
+    const encMatch = allEncounters.find(e =>
       (encounterId && e.id === encounterId) ||
       (patientName && (e.patientName || '').trim().toLowerCase() === (patientName || '').trim().toLowerCase()) ||
       (patientId && e.patientId === patientId)
@@ -1141,7 +1142,7 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
       .then(data => window.medicationsCatalog = data)
       .catch(err => console.error('Erro ao carregar medicamentos', err));
   }
-  
+
   setTimeout(() => {
     const medNameInput = document.getElementById('rx-med-name');
     let acDropdown = document.getElementById('rx-med-autocomplete');
@@ -1158,7 +1159,7 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
       acDropdown.style.width = '100%';
       acDropdown.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
       acDropdown.style.display = 'none';
-      
+
       if (medNameInput && medNameInput.parentElement) {
         medNameInput.parentElement.style.position = 'relative';
         medNameInput.parentElement.appendChild(acDropdown);
@@ -1212,10 +1213,10 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
             </div>
             <div style="color:var(--text-muted); font-size:0.75rem; margin-top: 2px;">${m.dose} · Via <strong>${m.via}</strong></div>
           `;
-          
+
           item.addEventListener('mouseover', () => item.style.background = 'var(--bg-tertiary)');
           item.addEventListener('mouseout', () => item.style.background = 'transparent');
-          
+
           item.addEventListener('click', () => {
             medNameInput.value = m.nome;
             const doseInput = document.getElementById('rx-med-dose');
@@ -1467,7 +1468,7 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
         updateDraftTable();
         loadActivePrescriptions();
       }
-    } catch(err) {
+    } catch (err) {
       alert('Erro de conexão ao salvar prescrição.');
     }
   };
@@ -1487,8 +1488,8 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 
       let html = '';
       const isMasterUser = (typeof state !== 'undefined' && state.user && (
-        state.user.role === 'master' || 
-        state.user.role === 'admin' || 
+        state.user.role === 'master' ||
+        state.user.role === 'admin' ||
         (state.user.username || '').toLowerCase().includes('mazzaro') ||
         (state.user.role || '').toLowerCase().includes('farmac')
       ));
@@ -1496,7 +1497,7 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
       prescriptions.forEach(p => {
         let meds = p.medications || [];
         if (!meds || meds.length === 0) {
-          try { meds = typeof p.medicationsJson === 'string' ? JSON.parse(p.medicationsJson) : (p.medicationsJson || []); } catch(e) { meds = []; }
+          try { meds = typeof p.medicationsJson === 'string' ? JSON.parse(p.medicationsJson) : (p.medicationsJson || []); } catch (e) { meds = []; }
         }
 
         const isReleased = p.status === 'Liberado_Farmacia';
@@ -1561,7 +1562,7 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
               <td style="padding: 8px; color: var(--text-secondary); font-style: italic;">${m.instructions || m.notes || '—'}</td>
               <td style="padding: 8px;">
                 ${lastAdm ? `
-                  <span style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${new Date(lastAdm.administeredAt).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span><br>
+                  <span style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${new Date(lastAdm.administeredAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span><br>
                   <span style="font-size: 0.7rem; color: var(--text-muted);">Por: ${lastAdm.nurseName || lastAdm.administeredBy || 'Enfermagem'}</span>
                 ` : `
                   <span style="color: var(--text-muted); font-style: italic;">Pendente</span>
@@ -1626,13 +1627,13 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
               }
               loadActivePrescriptions();
             }
-          } catch(err) {
+          } catch (err) {
             alert('Erro de conexão ao registrar administração.');
           }
         };
       });
 
-    } catch(err) {
+    } catch (err) {
       container.innerHTML = '<div style="text-align: center; color: var(--danger-color); font-size: 0.85rem; padding: 24px;">Erro ao carregar prescrições.</div>';
     }
   };
@@ -1641,10 +1642,10 @@ window.openPrescriptionModal = async function(encounterId, patientName, patientI
 };
 
 // 3. MODAL DE TRANSFERÊNCIA DE LEITO (SUBIR PARA INTERNAÇÃO)
-window.openTransferBedModal = async function(encounterId, patientName, clinicalContext = {}) {
+window.openTransferBedModal = async function (encounterId, patientName, clinicalContext = {}) {
   const activeCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-  const realPatientName = (patientName && patientName !== 'Paciente') 
-    ? patientName 
+  const realPatientName = (patientName && patientName !== 'Paciente')
+    ? patientName
     : (activeCtx ? (activeCtx.fullName || activeCtx.patientName) : null) || (typeof encounterId === 'string' && isNaN(encounterId) && !encounterId.startsWith('ENC-') ? encounterId : 'Paciente');
 
   if (realPatientName && typeof window.setActivePatientContext === 'function') {
@@ -1658,8 +1659,8 @@ window.openTransferBedModal = async function(encounterId, patientName, clinicalC
   }
 
   const encounters = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('encounters') || []) : [];
-  const enc = encounters.find(e => 
-    String(e.id) === String(encounterId) || 
+  const enc = encounters.find(e =>
+    String(e.id) === String(encounterId) ||
     (realPatientName && e.patientName && e.patientName.toLowerCase().trim() === realPatientName.toLowerCase().trim())
   ) || {};
 
@@ -1682,7 +1683,7 @@ window.openTransferBedModal = async function(encounterId, patientName, clinicalC
   let sectorBadgeBg = 'rgba(56, 189, 248, 0.15)';
   let sectorBadgeColor = '#38bdf8';
   let sectorIcon = 'fa-bed';
-  
+
   if (textCheck.includes('uti') || textCheck.includes('choque') || textCheck.includes('sepse') || textCheck.includes('infarto') || textCheck.includes('intub') || textCheck.includes('grave') || manchesterColor === 'Vermelho') {
     suggestedSector = 'UTI Adulto';
     sectorBadgeBg = 'rgba(239, 68, 68, 0.18)';
@@ -1871,7 +1872,7 @@ window.openTransferBedModal = async function(encounterId, patientName, clinicalC
         const autoBox = document.getElementById('bed-modal-auto-seed-box');
         if (autoBox) autoBox.remove();
 
-        select.innerHTML = '<option value="">Selecione o leito...</option>' + 
+        select.innerHTML = '<option value="">Selecione o leito...</option>' +
           vagoBeds.map(b => {
             const isMatch = (b.sector === suggestedSector || (b.type && b.type.includes(suggestedSector)));
             const tag = isMatch ? '⭐ [INDICADO] ' : '';
@@ -1889,7 +1890,7 @@ window.openTransferBedModal = async function(encounterId, patientName, clinicalC
         const countBadge = document.getElementById('transfer-beds-count-badge');
         if (countBadge) countBadge.textContent = `${vagoBeds.length} leito(s) vago(s)`;
       }
-    } catch(e) {
+    } catch (e) {
       console.error('Erro ao carregar leitos vagos:', e);
       select.innerHTML = '<option value="">Erro ao carregar leitos.</option>';
     }
@@ -1964,14 +1965,14 @@ window.openTransferBedModal = async function(encounterId, patientName, clinicalC
           }
         }, 300);
       }
-    } catch(e) {
+    } catch (e) {
       alert('Erro ao transferir leito.');
     }
   };
 };
 
 // 4. ESCALA DE MÉDICOS DE PLANTÃO NO CORPO CLÍNICO
-window.loadDutyScheduleBanner = async function() {
+window.loadDutyScheduleBanner = async function () {
   const container = document.getElementById('duty-schedule-grid');
   const dateEl = document.getElementById('duty-schedule-date');
   if (!container) return;
@@ -2021,12 +2022,12 @@ window.loadDutyScheduleBanner = async function() {
     });
 
     container.innerHTML = html;
-  } catch(e) {
+  } catch (e) {
     container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--danger-color); padding: 18px;">Erro ao carregar escala de plantão.</div>';
   }
 };
 
-window.openDutyScheduleModal = async function() {
+window.openDutyScheduleModal = async function () {
   let modal = document.getElementById('modal-duty-schedule-dialog');
   if (!modal) {
     modal = document.createElement('div');
@@ -2099,7 +2100,7 @@ window.openDutyScheduleModal = async function() {
     const docSelect = document.getElementById('duty-doctor-select');
     docSelect.innerHTML = '<option value="">Selecione o médico...</option>' +
       (doctors || []).map(d => `<option value="${d.id}" data-name="${d.name}" data-spec="${d.specialty}">${d.name} (${d.specialty})</option>`).join('');
-  } catch(e) {}
+  } catch (e) { }
 
   document.getElementById('form-duty-schedule').onsubmit = async (e) => {
     e.preventDefault();
@@ -2123,13 +2124,13 @@ window.openDutyScheduleModal = async function() {
         modal.style.display = 'none';
         window.loadDutyScheduleBanner();
       }
-    } catch(e) {
+    } catch (e) {
       alert('Erro ao salvar escala.');
     }
   };
 };
 
-window.deleteDutySchedule = async function(id) {
+window.deleteDutySchedule = async function (id) {
   if (!confirm('Deseja remover este plantonista da escala?')) return;
   try {
     const res = await apiFetch(`/api/duty-schedules/${id}`, { method: 'DELETE' });
@@ -2137,7 +2138,7 @@ window.deleteDutySchedule = async function(id) {
       showToast('Plantonista removido.');
       window.loadDutyScheduleBanner();
     }
-  } catch(e) {}
+  } catch (e) { }
 };
 
 // --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---

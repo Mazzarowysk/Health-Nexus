@@ -329,13 +329,23 @@ export const manualData = [
     buttons: [
       {
         icon: 'fa-traffic-light',
-        name: '🚦 Triagem Manchester',
+        name: '🚦 Triagem Manchester & Desfecho Duplo',
         type: 'Classificação de Risco',
         color: '#ef4444',
-        description: 'Registra os sinais vitais (PA, FC, Temp, SpO2, Glicemia) e atribui a cor de gravidade: Vermelho (0m), Laranja (10m), Amarelo (60m), Verde (120m), Azul (240m).',
-        shortcut: 'Aba Triagem',
-        rules: 'Calcula automaticamente alertas de taquicardia, febre ou hipóxia.',
-        keywords: ['triagem manchester', 'classificação de risco', 'sinais vitais', 'pressão alta', 'febre', 'spo2', 'dor']
+        description: 'Registra os sinais vitais (PA, FC, Temp, SpO2, Glicemia), calcula o escore MEWS e oferece desfecho duplo para a enfermagem: 🩺 Encaminhar p/ Consultório (fila médica regular) ou 🛏️ Encaminhar p/ Observação (PS) com cronômetro de 12h/24h ativo.',
+        shortcut: 'Central de Atendimento -> Botão Realizar Triagem',
+        rules: 'Calcula automaticamente alertas de taquicardia, febre, hipóxia e sepse. Define a cor do protocolo Manchester (Vermelho, Laranja, Amarelo, Verde, Azul).',
+        keywords: ['triagem manchester', 'classificação de risco', 'sinais vitais', 'pressão alta', 'febre', 'spo2', 'dor', 'desfecho triagem', 'encaminhar consultório', 'encaminhar observação']
+      },
+      {
+        icon: 'fa-bed-pulse',
+        name: '🛏️ Encaminhar para Observação (PS)',
+        type: 'Encaminhamento Clínico',
+        color: '#f59e0b',
+        description: 'Transfere o paciente diretamente da Triagem Manchester ou do Consultório para a Sala de Observação do Pronto-Socorro. Inicia o cronômetro assistencial com meta de reavaliação em 12h e limite de 24h (Resolução CFM nº 2.079/14).',
+        shortcut: 'Modal de Triagem (Botão Âmbar) ou Card de Atendimento (Botão Observação)',
+        rules: 'Aloca o paciente na 4ª coluna do Kanban e na aba Observação do PS, permitindo ministrar medicações e monitorar estabilidade.',
+        keywords: ['observação ps', 'encaminhar observação', 'sala de observação', 'cronômetro 12h', 'permanência ps', 'estabilização']
       },
       {
         icon: 'fa-notes-medical',
@@ -566,26 +576,116 @@ export const manualData = [
       }
     ],
     workflow: [
-      { step: 1, title: 'Solicitação & Alocação', desc: 'Indicação de internação no PEP ou admissão direta alocando um leito Livre (Verde).' },
+      { step: 1, title: 'Solicitação & Alocação', desc: 'Indicação de internação no PEP, observação ou admissão direta alocando um leito Livre (Verde), categorizado por ala: UTI Adulto, UTI Neonatal, Semi-UTI, CTI, Clínica Médica, Cirúrgica, Pediatria ou Isolamento.' },
       { step: 2, title: 'Destaque & Cuidados no Leito', desc: 'Leito passa para Vermelho (Ocupado), pulsa em destaque (⚡ Paciente em Foco) e recebe evoluções médicas diárias no PEP.' },
       { step: 3, title: 'Alta Médica & Higienização', desc: 'Ao conceder Alta, o fluxo avança para Faturamento TISS e o leito passa para Amarelo (Higienização) até a sanitização final.' }
     ],
     faq: [
       { q: 'O que indicam as cores dos leitos?', a: 'Verde = Livre | Vermelho = Ocupado | Amarelo = Em Higienização | Cinza = Manutenção/Bloqueado.' },
+      { q: 'Quais tipos de leito e unidades de terapia intensiva são suportados?', a: 'O sistema suporta leitos de UTI Adulto, Semi-UTI, CTI, UTI Pediátrica/Neonatal, Enfermaria de Clínica Médica, Clínica Cirúrgica, Maternidade e Isolamento com barreiras de contaminação.' },
       { q: 'Por que o leito pulsa com a etiqueta "⚡ Paciente em Foco"?', a: 'Para facilitar a localização imediata do paciente recém-internado ou transferido, com ajuste automático de filtros de setor.' }
     ]
   },
   {
+    id: 'observacao',
+    title: 'Observação do Pronto-Socorro (PS)',
+    icon: 'fa-bed-pulse',
+    color: '#f59e0b',
+    summary: 'Módulo dedicado ao monitoramento de permanência clínica no PS em conformidade com a Resolução CFM nº 2.079/14 (limite de 24h e reavaliação obrigatória em 12h), com cronômetros ao vivo, gestão de poltronas/leitos de observação e desfechos rápidos.',
+    roles: ['Master', 'Médico', 'Enfermeiro', 'Auxiliar de Enfermagem'],
+    buttons: [
+      {
+        icon: 'fa-bed-pulse',
+        name: '🛏️ Monitoramento de Leitos & Poltronas de Observação',
+        type: 'Acompanhamento Clínico',
+        color: '#f59e0b',
+        description: 'Visualização individualizada de cada paciente alocado na Sala de Observação do PS com seus sinais vitais completos aferidos na triagem (PA, FC, Temp, SpO2, Glicemia) e queixa principal.',
+        shortcut: 'Grid da Aba Observação do PS',
+        rules: 'Exibe o tempo de permanência decorrido com atualização contínua e status de alerta por cores.',
+        keywords: ['leito observação', 'poltrona observação', 'pacientes observação', 'monitoramento ps', 'sala de observação']
+      },
+      {
+        icon: 'fa-clock',
+        name: '⏱️ Cronômetro de Permanência (CFM 12h / 24h)',
+        type: 'Governança & SLA',
+        color: '#0284c7',
+        description: 'Indicador visual do tempo decorrido desde a admissão na observação. Sinaliza status Seguro (< 6h), Alerta de Reavaliação (6h a 12h) e Crítico / Limite Excedido (> 12h), exigindo internação definitiva em leito ou alta médica imediata.',
+        shortcut: 'Badge de tempo no card',
+        rules: 'Emite alerta pulsante em vermelho caso o tempo ultrapasse 12 horas, alertando a equipe para internação.',
+        keywords: ['cronômetro ps', 'cfm 2079/14', 'limite 12h', 'tempo observação', 'estouro 12h', 'reavaliação médica']
+      },
+      {
+        icon: 'fa-file-medical',
+        name: '📋 Prontuário Rápido (PEP) na Observação',
+        type: 'Ação Clínica',
+        color: '#38bdf8',
+        description: 'Abre o Prontuário Eletrônico do Paciente em observação para evolução clínica, checagem de diagnósticos e reavaliação de condutas.',
+        shortcut: 'Botão PEP no card do paciente',
+        rules: 'Mantém o contexto ativo do paciente e registra a evolução no histórico assistencial.',
+        keywords: ['pep observação', 'evolução observação', 'prontuário ps', 'reavaliação clínica']
+      },
+      {
+        icon: 'fa-scroll',
+        name: '💊 Prescrição de Medicações na Observação',
+        type: 'Prescrição Rápida',
+        color: '#a78bfa',
+        description: 'Permite prescrever analgésicos, antieméticos, hidratação venosa ou medicações de suporte enquanto o paciente se estabiliza no PS.',
+        shortcut: 'Botão Prescrição no card do paciente',
+        rules: 'Validação integrada com estoque da farmácia e alertas do CDSS.',
+        keywords: ['prescrição observação', 'medicar no ps', 'soro', 'hidratação venosa', 'remédio observação']
+      },
+      {
+        icon: 'fa-bed',
+        name: '🏥 Internar em Leito Definitivo (UTI / Enfermaria)',
+        type: 'Transferência / Alocação',
+        color: '#ef4444',
+        description: 'Caso o paciente não apresente melhora após observação ou exceda 12 horas, este botão abre o modal de alocação de leitos (UTI, Semi-UTI, CTI, Enfermaria, Isolamento) com confirmação segura.',
+        shortcut: 'Botão Internar no card da observação',
+        rules: 'Transfere o paciente para a Central de Leitos e libera a poltrona de observação.',
+        keywords: ['internar leito', 'transferir leito', 'subir paciente', 'uti', 'enfermaria', 'alocação de leito']
+      },
+      {
+        icon: 'fa-person-walking-arrow-right',
+        name: '🚶 Dar Alta da Observação',
+        type: 'Desfecho Assistencial',
+        color: '#10b981',
+        description: 'Registra a alta médica do paciente após estabilização com melhora clínica no Pronto-Socorro. Conclui o atendimento de urgência e atualiza a ficha do paciente na aba Pacientes com o status "Alta" e carimbo de data e hora exatos.',
+        shortcut: 'Botão Alta Obs no card',
+        rules: 'Exige confirmação do operador e arquiva o resumo do atendimento no prontuário definitivo.',
+        keywords: ['alta observação', 'liberar paciente', 'alta ps', 'alta médica', 'carimbo data hora alta', 'desfecho ps']
+      }
+    ],
+    workflow: [
+      { step: 1, title: 'Encaminhamento', desc: 'Paciente é direcionado para a Observação após Triagem Manchester ou por decisão do médico no consultório.' },
+      { step: 2, title: 'Estabilização & Medicações', desc: 'Enfermagem administra medicações prescritas, afere reavaliações vitais e acompanha o cronômetro do PS.' },
+      { step: 3, title: 'Desfecho (Alta ou Internação)', desc: 'Até o limite de 12h/24h, o médico decide entre a Alta da Observação ou a Internação em Leito Hospitalar (UTI/Enfermaria).' }
+    ],
+    faq: [
+      { q: 'Qual a base legal para o limite de tempo na Observação do PS?', a: 'A Resolução CFM nº 2.079/14 estabelece que o tempo máximo de permanência de um paciente em leito de observação de Pronto-Socorro é de 24 horas, recomendando reavaliação obrigatória e definição de desfecho em até 12 horas.' },
+      { q: 'O que acontece ao clicar em "Alta Obs"?', a: 'O atendimento de urgência é finalizado, a poltrona é liberada imediatamente e o prontuário do paciente na aba Pacientes passa a exibir o status "Alta" com o registro de data e horário da saída hospitalar.' }
+    ]
+  },
+  {
     id: 'kanban',
-    title: 'Quadro Kanban Hospitalar',
+    title: 'Painel Kanban (Atendimentos & Internação)',
     icon: 'fa-table-columns',
     color: '#60a5fa',
-    summary: 'Fluxo visual de internação em 5 setores (PS, Corredor, Cirúrgica, Médica, UTI) com controle de SLAs e auditoria.',
+    summary: 'Duplo ecossistema Kanban: Central de Atendimentos do PS em 4 colunas (Triagem, Ag. Médico, Em Consulta, Em Observação) e Kanban de Internação em 5 setores hospitalares com controle rigoroso de SLAs.',
     roles: ['Médico', 'Enfermeiro', 'Master'],
     buttons: [
       {
+        icon: 'fa-table-columns',
+        name: '🗂️ Kanban da Central de Atendimentos (4 Colunas)',
+        type: 'Fluxo em Tempo Real',
+        color: '#0284c7',
+        description: 'Organiza os atendimentos do PS em 4 colunas sequenciais: Aguardando Triagem, Aguardando Médico, Em Consulta e Em Observação (PS), com filtros rápidos de coluna (KPI Bar) e contadores automáticos.',
+        shortcut: 'Central de Atendimento',
+        rules: 'Filtros rápidos permitem focar em uma única coluna ou ver todas as 4 colunas em grid responsivo.',
+        keywords: ['kanban atendimento', '4 colunas', 'triagem', 'aguardando médico', 'em consulta', 'em observação ps']
+      },
+      {
         icon: 'fa-arrows-up-down-left-right',
-        name: '📋 Mover Paciente entre Setores (Kanban)',
+        name: '📋 Mover Paciente entre Setores (Kanban Internação)',
         type: 'Fluxo Assistencial',
         color: '#3b82f6',
         description: 'Arrasta ou movimenta o card do paciente entre as 5 colunas hospitalares (PS 24h, Corredor 1d, Cirúrgica 7d, Médica 10d, UTI 5d).',
@@ -615,12 +715,13 @@ export const manualData = [
       }
     ],
     workflow: [
-      { step: 1, title: 'Admissão no PS', desc: 'Paciente entra na primeira coluna com SLA de até 24 horas.' },
-      { step: 2, title: 'Encaminhamento', desc: 'Equipe move para Enfermaria Cirúrgica, Médica ou UTI conforme evolução.' },
-      { step: 3, title: 'Desfecho / Alta', desc: 'Ao dar alta, o card é finalizado e enviado para o relatório de tempos.' }
+      { step: 1, title: 'Atendimento & Triagem (4 Colunas)', desc: 'Paciente passa por Triagem, Chamada TV, Consulta e, se necessário, permanência na 4ª coluna Em Observação (PS).' },
+      { step: 2, title: 'Admissão no Kanban de Internação', desc: 'Paciente internado entra no Kanban hospitalar com SLA setorial (PS 24h, Corredor 1d, Cirúrgica 7d, Médica 10d, UTI 5d).' },
+      { step: 3, title: 'Desfecho / Alta', desc: 'Ao dar alta, o card é finalizado e enviado para o faturamento TISS e relatórios.' }
     ],
     faq: [
-      { q: 'Como funcionam os limites de tempo do Kanban?', a: 'Cada coluna tem um limite: PS (24h), Corredor (1 dia), Cirúrgica (7 dias), Médica (10 dias) e UTI (5 dias). Se o tempo for excedido, a barra fica vermelha.' }
+      { q: 'Como funcionam os limites de tempo do Kanban?', a: 'Cada coluna tem um limite: PS (24h), Corredor (1 dia), Cirúrgica (7 dias), Médica (10 dias) e UTI (5 dias). Se o tempo for excedido, a barra fica vermelha.' },
+      { q: 'Qual a diferença entre a coluna "Em Observação (PS)" e a coluna "PS" do Kanban de Internação?', a: 'A coluna "Em Observação (PS)" pertence à Central de Atendimentos e atende pacientes do pronto-socorro em estabilização rápida (<24h). A coluna "PS" do Kanban de Internação acolhe pacientes admitidos que aguardam vaga formal nos leitos das enfermarias ou UTI.' }
     ]
   },
   {

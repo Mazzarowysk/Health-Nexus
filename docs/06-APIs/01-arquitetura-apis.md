@@ -81,6 +81,8 @@ const socket = io('wss://api.healthnexus.com', {
 | Canal / Room | Evento | Descrição |
 | :--- | :--- | :--- |
 | `triage:queue` | `patient:admitted` | Notifica o painel de enfermagem da UPA quando um novo paciente é cadastrado na recepção e aguarda triagem. |
-| `triage:queue` | `patient:triaged` | Disparado quando a triagem é salva. O paciente entra na fila médica correspondente à cor atribuída. |
+| `triage:queue` | `patient:triaged` | Disparado quando a triagem é salva com desfecho (Consultório ou Observação PS). |
+| `observation:unit` | `patient:observed` | Notifica a equipe da Sala de Observação quando um paciente é encaminhado da triagem ou consultório. |
+| `observation:unit` | `patient:observation_ended` | Notifica a equipe quando a observação é finalizada com alta ou encaminhamento para internação. |
 | `user:userId` | `settings:revoked` | Canal privado por usuário. Dispara o logout automático se o login do usuário for inativado no painel administrativo. |
 | `beds:census` | `bed:status_changed` | Atualiza o mapa de censo hospitalar gráfico se houver mudança de leito ou alta. |

@@ -509,24 +509,29 @@ export const apiFetch = async (url, options = {}) => {
         }
 
         const colorVal = body.manchesterColor || enc.manchesterColor || 'Amarelo';
+        const isObs = body.destination === 'observacao' || body.status === 'Em_Observacao';
+        const targetStatus = isObs ? 'Em_Observacao' : (body.status || 'Aguardando_Atendimento');
+        const targetRoom = isObs ? 'Sala de Observação' : (body.room || 'Consultório 01');
+
         const updatedEncounter = {
-          ...enc,
-          manchesterColor: colorVal,
-          bloodPressure: body.bloodPressure || enc.bloodPressure || '',
-          temperatureCelsius: body.temperatureCelsius || enc.temperatureCelsius || '',
-          heartRateBpm: body.heartRateBpm || enc.heartRateBpm || '',
-          weightKg: body.weightKg || enc.weightKg || '',
-          spo2: body.spo2 || body.oxygenSaturation || enc.spo2 || '',
-          glicemia: body.glicemia || body.glucose || enc.glicemia || '',
-          mewsScore: body.mewsScore || enc.mewsScore || '',
-          complaints: body.complaints || enc.complaints || 'Avaliação clínica no Pronto-Socorro',
-          room: 'Consultório 01',
-          status: 'Aguardando_Atendimento',
-          tvCalled: false,
-          triaged_at: new Date().toISOString(),
-          lastStatusUpdate: new Date().toISOString()
-        };
-        localDB.update('encounters', enc.id, updatedEncounter);
+            ...enc,
+            manchesterColor: colorVal,
+            bloodPressure: body.bloodPressure || enc.bloodPressure || '',
+            temperatureCelsius: body.temperatureCelsius || enc.temperatureCelsius || '',
+            heartRateBpm: body.heartRateBpm || enc.heartRateBpm || '',
+            weightKg: body.weightKg || enc.weightKg || '',
+            spo2: body.spo2 || body.oxygenSaturation || enc.spo2 || '',
+            glicemia: body.glicemia || body.glucose || enc.glicemia || '',
+            mewsScore: body.mewsScore || enc.mewsScore || '',
+            complaints: body.complaints || enc.complaints || 'Avaliação clínica no Pronto-Socorro',
+            room: targetRoom,
+            status: targetStatus,
+            observation_started_at: isObs ? (enc.observation_started_at || new Date().toISOString()) : enc.observation_started_at,
+            tvCalled: false,
+            triaged_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
 
         localDB.insert('triages', {
           id: `tri-${Date.now()}`,
@@ -631,12 +636,50 @@ export const apiFetch = async (url, options = {}) => {
         if (enc) {
           const updatedEncounter = {
             ...enc,
-            status: 'Em_Atendimento',
-            observation_started_at: new Date().toISOString(),
+            status: 'Em_Observacao',
+            room: 'Sala de Observação',
+            observation_started_at: enc.observation_started_at || new Date().toISOString(),
             lastStatusUpdate: new Date().toISOString()
           };
           localDB.update('encounters', enc.id, updatedEncounter);
           responseData = { status: 'success', data: updatedEncounter };
+        } else {
+          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/finish-observation') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/finish-observation/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        if (enc) {
+          const nowIso = new Date().toISOString();
+          const updatedEncounter = {
+            ...enc,
+            status: 'Finalizado',
+            dischargeType: 'Alta da Observação',
+            discharged_at: nowIso,
+            completed_at: nowIso,
+            lastStatusUpdate: nowIso
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+
+          // Atualizar cadastro do paciente
+          const patients = localDB.list('patients') || [];
+          const pat = patients.find(p => (enc.patientId && String(p.id) === String(enc.patientId)) || (enc.patientName && p.fullName && p.fullName.toLowerCase() === enc.patientName.toLowerCase()));
+          if (pat) {
+            localDB.update('patients', pat.id, {
+              ...pat,
+              status: 'Alta',
+              lastDischargeDate: nowIso,
+              last_discharge_date: nowIso,
+              discharged_at: nowIso
+            });
+          }
+
+          responseData = { status: 'success', data: updatedEncounter, message: 'Alta da observação realizada com sucesso.' };
         } else {
           status = 404; responseData = { message: 'Atendimento não encontrado.' };
         }
@@ -885,6 +928,21 @@ export const apiFetch = async (url, options = {}) => {
               created_at: nowIso,
               author: 'Gestão de Leitos (Sistema)'
             });
+
+            // Atualizar status e última alta no cadastro do paciente
+            const allPatients = localDB.list('patients') || [];
+            const patientObj = allPatients.find(p => (prevPatientId && String(p.id) === String(prevPatientId)) || (prevPatientName && p.fullName && p.fullName.toLowerCase() === prevPatientName.toLowerCase()));
+            if (patientObj) {
+              localDB.update('patients', patientObj.id, {
+                ...patientObj,
+                status: 'Alta',
+                lastDischargeDate: nowIso,
+                last_discharge_date: nowIso,
+                discharged_at: nowIso
+              });
+              dataCache.delete('patients');
+              dataCacheTimestamps.delete('patients');
+            }
           }
         }
 

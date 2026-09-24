@@ -649,6 +649,11 @@ window.saveKanbanEvolution = function(hospId) {
 
 // ──── Alta ────
 window.dischargePatient = function(hospId) {
+  const hosp = (typeof localDB !== 'undefined' && localDB.getById) ? localDB.getById('hospitalizations', hospId) : null;
+  if (typeof window.dischargePatientFromHistory === 'function') {
+    window.dischargePatientFromHistory(hospId, hosp?.patient_id || hosp?.patientId || '', hosp?.patientName || hosp?.name || 'Paciente');
+    return;
+  }
   if(confirm('Registrar ALTA para este paciente? Ele sai do Kanban.')) {
     localDB.update('hospitalizations',hospId,{status:'Alta',discharge_date:new Date().toISOString()});
     if(window.showToast) window.showToast('Alta registrada com sucesso!');

@@ -303,7 +303,7 @@ async function loadAndRenderStagnationData() {
           const cleanStatus = (item.status || '').replace(/_/g, ' ');
 
           html += `
-            <tr class="stag-alert-row" style="border-bottom: 1px solid var(--border-color); ${isCritical ? 'background: rgba(239,68,68,0.03);' : ''} transition: background 0.2s ease;">
+            <tr class="stag-alert-row" style="border-bottom: 1px solid var(--border-color); ${isCritical ? 'background: rgba(239,68,68,0.03);' : ''} transition: background 0.2s ease; cursor: pointer;" onclick="if(!event.target.closest('button') && typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${item.id}', fullName: '${(item.patientName||'').replace(/'/g, "\\'")}', patientName: '${(item.patientName||'').replace(/'/g, "\\'")}', status: '${item.status}', room: '${item.room||'Consultório 01'}' });">
               <td style="padding: 18px 16px; vertical-align: middle;">
                 <div style="font-weight: 700; color: var(--text-primary); font-size: 0.98rem; margin-bottom: 4px; letter-spacing: -0.01em;">${item.patientName}</div>
                 <div style="font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 4px; opacity: 0.85;">
@@ -339,7 +339,7 @@ async function loadAndRenderStagnationData() {
               </td>
               <td style="padding: 18px 16px; vertical-align: middle; text-align: right;">
                 <div class="actions-cell" style="justify-content: flex-end;">
-                  <button class="btn btn-primary" onclick="openReassignModal('${item.id}', '${(item.patientName||'').replace(/'/g, "\\'")}', '${item.room||'Consultório 01'}', '${item.status}')" style="font-size: 0.82rem; font-weight: 700; padding: 9px 18px; border-radius: 20px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; box-shadow: 0 4px 14px rgba(2,132,199,0.35); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: #ffffff;" title="Redirecionar de Consultório/Ala ou Avançar Status">
+                  <button class="btn btn-primary" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${item.id}', fullName: '${(item.patientName||'').replace(/'/g, "\\'")}', patientName: '${(item.patientName||'').replace(/'/g, "\\'")}', status: '${item.status}', room: '${item.room||'Consultório 01'}' }); openReassignModal('${item.id}', '${(item.patientName||'').replace(/'/g, "\\'")}', '${item.room||'Consultório 01'}', '${item.status}')" style="font-size: 0.82rem; font-weight: 700; padding: 9px 18px; border-radius: 20px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; box-shadow: 0 4px 14px rgba(2,132,199,0.35); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; color: #ffffff;" title="Redirecionar de Consultório/Ala ou Avançar Status">
                     <i class="fa-solid fa-right-left"></i> Direcionar
                   </button>
                 </div>

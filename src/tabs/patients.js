@@ -252,7 +252,7 @@ export function renderPatientsTab(contentArea) {
           <tr>
             <th>ID</th>
             <th>Nome Completo</th>
-            <th>📍 Localização Atual</th>
+            <th>📍 Status / Localização Atual</th>
             <th>CPF</th>
             <th>Data Nasc.</th>
             <th>Cidade</th>
@@ -658,6 +658,14 @@ export function renderPatientsTab(contentArea) {
 
   const loadAndRenderTable = async () => {
     try {
+      if (typeof dataCache !== 'undefined') {
+        dataCache.delete('patients');
+        dataCache.delete('/api/patients');
+      }
+      if (typeof dataCacheTimestamps !== 'undefined') {
+        dataCacheTimestamps.delete('patients');
+        dataCacheTimestamps.delete('/api/patients');
+      }
       const result = await cachedApiGet(`/api/patients`, 'patients');
       allPatients = Array.isArray(result) ? result : (result.data || []);
       renderTableRows(allPatients);
@@ -667,6 +675,8 @@ export function renderPatientsTab(contentArea) {
       if (wrapper) wrapper.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Erro ao carregar dados do banco de dados.</div>`;
     }
   };
+  window.loadPatientsTable = loadAndRenderTable;
+  window.loadPatients = loadAndRenderTable;
 
   const resetForm = () => {
     document.getElementById('patient-form').reset();

@@ -1,4 +1,4 @@
-import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
+import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, showCustomConfirm, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 import * as localDB from '../localDB.js';
 import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp, generateClinicalSummary3Lines, getSuggestedOrdersByComplaint } from '../modules/clinicalAI.js';
@@ -1331,13 +1331,22 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
     (p.fullName && normPname && p.fullName.toLowerCase().trim() === normPname)
   ));
 
-  const finishedEncs = encounters.filter(e => e.status === 'Finalizado' && (
+  // 4. Última Alta Concluída ou Sem Atendimento Ativo
+  const hospDischarged = (hospitalizations || []).filter(h => (h.status === 'Alta' || h.status === 'Discharged') && (
+    (h.patient_id && String(h.patient_id).toLowerCase() === normPid) ||
+    (h.patientId && String(h.patientId).toLowerCase() === normPid) ||
+    (h.patientName && normPname && h.patientName.toLowerCase().includes(normPname))
+  )).sort((a, b) => new Date(b.discharged_at || b.discharge_date || 0) - new Date(a.discharged_at || a.discharge_date || 0))[0];
+
+  const finishedEncs = encounters.filter(e => (e.status === 'Finalizado' || e.status === 'Alta') && (
     (e.patientId && String(e.patientId).toLowerCase() === normPid) ||
     (e.patientName && normPname && e.patientName.toLowerCase().includes(normPname))
-  )).sort((a, b) => new Date(b.completed_at || b.discharged_at || b.lastStatusUpdate || 0) - new Date(a.completed_at || a.discharged_at || a.lastStatusUpdate || 0));
+  )).sort((a, b) => new Date(b.completed_at || b.discharged_at || b.closed_at || b.lastStatusUpdate || 0) - new Date(a.completed_at || a.discharged_at || a.closed_at || a.lastStatusUpdate || 0));
 
   const lastFinished = finishedEncs[0];
-  const lastDischargeIso = (patObj && (patObj.discharged_at || patObj.last_discharge_date)) || (lastFinished && (lastFinished.completed_at || lastFinished.discharged_at || lastFinished.lastStatusUpdate));
+  const lastDischargeIso = (patObj && (patObj.lastDischargeDate || patObj.last_discharge_date || patObj.discharged_at)) ||
+                           (hospDischarged && (hospDischarged.discharged_at || hospDischarged.discharge_date)) ||
+                           (lastFinished && (lastFinished.discharged_at || lastFinished.completed_at || lastFinished.closed_at || lastFinished.lastStatusUpdate));
 
   let dischargeDateStr = '';
   if (lastDischargeIso) {
@@ -1346,16 +1355,26 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
       const day = String(d.getDate()).padStart(2, '0');
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const year = d.getFullYear();
-      dischargeDateStr = `${day}/${month}/${year}`;
+      const hours = String(d.getHours()).padStart(2, '0');
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      dischargeDateStr = `${day}/${month}/${year} às ${hours}:${mins}`;
     }
+  } else if (patObj && (patObj.status === 'Alta' || patObj.status === 'Alta Concedida')) {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    dischargeDateStr = `${day}/${month}/${year} às ${hours}:${mins}`;
   }
 
   if (dischargeDateStr) {
     return {
-      text: `Última Alta em ${dischargeDateStr}`,
-      sector: `Última Alta em ${dischargeDateStr}`,
+      text: `Alta em ${dischargeDateStr}`,
+      sector: `Alta — ${dischargeDateStr}`,
       bed: null,
-      status: 'Alta Médica',
+      status: 'Alta Hospitalar',
       color: '#10b981',
       bg: 'rgba(16, 185, 129, 0.15)',
       borderColor: 'rgba(16, 185, 129, 0.4)',
@@ -1812,164 +1831,273 @@ modal.style.left = '0';
       </div>
 
       <!-- SEÇÃO 1: LINHA DO CUIDADO & ATENDIMENTOS -->
-      <div style="margin-bottom: 24px;">
-        <div style="margin-bottom: 12px; font-weight: 700; color: var(--text-primary); font-size: 1.05rem; display: flex; align-items: center; justify-content: space-between;">
-          <span><i class="fa-solid fa-timeline" style="color: #818cf8;"></i> Linha do Cuidado &amp; Histórico Assistencial (${encounters.length})</span>
-          <span style="font-size: 0.75rem; color: #94a3b8;">Registro de consultório, médico responsável e assinaturas</span>
+      <div style="margin-bottom: 28px;">
+
+        <!-- Header da Seção -->
+        <div style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(99,102,241,0.4);">
+              <i class="fa-solid fa-timeline" style="color:#fff; font-size:1rem;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 800; color: var(--text-primary); font-size: 1.05rem; line-height:1.2;">Linha do Cuidado & Histórico Assistencial</div>
+              <div style="font-size: 0.72rem; color: #94a3b8;">${encounters.length} atendimento${encounters.length !== 1 ? 's' : ''} registrado${encounters.length !== 1 ? 's' : ''} · Ordenado do mais recente</div>
+            </div>
+          </div>
+          <!-- Resumo Estatístico Rápido -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            ${(() => {
+              const totalEncs = encounters.length;
+              const internados = encounters.filter(e => e.status === 'Internado' || e.status === 'Em Atendimento').length;
+              const finalizados = encounters.filter(e => e.status === 'Finalizado' || e.status === 'Alta').length;
+              const criticos = encounters.filter(e => (e.manchesterColor || '').toLowerCase() === 'vermelho' || (e.manchesterColor || '').toLowerCase() === 'laranja').length;
+              return [
+                internados ? `<span style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;"><i class="fa-solid fa-stethoscope" style="margin-right:4px;"></i>${internados} Ativo${internados > 1 ? 's' : ''}</span>` : '',
+                finalizados ? `<span style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#34d399;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;"><i class="fa-solid fa-check" style="margin-right:4px;"></i>${finalizados} Finalizado${finalizados > 1 ? 's' : ''}</span>` : '',
+                criticos ? `<span style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i>${criticos} Crítico${criticos > 1 ? 's' : ''}</span>` : ''
+              ].filter(Boolean).join('');
+            })()}
+          </div>
         </div>
-        
+
         ${encounters.length === 0 ? `
-          <div style="background: var(--bg-tertiary); border: 1px dashed var(--border-color); border-radius: 12px; padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-            <i class="fa-solid fa-folder-open" style="font-size: 1.8rem; opacity: 0.5; margin-bottom: 8px; display: block; color: var(--color-primary);"></i>
-            Nenhum atendimento registrado para este paciente.
+          <div style="background: var(--bg-tertiary); border: 1px dashed var(--border-color); border-radius: 14px; padding: 32px; text-align: center; color: var(--text-muted);">
+            <i class="fa-solid fa-folder-open" style="font-size: 2.2rem; opacity: 0.4; margin-bottom: 10px; display: block; color: #818cf8;"></i>
+            <div style="font-size: 0.9rem; font-weight: 600;">Nenhum atendimento registrado</div>
+            <div style="font-size: 0.78rem; margin-top: 4px;">Este paciente ainda não possui histórico assistencial no sistema.</div>
           </div>
         ` : `
-          <div style="display: flex; flex-direction: column; gap: 18px;">
+          <!-- LINHA DO TEMPO VISUAL -->
+          <div style="position: relative; padding-left: 28px;">
+
+            <!-- Trilho vertical da linha do tempo -->
+            <div style="position: absolute; left: 11px; top: 16px; bottom: 16px; width: 2px; background: linear-gradient(to bottom, #6366f1, rgba(99,102,241,0.1)); border-radius: 2px;"></div>
+
             ${encounters.map((enc, encIdx) => {
-              const isInternado = Boolean(activeHosp);
+              const isInternado = Boolean(activeHosp) || enc.status === 'Internado';
               const isDischarged = !isInternado && (enc.status === 'Finalizado' || enc.status === 'Alta' || enc.completed_at || enc.discharged_at || latestDischargedHosp);
-              const statusLabel = isInternado ? '🛌 Internado em Leito' : (isDischarged ? '✅ Alta Médica / Finalizado' : (enc.status === 'Em_Atendimento' ? '🟢 Em Atendimento no Consultório' : (enc.status || 'Em Atendimento')));
-              const dateText = enc.admitted_at ? new Date(enc.admitted_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (enc.created_at ? new Date(enc.created_at).toLocaleDateString('pt-BR') : 'Hoje');
-              
-              // Cruzar com chamada na TV
+              const isActive = !isDischarged && !isInternado;
+
+              // Cor do nó na timeline
+              const nodeColor = isInternado ? '#ef4444' : (isDischarged ? '#10b981' : '#6366f1');
+              const nodeGlow = isInternado ? 'rgba(239,68,68,0.5)' : (isDischarged ? 'rgba(16,185,129,0.4)' : 'rgba(99,102,241,0.5)');
+
+              // Status
+              const statusIcon = isInternado ? '🛌' : (isDischarged ? '✅' : '🟣');
+              const statusLabel = isInternado ? 'Internado' : (isDischarged ? 'Alta / Finalizado' : 'Em Atendimento');
+              const statusColor = isInternado ? '#fca5a5' : (isDischarged ? '#86efac' : '#c4b5fd');
+              const statusBg = isInternado ? 'rgba(239,68,68,0.15)' : (isDischarged ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.15)');
+
+              // Data
+              const rawDate = enc.admitted_at || enc.created_at;
+              const dateObj = rawDate ? new Date(rawDate) : new Date();
+              const dateText = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+              const timeText = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+              // Dados clínicos
               const matchingTv = tvCalls.find(tc => String(tc.encounterId) === String(enc.id) || String(tc.encounter_id) === String(enc.id) || tc.patientName === enc.patientName);
-              const roomName = enc.room || enc.roomName || (matchingTv && matchingTv.room) || 'Consultório 01 (Térreo)';
-              const tvCallTime = matchingTv ? new Date(matchingTv.called_at || matchingTv.created_at || enc.admitted_at).toLocaleTimeString('pt-BR').slice(0,5) : (enc.admitted_at ? new Date(enc.admitted_at).toLocaleTimeString('pt-BR').slice(0,5) : '19:48');
-
-              // Cruzar com médico e notas
+              const roomName = enc.room || enc.roomName || (matchingTv && matchingTv.room) || 'Consultório 01';
               const matchingNote = clinicalNotes.find(cn => String(cn.encounterId) === String(enc.id) || String(cn.patient_id) === String(patientId));
-              const doctorFullName = enc.doctorName || (matchingNote && matchingNote.doctorName) || (matchingTv && matchingTv.doctorName) || 'Dr. Carlos Eduardo Silva';
-              const doctorCrm = enc.doctorCrm || (doctorFullName.includes('CRM') ? '' : 'CRM 123456/SP');
-
-              // Cruzar com triagem
+              const doctorName = enc.doctorName || (matchingNote && matchingNote.doctorName) || (matchingTv && matchingTv.doctorName) || 'Médico Plantonista';
               const matchingTriage = triages.find(t => String(t.encounterId) === String(enc.id) || String(t.encounter_id) === String(enc.id));
-              const nurseFullName = enc.nurseName || (matchingTriage && matchingTriage.nurseName) || 'Enf. Mariana Souza (COREN 458921/SP)';
-              const bp = (matchingTriage && matchingTriage.bloodPressure) || enc.bloodPressure || '120/80';
-              const hr = (matchingTriage && matchingTriage.heartRateBpm) || enc.heartRateBpm || '78';
-              const temp = (matchingTriage && matchingTriage.temperatureCelsius) || enc.temperatureCelsius || '36.6';
+              const nurseFullName = enc.nurseName || (matchingTriage && matchingTriage.nurseName) || 'Equipe de Enfermagem';
+              const bp = (matchingTriage && matchingTriage.bloodPressure) || enc.bloodPressure || '—';
+              const hr = (matchingTriage && matchingTriage.heartRateBpm) || enc.heartRateBpm || '—';
+              const temp = (matchingTriage && matchingTriage.temperatureCelsius) || enc.temperatureCelsius || '—';
+              const spo2 = (matchingTriage && matchingTriage.oxygenSaturation) || enc.oxygenSaturation || '—';
 
-              // Cruzar com leito
-              const matchingHosp = hospitalizations.find(h => String(h.encounterId) === String(enc.id) || String(h.patient_id) === String(patientId) || (activeHosp && activeHosp.patient_id === patientId));
-              const bedName = (activeHosp && activeHosp.bed) || (matchingHosp && matchingHosp.bed) || enc.bed || (isInternado ? 'Leito 102A' : (latestDischargedHosp ? latestDischargedHosp.bed : null));
-
+              // Manchester
               const mColor = enc.manchesterColor || (matchingTriage && matchingTriage.manchesterColor) || 'Amarelo';
-              let badgeBg = 'rgba(16, 185, 129, 0.2)';
-              let badgeColor = '#34d399';
-              if (mColor === 'Vermelho') { badgeBg = 'rgba(239, 68, 68, 0.2)'; badgeColor = '#f87171'; }
-              else if (mColor === 'Laranja') { badgeBg = 'rgba(249, 115, 22, 0.2)'; badgeColor = '#fb923c'; }
-              else if (mColor === 'Amarelo') { badgeBg = 'rgba(234, 179, 8, 0.2)'; badgeColor = '#facc15'; }
-              else if (mColor === 'Azul') { badgeBg = 'rgba(59, 130, 246, 0.2)'; badgeColor = '#60a5fa'; }
+              const manchesterColors = {
+                'Vermelho': { bg: 'rgba(239,68,68,0.2)', color: '#f87171', border: '#ef4444', label: '🔴 Vermelho — Emergência' },
+                'Laranja':  { bg: 'rgba(249,115,22,0.2)', color: '#fb923c', border: '#f97316', label: '🟠 Laranja — Muito Urgente' },
+                'Amarelo':  { bg: 'rgba(234,179,8,0.2)', color: '#facc15', border: '#eab308', label: '🟡 Amarelo — Urgente' },
+                'Verde':    { bg: 'rgba(16,185,129,0.2)', color: '#34d399', border: '#10b981', label: '🟢 Verde — Pouco Urgente' },
+                'Azul':     { bg: 'rgba(59,130,246,0.2)', color: '#60a5fa', border: '#3b82f6', label: '🔵 Azul — Não Urgente' },
+                'Branco':   { bg: 'rgba(148,163,184,0.2)', color: '#e2e8f0', border: '#94a3b8', label: '⚪ Branco — Sem Urgência' }
+              };
+              const mc = manchesterColors[mColor] || manchesterColors['Amarelo'];
+
+              // Desfecho/Leito
+              const matchingHosp = hospitalizations.find(h => String(h.encounterId) === String(enc.id) || (activeHosp && activeHosp.patient_id === patientId));
+              const bedName = (activeHosp && activeHosp.bed) || (matchingHosp && matchingHosp.bed) || enc.bed || null;
+
+              // SOAP resumido
+              const hasSoap = enc.subjectiveContent || enc.objectiveContent || enc.assessmentContent || enc.planContent;
+              const soapId = 'soap-toggle-' + encIdx;
+
+              // Etapas da jornada clínica
+              const journeySteps = [
+                { icon: 'fa-person-walking-arrow-right', label: 'Chegada', done: true },
+                { icon: 'fa-user-nurse', label: 'Triagem', done: !!(matchingTriage || enc.manchesterColor) },
+                { icon: 'fa-tv', label: 'Chamada TV', done: !!matchingTv },
+                { icon: 'fa-user-doctor', label: 'Consulta', done: !!(enc.doctorName || matchingNote) },
+                { icon: isInternado ? 'fa-bed-pulse' : (isDischarged ? 'fa-circle-check' : 'fa-hourglass-half'), label: isInternado ? 'Internado' : (isDischarged ? 'Alta' : 'Desfecho'), done: isDischarged || isInternado }
+              ];
 
               return `
-                <div style="background: var(--bg-tertiary); border: 1.5px solid var(--border-color); border-left: 5px solid ${isInternado ? '#ef4444' : (isDischarged ? '#10b981' : '#0284c7')}; border-radius: 14px; padding: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-                  
-                  <!-- Topo do Atendimento -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                      <span style="font-weight: 800; font-size: 1.05rem; color: #fff;">Atendimento #${encounters.length - encIdx}: ${enc.type === 'Urgencia' ? 'Pronto Atendimento / Urgência' : 'Ambulatório'}</span>
-                      <span style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor}; padding: 3px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 700;">
-                        Triagem ${mColor}
-                      </span>
-                      <span style="background: ${isInternado ? 'rgba(239,68,68,0.2)' : (isDischarged ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.2)')}; color: ${isInternado ? '#f87171' : (isDischarged ? '#34d399' : '#818cf8')}; border: 1px solid currentColor; padding: 3px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 700;">
-                        ${statusLabel}
-                      </span>
-                    </div>
-                    <span style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-calendar-day" style="margin-right: 4px;"></i>${dateText}</span>
+                <div style="position: relative; margin-bottom: 20px;">
+                  <!-- Nó da Timeline -->
+                  <div style="position: absolute; left: -22px; top: 18px; width: 22px; height: 22px; border-radius: 50%; background: ${nodeColor}; box-shadow: 0 0 12px ${nodeGlow}; border: 3px solid rgba(15,23,42,0.8); z-index:2; display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid ${isDischarged ? 'fa-check' : (isInternado ? 'fa-bed-pulse' : 'fa-circle-dot')}" style="color:#fff; font-size:0.55rem;"></i>
                   </div>
 
-                  <!-- 4 CARDS DE AUDITORIA & TRAJETÓRIA -->
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px;">
-                    
-                    <!-- 1. Consultório & Chamada TV -->
-                    <div style="background: var(--bg-secondary); border: 1px solid rgba(56,189,248,0.25); border-radius: 12px; padding: 12px 14px;">
-                      <div style="font-size: 0.72rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
-                        <i class="fa-solid fa-door-open"></i> Sala / Consultório
-                      </div>
-                      <div style="font-size: 0.92rem; font-weight: 800; color: #ffffff;">
-                        ${roomName}
-                      </div>
-                      <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;">
-                        <i class="fa-solid fa-tv"></i> Chamado no Painel às <strong>${tvCallTime}</strong>
+                  <!-- Cartão do Atendimento -->
+                  <div style="background: var(--bg-tertiary); border: 1px solid rgba(255,255,255,0.07); border-left: 4px solid ${nodeColor}; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.3); transition: box-shadow 0.2s;">
+
+                    <!-- Cabeçalho do Card -->
+                    <div style="padding: 14px 18px 10px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                            <span style="font-weight: 800; font-size: 0.95rem; color: #fff;">
+                              Atendimento #${encounters.length - encIdx}
+                              <span style="color: #64748b; font-weight: 500; font-size: 0.8rem;"> — ${enc.type === 'Urgencia' ? 'Urgência / PS' : (isInternado ? 'Internação Hospitalar' : 'Ambulatório')}</span>
+                            </span>
+                            <span style="background:${mc.bg}; color:${mc.color}; border:1px solid ${mc.border}; padding:2px 9px; border-radius:12px; font-size:0.7rem; font-weight:700; white-space:nowrap;">${mc.label}</span>
+                            <span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}40; padding:2px 9px; border-radius:12px; font-size:0.7rem; font-weight:700;">${statusIcon} ${statusLabel}</span>
+                          </div>
+                          <div style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <span><i class="fa-solid fa-calendar" style="margin-right:3px; color:#818cf8;"></i>${dateText}</span>
+                            <span><i class="fa-solid fa-clock" style="margin-right:3px; color:#38bdf8;"></i>${timeText}</span>
+                            <span><i class="fa-solid fa-door-open" style="margin-right:3px; color:#34d399;"></i>${roomName}</span>
+                          </div>
+                        </div>
+                        <button onclick="openPEPModal('${enc.id}')" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 3px 10px rgba(2,132,199,0.4);">
+                          <i class="fa-solid fa-file-medical"></i> Abrir PEP
+                        </button>
                       </div>
                     </div>
 
-                    <!-- 2. Médico Responsável & Assinatura -->
-                    <div style="background: var(--bg-secondary); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 12px 14px;">
-                      <div style="font-size: 0.72rem; font-weight: 700; color: #818cf8; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
-                        <i class="fa-solid fa-user-doctor"></i> Médico Assistente
-                      </div>
-                      <div style="font-size: 0.92rem; font-weight: 800; color: #ffffff;">
-                        ${doctorFullName} ${doctorCrm ? `<small style="font-size:0.75rem; color:#c4b5fd; font-weight:600;">(${doctorCrm})</small>` : ''}
-                      </div>
-                      <div style="font-size: 0.74rem; color: #34d399; margin-top: 4px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                        <i class="fa-solid fa-file-signature"></i> Assinado Digitalmente (CFM)
-                      </div>
+                    <!-- Jornada Clínica (Stepper mini) -->
+                    <div style="padding: 10px 18px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 0; overflow-x: auto;">
+                      ${journeySteps.map((step, si) => `
+                        <div style="display: flex; align-items: center; flex-shrink: 0;">
+                          <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: ${step.done ? nodeColor : 'rgba(51,65,85,0.8)'}; border: 2px solid ${step.done ? nodeColor : 'rgba(100,116,139,0.4)'}; display: flex; align-items: center; justify-content: center; box-shadow: ${step.done ? '0 0 8px ' + nodeGlow : 'none'}; transition: 0.3s;">
+                              <i class="fa-solid ${step.icon}" style="font-size: 0.65rem; color: ${step.done ? '#fff' : '#475569'};"></i>
+                            </div>
+                            <span style="font-size: 0.58rem; color: ${step.done ? '#e2e8f0' : '#475569'}; white-space: nowrap; font-weight: ${step.done ? '700' : '400'};">${step.label}</span>
+                          </div>
+                          ${si < journeySteps.length - 1 ? `<div style="width: 24px; height: 2px; background: ${step.done ? nodeColor + '80' : 'rgba(51,65,85,0.6)'}; margin: 0 2px; margin-bottom: 14px; flex-shrink:0;"></div>` : ''}
+                        </div>
+                      `).join('')}
                     </div>
 
-                    <!-- 3. Triagem & Enfermagem -->
-                    <div style="background: var(--bg-secondary); border: 1px solid rgba(250,204,21,0.25); border-radius: 12px; padding: 12px 14px;">
-                      <div style="font-size: 0.72rem; font-weight: 700; color: #facc15; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
-                        <i class="fa-solid fa-user-nurse"></i> Triagem &amp; Sinais Vitais
+                    <!-- Sinais Vitais & Profissionais -->
+                    <div style="padding: 12px 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+
+                      <!-- Sinais Vitais -->
+                      <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px 12px; border: 1px solid rgba(251,191,36,0.2);">
+                        <div style="font-size: 0.65rem; font-weight: 800; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; display: flex; align-items: center; gap: 4px;">
+                          <i class="fa-solid fa-heart-pulse"></i> Sinais Vitais (Triagem)
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                          ${[
+                            { label: 'PA', value: bp, icon: 'fa-droplet', color: '#f87171' },
+                            { label: 'FC', value: hr !== '—' ? hr + ' bpm' : '—', icon: 'fa-heart', color: '#fb923c' },
+                            { label: 'Temp', value: temp !== '—' ? temp + ' °C' : '—', icon: 'fa-temperature-half', color: '#facc15' },
+                            { label: 'SpO₂', value: spo2 !== '—' ? spo2 + '%' : '—', icon: 'fa-lungs', color: '#60a5fa' }
+                          ].map(sv => `
+                            <div style="display:flex; align-items:center; gap:4px;">
+                              <i class="fa-solid ${sv.icon}" style="color:${sv.color}; font-size:0.6rem; width:10px;"></i>
+                              <span style="font-size:0.68rem; color:#94a3b8;">${sv.label}:</span>
+                              <span style="font-size:0.72rem; font-weight:700; color:#e2e8f0;">${sv.value}</span>
+                            </div>
+                          `).join('')}
+                        </div>
                       </div>
-                      <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">
-                        ${nurseFullName}
+
+                      <!-- Médico Responsável -->
+                      <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px 12px; border: 1px solid rgba(129,140,248,0.2);">
+                        <div style="font-size: 0.65rem; font-weight: 800; color: #818cf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                          <i class="fa-solid fa-user-doctor"></i> Médico Assistente
+                        </div>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: #fff; line-height: 1.3;">${doctorName}</div>
+                        <div style="font-size: 0.68rem; color: #34d399; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                          <i class="fa-solid fa-file-signature"></i> Assinado digitalmente (CFM)
+                        </div>
                       </div>
-                      <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;">
-                        PA: <strong>${bp}</strong> &bull; FC: <strong>${hr} bpm</strong> &bull; Temp: <strong>${temp} °C</strong>
+
+                      <!-- Desfecho -->
+                      <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px 12px; border: 1px solid ${isInternado ? 'rgba(239,68,68,0.25)' : (isDischarged ? 'rgba(16,185,129,0.25)' : 'rgba(99,102,241,0.25)')};">
+                        <div style="font-size: 0.65rem; font-weight: 800; color: ${isInternado ? '#f87171' : (isDischarged ? '#34d399' : '#818cf8')}; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                          <i class="fa-solid ${isInternado ? 'fa-bed-pulse' : (isDischarged ? 'fa-circle-check' : 'fa-route')}"></i> Desfecho
+                        </div>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: ${isInternado ? '#fca5a5' : (isDischarged ? '#86efac' : '#c4b5fd')};">
+                          ${isInternado ? `Internado — ${bedName || activeHosp?.bed || 'Leito Alocado'}` : (isDischarged ? 'Alta Hospitalar / Finalizado' : 'Em Acompanhamento')}
+                        </div>
+                        ${isInternado && activeHosp ? `<div style="font-size:0.68rem; color:#94a3b8; margin-top:3px;">${sectorName || activeHosp.sector || 'Setor Hospitalar'}</div>` : ''}
                       </div>
+
                     </div>
 
-                    <!-- 4. Desfecho / Leito de Internação -->
-                    <div style="background: var(--bg-secondary); border: 1px solid ${isInternado ? 'rgba(239,68,68,0.35)' : 'rgba(16,185,129,0.35)'}; border-radius: 12px; padding: 12px 14px;">
-                      <div style="font-size: 0.72rem; font-weight: 700; color: ${isInternado ? '#f87171' : '#34d399'}; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
-                        <i class="fa-solid ${isInternado ? 'fa-bed-pulse' : 'fa-circle-check'}"></i> Desfecho Assistencial
-                      </div>
-                      <div style="font-size: 0.92rem; font-weight: 800; color: ${isInternado ? '#fca5a5' : '#86efac'};">
-                        ${isInternado ? `Internado no ${activeHosp.bed || 'Leito'}` : (isDischarged ? `✅ Alta Hospitalar Concluída` : 'Em Consulta')}
-                      </div>
-                      <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;">
-                        ${isInternado ? `Setor: ${sectorName} · Em Observação` : (isDischarged ? `Leito ${latestDischargedHosp?.bed || '102A'} Desocupado / Higienização` : 'Tratamento ambulatorial')}
-                      </div>
-                    </div>
-
-                  </div>
-
-                  <!-- Detalhes da Queixa e Evolução Clínica -->
-                  <div style="background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 14px;">
-                    <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">
-                      <strong style="color: #fff;"><i class="fa-solid fa-notes-medical" style="color:#f87171; margin-right:4px;"></i> Queixa Principal / Sintomas:</strong> ${enc.complaints || enc.reason || 'Dores no peito, desconforto torácico sob esforço físico.'}
-                    </div>
-                    ${(enc.subjectiveContent || enc.notes) ? `
-                      <div style="font-size: 0.84rem; color: #e2e8f0; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px;">
-                        <strong style="color: var(--color-primary);"><i class="fa-solid fa-stethoscope"></i> Avaliação Médica / SOAP Registrada:</strong><br>
-                        ${enc.subjectiveContent || enc.notes}
+                    <!-- Accordion: Evolução SOAP -->
+                    ${hasSoap ? `
+                      <div style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <button onclick="
+                          var el = document.getElementById('${soapId}');
+                          var icon = document.getElementById('${soapId}-icon');
+                          if(el.style.display === 'none'){
+                            el.style.display='block';
+                            icon.style.transform='rotate(180deg)';
+                          } else {
+                            el.style.display='none';
+                            icon.style.transform='rotate(0deg)';
+                          }
+                        " style="width:100%; background: rgba(2,132,199,0.08); border: none; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; color: #38bdf8; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.3px;">
+                          <span><i class="fa-solid fa-notes-medical" style="margin-right:6px;"></i>Ver Evolução SOAP Registrada</span>
+                          <i id="${soapId}-icon" class="fa-solid fa-chevron-down" style="transition: transform 0.25s;"></i>
+                        </button>
+                        <div id="${soapId}" style="display:none; padding: 14px 18px; background: rgba(0,0,0,0.25);">
+                          ${enc.subjectiveContent ? `
+                            <div style="margin-bottom: 10px;">
+                              <div style="font-size:0.68rem; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;"><i class="fa-solid fa-s" style="background:#3b82f6;color:#fff;padding:1px 5px;border-radius:4px;margin-right:5px;font-style:italic;">S</i> Subjetivo</div>
+                              <div style="font-size:0.82rem; color:#e2e8f0; line-height:1.5; background:rgba(59,130,246,0.06); border-left:3px solid #3b82f6; padding:8px 12px; border-radius:0 6px 6px 0;">${enc.subjectiveContent}</div>
+                            </div>` : ''}
+                          ${enc.objectiveContent ? `
+                            <div style="margin-bottom: 10px;">
+                              <div style="font-size:0.68rem; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;"><i class="fa-solid fa-o" style="background:#10b981;color:#fff;padding:1px 5px;border-radius:4px;margin-right:5px;font-style:italic;">O</i> Objetivo</div>
+                              <div style="font-size:0.82rem; color:#e2e8f0; line-height:1.5; background:rgba(16,185,129,0.06); border-left:3px solid #10b981; padding:8px 12px; border-radius:0 6px 6px 0;">${enc.objectiveContent}</div>
+                            </div>` : ''}
+                          ${enc.assessmentContent ? `
+                            <div style="margin-bottom: 10px;">
+                              <div style="font-size:0.68rem; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;"><i class="fa-solid fa-a" style="background:#f59e0b;color:#fff;padding:1px 5px;border-radius:4px;margin-right:5px;font-style:italic;">A</i> Avaliação / CID-10</div>
+                              <div style="font-size:0.82rem; color:#e2e8f0; line-height:1.5; background:rgba(245,158,11,0.06); border-left:3px solid #f59e0b; padding:8px 12px; border-radius:0 6px 6px 0;">${enc.assessmentContent}</div>
+                            </div>` : ''}
+                          ${enc.planContent ? `
+                            <div>
+                              <div style="font-size:0.68rem; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;"><i class="fa-solid fa-p" style="background:#8b5cf6;color:#fff;padding:1px 5px;border-radius:4px;margin-right:5px;font-style:italic;">P</i> Plano Terapêutico</div>
+                              <div style="font-size:0.82rem; color:#e2e8f0; line-height:1.5; background:rgba(139,92,246,0.06); border-left:3px solid #8b5cf6; padding:8px 12px; border-radius:0 6px 6px 0;">${enc.planContent}</div>
+                            </div>` : ''}
+                        </div>
                       </div>
                     ` : `
-                      <div style="font-size: 0.8rem; color: #94a3b8; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px; margin-top: 6px;">
-                        <i class="fa-solid fa-file-signature"></i> <strong>Hipótese Diagnóstica:</strong> I20.0 — Angina Instável / Investigação Cardiológica &bull; <strong>Conduta:</strong> Encaminhamento para leito de internação para monitorização contínua.
+                      <div style="padding: 10px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <span style="font-size:0.76rem; color:#475569; display:flex; align-items:center; gap:5px;">
+                          <i class="fa-solid fa-file-circle-xmark"></i> Evolução SOAP ainda não registrada para este atendimento.
+                        </span>
                       </div>
                     `}
-                  </div>
 
-                  <!-- Botões de Ação do Período -->
-                  <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-sm" onclick="openPEPModal('${enc.id}')" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-size: 0.82rem; border-radius: 8px; padding: 7px 16px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2,132,199,0.35);">
-                      <i class="fa-solid fa-file-medical"></i> Abrir Prontuário Eletrônico (PEP Completo)
-                    </button>
-                    ${isInternado ? `
-                      <button type="button" class="btn btn-sm btn-primary" onclick="if(typeof switchTab === 'function') { document.getElementById('patient-history-modal')?.remove(); switchTab('leitos'); }" style="font-size: 0.82rem; padding: 7px 16px; font-weight: 700; border-radius: 8px;">
-                        <i class="fa-solid fa-bed"></i> Localizar no Mapa de Leitos
-                      </button>
+                    <!-- Queixa Principal -->
+                    ${(enc.complaints || enc.reason) ? `
+                      <div style="padding: 10px 18px; display: flex; align-items: flex-start; gap: 8px;">
+                        <i class="fa-solid fa-comment-medical" style="color:#f87171; margin-top:2px; flex-shrink:0;"></i>
+                        <div>
+                          <span style="font-size:0.68rem; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-right:6px;">Queixa Principal:</span>
+                          <span style="font-size:0.8rem; color:#e2e8f0;">${enc.complaints || enc.reason}</span>
+                        </div>
+                      </div>
                     ` : ''}
-                  </div>
 
+                  </div>
                 </div>
               `;
             }).join('')}
           </div>
         `}
       </div>
-
       <!-- SEÇÃO 2: CONSULTAS & AGENDAMENTOS -->
       <div style="margin-bottom: 10px;">
         <div style="margin-bottom: 12px; font-weight: 700; color: var(--text-primary); font-size: 1rem; display: flex; align-items: center; gap: 8px;">
@@ -2047,9 +2175,6 @@ window.openPEPModal = async function(encounterId) {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button type="button" id="btn-pep-new-evolution-header" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 14px; border: none; display: flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 2px 10px rgba(2,132,199,0.35);" title="Criar Nova Folha de Evolução Diária no PEP">
-              <i class="fa-solid fa-file-circle-plus"></i> Nova Evolução Diária
-            </button>
             <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
               <i class="fa-solid fa-video"></i> Teleconsulta
             </button>
@@ -2282,39 +2407,6 @@ window.openPEPModal = async function(encounterId) {
       sendToWhatsApp(enc.phone || '', msg);
     });
 
-    // Botão de Nova Evolução Diária (Cabeçalho)
-    document.getElementById('btn-pep-new-evolution-header')?.addEventListener('click', () => {
-      const pid = enc.patientId || enc.id || encounterId;
-      const targetSector = enc.sector || enc.room || 'Internação';
-      const admId = enc.admission_id || enc.id;
-      const newEncId = 'ENC-INT-' + Date.now();
-
-      if (typeof localDB !== 'undefined' && localDB.insert) {
-        localDB.insert('encounters', {
-          id: newEncId,
-          patientId: pid,
-          patientName: enc.patientName || 'Paciente',
-          doctorName: state?.user?.name || enc.doctorName || '',
-          room: targetSector,
-          sector: targetSector,
-          admission_id: admId,
-          manchesterColor: enc.manchesterColor || 'Amarelo',
-          status: 'Em Atendimento',
-          isNewDailyEvolution: true,
-          created_at: new Date().toISOString(),
-          subjectiveContent: '',
-          objectiveContent: '',
-          assessmentContent: '',
-          planContent: ''
-        });
-      }
-      const curModal = document.getElementById('pep-modal');
-      if (curModal) curModal.remove();
-
-      if (typeof showToast === 'function') showToast('✨ Nova folha de evolução diária iniciada!');
-      window.openPEPModal(newEncId);
-    });
-
     let notes = {};
     try {
       const notesRes = await apiFetch('/api/encounters/' + (enc.id || encounterId) + '/notes');
@@ -2468,11 +2560,23 @@ window.openPEPModal = async function(encounterId) {
               <option value="manter_internado" selected>Manter Internado (Salvar Evolução Diária)</option>
               <option value="alta">Alta Hospitalar (Encerrar Internação & Liberar Leito)</option>
               <option value="observacao">Manter em Observação (PS)</option>
-              <option value="internacao">Transferir de Leito / UTI</option>
+              <option value="internacao">Transferir de Leito (Enfermaria)</option>
+
+              <option value="semi_uti">🟡 Transferir para Semi-UTI / Cuidados Intermediários</option>
+
+              <option value="uti">🔴 Transferir para UTI (Terapia Intensiva)</option>
+
+              <option value="cti">🔴 Transferir para CTI (Centro de Terapia Intensiva)</option>
             ` : `
               <option value="alta" selected>Alta Médica (Encerrar Consulta)</option>
               <option value="observacao">Manter em Observação Médica (PS)</option>
               <option value="internacao">Solicitar Internação (Transferência de Leito)</option>
+
+              <option value="semi_uti">🟡 Internar em Semi-UTI / Cuidados Intermediários</option>
+
+              <option value="uti">🔴 Internar em UTI (Terapia Intensiva)</option>
+
+              <option value="cti">🔴 Internar em CTI (Centro de Terapia Intensiva)</option>
             `}
           </select>
         </div>
@@ -2518,9 +2622,37 @@ window.openPEPModal = async function(encounterId) {
       }
     });
 
-    // Evento do botão de nova evolução diária no banner
+    // Botão de Nova Evolução Diária no Banner (exibido quando atendimento anterior foi finalizado/assinado)
     document.getElementById('btn-start-new-daily-evolution-banner')?.addEventListener('click', () => {
-      document.getElementById('btn-pep-new-evolution-header')?.click();
+      const pid = enc.patientId || enc.id || encounterId;
+      const targetSector = enc.sector || enc.room || 'Internação';
+      const admId = enc.admission_id || enc.id;
+      const newEncId = 'ENC-INT-' + Date.now();
+
+      if (typeof localDB !== 'undefined' && localDB.insert) {
+        localDB.insert('encounters', {
+          id: newEncId,
+          patientId: pid,
+          patientName: enc.patientName || 'Paciente',
+          doctorName: state?.user?.name || enc.doctorName || '',
+          room: targetSector,
+          sector: targetSector,
+          admission_id: admId,
+          manchesterColor: enc.manchesterColor || 'Amarelo',
+          status: 'Em Atendimento',
+          isNewDailyEvolution: true,
+          created_at: new Date().toISOString(),
+          subjectiveContent: '',
+          objectiveContent: '',
+          assessmentContent: '',
+          planContent: ''
+        });
+      }
+      const curModal = document.getElementById('pep-modal');
+      if (curModal) curModal.remove();
+
+      if (typeof showToast === 'function') showToast('✨ Nova folha de evolução diária iniciada!');
+      window.openPEPModal(newEncId);
     });
 
     // Eventos de Ditado por Voz para cada campo SOAP
@@ -2940,6 +3072,63 @@ async function savePEPData(encounterId, shouldFinalize) {
           window.openTransferBedModal(encounterId, patientName, clinicalContext);
         }
         return;
+
+      } else if (outcome === 'semi_uti' || outcome === 'uti' || outcome === 'cti') {
+        const sectorMap = {
+          semi_uti: { label: 'Semi-UTI / Cuidados Intermediários', sector: 'Semi-UTI', icon: '🟡', urgency: 'Urgente' },
+          uti:      { label: 'UTI — Terapia Intensiva', sector: 'UTI', icon: '🔴', urgency: 'Crítico' },
+          cti:      { label: 'CTI — Centro de Terapia Intensiva', sector: 'CTI', icon: '🔴', urgency: 'Crítico' }
+        };
+        const dest = sectorMap[outcome];
+
+        _createContinuationEncounter(dest.sector);
+
+        // Atualiza contexto do paciente como crítico
+        if (typeof window.setActivePatientContext === 'function') {
+          window.setActivePatientContext({
+            ...enc,
+            fullName: patientName,
+            patientName: patientName,
+            status: 'Internado',
+            room: dest.sector,
+            sector: dest.sector,
+            currentStep: 5,
+            manchesterColor: enc.manchesterColor || (activeCtx ? activeCtx.manchesterColor : null) || 'Vermelho'
+          });
+        }
+
+        const modal = document.getElementById('pep-modal');
+        if (modal) modal.remove();
+
+        const clinicalContextICU = {
+          assessmentContent,
+          planContent,
+          subjectiveContent,
+          objectiveContent,
+          manchesterColor: enc.manchesterColor || (activeCtx ? activeCtx.manchesterColor : null) || 'Vermelho',
+          cid: assessmentContent || enc.cid || (activeCtx ? activeCtx.cid : '') || dest.label,
+          targetSector: dest.sector,
+          encounterId: encounterId
+        };
+
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: `${dest.icon} Encaminhamento para ${dest.label}`,
+            message: `Prontuário assinado. O paciente <strong>${patientName}</strong> foi encaminhado com caráter <strong>${dest.urgency}</strong> para a <strong>${dest.label}</strong>. Selecione o leito disponível no Mapa de Leitos.`,
+            targetTab: 'leitos',
+            targetTabLabel: `Alocar Leito — ${dest.sector} ➜`,
+            targetPatientName: patientName,
+            actionType: 'transfer_bed',
+            encounterId: encounterId,
+            persistent: true
+          });
+        }
+        if (typeof window.openTransferBedModal === 'function') {
+          window.openTransferBedModal(encounterId, patientName, clinicalContextICU);
+        } else if (typeof window.switchTab === 'function') {
+          window.switchTab('leitos');
+        }
+        return;
       } else {
         await apiFetch('/api/encounters/' + encounterId + '/status', {
           method: 'PUT',
@@ -3156,7 +3345,7 @@ window.movePatientSectorFromHistory = function(hospId, patientId, patientName) {
   });
 };
 
-window.dischargePatientFromHistory = function(hospId, patientId, patientName) {
+window.dischargePatientFromHistory = async function(hospId, patientId, patientName) {
   const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canManageBeds: true, label: 'Usuário' };
   if (!perms.canManageBeds) {
     if (typeof showCustomAlert === 'function') {
@@ -3171,36 +3360,172 @@ window.dischargePatientFromHistory = function(hospId, patientId, patientName) {
     return;
   }
 
-  if (confirm(`Confirmar ALTA para o paciente ${patientName}?`)) {
+  const confirmed = typeof showCustomConfirm === 'function'
+    ? await showCustomConfirm({
+        title: 'Confirmar Alta Hospitalar',
+        message: `Deseja realmente conceder <strong>ALTA hospitalar</strong> para o paciente <strong>${patientName}</strong>? Esta ação liberará o leito.`,
+        confirmText: 'Sim, Conceder Alta',
+        cancelText: 'Cancelar',
+        type: 'warning'
+      })
+    : confirm(`Confirmar ALTA para o paciente ${patientName}?`);
+
+  if (confirmed) {
     const db = typeof localDB !== 'undefined' ? localDB : window.localDB;
     if (db) {
-      const hosp = db.getById('hospitalizations', hospId);
+      const nowIso = new Date().toISOString();
+      const normPid = String(patientId || '').toLowerCase();
+      const normPname = String(patientName || '').toLowerCase().trim();
+
+      // 1. Atualizar Hospitalização
+      const hosp = db.getById ? db.getById('hospitalizations', hospId) : null;
       if (hosp) {
         hosp.status = 'Alta';
-        hosp.discharged_at = new Date().toISOString();
+        hosp.discharged_at = nowIso;
+        hosp.discharge_date = nowIso;
         db.update('hospitalizations', hospId, hosp);
-        if (typeof window.showToast === 'function') window.showToast('Alta registrada com sucesso!', 'success');
-        
-        if (typeof db.insert === 'function') {
-          db.insert('clinical_notes', {
-            id: 'NOTE-' + Math.floor(Math.random() * 1000000),
-            patientId: patientId,
-            text: '✅ Alta Hospitalar/Administrativa registrada no sistema.',
-            created_at: new Date().toISOString(),
-            author: `${perms.label} (${state.user?.name || state.user?.username || 'Sistema'})`
-          });
+      }
+      
+      const allHosps = db.list ? db.list('hospitalizations') : [];
+      allHosps.forEach(h => {
+        if ((String(h.id) === String(hospId) || 
+             (h.patient_id && String(h.patient_id).toLowerCase() === normPid) ||
+             (h.patientId && String(h.patientId).toLowerCase() === normPid) ||
+             (h.patientName && normPname && h.patientName.toLowerCase().includes(normPname))) && h.status !== 'Alta') {
+          h.status = 'Alta';
+          h.discharged_at = nowIso;
+          h.discharge_date = nowIso;
+          db.update('hospitalizations', h.id, h);
         }
-        
-        const historyModal = document.getElementById('history-modal-content');
-        if (historyModal) {
-          document.getElementById('close-history-modal')?.click();
-          setTimeout(() => window.openPatientHistoryModal(patientId, patientName), 100);
-        }
+      });
 
-        if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
-          window.loadAndRenderKanban();
+      // 2. Liberar leito ocupado pelo paciente no censo hospitalar
+      const allBeds = db.list ? db.list('beds') : [];
+      allBeds.forEach(b => {
+        const isThisPatient = (
+          (b.patientId && String(b.patientId).toLowerCase() === normPid) ||
+          (b.patientName && normPname && b.patientName.toLowerCase().includes(normPname)) ||
+          (hosp && (String(b.id) === String(hosp.bed_id) || b.bedNumber === hosp.bed || b.number === hosp.bed))
+        );
+        if (isThisPatient && (b.status === 'Ocupado' || b.status === 'Ocupada')) {
+          b.status = 'Higienizacao';
+          b.previousPatientName = b.patientName || patientName;
+          b.patientId = null;
+          b.patientName = null;
+          b.encounterId = null;
+          b.dischargedAt = nowIso;
+          db.update('beds', b.id, b);
+        }
+      });
+
+      // 3. Encerrar atendimentos / encounters ativos
+      const allEncs = db.list ? db.list('encounters') : [];
+      allEncs.forEach(enc => {
+        const isThisPatient = (
+          (enc.patientId && String(enc.patientId).toLowerCase() === normPid) ||
+          (enc.id && String(enc.id).toLowerCase() === normPid) ||
+          (enc.patientName && normPname && enc.patientName.toLowerCase().includes(normPname))
+        );
+        if (isThisPatient && enc.status !== 'Finalizado' && enc.status !== 'Alta' && enc.status !== 'Cancelado') {
+          enc.status = 'Alta';
+          enc.dischargeType = 'Alta Hospitalar';
+          enc.discharged_at = nowIso;
+          enc.completed_at = nowIso;
+          enc.closed_at = nowIso;
+          enc.lastStatusUpdate = nowIso;
+          db.update('encounters', enc.id, enc);
+        }
+      });
+
+      // 4. Atualizar cadastro do paciente com a data/hora da última alta
+      const allPatients = db.list ? db.list('patients') : [];
+      const pat = allPatients.find(p => (
+        (p.id && String(p.id).toLowerCase() === normPid) ||
+        (p.fullName && normPname && p.fullName.toLowerCase().trim() === normPname)
+      ));
+      if (pat) {
+        pat.status = 'Alta';
+        pat.lastDischargeDate = nowIso;
+        pat.last_discharge_date = nowIso;
+        pat.discharged_at = nowIso;
+        db.update('patients', pat.id, pat);
+      }
+
+      // 5. Inserir anotação clínica oficial de alta
+      if (typeof db.insert === 'function') {
+        const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const dateFormatted = new Date().toLocaleDateString('pt-BR');
+        db.insert('clinical_notes', {
+          id: 'NOTE-' + Math.floor(Math.random() * 1000000),
+          patientId: patientId,
+          text: `✅ Alta Hospitalar/Administrativa concluída em ${dateFormatted} às ${timeFormatted}. Leito liberado para higienização.`,
+          created_at: nowIso,
+          author: `${perms.label} (${state.user?.name || state.user?.username || 'Sistema'})`
+        });
+      }
+
+      // 6. Atualizar Contexto Ativo para Governança Clínica
+      if (typeof window.setActivePatientContext === 'function') {
+        window.setActivePatientContext({
+          id: patientId,
+          patientId: patientId,
+          fullName: patientName,
+          patientName: patientName,
+          status: 'Alta',
+          room: 'Alta Médica Concedida',
+          lastDischargeDate: nowIso,
+          discharged_at: nowIso,
+          stage: 6
+        });
+      }
+
+      // 7. Invalidar caches de dados em memória
+      if (typeof dataCache !== 'undefined' && dataCache.delete) {
+        dataCache.delete('patients');
+        dataCache.delete('beds');
+        dataCache.delete('hospitalizations');
+        dataCache.delete('encounters');
+        if (typeof dataCacheTimestamps !== 'undefined') {
+          dataCacheTimestamps.delete('patients');
+          dataCacheTimestamps.delete('beds');
+          dataCacheTimestamps.delete('hospitalizations');
+          dataCacheTimestamps.delete('encounters');
         }
       }
+
+      // 8. Notificar o usuário com feedback de sucesso
+      const formattedTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      if (typeof window.showToast === 'function') {
+        window.showToast(`✅ Alta concedida para ${patientName} às ${formattedTime}! Redirecionando para Pacientes...`, 'success');
+      }
+
+      // 9. FECHAR TODOS OS MODAIS ABERTOS (não mantém o modal de alta preso na tela)
+      if (typeof window.closeAllActiveModals === 'function') {
+        window.closeAllActiveModals();
+      } else {
+        document.getElementById('patient-history-modal')?.remove();
+        document.getElementById('custom-confirm-modal')?.remove();
+      }
+
+      // 10. Atualizar Kanban se ativo
+      if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
+        window.loadAndRenderKanban();
+      }
+
+      // 11. REDIRECIONAR AUTOMATICAMENTE PARA A ABA PACIENTES
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('pacientes');
+      }
+
+      // 12. Atualizar a tabela de pacientes imediatamente para refletir a nova alta
+      setTimeout(() => {
+        if (typeof window.loadPatientsTable === 'function') {
+          window.loadPatientsTable();
+        } else if (typeof window.renderPatientsTab === 'function') {
+          const contentArea = document.getElementById('main-content');
+          if (contentArea) window.renderPatientsTab(contentArea);
+        }
+      }, 150);
     }
   }
 };

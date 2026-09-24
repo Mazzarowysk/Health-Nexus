@@ -242,7 +242,25 @@ Ao ser chamado pelo nome ou número da senha, o paciente entra no consultório d
 #### Escore MEWS (Modified Early Warning Score):
 O sistema calcula automaticamente o índice MEWS com base na combinação dos sinais vitais. Índices MEWS >= 4 disparam um card pulsante na cor vermelha no topo da fila médica, alertando toda a equipe sobre risco iminente de colapso hemodinâmico.
 
+#### Desfecho Assistencial Duplo na Triagem de Enfermagem:
+Ao concluir a avaliação, o profissional de enfermagem seleciona o destino clínico adequado:
+1. 🩺 **Encaminhar para Consultório (\`#btn-submit-triage-consult\`):** Aloca o paciente na coluna **Aguardando Médico** para chamada no Painel TV e consulta médica no Consultório 01.
+2. 🛏️ **Encaminhar para Observação PS (\`#btn-submit-triage-obs\`):** Direciona o paciente diretamente para a **Sala de Observação do Pronto-Socorro** (4ª coluna do Kanban e aba Observação do PS), iniciando o cronômetro com meta de reavaliação em 12 horas e limite máximo de 24 horas (Resolução CFM nº 2.079/14).
+
 ![Central de Atendimento e Triagem Manchester](screenshots/03-triagem-kanban.png)
+
+---
+
+### ETAPA 02-B: SALA DE OBSERVAÇÃO DO PRONTO-SOCORRO (RESOLUÇÃO CFM Nº 2.079/14)
+
+A permanência em observação no Pronto-Socorro é regida pelas diretrizes do Conselho Federal de Medicina:
+- **Limite Máximo Legal:** 24 horas de permanência no Pronto-Socorro.
+- **Meta Assistencial de Reavaliação:** 12 horas para definição de conduta (alta médica ou transferência para leito hospitalar).
+- **Recursos da Aba Observação do PS:**
+  1. **Cards com Sinais Vitais Completos:** Exibição da PA, FC, Temp, SpO2 e queixa do paciente em poltrona/leito de observação.
+  2. **Cronômetro de Permanência em Tempo Real:** Atualização automática do tempo decorrido com sinalizadores coloridos (Seguro <6h, Alerta 6h-12h e Crítico >12h).
+  3. **Ações Integradas de 1-Clique:** Acesso ao PEP para evolução de enfermagem/médica, Prescrição Rápida de hidratação/analgesia, Internação em Leito Hospitalar (UTI/Enfermaria) e Alta da Observação.
+  4. **Carimbo Temporal de Alta:** Ao conceder alta na observação, o sistema finaliza o atendimento e grava o status "Alta" com data e horário no prontuário e na listagem da aba Pacientes.
 
 ---
 

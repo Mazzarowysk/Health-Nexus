@@ -113,6 +113,7 @@ export function get(table, id) {
   ensureTable(db, table);
   return db[table].find(item => item.id === id) || null;
 }
+export const getById = get;
 
 export function insert(table, data) {
   const db = getFullDB();

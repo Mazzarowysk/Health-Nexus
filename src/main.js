@@ -15,6 +15,7 @@ import { renderSchedulesTab } from './tabs/escalas.js';
 import { renderDashboardTab, fetchDashboardData, initDashboardCharts, initInteractiveFunnel } from './tabs/dashboard.js';
 import { renderPatientsTab } from './tabs/patients.js';
 import { renderAttendanceTab } from './tabs/attendance.js';
+import { renderObservacaoTab } from './tabs/observacao.js';
 import { renderTISSTab } from './tabs/tiss.js';
 import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.js';
 
@@ -44,6 +45,8 @@ window.calculateMEWS = calculateMEWS;
 window.checkDrugInteractions = checkDrugInteractions;
 window.generateWhatsAppClinicalMessage = generateWhatsAppClinicalMessage;
 window.sendToWhatsApp = sendToWhatsApp;
+if (typeof removeAccents === 'function') window.removeAccents = removeAccents;
+
 
 // Inicia o Vercel Analytics
 inject();
@@ -1590,6 +1593,28 @@ function evaluateClinicalPossibilities(patient, activeTab) {
     };
   }
 
+  // 4.5 ABA SALA DE OBSERVAÇÃO DO PS (observacao)
+  if (activeTab === 'observacao') {
+    return {
+      currentStage: 3,
+      stageName: 'Sala de Observação (PS)',
+      orderWarning,
+      primaryAction: {
+        title: `🛏️ Sala de Observação: Monitorar ${firstName}`,
+        desc: `Paciente ${pName} (${colorDisplay}) em observação clínica no Pronto-Socorro. Acompanhe a hidratação, medicações de alívio e evolução dos sinais vitais.`,
+        btnText: `🩺 Abrir PEP / Prontuário (${firstName}) ➔`,
+        btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
+        icon: '🛏️'
+      },
+      alternatives: [
+        { label: 'Central de Atendimentos', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+        { label: 'Internar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+        { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+      ]
+    };
+  }
+
   // 5. ABA FARMÁCIA (farmacia)
   if (activeTab === 'farmacia') {
     return {
@@ -1891,9 +1916,49 @@ if (typeof window.notifyPharmacyUrgent !== 'function') {
   };
 }
 
+// Fechamento garantido de todos os modais ativos para não bloquear o fluxo
+window.closeAllActiveModals = function() {
+  const modalIds = [
+    'patient-history-modal',
+    'pep-modal',
+    'triage-modal',
+    'patient-modal',
+    'patient-modal-overlay',
+    'modal-admit-bed',
+    'modal-transfer-bed-drawer',
+    'consultorio-details-modal',
+    'enc-report-detail-modal',
+    'bed-details-modal',
+    'prescription-modal',
+    'pacs-viewer-modal',
+    'telemedicine-modal',
+    'custom-confirm-modal',
+    'custom-alert-modal'
+  ];
+  modalIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.style.display === 'flex' || el.style.display === 'block') {
+        el.style.display = 'none';
+      }
+      if (['patient-history-modal', 'pep-modal', 'consultorio-details-modal', 'enc-report-detail-modal', 'bed-details-modal', 'prescription-modal', 'pacs-viewer-modal', 'telemedicine-modal'].includes(id)) {
+        el.remove();
+      }
+    }
+  });
+
+  document.querySelectorAll('.modal-overlay:not(#loading-modal)').forEach(el => {
+    if (el.id !== 'triage-modal' && el.id !== 'patient-modal' && el.id !== 'patient-modal-overlay') {
+      el.remove();
+    } else {
+      el.style.display = 'none';
+    }
+  });
+};
+
 function createSmartFlowGuideCard(tabId, customMessage) {
   // Verificar autenticação (aceita sessionStorage e estado ativo como fallback)
-  const hasToken = state.isAuthenticated || !!sessionStorage.getItem('hn_token') || !!sessionStorage.getItem('hn_user');
+  const hasToken = state.isAuthenticated || !!sessionStorage.getItem('hn_token') || !!sessionStorage.getItem('hn_user') || !!localStorage.getItem('token');
   const mainContentExists = !!document.getElementById('main-content') || !!document.querySelector('.app-layout') || !!document.querySelector('.main-content') || !!document.querySelector('.app-container');
   const onLoginScreen = (!!document.getElementById('auth-form') || !!document.querySelector('.auth-container')) && !mainContentExists;
   if (!hasToken || onLoginScreen) {
@@ -1975,7 +2040,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
   const card = document.createElement('div');
   card.id = 'hn-flow-guide';
-  card.className = 'floating-flow-guide guide-card-pulsing' + (_SFG.minimized ? ' minimized' : '');
+  card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '');
   
   // Posicionamento seguro contra coordenadas fora do viewport
   const defaultPos = 'bottom:22px !important;right:22px !important;';
@@ -1992,34 +2057,39 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     }
   }
 
-  // Tamanho retangular consistente (430px)
-  const cardWidth = _SFG.minimized ? 'auto !important' : '430px !important';
+  // Largura compacta e proporcional (375px)
+  const cardWidth = _SFG.minimized ? 'auto !important' : '375px !important';
 
   card.setAttribute('style', [
     'position:fixed !important',
     customPos,
     'width:' + cardWidth,
-    'max-width:calc(100vw - 32px) !important',
-    'background:linear-gradient(165deg, rgba(13,18,35,0.98), rgba(22,30,52,0.99))',
-    'border:1.5px solid #38bdf8 !important',
-    'border-radius:14px',
-    'box-shadow:0 18px 50px rgba(0,0,0,0.8), 0 0 28px rgba(56,189,248,0.7) !important',
-    'font-family:Outfit,system-ui,sans-serif',
-    'color:#f8fafc',
+    'max-width:calc(100vw - 28px) !important',
+    'background:rgba(11,15,25,0.95) !important',
+    'backdrop-filter:blur(24px) saturate(180%) !important',
+    '-webkit-backdrop-filter:blur(24px) saturate(180%) !important',
+    'border:1px solid rgba(255,255,255,0.09) !important',
+    'border-top:2px solid #0284c7 !important',
+    'border-radius:16px !important',
+    'box-shadow:0 24px 48px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1) !important',
+    'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
+    'color:#f8fafc !important',
     'z-index:2147483647 !important',
-    'overflow:hidden',
-    'user-select:none',
-    'transition:width 0.2s ease, box-shadow 0.2s ease'
+    'overflow:hidden !important',
+    'user-select:none !important',
+    'transition:width 0.2s ease, box-shadow 0.2s ease !important'
   ].join(';'));
 
   if (_SFG.minimized) {
     const miniPill = document.createElement('div');
-    miniPill.setAttribute('style', 'display:flex;align-items:center;gap:10px;padding:9px 16px;background:linear-gradient(135deg,#1e1b4b,#0f172a);border:1.5px solid rgba(99,102,241,0.6);border-radius:26px;box-shadow:0 8px 24px rgba(0,0,0,0.65);cursor:pointer;');
-    miniPill.innerHTML = '<span style="font-size:1rem">🧭</span>'
-      + '<span style="font-size:0.8rem;font-weight:700;color:#f1f5f9">Agente de Fluxo: <strong style="color:#38bdf8">' + evalResult.stageName + '</strong></span>'
-      + (evalResult.orderWarning ? '<span style="font-size:0.68rem;background:rgba(245,158,11,0.25);border:1px solid #f59e0b;color:#fde68a;font-weight:800;padding:2px 7px;border-radius:10px">⚠️ Fora de Ordem</span>' : '')
-      + (_SFG.pendingAction ? '<span style="font-size:0.68rem;background:rgba(16,185,129,0.25);border:1px solid #10b981;color:#6ee7b7;font-weight:800;padding:2px 7px;border-radius:10px;animation:pulse 1.5s infinite">⚡ 1 Próximo Passo</span>' : '')
-      + '<span style="font-size:0.9rem;color:#818cf8;margin-left:4px">&#43;</span>';
+    miniPill.setAttribute('style', 'display:flex;align-items:center;gap:9px;padding:8px 15px;background:rgba(11,15,25,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-top:2px solid #0284c7;border-radius:28px;box-shadow:0 12px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.1);cursor:pointer;transition:transform 0.2s,border-color 0.2s;');
+    miniPill.innerHTML = '<div style="width:24px;height:24px;border-radius:50%;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
+      + '<span style="font-size:0.78rem;font-weight:700;color:#f1f5f9">Governança: <strong style="color:#38bdf8">' + evalResult.stageName + '</strong></span>'
+      + (evalResult.orderWarning ? '<span style="font-size:0.62rem;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fde68a;font-weight:700;padding:2px 6px;border-radius:8px">⚠️ Desvio</span>' : '')
+      + (_SFG.pendingAction ? '<span style="font-size:0.62rem;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;font-weight:700;padding:2px 6px;border-radius:8px">⚡ 1 Próximo Passo</span>' : '')
+      + '<span style="font-size:0.75rem;color:#94a3b8;margin-left:4px"><i class="fa-solid fa-chevron-up"></i></span>';
+    miniPill.addEventListener('mouseenter', () => { miniPill.style.transform = 'translateY(-2px)'; miniPill.style.borderColor = 'rgba(2,132,199,0.5)'; });
+    miniPill.addEventListener('mouseleave', () => { miniPill.style.transform = 'none'; miniPill.style.borderColor = 'rgba(255,255,255,0.12)'; });
     miniPill.addEventListener('click', function() {
       _SFG.minimized = false;
       createSmartFlowGuideCard(_SFG.activeTab);
@@ -2032,100 +2102,99 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   // Header com Minimizar [-] e Ocultar [✕]
   const hdr = document.createElement('div');
   hdr.id = 'hn-fg-header';
-  hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.08);cursor:grab;background:rgba(255,255,255,0.03)');
+  hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);cursor:grab;');
   
   const roleBadgeHtml = evalResult.isMasterOrDev
-    ? '<span style="font-size:0.60rem;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#f59e0b;background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.5);padding:2px 7px;border-radius:8px" title="Perfil Master / Desenvolvedor: Execução Total Habilitada">👑 Master &amp; Dev</span>'
-    : '<span style="font-size:0.60rem;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#38bdf8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 7px;border-radius:8px" title="Perfil ' + (evalResult.userRoleLabel || 'Usuário') + '">' + (evalResult.userRoleIcon || '👤') + ' ' + (evalResult.userRoleLabel || 'Usuário') + '</span>';
+    ? '<span style="font-size:0.58rem;font-weight:700;color:#fbbf24;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.28);padding:2px 6px;border-radius:6px" title="Perfil Master & Dev">👑 Master</span>'
+    : '<span style="font-size:0.58rem;font-weight:700;color:#38bdf8;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);padding:2px 6px;border-radius:6px">' + (evalResult.userRoleLabel || 'Usuário') + '</span>';
 
-  hdr.innerHTML = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
-    + '<span style="font-size:1.05rem">🧭</span>'
-    + '<span style="font-weight:800;font-size:0.86rem;color:#f8fafc;letter-spacing:0.2px">Agente de Governança Clínica</span>'
+  hdr.innerHTML = '<div style="display:flex;align-items:center;gap:7px">'
+    + '<div style="width:24px;height:24px;border-radius:6px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
+    + '<span style="font-weight:700;font-size:0.82rem;color:#f8fafc;letter-spacing:-0.2px">Governança Clínica</span>'
     + roleBadgeHtml
-    + '<span style="font-size:0.58rem;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#94a3b8;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);padding:2px 6px;border-radius:8px">Etapa ' + (currentStageIdx + 1) + ' de ' + _SFG.steps.length + '</span>'
+    + '<span style="font-size:0.58rem;font-weight:700;color:#94a3b8;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);padding:1px 6px;border-radius:8px">Etapa ' + (currentStageIdx + 1) + '/7</span>'
     + '</div>'
-    + '<div style="display:flex;align-items:center;gap:4px">'
-    + '<button id="hn-fg-min" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.2rem;line-height:1;padding:2px 6px;border-radius:4px;transition:color 0.2s" title="Minimizar para barra compacta">&#8722;</button>'
-    + '<button id="hn-fg-close" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;line-height:1;padding:3px 7px;border-radius:4px;transition:all 0.2s" title="Minimizar Guia de Fluxo" onmouseover="this.style.color=\'#f87171\';this.style.background=\'rgba(239,68,68,0.15)\'" onmouseout="this.style.color=\'#94a3b8\';this.style.background=\'none\'">&#10005;</button>'
+    + '<div style="display:flex;align-items:center;gap:5px">'
+    + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
+    + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
     + '</div>';
 
-  // Track (7 etapas clínicas) refletindo o estágio real do paciente e a ação recomendada
+  // Stepper Conectado (7 etapas clínicas)
   const track = document.createElement('div');
   track.id = 'hn-fg-track';
-  track.setAttribute('style', 'display:flex;align-items:center;padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.15)');
+  track.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.18);');
   track.innerHTML = _SFG.steps.map(function(s, i) {
     const done = currentStageIdx > i;
     const now = currentStageIdx === i;
     const isTarget = _SFG.pendingAction && _SFG.pendingAction.targetTab === s.tab;
-    const col = done ? '#10b981' : isTarget ? '#38bdf8' : now ? '#38bdf8' : '#64748b';
-    const bg  = done ? 'rgba(16,185,129,0.2)' : isTarget ? 'rgba(56,189,248,0.28)' : now ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.04)';
-    const bdr = done ? 'rgba(16,185,129,0.6)' : isTarget ? '#38bdf8' : now ? 'rgba(56,189,248,0.7)' : 'rgba(255,255,255,0.1)';
-    const shadow = isTarget ? '0 0 14px rgba(56,189,248,0.8)' : now ? '0 0 10px rgba(56,189,248,0.4)' : 'none';
+    
+    const nodeBg = done ? 'rgba(16,185,129,0.2)' : (isTarget || now) ? 'rgba(2,132,199,0.3)' : 'rgba(255,255,255,0.04)';
+    const nodeBorder = done ? '#10b981' : (isTarget || now) ? '#38bdf8' : 'rgba(255,255,255,0.1)';
+    const nodeColor = done ? '#34d399' : (isTarget || now) ? '#ffffff' : '#64748b';
+    const labelColor = (isTarget || now) ? '#38bdf8' : done ? '#34d399' : '#64748b';
     const sep = i < _SFG.steps.length - 1
-      ? '<div style="flex-shrink:0;width:12px;height:1.5px;background:' + (done ? '#10b981' : 'rgba(255,255,255,0.12)') + ';margin-bottom:15px"></div>'
+      ? '<div style="flex:1;height:2px;background:' + (done ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.07)') + ';margin:0 3px"></div>'
       : '';
-    return '<button onclick="window.switchTab(\'' + s.tab + '\')" title="' + s.label + '" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;border:none;background:none;cursor:pointer;border-radius:8px;transition:transform 0.15s">'
-      + '<div style="width:30px;height:30px;border-radius:50%;background:' + bg + ';border:1.5px solid ' + bdr + ';display:flex;align-items:center;justify-content:center;font-size:0.8rem;box-shadow:' + shadow + '">'
-      + (done ? '✓' : s.icon) + '</div>'
-      + '<span style="font-size:0.62rem;font-weight:' + ((now || isTarget) ? 800 : 600) + ';color:' + col + ';white-space:nowrap">' + s.label + '</span>'
-      + '</button>' + sep;
+
+    return '<div onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); window.switchTab(\'' + s.tab + '\');" title="' + s.label + '" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;flex-shrink:0;">'
+      + '<div style="width:22px;height:22px;border-radius:50%;background:' + nodeBg + ';border:1px solid ' + nodeBorder + ';display:flex;align-items:center;justify-content:center;font-size:0.62rem;color:' + nodeColor + ';font-weight:700;transition:all 0.15s">'
+      + (done ? '✓' : (i + 1)) + '</div>'
+      + '<span style="font-size:0.56rem;font-weight:' + ((now || isTarget) ? '700' : '500') + ';color:' + labelColor + ';white-space:nowrap">' + s.label.split(' ')[0] + '</span>'
+      + '</div>' + sep;
   }).join('');
 
   // Body
   const body = document.createElement('div');
   body.id = 'hn-fg-body';
-  body.setAttribute('style', 'padding:12px 16px 14px');
+  body.setAttribute('style', 'padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;');
 
   // Metadados da tela atual
   const screenDetails = {
-    dashboard:    { name: 'Health Nexus', badge: 'Painel Geral', summary: 'Visão operacional e ocupação do complexo hospitalar' },
-    pacientes:    { name: 'Recepção & Pacientes', badge: 'Acolhimento', summary: 'Identificação, cadastro e admissão de pacientes no PS' },
-    atendimento:  { name: 'Triagem Manchester', badge: 'Classificação de Risco', summary: 'Aferição de sinais vitais, cálculo MEWS e gravidade clínica' },
-    consultorios: { name: 'Consultórios Médicos', badge: 'Atendimento Clínico', summary: 'Anamnese SOAP, hipótese CID-10 e prescrição no PEP' },
-    medicos:      { name: 'Corpo Clínico & Salas', badge: 'Profissionais', summary: 'Gestão médica e distribuição dos consultórios' },
-    farmacia:     { name: 'Farmácia Hospitalar', badge: 'Dispensação', summary: 'Separação e liberação de medicamentos e insumos' },
-    leitos:       { name: 'Gestão de Leitos', badge: 'Internação', summary: 'Mapa de vagas, enfermarias e leitos de UTI' },
-    kanban:       { name: 'Kanban Hospitalar', badge: 'Linha de Cuidado', summary: 'Evolução clínica, exames e previsão de alta' },
-    financeiro:   { name: 'Faturamento & TISS', badge: 'Gestão Financeira', summary: 'Fechamento de contas e lotes eletrônicos TISS 4.01' },
-    relatorios:   { name: 'Relatórios & Métricas', badge: 'Indicadores', summary: 'KPIs, tempo médio de permanência e DRE hospitalar' },
-    tv_panel:     { name: 'Painel TV (Chamador)', badge: 'Sala de Espera', summary: 'Chamada audiovisual de senhas e consultórios' },
-    agenda:       { name: 'Agenda Médica', badge: 'Agendamentos', summary: 'Marcações de consultas e procedimentos' },
-    escalas:      { name: 'Escalas de Plantão', badge: 'Gestão de Equipes', summary: 'Escalas médicas e de enfermagem por turno' },
-    estagnacao:   { name: 'Alertas & Estagnação', badge: 'Gargalos no PS', summary: 'Pacientes com tempo limite de espera excedido' },
-    configuracoes:{ name: 'Configurações', badge: 'Sistema & Turso', summary: 'Parâmetros, permissões de usuários e nuvem' }
+    dashboard:    { name: 'Health Nexus', badge: 'Painel Geral' },
+    pacientes:    { name: 'Recepção & Pacientes', badge: 'Acolhimento' },
+    atendimento:  { name: 'Triagem Manchester', badge: 'Classificação' },
+    consultorios: { name: 'Consultórios Médicos', badge: 'Atendimento Clínico' },
+    medicos:      { name: 'Corpo Clínico & Salas', badge: 'Profissionais' },
+    farmacia:     { name: 'Farmácia Hospitalar', badge: 'Dispensação' },
+    leitos:       { name: 'Gestão de Leitos', badge: 'Internação' },
+    kanban:       { name: 'Kanban Hospitalar', badge: 'Linha de Cuidado' },
+    financeiro:   { name: 'Faturamento & TISS', badge: 'Faturamento' },
+    relatorios:   { name: 'Relatórios & Métricas', badge: 'Indicadores' },
+    tv_panel:     { name: 'Painel TV (Chamador)', badge: 'Sala de Espera' },
+    agenda:       { name: 'Agenda Médica', badge: 'Agendamentos' },
+    escalas:      { name: 'Escalas de Plantão', badge: 'Equipes' },
+    estagnacao:   { name: 'Alertas & Estagnação', badge: 'Gargalos' },
+    configuracoes:{ name: 'Configurações', badge: 'Sistema' }
   };
 
   const curScreen = screenDetails[_SFG.activeTab] || {
     name: _SFG.activeTab.charAt(0).toUpperCase() + _SFG.activeTab.slice(1),
-    badge: 'Módulo',
-    summary: 'Operação hospitalar'
+    badge: 'Módulo'
   };
 
-  const currentScreenHtml = '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:9px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
-    + '<div style="min-width:0">'
-    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
-    + '<span style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8">📍 Tela Atual</span>'
-    + '<span style="font-size:0.58rem;font-weight:800;text-transform:uppercase;color:#38bdf8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.3);padding:1px 6px;border-radius:6px">' + curScreen.badge + '</span>'
+  const currentScreenHtml = '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">'
+    + '<div style="display:flex;align-items:center;gap:6px;min-width:0">'
+    + '<span style="font-size:0.75rem;color:#0284c7">📍</span>'
+    + '<span style="font-size:0.74rem;color:#94a3b8">Módulo:</span>'
+    + '<span style="font-size:0.76rem;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + curScreen.name + '</span>'
     + '</div>'
-    + '<div style="font-size:0.86rem;font-weight:800;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + curScreen.name + '</div>'
-    + '<div style="font-size:0.68rem;color:#94a3b8;line-height:1.2;margin-top:2px">' + curScreen.summary + '</div>'
-    + '</div>'
+    + '<span style="font-size:0.60rem;font-weight:700;color:#38bdf8;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);padding:1px 6px;border-radius:8px;flex-shrink:0">' + curScreen.badge + '</span>'
     + '</div>';
 
-  // Faixa do Paciente Ativo
+  // Card do Paciente Ativo
   let patientStrip = '';
   if (effectivePatient) {
     const pName = effectivePatient.fullName || effectivePatient.patientName || 'Paciente Selecionado';
     const mColor = (effectivePatient.manchesterColor || '').toLowerCase();
 
     const riskColors = {
-      vermelho: { bg: 'rgba(239,68,68,0.2)', border: '#ef4444', text: '#fca5a5', label: '🔴 Vermelho (Emergência - Imediato)' },
-      laranja:  { bg: 'rgba(249,115,22,0.2)', border: '#f97316', text: '#fdba74', label: '🟠 Laranja (Muito Urgente - 10 min)' },
-      amarelo:  { bg: 'rgba(234,179,8,0.2)',  border: '#eab308', text: '#fde047', label: '🟡 Amarelo (Urgente - 60 min)' },
-      verde:    { bg: 'rgba(16,185,129,0.2)', border: '#10b981', text: '#86efac', label: '🟢 Verde (Pouco Urgente - 120 min)' },
-      azul:     { bg: 'rgba(59,130,246,0.2)', border: '#3b82f6', text: '#93c5fd', label: '🔵 Azul (Não Urgente - 240 min)' }
+      vermelho: { bg: 'rgba(239,68,68,0.2)', border: 'rgba(239,68,68,0.4)', text: '#fca5a5', label: '🔴 Vermelho (Emergência)' },
+      laranja:  { bg: 'rgba(249,115,22,0.2)', border: 'rgba(249,115,22,0.4)', text: '#fdba74', label: '🟠 Laranja (Muito Urgente)' },
+      amarelo:  { bg: 'rgba(234,179,8,0.2)',  border: 'rgba(234,179,8,0.4)',  text: '#fde047', label: '🟡 Amarelo (Urgente)' },
+      verde:    { bg: 'rgba(16,185,129,0.2)', border: 'rgba(16,185,129,0.4)', text: '#86efac', label: '🟢 Verde (Pouco Urgente)' },
+      azul:     { bg: 'rgba(59,130,246,0.2)', border: 'rgba(59,130,246,0.4)', text: '#93c5fd', label: '🔵 Azul (Não Urgente)' }
     };
-    const rInfo = riskColors[mColor] || { bg: 'rgba(99,102,241,0.15)', border: 'rgba(129,140,248,0.4)', text: '#a5b4fc', label: '👤 Em Atendimento' };
+    const rInfo = riskColors[mColor] || { bg: 'rgba(99,102,241,0.15)', border: 'rgba(129,140,248,0.35)', text: '#a5b4fc', label: '👤 Em Atendimento' };
 
     let locationIcon = '📍';
     let locationLabel = '';
@@ -2160,7 +2229,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       const targetRoom = (effectivePatient.room && !effectivePatient.room.toLowerCase().includes('triag')) ? effectivePatient.room : 'Consultório 01';
       locationLabel = 'Sala de Espera (Aguardando ' + targetRoom + ')';
     } else if (effectivePatient.room || effectivePatient.roomName) {
-      const displayRoom = (isTriaged && (effectivePatient.room || '').toLowerCase().includes('triag')) ? 'Consultório 01' : (effectivePatient.room || effectivePatient.roomName);
+      const displayRoom = (effectivePatient.room || effectivePatient.roomName);
       locationIcon = '🚪';
       locationLabel = displayRoom;
     } else {
@@ -2168,42 +2237,41 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       locationLabel = evalResult.stageName || 'Em Atendimento';
     }
 
-    patientStrip = '<div style="background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';border-radius:10px;padding:8px 10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px">'
+    patientStrip = '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
       + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
-      + '<span style="font-size:0.95rem">👤</span>'
-      + '<div style="min-width:0;line-height:1.25">'
-      + '<div style="font-size:0.8rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px">' + pName + '</div>'
-      + '<div style="font-size:0.67rem;color:' + rInfo.text + ';font-weight:700">' + rInfo.label + '</div>'
+      + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;color:#a5b4fc;font-size:0.7rem;flex-shrink:0"><i class="fa-solid fa-user"></i></div>'
+      + '<div style="min-width:0;line-height:1.2">'
+      + '<div style="font-size:0.8rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">' + pName + '</div>'
+      + '<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:6px;background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';color:' + rInfo.text + '">' + rInfo.label + '</span></div>'
       + '</div>'
       + '</div>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);border-radius:7px;padding:4px 8px">'
-      + '<span style="font-size:0.85rem">' + locationIcon + '</span>'
-      + '<span style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:#94a3b8;flex-shrink:0">Localização:</span>'
-      + '<span style="font-size:0.74rem;font-weight:800;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + locationLabel + '</span>'
+      + '<div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.22);border-radius:6px;padding:3px 8px;font-size:0.68rem">'
+      + '<span style="font-size:0.75rem">' + locationIcon + '</span>'
+      + '<span style="color:#94a3b8;font-weight:600">Local:</span>'
+      + '<span style="color:#e2e8f0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + locationLabel + '</span>'
       + '</div>'
       + '</div>';
   }
 
-  // Banner do Guardião Anti-Desvio (se usuário navegou para etapa fora de ordem)
+  // Banner do Guardião Anti-Desvio
   let orderWarningHtml = '';
   if (evalResult.orderWarning) {
     const w = evalResult.orderWarning;
     orderWarningHtml = `
       <div class="hn-possibility-agent-banner">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px;">
-          <span style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
-            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 8px #f59e0b;"></span>
-            ${w.badge}
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+          <span style="font-size: 0.65rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 5px;">
+            <span>⚠️</span> ${w.badge}
           </span>
-          <span style="font-size: 0.60rem; font-weight: 800; color: #fde68a; background: rgba(245, 158, 11, 0.25); border: 1px solid rgba(245, 158, 11, 0.45); padding: 1px 6px; border-radius: 6px;">Guardião de Fluxo</span>
+          <span style="font-size: 0.58rem; font-weight: 700; color: #fde68a; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 5px; border-radius: 5px;">Guardião de Fluxo</span>
         </div>
-        <div style="font-size: 0.76rem; color: #fef3c7; line-height: 1.42; margin-bottom: 8px;">
+        <div style="font-size: 0.72rem; color: #fef3c7; line-height: 1.35; margin-bottom: 6px;">
           ${w.msg}
         </div>
         ${w.correctiveAction ? `
-          <button onclick="${w.correctiveAction.onClick}" style="width: 100%; padding: 8px 10px; background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; border: none; border-radius: 8px; font-weight: 800; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 0 14px rgba(245, 158, 11, 0.5); transition: filter 0.15s;" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter='none'">
+          <button onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${w.correctiveAction.onClick}" style="width: 100%; padding: 7px 10px; background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; border: none; border-radius: 7px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4); transition: filter 0.15s;" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter='none'">
             ${w.correctiveAction.label}
           </button>
         ` : ''}
@@ -2214,25 +2282,26 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   // Aviso customizado opcional
   let customNotice = '';
   if (customMessage) {
-    customNotice = '<div style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.5);border-radius:8px;padding:6px 10px;font-size:0.75rem;color:#93c5fd;margin-bottom:10px;display:flex;align-items:center;gap:6px">'
+    customNotice = '<div style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-radius:7px;padding:5px 8px;font-size:0.72rem;color:#93c5fd;display:flex;align-items:center;gap:6px">'
       + '<span>ℹ️</span> <span>' + customMessage + '</span></div>';
   }
 
-  // Bloco de Ação Principal (Respeita Modais Abertos e Contexto da Aba Ativa)
+  // Bloco de Ação Principal
   const isAnyModalOpen = !!(
     (typeof document !== 'undefined') && (
       (document.getElementById('modal-admit-bed') && (document.getElementById('modal-admit-bed').style.display === 'flex' || document.getElementById('modal-admit-bed').style.display === 'block') && document.getElementById('modal-admit-bed').offsetHeight > 0) ||
       (document.getElementById('modal-transfer-bed-drawer') && document.getElementById('modal-transfer-bed-drawer').classList.contains('open')) ||
       (document.getElementById('triage-modal') && (document.getElementById('triage-modal').style.display === 'flex' || document.getElementById('triage-modal').style.display === 'block') && document.getElementById('triage-modal').offsetHeight > 0) ||
       (document.getElementById('pep-modal') && (document.getElementById('pep-modal').style.display === 'flex' || document.getElementById('pep-modal').style.display === 'block') && document.getElementById('pep-modal').offsetHeight > 0 && (document.getElementById('pep-form') || document.getElementById('pep-subjective') || document.querySelector('#pep-modal .modal-content'))) ||
-      (document.getElementById('patient-modal') && (document.getElementById('patient-modal').style.display === 'flex' || document.getElementById('patient-modal').style.display === 'block') && document.getElementById('patient-modal').offsetHeight > 0)
+      (document.getElementById('patient-modal') && (document.getElementById('patient-modal').style.display === 'flex' || document.getElementById('patient-modal').style.display === 'block') && document.getElementById('patient-modal').offsetHeight > 0) ||
+      (document.getElementById('patient-history-modal') && document.getElementById('patient-history-modal').offsetHeight > 0)
     )
   );
 
   const tabShortLabels = {
     dashboard: 'Health Nexus',
     pacientes: 'Recepção & Pacientes',
-    medicos: 'Corpo Clínico & Médicos',
+    medicos: 'Corpo Clínico',
     consultorios: 'Consultórios & PEP',
     farmacia: 'Farmácia Hospitalar',
     tv_panel: 'Painel TV',
@@ -2254,23 +2323,23 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const destLabel = pending.targetTabLabel || (pending.targetTab ? (tabShortLabels[pending.targetTab] || pending.targetTab) : 'Próxima Etapa');
 
     actionBlockHtml = `
-      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(6, 95, 70, 0.25)); border: 1.5px solid rgba(16, 185, 129, 0.55); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <span style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; display: flex; align-items: center; gap: 6px;">
-            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; animation: pulse 1.5s infinite"></span>
+      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 95, 70, 0.22)); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 10px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; display: flex; align-items: center; gap: 5px;">
+            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
             Ação Concluída &bull; Próximo Passo
           </span>
-          <button id="hn-fg-dismiss-action" title="Dispensar aviso desta etapa" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #94a3b8; cursor: pointer; font-size: 0.75rem; padding: 2px 7px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
+          <button id="hn-fg-dismiss-action" title="Dispensar aviso desta etapa" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.72rem; padding: 1px 6px; border-radius: 5px; transition: all 0.15s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.05)'">
             ✕
           </button>
         </div>
-        <div style="font-size: 0.92rem; font-weight: 800; color: #ffffff; margin-bottom: 4px; display: flex; align-items: center; gap: 7px;">
-          <i class="fa-solid fa-bullhorn" style="color: #10b981; font-size: 0.95rem;"></i> ${pending.actionTitle}
+        <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-bullhorn" style="color: #10b981; font-size: 0.85rem;"></i> ${pending.actionTitle}
         </div>
-        <div style="font-size: 0.77rem; color: #cbd5e1; line-height: 1.45; margin-bottom: 12px;">
+        <div style="font-size: 0.72rem; color: #cbd5e1; line-height: 1.35; margin-bottom: 10px;">
           ${pending.message}
         </div>
-        <button id="hn-fg-exec-action" class="btn-next-step-pulse" style="width: 100%; padding: 11px 14px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 9px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 0 24px rgba(16, 185, 129, 0.85); text-transform: uppercase; letter-spacing: 0.4px; transition: transform 0.15s, filter 0.15s;" onmouseover="this.style.transform='scale(1.02)'; this.style.filter='brightness(1.15)'" onmouseout="this.style.transform='scale(1)'; this.style.filter='none'">
+        <button id="hn-fg-exec-action" class="btn-next-step-pulse" style="width: 100%; padding: 9px 12px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.15s;">
           <span>🚀</span> ${destLabel ? (destLabel.includes('➔') ? destLabel : destLabel + ' ➔') : 'Avançar para Próxima Etapa ➔'}
         </button>
       </div>
@@ -2280,46 +2349,45 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     if (_SFG.pendingAction && !isPendingForCurrentTab && !isAnyModalOpen) {
       const pTabLabel = tabShortLabels[_SFG.pendingAction.targetTab] || _SFG.pendingAction.targetTab;
       crossTabPendingNotice = `
-        <div style="background: rgba(16, 185, 129, 0.12); border: 1px dashed rgba(16, 185, 129, 0.45); border-radius: 9px; padding: 6px 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-          <span style="font-size: 0.72rem; color: #6ee7b7; display: flex; align-items: center; gap: 5px;">
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 5px 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+          <span style="font-size: 0.68rem; color: #6ee7b7; display: flex; align-items: center; gap: 5px;">
             <span>🚀</span> Próximo passo sugerido: <strong>${pTabLabel}</strong>
           </span>
           <div style="display:flex;align-items:center;gap:4px">
-            <button onclick="window.switchTab('${_SFG.pendingAction.targetTab}')" style="background: #10b981; color: #fff; border: none; padding: 2px 8px; border-radius: 5px; font-size: 0.68rem; font-weight: 800; cursor: pointer;">Ir ➔</button>
-            <button onclick="window._SFG.pendingAction=null; if(typeof window.createSmartFlowGuideCard==='function') window.createSmartFlowGuideCard('${_SFG.activeTab}');" style="background: transparent; color: #94a3b8; border: none; font-size: 0.75rem; cursor: pointer; padding: 0 4px;" title="Dispensar sugestão">✕</button>
+            <button onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); window.switchTab('${_SFG.pendingAction.targetTab}')" style="background: #10b981; color: #fff; border: none; padding: 2px 7px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; cursor: pointer;">Ir ➔</button>
+            <button onclick="window._SFG.pendingAction=null; if(typeof window.createSmartFlowGuideCard==='function') window.createSmartFlowGuideCard('${_SFG.activeTab}');" style="background: transparent; color: #94a3b8; border: none; font-size: 0.72rem; cursor: pointer; padding: 0 3px;" title="Dispensar sugestão">✕</button>
           </div>
         </div>
       `;
     }
 
     actionBlockHtml = crossTabPendingNotice + `
-      <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(56,189,248,0.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;box-shadow:0 0 16px rgba(56,189,248,0.15)">
-        <div style="display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;margin-bottom:4px">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px #38bdf8;animation:pulse 1.2s infinite"></span>
-          <span>${isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada (O Mais Intuitivo)'}</span>
+      <div style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4)); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 10px; padding: 9px 11px;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:0.64rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;margin-bottom:3px">
+          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#38bdf8;box-shadow:0 0 6px #38bdf8;"></span>
+          <span>${isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada'}</span>
         </div>
-        <div style="font-size:0.9rem;font-weight:800;color:#ffffff;margin-bottom:4px">${evalResult.primaryAction.title}</div>
-        <div style="font-size:0.76rem;color:#cbd5e1;line-height:1.4">${evalResult.primaryAction.desc}</div>
+        <div style="font-size:0.84rem;font-weight:700;color:#ffffff;margin-bottom:3px;line-height:1.25">${evalResult.primaryAction.title}</div>
+        <div style="font-size:0.72rem;color:#94a3b8;line-height:1.35;margin-bottom:8px">${evalResult.primaryAction.desc}</div>
+        <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:9px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
+          ${evalResult.primaryAction.btnText}
+        </button>
       </div>
-      <button id="hn-fg-main-action" onclick="${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:11px 14px;background:${evalResult.primaryAction.btnBg};color:#fff;border:none;border-radius:10px;font-weight:800;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 24px rgba(56,189,248,0.75);letter-spacing:0.3px;transition:filter 0.15s, transform 0.15s" onmouseover="this.style.filter='brightness(1.15)';this.style.transform='scale(1.02)'" onmouseout="this.style.filter='none';this.style.transform='scale(1)'">
-        ${evalResult.primaryAction.btnText}
-      </button>
     `;
   }
 
-  // Bloco de Possibilidades Alternativas (Ramificações Válidas)
+  // Bloco de Possibilidades Alternativas
   let possibilitiesHtml = '';
   if (evalResult.alternatives && evalResult.alternatives.length > 0) {
     possibilitiesHtml = `
       <div class="hn-possibility-chips-container">
         <div class="hn-possibility-chips-title">
-          <span>🔀 Outras Possibilidades</span>
-          <span style="font-size:0.58rem;color:#64748b">Ações Válidas</span>
+          <span>Outras Ações Rápidas</span>
         </div>
         <div class="hn-possibility-chips-grid">
           ${evalResult.alternatives.map(function(alt) {
             const extraCls = alt.isPrimaryAlt ? ' chip-primary-alt' : alt.isDanger ? ' chip-danger' : '';
-            return '<button onclick="' + alt.onClick + '" class="hn-possibility-chip' + extraCls + '" title="' + alt.label + '">'
+            return '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); ' + alt.onClick + '" class="hn-possibility-chip' + extraCls + '" title="' + alt.label + '">'
               + '<span>' + alt.icon + '</span>'
               + '<span>' + alt.label + '</span>'
               + '</button>';
@@ -2329,18 +2397,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     `;
   }
 
-  const accessBannerHtml = evalResult.isMasterOrDev
-    ? '<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.68rem;color:#fde68a">'
-      + '<span style="display:flex;align-items:center;gap:5px">⚡ <strong>Modo Master &amp; Desenvolvedor:</strong> Autonomia total nas 7 etapas</span>'
-      + '<span style="font-size:0.58rem;background:rgba(245,158,11,0.22);border:1px solid rgba(245,158,11,0.4);padding:1px 6px;border-radius:4px;color:#f59e0b;font-weight:800;white-space:nowrap">100% AUTONOMIA</span>'
-      + '</div>'
-    : '<div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.22);border-radius:8px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.68rem;color:#bae6fd">'
-      + '<span style="display:flex;align-items:center;gap:5px">👤 <strong>Perfil: ' + (evalResult.userRoleLabel || 'Usuário') + '</strong> &bull; Ações adaptadas à sua competência</span>'
-      + '<span style="font-size:0.58rem;background:rgba(56,189,248,0.16);border:1px solid rgba(56,189,248,0.35);padding:1px 6px;border-radius:4px;color:#38bdf8;font-weight:800;white-space:nowrap">RBAC ATIVO</span>'
-      + '</div>';
-
   body.innerHTML = currentScreenHtml
-    + accessBannerHtml
     + patientStrip
     + orderWarningHtml
     + customNotice
@@ -2385,11 +2442,46 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     });
   }
 
+  // Ao clicar em qualquer botão de ação (principal ou chip alternativo),
+  // fechar/minimizar o card e deixar a ação navegar livremente
+  const mainActionBtn = card.querySelector('#hn-fg-main-action');
+  if (mainActionBtn) {
+    mainActionBtn.addEventListener('click', function() {
+      if (typeof window.closeAllActiveModals === 'function') {
+        window.closeAllActiveModals();
+      }
+      setTimeout(function() {
+        _SFG.minimized = true;
+        const existingCard = document.getElementById('hn-flow-guide-card') || document.getElementById('hn-flow-guide');
+        if (existingCard) existingCard.remove();
+        createSmartFlowGuideCard(_SFG.activeTab);
+      }, 80);
+    });
+  }
+
+  const chipButtons = card.querySelectorAll('.hn-possibility-chip');
+  chipButtons.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      if (typeof window.closeAllActiveModals === 'function') {
+        window.closeAllActiveModals();
+      }
+      setTimeout(function() {
+        _SFG.minimized = true;
+        const existingCard = document.getElementById('hn-flow-guide-card') || document.getElementById('hn-flow-guide');
+        if (existingCard) existingCard.remove();
+        createSmartFlowGuideCard(_SFG.activeTab);
+      }, 80);
+    });
+  });
+
   // Executar Ação Recente Integrada
   const execBtn = card.querySelector('#hn-fg-exec-action');
   if (execBtn && _SFG.pendingAction) {
     execBtn.addEventListener('click', function(e) {
       e.stopPropagation();
+      if (typeof window.closeAllActiveModals === 'function') {
+        window.closeAllActiveModals();
+      }
       playFlowChime();
       const act = _SFG.pendingAction;
       _SFG.pendingAction = null;
@@ -2600,15 +2692,21 @@ if (typeof window !== 'undefined' && !window._sfgHeartbeatTimer) {
 
 window.openAttendanceTriage = function(patientName) {
   let isAlreadyTriaged = false;
+  let found = null;
+  const safeRemoveAccents = (typeof removeAccents === 'function') 
+    ? removeAccents 
+    : (str => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase());
+
+  // --- Contexto do paciente ---
   if (patientName && typeof window.setActivePatientContext === 'function') {
     const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
     isAlreadyTriaged = !!(curCtx && curCtx.manchesterColor && curCtx.status !== 'Aguardando_Triagem');
     if (!isAlreadyTriaged && typeof window.localDB !== 'undefined') {
       try {
         const db = window.localDB.getFullDB();
-        const cleanTarget = (typeof removeAccents === 'function' ? removeAccents(String(patientName)) : String(patientName)).trim().toLowerCase();
-        const found = (db.encounters || []).slice().reverse().find(e => {
-          const eName = (typeof removeAccents === 'function' ? removeAccents(e.patientName || '') : (e.patientName || '')).trim().toLowerCase();
+        const cleanTarget = safeRemoveAccents(String(patientName)).trim().toLowerCase();
+        found = (db.encounters || []).slice().reverse().find(e => {
+          const eName = safeRemoveAccents(e.patientName || '').trim().toLowerCase();
           return eName === cleanTarget || (cleanTarget.length > 3 && (eName.includes(cleanTarget) || cleanTarget.includes(eName)));
         });
         if (found && found.manchesterColor && found.status !== 'Aguardando_Triagem') isAlreadyTriaged = true;
@@ -2617,8 +2715,8 @@ window.openAttendanceTriage = function(patientName) {
     if (!isAlreadyTriaged) {
       window.setActivePatientContext({
         ...(curCtx || {}),
-        id: found?.id || curCtx?.id,
-        encounterId: found?.id || curCtx?.encounterId,
+        id: found ? found.id : (curCtx ? curCtx.id : undefined),
+        encounterId: found ? found.id : (curCtx ? curCtx.encounterId : undefined),
         fullName: patientName,
         patientName: patientName,
         status: 'Aguardando_Triagem',
@@ -2630,35 +2728,86 @@ window.openAttendanceTriage = function(patientName) {
     }
   }
 
+  // --- Navega para aba de atendimento ---
   if (typeof window.switchTab === 'function') {
     window.switchTab('atendimento');
   }
 
+  // Captura encontros para fallback direto
+  let fallbackEncId = null;
+  let fallbackName = patientName ? String(patientName).trim() : '';
+  if (fallbackName) {
+    try {
+      const cleanFallback = safeRemoveAccents(fallbackName.toLowerCase());
+      if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+        const db = localDB.getFullDB();
+        const encounters = db.encounters || [];
+        const matchEnc = (found) || encounters.slice().reverse().find(e =>
+          safeRemoveAccents((e.patientName || '').toLowerCase()).includes(cleanFallback) &&
+          e.status !== 'Finalizado' && e.status !== 'Alta'
+        ) || encounters.slice().reverse().find(e =>
+          safeRemoveAccents((e.patientName || '').toLowerCase()).includes(cleanFallback)
+        );
+        if (matchEnc) {
+          fallbackEncId = matchEnc.id;
+          fallbackName = matchEnc.patientName || fallbackName;
+        } else {
+          const patients = db.patients || [];
+          const matchPat = patients.find(p =>
+            safeRemoveAccents((p.fullName || p.patientName || '').toLowerCase()).includes(cleanFallback)
+          );
+          if (matchPat) {
+            fallbackName = matchPat.fullName || matchPat.patientName || fallbackName;
+            fallbackEncId = 'enc-' + (matchPat.id || Date.now());
+          }
+        }
+      }
+    } catch(_) {}
+    if (!fallbackEncId) fallbackEncId = 'enc-' + Date.now();
+  }
+
+  // --- Polling: aguarda card aparecer OU openTriageModal estar disponível ---
   let tries = 0;
   const checkInterval = setInterval(function() {
     tries++;
 
+    // Tentativa 1: usar openTriageModal diretamente se já disponível e temos um encId
+    if (fallbackEncId && typeof window.openTriageModal === 'function') {
+      // Verificar se o DOM do modal está pronto
+      const triageModalEl = document.getElementById('triage-modal');
+      const triageEncEl = document.getElementById('triage-encounter-id');
+      if (triageModalEl && triageEncEl) {
+        clearInterval(checkInterval);
+        window.openTriageModal(fallbackEncId, fallbackName);
+        return;
+      }
+    }
+
     if (patientName && String(patientName).trim()) {
-      const cleanTarget = removeAccents(String(patientName).trim().toLowerCase());
+      const cleanTarget = safeRemoveAccents(String(patientName).trim().toLowerCase());
       const targetParts = cleanTarget.split(' ').filter(Boolean);
       const firstName = targetParts[0] || cleanTarget;
 
-      const triageCol = document.getElementById('col-triage');
-      const cards = triageCol ? Array.from(triageCol.querySelectorAll('.patient-card-item')) : Array.from(document.querySelectorAll('.patient-card-item'));
-      let card = cards.find(el => {
-        const cardAttr = removeAccents((el.getAttribute('data-patient-card-name') || '').toLowerCase());
-        const cardText = removeAccents((el.textContent || '').toLowerCase());
+      // Busca em todas as colunas do kanban, não apenas col-triage
+      const allCards = Array.from(document.querySelectorAll('.patient-card-item'));
+      let card = allCards.find(el => {
+        const cardAttr = safeRemoveAccents((el.getAttribute('data-patient-card-name') || '').toLowerCase());
+        const cardText = safeRemoveAccents((el.textContent || '').toLowerCase());
         return (cardAttr && (cardAttr.includes(cleanTarget) || cleanTarget.includes(cardAttr))) ||
                cardText.includes(cleanTarget) ||
                (firstName.length >= 3 && cardText.includes(firstName));
       });
 
       if (card) {
-        const encId = card.getAttribute('data-enc-id');
+        const encId = card.getAttribute('data-enc-id') || fallbackEncId;
         if (encId && typeof window.openTriageModal === 'function') {
-          clearInterval(checkInterval);
-          window.openTriageModal(encId, patientName);
-          return;
+          const triageModalEl = document.getElementById('triage-modal');
+          const triageEncEl = document.getElementById('triage-encounter-id');
+          if (triageModalEl && triageEncEl) {
+            clearInterval(checkInterval);
+            window.openTriageModal(encId, fallbackName);
+            return;
+          }
         }
         const btnTriar = card.querySelector('.btn-triar, .btn-triage, [data-action="triage"]');
         if (btnTriar) {
@@ -2668,7 +2817,7 @@ window.openAttendanceTriage = function(patientName) {
         }
       }
     } else {
-      // Nenhum paciente específico solicitado: seleciona o primeiro disponível
+      // Nenhum paciente específico: tenta o primeiro botão de triage disponível
       const anyBtn = document.querySelector('#col-triage .btn-triar, .btn-triar, .btn-triage');
       if (anyBtn && tries > 2) {
         clearInterval(checkInterval);
@@ -2677,45 +2826,26 @@ window.openAttendanceTriage = function(patientName) {
       }
     }
 
-    // Após 12 tentativas (~1.8s), se paciente específico foi solicitado e card não está visível, abre modal diretamente para ELE
-    if (tries >= 12) {
+    // Após 20 tentativas (~3s) abre modal diretamente via DOM
+    if (tries >= 20) {
       clearInterval(checkInterval);
-      if (patientName && String(patientName).trim()) {
-        const cleanTarget = removeAccents(String(patientName).trim().toLowerCase());
-        let encId = null;
-        let matchedName = String(patientName).trim();
-
-        try {
-          if (typeof localDB !== 'undefined' && localDB.getFullDB) {
-            const db = localDB.getFullDB();
-            const encounters = db.encounters || [];
-            const matchEnc = encounters.slice().reverse().find(e => 
-              removeAccents((e.patientName || '').toLowerCase()).includes(cleanTarget) &&
-              e.status !== 'Finalizado' && e.status !== 'Alta'
-            ) || encounters.slice().reverse().find(e => removeAccents((e.patientName || '').toLowerCase()).includes(cleanTarget));
-            if (matchEnc) {
-              encId = matchEnc.id;
-              matchedName = matchEnc.patientName || matchedName;
-            } else {
-              const patients = db.patients || [];
-              const matchPat = patients.find(p => removeAccents((p.fullName || p.patientName || '').toLowerCase()).includes(cleanTarget));
-              if (matchPat) {
-                matchedName = matchPat.fullName || matchPat.patientName || matchedName;
-                encId = 'enc-' + (matchPat.id || Date.now());
-              }
-            }
+      if (fallbackName) {
+        if (typeof window.openTriageModal === 'function') {
+          const triageModalEl = document.getElementById('triage-modal');
+          const triageEncEl = document.getElementById('triage-encounter-id');
+          if (triageModalEl && triageEncEl) {
+            window.openTriageModal(fallbackEncId, fallbackName);
+            return;
           }
-        } catch(e) {}
-
-        if (!encId) encId = 'enc-' + Date.now();
-
+        }
+        // Fallback de último recurso: manipula DOM do modal diretamente
         const inputEnc = document.getElementById('triage-encounter-id');
         const inputName = document.getElementById('triage-patient-name');
         const modal = document.getElementById('triage-modal');
-        if (inputEnc) inputEnc.value = encId;
-        if (inputName) inputName.textContent = matchedName;
+        if (inputEnc) inputEnc.value = fallbackEncId;
+        if (inputName) inputName.textContent = fallbackName;
         if (typeof window.setActivePatientContext === 'function' && !isAlreadyTriaged) {
-          window.setActivePatientContext({ id: encId, fullName: matchedName, patientName: matchedName, status: 'Aguardando_Triagem', currentStep: 2, room: 'Sala de Triagem' });
+          window.setActivePatientContext({ id: fallbackEncId, fullName: fallbackName, patientName: fallbackName, status: 'Aguardando_Triagem', currentStep: 2, room: 'Sala de Triagem' });
         }
         if (modal) modal.style.display = 'flex';
       } else {
@@ -2729,6 +2859,10 @@ window.openAttendanceTriage = function(patientName) {
 window.openDoctorConsultingRoom = function(roomName, patientName) {
   roomName = roomName || 'Consultório 01';
   patientName = patientName || '';
+
+  if (typeof window.closeAllActiveModals === 'function') {
+    window.closeAllActiveModals();
+  }
 
   // 1. Armazena contexto do paciente e sala convocados
   window._interactedPatient = patientName;
@@ -4166,6 +4300,7 @@ function renderAppStructure() {
     { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-check' },
     { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
     { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
+    { id: 'observacao', label: 'Observação do PS', icon: 'fa-bed-pulse', hasBadge: true },
     { id: 'tv_panel', label: 'Painel TV (Chamador)', icon: 'fa-tv' },
     { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
     { id: 'leitos', label: 'Leitos', icon: 'fa-bed-pulse' },
@@ -4926,10 +5061,14 @@ function switchTab(tabName, isBack = false) {
   delete window._histSwitchTab;
   delete window._renderHistPEPs;
 
-  ['pep-modal', 'patient-history-modal', 'consultorio-details-modal', 'enc-report-detail-modal', 'bed-details-modal'].forEach(id => {
-    const modalEl = document.getElementById(id);
-    if (modalEl) modalEl.remove();
-  });
+  if (typeof window.closeAllActiveModals === 'function') {
+    window.closeAllActiveModals();
+  } else {
+    ['pep-modal', 'patient-history-modal', 'consultorio-details-modal', 'enc-report-detail-modal', 'bed-details-modal'].forEach(id => {
+      const modalEl = document.getElementById(id);
+      if (modalEl) modalEl.remove();
+    });
+  }
 
   // Se chegamos à aba da ação recomendada no Guia de Fluxo, limpa apenas se não for persistente
   if (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetTab === tabName && !_SFG.pendingAction.persistent) {
@@ -5067,6 +5206,8 @@ async function renderTabContent() {
     renderAgendaTab();
   } else if (state.activeTab === 'atendimento') {
     renderAttendanceTab(contentArea);
+  } else if (state.activeTab === 'observacao') {
+    renderObservacaoTab(contentArea);
   } else if (state.activeTab === 'estagnacao') {
     renderStagnationTab(contentArea);
   } else if (state.activeTab === 'kanban') {

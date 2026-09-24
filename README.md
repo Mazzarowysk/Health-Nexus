@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.8.1`  
+**Versão:** `2.9.0`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,14 +8,16 @@
 
 ## 📘 Documentação & Manual do Usuário
 
-- 🧭 **Linha do Cuidado & Trajetória Completa do Paciente (Patient Journey Timeline):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.
-- 🛏️ **Gestão de Leitos em Tempo Real & Destaque Spotlight Pulsante:** Alocação de leitos (observação, enfermaria, UTI, isolamento) com sincronização imediata de cache (`/transfer-to-bed`, `/admit`), realce visual pulsante no mapa de leitos (`⚡ Paciente em Foco`) e proteção contra filtros que possam ocultar o leito selecionado.
+- 🧭 **Linha do Cuidado & Trajetória Completa do Paciente (Patient Journey Timeline):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP ou Observação do PS &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.
+- 🛏️ **Observação do Pronto-Socorro (PS) & Resolução CFM nº 2.079/14:** Módulo dedicado à supervisão de pacientes em leitos/poltronas de observação no PS, com metas normativas de reavaliação médica (12h) e permanência máxima (24h), cronômetro ao vivo com alertas de SLA, 4 KPIs rápidos e ações clínicas integradas (PEP, Prescrição, Internação hospitalar definitiva e Alta da observação com registro temporal).
+- 🔄 **Kanban de Atendimento com 4 Colunas & Desfecho Duplo na Triagem:** Central de atendimentos com fluxo completo: *Aguardando Triagem* &rarr; *Aguardando Atendimento* &rarr; *Em Consulta* &rarr; *Em Observação (PS)*. Na Triagem Manchester, o enfermeiro pode direcionar o paciente para *Consultório Médico* ou diretamente para *Observação do PS*.
+- 🛏️ **Gestão de Leitos em Tempo Real & Censo Crítico:** Alocação de leitos estratificada (UTI Adulto, UTI Neonatal, Semi-UTI, CTI, Clínica Médica, Clínica Cirúrgica, Pediatria, Maternidade e Isolamento) com sincronização imediata de cache (`/transfer-to-bed`, `/admit`), realce visual pulsante no mapa de leitos (`⚡ Paciente em Foco`) e proteção contra filtros que possam ocultar o leito selecionado.
 - 🎯 **Smart Flow Guide (Guia de Fluxo Inteligente Assistencial):** Na etapa de Leitos e Internação, mantém foco clínico estrito na condução terapêutica do paciente internado (Evolução Médica no PEP como ação primária, com opções de alta, foco no leito e acompanhamento no Kanban), impedindo desvios prematuros para fechamento de conta antes da alta médica definitiva.
 - 🌐 **Manual Interativo por Abas (SPA):** Acessível diretamente pelo botão `📖 Manual do Usuário` no topo do sistema ou pela busca global `Ctrl + K`.
 - 🧩 **Arquitetura Frontend Modular (`src/modules/`):** Código desacoplado em módulos de responsabilidade única (`ui.js`, `sync.js`, `api.js`, `auth.js`, `journey.js`) garantindo alta manutenibilidade, isolamento de escopo e facilidade para testes automatizados.
 - 📌 **Navegação Assistida & Retorno Rápido:** Ao pesquisar e navegar para qualquer tela pelo manual, um widget flutuante de retorno (*Floating Return Beacon*) é ativado no canto inferior direito (`Alt + M`) com destaque visual do card (*Smart Highlight Pulse*).
 - ☁️ **Sincronização em Nuvem de Alta Disponibilidade (Dual-Pipeline):** Sincronização atômica e resiliente entre navegadores e Turso Cloud LibSQL com fallback direto HTTP, timeout de 15s, retentativas automáticas e feedback de contagem de registros.
-- 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus_v3.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus_v3.pdf)
+- 📕 **Documento PDF Oficial de Impressão:** [Manual_do_Usuario_Health_Nexus.pdf](file:///c:/Health%20Nexus/Manual_do_Usuario_Health_Nexus.pdf) e [Manual_Fluxo_Operacional_Health_Nexus.pdf](file:///c:/Health%20Nexus/Manual_Fluxo_Operacional_Health_Nexus.pdf)
 - 📄 **Manual Completo em Markdown (Com Fluxogramas):** [MANUAL_DO_USUARIO_HEALTH_NEXUS.md](file:///c:/Health%20Nexus/MANUAL_DO_USUARIO_HEALTH_NEXUS.md)
 - 🔑 **Lista de Logins & Credenciais de Médicos/Enfermeiros:** [LOGINS_MEDICOS_ENFERMEIROS.txt](file:///c:/Health%20Nexus/LOGINS_MEDICOS_ENFERMEIROS.txt)
 
@@ -37,7 +39,7 @@
 
 ## 📦 Stack Tecnológica
 
-- **Frontend:** HTML5 + JavaScript (Modular SPA em `src/modules/`) · Vite 5 · Chart.js · jsPDF · SheetJS
+- **Frontend:** HTML5 + JavaScript (Modular SPA em `src/modules/` e `src/tabs/`) · Vite 5 · Chart.js · jsPDF · SheetJS
 - **Backend:** Node.js + Express.js (API REST) · JWT · Bcrypt
 - **Banco de dados:** SQLite local (`local.db`) + Turso cloud (LibSQL) via `@libsql/client`
 - **CSS:** Design System próprio — Glassmorphism dark + Light mode completo
@@ -69,57 +71,66 @@
    - CRUD completo com autopreenchimento de endereço via API ViaCEP.  
    - Prevenção contra CPFs e nomes duplicados.  
    - Lixeira com soft-delete e restauração.
+   - **Status de Alta Preservado:** Data e hora da última alta registradas no prontuário e exibidas com badge informativo.
 
 5. **Atendimentos (Kanban & Triagem Manchester)**  
-   - Fluxo visual em colunas: Aguardando Triagem → Aguardando Atendimento → Em Atendimento → Finalizado.  
-   - Priorização por cores de risco (Manchester).  
+   - Fluxo visual em 4 colunas dinâmicas: *Aguardando Triagem* &rarr; *Aguardando Atendimento* &rarr; *Em Consulta* &rarr; *Em Observação (PS)*.  
+   - Priorização por cores de risco (Manchester: Vermelho, Laranja, Amarelo, Verde, Azul).  
+   - **Desfecho Duplo na Triagem:** Encaminhar para Consultório Médico ou para Leito de Observação no PS.  
    - Prontuário eletrônico (PEP SOAP) integrado.  
    - Chamada de paciente integrada com Painel TV (Web Speech API).
 
-6. **Painel TV (Chamador com Voz)**  
+6. **Observação do Pronto-Socorro (PS)**  
+   - Módulo normatizado conforme a **Resolução CFM nº 2.079/14**.  
+   - Grid visual de pacientes em observação com tempo decorrido ao vivo.  
+   - Alertas visuais de limite assistencial: amarelo (&ge;12h - reavaliação médica prioritária) e vermelho pulsante (&ge;24h - limite legal ultrapassado com necessidade de alta ou internação imediata).  
+   - 4 Ações rápidas por paciente: Abrir PEP SOAP, Prescrever Medicamento, Transferir/Internar em Leito Hospitalar e Concluir Alta da Observação.
+
+7. **Painel TV (Chamador com Voz)**  
    - Tela cheia para sala de espera.  
    - Anuncia paciente com voz sintetizada (Web Speech API) e exibe nome em destaque.
 
-7. **Prontuário Eletrônico (PEP SOAP) & Trajetória Assistencial**  
+8. **Prontuário Eletrônico (PEP SOAP) & Trajetória Assistencial**  
    - Autosave, assinatura digital, prescrições médicas e receituário.  
-   - **Linha do Tempo Completa da Jornada do Paciente:** Visualização de todos os períodos assistenciais (Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP &rarr; Leito de Internação &rarr; Alta Médica).
+   - **Linha do Tempo Completa da Jornada do Paciente:** Visualização de todos os períodos assistenciais (Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP &rarr; Leito de Internação / Observação &rarr; Alta Médica).
 
-8. **Alertas & Estagnação**  
+9. **Alertas & Estagnação**  
    - Monitoramento proativo de gargalos assistenciais.  
    - **Cards KPI clicáveis** com filtro instantâneo da tabela.  
    - Painel exclusivo de aprovação de novos acessos e monitoramento de gargalos.
 
-9. **Leitos & Censo Hospitalar (Gestão Avançada)**  
-   - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo) · Manutenção (cinza).  
-   - **Painel Detalhado do Leito:** Exibe ocupante atual, data/hora da admissão, tempo de permanência, atalho direto para PEP e histórico completo de todas as ocupações anteriores.
-   - **Inabilitação Automática de Leitos Ocupados:** Prevenção ativa contra dupla ocupação em leitos individuais.
-   - **Ciclo de Higienização:** Alta hospitalar redireciona automaticamente o leito para limpeza com liberação em 1 clique.
+10. **Leitos & Censo Hospitalar (Gestão Avançada)**  
+    - Mapa visual de leitos: Livre (verde) · Ocupado (vermelho) · Higienização (amarelo) · Manutenção (cinza).  
+    - Categorias completas: UTI Adulto, UTI Neonatal, Semi-UTI, CTI, Clínica Médica, Clínica Cirúrgica, Pediatria, Maternidade e Isolamento.  
+    - **Painel Detalhado do Leito:** Exibe ocupante atual, data/hora da admissão, tempo de permanência, atalho direto para PEP e histórico completo de todas as ocupações anteriores.  
+    - **Inabilitação Automática de Leitos Ocupados:** Prevenção ativa contra dupla ocupação em leitos individuais.  
+    - **Ciclo de Higienização:** Alta hospitalar redireciona automaticamente o leito para limpeza com liberação em 1 clique.
 
-10. **Kanban de Internação Interativo**  
+11. **Kanban de Internação Interativo**  
     Gestão visual Kanban do fluxo de internação hospitalar com metas evolutivas (SLA):  
     - **5 colunas de setor:** Pronto Socorro (PS), Corredor de Internação, Clínica Cirúrgica, Clínica Médica (SUS) e UTI.  
     - **Metas de tempo por setor:** PS: 24h · Corredor: 1d · Cirúrgica: 7d · Médica: 10d · UTI: 5d.  
     - **Evolução Clínica & Auditoria de SLAs.**
 
-11. **Farmácia & Estoque Hospitalar**  
+12. **Farmácia & Estoque Hospitalar**  
     - Gerenciamento de medicamentos e insumos com **pesquisa em tempo real via APIs globais (RxNav, NLM, OpenFDA)**.  
     - Preenchimento automático de dados (fabricante, tarja, dosagem).  
     - Notificações automáticas de estoque baixo.
 
-12. **Financeiro (Títulos & Parcelas)**  
+13. **Financeiro (Títulos & Parcelas)**  
     - Faturamento, recebimentos (Pix/Cartão/Dinheiro) e contas a pagar.  
     - **Janela Dedicada:** Dashboard de relatórios financeiros expandido em tela cheia.  
     - **Cards KPI Interativos:** Filtro instantâneo de contas a vencer, vencidas, pagas e visão geral.  
     - **Gráficos Glassmorphism:** Distribuição por status (Donut) e volume por métodos de pagamento (Bar) com Chart.js.
 
-13. **Corpo Clínico & Consultórios Médicos**  
+14. **Corpo Clínico & Consultórios Médicos**  
     - Gestão de médicos com CRM, especialidade, alocação de consultórios e inativação/exclusão.
     - **Vínculo em Tempo Real com Painel TV:** Ao chamar o paciente no painel sonoro, o consultório exibe o paciente chamado com botão de 1-clique para abertura do PEP.
 
-14. **Relatórios & Exportação**  
+15. **Relatórios & Exportação**  
     - Exportação completa e padronizada para PDF, XLSX e CSV.
 
-15. **⏰ Escalas de Trabalho & Plantões (Médicos e Enfermeiros)**  
+16. **⏰ Escalas de Trabalho & Plantões (Médicos e Enfermeiros)**  
     Gestão operacional completa de turnos de trabalho com orelhas dedicadas e permissões RBAC por perfil:  
     - **Orelha 🩺 Escala de Médicos:** Plantões ordenados por data, CRM, especialidade, turnos e horas.  
     - **Orelha 💉 Escala de Enfermeiros:** Escalas operacionais com COREN, função e turnos (6h, 12h, 12x36).
