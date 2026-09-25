@@ -281,17 +281,38 @@ function generateAppointments(patients, doctors, count = 60) {
   return appointments;
 }
 
+const OBSERVATION_ROOMS = [
+  'Poltrona OBS-01', 'Poltrona OBS-02', 'Poltrona OBS-03', 'Poltrona OBS-04',
+  'Leito OBS-01', 'Leito OBS-02', 'Leito OBS-03', 'Leito OBS-04'
+];
+
+const OBSERVATION_COMPLAINTS = [
+  'Desidratação moderada em hidratação venosa contínua e reposição eletrolítica',
+  'Crise asmática em nebulização seriada e corticoterapia venosa',
+  'Cólica nefrética em infusão de analgesia venosa e antiespasmódicos',
+  'Cefaleia refratária com náuseas/vômitos sob observação clínica',
+  'Dor torácica atípica aguardando curva de marcadores de necrose miocárdica (Troponina)',
+  'Hipertensão estágio 3 sintomática em estabilização com anti-hipertensivo oral/EV',
+  'Reação alérgica cutânea após antibioticoterapia em monitoramento com anti-histamínico',
+  'Gastroenterite aguda com intolerância oral persistente em hidratação venosa'
+];
+
 function generateEncountersAndTriages(patients, doctors, count = 45) {
   const encounters = [];
   const triages = [];
   const statusDist = [
-    { status: 'Aguardando_Triagem', weight: 0.12 },
-    { status: 'Aguardando_Atendimento', weight: 0.25 },
-    { status: 'Em_Atendimento', weight: 0.22 },
-    { status: 'Aguardando_Exames', weight: 0.18 },
-    { status: 'Aguardando_Resultado', weight: 0.10 },
-    { status: 'Alta', weight: 0.13 },
+    { status: 'Aguardando_Triagem', weight: 0.10 },
+    { status: 'Aguardando_Atendimento', weight: 0.20 },
+    { status: 'Em_Atendimento', weight: 0.18 },
+    { status: 'Em_Observacao', weight: 0.18 },
+    { status: 'Aguardando_Exames', weight: 0.12 },
+    { status: 'Aguardando_Resultado', weight: 0.08 },
+    { status: 'Alta', weight: 0.14 },
   ];
+
+  // Garantir que haja pacientes na Sala de Observação do PS para demonstrar os 3 SLAs da Resolução CFM nº 2.079/14
+  const minObsTarget = Math.max(3, Math.min(8, Math.round(count * 0.18)));
+  let obsCountGenerated = 0;
 
   for (let i = 0; i < count; i++) {
     const patient = pick(patients);
@@ -299,28 +320,63 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
     const typeEnc = pick(ENCOUNTER_TYPES);
 
     // Determinar status com distribuição ponderada
-    const statusRoll = Math.random();
-    let cumW = 0, status = 'Aguardando_Triagem';
-    for (const s of statusDist) { cumW += s.weight; if (statusRoll < cumW) { status = s.status; break; } }
+    let status = 'Aguardando_Triagem';
+    if (i < minObsTarget) {
+      status = 'Em_Observacao';
+    } else {
+      const statusRoll = Math.random();
+      let cumW = 0;
+      for (const s of statusDist) {
+        cumW += s.weight;
+        if (statusRoll < cumW) { status = s.status; break; }
+      }
+    }
 
     const isFinished = status === 'Alta';
-    const hoursAgo = isFinished ? rnd(2, 72) : rnd(0, 12);
+    const isObs = status === 'Em_Observacao';
+
+    // Determinar tempo de permanência/admissão
+    let hoursAgo;
+    if (isFinished) {
+      hoursAgo = rnd(2, 72);
+    } else if (isObs) {
+      // Distribuir entre os 3 níveis da CFM nº 2.079/14:
+      // 1. Estáveis (< 6h) -> Seguro
+      // 2. Reavaliação Necessária (6h a 12h) -> Reavaliar
+      // 3. Crítico / Limite Excedido (> 12h) -> Limite CFM
+      if (obsCountGenerated % 3 === 0) {
+        hoursAgo = +(1.5 + Math.random() * 3.5).toFixed(1); // 1.5h a 5h (Estável < 6h)
+      } else if (obsCountGenerated % 3 === 1) {
+        hoursAgo = +(6.5 + Math.random() * 4.5).toFixed(1); // 6.5h a 11h (Reavaliação 6h a 12h)
+      } else {
+        hoursAgo = +(13 + Math.random() * 8).toFixed(1);    // 13h a 21h (Crítico > 12h)
+      }
+      obsCountGenerated++;
+    } else {
+      hoursAgo = rnd(0, 12);
+    }
+
     const admittedAt = new Date(Date.now() - hoursAgo * 3600000).toISOString();
-    const manchColor = pickWeighted(MANCHESTER_COLORS, MANCHASTER_WEIGHTS);
+    const manchColor = isObs ? pick(['Laranja', 'Amarelo', 'Amarelo', 'Vermelho']) : pickWeighted(MANCHESTER_COLORS, MANCHASTER_WEIGHTS);
 
     const encId = `ENC-${String(i + 1).padStart(3, '0')}`;
+    const obsRoom = isObs ? OBSERVATION_ROOMS[i % OBSERVATION_ROOMS.length] : null;
+    const complaint = isObs ? OBSERVATION_COMPLAINTS[i % OBSERVATION_COMPLAINTS.length] : pick(['Dor abdominal','Febre alta','Cefaleia intensa','Dispneia','Dor torácica','Trauma em membro','Tontura e vômito','Hipertensão','Lombalgia','Convulsão','Sangramento','Reação alérgica']);
+
     encounters.push({
       id: encId,
       patientId: patient.id,
       patientName: patient.fullName,
       doctorId: status !== 'Aguardando_Triagem' ? doctor.id : null,
       doctorName: status !== 'Aguardando_Triagem' ? doctor.name : null,
-      type: typeEnc,
+      type: isObs ? 'Urgencia' : typeEnc,
       status,
+      destination: isObs ? 'observacao' : 'consultorio',
+      observation_started_at: isObs ? admittedAt : null,
       manchesterColor: status !== 'Aguardando_Triagem' ? manchColor : null,
       manchesterLabel: status !== 'Aguardando_Triagem' ? manchesterLabel(manchColor) : null,
-      room: (status === 'Em_Atendimento' || status === 'Aguardando_Exames') ? pick(CONSULTÓRIOS) : null,
-      chiefComplaint: pick(['Dor abdominal','Febre alta','Cefaleia intensa','Dispneia','Dor torácica','Trauma em membro','Tontura e vômito','Hipertensão','Lombalgia','Convulsão','Sangramento','Reação alérgica']),
+      room: isObs ? obsRoom : ((status === 'Em_Atendimento' || status === 'Aguardando_Exames') ? pick(CONSULTÓRIOS) : null),
+      chiefComplaint: complaint,
       admitted_at: admittedAt,
       finished_at: isFinished ? new Date(Date.now() - rnd(0, hoursAgo - 1) * 3600000).toISOString() : null,
       healthPlan: patient.healthPlan,
@@ -339,6 +395,7 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
         patientName: patient.fullName,
         color: manchColor,
         label: manchesterLabel(manchColor),
+        destination: isObs ? 'observacao' : 'consultorio',
         weight: rnd(45, 120),
         height: rnd(145, 195),
         temperature: (36 + Math.random() * 3).toFixed(1),
@@ -347,7 +404,7 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
         heartRate: rnd(55, 130),
         oxygenSaturation: rnd(88, 100),
         painScale: rnd(0, 10),
-        notes: pick(['Paciente agitado','Cooperativo','Sonolento','Orientado','Em uso de medicação contínua','']),
+        notes: isObs ? `Paciente encaminhado para Observação do PS (${obsRoom}). Início imediato de conduta clínica e hidratação.` : pick(['Paciente agitado','Cooperativo','Sonolento','Orientado','Em uso de medicação contínua','']),
         created_at: admittedAt,
         updated_at: new Date().toISOString()
       });

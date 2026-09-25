@@ -715,6 +715,7 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
   const tvCalls = Array.isArray(result.tv_calls) ? result.tv_calls : [];
   const medications = Array.isArray(result.medications) ? result.medications : [];
   const dutySchedules = Array.isArray(result.duty_schedules) ? result.duty_schedules : [];
+  const obsPatients = encounters.filter(e => e && (e.status === 'Em_Observacao' || !!e.observation_started_at));
 
   const manchVermelho = triages.filter(t => t && (t.color === 'Vermelho' || t.manchesterColor === 'Vermelho')).length;
   const manchLaranja = triages.filter(t => t && (t.color === 'Laranja' || t.manchesterColor === 'Laranja')).length;
@@ -749,7 +750,7 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
       <!-- Navegação de Abas do Modal -->
       <div style="display: flex; gap: 8px; padding: 12px 24px 0; background: var(--bg-tertiary, #1a1a35); border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
         <button id="tab-btn-sim-check" class="btn" style="background: var(--bg-secondary, #131326); color: #00f2fe; border: 1px solid var(--border-color); border-bottom: 2px solid #00f2fe; padding: 8px 16px; font-size: 0.84rem; font-weight: 700; border-radius: 8px 8px 0 0; cursor: pointer;">
-          <i class="fa-solid fa-list-check"></i> Resumo Geral (10 Módulos)
+          <i class="fa-solid fa-list-check"></i> Resumo Geral (11 Módulos)
         </button>
         <button id="tab-btn-sim-patients" class="btn" style="background: transparent; color: var(--text-muted); border: 1px solid transparent; padding: 8px 16px; font-size: 0.84rem; font-weight: 600; border-radius: 8px 8px 0 0; cursor: pointer;">
           <i class="fa-solid fa-hospital-user"></i> Listagem dos Pacientes (${patients.length})
@@ -843,6 +844,14 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
               </div>
             </div>
 
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(245, 158, 11, 0.35); border-left: 4px solid #f59e0b; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-bed-pulse" style="font-size: 1.3rem; color: #f59e0b;"></i>
+              <div>
+                <strong style="font-size: 0.88rem; color: #f8fafc; display: block;">Observação do PS (CFM 2.079/14)</strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">&rarr; <strong>${obsPatients.length}</strong> pacientes em observação ativa</span>
+              </div>
+            </div>
+
           </div>
 
           <!-- Card de Resumo de Distribuição de Manchester -->
@@ -905,6 +914,9 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
           <button id="btn-goto-atendimentos" class="btn" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-stethoscope"></i> Ver Atendimentos
           </button>
+          <button id="btn-goto-observacao" class="btn" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-bed-pulse"></i> Ver Observação do PS
+          </button>
           <button id="btn-confirm-sim-summary" class="btn btn-primary" style="padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-check"></i> Concluir
           </button>
@@ -966,6 +978,11 @@ export function showSimulationSummaryModal(result = {}, count = 5) {
     close();
     if (typeof window.switchTab === 'function') window.switchTab('atendimento');
   });
+
+  document.getElementById('btn-goto-observacao')?.addEventListener('click', () => {
+    close();
+    if (typeof window.switchTab === 'function') window.switchTab('observacao');
+  });
 }
 
 export function showSimulationSuccessFinalModal(count = 5) {
@@ -1013,6 +1030,11 @@ export function showSimulationSuccessFinalModal(count = 5) {
             <span><strong>Módulos Hospitalares:</strong> Triagem Manchester, Leitos e TV sincronizados.</span>
           </div>
 
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 0.86rem; color: var(--text-primary, #f8fafc);">
+            <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 1rem;"></i>
+            <span><strong>Sala de Observação (PS):</strong> Pacientes alocados com cronômetros de permanência (CFM nº 2.079/14).</span>
+          </div>
+
         </div>
 
         <p style="margin: 0; font-size: 0.84rem; color: var(--text-secondary, #94a3b8); text-align: center; line-height: 1.5;">
@@ -1021,12 +1043,15 @@ export function showSimulationSuccessFinalModal(count = 5) {
 
         <!-- Botões de Ação -->
         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
-          <div style="display: flex; gap: 8px;">
-            <button id="btn-final-goto-pacientes" class="btn" style="flex: 1; background: rgba(99, 102, 241, 0.18); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; padding: 11px 14px; border-radius: 10px; font-weight: 700; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <i class="fa-solid fa-users"></i> Ir para Pacientes
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button id="btn-final-goto-pacientes" class="btn" style="flex: 1; min-width: 130px; background: rgba(99, 102, 241, 0.18); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; padding: 11px 14px; border-radius: 10px; font-weight: 700; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="fa-solid fa-users"></i> Pacientes
             </button>
-            <button id="btn-final-goto-atendimentos" class="btn" style="flex: 1; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 11px 14px; border-radius: 10px; font-weight: 700; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button id="btn-final-goto-atendimentos" class="btn" style="flex: 1; min-width: 130px; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 11px 14px; border-radius: 10px; font-weight: 700; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
               <i class="fa-solid fa-stethoscope"></i> Atendimentos
+            </button>
+            <button id="btn-final-goto-observacao" class="btn" style="flex: 1; min-width: 130px; background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; padding: 11px 14px; border-radius: 10px; font-weight: 700; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="fa-solid fa-bed-pulse"></i> Observação (PS)
             </button>
           </div>
           
@@ -1055,6 +1080,10 @@ export function showSimulationSuccessFinalModal(count = 5) {
   document.getElementById('btn-final-goto-atendimentos')?.addEventListener('click', () => {
     closeFinal();
     if (typeof window.switchTab === 'function') window.switchTab('atendimento');
+  });
+  document.getElementById('btn-final-goto-observacao')?.addEventListener('click', () => {
+    closeFinal();
+    if (typeof window.switchTab === 'function') window.switchTab('observacao');
   });
 }
 
