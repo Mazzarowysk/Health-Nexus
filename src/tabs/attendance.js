@@ -534,7 +534,7 @@ export function renderAttendanceTab(contentArea) {
     if (kpiOb) kpiOb.textContent = obs.length;
 
     // Atualizar badge lateral de Observação
-    const navObsBadge = document.getElementById('nav-badge-observacao');
+    const navObsBadge = document.getElementById('observacao-nav-badge') || document.getElementById('nav-badge-observacao');
     if (navObsBadge) {
       navObsBadge.textContent = obs.length;
       navObsBadge.style.display = obs.length > 0 ? 'inline-block' : 'none';

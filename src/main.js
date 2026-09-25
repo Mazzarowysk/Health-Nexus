@@ -4322,15 +4322,25 @@ function renderAppStructure() {
     state.activeTab = perms.allowedTabs[0] || 'dashboard';
   }
 
-  const navHtml = visibleNavItems.map(item => `
+  const navHtml = visibleNavItems.map(item => {
+    let badgeId = `${item.id}-nav-badge`;
+    let badgeBg = '#ef4444';
+    if (item.id === 'estagnacao') {
+      badgeId = 'stagnation-nav-badge';
+      badgeBg = '#ef4444';
+    } else if (item.id === 'observacao') {
+      badgeId = 'observacao-nav-badge';
+      badgeBg = '#f59e0b';
+    }
+    return `
     <li>
       <a class="nav-item ${state.activeTab === item.id ? 'active' : ''}" data-tab="${item.id}" style="${item.hasBadge ? 'position: relative;' : ''}">
         <i class="fa-solid ${item.icon}" style="${item.id === 'estagnacao' ? 'color: #f59e0b;' : ''}"></i>
         <span>${item.label}</span>
-        ${item.hasBadge ? `<span id="stagnation-nav-badge" class="badge-count" style="display:none; margin-left: auto; background: #ef4444; color: #fff; border-radius: 10px; font-size: 0.7rem; padding: 2px 7px; font-weight: 700;">0</span>` : ''}
+        ${item.hasBadge ? `<span id="${badgeId}" class="badge-count nav-badge-${item.id}" style="display:none; margin-left: auto; background: ${badgeBg}; color: #fff; border-radius: 10px; font-size: 0.7rem; padding: 2px 7px; font-weight: 700;">0</span>` : ''}
       </a>
     </li>
-  `).join('');
+  `}).join('');
 
   root.innerHTML = `
     <div class="app-container">
@@ -4663,7 +4673,36 @@ function renderAppStructure() {
       window.ensureSmartFlowGuideMounted(state.activeTab || 'dashboard');
     }
   }, 450);
+
+  // Sincroniza badges da barra lateral (Observação e Alertas de Estagnação)
+  setTimeout(() => {
+    updateNavBadgesGlobal();
+  }, 250);
 }
+
+// ─── ATUALIZAÇÃO GLOBAL DOS BADGES DA BARRA LATERAL ───────────────────────────
+export async function updateNavBadgesGlobal() {
+  try {
+    // 1. Badge da Sala de Observação
+    const obsBadge = document.getElementById('observacao-nav-badge');
+    if (obsBadge) {
+      const res = await apiFetch('/api/encounters').catch(() => null);
+      if (res && res.ok) {
+        const raw = await res.json();
+        const encs = Array.isArray(raw) ? raw : (raw.data || raw.encounters || []);
+        const obsPatients = encs.filter(e => {
+          if (e.status === 'Finalizado' || e.status === 'Alta' || e.status === 'Cancelado') return false;
+          return e.status === 'Em_Observacao' || !!e.observation_started_at || (e.room && e.room.toLowerCase().includes('observa'));
+        });
+        obsBadge.textContent = obsPatients.length;
+        obsBadge.style.display = obsPatients.length > 0 ? 'inline-block' : 'none';
+      }
+    }
+  } catch(e) {
+    // Fail silently
+  }
+}
+window.updateNavBadgesGlobal = updateNavBadgesGlobal;
 
 // ─── MECANISMO DE BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND K) ──────────────
 function initGlobalSystemSearch() {
