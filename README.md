@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.2`  
+**Versão:** `2.9.3`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,6 +8,8 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🩺 **Prontuário Eletrônico (PEP) com Listagem Direta & Inclusão Intuitiva:** Ao clicar em *Abrir PEP*, o sistema agora apresenta de imediato a listagem de todas as evoluções clínicas anteriores do paciente organizadas cronologicamente por ala/setor. Inclui botão de ação rápida `➕ Incluir Novo PEP` no cabeçalho e topo da lista, cards informativos com prévia dos blocos SOAP, visualizador detalhado com carimbo CFM e botão `← Voltar para Lista de PEPs` para navegação fluida sem fechar o modal.
+- ✍️ **Humanização Assistencial Contínua & Redação Natural (pt-BR):** Regra permanente de workspace (`.agents/rules/humanizacao.md` e `AGENTS.md`) e skill `humanizer` ativas em todo o sistema, telas e documentações. Elimina clichês robóticos de IA e adota linguagem empática, direta e com voz ativa para equipes de enfermagem, médicos, recepção e pacientes.
 - ⚠️ **Alerta e Trava Antiduplicidade de Atendimento Ativo:** Sistema de segurança assistencial que bloqueia a criação inadvertida de novos atendimentos para pacientes que já possuem passagem ativa no Pronto-Socorro (em Triagem, Consultório, Leito ou Observação). Apresenta modal com localização física, status clínico e tempo no PS, disponibilizando ações de *Visualizar Atendimento em Andamento*, *Encerrar Anterior e Abrir Novo* ou *Cancelar*.
 - 🛏️ **Sala de Observação Consolidada (1 Card por Paciente):** Deduplicação inteligente de vagas na Sala de Observação e no Kanban de Atendimento (Resolução CFM nº 2.079/14), auto-higienizando registros duplicados legados no banco e garantindo integridade visual e documental.
 - 🧭 **Linha do Cuidado & Trajetória Completa do Paciente (Patient Journey Timeline):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP ou Observação do PS &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.

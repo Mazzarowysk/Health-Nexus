@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.8.1)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.3)
 
-> **Health Nexus v2.8.1 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.3 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -222,6 +222,28 @@ A 4ª coluna do Kanban e a aba dedicada **Observação do PS** operam em conform
 
 ![Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição](docs/screenshots/11-prontuario-pep.png)
 
+<h3 id="sec-3-0">3.0. Nova Experiência de Abertura: Listagem de PEPs Existentes & Inclusão Intuitiva</h3>
+
+Ao clicar no botão **"Abrir PEP"** em qualquer módulo assistencial (Observação do Pronto-Socorro, Consultórios de Atendimento, Central de Leitos ou Relatórios Clínicos), o sistema adota um fluxo direto centrado na segurança e no histórico prévio do paciente:
+
+1. **Abertura Padrão na Listagem (`📋 Listagem de PEPs Existentes`):**
+   - O profissional visualiza de imediato a ordem cronológica decrescente de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).
+   - Cada card do histórico apresenta:
+     - Setor ou ala de atendimento (com ícone visual dedicado).
+     - Data e hora exatas da evolução.
+     - Status assistencial (`✓ Assinado / Finalizado` ou `⏳ Rascunho / Em Andamento`).
+     - Nome do médico assistente e CRM.
+     - Hipótese diagnóstica / CID-10 e prévia dos blocos Subjetivo e Conduta.
+     - Botão **`👁️ Visualizar PEP Completo`**: abre o modo leitura estruturado com carimbo CFM e botão de retorno `← Voltar para Lista de PEPs`.
+     - Botão **`✏️ Continuar / Editar`**: permite retomar prontuários em aberto ou rascunhos.
+
+2. **Inclusão Direta e Acessível (`➕ Incluir Novo PEP`):**
+   - Um botão em destaque no cabeçalho superior e no topo da lista permite abrir imediatamente uma folha limpa de evolução clínica (SOAP).
+   - No formulário de preenchimento, o cabeçalho exibe o botão **`← Voltar para Lista de PEPs`**, permitindo consultar dados anteriores sem perder o contexto do atendimento.
+   - Caso o paciente ainda não possua nenhum prontuário anterior (zero registros), o sistema apresenta uma tela inicial amigável com o botão **`➕ Incluir Primeiro PEP Agora`**.
+
+---
+
 <h3 id="sec-3-1">3.1. Estrutura SOAPE</h3>
 
 | Bloco SOAPE | Elemento Clínico | Finalidade do Registro | Exemplo de Preenchimento Padronizado |
@@ -274,6 +296,13 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 | **QR Code de Validação Pública**| Imagem bidimensional com URL segura | Resolução CFM nº 2.299/2021 | Paciente ou farmácia escaneia com o smartphone e confere o laudo original online. |
 | **Carimbo Digital UTC** | Sincronização temporal ISO-8601 | Padrão Horário de Brasília / Observatório Nacional | Prova a data e o segundo exato em que a conduta foi tomada. |
 | **CRM e RQE do Médico** | Chave pública do prestador cadastrado | Conselho Regional de Medicina | Vincula juridicamente a autoria da receita ou laudo ao profissional habilitado. |
+
+<h3 id="sec-3-5">3.5. Diretrizes de Humanização e Comunicação Assistencial (Health Nexus)</h3>
+
+Todas as interfaces, mensagens de erro, alertas de conduta e documentações do Health Nexus seguem a regra permanente de humanização assistencial (`.agents/rules/humanizacao.md`):
+- **Comunicação Clara e Direta (pt-BR):** Médicos, enfermeiros e equipes de recepção operam sob pressão constante; instruções e avisos priorizam a voz ativa e cortam termos rebuscados ou clichês gerados por IA.
+- **Empatia com o Paciente e a Equipe:** As mensagens do sistema orientam claramente a próxima conduta recomendada, garantindo acolhimento e segurança nos momentos decisivos do cuidado.
+- **Microtextos Acessíveis:** Botões e avisos usam linguagem cotidiana brasileira (ex: *"Salvar Rascunho"*, *"Voltar para Lista de PEPs"*, *"Conceder Alta Médica"*), evitando jargões técnicos de informática desnecessários.
 
 ---
 
