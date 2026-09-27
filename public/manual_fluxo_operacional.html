@@ -251,8 +251,15 @@ flowchart TD
 <li>O campo CEP realiza consulta assíncrona ao <em>ViaCEP</em> para preenchimento imediato de logradouro, bairro, município e UF.</li>
 </ul>
 </li>
-<li><strong>Mecanismo Antiduplicidade (HTTP 409 Conflict):</strong><ul>
-<li>Caso um operador tente cadastrar um paciente cujo CPF ou Nome Completo (case-insensitive e normalizado sem acentos) já conste na base ativa, o sistema emite alerta imediato e oferece a reutilização da ficha cadastral mestre, preservando o histórico preexistente.</li>
+<li><strong>Mecanismo Antiduplicidade &amp; Alerta de Atendimento Pendente em Andamento:</strong><ul>
+<li>Caso um operador tente admitir um paciente que já possua atendimento ativo no complexo hospitalar (em Triagem, Consultório, Observação ou Leito), o sistema <strong>bloqueia a criação automática de fichas paralelas</strong>.</li>
+<li>É exibido o modal de alta fidelidade <strong>Atendimento Pendente em Andamento</strong>, apresentando a localização atual do paciente, status clínico, cor de risco Manchester e tempo de permanência no PS.</li>
+<li>O operador dispõe de 3 decisões assistenciais:<ul>
+<li>👁️ <strong>Visualizar Atendimento em Andamento:</strong> direciona o operador para o setor exato onde o paciente já se encontra, sem gerar duplicidade.</li>
+<li>🔄 <strong>Encerrar Anterior e Abrir Novo Atendimento:</strong> finaliza a passagem anterior com desfecho rastreado e inicia uma nova ocorrência limpa.</li>
+<li>✖️ <strong>Cancelar:</strong> fecha o modal mantendo os dados sem alterações.</li>
+</ul>
+</li>
 </ul>
 </li>
 <li><strong>Abertura da Ficha de Atendimento:</strong><ul>
@@ -346,8 +353,11 @@ flowchart TD
 <li><strong>Limite Máximo Legal:</strong> 24 horas de permanência no Pronto-Socorro.</li>
 <li><strong>Meta Assistencial de Reavaliação:</strong> 12 horas para definição de conduta (alta médica ou transferência para leito hospitalar).</li>
 <li><strong>Recursos da Aba Observação do PS:</strong><ol>
+<li><strong>Consolidação de Card Único por Paciente:</strong> Cada paciente físico ocupa rigorosamente uma poltrona/leito de observação no painel, com eliminação ativa de cards duplicados e higienização automática de passagens anteriores.</li>
 <li><strong>Cards com Sinais Vitais Completos:</strong> Exibição da PA, FC, Temp, SpO2 e queixa do paciente em poltrona/leito de observação.</li>
-<li><strong>Cronômetro de Permanência em Tempo Real:</strong> Atualização automática do tempo decorrido com sinalizadores coloridos (Seguro &lt;6h, Alerta 6h-12h e Crítico &gt;12h).</li>
+<li><strong>Cronômetro de Permanência em Tempo Real:</strong> Atualização automática do tempo decorrido com sinalizadores coloridos (Seguro &lt;6h, Alerta 6h-12h e Crítico &gt;12h Excedido CFM).</li>
+<li><strong>Ações Integradas de 1-Clique:</strong> Acesso ao PEP para evolução de enfermagem/médica, Prescrição Rápida de hidratação/analgesia, Internação em Leito Hospitalar (UTI/Enfermaria) e Alta da Observação.</li>
+<li><strong>Carimbo Temporal de Alta:</strong> Ao conceder alta na observação, o sistema finaliza o atendimento e grava o status &quot;Alta&quot; com data e horário no prontuário e na listagem da aba Pacientes.ro de Permanência em Tempo Real:** Atualização automática do tempo decorrido com sinalizadores coloridos (Seguro &lt;6h, Alerta 6h-12h e Crítico &gt;12h).</li>
 <li><strong>Ações Integradas de 1-Clique:</strong> Acesso ao PEP para evolução de enfermagem/médica, Prescrição Rápida de hidratação/analgesia, Internação em Leito Hospitalar (UTI/Enfermaria) e Alta da Observação.</li>
 <li><strong>Carimbo Temporal de Alta:</strong> Ao conceder alta na observação, o sistema finaliza o atendimento e grava o status &quot;Alta&quot; com data e horário no prontuário e na listagem da aba Pacientes.</li>
 </ol>

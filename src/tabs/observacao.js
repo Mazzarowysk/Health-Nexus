@@ -413,12 +413,51 @@ export function renderObservacaoTab(contentArea) {
         const rawData = await res.json();
         const encounters = Array.isArray(rawData) ? rawData : (rawData.data || rawData.encounters || []);
         // Pacientes em observação: status Em_Observacao ou que tenham observation_started_at sem finalização
-        allObsPatients = encounters.filter(e => {
+        const rawObsList = encounters.filter(e => {
           if (e.status === 'Finalizado' || e.status === 'Alta' || e.status === 'Cancelado') return false;
           return e.status === 'Em_Observacao' || !!e.observation_started_at || (e.room && e.room.toLowerCase().includes('observa'));
-        }).sort((a, b) => {
-          const tA = new Date(a.observation_started_at || a.admitted_at || a.created_at).getTime();
-          const tB = new Date(b.observation_started_at || b.admitted_at || b.created_at).getTime();
+        });
+
+        // Deduplicação inteligente por paciente: um mesmo paciente não pode ocupar duas vagas simultâneas na Observação.
+        // Se houver atendimentos duplicados (ex: múltiplos testes/admissões), mantém o mais recente e arquiva os anteriores no banco.
+        const patientSeen = new Map();
+        const duplicatesToClose = [];
+
+        // Ordenar do mais recente para o mais antigo para garantir que a ficha ativa mantida seja a mais recente
+        const sortedDesc = [...rawObsList].sort((a, b) => {
+          const tA = new Date(a.observation_started_at || a.admitted_at || a.created_at || 0).getTime();
+          const tB = new Date(b.observation_started_at || b.admitted_at || b.created_at || 0).getTime();
+          return tB - tA;
+        });
+
+        sortedDesc.forEach(enc => {
+          const key = (enc.patientId ? `id:${String(enc.patientId).trim().toLowerCase()}` : '') || 
+                      (enc.patientName ? `name:${String(enc.patientName).trim().toLowerCase()}` : `enc:${enc.id}`);
+          if (!patientSeen.has(key)) {
+            patientSeen.set(key, enc);
+          } else {
+            duplicatesToClose.push(enc);
+          }
+        });
+
+        // Limpeza automática no banco local de registros duplicados legados
+        if (duplicatesToClose.length > 0 && typeof window !== 'undefined' && window.localDB && typeof window.localDB.update === 'function') {
+          duplicatesToClose.forEach(dup => {
+            try {
+              window.localDB.update('encounters', dup.id, {
+                ...dup,
+                status: 'Finalizado',
+                dischargeType: 'Duplicidade de Observação Corrigida Automaticamente',
+                completed_at: new Date().toISOString(),
+                lastStatusUpdate: new Date().toISOString()
+              });
+            } catch(e) {}
+          });
+        }
+
+        allObsPatients = Array.from(patientSeen.values()).sort((a, b) => {
+          const tA = new Date(a.observation_started_at || a.admitted_at || a.created_at || 0).getTime();
+          const tB = new Date(b.observation_started_at || b.admitted_at || b.created_at || 0).getTime();
           return tA - tB; // Mais antigos primeiro (prioridade de tempo no PS)
         });
 

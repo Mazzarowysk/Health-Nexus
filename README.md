@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.0`  
+**Versão:** `2.9.2`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,6 +8,8 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- ⚠️ **Alerta e Trava Antiduplicidade de Atendimento Ativo:** Sistema de segurança assistencial que bloqueia a criação inadvertida de novos atendimentos para pacientes que já possuem passagem ativa no Pronto-Socorro (em Triagem, Consultório, Leito ou Observação). Apresenta modal com localização física, status clínico e tempo no PS, disponibilizando ações de *Visualizar Atendimento em Andamento*, *Encerrar Anterior e Abrir Novo* ou *Cancelar*.
+- 🛏️ **Sala de Observação Consolidada (1 Card por Paciente):** Deduplicação inteligente de vagas na Sala de Observação e no Kanban de Atendimento (Resolução CFM nº 2.079/14), auto-higienizando registros duplicados legados no banco e garantindo integridade visual e documental.
 - 🧭 **Linha do Cuidado & Trajetória Completa do Paciente (Patient Journey Timeline):** Rastreabilidade assistencial de ponta a ponta desde a Recepção &rarr; Triagem Manchester &rarr; Chamada TV &rarr; Consultório PEP SOAP ou Observação do PS &rarr; Farmácia & Prescrição &rarr; Gestão de Leitos &rarr; Alta Médica com histórico por períodos de atendimento.
 - 🛏️ **Observação do Pronto-Socorro (PS) & Resolução CFM nº 2.079/14:** Módulo dedicado à supervisão de pacientes em leitos/poltronas de observação no PS, com metas normativas de reavaliação médica (12h) e permanência máxima (24h), cronômetro ao vivo com alertas de SLA, 4 KPIs rápidos e ações clínicas integradas (PEP, Prescrição, Internação hospitalar definitiva e Alta da observação com registro temporal).
 - 🔄 **Kanban de Atendimento com 4 Colunas & Desfecho Duplo na Triagem:** Central de atendimentos com fluxo completo: *Aguardando Triagem* &rarr; *Aguardando Atendimento* &rarr; *Em Consulta* &rarr; *Em Observação (PS)*. Na Triagem Manchester, o enfermeiro pode direcionar o paciente para *Consultório Médico* ou diretamente para *Observação do PS*.

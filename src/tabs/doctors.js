@@ -1096,7 +1096,18 @@ window.openDoctorActivityModal = async function(doctorName, specialty, crm) {
 // =========================================================
 // ATALHO E PRONTUÁRIO DE PACIENTES PARA ATENDIMENTOS E HISTÓRICO
 // =========================================================
-window.admitPatientFromPatientsTab = function(patientId, fullName, cpf) {
+window.admitPatientFromPatientsTab = async function(patientId, fullName, cpf) {
+  if (typeof window.showActiveEncounterAlertModal === 'function') {
+    const activeDecision = await window.showActiveEncounterAlertModal({
+      patientId,
+      patientName: fullName,
+      patientCpf: cpf
+    });
+    if (activeDecision.action === 'cancel' || activeDecision.action === 'view') {
+      return;
+    }
+  }
+
   showToast('⏳ Acessando Admissão para ' + fullName + '...');
   if (typeof switchTab === 'function') switchTab('atendimento');
 

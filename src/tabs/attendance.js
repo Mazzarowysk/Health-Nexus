@@ -353,10 +353,26 @@ export function renderAttendanceTab(contentArea) {
   const createEncounter = async (type) => {
     const patientId = document.getElementById('selected-patient-id').value;
     if (!patientId) return;
+    const patientName = document.getElementById('adm-selected-name')?.textContent || (typeof selectedPatient !== 'undefined' ? selectedPatient?.fullName : null) || 'Paciente';
+
+    // Verificação de Atendimento Ativo Pendente de Direcionamento
+    if (typeof window.showActiveEncounterAlertModal === 'function') {
+      const activeDecision = await window.showActiveEncounterAlertModal({
+        patientId,
+        patientName
+      });
+      if (activeDecision.action === 'cancel') {
+        return;
+      }
+      if (activeDecision.action === 'view') {
+        closeAdmissionPanel();
+        return;
+      }
+    }
+
     const btn = document.getElementById(type === 'Urgencia' ? 'btn-admit-urgencia' : 'btn-admit-ambulatorio');
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Admitindo...';
     try {
-      const patientName = document.getElementById('adm-selected-name')?.textContent || (typeof selectedPatient !== 'undefined' ? selectedPatient?.fullName : null) || 'Paciente';
       const bodyData = { 
         patientId, 
         patientName,
@@ -379,7 +395,6 @@ export function renderAttendanceTab(contentArea) {
             manchesterColor: null
           });
         }
-        showToast(`✅ ${patientName} admitido(a)!`);
         if (typeof window.showFlowCompletionNotification === 'function') {
           window.showFlowCompletionNotification({
             actionTitle: '🩺 Próxima Etapa: Realizar Triagem Manchester',
@@ -429,7 +444,26 @@ export function renderAttendanceTab(contentArea) {
     activeKanbanTimers.forEach(t => clearInterval(t));
     activeKanbanTimers = [];
 
-    const triage = [...encounters.filter(e => e.status === 'Aguardando_Triagem')].sort((a, b) => {
+    // Deduplicação dos encontros por paciente: mantém o encontro mais recente e avançado
+    const patientSeen = new Set();
+    const sortedEncs = [...encounters].sort((a, b) => {
+      const tA = new Date(a.observation_started_at || a.admitted_at || a.created_at || 0).getTime();
+      const tB = new Date(b.observation_started_at || b.admitted_at || b.created_at || 0).getTime();
+      return tB - tA; // mais recente primeiro
+    });
+
+    const uniqueEncs = [];
+    sortedEncs.forEach(e => {
+      if (e.status === 'Finalizado' || e.status === 'Alta' || e.status === 'Cancelado') return;
+      const key = (e.patientId ? `id:${String(e.patientId).trim().toLowerCase()}` : '') ||
+                  (e.patientName ? `name:${String(e.patientName).trim().toLowerCase()}` : `enc:${e.id}`);
+      if (!patientSeen.has(key)) {
+        patientSeen.add(key);
+        uniqueEncs.push(e);
+      }
+    });
+
+    const triage = [...uniqueEncs.filter(e => e.status === 'Aguardando_Triagem')].sort((a, b) => {
       const aSel = isPatientFocused(a.patientName);
       const bSel = isPatientFocused(b.patientName);
       if (aSel && !bSel) return -1;
@@ -437,7 +471,7 @@ export function renderAttendanceTab(contentArea) {
       return new Date(b.admitted_at || b.created_at || 0) - new Date(a.admitted_at || a.created_at || 0);
     });
 
-    const waiting = [...encounters.filter(e => e.status === 'Aguardando_Atendimento')].sort((a, b) => {
+    const waiting = [...uniqueEncs.filter(e => e.status === 'Aguardando_Atendimento')].sort((a, b) => {
       const aSel = isPatientFocused(a.patientName);
       const bSel = isPatientFocused(b.patientName);
       if (aSel && !bSel) return -1;
@@ -445,7 +479,7 @@ export function renderAttendanceTab(contentArea) {
       return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at);
     });
 
-    const active = [...encounters.filter(e => e.status === 'Em_Atendimento' && !e.observation_started_at && e.status !== 'Em_Observacao')].sort((a, b) => {
+    const active = [...uniqueEncs.filter(e => e.status === 'Em_Atendimento' && !e.observation_started_at && e.status !== 'Em_Observacao')].sort((a, b) => {
       const aSel = isPatientFocused(a.patientName);
       const bSel = isPatientFocused(b.patientName);
       if (aSel && !bSel) return -1;
@@ -453,7 +487,7 @@ export function renderAttendanceTab(contentArea) {
       return 0;
     });
 
-    const obs = [...encounters.filter(e => (e.status === 'Em_Observacao' || !!e.observation_started_at) && e.status !== 'Finalizado' && e.status !== 'Alta')].sort((a, b) => {
+    const obs = [...uniqueEncs.filter(e => (e.status === 'Em_Observacao' || !!e.observation_started_at) && e.status !== 'Finalizado' && e.status !== 'Alta')].sort((a, b) => {
       const aSel = isPatientFocused(a.patientName);
       const bSel = isPatientFocused(b.patientName);
       if (aSel && !bSel) return -1;

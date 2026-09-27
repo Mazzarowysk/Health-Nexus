@@ -78,6 +78,7 @@ flowchart TD
   - 4.6. [Modal de Histórico Pós-Alta & Prontuário Consolidado](#sec-4-6)
   - 4.7. [Modal de Aprovação de Acesso de Usuários](#sec-4-7)
   - 4.8. [Modal de Gestão de Usuários & Troca de Perfil](#sec-4-8)
+  - 4.9. [Modal de Alerta de Atendimento Pendente em Andamento (Prevenção de Duplicidades)](#sec-4-9)
 - 5. [Gestão de Pacientes & Linha do Cuidado Completa](#sec-5)
 - 6. [Gestão da Equipe Médica & Corpo Clínico](#sec-6)
 - 7. [Gestão de Consultórios & Salas de Atendimento](#sec-7)
@@ -457,6 +458,30 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 | **Salvar Alterações** | `#btn-save-profile` | Atualiza senha e dados cadastrais | Senha atual válida e confirmação correta | Emite toast de sucesso e atualiza a sessão. |
 | **Encerrar Sessão (Logout)**| `#btn-logout` | Efetua logout seguro do sistema | Confirmação do operador | Destrói o token JWT local e volta à tela de login. |
 | **Fechar** | `#btn-close-profile` | Encerra sem alterar dados | Nenhuma validação | Mantém as configurações originais da conta. |
+
+---
+
+<h3 id="sec-4-9">4.9. Modal de Alerta de Atendimento Pendente em Andamento (Prevenção de Duplicidades)</h3>
+
+- **Gatilho de Abertura:** Disparado automaticamente na Recepção (cadastro de novo paciente ou botão "Admitir" na tabela de pacientes) ou na Central de Atendimento (Kanban) caso o operador tente abrir um atendimento para um paciente que já possui uma passagem ativa no hospital (em Triagem, Consultório, Observação do PS ou Leito).
+- **Finalidade Assistencial:** Prevenir geração de cards duplicados, prescrições paralelas e inconsistências no prontuário eletrônico.
+- **Informações Apresentadas no Modal:**
+
+| Informação Exibida | Origem dos Dados | Descrição / Significado Clínico | Exemplo Visual |
+|:---|:---|:---|:---|
+| **Identificação do Paciente** | Cadastro Mestre | Nome completo e prontuário único vinculado | `Breno Coltri` |
+| **Localização Atual** | Registro do Encontro | Setor físico exato onde o paciente está alocado | `Sala de Observação (OBS-01)` |
+| **Status do Fluxo** | Etapa Assistencial | Fase atual do paciente na jornada hospitalar | `Em Observação Clínica` |
+| **Classificação Manchester** | Triagem Manchester | Cor e gravidade clínica aferida na triagem | `Laranja (Muito Urgente)` |
+| **Tempo de Permanência** | Cronômetro de Entrada | Data/hora de admissão e tempo total transcorrido no PS | `28h 33m no Pronto-Socorro` |
+
+- **Botões e Ações de Decisão Assistencial:**
+
+| Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
+|:---|:---|:---|:---|:---|
+| **Visualizar Atendimento em Andamento** | `#btn-enc-alert-view` | Redireciona o operador para a aba ativa | Encontro ativo localizado | Abre a aba correspondente (Observação, Atendimento ou Leitos) com o card do paciente em destaque, sem criar duplicidades. |
+| **Encerrar Anterior e Abrir Novo** | `#btn-enc-alert-new` | Finaliza a passagem anterior e inicia nova | Confirmação assistencial | Concede desfecho auditável no atendimento anterior e abre a nova admissão com status limpo. |
+| **Cancelar Admissão** | `#btn-enc-alert-cancel` | Aborta a criação do atendimento | Nenhuma validação | Fecha o modal preservando os dados cadastrais e o atendimento atual sem alterações. |
 
 ---
 

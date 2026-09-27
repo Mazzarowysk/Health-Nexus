@@ -1355,15 +1355,16 @@ export const apiFetch = async (url, options = {}) => {
           }
           responseData = { data: localDB.insert(table, body) };
         } else if (table === 'encounters') {
-          const pName = (body.patientName || '').trim().toLowerCase();
+          const pName = removeAccents((body.patientName || '').trim().toLowerCase());
           const pId = body.patientId;
           // Se for uma nova admissão, arquivar atendimentos anteriores abertos do mesmo paciente para evitar colisões
           if (pName || pId) {
             const allEncs = localDB.list('encounters') || [];
             allEncs.forEach(oldE => {
+              const oldName = removeAccents((oldE.patientName || '').trim().toLowerCase());
               const matches = (pId && String(oldE.patientId) === String(pId)) ||
-                              (pName && oldE.patientName && oldE.patientName.trim().toLowerCase() === pName);
-              if (matches && oldE.status !== 'Finalizado' && oldE.status !== 'Alta') {
+                              (pName && oldName && oldName === pName);
+              if (matches && oldE.status !== 'Finalizado' && oldE.status !== 'Alta' && oldE.status !== 'Cancelado') {
                 localDB.update('encounters', oldE.id, {
                   ...oldE,
                   status: 'Finalizado',

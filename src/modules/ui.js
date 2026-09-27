@@ -457,3 +457,213 @@ if (typeof window !== 'undefined') {
     showCustomAlert({ title, message: String(msg), type });
   };
 }
+
+// --- VERIFICAÇÃO E ALERTA DE ATENDIMENTO DUPLICADO / PENDENTE ---
+
+export function getActiveEncounterForPatient(patientId, patientName, patientCpf) {
+  if (typeof window === 'undefined') return null;
+  const db = (window.localDB && typeof window.localDB.getFullDB === 'function') 
+    ? window.localDB.getFullDB() 
+    : {};
+  const encounters = db.encounters || [];
+
+  const normPid = String(patientId || '').toLowerCase().trim();
+  const normPname = String(patientName || '').toLowerCase().trim();
+  const normCpf = String(patientCpf || '').replace(/\D/g, '');
+
+  return encounters.slice().reverse().find(e => {
+    const s = String(e.status || '').toLowerCase().trim();
+    if (['finalizado', 'alta', 'cancelado'].includes(s)) return false;
+
+    if (normPid && e.patientId && String(e.patientId).toLowerCase().trim() === normPid) return true;
+    if (normPname && e.patientName && e.patientName.toLowerCase().trim() === normPname) return true;
+    if (normCpf && e.cpf && String(e.cpf).replace(/\D/g, '') === normCpf) return true;
+
+    return false;
+  }) || null;
+}
+
+export function showActiveEncounterAlertModal({ patientId, patientName, patientCpf, activeEncounter }) {
+  return new Promise((resolve) => {
+    const enc = activeEncounter || getActiveEncounterForPatient(patientId, patientName, patientCpf);
+    if (!enc) {
+      resolve({ action: 'proceed_new' });
+      return;
+    }
+
+    const existing = document.getElementById('hn-active-encounter-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'hn-active-encounter-modal';
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(8px); padding: 16px;';
+
+    const pName = enc.patientName || patientName || 'Paciente';
+    const admTime = new Date(enc.observation_started_at || enc.admitted_at || enc.created_at || Date.now());
+    const hoursElapsed = Math.floor((Date.now() - admTime.getTime()) / (1000 * 60 * 60));
+    const minsElapsed = Math.floor(((Date.now() - admTime.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
+    const durationStr = `${hoursElapsed}h ${String(minsElapsed).padStart(2, '0')}m`;
+
+    const mcMap = {
+      'Vermelho': { bg: 'rgba(239,68,68,0.2)', border: '#ef4444', text: '#fca5a5', label: 'Emergência (Vermelho)' },
+      'Laranja':  { bg: 'rgba(249,115,22,0.2)', border: '#f97316', text: '#fdba74', label: 'Muito Urgente (Laranja)' },
+      'Amarelo':  { bg: 'rgba(234,179,8,0.2)', border: '#eab308', text: '#fde047', label: 'Urgente (Amarelo)' },
+      'Verde':    { bg: 'rgba(16,185,129,0.2)', border: '#10b981', text: '#86efac', label: 'Pouco Urgente (Verde)' },
+      'Azul':     { bg: 'rgba(59,130,246,0.2)', border: '#3b82f6', text: '#93c5fd', label: 'Não Urgente (Azul)' }
+    };
+    const mc = mcMap[enc.manchesterColor] || { bg: 'rgba(148,163,184,0.15)', border: '#94a3b8', text: '#cbd5e1', label: enc.manchesterColor || 'Não Classificado' };
+
+    let statusDisplay = 'Em Atendimento';
+    let locationDisplay = enc.room || 'Pronto-Socorro';
+    const s = String(enc.status || '').toLowerCase();
+    if (s.includes('observa')) {
+      statusDisplay = 'Em Observação Clínica';
+      locationDisplay = enc.room || 'Sala de Observação (PS)';
+    } else if (s.includes('triagem')) {
+      statusDisplay = 'Aguardando Triagem';
+      locationDisplay = 'Sala de Triagem Manchester';
+    } else if (s.includes('aguardando')) {
+      statusDisplay = 'Aguardando Consulta Médica';
+      locationDisplay = enc.room || 'Consultório 01';
+    } else if (s.includes('internado')) {
+      statusDisplay = 'Internação Ativa';
+      locationDisplay = enc.room || 'Enfermaria / Leito';
+    }
+
+    overlay.innerHTML = `
+      <div class="sync-modal-card" style="max-width: 520px; width: 100%; border-radius: 16px; overflow: hidden; background: var(--bg-secondary, #0f172a); border: 1px solid rgba(245, 158, 11, 0.45); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);">
+        <div class="sync-header-banner" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-family:'Outfit', sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.3rem;"></i>
+            Atendimento Pendente em Andamento
+          </h3>
+          <button id="btn-enc-alert-close" style="background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; opacity: 0.85; line-height: 1;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div style="padding: 22px 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="font-size: 0.92rem; color: var(--text-primary, #f8fafc); line-height: 1.5;">
+            O paciente <strong>${pName}</strong> já possui uma passagem ativa no Pronto-Socorro com atendimento pendente de conclusão ou alta médica.
+          </div>
+
+          <div style="background: var(--bg-tertiary, #1e293b); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-left: 4px solid #f59e0b; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+              <span style="font-size: 0.75rem; color: var(--text-muted, #94a3b8); text-transform: uppercase; font-weight: 700; font-family: monospace;">Ficha: ${enc.id || 'Ativa'}</span>
+              <span style="background: ${mc.bg}; border: 1px solid ${mc.border}; color: ${mc.text}; font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 10px;">
+                ${mc.label}
+              </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.84rem;">
+              <div>
+                <span style="font-size: 0.72rem; color: var(--text-muted, #94a3b8); display: block;">Localização Atual:</span>
+                <strong style="color: #38bdf8;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i>${locationDisplay}</strong>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; color: var(--text-muted, #94a3b8); display: block;">Status do Fluxo:</span>
+                <strong style="color: #fbbf24;">${statusDisplay}</strong>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; color: var(--text-muted, #94a3b8); display: block;">Entrada / Início:</span>
+                <span style="color: var(--text-secondary, #cbd5e1); font-weight: 600;">${admTime.toLocaleDateString('pt-BR')} às ${admTime.toLocaleTimeString('pt-BR').slice(0,5)}</span>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; color: var(--text-muted, #94a3b8); display: block;">Tempo de Permanência:</span>
+                <span style="color: #f87171; font-weight: 800; font-family: monospace;">${durationStr}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--text-muted, #94a3b8); line-height: 1.4; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 10px 12px;">
+            <i class="fa-solid fa-circle-info" style="color: #38bdf8; margin-right: 6px;"></i>
+            Para garantir a segurança do paciente e evitar cards duplicados na Sala de Observação e no Kanban, escolha uma das ações recomendadas:
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+            <button id="btn-enc-alert-view" class="btn btn-primary" style="padding: 12px; font-size: 0.88rem; font-weight: 700; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 14px rgba(2,132,199,0.35);">
+              <i class="fa-solid fa-arrow-right-to-bracket"></i> Visualizar Atendimento em Andamento
+            </button>
+
+            <button id="btn-enc-alert-new" class="btn" style="padding: 11px; font-size: 0.84rem; font-weight: 600; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; cursor: pointer;">
+              <i class="fa-solid fa-rotate"></i> Encerrar Anterior e Abrir Novo Atendimento
+            </button>
+
+            <button id="btn-enc-alert-cancel" class="btn" style="padding: 10px; font-size: 0.82rem; border-radius: 10px; background: var(--bg-tertiary, #1e293b); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); color: var(--text-muted, #94a3b8); cursor: pointer;">
+              Cancelar Admissão
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const close = () => {
+      overlay.remove();
+    };
+
+    document.getElementById('btn-enc-alert-close')?.addEventListener('click', () => {
+      close();
+      resolve({ action: 'cancel' });
+    });
+
+    document.getElementById('btn-enc-alert-cancel')?.addEventListener('click', () => {
+      close();
+      resolve({ action: 'cancel' });
+    });
+
+    document.getElementById('btn-enc-alert-view')?.addEventListener('click', () => {
+      close();
+      if (typeof window.setActivePatientContext === 'function') {
+        window.setActivePatientContext({
+          id: enc.patientId || enc.id,
+          encounterId: enc.id,
+          fullName: pName,
+          patientName: pName,
+          status: enc.status,
+          room: locationDisplay,
+          manchesterColor: enc.manchesterColor || null
+        });
+      }
+
+      if (s.includes('observa')) {
+        showToast(`🛏️ Conduzindo para a Sala de Observação do paciente ${pName}!`);
+        if (typeof window.switchTab === 'function') window.switchTab('observacao');
+      } else if (s.includes('internado') || (enc.room && (enc.room.toLowerCase().includes('leito') || enc.room.toLowerCase().includes('uti')))) {
+        showToast(`🛏️ Conduzindo para o Mapa de Leitos do paciente ${pName}!`);
+        if (typeof window.switchTab === 'function') window.switchTab('leitos');
+      } else {
+        showToast(`📋 Conduzindo para a Central de Atendimento do paciente ${pName}!`);
+        if (typeof window.switchTab === 'function') window.switchTab('atendimento');
+      }
+      resolve({ action: 'view', encounter: enc });
+    });
+
+    document.getElementById('btn-enc-alert-new')?.addEventListener('click', () => {
+      close();
+      if (window.localDB && typeof window.localDB.update === 'function') {
+        try {
+          window.localDB.update('encounters', enc.id, {
+            ...enc,
+            status: 'Finalizado',
+            dischargeType: 'Novo Atendimento Iniciado pela Recepção',
+            completed_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          });
+          showToast(`⚠️ Atendimento anterior finalizado com sucesso.`);
+        } catch(e) {
+          console.warn('Erro ao finalizar encounter anterior:', e);
+        }
+      }
+      resolve({ action: 'proceed_new', encounter: enc });
+    });
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.getActiveEncounterForPatient = getActiveEncounterForPatient;
+  window.showActiveEncounterAlertModal = showActiveEncounterAlertModal;
+}
+

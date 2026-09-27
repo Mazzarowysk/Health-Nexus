@@ -64,8 +64,13 @@ A recepção é a porta de entrada física e digital do paciente no complexo de 
 2. **Validação Automática de Integridade:**
    - O sistema efetua a verificação de algoritmo do CPF (dígitos verificadores).
    - O campo CEP realiza consulta assíncrona ao *ViaCEP* para preenchimento imediato de logradouro, bairro, município e UF.
-3. **Mecanismo Antiduplicidade (HTTP 409 Conflict):**
-   - Caso um operador tente cadastrar um paciente cujo CPF ou Nome Completo (case-insensitive e normalizado sem acentos) já conste na base ativa, o sistema emite alerta imediato e oferece a reutilização da ficha cadastral mestre, preservando o histórico preexistente.
+3. **Mecanismo Antiduplicidade & Alerta de Atendimento Pendente em Andamento:**
+   - Caso um operador tente admitir um paciente que já possua atendimento ativo no complexo hospitalar (em Triagem, Consultório, Observação ou Leito), o sistema **bloqueia a criação automática de fichas paralelas**.
+   - É exibido o modal de alta fidelidade **Atendimento Pendente em Andamento**, apresentando a localização atual do paciente, status clínico, cor de risco Manchester e tempo de permanência no PS.
+   - O operador dispõe de 3 decisões assistenciais:
+     - 👁️ **Visualizar Atendimento em Andamento:** direciona o operador para o setor exato onde o paciente já se encontra, sem gerar duplicidade.
+     - 🔄 **Encerrar Anterior e Abrir Novo Atendimento:** finaliza a passagem anterior com desfecho rastreado e inicia uma nova ocorrência limpa.
+     - ✖️ **Cancelar:** fecha o modal mantendo os dados sem alterações.
 4. **Abertura da Ficha de Atendimento:**
    - O atendente vincula o convênio (Particular, Unimed, Bradesco Saúde, SUS, etc.) e o motivo geral da procura.
    - O paciente recebe a pulseira hospitalar e sua ficha é despachada automaticamente para o status **Aguardando_Triagem**.
@@ -115,8 +120,11 @@ A permanência em observação no Pronto-Socorro é regida pelas diretrizes do C
 - **Limite Máximo Legal:** 24 horas de permanência no Pronto-Socorro.
 - **Meta Assistencial de Reavaliação:** 12 horas para definição de conduta (alta médica ou transferência para leito hospitalar).
 - **Recursos da Aba Observação do PS:**
-  1. **Cards com Sinais Vitais Completos:** Exibição da PA, FC, Temp, SpO2 e queixa do paciente em poltrona/leito de observação.
-  2. **Cronômetro de Permanência em Tempo Real:** Atualização automática do tempo decorrido com sinalizadores coloridos (Seguro <6h, Alerta 6h-12h e Crítico >12h).
+  1. **Consolidação de Card Único por Paciente:** Cada paciente físico ocupa rigorosamente uma poltrona/leito de observação no painel, com eliminação ativa de cards duplicados e higienização automática de passagens anteriores.
+  2. **Cards com Sinais Vitais Completos:** Exibição da PA, FC, Temp, SpO2 e queixa do paciente em poltrona/leito de observação.
+  3. **Cronômetro de Permanência em Tempo Real:** Atualização automática do tempo decorrido com sinalizadores coloridos (Seguro <6h, Alerta 6h-12h e Crítico >12h Excedido CFM).
+  4. **Ações Integradas de 1-Clique:** Acesso ao PEP para evolução de enfermagem/médica, Prescrição Rápida de hidratação/analgesia, Internação em Leito Hospitalar (UTI/Enfermaria) e Alta da Observação.
+  5. **Carimbo Temporal de Alta:** Ao conceder alta na observação, o sistema finaliza o atendimento e grava o status "Alta" com data e horário no prontuário e na listagem da aba Pacientes.ro de Permanência em Tempo Real:** Atualização automática do tempo decorrido com sinalizadores coloridos (Seguro <6h, Alerta 6h-12h e Crítico >12h).
   3. **Ações Integradas de 1-Clique:** Acesso ao PEP para evolução de enfermagem/médica, Prescrição Rápida de hidratação/analgesia, Internação em Leito Hospitalar (UTI/Enfermaria) e Alta da Observação.
   4. **Carimbo Temporal de Alta:** Ao conceder alta na observação, o sistema finaliza o atendimento e grava o status "Alta" com data e horário no prontuário e na listagem da aba Pacientes.
 

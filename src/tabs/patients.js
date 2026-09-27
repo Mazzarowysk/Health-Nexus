@@ -817,6 +817,20 @@ export function renderPatientsTab(contentArea) {
         }
 
         if (!isEdit) {
+          // Checar se o paciente já possui atendimento ativo no hospital
+          if (typeof window.showActiveEncounterAlertModal === 'function') {
+            const activeDecision = await window.showActiveEncounterAlertModal({
+              patientId: savedPatientId,
+              patientName: fullName,
+              patientCpf: cpf
+            });
+            if (activeDecision.action === 'cancel' || activeDecision.action === 'view') {
+              showToast(`Cadastro de ${fullName} preservado.`);
+              loadAndRenderTable();
+              return;
+            }
+          }
+
           let savedEncounterId = null;
           try {
             const encRes = await apiFetch(`/api/encounters`, {
