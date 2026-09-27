@@ -994,104 +994,347 @@ function evaluateClinicalPossibilities(patient, activeTab) {
     };
   }
 
-  // ── A) SE PACIENTE AINDA NÃO FOI TRIADO (FASE INICIAL DO CICLO) ───────────
-  if (!isTriaged) {
-    if (activeTab === 'pacientes') {
-      return {
-        currentStage: 0,
-        stageName: 'Recepção / Admissão',
-        orderWarning,
-        primaryAction: {
-          title: `🩺 Conduzir ${firstName} para Triagem Manchester`,
-          desc: `Paciente ${pName} cadastrado com sucesso! O próximo passo assistencial é realizar a Triagem Manchester para aferição de sinais vitais e classificação de gravidade.`,
-          btnText: `🩺 Conduzir para Triagem de ${firstName} ➔`,
-          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-          onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
-          icon: '🩺'
-        },
-        alternatives: [
-          { label: 'Chamar no Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
-          { label: 'Ver Ficha Cadastral', icon: '👤', onClick: "window.switchTab('pacientes')" }
-        ]
-      };
-    } else if (activeTab === 'atendimento') {
-      if (!isMasterOrDev && !userPerms.canDoTriage) {
-        if (userRoleLabel === 'Médico') {
+  const bedName = patient.bed || patient.bedNumber || '';
+
+  // ── DETECÇÃO DE PRESCRIÇÃO AGUARDANDO VALIDAÇÃO NA FARMÁCIA (CIRCUITO FECHADO) ──
+  let pendingPrescription = null;
+  try {
+    const allPrescriptions = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('prescriptions') : [];
+    const curPId = String(patient.id || '');
+    const curPName = (patient.fullName || patient.patientName || '').toLowerCase().trim();
+    
+    pendingPrescription = allPrescriptions.find(r => {
+      const rxPId = String(r.patientId || '');
+      const rxPName = (r.patientName || '').toLowerCase().trim();
+      const isMatch = (curPId && rxPId === curPId) || (rxPName && curPName && (rxPName.includes(curPName) || curPName.includes(rxPName)));
+      return isMatch && (r.status === 'Aguardando_Farmacia' || !r.status || r.status === 'Pendente');
+    });
+  } catch (e) {}
+
+  // ── ROTEAMENTO CIRÚRGICO POR ABA ATIVA (ADAPTAÇÃO OMNIDIRECIONAL À TELA ATUAL) ──
+  switch (activeTab) {
+    case 'dashboard': {
+      if (!isTriaged) {
+        return {
+          currentStage: 0,
+          stageName: 'Painel Geral & Acolhimento',
+          orderWarning,
+          primaryAction: {
+            title: `🩺 Conduzir ${firstName} para Triagem Manchester`,
+            desc: `Paciente ${pName} acolhido no sistema. O próximo passo assistencial é aferir sinais vitais e definir gravidade Manchester.`,
+            btnText: `🩺 Iniciar Triagem de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Painel TV (Chamador)', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+            { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" }
+          ]
+        };
+      } else if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta Médica Concedida',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Alta Concedida: Faturar Atendimento (${firstName})`,
+            desc: `Atendimento de ${pName} finalizado com alta médica homologada. Proceda à conferência de procedimentos e fechamento no padrão TISS 4.01.`,
+            btnText: `💰 Ir para Faturamento & TISS ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.switchTab('financeiro')",
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
+            { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else if (isInterned) {
+        return {
+          currentStage: 5,
+          stageName: `Internado (${bedName || 'Leito'})`,
+          orderWarning,
+          primaryAction: {
+            title: `🛏️ Paciente Internado: Acompanhar ${firstName} (${bedName || 'Leito'})`,
+            desc: `Paciente ${pName} internado em leito hospitalar. Acompanhe a evolução clínica diária no PEP ou visualize a taxa de ocupação no censo.`,
+            btnText: `🛏️ Ir para Gestão de Leitos (${firstName}) ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('leitos')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Linha de Cuidado (Kanban)', icon: '📊', onClick: "window.switchTab('kanban')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      } else if (pendingPrescription) {
+        return {
+          currentStage: 4,
+          stageName: 'Prescrição Emitida',
+          orderWarning,
+          primaryAction: {
+            title: `💊 Prescrição Emitida: Validar Medicamentos (${firstName})`,
+            desc: `Prescrição médica de ${pName} aguarda validação técnica farmacêutica no circuito fechado antes da administração.`,
+            btnText: `💊 Ir para Farmácia & Liberar Medicamentos ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('farmacia')",
+            icon: '💊'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
+          ]
+        };
+      } else if (isCriticalEmergency) {
+        return {
+          currentStage: 3,
+          stageName: `Emergência (${colorDisplay})`,
+          orderWarning,
+          primaryAction: {
+            title: `🚨 Emergência Médica: ${firstName} (Sala Vermelha)`,
+            desc: `Classificação ${colorDisplay}! Paciente ${pName} tem prioridade clínica absoluta. Conduza imediatamente ao Consultório 01 / Sala Vermelha.`,
+            btnText: `🚨 Abrir Sala Vermelha / PEP (${firstName}) ➔`,
+            btnBg: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('Consultório 01', '${safePNameEsc}') : window.switchTab('consultorios')`,
+            icon: '🚨'
+          },
+          alternatives: [
+            { label: 'Alocar Leito de Emergência', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Chamar no Painel TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', 'Consultório 01') : window.switchTab('tv_panel')` },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      } else if (wasCalled) {
+        return {
+          currentStage: 3,
+          stageName: `Convocado (${safeRoom})`,
+          orderWarning,
+          primaryAction: {
+            title: `👨‍⚕️ Atender ${firstName} no ${safeRoom}`,
+            desc: `Paciente ${pName} convocado no telão para o ${safeRoom}. Abra o prontuário no PEP para evolução médica.`,
+            btnText: `👨‍⚕️ Iniciar Atendimento (${firstName}) ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+            icon: '👨‍⚕️'
+          },
+          alternatives: [
+            { label: 'Re-chamar na TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 2,
+          stageName: `Classificado (${colorDisplay})`,
+          orderWarning,
+          primaryAction: {
+            title: `📺 Chamar ${firstName} no Painel TV (${safeRoom})`,
+            desc: `Paciente ${pName} classificado (${colorDisplay}). Convoque-o no Painel TV com sinal sonoro para comparecer ao ${safeRoom}.`,
+            btnText: `📺 Chamar ${firstName} no Painel TV ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+            icon: '📺'
+          },
+          alternatives: [
+            { label: `Entrar no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      }
+    }
+
+    case 'pacientes': {
+      if (!isTriaged) {
+        return {
+          currentStage: 0,
+          stageName: 'Recepção / Admissão',
+          orderWarning,
+          primaryAction: {
+            title: `🩺 Conduzir ${firstName} para Triagem Manchester`,
+            desc: `Paciente ${pName} cadastrado com sucesso! O próximo passo assistencial é realizar a Triagem Manchester para aferição de sinais vitais e classificação de gravidade.`,
+            btnText: `🩺 Conduzir para Triagem de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Buscar Paciente / CPF', icon: '🔍', onClick: "window.focusPatientSearch && window.focusPatientSearch()" },
+            { label: 'Chamar no Painel TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
+            { label: 'Cadastrar Novo', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
+          ]
+        };
+      } else if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta Médica Concedida',
+          orderWarning,
+          primaryAction: {
+            title: `📋 Concluir Acolhimento & Finalizar (${firstName})`,
+            desc: `Alta médica homologada no prontuário de ${pName}. Finalize a admissão e libere o paciente na recepção.`,
+            btnText: `📋 Finalizar Atendimento na Recepção ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.showToast ? window.showToast('✅ Atendimento de " + safePNameEsc + " concluído com sucesso na recepção!') : null",
+            icon: '📋'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Faturamento & TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+            { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
+          ]
+        };
+      } else if (isInterned) {
+        return {
+          currentStage: 5,
+          stageName: `Internado (${bedName || 'Leito'})`,
+          orderWarning,
+          primaryAction: {
+            title: `🛏️ Ficha de Internação: ${firstName} (${bedName || 'Leito'})`,
+            desc: `Paciente ${pName} em internação hospitalar. Consulte os dados cadastrais ou acompanhe a ocupação no Mapa de Leitos.`,
+            btnText: `🛏️ Ver no Mapa de Leitos ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('leitos')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Buscar Paciente / CPF', icon: '🔍', onClick: "window.focusPatientSearch && window.focusPatientSearch()" },
+            { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 0,
+          stageName: 'Recepção / Ficha Cadastral',
+          orderWarning,
+          primaryAction: {
+            title: `📋 Ficha Cadastral de ${firstName} (${colorDisplay})`,
+            desc: `Paciente ${pName} já acolhido e classificado como ${colorDisplay}. Prossiga para o atendimento no ${safeRoom} ou emita a convocação na TV.`,
+            btnText: wasCalled ? `👨‍⚕️ Conduzir ao ${safeRoom} ➔` : `📺 Chamar ${firstName} no Painel TV ➔`,
+            btnBg: wasCalled ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: wasCalled ? `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` : `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+            icon: '📋'
+          },
+          alternatives: [
+            { label: 'Buscar por Nome/CPF', icon: '🔍', onClick: "window.focusPatientSearch && window.focusPatientSearch()" },
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
+          ]
+        };
+      }
+    }
+
+    case 'atendimento': {
+      if (!isTriaged) {
+        if (!isMasterOrDev && !userPerms.canDoTriage) {
           return {
             currentStage: 1,
             stageName: 'Triagem Manchester',
             orderWarning,
             primaryAction: {
-              title: `🩺 Aguardar Triagem Manchester (${firstName})`,
-              desc: `A aferição de sinais vitais e classificação Manchester compete à Enfermagem. Notifique o paciente no telão ou aguarde a conclusão da triagem para atender no consultório.`,
+              title: `📢 Chamar ${firstName} no Painel TV (Triagem)`,
+              desc: `A aferição de sinais vitais e classificação Manchester compete à Enfermagem. Notifique o paciente no telão para comparecer à Sala de Triagem.`,
               btnText: `📢 Chamar ${firstName} no Painel TV ➔`,
               btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
               onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')`,
               icon: '📢'
             },
             alternatives: [
-              { label: 'Ir para Consultórios', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+              { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
               { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
             ]
           };
-        } else if (userRoleLabel === 'Recepcionista') {
+        }
+        if (!wasCalled) {
           return {
             currentStage: 1,
-            stageName: 'Triagem Manchester',
+            stageName: 'Chamada para Triagem',
             orderWarning,
             primaryAction: {
-              title: `📺 Chamar ${firstName} no Telão (Triagem)`,
-              desc: `Aferição de gravidade clínica compete à Enfermagem. Emita a convocação na recepção para que o paciente se dirija à Sala de Triagem.`,
-              btnText: `📺 Emitir Chamada de Triagem no Telão ➔`,
+              title: `📢 1ª Chamada TV: Chamar ${firstName} (Sala de Triagem)`,
+              desc: `Paciente ${pName} acolhido na fila de espera. Emita a convocação na TV para que o paciente se apresente na Sala de Triagem.`,
+              btnText: `📢 Chamar ${firstName} na TV (Sala de Triagem) ➔`,
               btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
               onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')`,
-              icon: '📺'
+              icon: '📢'
             },
             alternatives: [
-              { label: 'Ficha Cadastral', icon: '📋', onClick: "window.switchTab('pacientes')" },
-              { label: 'Painel TV Completo', icon: '📺', onClick: "window.switchTab('tv_panel')" }
+              { label: '🩺 Abrir Triagem Direto', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`, isPrimaryAlt: true },
+              { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+            ]
+          };
+        }
+        return {
+          currentStage: 1,
+          stageName: 'Triagem Manchester',
+          orderWarning,
+          primaryAction: {
+            title: `🩺 Realizar Triagem Manchester de ${firstName}`,
+            desc: `Chamada emitida! Aferir sinais vitais de ${pName} (Pressão Arterial, Frequência Cardíaca, SpO2, Temperatura, Glicemia) e definir a classificação de gravidade Manchester.`,
+            btnText: `🩺 Abrir Triagem de ${firstName} Agora ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Re-chamar no Painel TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
+            { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else {
+        if (!wasCalled) {
+          return {
+            currentStage: 2,
+            stageName: isCriticalEmergency ? `Emergência (${colorDisplay})` : `Triagem Concluída (${colorDisplay})`,
+            orderWarning,
+            primaryAction: {
+              title: isCriticalEmergency 
+                ? `🚨 Convocação Imediata: Chamar ${firstName} para ${safeRoom}` 
+                : `📢 2ª Chamada TV: Chamar ${firstName} para ${safeRoom}`,
+              desc: isCriticalEmergency
+                ? `Triagem ${colorDisplay.toUpperCase()}! Paciente ${pName} tem prioridade clínica máxima. Convoque-o imediatamente no Painel TV para comparecer ao ${safeRoom} ou entre direto no atendimento.`
+                : `Paciente ${pName} triado e classificado como ${colorDisplay}! Convoque-o no Painel TV com sinal sonoro para comparecer ao ${safeRoom} para atendimento médico.`,
+              btnText: `📢 Chamar ${firstName} no Painel TV (${safeRoom}) ➔`,
+              btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+              onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+              icon: isCriticalEmergency ? '🚨' : '📢'
+            },
+            alternatives: [
+              { label: isCriticalEmergency ? '🚨 Entrar na Sala Vermelha' : `Entrar Direto no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
+              { label: 'Ir para Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+              { label: 'Revisar Triagem', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')` }
+            ]
+          };
+        } else {
+          return {
+            currentStage: 3,
+            stageName: `Convocado para ${safeRoom}`,
+            orderWarning,
+            primaryAction: {
+              title: `👨‍⚕️ Iniciar Atendimento de ${firstName} no ${safeRoom}`,
+              desc: `Paciente ${pName} chamado no telão para o ${safeRoom}! Prossiga para o consultório médico para abertura do prontuário (PEP).`,
+              btnText: `👨‍⚕️ Abrir ${safeRoom} (${firstName}) ➔`,
+              btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+              onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+              icon: '👨‍⚕️'
+            },
+            alternatives: [
+              { label: 'Re-chamar na TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+              { label: 'Revisar Triagem', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')` }
             ]
           };
         }
       }
-      if (!wasCalled) {
-        return {
-          currentStage: 1,
-          stageName: 'Chamada para Triagem',
-          orderWarning,
-          primaryAction: {
-            title: `📢 1ª Chamada TV: Chamar ${firstName} (Sala de Triagem)`,
-            desc: `Paciente ${pName} acolhido na fila de espera. Emita a convocação na TV para que o paciente se apresente na Sala de Triagem.`,
-            btnText: `📢 Chamar ${firstName} na TV (Sala de Triagem) ➔`,
-            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-            onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')`,
-            icon: '📢'
-          },
-          alternatives: [
-            { label: '🩺 Abrir Triagem Direto', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`, isPrimaryAlt: true },
-            { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
-          ]
-        };
-      }
-      return {
-        currentStage: 1,
-        stageName: 'Triagem Manchester',
-        orderWarning,
-        primaryAction: {
-          title: `🩺 Realizar Triagem Manchester de ${firstName}`,
-          desc: `Chamada emitida! Aferir sinais vitais de ${pName} (Pressão Arterial, Frequência Cardíaca, SpO2, Temperatura, Glicemia) e definir a classificação de gravidade Manchester.`,
-          btnText: `🩺 Abrir Triagem de ${firstName} Agora ➔`,
-          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-          onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
-          icon: '🩺'
-        },
-        alternatives: [
-          { label: 'Re-chamar no Painel TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
-          { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
-        ]
-      };
-    } else if (activeTab === 'tv_panel') {
-      if (!wasCalled) {
+    }
+
+    case 'tv_panel': {
+      if (!isTriaged) {
         return {
           currentStage: 1,
           stageName: 'Painel TV (Chamador)',
@@ -1110,340 +1353,196 @@ function evaluateClinicalPossibilities(patient, activeTab) {
           ]
         };
       } else {
+        if (!wasCalled) {
+          return {
+            currentStage: 2,
+            stageName: `Espera Consultório (${colorDisplay})`,
+            orderWarning,
+            primaryAction: {
+              title: `📢 Chamar ${firstName} para ${safeRoom}`,
+              desc: `Paciente ${pName} triado (${colorDisplay}). Clique abaixo para emitir a chamada sonora no telão e convocá-lo ao ${safeRoom}.`,
+              btnText: `📢 Emitir Chamada de ${firstName} (${safeRoom}) ➔`,
+              btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+              onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+              icon: isCriticalEmergency ? '🚨' : '📢'
+            },
+            alternatives: [
+              { label: `Entrar no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`, isPrimaryAlt: true },
+              { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+              { label: 'Ver Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" }
+            ]
+          };
+        } else {
+          return {
+            currentStage: 3,
+            stageName: `Convocado para ${safeRoom}`,
+            orderWarning,
+            primaryAction: {
+              title: `👨‍⚕️ Iniciar Atendimento de ${firstName} no ${safeRoom}`,
+              desc: `Chamada sonora emitida no telão para o ${safeRoom}! Clique no botão abaixo para entrar na sala e abrir o prontuário SOAP no PEP.`,
+              btnText: `👨‍⚕️ Entrar no ${safeRoom} (${firstName}) ➔`,
+              btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+              onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+              icon: '👨‍⚕️'
+            },
+            alternatives: [
+              { label: 'Chamar Novamente na TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+              { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+              { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" }
+            ]
+          };
+        }
+      }
+    }
+
+    case 'consultorios':
+    case 'medicos': {
+      if (!isTriaged) {
         return {
-          currentStage: 1,
-          stageName: 'Convocado para Triagem',
+          currentStage: 3,
+          stageName: 'Consultórios Médicos',
           orderWarning,
           primaryAction: {
-            title: `🩺 Conduzir ${firstName} para Triagem Manchester`,
-            desc: `Chamada sonora emitida no telão! Quando o paciente se apresentar na Sala de Triagem, clique abaixo para abrir a ficha de sinais vitais e definir o protocolo Manchester.`,
-            btnText: `🩺 Avançar para Triagem de ${firstName} ➔`,
+            title: `🩺 Triagem Pendente: Conduzir ${firstName} à Triagem`,
+            desc: `Paciente ${pName} ainda não possui sinais vitais nem classificação Manchester. Para conformidade assistencial, realize a triagem antes da consulta médica.`,
+            btnText: `🩺 Abrir Triagem Manchester de ${firstName} ➔`,
             btnBg: 'linear-gradient(135deg, #10b981, #059669)',
             onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
             icon: '🩺'
           },
           alternatives: [
-            { label: 'Chamar Novamente na TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
-            { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+            { label: 'Chamar no Telão TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
+            { label: 'Forçar Abertura PEP (Exceção)', icon: '⚠️', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : null` },
+            { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta Médica Homologada',
+          orderWarning,
+          primaryAction: {
+            title: `📋 Prontuário Homologado de ${firstName}`,
+            desc: `Atendimento de ${pName} encerrado com alta médica. Consulte a folha de evolução, prescrição e orientações no prontuário.`,
+            btnText: `🩺 Visualizar Prontuário no PEP ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Faturamento & TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
+            { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 3,
+          stageName: `Consultório / PEP`,
+          orderWarning,
+          primaryAction: {
+            title: isCriticalEmergency ? `🚨 Atendimento Imediato: ${firstName} (${safeRoom})` : `🩺 Evolução Médica (PEP) de ${firstName}`,
+            desc: `Paciente ${pName} em atendimento no ${safeRoom}. Registre a anamnese SOAP, hipótese diagnóstica CID-10 e emita a prescrição eletrônica.`,
+            btnText: `🩺 Abrir Folha de Evolução (PEP) de ${firstName} ➔`,
+            btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : (window.openPEPModal && window.openPEPModal('${safePNameEsc}'))`,
+            icon: isCriticalEmergency ? '🚨' : '🩺'
+          },
+          alternatives: [
+            { label: 'Internar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')", isPrimaryAlt: true },
+            { label: 'Dispensar na Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Re-chamar na TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+            { label: 'Escalas de Plantão', icon: '👨‍⚕️', onClick: "window.switchTab('escalas')" }
           ]
         };
       }
-    } else if (activeTab === 'estagnacao') {
+    }
+
+    case 'observacao': {
       return {
-        currentStage: 1,
-        stageName: 'Alerta de Espera no PS',
+        currentStage: 3,
+        stageName: 'Sala de Observação (PS)',
         orderWarning,
         primaryAction: {
-          title: `⚡ Destravar Triagem de ${firstName}`,
-          desc: `Paciente ${pName} aguarda triagem há tempo elevado. Priorize a aferição de sinais vitais e a classificação de risco agora.`,
-          btnText: `⚡ Abrir Triagem Prioritária de ${firstName} ➔`,
+          title: `🛏️ Sala de Observação: Monitorar ${firstName}`,
+          desc: `Paciente ${pName} (${colorDisplay}) em observação clínica no Pronto-Socorro. Acompanhe a hidratação, medicações de alívio e evolução dos sinais vitais (Resolução CFM nº 2.079/14).`,
+          btnText: `🩺 Abrir PEP / Prontuário (${firstName}) ➔`,
           btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
-          onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
-          icon: '⚡'
+          onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
+          icon: '🛏️'
         },
         alternatives: [
-          { label: 'Chamar no Painel TV', icon: '📢', onClick: "window.switchTab('tv_panel')" },
-          { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" }
-        ]
-      };
-    } else {
-      // Qualquer outra tela com paciente sem triagem (guarda de fluxo universal)
-      return {
-        currentStage: 1,
-        stageName: 'Aguardando Triagem',
-        orderWarning,
-        primaryAction: {
-          title: `🩺 Conduzir ${firstName} para Triagem Manchester`,
-          desc: `Paciente ${pName} aguarda avaliação clínica de risco. Conduza para a Triagem Manchester para manter a conformidade assistencial.`,
-          btnText: `🩺 Ir para Triagem Manchester ➔`,
-          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-          onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
-          icon: '🩺'
-        },
-        alternatives: [
-          { label: 'Painel TV (Chamar)', icon: '📺', onClick: "window.switchTab('tv_panel')" },
-          { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          { label: 'Central de Atendimentos', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+          { label: 'Internar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
         ]
       };
     }
-  }
 
-  // ── B) SE PACIENTE JÁ RECEBEU ALTA MÉDICA (ETAPA FINAL: FATURAMENTO & TISS) ─
-  if (isDischarged) {
-    if (activeTab === 'financeiro') {
-      if (isMasterOrDev || userPerms.canManageFinance) {
-        return {
-          currentStage: 6,
-          stageName: 'Alta Médica Concedida',
-          orderWarning,
-          primaryAction: {
-            title: `💰 Fechar Conta & Emitir Lote TISS (${firstName})`,
-            desc: `Alta homologada para ${pName}! Realize a auditoria dos procedimentos e finalize o lote eletrônico no padrão TISS 4.01.`,
-            btnText: `💰 Emitir Guia TISS de ${firstName} ➔`,
-            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-            onClick: "if(typeof window.executeTISSClosure==='function') window.executeTISSClosure(); else window.switchTab('financeiro');",
-            icon: '💰'
-          },
-          alternatives: [
-            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" }
-          ]
-        };
+    case 'farmacia': {
+      if (pendingPrescription) {
+        if (isMasterOrDev || userPerms.canManagePharmacy) {
+          return {
+            currentStage: 4,
+            stageName: 'Liberação Farmacêutica',
+            orderWarning,
+            primaryAction: {
+              title: `💊 Validar & Liberar Prescrição de ${firstName}`,
+              desc: `Prescrição de ${pName} aguarda validação técnica farmacêutica no circuito fechado. Conclua a liberação para autorizar a administração pela enfermagem no leito.`,
+              btnText: `✅ Validar & Liberar Prescrição ➔`,
+              btnBg: 'linear-gradient(135deg, #059669, #047857)',
+              onClick: `window.releasePrescriptionById ? window.releasePrescriptionById('${pendingPrescription.id}', '${safePNameEsc}') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())`,
+              icon: '✅'
+            },
+            alternatives: [
+              { label: 'Estoque Central', icon: '📦', onClick: "window.switchPharmacySubTab && window.switchPharmacySubTab('stock')" },
+              { label: 'Ver no Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+              { label: 'Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
+            ]
+          };
+        } else {
+          return {
+            currentStage: 4,
+            stageName: 'Liberação Farmacêutica',
+            orderWarning,
+            primaryAction: {
+              title: `🔔 Solicitar Liberação na Farmácia (${firstName})`,
+              desc: `Prescrição de ${pName} aguarda validação técnica pelo Farmacêutico de Plantão. Emita uma notificação prioritária para acelerar a dispensação dos medicamentos.`,
+              btnText: `🔔 Notificar Farmácia de Plantão (Urgência) ➔`,
+              btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              onClick: `window.notifyPharmacyUrgent ? window.notifyPharmacyUrgent('${pendingPrescription.id}', '${safePNameEsc}') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())`,
+              icon: '🔔'
+            },
+            alternatives: [
+              { label: 'Ver no Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+              { label: 'Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
+            ]
+          };
+        }
       } else {
-        return {
-          currentStage: 6,
-          stageName: 'Alta Concedida (PEP)',
-          orderWarning,
-          primaryAction: {
-            title: `📋 Prontuário Homologado de ${firstName}`,
-            desc: `Atendimento de ${pName} encerrado com alta médica. O faturamento e emissão de lotes TISS compete à equipe financeira.`,
-            btnText: `🩺 Visualizar Prontuário no PEP ➔`,
-            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-            onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
-            icon: '🩺'
-          },
-          alternatives: [
-            { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" },
-            { label: 'Relatórios & Métricas', icon: '📈', onClick: "window.switchTab('relatorios')" }
-          ]
-        };
-      }
-    } else {
-      if (isMasterOrDev || userPerms.canManageFinance) {
-        return {
-          currentStage: 6,
-          stageName: 'Alta Médica Concedida',
-          orderWarning,
-          primaryAction: {
-            title: `💰 Faturar Atendimento de ${firstName}`,
-            desc: `Alta médica homologada no PEP para ${pName}! Proceda à conferência de procedimentos, insumos e fechamento do lote no padrão TISS 4.01.`,
-            btnText: `💰 Ir para Faturamento & TISS ➔`,
-            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-            onClick: "window.switchTab('financeiro')",
-            icon: '💰'
-          },
-          alternatives: [
-            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" }
-          ]
-        };
-      } else if (userRoleLabel === 'Recepcionista') {
-        return {
-          currentStage: 6,
-          stageName: 'Alta Médica Concedida',
-          orderWarning,
-          primaryAction: {
-            title: `📋 Concluir Acolhimento & Finalizar (${firstName})`,
-            desc: `Alta médica homologada no prontuário de ${pName}. Finalize a admissão e libere o paciente na recepção.`,
-            btnText: `📋 Finalizar Atendimento na Recepção ➔`,
-            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-            onClick: "window.switchTab('pacientes')",
-            icon: '📋'
-          },
-          alternatives: [
-            { label: 'Ver Prontuário', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-            { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
-          ]
-        };
-      } else {
-        return {
-          currentStage: 6,
-          stageName: 'Alta Médica Concedida',
-          orderWarning,
-          primaryAction: {
-            title: `📋 Prontuário Homologado de ${firstName}`,
-            desc: `Alta médica homologada no PEP para ${pName}! Atendimento clínico concluído com sucesso.`,
-            btnText: `🩺 Visualizar Prontuário no PEP ➔`,
-            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-            onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
-            icon: '🩺'
-          },
-          alternatives: [
-            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" },
-            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" }
-          ]
-        };
-      }
-    }
-  }
-
-  // ── DETECÇÃO DE PRESCRIÇÃO AGUARDANDO VALIDAÇÃO NA FARMÁCIA (CIRCUITO FECHADO) ──
-  let pendingPrescription = null;
-  try {
-    const allPrescriptions = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('prescriptions') : [];
-    const curPId = String(patient.id || '');
-    const curPName = (patient.fullName || patient.patientName || '').toLowerCase().trim();
-    
-    pendingPrescription = allPrescriptions.find(r => {
-      const rxPId = String(r.patientId || '');
-      const rxPName = (r.patientName || '').toLowerCase().trim();
-      const isMatch = (curPId && rxPId === curPId) || (rxPName && curPName && (rxPName.includes(curPName) || curPName.includes(rxPName)));
-      return isMatch && (r.status === 'Aguardando_Farmacia' || !r.status || r.status === 'Pendente');
-    });
-  } catch (e) {}
-
-  if (pendingPrescription) {
-    if (activeTab === 'farmacia') {
-      if (isMasterOrDev || userPerms.canManagePharmacy) {
         return {
           currentStage: 4,
-          stageName: 'Liberação Farmacêutica',
+          stageName: 'Farmácia Hospitalar',
           orderWarning,
           primaryAction: {
-            title: `💊 Validar & Liberar Prescrição de ${firstName}`,
-            desc: `Prescrição de ${pName} aguarda validação técnica farmacêutica no circuito fechado. Conclua a liberação para autorizar a administração pela enfermagem no leito.`,
-            btnText: `✅ Validar & Liberar Prescrição ➔`,
+            title: `💊 Farmácia: Prescrições de ${firstName}`,
+            desc: `Consulte os medicamentos prescritos para ${pName} (${colorDisplay}) e valide no circuito fechado para liberação.`,
+            btnText: `📋 Ver Prescrições Hospitalares ➔`,
             btnBg: 'linear-gradient(135deg, #059669, #047857)',
-            onClick: `window.releasePrescriptionById ? window.releasePrescriptionById('${pendingPrescription.id}', '${safePNameEsc}') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())`,
-            icon: '✅'
+            onClick: "window.switchPharmacySubTab ? window.switchPharmacySubTab('rx') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())",
+            icon: '💊'
           },
           alternatives: [
             { label: 'Estoque Central', icon: '📦', onClick: "window.switchPharmacySubTab && window.switchPharmacySubTab('stock')" },
-            { label: 'Ver no Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
-          ]
-        };
-      } else {
-        return {
-          currentStage: 4,
-          stageName: 'Liberação Farmacêutica',
-          orderWarning,
-          primaryAction: {
-            title: `🔔 Solicitar Liberação na Farmácia (${firstName})`,
-            desc: `Prescrição de ${pName} aguarda validação técnica pelo Farmacêutico de Plantão. Emita uma notificação prioritária para acelerar a dispensação dos medicamentos.`,
-            btnText: `🔔 Notificar Farmácia de Plantão (Urgência) ➔`,
-            btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            onClick: `window.notifyPharmacyUrgent ? window.notifyPharmacyUrgent('${pendingPrescription.id}', '${safePNameEsc}') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())`,
-            icon: '🔔'
-          },
-          alternatives: [
-            { label: 'Ver no Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
-          ]
-        };
-      }
-    } else {
-      if (isMasterOrDev) {
-        return {
-          currentStage: 4,
-          stageName: 'Aguardando Farmácia',
-          orderWarning,
-          primaryAction: {
-            title: `💊 Farmácia: Validar / Liberar Medicamentos (${firstName})`,
-            desc: `Prescrição médica de ${pName} emitida! Como Master/Desenvolvedor, você possui autonomia irrestrita para validar no circuito fechado ou liberar direto.`,
-            btnText: `💊 Ir para Farmácia & Liberar Medicamentos ➔`,
-            btnBg: 'linear-gradient(135deg, #059669, #047857)',
-            onClick: "window.switchTab('farmacia')",
-            icon: '💊'
-          },
-          alternatives: [
-            { label: '⚡ Liberar Direto (Master/Dev)', icon: '⚡', onClick: `window.releasePrescriptionById ? window.releasePrescriptionById('${pendingPrescription.id}', '${safePNameEsc}') : window.switchTab('farmacia')` },
-            { label: 'Ver no Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
-          ]
-        };
-      } else if (userPerms.canManagePharmacy) {
-        return {
-          currentStage: 4,
-          stageName: 'Prescrição Pendente',
-          orderWarning,
-          primaryAction: {
-            title: `💊 Validar Prescrição de ${firstName} na Farmácia`,
-            desc: `Prescrição médica de ${pName} aguarda sua conferência e validação técnica farmacêutica no circuito fechado.`,
-            btnText: `💊 Ir para Fila da Farmácia ➔`,
-            btnBg: 'linear-gradient(135deg, #059669, #047857)',
-            onClick: "window.switchTab('farmacia')",
-            icon: '💊'
-          },
-          alternatives: [
-            { label: 'Ver no Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
-          ]
-        };
-      } else if (userRoleLabel === 'Médico') {
-        return {
-          currentStage: 4,
-          stageName: 'Aguardando Farmácia',
-          orderWarning,
-          primaryAction: {
-            title: `🔔 Solicitar Liberação Urgente na Farmácia (${firstName})`,
-            desc: `Prescrição emitida pelo médico assistente. Notifique a Farmácia Central com sinal sonoro e prioridade máxima para acelerar a liberação e dispensação dos medicamentos.`,
-            btnText: `🔔 Notificar Farmácia de Plantão (Urgência) ➔`,
-            btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            onClick: `window.notifyPharmacyUrgent ? window.notifyPharmacyUrgent('${pendingPrescription.id}', '${safePNameEsc}') : window.switchTab('farmacia')`,
-            icon: '🔔'
-          },
-          alternatives: [
-            { label: 'Revisar no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-            { label: 'Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Acompanhar Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" }
-          ]
-        };
-      } else if (userRoleLabel === 'Enfermeiro') {
-        return {
-          currentStage: 4,
-          stageName: 'Aguardando Farmácia',
-          orderWarning,
-          primaryAction: {
-            title: `🔔 Notificar Farmácia: Acelerar Liberação de ${firstName}`,
-            desc: `Medicamentos de ${pName} aguardam validação farmacêutica. Notifique a Farmácia de Plantão para acelerar a dispensação e autorizar a checagem no leito.`,
-            btnText: `🔔 Notificar Farmácia de Plantão ➔`,
-            btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            onClick: `window.notifyPharmacyUrgent ? window.notifyPharmacyUrgent('${pendingPrescription.id}', '${safePNameEsc}') : window.switchTab('farmacia')`,
-            icon: '🔔'
-          },
-          alternatives: [
-            { label: 'Checar Leito do Paciente', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Painel TV (Chamador)', icon: '📺', onClick: "window.switchTab('tv_panel')" },
-            { label: 'Fila da Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" }
-          ]
-        };
-      } else {
-        return {
-          currentStage: 4,
-          stageName: 'Aguardando Liberação',
-          orderWarning,
-          primaryAction: {
-            title: `💊 Aguardando Farmácia (${firstName})`,
-            desc: `Prescrição de ${pName} em validação técnica na Farmácia Hospitalar.`,
-            btnText: `💊 Acompanhar na Farmácia ➔`,
-            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-            onClick: "window.switchTab('farmacia')",
-            icon: '💊'
-          },
-          alternatives: [
-            { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" },
-            { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
+            { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Revisar no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
           ]
         };
       }
     }
-  }
 
-  // ── C) SE PACIENTE ESTÁ INTERNADO EM LEITO (ETAPA 5: INTERNAÇÃO / CENSO) ────
-  if (isInterned) {
-    const bedName = patient.bed || patient.bedNumber || '';
-    if (activeTab === 'leitos') {
-      if (isMasterOrDev) {
-        return {
-          currentStage: 5,
-          stageName: `Internado${bedName ? ' (' + bedName + ')' : ''}`,
-          orderWarning,
-          primaryAction: {
-            title: `🩺 Evolução Médica de ${firstName} no PEP`,
-            desc: `Paciente ${pName} em leito assistencial${bedName ? ' (' + bedName + ')' : ''}. Como Master/Desenvolvedor, você possui autonomia total para evoluir no PEP, checar fármacos ou conceder alta médica direta.`,
-            btnText: `🩺 Evolução no PEP (${firstName}) ➔`,
-            btnBg: 'linear-gradient(135deg, #059669, #047857)',
-            onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('leitos')`,
-            icon: '🩺'
-          },
-          alternatives: [
-            { label: 'Conceder Alta Médica', icon: '🚪', onClick: `window.executeDischarge ? window.executeDischarge() : (window.openPEPModal && window.openPEPModal('${safePNameEsc}'))`, isDanger: true },
-            { label: 'Kanban Hospitalar', icon: '📊', onClick: "window.switchTab('kanban')" },
-            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
-          ]
-        };
-      } else if (userRoleLabel === 'Médico') {
+    case 'leitos': {
+      if (isInterned) {
         return {
           currentStage: 5,
           stageName: `Internado${bedName ? ' (' + bedName + ')' : ''}`,
@@ -1462,539 +1561,238 @@ function evaluateClinicalPossibilities(patient, activeTab) {
             { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
           ]
         };
-      } else if (userRoleLabel === 'Enfermeiro') {
+      } else {
         return {
           currentStage: 5,
-          stageName: `Internado${bedName ? ' (' + bedName + ')' : ''}`,
+          stageName: 'Internação Hospitalar',
           orderWarning,
           primaryAction: {
-            title: `💉 Checagem & Cuidados no Leito (${firstName})`,
-            desc: `Acompanhe sinais vitais, balanço hídrico e checagem de medicamentos administrados no leito de ${pName}.`,
-            btnText: `💉 Abrir Painel do Leito (${firstName}) ➔`,
+            title: `🛏️ Alocar ${firstName} em Leito Hospitalar`,
+            desc: `Paciente ${pName} (${colorDisplay}) avaliado clinicamente. Abra o formulário de admissão para destinar um leito vago na enfermaria ou UTI.`,
+            btnText: `🛏️ Internar ${firstName} em Leito Agora ➔`,
             btnBg: 'linear-gradient(135deg, #059669, #047857)',
-            onClick: "window.switchTab('leitos')",
-            icon: '💉'
+            onClick: `window.openAdmitBedModal ? window.openAdmitBedModal('${patient.id || ''}', '${safePNameEsc}', '${patient.encounterId || ''}') : (document.getElementById('btn-open-admit-modal') && document.getElementById('btn-open-admit-modal').click())`,
+            icon: '🛏️'
           },
           alternatives: [
-            { label: '🔔 Solicitar Parecer de Alta', icon: '🔔', onClick: "window.showToast ? window.showToast('🔔 Notificação enviada ao médico assistente para avaliação de alta!') : null" },
-            { label: 'Ver Prescrições Ativas', icon: '💊', onClick: "window.switchTab('farmacia')" },
-            { label: 'Kanban Hospitalar', icon: '📊', onClick: "window.switchTab('kanban')" }
+            { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Linha de Cuidado (Kanban)', icon: '📊', onClick: "window.switchTab('kanban')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
           ]
         };
-      } else if (userRoleLabel === 'Farmacêutico') {
+      }
+    }
+
+    case 'kanban': {
+      if (isInterned) {
         return {
           currentStage: 5,
-          stageName: `Internado${bedName ? ' (' + bedName + ')' : ''}`,
+          stageName: `Linha de Cuidado (${firstName})`,
           orderWarning,
           primaryAction: {
-            title: `💊 Acompanhamento Farmacoterapêutico (${firstName})`,
-            desc: `Monitore aprazamentos e reposição de kits de medicamentos para o leito de ${pName}.`,
-            btnText: `💊 Ver Prescrições de ${firstName} ➔`,
+            title: `📊 Acompanhar ${firstName} no Leito / Kanban`,
+            desc: `Linha de cuidado de ${pName} ativa no leito${bedName ? ' (' + bedName + ')' : ''}. Acompanhe exames laboratoriais, pareceres e previsão de alta.`,
+            btnText: `🩺 Prontuário PEP (${firstName}) ➔`,
             btnBg: 'linear-gradient(135deg, #059669, #047857)',
-            onClick: "window.switchTab('farmacia')",
-            icon: '💊'
+            onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('leitos')`,
+            icon: '🩺'
           },
           alternatives: [
             { label: 'Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Estoque Central', icon: '📦', onClick: "window.switchPharmacySubTab && window.switchPharmacySubTab('stock')" }
+            { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('financeiro')" }
           ]
         };
       } else {
         return {
           currentStage: 5,
-          stageName: `Internado${bedName ? ' (' + bedName + ')' : ''}`,
+          stageName: 'Linha de Cuidado (Kanban)',
           orderWarning,
           primaryAction: {
-            title: `🛏️ Consultar Censo de Leitos (${firstName})`,
-            desc: `Paciente ${pName} em leito assistencial${bedName ? ' (' + bedName + ')' : ''}.`,
-            btnText: `🛏️ Ver Censo de Leitos ➔`,
+            title: `📊 Linha de Cuidado: Destinar Vaga para ${firstName}`,
+            desc: `Paciente ${pName} (${colorDisplay}) em fluxo assistencial. Acompanhe a transição multidisciplinar e proceda com a internação em leito ou alta médica.`,
+            btnText: `🛏️ Destinar Leito Hospitalar ➔`,
             btnBg: 'linear-gradient(135deg, #059669, #047857)',
             onClick: "window.switchTab('leitos')",
-            icon: '🛏️'
+            icon: '📊'
           },
           alternatives: [
-            { label: 'Kanban Hospitalar', icon: '📊', onClick: "window.switchTab('kanban')" },
-            { label: 'Recepção', icon: '📋', onClick: "window.switchTab('pacientes')" }
+            { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" }
           ]
         };
       }
-    } else if (activeTab === 'kanban') {
+    }
+
+    case 'financeiro': {
+      if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta Médica Concedida',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Fechar Conta & Emitir Lote TISS (${firstName})`,
+            desc: `Alta homologada para ${pName}! Realize a auditoria dos procedimentos e finalize o lote eletrônico no padrão TISS 4.01.`,
+            btnText: `💰 Emitir Guia TISS de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "if(typeof window.executeTISSClosure==='function') window.executeTISSClosure(); else window.switchTab('financeiro');",
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 6,
+          stageName: 'Faturamento & TISS',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Auditoria de Contas & Guia de ${firstName}`,
+            desc: `Paciente ${pName} (${colorDisplay}) em atendimento. Verifique os procedimentos realizados e proceda à conferência do lote eletrônico TISS 4.01.`,
+            btnText: `💰 Abrir Guia TISS de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "if(typeof window.executeTISSClosure==='function') window.executeTISSClosure(); else window.switchTab('financeiro');",
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Ver no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" }
+          ]
+        };
+      }
+    }
+
+    case 'agenda': {
       return {
-        currentStage: 5,
-        stageName: `Linha de Cuidado (${firstName})`,
+        currentStage: 0,
+        stageName: 'Agenda Médica',
         orderWarning,
         primaryAction: {
-          title: `📊 Acompanhar ${firstName} no Leito / Kanban`,
-          desc: `Linha de cuidado de ${pName} ativa no leito${bedName ? ' (' + bedName + ')' : ''}. Acompanhe exames laboratoriais, pareceres e previsão de alta.`,
-          btnText: `🩺 Prontuário PEP (${firstName}) ➔`,
-          btnBg: 'linear-gradient(135deg, #059669, #047857)',
-          onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('leitos')`,
-          icon: '🩺'
+          title: `📅 Consulta Agendada: ${firstName}`,
+          desc: `Paciente ${pName} acolhido e classificado (${colorDisplay}). Acompanhe o agendamento e encaminhe para o consultório médico.`,
+          btnText: `👨‍⚕️ Ir para Atendimento no ${safeRoom} ➔`,
+          btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+          onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+          icon: '📅'
         },
         alternatives: [
-          { label: 'Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-          { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" }
-        ]
-      };
-    } else {
-      return {
-        currentStage: 5,
-        stageName: `Internado${bedName ? ' (' + bedName + ')' : ''}`,
-        orderWarning,
-        primaryAction: {
-          title: `🛏️ Acompanhar ${firstName} no Mapa de Leitos`,
-          desc: `Paciente ${pName} em leito assistencial${bedName ? ' (' + bedName + ')' : ''}. Prossiga para a Gestão de Leitos para evolução do prontuário ou alta médica.`,
-          btnText: `🛏️ Ir para Gestão de Leitos (${firstName}) ➔`,
-          btnBg: 'linear-gradient(135deg, #059669, #047857)',
-          onClick: "window.switchTab('leitos')",
-          icon: '🛏️'
-        },
-        alternatives: [
-          { label: 'Ver no Kanban', icon: '📊', onClick: "window.switchTab('kanban')" },
-          { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
-          { label: 'Abrir PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
+          { label: 'Chamar no Telão TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+          { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" }
         ]
       };
     }
-  }
 
-  // ── D) PACIENTE TRIADO NA ABA ATENDIMENTO (ETAPA 2: CHAMADA TV CONSULTÓRIO / ETAPA 3: CONSULTÓRIO PEP) ──
-  if (activeTab === 'atendimento') {
-    if (!wasCalled) {
-      return {
-        currentStage: 2,
-        stageName: isCriticalEmergency ? `Emergência (${colorDisplay})` : `Triagem Concluída (${colorDisplay})`,
-        orderWarning,
-        primaryAction: {
-          title: isCriticalEmergency 
-            ? `🚨 Convocação Imediata: Chamar ${firstName} para ${safeRoom}` 
-            : `📢 2ª Chamada TV: Chamar ${firstName} para ${safeRoom}`,
-          desc: isCriticalEmergency
-            ? `Triagem ${colorDisplay.toUpperCase()}! Paciente ${pName} tem prioridade clínica máxima. Convoque-o imediatamente no Painel TV para comparecer ao ${safeRoom} ou entre direto no atendimento.`
-            : `Paciente ${pName} triado e classificado como ${colorDisplay}! Convoque-o no Painel TV com sinal sonoro para comparecer ao ${safeRoom} para atendimento médico.`,
-          btnText: `📢 Chamar ${firstName} no Painel TV (${safeRoom}) ➔`,
-          btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
-          onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
-          icon: isCriticalEmergency ? '🚨' : '📢'
-        },
-        alternatives: [
-          { label: isCriticalEmergency ? '🚨 Entrar na Sala Vermelha' : `Entrar Direto no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
-          { label: 'Ir para Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
-          { label: 'Revisar Triagem', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')` }
-        ]
-      };
-    } else {
+    case 'escalas': {
       return {
         currentStage: 3,
-        stageName: `Convocado para ${safeRoom}`,
+        stageName: 'Corpo Clínico & Escalas',
         orderWarning,
         primaryAction: {
-          title: `👨‍⚕️ Iniciar Atendimento de ${firstName} no ${safeRoom}`,
-          desc: `Paciente ${pName} chamado no telão para o ${safeRoom}! Prossiga para o consultório médico para abertura do prontuário (PEP).`,
+          title: `👨‍⚕️ Equipe Assistente: ${firstName}`,
+          desc: `Verifique a equipe médica e de enfermagem escalada para o ${safeRoom} no atendimento de ${pName} (${colorDisplay}).`,
           btnText: `👨‍⚕️ Abrir ${safeRoom} (${firstName}) ➔`,
-          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+          btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
           onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
           icon: '👨‍⚕️'
         },
         alternatives: [
-          { label: 'Re-chamar na TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
-          { label: 'Revisar Triagem', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')` }
-        ]
-      };
-    }
-  }
-
-  // ── E) AÇÕES CONTEXTUAIS DE PONTA A PONTA PARA TODAS AS ABAS DO SISTEMA ───
-
-  // 1. ABA GESTÃO DE LEITOS (leitos)
-  if (activeTab === 'leitos') {
-    return {
-      currentStage: 5,
-      stageName: 'Internação Hospitalar',
-      orderWarning,
-      primaryAction: {
-        title: `🛏️ Alocar ${firstName} em Leito Hospitalar`,
-        desc: `Paciente ${pName} (${colorDisplay}) avaliado clinicamente. Abra o formulário de admissão para destinar um leito vago na enfermaria ou UTI.`,
-        btnText: `🛏️ Internar ${firstName} em Leito Agora ➔`,
-        btnBg: 'linear-gradient(135deg, #059669, #047857)',
-        onClick: `window.openAdmitBedModal ? window.openAdmitBedModal('${patient.id || ''}', '${safePNameEsc}', '${patient.encounterId || ''}') : (document.getElementById('btn-open-admit-modal') && document.getElementById('btn-open-admit-modal').click())`,
-        icon: '🛏️'
-      },
-      alternatives: [
-        { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-        { label: 'Linha de Cuidado (Kanban)', icon: '📊', onClick: "window.switchTab('kanban')" },
-        { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
-      ]
-    };
-  }
-
-  // 2. ABA KANBAN HOSPITALAR (kanban)
-  if (activeTab === 'kanban') {
-    return {
-      currentStage: 5,
-      stageName: 'Linha de Cuidado (Kanban)',
-      orderWarning,
-      primaryAction: {
-        title: `📊 Linha de Cuidado: Destinar Vaga para ${firstName}`,
-        desc: `Paciente ${pName} (${colorDisplay}) em fluxo assistencial. Acompanhe a transição multidisciplinar e proceda com a internação em leito ou alta médica.`,
-        btnText: `🛏️ Destinar Leito Hospitalar ➔`,
-        btnBg: 'linear-gradient(135deg, #059669, #047857)',
-        onClick: "window.switchTab('leitos')",
-        icon: '📊'
-      },
-      alternatives: [
-        { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-        { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
-        { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" }
-      ]
-    };
-  }
-
-  // 3. ABA PAINEL TV (tv_panel)
-  if (activeTab === 'tv_panel') {
-    if (!wasCalled) {
-      return {
-        currentStage: 2,
-        stageName: `Espera Consultório (${colorDisplay})`,
-        orderWarning,
-        primaryAction: {
-          title: `📢 Chamar ${firstName} para ${safeRoom}`,
-          desc: `Paciente ${pName} triado (${colorDisplay}). Clique abaixo para emitir a chamada sonora no telão e convocá-lo ao ${safeRoom}.`,
-          btnText: `📢 Emitir Chamada de ${firstName} (${safeRoom}) ➔`,
-          btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
-          onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
-          icon: isCriticalEmergency ? '🚨' : '📢'
-        },
-        alternatives: [
-          { label: `Entrar no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`, isPrimaryAlt: true },
-          { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-          { label: 'Ver Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" }
-        ]
-      };
-    } else {
-      return {
-        currentStage: 3,
-        stageName: `Convocado para ${safeRoom}`,
-        orderWarning,
-        primaryAction: {
-          title: `👨‍⚕️ Iniciar Atendimento de ${firstName} no ${safeRoom}`,
-          desc: `Chamada sonora emitida no telão para o ${safeRoom}! Clique no botão abaixo para entrar na sala e abrir o prontuário SOAP no PEP.`,
-          btnText: `👨‍⚕️ Entrar no ${safeRoom} (${firstName}) ➔`,
-          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-          onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
-          icon: '👨‍⚕️'
-        },
-        alternatives: [
-          { label: 'Chamar Novamente na TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
-          { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-          { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" }
-        ]
-      };
-    }
-  }
-
-  // 4. ABAS CONSULTÓRIOS E MÉDICOS (consultorios, medicos)
-  if (activeTab === 'consultorios' || activeTab === 'medicos') {
-    return {
-      currentStage: 3,
-      stageName: `Consultório / PEP`,
-      orderWarning,
-      primaryAction: {
-        title: isCriticalEmergency ? `🚨 Atendimento Imediato: ${firstName} (${safeRoom})` : `🩺 Evolução Médica (PEP) de ${firstName}`,
-        desc: `Paciente ${pName} em atendimento no ${safeRoom}. Registre a anamnese SOAP, hipótese diagnóstica CID-10 e emita a prescrição eletrônica.`,
-        btnText: `🩺 Abrir Folha de Evolução (PEP) de ${firstName} ➔`,
-        btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
-        onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : (window.openPEPModal && window.openPEPModal('${safePNameEsc}'))`,
-        icon: isCriticalEmergency ? '🚨' : '🩺'
-      },
-      alternatives: [
-        { label: 'Internar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')", isPrimaryAlt: true },
-        { label: 'Dispensar na Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
-        { label: 'Re-chamar na TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` }
-      ]
-    };
-  }
-
-  // 4.5 ABA SALA DE OBSERVAÇÃO DO PS (observacao)
-  if (activeTab === 'observacao') {
-    return {
-      currentStage: 3,
-      stageName: 'Sala de Observação (PS)',
-      orderWarning,
-      primaryAction: {
-        title: `🛏️ Sala de Observação: Monitorar ${firstName}`,
-        desc: `Paciente ${pName} (${colorDisplay}) em observação clínica no Pronto-Socorro. Acompanhe a hidratação, medicações de alívio e evolução dos sinais vitais.`,
-        btnText: `🩺 Abrir PEP / Prontuário (${firstName}) ➔`,
-        btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
-        onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
-        icon: '🛏️'
-      },
-      alternatives: [
-        { label: 'Central de Atendimentos', icon: '🩺', onClick: "window.switchTab('atendimento')" },
-        { label: 'Internar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
-      ]
-    };
-  }
-
-  // 5. ABA FARMÁCIA (farmacia)
-  if (activeTab === 'farmacia') {
-    return {
-      currentStage: 4,
-      stageName: 'Farmácia Hospitalar',
-      orderWarning,
-      primaryAction: {
-        title: `💊 Farmácia: Prescrições de ${firstName}`,
-        desc: `Consulte os medicamentos prescritos para ${pName} (${colorDisplay}) e valide no circuito fechado para liberação.`,
-        btnText: `📋 Ver Prescrições Hospitalares ➔`,
-        btnBg: 'linear-gradient(135deg, #059669, #047857)',
-        onClick: "window.switchPharmacySubTab ? window.switchPharmacySubTab('rx') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())",
-        icon: '💊'
-      },
-      alternatives: [
-        { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Revisar no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-        { label: 'Estoque Central', icon: '📦', onClick: "window.switchPharmacySubTab && window.switchPharmacySubTab('stock')" }
-      ]
-    };
-  }
-
-  // 6. ABA FATURAMENTO & TISS (financeiro)
-  if (activeTab === 'financeiro') {
-    return {
-      currentStage: 6,
-      stageName: 'Faturamento & TISS',
-      orderWarning,
-      primaryAction: {
-        title: `💰 Auditoria de Contas & Guia de ${firstName}`,
-        desc: `Paciente ${pName} (${colorDisplay}) em atendimento. Verifique os procedimentos realizados e proceda à conferência do lote eletrônico TISS 4.01.`,
-        btnText: `💰 Abrir Guia TISS de ${firstName} ➔`,
-        btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-        onClick: "if(typeof window.executeTISSClosure==='function') window.executeTISSClosure(); else window.switchTab('financeiro');",
-        icon: '💰'
-      },
-      alternatives: [
-        { label: 'Ver no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-        { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" }
-      ]
-    };
-  }
-
-  // 7. ABA ESTAGNAÇÃO & ALERTAS (estagnacao)
-  if (activeTab === 'estagnacao') {
-    return {
-      currentStage: 3,
-      stageName: 'Alertas & Estagnação',
-      orderWarning,
-      primaryAction: {
-        title: `⚡ Destravar Atendimento de ${firstName}`,
-        desc: `Paciente ${pName} (${colorDisplay}) com prioridade assistencial. Agilize a chamada imediata no telão ou inicie a consulta médica.`,
-        btnText: `⚡ Chamar com Prioridade Máxima ➔`,
-        btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
-        onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
-        icon: '⚡'
-      },
-      alternatives: [
-        { label: 'Atender no Consultório', icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
-        { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
-      ]
-    };
-  }
-
-  // 8. ABA AGENDA MÉDICA (agenda)
-  if (activeTab === 'agenda') {
-    return {
-      currentStage: 3,
-      stageName: 'Agenda Médica',
-      orderWarning,
-      primaryAction: {
-        title: `📅 Consulta Agendada: ${firstName}`,
-        desc: `Paciente ${pName} acolhido e classificado (${colorDisplay}). Acompanhe o agendamento e encaminhe para o consultório médico.`,
-        btnText: `👨‍⚕️ Ir para Atendimento no ${safeRoom} ➔`,
-        btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-        onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
-        icon: '📅'
-      },
-      alternatives: [
-        { label: 'Chamar no Telão TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
-        { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" }
-      ]
-    };
-  }
-
-  // 9. ABA ESCALAS DE PLANTÃO (escalas)
-  if (activeTab === 'escalas') {
-    return {
-      currentStage: 3,
-      stageName: 'Corpo Clínico & Escalas',
-      orderWarning,
-      primaryAction: {
-        title: `👨‍⚕️ Equipe Assistente: ${firstName}`,
-        desc: `Verifique a equipe médica e de enfermagem escalada para o ${safeRoom} no atendimento de ${pName} (${colorDisplay}).`,
-        btnText: `👨‍⚕️ Abrir ${safeRoom} (${firstName}) ➔`,
-        btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-        onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
-        icon: '👨‍⚕️'
-      },
-      alternatives: [
-        { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
-        { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
-      ]
-    };
-  }
-
-  // 10. ABA RELATÓRIOS & KPIS (relatorios)
-  if (activeTab === 'relatorios') {
-    return {
-      currentStage: 6,
-      stageName: 'Indicadores & KPIs',
-      orderWarning,
-      primaryAction: {
-        title: `📈 Indicadores & Histórico de ${firstName}`,
-        desc: `Acompanhe os tempos assistenciais de porta-triagem, porta-médico e evolução clínica de ${pName} (${colorDisplay}).`,
-        btnText: `🩺 Visualizar Prontuário / PEP ➔`,
-        btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-        onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
-        icon: '📈'
-      },
-      alternatives: [
-        { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
-        { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
-      ]
-    };
-  }
-
-  // 11. ABA CONFIGURAÇÕES (configuracoes)
-  if (activeTab === 'configuracoes') {
-    return {
-      currentStage: 0,
-      stageName: 'Configurações',
-      orderWarning,
-      primaryAction: {
-        title: `⚙️ Retornar ao Atendimento de ${firstName}`,
-        desc: `Configurações do sistema. Retorne ao fluxo clínico de ${pName} (${colorDisplay}) no consultório ou leitos.`,
-        btnText: `🩺 Voltar ao Fluxo Clínico ➔`,
-        btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-        onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
-        icon: '⚙️'
-      },
-      alternatives: [
-        { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
-        { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
-      ]
-    };
-  }
-
-  // 12. ABA RECEPÇÃO & PACIENTES (pacientes)
-  if (activeTab === 'pacientes') {
-    return {
-      currentStage: 0,
-      stageName: 'Recepção / Ficha Cadastral',
-      orderWarning,
-      primaryAction: {
-        title: `📋 Ficha Cadastral de ${firstName}`,
-        desc: `Paciente ${pName} já acolhido e classificado como ${colorDisplay}. Prossiga para o atendimento no ${safeRoom} ou emita a convocação na TV.`,
-        btnText: wasCalled ? `👨‍⚕️ Conduzir ao ${safeRoom} ➔` : `📺 Chamar ${firstName} no Painel TV ➔`,
-        btnBg: wasCalled ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
-        onClick: wasCalled ? `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` : `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
-        icon: '📋'
-      },
-      alternatives: [
-        { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
-        { label: 'Consultórios / PEP', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" }
-      ]
-    };
-  }
-
-  // 13. ABA DASHBOARD (dashboard)
-  if (activeTab === 'dashboard') {
-    if (isCriticalEmergency) {
-      return {
-        currentStage: 3,
-        stageName: `Emergência (${colorDisplay})`,
-        orderWarning,
-        primaryAction: {
-          title: `🚨 Atendimento Imediato: ${firstName} (Sala Vermelha)`,
-          desc: `Triagem ${colorDisplay.toUpperCase()}! Paciente ${pName} tem prioridade clínica máxima. Conduza imediatamente ao Consultório 01 / Sala Vermelha sem espera no Painel TV.`,
-          btnText: `🚨 Abrir Sala Vermelha / PEP (${firstName}) ➔`,
-          btnBg: 'linear-gradient(135deg, #ef4444, #dc2626)',
-          onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('Consultório 01', '${safePNameEsc}') : window.switchTab('consultorios')`,
-          icon: '🚨'
-        },
-        alternatives: [
-          { label: 'Alocar Leito de Emergência', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-          { label: 'Chamar no Painel TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', 'Consultório 01') : window.switchTab('tv_panel')` },
+          { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
           { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
         ]
       };
     }
-    return {
-      currentStage: wasCalled ? 3 : 2,
-      stageName: wasCalled ? 'Convocado' : 'Aguardando Atendimento',
-      orderWarning,
-      primaryAction: {
-        title: wasCalled ? `👨‍⚕️ Atender ${firstName} no ${safeRoom}` : `📺 Chamar ${firstName} no Painel TV (${safeRoom})`,
-        desc: wasCalled ? `Paciente ${pName} convocado para o ${safeRoom}. Abra o prontuário no PEP para evolução médica.` : `Paciente ${pName} classificado (${colorDisplay}). Convoque-o no Painel TV com sinal sonoro para comparecer ao ${safeRoom}.`,
-        btnText: wasCalled ? `👨‍⚕️ Iniciar Atendimento (${firstName}) ➔` : `📺 Chamar ${firstName} no Painel TV ➔`,
-        btnBg: wasCalled ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
-        onClick: wasCalled ? `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` : `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
-        icon: wasCalled ? '👨‍⚕️' : '📺'
-      },
-      alternatives: [
-        { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-        { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
-        { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
-      ]
-    };
-  }
 
-  // Padrão de contingência para qualquer outra tela não mapeada
-  if (!wasCalled) {
-    return {
-      currentStage: 2,
-      stageName: `Aguardando Chamada TV (${colorDisplay})`,
-      orderWarning,
-      primaryAction: {
-        title: `📺 Chamar ${firstName} no Painel TV (Direcionar ao ${safeRoom})`,
-        desc: `Paciente ${pName} triado (${colorDisplay}). Convoque-o no Painel TV com sinal sonoro para comparecer ao ${safeRoom}.`,
-        btnText: `📺 Chamar ${firstName} no Painel TV ➔`,
-        btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-        onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
-        icon: '📺'
-      },
-      alternatives: [
-        { label: 'Ir para Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')", isPrimaryAlt: true },
-        { label: `Entrar no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
-        { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
-      ]
-    };
-  }
+    case 'estagnacao': {
+      return {
+        currentStage: 2,
+        stageName: 'Alertas & Estagnação',
+        orderWarning,
+        primaryAction: {
+          title: `⚡ Destravar Atendimento de ${firstName}`,
+          desc: `Paciente ${pName} (${colorDisplay}) com prioridade assistencial. Agilize a chamada imediata no telão ou inicie a consulta médica.`,
+          btnText: wasCalled ? `👨‍⚕️ Atender ${firstName} no ${safeRoom} ➔` : `⚡ Chamar com Prioridade Máxima ➔`,
+          btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+          onClick: wasCalled ? `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` : `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+          icon: '⚡'
+        },
+        alternatives: [
+          { label: 'Atender no Consultório', icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
+          { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
+        ]
+      };
+    }
 
-  return {
-    currentStage: 3,
-    stageName: 'Atendimento Clínico',
-    orderWarning,
-    primaryAction: {
-      title: `👨‍⚕️ Dar Andamento ao Atendimento de ${firstName}`,
-      desc: `Paciente ${pName} convocado para o ${safeRoom}. Prossiga para o Consultório Médico para evolução no PEP.`,
-      btnText: `👨‍⚕️ Ir para Consultório Médico (${safeRoom}) ➔`,
-      btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-      onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
-      icon: '👨‍⚕️'
-    },
-    alternatives: [
-      { label: 'Re-chamar na TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
-      { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
-      { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" }
-    ]
-  };
+    case 'relatorios': {
+      return {
+        currentStage: 6,
+        stageName: 'Indicadores & KPIs',
+        orderWarning,
+        primaryAction: {
+          title: `📈 Indicadores & Histórico de ${firstName}`,
+          desc: `Acompanhe os tempos assistenciais de porta-triagem, porta-médico e evolução clínica de ${pName} (${colorDisplay}).`,
+          btnText: `🩺 Visualizar Prontuário / PEP ➔`,
+          btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+          onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
+          icon: '📈'
+        },
+        alternatives: [
+          { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+          { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+        ]
+      };
+    }
+
+    case 'configuracoes': {
+      return {
+        currentStage: 0,
+        stageName: 'Configurações',
+        orderWarning,
+        primaryAction: {
+          title: `⚙️ Retornar ao Atendimento de ${firstName}`,
+          desc: `Configurações do sistema. Retorne ao fluxo clínico de ${pName} (${colorDisplay}) no consultório ou leitos.`,
+          btnText: `🩺 Voltar ao Fluxo Clínico ➔`,
+          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+          onClick: wasCalled ? `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` : `window.switchTab('dashboard')`,
+          icon: '⚙️'
+        },
+        alternatives: [
+          { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+          { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+        ]
+      };
+    }
+
+    default: {
+      return {
+        currentStage: 0,
+        stageName: 'Fluxo Hospitalar',
+        orderWarning,
+        primaryAction: {
+          title: `🏥 Acompanhar Atendimento de ${firstName}`,
+          desc: `Paciente ${pName} (${colorDisplay}) em atendimento no hospital.`,
+          btnText: `🏥 Voltar ao Dashboard Principal ➔`,
+          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+          onClick: "window.switchTab('dashboard')",
+          icon: '🏥'
+        },
+        alternatives: [
+          { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" },
+          { label: 'Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+          { label: 'Consultórios', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" }
+        ]
+      };
+    }
+  }
   })();
 
   return {
@@ -2097,7 +1895,11 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   document.querySelectorAll('[data-flow-target-tab]').forEach(function(el) { el.remove(); });
 
   _SFG.hidden = false;
-  _SFG.activeTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (tabId || 'dashboard');
+  const effectiveTab = tabId || (typeof state !== 'undefined' && state.activeTab) || 'dashboard';
+  _SFG.activeTab = effectiveTab;
+  if (typeof state !== 'undefined') {
+    state.activeTab = effectiveTab;
+  }
 
   // Se houver launcher flutuante redundante, remove
   const launcher = document.getElementById('hn-fg-launcher');
@@ -5523,6 +5325,7 @@ function switchTab(tabName, isBack = false) {
   if (typeof _SFG !== 'undefined') {
     _SFG.hidden = false;
     _SFG.minimized = false;
+    _SFG.activeTab = tabName;
   }
   if (typeof createSmartFlowGuideCard === 'function') {
     createSmartFlowGuideCard(tabName);

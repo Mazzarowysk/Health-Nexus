@@ -98,7 +98,7 @@ flowchart TD
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
 - 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
 - 19. [Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0)](#sec-19)
-- 20. [Smart Flow Guide — Painel Lateral Acoplado (Dock) & Inicialização no Dashboard (v2.9.7)](#sec-20)
+- 20. [Smart Flow Guide — Adaptação Omnidirecional por Aba (v2.9.8) & Painel Lateral Acoplado](#sec-20)
 
 ---
 
@@ -914,9 +914,24 @@ O **Health Nexus v2.8.0** consolida 6 pilares de alta complexidade hospitalar e 
 
 ---
 
-<h2 id="sec-20">20. Smart Flow Guide — Painel Lateral Acoplado (Dock) & Inicialização no Dashboard (v2.9.7) 🧭</h2>
+<h2 id="sec-20">20. Smart Flow Guide — Adaptação Omnidirecional por Aba (v2.9.8) & Painel Lateral Acoplado 🧭</h2>
 
-O **Smart Flow Guide** funciona como a bússola operacional do plantão, acompanhando a equipe em qualquer tela do sistema. Na versão **2.9.7**, ele consolida a inicialização automática no **Dashboard Principal** e o acoplamento lateral inteligente (*Snap-to-Edge*), permitindo transformar o card flutuante em uma barra lateral dedicada e sem obstruir nenhum botão ou tabela de atendimento.
+O **Smart Flow Guide** funciona como a espinha dorsal de governança assistencial do Health Nexus, acompanhando a equipe em qualquer tela do complexo hospitalar. Na versão **2.9.8**, ele incorpora uma inteligência de contexto omnidirecional estrita: as sugestões, ações principais de 1-clique e alternativas adaptam-se de forma dinâmica e imediata à **aba exata em que o usuário está navegando**, mantendo simultaneamente o contexto do paciente em atendimento sem forçar desvios de tela.
+
+### 🧭 Adaptação Omnidirecional Estrita por Aba Ativa (v2.9.8)
+
+Ao navegar pelo menu lateral ou pelos atalhos do sistema, o card de fluxo reorganiza suas orientações para a operação daquela tela específica:
+
+- **Dashboard Principal:** Apresenta visão global do plantão, sugerindo acolhimento de novos pacientes na Recepção ou a próxima conduta para o paciente ativo em atendimento.
+- **Recepção & Pacientes:** Sugere o cadastro de admissão, busca rápida por CPF ou encaminhamento do paciente recém-acolhido para a Triagem Manchester.
+- **Triagem Manchester:** Destaca a aferição de sinais vitais e classificação de gravidade Manchester, com atalho direto para chamar na TV caso a convocação sonora ainda não tenha sido emitida.
+- **Painel TV (Chamador):** Foca na convocação audiovisual com sinal sonoro, direcionando para a Sala de Triagem ou para o Consultório indicado.
+- **Consultórios Médicos:** Conduz para o atendimento médico e abertura da Folha de Evolução SOAP no Prontuário Eletrônico (PEP), alertando com segurança caso o paciente ainda não tenha passado pela triagem prévia.
+- **Farmácia Hospitalar:** Prioriza a validação técnica no circuito fechado de medicamentos e a liberação de fármacos prescritos.
+- **Gestão de Leitos:** Apresenta o censo hospitalar e orienta a internação em leito vago (enfermaria/UTI) ou a evolução clínica beira-leito.
+- **Kanban Hospitalar:** Foca no acompanhamento da linha de cuidado multidisciplinar, metas de permanência e estimativa de alta médica.
+- **Faturamento & TISS:** Guia a auditoria de procedimentos e fechamento de guias e lotes XML no padrão TISS 4.01 após a alta.
+- **Agenda Médica, Escalas, Estagnação e Relatórios:** Cada módulo possui orientações e botões próprios integrados ao fluxo do paciente ativo.
 
 ### 🏠 Inicialização Padrão no Dashboard & Consistência do Guia de Fluxo (v2.9.7)
 
@@ -959,7 +974,7 @@ Quando acoplado à lateral, o Smart Flow Guide oferece uma visão panorâmica e 
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.7 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.8 do Health Nexus. Todos os direitos reservados.*
 `;
 }
 

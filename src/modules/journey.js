@@ -212,8 +212,9 @@ export function initFloatingWorkflowGuide() {
 
 export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = null) {
   document.querySelectorAll('#floating-flow-guide, #hn-flow-guide, .floating-flow-guide').forEach(el => el.remove());
-  const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (tabId || currentActiveTabId || 'dashboard');
+  const realTab = tabId || (typeof state !== 'undefined' && state.activeTab) || currentActiveTabId || 'dashboard';
   currentActiveTabId = realTab;
+  if (typeof state !== 'undefined' && tabId) state.activeTab = tabId;
   if (lastAction) lastActionMessage = lastAction;
   if (typeof window.createSmartFlowGuideCard === 'function') {
     window.createSmartFlowGuideCard(realTab, lastAction);
