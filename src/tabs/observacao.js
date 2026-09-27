@@ -340,7 +340,7 @@ export function renderObservacaoTab(contentArea) {
         const encId = btn.dataset.encId;
         const pName = btn.dataset.patientName;
         if (typeof window.openPEPModal === 'function') {
-          window.openPEPModal(encId);
+          window.openPEPModal(encId || pName);
         } else if (typeof window.openDoctorConsultingRoom === 'function') {
           window.openDoctorConsultingRoom('Consultório 01', pName);
         }
@@ -727,7 +727,7 @@ export function renderObservacaoTab(contentArea) {
     document.getElementById('btn-proc-open-pep')?.addEventListener('click', () => {
       modal.style.display = 'none';
       if (typeof window.openPEPModal === 'function') {
-        window.openPEPModal(patient.id);
+        window.openPEPModal(patient.encounterId || patient.id || patient.patientId || patient.patientName);
       } else if (typeof window.openDoctorConsultingRoom === 'function') {
         window.openDoctorConsultingRoom('Consultório 01', patient.patientName);
       }

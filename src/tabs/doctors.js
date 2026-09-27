@@ -2186,6 +2186,9 @@ window.openPEPModal = async function(encounterId) {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btn-pep-new-header" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: 1px solid rgba(56,189,248,0.4); color: #fff; font-size: 0.82rem; font-weight: 700; border-radius: 20px; padding: 7px 16px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 14px rgba(2,132,199,0.35);">
+              <i class="fa-solid fa-plus-circle"></i> Incluir Novo PEP
+            </button>
             <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
               <i class="fa-solid fa-video"></i> Teleconsulta
             </button>
@@ -2197,26 +2200,28 @@ window.openPEPModal = async function(encounterId) {
 
         <!-- ABAS DO PEP -->
         <div style="display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,0.08);">
-          <button id="pep-tab-soap" onclick="window._pepSwitchTab('soap')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #a78bfa; background: transparent; border: none; border-bottom: 2.5px solid #7c3aed; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
-            <i class="fa-solid fa-stethoscope"></i> Evolução Atual
+          <button id="pep-tab-history" onclick="window._pepSwitchTab('history')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #a78bfa; background: transparent; border: none; border-bottom: 2.5px solid #7c3aed; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
+            <i class="fa-solid fa-folder-tree"></i> Listagem de PEPs Existentes <span id="pep-history-badge" style="background: rgba(99,102,241,0.25); color: #a5b4fc; border-radius: 20px; padding: 1px 8px; font-size: 0.72rem;">...</span>
           </button>
-          <button id="pep-tab-history" onclick="window._pepSwitchTab('history')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #94a3b8; background: transparent; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
-            <i class="fa-solid fa-clock-rotate-left"></i> Histórico de Evoluções <span id="pep-history-badge" style="background: rgba(99,102,241,0.25); color: #a5b4fc; border-radius: 20px; padding: 1px 8px; font-size: 0.72rem;">...</span>
+          <button id="pep-tab-soap" onclick="window._pepSwitchTab('soap')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #94a3b8; background: transparent; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
+            <i class="fa-solid fa-stethoscope"></i> Formulário do PEP (SOAP)
           </button>
         </div>
       </div>
 
-      <div class="modal-body" id="pep-modal-body" style="padding: 22px 24px; overflow-y: auto; flex: 1;">
+      <!-- Painel de Histórico / Listagem de PEPs (ATIVO por padrão) -->
+      <div id="pep-history-panel" style="display: block; padding: 22px 24px; overflow-y: auto; flex: 1;">
+        <div style="text-align:center; color: var(--text-muted); padding:40px;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 12px;"></i>
+          <div>Buscando histórico de prontuários do paciente...</div>
+        </div>
+      </div>
+
+      <!-- Painel do Formulário SOAP (oculto por padrão até clicar em Incluir Novo PEP ou Editar) -->
+      <div class="modal-body" id="pep-modal-body" style="display: none; padding: 22px 24px; overflow-y: auto; flex: 1;">
         <div style="text-align: center; color: var(--text-muted); padding: 40px;">
           <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 12px;"></i>
-          <div>Buscando atendimento no banco...</div>
-        </div>
-      </div>
-
-      <!-- Painel de Histórico (oculto por padrão) -->
-      <div id="pep-history-panel" style="display:none; padding: 22px 24px; overflow-y: auto; flex: 1;">
-        <div style="text-align:center; color: var(--text-muted); padding:30px;">
-          <i class="fa-solid fa-circle-notch fa-spin"></i> Carregando histórico...
+          <div>Carregando formulário do PEP...</div>
         </div>
       </div>
     </div>
@@ -2229,32 +2234,51 @@ window.openPEPModal = async function(encounterId) {
     const histPanel = document.getElementById('pep-history-panel');
     const btnSoap = document.getElementById('pep-tab-soap');
     const btnHist = document.getElementById('pep-tab-history');
+    if (!soapBody || !histPanel) return;
+
     if (tab === 'soap') {
       soapBody.style.display = 'block';
       histPanel.style.display = 'none';
-      btnSoap.style.color = '#a78bfa';
-      btnSoap.style.borderBottom = '2.5px solid #7c3aed';
-      btnHist.style.color = '#94a3b8';
-      btnHist.style.borderBottom = '2.5px solid transparent';
+      if (btnSoap) {
+        btnSoap.style.color = '#a78bfa';
+        btnSoap.style.borderBottom = '2.5px solid #7c3aed';
+      }
+      if (btnHist) {
+        btnHist.style.color = '#94a3b8';
+        btnHist.style.borderBottom = '2.5px solid transparent';
+      }
     } else {
       soapBody.style.display = 'none';
       histPanel.style.display = 'block';
-      btnSoap.style.color = '#94a3b8';
-      btnSoap.style.borderBottom = '2.5px solid transparent';
-      btnHist.style.color = '#a78bfa';
-      btnHist.style.borderBottom = '2.5px solid #7c3aed';
-      // Renderizar histórico na primeira abertura
-      if (histPanel.dataset.loaded !== '1') {
-        histPanel.dataset.loaded = '1';
+      if (btnSoap) {
+        btnSoap.style.color = '#94a3b8';
+        btnSoap.style.borderBottom = '2.5px solid transparent';
+      }
+      if (btnHist) {
+        btnHist.style.color = '#a78bfa';
+        btnHist.style.borderBottom = '2.5px solid #7c3aed';
+      }
+      if (typeof window._renderPEPHistory === 'function') {
         window._renderPEPHistory(histPanel, encounterId);
       }
     }
   };
 
+  document.getElementById('btn-pep-new-header')?.addEventListener('click', () => {
+    if (typeof window._pepStartNewEvolution === 'function') {
+      window._pepStartNewEvolution();
+    } else {
+      window._pepSwitchTab('soap');
+    }
+  });
+
   document.getElementById('close-pep-modal').addEventListener('click', () => {
     stopVoiceDictation();
     delete window._pepSwitchTab;
     delete window._renderPEPHistory;
+    delete window._pepStartNewEvolution;
+    delete window._editSpecificPEP;
+    delete window._showReadonlyPEP;
     modal.remove();
   });
 
@@ -2447,6 +2471,19 @@ window.openPEPModal = async function(encounterId) {
     const suggestedOrders = (typeof getSuggestedOrdersByComplaint === 'function') ? getSuggestedOrdersByComplaint(enc.complaints || enc.subjectiveContent || '') : null;
 
     bodyEl.innerHTML = `
+      <!-- Barra Superior de Navegação do Formulário SOAP -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 10px 16px; flex-wrap: wrap; gap: 10px;">
+        <button type="button" onclick="window._pepSwitchTab('history')" class="btn btn-sm" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 7px 15px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;" onmouseover="this.style.borderColor='#818cf8'" onmouseout="this.style.borderColor='var(--border-color)'">
+          <i class="fa-solid fa-arrow-left"></i> Voltar para Lista de PEPs
+        </button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); border-radius: 20px; padding: 3px 10px; font-size: 0.74rem; font-weight: 700;">
+            <i class="fa-solid fa-file-pen" style="margin-right: 4px;"></i> Preenchimento de Evolução Clínica (SOAP)
+          </span>
+          <span style="font-size: 0.78rem; color: #cbd5e1;">${enc.sector || enc.room || 'Atendimento Médico'}</span>
+        </div>
+      </div>
+
       ${isReadOnly ? `
         <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; color: #fbbf24; font-size: 0.85rem;">
           <i class="fa-solid fa-lock" style="font-size: 1.1rem;"></i>
@@ -2474,7 +2511,7 @@ window.openPEPModal = async function(encounterId) {
       ` : ''}
 
       ${isFinalizedOrSigned ? `
-        <div style="background: rgba(99,102,241,0.12); border: 1.5px solid rgba(99,102,241,0.4); border-radius: 12px; padding: 12px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 14px rgba(99,102,241,0.15);">
+        <div id="pep-prev-signed-banner" style="background: rgba(99,102,241,0.12); border: 1.5px solid rgba(99,102,241,0.4); border-radius: 12px; padding: 12px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 14px rgba(99,102,241,0.15);">
           <div style="font-size: 0.84rem; color: #c4b5fd; display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-circle-check" style="color: #34d399; font-size: 1.2rem;"></i>
             <div>
@@ -2599,7 +2636,10 @@ window.openPEPModal = async function(encounterId) {
             </span>
           </div>
 
-          <div style="display: flex; gap: 10px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" onclick="window._pepSwitchTab('history')" class="btn" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; font-size: 0.82rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-arrow-left"></i> Voltar à Lista
+            </button>
             ${isReadOnly ? `
               <button type="button" class="btn" onclick="document.getElementById('pep-modal')?.remove()" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 18px;">
                 <i class="fa-solid fa-xmark" style="margin-right:6px;"></i> Fechar Prontuário
@@ -2728,7 +2768,98 @@ window.openPEPModal = async function(encounterId) {
       window.setupCidAutocomplete();
     }
 
-    // Pré-carregar contagem do histórico para o badge da aba
+    // Função para iniciar nova evolução clínica (SOAP)
+    window._pepStartNewEvolution = function(isContinuing = false) {
+      const subj = document.getElementById('pep-subjective');
+      const obj = document.getElementById('pep-objective');
+      const ass = document.getElementById('pep-assessment');
+      const plan = document.getElementById('pep-plan');
+
+      // Se o encontro atual já está finalizado ou assinado, ou se for nova evolução limpa:
+      if (!isContinuing && (enc.status === 'Finalizado' || enc.signed_by || notes.signed_by)) {
+        const pid = enc.patientId || enc.id || encounterId;
+        const targetSector = enc.sector || enc.room || 'Observação';
+        const admId = enc.admission_id || enc.id;
+        const newEncId = 'ENC-EVO-' + Date.now();
+
+        if (typeof localDB !== 'undefined' && localDB.insert) {
+          localDB.insert('encounters', {
+            id: newEncId,
+            patientId: pid,
+            patientName: enc.patientName || 'Paciente',
+            doctorName: state?.user?.name || enc.doctorName || '',
+            room: targetSector,
+            sector: targetSector,
+            admission_id: admId,
+            manchesterColor: enc.manchesterColor || 'Amarelo',
+            status: 'Em Atendimento',
+            isNewDailyEvolution: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            subjectiveContent: '',
+            objectiveContent: (enc.bloodPressure || enc.temperatureCelsius || enc.heartRateBpm || enc.oxygenSaturation) 
+              ? `PA: ${enc.bloodPressure || '—'} mmHg | FC: ${enc.heartRateBpm || '—'} bpm | Temp: ${enc.temperatureCelsius || '—'}°C | SpO2: ${enc.oxygenSaturation || '—'}%` 
+              : '',
+            assessmentContent: '',
+            planContent: ''
+          });
+        }
+        encounterId = newEncId;
+        enc.id = newEncId;
+        enc.status = 'Em Atendimento';
+        enc.signed_by = null;
+        notes.signed_by = null;
+        if (subj) subj.value = '';
+        if (obj) obj.value = (enc.bloodPressure || enc.temperatureCelsius || enc.heartRateBpm || enc.oxygenSaturation) 
+          ? `PA: ${enc.bloodPressure || '—'} mmHg | FC: ${enc.heartRateBpm || '—'} bpm | Temp: ${enc.temperatureCelsius || '—'}°C | SpO2: ${enc.oxygenSaturation || '—'}%` 
+          : '';
+        if (ass) ass.value = '';
+        if (plan) plan.value = '';
+
+        const prevBanner = document.getElementById('pep-prev-signed-banner');
+        if (prevBanner) prevBanner.style.display = 'none';
+      } else if (!isContinuing) {
+        if (obj && !obj.value.trim() && (enc.bloodPressure || enc.temperatureCelsius || enc.heartRateBpm || enc.oxygenSaturation)) {
+          obj.value = `PA: ${enc.bloodPressure || '—'} mmHg | FC: ${enc.heartRateBpm || '—'} bpm | Temp: ${enc.temperatureCelsius || '—'}°C | SpO2: ${enc.oxygenSaturation || '—'}%`;
+        }
+      }
+
+      window._pepSwitchTab('soap');
+      setTimeout(() => {
+        const firstInput = document.getElementById('pep-subjective');
+        if (firstInput) firstInput.focus();
+      }, 120);
+    };
+
+    // Função para editar um PEP / evolução específica
+    window._editSpecificPEP = function(encIdToEdit) {
+      const db = window.localDB ? window.localDB.getFullDB() : {};
+      const target = (db.encounters || []).find(e => String(e.id) === String(encIdToEdit));
+      if (target) {
+        encounterId = target.id;
+        enc = { ...target };
+        const subj = document.getElementById('pep-subjective');
+        const obj = document.getElementById('pep-objective');
+        const ass = document.getElementById('pep-assessment');
+        const plan = document.getElementById('pep-plan');
+        if (subj) subj.value = target.subjectiveContent || '';
+        if (obj) obj.value = target.objectiveContent || '';
+        if (ass) ass.value = target.assessmentContent || '';
+        if (plan) plan.value = target.planContent || '';
+
+        const prevBanner = document.getElementById('pep-prev-signed-banner');
+        if (prevBanner) {
+          if (target.status === 'Finalizado' || target.signed_by) {
+            prevBanner.style.display = 'flex';
+          } else {
+            prevBanner.style.display = 'none';
+          }
+        }
+        window._pepSwitchTab('soap');
+      }
+    };
+
+    // Renderizador da listagem de PEPs existentes do paciente
     window._renderPEPHistory = async function(container, currentEncId) {
       const sectorIcons = {
         'Triagem': 'fa-clipboard-list',
@@ -2750,97 +2881,197 @@ window.openPEPModal = async function(encounterId) {
       function fmtDate(iso) {
         if (!iso) return '—';
         const d = new Date(iso);
-        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       }
 
       try {
-        // Buscar todos os encounters do paciente no localDB
         const db = window.localDB ? window.localDB.getFullDB() : {};
         const allEncs = db.encounters || [];
-        // Identificar o patientId do encounter atual
         const currentEnc = allEncs.find(e => String(e.id) === String(currentEncId)) ||
           (db.appointments || []).find(a => String(a.id) === String(currentEncId)) || {};
         const pid = currentEnc.patientId || currentEnc.id || currentEncId;
+        const pname = (currentEnc.patientName || (typeof currentEncId === 'string' && isNaN(currentEncId) && !currentEncId.startsWith('ENC-') ? currentEncId : '')).toLowerCase().trim();
+        const pidStr = String(pid).toLowerCase().trim();
 
-        // Filtrar todos os encounters do mesmo paciente, ordenar por data desc
-        let history = allEncs
-          .filter(e => String(e.patientId) === String(pid) || String(e.id) === String(pid))
-          .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        // Filtrar todos os prontuários e evoluções do paciente
+        let history = allEncs.filter(e => {
+          const ePid = String(e.patientId || e.id || '').toLowerCase().trim();
+          const ePname = String(e.patientName || '').toLowerCase().trim();
+          if (ePid && (ePid === pidStr || ePid.includes(pidStr) || pidStr.includes(ePid))) return true;
+          if (pname && ePname && (ePname === pname || ePname.includes(pname) || pname.includes(ePname))) return true;
+          return false;
+        }).sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
 
-        // Atualizar badge
+        // Atualizar badge da aba
         const badge = document.getElementById('pep-history-badge');
         if (badge) badge.textContent = history.length;
 
+        // Se o histórico estiver vazio:
         if (history.length === 0) {
           container.innerHTML = `
-            <div style="text-align:center; color:var(--text-muted); padding:48px 20px;">
-              <i class="fa-solid fa-timeline" style="font-size:2.5rem; margin-bottom:16px; display:block; color:#0284c7;"></i>
-              <div style="font-size:0.9rem;">Nenhum PEP anterior encontrado para este paciente.</div>
-              <div style="font-size:0.78rem; margin-top:6px;">Os registros aparecerão aqui conforme o paciente passar pelas alas.</div>
-            </div>`;
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h4 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-folder-tree" style="color: #38bdf8;"></i> Prontuários & Evoluções Clínicas do Paciente
+                </h4>
+                <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">
+                  Paciente: <strong style="color:#fff;">${currentEnc.patientName || pname || 'Paciente'}</strong> · 0 registros anteriores
+                </p>
+              </div>
+              <button type="button" id="btn-pep-new-evolution-list-top" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; font-size: 0.84rem; font-weight: 700; border-radius: 10px; padding: 9px 18px; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 14px rgba(2,132,199,0.35); transition: 0.2s;">
+                <i class="fa-solid fa-plus-circle"></i> Incluir Novo PEP
+              </button>
+            </div>
+
+            <div style="text-align: center; color: var(--text-muted); padding: 50px 24px; background: rgba(255,255,255,0.02); border: 1.5px dashed rgba(255,255,255,0.12); border-radius: 16px;">
+              <div style="width: 68px; height: 68px; border-radius: 50%; background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; color: #38bdf8;">
+                <i class="fa-solid fa-notes-medical" style="font-size: 2rem;"></i>
+              </div>
+              <h4 style="font-size: 1.05rem; color: #fff; font-weight: 700; margin: 0 0 8px;">Nenhum PEP Anterior Encontrado</h4>
+              <p style="font-size: 0.84rem; color: #94a3b8; max-width: 440px; margin: 0 auto 22px; line-height: 1.5;">
+                Ainda não há evoluções médicas ou registros de prontuário cadastrados para este paciente. Clique no botão abaixo para redigir o primeiro PEP.
+              </p>
+              <button type="button" id="btn-pep-new-evolution-empty" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; font-size: 0.9rem; font-weight: 700; border-radius: 12px; padding: 12px 26px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 18px rgba(2,132,199,0.45); transition: 0.2s;">
+                <i class="fa-solid fa-plus-circle" style="font-size: 1.1rem;"></i> Incluir Primeiro PEP Agora
+              </button>
+            </div>
+          `;
+
+          container.querySelector('#btn-pep-new-evolution-list-top')?.addEventListener('click', () => {
+            if (typeof window._pepStartNewEvolution === 'function') window._pepStartNewEvolution();
+          });
+          container.querySelector('#btn-pep-new-evolution-empty')?.addEventListener('click', () => {
+            if (typeof window._pepStartNewEvolution === 'function') window._pepStartNewEvolution();
+          });
           return;
         }
 
+        // Se houver registros:
         container.innerHTML = `
-          <div style="margin-bottom:18px;">
-            <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin:0 0 4px;"><i class="fa-solid fa-timeline" style="color:#818cf8; margin-right:6px;"></i>Linha do Cuidado</h4>
-            <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Todas as evoluções clínicas deste paciente por setor, em ordem cronológica decrescente.</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h4 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-folder-tree" style="color: #38bdf8;"></i> Prontuários & Evoluções Clínicas do Paciente
+              </h4>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">
+                Paciente: <strong style="color:#fff;">${currentEnc.patientName || pname || 'Paciente'}</strong> · Total de <strong>${history.length}</strong> registro(s) no prontuário.
+              </p>
+            </div>
+            <button type="button" id="btn-pep-new-evolution-list" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; font-size: 0.84rem; font-weight: 700; border-radius: 10px; padding: 9px 18px; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 14px rgba(2,132,199,0.35); transition: 0.2s;">
+              <i class="fa-solid fa-plus-circle"></i> Incluir Novo PEP
+            </button>
           </div>
-          <div id="pep-history-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+          <div id="pep-history-list" style="display:flex; flex-direction:column; gap:12px;"></div>
         `;
+
+        container.querySelector('#btn-pep-new-evolution-list')?.addEventListener('click', () => {
+          if (typeof window._pepStartNewEvolution === 'function') window._pepStartNewEvolution();
+        });
+
         const listEl = container.querySelector('#pep-history-list');
 
-        history.forEach((h, idx) => {
+        history.forEach((h) => {
           const isCurrent = String(h.id) === String(currentEncId);
           const sector = h.sector || h.room || 'Atendimento';
           const icon = iconForSector(sector);
+          const isSigned = !!(h.status === 'Finalizado' || h.signed_by);
           const card = document.createElement('div');
           card.style.cssText = `
-            background: ${isCurrent ? 'rgba(99,102,241,0.12)' : 'var(--bg-secondary)'};
-            border: 1.5px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'};
-            border-radius: 12px; padding: 14px 18px;
-            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-            ${isCurrent ? 'box-shadow: 0 0 14px rgba(99,102,241,0.18);' : ''}
-          `;
-          card.innerHTML = `
-            <!-- Ícone do setor -->
-            <div style="width:40px; height:40px; border-radius:10px; flex-shrink:0;
-              background: ${isCurrent ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)'};
-              border: 1px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'};
-              display:flex; align-items:center; justify-content:center;
-              color: ${isCurrent ? '#a78bfa' : '#64748b'};">
-              <i class="fa-solid ${icon}"></i>
-            </div>
-            <!-- Info principal -->
-            <div style="flex:1; min-width:180px;">
-              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span style="font-weight:700; font-size:0.88rem; color:${isCurrent ? '#c4b5fd' : 'var(--text-primary)'};">Ala: ${sector}</span>
-                ${isCurrent ? '<span style="background:rgba(99,102,241,0.3); color:#a5b4fc; border-radius:20px; padding:1px 9px; font-size:0.72rem; font-weight:700;">ATUAL</span>' : ''}
-                ${h.status === 'Finalizado' ? '<span style="background:rgba(16,185,129,0.15); color:#34d399; border-radius:20px; padding:1px 9px; font-size:0.72rem;">Finalizado</span>' : ''}
-              </div>
-              <div style="font-size:0.78rem; color:var(--text-muted); margin-top:3px; display:flex; gap:12px; flex-wrap:wrap;">
-                <span><i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${fmtDate(h.created_at)}</span>
-                ${h.signed_by ? `<span><i class="fa-solid fa-user-doctor" style="margin-right:4px;"></i>${h.signed_by}</span>` : ''}
-                ${h.assessmentContent ? `<span><i class="fa-solid fa-tag" style="margin-right:4px;"></i>${h.assessmentContent.substring(0, 40)}${h.assessmentContent.length > 40 ? '...' : ''}</span>` : ''}
-              </div>
-            </div>
-            <!-- Botão Ver (somente se não for o atual) -->
-            ${!isCurrent ? `
-              <button class="btn btn-sm" data-hist-id="${h.id}" style="background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.3); color:#a78bfa; padding:6px 14px; font-size:0.78rem; border-radius:8px; cursor:pointer; flex-shrink:0;">
-                <i class="fa-solid fa-eye" style="margin-right:5px;"></i>Ver PEP
-              </button>
-            ` : `
-              <span style="font-size:0.75rem; color:#64748b; flex-shrink:0;">Editando agora</span>
-            `}
+            background: ${isCurrent ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)'};
+            border: 1.5px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.08)'};
+            border-radius: 14px; padding: 16px 20px;
+            display: flex; flex-direction: column; gap: 12px;
+            transition: all 0.2s ease;
+            ${isCurrent ? 'box-shadow: 0 0 16px rgba(99,102,241,0.2);' : ''}
           `;
 
-          // Evento do botão Ver
-          const btn = card.querySelector('[data-hist-id]');
-          if (btn) {
-            btn.addEventListener('click', () => {
-              window._showReadonlyPEP(h, container);
-            });
-          }
+          // Prévia dos campos SOAP
+          const subjSnippet = h.subjectiveContent ? h.subjectiveContent.substring(0, 140) + (h.subjectiveContent.length > 140 ? '...' : '') : '';
+          const assSnippet = h.assessmentContent ? h.assessmentContent.substring(0, 100) + (h.assessmentContent.length > 100 ? '...' : '') : '';
+          const planSnippet = h.planContent ? h.planContent.substring(0, 140) + (h.planContent.length > 140 ? '...' : '') : '';
+
+          card.innerHTML = `
+            <!-- Topo do Card: Setor, Data, Status -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+                  background: ${isCurrent ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.06)'};
+                  border: 1px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'};
+                  color: ${isCurrent ? '#a78bfa' : '#38bdf8'}; font-size: 1.05rem;">
+                  <i class="fa-solid ${icon}"></i>
+                </div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-weight: 700; font-size: 0.92rem; color: #fff;">${sector}</span>
+                    ${isCurrent ? '<span style="background:rgba(99,102,241,0.3); color:#c4b5fd; border: 1px solid rgba(99,102,241,0.5); border-radius:20px; padding:1px 9px; font-size:0.7rem; font-weight:700;">EM ABERTO</span>' : ''}
+                  </div>
+                  <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">
+                    <i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${fmtDate(h.updated_at || h.created_at)}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status e Profissional -->
+              <div style="display: flex; align-items: center; gap: 8px;">
+                ${isSigned ? `
+                  <span style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #34d399; border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-circle-check"></i> Assinado
+                  </span>
+                ` : `
+                  <span style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-file-pen"></i> Rascunho / Em Andamento
+                  </span>
+                `}
+                <span style="font-size: 0.76rem; color: #cbd5e1; background: rgba(255,255,255,0.05); border-radius: 6px; padding: 3px 8px;">
+                  <i class="fa-solid fa-user-doctor" style="color: #818cf8; margin-right: 4px;"></i>${h.signed_by || h.doctorName || 'Dr. Médico Assistente'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Diagnóstico / CID-10 se houver -->
+            ${assSnippet ? `
+              <div style="background: rgba(14,165,233,0.08); border-left: 3px solid #0284c7; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; color: #e2e8f0;">
+                <strong style="color: #38bdf8;"><i class="fa-solid fa-stethoscope" style="margin-right: 4px;"></i>Hipótese Diagnóstica / CID-10:</strong> ${assSnippet}
+              </div>
+            ` : ''}
+
+            <!-- Snippets do SOAP -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; font-size: 0.78rem;">
+              ${subjSnippet ? `
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 12px; color: #cbd5e1;">
+                  <span style="font-weight: 700; color: #a78bfa; display: block; margin-bottom: 2px;">[S] Subjetivo / Queixa:</span>
+                  <div style="line-height: 1.4; color: #94a3b8;">${subjSnippet}</div>
+                </div>
+              ` : ''}
+              ${planSnippet ? `
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 12px; color: #cbd5e1;">
+                  <span style="font-weight: 700; color: #34d399; display: block; margin-bottom: 2px;">[P] Conduta / Plano:</span>
+                  <div style="line-height: 1.4; color: #94a3b8;">${planSnippet}</div>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Rodapé do Card com Ações -->
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 4px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+              <button type="button" class="btn btn-sm btn-view-pep" data-hist-id="${h.id}" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #c4b5fd; padding: 7px 16px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;">
+                <i class="fa-solid fa-eye"></i> Visualizar PEP Completo
+              </button>
+              ${!isSigned ? `
+                <button type="button" class="btn btn-sm btn-edit-pep" data-hist-id="${h.id}" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; padding: 7px 16px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(2,132,199,0.3); transition: 0.2s;">
+                  <i class="fa-solid fa-pen-to-square"></i> Continuar / Editar
+                </button>
+              ` : ''}
+            </div>
+          `;
+
+          // Eventos dos botões
+          card.querySelector('.btn-view-pep')?.addEventListener('click', () => {
+            window._showReadonlyPEP(h, container);
+          });
+          card.querySelector('.btn-edit-pep')?.addEventListener('click', () => {
+            window._editSpecificPEP(h.id);
+          });
+
           listEl.appendChild(card);
         });
       } catch (err) {
@@ -2848,55 +3079,70 @@ window.openPEPModal = async function(encounterId) {
       }
     };
 
-    // Função para exibir PEP histórico em modo leitura dentro do painel
+    // Função para exibir PEP histórico em modo leitura detalhado
     window._showReadonlyPEP = function(h, container) {
       function fmtDate(iso) {
         if (!iso) return '—';
         const d = new Date(iso);
-        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       }
       const soapFields = [
-        { label: 'Subjetivo (Anamnese & Queixa)', value: h.subjectiveContent || h.notes?.subjectiveContent },
-        { label: 'Objetivo (Exame Físico)', value: h.objectiveContent || h.notes?.objectiveContent },
-        { label: 'Avaliação / CID-10', value: h.assessmentContent || h.notes?.assessmentContent },
-        { label: 'Plano Terapêutico', value: h.planContent || h.notes?.planContent },
+        { label: 'Subjetivo (Anamnese & Queixa Principal)', value: h.subjectiveContent || h.notes?.subjectiveContent, icon: 'fa-user-pen', color: '#a78bfa' },
+        { label: 'Objetivo (Exame Físico & Sinais Vitais)', value: h.objectiveContent || h.notes?.objectiveContent, icon: 'fa-heart-pulse', color: '#38bdf8' },
+        { label: 'Avaliação & Diagnóstico (CID-10)', value: h.assessmentContent || h.notes?.assessmentContent, icon: 'fa-stethoscope', color: '#f59e0b' },
+        { label: 'Plano Terapêutico & Prescrição', value: h.planContent || h.notes?.planContent, icon: 'fa-prescription', color: '#34d399' },
       ];
       container.innerHTML = `
-        <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px;">
-          <button onclick="window._renderPEPHistory(document.getElementById('pep-history-panel'), '${h.id}'); document.getElementById('pep-history-panel').dataset.loaded='1';" 
-            style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem;">
-            <i class="fa-solid fa-arrow-left" style="margin-right:6px;"></i>Voltar ao Histórico
-          </button>
-          <div>
-            <span style="font-weight:700; color:#c4b5fd;">Ala: ${h.sector || h.room || 'Atendimento'}</span>
-            <span style="color:var(--text-muted); font-size:0.78rem; margin-left:10px;">${fmtDate(h.created_at)}</span>
-            ${h.signed_by ? `<span style="color:var(--text-muted); font-size:0.78rem; margin-left:8px;">· ${h.signed_by}</span>` : ''}
+        <div style="margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button type="button" id="btn-back-to-pep-list"
+              style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; transition: 0.2s;" onmouseover="this.style.borderColor='#818cf8'" onmouseout="this.style.borderColor='var(--border-color)'">
+              <i class="fa-solid fa-arrow-left"></i> Voltar para Lista de PEPs
+            </button>
+            <div>
+              <span style="font-weight: 700; color: #fff; font-size: 0.95rem;">Ala / Setor: ${h.sector || h.room || 'Atendimento'}</span>
+              <span style="color: #94a3b8; font-size: 0.78rem; margin-left: 10px;">${fmtDate(h.updated_at || h.created_at)}</span>
+              ${h.signed_by ? `<span style="color: #34d399; font-size: 0.78rem; margin-left: 10px;">· <i class="fa-solid fa-circle-check"></i> ${h.signed_by}</span>` : ''}
+            </div>
           </div>
+          <button type="button" id="btn-readonly-new-pep" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; font-size: 0.82rem; font-weight: 700; border-radius: 10px; padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2,132,199,0.35);">
+            <i class="fa-solid fa-plus-circle"></i> Incluir Novo PEP
+          </button>
         </div>
-        <div style="display:flex; flex-direction:column; gap:12px;">
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
           ${soapFields.map(f => f.value ? `
-            <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px; padding:14px 16px;">
-              <div style="font-size:0.75rem; font-weight:700; color:#818cf8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;">${f.label}</div>
-              <div style="font-size:0.875rem; color:var(--text-primary); white-space:pre-wrap; line-height:1.6;">${f.value}</div>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px 18px;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: ${f.color}; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid ${f.icon}"></i> ${f.label}
+              </div>
+              <div style="font-size: 0.88rem; color: #e2e8f0; white-space: pre-wrap; line-height: 1.6;">${f.value}</div>
             </div>
           ` : '').join('')}
-          ${soapFields.every(f => !f.value) ? '<div style="color:var(--text-muted); text-align:center; padding:24px;">Nenhuma evolução registrada neste atendimento.</div>' : ''}
+          ${soapFields.every(f => !f.value) ? '<div style="color:var(--text-muted); text-align:center; padding:32px; background:rgba(255,255,255,0.02); border-radius:12px;">Nenhuma evolução clínica registrada neste atendimento específico.</div>' : ''}
+        </div>
+
+        <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b;">
+          <span>Autenticado sob Resolução CFM nº 1.821 / ICP-Brasil</span>
+          <button type="button" onclick="document.getElementById('btn-back-to-pep-list')?.click()" class="btn btn-sm" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
+            <i class="fa-solid fa-arrow-left"></i> Voltar à Lista
+          </button>
         </div>
       `;
+
+      container.querySelector('#btn-back-to-pep-list')?.addEventListener('click', () => {
+        window._renderPEPHistory(container, h.id);
+      });
+      container.querySelector('#btn-readonly-new-pep')?.addEventListener('click', () => {
+        if (typeof window._pepStartNewEvolution === 'function') window._pepStartNewEvolution();
+      });
     };
 
-    // Inicializar badge do histórico
-    (async () => {
-      try {
-        const db = window.localDB ? window.localDB.getFullDB() : {};
-        const allEncs = db.encounters || [];
-        const currentEnc = allEncs.find(e => String(e.id) === String(encounterId)) || {};
-        const pid = currentEnc.patientId || encounterId;
-        const count = allEncs.filter(e => String(e.patientId) === String(pid)).length;
-        const badge = document.getElementById('pep-history-badge');
-        if (badge) badge.textContent = count;
-      } catch(e) {}
-    })();
+    // Renderizar histórico imediatamente ao abrir o PEP para que a listagem apareça de pronto
+    const initialHistPanel = document.getElementById('pep-history-panel');
+    if (initialHistPanel) {
+      window._renderPEPHistory(initialHistPanel, enc.id || encounterId);
+    }
 
   } catch (e) {
     document.getElementById('pep-modal-body').innerHTML = `
@@ -3184,18 +3430,17 @@ async function savePEPData(encounterId, shouldFinalize) {
       if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
       if (typeof renderTabContent === 'function' && state.activeTab === 'atendimento') renderTabContent();
     } else {
-      if (typeof window.showFlowCompletionNotification === 'function') {
-        window.showFlowCompletionNotification({
-          actionTitle: 'Rascunho do Prontuário Salvo',
-          message: 'O rascunho da evolução foi salvo.',
-          targetTab: 'consultorios',
-          targetTabLabel: 'Consultórios'
-        });
-      } else {
-        showToast('Prontuário salvo como rascunho com sucesso!');
+      if (typeof showToast === 'function') {
+        showToast('✅ Rascunho da evolução clínica salvo com sucesso!');
       }
-      const modal = document.getElementById('pep-modal');
-      if (modal) modal.remove();
+      const histPanel = document.getElementById('pep-history-panel');
+      if (histPanel && typeof window._renderPEPHistory === 'function') {
+        await window._renderPEPHistory(histPanel, encounterId);
+        window._pepSwitchTab('history');
+      } else {
+        const modal = document.getElementById('pep-modal');
+        if (modal) modal.remove();
+      }
     }
   } catch (e) {
     showToast('Erro ao salvar prontuário.');
