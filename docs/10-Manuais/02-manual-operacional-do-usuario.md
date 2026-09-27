@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.6)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.7)
 
-> **Health Nexus v2.9.6 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.7 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -94,7 +94,7 @@ flowchart TD
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
 - 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
 - 19. [Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0)](#sec-19)
-- 20. [Smart Flow Guide — Painel Lateral Acoplado (Dock) & Desacoplamento Fluido por Arrasto (v2.9.6)](#sec-20)
+- 20. [Smart Flow Guide — Painel Lateral Acoplado (Dock) & Inicialização no Dashboard (v2.9.7)](#sec-20)
 
 ---
 
@@ -910,9 +910,17 @@ O **Health Nexus v2.8.0** consolida 6 pilares de alta complexidade hospitalar e 
 
 ---
 
-<h2 id="sec-20">20. Smart Flow Guide — Painel Lateral Acoplado (Dock) & Desacoplamento Fluido por Arrasto (v2.9.6) 🧭</h2>
+<h2 id="sec-20">20. Smart Flow Guide — Painel Lateral Acoplado (Dock) & Inicialização no Dashboard (v2.9.7) 🧭</h2>
 
-O **Smart Flow Guide** funciona como a bússola operacional do plantão, acompanhando a equipe em qualquer tela do sistema. Na versão **2.9.6**, ele ganhou acoplamento lateral inteligente (*Snap-to-Edge*), permitindo transformar o card flutuante em uma barra lateral dedicada e sem obstruir nenhum botão ou tabela de atendimento.
+O **Smart Flow Guide** funciona como a bússola operacional do plantão, acompanhando a equipe em qualquer tela do sistema. Na versão **2.9.7**, ele consolida a inicialização automática no **Dashboard Principal** e o acoplamento lateral inteligente (*Snap-to-Edge*), permitindo transformar o card flutuante em uma barra lateral dedicada e sem obstruir nenhum botão ou tabela de atendimento.
+
+### 🏠 Inicialização Padrão no Dashboard & Consistência do Guia de Fluxo (v2.9.7)
+
+Ao entrar no complexo hospitalar — seja no primeiro acesso, após novo login ou na recuperação de sessão —, o sistema abre obrigatoriamente no **Dashboard Principal** (Painel Geral):
+
+- **Visão Imediata do Plantão:** A equipe já inicia o turno com os indicadores clínicos, volume de atendimentos e ocupação hospitalar consolidados na tela.
+- **Comportamento Idêntico e Integrado do Card de Fluxo:** O Smart Flow Guide se posiciona de forma consistente, exibindo a etapa inicial de acolhimento (Recepção), orientando o cadastro de novos pacientes ou localização na fila, mantendo preservada a sua preferência de fixação (painel acoplado ou card flutuante).
+- **Retorno Rápido ao Dashboard:** Clicar na logo da instituição ou no título principal *Health Nexus* no topo do sistema retorna instantaneamente ao Dashboard a partir de qualquer módulo operacional.
 
 ### 🎯 Como Funciona o Acoplamento Lateral (Dock)
 
@@ -947,4 +955,4 @@ Quando acoplado à lateral, o Smart Flow Guide oferece uma visão panorâmica e 
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.6 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.7 do Health Nexus. Todos os direitos reservados.*

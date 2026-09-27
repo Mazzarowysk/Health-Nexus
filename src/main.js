@@ -3567,6 +3567,13 @@ const initializeApp = async () => {
     clearTimeout(loaderSafetyTimer);
 
     if (authValid) {
+      // Define a aba Dashboard como padrão ao entrar no sistema
+      const userPerms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : null;
+      state.activeTab = (userPerms?.allowedTabs?.includes('dashboard')) ? 'dashboard' : (userPerms?.allowedTabs?.[0] || 'dashboard');
+      _SFG.activeTab = state.activeTab;
+      _SFG.hidden = false;
+      _SFG.minimized = false;
+
       const fullDB = localDB.getFullDB();
       if (Object.keys(fullDB).length === 0 || (fullDB.medications && fullDB.medications.length > 0 && fullDB.medications[0].stockQuantity === undefined)) {
         console.log('[Init] Banco de dados vazio detectado. Gerando dados simulados iniciais...');
@@ -3661,6 +3668,8 @@ const logout = () => {
   state.isAuthenticated = false;
   state.token = null;
   state.user = null;
+  state.activeTab = 'dashboard';
+  _SFG.activeTab = 'dashboard';
   renderAuthScreen();
 };
 
@@ -4445,11 +4454,13 @@ function renderAuthScreen() {
             state.isAuthenticated = true;
             state.token = data.token;
             state.user = data.user;
+            const loginPerms = (typeof getRolePermissions === 'function') ? getRolePermissions(data.user) : null;
+            state.activeTab = (loginPerms?.allowedTabs?.includes('dashboard')) ? 'dashboard' : (loginPerms?.allowedTabs?.[0] || 'dashboard');
             _SFG.hidden = false;
             _SFG.minimized = false;
             _SFG.pos = null;
             _SFG.pendingAction = null;
-            _SFG.activeTab = 'dashboard';
+            _SFG.activeTab = state.activeTab;
             showToast('Login realizado com sucesso!');
             initializeApp();
             // Garante que o card de fluxo aparece imediatamente logo após o login
@@ -4709,9 +4720,9 @@ function renderAppStructure() {
 
   const visibleNavItems = allNavItems.filter(item => perms.allowedTabs.includes(item.id));
 
-  // Ajusta aba ativa caso a atual não seja permitida para o perfil
-  if (!perms.allowedTabs.includes(state.activeTab)) {
-    state.activeTab = perms.allowedTabs[0] || 'dashboard';
+  // Garante que o padrão ao entrar no sistema é sempre a aba Dashboard (caso o perfil possua acesso)
+  if (!state.activeTab || !perms.allowedTabs.includes(state.activeTab)) {
+    state.activeTab = perms.allowedTabs.includes('dashboard') ? 'dashboard' : (perms.allowedTabs[0] || 'dashboard');
   }
 
   const navHtml = visibleNavItems.map(item => {
@@ -4738,7 +4749,7 @@ function renderAppStructure() {
     <div class="app-container">
       <!-- Sidebar de Navegação -->
       <aside class="app-sidebar">
-        <div class="brand-logo">
+        <div class="brand-logo" style="cursor: pointer;" onclick="if(typeof window.switchTab === 'function') window.switchTab('dashboard');" title="Ir para o Dashboard Principal">
           <div class="brand-logo-card">
             <img src="/assets/logo.png" alt="Health Nexus" class="brand-logo-img">
           </div>
@@ -4772,7 +4783,7 @@ function renderAppStructure() {
             <i class="fa-solid fa-arrow-left"></i>
             <span id="global-back-label">Voltar</span>
           </button>
-          <h1 class="page-title" id="page-title-label" style="margin: 0;">Health Nexus</h1>
+          <h1 class="page-title" id="page-title-label" style="margin: 0; cursor: pointer;" onclick="if(typeof window.switchTab === 'function') window.switchTab('dashboard');" title="Ir para o Dashboard Principal">Health Nexus</h1>
           <div class="header-brand-text" style="margin: 0;">
             <i class="fa-solid fa-circle-nodes"></i>
             <span>Sistema de Gestão Hospitalar Health Nexus</span>
