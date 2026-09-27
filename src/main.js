@@ -181,6 +181,7 @@ const _SFG = {
   active: true,
   minimized: false,
   hidden: false,
+  docked: (typeof localStorage !== 'undefined' && localStorage.getItem('hn_flow_docked') === 'true'),
   steps: [
     { tab: 'pacientes',    icon: '🏥', label: 'Recepção'    },
     { tab: 'atendimento',  icon: '🩺', label: 'Triagem'     },
@@ -2159,49 +2160,85 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   const evalResult = evaluateClinicalPossibilities(effectivePatient, _SFG.activeTab);
   const currentStageIdx = typeof evalResult.currentStage === 'number' ? evalResult.currentStage : 0;
 
-  const card = document.createElement('div');
-  card.id = 'hn-flow-guide';
-  card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '');
-  
-  // Posicionamento seguro contra coordenadas fora do viewport
-  const defaultPos = 'bottom:22px !important;right:22px !important;';
-  let customPos = defaultPos;
-  if (_SFG.pos && _SFG.pos.left && _SFG.pos.top) {
-    const pLeft = parseInt(_SFG.pos.left, 10);
-    const pTop = parseInt(_SFG.pos.top, 10);
-    const maxW = (typeof window !== 'undefined' ? window.innerWidth : 1920) - 120;
-    const maxH = (typeof window !== 'undefined' ? window.innerHeight : 1080) - 120;
-    if (!isNaN(pLeft) && !isNaN(pTop) && pLeft >= 0 && pLeft < maxW && pTop >= 0 && pTop < maxH) {
-      customPos = 'left:' + _SFG.pos.left + ' !important;top:' + _SFG.pos.top + ' !important;bottom:auto !important;right:auto !important;';
-    } else {
-      _SFG.pos = null;
-    }
+  const isDocked = !!(_SFG.docked && !_SFG.minimized);
+
+  // Sincroniza a classe de adaptação do layout do sistema
+  if (isDocked) {
+    document.body.classList.add('hn-flow-docked-right');
+  } else {
+    document.body.classList.remove('hn-flow-docked-right');
   }
 
-  // Largura compacta e proporcional (375px)
-  const cardWidth = _SFG.minimized ? 'auto !important' : '375px !important';
+  const card = document.createElement('div');
+  card.id = 'hn-flow-guide';
+  card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '') + (isDocked ? ' docked-panel' : '');
 
-  card.setAttribute('style', [
-    'position:fixed !important',
-    customPos,
-    'width:' + cardWidth,
-    'max-width:calc(100vw - 28px) !important',
-    'background:rgba(11,15,25,0.95) !important',
-    'backdrop-filter:blur(24px) saturate(180%) !important',
-    '-webkit-backdrop-filter:blur(24px) saturate(180%) !important',
-    'border:1px solid rgba(255,255,255,0.09) !important',
-    'border-top:2px solid #0284c7 !important',
-    'border-radius:16px !important',
-    'box-shadow:0 24px 48px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1) !important',
-    'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
-    'color:#f8fafc !important',
-    'z-index:2147483647 !important',
-    'overflow:hidden !important',
-    'user-select:none !important',
-    'transition:width 0.2s ease, box-shadow 0.2s ease !important'
-  ].join(';'));
+  // Posicionamento e dimensões
+  if (isDocked) {
+    card.setAttribute('style', [
+      'position:fixed !important',
+      'top:0 !important',
+      'right:0 !important',
+      'bottom:0 !important',
+      'left:auto !important',
+      'width:var(--hn-flow-panel-width, 420px) !important',
+      'max-width:100vw !important',
+      'height:100vh !important',
+      'background:rgba(11,15,25,0.98) !important',
+      'backdrop-filter:blur(28px) saturate(180%) !important',
+      '-webkit-backdrop-filter:blur(28px) saturate(180%) !important',
+      'border:none !important',
+      'border-left:2px solid #0284c7 !important',
+      'border-radius:0 !important',
+      'box-shadow:-12px 0 45px rgba(0,0,0,0.8), inset 1px 0 0 rgba(255,255,255,0.08) !important',
+      'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
+      'color:#f8fafc !important',
+      'z-index:2147483647 !important',
+      'overflow:hidden !important',
+      'display:flex !important',
+      'flex-direction:column !important',
+      'user-select:none !important'
+    ].join(';'));
+  } else {
+    const defaultPos = 'bottom:22px !important;right:22px !important;';
+    let customPos = defaultPos;
+    if (_SFG.pos && _SFG.pos.left && _SFG.pos.top) {
+      const pLeft = parseInt(_SFG.pos.left, 10);
+      const pTop = parseInt(_SFG.pos.top, 10);
+      const maxW = (typeof window !== 'undefined' ? window.innerWidth : 1920) - 120;
+      const maxH = (typeof window !== 'undefined' ? window.innerHeight : 1080) - 120;
+      if (!isNaN(pLeft) && !isNaN(pTop) && pLeft >= 0 && pLeft < maxW && pTop >= 0 && pTop < maxH) {
+        customPos = 'left:' + _SFG.pos.left + ' !important;top:' + _SFG.pos.top + ' !important;bottom:auto !important;right:auto !important;';
+      } else {
+        _SFG.pos = null;
+      }
+    }
+    const cardWidth = _SFG.minimized ? 'auto !important' : '375px !important';
 
+    card.setAttribute('style', [
+      'position:fixed !important',
+      customPos,
+      'width:' + cardWidth,
+      'max-width:calc(100vw - 28px) !important',
+      'background:rgba(11,15,25,0.95) !important',
+      'backdrop-filter:blur(24px) saturate(180%) !important',
+      '-webkit-backdrop-filter:blur(24px) saturate(180%) !important',
+      'border:1px solid rgba(255,255,255,0.09) !important',
+      'border-top:2px solid #0284c7 !important',
+      'border-radius:16px !important',
+      'box-shadow:0 24px 48px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1) !important',
+      'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
+      'color:#f8fafc !important',
+      'z-index:2147483647 !important',
+      'overflow:hidden !important',
+      'user-select:none !important',
+      'transition:width 0.2s ease, box-shadow 0.2s ease !important'
+    ].join(';'));
+  }
+
+  // Visual Minimizado (Pílula compacta)
   if (_SFG.minimized) {
+    document.body.classList.remove('hn-flow-docked-right');
     const miniPill = document.createElement('div');
     miniPill.setAttribute('style', 'display:flex;align-items:center;gap:9px;padding:8px 15px;background:rgba(11,15,25,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-top:2px solid #0284c7;border-radius:28px;box-shadow:0 12px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.1);cursor:pointer;transition:transform 0.2s,border-color 0.2s;');
     miniPill.innerHTML = '<div style="width:24px;height:24px;border-radius:50%;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
@@ -2220,30 +2257,50 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     return card;
   }
 
-  // Header com Minimizar [-] e Ocultar [✕]
+  // Header do Card / Painel
   const hdr = document.createElement('div');
   hdr.id = 'hn-fg-header';
-  hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);cursor:grab;');
   
   const roleBadgeHtml = evalResult.isMasterOrDev
     ? '<span style="font-size:0.58rem;font-weight:700;color:#fbbf24;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.28);padding:2px 6px;border-radius:6px" title="Perfil Master & Dev">👑 Master</span>'
     : '<span style="font-size:0.58rem;font-weight:700;color:#38bdf8;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);padding:2px 6px;border-radius:6px">' + (evalResult.userRoleLabel || 'Usuário') + '</span>';
 
-  hdr.innerHTML = '<div style="display:flex;align-items:center;gap:7px">'
-    + '<div style="width:24px;height:24px;border-radius:6px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
-    + '<span style="font-weight:700;font-size:0.82rem;color:#f8fafc;letter-spacing:-0.2px">Governança Clínica</span>'
-    + roleBadgeHtml
-    + '<span style="font-size:0.58rem;font-weight:700;color:#94a3b8;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);padding:1px 6px;border-radius:8px">Etapa ' + (currentStageIdx + 1) + '/7</span>'
-    + '</div>'
-    + '<div style="display:flex;align-items:center;gap:5px">'
-    + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
-    + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
-    + '</div>';
+  if (isDocked) {
+    // Header no Modo Painel Acoplado
+    hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.025);cursor:grab;flex-shrink:0;');
+    hdr.title = 'Clique e arraste para a esquerda para desacoplar como card flutuante';
+    hdr.innerHTML = '<div style="display:flex;align-items:center;gap:8px">'
+      + '<i class="fa-solid fa-grip-lines-vertical" style="color:#64748b;font-size:0.85rem;" title="Alça de arrasto: puxe para o centro para desacoplar"></i>'
+      + '<div style="width:26px;height:26px;border-radius:6px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
+      + '<span style="font-weight:700;font-size:0.84rem;color:#f8fafc;letter-spacing:-0.2px">Painel de Governança</span>'
+      + roleBadgeHtml
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:5px">'
+      + '<button id="hn-fg-undock" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Desacoplar para card flutuante menor (ou arraste para o centro)"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>'
+      + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
+      + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
+      + '</div>';
+  } else {
+    // Header no Modo Card Flutuante
+    hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);cursor:grab;');
+    hdr.title = 'Clique e arraste para posicionar. Arraste até a lateral direita para fixar como Painel do Sistema.';
+    hdr.innerHTML = '<div style="display:flex;align-items:center;gap:7px">'
+      + '<div style="width:24px;height:24px;border-radius:6px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
+      + '<span style="font-weight:700;font-size:0.82rem;color:#f8fafc;letter-spacing:-0.2px">Governança Clínica</span>'
+      + roleBadgeHtml
+      + '<span style="font-size:0.58rem;font-weight:700;color:#94a3b8;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);padding:1px 6px;border-radius:8px">Etapa ' + (currentStageIdx + 1) + '/7</span>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:5px">'
+      + '<button id="hn-fg-dock-btn" style="background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.68rem;transition:all 0.15s" title="Fixar na lateral direita como Painel do Sistema (ou arraste até a borda)"><i class="fa-solid fa-table-columns"></i></button>'
+      + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
+      + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
+      + '</div>';
+  }
 
   // Stepper Conectado (7 etapas clínicas)
   const track = document.createElement('div');
   track.id = 'hn-fg-track';
-  track.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.18);');
+  track.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.18);flex-shrink:0;');
   track.innerHTML = _SFG.steps.map(function(s, i) {
     const done = currentStageIdx > i;
     const now = currentStageIdx === i;
@@ -2264,34 +2321,39 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '</div>' + sep;
   }).join('');
 
-  // Body
+  // Body Container
   const body = document.createElement('div');
   body.id = 'hn-fg-body';
-  body.setAttribute('style', 'padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;');
+  if (isDocked) {
+    body.className = 'hn-fg-docked-scroll';
+  } else {
+    body.setAttribute('style', 'padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;');
+  }
 
   // Metadados da tela atual
   const screenDetails = {
-    dashboard:    { name: 'Health Nexus', badge: 'Painel Geral' },
-    pacientes:    { name: 'Recepção & Pacientes', badge: 'Acolhimento' },
-    atendimento:  { name: 'Triagem Manchester', badge: 'Classificação' },
-    consultorios: { name: 'Consultórios Médicos', badge: 'Atendimento Clínico' },
-    medicos:      { name: 'Corpo Clínico & Salas', badge: 'Profissionais' },
-    farmacia:     { name: 'Farmácia Hospitalar', badge: 'Dispensação' },
-    leitos:       { name: 'Gestão de Leitos', badge: 'Internação' },
-    kanban:       { name: 'Kanban Hospitalar', badge: 'Linha de Cuidado' },
-    financeiro:   { name: 'Faturamento & TISS', badge: 'Faturamento' },
-    relatorios:   { name: 'Relatórios & Métricas', badge: 'Indicadores' },
-    tv_panel:     { name: 'Painel TV (Chamador)', badge: 'Sala de Espera' },
-    agenda:       { name: 'Agenda Médica', badge: 'Agendamentos' },
-    escalas:      { name: 'Escalas de Plantão', badge: 'Equipes' },
-    estagnacao:   { name: 'Alertas & Estagnação', badge: 'Gargalos' },
-    observacao:   { name: 'Sala de Observação PS', badge: 'Monitoramento Contínuo' },
-    configuracoes:{ name: 'Configurações', badge: 'Sistema' }
+    dashboard:    { name: 'Health Nexus', badge: 'Painel Geral', desc: 'Visão consolidada dos indicadores e fluxo do hospital.' },
+    pacientes:    { name: 'Recepção & Pacientes', badge: 'Acolhimento', desc: 'Entrada de pacientes e direcionamento imediato para a triagem.' },
+    atendimento:  { name: 'Triagem Manchester', badge: 'Classificação', desc: 'Aferição de sinais vitais, risco clínico e prioridade.' },
+    consultorios: { name: 'Consultórios Médicos', badge: 'Atendimento Clínico', desc: 'Anamnese SOAP, diagnóstico CID-10 e prescrição eletrônica.' },
+    medicos:      { name: 'Corpo Clínico & Salas', badge: 'Profissionais', desc: 'Gestão de plantões e consultórios ativos.' },
+    farmacia:     { name: 'Farmácia Hospitalar', badge: 'Dispensação', desc: 'Circuito fechado de medicamentos e checagem beira-leito.' },
+    leitos:       { name: 'Gestão de Leitos', badge: 'Internação', desc: 'Censo hospitalar, mapa de ocupação e transferências.' },
+    kanban:       { name: 'Kanban Hospitalar', badge: 'Linha de Cuidado', desc: 'Coordenação multidisciplinar e desospitalização ágil.' },
+    financeiro:   { name: 'Faturamento & TISS', badge: 'Faturamento', desc: 'Fechamento de guias e lotes XML TISS 4.01.' },
+    relatorios:   { name: 'Relatórios & Métricas', badge: 'Indicadores', desc: 'Indicadores de permanência, ocupação e qualidade.' },
+    tv_panel:     { name: 'Painel TV (Chamador)', badge: 'Sala de Espera', desc: 'Chamada audiovisual e direcionamento aos consultórios.' },
+    agenda:       { name: 'Agenda Médica', badge: 'Agendamentos', desc: 'Controle de consultas ambulatoriais e confirmações.' },
+    escalas:      { name: 'Escalas de Plantão', badge: 'Equipes', desc: 'Escalas médicas e de enfermagem.' },
+    estagnacao:   { name: 'Alertas & Estagnação', badge: 'Gargalos', desc: 'Monitoramento em tempo real de pacientes com espera excessiva.' },
+    observacao:   { name: 'Sala de Observação PS', badge: 'Monitoramento Contínuo', desc: 'Cuidados intensivos e monitorização de até 24h no PS.' },
+    configuracoes:{ name: 'Configurações', badge: 'Sistema', desc: 'Parâmetros operacionais e gestão de acessos.' }
   };
 
   const curScreen = screenDetails[_SFG.activeTab] || {
     name: _SFG.activeTab.charAt(0).toUpperCase() + _SFG.activeTab.slice(1),
-    badge: 'Módulo'
+    badge: 'Módulo',
+    desc: 'Operação assistencial.'
   };
 
   const currentScreenHtml = '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">'
@@ -2359,21 +2421,39 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       locationLabel = evalResult.stageName || 'Em Atendimento';
     }
 
+    const safePName = (pName || '').replace(/'/g, "\\'");
+
     patientStrip = '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
       + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
       + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;color:#a5b4fc;font-size:0.7rem;flex-shrink:0"><i class="fa-solid fa-user"></i></div>'
       + '<div style="min-width:0;line-height:1.2">'
-      + '<div style="font-size:0.8rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">' + pName + '</div>'
+      + '<div style="font-size:0.8rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:' + (isDocked ? '240px' : '180px') + '">' + pName + '</div>'
       + '<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:6px;background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';color:' + rInfo.text + '">' + rInfo.label + '</span></div>'
       + '</div>'
       + '</div>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.22);border-radius:6px;padding:3px 8px;font-size:0.68rem">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,0.22);border-radius:6px;padding:3px 8px;font-size:0.68rem">'
+      + '<div style="display:flex;align-items:center;gap:5px;min-width:0">'
       + '<span style="font-size:0.75rem">' + locationIcon + '</span>'
       + '<span style="color:#94a3b8;font-weight:600">Local:</span>'
       + '<span style="color:#e2e8f0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + locationLabel + '</span>'
       + '</div>'
+      + (isDocked ? '<div style="display:flex;align-items:center;gap:4px">'
+        + '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); if(typeof window.openPEPModal===\'function\') window.openPEPModal(\'' + safePName + '\');" style="background:#0284c7;color:#fff;border:none;padding:2px 7px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;" title="Abrir PEP / Prontuário">PEP ➔</button>'
+        + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  } else if (isDocked) {
+    patientStrip = '<div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:10px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">'
+      + '<div style="display:flex;align-items:center;gap:7px">'
+      + '<span style="font-size:0.9rem;color:#64748b">👤</span>'
+      + '<div style="line-height:1.2">'
+      + '<div style="font-size:0.75rem;font-weight:600;color:#94a3b8">Nenhum paciente selecionado</div>'
+      + '<div style="font-size:0.64rem;color:#64748b">Selecione na Recepção ou Triagem</div>'
+      + '</div>'
+      + '</div>'
+      + '<button onclick="if(typeof window.switchTab===\'function\') window.switchTab(\'pacientes\');" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;padding:3px 8px;border-radius:5px;font-size:0.64rem;font-weight:700;cursor:pointer;">Ver Lista</button>'
       + '</div>';
   }
 
@@ -2498,6 +2578,51 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     `;
   }
 
+  // Radar Hospitalar em Tempo Real (Apenas no Modo Painel Acoplado)
+  let radarHtml = '';
+  if (isDocked) {
+    let patCount = 0, waitTri = 0, waitDoc = 0, occBeds = 0, totalBeds = 0;
+    try {
+      if (typeof localDB !== 'undefined' && localDB.list) {
+        const pats = localDB.list('patients') || [];
+        patCount = pats.length;
+        const encs = localDB.list('encounters') || [];
+        waitTri = encs.filter(e => !e.status || e.status.toLowerCase().includes('triag')).length;
+        waitDoc = encs.filter(e => e.status && (e.status.toLowerCase().includes('atend') || e.status.toLowerCase().includes('espera'))).length;
+        const beds = localDB.list('beds') || [];
+        totalBeds = beds.length;
+        occBeds = beds.filter(b => b.status === 'Ocupado' || b.occupied).length;
+      }
+    } catch (_) {}
+
+    radarHtml = `
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 10px 12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px">Radar Hospitalar</span>
+          <span style="font-size:0.58rem;font-weight:700;color:#10b981;background:rgba(16,185,129,0.15);padding:1px 6px;border-radius:6px">Ao Vivo</span>
+        </div>
+        <div class="hn-fg-radar-grid">
+          <div class="hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('pacientes');" title="Ir para Recepção & Pacientes">
+            <span style="font-size:0.62rem;color:#94a3b8">🏥 Recepção</span>
+            <span style="font-size:0.95rem;font-weight:700;color:#f8fafc">${patCount} <small style="font-size:0.6rem;color:#64748b">pacientes</small></span>
+          </div>
+          <div class="hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('atendimento');" title="Ir para Triagem Manchester">
+            <span style="font-size:0.62rem;color:#94a3b8">🩺 Triagem</span>
+            <span style="font-size:0.95rem;font-weight:700;color:#38bdf8">${waitTri} <small style="font-size:0.6rem;color:#64748b">fila</small></span>
+          </div>
+          <div class="hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('consultorios');" title="Ir para Consultórios Médicos">
+            <span style="font-size:0.62rem;color:#94a3b8">👨‍⚕️ Consultórios</span>
+            <span style="font-size:0.95rem;font-weight:700;color:#fbbf24">${waitDoc} <small style="font-size:0.6rem;color:#64748b">aguardando</small></span>
+          </div>
+          <div class="hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('leitos');" title="Ir para Gestão de Leitos">
+            <span style="font-size:0.62rem;color:#94a3b8">🛏️ Leitos</span>
+            <span style="font-size:0.95rem;font-weight:700;color:#34d399">${occBeds}/${totalBeds || 0} <small style="font-size:0.6rem;color:#64748b">ocupados</small></span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   // Bloco de Possibilidades Alternativas
   let possibilitiesHtml = '';
   if (evalResult.alternatives && evalResult.alternatives.length > 0) {
@@ -2524,11 +2649,22 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     + orderWarningHtml
     + customNotice
     + actionBlockHtml
+    + radarHtml
     + possibilitiesHtml;
 
   card.appendChild(hdr);
   card.appendChild(track);
   card.appendChild(body);
+
+  // Rodapé do Painel Acoplado com Dica de Desacoplamento
+  if (isDocked) {
+    const footer = document.createElement('div');
+    footer.setAttribute('style', 'padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;color:#94a3b8;flex-shrink:0;');
+    footer.innerHTML = '<span>💡 <strong>Dica:</strong> Arraste o cabeçalho para a esquerda para desacoplar.</span>'
+      + '<button id="hn-fg-undock-footer" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:0.7rem;"><i class="fa-solid fa-arrow-left"></i> Desacoplar</button>';
+    card.appendChild(footer);
+  }
+
   document.body.appendChild(card);
 
   // Minimizar
@@ -2537,6 +2673,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     minBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       _SFG.minimized = true;
+      document.body.classList.remove('hn-flow-docked-right');
       createSmartFlowGuideCard(_SFG.activeTab);
     });
   }
@@ -2547,6 +2684,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     closeBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       _SFG.minimized = true;
+      document.body.classList.remove('hn-flow-docked-right');
       createSmartFlowGuideCard(_SFG.activeTab);
       if (typeof showToast === 'function') {
         showToast('Guia de Fluxo minimizado para a barra compacta.');
@@ -2564,8 +2702,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     });
   }
 
-  // Ao clicar em qualquer botão de ação (principal ou chip alternativo),
-  // fechar/minimizar o card e deixar a ação navegar livremente
+  // Ao clicar em botões de ação fechar modais e atualizar
   const mainActionBtn = card.querySelector('#hn-fg-main-action');
   if (mainActionBtn) {
     mainActionBtn.addEventListener('click', function() {
@@ -2573,7 +2710,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         window.closeAllActiveModals();
       }
       setTimeout(function() {
-        _SFG.minimized = true;
+        if (!_SFG.docked) {
+          _SFG.minimized = true;
+        }
         const existingCard = document.getElementById('hn-flow-guide-card') || document.getElementById('hn-flow-guide');
         if (existingCard) existingCard.remove();
         createSmartFlowGuideCard(_SFG.activeTab);
@@ -2588,7 +2727,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         window.closeAllActiveModals();
       }
       setTimeout(function() {
-        _SFG.minimized = true;
+        if (!_SFG.docked) {
+          _SFG.minimized = true;
+        }
         const existingCard = document.getElementById('hn-flow-guide-card') || document.getElementById('hn-flow-guide');
         if (existingCard) existingCard.remove();
         createSmartFlowGuideCard(_SFG.activeTab);
@@ -2688,7 +2829,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         }
       }
 
-      // 2. Se for ação de admitir paciente na Central de Atendimentos
+      // Admitir paciente na Central de Atendimentos
       if (act.actionType === 'admit_patient' || (act.targetTab === 'atendimento' && act.targetPatientId && !act.targetStatus)) {
         if (typeof window.admitPatientFromPatientsTab === 'function') {
           window.admitPatientFromPatientsTab(act.targetPatientId, act.targetPatientName, act.targetPatientCpf);
@@ -2697,44 +2838,173 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         }
       }
 
-      // 3. Muda para a aba de destino
+      // Muda para a aba de destino
       if (act.targetTab && typeof window.switchTab === 'function') {
         window.switchTab(act.targetTab);
       }
 
-      // 4. Procura o card do paciente e aplica animação pulsante
+      // Procura o card do paciente e aplica animação pulsante
       if (typeof window.executePatientHighlight === 'function') {
         window.executePatientHighlight(act.targetPatientName, act.targetColumn);
       }
     });
   }
 
-  // Drag & drop com persistência de posição
-  let dx = 0, dy = 0, dragging = false;
-  hdr.addEventListener('mousedown', function(e) {
-    if (e.target === minBtn || e.target === closeBtn) return;
-    dragging = true;
-    const r = card.getBoundingClientRect();
-    dx = e.clientX - r.left;
-    dy = e.clientY - r.top;
-    hdr.style.cursor = 'grabbing';
-  });
-  document.addEventListener('mousemove', function(e) {
-    if (!dragging) return;
-    const newLeft = (e.clientX - dx);
-    const newTop = (e.clientY - dy);
-    card.style.left = newLeft + 'px';
-    card.style.top  = newTop + 'px';
-    card.style.right = 'auto';
-    card.style.bottom = 'auto';
-  });
-  document.addEventListener('mouseup', function() {
-    if (dragging) {
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LÓGICA DE ARRASTO & ACOPLAMENTO (DOCK / UNDOCK INTUITIVO)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (isDocked) {
+    // MODO PAINEL ACOPLADO:
+    // Clicar no cabeçalho e arrastar para a esquerda (centro da tela) desacopla o card!
+    let dockDragPending = false;
+    let dockStartX = 0;
+    let dockStartY = 0;
+
+    hdr.addEventListener('mousedown', function(e) {
+      if (e.target.closest('#hn-fg-undock, #hn-fg-min, #hn-fg-close, button, a')) return;
+      dockDragPending = true;
+      dockStartX = e.clientX;
+      dockStartY = e.clientY;
+      hdr.style.cursor = 'grabbing';
+    });
+
+    const onDockMouseMove = function(e) {
+      if (!dockDragPending) return;
+      const deltaX = dockStartX - e.clientX;
+      // Arrastou mais de 20px em direção ao centro da tela -> desacopla imediatamente!
+      if (deltaX > 20) {
+        dockDragPending = false;
+        document.removeEventListener('mousemove', onDockMouseMove);
+        document.removeEventListener('mouseup', onDockMouseUp);
+        _SFG.docked = false;
+        try { localStorage.setItem('hn_flow_docked', 'false'); } catch (_) {}
+        document.body.classList.remove('hn-flow-docked-right');
+
+        // Posição flutuante confortável onde o mouse estava
+        const initLeft = Math.max(10, Math.min(window.innerWidth - 385, e.clientX - 180));
+        const initTop = Math.max(10, Math.min(window.innerHeight - 250, e.clientY - 20));
+        _SFG.pos = { left: initLeft + 'px', top: initTop + 'px' };
+
+        createSmartFlowGuideCard(_SFG.activeTab);
+        if (typeof showToast === 'function') {
+          showToast('🧭 Guia de Fluxo desacoplado para card flutuante.');
+        }
+      }
+    };
+
+    const onDockMouseUp = function() {
+      dockDragPending = false;
+      hdr.style.cursor = 'grab';
+    };
+
+    document.addEventListener('mousemove', onDockMouseMove);
+    document.addEventListener('mouseup', onDockMouseUp);
+
+    // Botões de Desacoplar Manuais
+    const undockBtn = card.querySelector('#hn-fg-undock');
+    if (undockBtn) {
+      undockBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        _SFG.docked = false;
+        try { localStorage.setItem('hn_flow_docked', 'false'); } catch (_) {}
+        document.body.classList.remove('hn-flow-docked-right');
+        _SFG.pos = { left: (window.innerWidth - 410) + 'px', top: Math.max(60, window.innerHeight - 530) + 'px' };
+        createSmartFlowGuideCard(_SFG.activeTab);
+        if (typeof showToast === 'function') showToast('🧭 Guia de Fluxo desacoplado para card flutuante.');
+      });
+    }
+
+    const undockFooterBtn = card.querySelector('#hn-fg-undock-footer');
+    if (undockFooterBtn) {
+      undockFooterBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        _SFG.docked = false;
+        try { localStorage.setItem('hn_flow_docked', 'false'); } catch (_) {}
+        document.body.classList.remove('hn-flow-docked-right');
+        _SFG.pos = { left: (window.innerWidth - 410) + 'px', top: Math.max(60, window.innerHeight - 530) + 'px' };
+        createSmartFlowGuideCard(_SFG.activeTab);
+        if (typeof showToast === 'function') showToast('🧭 Guia de Fluxo desacoplado para card flutuante.');
+      });
+    }
+  } else {
+    // MODO CARD FLUTUANTE:
+    // Arrastar livremente pela tela. Ao aproximar e soltar na borda lateral direita, acopla como Painel!
+    let dx = 0, dy = 0, dragging = false;
+    let snapIndicator = document.getElementById('hn-dock-snap-indicator');
+    if (!snapIndicator) {
+      snapIndicator = document.createElement('div');
+      snapIndicator.id = 'hn-dock-snap-indicator';
+      document.body.appendChild(snapIndicator);
+    }
+
+    hdr.addEventListener('mousedown', function(e) {
+      if (e.target.closest('#hn-fg-dock-btn, #hn-fg-min, #hn-fg-close, button, a')) return;
+      dragging = true;
+      const r = card.getBoundingClientRect();
+      dx = e.clientX - r.left;
+      dy = e.clientY - r.top;
+      hdr.style.cursor = 'grabbing';
+    });
+
+    const onFloatMouseMove = function(e) {
+      if (!dragging) return;
+      const newLeft = (e.clientX - dx);
+      const newTop = (e.clientY - dy);
+      card.style.left = newLeft + 'px';
+      card.style.top  = newTop + 'px';
+      card.style.right = 'auto';
+      card.style.bottom = 'auto';
+
+      // Detecta proximidade com a lateral direita
+      const nearRightEdge = (e.clientX >= window.innerWidth - 85) || (newLeft + card.offsetWidth >= window.innerWidth - 30);
+      if (nearRightEdge) {
+        snapIndicator.classList.add('active');
+      } else {
+        snapIndicator.classList.remove('active');
+      }
+    };
+
+    const onFloatMouseUp = function(e) {
+      if (!dragging) return;
       dragging = false;
       hdr.style.cursor = 'grab';
-      _SFG.pos = { left: card.style.left, top: card.style.top };
+      if (snapIndicator) snapIndicator.classList.remove('active');
+
+      // Se soltou na borda lateral direita, acopla como Painel Lateral do Sistema!
+      const dropNearRight = (e.clientX >= window.innerWidth - 95) || (parseInt(card.style.left, 10) + card.offsetWidth >= window.innerWidth - 40);
+      if (dropNearRight) {
+        _SFG.docked = true;
+        try { localStorage.setItem('hn_flow_docked', 'true'); } catch (_) {}
+        document.body.classList.add('hn-flow-docked-right');
+        createSmartFlowGuideCard(_SFG.activeTab);
+        playFlowChime();
+        if (typeof showToast === 'function') {
+          showToast('🧭 Guia de Fluxo acoplado como Painel Lateral do Sistema.');
+        }
+      } else {
+        _SFG.pos = { left: card.style.left, top: card.style.top };
+      }
+    };
+
+    document.addEventListener('mousemove', onFloatMouseMove);
+    document.addEventListener('mouseup', onFloatMouseUp);
+
+    // Botão de acoplar rápido no header
+    const dockBtn = card.querySelector('#hn-fg-dock-btn');
+    if (dockBtn) {
+      dockBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        _SFG.docked = true;
+        try { localStorage.setItem('hn_flow_docked', 'true'); } catch (_) {}
+        document.body.classList.add('hn-flow-docked-right');
+        createSmartFlowGuideCard(_SFG.activeTab);
+        playFlowChime();
+        if (typeof showToast === 'function') {
+          showToast('🧭 Guia de Fluxo acoplado como Painel Lateral do Sistema.');
+        }
+      });
     }
-  });
+  }
 
   return card;
 }
@@ -4753,7 +5023,9 @@ function renderAppStructure() {
   if (flowGuideToggle) {
     flowGuideToggle.addEventListener('click', () => {
       _SFG.hidden = !_SFG.hidden;
-      if (!_SFG.hidden) {
+      if (_SFG.hidden) {
+        document.body.classList.remove('hn-flow-docked-right');
+      } else {
         _SFG.minimized = false;
       }
       createSmartFlowGuideCard(_SFG.activeTab);

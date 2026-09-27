@@ -5757,6 +5757,194 @@ tr.patient-pulse-selected td:last-child {
   border-style: solid !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SMART FLOW GUIDE — MODO PAINEL LATERAL ACOPLADO (DOCK / SNAP TO EDGE)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+:root {
+  --hn-flow-panel-width: 420px;
+}
+@media (max-width: 1400px) {
+  :root {
+    --hn-flow-panel-width: 380px;
+  }
+}
+@media (max-width: 1100px) {
+  :root {
+    --hn-flow-panel-width: 340px;
+  }
+}
+
+/* Transição suave do container do sistema ao acoplar/desacoplar */
+.app-container {
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Quando o painel lateral está acoplado, o sistema inteiro se adapta dinamicamente */
+body.hn-flow-docked-right .app-container {
+  width: calc(100vw - var(--hn-flow-panel-width)) !important;
+  max-width: calc(100vw - var(--hn-flow-panel-width)) !important;
+  margin-right: var(--hn-flow-panel-width) !important;
+}
+
+/* Indicador visual de acoplamento (Snap Dock Guide) ao arrastar o card próximo da lateral */
+#hn-dock-snap-indicator {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(180deg, rgba(2, 132, 199, 0.95), rgba(56, 189, 248, 0.95), rgba(14, 165, 233, 0.95));
+  box-shadow: -6px 0 28px rgba(2, 132, 199, 0.85), 0 0 20px rgba(56, 189, 248, 0.6);
+  z-index: 2147483646;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.22s ease, width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#hn-dock-snap-indicator.active {
+  width: 12px;
+  opacity: 1;
+}
+
+/* Painel lateral fixado na lateral direita */
+.floating-flow-guide.docked-panel {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  width: var(--hn-flow-panel-width, 420px) !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-left: 2px solid #0284c7 !important;
+  background: rgba(11, 15, 25, 0.97) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  box-shadow: -12px 0 45px rgba(0, 0, 0, 0.8), inset 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  z-index: 2147483647 !important;
+  overflow: hidden !important;
+  animation: slideInDock 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInDock {
+  from {
+    transform: translateX(30px);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Área de scroll interna do painel acoplado */
+.hn-fg-docked-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hn-fg-docked-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.hn-fg-docked-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15);
+}
+.hn-fg-docked-scroll::-webkit-scrollbar-thumb {
+  background: rgba(2, 132, 199, 0.4);
+  border-radius: 4px;
+}
+.hn-fg-docked-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.7);
+}
+
+/* Itens da Jornada Expandida no Painel Lateral */
+.hn-fg-docked-step-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.hn-fg-docked-step-item:hover {
+  background: rgba(2, 132, 199, 0.12);
+  border-color: rgba(2, 132, 199, 0.35);
+  transform: translateX(-2px);
+}
+
+.hn-fg-docked-step-item.active {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.22), rgba(15, 23, 42, 0.6));
+  border-color: #0284c7;
+  box-shadow: 0 0 16px rgba(2, 132, 199, 0.25);
+}
+
+.hn-fg-docked-step-item.completed {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Radar Hospitalar em Tempo Real dentro do Painel */
+.hn-fg-radar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.hn-fg-radar-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 9px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hn-fg-radar-card:hover {
+  background: rgba(2, 132, 199, 0.14);
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Botão de ação pulsante */
+.btn-next-step-pulse {
+  position: relative;
+  overflow: hidden;
+}
+.btn-next-step-pulse::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  animation: pulseLightSweep 2.5s infinite;
+}
+@keyframes pulseLightSweep {
+  0% { left: -100%; }
+  50%, 100% { left: 200%; }
+}
+
+
 
 
 

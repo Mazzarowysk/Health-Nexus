@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 
 export function buildCompleteManualMarkdown() {
-  return `# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.4)
+  return `# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.6)
 
-> **Health Nexus v2.9.4 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.6 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -98,6 +98,7 @@ flowchart TD
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
 - 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
 - 19. [Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0)](#sec-19)
+- 20. [Smart Flow Guide — Painel Lateral Acoplado (Dock) & Desacoplamento Fluido por Arrasto (v2.9.6)](#sec-20)
 
 ---
 
@@ -913,6 +914,44 @@ O **Health Nexus v2.8.0** consolida 6 pilares de alta complexidade hospitalar e 
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.8.0 do Health Nexus. Todos os direitos reservados.*
+<h2 id="sec-20">20. Smart Flow Guide — Painel Lateral Acoplado (Dock) & Desacoplamento Fluido por Arrasto (v2.9.6) 🧭</h2>
+
+O **Smart Flow Guide** funciona como a bússola operacional do plantão, acompanhando a equipe em qualquer tela do sistema. Na versão **2.9.6**, ele ganhou acoplamento lateral inteligente (*Snap-to-Edge*), permitindo transformar o card flutuante em uma barra lateral dedicada e sem obstruir nenhum botão ou tabela de atendimento.
+
+### 🎯 Como Funciona o Acoplamento Lateral (Dock)
+
+1. **Arrastar até a Borda Direita:** Ao clicar e arrastar o card flutuante em direção à margem direita da tela (a menos de 85 pixels da borda), surge uma barra luminosa vertical indicando o ponto de encaixe.
+2. **Soltar para Acoplar:** Soltando o mouse ou o toque sobre a área indicada, o guia se fixa na lateral direita em formato de painel estendido.
+3. **Botão Direto de Acoplamento:** Também é possível acoplar com um único clique no botão de fixação rápida presente no cabeçalho do card.
+4. **Adaptação Fluida do Espaço da Tela:** Assim que o painel é fixado, toda a área do sistema ajusta sua largura automaticamente (reservando 420px para o painel), garantindo que prontuários, tabelas e botões continuem 100% visíveis e clicáveis, sem sobreposição.
+
+### 🔄 Como Funciona o Desacoplamento (Undock) por Arrasto ou Clique
+
+- **Arrastar de Volta ao Centro:** Para soltar o painel, basta clicar e segurar o cabeçalho do painel lateral e puxá-lo em direção ao centro da tela. O painel se transforma suavemente de volta no card flutuante leve, seguindo o cursor do mouse até onde você desejar posicioná-lo.
+- **Botão de Desacoplamento:** Se preferir, basta clicar no ícone de desencaixe no topo ou no rodapé do painel lateral para retornar instantaneamente ao card compacto.
+- **Memorização de Preferência:** Sua escolha (acoplado ou flutuante) fica salva no navegador, mantendo seu espaço de trabalho do jeito que você organizou mesmo após recarregar a página.
+
+### 📋 Recursos Exclusivos do Painel Lateral Estendido
+
+Quando acoplado à lateral, o Smart Flow Guide oferece uma visão panorâmica e imediata do plantão:
+
+| Bloco de Informação | O que Apresenta | Ação Imediata com 1 Clique |
+|:---|:---|:---|
+| **Radar do Plantão ao Vivo** | Total de pacientes na recepção, triagem, consultórios, observação e leitos vagos | Clicar em qualquer setor para abrir a fila correspondente |
+| **Paciente em Foco** | Nome completo, idade, número de prontuário, tempo de espera e classificação de risco | Botão direto para abrir o Prontuário Eletrônico (PEP) ou chamar no Painel TV |
+| **Jornada de 7 Etapas** | Linha do tempo visual do paciente: Entrada, Triagem, Fila Médica, Atendimento, Exames/Observação, Internação e Desfecho | Identificar gargalos e atrasos no fluxo do paciente |
+| **Próxima Conduta Recomendada** | Instrução clara e objetiva sobre o próximo passo clínico ou administrativo | Redirecionamento com um toque para a tela de ação |
+| **Caminhos e Ações Disponíveis** | Chips rápidos para prescrever, solicitar leito, transferir ou fechar atendimento | Abertura dos respectivos modais sem precisar procurar nos menus |
+
+### 💡 Dicas de Produtividade no Plantão
+
+- **Em telas largas (Full HD ou superiores):** Mantenha o painel acoplado à direita durante todo o plantão para monitorar a fila de pacientes sem sair do prontuário ou da triagem.
+- **Em telas menores ou tablets:** Utilize o modo flutuante compacto e mova-o para o canto inferior direito para priorizar o espaço de digitação de anamnese e evolução.
+- **Agilidade na chamada:** Chame o próximo paciente no Painel de TV diretamente pelo botão de megafone no card ativo, sem trocar de aba.
+
+---
+
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.6 do Health Nexus. Todos os direitos reservados.*
 `;
 }
+
