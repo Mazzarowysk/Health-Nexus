@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.3)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.4)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.3 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
+<p><strong>Health Nexus v2.9.4 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -1013,6 +1013,29 @@ flowchart TD
 <li>Um botão em destaque no cabeçalho superior e no topo da lista permite abrir imediatamente uma folha limpa de evolução clínica (SOAP).</li>
 <li>No formulário de preenchimento, o cabeçalho exibe o botão <strong><code>← Voltar para Lista de PEPs</code></strong>, permitindo consultar dados anteriores sem perder o contexto do atendimento.</li>
 <li>Caso o paciente ainda não possua nenhum prontuário anterior (zero registros), o sistema apresenta uma tela inicial amigável com o botão <strong><code>➕ Incluir Primeiro PEP Agora</code></strong>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="sec-3-0-1">3.0.1. Alerta Pulsante de Observação > 12h & Governança Clínica (Resolução CFM nº 2.079/14)</h3><p>Em conformidade com a <strong>Resolução CFM nº 2.079/14</strong>, o tempo máximo de permanência de um paciente em leito de observação de Pronto-Socorro é de 24 horas, devendo a conduta médica definitiva (alta ou internação hospitalar) ser deliberada prioritariamente em até <strong>12 horas</strong>.</p>
+<p>Quando um paciente permanece em observação por tempo superior a 12 horas, o Health Nexus ativa uma dupla camada de governança clínica ao abrir o Prontuário Eletrônico:</p>
+<ol>
+<li><p><strong>Card de Observação Pulsante no Prontuário (<code>pep-obs-pulse-alert</code>):</strong></p>
+<ul>
+<li>Na aba <code>📋 Listagem de PEPs Existentes</code>, o card do registro de observação em aberto recebe uma <strong>animação pulsante contínua com halo luminoso de alerta</strong> (<code>pepObsCardPulse</code>), destacando-se de qualquer outro prontuário.</li>
+<li><strong>Badge de Alerta Temporal:</strong> Exibe o tempo decorrido ao vivo (<code>PERMANÊNCIA &gt; 12H (Xh Ymin) · CFM Nº 2.079/14</code>) com beacon pulsante.</li>
+<li><strong>Quadro Explicativo de Conduta Dupla:</strong><ul>
+<li>🚨 <strong>Possibilidade 1: Agravamento / Instabilidade Clínica:</strong> Sintomas persistentes, febre refratária, dessaturação (SpO₂ &lt; 94%) ou elevação do MEWS indicam falha da resposta inicial, tornando mandatória a <strong>Internação Hospitalar imediata em Leito (Enfermaria ou UTI)</strong>.</li>
+<li>🌿 <strong>Possibilidade 2: Estabilidade / Melhora Clínica:</strong> Paciente compensado, afebril, sinais vitais estabilizados e dor controlada indicam indicação de <strong>Alta Médica da Observação</strong> com orientações e prescrição de desospitalização.</li>
+</ul>
+</li>
+<li><strong>Ações Imediatas no Card:</strong> Botões diretos <code>[ 🛏️ Solicitar Internação (Agravo) ]</code> e <code>[ 🚪 Conceder Alta (Melhora) ]</code>, além de visualização e edição.</li>
+</ul>
+</li>
+<li><p><strong>Guia Lateral de Governança Clínica (Smart Flow Guide):</strong></p>
+<ul>
+<li>Ao lado do prontuário, o painel inteligente calcula em tempo real os <strong>parâmetros clínicos aferidos</strong> do paciente (PA, FC, Temp, SpO₂, MEWS e Classificação Manchester).</li>
+<li>Apresenta as instruções para a tomada de decisão médica, disponibilizando como ação primária o botão <strong><code>🛏️ Internar em Leito Hospitalar (Agravo) ➔</code></strong> e atalhos rápidos para <strong><code>🚪 Conceder Alta da Observação (Melhora)</code></strong> e <strong><code>💾 Salvar Evolução / Prescrição</code></strong>.</li>
 </ul>
 </li>
 </ol>

@@ -2280,6 +2280,9 @@ window.openPEPModal = async function(encounterId) {
     delete window._editSpecificPEP;
     delete window._showReadonlyPEP;
     modal.remove();
+    if (typeof window.createSmartFlowGuideCard === 'function') {
+      window.createSmartFlowGuideCard();
+    }
   });
 
   let enc = {};
@@ -2859,6 +2862,93 @@ window.openPEPModal = async function(encounterId) {
       }
     };
 
+    // Funções globais de ação clínica direta para pacientes em observação
+    window.finishObservationDirectly = async function(encId, patientName) {
+      const pName = patientName || 'o paciente';
+      const perms = (typeof getRolePermissions === 'function' && typeof state !== 'undefined' && state.user) 
+        ? getRolePermissions(state.user) 
+        : { canSignPEP: true, canManageBeds: true };
+
+      if (perms && !perms.canSignPEP && !perms.canManageBeds) {
+        if (typeof showCustomAlert === 'function') {
+          showCustomAlert({
+            title: 'Acesso Restrito',
+            message: `Seu perfil (${perms.label || 'Assistencial'}) não possui autorização para conceder alta médica.`,
+            type: 'warning'
+          });
+        } else {
+          alert('Acesso restrito para conceder alta.');
+        }
+        return;
+      }
+
+      const confirmed = typeof showCustomConfirm === 'function'
+        ? await showCustomConfirm({
+            title: 'Confirmar Alta da Observação',
+            message: `Deseja realmente homologar a <strong>ALTA MÉDICA DA OBSERVAÇÃO</strong> para o paciente <strong>${pName}</strong>?<br><br>Esta conduta indica resolução clínica, alta do pronto-socorro e liberação imediata de vaga na sala de observação.`,
+            confirmText: 'Sim, Homologar Alta',
+            cancelText: 'Cancelar',
+            type: 'warning'
+          })
+        : confirm(`Confirmar alta da observação para ${pName}?`);
+
+      if (!confirmed) return;
+
+      try {
+        const res = await apiFetch(`/api/encounters/${encId}/finish-observation`, { method: 'PUT' });
+        if (res.ok) {
+          if (typeof showToast === 'function') {
+            const nowTime = new Date().toLocaleTimeString('pt-BR').slice(0, 5);
+            showToast(`✅ Alta da observação concedida para ${pName} às ${nowTime}!`);
+          }
+          document.getElementById('pep-modal')?.remove();
+          if (typeof window.setActivePatientContext === 'function') {
+            window.setActivePatientContext({
+              id: encId,
+              fullName: pName,
+              patientName: pName,
+              status: 'Alta',
+              room: 'Alta Concedida'
+            });
+          }
+          if (typeof window.loadObservacaoData === 'function') {
+            await window.loadObservacaoData();
+          }
+          if (typeof window.loadAttendanceData === 'function') {
+            await window.loadAttendanceData();
+          }
+          if (typeof window.createSmartFlowGuideCard === 'function') {
+            window.createSmartFlowGuideCard();
+          }
+        } else {
+          if (typeof showToast === 'function') showToast('Erro ao registrar alta da observação.', true);
+        }
+      } catch (err) {
+        console.error('Erro ao conceder alta:', err);
+        if (typeof showToast === 'function') showToast('Erro de conexão ao processar alta.', true);
+      }
+    };
+
+    window.requestAdmitBed = function(patientId, patientName, encounterId) {
+      const pName = patientName || '';
+      const encId = encounterId || patientId || '';
+      
+      document.getElementById('pep-modal')?.remove();
+      
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('leitos');
+      }
+      
+      setTimeout(() => {
+        if (typeof window.openAdmitBedModal === 'function') {
+          window.openAdmitBedModal(patientId, pName, encId);
+        } else {
+          const btn = document.getElementById('btn-open-admit-modal');
+          if (btn) btn.click();
+        }
+      }, 250);
+    };
+
     // Renderizador da listagem de PEPs existentes do paciente
     window._renderPEPHistory = async function(container, currentEncId) {
       const sectorIcons = {
@@ -2961,7 +3051,7 @@ window.openPEPModal = async function(encounterId) {
               <i class="fa-solid fa-plus-circle"></i> Incluir Novo PEP
             </button>
           </div>
-          <div id="pep-history-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+          <div id="pep-history-list" style="display:flex; flex-direction:column; gap:14px;"></div>
         `;
 
         container.querySelector('#btn-pep-new-evolution-list')?.addEventListener('click', () => {
@@ -2975,15 +3065,48 @@ window.openPEPModal = async function(encounterId) {
           const sector = h.sector || h.room || 'Atendimento';
           const icon = iconForSector(sector);
           const isSigned = !!(h.status === 'Finalizado' || h.signed_by);
+
+          // Identificar se é observação em aberto e tempo decorrido (>12h)
+          const isObs = sector.toLowerCase().includes('observa') || String(h.room || '').toLowerCase().includes('observa');
+          const isObsOpen = isObs && !isSigned && h.status !== 'Finalizado' && h.status !== 'Alta';
+          
+          let isOver12h = false;
+          let elapsedStr = '';
+          let hoursPart = 0;
+          let minutesPart = 0;
+
+          if (isObsOpen) {
+            const entryDate = h.observation_started_at || h.admitted_at || h.admission_date || h.created_at || h.updated_at;
+            const entryTime = entryDate ? new Date(entryDate).getTime() : Date.now();
+            const diffMs = Math.max(0, Date.now() - entryTime);
+            hoursPart = Math.floor(diffMs / (1000 * 60 * 60));
+            minutesPart = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            elapsedStr = `${hoursPart}h ${minutesPart}min`;
+            if (hoursPart >= 12) {
+              isOver12h = true;
+            }
+          }
+
           const card = document.createElement('div');
-          card.style.cssText = `
-            background: ${isCurrent ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)'};
-            border: 1.5px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.08)'};
-            border-radius: 14px; padding: 16px 20px;
-            display: flex; flex-direction: column; gap: 12px;
-            transition: all 0.2s ease;
-            ${isCurrent ? 'box-shadow: 0 0 16px rgba(99,102,241,0.2);' : ''}
-          `;
+          if (isOver12h) {
+            card.className = 'pep-obs-pulse-alert';
+            card.style.cssText = `
+              background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(245, 158, 11, 0.08));
+              border: 2px solid #ef4444;
+              border-radius: 14px; padding: 18px 20px;
+              display: flex; flex-direction: column; gap: 14px;
+              transition: all 0.2s ease;
+            `;
+          } else {
+            card.style.cssText = `
+              background: ${isCurrent ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)'};
+              border: 1.5px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.08)'};
+              border-radius: 14px; padding: 16px 20px;
+              display: flex; flex-direction: column; gap: 12px;
+              transition: all 0.2s ease;
+              ${isCurrent ? 'box-shadow: 0 0 16px rgba(99,102,241,0.2);' : ''}
+            `;
+          }
 
           // Prévia dos campos SOAP
           const subjSnippet = h.subjectiveContent ? h.subjectiveContent.substring(0, 140) + (h.subjectiveContent.length > 140 ? '...' : '') : '';
@@ -2995,15 +3118,17 @@ window.openPEPModal = async function(encounterId) {
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-                  background: ${isCurrent ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.06)'};
-                  border: 1px solid ${isCurrent ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'};
-                  color: ${isCurrent ? '#a78bfa' : '#38bdf8'}; font-size: 1.05rem;">
+                  background: ${isOver12h ? 'rgba(239,68,68,0.25)' : (isCurrent ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.06)')};
+                  border: 1px solid ${isOver12h ? '#ef4444' : (isCurrent ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)')};
+                  color: ${isOver12h ? '#f87171' : (isCurrent ? '#a78bfa' : '#38bdf8')}; font-size: 1.05rem;">
                   <i class="fa-solid ${icon}"></i>
                 </div>
                 <div>
-                  <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span style="font-weight: 700; font-size: 0.92rem; color: #fff;">${sector}</span>
-                    ${isCurrent ? '<span style="background:rgba(99,102,241,0.3); color:#c4b5fd; border: 1px solid rgba(99,102,241,0.5); border-radius:20px; padding:1px 9px; font-size:0.7rem; font-weight:700;">EM ABERTO</span>' : ''}
+                    ${isOver12h 
+                      ? '<span style="background:rgba(239,68,68,0.35); color:#fca5a5; border: 1px solid #ef4444; border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:800;">EM ABERTO &bull; REAVALIAÇÃO URGENTE</span>' 
+                      : (isCurrent ? '<span style="background:rgba(99,102,241,0.3); color:#c4b5fd; border: 1px solid rgba(99,102,241,0.5); border-radius:20px; padding:1px 9px; font-size:0.7rem; font-weight:700;">EM ABERTO</span>' : '')}
                   </div>
                   <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">
                     <i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${fmtDate(h.updated_at || h.created_at)}
@@ -3012,8 +3137,13 @@ window.openPEPModal = async function(encounterId) {
               </div>
 
               <!-- Status e Profissional -->
-              <div style="display: flex; align-items: center; gap: 8px;">
-                ${isSigned ? `
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                ${isOver12h ? `
+                  <span style="background: linear-gradient(135deg, rgba(239,68,68,0.35), rgba(245,158,11,0.35)); color: #fecaca; border: 1.5px solid #ef4444; border-radius: 20px; padding: 3px 12px; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; animation: pepObsBadgePulse 1.8s infinite ease-in-out;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px #ef4444;"></span>
+                    PERMANÊNCIA > 12H (${elapsedStr}) · CFM Nº 2.079/14
+                  </span>
+                ` : (isSigned ? `
                   <span style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #34d399; border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
                     <i class="fa-solid fa-circle-check"></i> Assinado
                   </span>
@@ -3021,12 +3151,35 @@ window.openPEPModal = async function(encounterId) {
                   <span style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
                     <i class="fa-solid fa-file-pen"></i> Rascunho / Em Andamento
                   </span>
-                `}
+                `)}
                 <span style="font-size: 0.76rem; color: #cbd5e1; background: rgba(255,255,255,0.05); border-radius: 6px; padding: 3px 8px;">
                   <i class="fa-solid fa-user-doctor" style="color: #818cf8; margin-right: 4px;"></i>${h.signed_by || h.doctorName || 'Dr. Médico Assistente'}
                 </span>
               </div>
             </div>
+
+            <!-- Banner Explicativo CFM nº 2.079/14 para Observação > 12h -->
+            ${isOver12h ? `
+              <div style="background: rgba(239,68,68,0.12); border: 1.5px solid rgba(239,68,68,0.4); border-radius: 10px; padding: 12px 14px; font-size: 0.8rem; line-height: 1.45; color: #fee2e2;">
+                <div style="display:flex; align-items:center; gap:8px; font-weight:800; color:#f87171; margin-bottom: 4px;">
+                  <i class="fa-solid fa-triangle-exclamation" style="font-size: 1rem;"></i>
+                  <span>Diretriz CFM nº 2.079/14: Limite Regulamentar de 12h no PS Atingido</span>
+                </div>
+                <p style="margin: 0 0 8px; color: #cbd5e1; font-size: 0.78rem;">
+                  O paciente permanece em observação há <strong>${elapsedStr}</strong>. Pela governança clínica hospitalar, é mandatória a definição imediata da conduta definitiva:
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px;">
+                  <div style="background: rgba(239,68,68,0.15); border-left: 3px solid #ef4444; border-radius: 6px; padding: 8px 10px; font-size: 0.76rem;">
+                    <strong style="color: #fca5a5; display:block; margin-bottom: 2px;"><i class="fa-solid fa-bed-pulse"></i> Possibilidade 1: Agravamento / Instabilidade</strong>
+                    <span style="color: #e2e8f0;">Sintomas persistentes, febre, dor refratária, dessaturação ou elevação de MEWS indicam necessidade de <strong>Internação em Leito Hospitalar (Enfermaria ou UTI)</strong>.</span>
+                  </div>
+                  <div style="background: rgba(16,185,129,0.15); border-left: 3px solid #10b981; border-radius: 6px; padding: 8px 10px; font-size: 0.76rem;">
+                    <strong style="color: #6ee7b7; display:block; margin-bottom: 2px;"><i class="fa-solid fa-door-open"></i> Possibilidade 2: Estabilidade / Melhora</strong>
+                    <span style="color: #e2e8f0;">Paciente compensado, sinais vitais normalizados e queixa controlada. Indicação de <strong>Alta Médica da Observação</strong> com receita e orientações.</span>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
 
             <!-- Diagnóstico / CID-10 se houver -->
             ${assSnippet ? `
@@ -3051,20 +3204,40 @@ window.openPEPModal = async function(encounterId) {
               ` : ''}
             </div>
 
-            <!-- Rodapé do Card com Ações -->
-            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 4px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
-              <button type="button" class="btn btn-sm btn-view-pep" data-hist-id="${h.id}" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #c4b5fd; padding: 7px 16px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;">
-                <i class="fa-solid fa-eye"></i> Visualizar PEP Completo
-              </button>
-              ${!isSigned ? `
-                <button type="button" class="btn btn-sm btn-edit-pep" data-hist-id="${h.id}" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; padding: 7px 16px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(2,132,199,0.3); transition: 0.2s;">
-                  <i class="fa-solid fa-pen-to-square"></i> Continuar / Editar
+            <!-- Rodapé do Card com Ações Clínicas -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 4px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                ${isOver12h ? `
+                  <button type="button" class="btn btn-sm btn-obs-card-admit" data-hist-id="${h.id}" data-patient-name="${h.patientName || currentEnc.patientName || pname}" style="background: linear-gradient(135deg, #ef4444, #b91c1c); border: none; color: #fff; padding: 7px 14px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(239,68,68,0.35); transition: 0.2s;">
+                    <i class="fa-solid fa-bed-pulse"></i> Solicitar Internação (Agravo)
+                  </button>
+                  <button type="button" class="btn btn-sm btn-obs-card-discharge" data-hist-id="${h.id}" data-patient-name="${h.patientName || currentEnc.patientName || pname}" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 7px 14px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16,185,129,0.35); transition: 0.2s;">
+                    <i class="fa-solid fa-person-walking-arrow-right"></i> Conceder Alta (Melhora)
+                  </button>
+                ` : ''}
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" class="btn btn-sm btn-view-pep" data-hist-id="${h.id}" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #c4b5fd; padding: 7px 16px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;">
+                  <i class="fa-solid fa-eye"></i> Visualizar PEP Completo
                 </button>
-              ` : ''}
+                ${!isSigned ? `
+                  <button type="button" class="btn btn-sm btn-edit-pep" data-hist-id="${h.id}" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; padding: 7px 16px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(2,132,199,0.3); transition: 0.2s;">
+                    <i class="fa-solid fa-pen-to-square"></i> Continuar / Editar
+                  </button>
+                ` : ''}
+              </div>
             </div>
           `;
 
           // Eventos dos botões
+          card.querySelector('.btn-obs-card-admit')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.requestAdmitBed(h.patientId || h.id, h.patientName || currentEnc.patientName || pname, h.id);
+          });
+          card.querySelector('.btn-obs-card-discharge')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.finishObservationDirectly(h.id, h.patientName || currentEnc.patientName || pname);
+          });
           card.querySelector('.btn-view-pep')?.addEventListener('click', () => {
             window._showReadonlyPEP(h, container);
           });
@@ -3078,6 +3251,7 @@ window.openPEPModal = async function(encounterId) {
         container.innerHTML = `<div style="color:#f87171; padding:20px;">Erro ao carregar histórico: ${err.message}</div>`;
       }
     };
+
 
     // Função para exibir PEP histórico em modo leitura detalhado
     window._showReadonlyPEP = function(h, container) {

@@ -811,6 +811,107 @@ function evaluateClinicalPossibilities(patient, activeTab) {
   }
 
   if (isPepModalOpen) {
+    const modalPName = (document.querySelector('#pep-modal-subtitle strong')?.textContent || '').trim();
+    const effectivePName = modalPName || pName;
+    const effectiveFirst = effectivePName.split(' ')[0] || firstName;
+    const effectiveSafeEsc = effectivePName.replace(/'/g, "\\'");
+    const cleanEffective = effectivePName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+    // Buscar encontro de observação aberto para este paciente
+    let obsEnc = null;
+    let obsDiffHours = 0;
+    let obsDurationText = '';
+
+    if (window.localDB) {
+      try {
+        const db = window.localDB.getFullDB();
+        const encList = db.encounters || [];
+        const candObs = encList.filter(e => {
+          const eName = (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          const match = eName === cleanEffective || (cleanEffective.length > 3 && (eName.includes(cleanEffective) || cleanEffective.includes(eName)));
+          const isObs = (e.sector || e.room || '').toLowerCase().includes('observa');
+          const isOpen = !e.signed_by && e.status !== 'Finalizado' && e.status !== 'Alta';
+          return match && isObs && isOpen;
+        });
+
+        if (candObs.length > 0) {
+          candObs.sort((a, b) => new Date(a.observation_started_at || a.admitted_at || a.admission_date || a.created_at || 0) - new Date(b.observation_started_at || b.admitted_at || b.admission_date || b.created_at || 0));
+          obsEnc = candObs[0];
+          const st = new Date(obsEnc.observation_started_at || obsEnc.admitted_at || obsEnc.admission_date || obsEnc.created_at || Date.now()).getTime();
+          const diffMs = Math.max(0, Date.now() - st);
+          obsDiffHours = Math.floor(diffMs / (1000 * 60 * 60));
+          const obsDiffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          obsDurationText = `${obsDiffHours}h ${obsDiffMins}min`;
+        }
+      } catch (_) {}
+    }
+
+    if (obsEnc && obsDiffHours >= 12) {
+      const bp = obsEnc.vital_bp || obsEnc.vitals?.bp || obsEnc.bloodPressure || patient.bloodPressure || patient.vital_bp || '130/85 mmHg';
+      const hr = obsEnc.vital_hr || obsEnc.vitals?.hr || obsEnc.heartRate || obsEnc.heartRateBpm || patient.heartRate || patient.vital_hr || '86 bpm';
+      const temp = obsEnc.vital_temp || obsEnc.vitals?.temp || obsEnc.temperatureCelsius || patient.temperatureCelsius || patient.vital_temp || '36.8 °C';
+      const spo2 = obsEnc.vital_spo2 || obsEnc.vitals?.spo2 || obsEnc.oxygenSaturation || patient.oxygenSaturation || patient.vital_spo2 || '96%';
+      const mews = obsEnc.mewsScore !== undefined ? obsEnc.mewsScore : (patient.mewsScore !== undefined ? patient.mewsScore : 1);
+      const mColorDisplay = obsEnc.manchesterColor || patient.manchesterColor || 'Amarelo';
+      const targetEncId = obsEnc.id || patient.encounterId || patient.id || '';
+
+      return {
+        currentStage: 3,
+        stageName: '⏱️ Diretriz CFM nº 2.079/14 (>12h)',
+        actionBadge: '🚨 DIRETRIZ CFM Nº 2.079/14 (>12H OBSERVAÇÃO)',
+        actionCardBg: 'linear-gradient(135deg, rgba(239, 68, 68, 0.16), rgba(245, 158, 11, 0.12))',
+        actionCardBorder: 'rgba(239, 68, 68, 0.5)',
+        orderWarning: {
+          badge: '⚠️ Limite de Permanência Excedido (>12h)',
+          msg: `O paciente <strong>${effectivePName}</strong> ultrapassou o tempo regulamentar de observação no PS (<strong>${obsDurationText}</strong>). Conforme a Resolução CFM nº 2.079/14, deve-se deliberar entre internação hospitalar ou alta médica.`,
+          correctiveAction: {
+            label: '🛏️ Solicitar Internação Imediata ➔',
+            onClick: `window.requestAdmitBed ? window.requestAdmitBed('${targetEncId}', '${effectiveSafeEsc}', '${targetEncId}') : window.switchTab('leitos')`
+          }
+        },
+        primaryAction: {
+          title: `⚠️ Reavaliação CFM 12h: Definir Conduta de ${effectiveFirst}`,
+          desc: `
+            <div style="font-size: 0.76rem; line-height: 1.45; color: #cbd5e1;">
+              <div style="background: rgba(245,158,11,0.15); border-left: 3px solid #f59e0b; border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; color: #fde68a;">
+                ⏱️ <strong>Permanência: ${obsDurationText}</strong> (Res. CFM nº 2.079/14: máx. 12h no PS)<br>
+                📊 <strong>Parâmetros Atuais:</strong> PA <strong>${bp}</strong> · FC <strong>${hr}</strong> · Temp <strong>${temp}</strong> · SpO2 <strong>${spo2}</strong> · MEWS: <strong>${mews}</strong> · Classificação: <strong>${mColorDisplay}</strong>.
+              </div>
+              <div style="margin-bottom: 8px; background: rgba(239,68,68,0.14); border-left: 3px solid #ef4444; border-radius: 6px; padding: 6px 10px;">
+                <strong style="color: #fca5a5;"><i class="fa-solid fa-triangle-exclamation"></i> Se houver Agravamento ou Instabilidade:</strong><br>
+                Piora da dor, hipotensão, taquicardia, dessaturação ou elevação do MEWS indicam falha na resposta clínica inicial. A conduta mandatória é a <strong>transferência imediata para Internação em Leito Hospitalar (Enfermaria ou UTI)</strong>.
+              </div>
+              <div style="background: rgba(16,185,129,0.14); border-left: 3px solid #10b981; border-radius: 6px; padding: 6px 10px;">
+                <strong style="color: #6ee7b7;"><i class="fa-solid fa-circle-check"></i> Se houver Estabilidade ou Melhora:</strong><br>
+                Paciente compensado, eupneico, sinais normais e dor controlada. A conduta recomendada é a <strong>Alta Médica da Observação</strong> com prescrição de desospitalização e orientações.
+              </div>
+            </div>
+          `,
+          btnText: `🛏️ Internar em Leito Hospitalar (Agravo) ➔`,
+          btnBg: 'linear-gradient(135deg, #ef4444, #b91c1c)',
+          onClick: `window.requestAdmitBed ? window.requestAdmitBed('${targetEncId}', '${effectiveSafeEsc}', '${targetEncId}') : window.switchTab('leitos')`,
+          icon: '🛏️'
+        },
+        alternatives: [
+          { 
+            label: '🚪 Conceder Alta (Melhora)', 
+            icon: '🚪', 
+            onClick: `window.finishObservationDirectly ? window.finishObservationDirectly('${targetEncId}', '${effectiveSafeEsc}') : window.switchTab('observacao')` 
+          },
+          { 
+            label: '💾 Salvar Evolução / Prescrição', 
+            icon: '💾', 
+            onClick: `window.saveActivePEP && window.saveActivePEP('${effectiveSafeEsc}')` 
+          },
+          { 
+            label: '✕ Fechar PEP', 
+            icon: '✕', 
+            onClick: "document.getElementById('pep-modal')?.remove()" 
+          }
+        ]
+      };
+    }
+
     return {
       currentStage: 3,
       stageName: 'Prontuário Médico (PEP)',
@@ -2383,14 +2484,14 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     }
 
     actionBlockHtml = crossTabPendingNotice + `
-      <div style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4)); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 10px; padding: 9px 11px;">
-        <div style="display:flex;align-items:center;gap:5px;font-size:0.64rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#38bdf8;margin-bottom:3px">
-          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#38bdf8;box-shadow:0 0 6px #38bdf8;"></span>
-          <span>${isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada'}</span>
+      <div style="background: ${evalResult.actionCardBg || 'linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4))'}; border: 1px solid ${evalResult.actionCardBorder || 'rgba(2, 132, 199, 0.3)'}; border-radius: 10px; padding: 10px 12px; transition: all 0.2s ease;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:0.64rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${evalResult.actionBadge ? '#f87171' : '#38bdf8'};margin-bottom:4px">
+          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};box-shadow:0 0 6px ${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};"></span>
+          <span>${evalResult.actionBadge || (isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada')}</span>
         </div>
-        <div style="font-size:0.84rem;font-weight:700;color:#ffffff;margin-bottom:3px;line-height:1.25">${evalResult.primaryAction.title}</div>
-        <div style="font-size:0.72rem;color:#94a3b8;line-height:1.35;margin-bottom:8px">${evalResult.primaryAction.desc}</div>
-        <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:9px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
+        <div style="font-size:0.84rem;font-weight:700;color:#ffffff;margin-bottom:4px;line-height:1.25">${evalResult.primaryAction.title}</div>
+        <div style="font-size:0.72rem;color:#cbd5e1;line-height:1.35;margin-bottom:10px">${evalResult.primaryAction.desc}</div>
+        <button id="hn-fg-main-action" onclick="${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:9px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
           ${evalResult.primaryAction.btnText}
         </button>
       </div>
