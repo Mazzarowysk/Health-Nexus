@@ -82,6 +82,14 @@ const TAB_NEXT_RECOMMENDATION = {
     nextLabel: 'Gestão de Leitos & Internação',
     icon: 'fa-bed-pulse'
   },
+  observacao: {
+    currentLabel: 'Sala de Observação PS',
+    title: 'Reavaliação Clínica & Sequência de Condutas',
+    desc: 'Paciente sob observação contínua no PS. Reavalie no PEP, administre medicação venosa e defina internação ou alta.',
+    nextTab: 'consultorios',
+    nextLabel: 'Evolução PEP / Desfecho',
+    icon: 'fa-clock'
+  },
   leitos: {
     currentLabel: 'Gestão de Leitos',
     title: 'Evolução Clínica & Cuidado no Leito',

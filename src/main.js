@@ -423,6 +423,26 @@ function evaluateClinicalPossibilities(patient, activeTab) {
           ]
         };
 
+      case 'observacao':
+        return {
+          currentStage: 3,
+          stageName: 'Sala de Observação PS',
+          orderWarning: null,
+          primaryAction: {
+            title: '🛏️ Monitoramento de Pacientes no PS',
+            desc: 'Acompanhe a hidratação venosa, medicações de alívio e reavaliação médica contínua dos pacientes (Resolução CFM nº 2.079/14).',
+            btnText: '🩺 Central de Atendimentos ➔',
+            btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            onClick: "window.switchTab('atendimento')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+
       case 'farmacia':
         return {
           currentStage: 4,
@@ -2164,6 +2184,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     agenda:       { name: 'Agenda Médica', badge: 'Agendamentos' },
     escalas:      { name: 'Escalas de Plantão', badge: 'Equipes' },
     estagnacao:   { name: 'Alertas & Estagnação', badge: 'Gargalos' },
+    observacao:   { name: 'Sala de Observação PS', badge: 'Monitoramento Contínuo' },
     configuracoes:{ name: 'Configurações', badge: 'Sistema' }
   };
 

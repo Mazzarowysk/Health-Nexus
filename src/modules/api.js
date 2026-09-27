@@ -565,6 +565,7 @@ export const apiFetch = async (url, options = {}) => {
           const nowIso = new Date().toISOString();
           const updatedEncounter = {
             ...enc,
+            ...body,
             status: newStatus,
             lastStatusUpdate: nowIso,
             ...(newStatus === 'Finalizado' ? { completed_at: nowIso, discharged_at: nowIso } : {}),
