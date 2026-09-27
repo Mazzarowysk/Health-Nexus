@@ -11,6 +11,32 @@ const KANBAN_COLUMNS = [
   { id: 'uti', label: 'UTI', shortLabel: 'UTI', color: '#ef4444', maxDays: 5 }
 ];
 
+export function normalizeKanbanSector(sectorStr, bedStr = '', wardStr = '') {
+  const combined = `${sectorStr || ''} ${bedStr || ''} ${wardStr || ''}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  if (!combined) return 'clinica_medica';
+
+  if (combined.includes('uti') || combined.includes('cti') || combined.includes('intensiv') || combined.includes('terapia intensiva')) {
+    return 'uti';
+  }
+  if (combined.includes('pronto') || combined.includes('socorro') || combined.includes('ps') || combined.includes('observacao') || combined.includes('obs') || combined.includes('emergencia')) {
+    return 'pronto_socorro';
+  }
+  if (combined.includes('corredor') || combined.includes('maca')) {
+    return 'corredor_internacao';
+  }
+  if (combined.includes('cirurg') || combined.includes('cirurgia') || combined.includes('bloco cirurgico')) {
+    return 'clinica_cirurgica';
+  }
+  return 'clinica_medica';
+}
+
+export function matchKanbanSector(sectorStr, targetColId, bedStr = '', wardStr = '') {
+  return normalizeKanbanSector(sectorStr, bedStr, wardStr) === targetColId;
+}
+
+window.normalizeKanbanSector = normalizeKanbanSector;
+window.matchKanbanSector = matchKanbanSector;
+
 let currentFilter = 'all';
 let currentSlaFilter = 'all';
 let kanbanChartInstance = null;
@@ -182,8 +208,9 @@ window.setKanbanFilter = function(filterId) {
 
 function calcStatus(hosp, col) {
   const now = new Date();
-  const entry = new Date(hosp.sector_entry_date);
-  const hoursIn = (now - entry) / 3600000;
+  const rawEntry = hosp.sector_entry_date || hosp.admitted_at || hosp.admission_date || hosp.created_at;
+  const entry = rawEntry ? new Date(rawEntry) : now;
+  const hoursIn = Math.max(0, (now - entry) / 3600000);
   const daysIn = hoursIn / 24;
   let pct = 0, statusColor = '#10b981', statusText = 'No prazo', timeStr;
 
@@ -198,7 +225,8 @@ function calcStatus(hosp, col) {
   }
 
   timeStr = daysIn >= 1 ? `${Math.floor(daysIn)}d ${Math.floor(hoursIn % 24)}h` : `${Math.floor(hoursIn)}h`;
-  const totalDays = Math.floor((now - new Date(hosp.admission_date)) / 86400000);
+  const rawAdm = hosp.admission_date || hosp.sector_entry_date || hosp.admitted_at || hosp.created_at;
+  const totalDays = Math.max(0, Math.floor((now - (rawAdm ? new Date(rawAdm) : now)) / 86400000));
   const totalStr = totalDays > 0 ? `${totalDays}d` : 'Hoje';
   return { pct, statusColor, statusText, timeStr, totalStr };
 }
@@ -274,20 +302,95 @@ function renderCard(hosp, col) {
 function loadAndRenderKanban() {
   const board = document.getElementById('kanban-board');
   if (!board) return;
-  const all = localDB.list('hospitalizations');
-  const patients = localDB.list('patients');
+
+  const all = localDB.list('hospitalizations') || [];
+  const beds = localDB.list('beds') || [];
+  const patients = localDB.list('patients') || [];
+
+  // Sincronização e auto-cura bidirecional: integrar leitos ocupados
+  beds.forEach(b => {
+    if (b.status === 'Ocupado' && (b.patientName || b.patientId)) {
+      const pName = b.patientName || '';
+      const pId = b.patientId || '';
+      const bedNum = b.bedNumber || b.number || '';
+      const targetKanbanSector = normalizeKanbanSector(b.sector || b.type, bedNum, b.ward);
+
+      const existingHosp = all.find(h => 
+        h.status !== 'Alta' && (
+          (pId && String(h.patient_id) === String(pId)) ||
+          (pName && h.patientName && h.patientName.toLowerCase().trim() === pName.toLowerCase().trim()) ||
+          (bedNum && (h.bed === bedNum || String(h.bed_id) === String(b.id)))
+        )
+      );
+
+      if (existingHosp) {
+        const normSec = normalizeKanbanSector(existingHosp.current_sector || b.sector || b.type, existingHosp.bed || bedNum, existingHosp.ward || b.ward);
+        if (existingHosp.current_sector !== normSec || !existingHosp.bed || !existingHosp.bed_id) {
+          existingHosp.current_sector = normSec;
+          existingHosp.bed = existingHosp.bed || bedNum;
+          existingHosp.bed_id = existingHosp.bed_id || b.id;
+          localDB.update('hospitalizations', existingHosp.id, existingHosp);
+        }
+      } else {
+        const newHosp = {
+          id: 'HOSP-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+          patient_id: pId || ('pat-' + Date.now()),
+          patientName: pName || 'Paciente Internado',
+          current_sector: targetKanbanSector,
+          sector: b.sector || b.type || 'Enfermaria',
+          ward: b.ward || b.type || 'Enfermaria',
+          sector_entry_date: b.admittedAt || new Date().toISOString(),
+          admission_date: b.admittedAt || new Date().toISOString(),
+          bed: bedNum,
+          bed_id: b.id,
+          diagnosis: 'Internação Hospitalar / Monitoramento',
+          doctor_name: 'Dr(a). Médico(a) Assistente',
+          status: 'Internado',
+          notes: `Paciente internado no Leito ${bedNum} (${b.sector || b.type}).`,
+          evolutions: [
+            { ts: b.admittedAt || new Date().toISOString(), text: `Admissão realizada no Leito ${bedNum} (${b.sector || b.type}).`, author: 'Equipe de Enfermagem' }
+          ]
+        };
+        localDB.insert('hospitalizations', newHosp);
+        all.push(newHosp);
+      }
+    }
+  });
+
+  // Normalizar registros legados em hospitalizations
+  all.forEach(h => {
+    if (h.status !== 'Alta') {
+      const normSec = normalizeKanbanSector(h.current_sector, h.bed, h.ward);
+      if (h.current_sector !== normSec) {
+        h.current_sector = normSec;
+        localDB.update('hospitalizations', h.id, h);
+      }
+    }
+  });
+
   const active = all.filter(h => h.status !== 'Alta').map(h => {
     const pat = patients.find(p => p.id === h.patient_id) || {};
-    return { ...h, patientName: pat.fullName || pat.name || 'Desconhecido' };
+    let bedLabel = h.bed;
+    if (!bedLabel && h.bed_id) {
+      const matchedBed = beds.find(b => String(b.id) === String(h.bed_id));
+      if (matchedBed) bedLabel = matchedBed.bedNumber || matchedBed.number;
+    }
+    const resolvedName = pat.fullName || pat.name || h.patientName || 'Desconhecido';
+    return {
+      ...h,
+      bed: bedLabel || h.bed || '',
+      patientName: resolvedName,
+      current_sector: normalizeKanbanSector(h.current_sector, bedLabel, h.ward)
+    };
   });
 
   // Update filter counters
   const cAll = document.getElementById('count-all'); if(cAll) cAll.textContent = active.length;
-  const cPs = document.getElementById('count-pronto_socorro'); if(cPs) cPs.textContent = active.filter(h => h.current_sector === 'pronto_socorro').length;
-  const cCor = document.getElementById('count-corredor_internacao'); if(cCor) cCor.textContent = active.filter(h => h.current_sector === 'corredor_internacao').length;
-  const cCir = document.getElementById('count-clinica_cirurgica'); if(cCir) cCir.textContent = active.filter(h => h.current_sector === 'clinica_cirurgica').length;
-  const cMed = document.getElementById('count-clinica_medica'); if(cMed) cMed.textContent = active.filter(h => h.current_sector === 'clinica_medica').length;
-  const cUti = document.getElementById('count-uti'); if(cUti) cUti.textContent = active.filter(h => h.current_sector === 'uti').length;
+  const cPs = document.getElementById('count-pronto_socorro'); if(cPs) cPs.textContent = active.filter(h => matchKanbanSector(h.current_sector, 'pronto_socorro', h.bed, h.ward)).length;
+  const cCor = document.getElementById('count-corredor_internacao'); if(cCor) cCor.textContent = active.filter(h => matchKanbanSector(h.current_sector, 'corredor_internacao', h.bed, h.ward)).length;
+  const cCir = document.getElementById('count-clinica_cirurgica'); if(cCir) cCir.textContent = active.filter(h => matchKanbanSector(h.current_sector, 'clinica_cirurgica', h.bed, h.ward)).length;
+  const cMed = document.getElementById('count-clinica_medica'); if(cMed) cMed.textContent = active.filter(h => matchKanbanSector(h.current_sector, 'clinica_medica', h.bed, h.ward)).length;
+  const cUti = document.getElementById('count-uti'); if(cUti) cUti.textContent = active.filter(h => matchKanbanSector(h.current_sector, 'uti', h.bed, h.ward)).length;
 
   // Active filter badge update
   const badge = document.getElementById('kanban-active-filter-badge');
@@ -321,7 +424,6 @@ function loadAndRenderKanban() {
   
   const filtersRow = document.getElementById('kanban-filters-row');
   if (filtersRow) {
-    // Keep filters in a scrollable horizontal row if isolated
     filtersRow.style.minWidth = currentFilter === 'all' ? 'auto' : '1400px'; 
   }
 
@@ -336,7 +438,7 @@ function loadAndRenderKanban() {
   }
 
   board.innerHTML = KANBAN_COLUMNS.map(col => {
-    let cards = active.filter(h => h.current_sector === col.id).sort((a,b) => new Date(a.sector_entry_date)-new Date(b.sector_entry_date));
+    let cards = active.filter(h => matchKanbanSector(h.current_sector, col.id, h.bed, h.ward)).sort((a,b) => new Date(a.sector_entry_date || a.admission_date)-new Date(b.sector_entry_date || b.admission_date));
     
     // Apply SLA filter if active
     if (currentSlaFilter !== 'all') {
@@ -672,10 +774,11 @@ function initKanbanChart(activePatients) {
   const now = new Date();
 
   activePatients.forEach(p => {
-    const col = KANBAN_COLUMNS.find(c => c.id === p.current_sector);
+    const col = KANBAN_COLUMNS.find(c => matchKanbanSector(p.current_sector, c.id, p.bed, p.ward));
     if (!col) return;
-    const entry = new Date(p.sector_entry_date || p.admission_date);
-    const hoursIn = (now - entry) / 3600000;
+    const rawEntry = p.sector_entry_date || p.admitted_at || p.admission_date || p.created_at;
+    const entry = rawEntry ? new Date(rawEntry) : now;
+    const hoursIn = Math.max(0, (now - entry) / 3600000);
     const daysIn = hoursIn / 24;
 
     if (col.maxDays) {
@@ -713,7 +816,10 @@ function initKanbanChart(activePatients) {
   if (funnelContainer) {
     const sectorCounts = {};
     KANBAN_COLUMNS.forEach(c => sectorCounts[c.id] = 0);
-    activePatients.forEach(p => { if (sectorCounts[p.current_sector] !== undefined) sectorCounts[p.current_sector]++; });
+    activePatients.forEach(p => {
+      const matched = KANBAN_COLUMNS.find(c => matchKanbanSector(p.current_sector, c.id, p.bed, p.ward));
+      if (matched) sectorCounts[matched.id]++;
+    });
 
     funnelContainer.innerHTML = KANBAN_COLUMNS.map(col => {
       const count = sectorCounts[col.id] || 0;
@@ -740,7 +846,10 @@ function initKanbanChart(activePatients) {
     
     const dataMap = {};
     KANBAN_COLUMNS.forEach(col => dataMap[col.id] = 0);
-    activePatients.forEach(p => { if (dataMap[p.current_sector] !== undefined) dataMap[p.current_sector]++; });
+    activePatients.forEach(p => {
+      const matched = KANBAN_COLUMNS.find(c => matchKanbanSector(p.current_sector, c.id, p.bed, p.ward));
+      if (matched) dataMap[matched.id]++;
+    });
 
     const centerVal = document.getElementById('kanban-chart-center-val');
     if (centerVal) centerVal.textContent = activePatients.length;
@@ -858,16 +967,27 @@ window.resetKanbanAllFilters = function() {
 // ──── Modais Interativos dos Cards do Kanban ────
 window.openKanbanSectorBreakdownModal = function() {
   document.getElementById('kanban-sector-modal')?.remove();
-  const all = localDB.list('hospitalizations');
-  const patients = localDB.list('patients');
+  const all = localDB.list('hospitalizations') || [];
+  const patients = localDB.list('patients') || [];
+  const beds = localDB.list('beds') || [];
   const active = all.filter(h => h.status !== 'Alta').map(h => {
     const pat = patients.find(p => p.id === h.patient_id) || {};
-    return { ...h, patientName: pat.fullName || pat.name || 'Desconhecido' };
+    let bedLabel = h.bed;
+    if (!bedLabel && h.bed_id) {
+      const matchedBed = beds.find(b => String(b.id) === String(h.bed_id));
+      if (matchedBed) bedLabel = matchedBed.bedNumber || matchedBed.number;
+    }
+    return {
+      ...h,
+      bed: bedLabel || h.bed || '',
+      patientName: pat.fullName || pat.name || h.patientName || 'Desconhecido',
+      current_sector: normalizeKanbanSector(h.current_sector, bedLabel, h.ward)
+    };
   });
 
   const total = active.length;
   const sectorRowsHtml = KANBAN_COLUMNS.map(col => {
-    const sectorPatients = active.filter(h => h.current_sector === col.id);
+    const sectorPatients = active.filter(h => matchKanbanSector(h.current_sector, col.id, h.bed, h.ward));
     const pct = total > 0 ? Math.round((sectorPatients.length / total) * 100) : 0;
     
     const listHtml = sectorPatients.map(h => `
@@ -921,16 +1041,27 @@ window.openKanbanSectorBreakdownModal = function() {
 
 window.openKanbanSlaAuditModal = function() {
   document.getElementById('kanban-sla-modal')?.remove();
-  const all = localDB.list('hospitalizations');
-  const patients = localDB.list('patients');
+  const all = localDB.list('hospitalizations') || [];
+  const patients = localDB.list('patients') || [];
+  const beds = localDB.list('beds') || [];
   const active = all.filter(h => h.status !== 'Alta').map(h => {
     const pat = patients.find(p => p.id === h.patient_id) || {};
-    return { ...h, patientName: pat.fullName || pat.name || 'Desconhecido' };
+    let bedLabel = h.bed;
+    if (!bedLabel && h.bed_id) {
+      const matchedBed = beds.find(b => String(b.id) === String(h.bed_id));
+      if (matchedBed) bedLabel = matchedBed.bedNumber || matchedBed.number;
+    }
+    return {
+      ...h,
+      bed: bedLabel || h.bed || '',
+      patientName: pat.fullName || pat.name || h.patientName || 'Desconhecido',
+      current_sector: normalizeKanbanSector(h.current_sector, bedLabel, h.ward)
+    };
   });
 
   const now = new Date();
   const audited = active.map(p => {
-    const col = KANBAN_COLUMNS.find(c => c.id === p.current_sector) || KANBAN_COLUMNS[0];
+    const col = KANBAN_COLUMNS.find(c => matchKanbanSector(p.current_sector, c.id, p.bed, p.ward)) || KANBAN_COLUMNS[0];
     const { statusText, timeStr, pct, statusColor } = calcStatus(p, col);
     return { ...p, col, statusText, timeStr, pct, statusColor };
   });
@@ -990,12 +1121,13 @@ window.openKanbanSlaAuditModal = function() {
 
 window.openKanbanFunnelDetailModal = function() {
   document.getElementById('kanban-funnel-modal')?.remove();
-  const all = localDB.list('hospitalizations');
+  const all = localDB.list('hospitalizations') || [];
+  const beds = localDB.list('beds') || [];
   const active = all.filter(h => h.status !== 'Alta');
   const total = active.length || 1;
 
   const funnelRowsHtml = KANBAN_COLUMNS.map(col => {
-    const count = active.filter(h => h.current_sector === col.id).length;
+    const count = active.filter(h => matchKanbanSector(h.current_sector, col.id, h.bed, h.ward)).length;
     const pct = Math.round((count / total) * 100);
     return `
       <div style="background:rgba(30, 41, 59, 0.5); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">

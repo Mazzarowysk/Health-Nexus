@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.4`  
+**Versão:** `2.9.5`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,6 +8,7 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🔄 **Sincronização Bidirecional e Mapeamento Canônico Leitos & Kanban de Internação (v2.9.5):** Unificação transparente entre as alas físicas de leito (*UTI Adulto*, *UTI Pediátrica*, *CTI*, *Enfermaria*, *Isolamento*, *Pediatria*) e as colunas operacionais do Kanban (`uti`, `clinica_medica`, `clinica_cirurgica`, `pronto_socorro`). Elimina divergências entre nomes descritivos de alas e identificadores internos de coluna, garantindo que qualquer paciente alocado em leito de UTI ou enfermaria apareça de imediato no quadro Kanban, nos contadores dos filtros superiores, no Funil da Jornada Hospitalar e nas metas de tempo (SLA), com reconciliação automática de registros legados.
 - 🚨 **Alerta Pulsante de Observação > 12h no PEP & Instrução de Decisão Clínica (Resolução CFM nº 2.079/14):** Ao abrir o Prontuário Eletrônico (PEP) de paciente com permanência em observação excedendo o limite regulamentar de 12 horas, o card da observação em aberto pulsa continuamente com halo de alerta (`pep-obs-pulse-alert`), badge normativo `PERMANÊNCIA > 12H` e botões de ação imediata. Simultaneamente, o painel lateral de Governança Clínica (Smart Flow Guide) calcula e exibe os parâmetros vitais reais do paciente (PA, FC, Temp, SpO2, MEWS, Manchester) instruindo os dois caminhos clínicos: **Internação Hospitalar imediata (UTI/Enfermaria)** em caso de agravo/instabilidade hemodinâmica ou **Alta Médica da Observação** em caso de estabilidade e melhora clínica.
 - 🩺 **Prontuário Eletrônico (PEP) com Listagem Direta & Inclusão Intuitiva:** Ao clicar em *Abrir PEP*, o sistema apresenta de imediato a listagem de todas as evoluções clínicas anteriores do paciente organizadas cronologicamente por ala/setor. Inclui botão de ação rápida `➕ Incluir Novo PEP` no cabeçalho e topo da lista, cards informativos com prévia dos blocos SOAP, visualizador detalhado com carimbo CFM e botão `← Voltar para Lista de PEPs` para navegação fluida sem fechar o modal.
 - ✍️ **Humanização Assistencial Contínua & Redação Natural (pt-BR):** Regra permanente de workspace (`.agents/rules/humanizacao.md` e `AGENTS.md`) e skill `humanizer` ativas em todo o sistema, telas e documentações. Elimina clichês robóticos de IA e adota linguagem empática, direta e com voz ativa para equipes de enfermagem, médicos, recepção e pacientes.

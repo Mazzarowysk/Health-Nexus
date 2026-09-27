@@ -743,7 +743,20 @@ export const apiFetch = async (url, options = {}) => {
           });
         }
 
-        // Criar registro de internação
+        // Criar ou atualizar registro de internação sincronizado com Kanban
+        const getCanonicalKanbanSector = (sectorStr, bedStr = '', wardStr = '') => {
+          if (typeof window !== 'undefined' && typeof window.normalizeKanbanSector === 'function') {
+            return window.normalizeKanbanSector(sectorStr, bedStr, wardStr);
+          }
+          const combined = `${sectorStr || ''} ${bedStr || ''} ${wardStr || ''}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          if (combined.includes('uti') || combined.includes('cti') || combined.includes('intensiv')) return 'uti';
+          if (combined.includes('pronto') || combined.includes('socorro') || combined.includes('ps') || combined.includes('obs')) return 'pronto_socorro';
+          if (combined.includes('corredor') || combined.includes('maca')) return 'corredor_internacao';
+          if (combined.includes('cirurg')) return 'clinica_cirurgica';
+          return 'clinica_medica';
+        };
+
+        const kanbanCol = getCanonicalKanbanSector(bed.sector || bed.type, bed.bedNumber || bed.number, bed.ward);
         const hosps = localDB.list('hospitalizations') || [];
         const activeHosp = hosps.find(h => h.patient_id === pId && h.status !== 'Alta');
         if (activeHosp) {
@@ -751,7 +764,9 @@ export const apiFetch = async (url, options = {}) => {
             ...activeHosp,
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
-            current_sector: bed.sector || bed.type || 'Enfermaria',
+            current_sector: kanbanCol,
+            sector: bed.sector || bed.type || 'Enfermaria',
+            ward: bed.ward || bed.type || 'Enfermaria',
             status: 'Internado'
           });
         } else {
@@ -761,7 +776,9 @@ export const apiFetch = async (url, options = {}) => {
             patientName: pName,
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
-            current_sector: bed.sector || bed.type || 'Enfermaria',
+            current_sector: kanbanCol,
+            sector: bed.sector || bed.type || 'Enfermaria',
+            ward: bed.ward || bed.type || 'Enfermaria',
             admitted_at: new Date().toISOString(),
             status: 'Internado'
           });
@@ -825,6 +842,19 @@ export const apiFetch = async (url, options = {}) => {
           });
         }
 
+        const getCanonicalKanbanSector = (sectorStr, bedStr = '', wardStr = '') => {
+          if (typeof window !== 'undefined' && typeof window.normalizeKanbanSector === 'function') {
+            return window.normalizeKanbanSector(sectorStr, bedStr, wardStr);
+          }
+          const combined = `${sectorStr || ''} ${bedStr || ''} ${wardStr || ''}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          if (combined.includes('uti') || combined.includes('cti') || combined.includes('intensiv')) return 'uti';
+          if (combined.includes('pronto') || combined.includes('socorro') || combined.includes('ps') || combined.includes('obs')) return 'pronto_socorro';
+          if (combined.includes('corredor') || combined.includes('maca')) return 'corredor_internacao';
+          if (combined.includes('cirurg')) return 'clinica_cirurgica';
+          return 'clinica_medica';
+        };
+
+        const kanbanCol = getCanonicalKanbanSector(bed.sector || bed.type, bed.bedNumber || bed.number, bed.ward);
         const hosps = localDB.list('hospitalizations') || [];
         const activeHosp = hosps.find(h => h.patient_id === patientId && h.status !== 'Alta');
         if (activeHosp) {
@@ -832,7 +862,9 @@ export const apiFetch = async (url, options = {}) => {
             ...activeHosp,
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
-            current_sector: bed.sector || bed.type || 'Enfermaria',
+            current_sector: kanbanCol,
+            sector: bed.sector || bed.type || 'Enfermaria',
+            ward: bed.ward || bed.type || 'Enfermaria',
             status: 'Internado'
           });
         } else {
@@ -842,7 +874,9 @@ export const apiFetch = async (url, options = {}) => {
             patientName: patientName,
             bed_id: bed.id,
             bed: bed.bedNumber || bed.number,
-            current_sector: bed.sector || bed.type || 'Enfermaria',
+            current_sector: kanbanCol,
+            sector: bed.sector || bed.type || 'Enfermaria',
+            ward: bed.ward || bed.type || 'Enfermaria',
             admitted_at: new Date().toISOString(),
             status: 'Internado'
           });

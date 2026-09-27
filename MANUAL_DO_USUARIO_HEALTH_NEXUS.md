@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.4)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.5)
 
-> **Health Nexus v2.9.4 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.5 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -644,6 +644,11 @@ Na aba **Leitos**, o hospital monitora a taxa de ocupação em tempo real, giros
 - **Realce Imediato no Mapa:** Ao confirmar uma internação pelo PEP (desfecho "Solicitar Internação" &rarr; modal de leitos) ou pelo botão "Alocar Leito", o sistema invalida de forma imediata o cache em memória do navegador (`invalidateCacheForUrl`). O card do leito é instantaneamente destacado com animação de pulso luminoso (`patient-pulse-selected patient-spotlight-glow`), badge `⚡ Paciente em Foco` e scroll suave centralizado.
 - **Proteção contra Filtros Ocultos:** Caso o filtro de setor esteja focado em uma ala diferente do leito alocado (ex: filtro em *UTI* para leito de *Observação*), o sistema redefine automaticamente o filtro para *Todos os Setores*, assegurando 100% de visibilidade para a equipe multidisciplinar.
 - **Preservação do Foco Assistencial no Guia de Fluxo (Smart Flow Guide):** Na Etapa 6 de 6 (Gestão de Leitos), quando o paciente está internado, o card inteligente fixa o foco na assistência médica diária (`🩺 Evolução Médica no PEP` como ação principal de 1-clique). Ficam disponíveis botões secundários para `🚪 Conceder Alta`, `🎯 Focar no Leito` e `📊 Ver no Kanban`. O avanço para o Faturamento TISS é bloqueado até que a alta médica seja homologada, garantindo a integridade da linha de cuidado.
+
+#### 🔄 Sincronização Automática Leitos & Kanban de Internação (v2.9.5)
+- **Mapeamento Canônico de Setores:** As alas físicas cadastradas na Gestão de Leitos (ex: `UTI Adulto`, `UTIP`, `CTI`, `Enfermaria Geral`, `Pediatria`, `Isolamento`) são mapeadas automaticamente para as colunas padronizadas do Kanban de Internação (`uti`, `clinica_medica`, `clinica_cirurgica`, `pronto_socorro`).
+- **Resolução de Pacientes em Leitos de UTI:** Pacientes alocados em leitos de terapia intensiva são reconhecidos de forma instantânea na coluna **UTI**, alimentando os contadores dos filtros superiores (ex: `UTI (1)`), o indicador no **Funil da Jornada Hospitalar** e as metas de permanência clínica (SLA de 5 dias).
+- **Auto-Reconciliação e Integridade Histórica:** Ao abrir a aba Kanban, o sistema realiza uma varredura cruzada entre o censo de leitos e a tabela de internações ativas. Caso identifique um leito ocupado com registro divergente ou pendente, normaliza o setor e vincula o número físico do leito em tempo real, evitando cards órfãos ou inconsistências entre o censo e o quadro visual.
 
 ---
 
