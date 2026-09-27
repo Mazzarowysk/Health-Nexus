@@ -317,13 +317,6 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 | **Carimbo Digital UTC** | Sincronização temporal ISO-8601 | Padrão Horário de Brasília / Observatório Nacional | Prova a data e o segundo exato em que a conduta foi tomada. |
 | **CRM e RQE do Médico** | Chave pública do prestador cadastrado | Conselho Regional de Medicina | Vincula juridicamente a autoria da receita ou laudo ao profissional habilitado. |
 
-<h3 id="sec-3-5">3.5. Diretrizes de Humanização e Comunicação Assistencial (Health Nexus)</h3>
-
-Todas as interfaces, mensagens de erro, alertas de conduta e documentações do Health Nexus seguem a regra permanente de humanização assistencial (`.agents/rules/humanizacao.md`):
-- **Comunicação Clara e Direta (pt-BR):** Médicos, enfermeiros e equipes de recepção operam sob pressão constante; instruções e avisos priorizam a voz ativa e cortam termos rebuscados ou clichês gerados por IA.
-- **Empatia com o Paciente e a Equipe:** As mensagens do sistema orientam claramente a próxima conduta recomendada, garantindo acolhimento e segurança nos momentos decisivos do cuidado.
-- **Microtextos Acessíveis:** Botões e avisos usam linguagem cotidiana brasileira (ex: *"Salvar Rascunho"*, *"Voltar para Lista de PEPs"*, *"Conceder Alta Médica"*), evitando jargões técnicos de informática desnecessários.
-
 ---
 
 <h2 id="sec-4">4. Guia Completo de Todos os Modais do Sistema</h2>

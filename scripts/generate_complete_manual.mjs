@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 
 export function buildCompleteManualMarkdown() {
-  return `# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.8.1)
+  return `# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.4)
 
-> **Health Nexus v2.8.1 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.4 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -225,6 +225,48 @@ A 4ª coluna do Kanban e a aba dedicada **Observação do PS** operam em conform
 <h2 id="sec-3">3. Prontuário Eletrônico Médico (PEP SOAPE)</h2>
 
 ![Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição](docs/screenshots/11-prontuario-pep.png)
+
+<h3 id="sec-3-0">3.0. Nova Experiência de Abertura: Listagem de PEPs Existentes & Inclusão Intuitiva</h3>
+
+Ao clicar no botão **"Abrir PEP"** em qualquer módulo assistencial (Observação do Pronto-Socorro, Consultórios de Atendimento, Central de Leitos ou Relatórios Clínicos), o sistema adota um fluxo direto centrado na segurança e no histórico prévio do paciente:
+
+1. **Abertura Padrão na Listagem (\`📋 Listagem de PEPs Existentes\`):**
+   - O profissional visualiza de imediato a ordem cronológica decrescente de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).
+   - Cada card do histórico apresenta:
+     - Setor ou ala de atendimento (com ícone visual dedicado).
+     - Data e hora exatas da evolução.
+     - Status assistencial (\`✓ Assinado / Finalizado\` ou \`⏳ Rascunho / Em Andamento\`).
+     - Nome do médico assistente e CRM.
+     - Hipótese diagnóstica / CID-10 e prévia dos blocos Subjetivo e Conduta.
+     - Botão **\`👁️ Visualizar PEP Completo\`**: abre o modo leitura estruturado com carimbo CFM e botão de retorno \`← Voltar para Lista de PEPs\`.
+     - Botão **\`✏️ Continuar / Editar\`**: permite retomar prontuários em aberto ou rascunhos.
+
+2. **Inclusão Direta e Acessível (\`➕ Incluir Novo PEP\`):**
+   - Um botão em destaque no cabeçalho superior e no topo da lista permite abrir imediatamente uma folha limpa de evolução clínica (SOAP).
+   - No formulário de preenchimento, o cabeçalho exibe o botão **\`← Voltar para Lista de PEPs\`**, permitindo consultar dados anteriores sem perder o contexto do atendimento.
+   - Caso o paciente ainda não possua nenhum prontuário anterior (zero registros), o sistema apresenta uma tela inicial amigável com o botão **\`➕ Incluir Primeiro PEP Agora\`**.
+
+---
+
+<h3 id="sec-3-0-1">3.0.1. Alerta Pulsante de Observação > 12h & Governança Clínica (Resolução CFM nº 2.079/14)</h3>
+
+Em conformidade com a **Resolução CFM nº 2.079/14**, o tempo máximo de permanência de um paciente em leito de observação de Pronto-Socorro é de 24 horas, devendo a conduta médica definitiva (alta ou internação hospitalar) ser deliberada prioritariamente em até **12 horas**.
+
+Quando um paciente permanece em observação por tempo superior a 12 horas, o Health Nexus ativa uma dupla camada de governança clínica ao abrir o Prontuário Eletrônico:
+
+1. **Card de Observação Pulsante no Prontuário (\`pep-obs-pulse-alert\`):**
+   - Na aba \`📋 Listagem de PEPs Existentes\`, o card do registro de observação em aberto recebe uma **animação pulsante contínua com halo luminoso de alerta** (\`pepObsCardPulse\`), destacando-se de qualquer outro prontuário.
+   - **Badge de Alerta Temporal:** Exibe o tempo decorrido ao vivo (\`PERMANÊNCIA > 12H (Xh Ymin) · CFM Nº 2.079/14\`) com beacon pulsante.
+   - **Quadro Explicativo de Conduta Dupla:**
+     - 🚨 **Possibilidade 1: Agravamento / Instabilidade Clínica:** Sintomas persistentes, febre refratária, dessaturação (SpO₂ < 94%) ou elevação do MEWS indicam falha da resposta inicial, tornando mandatória a **Internação Hospitalar imediata em Leito (Enfermaria ou UTI)**.
+     - 🌿 **Possibilidade 2: Estabilidade / Melhora Clínica:** Paciente compensado, afebril, sinais vitais estabilizados e dor controlada indicam indicação de **Alta Médica da Observação** com orientações e prescrição de desospitalização.
+   - **Ações Imediatas no Card:** Botões diretos \`[ 🛏️ Solicitar Internação (Agravo) ]\` e \`[ 🚪 Conceder Alta (Melhora) ]\`, além de visualização e edição.
+
+2. **Guia Lateral de Governança Clínica (Smart Flow Guide):**
+   - Ao lado do prontuário, o painel inteligente calcula em tempo real os **parâmetros clínicos aferidos** do paciente (PA, FC, Temp, SpO₂, MEWS e Classificação Manchester).
+   - Apresenta as instruções para a tomada de decisão médica, disponibilizando como ação primária o botão **\`🛏️ Internar em Leito Hospitalar (Agravo) ➔\`** e atalhos rápidos para **\`🚪 Conceder Alta da Observação (Melhora)\`** e **\`💾 Salvar Evolução / Prescrição\`**.
+
+---
 
 <h3 id="sec-3-1">3.1. Estrutura SOAPE</h3>
 

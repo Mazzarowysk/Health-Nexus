@@ -1,4 +1,4 @@
-// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.8.1) ────────────────────────
+// ─── MANUAL INTERATIVO POR ABAS (HEALTH NEXUS v2.9.4) ────────────────────────
 import { getNexusAICopilotResponse } from './aiCopilot.js';
 
 // Normalizador de strings e remoção de acentos
@@ -328,6 +328,36 @@ export const manualData = [
     roles: ['Médico', 'Enfermeiro', 'Master'],
     buttons: [
       {
+        icon: 'fa-folder-tree',
+        name: '📋 Listagem de PEPs Existentes & Inclusão Intuitiva',
+        type: 'Histórico & Prontuário',
+        color: '#38bdf8',
+        description: 'Ao clicar em "Abrir PEP", o modal abre por padrão na listagem cronológica decrescente de todas as passagens do paciente (Triagem, Consultório, Observação, UTI, Leitos), exibindo status (Assinado/Rascunho), médico responsável, hipótese CID-10 e prévia do SOAP. Conta com botão destacado "➕ Incluir Novo PEP" e botão "← Voltar para Lista de PEPs" para navegação bidirecional fluida.',
+        shortcut: 'Modal PEP -> Aba Listagem de PEPs Existentes',
+        rules: 'Exibe a contagem total de registros do paciente no badge da aba. Se o paciente não tiver registros, exibe tela de boas-vindas com botão "➕ Incluir Primeiro PEP Agora".',
+        keywords: ['listagem de peps', 'histórico pep', 'evoluções anteriores', 'incluir novo pep', 'voltar para lista', 'prontuários anteriores', 'cards de evolução']
+      },
+      {
+        icon: 'fa-bell-concierge',
+        name: '🚨 Destaque Pulsante de Observação > 12h (CFM nº 2.079/14)',
+        type: 'Alerta Assistencial & Governança',
+        color: '#ef4444',
+        description: 'Quando um paciente permanece em observação no PS por tempo superior a 12 horas, o card correspondente de observação em aberto no PEP pulsa continuamente com halo luminoso de alerta (pep-obs-pulse-alert), badge temporal com minutos ao vivo e banner orientando a definição imediata da conduta médica entre Internação Hospitalar ou Alta da Observação.',
+        shortcut: 'Modal PEP -> Card Observação [EM ABERTO]',
+        rules: 'Calcula o tempo real de permanência. Apresenta botões diretos de conduta: "🛏️ Solicitar Internação (Agravo)" e "🚪 Conceder Alta (Melhora)", além de botões de visualização e edição.',
+        keywords: ['observação 12h', 'card pulsante', 'alerta cfm 2079/14', 'halo pulsante', 'definir conduta', 'agravo ou melhora', 'internar ou alta']
+      },
+      {
+        icon: 'fa-compass',
+        name: '🎯 Guia de Governança Clínica (Smart Flow Guide)',
+        type: 'Apoio à Decisão Médica (CDSS)',
+        color: '#10b981',
+        description: 'Widget lateral inteligente que analisa os parâmetros vitais reais do paciente (PA, FC, Temp, SpO2, MEWS e cor Manchester) e orienta a conduta recomendada para o médico. Para observação > 12h, instrui detalhadamente os dois caminhos clínicos (transferência para internação em caso de instabilidade ou alta médica em caso de melhora) com botão de ação principal direta.',
+        shortcut: 'Card fixo no canto superior direito da tela',
+        rules: 'Mantém coerência de fluxo assistencial e impede desvios de processo (Guardião Anti-Desvio), como prescrever ou consultar sem triagem.',
+        keywords: ['smart flow guide', 'guia de fluxo', 'governança clínica', 'parâmetros vitais', 'apoio à decisão', 'mews', 'manchester', 'decisão médica']
+      },
+      {
         icon: 'fa-traffic-light',
         name: '🚦 Triagem Manchester & Desfecho Duplo',
         type: 'Classificação de Risco',
@@ -594,6 +624,16 @@ export const manualData = [
     summary: 'Módulo dedicado ao monitoramento de permanência clínica no PS em conformidade com a Resolução CFM nº 2.079/14 (limite de 24h e reavaliação obrigatória em 12h), com cronômetros ao vivo, gestão de poltronas/leitos de observação e desfechos rápidos.',
     roles: ['Master', 'Médico', 'Enfermeiro', 'Auxiliar de Enfermagem'],
     buttons: [
+      {
+        icon: 'fa-list-check',
+        name: '⚡ Sequência de Procedimentos Clínicos Guiados',
+        type: 'Protocolo Clínico & Governança',
+        color: '#38bdf8',
+        description: 'Ao clicar em qualquer card de paciente na Sala de Observação, abre modal com a linha de cuidado guiada: 1. Reavaliação Clínica & PEP (com destaque pulsante se > 12h); 2. Prescrição de Medicações Rápidas; 3. Transferência / Alocação de Leito Hospitalar; 4. Desfecho Clínico & Alta Médica da Observação.',
+        shortcut: 'Clique direto em qualquer card de paciente na Observação',
+        rules: 'Sincroniza o paciente como foco ativo de atendimento e orienta a equipe de enfermagem e médica em cada etapa do protocolo.',
+        keywords: ['sequência de procedimentos', 'passo a passo observação', 'clique no card', 'reavaliação guiada', 'procedimentos clínicos']
+      },
       {
         icon: 'fa-bed-pulse',
         name: '🛏️ Monitoramento de Leitos & Poltronas de Observação',
