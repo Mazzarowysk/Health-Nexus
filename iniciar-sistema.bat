@@ -11,11 +11,12 @@ taskkill /f /im node.exe >nul 2>&1
 timeout /t 1 /nobreak >nul
 echo.
 echo [1/2] Iniciando Backend (porta 3001) + Frontend (porta 5173)...
-echo [2/2] O navegador abrira automaticamente assim que o sistema estiver pronto...
+echo [2/2] Abrindo o navegador do sistema...
 echo.
 echo ATENCAO: Mantenha esta janela aberta enquanto utilizar o sistema.
 echo ===================================================
 echo.
-start /min node scripts/wait_and_open.mjs
+start /min cmd /c "timeout /t 2 /nobreak >nul & start http://localhost:5173"
 npm run dev
+
 
