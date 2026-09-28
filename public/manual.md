@@ -943,6 +943,12 @@ Ao entrar no complexo hospitalar — seja no primeiro acesso, após novo login o
 - **Comportamento Idêntico e Integrado do Card de Fluxo:** O Smart Flow Guide se posiciona de forma consistente, exibindo a etapa inicial de acolhimento (Recepção), orientando o cadastro de novos pacientes ou localização na fila, mantendo preservada a sua preferência de fixação (painel acoplado ou card flutuante).
 - **Retorno Rápido ao Dashboard:** Clicar na logo da instituição ou no título principal *Health Nexus* no topo do sistema retorna instantaneamente ao Dashboard a partir de qualquer módulo operacional.
 
+### 🔍 Busca Global Inteligente (Spotlight / Ctrl + K) com Alinhamento Responsivo (v2.9.10)
+
+- **Largura Ampla & Confortável:** O menu suspenso de busca abre com largura otimizada (`540px`, limitado à largura da tela), garantindo que os cards do Nexus AI Copilot, botões de ação clínica, atalhos de abas e pacientes apareçam perfeitamente diagramados, sem quebra forçada de linhas ou barras de rolagem horizontais.
+- **Centralização Dinâmica com Margens de Segurança:** A janela de resultados calcula dinamicamente a posição horizontal do campo de pesquisa e centraliza-se automaticamente, mantendo espaçamento seguro em relação às bordas da tela.
+- **Adaptação Responsiva do Cabeçalho:** Quando o painel lateral de governança estiver acoplado à direita (`420px`), o cabeçalho superior condensa automaticamente subtítulos e rótulos redundantes, priorizando o campo de pesquisa e garantindo visualização limpa e desobstruída.
+
 ### 💡 Encaixe Magnético Neon & Adaptação Fluida de Layout ao Arrastar (v2.9.10)
 
 O processo de acoplamento do Smart Flow Guide agora conta com uma experiência visual fluida, intuitiva e moderna:

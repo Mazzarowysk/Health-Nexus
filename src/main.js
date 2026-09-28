@@ -4713,7 +4713,7 @@ function renderAppStructure() {
         </div>
 
         <!-- CAMPO DE BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND PALETTE) -->
-        <div class="global-search-wrapper" style="position: relative; flex: 1; max-width: 540px; margin: 0 16px; transition: max-width 0.3s ease;">
+        <div class="global-search-wrapper">
           <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #818cf8; font-size: 0.88rem; pointer-events: none; z-index: 3;"></i>
           <input type="text" id="global-system-search" placeholder="Buscar no sistema (ex: Excluir Usuário, RBAC, Novo Paciente)..." style="
             width: 100%; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(129, 140, 248, 0.4);
@@ -4725,13 +4725,7 @@ function renderAppStructure() {
           </span>
 
           <!-- Dropdown de Resultados da Busca em Tempo Real -->
-          <div id="global-search-results" style="
-            display: none; position: absolute; top: 46px; left: 0; right: 0;
-            background: #0b0f19; border: 1px solid rgba(129, 140, 248, 0.5);
-            border-radius: 14px; box-shadow: 0 20px 45px rgba(0,0,0,0.85), 0 0 30px rgba(99, 102, 241, 0.25);
-            z-index: 100000; max-height: 480px; overflow-y: auto; scrollbar-width: thin;
-            padding: 10px; font-family: system-ui, -apple-system, sans-serif;
-          "></div>
+          <div id="global-search-results" style="display: none;"></div>
         </div>
 
         <div id="sync-status-container" style="display: flex; align-items: center; gap: 10px;">
@@ -5042,6 +5036,27 @@ function initGlobalSystemSearch() {
     return String(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   };
 
+  const showResults = () => {
+    searchResultsContainer.style.display = 'block';
+    try {
+      const wrapper = searchInput.parentElement;
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const inputRect = searchInput.getBoundingClientRect();
+      const dropWidth = Math.min(540, window.innerWidth - 32);
+      searchResultsContainer.style.width = dropWidth + 'px';
+
+      // Centraliza perfeitamente com relação ao campo de pesquisa, garantindo margens de segurança na tela
+      let idealLeft = (inputRect.left + (inputRect.width / 2)) - (dropWidth / 2);
+      if (idealLeft < 16) idealLeft = 16;
+      if (idealLeft + dropWidth > window.innerWidth - 16) {
+        idealLeft = window.innerWidth - dropWidth - 16;
+      }
+      const relLeft = idealLeft - wrapperRect.left;
+      searchResultsContainer.style.left = relLeft + 'px';
+      searchResultsContainer.style.right = 'auto';
+    } catch (_) {}
+  };
+
   const performSearch = () => {
     const rawQuery = searchInput.value.trim();
     if (!rawQuery) {
@@ -5120,7 +5135,7 @@ function initGlobalSystemSearch() {
           ` : ''}
         </div>
       `;
-      searchResultsContainer.style.display = 'block';
+      showResults();
       
       // Setup listener for AI Action button when no other matches
       const aiBtn = searchResultsContainer.querySelector('[data-type="ai_action"]');
@@ -5277,7 +5292,7 @@ function initGlobalSystemSearch() {
     }
 
     searchResultsContainer.innerHTML = html;
-    searchResultsContainer.style.display = 'block';
+    showResults();
 
     // Handler de clique nos resultados
     searchResultsContainer.querySelectorAll('.search-result-item').forEach(item => {

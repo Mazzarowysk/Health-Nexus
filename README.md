@@ -8,6 +8,10 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🔍 **Correção Responsiva & Alinhamento Inteligente da Busca Global (Spotlight / Ctrl+K) (v2.9.10):** Correção completa de sobreposição e esmagamento do menu suspenso de busca global. Anteriormente, quando o painel lateral de governança estava acoplado na direita (`420px`), o espaço horizontal do cabeçalho superior era comprimido, reduzindo o campo de busca para dimensões mínimas e forçando o dropdown a herdar uma largura estreita e ilegível com quebras verticais de palavras. Foi implementada uma arquitetura responsiva inteligente:
+  1. O container de resultados agora possui largura fixa otimizada (`540px`, limitado a `calc(100vw - 32px)`), cálculo dinâmico de centralização e margem de segurança contra as bordas da tela.
+  2. Eliminação total de barras de rolagem horizontais (`overflow-x: hidden`).
+  3. Adaptação orgânica dos elementos do cabeçalho quando o painel lateral estiver acoplado, ocultando subtítulos redundantes e condensando botões para garantir espaço amplo e confortável para o campo de pesquisa.
 - 💡 **Encaixe Magnético Neon & Adaptação Fluida de Layout ao Arrastar o Card de Fluxo (v2.9.10):** Ao arrastar o card flutuante do Smart Flow Guide em direção à borda direita da tela, o sistema hospitalar inicia uma animação orgânica e inteligente:
   1. A área de destino (`width: 420px`, `100vh`) acende sutilmente com um gradiente neon ciano translúcido (`rgba(56, 189, 248, 0.04)`), borda de pulso suave e o badge luminoso `Solte para Acoplar Painel`.
   2. **Sincronização Dinâmica do Badge:** A mensagem indicativa em formato pílula neon acompanha em tempo real toda a movimentação vertical do card pelo cursor ou toque, posicionando-se sempre com elegância logo abaixo da base do card flutuante (com respiro de segurança de viewport para nunca ser cortada).
