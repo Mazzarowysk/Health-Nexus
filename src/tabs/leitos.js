@@ -494,7 +494,7 @@ async function renderLeitosTab() {
       }).join('');
 
       // Acionar destaque pulsante e foco no leito do paciente selecionado
-      const patNameToHighlight = (activePat ? (activePat.fullName || activePat.patientName) : '') || window._highlightPatientName || activePatName;
+      const patNameToHighlight = (activePat ? (activePat.fullName || activePat.patientName) : '');
       if (typeof window.executePatientHighlight === 'function' && patNameToHighlight) {
         setTimeout(() => {
           window.executePatientHighlight(patNameToHighlight);

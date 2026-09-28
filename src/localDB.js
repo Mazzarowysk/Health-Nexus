@@ -293,6 +293,7 @@ export function clear() {
 
   try {
     sessionStorage.removeItem('hn_notified_pending');
+    sessionStorage.removeItem('activePatientContext');
   } catch (e) {}
 
   // Limpar variáveis de contexto, destaques e caches em memória

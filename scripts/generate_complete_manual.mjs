@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 
 export function buildCompleteManualMarkdown() {
-  return `# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.7)
+  return `# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.9)
 
-> **Health Nexus v2.9.7 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.9 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -98,7 +98,7 @@ flowchart TD
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
 - 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
 - 19. [Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0)](#sec-19)
-- 20. [Smart Flow Guide — Adaptação Omnidirecional por Aba (v2.9.8) & Painel Lateral Acoplado](#sec-20)
+- 20. [Smart Flow Guide — Adaptação por Aba, Controle de Foco & Desmarcação (v2.9.9) & Painel Lateral Acoplado](#sec-20)
 
 ---
 
@@ -516,7 +516,7 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 | Informação Exibida | Origem dos Dados | Descrição / Significado Clínico | Exemplo Visual |
 |:---|:---|:---|:---|
-| **Identificação do Paciente** | Cadastro Mestre | Nome completo e prontuário único vinculado | \`Breno Coltri\` |
+| **Identificação do Paciente** | Cadastro Mestre | Nome completo e prontuário único vinculado | \`Carlos Eduardo Silva\` |
 | **Localização Atual** | Registro do Encontro | Setor físico exato onde o paciente está alocado | \`Sala de Observação (OBS-01)\` |
 | **Status do Fluxo** | Etapa Assistencial | Fase atual do paciente na jornada hospitalar | \`Em Observação Clínica\` |
 | **Classificação Manchester** | Triagem Manchester | Cor e gravidade clínica aferida na triagem | \`Laranja (Muito Urgente)\` |
@@ -914,9 +914,15 @@ O **Health Nexus v2.8.0** consolida 6 pilares de alta complexidade hospitalar e 
 
 ---
 
-<h2 id="sec-20">20. Smart Flow Guide — Adaptação Omnidirecional por Aba (v2.9.8) & Painel Lateral Acoplado 🧭</h2>
+<h2 id="sec-20">20. Smart Flow Guide — Adaptação por Aba, Controle de Foco & Desmarcação (v2.9.9) & Painel Lateral Acoplado 🧭</h2>
 
-O **Smart Flow Guide** funciona como a espinha dorsal de governança assistencial do Health Nexus, acompanhando a equipe em qualquer tela do complexo hospitalar. Na versão **2.9.8**, ele incorpora uma inteligência de contexto omnidirecional estrita: as sugestões, ações principais de 1-clique e alternativas adaptam-se de forma dinâmica e imediata à **aba exata em que o usuário está navegando**, mantendo simultaneamente o contexto do paciente em atendimento sem forçar desvios de tela.
+O **Smart Flow Guide** funciona como a espinha dorsal de governança assistencial do Health Nexus, acompanhando a equipe em qualquer tela do complexo hospitalar. Na versão **2.9.9**, ele aprimora a inteligência de contexto assistencial e o gerenciamento de foco: as recomendações adaptam-se de forma dinâmica e imediata à **aba em que o operador está navegando**, com controle total de foco para selecionar ou desmarcar pacientes a qualquer momento, sem retenção persistente indesejada.
+
+### 🎯 Controle de Foco & Desmarcação Rápida de Paciente (v2.9.9)
+
+- **Isolamento de Escopo por Sessão:** O contexto do paciente em atendimento é armazenado exclusivamente no escopo da sessão ativa (\`sessionStorage\`), impedindo que pacientes de atendimentos antigos continuem em evidência ou reapareçam após recarregar a tela ou realizar um novo login.
+- **Botão Direto "✕ Desmarcar":** Diretamente no cabeçalho do card do paciente no Smart Flow Guide, a equipe dispõe do botão **\`✕ Desmarcar\`**. Com um único clique, o foco no paciente é liberado, todos os halos pulsantes são removidos e o guia retorna instantaneamente para as recomendações da visão geral daquela aba.
+- **Navegação Limpa entre Abas:** Quando nenhum paciente está ativamente em foco, a alternância entre abas não projeta destaques em tabelas ou quadros Kanban, preservando a visualização limpa do censo e das filas hospitalares.
 
 ### 🧭 Adaptação Omnidirecional Estrita por Aba Ativa (v2.9.8)
 

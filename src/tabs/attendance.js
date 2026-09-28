@@ -684,7 +684,8 @@ export function renderAttendanceTab(contentArea) {
 
   const getActiveFocusedPatientName = () => {
     const ap = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-    return (window._highlightPatientName || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) || (ap && (ap.fullName || ap.patientName)) || '').toLowerCase().trim();
+    if (!ap && !(_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName)) return '';
+    return ((ap && (ap.fullName || ap.patientName)) || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) || '').toLowerCase().trim();
   };
 
   const isPatientFocused = (patientName) => {

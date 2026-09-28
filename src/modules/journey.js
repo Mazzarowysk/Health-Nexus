@@ -6,9 +6,14 @@ import { state } from '../state.js';
 import { showToast, makeDraggable } from './ui.js';
 import { apiFetch } from './api.js';
 
+// Limpa qualquer contexto de paciente persistido em localStorage legado para não assombrar novas sessões
+try {
+  localStorage.removeItem('activePatientContext');
+} catch (_) {}
+
 let activePatientContext = (() => {
   try {
-    const saved = localStorage.getItem('activePatientContext');
+    const saved = sessionStorage.getItem('activePatientContext');
     return saved ? JSON.parse(saved) : null;
   } catch(e) { return null; }
 })();
@@ -154,7 +159,20 @@ export const setActivePatientContext = (patient) => {
   if (!patient) {
     activePatientContext = null;
     window._highlightPatientName = null;
-    try { localStorage.removeItem('activePatientContext'); } catch(e) {}
+    window._highlightTargetColumn = null;
+    window._interactedPatient = null;
+    window._interactedRoom = null;
+    try { 
+      sessionStorage.removeItem('activePatientContext');
+      localStorage.removeItem('activePatientContext'); 
+    } catch(e) {}
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('.patient-pulse-selected, .patient-spotlight-glow, .stag-selected, [data-patient-highlighted]').forEach(el => {
+        el.classList.remove('patient-pulse-selected', 'patient-spotlight-glow', 'stag-selected');
+        el.removeAttribute('data-patient-highlighted');
+        el.querySelector('.patient-selected-flow-badge')?.remove();
+      });
+    }
   } else {
     const existing = activePatientContext || {};
     const newName = (patient.fullName || patient.patientName || '').toLowerCase().trim();
@@ -177,13 +195,36 @@ export const setActivePatientContext = (patient) => {
     }
     const pName = activePatientContext.fullName || activePatientContext.patientName;
     window._highlightPatientName = pName;
-    try { localStorage.setItem('activePatientContext', JSON.stringify(activePatientContext)); } catch(e) {}
+    try { 
+      sessionStorage.setItem('activePatientContext', JSON.stringify(activePatientContext));
+      localStorage.removeItem('activePatientContext'); // Garante que não fique em localStorage legado
+    } catch(e) {}
     if (pName && typeof window.executePatientHighlight === 'function') {
       setTimeout(() => window.executePatientHighlight(pName), 80);
     }
   }
   const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (currentActiveTabId || 'dashboard');
   updateFloatingWorkflowGuide(realTab);
+};
+
+export const clearActivePatientContext = () => {
+  setActivePatientContext(null);
+  if (typeof window !== 'undefined') {
+    if (window._SFG) {
+      window._SFG.pendingAction = null;
+    }
+    window._highlightPatientName = null;
+    window._highlightTargetColumn = null;
+    window._interactedPatient = null;
+    window._interactedRoom = null;
+    const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (currentActiveTabId || 'dashboard');
+    if (typeof window.createSmartFlowGuideCard === 'function') {
+      window.createSmartFlowGuideCard(realTab);
+    }
+    if (typeof showToast === 'function') {
+      showToast('Foco no paciente liberado. Visão geral da unidade ativada.');
+    }
+  }
 };
 
 export const getActivePatientContext = () => activePatientContext;
@@ -388,6 +429,7 @@ if (typeof window !== 'undefined') {
   window.renderFloatingPatientHUD = renderFloatingPatientHUD;
   window.setActivePatientContext = setActivePatientContext;
   window.getActivePatientContext = getActivePatientContext;
+  window.clearActivePatientContext = clearActivePatientContext;
   window.renderPatientJourneyStepper = renderPatientJourneyStepper;
   window.showClinicalHandoffModal = showClinicalHandoffModal;
   window.executeHandoffAction = executeHandoffAction;

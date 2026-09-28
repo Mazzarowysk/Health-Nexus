@@ -221,7 +221,7 @@ window.loadTVWaitingQueue = async function () {
     const safeName = (p.patientName || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const safeColor = (p.manchesterColor || 'Verde').replace(/'/g, "\\'");
     const pNameClean = (p.patientName || '').toLowerCase().trim();
-    const isSelected = !!((activeCtxName && pNameClean === activeCtxName) || (highlightName && pNameClean.includes(highlightName)));
+    const isSelected = !!(activeCtxName && (pNameClean === activeCtxName || pNameClean.includes(activeCtxName)));
 
     return `<div onclick="window._tvQuickCall('${safeName}','${safeColor}')"
       class="patient-card-item ${isSelected ? 'patient-pulse-selected' : ''}"

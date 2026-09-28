@@ -21,7 +21,7 @@ import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.j
 
 window.renderTISSTab = renderTISSTab;
 import { realtimeHub } from './modules/realtime.js';
-import { setActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD, initFloatingWorkflowGuide, updateFloatingWorkflowGuide } from './modules/journey.js';
+import { setActivePatientContext, clearActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD, initFloatingWorkflowGuide, updateFloatingWorkflowGuide } from './modules/journey.js';
 import { generateMockData, generateHospitalizations } from './mockDataGenerator.js';
 if (typeof window !== 'undefined') {
   window.localDB = localDB;
@@ -33,6 +33,7 @@ import { openTelemedicineModal } from './modules/telemedicina.js';
 import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from './modules/clinicalAI.js';
 
 window.setActivePatientContext = setActivePatientContext;
+window.clearActivePatientContext = clearActivePatientContext;
 window.renderPatientJourneyStepper = renderPatientJourneyStepper;
 window.renderFloatingPatientHUD = renderFloatingPatientHUD;
 window.initFloatingWorkflowGuide = initFloatingWorkflowGuide;
@@ -2230,10 +2231,13 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
       + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;color:#a5b4fc;font-size:0.7rem;flex-shrink:0"><i class="fa-solid fa-user"></i></div>'
       + '<div style="min-width:0;line-height:1.2">'
-      + '<div style="font-size:0.8rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:' + (isDocked ? '240px' : '180px') + '">' + pName + '</div>'
+      + '<div style="font-size:0.8rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:' + (isDocked ? '200px' : '160px') + '">' + pName + '</div>'
       + '<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:6px;background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';color:' + rInfo.text + '">' + rInfo.label + '</span></div>'
       + '</div>'
       + '</div>'
+      + '<button onclick="if(typeof window.clearActivePatientContext===\'function\'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext===\'function\'){window.setActivePatientContext(null);}" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.32);color:#fca5a5;padding:3px 8px;border-radius:6px;font-size:0.65rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all 0.15s;flex-shrink:0;" onmouseover="this.style.background=\'rgba(239,68,68,0.25)\';this.style.color=\'#fff\';" onmouseout="this.style.background=\'rgba(239,68,68,0.12)\';this.style.color=\'#fca5a5\';" title="Desmarcar paciente e voltar para a visão geral da unidade">'
+      + '<i class=\"fa-solid fa-xmark\"></i> Desmarcar'
+      + '</button>'
       + '</div>'
       + '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,0.22);border-radius:6px;padding:3px 8px;font-size:0.68rem">'
       + '<div style="display:flex;align-items:center;gap:5px;min-width:0">'
@@ -2243,6 +2247,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '</div>'
       + (isDocked ? '<div style="display:flex;align-items:center;gap:4px">'
         + '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); if(typeof window.openPEPModal===\'function\') window.openPEPModal(\'' + safePName + '\');" style="background:#0284c7;color:#fff;border:none;padding:2px 7px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;" title="Abrir PEP / Prontuário">PEP ➔</button>'
+        + '<button onclick="if(typeof window.clearActivePatientContext===\'function\'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext===\'function\'){window.setActivePatientContext(null);}" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:2px 6px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;" title="Desmarcar paciente">✕</button>'
         + '</div>' : '')
       + '</div>'
       + '</div>';
@@ -3369,6 +3374,13 @@ const initializeApp = async () => {
     clearTimeout(loaderSafetyTimer);
 
     if (authValid) {
+      // Ao entrar no sistema ou recarregar, garante que nenhum paciente fantasma anterior persista em evidência sem interação
+      if (typeof clearActivePatientContext === 'function') {
+        clearActivePatientContext();
+      } else if (typeof window.clearActivePatientContext === 'function') {
+        window.clearActivePatientContext();
+      }
+
       // Define a aba Dashboard como padrão ao entrar no sistema
       const userPerms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : null;
       state.activeTab = (userPerms?.allowedTabs?.includes('dashboard')) ? 'dashboard' : (userPerms?.allowedTabs?.[0] || 'dashboard');
@@ -3451,6 +3463,12 @@ const initializeApp = async () => {
 };
 
 const logout = () => {
+  if (typeof clearActivePatientContext === 'function') {
+    clearActivePatientContext();
+  } else if (typeof window.clearActivePatientContext === 'function') {
+    window.clearActivePatientContext();
+  }
+
   const sessionId = sessionStorage.getItem('hn_session_id');
   if (sessionId) {
     const sessionRec = localDB.get('user_sessions', sessionId);
@@ -3480,9 +3498,20 @@ window.logout = logout;
 window.initializeApp = initializeApp;
 
 export function executePatientHighlight(targetPatientName, targetColumn) {
-  if (targetPatientName) {
-    window._highlightPatientName = targetPatientName;
+  if (!targetPatientName) {
+    window._highlightPatientName = null;
+    window._highlightTargetColumn = null;
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('.patient-pulse-selected, .patient-spotlight-glow, .stag-selected, [data-patient-highlighted]').forEach(el => {
+        el.classList.remove('patient-pulse-selected', 'patient-spotlight-glow', 'stag-selected');
+        el.removeAttribute('data-patient-highlighted');
+        el.querySelector('.patient-selected-flow-badge')?.remove();
+      });
+    }
+    return false;
   }
+
+  window._highlightPatientName = targetPatientName;
   if (targetColumn) {
     window._highlightTargetColumn = targetColumn;
   }
@@ -5376,10 +5405,16 @@ function switchTab(tabName, isBack = false) {
   // Re-renderiza a área de conteúdo
   renderTabContent();
 
-  // Disparar destaque pulsante e seleção do paciente na nova aba aberta
+  // Disparar destaque pulsante e seleção do paciente na nova aba aberta APENAS SE houver paciente em foco ativo
   setTimeout(() => {
     const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-    const patName = (activePat && (activePat.fullName || activePat.patientName)) || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) || window._highlightPatientName;
+    if (!activePat && !(_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName)) {
+      if (typeof window.executePatientHighlight === 'function') {
+        window.executePatientHighlight(null);
+      }
+      return;
+    }
+    const patName = (activePat && (activePat.fullName || activePat.patientName)) || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName);
     const targetCol = window._highlightTargetColumn || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetColumn);
     if (patName && typeof window.executePatientHighlight === 'function') {
       window.executePatientHighlight(patName, targetCol);
