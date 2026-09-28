@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.11`  
+**Versão:** `2.9.12`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,6 +8,10 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- ⚡ **Inicialização Inteligente & Suporte Completo Dual-Stack (IPv4/IPv6) (v2.9.12):** Otimização da rotina de inicialização local (`iniciar-sistema.bat` e atalho de desktop). Anteriormente, ao abrir pelo atalho no notebook, o navegador abria com timeout cego de 5 segundos enquanto o servidor Node ainda estava subindo, além do Vite ficar restrito apenas ao IPv6 loopback (`::1`), fazendo o Chrome acusar `ERR_CONNECTION_REFUSED` caso tentasse conexão via IPv4 (`127.0.0.1`). Agora:
+  1. O servidor Vite foi explicitamente configurado com `host: '0.0.0.0'` e proxy direto IPv4, garantindo resposta imediata tanto por `localhost` quanto por `127.0.0.1` e pela rede local.
+  2. Implementado o script inteligente `scripts/wait_and_open.mjs`, que monitora o endpoint em tempo real e só abre o navegador no exato milissegundo em que o servidor estiver 100% pronto e responsivo.
+  3. Adicionado `cd /d "%~dp0"` no inicializador em lote, assegurando execução estável a partir de qualquer pasta, atalho da Área de Trabalho ou barra de tarefas.
 - 🩺 **Abertura Direta da Folha de Evolução Médica (PEP) na Ação Recomendada (v2.9.11):** Ao clicar no botão em destaque **"🩺 Abrir Folha de Evolução (PEP) de [Nome] ➔"** no Smart Flow Guide (tanto no card flutuante quanto no painel de governança acoplado à direita), o Prontuário Eletrônico abre imediatamente com os dados do paciente em atendimento e transiciona diretamente para o **Formulário do PEP (SOAP)**, pronto para a digitação da anamnese, exame físico, hipótese diagnóstica CID-10 e prescrição médica. Elimina qualquer tentativa de rolagem em cards inexistentes de consultório físico quando o paciente estiver acomodado em poltrona de observação ou leito, garantindo agilidade assistencial e resposta imediata com um único clique.
 - 🔍 **Correção Responsiva & Alinhamento Inteligente da Busca Global (Spotlight / Ctrl+K) (v2.9.10):** Correção completa de sobreposição e esmagamento do menu suspenso de busca global. Anteriormente, quando o painel lateral de governança estava acoplado na direita (`420px`), o espaço horizontal do cabeçalho superior era comprimido, reduzindo o campo de busca para dimensões mínimas e forçando o dropdown a herdar uma largura estreita e ilegível com quebras verticais de palavras. Foi implementada uma arquitetura responsiva inteligente:
   1. O container de resultados agora possui largura fixa otimizada (`540px`, limitado a `calc(100vw - 32px)`), cálculo dinâmico de centralização e margem de segurança contra as bordas da tela.
