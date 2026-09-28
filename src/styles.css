@@ -5805,10 +5805,6 @@ body.hn-flow-dock-preview .app-container {
   opacity: 0;
   transform: translateX(100%);
   transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   box-sizing: border-box;
 }
 
@@ -5830,83 +5826,77 @@ body.hn-flow-dock-preview .app-container {
 }
 
 .hn-dock-snap-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 28px 32px;
-  background: rgba(11, 15, 25, 0.85);
-  border: 1.5px dashed rgba(56, 189, 248, 0.45);
-  border-radius: 20px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), 0 0 25px rgba(56, 189, 248, 0.15);
-  transform: scale(0.94);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  text-align: center;
-  max-width: 340px;
-}
-
-#hn-dock-snap-indicator.active .hn-dock-snap-inner {
-  transform: scale(1);
-}
-
-.hn-dock-snap-pulse-ring {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.28), rgba(56, 189, 248, 0.16));
-  border: 1.5px solid #38bdf8;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) scale(0.96);
+  top: 100px; /* Atualizado dinamicamente via JS para ficar sempre logo abaixo do card flutuante */
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #38bdf8;
-  font-size: 1.4rem;
-  box-shadow: 0 0 24px rgba(56, 189, 248, 0.45);
-  animation: snapIconFloat 1.8s ease-in-out infinite;
+  width: auto;
+  max-width: 90%;
+  box-sizing: border-box;
+  pointer-events: none;
+  transition: top 0.06s ease-out, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
 }
 
-@keyframes snapIconFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-.hn-dock-snap-title {
-  font-size: 0.96rem;
-  font-weight: 700;
-  color: #f8fafc;
-  letter-spacing: 0.3px;
-  font-family: 'Outfit', sans-serif;
-}
-
-.hn-dock-snap-desc {
-  font-size: 0.74rem;
-  color: #94a3b8;
-  line-height: 1.3;
+#hn-dock-snap-indicator.active .hn-dock-snap-inner {
+  transform: translateX(-50%) scale(1);
 }
 
 .hn-dock-snap-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #7dd3fc;
-  background: rgba(2, 132, 199, 0.18);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  padding: 4px 12px;
-  border-radius: 12px;
-  margin-top: 4px;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 22px;
+  background: rgba(11, 15, 25, 0.94);
+  border: 1.5px solid #38bdf8;
+  border-radius: 9999px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.45);
+  animation: snapBadgeBreath 2s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+@keyframes snapBadgeBreath {
+  0%, 100% {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.35);
+    border-color: #38bdf8;
+  }
+  50% {
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), 0 0 30px rgba(56, 189, 248, 0.65);
+    border-color: #7dd3fc;
+  }
 }
 
 .hn-dock-snap-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #38bdf8;
-  box-shadow: 0 0 8px #38bdf8;
+  box-shadow: 0 0 10px #38bdf8;
+  animation: snapDotPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes snapDotPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+    box-shadow: 0 0 14px #7dd3fc;
+  }
+}
+
+.hn-dock-snap-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f0f9ff;
+  letter-spacing: 0.3px;
+  font-family: 'Outfit', sans-serif;
 }
 
 /* Efeito sutil no card flutuante quando sobrevoa a zona de docking */

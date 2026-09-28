@@ -2743,7 +2743,6 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       snapIndicator.id = 'hn-dock-snap-indicator';
       snapIndicator.innerHTML = `
         <div class="hn-dock-snap-inner">
-          <div class="hn-dock-snap-pulse-ring"></div>
           <div class="hn-dock-snap-badge">
             <span class="hn-dock-snap-dot"></span>
             <span class="hn-dock-snap-title">Solte para Acoplar Painel</span>
@@ -2754,7 +2753,6 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     } else if (!snapIndicator.querySelector('.hn-dock-snap-inner')) {
       snapIndicator.innerHTML = `
         <div class="hn-dock-snap-inner">
-          <div class="hn-dock-snap-pulse-ring"></div>
           <div class="hn-dock-snap-badge">
             <span class="hn-dock-snap-dot"></span>
             <span class="hn-dock-snap-title">Solte para Acoplar Painel</span>
@@ -2770,6 +2768,13 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       dx = clientX - r.left;
       dy = clientY - r.top;
       hdr.style.cursor = 'grabbing';
+
+      // Pré-posiciona o badge neon de encaixe logo abaixo da base do card
+      const snapInner = snapIndicator ? snapIndicator.querySelector('.hn-dock-snap-inner') : null;
+      if (snapInner) {
+        const initialTop = r.top + r.height + 12;
+        snapInner.style.top = Math.max(10, initialTop) + 'px';
+      }
       return true;
     };
 
@@ -2788,6 +2793,24 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         snapIndicator.classList.add('active');
         card.classList.add('snap-hover-active');
         document.body.classList.add('hn-flow-dock-preview');
+
+        // Mantém a mensagem 'Solte para Acoplar Painel' sempre logo abaixo do card flutuante durante toda a movimentação
+        const snapInner = snapIndicator.querySelector('.hn-dock-snap-inner');
+        if (snapInner) {
+          const cardHeight = card.offsetHeight || 420;
+          const badgeHeight = snapInner.offsetHeight || 50;
+          let badgeTop = newTop + cardHeight + 12;
+
+          // Se ultrapassar o limite inferior da tela, posiciona com respiro de segurança ou logo acima do card
+          if (badgeTop + badgeHeight > window.innerHeight - 16) {
+            if (newTop - badgeHeight - 12 >= 10) {
+              badgeTop = newTop - badgeHeight - 12;
+            } else {
+              badgeTop = Math.max(10, window.innerHeight - badgeHeight - 16);
+            }
+          }
+          snapInner.style.top = Math.max(10, badgeTop) + 'px';
+        }
       } else {
         snapIndicator.classList.remove('active');
         card.classList.remove('snap-hover-active');

@@ -947,12 +947,13 @@ Ao entrar no complexo hospitalar — seja no primeiro acesso, após novo login o
 
 O processo de acoplamento do Smart Flow Guide agora conta com uma experiência visual fluida, intuitiva e moderna:
 
-1. **Aproximação e Ativação do Efeito Neon:** Ao clicar e arrastar o card flutuante em direção ao terço direito da tela, a área de destino na lateral acende suavemente com um gradiente neon ciano translúcido, moldura luminosa e o badge central *Solte para Acoplar Painel*.
-2. **Adaptação Orgânica do Sistema:** Concomitantemente ao acendimento da área neon, todo o layout do sistema hospitalar (`.app-container`) se contrai suavemente (curva de transição `cubic-bezier(0.16, 1, 0.3, 1)`), liberando antecipadamente os 420px necessários para o painel. Prontuários, tabelas e botões continuam totalmente operacionais, sem cortes ou sobreposições.
-3. **Feedback Tátil e Magnético no Card:** O próprio card flutuante adquire um realce ciano sutil e uma leve inclinação de engajamento, indicando ao profissional que a zona de atração magnética está ativa.
-4. **Retorno Elástico ao Recuar:** Se o usuário decidir não acoplar e movimentar o card de volta para o centro da tela, a área neon se dissolve de forma limpa e o sistema expande novamente para a largura total.
-5. **Encaixe Imediato e sem Saltos (Zero Layout Shift):** Ao soltar o mouse ou toque dentro da zona iluminada, o card se transforma instantaneamente no Painel Lateral fixo em altura total (`100vh`). Como o sistema já havia se adaptado durante o arraste, não ocorre nenhum salto visual abrupto na tela.
-6. **Botão de Acoplamento Rápido:** Caso o usuário prefira não arrastar, o botão de fixação rápida no cabeçalho do card realiza a mesma transição fluida com um único toque.
+1. **Aproximação e Ativação do Efeito Neon:** Ao clicar e arrastar o card flutuante em direção ao terço direito da tela, a área de destino na lateral acende suavemente com um gradiente neon ciano translúcido, moldura luminosa e o badge luminoso *Solte para Acoplar Painel*.
+2. **Sincronização Dinâmica do Badge:** A mensagem indicativa em formato pílula neon acompanha em tempo real toda a movimentação vertical do card pelo cursor ou toque, posicionando-se sempre com elegância logo abaixo da base do card flutuante (com respiro de segurança de viewport para nunca ser cortada).
+3. **Adaptação Orgânica do Sistema:** Concomitantemente ao acendimento da área neon, todo o layout do sistema hospitalar (`.app-container`) se contrai suavemente (curva de transição `cubic-bezier(0.16, 1, 0.3, 1)`), liberando antecipadamente os 420px necessários para o painel. Prontuários, tabelas e botões continuam totalmente operacionais, sem cortes ou sobreposições.
+4. **Feedback Tátil e Magnético no Card:** O próprio card flutuante adquire um realce ciano sutil e uma leve inclinação de engajamento, indicando ao profissional que a zona de atração magnética está ativa.
+5. **Retorno Elástico ao Recuar:** Se o usuário decidir não acoplar e movimentar o card de volta para o centro da tela, a área neon se dissolve de forma limpa e o sistema expande novamente para a largura total.
+6. **Encaixe Imediato e sem Saltos (Zero Layout Shift):** Ao soltar o mouse ou toque dentro da zona iluminada, o card se transforma instantaneamente no Painel Lateral fixo em altura total (`100vh`). Como o sistema já havia se adaptado durante o arraste, não ocorre nenhum salto visual abrupto na tela.
+7. **Botão de Acoplamento Rápido:** Caso o usuário prefira não arrastar, o botão de fixação rápida no cabeçalho do card realiza a mesma transição fluida com um único toque.
 
 ### 🔄 Como Funciona o Desacoplamento (Undock) por Arrasto ou Clique
 
