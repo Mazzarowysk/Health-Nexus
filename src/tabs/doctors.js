@@ -2157,7 +2157,7 @@ modal.style.left = '0';
 // ==========================================
 // PRONTUÁRIO ELETRÔNICO DO PACIENTE (PEP) & CONSULTÓRIO
 // ==========================================
-window.openPEPModal = async function(encounterId) {
+window.openPEPModal = async function(encounterId, initialTab = 'history') {
   const existing = document.getElementById('pep-modal');
   if (existing) existing.remove();
 
@@ -2296,10 +2296,20 @@ window.openPEPModal = async function(encounterId) {
       }
     } catch(e) {}
 
+    const targetQuery = String(encounterId || '').trim().toLowerCase();
+    const targetTokens = targetQuery.split(/\s+/).filter(Boolean);
+    const matchesTarget = (pName) => {
+      if (!pName || !targetQuery) return false;
+      const pn = String(pName).trim().toLowerCase();
+      if (pn === targetQuery || pn.includes(targetQuery) || targetQuery.includes(pn)) return true;
+      if (targetTokens.length > 0 && targetTokens[0].length >= 3 && pn.startsWith(targetTokens[0])) return true;
+      return false;
+    };
+
     let matchedEncs = encounters.filter(e => 
       String(e.id) === String(encounterId) || 
       String(e.patientId) === String(encounterId) ||
-      (e.patientName && encounterId && e.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
+      matchesTarget(e.patientName)
     );
 
     if (matchedEncs.length === 0 && window.localDB) {
@@ -2308,13 +2318,17 @@ window.openPEPModal = async function(encounterId) {
       matchedEncs = localEncs.filter(e => 
         String(e.id) === String(encounterId) || 
         String(e.patientId) === String(encounterId) ||
-        (e.patientName && encounterId && e.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
+        matchesTarget(e.patientName)
       );
     }
 
     if (matchedEncs.length > 0) {
-      // Ordenar priorizando encontros que já possuem preenchimento SOAP e os mais recentes
+      // Priorizar atendimentos em andamento (ativos) em relação a encontros finalizados/altas
       matchedEncs.sort((a, b) => {
+        const aActive = a.status !== 'Finalizado' && a.status !== 'Alta';
+        const bActive = b.status !== 'Finalizado' && b.status !== 'Alta';
+        if (aActive && !bActive) return -1;
+        if (!aActive && bActive) return 1;
         const aHasSoap = !!(a.subjectiveContent || a.objectiveContent || a.assessmentContent || a.planContent);
         const bHasSoap = !!(b.subjectiveContent || b.objectiveContent || b.assessmentContent || b.planContent);
         if (aHasSoap && !bHasSoap) return -1;
@@ -2330,7 +2344,7 @@ window.openPEPModal = async function(encounterId) {
       const foundApt = localApts.find(a => 
         String(a.id) === String(encounterId) || 
         String(a.patientId) === String(encounterId) ||
-        (a.patientName && encounterId && a.patientName.toLowerCase().includes(String(encounterId).toLowerCase()))
+        matchesTarget(a.patientName)
       );
       if (foundApt) {
         enc = {
@@ -2347,18 +2361,34 @@ window.openPEPModal = async function(encounterId) {
         const localPatients = db.patients || [];
         const foundPat = localPatients.find(p => 
           String(p.id) === String(encounterId) || 
-          (p.fullName && encounterId && p.fullName.toLowerCase().includes(String(encounterId).toLowerCase()))
+          matchesTarget(p.fullName) ||
+          matchesTarget(p.name)
         );
         if (foundPat) {
           enc = {
             id: 'ENC-' + Date.now(),
             patientId: foundPat.id,
-            patientName: foundPat.fullName,
-            room: 'Consultório 01',
-            manchesterColor: 'Verde',
-            status: 'Em Atendimento'
+            patientName: foundPat.fullName || foundPat.name,
+            room: foundPat.room || 'Consultório 01',
+            manchesterColor: foundPat.triageColor || foundPat.color || foundPat.manchesterColor || 'Verde',
+            status: foundPat.status || 'Em Atendimento'
           };
         }
+      }
+    }
+
+    if (!enc.id && typeof window !== 'undefined' && window._activePatientContext) {
+      const apc = window._activePatientContext;
+      const apcName = apc.fullName || apc.patientName || '';
+      if (matchesTarget(apcName) || targetTokens.length === 0) {
+        enc = {
+          id: apc.id || apc.encounterId || ('ENC-' + Date.now()),
+          patientId: apc.patientId || apc.id,
+          patientName: apcName,
+          room: apc.room || 'Consultório 01',
+          manchesterColor: apc.manchesterColor || apc.triageColor || apc.color || 'Verde',
+          status: apc.status || 'Em Atendimento'
+        };
       }
     }
 
@@ -3316,6 +3346,15 @@ window.openPEPModal = async function(encounterId) {
     const initialHistPanel = document.getElementById('pep-history-panel');
     if (initialHistPanel) {
       window._renderPEPHistory(initialHistPanel, enc.id || encounterId);
+    }
+
+    const startTab = (typeof initialTab === 'object' && initialTab !== null) ? (initialTab.tab || 'history') : initialTab;
+    if (startTab === 'soap' && typeof window._pepSwitchTab === 'function') {
+      window._pepSwitchTab('soap');
+      setTimeout(() => {
+        const firstInput = document.getElementById('pep-subjective') || document.getElementById('pep-objective');
+        if (firstInput && !firstInput.disabled) firstInput.focus();
+      }, 150);
     }
 
   } catch (e) {

@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.10`  
+**Versão:** `2.9.11`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,6 +8,7 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🩺 **Abertura Direta da Folha de Evolução Médica (PEP) na Ação Recomendada (v2.9.11):** Ao clicar no botão em destaque **"🩺 Abrir Folha de Evolução (PEP) de [Nome] ➔"** no Smart Flow Guide (tanto no card flutuante quanto no painel de governança acoplado à direita), o Prontuário Eletrônico abre imediatamente com os dados do paciente em atendimento e transiciona diretamente para o **Formulário do PEP (SOAP)**, pronto para a digitação da anamnese, exame físico, hipótese diagnóstica CID-10 e prescrição médica. Elimina qualquer tentativa de rolagem em cards inexistentes de consultório físico quando o paciente estiver acomodado em poltrona de observação ou leito, garantindo agilidade assistencial e resposta imediata com um único clique.
 - 🔍 **Correção Responsiva & Alinhamento Inteligente da Busca Global (Spotlight / Ctrl+K) (v2.9.10):** Correção completa de sobreposição e esmagamento do menu suspenso de busca global. Anteriormente, quando o painel lateral de governança estava acoplado na direita (`420px`), o espaço horizontal do cabeçalho superior era comprimido, reduzindo o campo de busca para dimensões mínimas e forçando o dropdown a herdar uma largura estreita e ilegível com quebras verticais de palavras. Foi implementada uma arquitetura responsiva inteligente:
   1. O container de resultados agora possui largura fixa otimizada (`540px`, limitado a `calc(100vw - 32px)`), cálculo dinâmico de centralização e margem de segurança contra as bordas da tela.
   2. Eliminação total de barras de rolagem horizontais (`overflow-x: hidden`).

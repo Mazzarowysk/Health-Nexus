@@ -1101,7 +1101,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
             desc: `Classificação ${colorDisplay}! Paciente ${pName} tem prioridade clínica absoluta. Conduza imediatamente ao Consultório 01 / Sala Vermelha.`,
             btnText: `🚨 Abrir Sala Vermelha / PEP (${firstName}) ➔`,
             btnBg: 'linear-gradient(135deg, #ef4444, #dc2626)',
-            onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('Consultório 01', '${safePNameEsc}') : window.switchTab('consultorios')`,
+            onClick: `if (typeof window.openPEPModal === 'function') { window.openPEPModal('${safePNameEsc}', 'soap'); } else if (typeof window.openDoctorConsultingRoom === 'function') { window.openDoctorConsultingRoom('Consultório 01', '${safePNameEsc}'); } else { window.switchTab('consultorios'); }`,
             icon: '🚨'
           },
           alternatives: [
@@ -1446,7 +1446,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
             desc: `Paciente ${pName} em atendimento no ${safeRoom}. Registre a anamnese SOAP, hipótese diagnóstica CID-10 e emita a prescrição eletrônica.`,
             btnText: `🩺 Abrir Folha de Evolução (PEP) de ${firstName} ➔`,
             btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
-            onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : (window.openPEPModal && window.openPEPModal('${safePNameEsc}'))`,
+            onClick: `if (typeof window.openPEPModal === 'function') { window.openPEPModal('${safePNameEsc}', 'soap'); } else if (typeof window.startEncounterPEP === 'function') { window.startEncounterPEP('', '${safePNameEsc}', '${safeRoomEsc}'); } else if (typeof window.openDoctorConsultingRoom === 'function') { window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}'); }`,
             icon: isCriticalEmergency ? '🚨' : '🩺'
           },
           alternatives: [
@@ -2246,7 +2246,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '<span style="color:#e2e8f0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + locationLabel + '</span>'
       + '</div>'
       + (isDocked ? '<div style="display:flex;align-items:center;gap:4px">'
-        + '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); if(typeof window.openPEPModal===\'function\') window.openPEPModal(\'' + safePName + '\');" style="background:#0284c7;color:#fff;border:none;padding:2px 7px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;" title="Abrir PEP / Prontuário">PEP ➔</button>'
+        + '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); if(typeof window.openPEPModal===\'function\') window.openPEPModal(\'' + safePName + '\', \'soap\');" style="background:#0284c7;color:#fff;border:none;padding:2px 7px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;" title="Abrir Folha de Evolução PEP">PEP ➔</button>'
         + '<button onclick="if(typeof window.clearActivePatientContext===\'function\'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext===\'function\'){window.setActivePatientContext(null);}" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:2px 6px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;" title="Desmarcar paciente">✕</button>'
         + '</div>' : '')
       + '</div>'
@@ -2378,7 +2378,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         </div>
         <div style="font-size:0.84rem;font-weight:700;color:#ffffff;margin-bottom:4px;line-height:1.25">${evalResult.primaryAction.title}</div>
         <div style="font-size:0.72rem;color:#cbd5e1;line-height:1.35;margin-bottom:10px">${evalResult.primaryAction.desc}</div>
-        <button id="hn-fg-main-action" onclick="${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:9px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
+        <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:9px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
           ${evalResult.primaryAction.btnText}
         </button>
       </div>
@@ -2509,13 +2509,10 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     });
   }
 
-  // Ao clicar em botões de ação fechar modais e atualizar
+  // Ao clicar no botão de ação principal, sincronizar card sem destruir o modal recém-aberto
   const mainActionBtn = card.querySelector('#hn-fg-main-action');
   if (mainActionBtn) {
     mainActionBtn.addEventListener('click', function() {
-      if (typeof window.closeAllActiveModals === 'function') {
-        window.closeAllActiveModals();
-      }
       setTimeout(function() {
         if (!_SFG.docked) {
           _SFG.minimized = true;
@@ -2523,16 +2520,13 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         const existingCard = document.getElementById('hn-flow-guide-card') || document.getElementById('hn-flow-guide');
         if (existingCard) existingCard.remove();
         createSmartFlowGuideCard(_SFG.activeTab);
-      }, 80);
+      }, 120);
     });
   }
 
   const chipButtons = card.querySelectorAll('.hn-possibility-chip');
   chipButtons.forEach(function(chip) {
     chip.addEventListener('click', function() {
-      if (typeof window.closeAllActiveModals === 'function') {
-        window.closeAllActiveModals();
-      }
       setTimeout(function() {
         if (!_SFG.docked) {
           _SFG.minimized = true;
@@ -2540,7 +2534,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         const existingCard = document.getElementById('hn-flow-guide-card') || document.getElementById('hn-flow-guide');
         if (existingCard) existingCard.remove();
         createSmartFlowGuideCard(_SFG.activeTab);
-      }, 80);
+      }, 120);
     });
   });
 
@@ -3246,6 +3240,8 @@ window.openDoctorConsultingRoom = function(roomName, patientName) {
       setTimeout(function() {
         roomCard.classList.remove('room-card-pulsing');
       }, 10000);
+    } else if (patientName && typeof window.openPEPModal === 'function') {
+      window.openPEPModal(patientName, 'soap');
     }
   }, 150);
 };
