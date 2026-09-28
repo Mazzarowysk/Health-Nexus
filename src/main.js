@@ -2735,50 +2735,80 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     }
   } else {
     // MODO CARD FLUTUANTE:
-    // Arrastar livremente pela tela. Ao aproximar e soltar na borda lateral direita, acopla como Painel!
+    // Arrastar livremente pela tela. Ao aproximar da borda direita, o sistema se adapta suavemente e a área neon de acoplamento se ilumina!
     let dx = 0, dy = 0, dragging = false;
     let snapIndicator = document.getElementById('hn-dock-snap-indicator');
     if (!snapIndicator) {
       snapIndicator = document.createElement('div');
       snapIndicator.id = 'hn-dock-snap-indicator';
+      snapIndicator.innerHTML = `
+        <div class="hn-dock-snap-inner">
+          <div class="hn-dock-snap-pulse-ring"></div>
+          <div class="hn-dock-snap-badge">
+            <span class="hn-dock-snap-dot"></span>
+            <span class="hn-dock-snap-title">Solte para Acoplar Painel</span>
+          </div>
+        </div>
+      `;
       document.body.appendChild(snapIndicator);
+    } else if (!snapIndicator.querySelector('.hn-dock-snap-inner')) {
+      snapIndicator.innerHTML = `
+        <div class="hn-dock-snap-inner">
+          <div class="hn-dock-snap-pulse-ring"></div>
+          <div class="hn-dock-snap-badge">
+            <span class="hn-dock-snap-dot"></span>
+            <span class="hn-dock-snap-title">Solte para Acoplar Painel</span>
+          </div>
+        </div>
+      `;
     }
 
-    hdr.addEventListener('mousedown', function(e) {
-      if (e.target.closest('#hn-fg-dock-btn, #hn-fg-min, #hn-fg-close, button, a')) return;
+    const startDrag = function(clientX, clientY, target) {
+      if (target.closest('#hn-fg-dock-btn, #hn-fg-min, #hn-fg-close, button, a')) return false;
       dragging = true;
       const r = card.getBoundingClientRect();
-      dx = e.clientX - r.left;
-      dy = e.clientY - r.top;
+      dx = clientX - r.left;
+      dy = clientY - r.top;
       hdr.style.cursor = 'grabbing';
-    });
+      return true;
+    };
 
-    const onFloatMouseMove = function(e) {
+    const updateDrag = function(clientX, clientY) {
       if (!dragging) return;
-      const newLeft = (e.clientX - dx);
-      const newTop = (e.clientY - dy);
+      const newLeft = (clientX - dx);
+      const newTop = (clientY - dy);
       card.style.left = newLeft + 'px';
       card.style.top  = newTop + 'px';
       card.style.right = 'auto';
       card.style.bottom = 'auto';
 
-      // Detecta proximidade com a lateral direita
-      const nearRightEdge = (e.clientX >= window.innerWidth - 85) || (newLeft + card.offsetWidth >= window.innerWidth - 30);
+      // Detecta proximidade com a lateral direita para preview neon e adaptacao do sistema
+      const nearRightEdge = (clientX >= window.innerWidth - 320) || (newLeft + card.offsetWidth >= window.innerWidth - 120);
       if (nearRightEdge) {
         snapIndicator.classList.add('active');
+        card.classList.add('snap-hover-active');
+        document.body.classList.add('hn-flow-dock-preview');
       } else {
         snapIndicator.classList.remove('active');
+        card.classList.remove('snap-hover-active');
+        document.body.classList.remove('hn-flow-dock-preview');
       }
     };
 
-    const onFloatMouseUp = function(e) {
+    const endDrag = function(clientX) {
       if (!dragging) return;
       dragging = false;
       hdr.style.cursor = 'grab';
       if (snapIndicator) snapIndicator.classList.remove('active');
+      card.classList.remove('snap-hover-active');
 
-      // Se soltou na borda lateral direita, acopla como Painel Lateral do Sistema!
-      const dropNearRight = (e.clientX >= window.innerWidth - 95) || (parseInt(card.style.left, 10) + card.offsetWidth >= window.innerWidth - 40);
+      const isPreviewActive = document.body.classList.contains('hn-flow-dock-preview');
+      document.body.classList.remove('hn-flow-dock-preview');
+
+      // Se soltou na zona de acoplamento da lateral direita, acopla como Painel Lateral do Sistema!
+      const currentLeft = parseInt(card.style.left, 10) || 0;
+      const dropNearRight = isPreviewActive || (clientX >= window.innerWidth - 280) || (currentLeft + card.offsetWidth >= window.innerWidth - 100);
+      
       if (dropNearRight) {
         _SFG.docked = true;
         try { localStorage.setItem('hn_flow_docked', 'true'); } catch (_) {}
@@ -2793,8 +2823,46 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       }
     };
 
+    // Eventos de Mouse
+    hdr.addEventListener('mousedown', function(e) {
+      startDrag(e.clientX, e.clientY, e.target);
+    });
+
+    const onFloatMouseMove = function(e) {
+      updateDrag(e.clientX, e.clientY);
+    };
+
+    const onFloatMouseUp = function(e) {
+      endDrag(e.clientX);
+    };
+
     document.addEventListener('mousemove', onFloatMouseMove);
     document.addEventListener('mouseup', onFloatMouseUp);
+
+    // Suporte a Touchscreen / Tablets
+    hdr.addEventListener('touchstart', function(e) {
+      if (e.touches && e.touches.length === 1) {
+        if (startDrag(e.touches[0].clientX, e.touches[0].clientY, e.target)) {
+          e.preventDefault();
+        }
+      }
+    }, { passive: false });
+
+    const onFloatTouchMove = function(e) {
+      if (dragging && e.touches && e.touches.length === 1) {
+        updateDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
+    const onFloatTouchEnd = function(e) {
+      if (dragging) {
+        const clientX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : 0;
+        endDrag(clientX);
+      }
+    };
+
+    document.addEventListener('touchmove', onFloatTouchMove, { passive: true });
+    document.addEventListener('touchend', onFloatTouchEnd);
 
     // Botão de acoplar rápido no header
     const dockBtn = card.querySelector('#hn-fg-dock-btn');

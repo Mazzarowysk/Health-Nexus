@@ -5774,36 +5774,147 @@ tr.patient-pulse-selected td:last-child {
   }
 }
 
-/* Transição suave do container do sistema ao acoplar/desacoplar */
+/* Transição suave do container do sistema ao acoplar/desacoplar/preview */
 .app-container {
-  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Quando o painel lateral está acoplado, o sistema inteiro se adapta dinamicamente */
-body.hn-flow-docked-right .app-container {
-  width: calc(100vw - var(--hn-flow-panel-width)) !important;
-  max-width: calc(100vw - var(--hn-flow-panel-width)) !important;
-  margin-right: var(--hn-flow-panel-width) !important;
+/* Quando o painel lateral está acoplado ou em preview durante o arraste, o sistema inteiro se adapta dinamicamente */
+body.hn-flow-docked-right .app-container,
+body.hn-flow-dock-preview .app-container {
+  width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
+  max-width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
+  margin-right: var(--hn-flow-panel-width, 420px) !important;
 }
 
-/* Indicador visual de acoplamento (Snap Dock Guide) ao arrastar o card próximo da lateral */
+/* Indicador e Zona Fantasma Neon de Encaixe Lateral (Smart Drop Zone Preview) */
 #hn-dock-snap-indicator {
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 0;
-  background: linear-gradient(180deg, rgba(2, 132, 199, 0.95), rgba(56, 189, 248, 0.95), rgba(14, 165, 233, 0.95));
-  box-shadow: -6px 0 28px rgba(2, 132, 199, 0.85), 0 0 20px rgba(56, 189, 248, 0.6);
+  width: var(--hn-flow-panel-width, 420px);
+  max-width: 100vw;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(14, 165, 233, 0.03) 50%, rgba(11, 15, 25, 0.75) 100%);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-left: 2px solid #38bdf8;
+  box-shadow: -10px 0 40px rgba(56, 189, 248, 0.35), inset 3px 0 25px rgba(2, 132, 199, 0.15), inset -1px 0 0 rgba(255, 255, 255, 0.06);
   z-index: 2147483646;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.22s ease, width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(100%);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 #hn-dock-snap-indicator.active {
-  width: 12px;
   opacity: 1;
+  transform: translateX(0);
+  animation: neonDockBreath 2.4s ease-in-out infinite;
+}
+
+@keyframes neonDockBreath {
+  0%, 100% {
+    border-left-color: #38bdf8;
+    box-shadow: -8px 0 32px rgba(56, 189, 248, 0.35), inset 2px 0 20px rgba(2, 132, 199, 0.12);
+  }
+  50% {
+    border-left-color: #7dd3fc;
+    box-shadow: -15px 0 50px rgba(56, 189, 248, 0.58), inset 4px 0 32px rgba(14, 165, 233, 0.22);
+  }
+}
+
+.hn-dock-snap-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 32px;
+  background: rgba(11, 15, 25, 0.85);
+  border: 1.5px dashed rgba(56, 189, 248, 0.45);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), 0 0 25px rgba(56, 189, 248, 0.15);
+  transform: scale(0.94);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+  max-width: 340px;
+}
+
+#hn-dock-snap-indicator.active .hn-dock-snap-inner {
+  transform: scale(1);
+}
+
+.hn-dock-snap-pulse-ring {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.28), rgba(56, 189, 248, 0.16));
+  border: 1.5px solid #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  font-size: 1.4rem;
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.45);
+  animation: snapIconFloat 1.8s ease-in-out infinite;
+}
+
+@keyframes snapIconFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.hn-dock-snap-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.3px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.hn-dock-snap-desc {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.hn-dock-snap-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #7dd3fc;
+  background: rgba(2, 132, 199, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
+.hn-dock-snap-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+/* Efeito sutil no card flutuante quando sobrevoa a zona de docking */
+#hn-flow-guide.snap-hover-active {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.85), 0 0 30px rgba(56, 189, 248, 0.55) !important;
+  transform: scale(0.985);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
 }
 
 /* Painel lateral fixado na lateral direita */

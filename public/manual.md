@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.9)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.10)
 
-> **Health Nexus v2.9.9 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.10 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -943,12 +943,16 @@ Ao entrar no complexo hospitalar — seja no primeiro acesso, após novo login o
 - **Comportamento Idêntico e Integrado do Card de Fluxo:** O Smart Flow Guide se posiciona de forma consistente, exibindo a etapa inicial de acolhimento (Recepção), orientando o cadastro de novos pacientes ou localização na fila, mantendo preservada a sua preferência de fixação (painel acoplado ou card flutuante).
 - **Retorno Rápido ao Dashboard:** Clicar na logo da instituição ou no título principal *Health Nexus* no topo do sistema retorna instantaneamente ao Dashboard a partir de qualquer módulo operacional.
 
-### 🎯 Como Funciona o Acoplamento Lateral (Dock)
+### 💡 Encaixe Magnético Neon & Adaptação Fluida de Layout ao Arrastar (v2.9.10)
 
-1. **Arrastar até a Borda Direita:** Ao clicar e arrastar o card flutuante em direção à margem direita da tela (a menos de 85 pixels da borda), surge uma barra luminosa vertical indicando o ponto de encaixe.
-2. **Soltar para Acoplar:** Soltando o mouse ou o toque sobre a área indicada, o guia se fixa na lateral direita em formato de painel estendido.
-3. **Botão Direto de Acoplamento:** Também é possível acoplar com um único clique no botão de fixação rápida presente no cabeçalho do card.
-4. **Adaptação Fluida do Espaço da Tela:** Assim que o painel é fixado, toda a área do sistema ajusta sua largura automaticamente (reservando 420px para o painel), garantindo que prontuários, tabelas e botões continuem 100% visíveis e clicáveis, sem sobreposição.
+O processo de acoplamento do Smart Flow Guide agora conta com uma experiência visual fluida, intuitiva e moderna:
+
+1. **Aproximação e Ativação do Efeito Neon:** Ao clicar e arrastar o card flutuante em direção ao terço direito da tela, a área de destino na lateral acende suavemente com um gradiente neon ciano translúcido, moldura luminosa e o badge central *Solte para Acoplar Painel*.
+2. **Adaptação Orgânica do Sistema:** Concomitantemente ao acendimento da área neon, todo o layout do sistema hospitalar (`.app-container`) se contrai suavemente (curva de transição `cubic-bezier(0.16, 1, 0.3, 1)`), liberando antecipadamente os 420px necessários para o painel. Prontuários, tabelas e botões continuam totalmente operacionais, sem cortes ou sobreposições.
+3. **Feedback Tátil e Magnético no Card:** O próprio card flutuante adquire um realce ciano sutil e uma leve inclinação de engajamento, indicando ao profissional que a zona de atração magnética está ativa.
+4. **Retorno Elástico ao Recuar:** Se o usuário decidir não acoplar e movimentar o card de volta para o centro da tela, a área neon se dissolve de forma limpa e o sistema expande novamente para a largura total.
+5. **Encaixe Imediato e sem Saltos (Zero Layout Shift):** Ao soltar o mouse ou toque dentro da zona iluminada, o card se transforma instantaneamente no Painel Lateral fixo em altura total (`100vh`). Como o sistema já havia se adaptado durante o arraste, não ocorre nenhum salto visual abrupto na tela.
+6. **Botão de Acoplamento Rápido:** Caso o usuário prefira não arrastar, o botão de fixação rápida no cabeçalho do card realiza a mesma transição fluida com um único toque.
 
 ### 🔄 Como Funciona o Desacoplamento (Undock) por Arrasto ou Clique
 
