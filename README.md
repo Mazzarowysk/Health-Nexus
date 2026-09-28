@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.12`  
+**Versão:** `2.9.13`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,9 +8,15 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🔍 **Lupa de Leitura & Expansão Suave no Guia de Fluxo (Hover Zoom) (v2.9.13):** Implementação de experiência visual para o Card de Fluxo e Painel de Governança Clínica. Ao posicionar o cursor sobre o card ou painel lateral:
+  1. O indicador visual neon `🔍 Leitura Ampliada` surge sutilmente no topo com iluminação ciano.
+  2. O card expande suavemente de largura (`375px` &rarr; `445px` no modo flutuante; `420px` &rarr; `495px` no modo acoplado) com tipografia ampliada em 13% (`zoom: 1.13`), tornando nomes de pacientes, badges de Manchester, textos de ação e contadores do Radar Hospitalar perfeitamente legíveis sem fadiga visual.
+  3. Ao retirar o mouse de cima do painel, ele retrai imediatamente de forma fluida e retorna ao tamanho normal original.
+  4. Adicionado o botão de lupa no cabeçalho para fixar o modo ampliado quando desejado, sem necessidade de manter o mouse sobreposto.
+- 📅 **Padronização de Data de Nascimento em Formato Brasileiro (DD/MM/AAAA) (v2.9.13):** Correção no cabeçalho do Prontuário & Histórico Clínico do Paciente. Datas cadastradas em padrão ISO (`AAAA-MM-DD`, ex: `1980-05-05`) agora são exibidas de forma amigável no formato nacional `DD/MM/AAAA` (ex: `05/05/1980`), garantindo leitura assistencial clara e em conformidade com as boas práticas de documentação médica.
 - ⚡ **Inicialização Inteligente & Suporte Completo Dual-Stack (IPv4/IPv6) (v2.9.12):** Otimização da rotina de inicialização local (`iniciar-sistema.bat` e atalho de desktop). Anteriormente, ao abrir pelo atalho no notebook, o navegador abria com timeout cego de 5 segundos enquanto o servidor Node ainda estava subindo, além do Vite ficar restrito apenas ao IPv6 loopback (`::1`), fazendo o Chrome acusar `ERR_CONNECTION_REFUSED` caso tentasse conexão via IPv4 (`127.0.0.1`). Agora:
   1. O servidor Vite foi explicitamente configurado com `host: '0.0.0.0'` e proxy direto IPv4, garantindo resposta imediata tanto por `localhost` quanto por `127.0.0.1` e pela rede local.
-  2. Implementado o script inteligente `scripts/wait_and_open.mjs`, que monitora o endpoint em tempo real e só abre o navegador no exato milissegundo em que o servidor estiver 100% pronto e responsivo.
+  2. Inicialização via atalho direto com comando nativo do Windows e tempo otimizado de 2 segundos.
   3. Adicionado `cd /d "%~dp0"` no inicializador em lote, assegurando execução estável a partir de qualquer pasta, atalho da Área de Trabalho ou barra de tarefas.
 - 🩺 **Abertura Direta da Folha de Evolução Médica (PEP) na Ação Recomendada (v2.9.11):** Ao clicar no botão em destaque **"🩺 Abrir Folha de Evolução (PEP) de [Nome] ➔"** no Smart Flow Guide (tanto no card flutuante quanto no painel de governança acoplado à direita), o Prontuário Eletrônico abre imediatamente com os dados do paciente em atendimento e transiciona diretamente para o **Formulário do PEP (SOAP)**, pronto para a digitação da anamnese, exame físico, hipótese diagnóstica CID-10 e prescrição médica. Elimina qualquer tentativa de rolagem em cards inexistentes de consultório físico quando o paciente estiver acomodado em poltrona de observação ou leito, garantindo agilidade assistencial e resposta imediata com um único clique.
 - 🔍 **Correção Responsiva & Alinhamento Inteligente da Busca Global (Spotlight / Ctrl+K) (v2.9.10):** Correção completa de sobreposição e esmagamento do menu suspenso de busca global. Anteriormente, quando o painel lateral de governança estava acoplado na direita (`420px`), o espaço horizontal do cabeçalho superior era comprimido, reduzindo o campo de busca para dimensões mínimas e forçando o dropdown a herdar uma largura estreita e ilegível com quebras verticais de palavras. Foi implementada uma arquitetura responsiva inteligente:

@@ -1733,6 +1733,19 @@ modal.style.left = '0';
     const sectorName = activeHosp ? (KANBAN_SECTORS[activeHosp.current_sector] || activeHosp.current_sector || 'Enfermaria') : (latestDischargedHosp ? (KANBAN_SECTORS[latestDischargedHosp.current_sector] || latestDischargedHosp.current_sector || 'Enfermaria') : 'Enfermaria');
     const patLoc = window.getPatientCurrentLocation(patient.id || patientId, patient.fullName || patientName);
 
+    const formatBirthDateBR = (raw) => {
+      if (!raw) return 'Não informado';
+      const clean = String(raw).split('T')[0].trim();
+      if (clean.includes('-')) {
+        const parts = clean.split('-');
+        if (parts.length === 3) {
+          const [y, m, d] = parts;
+          if (y.length === 4) return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+        }
+      }
+      return clean;
+    };
+
     let html = `
       <!-- CARD PRINCIPAL DE RASTREAMENTO E LOCALIZAÇÃO ATUAL DO PACIENTE -->
       <div style="background: linear-gradient(135deg, #1e1b4b, #111124); border: 1.5px solid ${patLoc.borderColor}; border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
@@ -1767,7 +1780,7 @@ modal.style.left = '0';
           </div>
           <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap;">
             <span><strong>CPF:</strong> ${patient.cpf || 'Não informado'}</span>
-            <span><strong>Nascimento:</strong> ${patient.birthDate || 'Não informado'}</span>
+            <span><strong>Nascimento:</strong> ${formatBirthDateBR(patient.birthDate)}</span>
             <span><strong>Gênero:</strong> ${patient.gender || 'Não informado'}</span>
           </div>
         </div>

@@ -183,6 +183,7 @@ const _SFG = {
   minimized: false,
   hidden: false,
   docked: (typeof localStorage !== 'undefined' && localStorage.getItem('hn_flow_docked') === 'true'),
+  zoomPinned: (typeof localStorage !== 'undefined' && localStorage.getItem('hn_flow_zoom_pinned') === 'true'),
   steps: [
     { tab: 'pacientes',    icon: '🏥', label: 'Recepção'    },
     { tab: 'atendimento',  icon: '🩺', label: 'Triagem'     },
@@ -2079,6 +2080,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + roleBadgeHtml
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:5px">'
+      + '<div id="hn-fg-zoom-indicator" class="hn-fg-zoom-indicator" title="Visualização ampliada ativa (afaste o cursor para retornar)"><i class="fa-solid fa-magnifying-glass-plus"></i><span>Leitura Ampliada</span></div>'
+      + '<button id="hn-fg-zoom" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Lupa de Leitura: passe o mouse para ampliar os textos ou clique para fixar"><i class="fa-solid fa-magnifying-glass-plus"></i></button>'
       + '<button id="hn-fg-undock" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Desacoplar para card flutuante menor (ou arraste para o centro)"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>'
       + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
       + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
@@ -2094,6 +2097,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '<span style="font-size:0.58rem;font-weight:700;color:#94a3b8;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);padding:1px 6px;border-radius:8px">Etapa ' + (currentStageIdx + 1) + '/7</span>'
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:5px">'
+      + '<div id="hn-fg-zoom-indicator" class="hn-fg-zoom-indicator" title="Visualização ampliada ativa (afaste o cursor para retornar)"><i class="fa-solid fa-magnifying-glass-plus"></i><span>Leitura Ampliada</span></div>'
+      + '<button id="hn-fg-zoom" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;transition:all 0.15s" title="Lupa de Leitura: passe o mouse para ampliar os textos ou clique para fixar"><i class="fa-solid fa-magnifying-glass-plus"></i></button>'
       + '<button id="hn-fg-dock-btn" style="background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.68rem;transition:all 0.15s" title="Fixar na lateral direita como Painel do Sistema (ou arraste até a borda)"><i class="fa-solid fa-table-columns"></i></button>'
       + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
       + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
@@ -2896,6 +2901,59 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         }
       });
     }
+  }
+  // ── LUPA & EXPANSÃO INTELIGENTE NO HOVER (MODO AMPLIADO) ──
+  let zoomHoverTimer = null;
+  card.addEventListener('mouseenter', function() {
+    if (_SFG.minimized) return;
+    clearTimeout(zoomHoverTimer);
+    card.classList.add('hn-flow-hover-magnified');
+  });
+
+  card.addEventListener('mouseleave', function() {
+    if (_SFG.minimized) return;
+    clearTimeout(zoomHoverTimer);
+    zoomHoverTimer = setTimeout(function() {
+      if (!card.classList.contains('hn-flow-pinned-zoom')) {
+        card.classList.remove('hn-flow-hover-magnified');
+      }
+    }, 120);
+  });
+
+  const zoomBtn = card.querySelector('#hn-fg-zoom');
+  if (zoomBtn) {
+    if (_SFG.zoomPinned) {
+      card.classList.add('hn-flow-pinned-zoom', 'hn-flow-hover-magnified');
+      zoomBtn.style.background = 'rgba(2,132,199,0.3)';
+      zoomBtn.style.color = '#38bdf8';
+      zoomBtn.style.borderColor = '#38bdf8';
+      zoomBtn.title = 'Zoom Fixado: clique para restaurar tamanho normal';
+    }
+
+    zoomBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _SFG.zoomPinned = !_SFG.zoomPinned;
+      try { localStorage.setItem('hn_flow_zoom_pinned', _SFG.zoomPinned ? 'true' : 'false'); } catch (_) {}
+      if (_SFG.zoomPinned) {
+        card.classList.add('hn-flow-pinned-zoom', 'hn-flow-hover-magnified');
+        zoomBtn.style.background = 'rgba(2,132,199,0.3)';
+        zoomBtn.style.color = '#38bdf8';
+        zoomBtn.style.borderColor = '#38bdf8';
+        zoomBtn.title = 'Zoom Fixado: clique para restaurar tamanho normal';
+        if (typeof showToast === 'function') {
+          showToast('🔍 Modo ampliado fixado no Guia de Fluxo.');
+        }
+      } else {
+        card.classList.remove('hn-flow-pinned-zoom', 'hn-flow-hover-magnified');
+        zoomBtn.style.background = 'rgba(255,255,255,0.04)';
+        zoomBtn.style.color = '#94a3b8';
+        zoomBtn.style.borderColor = 'rgba(255,255,255,0.08)';
+        zoomBtn.title = 'Lupa de Leitura: passe o mouse para ampliar os textos ou clique para fixar';
+        if (typeof showToast === 'function') {
+          showToast('Tamanho normal do Guia de Fluxo restaurado.');
+        }
+      }
+    });
   }
 
   return card;
