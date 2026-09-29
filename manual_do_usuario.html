@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.10)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.14)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.10 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
+<p><strong>Health Nexus v2.9.14 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -3509,25 +3509,24 @@ flowchart TD
 <ul>
 <li><strong>Em telas largas (Full HD ou superiores):</strong> Mantenha o painel acoplado à direita durante todo o plantão para monitorar a fila de pacientes sem sair do prontuário ou da triagem.</li>
 </ul>
-<h3>🔍 Lupa &amp; Expansão Inteligente no Hover (v2.9.14)</h3>
-<p>Pensado especialmente para laptops e ambientes hospitalares dinâmicos, o Guia de Fluxo conta com ampliação instantânea e inteligente ao passar o cursor do mouse:</p>
+<h3>🔍 Expansão Suave Individual por Card no Hover (v2.9.14)</h3>
+<p>Pensado especialmente para laptops e agilidade no plantão, o Guia de Fluxo agora amplia individualmente cada card ao manter o mouse posicionado sobre ele:</p>
 <ol>
-<li><strong>Expansão Automática e Fluida ao Posicionar o Mouse:</strong><ul>
-<li><strong>Painel Lateral Acoplado:</strong> Expande-se suavemente de <code>420px</code> para <code>560px</code> de largura útil, enquanto a tela central do sistema se adapta dinamicamente sem sobreposições.</li>
-<li><strong>Card Flutuante:</strong> Expande-se de <code>375px</code> para <code>500px</code> com realce luminoso.</li>
-<li><strong>Tipografia e Elementos Ampliados (Zoom 1.25x):</strong> Todo o conteúdo interno — textos, botões de ação, cards do radar e etapas da jornada — é ampliado em 25%, proporcionando leitura nítida e confortável de relance.</li>
+<li><strong>Expansão Focalizada por Card:</strong><ul>
+<li>Ao manter o cursor sobre qualquer bloco interno (Módulo Atual, Paciente em Foco, Conduta Recomendada, Métricas do Radar Hospitalar ou Chips de Ação), o respectivo card executa uma transição suave com elevação (<code>translateY(-2px)</code> a <code>-3px</code>), ampliação proporcional (<code>scale(1.035)</code> a <code>scale(1.06)</code>) e borda luminosa ciano em alto contraste.</li>
+<li>O restante do painel e a tela central mantêm suas posições estáveis, garantindo conforto visual imediato sem qualquer deslocamento de layout (<em>zero layout shift</em>).</li>
 </ul>
 </li>
-<li><strong>Banner Indicador com Ícone de Lupa:</strong><ul>
-<li>Durante a aproximação, surge no topo do corpo o aviso luminoso: <em>&quot;🔍 Lupa Ativa: Card &amp; Textos Expandidos (Afaste o mouse para voltar)&quot;</em>.</li>
+<li><strong>Interface Limpa &amp; Sem Banners Intrusivos:</strong><ul>
+<li>Avisos visuais sobrepostos (como mensagens de &quot;Lupa Ativa&quot;) foram totalmente eliminados, mantendo as informações clínicas claras, desobstruídas e de leitura direta.</li>
 </ul>
 </li>
-<li><strong>Retorno Automático ao Afastar o Cursor:</strong><ul>
-<li>Ao mover o cursor para fora do card, ele retrai suavemente ao tamanho compacto normal (<code>420px</code> ou <code>375px</code>), liberando espaço de tela.</li>
+<li><strong>Navegação Normal e Instantânea ao Clicar:</strong><ul>
+<li>O clique sobre qualquer card ou botão interno continua respondendo com agilidade, abrindo diretamente a etapa clínica selecionada (Triagem Manchester, Prontuário Eletrônico PEP, Prescrição ou Atendimentos).</li>
 </ul>
 </li>
-<li><strong>Fixação Permanente da Leitura Ampliada (<code>[ 🔍 ]</code>):</strong><ul>
-<li>Caso o profissional prefira manter o painel sempre no tamanho expandido durante seu turno, basta clicar no botão de lupa no cabeçalho. Um clique fixa a ampliação; um novo clique restaura o modo de expansão dinâmica no hover.</li>
+<li><strong>Retorno Automático:</strong><ul>
+<li>Ao afastar o cursor para fora do card, ele retorna suavemente à sua escala e contraste originais.</li>
 </ul>
 </li>
 </ol>

@@ -1977,16 +1977,15 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   card.id = 'hn-flow-guide';
   card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '') + (isDocked ? ' docked-panel' : '');
 
-  // Posicionamento e dimensões
+  // Posicionamento e dimensões estáveis e confortáveis
   if (isDocked) {
-    const dockedWidth = _SFG.zoomPinned ? '560px' : '420px';
     card.setAttribute('style', [
       'position:fixed !important',
       'top:0 !important',
       'right:0 !important',
       'bottom:0 !important',
       'left:auto !important',
-      'width:' + dockedWidth + ' !important',
+      'width:var(--hn-flow-panel-width, 420px) !important',
       'max-width:100vw !important',
       'height:100vh !important',
       'background:rgba(11,15,25,0.98) !important',
@@ -2002,8 +2001,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       'overflow:hidden !important',
       'display:flex !important',
       'flex-direction:column !important',
-      'user-select:none !important',
-      'transition:width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease !important'
+      'user-select:none !important'
     ].join(';'));
   } else {
     const defaultPos = 'bottom:22px !important;right:22px !important;';
@@ -2019,8 +2017,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         _SFG.pos = null;
       }
     }
-    const baseW = _SFG.zoomPinned ? '500px' : '375px';
-    const cardWidth = _SFG.minimized ? 'auto !important' : baseW + ' !important';
+    const cardWidth = _SFG.minimized ? 'auto !important' : '380px !important';
 
     card.setAttribute('style', [
       'position:fixed !important',
@@ -2038,8 +2035,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       'color:#f8fafc !important',
       'z-index:2147483647 !important',
       'overflow:hidden !important',
-      'user-select:none !important',
-      'transition:width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease !important'
+      'user-select:none !important'
     ].join(';'));
   }
 
@@ -2083,8 +2079,6 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + roleBadgeHtml
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:5px">'
-      + '<div id="hn-fg-zoom-indicator" class="hn-fg-zoom-indicator" title="Visualização ampliada ativa (afaste o cursor para retornar)"><i class="fa-solid fa-magnifying-glass-plus"></i><span>Leitura Ampliada</span></div>'
-      + '<button id="hn-fg-zoom" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Lupa de Leitura: passe o mouse para ampliar os textos ou clique para fixar"><i class="fa-solid fa-magnifying-glass-plus"></i></button>'
       + '<button id="hn-fg-undock" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Desacoplar para card flutuante menor (ou arraste para o centro)"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>'
       + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
       + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
@@ -2100,8 +2094,6 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '<span style="font-size:0.58rem;font-weight:700;color:#94a3b8;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);padding:1px 6px;border-radius:8px">Etapa ' + (currentStageIdx + 1) + '/7</span>'
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:5px">'
-      + '<div id="hn-fg-zoom-indicator" class="hn-fg-zoom-indicator" title="Visualização ampliada ativa (afaste o cursor para retornar)"><i class="fa-solid fa-magnifying-glass-plus"></i><span>Leitura Ampliada</span></div>'
-      + '<button id="hn-fg-zoom" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;transition:all 0.15s" title="Lupa de Leitura: passe o mouse para ampliar os textos ou clique para fixar"><i class="fa-solid fa-magnifying-glass-plus"></i></button>'
       + '<button id="hn-fg-dock-btn" style="background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.68rem;transition:all 0.15s" title="Fixar na lateral direita como Painel do Sistema (ou arraste até a borda)"><i class="fa-solid fa-table-columns"></i></button>'
       + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
       + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
@@ -2141,15 +2133,6 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     body.setAttribute('style', 'padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;');
   }
 
-  // Banner indicador de Lupa Ativa / Leitura Ampliada no topo do corpo
-  const zoomHintHtml = '<div id="hn-fg-hover-zoom-hint" style="display:' + (_SFG.zoomPinned ? 'flex' : 'none') + ';align-items:center;justify-content:space-between;gap:8px;padding:9px 13px;background:linear-gradient(135deg,rgba(2,132,199,0.35),rgba(14,165,233,0.2));border:1.5px solid #38bdf8;border-radius:10px;color:#f0f9ff;font-size:0.86rem;font-weight:700;box-shadow:0 4px 18px rgba(2,132,199,0.4);flex-shrink:0;">'
-    + '<div style="display:flex;align-items:center;gap:8px;">'
-    + '<i class="fa-solid fa-magnifying-glass-plus" style="color:#38bdf8;font-size:1.15rem;"></i>'
-    + '<span>🔍 Lupa Ativa: Card & Textos Expandidos</span>'
-    + '</div>'
-    + '<span style="font-size:0.68rem;color:#bae6fd;background:rgba(0,0,0,0.45);padding:2px 8px;border-radius:6px;font-weight:600;">Afaste o mouse para voltar</span>'
-    + '</div>';
-
   // Metadados da tela atual
   const screenDetails = {
     dashboard:    { name: 'Health Nexus', badge: 'Painel Geral', desc: 'Visão consolidada dos indicadores e fluxo do hospital.' },
@@ -2176,13 +2159,13 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     desc: 'Operação assistencial.'
   };
 
-  const currentScreenHtml = '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">'
-    + '<div style="display:flex;align-items:center;gap:6px;min-width:0">'
-    + '<span style="font-size:0.75rem;color:#0284c7">📍</span>'
-    + '<span style="font-size:0.74rem;color:#94a3b8">Módulo:</span>'
-    + '<span style="font-size:0.76rem;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + curScreen.name + '</span>'
+  const currentScreenHtml = '<div class="hn-flow-subcard hn-fg-screen-card" style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">'
+    + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
+    + '<span style="font-size:0.8rem;color:#0284c7">📍</span>'
+    + '<span style="font-size:0.75rem;color:#94a3b8">Módulo:</span>'
+    + '<span style="font-size:0.78rem;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + curScreen.name + '</span>'
     + '</div>'
-    + '<span style="font-size:0.60rem;font-weight:700;color:#38bdf8;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);padding:1px 6px;border-radius:8px;flex-shrink:0">' + curScreen.badge + '</span>'
+    + '<span style="font-size:0.62rem;font-weight:700;color:#38bdf8;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);padding:2px 7px;border-radius:8px;flex-shrink:0">' + curScreen.badge + '</span>'
     + '</div>';
 
   // Card do Paciente Ativo
@@ -2243,12 +2226,12 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
     const safePName = (pName || '').replace(/'/g, "\\'");
 
-    patientStrip = '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px">'
+    patientStrip = '<div class="hn-flow-subcard hn-fg-patient-card" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:6px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
       + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
       + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;color:#a5b4fc;font-size:0.7rem;flex-shrink:0"><i class="fa-solid fa-user"></i></div>'
       + '<div style="min-width:0;line-height:1.2">'
-      + '<div style="font-size:0.8rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:' + (isDocked ? '200px' : '160px') + '">' + pName + '</div>'
+      + '<div style="font-size:0.82rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:' + (isDocked ? '200px' : '160px') + '">' + pName + '</div>'
       + '<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:6px;background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';color:' + rInfo.text + '">' + rInfo.label + '</span></div>'
       + '</div>'
       + '</div>'
@@ -2256,28 +2239,28 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '<i class=\"fa-solid fa-xmark\"></i> Desmarcar'
       + '</button>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,0.22);border-radius:6px;padding:3px 8px;font-size:0.68rem">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,0.22);border-radius:6px;padding:4px 8px;font-size:0.68rem">'
       + '<div style="display:flex;align-items:center;gap:5px;min-width:0">'
       + '<span style="font-size:0.75rem">' + locationIcon + '</span>'
       + '<span style="color:#94a3b8;font-weight:600">Local:</span>'
       + '<span style="color:#e2e8f0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + locationLabel + '</span>'
       + '</div>'
       + (isDocked ? '<div style="display:flex;align-items:center;gap:4px">'
-        + '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); if(typeof window.openPEPModal===\'function\') window.openPEPModal(\'' + safePName + '\', \'soap\');" style="background:#0284c7;color:#fff;border:none;padding:2px 7px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;" title="Abrir Folha de Evolução PEP">PEP ➔</button>'
-        + '<button onclick="if(typeof window.clearActivePatientContext===\'function\'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext===\'function\'){window.setActivePatientContext(null);}" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:2px 6px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;" title="Desmarcar paciente">✕</button>'
+        + '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); if(typeof window.openPEPModal===\'function\') window.openPEPModal(\'' + safePName + '\', \'soap\');" style="background:#0284c7;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:0.64rem;font-weight:700;cursor:pointer;" title="Abrir Folha de Evolução PEP">PEP ➔</button>'
+        + '<button onclick="if(typeof window.clearActivePatientContext===\'function\'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext===\'function\'){window.setActivePatientContext(null);}" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:3px 6px;border-radius:4px;font-size:0.64rem;font-weight:700;cursor:pointer;" title="Desmarcar paciente">✕</button>'
         + '</div>' : '')
       + '</div>'
       + '</div>';
   } else if (isDocked) {
-    patientStrip = '<div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:10px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">'
+    patientStrip = '<div class="hn-flow-subcard hn-fg-patient-card" style="background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:10px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px">'
       + '<div style="display:flex;align-items:center;gap:7px">'
       + '<span style="font-size:0.9rem;color:#64748b">👤</span>'
       + '<div style="line-height:1.2">'
-      + '<div style="font-size:0.75rem;font-weight:600;color:#94a3b8">Nenhum paciente selecionado</div>'
-      + '<div style="font-size:0.64rem;color:#64748b">Selecione na Recepção ou Triagem</div>'
+      + '<div style="font-size:0.76rem;font-weight:600;color:#94a3b8">Nenhum paciente selecionado</div>'
+      + '<div style="font-size:0.65rem;color:#64748b">Selecione na Recepção ou Triagem</div>'
       + '</div>'
       + '</div>'
-      + '<button onclick="if(typeof window.switchTab===\'function\') window.switchTab(\'pacientes\');" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;padding:3px 8px;border-radius:5px;font-size:0.64rem;font-weight:700;cursor:pointer;">Ver Lista</button>'
+      + '<button onclick="if(typeof window.switchTab===\'function\') window.switchTab(\'pacientes\');" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;padding:3px 8px;border-radius:5px;font-size:0.65rem;font-weight:700;cursor:pointer;">Ver Lista</button>'
       + '</div>';
   }
 
@@ -2286,7 +2269,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   if (evalResult.orderWarning) {
     const w = evalResult.orderWarning;
     orderWarningHtml = `
-      <div class="hn-possibility-agent-banner">
+      <div class="hn-flow-subcard hn-possibility-agent-banner">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
           <span style="font-size: 0.65rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 5px;">
             <span>⚠️</span> ${w.badge}
@@ -2388,14 +2371,14 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     }
 
     actionBlockHtml = crossTabPendingNotice + `
-      <div style="background: ${evalResult.actionCardBg || 'linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4))'}; border: 1px solid ${evalResult.actionCardBorder || 'rgba(2, 132, 199, 0.3)'}; border-radius: 10px; padding: 10px 12px; transition: all 0.2s ease;">
+      <div class="hn-flow-subcard hn-fg-action-card" style="background: ${evalResult.actionCardBg || 'linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4))'}; border: 1px solid ${evalResult.actionCardBorder || 'rgba(2, 132, 199, 0.3)'}; border-radius: 10px; padding: 11px 13px;">
         <div style="display:flex;align-items:center;gap:5px;font-size:0.64rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${evalResult.actionBadge ? '#f87171' : '#38bdf8'};margin-bottom:4px">
           <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};box-shadow:0 0 6px ${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};"></span>
           <span>${evalResult.actionBadge || (isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada')}</span>
         </div>
-        <div style="font-size:0.84rem;font-weight:700;color:#ffffff;margin-bottom:4px;line-height:1.25">${evalResult.primaryAction.title}</div>
-        <div style="font-size:0.72rem;color:#cbd5e1;line-height:1.35;margin-bottom:10px">${evalResult.primaryAction.desc}</div>
-        <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:9px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
+        <div style="font-size:0.86rem;font-weight:700;color:#ffffff;margin-bottom:5px;line-height:1.25">${evalResult.primaryAction.title}</div>
+        <div style="font-size:0.74rem;color:#cbd5e1;line-height:1.35;margin-bottom:10px">${evalResult.primaryAction.desc}</div>
+        <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:10px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
           ${evalResult.primaryAction.btnText}
         </button>
       </div>
@@ -2426,21 +2409,21 @@ function createSmartFlowGuideCard(tabId, customMessage) {
           <span style="font-size:0.58rem;font-weight:700;color:#10b981;background:rgba(16,185,129,0.15);padding:1px 6px;border-radius:6px">Ao Vivo</span>
         </div>
         <div class="hn-fg-radar-grid">
-          <div class="hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('pacientes');" title="Ir para Recepção & Pacientes">
-            <span style="font-size:0.62rem;color:#94a3b8">🏥 Recepção</span>
-            <span style="font-size:0.95rem;font-weight:700;color:#f8fafc">${patCount} <small style="font-size:0.6rem;color:#64748b">pacientes</small></span>
+          <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('pacientes');" title="Ir para Recepção & Pacientes">
+            <span style="font-size:0.64rem;color:#94a3b8">🏥 Recepção</span>
+            <span style="font-size:0.98rem;font-weight:700;color:#f8fafc">${patCount} <small style="font-size:0.62rem;color:#64748b">pacientes</small></span>
           </div>
-          <div class="hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('atendimento');" title="Ir para Triagem Manchester">
-            <span style="font-size:0.62rem;color:#94a3b8">🩺 Triagem</span>
-            <span style="font-size:0.95rem;font-weight:700;color:#38bdf8">${waitTri} <small style="font-size:0.6rem;color:#64748b">fila</small></span>
+          <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('atendimento');" title="Ir para Triagem Manchester">
+            <span style="font-size:0.64rem;color:#94a3b8">🩺 Triagem</span>
+            <span style="font-size:0.98rem;font-weight:700;color:#38bdf8">${waitTri} <small style="font-size:0.62rem;color:#64748b">fila</small></span>
           </div>
-          <div class="hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('consultorios');" title="Ir para Consultórios Médicos">
-            <span style="font-size:0.62rem;color:#94a3b8">👨‍⚕️ Consultórios</span>
-            <span style="font-size:0.95rem;font-weight:700;color:#fbbf24">${waitDoc} <small style="font-size:0.6rem;color:#64748b">aguardando</small></span>
+          <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('consultorios');" title="Ir para Consultórios Médicos">
+            <span style="font-size:0.64rem;color:#94a3b8">👨‍⚕️ Consultórios</span>
+            <span style="font-size:0.98rem;font-weight:700;color:#fbbf24">${waitDoc} <small style="font-size:0.62rem;color:#64748b">aguardando</small></span>
           </div>
-          <div class="hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('leitos');" title="Ir para Gestão de Leitos">
-            <span style="font-size:0.62rem;color:#94a3b8">🛏️ Leitos</span>
-            <span style="font-size:0.95rem;font-weight:700;color:#34d399">${occBeds}/${totalBeds || 0} <small style="font-size:0.6rem;color:#64748b">ocupados</small></span>
+          <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('leitos');" title="Ir para Gestão de Leitos">
+            <span style="font-size:0.64rem;color:#94a3b8">🛏️ Leitos</span>
+            <span style="font-size:0.98rem;font-weight:700;color:#34d399">${occBeds}/${totalBeds || 0} <small style="font-size:0.62rem;color:#64748b">ocupados</small></span>
           </div>
         </div>
       </div>
@@ -2458,7 +2441,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         <div class="hn-possibility-chips-grid">
           ${evalResult.alternatives.map(function(alt) {
             const extraCls = alt.isPrimaryAlt ? ' chip-primary-alt' : alt.isDanger ? ' chip-danger' : '';
-            return '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); ' + alt.onClick + '" class="hn-possibility-chip' + extraCls + '" title="' + alt.label + '">'
+            return '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); ' + alt.onClick + '" class="hn-flow-subcard hn-possibility-chip' + extraCls + '" title="' + alt.label + '">'
               + '<span>' + alt.icon + '</span>'
               + '<span>' + alt.label + '</span>'
               + '</button>';
@@ -2468,8 +2451,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     `;
   }
 
-  body.innerHTML = zoomHintHtml
-    + currentScreenHtml
+  body.innerHTML = currentScreenHtml
     + patientStrip
     + orderWarningHtml
     + customNotice
@@ -2481,11 +2463,11 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   card.appendChild(track);
   card.appendChild(body);
 
-  // Rodapé do Painel Acoplado com Dica de Desacoplamento e Lupa
+  // Rodapé do Painel Acoplado com Dica de Desacoplamento
   if (isDocked) {
     const footer = document.createElement('div');
     footer.setAttribute('style', 'padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;color:#94a3b8;flex-shrink:0;');
-    footer.innerHTML = '<span style="display:flex;align-items:center;gap:6px;"><span>💡</span> <strong>Dica:</strong> Posicione o cursor para expandir (Lupa). Arraste para desacoplar.</span>'
+    footer.innerHTML = '<span>💡 <strong>Dica:</strong> Arraste o cabeçalho para a esquerda para desacoplar.</span>'
       + '<button id="hn-fg-undock-footer" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:0.7rem;"><i class="fa-solid fa-arrow-left"></i> Desacoplar</button>';
     card.appendChild(footer);
   }
@@ -2915,107 +2897,6 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       });
     }
   }
-  // ── LUPA & EXPANSÃO INTELIGENTE NO HOVER (MODO AMPLIADO) ──
-  const applyMagnification = function(active) {
-    if (_SFG.minimized) return;
-    const bodyEl = card.querySelector('#hn-fg-body');
-    const hintEl = card.querySelector('#hn-fg-hover-zoom-hint');
-    const zoomInd = card.querySelector('#hn-fg-zoom-indicator');
-    const targetW = isDocked ? (active ? '560px' : '420px') : (active ? '500px' : '375px');
-    
-    if (active) {
-      card.classList.add('hn-flow-hover-magnified');
-      card.style.setProperty('width', targetW, 'important');
-      card.style.setProperty('box-shadow', isDocked 
-        ? '-24px 0 70px rgba(0,0,0,0.96), 0 0 45px rgba(56,189,248,0.35)' 
-        : '0 32px 80px rgba(0,0,0,0.95), 0 0 40px rgba(56,189,248,0.4)', 'important');
-      if (isDocked) {
-        document.body.style.setProperty('--hn-flow-panel-width', '560px');
-      }
-      if (bodyEl) {
-        bodyEl.style.setProperty('zoom', '1.25');
-        bodyEl.style.setProperty('padding', isDocked ? '16px 20px 24px' : '14px 18px 18px');
-      }
-      if (hintEl) hintEl.style.display = 'flex';
-      if (zoomInd) {
-        zoomInd.style.opacity = '1';
-        zoomInd.style.transform = 'scale(1)';
-        zoomInd.style.display = 'inline-flex';
-      }
-    } else {
-      if (_SFG.zoomPinned) return;
-      card.classList.remove('hn-flow-hover-magnified');
-      card.style.setProperty('width', targetW, 'important');
-      card.style.setProperty('box-shadow', isDocked 
-        ? '-12px 0 45px rgba(0,0,0,0.8), inset 1px 0 0 rgba(255,255,255,0.08)' 
-        : '0 24px 48px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1)', 'important');
-      if (isDocked) {
-        document.body.style.setProperty('--hn-flow-panel-width', '420px');
-      }
-      if (bodyEl) {
-        bodyEl.style.setProperty('zoom', '1');
-        bodyEl.style.setProperty('padding', '');
-      }
-      if (hintEl) hintEl.style.display = 'none';
-      if (zoomInd) {
-        zoomInd.style.opacity = '0';
-        zoomInd.style.transform = 'scale(0.9)';
-        zoomInd.style.display = 'none';
-      }
-    }
-  };
-
-  let zoomHoverTimer = null;
-  card.addEventListener('mouseenter', function() {
-    if (_SFG.minimized) return;
-    clearTimeout(zoomHoverTimer);
-    applyMagnification(true);
-  });
-
-  card.addEventListener('mouseleave', function() {
-    if (_SFG.minimized) return;
-    clearTimeout(zoomHoverTimer);
-    zoomHoverTimer = setTimeout(function() {
-      applyMagnification(false);
-    }, 140);
-  });
-
-  const zoomBtn = card.querySelector('#hn-fg-zoom');
-  if (zoomBtn) {
-    if (_SFG.zoomPinned) {
-      applyMagnification(true);
-      zoomBtn.style.background = 'rgba(2,132,199,0.3)';
-      zoomBtn.style.color = '#38bdf8';
-      zoomBtn.style.borderColor = '#38bdf8';
-      zoomBtn.title = 'Zoom Fixado: clique para restaurar tamanho normal';
-    }
-
-    zoomBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      _SFG.zoomPinned = !_SFG.zoomPinned;
-      try { localStorage.setItem('hn_flow_zoom_pinned', _SFG.zoomPinned ? 'true' : 'false'); } catch (_) {}
-      if (_SFG.zoomPinned) {
-        applyMagnification(true);
-        zoomBtn.style.background = 'rgba(2,132,199,0.3)';
-        zoomBtn.style.color = '#38bdf8';
-        zoomBtn.style.borderColor = '#38bdf8';
-        zoomBtn.title = 'Zoom Fixado: clique para restaurar tamanho normal';
-        if (typeof showToast === 'function') {
-          showToast('🔍 Modo ampliado fixado no Guia de Fluxo.');
-        }
-      } else {
-        applyMagnification(false);
-        zoomBtn.style.background = 'rgba(255,255,255,0.04)';
-        zoomBtn.style.color = '#94a3b8';
-        zoomBtn.style.borderColor = 'rgba(255,255,255,0.08)';
-        zoomBtn.title = 'Lupa de Leitura: passe o mouse sobre o card para expandir ou clique para fixar';
-        if (typeof showToast === 'function') {
-          showToast('Tamanho normal do Guia de Fluxo restaurado.');
-        }
-      }
-    });
-  }
-
   return card;
 }
 

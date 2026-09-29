@@ -6113,96 +6113,50 @@ body.hn-flow-dock-preview .global-search-wrapper {
 }
 
 /* ==========================================================================
-   🔍 SMART FLOW GUIDE: LUPA & EXPANSÃO INTELIGENTE NO HOVER (MODO AMPLIADO)
+   ✨ SMART FLOW GUIDE: EXPANSÃO SUAVE INDIVIDUAL POR CARD (HOVER ZOOM)
    ========================================================================== */
 
-/* Indicador visual de Lupa / Modo Ampliado */
-.hn-fg-zoom-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(2, 132, 199, 0.22);
-  border: 1px solid rgba(56, 189, 248, 0.45);
-  color: #7dd3fc;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
-  opacity: 0;
-  transform: scale(0.9);
-  pointer-events: none;
-  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
+/* Subcards interativos dentro do Guia de Fluxo (Módulo, Paciente, Ação, Radar e Chips) */
+.hn-flow-subcard {
+  position: relative !important;
+  transform-origin: center center;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s ease,
+              border-color 0.22s ease,
+              background 0.22s ease !important;
+  cursor: pointer;
 }
 
-#hn-flow-guide.hn-flow-hover-magnified .hn-fg-zoom-indicator,
-#hn-flow-guide.hn-flow-pinned-zoom .hn-fg-zoom-indicator {
-  opacity: 1;
-  transform: scale(1);
-  animation: hnZoomPillPulse 2s ease-in-out infinite;
-}
-
-@keyframes hnZoomPillPulse {
-  0%, 100% {
-    border-color: rgba(56, 189, 248, 0.45);
-    box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
-  }
-  50% {
-    border-color: #38bdf8;
-    box-shadow: 0 0 16px rgba(56, 189, 248, 0.55);
-  }
-}
-
-/* Transições fluidas no Card e no Painel */
-#hn-flow-guide {
-  transition: width 0.26s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.26s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.26s ease !important;
-}
-
-/* 1. MODO FLUTUANTE EXPANDIDO */
-#hn-flow-guide:not(.docked-panel).hn-flow-hover-magnified,
-#hn-flow-guide:not(.docked-panel).hn-flow-pinned-zoom {
-  width: 500px !important;
-  max-width: calc(100vw - 20px) !important;
+.hn-flow-subcard:hover {
+  transform: translateY(-2px) scale(1.035) !important;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.72), 0 0 20px rgba(56, 189, 248, 0.28) !important;
   border-color: rgba(56, 189, 248, 0.7) !important;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(56, 189, 248, 0.4) !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+  z-index: 20 !important;
 }
 
-/* 2. MODO ACOPLADO EXPANDIDO */
-#hn-flow-guide.docked-panel.hn-flow-hover-magnified,
-#hn-flow-guide.docked-panel.hn-flow-pinned-zoom {
-  width: 560px !important;
-  border-left-color: #38bdf8 !important;
-  box-shadow: -24px 0 70px rgba(0, 0, 0, 0.96), 0 0 45px rgba(56, 189, 248, 0.35) !important;
+/* Card de Ação Recomendada: realce de destaque no hover */
+.hn-flow-subcard.hn-fg-action-card:hover {
+  transform: translateY(-2px) scale(1.028) !important;
+  box-shadow: 0 14px 34px -4px rgba(2, 132, 199, 0.42), 0 0 24px rgba(56, 189, 248, 0.35) !important;
+  border-color: #38bdf8 !important;
+  z-index: 20 !important;
 }
 
-/* Adaptação suave da área do sistema quando o painel acoplado se expande */
-body.hn-flow-docked-right:has(#hn-flow-guide.docked-panel.hn-flow-hover-magnified) .app-container,
-body.hn-flow-docked-right:has(#hn-flow-guide.docked-panel.hn-flow-pinned-zoom) .app-container {
-  width: calc(100vw - 560px) !important;
-  max-width: calc(100vw - 560px) !important;
-  margin-right: 560px !important;
-  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+/* Subcards do Radar Hospitalar: expansão suave em grade com alta legibilidade */
+.hn-flow-subcard.hn-fg-radar-card:hover {
+  transform: translateY(-3px) scale(1.06) !important;
+  box-shadow: 0 10px 24px -2px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.35) !important;
+  border-color: #38bdf8 !important;
+  background: rgba(2, 132, 199, 0.18) !important;
+  z-index: 25 !important;
 }
 
-/* 3. ESCALA E TIPOGRAFIA CONFORTÁVEL DOS ELEMENTOS INTERNOS */
-#hn-flow-guide.hn-flow-hover-magnified #hn-fg-body,
-#hn-flow-guide.hn-flow-pinned-zoom #hn-fg-body {
-  zoom: 1.25;
-  transition: zoom 0.22s ease;
-}
-
-/* Reforço de contraste e espaçamentos no modo ampliado */
-#hn-flow-guide.hn-flow-hover-magnified .hn-fg-radar-card,
-#hn-flow-guide.hn-flow-pinned-zoom .hn-fg-radar-card {
-  padding: 12px 14px !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-
-#hn-flow-guide.hn-flow-hover-magnified .hn-fg-docked-step-item,
-#hn-flow-guide.hn-flow-pinned-zoom .hn-fg-docked-step-item {
-  padding: 10px 14px !important;
+/* Chips de Ações Rápidas: elevação tátil e clique direto */
+.hn-flow-subcard.hn-possibility-chip:hover {
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.3) !important;
+  border-color: #38bdf8 !important;
+  z-index: 20 !important;
 }
 
