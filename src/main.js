@@ -1979,13 +1979,14 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
   // Posicionamento e dimensões
   if (isDocked) {
+    const dockedWidth = _SFG.zoomPinned ? '560px' : '420px';
     card.setAttribute('style', [
       'position:fixed !important',
       'top:0 !important',
       'right:0 !important',
       'bottom:0 !important',
       'left:auto !important',
-      'width:var(--hn-flow-panel-width, 420px) !important',
+      'width:' + dockedWidth + ' !important',
       'max-width:100vw !important',
       'height:100vh !important',
       'background:rgba(11,15,25,0.98) !important',
@@ -2001,7 +2002,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       'overflow:hidden !important',
       'display:flex !important',
       'flex-direction:column !important',
-      'user-select:none !important'
+      'user-select:none !important',
+      'transition:width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease !important'
     ].join(';'));
   } else {
     const defaultPos = 'bottom:22px !important;right:22px !important;';
@@ -2017,7 +2019,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         _SFG.pos = null;
       }
     }
-    const cardWidth = _SFG.minimized ? 'auto !important' : '375px !important';
+    const baseW = _SFG.zoomPinned ? '500px' : '375px';
+    const cardWidth = _SFG.minimized ? 'auto !important' : baseW + ' !important';
 
     card.setAttribute('style', [
       'position:fixed !important',
@@ -2036,7 +2039,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       'z-index:2147483647 !important',
       'overflow:hidden !important',
       'user-select:none !important',
-      'transition:width 0.2s ease, box-shadow 0.2s ease !important'
+      'transition:width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease !important'
     ].join(';'));
   }
 
@@ -2137,6 +2140,15 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   } else {
     body.setAttribute('style', 'padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;');
   }
+
+  // Banner indicador de Lupa Ativa / Leitura Ampliada no topo do corpo
+  const zoomHintHtml = '<div id="hn-fg-hover-zoom-hint" style="display:' + (_SFG.zoomPinned ? 'flex' : 'none') + ';align-items:center;justify-content:space-between;gap:8px;padding:9px 13px;background:linear-gradient(135deg,rgba(2,132,199,0.35),rgba(14,165,233,0.2));border:1.5px solid #38bdf8;border-radius:10px;color:#f0f9ff;font-size:0.86rem;font-weight:700;box-shadow:0 4px 18px rgba(2,132,199,0.4);flex-shrink:0;">'
+    + '<div style="display:flex;align-items:center;gap:8px;">'
+    + '<i class="fa-solid fa-magnifying-glass-plus" style="color:#38bdf8;font-size:1.15rem;"></i>'
+    + '<span>🔍 Lupa Ativa: Card & Textos Expandidos</span>'
+    + '</div>'
+    + '<span style="font-size:0.68rem;color:#bae6fd;background:rgba(0,0,0,0.45);padding:2px 8px;border-radius:6px;font-weight:600;">Afaste o mouse para voltar</span>'
+    + '</div>';
 
   // Metadados da tela atual
   const screenDetails = {
@@ -2456,7 +2468,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     `;
   }
 
-  body.innerHTML = currentScreenHtml
+  body.innerHTML = zoomHintHtml
+    + currentScreenHtml
     + patientStrip
     + orderWarningHtml
     + customNotice
@@ -2468,11 +2481,11 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   card.appendChild(track);
   card.appendChild(body);
 
-  // Rodapé do Painel Acoplado com Dica de Desacoplamento
+  // Rodapé do Painel Acoplado com Dica de Desacoplamento e Lupa
   if (isDocked) {
     const footer = document.createElement('div');
     footer.setAttribute('style', 'padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;color:#94a3b8;flex-shrink:0;');
-    footer.innerHTML = '<span>💡 <strong>Dica:</strong> Arraste o cabeçalho para a esquerda para desacoplar.</span>'
+    footer.innerHTML = '<span style="display:flex;align-items:center;gap:6px;"><span>💡</span> <strong>Dica:</strong> Posicione o cursor para expandir (Lupa). Arraste para desacoplar.</span>'
       + '<button id="hn-fg-undock-footer" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:0.7rem;"><i class="fa-solid fa-arrow-left"></i> Desacoplar</button>';
     card.appendChild(footer);
   }
@@ -2903,27 +2916,74 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     }
   }
   // ── LUPA & EXPANSÃO INTELIGENTE NO HOVER (MODO AMPLIADO) ──
+  const applyMagnification = function(active) {
+    if (_SFG.minimized) return;
+    const bodyEl = card.querySelector('#hn-fg-body');
+    const hintEl = card.querySelector('#hn-fg-hover-zoom-hint');
+    const zoomInd = card.querySelector('#hn-fg-zoom-indicator');
+    const targetW = isDocked ? (active ? '560px' : '420px') : (active ? '500px' : '375px');
+    
+    if (active) {
+      card.classList.add('hn-flow-hover-magnified');
+      card.style.setProperty('width', targetW, 'important');
+      card.style.setProperty('box-shadow', isDocked 
+        ? '-24px 0 70px rgba(0,0,0,0.96), 0 0 45px rgba(56,189,248,0.35)' 
+        : '0 32px 80px rgba(0,0,0,0.95), 0 0 40px rgba(56,189,248,0.4)', 'important');
+      if (isDocked) {
+        document.body.style.setProperty('--hn-flow-panel-width', '560px');
+      }
+      if (bodyEl) {
+        bodyEl.style.setProperty('zoom', '1.25');
+        bodyEl.style.setProperty('padding', isDocked ? '16px 20px 24px' : '14px 18px 18px');
+      }
+      if (hintEl) hintEl.style.display = 'flex';
+      if (zoomInd) {
+        zoomInd.style.opacity = '1';
+        zoomInd.style.transform = 'scale(1)';
+        zoomInd.style.display = 'inline-flex';
+      }
+    } else {
+      if (_SFG.zoomPinned) return;
+      card.classList.remove('hn-flow-hover-magnified');
+      card.style.setProperty('width', targetW, 'important');
+      card.style.setProperty('box-shadow', isDocked 
+        ? '-12px 0 45px rgba(0,0,0,0.8), inset 1px 0 0 rgba(255,255,255,0.08)' 
+        : '0 24px 48px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1)', 'important');
+      if (isDocked) {
+        document.body.style.setProperty('--hn-flow-panel-width', '420px');
+      }
+      if (bodyEl) {
+        bodyEl.style.setProperty('zoom', '1');
+        bodyEl.style.setProperty('padding', '');
+      }
+      if (hintEl) hintEl.style.display = 'none';
+      if (zoomInd) {
+        zoomInd.style.opacity = '0';
+        zoomInd.style.transform = 'scale(0.9)';
+        zoomInd.style.display = 'none';
+      }
+    }
+  };
+
   let zoomHoverTimer = null;
   card.addEventListener('mouseenter', function() {
     if (_SFG.minimized) return;
     clearTimeout(zoomHoverTimer);
-    card.classList.add('hn-flow-hover-magnified');
+    applyMagnification(true);
   });
 
   card.addEventListener('mouseleave', function() {
     if (_SFG.minimized) return;
     clearTimeout(zoomHoverTimer);
     zoomHoverTimer = setTimeout(function() {
-      if (!card.classList.contains('hn-flow-pinned-zoom')) {
-        card.classList.remove('hn-flow-hover-magnified');
-      }
-    }, 120);
+      applyMagnification(false);
+    }, 140);
   });
 
   const zoomBtn = card.querySelector('#hn-fg-zoom');
   if (zoomBtn) {
     if (_SFG.zoomPinned) {
-      card.classList.add('hn-flow-pinned-zoom', 'hn-flow-hover-magnified');
+      applyMagnification(true);
       zoomBtn.style.background = 'rgba(2,132,199,0.3)';
       zoomBtn.style.color = '#38bdf8';
       zoomBtn.style.borderColor = '#38bdf8';
@@ -2935,7 +2995,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       _SFG.zoomPinned = !_SFG.zoomPinned;
       try { localStorage.setItem('hn_flow_zoom_pinned', _SFG.zoomPinned ? 'true' : 'false'); } catch (_) {}
       if (_SFG.zoomPinned) {
-        card.classList.add('hn-flow-pinned-zoom', 'hn-flow-hover-magnified');
+        applyMagnification(true);
         zoomBtn.style.background = 'rgba(2,132,199,0.3)';
         zoomBtn.style.color = '#38bdf8';
         zoomBtn.style.borderColor = '#38bdf8';
@@ -2944,11 +3004,11 @@ function createSmartFlowGuideCard(tabId, customMessage) {
           showToast('🔍 Modo ampliado fixado no Guia de Fluxo.');
         }
       } else {
-        card.classList.remove('hn-flow-pinned-zoom', 'hn-flow-hover-magnified');
+        applyMagnification(false);
         zoomBtn.style.background = 'rgba(255,255,255,0.04)';
         zoomBtn.style.color = '#94a3b8';
         zoomBtn.style.borderColor = 'rgba(255,255,255,0.08)';
-        zoomBtn.title = 'Lupa de Leitura: passe o mouse para ampliar os textos ou clique para fixar';
+        zoomBtn.title = 'Lupa de Leitura: passe o mouse sobre o card para expandir ou clique para fixar';
         if (typeof showToast === 'function') {
           showToast('Tamanho normal do Guia de Fluxo restaurado.');
         }

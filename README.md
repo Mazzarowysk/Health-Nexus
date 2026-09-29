@@ -520,10 +520,17 @@ Login padrão: **usuário** `admin` · **senha** `admin`
 *Desenvolvido por @mazzarowysk & @_coltri_*
 
 
-## Nova Atualização: v2.8.1 — Gestão de Leitos, Foco Assistencial & Destaque Spotlight
+## Nova Atualização: v2.9.14 — Lupa & Expansão Inteligente no Hover & Padronização de Datas (DD/MM/AAAA)
+- **Guia de Fluxo Hospitalar com Lupa & Expansão Dinâmica:** Ao aproximar o cursor do mouse sobre o Guia de Fluxo (tanto no modo painel lateral acoplado quanto no card flutuante), o componente expande suavemente (largura de `420px` para `560px` no modo acoplado e de `375px` para `500px` no modo flutuante), os textos e botões internos recebem zoom confortável de `1.25x` (25% maiores e mais nítidos) e o banner luminoso *"🔍 Lupa Ativa: Card & Textos Expandidos"* é exibido. Ao retirar o mouse de cima, o painel retrai suavemente para seu tamanho padrão.
+- **Fixação Manual de Leitura Ampliada (`[ 🔍 ]`):** O botão de lupa no cabeçalho permite fixar o modo ampliado de forma definitiva caso o profissional queira manter a visualização expandida durante todo o turno.
+- **Padronização Brasileira de Datas (`DD/MM/AAAA`):** Implementação da função `formatBirthDateBR` e revisão dos componentes para garantir que todas as exibições de data de nascimento de pacientes sigam o padrão nacional `DD/MM/AAAA`, eliminando discrepâncias no cabeçalho do prontuário (PEP).
+- **Manual do Usuário e Manuais em PDF Recompilados:** Atualização dos manuais operacionais (`MANUAL_DO_USUARIO_HEALTH_NEXUS.md`, `manual_do_usuario.html` e `Manual_do_Usuario_Health_Nexus.pdf`).
+
+## Versão Anterior: v2.8.1 — Gestão de Leitos, Foco Assistencial & Destaque Spotlight
 - **Guia de Fluxo Hospitalar (Smart Flow Guide):** Preservação do foco clínico na internação ativa. Ao alocar ou transferir para leito, a recomendação primária passa a ser a Evolução Médica no PEP (`openPEPModal`), com ações secundárias para conceder alta, focar no leito e acompanhar no Kanban, evitando avanço precoce para Faturamento TISS antes da alta médica homologada.
 - **Destaque Visual Pulsante nos Leitos:** Ao confirmar alocação/transferência, o leito e paciente são imediatamente carregados com o status "Ocupado", classe `patient-pulse-selected patient-spotlight-glow`, badge `⚡ Paciente em Foco` e scroll suave centralizado.
 - **Invalidação Atômica de Cache de Leitos:** Invalidação sincronizada das chaves `'beds'`, `'encounters'` e rotas relacionadas no client-cache (`src/modules/api.js`).
 - **Filtros Expandidos:** Novos filtros para leitos de Observação e Isolamento, com autocorreção caso o leito do paciente ativo pertença a setor diferente do filtro em exibição.
 - **Manual e Documentações Sincronizados:** Manuais em PDF, Markdown, HTML e módulos interativos atualizados com as regras do fluxo hospitalar contínuo.
+
 

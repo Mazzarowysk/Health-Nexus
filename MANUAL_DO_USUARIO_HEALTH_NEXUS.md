@@ -982,9 +982,26 @@ Quando acoplado à lateral, o Smart Flow Guide oferece uma visão panorâmica e 
 ### 💡 Dicas de Produtividade no Plantão
 
 - **Em telas largas (Full HD ou superiores):** Mantenha o painel acoplado à direita durante todo o plantão para monitorar a fila de pacientes sem sair do prontuário ou da triagem.
-- **Em telas menores ou tablets:** Utilize o modo flutuante compacto e mova-o para o canto inferior direito para priorizar o espaço de digitação de anamnese e evolução.
-- **Agilidade na chamada:** Chame o próximo paciente no Painel de TV diretamente pelo botão de megafone no card ativo, sem trocar de aba.
+### 🔍 Lupa & Expansão Inteligente no Hover (v2.9.14)
+
+Pensado especialmente para laptops e ambientes hospitalares dinâmicos, o Guia de Fluxo conta com ampliação instantânea e inteligente ao passar o cursor do mouse:
+
+1. **Expansão Automática e Fluida ao Posicionar o Mouse:**
+   - **Painel Lateral Acoplado:** Expande-se suavemente de `420px` para `560px` de largura útil, enquanto a tela central do sistema se adapta dinamicamente sem sobreposições.
+   - **Card Flutuante:** Expande-se de `375px` para `500px` com realce luminoso.
+   - **Tipografia e Elementos Ampliados (Zoom 1.25x):** Todo o conteúdo interno — textos, botões de ação, cards do radar e etapas da jornada — é ampliado em 25%, proporcionando leitura nítida e confortável de relance.
+2. **Banner Indicador com Ícone de Lupa:**
+   - Durante a aproximação, surge no topo do corpo o aviso luminoso: *"🔍 Lupa Ativa: Card & Textos Expandidos (Afaste o mouse para voltar)"*.
+3. **Retorno Automático ao Afastar o Cursor:**
+   - Ao mover o cursor para fora do card, ele retrai suavemente ao tamanho compacto normal (`420px` ou `375px`), liberando espaço de tela.
+4. **Fixação Permanente da Leitura Ampliada (`[ 🔍 ]`):**
+   - Caso o profissional prefira manter o painel sempre no tamanho expandido durante seu turno, basta clicar no botão de lupa no cabeçalho. Um clique fixa a ampliação; um novo clique restaura o modo de expansão dinâmica no hover.
+
+### 📅 Padronização Brasileira de Datas de Nascimento (DD/MM/AAAA)
+
+- Todas as exibições de data de nascimento de pacientes no cabeçalho do prontuário médico (PEP), no modal de atendimento e nas fichas cadastrais seguem rigorosamente a máscara brasileira `DD/MM/AAAA` (ex.: `15/06/1985`), eliminando formatos invertidos (`AAAA-MM-DD`).
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.8 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.14 do Health Nexus. Todos os direitos reservados.*
+

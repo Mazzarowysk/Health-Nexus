@@ -6163,46 +6163,46 @@ body.hn-flow-dock-preview .global-search-wrapper {
 /* 1. MODO FLUTUANTE EXPANDIDO */
 #hn-flow-guide:not(.docked-panel).hn-flow-hover-magnified,
 #hn-flow-guide:not(.docked-panel).hn-flow-pinned-zoom {
-  width: 445px !important;
+  width: 500px !important;
   max-width: calc(100vw - 20px) !important;
-  border-color: rgba(56, 189, 248, 0.6) !important;
-  box-shadow: 0 32px 70px -10px rgba(0, 0, 0, 0.9), 0 0 35px rgba(56, 189, 248, 0.35) !important;
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(56, 189, 248, 0.4) !important;
 }
 
 /* 2. MODO ACOPLADO EXPANDIDO */
 #hn-flow-guide.docked-panel.hn-flow-hover-magnified,
 #hn-flow-guide.docked-panel.hn-flow-pinned-zoom {
-  width: 495px !important;
+  width: 560px !important;
   border-left-color: #38bdf8 !important;
-  box-shadow: -18px 0 55px rgba(0, 0, 0, 0.92), 0 0 35px rgba(56, 189, 248, 0.28) !important;
+  box-shadow: -24px 0 70px rgba(0, 0, 0, 0.96), 0 0 45px rgba(56, 189, 248, 0.35) !important;
 }
 
 /* Adaptação suave da área do sistema quando o painel acoplado se expande */
 body.hn-flow-docked-right:has(#hn-flow-guide.docked-panel.hn-flow-hover-magnified) .app-container,
 body.hn-flow-docked-right:has(#hn-flow-guide.docked-panel.hn-flow-pinned-zoom) .app-container {
-  width: calc(100vw - 495px) !important;
-  max-width: calc(100vw - 495px) !important;
-  margin-right: 495px !important;
-  transition: width 0.26s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.26s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  width: calc(100vw - 560px) !important;
+  max-width: calc(100vw - 560px) !important;
+  margin-right: 560px !important;
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 /* 3. ESCALA E TIPOGRAFIA CONFORTÁVEL DOS ELEMENTOS INTERNOS */
 #hn-flow-guide.hn-flow-hover-magnified #hn-fg-body,
 #hn-flow-guide.hn-flow-pinned-zoom #hn-fg-body {
-  zoom: 1.13;
+  zoom: 1.25;
   transition: zoom 0.22s ease;
 }
 
 /* Reforço de contraste e espaçamentos no modo ampliado */
 #hn-flow-guide.hn-flow-hover-magnified .hn-fg-radar-card,
 #hn-flow-guide.hn-flow-pinned-zoom .hn-fg-radar-card {
-  padding: 10px 12px !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  padding: 12px 14px !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 #hn-flow-guide.hn-flow-hover-magnified .hn-fg-docked-step-item,
 #hn-flow-guide.hn-flow-pinned-zoom .hn-fg-docked-step-item {
-  padding: 9px 13px !important;
+  padding: 10px 14px !important;
 }
 
