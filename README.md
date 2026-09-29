@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.16`  
+**Versão:** `2.9.17`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,6 +8,11 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🔍 **Varredura Completa de Visualização & Correção de Ícones e Ações Ocultas (v2.9.17):**
+  1. **Fixação Sticky da Coluna de Ações:** Na tabela de pacientes cadastrados e demais tabelas clínicas (Farmácia, TISS, Financeiro), a coluna de **Ações** agora possui fixação permanente (`position: sticky; right: 0; background: var(--bg-secondary); z-index: 6; box-shadow: -8px 0 16px rgba(0,0,0,0.45)`). Isso assegura que os 5 botões de ação essenciais (*Admitir no PS*, *Prontuário/Histórico*, *Gerar PDF*, *Editar Cadastro* e *Excluir*) fiquem **100% visíveis e operacionais**, mesmo quando o Painel de Governança estiver acoplado à direita ou em notebooks e telas de 1366x768.
+  2. **Condensação Inteligente de Metadados:** Em telas compactas ou quando o painel lateral estiver aberto, as colunas secundárias de baixa prioridade de triagem imediata (*Cidade*, *Telefones*, *Valor da Conta* e *CPF*) deixam de ocupar colunas extras avulsas e passam a ser exibidas de forma elegante e harmoniosa em linhas secundárias sob o nome do paciente, com micro-ícones informativos (🎂 Data de Nascimento, 📞 Telefone, 📍 Cidade e 🪪 CPF). Nenhuma informação é perdida e a tabela ganha mais de 450px de respiro visual.
+  3. **Kanban de Atendimentos Sem Esmagamento:** Ajuste responsivo na grade de 4 colunas da Central de Atendimentos (`minmax(250px, 1fr)` com rolagem horizontal suave), eliminando sobreposição ou quebra de palavras nos botões de conduta dos cards (*PEP*, *Prescrição*, *Observação*, *Finalizar* e *Chamar Painel*).
+  4. **Proteção de Tabelas Financeiras:** O container de parcelas e títulos em Relatórios e TISS passou a operar com `overflow-x: auto` e scrollbar fina integrada, prevenindo cortes involuntários.
 - 🩺 **Resiliência Local & Correção na Central de Atendimentos (v2.9.16):** Resolução definitiva do erro visual nas 4 colunas Kanban (*Aguardando Triagem*, *Aguardando Médico*, *Em Consulta*, *Em Observação (PS)*). Foi corrigida a referência segura ao objeto de governança (`window._SFG`) e garantida a ordem estrita de inicialização das funções construtoras de cards (`buildTriageCard`, `buildWaitCard`, `buildActiveCard`, `buildObsCard`). Adicionalmente, implementou-se fallback automático e transparente para o banco local (`localDB`) na ausência de resposta da rede, substituindo mensagens impeditivas por estados vazios assistenciais humanizados e acolhedores com botão de atualização rápida.
 - 📺 **Correção de Diagramação & Desencavalamento dos Cards da Fila no Painel TV (v2.9.15):** Reestruturação completa do layout dos cards de pacientes aguardando chamada na TV. Anteriormente, em grids de 4 colunas ou telas menores, os botões "Chamar" e "Consultório" ficavam sobrepostos ("remontados") em cima do badge de status clínico e escondiam o nome do paciente. Os cards foram reorganizados em níveis verticais harmoniosos (linha 1: avatar, nome completo do paciente e número da fila; linha 2: badge de status e etiqueta de foco; linha 3: botões de ação com largura distribuída), garantindo zero sobreposição, legibilidade total e acionamento direto sem colisões visuais.
 - 🔍 **Efeito Físico de Descolamento 3D & Ampliação de Cards e Letras no Guia de Fluxo (v2.9.14):** Experiência visual refinada e focada para o Card de Fluxo e Painel Lateral de Governança:

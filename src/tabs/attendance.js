@@ -63,7 +63,7 @@ export function renderAttendanceTab(contentArea) {
       <div id="atd-journey-stepper-container"></div>
 
       <!-- Painel Kanban (4 Colunas) -->
-      <div id="kanban-grid-container" style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; align-items:start;">
+      <div id="kanban-grid-container" class="kanban-board-grid">
         <!-- Coluna Triagem -->
         <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
           <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #0284c7;">

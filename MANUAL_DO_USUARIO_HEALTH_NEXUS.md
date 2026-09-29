@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.16)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.17)
 
-> **Health Nexus v2.9.16 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.17 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -1014,7 +1014,14 @@ Pensado especialmente para laptops e agilidade no plantão, o Guia de Fluxo agor
   2. **Persistência Local Integrada (Local-First):** Caso a rede enfrente lentidão ou perda de pacotes, a plataforma recupera automaticamente as admissões e atendimentos a partir do banco de dados local (`localDB`), mantendo a equipe em atendimento contínuo.
   3. **Apresentação Acolhedora:** Em caso de fila zerada, a tela apresenta mensagens claras e empáticas de fila vazia com ícone de confirmação e botão para atualização assistencial imediata.
 
+### 🔍 Varredura de Telas & Fixação de Ícones de Ação (v2.9.17)
+
+- **Coluna de Ações Fixa (Sticky Right):** Na listagem de Pacientes Cadastrados, Farmácia, TISS e Financeiro, a coluna de ações fica fixada permanentemente na margem direita (`sticky`). Mesmo que a tabela possua muitas colunas ou seja rolada horizontalmente, os 5 botões de ação essenciais (*Admitir no PS*, *Prontuário/Histórico*, *Gerar PDF*, *Editar Cadastro* e *Excluir*) permanecem sempre 100% visíveis, clicáveis e destacados.
+- **Condensação Elegante de Colunas Secundárias:** Em resoluções menores ou quando o Painel de Governança estiver acoplado à direita, dados complementares como telefone, cidade, data de nascimento e CPF passam a ser exibidos diretamente como subtexto informativo abaixo do nome do paciente. Essa abordagem economiza mais de 450px de largura útil na tela sem suprimir nenhum detalhe cadastral.
+- **Kanban sem Esmagamento:** As colunas do Kanban na Central de Atendimentos contam com largura mínima garantida (`minmax(250px, 1fr)`), prevenindo quebras indevidas de palavras ou corte de ícones nos botões clínicos (*PEP*, *Prescrição*, *Observação* e *Finalizar*).
+
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.16 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.17 do Health Nexus. Todos os direitos reservados.*
+
 

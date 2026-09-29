@@ -2273,7 +2273,7 @@ function renderReportsTab(contentArea) {
         </div>
 
         <!-- TABELA DE PARCELAS -->
-        <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 20px;">
+        <div style="border-radius: 12px; overflow-x: auto; border: 1px solid var(--border-color); margin-bottom: 20px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
             <thead>
               <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">

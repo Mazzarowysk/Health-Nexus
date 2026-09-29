@@ -250,15 +250,18 @@ export function renderPatientsTab(contentArea) {
       <table class="patients-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Nome Completo</th>
-            <th>📍 Status / Localização Atual</th>
-            <th>CPF</th>
-            <th>Data Nasc.</th>
-            <th>Cidade</th>
-            <th>Telefones</th>
-            <th>Valor</th>
-            <th style="text-align: right;">Ações</th>
+            <th class="col-patient-id">ID</th>
+            <th class="col-patient-name">Nome Completo</th>
+            <th class="col-patient-loc">
+              <span class="col-loc-full">📍 Status / Localização Atual</span>
+              <span class="col-loc-compact" style="display:none;">📍 Localização</span>
+            </th>
+            <th class="col-patient-cpf">CPF</th>
+            <th class="col-patient-dob">Data Nasc.</th>
+            <th class="col-patient-city">Cidade</th>
+            <th class="col-patient-phones">Telefones</th>
+            <th class="col-patient-val">Valor</th>
+            <th class="col-patient-actions" style="text-align: right;">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -282,19 +285,28 @@ export function renderPatientsTab(contentArea) {
 
       tableHtml += `
         <tr class="patient-card-item ${isSelectedPat ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(p.fullName||'').toLowerCase().replace(/"/g, '&quot;')}" data-patient-id="${p.id}">
-          <td style="font-family: monospace; font-weight: 600; font-size: 0.78rem; color: var(--color-primary); white-space: nowrap;">${p.id}</td>
-          <td style="font-weight: 600;">${p.fullName}<br><small style="color: var(--text-muted); font-size: 0.74rem; font-weight: normal;">Mãe: ${p.motherName || '-'}</small></td>
-          <td onclick="window.handleLocationBadgeClick('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" style="cursor: pointer;" title="Clique para ir direto ao atendimento / PEP do paciente no ${loc.sector || 'Consultório'}">
+          <td class="col-patient-id" style="font-family: monospace; font-weight: 600; font-size: 0.78rem; color: var(--color-primary); white-space: nowrap;">${p.id}</td>
+          <td class="col-patient-name" style="font-weight: 600;">
+            ${p.fullName}
+            <div style="color: var(--text-muted); font-size: 0.74rem; font-weight: normal; margin-top: 1px;">Mãe: ${p.motherName || '-'}</div>
+            <div class="patient-compact-meta" style="display: none; font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; gap: 8px; flex-wrap: wrap;">
+              <span><i class="fa-solid fa-id-card" style="font-size:0.65rem; color:#94a3b8; margin-right:3px;"></i>${p.cpf}</span>
+              <span><i class="fa-solid fa-cake-candles" style="font-size:0.65rem; color:#f59e0b; margin-right:3px;"></i>${formattedDate}</span>
+              ${phonesList[0] ? `<span><i class="fa-solid fa-phone" style="font-size:0.65rem; color:#38bdf8; margin-right:3px;"></i>${phonesList[0]}</span>` : ''}
+              ${p.city ? `<span><i class="fa-solid fa-location-dot" style="font-size:0.65rem; color:#a78bfa; margin-right:3px;"></i>${p.city}</span>` : ''}
+            </div>
+          </td>
+          <td class="col-patient-loc" onclick="window.handleLocationBadgeClick('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}')" style="cursor: pointer;" title="Clique para ir direto ao atendimento / PEP do paciente no ${loc.sector || 'Consultório'}">
             <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 16px; font-size: 0.74rem; font-weight: 700; background: ${loc.bg}; color: ${loc.color}; border: 1px solid ${loc.borderColor}; white-space: nowrap; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease;">
               <i class="fa-solid ${loc.icon}"></i> ${loc.sector || loc.text} ${loc.bed ? `(${loc.bed})` : ''} <i class="fa-solid fa-arrow-right" style="font-size:0.62rem; margin-left:2px; opacity:0.8;"></i>
             </span>
           </td>
-          <td style="font-family: monospace; font-size: 0.84rem; white-space: nowrap;">${p.cpf}</td>
-          <td style="white-space: nowrap; font-size: 0.84rem;">${formattedDate}</td>
-          <td style="white-space: nowrap; font-size: 0.84rem;">${p.city || '-'}</td>
-          <td style="white-space: nowrap;">${phonesDisplay}</td>
-          <td style="font-family: monospace; font-weight: 600; font-size: 0.84rem; white-space: nowrap;">${p.billingValue || 'R$ 0,00'}</td>
-          <td style="white-space: nowrap;">
+          <td class="col-patient-cpf" style="font-family: monospace; font-size: 0.84rem; white-space: nowrap;">${p.cpf}</td>
+          <td class="col-patient-dob" style="white-space: nowrap; font-size: 0.84rem;">${formattedDate}</td>
+          <td class="col-patient-city" style="white-space: nowrap; font-size: 0.84rem;">${p.city || '-'}</td>
+          <td class="col-patient-phones" style="white-space: nowrap;">${phonesDisplay}</td>
+          <td class="col-patient-val" style="font-family: monospace; font-weight: 600; font-size: 0.84rem; white-space: nowrap;">${p.billingValue || 'R$ 0,00'}</td>
+          <td class="col-patient-actions" style="white-space: nowrap; text-align: right;">
             <div class="actions-cell">
               <button class="btn-icon btn-icon-admit" onclick="window.admitPatientFromPatientsTab('${p.id}', '${(p.fullName||'').replace(/'/g, "\\'")}', '${p.cpf||''}')" title="Admitir / Atender este Paciente">
                 <i class="fa-solid fa-hospital-user"></i>
