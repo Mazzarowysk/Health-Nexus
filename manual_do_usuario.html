@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.15)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.16)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.15 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
+<p><strong>Health Nexus v2.9.16 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -3543,8 +3543,17 @@ flowchart TD
 </ol>
 </li>
 </ul>
+<h3>🩺 Central de Atendimentos Resiliente &amp; Tolerante a Falhas (v2.9.16)</h3>
+<ul>
+<li><strong>Eliminação de Mensagens de Falha Bloqueadoras:</strong> A Central de Atendimentos recebeu blindagem com carregamento resiliente em suas quatro colunas de fluxo (<em>Aguardando Triagem</em>, <em>Aguardando Médico</em>, <em>Em Consulta</em>, <em>Em Observação (PS)</em>):<ol>
+<li><strong>Auditoria de Escopo Global:</strong> Corrigidas as referências de governança clínica, garantindo compatibilidade estrita com todos os perfis de acesso e estados de sessão.</li>
+<li><strong>Persistência Local Integrada (Local-First):</strong> Caso a rede enfrente lentidão ou perda de pacotes, a plataforma recupera automaticamente as admissões e atendimentos a partir do banco de dados local (<code>localDB</code>), mantendo a equipe em atendimento contínuo.</li>
+<li><strong>Apresentação Acolhedora:</strong> Em caso de fila zerada, a tela apresenta mensagens claras e empáticas de fila vazia com ícone de confirmação e botão para atualização assistencial imediata.</li>
+</ol>
+</li>
+</ul>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.15 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.16 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

@@ -424,257 +424,6 @@ export function renderAttendanceTab(contentArea) {
 
   const colorPri = { Vermelho:5, Laranja:4, Amarelo:3, Verde:2, Azul:1 };
 
-  const loadAndRenderKanban = async () => {
-    try {
-      const res = await apiFetch(`/api/encounters`);
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      allEncounters = Array.isArray(json) ? json : (json.data || []);
-      renderKanban(allEncounters);
-    } catch {
-      ['col-triage','col-waiting','col-active','col-obs'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '<div style="text-align:center;color:var(--color-danger);padding:20px;font-size:0.82rem;"><i class="fa-solid fa-circle-xmark"></i><br>Erro ao carregar.</div>';
-      });
-    }
-  };
-  window.loadAndRenderAttendanceKanban = loadAndRenderKanban;
-
-  const renderKanban = (encounters) => {
-    activeKanbanTimers.forEach(t => clearInterval(t));
-    activeKanbanTimers = [];
-
-    // Deduplicação dos encontros por paciente: mantém o encontro mais recente e avançado
-    const patientSeen = new Set();
-    const sortedEncs = [...encounters].sort((a, b) => {
-      const tA = new Date(a.observation_started_at || a.admitted_at || a.created_at || 0).getTime();
-      const tB = new Date(b.observation_started_at || b.admitted_at || b.created_at || 0).getTime();
-      return tB - tA; // mais recente primeiro
-    });
-
-    const uniqueEncs = [];
-    sortedEncs.forEach(e => {
-      if (e.status === 'Finalizado' || e.status === 'Alta' || e.status === 'Cancelado') return;
-      const key = (e.patientId ? `id:${String(e.patientId).trim().toLowerCase()}` : '') ||
-                  (e.patientName ? `name:${String(e.patientName).trim().toLowerCase()}` : `enc:${e.id}`);
-      if (!patientSeen.has(key)) {
-        patientSeen.add(key);
-        uniqueEncs.push(e);
-      }
-    });
-
-    const triage = [...uniqueEncs.filter(e => e.status === 'Aguardando_Triagem')].sort((a, b) => {
-      const aSel = isPatientFocused(a.patientName);
-      const bSel = isPatientFocused(b.patientName);
-      if (aSel && !bSel) return -1;
-      if (!aSel && bSel) return 1;
-      return new Date(b.admitted_at || b.created_at || 0) - new Date(a.admitted_at || a.created_at || 0);
-    });
-
-    const waiting = [...uniqueEncs.filter(e => e.status === 'Aguardando_Atendimento')].sort((a, b) => {
-      const aSel = isPatientFocused(a.patientName);
-      const bSel = isPatientFocused(b.patientName);
-      if (aSel && !bSel) return -1;
-      if (!aSel && bSel) return 1;
-      return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at);
-    });
-
-    const active = [...uniqueEncs.filter(e => e.status === 'Em_Atendimento' && !e.observation_started_at && e.status !== 'Em_Observacao')].sort((a, b) => {
-      const aSel = isPatientFocused(a.patientName);
-      const bSel = isPatientFocused(b.patientName);
-      if (aSel && !bSel) return -1;
-      if (!aSel && bSel) return 1;
-      return 0;
-    });
-
-    const obs = [...uniqueEncs.filter(e => (e.status === 'Em_Observacao' || !!e.observation_started_at) && e.status !== 'Finalizado' && e.status !== 'Alta')].sort((a, b) => {
-      const aSel = isPatientFocused(a.patientName);
-      const bSel = isPatientFocused(b.patientName);
-      if (aSel && !bSel) return -1;
-      if (!aSel && bSel) return 1;
-      return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0);
-    });
-
-    window.filterKanbanColumn = function(type) {
-      const colTriage = document.getElementById('col-triage')?.parentElement;
-      const colWaiting = document.getElementById('col-waiting')?.parentElement;
-      const colActive = document.getElementById('col-active')?.parentElement;
-      const colObs = document.getElementById('col-obs')?.parentElement;
-      if (!colTriage || !colWaiting || !colActive || !colObs) return;
-      const grid = colTriage.parentElement;
-
-      ['triage', 'waiting', 'active', 'obs', 'all'].forEach(t => {
-        const card = document.getElementById(`card-kpi-${t}`);
-        if (card) {
-          if (t === type) {
-            card.classList.add('active-filter');
-            card.style.opacity = '1';
-          } else {
-            card.classList.remove('active-filter');
-            card.style.opacity = type === 'all' ? '1' : '0.55';
-          }
-        }
-      });
-
-      if (type === 'all') {
-        grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
-        colTriage.style.display = 'block';
-        colWaiting.style.display = 'block';
-        colActive.style.display = 'block';
-        colObs.style.display = 'block';
-      } else if (type === 'triage') {
-        grid.style.gridTemplateColumns = '1fr';
-        colTriage.style.display = 'block';
-        colWaiting.style.display = 'none';
-        colActive.style.display = 'none';
-        colObs.style.display = 'none';
-      } else if (type === 'waiting') {
-        grid.style.gridTemplateColumns = '1fr';
-        colTriage.style.display = 'none';
-        colWaiting.style.display = 'block';
-        colActive.style.display = 'none';
-        colObs.style.display = 'none';
-      } else if (type === 'active') {
-        grid.style.gridTemplateColumns = '1fr';
-        colTriage.style.display = 'none';
-        colWaiting.style.display = 'none';
-        colActive.style.display = 'block';
-        colObs.style.display = 'none';
-      } else if (type === 'obs') {
-        grid.style.gridTemplateColumns = '1fr';
-        colTriage.style.display = 'none';
-        colWaiting.style.display = 'none';
-        colActive.style.display = 'none';
-        colObs.style.display = 'block';
-      }
-    };
-
-    const countTr = document.getElementById('count-triage');
-    if (countTr) countTr.textContent = triage.length;
-    const countWt = document.getElementById('count-waiting');
-    if (countWt) countWt.textContent = waiting.length;
-    const countAc = document.getElementById('count-active');
-    if (countAc) countAc.textContent = active.length;
-    const countOb = document.getElementById('count-obs');
-    if (countOb) countOb.textContent = obs.length;
-
-    const kpiTr = document.getElementById('kpi-triagem-num');
-    if (kpiTr) kpiTr.textContent = triage.length;
-    const kpiWt = document.getElementById('kpi-aguardando-num');
-    if (kpiWt) kpiWt.textContent = waiting.length;
-    const kpiAc = document.getElementById('kpi-consulta-num');
-    if (kpiAc) kpiAc.textContent = active.length;
-    const kpiOb = document.getElementById('kpi-observacao-num');
-    if (kpiOb) kpiOb.textContent = obs.length;
-
-    // Atualizar badge lateral de Observação
-    const navObsBadge = document.getElementById('observacao-nav-badge') || document.getElementById('nav-badge-observacao');
-    if (navObsBadge) {
-      navObsBadge.textContent = obs.length;
-      navObsBadge.style.display = obs.length > 0 ? 'inline-block' : 'none';
-    }
-
-    const setCol = (id, items, emptyColor, emptyMsg, buildFn, bindFn) => {
-      const col = document.getElementById(id);
-      if (!col) return;
-      if (!items.length) { col.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px 16px;font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:${emptyColor};font-size:1.5rem;display:block;margin-bottom:8px;"></i>${emptyMsg}</div>`; return; }
-      col.innerHTML = items.map(buildFn).join('');
-      items.forEach(e => { bindFn(e); startLiveTimer(e.id, e.admitted_at); });
-    };
-
-    setCol('col-triage', triage, '#0284c7', 'Fila vazia', buildTriageCard, (e) => {
-      const b = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-triar`);
-      const pepBtn = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-open-pep-direct`);
-      if (b) b.addEventListener('click', () => openTriageModal(e.id, e.patientName));
-      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
-    });
-    setCol('col-waiting', waiting, '#f59e0b', 'Nenhum aguardando', buildWaitCard, (e) => {
-      const b = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-call-consult`);
-      const pepBtn = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-open-pep-direct`);
-      if (b) b.addEventListener('click', () => updateStatus(e.id, 'Em_Atendimento', e.patientName, e.manchesterColor));
-      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
-    });
-    setCol('col-active', active, '#10b981', 'Nenhum em atendimento', buildActiveCard, (e) => {
-      const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
-      const rx = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-rx`);
-      const obsBtn = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-start-obs`);
-      const bed = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-transfer-bed`);
-      const fin = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-finish-consult`);
-      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
-      if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
-      if (obsBtn) obsBtn.addEventListener('click', async () => {
-        try {
-          const res = await apiFetch(`/api/encounters/${e.id}/start-observation`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ notes: 'Paciente colocado em observação médica no PS' })
-          });
-          if (res.ok) {
-            showToast('⏱️ Paciente colocado em Observação Médica (Cronômetro 12h iniciado)');
-            if (typeof window.showFlowCompletionNotification === 'function') {
-              window.showFlowCompletionNotification({
-                actionTitle: '⏱️ Observação Médica PS Iniciada',
-                message: `O paciente <strong>${e.patientName}</strong> foi colocado em observação médica. O tempo de permanência de 12 horas está ativo na coluna 'Em Observação (PS)'.`,
-                targetTab: 'atendimento',
-                targetTabLabel: 'Ver na Coluna Observação (PS)',
-                targetColumn: 'col-obs',
-                persistent: true
-              });
-            }
-            await loadAndRenderKanban();
-          }
-        } catch(err) { showToast('Erro ao iniciar observação.', true); }
-      });
-      if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
-      if (fin) fin.addEventListener('click', () => updateStatus(e.id, 'Finalizado', e.patientName));
-    });
-
-    setCol('col-obs', obs, '#f59e0b', 'Nenhum em observação', buildObsCard, (e) => {
-      const pep = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-pep`);
-      const rx = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-rx`);
-      const bed = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-transfer-bed`);
-      const alta = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-finish-obs`);
-      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
-      if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
-      if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
-      if (alta) alta.addEventListener('click', async () => {
-        if (!confirm(`Confirmar alta da observação para ${e.patientName}? O paciente receberá alta com registro de data e horário no prontuário.`)) return;
-        try {
-          const res = await apiFetch(`/api/encounters/${e.id}/finish-observation`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ dischargeNotes: 'Alta concedida após período de observação no PS com melhora clínica.' })
-          });
-          if (res.ok) {
-            showToast(`✅ Alta da observação registrada para ${e.patientName}.`);
-            if (typeof window.showFlowCompletionNotification === 'function') {
-              window.showFlowCompletionNotification({
-                actionTitle: '🏥 Alta da Observação Concedida',
-                message: `O paciente <strong>${e.patientName}</strong> recebeu alta da observação médica do PS. Status atualizado na aba Pacientes.`,
-                targetTab: 'pacientes',
-                targetTabLabel: 'Ver Registro em Pacientes',
-                persistent: true
-              });
-            }
-            await loadAndRenderKanban();
-          } else {
-            showToast('Erro ao registrar alta da observação.', true);
-          }
-        } catch (err) {
-          showToast('Erro de conexão ao dar alta.', true);
-        }
-      });
-    });
-
-    // Auto-scroll e destaque imediato do paciente em foco
-    setTimeout(() => {
-      const selectedEl = document.querySelector('#main-content .patient-pulse-selected');
-      if (selectedEl) {
-        selectedEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-      }
-    }, 120);
-  };
-
   const startLiveTimer = (id, since) => {
     const tick = () => { const el = document.getElementById(`timer-${id}`); if (el) el.textContent = getWaitTimeText(since); else clearInterval(t); };
     tick();
@@ -683,17 +432,27 @@ export function renderAttendanceTab(contentArea) {
   };
 
   const getActiveFocusedPatientName = () => {
-    const ap = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
-    if (!ap && !(_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName)) return '';
-    return ((ap && (ap.fullName || ap.patientName)) || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) || '').toLowerCase().trim();
+    try {
+      const ap = (typeof window !== 'undefined' && typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      const sfg = (typeof window !== 'undefined' && window._SFG) ? window._SFG : null;
+      const pendingName = sfg?.pendingAction?.targetPatientName;
+      if (!ap && !pendingName) return '';
+      return ((ap && (ap.fullName || ap.patientName)) || pendingName || '').toLowerCase().trim();
+    } catch (_) {
+      return '';
+    }
   };
 
   const isPatientFocused = (patientName) => {
-    if (!patientName) return false;
-    const targetName = getActiveFocusedPatientName();
-    if (!targetName) return false;
-    const cleanCard = patientName.toLowerCase().trim();
-    return cleanCard === targetName || cleanCard.includes(targetName) || targetName.includes(cleanCard);
+    try {
+      if (!patientName) return false;
+      const targetName = getActiveFocusedPatientName();
+      if (!targetName) return false;
+      const cleanCard = patientName.toLowerCase().trim();
+      return cleanCard === targetName || cleanCard.includes(targetName) || targetName.includes(cleanCard);
+    } catch (_) {
+      return false;
+    }
   };
 
   const buildTriageCard = (e) => {
@@ -893,6 +652,300 @@ export function renderAttendanceTab(contentArea) {
         </div>
       </div>`;
   };
+
+  const renderKanban = (encounters) => {
+    activeKanbanTimers.forEach(t => clearInterval(t));
+    activeKanbanTimers = [];
+
+    // Deduplicação dos encontros por paciente: mantém o encontro mais recente e avançado
+    const patientSeen = new Set();
+    const sortedEncs = [...(encounters || [])].sort((a, b) => {
+      const tA = new Date(a.observation_started_at || a.admitted_at || a.created_at || 0).getTime();
+      const tB = new Date(b.observation_started_at || b.admitted_at || b.created_at || 0).getTime();
+      return tB - tA; // mais recente primeiro
+    });
+
+    const uniqueEncs = [];
+    sortedEncs.forEach(e => {
+      if (e.status === 'Finalizado' || e.status === 'Alta' || e.status === 'Cancelado') return;
+      const key = (e.patientId ? `id:${String(e.patientId).trim().toLowerCase()}` : '') ||
+                  (e.patientName ? `name:${String(e.patientName).trim().toLowerCase()}` : `enc:${e.id}`);
+      if (!patientSeen.has(key)) {
+        patientSeen.add(key);
+        uniqueEncs.push(e);
+      }
+    });
+
+    const triage = [...uniqueEncs.filter(e => e.status === 'Aguardando_Triagem')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return new Date(b.admitted_at || b.created_at || 0) - new Date(a.admitted_at || a.created_at || 0);
+    });
+
+    const waiting = [...uniqueEncs.filter(e => e.status === 'Aguardando_Atendimento')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at);
+    });
+
+    const active = [...uniqueEncs.filter(e => e.status === 'Em_Atendimento' && !e.observation_started_at && e.status !== 'Em_Observacao')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return 0;
+    });
+
+    const obs = [...uniqueEncs.filter(e => (e.status === 'Em_Observacao' || !!e.observation_started_at) && e.status !== 'Finalizado' && e.status !== 'Alta')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0);
+    });
+
+    window.filterKanbanColumn = function(type) {
+      const colTriage = document.getElementById('col-triage')?.parentElement;
+      const colWaiting = document.getElementById('col-waiting')?.parentElement;
+      const colActive = document.getElementById('col-active')?.parentElement;
+      const colObs = document.getElementById('col-obs')?.parentElement;
+      if (!colTriage || !colWaiting || !colActive || !colObs) return;
+      const grid = colTriage.parentElement;
+
+      ['triage', 'waiting', 'active', 'obs', 'all'].forEach(t => {
+        const card = document.getElementById(`card-kpi-${t}`);
+        if (card) {
+          if (t === type) {
+            card.classList.add('active-filter');
+            card.style.opacity = '1';
+          } else {
+            card.classList.remove('active-filter');
+            card.style.opacity = type === 'all' ? '1' : '0.55';
+          }
+        }
+      });
+
+      if (type === 'all') {
+        grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        colTriage.style.display = 'block';
+        colWaiting.style.display = 'block';
+        colActive.style.display = 'block';
+        colObs.style.display = 'block';
+      } else if (type === 'triage') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'block';
+        colWaiting.style.display = 'none';
+        colActive.style.display = 'none';
+        colObs.style.display = 'none';
+      } else if (type === 'waiting') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'none';
+        colWaiting.style.display = 'block';
+        colActive.style.display = 'none';
+        colObs.style.display = 'none';
+      } else if (type === 'active') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'none';
+        colWaiting.style.display = 'none';
+        colActive.style.display = 'block';
+        colObs.style.display = 'none';
+      } else if (type === 'obs') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'none';
+        colWaiting.style.display = 'none';
+        colActive.style.display = 'none';
+        colObs.style.display = 'block';
+      }
+    };
+
+    const countTr = document.getElementById('count-triage');
+    if (countTr) countTr.textContent = triage.length;
+    const countWt = document.getElementById('count-waiting');
+    if (countWt) countWt.textContent = waiting.length;
+    const countAc = document.getElementById('count-active');
+    if (countAc) countAc.textContent = active.length;
+    const countOb = document.getElementById('count-obs');
+    if (countOb) countOb.textContent = obs.length;
+
+    const kpiTr = document.getElementById('kpi-triagem-num');
+    if (kpiTr) kpiTr.textContent = triage.length;
+    const kpiWt = document.getElementById('kpi-aguardando-num');
+    if (kpiWt) kpiWt.textContent = waiting.length;
+    const kpiAc = document.getElementById('kpi-consulta-num');
+    if (kpiAc) kpiAc.textContent = active.length;
+    const kpiOb = document.getElementById('kpi-observacao-num');
+    if (kpiOb) kpiOb.textContent = obs.length;
+
+    // Atualizar badge lateral de Observação
+    const navObsBadge = document.getElementById('observacao-nav-badge') || document.getElementById('nav-badge-observacao');
+    if (navObsBadge) {
+      navObsBadge.textContent = obs.length;
+      navObsBadge.style.display = obs.length > 0 ? 'inline-block' : 'none';
+    }
+
+    const setCol = (id, items, emptyColor, emptyMsg, buildFn, bindFn) => {
+      const col = document.getElementById(id);
+      if (!col) return;
+      if (!items || !items.length) { 
+        col.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px 16px;font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:${emptyColor};font-size:1.5rem;display:block;margin-bottom:8px;"></i>${emptyMsg}</div>`; 
+        return; 
+      }
+      try {
+        col.innerHTML = items.map(buildFn).join('');
+        items.forEach(e => { 
+          try {
+            bindFn(e); 
+            startLiveTimer(e.id, e.admitted_at); 
+          } catch(errBind) {
+            console.warn(`[attendance] Erro ao associar eventos no item ${e.id}:`, errBind);
+          }
+        });
+      } catch (colErr) {
+        console.error(`[attendance] Erro ao renderizar coluna ${id}:`, colErr);
+        col.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:24px 16px;font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:${emptyColor};font-size:1.3rem;display:block;margin-bottom:6px;"></i>${emptyMsg}</div>`;
+      }
+    };
+
+    setCol('col-triage', triage, '#0284c7', 'Fila de triagem vazia', buildTriageCard, (e) => {
+      const b = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-triar`);
+      const pepBtn = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-open-pep-direct`);
+      if (b) b.addEventListener('click', () => openTriageModal(e.id, e.patientName));
+      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
+    });
+    setCol('col-waiting', waiting, '#f59e0b', 'Nenhum paciente aguardando médico', buildWaitCard, (e) => {
+      const b = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-call-consult`);
+      const pepBtn = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-open-pep-direct`);
+      if (b) b.addEventListener('click', () => updateStatus(e.id, 'Em_Atendimento', e.patientName, e.manchesterColor));
+      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
+    });
+    setCol('col-active', active, '#10b981', 'Nenhum paciente em consulta agora', buildActiveCard, (e) => {
+      const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
+      const rx = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-rx`);
+      const obsBtn = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-start-obs`);
+      const bed = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-transfer-bed`);
+      const fin = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-finish-consult`);
+      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
+      if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
+      if (obsBtn) obsBtn.addEventListener('click', async () => {
+        try {
+          const res = await apiFetch(`/api/encounters/${e.id}/start-observation`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes: 'Paciente colocado em observação médica no PS' })
+          });
+          if (res.ok) {
+            showToast('⏱️ Paciente colocado em Observação Médica (Cronômetro 12h iniciado)');
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: '⏱️ Observação Médica PS Iniciada',
+                message: `O paciente <strong>${e.patientName}</strong> foi colocado em observação médica. O tempo de permanência de 12 horas está ativo na coluna 'Em Observação (PS)'.`,
+                targetTab: 'atendimento',
+                targetTabLabel: 'Ver na Coluna Observação (PS)',
+                targetColumn: 'col-obs',
+                persistent: true
+              });
+            }
+            await loadAndRenderKanban();
+          }
+        } catch(err) { showToast('Erro ao iniciar observação.', true); }
+      });
+      if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
+      if (fin) fin.addEventListener('click', () => updateStatus(e.id, 'Finalizado', e.patientName));
+    });
+
+    setCol('col-obs', obs, '#f59e0b', 'Nenhum paciente em observação', buildObsCard, (e) => {
+      const pep = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-pep`);
+      const rx = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-rx`);
+      const bed = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-transfer-bed`);
+      const alta = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-finish-obs`);
+      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
+      if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
+      if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
+      if (alta) alta.addEventListener('click', async () => {
+        if (!confirm(`Confirmar alta da observação para ${e.patientName}? O paciente receberá alta com registro de data e horário no prontuário.`)) return;
+        try {
+          const res = await apiFetch(`/api/encounters/${e.id}/finish-observation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dischargeNotes: 'Alta concedida após período de observação no PS com melhora clínica.' })
+          });
+          if (res.ok) {
+            showToast(`✅ Alta da observação registrada para ${e.patientName}.`);
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: '🏥 Alta da Observação Concedida',
+                message: `O paciente <strong>${e.patientName}</strong> recebeu alta da observação médica do PS. Status atualizado na aba Pacientes.`,
+                targetTab: 'pacientes',
+                targetTabLabel: 'Ver Registro em Pacientes',
+                persistent: true
+              });
+            }
+            await loadAndRenderKanban();
+          } else {
+            showToast('Erro ao registrar alta da observação.', true);
+          }
+        } catch (err) {
+          showToast('Erro de conexão ao dar alta.', true);
+        }
+      });
+    });
+
+    // Auto-scroll e destaque imediato do paciente em foco
+    setTimeout(() => {
+      const selectedEl = document.querySelector('#main-content .patient-pulse-selected');
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      }
+    }, 120);
+  };
+
+  const loadAndRenderKanban = async () => {
+    try {
+      let encounters = [];
+      try {
+        const res = await apiFetch(`/api/encounters`);
+        if (res && res.ok) {
+          const json = await res.json();
+          encounters = Array.isArray(json) ? json : (json?.data || []);
+        }
+      } catch (fetchErr) {
+        console.warn('[attendance] Falha ao consultar /api/encounters via apiFetch:', fetchErr);
+      }
+
+      // Se apiFetch não retornou registros ou falhou, usar fallback do localDB
+      if (!encounters || !encounters.length) {
+        if (typeof window !== 'undefined' && window.localDB) {
+          encounters = window.localDB.list('encounters') || [];
+        }
+      }
+
+      allEncounters = encounters || [];
+      renderKanban(allEncounters);
+    } catch (err) {
+      console.error('[attendance] Erro ao carregar/renderizar Kanban de Atendimentos:', err);
+      try {
+        renderKanban(allEncounters || []);
+      } catch (renderErr) {
+        console.error('[attendance] Falha crítica ao renderizar colunas:', renderErr);
+        ['col-triage','col-waiting','col-active','col-obs'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = `
+            <div style="text-align:center;padding:24px 16px;color:var(--text-muted);font-size:0.82rem;">
+              <i class="fa-solid fa-check-circle" style="color:var(--text-muted);font-size:1.4rem;display:block;margin-bottom:8px;"></i>
+              Fila vazia no momento.<br>
+              <button class="btn btn-secondary" onclick="window.loadAndRenderAttendanceKanban()" style="margin-top:10px;font-size:0.75rem;padding:4px 10px;">
+                <i class="fa-solid fa-rotate"></i> Atualizar
+              </button>
+            </div>`;
+        });
+      }
+    }
+  };
+  window.loadAndRenderAttendanceKanban = loadAndRenderKanban;
 
   const updateStatus = async (id, status, patientName, manchesterColor) => {
     try {

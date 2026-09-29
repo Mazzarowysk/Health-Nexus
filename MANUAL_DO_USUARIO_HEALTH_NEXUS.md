@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.15)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.16)
 
-> **Health Nexus v2.9.15 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.16 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -1007,7 +1007,14 @@ Pensado especialmente para laptops e agilidade no plantão, o Guia de Fluxo agor
   2. **Linha Intermediária:** Badge de status clínico (`Ag. Triagem`, `Ag. Atendimento`, `Internado`) com indicador luminoso e etiqueta indicativa caso o paciente esteja em foco.
   3. **Linha Inferior:** Botões de ação direta (`Chamar na TV` e `Consultório` / `Triagem`) alinhados lado a lado com largura equilibrada (`flex: 1`), proporcionando acionamento ágil e seguro sem encavalar em textos ou crachás.
 
+### 🩺 Central de Atendimentos Resiliente & Tolerante a Falhas (v2.9.16)
+
+- **Eliminação de Mensagens de Falha Bloqueadoras:** A Central de Atendimentos recebeu blindagem com carregamento resiliente em suas quatro colunas de fluxo (*Aguardando Triagem*, *Aguardando Médico*, *Em Consulta*, *Em Observação (PS)*):
+  1. **Auditoria de Escopo Global:** Corrigidas as referências de governança clínica, garantindo compatibilidade estrita com todos os perfis de acesso e estados de sessão.
+  2. **Persistência Local Integrada (Local-First):** Caso a rede enfrente lentidão ou perda de pacotes, a plataforma recupera automaticamente as admissões e atendimentos a partir do banco de dados local (`localDB`), mantendo a equipe em atendimento contínuo.
+  3. **Apresentação Acolhedora:** Em caso de fila zerada, a tela apresenta mensagens claras e empáticas de fila vazia com ícone de confirmação e botão para atualização assistencial imediata.
+
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.15 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.16 do Health Nexus. Todos os direitos reservados.*
 

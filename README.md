@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.15`  
+**Versão:** `2.9.16`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,6 +8,7 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🩺 **Resiliência Local & Correção na Central de Atendimentos (v2.9.16):** Resolução definitiva do erro visual nas 4 colunas Kanban (*Aguardando Triagem*, *Aguardando Médico*, *Em Consulta*, *Em Observação (PS)*). Foi corrigida a referência segura ao objeto de governança (`window._SFG`) e garantida a ordem estrita de inicialização das funções construtoras de cards (`buildTriageCard`, `buildWaitCard`, `buildActiveCard`, `buildObsCard`). Adicionalmente, implementou-se fallback automático e transparente para o banco local (`localDB`) na ausência de resposta da rede, substituindo mensagens impeditivas por estados vazios assistenciais humanizados e acolhedores com botão de atualização rápida.
 - 📺 **Correção de Diagramação & Desencavalamento dos Cards da Fila no Painel TV (v2.9.15):** Reestruturação completa do layout dos cards de pacientes aguardando chamada na TV. Anteriormente, em grids de 4 colunas ou telas menores, os botões "Chamar" e "Consultório" ficavam sobrepostos ("remontados") em cima do badge de status clínico e escondiam o nome do paciente. Os cards foram reorganizados em níveis verticais harmoniosos (linha 1: avatar, nome completo do paciente e número da fila; linha 2: badge de status e etiqueta de foco; linha 3: botões de ação com largura distribuída), garantindo zero sobreposição, legibilidade total e acionamento direto sem colisões visuais.
 - 🔍 **Efeito Físico de Descolamento 3D & Ampliação de Cards e Letras no Guia de Fluxo (v2.9.14):** Experiência visual refinada e focada para o Card de Fluxo e Painel Lateral de Governança:
   1. **Descolamento e Elevação 3D:** Ao manter o mouse posicionado sobre qualquer card ou bloco interno (Módulo Atual, Paciente em Foco, Ação Recomendada, cards métricos do Radar Hospitalar ou atalhos de conduta), o card específico "descola" da superfície com elevação (`translateY(-6px)`), fundo sólido de alto contraste, ampliação evidente de 8% a 10% (`scale(1.075)` a `scale(1.10)`) e sombra profunda com realce ciano.
