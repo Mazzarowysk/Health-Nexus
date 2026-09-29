@@ -455,9 +455,60 @@ export function renderAttendanceTab(contentArea) {
     }
   };
 
+  const getSafePatientName = (e) => {
+    let name = e?.patientName;
+    if (!name || name === 'undefined' || name === 'null' || !String(name).trim()) {
+      name = e?.fullName || e?.name || e?.patient_name || e?.paciente;
+    }
+    // Se ainda não encontrou, tenta buscar pelo ID do paciente cadastrado
+    if (!name || name === 'undefined' || name === 'null' || !String(name).trim()) {
+      const pId = e?.patientId || e?.patient_id;
+      if (pId) {
+        try {
+          const db = (typeof window !== 'undefined' && window.localDB) ? window.localDB.getFullDB() : null;
+          const p = (db?.patients || []).find(pt => String(pt.id) === String(pId) || String(pt.cpf) === String(pId));
+          if (p && (p.fullName || p.name)) {
+            name = p.fullName || p.name;
+          }
+        } catch (_) {}
+      }
+    }
+    // Tenta buscar por histórico de triagem ou agendamento vinculado
+    if (!name || name === 'undefined' || name === 'null' || !String(name).trim()) {
+      try {
+        const db = (typeof window !== 'undefined' && window.localDB) ? window.localDB.getFullDB() : null;
+        const tri = db?.triages?.find(t => t.encounterId === e?.id || (e?.patientId && t.patientId === e.patientId));
+        if (tri && tri.patientName && tri.patientName !== 'undefined' && tri.patientName !== 'null') {
+          name = tri.patientName;
+        }
+        if (!name || name === 'undefined' || name === 'null') {
+          const apt = db?.appointments?.find(a => (e?.patientId && a.patientId === e.patientId));
+          if (apt && apt.patientName && apt.patientName !== 'undefined' && apt.patientName !== 'null') {
+            name = apt.patientName;
+          }
+        }
+      } catch (_) {}
+    }
+    if (!name || name === 'undefined' || name === 'null' || !String(name).trim()) {
+      name = 'Paciente em Atendimento';
+    }
+    name = String(name).trim();
+    // Auto-recuperação persistente no localDB para curar registros corrompidos anteriores
+    if (e && e.patientName !== name) {
+      e.patientName = name;
+      if (typeof window !== 'undefined' && window.localDB && typeof window.localDB.update === 'function' && e.id) {
+        try {
+          window.localDB.update('encounters', e.id, { ...e, patientName: name });
+        } catch (_) {}
+      }
+    }
+    return name;
+  };
+
   const buildTriageCard = (e) => {
-    const isSel = isPatientFocused(e.patientName);
-    const safePName = (e.patientName || '').replace(/'/g, "\\'");
+    const pName = getSafePatientName(e);
+    const isSel = isPatientFocused(pName);
+    const safePName = pName.replace(/'/g, "\\'");
     const isCalled = !!e.called_at || !!e.tvCalled;
     // Se o paciente está em foco:
     // Se ainda não foi chamado na TV, o botão "Chamar TV" fica ativado e pulsando!
@@ -466,12 +517,12 @@ export function renderAttendanceTab(contentArea) {
     const triarBtnClass = (isCalled && isSel) ? 'btn-triage-highlight' : 'btn-primary';
 
     return `
-    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:${isSel ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(15, 23, 42, 0.98) 100%)' : 'var(--bg-tertiary)'};border:${isSel ? '2px solid #38bdf8' : '1px solid var(--border-color)'};border-left:5px solid #0284c7;border-radius:var(--radius-md);padding:14px;margin-bottom:6px;box-shadow:${isSel ? '0 0 35px rgba(56,189,248,0.75), inset 0 0 16px rgba(56,189,248,0.2)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', status: 'Aguardando_Triagem', currentStep: 2 }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:${isSel ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(15, 23, 42, 0.98) 100%)' : 'var(--bg-tertiary)'};border:${isSel ? '2px solid #38bdf8' : '1px solid var(--border-color)'};border-left:5px solid #0284c7;border-radius:var(--radius-md);padding:14px;margin-bottom:6px;box-shadow:${isSel ? '0 0 35px rgba(56,189,248,0.75), inset 0 0 16px rgba(56,189,248,0.2)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', status: 'Aguardando_Triagem', currentStep: 2 }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
       ${isSel ? '<span class="patient-selected-flow-badge">⚡ Paciente em Foco</span>' : ''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
         <div style="font-weight:700;font-size:0.92rem;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
           ${isSel ? '<span style="width:8px;height:8px;border-radius:50%;background:#38bdf8;display:inline-block;box-shadow:0 0 8px #38bdf8;"></span>' : ''}
-          ${e.patientName}
+          ${pName}
         </div>
         <span id="timer-${e.id}" style="font-size:0.7rem;color:#0284c7;font-family:monospace;background:rgba(2,132,199,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
       </div>
@@ -486,7 +537,7 @@ export function renderAttendanceTab(contentArea) {
         <button class="btn ${triarBtnClass} btn-triar" data-enc-id="${e.id}" style="flex:1.2;font-size:0.8rem;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Abrir Triagem Manchester">
           <i class="fa-solid fa-user-nurse"></i> Realizar Triagem
         </button>
-        <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:8px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+        <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${pName.replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:8px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
           <i class="fa-solid fa-file-medical"></i> PEP
         </button>
       </div>
@@ -494,16 +545,17 @@ export function renderAttendanceTab(contentArea) {
   };
 
   const buildWaitCard = (e) => {
+    const pName = getSafePatientName(e);
     const mc = getMC(e.manchesterColor);
-    const isSel = isPatientFocused(e.patientName);
-    const safePName = (e.patientName || '').replace(/'/g, "\\'");
+    const isSel = isPatientFocused(pName);
+    const safePName = pName.replace(/'/g, "\\'");
     return `
-      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:${isSel ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(15, 23, 42, 0.98) 100%)' : 'var(--bg-tertiary)'};border:${isSel ? '2px solid #38bdf8' : '1px solid var(--border-color)'};border-left:5px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:6px;box-shadow:${isSel ? '0 0 35px rgba(56,189,248,0.75), inset 0 0 16px rgba(56,189,248,0.2)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Aguardando_Atendimento', currentStep: 3, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:${isSel ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(15, 23, 42, 0.98) 100%)' : 'var(--bg-tertiary)'};border:${isSel ? '2px solid #38bdf8' : '1px solid var(--border-color)'};border-left:5px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:6px;box-shadow:${isSel ? '0 0 35px rgba(56,189,248,0.75), inset 0 0 16px rgba(56,189,248,0.2)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Aguardando_Atendimento', currentStep: 3, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
         ${isSel ? '<span class="patient-selected-flow-badge">⚡ Paciente em Foco</span>' : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <div style="font-weight:700;font-size:0.92rem;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
             ${isSel ? '<span style="width:8px;height:8px;border-radius:50%;background:#38bdf8;display:inline-block;box-shadow:0 0 8px #38bdf8;"></span>' : ''}
-            ${e.patientName}
+            ${pName}
           </div>
           <span id="timer-${e.id}" style="font-size:0.7rem;color:${mc.text};font-family:monospace;background:${mc.bg};padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
         </div>
@@ -517,7 +569,7 @@ export function renderAttendanceTab(contentArea) {
           <button class="btn btn-primary btn-call-consult ${isSel ? 'btn-call-tv-highlight' : ''}" data-enc-id="${e.id}" onclick="event.stopPropagation(); if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'); } else if(typeof window.executeTVCall==='function'){ window.executeTVCall('${safePName}', 'Consultório 01', '${e.manchesterColor||'Amarelo'}'); }" style="flex:1;font-size:0.8rem;padding:8px 10px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Emitir 2ª Chamada TV para Consultório 01">
             <i class="fa-solid fa-bullhorn"></i> Chamar TV
           </button>
-          <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${(e.patientName||'').replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:8px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+          <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${pName.replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:8px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
             <i class="fa-solid fa-file-medical"></i> PEP
           </button>
         </div>
@@ -525,10 +577,11 @@ export function renderAttendanceTab(contentArea) {
   };
 
   const buildActiveCard = (e) => {
+    const pName = getSafePatientName(e);
     const mc = getMC(e.manchesterColor);
     const isObs = e.status === 'Em_Observacao' || !!e.observation_started_at;
-    const isSel = isPatientFocused(e.patientName);
-    const safePName = (e.patientName || '').replace(/'/g, "\\'");
+    const isSel = isPatientFocused(pName);
+    const safePName = pName.replace(/'/g, "\\'");
     let obsBadgeHtml = '';
 
     if (isObs) {
@@ -554,10 +607,10 @@ export function renderAttendanceTab(contentArea) {
     }
 
     return `
-      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(16,185,129,0.3)'};border-left:4px solid ${isObs ? '#f59e0b' : '#10b981'};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: '${e.status}', currentStep: 4, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(16,185,129,0.3)'};border-left:4px solid ${isObs ? '#f59e0b' : '#10b981'};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: '${e.status}', currentStep: 4, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
         ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
+          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${pName}</div>
           <span id="timer-${e.id}" style="font-size:0.7rem;color:#10b981;font-family:monospace;background:rgba(16,185,129,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:${e.complaints || isObs ? '8px':'12px'};">
@@ -594,9 +647,10 @@ export function renderAttendanceTab(contentArea) {
   };
 
   const buildObsCard = (e) => {
+    const pName = getSafePatientName(e);
     const mc = getMC(e.manchesterColor);
-    const isSel = isPatientFocused(e.patientName);
-    const safePName = (e.patientName || '').replace(/'/g, "\\'");
+    const isSel = isPatientFocused(pName);
+    const safePName = pName.replace(/'/g, "\\'");
     const obsStart = new Date(e.observation_started_at || e.admitted_at).getTime();
     const diffMs = Math.max(0, Date.now() - obsStart);
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -619,10 +673,10 @@ export function renderAttendanceTab(contentArea) {
     }
 
     return `
-      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${(e.patientName||'').replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(245,158,11,0.3)'};border-left:4px solid #f59e0b;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Em_Observacao', currentStep: 4, room: 'Sala de Observação' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(245,158,11,0.3)'};border-left:4px solid #f59e0b;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Em_Observacao', currentStep: 4, room: 'Sala de Observação' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
         ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${e.patientName}</div>
+          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${pName}</div>
           <span id="timer-${e.id}" style="font-size:0.7rem;color:#fbbf24;font-family:monospace;background:rgba(245,158,11,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
@@ -668,8 +722,9 @@ export function renderAttendanceTab(contentArea) {
     const uniqueEncs = [];
     sortedEncs.forEach(e => {
       if (e.status === 'Finalizado' || e.status === 'Alta' || e.status === 'Cancelado') return;
+      const validName = getSafePatientName(e);
       const key = (e.patientId ? `id:${String(e.patientId).trim().toLowerCase()}` : '') ||
-                  (e.patientName ? `name:${String(e.patientName).trim().toLowerCase()}` : `enc:${e.id}`);
+                  `name:${validName.toLowerCase()}` || `enc:${e.id}`;
       if (!patientSeen.has(key)) {
         patientSeen.add(key);
         uniqueEncs.push(e);
@@ -1339,10 +1394,11 @@ export function renderAttendanceTab(contentArea) {
     if (!el) return;
     if (!list.length) { el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:0.9rem;"><i class="fa-solid fa-inbox"></i><br>Nenhum atendimento finalizado.</div>'; return; }
     el.innerHTML = list.map(e => {
+      const pName = getSafePatientName(e);
       const mc = getMC(e.manchesterColor);
       return `<div style="border:1px solid var(--border-color);border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;background:var(--bg-tertiary);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="font-weight:700;color:var(--text-primary);font-size:0.9rem;">${e.patientName}</span>
+          <span style="font-weight:700;color:var(--text-primary);font-size:0.9rem;">${pName}</span>
           ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;">${mc.label}</span>`:''}
         </div>
         <div style="font-size:0.74rem;color:var(--text-muted);display:grid;grid-template-columns:1fr 1fr;gap:4px;">

@@ -440,8 +440,12 @@ export const apiFetch = async (url, options = {}) => {
         localDB.update('encounters', enc.id, updated);
         responseData = { status: 'success', data: updated };
       } else {
+        const pats = localDB.list('patients') || [];
+        const matchedPat = pats.find(p => String(p.id) === String(encounterId));
         const newEnc = {
           id: encounterId || `enc-${Date.now()}`,
+          patientId: matchedPat?.id || encounterId,
+          patientName: body?.patientName || matchedPat?.fullName || matchedPat?.name || 'Paciente',
           room: room || 'UTI / Internação',
           status: newStatus || 'Aguardando_Leito',
           lastStatusUpdate: new Date().toISOString()
@@ -1305,8 +1309,34 @@ export const apiFetch = async (url, options = {}) => {
       }
 
       if (method === 'GET') {
-        if (id) responseData = localDB.get(table, id);
-        else responseData = { data: localDB.list(table) };
+        if (id) {
+          let item = localDB.get(table, id);
+          if (table === 'encounters' && item) {
+            if (!item.patientName || item.patientName === 'undefined' || item.patientName === 'null') {
+              const pats = localDB.list('patients') || [];
+              const p = pats.find(pt => String(pt.id) === String(item.patientId || item.patient_id));
+              item.patientName = p ? (p.fullName || p.name) : (item.fullName || item.name || 'Paciente');
+            }
+          }
+          responseData = item;
+        } else {
+          let listData = localDB.list(table) || [];
+          if (table === 'encounters') {
+            const pats = localDB.list('patients') || [];
+            listData = listData.map(enc => {
+              if (!enc.patientName || enc.patientName === 'undefined' || enc.patientName === 'null' || !String(enc.patientName).trim()) {
+                const p = pats.find(pt => String(pt.id) === String(enc.patientId || enc.patient_id));
+                const resolved = p ? (p.fullName || p.name) : (enc.fullName || enc.name || 'Paciente em Atendimento');
+                if (enc.patientName !== resolved) {
+                  enc.patientName = resolved;
+                  localDB.update('encounters', enc.id, { ...enc, patientName: resolved });
+                }
+              }
+              return enc;
+            });
+          }
+          responseData = { data: listData };
+        }
       } else if (method === 'POST') {
         if (table === 'users') {
           const users = localDB.list('users') || [];
