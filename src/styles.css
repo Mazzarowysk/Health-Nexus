@@ -5814,66 +5814,172 @@ tr.patient-pulse-selected td:last-child {
    ═══════════════════════════════════════════════════════════════════════════════ */
 :root {
   --hn-flow-panel-width: 420px;
+  --hn-flow-panel-bar-height: 74px;
 }
 @media (max-width: 1400px) {
   :root {
     --hn-flow-panel-width: 380px;
+    --hn-flow-panel-bar-height: 74px;
   }
 }
 @media (max-width: 1100px) {
   :root {
     --hn-flow-panel-width: 340px;
+    --hn-flow-panel-bar-height: 74px;
   }
 }
 
-/* Transição suave do container do sistema ao acoplar/desacoplar/preview */
+/* Transição suave do container do sistema ao acoplar/desacoplar/preview em qualquer lado */
 .app-container {
-  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              margin 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Quando o painel lateral está acoplado ou em preview durante o arraste, o sistema inteiro se adapta dinamicamente */
+/* 1. ACOPLADO À DIREITA (Painel Lateral Direito) */
 body.hn-flow-docked-right .app-container,
-body.hn-flow-dock-preview .app-container {
+body.hn-flow-dock-preview-right .app-container {
   width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
   max-width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
   margin-right: var(--hn-flow-panel-width, 420px) !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  height: 100vh !important;
 }
 
-/* Indicador e Zona Fantasma Neon de Encaixe Lateral (Smart Drop Zone Preview) */
+/* 2. ACOPLADO À ESQUERDA (Painel Lateral Esquerdo) */
+body.hn-flow-docked-left .app-container,
+body.hn-flow-dock-preview-left .app-container {
+  width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
+  max-width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
+  margin-left: var(--hn-flow-panel-width, 420px) !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  height: 100vh !important;
+}
+
+/* 3. ACOPLADO AO TOPO (Barra Cockpit Superior) */
+body.hn-flow-docked-top .app-container,
+body.hn-flow-dock-preview-top .app-container {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin-top: var(--hn-flow-panel-bar-height, 74px) !important;
+  height: calc(100vh - var(--hn-flow-panel-bar-height, 74px)) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* 4. ACOPLADO À BASE (Barra Cockpit Inferior) */
+body.hn-flow-docked-bottom .app-container,
+body.hn-flow-dock-preview-bottom .app-container {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: calc(100vh - var(--hn-flow-panel-bar-height, 74px)) !important;
+  margin-bottom: var(--hn-flow-panel-bar-height, 74px) !important;
+  margin-top: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Indicador e Zona Fantasma Neon de Encaixe em 4 Lados (Smart Drop Zone Preview) */
 #hn-dock-snap-indicator {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: var(--hn-flow-panel-width, 420px);
-  max-width: 100vw;
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(14, 165, 233, 0.03) 50%, rgba(11, 15, 25, 0.75) 100%);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-left: 2px solid #38bdf8;
-  box-shadow: -10px 0 40px rgba(56, 189, 248, 0.35), inset 3px 0 25px rgba(2, 132, 199, 0.15), inset -1px 0 0 rgba(255, 255, 255, 0.06);
   z-index: 2147483646;
   pointer-events: none;
   opacity: 0;
-  transform: translateX(100%);
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+/* Preview Direita */
+#hn-dock-snap-indicator.snap-right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: var(--hn-flow-panel-width, 420px);
+  max-width: 100vw;
+  height: 100vh;
+  border-left: 2px solid #38bdf8;
+  border-right: none;
+  border-top: none;
+  border-bottom: none;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.12) 0%, rgba(14, 165, 233, 0.04) 50%, rgba(11, 15, 25, 0.8) 100%);
+  box-shadow: -10px 0 40px rgba(56, 189, 248, 0.35), inset 3px 0 25px rgba(2, 132, 199, 0.15);
+  transform: translateX(100%);
+}
+
+/* Preview Esquerda */
+#hn-dock-snap-indicator.snap-left {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: auto;
+  width: var(--hn-flow-panel-width, 420px);
+  max-width: 100vw;
+  height: 100vh;
+  border-right: 2px solid #38bdf8;
+  border-left: none;
+  border-top: none;
+  border-bottom: none;
+  background: linear-gradient(225deg, rgba(2, 132, 199, 0.12) 0%, rgba(14, 165, 233, 0.04) 50%, rgba(11, 15, 25, 0.8) 100%);
+  box-shadow: 10px 0 40px rgba(56, 189, 248, 0.35), inset -3px 0 25px rgba(2, 132, 199, 0.15);
+  transform: translateX(-100%);
+}
+
+/* Preview Topo */
+#hn-dock-snap-indicator.snap-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: auto;
+  width: 100vw;
+  height: var(--hn-flow-panel-bar-height, 74px);
+  border-bottom: 2px solid #38bdf8;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  background: linear-gradient(180deg, rgba(2, 132, 199, 0.18) 0%, rgba(11, 15, 25, 0.88) 100%);
+  box-shadow: 0 10px 40px rgba(56, 189, 248, 0.35), inset 0 -3px 25px rgba(2, 132, 199, 0.15);
+  transform: translateY(-100%);
+}
+
+/* Preview Base */
+#hn-dock-snap-indicator.snap-bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: auto;
+  width: 100vw;
+  height: var(--hn-flow-panel-bar-height, 74px);
+  border-top: 2px solid #38bdf8;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  background: linear-gradient(0deg, rgba(2, 132, 199, 0.18) 0%, rgba(11, 15, 25, 0.88) 100%);
+  box-shadow: 0 -10px 40px rgba(56, 189, 248, 0.35), inset 0 3px 25px rgba(2, 132, 199, 0.15);
+  transform: translateY(100%);
 }
 
 #hn-dock-snap-indicator.active {
   opacity: 1;
-  transform: translateX(0);
+  transform: translate(0, 0) !important;
   animation: neonDockBreath 2.4s ease-in-out infinite;
 }
 
 @keyframes neonDockBreath {
   0%, 100% {
-    border-left-color: #38bdf8;
-    box-shadow: -8px 0 32px rgba(56, 189, 248, 0.35), inset 2px 0 20px rgba(2, 132, 199, 0.12);
+    border-color: #38bdf8;
+    box-shadow: 0 0 32px rgba(56, 189, 248, 0.35), inset 0 0 20px rgba(2, 132, 199, 0.12);
   }
   50% {
-    border-left-color: #7dd3fc;
-    box-shadow: -15px 0 50px rgba(56, 189, 248, 0.58), inset 4px 0 32px rgba(14, 165, 233, 0.22);
+    border-color: #7dd3fc;
+    box-shadow: 0 0 50px rgba(56, 189, 248, 0.58), inset 0 0 32px rgba(14, 165, 233, 0.22);
   }
 }
 
@@ -5959,9 +6065,22 @@ body.hn-flow-dock-preview .app-container {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
 }
 
-/* Painel lateral fixado na lateral direita */
+/* Painéis fixados em 4 Direções do Sistema */
 .floating-flow-guide.docked-panel {
   position: fixed !important;
+  border-radius: 0 !important;
+  background: rgba(11, 15, 25, 0.98) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  z-index: 2147483647 !important;
+  overflow: hidden !important;
+  color: #f8fafc !important;
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif !important;
+}
+
+/* 1. Direita (Vertical) */
+.floating-flow-guide.docked-panel.dock-pos-right,
+.floating-flow-guide.docked-panel:not(.dock-pos-left):not(.dock-pos-top):not(.dock-pos-bottom) {
   top: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
@@ -5969,31 +6088,136 @@ body.hn-flow-dock-preview .app-container {
   width: var(--hn-flow-panel-width, 420px) !important;
   max-width: 100vw !important;
   height: 100vh !important;
-  border-radius: 0 !important;
-  border-top: none !important;
-  border-right: none !important;
-  border-bottom: none !important;
+  border: none !important;
   border-left: 2px solid #0284c7 !important;
-  background: rgba(11, 15, 25, 0.97) !important;
-  backdrop-filter: blur(28px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
   box-shadow: -12px 0 45px rgba(0, 0, 0, 0.8), inset 1px 0 0 rgba(255, 255, 255, 0.08) !important;
   display: flex !important;
   flex-direction: column !important;
-  z-index: 2147483647 !important;
-  overflow: hidden !important;
-  animation: slideInDock 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInDockRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes slideInDock {
-  from {
-    transform: translateX(30px);
-    opacity: 0.9;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+/* 2. Esquerda (Vertical) */
+.floating-flow-guide.docked-panel.dock-pos-left {
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  right: auto !important;
+  width: var(--hn-flow-panel-width, 420px) !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  border: none !important;
+  border-right: 2px solid #0284c7 !important;
+  box-shadow: 12px 0 45px rgba(0, 0, 0, 0.8), inset -1px 0 0 rgba(255, 255, 255, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: slideInDockLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 3. Topo (Barra Horizontal Cockpit) */
+.floating-flow-guide.docked-panel.dock-pos-top {
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: auto !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: var(--hn-flow-panel-bar-height, 74px) !important;
+  border: none !important;
+  border-bottom: 2px solid #0284c7 !important;
+  box-shadow: 0 8px 35px rgba(0, 0, 0, 0.85), inset 0 -1px 0 rgba(255, 255, 255, 0.08) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  animation: slideInDockTop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 4. Base (Barra Horizontal Cockpit) */
+.floating-flow-guide.docked-panel.dock-pos-bottom {
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: var(--hn-flow-panel-bar-height, 74px) !important;
+  border: none !important;
+  border-top: 2px solid #0284c7 !important;
+  box-shadow: 0 -8px 35px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  animation: slideInDockBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInDockRight { from { transform: translateX(30px); opacity: 0.9; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInDockLeft  { from { transform: translateX(-30px); opacity: 0.9; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInDockTop   { from { transform: translateY(-30px); opacity: 0.9; } to { transform: translateY(0); opacity: 1; } }
+@keyframes slideInDockBottom{ from { transform: translateY(30px); opacity: 0.9; } to { transform: translateY(0); opacity: 1; } }
+
+/* Popover do Seletor de Direção de Acoplamento */
+.hn-dock-picker-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), 0 0 24px rgba(56, 189, 248, 0.25);
+  z-index: 2147483647;
+  min-width: 195px;
+  animation: fadeInQuick 0.16s ease-out;
+}
+
+.floating-flow-guide.dock-pos-bottom .hn-dock-picker-popover {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+.hn-dock-picker-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 2px;
+}
+
+.hn-dock-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.hn-dock-picker-item:hover {
+  background: rgba(2, 132, 199, 0.2);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  transform: translateX(2px);
+}
+
+.hn-dock-picker-item.active {
+  background: rgba(2, 132, 199, 0.3);
+  border-color: #38bdf8;
+  color: #ffffff;
 }
 
 /* Área de scroll interna do painel acoplado */
@@ -6140,26 +6364,41 @@ body.hn-flow-dock-preview .app-container {
   }
 }
 
-/* Quando o painel lateral estiver acoplado, liberar espaço no cabeçalho para a busca */
+/* Quando o painel lateral estiver acoplado (Direita ou Esquerda), liberar espaço no cabeçalho para a busca */
 body.hn-flow-docked-right .header-brand-text,
+body.hn-flow-dock-preview-right .header-brand-text,
+body.hn-flow-docked-left .header-brand-text,
+body.hn-flow-dock-preview-left .header-brand-text,
 body.hn-flow-dock-preview .header-brand-text {
   display: none !important;
 }
 
 body.hn-flow-docked-right #flow-guide-btn-label,
+body.hn-flow-dock-preview-right #flow-guide-btn-label,
+body.hn-flow-docked-left #flow-guide-btn-label,
+body.hn-flow-dock-preview-left #flow-guide-btn-label,
 body.hn-flow-dock-preview #flow-guide-btn-label,
 body.hn-flow-docked-right #density-label,
+body.hn-flow-dock-preview-right #density-label,
+body.hn-flow-docked-left #density-label,
+body.hn-flow-dock-preview-left #density-label,
 body.hn-flow-dock-preview #density-label {
   display: none !important;
 }
 
 body.hn-flow-docked-right .app-header,
+body.hn-flow-dock-preview-right .app-header,
+body.hn-flow-docked-left .app-header,
+body.hn-flow-dock-preview-left .app-header,
 body.hn-flow-dock-preview .app-header {
   gap: 10px !important;
   padding-right: 14px !important;
 }
 
 body.hn-flow-docked-right .global-search-wrapper,
+body.hn-flow-dock-preview-right .global-search-wrapper,
+body.hn-flow-docked-left .global-search-wrapper,
+body.hn-flow-dock-preview-left .global-search-wrapper,
 body.hn-flow-dock-preview .global-search-wrapper {
   max-width: 460px !important;
 }
@@ -6275,8 +6514,9 @@ body.hn-flow-dock-preview .global-search-wrapper {
    VARREDURA RESPONSIVA — PREVENÇÃO CONTRA CORTE DE ÍCONES, CARDS E FUNÇÕES
    ═══════════════════════════════════════════════════════════════════════════════ */
 
-/* 1. App Content Otimizado com Painel Docado */
-body.hn-flow-docked-right .app-content {
+/* 1. App Content Otimizado com Painel Docado (Direita ou Esquerda) */
+body.hn-flow-docked-right .app-content,
+body.hn-flow-docked-left .app-content {
   padding: 18px 20px 28px 20px !important;
 }
 
@@ -6290,35 +6530,49 @@ body.hn-flow-docked-right .app-content {
 }
 
 @media (max-width: 1450px) {
-  body.hn-flow-docked-right .patient-compact-meta {
+  body.hn-flow-docked-right .patient-compact-meta,
+  body.hn-flow-docked-left .patient-compact-meta {
     display: flex !important;
   }
-  body.hn-flow-docked-right .col-loc-full {
+  body.hn-flow-docked-right .col-loc-full,
+  body.hn-flow-docked-left .col-loc-full {
     display: none !important;
   }
-  body.hn-flow-docked-right .col-loc-compact {
+  body.hn-flow-docked-right .col-loc-compact,
+  body.hn-flow-docked-left .col-loc-compact {
     display: inline !important;
   }
   body.hn-flow-docked-right .col-patient-cpf,
   body.hn-flow-docked-right .col-patient-city,
   body.hn-flow-docked-right .col-patient-phones,
   body.hn-flow-docked-right .col-patient-val,
-  body.hn-flow-docked-right .col-patient-dob {
+  body.hn-flow-docked-right .col-patient-dob,
+  body.hn-flow-docked-left .col-patient-cpf,
+  body.hn-flow-docked-left .col-patient-city,
+  body.hn-flow-docked-left .col-patient-phones,
+  body.hn-flow-docked-left .col-patient-val,
+  body.hn-flow-docked-left .col-patient-dob {
     display: none !important;
   }
   body.hn-flow-docked-right .patients-table th,
-  body.hn-flow-docked-right .patients-table td {
+  body.hn-flow-docked-right .patients-table td,
+  body.hn-flow-docked-left .patients-table th,
+  body.hn-flow-docked-left .patients-table td {
     padding: 10px 8px !important;
   }
   body.hn-flow-docked-right .patients-table th.col-patient-actions,
-  body.hn-flow-docked-right .patients-table td.col-patient-actions {
+  body.hn-flow-docked-right .patients-table td.col-patient-actions,
+  body.hn-flow-docked-left .patients-table th.col-patient-actions,
+  body.hn-flow-docked-left .patients-table td.col-patient-actions {
     min-width: 155px !important;
     width: 155px !important;
   }
-  body.hn-flow-docked-right .actions-cell {
+  body.hn-flow-docked-right .actions-cell,
+  body.hn-flow-docked-left .actions-cell {
     gap: 3px !important;
   }
-  body.hn-flow-docked-right .actions-cell .btn-icon {
+  body.hn-flow-docked-right .actions-cell .btn-icon,
+  body.hn-flow-docked-left .actions-cell .btn-icon {
     width: 27px !important;
     height: 27px !important;
     min-width: 27px !important;
@@ -6383,7 +6637,9 @@ body.hn-flow-docked-right .app-content {
 }
 
 body.hn-flow-docked-right #kanban-grid-container,
-body.hn-flow-docked-right .kanban-board-grid {
+body.hn-flow-docked-right .kanban-board-grid,
+body.hn-flow-docked-left #kanban-grid-container,
+body.hn-flow-docked-left .kanban-board-grid {
   grid-template-columns: repeat(4, minmax(240px, 1fr)) !important;
   overflow-x: auto;
   padding-bottom: 14px;

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual do Usuário — Health Nexus v2.8.0</title>
+  <title>Manual do Usuário — Health Nexus v2.9.18</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.17)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.18)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.17 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
+<p><strong>Health Nexus v2.9.18 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -568,7 +568,7 @@ flowchart TD
 </ol>
 </li>
 <li><ol start="20">
-<li><a href="#sec-20">Smart Flow Guide — Adaptação por Aba, Controle de Foco &amp; Desmarcação (v2.9.9) &amp; Painel Lateral Acoplado</a></li>
+<li><a href="#sec-20">Smart Flow Guide — Acoplamento Multidirecional em 4 Lados da Tela, Cockpit Horizontal &amp; Painel Lateral (v2.9.18)</a></li>
 </ol>
 </li>
 </ul>
@@ -3558,8 +3558,69 @@ flowchart TD
 <li><strong>Condensação Elegante de Colunas Secundárias:</strong> Em resoluções menores ou quando o Painel de Governança estiver acoplado à direita, dados complementares como telefone, cidade, data de nascimento e CPF passam a ser exibidos diretamente como subtexto informativo abaixo do nome do paciente. Essa abordagem economiza mais de 450px de largura útil na tela sem suprimir nenhum detalhe cadastral.</li>
 <li><strong>Kanban sem Esmagamento:</strong> As colunas do Kanban na Central de Atendimentos contam com largura mínima garantida (<code>minmax(250px, 1fr)</code>), prevenindo quebras indevidas de palavras ou corte de ícones nos botões clínicos (<em>PEP</em>, <em>Prescrição</em>, <em>Observação</em> e <em>Finalizar</em>).</li>
 </ul>
+<h3>🧭 Acoplamento Multidirecional em 4 Lados da Tela &amp; Cockpit Horizontal (v2.9.18)</h3>
+<p>O <strong>Guia de Fluxo Hospitalar (Smart Flow Guide / Painel de Governança)</strong> agora oferece total liberdade espacial para a equipe médica e de enfermagem, adaptando-se a qualquer monitor ou preferência de uso em <strong>4 orientações de acoplamento fixo</strong> e <strong>modo flutuante livre</strong>:</p>
+<table>
+<thead>
+<tr>
+<th align="left">Posição de Acoplamento</th>
+<th align="left">Formato &amp; Dimensões</th>
+<th align="left">Adaptação Visual do Sistema</th>
+<th align="left">Quando Utilizar no Plantão</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>➡️ Lateral Direita</strong></td>
+<td align="left">Barra lateral vertical de 420px de largura por 100vh</td>
+<td align="left">O conteúdo central recua à esquerda (<code>margin-right: 420px</code>), compactando tabelas e ajustando o Kanban</td>
+<td align="left">Padrão tradicional para monitores widescreen e acompanhamento contínuo da jornada</td>
+</tr>
+<tr>
+<td align="left"><strong>⬅️ Lateral Esquerda</strong></td>
+<td align="left">Barra lateral vertical de 420px de largura por 100vh</td>
+<td align="left">O conteúdo central e a barra de navegação recuam à direita (<code>margin-left: 420px</code>)</td>
+<td align="left">Usuários que preferem leitura assistencial da esquerda para a direita ou canhotos</td>
+</tr>
+<tr>
+<td align="left"><strong>⬆️ Topo da Tela (Cockpit Superior)</strong></td>
+<td align="left">Fita horizontal esbelta de 74px de altura por 100vw</td>
+<td align="left">O conteúdo central recua para baixo (<code>margin-top: 74px</code>), mantendo 100% da largura útil da tela</td>
+<td align="left">Ideal para prontuários extensos, tabelas largas e visualização panorâmica de leitos</td>
+</tr>
+<tr>
+<td align="left"><strong>⬇️ Base da Tela (Cockpit Inferior)</strong></td>
+<td align="left">Fita horizontal esbelta de 74px de altura por 100vw</td>
+<td align="left">O conteúdo central recua para cima (<code>margin-bottom: 74px</code>), sem perda de espaço horizontal</td>
+<td align="left">Excelente para faturamento, farmácia e auditoria com monitoramento de status no rodapé</td>
+</tr>
+<tr>
+<td align="left"><strong>🪟 Card Flutuante Livre</strong></td>
+<td align="left">Card compacto flutuante arrastável</td>
+<td align="left">Nenhuma alteração no layout da tela; pode ser posicionado onde for mais conveniente</td>
+<td align="left">Para quem prefere tela cheia e consulta pontual de condutas e atalhos</td>
+</tr>
+</tbody></table>
+<h4>🎯 Zonas de Encaixe com Iluminação Neon Dinâmica (Snap Inteligente)</h4>
+<p>Ao arrastar o card flutuante pela tela pelo cabeçalho:</p>
+<ol>
+<li><strong>Detecção Automática de Proximidade:</strong> Quando o card se aproxima de qualquer uma das bordas (menos de 130px nas laterais ou menos de 80px no topo/base), uma moldura luminosa em azul-neon surge destacando a borda correspondente.</li>
+<li><strong>Prévia Dinâmica da Tela:</strong> O sistema ajusta o espaço central em tempo real para mostrar exatamente como a tela ficará após a fixação.</li>
+<li><strong>Crachá de Orientação com 1 Toque:</strong> Um aviso centralizado indica a direção ativa (<code>➡️ Solte para Fixar na Lateral Direita</code>, <code>⬅️ Solte para Fixar na Lateral Esquerda</code>, <code>⬆️ Solte para Fixar no Topo da Tela</code> ou <code>⬇️ Solte para Fixar na Base da Tela</code>).</li>
+<li><strong>Fixação e Som de Confirmação:</strong> Ao soltar o mouse ou toque sobre a zona ativa, o painel se fixa suavemente emitindo um toque suave (<em>chime</em>) e exibindo aviso de confirmação.</li>
+</ol>
+<h4>🎛️ Menu Popover de Seleção Rápida em 1 Clique</h4>
+<p>No cabeçalho do painel ou do card flutuante, o botão com ícone de mira multidirecional (<code>fa-arrows-to-dot</code>) abre um menu suspenso com opções diretas:</p>
+<ul>
+<li><strong>Lateral Direita</strong></li>
+<li><strong>Lateral Esquerda</strong></li>
+<li><strong>Topo da Tela (Cockpit)</strong></li>
+<li><strong>Base da Tela (Cockpit)</strong></li>
+<li><strong>Desencaixar (Card Flutuante)</strong></li>
+</ul>
+<h4>🔄 Memória de Preferência do Usuário (Persistência Local)</h4>
+<p>A posição escolhida fica salva no navegador do profissional (<code>localStorage: hn_flow_dock_pos</code>). Ao abrir novos pacientes, alternar entre abas ou recarregar o sistema, o painel reabre exatamente na posição preferida, mantendo o ambiente de trabalho personalizado e produtivo.</p>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.17 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.18 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.17`  
+**Versão:** `2.9.18`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,6 +8,12 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🧭 **Acoplamento Multidirecional em 4 Lados da Tela & Cockpit Horizontal do Smart Flow Guide (v2.9.18):**
+  1. **4 Posições de Ancoragem Fixa e Modo Flutuante:** O Smart Flow Guide (Painel de Governança) agora oferece liberdade total de organização espacial: **Lateral Direita** (420px), **Lateral Esquerda** (420px), **Topo da Tela** (barra horizontal estilo Cockpit de 74px) e **Base da Tela** (barra horizontal estilo Cockpit de 74px), além do modo **Card Flutuante Livre**.
+  2. **Cockpit Horizontal em Linha (Topo e Base):** Ao acoplar no topo ou na base, o painel assume o formato de fita horizontal compacta (74px de altura) com o paciente ativo, a linha do tempo de 7 etapas da jornada hospitalar em linha, o atalho para a próxima ação recomendada e os controles de janela, liberando 100% da largura útil da tela para tabelas densas, censo de leitos e prontuários.
+  3. **Zonas de Encaixe com Iluminação Neon Dinâmica (Snap Inteligente):** Ao arrastar o card flutuante em direção a qualquer uma das 4 bordas da tela (< 130px nas laterais, < 80px no topo/base), uma moldura luminosa em azul-neon surge destacando a borda correspondente, o sistema pré-adapta o espaço central em tempo real e um crachá centralizado informa a direção ativa (`➡️ Solte para Fixar na Lateral Direita`, `⬅️ Solte para Fixar na Lateral Esquerda`, `⬆️ Solte para Fixar no Topo da Tela` ou `⬇️ Solte para Fixar na Base da Tela`). Ao soltar, a fixação ocorre suavemente com som de confirmação (*chime*).
+  4. **Menu Popover de Seleção Rápida em 1 Clique:** Botão dedicado no cabeçalho com ícone de miras direcionais (`fa-arrows-to-dot`) abre um seletor visual para alternar instantaneamente entre qualquer um dos 4 lados ou desencaixar para o modo flutuante livre.
+  5. **Persistência de Preferência no Navegador:** A orientação escolhida fica gravada em `localStorage: hn_flow_dock_pos`, sendo preservada entre sessões, abas e recarregamentos.
 - 🔍 **Varredura Completa de Visualização & Correção de Ícones e Ações Ocultas (v2.9.17):**
   1. **Fixação Sticky da Coluna de Ações:** Na tabela de pacientes cadastrados e demais tabelas clínicas (Farmácia, TISS, Financeiro), a coluna de **Ações** agora possui fixação permanente (`position: sticky; right: 0; background: var(--bg-secondary); z-index: 6; box-shadow: -8px 0 16px rgba(0,0,0,0.45)`). Isso assegura que os 5 botões de ação essenciais (*Admitir no PS*, *Prontuário/Histórico*, *Gerar PDF*, *Editar Cadastro* e *Excluir*) fiquem **100% visíveis e operacionais**, mesmo quando o Painel de Governança estiver acoplado à direita ou em notebooks e telas de 1366x768.
   2. **Condensação Inteligente de Metadados:** Em telas compactas ou quando o painel lateral estiver aberto, as colunas secundárias de baixa prioridade de triagem imediata (*Cidade*, *Telefones*, *Valor da Conta* e *CPF*) deixam de ocupar colunas extras avulsas e passam a ser exibidas de forma elegante e harmoniosa em linhas secundárias sob o nome do paciente, com micro-ícones informativos (🎂 Data de Nascimento, 📞 Telefone, 📍 Cidade e 🪪 CPF). Nenhuma informação é perdida e a tabela ganha mais de 450px de respiro visual.

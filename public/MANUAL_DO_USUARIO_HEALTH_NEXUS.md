@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.10)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.18)
 
-> **Health Nexus v2.9.10 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.18 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -94,7 +94,7 @@ flowchart TD
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
 - 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
 - 19. [Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0)](#sec-19)
-- 20. [Smart Flow Guide — Adaptação por Aba, Controle de Foco & Desmarcação (v2.9.9) & Painel Lateral Acoplado](#sec-20)
+- 20. [Smart Flow Guide — Acoplamento Multidirecional em 4 Lados da Tela, Cockpit Horizontal & Painel Lateral (v2.9.18)](#sec-20)
 
 ---
 
@@ -982,9 +982,76 @@ Quando acoplado à lateral, o Smart Flow Guide oferece uma visão panorâmica e 
 ### 💡 Dicas de Produtividade no Plantão
 
 - **Em telas largas (Full HD ou superiores):** Mantenha o painel acoplado à direita durante todo o plantão para monitorar a fila de pacientes sem sair do prontuário ou da triagem.
-- **Em telas menores ou tablets:** Utilize o modo flutuante compacto e mova-o para o canto inferior direito para priorizar o espaço de digitação de anamnese e evolução.
-- **Agilidade na chamada:** Chame o próximo paciente no Painel de TV diretamente pelo botão de megafone no card ativo, sem trocar de aba.
+### 🔍 Expansão Suave Individual por Card no Hover (v2.9.14)
+
+Pensado especialmente para laptops e agilidade no plantão, o Guia de Fluxo agora amplia individualmente cada card ao manter o mouse posicionado sobre ele:
+
+1. **Expansão Focalizada por Card:**
+   - Ao manter o cursor sobre qualquer bloco interno (Módulo Atual, Paciente em Foco, Conduta Recomendada, Métricas do Radar Hospitalar ou Chips de Ação), o respectivo card executa uma transição suave com elevação (`translateY(-2px)` a `-3px`), ampliação proporcional (`scale(1.035)` a `scale(1.06)`) e borda luminosa ciano em alto contraste.
+   - O restante do painel e a tela central mantêm suas posições estáveis, garantindo conforto visual imediato sem qualquer deslocamento de layout (*zero layout shift*).
+2. **Interface Limpa & Sem Banners Intrusivos:**
+   - Avisos visuais sobrepostos (como mensagens de "Lupa Ativa") foram totalmente eliminados, mantendo as informações clínicas claras, desobstruídas e de leitura direta.
+3. **Navegação Normal e Instantânea ao Clicar:**
+   - O clique sobre qualquer card ou botão interno continua respondendo com agilidade, abrindo diretamente a etapa clínica selecionada (Triagem Manchester, Prontuário Eletrônico PEP, Prescrição ou Atendimentos).
+4. **Retorno Automático:**
+   - Ao afastar o cursor para fora do card, ele retorna suavemente à sua escala e contraste originais.
+
+### 📅 Padronização Brasileira de Datas de Nascimento (DD/MM/AAAA)
+
+- Todas as exibições de data de nascimento de pacientes no cabeçalho do prontuário médico (PEP), no modal de atendimento e nas fichas cadastrais seguem rigorosamente a máscara brasileira `DD/MM/AAAA` (ex.: `15/06/1985`), eliminando formatos invertidos (`AAAA-MM-DD`).
+
+### 📺 Diagramação Desobstruída da Fila de Espera no Painel TV (v2.9.15)
+
+- **Distribuição em Camadas Verticais:** Os cards de pacientes aguardando chamada na TV foram totalmente redesenhados para eliminar qualquer sobreposição (*remontagem*) entre elementos:
+  1. **Linha Superior:** Avatar colorido com a classificação Manchester, nome completo do paciente em destaque e posição numérica na fila (`#01`, `#02`, etc.).
+  2. **Linha Intermediária:** Badge de status clínico (`Ag. Triagem`, `Ag. Atendimento`, `Internado`) com indicador luminoso e etiqueta indicativa caso o paciente esteja em foco.
+  3. **Linha Inferior:** Botões de ação direta (`Chamar na TV` e `Consultório` / `Triagem`) alinhados lado a lado com largura equilibrada (`flex: 1`), proporcionando acionamento ágil e seguro sem encavalar em textos ou crachás.
+
+### 🩺 Central de Atendimentos Resiliente & Tolerante a Falhas (v2.9.16)
+
+- **Eliminação de Mensagens de Falha Bloqueadoras:** A Central de Atendimentos recebeu blindagem com carregamento resiliente em suas quatro colunas de fluxo (*Aguardando Triagem*, *Aguardando Médico*, *Em Consulta*, *Em Observação (PS)*):
+  1. **Auditoria de Escopo Global:** Corrigidas as referências de governança clínica, garantindo compatibilidade estrita com todos os perfis de acesso e estados de sessão.
+  2. **Persistência Local Integrada (Local-First):** Caso a rede enfrente lentidão ou perda de pacotes, a plataforma recupera automaticamente as admissões e atendimentos a partir do banco de dados local (`localDB`), mantendo a equipe em atendimento contínuo.
+  3. **Apresentação Acolhedora:** Em caso de fila zerada, a tela apresenta mensagens claras e empáticas de fila vazia com ícone de confirmação e botão para atualização assistencial imediata.
+
+### 🔍 Varredura de Telas & Fixação de Ícones de Ação (v2.9.17)
+
+- **Coluna de Ações Fixa (Sticky Right):** Na listagem de Pacientes Cadastrados, Farmácia, TISS e Financeiro, a coluna de ações fica fixada permanentemente na margem direita (`sticky`). Mesmo que a tabela possua muitas colunas ou seja rolada horizontalmente, os 5 botões de ação essenciais (*Admitir no PS*, *Prontuário/Histórico*, *Gerar PDF*, *Editar Cadastro* e *Excluir*) permanecem sempre 100% visíveis, clicáveis e destacados.
+- **Condensação Elegante de Colunas Secundárias:** Em resoluções menores ou quando o Painel de Governança estiver acoplado à direita, dados complementares como telefone, cidade, data de nascimento e CPF passam a ser exibidos diretamente como subtexto informativo abaixo do nome do paciente. Essa abordagem economiza mais de 450px de largura útil na tela sem suprimir nenhum detalhe cadastral.
+- **Kanban sem Esmagamento:** As colunas do Kanban na Central de Atendimentos contam com largura mínima garantida (`minmax(250px, 1fr)`), prevenindo quebras indevidas de palavras ou corte de ícones nos botões clínicos (*PEP*, *Prescrição*, *Observação* e *Finalizar*).
+
+### 🧭 Acoplamento Multidirecional em 4 Lados da Tela & Cockpit Horizontal (v2.9.18)
+
+O **Guia de Fluxo Hospitalar (Smart Flow Guide / Painel de Governança)** agora oferece total liberdade espacial para a equipe médica e de enfermagem, adaptando-se a qualquer monitor ou preferência de uso em **4 orientações de acoplamento fixo** e **modo flutuante livre**:
+
+| Posição de Acoplamento | Formato & Dimensões | Adaptação Visual do Sistema | Quando Utilizar no Plantão |
+|:---|:---|:---|:---|
+| **➡️ Lateral Direita** | Barra lateral vertical de 420px de largura por 100vh | O conteúdo central recua à esquerda (`margin-right: 420px`), compactando tabelas e ajustando o Kanban | Padrão tradicional para monitores widescreen e acompanhamento contínuo da jornada |
+| **⬅️ Lateral Esquerda** | Barra lateral vertical de 420px de largura por 100vh | O conteúdo central e a barra de navegação recuam à direita (`margin-left: 420px`) | Usuários que preferem leitura assistencial da esquerda para a direita ou canhotos |
+| **⬆️ Topo da Tela (Cockpit Superior)** | Fita horizontal esbelta de 74px de altura por 100vw | O conteúdo central recua para baixo (`margin-top: 74px`), mantendo 100% da largura útil da tela | Ideal para prontuários extensos, tabelas largas e visualização panorâmica de leitos |
+| **⬇️ Base da Tela (Cockpit Inferior)** | Fita horizontal esbelta de 74px de altura por 100vw | O conteúdo central recua para cima (`margin-bottom: 74px`), sem perda de espaço horizontal | Excelente para faturamento, farmácia e auditoria com monitoramento de status no rodapé |
+| **🪟 Card Flutuante Livre** | Card compacto flutuante arrastável | Nenhuma alteração no layout da tela; pode ser posicionado onde for mais conveniente | Para quem prefere tela cheia e consulta pontual de condutas e atalhos |
+
+#### 🎯 Zonas de Encaixe com Iluminação Neon Dinâmica (Snap Inteligente)
+Ao arrastar o card flutuante pela tela pelo cabeçalho:
+1. **Detecção Automática de Proximidade:** Quando o card se aproxima de qualquer uma das bordas (menos de 130px nas laterais ou menos de 80px no topo/base), uma moldura luminosa em azul-neon surge destacando a borda correspondente.
+2. **Prévia Dinâmica da Tela:** O sistema ajusta o espaço central em tempo real para mostrar exatamente como a tela ficará após a fixação.
+3. **Crachá de Orientação com 1 Toque:** Um aviso centralizado indica a direção ativa (`➡️ Solte para Fixar na Lateral Direita`, `⬅️ Solte para Fixar na Lateral Esquerda`, `⬆️ Solte para Fixar no Topo da Tela` ou `⬇️ Solte para Fixar na Base da Tela`).
+4. **Fixação e Som de Confirmação:** Ao soltar o mouse ou toque sobre a zona ativa, o painel se fixa suavemente emitindo um toque suave (*chime*) e exibindo aviso de confirmação.
+
+#### 🎛️ Menu Popover de Seleção Rápida em 1 Clique
+No cabeçalho do painel ou do card flutuante, o botão com ícone de mira multidirecional (`fa-arrows-to-dot`) abre um menu suspenso com opções diretas:
+- **Lateral Direita**
+- **Lateral Esquerda**
+- **Topo da Tela (Cockpit)**
+- **Base da Tela (Cockpit)**
+- **Desencaixar (Card Flutuante)**
+
+#### 🔄 Memória de Preferência do Usuário (Persistência Local)
+A posição escolhida fica salva no navegador do profissional (`localStorage: hn_flow_dock_pos`). Ao abrir novos pacientes, alternar entre abas ou recarregar o sistema, o painel reabre exatamente na posição preferida, mantendo o ambiente de trabalho personalizado e produtivo.
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.8 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.18 do Health Nexus. Todos os direitos reservados.*
+
+

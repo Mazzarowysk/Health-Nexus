@@ -178,11 +178,37 @@ export {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SMART FLOW GUIDE — Card flutuante passo a passo (100% self-contained)
 // ═══════════════════════════════════════════════════════════════════════════════
+const savedDockPos = (typeof localStorage !== 'undefined') ? localStorage.getItem('hn_flow_dock_pos') : null;
+const isLegacyDocked = (typeof localStorage !== 'undefined' && localStorage.getItem('hn_flow_docked') === 'true');
+const initialDockPos = (savedDockPos && ['right', 'left', 'top', 'bottom'].includes(savedDockPos))
+  ? savedDockPos
+  : (isLegacyDocked ? 'right' : null);
+
+function syncFlowDockClasses(dockPos) {
+  if (typeof document === 'undefined' || !document.body) return;
+  document.body.classList.remove(
+    'hn-flow-docked-right',
+    'hn-flow-docked-left',
+    'hn-flow-docked-top',
+    'hn-flow-docked-bottom',
+    'hn-flow-dock-preview',
+    'hn-flow-dock-preview-right',
+    'hn-flow-dock-preview-left',
+    'hn-flow-dock-preview-top',
+    'hn-flow-dock-preview-bottom'
+  );
+  if (dockPos && ['right', 'left', 'top', 'bottom'].includes(dockPos)) {
+    document.body.classList.add('hn-flow-docked-' + dockPos);
+  }
+}
+window.syncFlowDockClasses = syncFlowDockClasses;
+
 const _SFG = {
   active: true,
   minimized: false,
   hidden: false,
-  docked: (typeof localStorage !== 'undefined' && localStorage.getItem('hn_flow_docked') === 'true'),
+  docked: !!initialDockPos,
+  dockPosition: initialDockPos || 'right', // 'right' | 'left' | 'top' | 'bottom'
   zoomPinned: (typeof localStorage !== 'undefined' && localStorage.getItem('hn_flow_zoom_pinned') === 'true'),
   steps: [
     { tab: 'pacientes',    icon: '🏥', label: 'Recepção'    },
@@ -1964,27 +1990,317 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   const evalResult = evaluateClinicalPossibilities(effectivePatient, _SFG.activeTab);
   const currentStageIdx = typeof evalResult.currentStage === 'number' ? evalResult.currentStage : 0;
 
-  const isDocked = !!(_SFG.docked && !_SFG.minimized);
+  const isDocked = !!(_SFG.docked && !_SFG.minimized && _SFG.dockPosition);
+  const dockPos = isDocked ? _SFG.dockPosition : null;
+  const isHorizontal = isDocked && (dockPos === 'top' || dockPos === 'bottom');
+
+  function applyDockPosition(pos) {
+    if (pos === 'float' || !pos) {
+      _SFG.docked = false;
+      _SFG.dockPosition = 'right';
+      try { localStorage.setItem('hn_flow_docked', 'false'); } catch(_) {}
+      syncFlowDockClasses(null);
+      const curLeft = (typeof window !== 'undefined' ? Math.max(10, Math.min(window.innerWidth - 410, 80)) : 80);
+      _SFG.pos = { left: curLeft + 'px', top: '90px' };
+      if (typeof showToast === 'function') showToast('🧭 Guia de Fluxo desacoplado para card flutuante.');
+    } else {
+      _SFG.docked = true;
+      _SFG.dockPosition = pos;
+      try {
+        localStorage.setItem('hn_flow_docked', 'true');
+        localStorage.setItem('hn_flow_dock_pos', pos);
+      } catch(_) {}
+      syncFlowDockClasses(pos);
+      if (typeof playFlowChime === 'function') playFlowChime();
+      const names = { right: 'Lateral Direita', left: 'Lateral Esquerda', top: 'Topo Superior', bottom: 'Base Inferior' };
+      if (typeof showToast === 'function') showToast('🧭 Guia de Fluxo fixado: ' + (names[pos] || pos));
+    }
+    createSmartFlowGuideCard(_SFG.activeTab);
+  }
+
+  function toggleDockPickerPopover(targetBtn) {
+    const existing = document.getElementById('hn-dock-picker-popover');
+    if (existing) {
+      existing.remove();
+      return;
+    }
+    const popover = document.createElement('div');
+    popover.id = 'hn-dock-picker-popover';
+    popover.className = 'hn-dock-picker-popover';
+    popover.innerHTML = `
+      <div class="hn-dock-picker-title"><i class="fa-solid fa-arrows-to-dot" style="color:#38bdf8;margin-right:4px;"></i> Posição do Guia</div>
+      <button class="hn-dock-picker-item ${isDocked && _SFG.dockPosition === 'right' ? 'active' : ''}" data-pos="right">
+        <i class="fa-solid fa-arrow-right" style="color:#38bdf8;"></i> Fixar na Lateral Direita
+      </button>
+      <button class="hn-dock-picker-item ${isDocked && _SFG.dockPosition === 'left' ? 'active' : ''}" data-pos="left">
+        <i class="fa-solid fa-arrow-left" style="color:#38bdf8;"></i> Fixar na Lateral Esquerda
+      </button>
+      <button class="hn-dock-picker-item ${isDocked && _SFG.dockPosition === 'top' ? 'active' : ''}" data-pos="top">
+        <i class="fa-solid fa-arrow-up" style="color:#38bdf8;"></i> Fixar no Topo da Tela
+      </button>
+      <button class="hn-dock-picker-item ${isDocked && _SFG.dockPosition === 'bottom' ? 'active' : ''}" data-pos="bottom">
+        <i class="fa-solid fa-arrow-down" style="color:#38bdf8;"></i> Fixar na Base da Tela
+      </button>
+      <button class="hn-dock-picker-item ${!isDocked ? 'active' : ''}" data-pos="float">
+        <i class="fa-solid fa-up-right-and-down-left-from-center" style="color:#a78bfa;"></i> Card Flutuante Livre
+      </button>
+    `;
+    targetBtn.style.position = 'relative';
+    targetBtn.appendChild(popover);
+
+    popover.querySelectorAll('.hn-dock-picker-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const p = item.getAttribute('data-pos');
+        popover.remove();
+        applyDockPosition(p);
+      });
+    });
+
+    const onDocClick = function(e) {
+      if (!popover.contains(e.target) && e.target !== targetBtn && !targetBtn.contains(e.target)) {
+        popover.remove();
+        document.removeEventListener('click', onDocClick);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', onDocClick), 50);
+  }
 
   // Sincroniza a classe de adaptação do layout do sistema
   if (isDocked) {
-    document.body.classList.add('hn-flow-docked-right');
+    syncFlowDockClasses(dockPos);
   } else {
-    document.body.classList.remove('hn-flow-docked-right');
+    syncFlowDockClasses(null);
   }
 
   const card = document.createElement('div');
   card.id = 'hn-flow-guide';
-  card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '') + (isDocked ? ' docked-panel' : '');
+  card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '') + (isDocked ? ' docked-panel dock-pos-' + dockPos : '');
 
-  // Posicionamento e dimensões estáveis e confortáveis
+  // Visual Minimizado (Pílula compacta)
+  if (_SFG.minimized) {
+    syncFlowDockClasses(null);
+    const miniPill = document.createElement('div');
+    miniPill.setAttribute('style', 'display:flex;align-items:center;gap:9px;padding:8px 15px;background:rgba(11,15,25,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-top:2px solid #0284c7;border-radius:28px;box-shadow:0 12px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.1);cursor:pointer;transition:transform 0.2s,border-color 0.2s;');
+    miniPill.innerHTML = '<div style="width:24px;height:24px;border-radius:50%;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
+      + '<span style="font-size:0.78rem;font-weight:700;color:#f1f5f9">Governança: <strong style="color:#38bdf8">' + evalResult.stageName + '</strong></span>'
+      + (evalResult.orderWarning ? '<span style="font-size:0.62rem;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fde68a;font-weight:700;padding:2px 6px;border-radius:8px">⚠️ Desvio</span>' : '')
+      + (_SFG.pendingAction ? '<span style="font-size:0.62rem;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;font-weight:700;padding:2px 6px;border-radius:8px">⚡ 1 Próximo Passo</span>' : '')
+      + '<span style="font-size:0.75rem;color:#94a3b8;margin-left:4px"><i class="fa-solid fa-chevron-up"></i></span>';
+    miniPill.addEventListener('mouseenter', () => { miniPill.style.transform = 'translateY(-2px)'; miniPill.style.borderColor = 'rgba(2,132,199,0.5)'; });
+    miniPill.addEventListener('mouseleave', () => { miniPill.style.transform = 'none'; miniPill.style.borderColor = 'rgba(255,255,255,0.12)'; });
+    miniPill.addEventListener('click', function() {
+      _SFG.minimized = false;
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+    card.appendChild(miniPill);
+    document.body.appendChild(card);
+    return card;
+  }
+
+  const roleBadgeHtml = evalResult.isMasterOrDev
+    ? '<span style="font-size:0.58rem;font-weight:700;color:#fbbf24;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.28);padding:2px 6px;border-radius:6px" title="Perfil Master & Dev">👑 Master</span>'
+    : '<span style="font-size:0.58rem;font-weight:700;color:#38bdf8;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);padding:2px 6px;border-radius:6px">' + (evalResult.userRoleLabel || 'Usuário') + '</span>';
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MODO HORIZONTAL: BARRA COCKPIT FIXADA NO TOPO OU NA BASE DA TELA
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (isHorizontal) {
+    const isTop = dockPos === 'top';
+    card.setAttribute('style', [
+      'position:fixed !important',
+      (isTop ? 'top:0 !important;bottom:auto !important;' : 'bottom:0 !important;top:auto !important;'),
+      'left:0 !important',
+      'right:0 !important',
+      'width:100vw !important',
+      'max-width:100vw !important',
+      'height:var(--hn-flow-panel-bar-height, 74px) !important',
+      'background:rgba(11,15,25,0.98) !important',
+      'backdrop-filter:blur(28px) saturate(180%) !important',
+      '-webkit-backdrop-filter:blur(28px) saturate(180%) !important',
+      'border:none !important',
+      (isTop ? 'border-bottom:2px solid #0284c7 !important;' : 'border-top:2px solid #0284c7 !important;'),
+      'box-shadow:' + (isTop ? '0 8px 32px rgba(0,0,0,0.85)' : '0 -8px 32px rgba(0,0,0,0.85)') + ' !important',
+      'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
+      'color:#f8fafc !important',
+      'z-index:2147483647 !important',
+      'overflow:visible !important',
+      'display:flex !important',
+      'flex-direction:row !important',
+      'align-items:center !important',
+      'justify-content:space-between !important',
+      'padding:0 16px !important',
+      'gap:12px !important',
+      'user-select:none !important'
+    ].join(';'));
+
+    // Bloco Esquerdo: Identidade, Alça de Arrasto e Paciente Ativo
+    const leftBox = document.createElement('div');
+    leftBox.id = 'hn-fg-horiz-left';
+    leftBox.style.cssText = 'display:flex;align-items:center;gap:10px;flex-shrink:0;cursor:grab;';
+    leftBox.title = isTop ? 'Arraste para baixo para desacoplar como card flutuante' : 'Arraste para cima para desacoplar como card flutuante';
+    
+    let patBadge = '';
+    if (effectivePatient) {
+      const pName = effectivePatient.fullName || effectivePatient.patientName || 'Paciente';
+      const fName = pName.split(' ')[0];
+      patBadge = `<div style="display:flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);border-radius:14px;font-size:0.72rem;color:#f0f9ff;" title="Paciente Ativo: ${pName}">
+        <i class="fa-solid fa-user" style="color:#38bdf8;font-size:0.7rem;"></i>
+        <strong style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${fName}</strong>
+      </div>`;
+    }
+
+    leftBox.innerHTML = `
+      <i class="fa-solid fa-grip-lines-vertical" style="color:#64748b;font-size:0.85rem;" title="Alça de arrasto: puxe para o centro para desacoplar"></i>
+      <div style="width:28px;height:28px;border-radius:7px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.8rem;"><i class="fa-solid fa-compass"></i></div>
+      <div style="display:flex;flex-direction:column;gap:1px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-weight:700;font-size:0.82rem;color:#f8fafc;letter-spacing:-0.2px">Governança</span>
+          ${roleBadgeHtml}
+        </div>
+        <span style="font-size:0.62rem;color:#38bdf8;font-weight:600;">Etapa ${currentStageIdx + 1}/7: ${evalResult.stageName}</span>
+      </div>
+      ${patBadge}
+    `;
+
+    // Bloco Central: Stepper Compacto das 7 Etapas Hospitalares
+    const centerBox = document.createElement('div');
+    centerBox.id = 'hn-fg-horiz-stepper';
+    centerBox.style.cssText = 'display:flex;align-items:center;gap:6px;flex:1;max-width:680px;justify-content:center;overflow-x:auto;padding:0 8px;';
+    centerBox.innerHTML = _SFG.steps.map(function(s, i) {
+      const done = currentStageIdx > i;
+      const now = currentStageIdx === i;
+      const isTarget = _SFG.pendingAction && _SFG.pendingAction.targetTab === s.tab;
+      
+      const nodeBg = done ? 'rgba(16,185,129,0.2)' : (isTarget || now) ? 'rgba(2,132,199,0.3)' : 'rgba(255,255,255,0.04)';
+      const nodeBorder = done ? '#10b981' : (isTarget || now) ? '#38bdf8' : 'rgba(255,255,255,0.1)';
+      const nodeColor = done ? '#34d399' : (isTarget || now) ? '#ffffff' : '#64748b';
+      const labelColor = (isTarget || now) ? '#38bdf8' : done ? '#34d399' : '#94a3b8';
+      const sep = i < _SFG.steps.length - 1
+        ? '<div style="flex:1;min-width:6px;max-width:20px;height:2px;background:' + (done ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.07)') + ';margin:0 2px"></div>'
+        : '';
+
+      return '<div onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); window.switchTab(\'' + s.tab + '\');" title="' + s.label + '" style="display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;padding:3px 6px;border-radius:8px;transition:background 0.15s;" onmouseenter="this.style.background=\'rgba(255,255,255,0.06)\'" onmouseleave="this.style.background=\'transparent\'">'
+        + '<div style="width:20px;height:20px;border-radius:50%;background:' + nodeBg + ';border:1px solid ' + nodeBorder + ';display:flex;align-items:center;justify-content:center;font-size:0.58rem;color:' + nodeColor + ';font-weight:700;">'
+        + (done ? '✓' : (i + 1)) + '</div>'
+        + '<span style="font-size:0.68rem;font-weight:' + ((now || isTarget) ? '700' : '500') + ';color:' + labelColor + ';white-space:nowrap">' + s.label.split(' ')[0] + '</span>'
+        + '</div>' + sep;
+    }).join('');
+
+    // Bloco Ação Recomendada Principal
+    const actionBox = document.createElement('div');
+    actionBox.style.cssText = 'display:flex;align-items:center;gap:8px;flex-shrink:0;';
+
+    const pri = evalResult.primaryAction || {};
+    const actBtn = document.createElement('button');
+    actBtn.id = 'hn-fg-horiz-action';
+    actBtn.style.cssText = `background:${pri.btnBg || 'linear-gradient(135deg, #0284c7, #0369a1)'};color:#ffffff;border:none;border-radius:8px;padding:7px 14px;font-weight:700;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;`;
+    actBtn.innerHTML = `<span>${pri.icon || '⚡'}</span> <span>${pri.btnText || 'Próximo Passo'}</span>`;
+    actBtn.addEventListener('mouseenter', () => { actBtn.style.transform = 'translateY(-1px)'; });
+    actBtn.addEventListener('mouseleave', () => { actBtn.style.transform = 'none'; });
+    if (pri.onClick) {
+      actBtn.setAttribute('onclick', pri.onClick);
+    }
+    actionBox.appendChild(actBtn);
+
+    // Bloco Controles: Seletor de Fixação + Desacoplar + Minimizar + Fechar
+    const ctrlBox = document.createElement('div');
+    ctrlBox.style.cssText = 'display:flex;align-items:center;gap:6px;flex-shrink:0;position:relative;';
+
+    const dockPickerBtn = document.createElement('button');
+    dockPickerBtn.id = 'hn-fg-dock-picker-btn';
+    dockPickerBtn.setAttribute('style', 'background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;cursor:pointer;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;position:relative;');
+    dockPickerBtn.title = 'Mudar posição de fixação (Direita, Esquerda, Topo, Base, Flutuante)';
+    dockPickerBtn.innerHTML = '<i class="fa-solid fa-arrows-to-dot"></i>';
+    dockPickerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDockPickerPopover(dockPickerBtn);
+    });
+
+    const undockBtn = document.createElement('button');
+    undockBtn.id = 'hn-fg-undock';
+    undockBtn.setAttribute('style', 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;cursor:pointer;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;');
+    undockBtn.title = 'Desacoplar para card flutuante';
+    undockBtn.innerHTML = '<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
+    undockBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyDockPosition('float');
+    });
+
+    const minBtn = document.createElement('button');
+    minBtn.id = 'hn-fg-min';
+    minBtn.setAttribute('style', 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;');
+    minBtn.title = 'Minimizar para barra compacta';
+    minBtn.innerHTML = '<i class="fa-solid fa-minus"></i>';
+    minBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      _SFG.minimized = true;
+      syncFlowDockClasses(null);
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.id = 'hn-fg-close';
+    closeBtn.setAttribute('style', 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.76rem;');
+    closeBtn.title = 'Fechar Guia de Fluxo';
+    closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      _SFG.minimized = true;
+      syncFlowDockClasses(null);
+      createSmartFlowGuideCard(_SFG.activeTab);
+      if (typeof showToast === 'function') showToast('Guia de Fluxo minimizado para a barra compacta.');
+    });
+
+    ctrlBox.appendChild(dockPickerBtn);
+    ctrlBox.appendChild(undockBtn);
+    ctrlBox.appendChild(minBtn);
+    ctrlBox.appendChild(closeBtn);
+
+    card.appendChild(leftBox);
+    card.appendChild(centerBox);
+    card.appendChild(actionBox);
+    card.appendChild(ctrlBox);
+    document.body.appendChild(card);
+
+    // Arraste da barra para desacoplar (Puxar em direção ao centro da tela)
+    let hDragPending = false, hStartY = 0;
+    leftBox.addEventListener('mousedown', function(e) {
+      if (e.target.closest('button, a')) return;
+      hDragPending = true;
+      hStartY = e.clientY;
+      leftBox.style.cursor = 'grabbing';
+    });
+    const onHorizMouseMove = function(e) {
+      if (!hDragPending) return;
+      const deltaY = isTop ? (e.clientY - hStartY) : (hStartY - e.clientY);
+      if (deltaY > 20) {
+        hDragPending = false;
+        document.removeEventListener('mousemove', onHorizMouseMove);
+        document.removeEventListener('mouseup', onHorizMouseUp);
+        applyDockPosition('float');
+      }
+    };
+    const onHorizMouseUp = function() {
+      hDragPending = false;
+      leftBox.style.cursor = 'grab';
+    };
+    document.addEventListener('mousemove', onHorizMouseMove);
+    document.addEventListener('mouseup', onHorizMouseUp);
+
+    return card;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MODO VERTICAL (LATERAL DIREITA OU ESQUERDA) OU FLUTUANTE
+  // ═══════════════════════════════════════════════════════════════════════════════
   if (isDocked) {
+    const isLeft = dockPos === 'left';
     card.setAttribute('style', [
       'position:fixed !important',
       'top:0 !important',
-      'right:0 !important',
+      (isLeft ? 'left:0 !important;right:auto !important;' : 'right:0 !important;left:auto !important;'),
       'bottom:0 !important',
-      'left:auto !important',
       'width:var(--hn-flow-panel-width, 420px) !important',
       'max-width:100vw !important',
       'height:100vh !important',
@@ -1992,9 +2308,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       'backdrop-filter:blur(28px) saturate(180%) !important',
       '-webkit-backdrop-filter:blur(28px) saturate(180%) !important',
       'border:none !important',
-      'border-left:2px solid #0284c7 !important',
+      (isLeft ? 'border-right:2px solid #0284c7 !important;' : 'border-left:2px solid #0284c7 !important;'),
       'border-radius:0 !important',
-      'box-shadow:-12px 0 45px rgba(0,0,0,0.8), inset 1px 0 0 rgba(255,255,255,0.08) !important',
+      'box-shadow:' + (isLeft ? '12px 0 45px rgba(0,0,0,0.8)' : '-12px 0 45px rgba(0,0,0,0.8)') + ', inset ' + (isLeft ? '-1px' : '1px') + ' 0 0 rgba(255,255,255,0.08) !important',
       'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
       'color:#f8fafc !important',
       'z-index:2147483647 !important',
@@ -2039,62 +2355,38 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     ].join(';'));
   }
 
-  // Visual Minimizado (Pílula compacta)
-  if (_SFG.minimized) {
-    document.body.classList.remove('hn-flow-docked-right');
-    const miniPill = document.createElement('div');
-    miniPill.setAttribute('style', 'display:flex;align-items:center;gap:9px;padding:8px 15px;background:rgba(11,15,25,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-top:2px solid #0284c7;border-radius:28px;box-shadow:0 12px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.1);cursor:pointer;transition:transform 0.2s,border-color 0.2s;');
-    miniPill.innerHTML = '<div style="width:24px;height:24px;border-radius:50%;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
-      + '<span style="font-size:0.78rem;font-weight:700;color:#f1f5f9">Governança: <strong style="color:#38bdf8">' + evalResult.stageName + '</strong></span>'
-      + (evalResult.orderWarning ? '<span style="font-size:0.62rem;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fde68a;font-weight:700;padding:2px 6px;border-radius:8px">⚠️ Desvio</span>' : '')
-      + (_SFG.pendingAction ? '<span style="font-size:0.62rem;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;font-weight:700;padding:2px 6px;border-radius:8px">⚡ 1 Próximo Passo</span>' : '')
-      + '<span style="font-size:0.75rem;color:#94a3b8;margin-left:4px"><i class="fa-solid fa-chevron-up"></i></span>';
-    miniPill.addEventListener('mouseenter', () => { miniPill.style.transform = 'translateY(-2px)'; miniPill.style.borderColor = 'rgba(2,132,199,0.5)'; });
-    miniPill.addEventListener('mouseleave', () => { miniPill.style.transform = 'none'; miniPill.style.borderColor = 'rgba(255,255,255,0.12)'; });
-    miniPill.addEventListener('click', function() {
-      _SFG.minimized = false;
-      createSmartFlowGuideCard(_SFG.activeTab);
-    });
-    card.appendChild(miniPill);
-    document.body.appendChild(card);
-    return card;
-  }
-
-  // Header do Card / Painel
+  // Header do Card / Painel Vertical
   const hdr = document.createElement('div');
   hdr.id = 'hn-fg-header';
-  
-  const roleBadgeHtml = evalResult.isMasterOrDev
-    ? '<span style="font-size:0.58rem;font-weight:700;color:#fbbf24;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.28);padding:2px 6px;border-radius:6px" title="Perfil Master & Dev">👑 Master</span>'
-    : '<span style="font-size:0.58rem;font-weight:700;color:#38bdf8;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);padding:2px 6px;border-radius:6px">' + (evalResult.userRoleLabel || 'Usuário') + '</span>';
 
   if (isDocked) {
-    // Header no Modo Painel Acoplado
+    const isLeft = dockPos === 'left';
     hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.025);cursor:grab;flex-shrink:0;');
-    hdr.title = 'Clique e arraste para a esquerda para desacoplar como card flutuante';
+    hdr.title = 'Clique e arraste para o centro da tela para desacoplar';
     hdr.innerHTML = '<div style="display:flex;align-items:center;gap:8px">'
       + '<i class="fa-solid fa-grip-lines-vertical" style="color:#64748b;font-size:0.85rem;" title="Alça de arrasto: puxe para o centro para desacoplar"></i>'
       + '<div style="width:26px;height:26px;border-radius:6px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
-      + '<span style="font-weight:700;font-size:0.84rem;color:#f8fafc;letter-spacing:-0.2px">Painel de Governança</span>'
+      + '<span style="font-weight:700;font-size:0.84rem;color:#f8fafc;letter-spacing:-0.2px">Painel ' + (isLeft ? 'Esquerdo' : 'Direito') + '</span>'
       + roleBadgeHtml
       + '</div>'
-      + '<div style="display:flex;align-items:center;gap:5px">'
-      + '<button id="hn-fg-undock" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Desacoplar para card flutuante menor (ou arraste para o centro)"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>'
+      + '<div style="display:flex;align-items:center;gap:5px;position:relative;">'
+      + '<button id="hn-fg-dock-picker-btn" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;transition:all 0.15s" title="Mudar posição de fixação (Direita, Esquerda, Topo, Base)"><i class="fa-solid fa-arrows-to-dot"></i></button>'
+      + '<button id="hn-fg-undock" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Desacoplar para card flutuante menor"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>'
       + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
-      + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
+      + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Fechar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
       + '</div>';
   } else {
     // Header no Modo Card Flutuante
     hdr.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);cursor:grab;');
-    hdr.title = 'Clique e arraste para posicionar. Arraste até a lateral direita para fixar como Painel do Sistema.';
+    hdr.title = 'Clique e arraste para qualquer borda da tela para fixar, ou use o seletor.';
     hdr.innerHTML = '<div style="display:flex;align-items:center;gap:7px">'
       + '<div style="width:24px;height:24px;border-radius:6px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
       + '<span style="font-weight:700;font-size:0.82rem;color:#f8fafc;letter-spacing:-0.2px">Governança Clínica</span>'
       + roleBadgeHtml
       + '<span style="font-size:0.58rem;font-weight:700;color:#94a3b8;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);padding:1px 6px;border-radius:8px">Etapa ' + (currentStageIdx + 1) + '/7</span>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;gap:5px">'
-      + '<button id="hn-fg-dock-btn" style="background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.68rem;transition:all 0.15s" title="Fixar na lateral direita como Painel do Sistema (ou arraste até a borda)"><i class="fa-solid fa-table-columns"></i></button>'
+      + '<div style="display:flex;align-items:center;gap:5px;position:relative;">'
+      + '<button id="hn-fg-dock-picker-btn" style="background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.68rem;transition:all 0.15s" title="Fixar em um dos 4 lados da tela"><i class="fa-solid fa-arrows-to-dot"></i></button>'
       + '<button id="hn-fg-min" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
       + '<button id="hn-fg-close" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
       + '</div>';
@@ -2463,16 +2755,26 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   card.appendChild(track);
   card.appendChild(body);
 
-  // Rodapé do Painel Acoplado com Dica de Desacoplamento
-  if (isDocked) {
+  // Rodapé do Painel Acoplado Vertical com Dica de Desacoplamento
+  if (isDocked && !isHorizontal) {
     const footer = document.createElement('div');
     footer.setAttribute('style', 'padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;color:#94a3b8;flex-shrink:0;');
-    footer.innerHTML = '<span>💡 <strong>Dica:</strong> Arraste o cabeçalho para a esquerda para desacoplar.</span>'
-      + '<button id="hn-fg-undock-footer" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:0.7rem;"><i class="fa-solid fa-arrow-left"></i> Desacoplar</button>';
+    const sideTip = dockPos === 'left' ? 'direita' : 'esquerda';
+    footer.innerHTML = '<span>💡 <strong>Dica:</strong> Arraste o cabeçalho para a ' + sideTip + ' para desacoplar.</span>'
+      + '<button id="hn-fg-undock-footer" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:0.7rem;"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Desacoplar</button>';
     card.appendChild(footer);
   }
 
   document.body.appendChild(card);
+
+  // Seletor de Ancoragem Rápida no Cabeçalho
+  const dockPickerBtn = card.querySelector('#hn-fg-dock-picker-btn');
+  if (dockPickerBtn) {
+    dockPickerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleDockPickerPopover(dockPickerBtn);
+    });
+  }
 
   // Minimizar
   const minBtn = card.querySelector('#hn-fg-min');
@@ -2480,7 +2782,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     minBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       _SFG.minimized = true;
-      document.body.classList.remove('hn-flow-docked-right');
+      syncFlowDockClasses(null);
       createSmartFlowGuideCard(_SFG.activeTab);
     });
   }
@@ -2491,7 +2793,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     closeBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       _SFG.minimized = true;
-      document.body.classList.remove('hn-flow-docked-right');
+      syncFlowDockClasses(null);
       createSmartFlowGuideCard(_SFG.activeTab);
       if (typeof showToast === 'function') {
         showToast('Guia de Fluxo minimizado para a barra compacta.');
@@ -2652,17 +2954,17 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // LÓGICA DE ARRASTO & ACOPLAMENTO (DOCK / UNDOCK INTUITIVO)
+  // LÓGICA DE ARRASTO & ACOPLAMENTO MULTIDIRECIONAL (DOCK / SNAP NOS 4 LADOS)
   // ═══════════════════════════════════════════════════════════════════════════════
   if (isDocked) {
-    // MODO PAINEL ACOPLADO:
-    // Clicar no cabeçalho e arrastar para a esquerda (centro da tela) desacopla o card!
+    // MODO PAINEL ACOPLADO (VERTICAL ESQUERDA OU DIREITA):
+    // Clicar no cabeçalho e arrastar em direção ao centro da tela desacopla o card!
     let dockDragPending = false;
     let dockStartX = 0;
     let dockStartY = 0;
 
     hdr.addEventListener('mousedown', function(e) {
-      if (e.target.closest('#hn-fg-undock, #hn-fg-min, #hn-fg-close, button, a')) return;
+      if (e.target.closest('#hn-fg-dock-picker-btn, #hn-fg-undock, #hn-fg-min, #hn-fg-close, button, a')) return;
       dockDragPending = true;
       dockStartX = e.clientX;
       dockStartY = e.clientY;
@@ -2671,25 +2973,18 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
     const onDockMouseMove = function(e) {
       if (!dockDragPending) return;
-      const deltaX = dockStartX - e.clientX;
-      // Arrastou mais de 20px em direção ao centro da tela -> desacopla imediatamente!
-      if (deltaX > 20) {
+      let shouldUndock = false;
+      if (dockPos === 'right' && (dockStartX - e.clientX > 20)) {
+        shouldUndock = true;
+      } else if (dockPos === 'left' && (e.clientX - dockStartX > 20)) {
+        shouldUndock = true;
+      }
+
+      if (shouldUndock) {
         dockDragPending = false;
         document.removeEventListener('mousemove', onDockMouseMove);
         document.removeEventListener('mouseup', onDockMouseUp);
-        _SFG.docked = false;
-        try { localStorage.setItem('hn_flow_docked', 'false'); } catch (_) {}
-        document.body.classList.remove('hn-flow-docked-right');
-
-        // Posição flutuante confortável onde o mouse estava
-        const initLeft = Math.max(10, Math.min(window.innerWidth - 385, e.clientX - 180));
-        const initTop = Math.max(10, Math.min(window.innerHeight - 250, e.clientY - 20));
-        _SFG.pos = { left: initLeft + 'px', top: initTop + 'px' };
-
-        createSmartFlowGuideCard(_SFG.activeTab);
-        if (typeof showToast === 'function') {
-          showToast('🧭 Guia de Fluxo desacoplado para card flutuante.');
-        }
+        applyDockPosition('float');
       }
     };
 
@@ -2706,12 +3001,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     if (undockBtn) {
       undockBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        _SFG.docked = false;
-        try { localStorage.setItem('hn_flow_docked', 'false'); } catch (_) {}
-        document.body.classList.remove('hn-flow-docked-right');
-        _SFG.pos = { left: (window.innerWidth - 410) + 'px', top: Math.max(60, window.innerHeight - 530) + 'px' };
-        createSmartFlowGuideCard(_SFG.activeTab);
-        if (typeof showToast === 'function') showToast('🧭 Guia de Fluxo desacoplado para card flutuante.');
+        applyDockPosition('float');
       });
     }
 
@@ -2719,18 +3009,14 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     if (undockFooterBtn) {
       undockFooterBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        _SFG.docked = false;
-        try { localStorage.setItem('hn_flow_docked', 'false'); } catch (_) {}
-        document.body.classList.remove('hn-flow-docked-right');
-        _SFG.pos = { left: (window.innerWidth - 410) + 'px', top: Math.max(60, window.innerHeight - 530) + 'px' };
-        createSmartFlowGuideCard(_SFG.activeTab);
-        if (typeof showToast === 'function') showToast('🧭 Guia de Fluxo desacoplado para card flutuante.');
+        applyDockPosition('float');
       });
     }
   } else {
     // MODO CARD FLUTUANTE:
-    // Arrastar livremente pela tela. Ao aproximar da borda direita, o sistema se adapta suavemente e a área neon de acoplamento se ilumina!
+    // Arrastar livremente pela tela. Ao aproximar de qualquer uma das 4 bordas, a área neon correspondente se ilumina!
     let dx = 0, dy = 0, dragging = false;
+    let currentSnapTarget = null;
     let snapIndicator = document.getElementById('hn-dock-snap-indicator');
     if (!snapIndicator) {
       snapIndicator = document.createElement('div');
@@ -2739,36 +3025,21 @@ function createSmartFlowGuideCard(tabId, customMessage) {
         <div class="hn-dock-snap-inner">
           <div class="hn-dock-snap-badge">
             <span class="hn-dock-snap-dot"></span>
-            <span class="hn-dock-snap-title">Solte para Acoplar Painel</span>
+            <span class="hn-dock-snap-title">Solte para Fixar Painel</span>
           </div>
         </div>
       `;
       document.body.appendChild(snapIndicator);
-    } else if (!snapIndicator.querySelector('.hn-dock-snap-inner')) {
-      snapIndicator.innerHTML = `
-        <div class="hn-dock-snap-inner">
-          <div class="hn-dock-snap-badge">
-            <span class="hn-dock-snap-dot"></span>
-            <span class="hn-dock-snap-title">Solte para Acoplar Painel</span>
-          </div>
-        </div>
-      `;
     }
 
     const startDrag = function(clientX, clientY, target) {
-      if (target.closest('#hn-fg-dock-btn, #hn-fg-min, #hn-fg-close, button, a')) return false;
+      if (target.closest('#hn-fg-dock-picker-btn, #hn-fg-dock-btn, #hn-fg-min, #hn-fg-close, button, a')) return false;
       dragging = true;
+      currentSnapTarget = null;
       const r = card.getBoundingClientRect();
       dx = clientX - r.left;
       dy = clientY - r.top;
       hdr.style.cursor = 'grabbing';
-
-      // Pré-posiciona o badge neon de encaixe logo abaixo da base do card
-      const snapInner = snapIndicator ? snapIndicator.querySelector('.hn-dock-snap-inner') : null;
-      if (snapInner) {
-        const initialTop = r.top + r.height + 12;
-        snapInner.style.top = Math.max(10, initialTop) + 'px';
-      }
       return true;
     };
 
@@ -2781,60 +3052,78 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       card.style.right = 'auto';
       card.style.bottom = 'auto';
 
-      // Detecta proximidade com a lateral direita para preview neon e adaptacao do sistema
-      const nearRightEdge = (clientX >= window.innerWidth - 320) || (newLeft + card.offsetWidth >= window.innerWidth - 120);
-      if (nearRightEdge) {
-        snapIndicator.classList.add('active');
-        card.classList.add('snap-hover-active');
-        document.body.classList.add('hn-flow-dock-preview');
+      // Distâncias até as 4 bordas da tela
+      const distRight = window.innerWidth - clientX;
+      const distLeft = clientX;
+      const distTop = clientY;
+      const distBottom = window.innerHeight - clientY;
 
-        // Mantém a mensagem 'Solte para Acoplar Painel' sempre logo abaixo do card flutuante durante toda a movimentação
+      let snapTarget = null;
+      if (distRight < 130 || (newLeft + card.offsetWidth >= window.innerWidth - 70)) {
+        snapTarget = 'right';
+      } else if (distLeft < 130 || newLeft <= 70) {
+        snapTarget = 'left';
+      } else if (distTop < 80 || newTop <= 45) {
+        snapTarget = 'top';
+      } else if (distBottom < 80 || (newTop + card.offsetHeight >= window.innerHeight - 45)) {
+        snapTarget = 'bottom';
+      }
+
+      currentSnapTarget = snapTarget;
+
+      if (snapTarget) {
+        snapIndicator.className = 'active snap-' + snapTarget;
+        card.classList.add('snap-hover-active');
+        document.body.classList.remove('hn-flow-dock-preview', 'hn-flow-dock-preview-right', 'hn-flow-dock-preview-left', 'hn-flow-dock-preview-top', 'hn-flow-dock-preview-bottom');
+        document.body.classList.add('hn-flow-dock-preview', 'hn-flow-dock-preview-' + snapTarget);
+
+        const titles = {
+          right: '➡️ Solte para Fixar na Lateral Direita',
+          left: '⬅️ Solte para Fixar na Lateral Esquerda',
+          top: '⬆️ Solte para Fixar no Topo da Tela',
+          bottom: '⬇️ Solte para Fixar na Base da Tela'
+        };
+        const titleEl = snapIndicator.querySelector('.hn-dock-snap-title');
+        if (titleEl) titleEl.textContent = titles[snapTarget] || 'Solte para Fixar';
+
         const snapInner = snapIndicator.querySelector('.hn-dock-snap-inner');
         if (snapInner) {
-          const cardHeight = card.offsetHeight || 420;
-          const badgeHeight = snapInner.offsetHeight || 50;
-          let badgeTop = newTop + cardHeight + 12;
-
-          // Se ultrapassar o limite inferior da tela, posiciona com respiro de segurança ou logo acima do card
-          if (badgeTop + badgeHeight > window.innerHeight - 16) {
-            if (newTop - badgeHeight - 12 >= 10) {
-              badgeTop = newTop - badgeHeight - 12;
-            } else {
-              badgeTop = Math.max(10, window.innerHeight - badgeHeight - 16);
+          if (snapTarget === 'top') {
+            snapInner.style.top = '14px';
+            snapInner.style.bottom = 'auto';
+            snapInner.style.left = '50%';
+          } else if (snapTarget === 'bottom') {
+            snapInner.style.top = 'auto';
+            snapInner.style.bottom = '14px';
+            snapInner.style.left = '50%';
+          } else {
+            snapInner.style.left = '50%';
+            const cardHeight = card.offsetHeight || 420;
+            let badgeTop = newTop + cardHeight + 12;
+            if (badgeTop + 50 > window.innerHeight - 16) {
+              badgeTop = Math.max(10, window.innerHeight - 66);
             }
+            snapInner.style.top = badgeTop + 'px';
+            snapInner.style.bottom = 'auto';
           }
-          snapInner.style.top = Math.max(10, badgeTop) + 'px';
         }
       } else {
-        snapIndicator.classList.remove('active');
+        snapIndicator.className = '';
         card.classList.remove('snap-hover-active');
-        document.body.classList.remove('hn-flow-dock-preview');
+        document.body.classList.remove('hn-flow-dock-preview', 'hn-flow-dock-preview-right', 'hn-flow-dock-preview-left', 'hn-flow-dock-preview-top', 'hn-flow-dock-preview-bottom');
       }
     };
 
-    const endDrag = function(clientX) {
+    const endDrag = function(clientX, clientY) {
       if (!dragging) return;
       dragging = false;
       hdr.style.cursor = 'grab';
-      if (snapIndicator) snapIndicator.classList.remove('active');
+      if (snapIndicator) snapIndicator.className = '';
       card.classList.remove('snap-hover-active');
+      document.body.classList.remove('hn-flow-dock-preview', 'hn-flow-dock-preview-right', 'hn-flow-dock-preview-left', 'hn-flow-dock-preview-top', 'hn-flow-dock-preview-bottom');
 
-      const isPreviewActive = document.body.classList.contains('hn-flow-dock-preview');
-      document.body.classList.remove('hn-flow-dock-preview');
-
-      // Se soltou na zona de acoplamento da lateral direita, acopla como Painel Lateral do Sistema!
-      const currentLeft = parseInt(card.style.left, 10) || 0;
-      const dropNearRight = isPreviewActive || (clientX >= window.innerWidth - 280) || (currentLeft + card.offsetWidth >= window.innerWidth - 100);
-      
-      if (dropNearRight) {
-        _SFG.docked = true;
-        try { localStorage.setItem('hn_flow_docked', 'true'); } catch (_) {}
-        document.body.classList.add('hn-flow-docked-right');
-        createSmartFlowGuideCard(_SFG.activeTab);
-        playFlowChime();
-        if (typeof showToast === 'function') {
-          showToast('🧭 Guia de Fluxo acoplado como Painel Lateral do Sistema.');
-        }
+      if (currentSnapTarget) {
+        applyDockPosition(currentSnapTarget);
       } else {
         _SFG.pos = { left: card.style.left, top: card.style.top };
       }
@@ -2850,7 +3139,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     };
 
     const onFloatMouseUp = function(e) {
-      endDrag(e.clientX);
+      endDrag(e.clientX, e.clientY);
     };
 
     document.addEventListener('mousemove', onFloatMouseMove);
@@ -2874,26 +3163,20 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const onFloatTouchEnd = function(e) {
       if (dragging) {
         const clientX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : 0;
-        endDrag(clientX);
+        const clientY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : 0;
+        endDrag(clientX, clientY);
       }
     };
 
     document.addEventListener('touchmove', onFloatTouchMove, { passive: true });
     document.addEventListener('touchend', onFloatTouchEnd);
 
-    // Botão de acoplar rápido no header
+    // Botão de acoplar rápido / seletor no header
     const dockBtn = card.querySelector('#hn-fg-dock-btn');
     if (dockBtn) {
       dockBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        _SFG.docked = true;
-        try { localStorage.setItem('hn_flow_docked', 'true'); } catch (_) {}
-        document.body.classList.add('hn-flow-docked-right');
-        createSmartFlowGuideCard(_SFG.activeTab);
-        playFlowChime();
-        if (typeof showToast === 'function') {
-          showToast('🧭 Guia de Fluxo acoplado como Painel Lateral do Sistema.');
-        }
+        toggleDockPickerPopover(dockBtn);
       });
     }
   }
@@ -4946,7 +5229,7 @@ function renderAppStructure() {
     flowGuideToggle.addEventListener('click', () => {
       _SFG.hidden = !_SFG.hidden;
       if (_SFG.hidden) {
-        document.body.classList.remove('hn-flow-docked-right');
+        syncFlowDockClasses(null);
       } else {
         _SFG.minimized = false;
       }

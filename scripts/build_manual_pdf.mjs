@@ -27,7 +27,7 @@ async function generateManual() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual do Usuário — Health Nexus v2.8.0</title>
+  <title>Manual do Usuário — Health Nexus v2.9.18</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -652,7 +652,7 @@ async function generateManual() {
 
   <div class="pdf-cover">
     <div class="badge">
-      <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.8.0
+      <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.9.18
     </div>
     <h1>Manual do Usuário & Guia Operacional Definitivo</h1>
     <p>Documentação técnica e manual oficial de operações da plataforma hospitalar Health Nexus.</p>
@@ -702,7 +702,7 @@ async function generateManual() {
       displayHeaderFooter: true,
       headerTemplate: `
         <div style="font-family: 'Inter', sans-serif; font-size: 8px; color: #64748b; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
-          <span>🏥 Health Nexus — Sistema de Gestão Hospitalar (v2.8.0)</span>
+          <span>🏥 Health Nexus — Sistema de Gestão Hospitalar (v2.9.18)</span>
           <span>Manual do Usuário Oficial</span>
         </div>`,
       footerTemplate: `
@@ -714,6 +714,19 @@ async function generateManual() {
 
     await browser.close();
     console.log(`PDF do Manual compilado com sucesso em: ${pdfPath}`);
+
+    // Sincronização obrigatória de arquivos para public/ e src/manual.html
+    const publicHtml = path.resolve('public/manual_do_usuario.html');
+    const publicPdf = path.resolve('public/Manual_do_Usuario_Health_Nexus.pdf');
+    const publicMd = path.resolve('public/MANUAL_DO_USUARIO_HEALTH_NEXUS.md');
+    const srcManualHtml = path.resolve('src/manual.html');
+
+    fs.copyFileSync(htmlPath, publicHtml);
+    fs.copyFileSync(pdfPath, publicPdf);
+    fs.copyFileSync(mdPath, publicMd);
+    fs.copyFileSync(htmlPath, srcManualHtml);
+
+    console.log('✓ Manuais sincronizados com sucesso em public/ e src/manual.html');
   } catch (err) {
     console.error('Erro ao compilar PDF:', err);
   }
