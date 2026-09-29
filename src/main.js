@@ -2034,7 +2034,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
       'color:#f8fafc !important',
       'z-index:2147483647 !important',
-      'overflow:hidden !important',
+      'overflow:visible !important',
       'user-select:none !important'
     ].join(';'));
   }
@@ -2332,7 +2332,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const destLabel = pending.targetTabLabel || (pending.targetTab ? (tabShortLabels[pending.targetTab] || pending.targetTab) : 'Próxima Etapa');
 
     actionBlockHtml = `
-      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 95, 70, 0.22)); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 10px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);">
+      <div class="hn-flow-subcard hn-fg-action-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 95, 70, 0.22)); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 10px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
           <span style="font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; display: flex; align-items: center; gap: 5px;">
             <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
@@ -2358,7 +2358,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     if (_SFG.pendingAction && !isPendingForCurrentTab && !isAnyModalOpen) {
       const pTabLabel = tabShortLabels[_SFG.pendingAction.targetTab] || _SFG.pendingAction.targetTab;
       crossTabPendingNotice = `
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 5px 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+        <div class="hn-flow-subcard" style="background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 5px 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
           <span style="font-size: 0.68rem; color: #6ee7b7; display: flex; align-items: center; gap: 5px;">
             <span>🚀</span> Próximo passo sugerido: <strong>${pTabLabel}</strong>
           </span>
