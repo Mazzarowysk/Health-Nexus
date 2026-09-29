@@ -1,6 +1,6 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.14`  
+**Versão:** `2.9.15`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Setembro 2026
 
@@ -8,11 +8,12 @@
 
 ## 📘 Documentação & Manual do Usuário
 
-- 🔍 **Expansão Suave Individual por Card no Hover no Guia de Fluxo (v2.9.14):** Experiência visual refinada e focada para o Card de Fluxo e Painel Lateral de Governança:
-  1. **Expansão Individual com Foco:** Ao manter o mouse posicionado sobre qualquer card ou bloco interno (Módulo Atual, Paciente em Foco, Ação Recomendada, cards métricos do Radar Hospitalar ou atalhos de conduta), o card específico executa uma animação de expansão suave (`scale(1.035)` a `scale(1.06)`, elevação sutil `translateY(-2px)` e realce de borda ciano de alto contraste), facilitando a leitura imediata sem deslocar a tela.
-  2. **Remoção de Banners Intrusivos:** O aviso de "Lupa Ativa" e botões redundantes de ampliação foram completamente eliminados, mantendo a interface limpa e focada no cuidado assistencial.
-  3. **Navegação Normal e Fluida ao Clicar:** Clicar sobre qualquer card continua respondendo instantaneamente, direcionando a equipe diretamente para a etapa clínica indicada (Triagem, Prontuário Eletrônico PEP, Prescrição ou Atendimentos).
-  4. **Retorno Automático:** Ao retirar o cursor de cima do card, ele retorna com suavidade ao seu tamanho normal.
+- 📺 **Correção de Diagramação & Desencavalamento dos Cards da Fila no Painel TV (v2.9.15):** Reestruturação completa do layout dos cards de pacientes aguardando chamada na TV. Anteriormente, em grids de 4 colunas ou telas menores, os botões "Chamar" e "Consultório" ficavam sobrepostos ("remontados") em cima do badge de status clínico e escondiam o nome do paciente. Os cards foram reorganizados em níveis verticais harmoniosos (linha 1: avatar, nome completo do paciente e número da fila; linha 2: badge de status e etiqueta de foco; linha 3: botões de ação com largura distribuída), garantindo zero sobreposição, legibilidade total e acionamento direto sem colisões visuais.
+- 🔍 **Efeito Físico de Descolamento 3D & Ampliação de Cards e Letras no Guia de Fluxo (v2.9.14):** Experiência visual refinada e focada para o Card de Fluxo e Painel Lateral de Governança:
+  1. **Descolamento e Elevação 3D:** Ao manter o mouse posicionado sobre qualquer card ou bloco interno (Módulo Atual, Paciente em Foco, Ação Recomendada, cards métricos do Radar Hospitalar ou atalhos de conduta), o card específico "descola" da superfície com elevação (`translateY(-6px)`), fundo sólido de alto contraste, ampliação evidente de 8% a 10% (`scale(1.075)` a `scale(1.10)`) e sombra profunda com realce ciano.
+  2. **Ampliação das Letras e Legibilidade:** Textos, números e badges ampliam proporcionalmente junto ao card, com nitidez otimizada e sem qualquer corte lateral.
+  3. **Troca e Retorno Suave:** Ao retirar o cursor ou mover entre cards, o card anterior retorna suavemente à posição plana de repouso enquanto o novo card se descola instantaneamente.
+  4. **Navegação Normal e Fluida ao Clicar:** Clicar sobre qualquer card continua respondendo de forma imediata, direcionando para a etapa clínica indicada.
 - 📅 **Padronização de Data de Nascimento em Formato Brasileiro (DD/MM/AAAA) (v2.9.13):** Correção no cabeçalho do Prontuário & Histórico Clínico do Paciente. Datas cadastradas em padrão ISO (`AAAA-MM-DD`, ex: `1980-05-05`) agora são exibidas de forma amigável no formato nacional `DD/MM/AAAA` (ex: `05/05/1980`), garantindo leitura assistencial clara e em conformidade com as boas práticas de documentação médica.
 - ⚡ **Inicialização Inteligente & Suporte Completo Dual-Stack (IPv4/IPv6) (v2.9.12):** Otimização da rotina de inicialização local (`iniciar-sistema.bat` e atalho de desktop). Anteriormente, ao abrir pelo atalho no notebook, o navegador abria com timeout cego de 5 segundos enquanto o servidor Node ainda estava subindo, além do Vite ficar restrito apenas ao IPv6 loopback (`::1`), fazendo o Chrome acusar `ERR_CONNECTION_REFUSED` caso tentasse conexão via IPv4 (`127.0.0.1`). Agora:
   1. O servidor Vite foi explicitamente configurado com `host: '0.0.0.0'` e proxy direto IPv4, garantindo resposta imediata tanto por `localhost` quanto por `127.0.0.1` e pela rede local.

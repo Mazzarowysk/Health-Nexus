@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.14)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.15)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.14 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
+<p><strong>Health Nexus v2.9.15 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -3534,8 +3534,17 @@ flowchart TD
 <ul>
 <li>Todas as exibições de data de nascimento de pacientes no cabeçalho do prontuário médico (PEP), no modal de atendimento e nas fichas cadastrais seguem rigorosamente a máscara brasileira <code>DD/MM/AAAA</code> (ex.: <code>15/06/1985</code>), eliminando formatos invertidos (<code>AAAA-MM-DD</code>).</li>
 </ul>
+<h3>📺 Diagramação Desobstruída da Fila de Espera no Painel TV (v2.9.15)</h3>
+<ul>
+<li><strong>Distribuição em Camadas Verticais:</strong> Os cards de pacientes aguardando chamada na TV foram totalmente redesenhados para eliminar qualquer sobreposição (<em>remontagem</em>) entre elementos:<ol>
+<li><strong>Linha Superior:</strong> Avatar colorido com a classificação Manchester, nome completo do paciente em destaque e posição numérica na fila (<code>#01</code>, <code>#02</code>, etc.).</li>
+<li><strong>Linha Intermediária:</strong> Badge de status clínico (<code>Ag. Triagem</code>, <code>Ag. Atendimento</code>, <code>Internado</code>) com indicador luminoso e etiqueta indicativa caso o paciente esteja em foco.</li>
+<li><strong>Linha Inferior:</strong> Botões de ação direta (<code>Chamar na TV</code> e <code>Consultório</code> / <code>Triagem</code>) alinhados lado a lado com largura equilibrada (<code>flex: 1</code>), proporcionando acionamento ágil e seguro sem encavalar em textos ou crachás.</li>
+</ol>
+</li>
+</ul>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.14 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.15 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

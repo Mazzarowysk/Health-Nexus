@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.14)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.15)
 
-> **Health Nexus v2.9.14 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.15 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -1000,7 +1000,14 @@ Pensado especialmente para laptops e agilidade no plantão, o Guia de Fluxo agor
 
 - Todas as exibições de data de nascimento de pacientes no cabeçalho do prontuário médico (PEP), no modal de atendimento e nas fichas cadastrais seguem rigorosamente a máscara brasileira `DD/MM/AAAA` (ex.: `15/06/1985`), eliminando formatos invertidos (`AAAA-MM-DD`).
 
+### 📺 Diagramação Desobstruída da Fila de Espera no Painel TV (v2.9.15)
+
+- **Distribuição em Camadas Verticais:** Os cards de pacientes aguardando chamada na TV foram totalmente redesenhados para eliminar qualquer sobreposição (*remontagem*) entre elementos:
+  1. **Linha Superior:** Avatar colorido com a classificação Manchester, nome completo do paciente em destaque e posição numérica na fila (`#01`, `#02`, etc.).
+  2. **Linha Intermediária:** Badge de status clínico (`Ag. Triagem`, `Ag. Atendimento`, `Internado`) com indicador luminoso e etiqueta indicativa caso o paciente esteja em foco.
+  3. **Linha Inferior:** Botões de ação direta (`Chamar na TV` e `Consultório` / `Triagem`) alinhados lado a lado com largura equilibrada (`flex: 1`), proporcionando acionamento ágil e seguro sem encavalar em textos ou crachás.
+
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.14 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.15 do Health Nexus. Todos os direitos reservados.*
 

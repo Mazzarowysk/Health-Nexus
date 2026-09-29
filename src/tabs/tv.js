@@ -80,7 +80,7 @@ async function renderTVPanelTab() {
             <i class="fa-solid fa-rotate-right"></i> Atualizar
           </button>
         </div>
-        <div id="tv-waiting-queue" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+        <div id="tv-waiting-queue" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: 14px;">
           <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.9rem;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem; margin-bottom: 10px; display: block; color: #f59e0b;"></i>
             Carregando fila de espera...
@@ -227,46 +227,62 @@ window.loadTVWaitingQueue = async function () {
       class="patient-card-item ${isSelected ? 'patient-pulse-selected' : ''}"
       data-patient-card-name="${safeName.toLowerCase()}"
       title="Clique para chamar ${p.patientName || ''} na TV"
-      style="position:relative;background:var(--bg-secondary,#1e293b);border:${isSelected ? '2px solid #0284c7' : '1px solid rgba(255,255,255,0.08)'};border-left:4px solid ${col.bg};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;box-shadow:${isSelected ? '0 0 24px rgba(2,132,199,0.45)' : 'none'};"
+      style="position:relative;background:var(--bg-secondary,#1e293b);border:${isSelected ? '2px solid #0284c7' : '1px solid rgba(255,255,255,0.08)'};border-left:4px solid ${col.bg};border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:all 0.2s;box-shadow:${isSelected ? '0 0 24px rgba(2,132,199,0.45)' : 'none'};"
       onmouseenter="this.style.background='rgba(2,132,199,0.12)';this.style.transform='translateY(-2px)';"
       onmouseleave="this.style.background='var(--bg-secondary,#1e293b)';this.style.transform='';">
       
-      <div style="width:44px;height:44px;border-radius:50%;background:${col.bg};display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;flex-shrink:0;">${ini}</div>
-      
-      <div style="flex:1;min-width:0;">
-        ${isSelected ? `<div style="font-size:0.65rem;font-weight:800;color:#38bdf8;background:rgba(2,132,199,0.25);border:1px solid #0284c7;padding:1px 7px;border-radius:8px;margin-bottom:4px;display:inline-flex;align-items:center;gap:4px;letter-spacing:0.4px;"><i class="fa-solid fa-bullhorn fa-bounce"></i> PACIENTE SELECIONADO &bull; CHAMAR NA TV</div>` : ''}
-        <div style="font-weight:700;font-size:0.95rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.patientName || 'Paciente'}</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
-          <span style="font-size:0.72rem;font-weight:700;background:${st.color}22;color:${st.color};border:1px solid ${st.color}44;padding:1px 7px;border-radius:20px;">${st.text}</span>
-          <span style="font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid ${col.icon}"></i> ${sub}</span>
+      <!-- Linha Superior: Avatar, Nome e Posicao na Fila -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+          <div style="width:38px;height:38px;border-radius:50%;background:${col.bg};display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:800;color:#fff;flex-shrink:0;">${ini}</div>
+          <div style="min-width:0;flex:1;">
+            <div style="font-weight:700;font-size:0.94rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.patientName || 'Paciente'}">${p.patientName || 'Paciente'}</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-top:2px;">
+              <i class="fa-solid ${col.icon}" style="color:${col.bg};"></i> ${sub}
+            </div>
+          </div>
         </div>
+        <span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);font-family:monospace;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);padding:2px 7px;border-radius:6px;flex-shrink:0;">#${String(idx + 1).padStart(2, '0')}</span>
       </div>
 
-      <div style="flex-shrink:0;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-        <span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;display:block;">#${String(idx + 1).padStart(2, '0')}</span>
-        <div style="display:flex;gap:6px;align-items:center;">
+      <!-- Linha Intermediaria: Status e Destaque do Paciente -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:0.72rem;font-weight:700;background:${st.color}22;color:${st.color};border:1px solid ${st.color}44;padding:2px 8px;border-radius:12px;display:inline-flex;align-items:center;gap:5px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:${st.color};"></span>
+          ${st.text}
+        </span>
+        ${isSelected ? `<span style="font-size:0.65rem;font-weight:800;color:#38bdf8;background:rgba(2,132,199,0.25);border:1px solid #0284c7;padding:2px 7px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;letter-spacing:0.3px;"><i class="fa-solid fa-bullhorn fa-bounce"></i> SELECIONADO NA TV</span>` : ''}
+      </div>
+
+      <!-- Linha Inferior: Botoes de Acao Organizados sem Sobreposicao -->
+      <div style="display:flex;gap:8px;align-items:center;margin-top:2px;">
+        <button type="button"
+                onclick="event.stopPropagation(); window._tvQuickCall('${safeName}','${safeColor}')"
+                class="${isSelected ? 'btn-tv-call-pulsing' : 'btn-tv-call-standard'}"
+                style="${isSelected ? 'flex:1;justify-content:center;height:34px;border-radius:8px;' : 'flex:1;justify-content:center;height:34px;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.45);color:#d8b4fe;padding:6px 10px;border-radius:8px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.15s;'}"
+                onmouseenter="${isSelected ? '' : 'this.style.background=\'rgba(139,92,246,0.32)\';this.style.color=\'#fff\';'}"
+                onmouseleave="${isSelected ? '' : 'this.style.background=\'rgba(139,92,246,0.18)\';this.style.color=\'#d8b4fe\';'}">
+          <i class="fa-solid fa-bullhorn ${isSelected ? 'fa-bounce' : ''}"></i> ${isSelected ? 'CHAMAR NA TV' : 'Chamar'}
+        </button>
+        ${(p.status === 'Aguardando_Atendimento' || p.status === 'Em_Atendimento' || (p.manchesterColor && p.manchesterColor !== 'Branco')) ? `
           <button type="button"
-                  onclick="event.stopPropagation(); window._tvQuickCall('${safeName}','${safeColor}')"
-                  class="${isSelected ? 'btn-tv-call-pulsing' : 'btn-tv-call-standard'}"
-                  style="${isSelected ? '' : 'background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.45);color:#d8b4fe;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;'}">
-            <i class="fa-solid fa-bullhorn ${isSelected ? 'fa-bounce' : ''}"></i> ${isSelected ? 'CHAMAR' : 'Chamar'}
+                  onclick="event.stopPropagation(); if(typeof window.openDoctorConsultingRoom==='function'){ window.openDoctorConsultingRoom('Consultório 01', '${safeName}'); } else { window.switchTab('consultorios'); }"
+                  style="flex:1;justify-content:center;height:34px;background:rgba(14,165,233,0.18);border:1px solid rgba(14,165,233,0.45);color:#7dd3fc;padding:6px 10px;border-radius:8px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.15s;"
+                  onmouseenter="this.style.background='rgba(14,165,233,0.32)';this.style.color='#fff';"
+                  onmouseleave="this.style.background='rgba(14,165,233,0.18)';this.style.color='#7dd3fc';"
+                  title="Abrir Consultório 01 (PEP) para este paciente">
+            <i class="fa-solid fa-user-doctor"></i> Consultório
           </button>
-          ${(p.status === 'Aguardando_Atendimento' || p.status === 'Em_Atendimento' || (p.manchesterColor && p.manchesterColor !== 'Branco')) ? `
-            <button type="button"
-                    onclick="event.stopPropagation(); if(typeof window.openDoctorConsultingRoom==='function'){ window.openDoctorConsultingRoom('Consultório 01', '${safeName}'); } else { window.switchTab('consultorios'); }"
-                    style="background:rgba(14,165,233,0.18);border:1px solid rgba(14,165,233,0.45);color:#7dd3fc;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;"
-                    title="Abrir Consultório 01 (PEP) para este paciente">
-              <i class="fa-solid fa-user-doctor"></i> Consultório
-            </button>
-          ` : `
-            <button type="button"
-                    onclick="event.stopPropagation(); if(typeof window.openAttendanceTriage==='function'){ window.openAttendanceTriage('${safeName}'); } else { window.switchTab('atendimento'); }"
-                    style="background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.45);color:#6ee7b7;padding:6px 10px;border-radius:14px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:4px;"
-                    title="Abrir Triagem Manchester para este paciente">
-              <i class="fa-solid fa-user-nurse"></i> Triagem
-            </button>
-          `}
-        </div>
+        ` : `
+          <button type="button"
+                  onclick="event.stopPropagation(); if(typeof window.openAttendanceTriage==='function'){ window.openAttendanceTriage('${safeName}'); } else { window.switchTab('atendimento'); }"
+                  style="flex:1;justify-content:center;height:34px;background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.45);color:#6ee7b7;padding:6px 10px;border-radius:8px;font-weight:700;font-size:0.76rem;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.15s;"
+                  onmouseenter="this.style.background='rgba(16,185,129,0.32)';this.style.color='#fff';"
+                  onmouseleave="this.style.background='rgba(16,185,129,0.18)';this.style.color='#6ee7b7';"
+                  title="Abrir Triagem Manchester para este paciente">
+            <i class="fa-solid fa-user-nurse"></i> Triagem
+          </button>
+        `}
       </div>
     </div>`;
   }).join('');
