@@ -659,14 +659,51 @@ window.moveKanbanCard = function(hospId) {
 };
 
 window.confirmMoveKanban = function(hospId) {
-  const ns=document.getElementById('move-sector-select').value;
-  const hosp=localDB.get('hospitalizations',hospId);
-  if(hosp && hosp.current_sector!==ns) {
-    localDB.update('hospitalizations',hospId,{current_sector:ns,sector_entry_date:new Date().toISOString()});
-    const name=KANBAN_COLUMNS.find(c=>c.id===ns)?.label||ns;
-    if(window.showToast) window.showToast('Paciente movido para '+name);
+  const ns = document.getElementById('move-sector-select').value;
+  const hosp = localDB.get('hospitalizations', hospId);
+  if (hosp && hosp.current_sector !== ns) {
+    const nowIso = new Date().toISOString();
+    localDB.update('hospitalizations', hospId, { current_sector: ns, sector_entry_date: nowIso, updated_at: nowIso });
+    const name = KANBAN_COLUMNS.find(c => c.id === ns)?.label || ns;
+
+    // Sincronizar leito
+    const allBeds = localDB.list('beds') || [];
+    const patBed = allBeds.find(b => (b.patientId && String(b.patientId) === String(hosp.patient_id)) || (hosp.patientName && b.patientName && b.patientName.toLowerCase() === hosp.patientName.toLowerCase()));
+    if (patBed) {
+      patBed.sector = ns;
+      patBed.updated_at = nowIso;
+      localDB.update('beds', patBed.id, patBed);
+    }
+
+    // Sincronizar encontro ativo
+    const allEncs = localDB.list('encounters') || [];
+    const activeEnc = allEncs.find(e => (String(e.patientId) === String(hosp.patient_id) || (hosp.patientName && e.patientName && e.patientName.toLowerCase() === hosp.patientName.toLowerCase())) && e.status !== 'Finalizado' && e.status !== 'Alta');
+    if (activeEnc) {
+      activeEnc.sector = name;
+      activeEnc.room = name;
+      activeEnc.updated_at = nowIso;
+      activeEnc.lastStatusUpdate = nowIso;
+      localDB.update('encounters', activeEnc.id, activeEnc);
+    }
+
+    // Sincronizar Smart Flow Guide
+    if (typeof window.setActivePatientContext === 'function' && hosp.patient_id) {
+      window.setActivePatientContext({
+        id: hosp.patient_id,
+        fullName: hosp.patientName,
+        patientName: hosp.patientName,
+        status: 'Internado',
+        sector: name,
+        bed: patBed ? (patBed.number || patBed.name || patBed.id) : (hosp.bed || '')
+      });
+    }
+
+    if (window.showToast) window.showToast('Paciente movido para ' + name);
+    if (typeof window.createSmartFlowGuideCard === 'function') window.createSmartFlowGuideCard();
+    if (typeof window.renderBedsTab === 'function' && document.querySelector('#leitos-tab.active')) window.renderBedsTab();
+    if (typeof window.renderPatientsTab === 'function' && document.querySelector('#pacientes-tab.active')) window.renderPatientsTab();
   }
-  document.getElementById('kanban-move-modal').remove();
+  document.getElementById('kanban-move-modal')?.remove();
   loadAndRenderKanban();
 };
 

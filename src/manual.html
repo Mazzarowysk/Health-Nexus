@@ -506,6 +506,7 @@ flowchart TD
 <li>4.8. <a href="#sec-4-8">Modal de Gestão de Usuários &amp; Troca de Perfil</a></li>
 <li>4.9. <a href="#sec-4-9">Modal de Alerta de Atendimento Pendente em Andamento (Prevenção de Duplicidades)</a></li>
 <li>4.10. <a href="#sec-4-10">Modal de Alerta de PEP Pendente de Finalização / Em Andamento</a></li>
+<li>4.11. <a href="#sec-4-11">Modal de Transferência &amp; Mudança de Setor Hospitalar</a></li>
 </ul>
 </li>
 <li><ol start="5">
@@ -2093,6 +2094,92 @@ flowchart TD
 <td align="left">Fecha o alerta de segurança</td>
 <td align="left">Nenhuma validação</td>
 <td align="left">Retorna à tela anterior (listagem de PEPs) sem modificar o prontuário.</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="sec-4-11">4.11. Modal de Transferência & Mudança de Setor Hospitalar</h3><ul>
+<li><p><strong>Gatilho de Abertura:</strong> Disparado ao clicar no botão <strong><code>Mover Setor</code></strong> na seção de internação ativa do Prontuário &amp; Histórico Clínico do Paciente ou pelo ícone de transferência nos cards do <strong>Kanban de Internação</strong>.</p>
+</li>
+<li><p><strong>Finalidade Assistencial e Operacional:</strong> Representa a movimentação física e administrativa do paciente internado entre diferentes unidades assistenciais da instituição (transferência interna / regulação intra-hospitalar). Esse procedimento é adotado clinicamente em situações como:</p>
+<ol>
+<li><strong>Agravo Clínico (Step-Up):</strong> Paciente em enfermaria ou observação que evolui com instabilidade hemodinâmica, choque ou insuficiência respiratória e necessita de leito em <strong>UTI / CTI Intensivo</strong>.</li>
+<li><strong>Melhora Clínica (Step-Down):</strong> Paciente que superou a fase crítica na UTI e é transferido para a <strong>Clínica Médica / Enfermaria</strong> para convalescença e desmame ventilatório/medicamentoso.</li>
+<li><strong>Indicação Cirúrgica:</strong> Paciente encaminhado para a <strong>Clínica Cirúrgica</strong> para preparo pré-operatório ou recuperação pós-anestésica.</li>
+<li><strong>Acomodação Transitória:</strong> Paciente aguardando liberação de leito definitivo alocado temporariamente em <strong>Corredor de Internação / Maca Transitória</strong>.</li>
+</ol>
+</li>
+<li><p><strong>Impacto e Sincronização em Cascata no Sistema:</strong></p>
+<ul>
+<li><strong>Kanban de Internação:</strong> O card do paciente transiciona automaticamente para a coluna da nova ala, reiniciando o cronômetro de permanência do setor (SLA) para auditoria de tempos hospitalares.</li>
+<li><strong>Censo de Leitos:</strong> O leito ocupado pelo paciente é atualizado com o novo setor assistencial.</li>
+<li><strong>Smart Flow Guide (Governança):</strong> O cockpit e o painel de governança atualizam instantaneamente a etiqueta de <code>Local</code> do paciente.</li>
+<li><strong>Faturamento Hospitalar TISS:</strong> A diária hospitalar e os procedimentos passam a ser contabilizados com base na tabela de diárias do novo setor (ex: diária de UTI vs enfermaria).</li>
+</ul>
+</li>
+<li><p><strong>Informações e Campos do Modal:</strong></p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">Campo / Elemento</th>
+<th align="left">Identificador HTML</th>
+<th align="left">Tipo / Origem</th>
+<th align="left">Função Operacional</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Identificação do Paciente</strong></td>
+<td align="left"><code>#history-move-modal-content</code></td>
+<td align="left">Cabeçalho / Badge</td>
+<td align="left">Nome completo e avatar do paciente em transferência.</td>
+</tr>
+<tr>
+<td align="left"><strong>Setor Atual</strong></td>
+<td align="left"><code>#history-move-modal-content</code></td>
+<td align="left">Registro da Hospitalização</td>
+<td align="left">Ala onde o paciente se encontra no momento da abertura do modal.</td>
+</tr>
+<tr>
+<td align="left"><strong>Novo Setor de Destino</strong></td>
+<td align="left"><code>#history-new-sector-select</code></td>
+<td align="left">Seletor (<code>&lt;select&gt;</code>)</td>
+<td align="left">Lista as alas ativas: <em>Pronto-Socorro / Observação</em>, <em>Corredor de Internação</em>, <em>Clínica Cirúrgica</em>, <em>Clínica Médica / Enfermaria</em>, <em>UTI / CTI Intensivo</em>.</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Botões e Ações:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">Botão</th>
+<th align="left">Identificador HTML</th>
+<th align="left">Ação Disparada</th>
+<th align="left">Validação Prévia</th>
+<th align="left">Efeito no Sistema</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Confirmar Transferência</strong></td>
+<td align="left"><code>#history-move-confirm</code></td>
+<td align="left">Executa a mudança de ala</td>
+<td align="left">Permissão <code>canManageBeds</code> do usuário</td>
+<td align="left">Atualiza hospitalizações, leitos, encontros e o card de fluxo, emitindo toast de sucesso e recarregando o histórico.</td>
+</tr>
+<tr>
+<td align="left"><strong>Cancelar</strong></td>
+<td align="left"><code>#history-move-cancel</code></td>
+<td align="left">Aborta a transferência</td>
+<td align="left">Nenhuma validação</td>
+<td align="left">Fecha o modal sem alterar o setor do paciente.</td>
+</tr>
+<tr>
+<td align="left"><strong>Fechar (X)</strong></td>
+<td align="left"><code>#history-move-close-btn</code></td>
+<td align="left">Encerra o modal</td>
+<td align="left">Nenhuma validação</td>
+<td align="left">Fecha o modal preservando os dados intactos.</td>
 </tr>
 </tbody></table>
 <hr>

@@ -4000,32 +4000,88 @@ window.movePatientSectorFromHistory = function(hospId, patientId, patientName) {
     return;
   }
 
+  // Remover modal existente se houver
+  const ex = document.getElementById('history-move-modal-overlay');
+  if (ex) ex.remove();
+
+  const db = typeof localDB !== 'undefined' ? localDB : window.localDB;
+  let hosp = null;
+  if (db) {
+    hosp = (db.getById ? db.getById('hospitalizations', hospId) : null) ||
+           (db.get ? db.get('hospitalizations', hospId) : null);
+    if (!hosp && db.list) {
+      const allH = db.list('hospitalizations');
+      hosp = allH.find(h => String(h.id) === String(hospId) || String(h.patient_id) === String(patientId) || String(h.patientId) === String(patientId));
+    }
+  }
+
+  const currentSec = hosp?.current_sector || 'clinica_medica';
+
   const KANBAN_SECTORS = [
-    { id: 'pronto_socorro', name: 'Pronto Socorro' },
-    { id: 'corredor_internacao', name: 'Corredor' },
-    { id: 'clinica_cirurgica', name: 'Cirúrgica' },
-    { id: 'clinica_medica', name: 'Clínica Médica' },
-    { id: 'uti', name: 'UTI' }
+    { id: 'pronto_socorro', name: 'Pronto-Socorro / Observação', icon: 'fa-truck-medical', color: '#3b82f6' },
+    { id: 'corredor_internacao', name: 'Corredor de Internação', icon: 'fa-bed-pulse', color: '#f59e0b' },
+    { id: 'clinica_cirurgica', name: 'Clínica Cirúrgica', icon: 'fa-scalpel', color: '#0d9488' },
+    { id: 'clinica_medica', name: 'Clínica Médica / Enfermaria', icon: 'fa-stethoscope', color: '#10b981' },
+    { id: 'uti', name: 'UTI / CTI Intensivo', icon: 'fa-heart-pulse', color: '#ef4444' }
   ];
 
   const html = `
-    <div class="modal-overlay" id="history-move-modal-overlay" style="z-index: 100200;"></div>
-    <div class="modal-content" id="history-move-modal-content" style="z-index: 100201; max-width: 400px;">
-      <div class="modal-header">
-        <h3 style="margin:0; font-size: 1.15rem; color: var(--text-primary);">Mover Setor</h3>
-        <button type="button" class="close-btn" id="history-move-close-btn">&times;</button>
-      </div>
-      <div class="modal-body" style="padding: 20px;">
-        <p style="margin-top:0; font-size: 0.9rem; color: var(--text-secondary);">Selecione o novo setor para <strong>${patientName}</strong>:</p>
-        <div class="form-group" style="margin-bottom: 20px;">
-          <label class="form-label">Setor Destino</label>
-          <select id="history-new-sector-select" class="form-input" style="width: 100%;">
-            ${KANBAN_SECTORS.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
-          </select>
+    <div class="modal-overlay" id="history-move-modal-overlay" style="position: fixed; inset: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; z-index: 100200; background: rgba(5, 7, 20, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: fadeIn 0.2s ease-out;">
+      <div class="modal-content" id="history-move-modal-content" style="max-width: 460px; width: 92%; background: #131326; border: 1.5px solid rgba(139, 92, 246, 0.5); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.9), 0 0 30px rgba(99,102,241,0.25); padding: 0; overflow: hidden; animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        
+        <!-- Cabeçalho -->
+        <div class="modal-header" style="padding: 18px 24px; border-bottom: 1px solid rgba(139, 92, 246, 0.25); background: linear-gradient(135deg, #1e1b4b, #311b92); display: flex; align-items: center; justify-content: space-between;">
+          <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #ffffff; font-family: 'Outfit', sans-serif; display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: #a78bfa;">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            </div>
+            <span>Transferir / Mover de Setor</span>
+          </h3>
+          <button type="button" id="history-move-close-btn" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.4)'; this.style.borderColor='#ef4444';" onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.15)';" title="Fechar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button type="button" id="history-move-cancel" style="padding: 8px 16px; background: transparent; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; color: var(--text-primary);">Cancelar</button>
-          <button type="button" id="history-move-confirm" style="padding: 8px 16px; background: var(--color-primary); border: none; border-radius: 6px; cursor: pointer; color: #fff; font-weight: 600;">Mover</button>
+
+        <!-- Corpo -->
+        <div class="modal-body" style="padding: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 12px 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #0369a1); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1rem;">
+              ${(patientName || 'P').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">${patientName || 'Paciente'}</div>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">
+                Setor Atual: <strong style="color: #38bdf8;">${KANBAN_SECTORS.find(s => s.id === currentSec)?.name || currentSec}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label" style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: #f1f5f9;">
+              <i class="fa-solid fa-location-dot" style="color: #818cf8; margin-right: 6px;"></i>Novo Setor de Destino
+            </label>
+            <select id="history-new-sector-select" class="form-input" style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(139,92,246,0.4); background: #0f172a; color: #ffffff; font-size: 0.92rem; font-weight: 600; outline: none;">
+              ${KANBAN_SECTORS.map(s => `
+                <option value="${s.id}" ${s.id === currentSec ? 'selected' : ''} style="background: #0f172a; color: #ffffff;">
+                  ${s.name} ${s.id === currentSec ? '(Atual)' : ''}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+
+          <div style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 22px; font-size: 0.82rem; color: #93c5fd; line-height: 1.5;">
+            <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Ao confirmar a transferência, o paciente será realocado na coluna correspondente do <strong>Kanban de Internação</strong>, no <strong>Censo de Leitos</strong> e no <strong>Guia de Governança</strong>.
+          </div>
+
+          <!-- Ações -->
+          <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" id="history-move-cancel" style="padding: 10px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: #f1f5f9; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: 0.2s;">
+              Cancelar
+            </button>
+            <button type="button" id="history-move-confirm" style="padding: 10px 20px; border-radius: 8px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; cursor: pointer; font-size: 0.88rem; font-weight: 700; box-shadow: 0 4px 14px rgba(2,132,199,0.4); display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+              <i class="fa-solid fa-check"></i> Confirmar Transferência
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -4035,30 +4091,105 @@ window.movePatientSectorFromHistory = function(hospId, patientId, patientName) {
 
   const cleanup = () => {
     document.getElementById('history-move-modal-overlay')?.remove();
-    document.getElementById('history-move-modal-content')?.remove();
   };
 
-  document.getElementById('history-move-close-btn').addEventListener('click', cleanup);
-  document.getElementById('history-move-cancel').addEventListener('click', cleanup);
-  document.getElementById('history-move-confirm').addEventListener('click', () => {
+  document.getElementById('history-move-close-btn')?.addEventListener('click', cleanup);
+  document.getElementById('history-move-cancel')?.addEventListener('click', cleanup);
+  document.getElementById('history-move-modal-overlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'history-move-modal-overlay') cleanup();
+  });
+
+  document.getElementById('history-move-confirm')?.addEventListener('click', () => {
     const newSector = document.getElementById('history-new-sector-select').value;
-    const db = typeof localDB !== 'undefined' ? localDB : window.localDB;
+    const nowIso = new Date().toISOString();
+    const sectorObj = KANBAN_SECTORS.find(s => s.id === newSector);
+    const sectorLabel = sectorObj ? sectorObj.name : newSector;
+
     if (db) {
-      const hosp = db.getById('hospitalizations', hospId);
+      // 1. Atualizar ou criar hospitalização
       if (hosp) {
         hosp.current_sector = newSector;
-        db.update('hospitalizations', hospId, hosp);
-        if (typeof window.showToast === 'function') window.showToast('Setor atualizado com sucesso!', 'success');
-        
-        const historyModal = document.getElementById('history-modal-content');
-        if (historyModal) {
-          document.getElementById('close-history-modal')?.click();
-          setTimeout(() => window.openPatientHistoryModal(patientId, patientName), 100);
-        }
-        
-        if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
-          window.loadAndRenderKanban();
-        }
+        hosp.sector_entry_date = nowIso;
+        hosp.updated_at = nowIso;
+        if (db.update) db.update('hospitalizations', hosp.id, hosp);
+      } else {
+        const newHosp = {
+          id: (hospId && String(hospId).startsWith('HOSP-')) ? hospId : 'HOSP-' + Date.now(),
+          patient_id: patientId,
+          patientName: patientName,
+          current_sector: newSector,
+          status: 'Internado',
+          sector_entry_date: nowIso,
+          created_at: nowIso,
+          updated_at: nowIso
+        };
+        if (db.insert) db.insert('hospitalizations', newHosp);
+      }
+
+      // 2. Atualizar leito correspondente se houver
+      const allBeds = db.list ? db.list('beds') : [];
+      const patBed = allBeds.find(b => 
+        (b.patientId && String(b.patientId) === String(patientId)) ||
+        (b.patientName && patientName && b.patientName.toLowerCase() === patientName.toLowerCase())
+      );
+      if (patBed) {
+        patBed.sector = newSector;
+        patBed.updated_at = nowIso;
+        if (db.update) db.update('beds', patBed.id, patBed);
+      }
+
+      // 3. Atualizar encontro ativo
+      const allEncs = db.list ? db.list('encounters') : [];
+      const activeEnc = allEncs.find(e => 
+        (String(e.patientId) === String(patientId) || (e.patientName && patientName && e.patientName.toLowerCase() === patientName.toLowerCase())) &&
+        e.status !== 'Finalizado' && e.status !== 'Alta'
+      );
+      if (activeEnc) {
+        activeEnc.sector = sectorLabel;
+        activeEnc.room = sectorLabel;
+        activeEnc.updated_at = nowIso;
+        activeEnc.lastStatusUpdate = nowIso;
+        if (db.update) db.update('encounters', activeEnc.id, activeEnc);
+      }
+
+      // 4. Atualizar contexto do Smart Flow Guide
+      if (typeof window.setActivePatientContext === 'function') {
+        window.setActivePatientContext({
+          id: patientId,
+          fullName: patientName,
+          patientName: patientName,
+          status: 'Internado',
+          sector: sectorLabel,
+          bed: patBed ? (patBed.number || patBed.name || patBed.id) : (hosp?.bed || '')
+        });
+      }
+
+      if (typeof window.showToast === 'function') {
+        window.showToast(`Paciente transferido com sucesso para ${sectorLabel}!`, 'success');
+      }
+
+      // 5. Atualizar modais e abas abertas
+      const patientHistModal = document.getElementById('patient-history-modal');
+      if (patientHistModal) {
+        patientHistModal.remove();
+        setTimeout(() => {
+          if (typeof window.openPatientHistoryModal === 'function') {
+            window.openPatientHistoryModal(patientId, patientName);
+          }
+        }, 150);
+      }
+
+      if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
+        window.loadAndRenderKanban();
+      }
+      if (typeof window.renderBedsTab === 'function' && document.querySelector('#leitos-tab.active')) {
+        window.renderBedsTab();
+      }
+      if (typeof window.renderPatientsTab === 'function' && document.querySelector('#pacientes-tab.active')) {
+        window.renderPatientsTab();
+      }
+      if (typeof window.createSmartFlowGuideCard === 'function') {
+        window.createSmartFlowGuideCard();
       }
     }
     cleanup();

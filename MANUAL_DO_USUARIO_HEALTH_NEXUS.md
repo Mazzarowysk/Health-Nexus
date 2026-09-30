@@ -80,6 +80,7 @@ flowchart TD
   - 4.8. [Modal de Gestão de Usuários & Troca de Perfil](#sec-4-8)
   - 4.9. [Modal de Alerta de Atendimento Pendente em Andamento (Prevenção de Duplicidades)](#sec-4-9)
   - 4.10. [Modal de Alerta de PEP Pendente de Finalização / Em Andamento](#sec-4-10)
+  - 4.11. [Modal de Transferência & Mudança de Setor Hospitalar](#sec-4-11)
 - 5. [Gestão de Pacientes & Linha do Cuidado Completa](#sec-5)
 - 6. [Gestão da Equipe Médica & Corpo Clínico](#sec-6)
 - 7. [Gestão de Consultórios & Salas de Atendimento](#sec-7)
@@ -552,6 +553,39 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 | **Continuar Editando PEP Existente** | `#btn-pep-pending-continue` | Carrega o rascunho aberto na aba SOAP | Encontro pendente identificado | Comuta para o formulário SOAP carregando o texto previamente digitado para complementação e assinatura digital. |
 | **Abrir Nova Folha Mesmo Assim** | `#btn-pep-pending-new` | Inicia uma nova folha de evolução limpa | Confirmação explícita do médico | Gera novo ID de evolução (`ENC-EVO-...`) preservando o histórico anterior intacto na listagem. |
 | **Cancelar** | `#btn-pep-pending-cancel` | Fecha o alerta de segurança | Nenhuma validação | Retorna à tela anterior (listagem de PEPs) sem modificar o prontuário. |
+
+---
+
+<h3 id="sec-4-11">4.11. Modal de Transferência & Mudança de Setor Hospitalar</h3>
+
+- **Gatilho de Abertura:** Disparado ao clicar no botão **`Mover Setor`** na seção de internação ativa do Prontuário & Histórico Clínico do Paciente ou pelo ícone de transferência nos cards do **Kanban de Internação**.
+- **Finalidade Assistencial e Operacional:** Representa a movimentação física e administrativa do paciente internado entre diferentes unidades assistenciais da instituição (transferência interna / regulação intra-hospitalar). Esse procedimento é adotado clinicamente em situações como:
+  1. **Agravo Clínico (Step-Up):** Paciente em enfermaria ou observação que evolui com instabilidade hemodinâmica, choque ou insuficiência respiratória e necessita de leito em **UTI / CTI Intensivo**.
+  2. **Melhora Clínica (Step-Down):** Paciente que superou a fase crítica na UTI e é transferido para a **Clínica Médica / Enfermaria** para convalescença e desmame ventilatório/medicamentoso.
+  3. **Indicação Cirúrgica:** Paciente encaminhado para a **Clínica Cirúrgica** para preparo pré-operatório ou recuperação pós-anestésica.
+  4. **Acomodação Transitória:** Paciente aguardando liberação de leito definitivo alocado temporariamente em **Corredor de Internação / Maca Transitória**.
+
+- **Impacto e Sincronização em Cascata no Sistema:**
+  - **Kanban de Internação:** O card do paciente transiciona automaticamente para a coluna da nova ala, reiniciando o cronômetro de permanência do setor (SLA) para auditoria de tempos hospitalares.
+  - **Censo de Leitos:** O leito ocupado pelo paciente é atualizado com o novo setor assistencial.
+  - **Smart Flow Guide (Governança):** O cockpit e o painel de governança atualizam instantaneamente a etiqueta de `Local` do paciente.
+  - **Faturamento Hospitalar TISS:** A diária hospitalar e os procedimentos passam a ser contabilizados com base na tabela de diárias do novo setor (ex: diária de UTI vs enfermaria).
+
+- **Informações e Campos do Modal:**
+
+| Campo / Elemento | Identificador HTML | Tipo / Origem | Função Operacional |
+|:---|:---|:---|:---|
+| **Identificação do Paciente** | `#history-move-modal-content` | Cabeçalho / Badge | Nome completo e avatar do paciente em transferência. |
+| **Setor Atual** | `#history-move-modal-content` | Registro da Hospitalização | Ala onde o paciente se encontra no momento da abertura do modal. |
+| **Novo Setor de Destino** | `#history-new-sector-select` | Seletor (`<select>`) | Lista as alas ativas: *Pronto-Socorro / Observação*, *Corredor de Internação*, *Clínica Cirúrgica*, *Clínica Médica / Enfermaria*, *UTI / CTI Intensivo*. |
+
+- **Botões e Ações:**
+
+| Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
+|:---|:---|:---|:---|:---|
+| **Confirmar Transferência** | `#history-move-confirm` | Executa a mudança de ala | Permissão `canManageBeds` do usuário | Atualiza hospitalizações, leitos, encontros e o card de fluxo, emitindo toast de sucesso e recarregando o histórico. |
+| **Cancelar** | `#history-move-cancel` | Aborta a transferência | Nenhuma validação | Fecha o modal sem alterar o setor do paciente. |
+| **Fechar (X)** | `#history-move-close-btn` | Encerra o modal | Nenhuma validação | Fecha o modal preservando os dados intactos. |
 
 ---
 
