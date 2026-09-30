@@ -583,7 +583,7 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
-| **Confirmar Transferência** | `#history-move-confirm` | Executa a mudança de ala | Permissão `canManageBeds` do usuário | Atualiza hospitalizações, leitos, encontros e o card de fluxo, emitindo toast de sucesso e recarregando o histórico. |
+| **Confirmar Transferência** | `#history-move-confirm` | Executa a mudança de ala | Permissão `canManageBeds` do usuário | Atualiza hospitalizações, leitos, encontros e o Guia de Governança, emite toast de sucesso, fecha os modais e **redireciona imediatamente para o Kanban de Internação** filtrando a coluna da nova ala e centralizando o card do paciente com realce visual (*spotlight*). |
 | **Cancelar** | `#history-move-cancel` | Aborta a transferência | Nenhuma validação | Fecha o modal sem alterar o setor do paciente. |
 | **Fechar (X)** | `#history-move-close-btn` | Encerra o modal | Nenhuma validação | Fecha o modal preservando os dados intactos. |
 

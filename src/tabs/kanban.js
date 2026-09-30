@@ -698,13 +698,27 @@ window.confirmMoveKanban = function(hospId) {
       });
     }
 
-    if (window.showToast) window.showToast('Paciente movido para ' + name);
+    if (window.showToast) window.showToast('Paciente transferido para ' + name);
     if (typeof window.createSmartFlowGuideCard === 'function') window.createSmartFlowGuideCard();
     if (typeof window.renderBedsTab === 'function' && document.querySelector('#leitos-tab.active')) window.renderBedsTab();
     if (typeof window.renderPatientsTab === 'function' && document.querySelector('#pacientes-tab.active')) window.renderPatientsTab();
   }
   document.getElementById('kanban-move-modal')?.remove();
-  loadAndRenderKanban();
+
+  // Direcionar imediatamente para a coluna do setor onde foi alocado
+  if (typeof window.setKanbanFilter === 'function') {
+    window.setKanbanFilter(ns);
+  } else {
+    loadAndRenderKanban();
+  }
+
+  setTimeout(() => {
+    const cardEl = document.querySelector(`[data-hosp-id="${hospId}"]`);
+    if (cardEl) {
+      cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      cardEl.classList.add('patient-pulse-selected', 'patient-spotlight-glow');
+    }
+  }, 180);
 };
 
 // ──── Notas / Evolução Clínica ────

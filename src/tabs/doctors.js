@@ -4164,33 +4164,39 @@ window.movePatientSectorFromHistory = function(hospId, patientId, patientName) {
         });
       }
 
-      if (typeof window.showToast === 'function') {
-        window.showToast(`Paciente transferido com sucesso para ${sectorLabel}!`, 'success');
-      }
-
-      // 5. Atualizar modais e abas abertas
+      // 5. Fechar todos os modais de histórico e diálogo
+      cleanup();
       const patientHistModal = document.getElementById('patient-history-modal');
-      if (patientHistModal) {
-        patientHistModal.remove();
-        setTimeout(() => {
-          if (typeof window.openPatientHistoryModal === 'function') {
-            window.openPatientHistoryModal(patientId, patientName);
-          }
-        }, 150);
+      if (patientHistModal) patientHistModal.remove();
+
+      if (typeof window.showToast === 'function') {
+        window.showToast(`Paciente transferido para ${sectorLabel}! Redirecionando...`, 'success');
       }
 
-      if (typeof window.loadAndRenderKanban === 'function' && document.querySelector('#kanban-tab.active')) {
-        window.loadAndRenderKanban();
+      // 6. Direcionar imediatamente para a aba onde o paciente foi alocado (Kanban de Internação)
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('kanban');
       }
-      if (typeof window.renderBedsTab === 'function' && document.querySelector('#leitos-tab.active')) {
-        window.renderBedsTab();
-      }
-      if (typeof window.renderPatientsTab === 'function' && document.querySelector('#pacientes-tab.active')) {
-        window.renderPatientsTab();
-      }
+
+      // 7. Filtrar pelo setor de destino e destacar o paciente
+      setTimeout(() => {
+        if (typeof window.setKanbanFilter === 'function') {
+          window.setKanbanFilter(newSector);
+        }
+        setTimeout(() => {
+          const targetCard = document.querySelector(`[data-hosp-id="${hosp?.id || hospId}"]`) ||
+                             document.querySelector(`[data-patient-card-name="${(patientName || '').toLowerCase().trim()}"]`);
+          if (targetCard) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetCard.classList.add('patient-pulse-selected', 'patient-spotlight-glow');
+          }
+        }, 180);
+      }, 150);
+
       if (typeof window.createSmartFlowGuideCard === 'function') {
         window.createSmartFlowGuideCard();
       }
+      return;
     }
     cleanup();
   });
