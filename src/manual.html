@@ -505,6 +505,7 @@ flowchart TD
 <li>4.7. <a href="#sec-4-7">Modal de Aprovação de Acesso de Usuários</a></li>
 <li>4.8. <a href="#sec-4-8">Modal de Gestão de Usuários &amp; Troca de Perfil</a></li>
 <li>4.9. <a href="#sec-4-9">Modal de Alerta de Atendimento Pendente em Andamento (Prevenção de Duplicidades)</a></li>
+<li>4.10. <a href="#sec-4-10">Modal de Alerta de PEP Pendente de Finalização / Em Andamento</a></li>
 </ul>
 </li>
 <li><ol start="5">
@@ -2004,6 +2005,93 @@ flowchart TD
 <td align="left">Aborta a criação do atendimento</td>
 <td align="left">Nenhuma validação</td>
 <td align="left">Fecha o modal preservando os dados cadastrais e o atendimento atual sem alterações.</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="sec-4-10">4.10. Modal de Alerta de PEP Pendente de Finalização / Em Andamento</h3><ul>
+<li><strong>Gatilho de Abertura:</strong> Disparado ao clicar no botão &quot;➕ Incluir Novo PEP&quot; (seja no cabeçalho do prontuário, no topo da listagem de PEPs ou no modo de leitura) caso o paciente já possua uma evolução médica em status de rascunho ou pendente de finalização/assinatura.</li>
+<li><strong>Finalidade Assistencial:</strong> Evitar fragmentação de condutas clínicas, proteger a cronologia das anotações médicas e alertar o profissional de saúde sobre evoluções pendentes antes de gerar folhas em duplicidade.</li>
+<li><strong>Informações Apresentadas no Modal:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">Informação Exibida</th>
+<th align="left">Origem dos Dados</th>
+<th align="left">Descrição / Significado Clínico</th>
+<th align="left">Exemplo Visual</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Identificação do Paciente</strong></td>
+<td align="left">Registro do Encontro</td>
+<td align="left">Nome completo do paciente em atendimento</td>
+<td align="left"><code>Marcelo Mazaro</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Local / Setor Clínico</strong></td>
+<td align="left">Encontro Ativo</td>
+<td align="left">Setor onde a evolução foi iniciada</td>
+<td align="left"><code>Consultório 01 / Observação</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Profissional Responsável</strong></td>
+<td align="left">Sessão do Médico</td>
+<td align="left">Nome do médico que abriu o rascunho anterior</td>
+<td align="left"><code>Dr. Roberto Farias (CRM 12345/SP)</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Última Atualização</strong></td>
+<td align="left">Timestamp do PEP</td>
+<td align="left">Data e hora do último salvamento do rascunho</td>
+<td align="left"><code>29/09/2026 às 21:10</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Hipótese / CID-10</strong></td>
+<td align="left">Campo Assessment</td>
+<td align="left">Prévia do diagnóstico anotado no rascunho</td>
+<td align="left"><code>J18.9 — Pneumonia não especificada</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Queixa / Subjetivo</strong></td>
+<td align="left">Campo Subjective</td>
+<td align="left">Prévia do relato anamnésico registrado</td>
+<td align="left"><code>Paciente refere tosse produtiva e febre...</code></td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Botões e Ações de Decisão Clínica:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">Botão</th>
+<th align="left">Identificador HTML</th>
+<th align="left">Ação Disparada</th>
+<th align="left">Validação Prévia</th>
+<th align="left">Efeito no Sistema</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Continuar Editando PEP Existente</strong></td>
+<td align="left"><code>#btn-pep-pending-continue</code></td>
+<td align="left">Carrega o rascunho aberto na aba SOAP</td>
+<td align="left">Encontro pendente identificado</td>
+<td align="left">Comuta para o formulário SOAP carregando o texto previamente digitado para complementação e assinatura digital.</td>
+</tr>
+<tr>
+<td align="left"><strong>Abrir Nova Folha Mesmo Assim</strong></td>
+<td align="left"><code>#btn-pep-pending-new</code></td>
+<td align="left">Inicia uma nova folha de evolução limpa</td>
+<td align="left">Confirmação explícita do médico</td>
+<td align="left">Gera novo ID de evolução (<code>ENC-EVO-...</code>) preservando o histórico anterior intacto na listagem.</td>
+</tr>
+<tr>
+<td align="left"><strong>Cancelar</strong></td>
+<td align="left"><code>#btn-pep-pending-cancel</code></td>
+<td align="left">Fecha o alerta de segurança</td>
+<td align="left">Nenhuma validação</td>
+<td align="left">Retorna à tela anterior (listagem de PEPs) sem modificar o prontuário.</td>
 </tr>
 </tbody></table>
 <hr>

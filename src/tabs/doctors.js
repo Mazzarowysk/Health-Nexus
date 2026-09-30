@@ -2814,15 +2814,57 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
       window.setupCidAutocomplete();
     }
 
-    // Função para iniciar nova evolução clínica (SOAP)
-    window._pepStartNewEvolution = function(isContinuing = false) {
+    // Função para iniciar nova evolução clínica (SOAP) com Trava de Alerta Assistencial
+    window._pepStartNewEvolution = async function(isContinuing = false, forceCreateNew = false) {
       const subj = document.getElementById('pep-subjective');
       const obj = document.getElementById('pep-objective');
       const ass = document.getElementById('pep-assessment');
       const plan = document.getElementById('pep-plan');
 
-      // Se o encontro atual já está finalizado ou assinado, ou se for nova evolução limpa:
-      if (!isContinuing && (enc.status === 'Finalizado' || enc.signed_by || notes.signed_by)) {
+      // 1. Checagem de Trava de Segurança: verificar se já existe algum PEP / evolução em rascunho pendente de finalização
+      if (!isContinuing && !forceCreateNew) {
+        const db = (window.localDB && typeof window.localDB.getFullDB === 'function') ? window.localDB.getFullDB() : {};
+        const allEncs = db.encounters || [];
+        const pid = enc.patientId || enc.id || encounterId;
+        const pname = (enc.patientName || '').toLowerCase().trim();
+        const pidStr = String(pid).toLowerCase().trim();
+
+        const pendingEncounter = allEncs.find(e => {
+          const ePid = String(e.patientId || e.id || '').toLowerCase().trim();
+          const ePname = String(e.patientName || '').toLowerCase().trim();
+          const match = (ePid && (ePid === pidStr || ePid.includes(pidStr) || pidStr.includes(ePid))) ||
+                        (pname && ePname && (ePname === pname || ePname.includes(pname) || pname.includes(ePname)));
+          if (!match) return false;
+          const isFinalized = e.status === 'Finalizado' || e.status === 'Alta' || !!e.signed_by;
+          return !isFinalized;
+        });
+
+        if (pendingEncounter && typeof window.showPendingPEPAlertModal === 'function') {
+          const decision = await window.showPendingPEPAlertModal({
+            patientName: enc.patientName || 'Paciente',
+            pendingEncounter
+          });
+
+          if (decision.action === 'cancel') {
+            return;
+          }
+
+          if (decision.action === 'continue_existing') {
+            if (typeof window._editSpecificPEP === 'function') {
+              window._editSpecificPEP(pendingEncounter.id);
+            } else {
+              window._pepSwitchTab('soap');
+            }
+            return;
+          }
+
+          // Se decision.action === 'create_new', prossegue com criação explícita
+          forceCreateNew = true;
+        }
+      }
+
+      // 2. Se for criação forçada ou se o encontro atual já estiver finalizado/assinado:
+      if (forceCreateNew || (!isContinuing && (enc.status === 'Finalizado' || enc.signed_by || notes.signed_by))) {
         const pid = enc.patientId || enc.id || encounterId;
         const targetSector = enc.sector || enc.room || 'Observação';
         const admId = enc.admission_id || enc.id;

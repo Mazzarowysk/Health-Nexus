@@ -662,8 +662,140 @@ export function showActiveEncounterAlertModal({ patientId, patientName, patientC
   });
 }
 
+// --- MODAL DE ALERTA DE PEP PENDENTE DE FINALIZAÇÃO / EM ANDAMENTO ---
+
+export function showPendingPEPAlertModal({ patientName, pendingEncounter }) {
+  return new Promise((resolve) => {
+    if (!pendingEncounter) {
+      resolve({ action: 'create_new' });
+      return;
+    }
+
+    const existing = document.getElementById('hn-pending-pep-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'hn-pending-pep-modal';
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = 'z-index: 1000000; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.78); backdrop-filter: blur(10px); padding: 16px;';
+
+    const pName = pendingEncounter.patientName || patientName || 'Paciente';
+    const sector = pendingEncounter.sector || pendingEncounter.room || 'Consultório / Atendimento';
+    const docName = pendingEncounter.doctorName || pendingEncounter.signed_by || 'Médico Assistente';
+    
+    const entryDate = pendingEncounter.updated_at || pendingEncounter.created_at || Date.now();
+    const d = new Date(entryDate);
+    const dateStr = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    const subj = pendingEncounter.subjectiveContent ? (pendingEncounter.subjectiveContent.substring(0, 110) + (pendingEncounter.subjectiveContent.length > 110 ? '...' : '')) : null;
+    const cid = pendingEncounter.assessmentContent || null;
+
+    overlay.innerHTML = `
+      <div class="sync-modal-card" style="max-width: 530px; width: 100%; border-radius: 18px; overflow: hidden; background: #111124; border: 1.5px solid rgba(245, 158, 11, 0.5); box-shadow: 0 25px 70px rgba(0,0,0,0.9), 0 0 30px rgba(245, 158, 11, 0.2);">
+        <div style="background: linear-gradient(135deg, #d97706, #b45309); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-family:'Outfit', sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.25rem;"></i>
+            PEP Pendente de Finalização
+          </h3>
+          <button id="btn-pep-pending-alert-close" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Fechar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div style="padding: 22px 24px; display: flex; flex-direction: column; gap: 15px;">
+          <div style="font-size: 0.92rem; color: #f8fafc; line-height: 1.5;">
+            O paciente <strong>${pName}</strong> já possui uma evolução médica em andamento (Rascunho não finalizado).
+          </div>
+
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1.5px solid rgba(245, 158, 11, 0.35); border-left: 4px solid #f59e0b; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+              <span style="font-size: 0.74rem; color: #cbd5e1; text-transform: uppercase; font-weight: 700; font-family: monospace;">Ficha: ${pendingEncounter.id || 'Ativa'}</span>
+              <span style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 10px;">
+                🟡 Rascunho / Em Andamento
+              </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.82rem; margin-top: 4px;">
+              <div>
+                <span style="font-size: 0.72rem; color: #94a3b8; display: block;">Local / Setor:</span>
+                <strong style="color: #38bdf8;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i>${sector}</strong>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; color: #94a3b8; display: block;">Profissional:</span>
+                <strong style="color: #c4b5fd;"><i class="fa-solid fa-user-doctor" style="margin-right: 4px;"></i>${docName}</strong>
+              </div>
+              <div style="grid-column: span 2;">
+                <span style="font-size: 0.72rem; color: #94a3b8; display: block;">Última Atualização:</span>
+                <span style="color: #e2e8f0; font-weight: 600;"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${dateStr}</span>
+              </div>
+            </div>
+
+            ${cid ? `
+              <div style="font-size: 0.78rem; color: #cbd5e1; background: rgba(255,255,255,0.04); padding: 6px 10px; border-radius: 6px; margin-top: 4px;">
+                <strong style="color: #38bdf8;">Hipótese / CID-10:</strong> ${cid}
+              </div>
+            ` : ''}
+            ${subj ? `
+              <div style="font-size: 0.76rem; color: #94a3b8; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 6px;">
+                <strong style="color: #a78bfa;">Queixa / Subjetivo:</strong> ${subj}
+              </div>
+            ` : ''}
+          </div>
+
+          <div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.45; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 10px 14px;">
+            <i class="fa-solid fa-circle-info" style="color: #38bdf8; margin-right: 6px;"></i>
+            Para preservar a integridade do prontuário, você pode continuar editando o rascunho existente até a sua assinatura ou iniciar uma nova folha avulsa se for um novo atendimento.
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+            <button id="btn-pep-pending-continue" class="btn btn-primary" style="padding: 12px; font-size: 0.88rem; font-weight: 700; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 14px rgba(2,132,199,0.35);">
+              <i class="fa-solid fa-pen-to-square"></i> Continuar Editando PEP Existente
+            </button>
+
+            <button id="btn-pep-pending-new" class="btn" style="padding: 11px; font-size: 0.84rem; font-weight: 600; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; cursor: pointer;">
+              <i class="fa-solid fa-file-circle-plus"></i> Abrir Nova Folha de Evolução Mesmo Assim
+            </button>
+
+            <button id="btn-pep-pending-cancel" class="btn" style="padding: 10px; font-size: 0.82rem; border-radius: 10px; background: var(--bg-tertiary, #1e293b); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); color: var(--text-muted, #94a3b8); cursor: pointer;">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const close = () => {
+      overlay.remove();
+    };
+
+    document.getElementById('btn-pep-pending-alert-close')?.addEventListener('click', () => {
+      close();
+      resolve({ action: 'cancel' });
+    });
+
+    document.getElementById('btn-pep-pending-cancel')?.addEventListener('click', () => {
+      close();
+      resolve({ action: 'cancel' });
+    });
+
+    document.getElementById('btn-pep-pending-continue')?.addEventListener('click', () => {
+      close();
+      resolve({ action: 'continue_existing', encounterId: pendingEncounter.id });
+    });
+
+    document.getElementById('btn-pep-pending-new')?.addEventListener('click', () => {
+      close();
+      resolve({ action: 'create_new', encounterId: pendingEncounter.id });
+    });
+  });
+}
+
 if (typeof window !== 'undefined') {
   window.getActiveEncounterForPatient = getActiveEncounterForPatient;
   window.showActiveEncounterAlertModal = showActiveEncounterAlertModal;
+  window.showPendingPEPAlertModal = showPendingPEPAlertModal;
 }
+
 

@@ -79,6 +79,7 @@ flowchart TD
   - 4.7. [Modal de Aprovação de Acesso de Usuários](#sec-4-7)
   - 4.8. [Modal de Gestão de Usuários & Troca de Perfil](#sec-4-8)
   - 4.9. [Modal de Alerta de Atendimento Pendente em Andamento (Prevenção de Duplicidades)](#sec-4-9)
+  - 4.10. [Modal de Alerta de PEP Pendente de Finalização / Em Andamento](#sec-4-10)
 - 5. [Gestão de Pacientes & Linha do Cuidado Completa](#sec-5)
 - 6. [Gestão da Equipe Médica & Corpo Clínico](#sec-6)
 - 7. [Gestão de Consultórios & Salas de Atendimento](#sec-7)
@@ -525,6 +526,31 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 | **Visualizar Atendimento em Andamento** | `#btn-enc-alert-view` | Redireciona o operador para a aba ativa | Encontro ativo localizado | Abre a aba correspondente (Observação, Atendimento ou Leitos) com o card do paciente em destaque, sem criar duplicidades. |
 | **Encerrar Anterior e Abrir Novo** | `#btn-enc-alert-new` | Finaliza a passagem anterior e inicia nova | Confirmação assistencial | Concede desfecho auditável no atendimento anterior e abre a nova admissão com status limpo. |
 | **Cancelar Admissão** | `#btn-enc-alert-cancel` | Aborta a criação do atendimento | Nenhuma validação | Fecha o modal preservando os dados cadastrais e o atendimento atual sem alterações. |
+
+---
+
+<h3 id="sec-4-10">4.10. Modal de Alerta de PEP Pendente de Finalização / Em Andamento</h3>
+
+- **Gatilho de Abertura:** Disparado ao clicar no botão "➕ Incluir Novo PEP" (seja no cabeçalho do prontuário, no topo da listagem de PEPs ou no modo de leitura) caso o paciente já possua uma evolução médica em status de rascunho ou pendente de finalização/assinatura.
+- **Finalidade Assistencial:** Evitar fragmentação de condutas clínicas, proteger a cronologia das anotações médicas e alertar o profissional de saúde sobre evoluções pendentes antes de gerar folhas em duplicidade.
+- **Informações Apresentadas no Modal:**
+
+| Informação Exibida | Origem dos Dados | Descrição / Significado Clínico | Exemplo Visual |
+|:---|:---|:---|:---|
+| **Identificação do Paciente** | Registro do Encontro | Nome completo do paciente em atendimento | `Marcelo Mazaro` |
+| **Local / Setor Clínico** | Encontro Ativo | Setor onde a evolução foi iniciada | `Consultório 01 / Observação` |
+| **Profissional Responsável** | Sessão do Médico | Nome do médico que abriu o rascunho anterior | `Dr. Roberto Farias (CRM 12345/SP)` |
+| **Última Atualização** | Timestamp do PEP | Data e hora do último salvamento do rascunho | `29/09/2026 às 21:10` |
+| **Hipótese / CID-10** | Campo Assessment | Prévia do diagnóstico anotado no rascunho | `J18.9 — Pneumonia não especificada` |
+| **Queixa / Subjetivo** | Campo Subjective | Prévia do relato anamnésico registrado | `Paciente refere tosse produtiva e febre...` |
+
+- **Botões e Ações de Decisão Clínica:**
+
+| Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
+|:---|:---|:---|:---|:---|
+| **Continuar Editando PEP Existente** | `#btn-pep-pending-continue` | Carrega o rascunho aberto na aba SOAP | Encontro pendente identificado | Comuta para o formulário SOAP carregando o texto previamente digitado para complementação e assinatura digital. |
+| **Abrir Nova Folha Mesmo Assim** | `#btn-pep-pending-new` | Inicia uma nova folha de evolução limpa | Confirmação explícita do médico | Gera novo ID de evolução (`ENC-EVO-...`) preservando o histórico anterior intacto na listagem. |
+| **Cancelar** | `#btn-pep-pending-cancel` | Fecha o alerta de segurança | Nenhuma validação | Retorna à tela anterior (listagem de PEPs) sem modificar o prontuário. |
 
 ---
 
