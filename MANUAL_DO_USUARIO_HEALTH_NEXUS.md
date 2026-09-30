@@ -1132,6 +1132,23 @@ A posição escolhida fica salva no navegador do profissional (`localStorage: hn
   - Seja ao conceder a alta médica no **Prontuário Eletrônico (PEP)** ou ao concluir o acolhimento pelo **Card de Fluxo na Recepção**, a coluna *Status / Localização Atual* na listagem de Pacientes exibe na hora a data e horário da última alta: `🟢 Alta — DD/MM/AAAA às HH:MM ➔`.
   - **Prioridade da Alta Homologada:** O sistema impede que atendimentos residuais ou antigos sobreponham a alta concedida, garantindo que o crachá verde de alta permaneça como indicador fiel da situação do paciente até uma nova admissão formal.
 
+### 💰 Emissão de Guia TISS Individual & Fechamento de Lotes ANS (v2.9.18)
+
+- **Acionamento Direto na Aba Faturamento TISS:**
+  1. No topo da tela de **Faturamento TISS / TUSS & Auditoria ANS**, o botão **`📄 Emitir Guia Individual`** (`#btn-tiss-new-guide`) abre a janela de faturamento imediatamente, mesmo na ausência de atendimento selecionado previamente na fila.
+  2. O modal conta com tratamento resiliente de dados de pacientes (resolução de nomes, matrículas, classificação Manchester e altas hospitalares).
+- **Seletor Dinâmico de Pacientes:**
+  - O campo suspenso `Selecionar / Alternar Paciente para Emissão da Guia` disponibiliza todos os pacientes cadastrados no sistema com CPF e plano de saúde vinculado.
+  - Ao alternar o paciente na lista, o modal atualiza dinamicamente em tempo real todos os dados cadastrais, operadora, matrícula, procedimentos realizados e valor total estimado da conta.
+- **Apuramento de Procedimentos TUSS & Valores:**
+  - O faturamento discrimina os procedimentos prestados:
+    - **TUSS 10101012:** Consulta Médica em Pronto-Socorro / Acolhimento Manchester (R$ 180,00).
+    - **TUSS 20101015:** Avaliação e Prescrição Médica de Urgência & Conduta (R$ 150,00).
+    - **TUSS 60011501:** Diária Hospitalar em Leito / Assistência Médica Contínua (caso tenha havido internação ou observação prolongada).
+- **Exportação XML & Vínculo ao Lote:**
+  - **Baixar XML Guia:** Gera o arquivo eletrônico no padrão oficial XML TISS Versão 4.01.00 com validação de hash e formato exigido pela ANS.
+  - **Emitir e Salvar no Lote:** Registra a conta no lote de faturamento selecionado (ou abre um novo lote sequencial com identificador automático), incrementando o valor apurado e o quantitativo de guias faturadas.
+
 ---
 
 *Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.18 do Health Nexus. Todos os direitos reservados.*

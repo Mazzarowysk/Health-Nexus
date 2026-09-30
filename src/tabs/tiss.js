@@ -72,7 +72,7 @@ export function renderTISSTab(container) {
         </div>
 
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button id="btn-tiss-new-guide" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-weight: 700; border: none; padding: 9px 16px; border-radius: 10px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2,132,199,0.35); cursor: pointer;">
+          <button id="btn-tiss-new-guide" onclick="if(typeof window.openTISSEmissionModal==='function') window.openTISSEmissionModal();" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-weight: 700; border: none; padding: 9px 16px; border-radius: 10px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2,132,199,0.35); cursor: pointer;">
             <i class="fa-solid fa-file-circle-plus"></i> Emitir Guia Individual
           </button>
           <button id="btn-tiss-new-batch" class="btn" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-weight: 700; border: none; padding: 9px 16px; border-radius: 10px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16,185,129,0.35); cursor: pointer;">
@@ -270,28 +270,34 @@ export function openTISSEmissionModal(patientName, patientId) {
     batches = currentDb.tiss_batches;
   }
 
-  // Localizar dados do paciente
+  // Localizar dados do paciente de forma robusta e segura
   let patient = null;
   if (patientId) {
-    patient = patients.find(p => String(p.id) === String(patientId));
+    patient = patients.find(p => p && String(p.id) === String(patientId));
   }
-  if (!patient && patientName) {
+  if (!patient && patientName && typeof patientName === 'string') {
     const clean = patientName.trim().toLowerCase();
-    patient = patients.find(p => (p.name || '').trim().toLowerCase() === clean)
-      || patients.find(p => (p.name || '').toLowerCase().includes(clean));
+    patient = patients.find(p => p && String(p.name || p.nome || p.patient_name || p.patientName || '').trim().toLowerCase() === clean)
+      || patients.find(p => p && String(p.name || p.nome || p.patient_name || p.patientName || '').toLowerCase().includes(clean));
   }
   if (!patient && patients.length > 0) {
     patient = patients[0];
   }
 
-  const resolvedName = patient ? patient.name : (patientName || 'Marcelo Mazaro');
-  const att = attendances.find(a => (a.patient_name || a.patientName || '').toLowerCase().includes(resolvedName.toLowerCase()));
-  const pep = peps.find(p => (p.patient_name || p.patientName || '').toLowerCase().includes(resolvedName.toLowerCase()));
-  const bed = beds.find(b => (b.patient_name || b.patientName || '').toLowerCase().includes(resolvedName.toLowerCase()));
+  const rawResolved = (patient && (patient.name || patient.nome || patient.patient_name || patient.patientName))
+    || (typeof patientName === 'string' && patientName.trim())
+    || 'Marcelo Mazaro';
+  const resolvedName = String(rawResolved || 'Marcelo Mazaro').trim();
+  const safeResolvedLower = resolvedName.toLowerCase();
 
-  const planName = (patient && (patient.health_plan || patient.healthPlan)) || (att && att.healthPlan) || 'Unimed Central';
-  const cardNum = (patient && (patient.card_number || patient.cns || patient.cpf)) || '003492810293019';
-  const riskColor = (att && (att.triage_color || att.risk_color)) || (patient && patient.risk_color) || 'vermelho';
+  const att = attendances.find(a => a && String(a.patient_name || a.patientName || a.nome || a.name || '').toLowerCase().includes(safeResolvedLower)) || null;
+  const pep = peps.find(p => p && String(p.patient_name || p.patientName || p.nome || p.name || '').toLowerCase().includes(safeResolvedLower)) || null;
+  const bed = beds.find(b => b && String(b.patient_name || b.patientName || b.nome || b.name || '').toLowerCase().includes(safeResolvedLower)) || null;
+
+  const planName = String((patient && (patient.health_plan || patient.healthPlan || patient.convenio || patient.plano)) || (att && (att.healthPlan || att.convenio)) || 'Unimed Central');
+  const cardNum = String((patient && (patient.card_number || patient.cardNumber || patient.cns || patient.cpf || patient.matricula)) || '003492810293019');
+  const rawRisk = (att && (att.triage_color || att.risk_color || att.cor)) || (patient && (patient.risk_color || patient.triage_color)) || 'vermelho';
+  const riskColor = String(rawRisk || 'vermelho').toLowerCase();
   const isInterned = !!bed || (att && (att.status === 'Internado' || att.bed_name));
   const dischargeDate = (att && att.discharge_date) || (pep && pep.discharge_date) || (patient && patient.discharge_date) || new Date().toLocaleString('pt-BR');
 
@@ -302,7 +308,7 @@ export function openTISSEmissionModal(patientName, patientId) {
     verde: { label: 'Verde (Pouco Urgente)', bg: 'rgba(34,197,94,0.2)', color: '#4ade80', border: '#22c55e' },
     azul: { label: 'Azul (Não Urgente)', bg: 'rgba(59,130,246,0.2)', color: '#60a5fa', border: '#3b82f6' }
   };
-  const riskMeta = riskBadgeMap[riskColor.toLowerCase()] || riskBadgeMap['vermelho'];
+  const riskMeta = riskBadgeMap[riskColor] || riskBadgeMap['vermelho'];
 
   const basePriceConsult = 180.00;
   const basePriceUrgence = 150.00;
@@ -335,6 +341,22 @@ export function openTISSEmissionModal(patientName, patientId) {
       <!-- Corpo da Modal -->
       <div style="padding:22px 24px;display:flex;flex-direction:column;gap:18px;">
         
+        <!-- Seletor de Paciente para Emissão da Guia -->
+        ${patients.length > 0 ? `
+        <div style="background:rgba(15,23,42,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;">
+          <label style="font-size:0.76rem;font-weight:700;color:#94a3b8;text-transform:uppercase;display:block;margin-bottom:6px;">
+            <i class="fa-solid fa-users" style="margin-right:6px;color:#38bdf8;"></i>Selecionar / Alternar Paciente para Emissão da Guia:
+          </label>
+          <select id="tiss-select-patient" style="width:100%;background:#0f172a;border:1px solid #334155;color:#f8fafc;padding:8px 12px;border-radius:8px;font-size:0.86rem;outline:none;">
+            ${patients.map(p => {
+              const pName = String(p.name || p.nome || p.patient_name || 'Paciente').trim();
+              const isSel = pName.toLowerCase() === safeResolvedLower;
+              return `<option value="${p.id || pName}" ${isSel ? 'selected' : ''}>${pName} — CPF: ${p.cpf || 'Não informado'} (${p.health_plan || p.convenio || 'Unimed Central'})</option>`;
+            }).join('')}
+          </select>
+        </div>
+        ` : ''}
+
         <!-- Bloco de Dados do Paciente -->
         <div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;">
           <div>
@@ -459,6 +481,14 @@ export function openTISSEmissionModal(patientName, patientId) {
   const closeModal = () => modalEl.remove();
   document.getElementById('btn-close-tiss-modal')?.addEventListener('click', closeModal);
   document.getElementById('btn-cancel-tiss-modal')?.addEventListener('click', closeModal);
+
+  // Troca de Paciente dinamicamente na Modal
+  document.getElementById('tiss-select-patient')?.addEventListener('change', (e) => {
+    const selectedVal = e.target.value;
+    const pat = patients.find(p => p && (String(p.id) === String(selectedVal) || (p.name || p.nome) === selectedVal));
+    modalEl.remove();
+    openTISSEmissionModal(pat ? (pat.name || pat.nome) : selectedVal, pat ? pat.id : undefined);
+  });
 
   // Baixar XML individual desta guia
   document.getElementById('btn-download-patient-xml')?.addEventListener('click', () => {
