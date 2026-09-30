@@ -3707,6 +3707,21 @@ flowchart TD
 </ul>
 <h4>🔄 Memória de Preferência do Usuário (Persistência Local)</h4>
 <p>A posição escolhida fica salva no navegador do profissional (<code>localStorage: hn_flow_dock_pos</code>). Ao abrir novos pacientes, alternar entre abas ou recarregar o sistema, o painel reabre exatamente na posição preferida, mantendo o ambiente de trabalho personalizado e produtivo.</p>
+<h3>⚡ Card de Fluxo como Espinha Dorsal Operacional &amp; Sincronização em Tempo Real da Alta</h3>
+<ul>
+<li><strong>Ação Recomendada como Guia do Plantão:</strong> O botão principal do Card de Fluxo atua como a espinha dorsal de todo o fluxo assistencial do Health Nexus. Ao clicar em condutas como <code>📋 Finalizar Atendimento na Recepção ➔</code>:<ol>
+<li><strong>Encerramento Automático:</strong> Todos os atendimentos (<em>encounters</em>) e triagens em aberto do paciente são finalizados no banco local (<code>localDB</code>) e sincronizados com a API.</li>
+<li><strong>Liberação de Leito &amp; Painel:</strong> Chamadas no Painel TV são encerradas e leitos ocupados são encaminhados para higienização.</li>
+<li><strong>Registro da Data e Hora da Alta:</strong> O cadastro do paciente é atualizado instantaneamente com o status <code>Alta</code>, gravando a data e a hora exatas (<code>lastDischargeDate</code>).</li>
+<li><strong>Avanço de Etapa:</strong> O Card de Fluxo avança de forma autônoma para a próxima fase recomendada (<code>💰 Ir para Faturamento &amp; TISS ➔</code>).</li>
+</ol>
+</li>
+<li><strong>Reflexo Imediato na Tabela de Pacientes Cadastrados:</strong><ul>
+<li>Seja ao conceder a alta médica no <strong>Prontuário Eletrônico (PEP)</strong> ou ao concluir o acolhimento pelo <strong>Card de Fluxo na Recepção</strong>, a coluna <em>Status / Localização Atual</em> na listagem de Pacientes exibe na hora a data e horário da última alta: <code>🟢 Alta — DD/MM/AAAA às HH:MM ➔</code>.</li>
+<li><strong>Prioridade da Alta Homologada:</strong> O sistema impede que atendimentos residuais ou antigos sobreponham a alta concedida, garantindo que o crachá verde de alta permaneça como indicador fiel da situação do paciente até uma nova admissão formal.</li>
+</ul>
+</li>
+</ul>
 <hr>
 <p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.18 do Health Nexus. Todos os direitos reservados.</em></p>
 

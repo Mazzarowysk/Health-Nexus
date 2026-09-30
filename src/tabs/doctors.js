@@ -1200,17 +1200,39 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
     };
   }
 
+  // 1.8 Identificação prévia do paciente para respeitar Alta homologada
+  const patients = db.patients || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('patients') : []) || [];
+  const patObj = patients.find(p => (
+    (p.id && String(p.id).toLowerCase() === normPid) ||
+    (p.fullName && normPname && p.fullName.toLowerCase().trim() === normPname)
+  ));
+  const isPatDischarged = patObj && (patObj.status === 'Alta' || patObj.status === 'Alta Concedida' || patObj.receptionFinalized);
+  const patDischargeIso = patObj && (patObj.lastDischargeDate || patObj.last_discharge_date || patObj.discharged_at);
+  const patDischargeTime = patDischargeIso ? new Date(patDischargeIso).getTime() : 0;
+
   // 2. Encounters ativos (Triagem / Aguardando Atendimento / Em Atendimento / Observação)
   // Pesquisar do mais recente para o mais antigo para refletir a última evolução do paciente
   const activeEnc = encounters.slice().reverse().find(e => {
     const s = String(e.status || '').toLowerCase().replace(/_/g, ' ').trim();
     const isAct = ['em atendimento', 'aguardando atendimento', 'aguardando triagem', 'triagem', 'triado', 'em observacao', 'em observação', 'observacao', 'observação', 'admitido'].includes(s);
     if (!isAct) return false;
-    return (
+    const match = (
       (e.patientId && String(e.patientId).toLowerCase() === normPid) ||
       (e.id && String(e.id).toLowerCase() === normPid) ||
       (e.patientName && normPname && e.patientName.toLowerCase().includes(normPname))
     );
+    if (!match) return false;
+
+    // Se o paciente está com Alta concedida, o atendimento só é ativo se foi criado após a alta (nova admissão)
+    if (isPatDischarged && patDischargeTime > 0) {
+      const encTime = new Date(e.created_at || e.date || e.admitted_at || 0).getTime();
+      if (!encTime || encTime <= patDischargeTime + 5000) {
+        return false;
+      }
+    } else if (isPatDischarged && !patDischargeTime) {
+      return false;
+    }
+    return true;
   });
   if (activeEnc) {
     const s = String(activeEnc.status || '').toLowerCase().replace(/_/g, ' ').trim();
@@ -1276,10 +1298,21 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
     const s = String(t.status || '').toLowerCase().replace(/_/g, ' ').trim();
     const isAct = ['aguardando atendimento', 'em triagem', 'aguardando triagem', 'triagem'].includes(s);
     if (!isAct) return false;
-    return (
+    const match = (
       (t.patientId && String(t.patientId).toLowerCase() === normPid) ||
       (t.patientName && normPname && t.patientName.toLowerCase().includes(normPname))
     );
+    if (!match) return false;
+
+    if (isPatDischarged && patDischargeTime > 0) {
+      const triageTime = new Date(t.created_at || t.date || 0).getTime();
+      if (!triageTime || triageTime <= patDischargeTime + 5000) {
+        return false;
+      }
+    } else if (isPatDischarged && !patDischargeTime) {
+      return false;
+    }
+    return true;
   });
   if (activeTriage) {
     return {
@@ -1336,11 +1369,6 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
   }
 
   // 4. Última Alta Concluída ou Sem Atendimento Ativo
-  const patients = db.patients || [];
-  const patObj = patients.find(p => (
-    (p.id && String(p.id).toLowerCase() === normPid) ||
-    (p.fullName && normPname && p.fullName.toLowerCase().trim() === normPname)
-  ));
 
   // 4. Última Alta Concluída ou Sem Atendimento Ativo
   const hospDischarged = (hospitalizations || []).filter(h => (h.status === 'Alta' || h.status === 'Discharged') && (
@@ -3655,26 +3683,102 @@ async function savePEPData(encounterId, shouldFinalize) {
         }
         return;
       } else {
+        const nowIso = new Date().toISOString();
+        let patRecord = null;
+
+        if (typeof localDB !== 'undefined' && localDB) {
+          try {
+            const allPatients = (typeof localDB.list === 'function') ? localDB.list('patients') : [];
+            patRecord = allPatients.find(p => (
+              (p.fullName && patientName && p.fullName.toLowerCase().trim() === patientName.toLowerCase().trim()) ||
+              (p.id && (String(p.id) === String(encounterId) || String(p.id).toLowerCase() === String(encounterId).toLowerCase()))
+            ));
+
+            if (patRecord && localDB.update) {
+              localDB.update('patients', patRecord.id, {
+                ...patRecord,
+                status: 'Alta',
+                lastDischargeDate: nowIso,
+                last_discharge_date: nowIso,
+                discharged_at: nowIso,
+                updated_at: nowIso
+              });
+            }
+
+            // Finalizar todos os atendimentos/encounters do paciente
+            const patIdVal = patRecord?.id || encounterId;
+            const allEncs = (typeof localDB.list === 'function') ? localDB.list('encounters') : [];
+            allEncs.forEach(e => {
+              const match = String(e.id) === String(encounterId) ||
+                            (patIdVal && (String(e.patientId) === String(patIdVal) || String(e.patient_id) === String(patIdVal))) ||
+                            (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim());
+              if (match && e.status !== 'Finalizado') {
+                localDB.update('encounters', e.id, {
+                  ...e,
+                  status: 'Finalizado',
+                  dischargeType: 'Alta Médica Concedida no PEP',
+                  discharged_at: nowIso,
+                  completed_at: nowIso,
+                  closed_at: nowIso,
+                  lastStatusUpdate: nowIso
+                });
+              }
+            });
+
+            // Finalizar triagens do paciente
+            const allTriages = (typeof localDB.list === 'function') ? localDB.list('triages') : [];
+            allTriages.forEach(t => {
+              const match = (patIdVal && (String(t.patientId) === String(patIdVal) || String(t.patient_id) === String(patIdVal))) ||
+                            (patientName && t.patientName && t.patientName.toLowerCase().trim() === patientName.toLowerCase().trim());
+              if (match && t.status !== 'Finalizado') {
+                localDB.update('triages', t.id, { ...t, status: 'Finalizado', completed_at: nowIso });
+              }
+            });
+
+            // Remover chamadas TV
+            const allTv = (typeof localDB.list === 'function') ? localDB.list('tv_calls') : [];
+            allTv.forEach(tv => {
+              const match = (patIdVal && (String(tv.patientId) === String(patIdVal) || String(tv.patient_id) === String(patIdVal))) ||
+                            (patientName && tv.patientName && tv.patientName.toLowerCase().trim() === patientName.toLowerCase().trim());
+              if (match) localDB.remove('tv_calls', tv.id);
+            });
+
+            // Invalidar caches
+            if (typeof dataCache !== 'undefined' && dataCache) {
+              if (dataCache.delete) {
+                dataCache.delete('patients');
+                dataCache.delete('encounters');
+                dataCache.delete('triages');
+              } else {
+                dataCache['patients'] = null;
+                dataCache['encounters'] = null;
+                dataCache['triages'] = null;
+              }
+            }
+            if (typeof dataCacheTimestamps !== 'undefined' && dataCacheTimestamps?.delete) {
+              dataCacheTimestamps.delete('patients');
+              dataCacheTimestamps.delete('encounters');
+              dataCacheTimestamps.delete('triages');
+            }
+          } catch (_) {}
+        }
+
         await apiFetch('/api/encounters/' + encounterId + '/status', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'Finalizado' })
-        });
-        
-        if (typeof localDB !== 'undefined' && localDB.update) {
-          try {
-            localDB.update('encounters', encounterId, { status: 'Finalizado', updated_at: new Date().toISOString() });
-          } catch (_) {}
-        }
+        }).catch(() => {});
 
         if (typeof window.setActivePatientContext === 'function') {
           window.setActivePatientContext({
-            id: encounterId,
+            id: patRecord?.id || encounterId,
+            patientId: patRecord?.id || encounterId,
             fullName: patientName,
             patientName: patientName,
             status: 'Alta',
             currentStep: 6,
-            isDischarged: true
+            isDischarged: true,
+            lastDischargeDate: nowIso
           });
         }
 
@@ -3697,6 +3801,13 @@ async function savePEPData(encounterId, shouldFinalize) {
       if (modal) modal.remove();
       if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
       if (typeof renderTabContent === 'function' && state.activeTab === 'atendimento') renderTabContent();
+      if (typeof window.loadPatientsTable === 'function') window.loadPatientsTable();
+      if (typeof window.loadAttendanceData === 'function') window.loadAttendanceData();
+      if (typeof window.loadAndRenderKanban === 'function') window.loadAndRenderKanban();
+      if (typeof window.createSmartFlowGuideCard === 'function') {
+        const curTab = window.state?.activeTab || 'consultorios';
+        window.createSmartFlowGuideCard(curTab);
+      }
     } else {
       if (typeof showToast === 'function') {
         showToast('✅ Rascunho da evolução clínica salvo com sucesso!');

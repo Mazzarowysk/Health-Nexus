@@ -1199,6 +1199,26 @@ function evaluateClinicalPossibilities(patient, activeTab) {
           ]
         };
       } else if (isDischarged) {
+        if (patient.receptionFinalized) {
+          return {
+            currentStage: 6,
+            stageName: 'Atendimento Concluído',
+            orderWarning,
+            primaryAction: {
+              title: `💰 Faturamento & Fechamento TISS (${firstName})`,
+              desc: `Atendimento de ${pName} concluído e liberado na recepção. Proceda à conferência e faturamento do lote no padrão TISS 4.01.`,
+              btnText: `💰 Ir para Faturamento & TISS ➔`,
+              btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+              onClick: "window.switchTab('financeiro')",
+              icon: '💰'
+            },
+            alternatives: [
+              { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+              { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" },
+              { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+            ]
+          };
+        }
         return {
           currentStage: 6,
           stageName: 'Alta Médica Concedida',
@@ -1208,7 +1228,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
             desc: `Alta médica homologada no prontuário de ${pName}. Finalize a admissão e libere o paciente na recepção.`,
             btnText: `📋 Finalizar Atendimento na Recepção ➔`,
             btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-            onClick: "window.showToast ? window.showToast('✅ Atendimento de " + safePNameEsc + " concluído com sucesso na recepção!') : null",
+            onClick: `window.finalizePatientReceptionDischarge ? window.finalizePatientReceptionDischarge('${safePNameEsc}', '${patient.id || ''}') : null`,
             icon: '📋'
           },
           alternatives: [
@@ -1863,6 +1883,197 @@ if (typeof window.notifyPharmacyUrgent !== 'function') {
     }
   };
 }
+
+// Finalização completa do atendimento na recepção (conclusão do acolhimento e liberação pós-alta)
+window.finalizePatientReceptionDischarge = async function(patientName, patientId) {
+  const pName = (patientName || '').trim();
+  const pId = patientId || '';
+  const normPname = pName.toLowerCase();
+  const normPid = String(pId).toLowerCase();
+  const nowIso = new Date().toISOString();
+  const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const dateFormatted = new Date().toLocaleDateString('pt-BR');
+
+  const db = (typeof localDB !== 'undefined' && localDB) ? localDB : window.localDB;
+  if (!db) {
+    if (typeof showToast === 'function') showToast('⚠️ Banco de dados local indisponível.', 'error');
+    return;
+  }
+
+  try {
+    // 1. Localizar paciente na tabela patients
+    const allPatients = (typeof db.list === 'function') ? db.list('patients') : [];
+    const pat = allPatients.find(p => (
+      (normPid && p.id && String(p.id).toLowerCase() === normPid) ||
+      (normPname && p.fullName && p.fullName.toLowerCase().trim() === normPname)
+    ));
+
+    const effectiveId = pat?.id || pId;
+    const effectiveName = pat?.fullName || pName;
+
+    // 2. Atualizar cadastro do paciente com status 'Alta', flags de conclusão e timestamps
+    if (pat && db.update) {
+      db.update('patients', pat.id, {
+        ...pat,
+        status: 'Alta',
+        receptionFinalized: true,
+        lastDischargeDate: nowIso,
+        last_discharge_date: nowIso,
+        discharged_at: nowIso,
+        updated_at: nowIso
+      });
+    }
+
+    // 3. Finalizar todos os atendimentos/encounters do paciente
+    const allEncs = (typeof db.list === 'function') ? db.list('encounters') : [];
+    allEncs.forEach(enc => {
+      const isThisPatient = (
+        (normPid && enc.patientId && String(enc.patientId).toLowerCase() === normPid) ||
+        (effectiveId && enc.patientId && String(enc.patientId).toLowerCase() === String(effectiveId).toLowerCase()) ||
+        (normPid && enc.id && String(enc.id).toLowerCase() === normPid) ||
+        (normPname && enc.patientName && enc.patientName.toLowerCase().trim() === normPname)
+      );
+      if (isThisPatient && enc.status !== 'Finalizado') {
+        db.update('encounters', enc.id, {
+          ...enc,
+          status: 'Finalizado',
+          dischargeType: enc.dischargeType || 'Alta Médica Concluída na Recepção',
+          discharged_at: enc.discharged_at || nowIso,
+          completed_at: nowIso,
+          closed_at: nowIso,
+          lastStatusUpdate: nowIso
+        });
+      }
+    });
+
+    // 4. Finalizar triagens do paciente
+    const allTriages = (typeof db.list === 'function') ? db.list('triages') : [];
+    allTriages.forEach(t => {
+      const isThisPatient = (
+        (normPid && t.patientId && String(t.patientId).toLowerCase() === normPid) ||
+        (effectiveId && t.patientId && String(t.patientId).toLowerCase() === String(effectiveId).toLowerCase()) ||
+        (normPname && t.patientName && t.patientName.toLowerCase().trim() === normPname)
+      );
+      if (isThisPatient && t.status !== 'Finalizado') {
+        db.update('triages', t.id, {
+          ...t,
+          status: 'Finalizado',
+          completed_at: nowIso
+        });
+      }
+    });
+
+    // 5. Remover chamadas no painel TV
+    const allTv = (typeof db.list === 'function') ? db.list('tv_calls') : [];
+    allTv.forEach(tv => {
+      const isThisPatient = (
+        (normPid && (String(tv.patientId).toLowerCase() === normPid || String(tv.patient_id).toLowerCase() === normPid)) ||
+        (effectiveId && (String(tv.patientId).toLowerCase() === String(effectiveId).toLowerCase() || String(tv.patient_id).toLowerCase() === String(effectiveId).toLowerCase())) ||
+        (normPname && tv.patientName && tv.patientName.toLowerCase().trim() === normPname)
+      );
+      if (isThisPatient) {
+        db.remove('tv_calls', tv.id);
+      }
+    });
+
+    // 6. Atualizar hospitalizações e liberar leitos se houver
+    const allHosps = (typeof db.list === 'function') ? db.list('hospitalizations') : [];
+    allHosps.forEach(h => {
+      const isThisPatient = (
+        (normPid && String(h.patient_id || h.patientId).toLowerCase() === normPid) ||
+        (effectiveId && String(h.patient_id || h.patientId).toLowerCase() === String(effectiveId).toLowerCase()) ||
+        (normPname && h.patientName && h.patientName.toLowerCase().trim() === normPname)
+      );
+      if (isThisPatient && h.status !== 'Alta' && h.status !== 'Finalizado') {
+        db.update('hospitalizations', h.id, {
+          ...h,
+          status: 'Alta',
+          discharged_at: nowIso,
+          discharge_date: nowIso
+        });
+        if (h.bed_id || h.bed) {
+          const beds = (typeof db.list === 'function') ? db.list('beds') : [];
+          const b = beds.find(bed => String(bed.id) === String(h.bed_id) || bed.name === h.bed || bed.bedNumber === h.bed);
+          if (b && (b.status === 'Ocupado' || b.status === 'Ocupada')) {
+            db.update('beds', b.id, {
+              ...b,
+              status: 'Higienizacao',
+              previousPatientName: b.patientName || effectiveName,
+              patientId: null,
+              patientName: null,
+              encounterId: null,
+              dischargedAt: nowIso
+            });
+          }
+        }
+      }
+    });
+
+    // 7. Atualizar Contexto Ativo
+    if (typeof window.setActivePatientContext === 'function') {
+      window.setActivePatientContext({
+        id: effectiveId,
+        patientId: effectiveId,
+        fullName: effectiveName,
+        patientName: effectiveName,
+        status: 'Alta',
+        receptionFinalized: true,
+        isDischarged: true,
+        lastDischargeDate: nowIso,
+        room: `Alta — ${dateFormatted} às ${timeFormatted}`,
+        stage: 6
+      });
+    }
+
+    // 8. Invalidar caches de dados
+    if (typeof dataCache !== 'undefined' && dataCache) {
+      if (dataCache.delete) {
+        dataCache.delete('patients');
+        dataCache.delete('encounters');
+        dataCache.delete('triages');
+        dataCache.delete('hospitalizations');
+        dataCache.delete('beds');
+      } else {
+        dataCache['patients'] = null;
+        dataCache['encounters'] = null;
+        dataCache['triages'] = null;
+        dataCache['hospitalizations'] = null;
+        dataCache['beds'] = null;
+      }
+    }
+    if (typeof dataCacheTimestamps !== 'undefined' && dataCacheTimestamps?.delete) {
+      dataCacheTimestamps.delete('patients');
+      dataCacheTimestamps.delete('encounters');
+      dataCacheTimestamps.delete('triages');
+    }
+
+    // 9. Re-renderizar telas e tabelas
+    if (typeof window.loadPatientsTable === 'function') window.loadPatientsTable();
+    if (typeof window.loadAttendanceData === 'function') window.loadAttendanceData();
+    if (typeof window.loadAndRenderKanban === 'function') window.loadAndRenderKanban();
+    if (typeof window.loadQueue === 'function') window.loadQueue();
+
+    // 10. Atualizar o Card de Fluxo / Painel Lateral
+    if (typeof window.createSmartFlowGuideCard === 'function') {
+      const activeTab = window.state?.activeTab || 'pacientes';
+      window.createSmartFlowGuideCard(activeTab);
+    }
+    if (typeof window.updateSmartFlowGuide === 'function') {
+      window.updateSmartFlowGuide();
+    }
+
+    // 11. Feedback assistencial humano e empático
+    if (typeof showToast === 'function') {
+      showToast(`✅ Atendimento de ${effectiveName} concluído com sucesso na recepção! Alta registrada em ${dateFormatted} às ${timeFormatted}.`, 'success');
+    }
+
+  } catch (err) {
+    console.error('Erro ao finalizar atendimento na recepção:', err);
+    if (typeof showToast === 'function') {
+      showToast('⚠️ Ocorreu um erro ao finalizar o atendimento na recepção.', 'error');
+    }
+  }
+};
 
 // Fechamento garantido de todos os modais ativos para não bloquear o fluxo
 window.closeAllActiveModals = function() {

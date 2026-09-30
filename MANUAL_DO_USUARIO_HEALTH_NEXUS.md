@@ -1076,6 +1076,17 @@ No cabeçalho do painel ou do card flutuante, o botão com ícone de mira multid
 #### 🔄 Memória de Preferência do Usuário (Persistência Local)
 A posição escolhida fica salva no navegador do profissional (`localStorage: hn_flow_dock_pos`). Ao abrir novos pacientes, alternar entre abas ou recarregar o sistema, o painel reabre exatamente na posição preferida, mantendo o ambiente de trabalho personalizado e produtivo.
 
+### ⚡ Card de Fluxo como Espinha Dorsal Operacional & Sincronização em Tempo Real da Alta
+
+- **Ação Recomendada como Guia do Plantão:** O botão principal do Card de Fluxo atua como a espinha dorsal de todo o fluxo assistencial do Health Nexus. Ao clicar em condutas como `📋 Finalizar Atendimento na Recepção ➔`:
+  1. **Encerramento Automático:** Todos os atendimentos (*encounters*) e triagens em aberto do paciente são finalizados no banco local (`localDB`) e sincronizados com a API.
+  2. **Liberação de Leito & Painel:** Chamadas no Painel TV são encerradas e leitos ocupados são encaminhados para higienização.
+  3. **Registro da Data e Hora da Alta:** O cadastro do paciente é atualizado instantaneamente com o status `Alta`, gravando a data e a hora exatas (`lastDischargeDate`).
+  4. **Avanço de Etapa:** O Card de Fluxo avança de forma autônoma para a próxima fase recomendada (`💰 Ir para Faturamento & TISS ➔`).
+- **Reflexo Imediato na Tabela de Pacientes Cadastrados:**
+  - Seja ao conceder a alta médica no **Prontuário Eletrônico (PEP)** ou ao concluir o acolhimento pelo **Card de Fluxo na Recepção**, a coluna *Status / Localização Atual* na listagem de Pacientes exibe na hora a data e horário da última alta: `🟢 Alta — DD/MM/AAAA às HH:MM ➔`.
+  - **Prioridade da Alta Homologada:** O sistema impede que atendimentos residuais ou antigos sobreponham a alta concedida, garantindo que o crachá verde de alta permaneça como indicador fiel da situação do paciente até uma nova admissão formal.
+
 ---
 
 *Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.18 do Health Nexus. Todos os direitos reservados.*

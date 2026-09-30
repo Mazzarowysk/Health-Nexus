@@ -613,6 +613,24 @@ export const apiFetch = async (url, options = {}) => {
               }
             });
 
+            // 3.5 Finalizar todos os atendimentos/encounters em aberto deste paciente
+            allEncounters.forEach(otherEnc => {
+              if (String(otherEnc.id) !== String(enc.id)) {
+                const matchOther = (pId && (String(otherEnc.patientId) === String(pId) || String(otherEnc.patient_id) === String(pId))) ||
+                                   (pName && otherEnc.patientName && otherEnc.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+                if (matchOther && otherEnc.status !== 'Finalizado' && otherEnc.status !== 'Cancelado') {
+                  localDB.update('encounters', otherEnc.id, {
+                    ...otherEnc,
+                    status: 'Finalizado',
+                    dischargeType: otherEnc.dischargeType || 'Alta Médica Concluída',
+                    discharged_at: nowIso,
+                    completed_at: nowIso,
+                    lastStatusUpdate: nowIso
+                  });
+                }
+              }
+            });
+
             // 4. Registrar Alta no cadastro do Paciente
             const patients = localDB.list('patients') || [];
             const pat = patients.find(p => String(p.id) === String(pId) || (pName && p.fullName && p.fullName.toLowerCase().trim() === pName.toLowerCase().trim()));
@@ -620,6 +638,7 @@ export const apiFetch = async (url, options = {}) => {
               localDB.update('patients', pat.id, {
                 ...pat,
                 discharged_at: nowIso,
+                lastDischargeDate: nowIso,
                 last_discharge_date: nowIso,
                 status: 'Alta'
               });

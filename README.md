@@ -8,6 +8,10 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- ⚡ **Card de Fluxo como Espinha Dorsal Operacional & Sincronização em Tempo Real da Alta (v2.9.18):**
+  1. **Ação do Card como Guia e Condutor Real:** O botão principal de ação recomendada no Smart Flow Guide (tanto no card flutuante quanto no painel lateral acoplado) atua como a espinha dorsal do sistema. Ao clicar em `📋 Finalizar Atendimento na Recepção ➔`, a plataforma executa imediatamente a baixa de acolhimento: finaliza todos os atendimentos (*encounters*) e triagens abertas do paciente, cancela chamadas no Painel TV, libera leitos ocupados para higienização e avança o guia para o Faturamento TISS.
+  2. **Atualização Instantânea na Tabela de Pacientes:** Ao conceder alta no Prontuário Eletrônico (PEP) ou finalizar na recepção pelo Card de Fluxo, o cadastro do paciente na tabela de Pacientes Cadastrados passa a exibir imediatamente o crachá verde com a data e horário exatos da liberação: `🟢 Alta — DD/MM/AAAA às HH:MM ➔`.
+  3. **Proteção Contra Sobreposição:** O mecanismo de localização atual (`getPatientCurrentLocation`) agora verifica e respeita a alta médica concedida, impedindo que atendimentos antigos já concluídos sobreponham o status com "Sala de Espera" ou outras etapas superadas.
 - 🧭 **Acoplamento Multidirecional em 4 Lados da Tela & Cockpit Horizontal do Smart Flow Guide (v2.9.18):**
   1. **4 Posições de Ancoragem Fixa e Modo Flutuante:** O Smart Flow Guide (Painel de Governança) agora oferece liberdade total de organização espacial: **Lateral Direita** (420px), **Lateral Esquerda** (420px), **Topo da Tela** (barra horizontal estilo Cockpit de 74px) e **Base da Tela** (barra horizontal estilo Cockpit de 74px), além do modo **Card Flutuante Livre**.
   2. **Cockpit Horizontal em Linha (Topo e Base):** Ao acoplar no topo ou na base, o painel assume o formato de fita horizontal compacta (74px de altura) com o paciente ativo, a linha do tempo de 7 etapas da jornada hospitalar em linha, o atalho para a próxima ação recomendada e os controles de janela, liberando 100% da largura útil da tela para tabelas densas, censo de leitos e prontuários.
