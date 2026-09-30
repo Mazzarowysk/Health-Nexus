@@ -16,10 +16,14 @@ import { renderDashboardTab, fetchDashboardData, initDashboardCharts, initIntera
 import { renderPatientsTab } from './tabs/patients.js';
 import { renderAttendanceTab } from './tabs/attendance.js';
 import { renderObservacaoTab } from './tabs/observacao.js';
-import { renderTISSTab } from './tabs/tiss.js';
+import { renderTISSTab, executeTISSClosure, openTISSEmissionModal, exportTISSBatchXML, exportPatientTISSXML } from './tabs/tiss.js';
 import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.js';
 
 window.renderTISSTab = renderTISSTab;
+window.executeTISSClosure = executeTISSClosure;
+window.openTISSEmissionModal = openTISSEmissionModal;
+window.exportTISSBatchXML = exportTISSBatchXML;
+window.exportPatientTISSXML = exportPatientTISSXML;
 import { realtimeHub } from './modules/realtime.js';
 import { setActivePatientContext, clearActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD, initFloatingWorkflowGuide, updateFloatingWorkflowGuide } from './modules/journey.js';
 import { generateMockData, generateHospitalizations } from './mockDataGenerator.js';
@@ -217,7 +221,7 @@ const _SFG = {
     { tab: 'consultorios', icon: '👨‍⚕️', label: 'Médico PEP' },
     { tab: 'farmacia',     icon: '💊', label: 'Farmácia'    },
     { tab: 'leitos',       icon: '🛏️', label: 'Leitos'      },
-    { tab: 'financeiro',   icon: '💰', label: 'Faturamento' }
+    { tab: 'tiss',         icon: '💰', label: 'Faturamento' }
   ],
   recs: {
     dashboard:    { next:'pacientes',    nl:'Recepção & Pacientes',   title:'🏥 Chegada do Paciente (Recepção)', desc:'Inicie o acolhimento: cadastre o paciente que acaba de chegar ou localize o cadastro existente para dar entrada na Triagem.' },
@@ -228,8 +232,9 @@ const _SFG = {
     medicos:      { next:'consultorios', nl:'Consultórios',           title:'Ir para Consultórios',              desc:'Acompanhe as salas médicas ativas e atenda os pacientes na fila.' },
     farmacia:     { next:'leitos',       nl:'Gestão de Leitos',       title:'🛏️ Alocar em Leito / Internar',     desc:'Medicamentos dispensados. Se o paciente necessita de suporte hospitalar, gerencie a vaga no mapa de leitos.' },
     leitos:       { next:'kanban',       nl:'Linha de Cuidado & Leitos', title:'🛏️ Acompanhamento no Leito & PEP', desc:'Paciente internado! Realize evoluções clínicas diárias no PEP, monitore a prescrição e conduza o plano terapêutico até a alta.' },
-    kanban:       { next:'financeiro',   nl:'Gestão de Leitos & Alta', title:'📊 Linha de Cuidado & Leitos',       desc:'Acompanhe o fluxo assistencial multidisciplinar e o planejamento de desospitalização/alta médica.' },
-    financeiro:   { next:'relatorios',   nl:'Relatórios & Métricas',  title:'📈 Analisar Indicadores',           desc:'Consulte indicadores de ocupação, DRE e tempo médio de permanência hospitalar.' },
+    kanban:       { next:'tiss',         nl:'Faturamento & TISS',     title:'📊 Linha de Cuidado & Leitos',       desc:'Acompanhe o fluxo assistencial multidisciplinar e o planejamento de desospitalização/alta médica.' },
+    tiss:         { next:'relatorios',   nl:'Relatórios & Métricas',  title:'📈 Analisar Indicadores',           desc:'Consulte indicadores de faturamento, tempo de permanência e DRE hospitalar.' },
+    financeiro:   { next:'tiss',         nl:'Faturamento TISS',       title:'💰 Faturamento & Lotes TISS',      desc:'Proceda à emissão de lotes TISS 4.01 e auditoria das contas dos pacientes.' },
     relatorios:   { next:'dashboard',    nl:'Dashboard Principal',    title:'Voltar ao Dashboard',               desc:'Visualize o panorama geral e KPIs operacionais do complexo hospitalar.' },
     agenda:       { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Recepcionar Agendado',              desc:'Confirme a chegada do paciente agendado e encaminhe para a triagem.' },
     estagnacao:   { next:'atendimento',  nl:'Central de Atendimento', title:'Destravar Pacientes',               desc:'Agilize casos críticos com tempo de espera elevado no PS.' },
@@ -507,7 +512,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
           },
           alternatives: [
             { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
-            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
             { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
           ]
         };
@@ -526,7 +531,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
             icon: '🛏️'
           },
           alternatives: [
-            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
             { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
             { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
           ]
@@ -535,19 +540,40 @@ function evaluateClinicalPossibilities(patient, activeTab) {
       case 'financeiro':
         return {
           currentStage: 6,
-          stageName: 'Faturamento & TISS',
+          stageName: 'Gestão Financeira & Títulos',
           orderWarning: null,
           primaryAction: {
-            title: '💰 Fechamento de Contas & Lotes TISS',
-            desc: 'Gere lotes no padrão TISS 4.01 após a alta dos pacientes e analise indicadores de faturamento hospitalar.',
-            btnText: '📈 Analisar Relatórios & Métricas ➔',
+            title: '💳 Gestão Financeira & Baixa de Títulos',
+            desc: 'Acompanhe títulos a receber, fluxo de caixa e relatórios contábeis de faturamento hospitalar.',
+            btnText: '💰 Acessar Lotes & Faturamento TISS ➔',
             btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-            onClick: "window.switchTab('relatorios')",
-            icon: '📈'
+            onClick: "window.switchTab('tiss')",
+            icon: '💰'
           },
           alternatives: [
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
             { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Kanban Hospitalar', icon: '📊', onClick: "window.switchTab('kanban')" },
+            { label: 'Relatórios & Métricas', icon: '📈', onClick: "window.switchTab('relatorios')" }
+          ]
+        };
+
+      case 'tiss':
+        return {
+          currentStage: 6,
+          stageName: 'Faturamento TISS & Auditoria',
+          orderWarning: null,
+          primaryAction: {
+            title: '💰 Lotes de Faturamento TISS & Auditoria ANS',
+            desc: 'Gerencie os lotes eletrônicos no padrão TISS v4.01, audite regras anti-glosa e baixe arquivos XML para envio às operadoras.',
+            btnText: '📄 Gerar Lote TISS XML ➔',
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "document.getElementById('btn-tiss-new-batch') ? document.getElementById('btn-tiss-new-batch').click() : window.switchTab('tiss')",
+            icon: '📄'
+          },
+          alternatives: [
+            { label: 'Emitir Guia Individual', icon: '➕', onClick: "window.openTISSEmissionModal ? window.openTISSEmissionModal() : window.switchTab('tiss')" },
+            { label: 'Auditoria Anti-Glosa', icon: '🛡️', onClick: "document.getElementById('btn-tiss-audit') ? document.getElementById('btn-tiss-audit').click() : window.switchTab('tiss')" },
+            { label: 'Gestão Financeira', icon: '💳', onClick: "window.switchTab('financeiro')" },
             { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
           ]
         };
@@ -1209,7 +1235,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
               desc: `Atendimento de ${pName} concluído e liberado na recepção. Proceda à conferência e faturamento do lote no padrão TISS 4.01.`,
               btnText: `💰 Ir para Faturamento & TISS ➔`,
               btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-              onClick: "window.switchTab('financeiro')",
+              onClick: "window.switchTab('tiss')",
               icon: '💰'
             },
             alternatives: [
@@ -1233,7 +1259,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
           },
           alternatives: [
             { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
-            { label: 'Faturamento & TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+            { label: 'Faturamento & TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
             { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
           ]
         };
@@ -1478,7 +1504,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
             icon: '🩺'
           },
           alternatives: [
-            { label: 'Faturamento & TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+            { label: 'Faturamento & TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
             { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
             { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" }
           ]
@@ -1648,7 +1674,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
           alternatives: [
             { label: 'Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
             { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
-            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('financeiro')" }
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" }
           ]
         };
       } else {
@@ -1684,10 +1710,11 @@ function evaluateClinicalPossibilities(patient, activeTab) {
             desc: `Alta homologada para ${pName}! Realize a auditoria dos procedimentos e finalize o lote eletrônico no padrão TISS 4.01.`,
             btnText: `💰 Emitir Guia TISS de ${firstName} ➔`,
             btnBg: 'linear-gradient(135deg, #10b981, #059669)',
-            onClick: "if(typeof window.executeTISSClosure==='function') window.executeTISSClosure(); else window.switchTab('financeiro');",
+            onClick: `window.executeTISSClosure ? window.executeTISSClosure('${safePNameEsc}', '${activeCtx?.id || ''}') : window.switchTab('tiss')`,
             icon: '💰'
           },
           alternatives: [
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
             { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
             { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
             { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
@@ -1696,20 +1723,64 @@ function evaluateClinicalPossibilities(patient, activeTab) {
       } else {
         return {
           currentStage: 6,
-          stageName: 'Faturamento & TISS',
+          stageName: 'Gestão Financeira & Títulos',
           orderWarning,
           primaryAction: {
             title: `💰 Auditoria de Contas & Guia de ${firstName}`,
             desc: `Paciente ${pName} (${colorDisplay}) em atendimento. Verifique os procedimentos realizados e proceda à conferência do lote eletrônico TISS 4.01.`,
             btnText: `💰 Abrir Guia TISS de ${firstName} ➔`,
             btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-            onClick: "if(typeof window.executeTISSClosure==='function') window.executeTISSClosure(); else window.switchTab('financeiro');",
+            onClick: `window.executeTISSClosure ? window.executeTISSClosure('${safePNameEsc}', '${activeCtx?.id || ''}') : window.switchTab('tiss')`,
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
+            { label: 'Ver no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" }
+          ]
+        };
+      }
+    }
+
+    case 'tiss': {
+      if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Faturamento & Lote TISS',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Fechar Conta & Emitir Lote TISS (${firstName})`,
+            desc: `Alta homologada para ${pName}! Realize a auditoria dos procedimentos e finalize o lote eletrônico no padrão TISS 4.01.`,
+            btnText: `💰 Emitir Guia TISS de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openTISSEmissionModal ? window.openTISSEmissionModal('${safePNameEsc}', '${activeCtx?.id || ''}') : (window.executeTISSClosure && window.executeTISSClosure('${safePNameEsc}', '${activeCtx?.id || ''}'))`,
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Auditoria Anti-Glosa', icon: '🛡️', onClick: "document.getElementById('btn-tiss-audit') ? document.getElementById('btn-tiss-audit').click() : null" },
+            { label: 'Gestão Financeira', icon: '💳', onClick: "window.switchTab('financeiro')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 6,
+          stageName: 'Faturamento & Auditoria TISS',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Auditoria de Contas & Guia de ${firstName}`,
+            desc: `Paciente ${pName} (${colorDisplay}) em fluxo hospitalar. Emita a guia preliminar ou audite as regras de glosa da operadora.`,
+            btnText: `💰 Emitir Guia TISS de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window.openTISSEmissionModal ? window.openTISSEmissionModal('${safePNameEsc}', '${activeCtx?.id || ''}') : (window.executeTISSClosure && window.executeTISSClosure('${safePNameEsc}', '${activeCtx?.id || ''}'))`,
             icon: '💰'
           },
           alternatives: [
             { label: 'Ver no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
             { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
-            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" }
+            { label: 'Gestão Financeira', icon: '💳', onClick: "window.switchTab('financeiro')" }
           ]
         };
       }
@@ -2380,7 +2451,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     centerBox.style.cssText = 'display:flex;align-items:center;gap:6px;flex:1;max-width:680px;justify-content:center;overflow-x:auto;padding:0 8px;';
     centerBox.innerHTML = _SFG.steps.map(function(s, i) {
       const done = currentStageIdx > i;
-      const now = currentStageIdx === i;
+      const now = currentStageIdx === i || (i === 6 && (_SFG.activeTab === 'financeiro' || _SFG.activeTab === 'tiss'));
       const isTarget = _SFG.pendingAction && _SFG.pendingAction.targetTab === s.tab;
       
       const nodeBg = done ? 'rgba(16,185,129,0.2)' : (isTarget || now) ? 'rgba(2,132,199,0.3)' : 'rgba(255,255,255,0.04)';
@@ -2609,7 +2680,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   track.setAttribute('style', 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.18);flex-shrink:0;');
   track.innerHTML = _SFG.steps.map(function(s, i) {
     const done = currentStageIdx > i;
-    const now = currentStageIdx === i;
+    const now = currentStageIdx === i || (i === 6 && (_SFG.activeTab === 'financeiro' || _SFG.activeTab === 'tiss'));
     const isTarget = _SFG.pendingAction && _SFG.pendingAction.targetTab === s.tab;
     
     const nodeBg = done ? 'rgba(16,185,129,0.2)' : (isTarget || now) ? 'rgba(2,132,199,0.3)' : 'rgba(255,255,255,0.04)';
@@ -2646,7 +2717,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     farmacia:     { name: 'Farmácia Hospitalar', badge: 'Dispensação', desc: 'Circuito fechado de medicamentos e checagem beira-leito.' },
     leitos:       { name: 'Gestão de Leitos', badge: 'Internação', desc: 'Censo hospitalar, mapa de ocupação e transferências.' },
     kanban:       { name: 'Kanban Hospitalar', badge: 'Linha de Cuidado', desc: 'Coordenação multidisciplinar e desospitalização ágil.' },
-    financeiro:   { name: 'Faturamento & TISS', badge: 'Faturamento', desc: 'Fechamento de guias e lotes XML TISS 4.01.' },
+    financeiro:   { name: 'Gestão Financeira & Títulos', badge: 'Financeiro', desc: 'Controle de títulos a receber, contas a pagar e balanço.' },
+    tiss:         { name: 'Faturamento TISS & Lotes ANS', badge: 'Faturamento', desc: 'Fechamento de guias e lotes XML TISS 4.01 com auditoria anti-glosa.' },
     relatorios:   { name: 'Relatórios & Métricas', badge: 'Indicadores', desc: 'Indicadores de permanência, ocupação e qualidade.' },
     tv_panel:     { name: 'Painel TV (Chamador)', badge: 'Sala de Espera', desc: 'Chamada audiovisual e direcionamento aos consultórios.' },
     agenda:       { name: 'Agenda Médica', badge: 'Agendamentos', desc: 'Controle de consultas ambulatoriais e confirmações.' },

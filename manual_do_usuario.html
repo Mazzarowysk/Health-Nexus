@@ -2938,8 +2938,21 @@ flowchart TD
 </tr>
 </tbody></table>
 <hr>
-<h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2><p>Na aba <strong>Faturamento TISS</strong>, gerenciam-se as guias de convênio, auditoria de procedimentos e arquivos XML ANS.</p>
+<h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2><p>Na aba <strong>Faturamento TISS</strong>, gerenciam-se as guias de convênio, auditoria de procedimentos e arquivos XML ANS no padrão TISS versão 4.01.00.</p>
 <p><img src="docs/screenshots/08-faturamento-tiss.png" alt="Figura 11.1: Faturamento TISS — Auditoria Preventiva e Procedimentos TUSS"></p>
+<h3>⚡ Emissão de Guia TISS pelo Card de Fluxo (Smart Flow Guide)</h3>
+<p>A partir da versão v2.9.18, a emissão de guias TISS é acionada diretamente pelo <strong>Smart Flow Guide (Etapa 7: Faturamento)</strong>:</p>
+<ol>
+<li><strong>Redirecionamento Automático:</strong> Ao clicar em <code>💰 Emitir Guia TISS de [Paciente] ➔</code>, o sistema transiciona de forma instantânea para a aba <code>Faturamento TISS</code> (<code>tiss</code>), garantindo que o faturista ou médico não fique retido em relatórios financeiros.</li>
+<li><strong>Modal de Emissão &amp; Fechamento:</strong> Abre-se a tela de emissão pré-preenchida com os dados cadastrais do paciente, número da carteirinha ou CNS, convênio contratado e a data/hora da alta homologada.</li>
+<li><strong>Apuração TUSS Automática:</strong> O sistema levanta automaticamente os procedimentos realizados durante a passagem hospitalar:<ul>
+<li><code>10101012</code>: Consulta Médica Pronto-Socorro / Acolhimento Manchester (R$ 180,00).</li>
+<li><code>20101015</code>: Avaliação Médica de Urgência &amp; Conduta Terapêutica (R$ 150,00).</li>
+<li><code>60011501</code>: Diária Hospitalar &amp; Assistência Multidisciplinar (R$ 450,00, caso tenha havido internação em leito).</li>
+</ul>
+</li>
+<li><strong>Vinculação e XML TISS ANS:</strong> A equipe pode vincular a guia a um lote aberto ou gerar um novo lote para a operadora, além de poder baixar o arquivo XML individual (<code>GUIA_TISS_[Paciente]_v401.xml</code>) ou o lote completo em conformidade com as regras da ANS.</li>
+</ol>
 <h3>💰 Tabela de Guias e Lotes de Faturamento TISS</h3>
 <table>
 <thead>
