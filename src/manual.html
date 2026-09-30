@@ -1000,10 +1000,11 @@ flowchart TD
 <ol>
 <li><p><strong>Abertura Padrão na Listagem (<code>📋 Listagem de PEPs Existentes</code>):</strong></p>
 <ul>
-<li>O profissional visualiza de imediato a ordem cronológica decrescente de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).</li>
+<li>O profissional visualiza de imediato a <strong>ordem cronológica decrescente rigorosa (mais recente sempre no topo, mais antigo embaixo)</strong> de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).</li>
+<li>O sistema avalia os horários de atualização mais recentes (<code>updated_at</code>, <code>lastStatusUpdate</code>, <code>completed_at</code>, <code>discharged_at</code>, <code>created_at</code>), garantindo que qualquer nova anotação, alta ou rascunho em aberto assuma o primeiro lugar da lista automaticamente.</li>
 <li>Cada card do histórico apresenta:<ul>
 <li>Setor ou ala de atendimento (com ícone visual dedicado).</li>
-<li>Data e hora exatas da evolução.</li>
+<li>Data e hora exatas da evolução no padrão brasileiro (<code>DD/MM/AAAA às HH:MM</code>).</li>
 <li>Status assistencial (<code>✓ Assinado / Finalizado</code> ou <code>⏳ Rascunho / Em Andamento</code>).</li>
 <li>Nome do médico assistente e CRM.</li>
 <li>Hipótese diagnóstica / CID-10 e prévia dos blocos Subjetivo e Conduta.</li>

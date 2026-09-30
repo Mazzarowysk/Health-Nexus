@@ -8,6 +8,70 @@ import { generatePrescriptionValidationHash, generateQRCodeSVGDataURL, openPubli
 
 const API_URL = '/api';
 
+export function getEncounterSortTimestamp(e) {
+  if (!e) return 0;
+  const candidates = [
+    e.updated_at,
+    e.lastStatusUpdate,
+    e.completed_at,
+    e.discharged_at,
+    e.closed_at,
+    e.observation_started_at,
+    e.admitted_at,
+    e.admission_date,
+    e.triaged_at,
+    e.created_at,
+    e.date,
+    e.timestamp
+  ];
+  for (const c of candidates) {
+    if (c) {
+      const d = new Date(c);
+      const t = d.getTime();
+      if (!isNaN(t) && t > 0) return t;
+    }
+  }
+  if (e.id) {
+    const m = String(e.id).match(/\d{10,}/);
+    if (m) {
+      const num = parseInt(m[0], 10);
+      if (!isNaN(num) && num > 1000000000) return num;
+    }
+  }
+  return 0;
+}
+
+export function getEncounterDisplayDate(e) {
+  if (!e) return '—';
+  const candidates = [
+    e.updated_at,
+    e.lastStatusUpdate,
+    e.completed_at,
+    e.discharged_at,
+    e.closed_at,
+    e.observation_started_at,
+    e.admitted_at,
+    e.admission_date,
+    e.triaged_at,
+    e.created_at,
+    e.date
+  ];
+  for (const c of candidates) {
+    if (c) {
+      const d = new Date(c);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+  }
+  const ts = getEncounterSortTimestamp(e);
+  if (ts > 0) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+  return '—';
+}
+
 async function renderDoctorsTab() {
   const contentArea = document.getElementById('main-content');
 
@@ -1596,7 +1660,12 @@ modal.style.left = '0';
       const allEncs = db.encounters || [];
       const list = allEncs
         .filter(e => String(e.patientId) === String(pid) || String(e.id) === String(pid))
-        .sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+        .sort((a, b) => {
+          const timeA = getEncounterSortTimestamp(a);
+          const timeB = getEncounterSortTimestamp(b);
+          if (timeB !== timeA) return timeB - timeA;
+          return String(b.id || '').localeCompare(String(a.id || ''));
+        });
 
       const badge = document.getElementById('hist-pep-badge');
       if (badge) badge.textContent = list.length;
@@ -1637,7 +1706,7 @@ modal.style.left = '0';
               ${!hasSoap ? '<span style="background:rgba(245,158,11,0.12);color:#fbbf24;border-radius:20px;padding:1px 9px;font-size:0.72rem;">Sem SOAP</span>' : ''}
             </div>
             <div style="font-size:0.78rem;color:var(--text-muted);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap;">
-              <span><i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${fmt(h.created_at)}</span>
+              <span><i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${getEncounterDisplayDate(h)}</span>
               ${h.signed_by ? `<span><i class="fa-solid fa-user-doctor" style="margin-right:4px;"></i>${h.signed_by}</span>` : ''}
               ${h.assessmentContent ? `<span style="color:#c4b5fd;"><i class="fa-solid fa-tag" style="margin-right:4px;"></i>${h.assessmentContent.substring(0,50)}${h.assessmentContent.length>50?'...':''}</span>` : ''}
             </div>
@@ -1716,6 +1785,14 @@ modal.style.left = '0';
         encounters = allEncs.filter(e => String(e.patientId) === String(patientId) || (patientName && e.patientName && e.patientName.toLowerCase() === patientName.toLowerCase()));
       } catch (e) {}
     }
+
+    // Ordenar encounters: mais recente sempre no topo
+    encounters.sort((a, b) => {
+      const timeA = getEncounterSortTimestamp(a);
+      const timeB = getEncounterSortTimestamp(b);
+      if (timeB !== timeA) return timeB - timeA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
+    });
 
     const triages = data.triages || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('triages') : []) || [];
     const tvCalls = data.tv_calls || (typeof localDB !== 'undefined' && localDB.list ? localDB.list('tv_calls') : []) || [];
@@ -1941,8 +2018,8 @@ modal.style.left = '0';
               const statusBg = isInternado ? 'rgba(239,68,68,0.15)' : (isDischarged ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.15)');
 
               // Data
-              const rawDate = enc.admitted_at || enc.created_at;
-              const dateObj = rawDate ? new Date(rawDate) : new Date();
+              const encTimestamp = getEncounterSortTimestamp(enc);
+              const dateObj = encTimestamp > 0 ? new Date(encTimestamp) : new Date();
               const dateText = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
               const timeText = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -2374,7 +2451,10 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
         const bHasSoap = !!(b.subjectiveContent || b.objectiveContent || b.assessmentContent || b.planContent);
         if (aHasSoap && !bHasSoap) return -1;
         if (!aHasSoap && bHasSoap) return 1;
-        return new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0);
+        const timeA = getEncounterSortTimestamp(a);
+        const timeB = getEncounterSortTimestamp(b);
+        if (timeB !== timeA) return timeB - timeA;
+        return String(b.id || '').localeCompare(String(a.id || ''));
       });
       enc = { ...matchedEncs[0] };
     }
@@ -3103,7 +3183,12 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
           if (ePid && (ePid === pidStr || ePid.includes(pidStr) || pidStr.includes(ePid))) return true;
           if (pname && ePname && (ePname === pname || ePname.includes(pname) || pname.includes(ePname))) return true;
           return false;
-        }).sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+        }).sort((a, b) => {
+          const timeA = getEncounterSortTimestamp(a);
+          const timeB = getEncounterSortTimestamp(b);
+          if (timeB !== timeA) return timeB - timeA; // Descending: Mais recente sempre no topo
+          return String(b.id || '').localeCompare(String(a.id || ''));
+        });
 
         // Atualizar badge da aba
         const badge = document.getElementById('pep-history-badge');
@@ -3157,7 +3242,7 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
                 <i class="fa-solid fa-folder-tree" style="color: #38bdf8;"></i> Prontuários & Evoluções Clínicas do Paciente
               </h4>
               <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">
-                Paciente: <strong style="color:#fff;">${currentEnc.patientName || pname || 'Paciente'}</strong> · Total de <strong>${history.length}</strong> registro(s) no prontuário.
+                Paciente: <strong style="color:#fff;">${currentEnc.patientName || pname || 'Paciente'}</strong> · Total de <strong>${history.length}</strong> registro(s) · <span style="color:#38bdf8; font-weight:600;"><i class="fa-solid fa-arrow-down-short-wide"></i> Mais recente no topo</span>
               </p>
             </div>
             <button type="button" id="btn-pep-new-evolution-list" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; font-size: 0.84rem; font-weight: 700; border-radius: 10px; padding: 9px 18px; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 14px rgba(2,132,199,0.35); transition: 0.2s;">
@@ -3244,7 +3329,7 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
                       : (isCurrent ? '<span style="background:rgba(99,102,241,0.3); color:#c4b5fd; border: 1px solid rgba(99,102,241,0.5); border-radius:20px; padding:1px 9px; font-size:0.7rem; font-weight:700;">EM ABERTO</span>' : '')}
                   </div>
                   <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">
-                    <i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${fmtDate(h.updated_at || h.created_at)}
+                    <i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${getEncounterDisplayDate(h)}
                   </div>
                 </div>
               </div>

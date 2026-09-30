@@ -229,10 +229,11 @@ A 4ª coluna do Kanban e a aba dedicada **Observação do PS** operam em conform
 Ao clicar no botão **"Abrir PEP"** em qualquer módulo assistencial (Observação do Pronto-Socorro, Consultórios de Atendimento, Central de Leitos ou Relatórios Clínicos), o sistema adota um fluxo direto centrado na segurança e no histórico prévio do paciente:
 
 1. **Abertura Padrão na Listagem (`📋 Listagem de PEPs Existentes`):**
-   - O profissional visualiza de imediato a ordem cronológica decrescente de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).
+   - O profissional visualiza de imediato a **ordem cronológica decrescente rigorosa (mais recente sempre no topo, mais antigo embaixo)** de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).
+   - O sistema avalia os horários de atualização mais recentes (`updated_at`, `lastStatusUpdate`, `completed_at`, `discharged_at`, `created_at`), garantindo que qualquer nova anotação, alta ou rascunho em aberto assuma o primeiro lugar da lista automaticamente.
    - Cada card do histórico apresenta:
      - Setor ou ala de atendimento (com ícone visual dedicado).
-     - Data e hora exatas da evolução.
+     - Data e hora exatas da evolução no padrão brasileiro (`DD/MM/AAAA às HH:MM`).
      - Status assistencial (`✓ Assinado / Finalizado` ou `⏳ Rascunho / Em Andamento`).
      - Nome do médico assistente e CRM.
      - Hipótese diagnóstica / CID-10 e prévia dos blocos Subjetivo e Conduta.
