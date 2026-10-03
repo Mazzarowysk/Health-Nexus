@@ -141,25 +141,81 @@ window.loadTVWaitingQueue = async function () {
   const countEl = document.getElementById('tv-queue-count');
   if (!queueEl) return;
 
-  let patients = [];
+  const normName = (str) => removeAccents((str || '').toLowerCase().trim());
 
-  // /api/encounters retorna array direto (sem envelope {data:[]})
+  // 1. Obter leitos ocupados para garantir que pacientes já alocados em leitos/UTI não constem na sala de espera
+  let occupiedBedsPatients = new Set();
+  try {
+    const beds = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('beds') || []) : [];
+    beds.filter(b => (b.status === 'Ocupado' || b.status === 'Ocupada') && b.patientName)
+      .forEach(b => occupiedBedsPatients.add(normName(b.patientName)));
+  } catch (_) { }
+
+  // 2. Reconciliação imediata no localDB para evitar atendimentos órfãos/duplicados no banco local
+  try {
+    if (typeof localDB !== 'undefined' && localDB.list && localDB.update) {
+      const allEncs = localDB.list('encounters') || [];
+      const internedNames = new Set(occupiedBedsPatients);
+      allEncs.filter(e => e.status === 'Internado' && e.patientName)
+        .forEach(e => internedNames.add(normName(e.patientName)));
+
+      // Paciente já internado não deve ter outro atendimento ambulatorial aberto em paralelo
+      allEncs.forEach(e => {
+        if (!e.patientName || e.status === 'Finalizado' || e.status === 'Cancelado' || e.status === 'Alta') return;
+        const nKey = normName(e.patientName);
+        if (internedNames.has(nKey) && e.status !== 'Internado') {
+          localDB.update('encounters', e.id, {
+            ...e,
+            status: 'Finalizado',
+            completed_at: new Date().toISOString(),
+            dischargeType: 'Transferido para Internação'
+          });
+        }
+      });
+    }
+  } catch (_) { }
+
+  let patients = [];
+  const seenNames = new Set();
+
+  // 3. /api/encounters retorna array direto (sem envelope {data:[]})
   try {
     const res = await apiFetch('/api/encounters');
     if (res.ok) {
       const data = await res.json();
       const arr = Array.isArray(data) ? data : (data.data || []);
-      arr.filter(e => e.status && e.status !== 'Finalizado' && e.status !== 'Cancelado')
-        .forEach(e => patients.push({
+
+      // Ordenar por atualização mais recente primeiro
+      const sortedEncs = arr.slice().sort((a, b) => {
+        const timeA = new Date(a.updated_at || a.lastStatusUpdate || a.called_at || a.admitted_at || a.created_at || 0).getTime();
+        const timeB = new Date(b.updated_at || b.lastStatusUpdate || b.called_at || b.admitted_at || b.created_at || 0).getTime();
+        return timeB - timeA;
+      });
+
+      sortedEncs.forEach(e => {
+        if (!e.patientName || !e.status) return;
+        const s = String(e.status).trim();
+        // Exclui finalizados, cancelados, com alta médica e internados em enfermaria/UTI
+        if (['Finalizado', 'Cancelado', 'Internado', 'Alta', 'Óbito'].includes(s)) return;
+
+        const nKey = normName(e.patientName);
+        if (!nKey || seenNames.has(nKey)) return;
+        if (occupiedBedsPatients.has(nKey)) return; // Já se encontra acomodado em leito
+
+        seenNames.add(nKey);
+        patients.push({
           patientName: e.patientName,
+          patientId: e.patientId || e.id,
           manchesterColor: e.manchesterColor || 'Verde',
           status: e.status,
-          source: 'encounter'
-        }));
+          source: 'encounter',
+          room: e.room || e.roomName
+        });
+      });
     }
   } catch (e) { }
 
-  // Complementar com appointments de hoje que ainda nao tem encounter
+  // 4. Complementar com appointments de hoje que ainda não têm encounter
   try {
     const today = new Date().toISOString().slice(0, 10);
     const res2 = await apiFetch('/api/appointments?date=' + today);
@@ -168,15 +224,20 @@ window.loadTVWaitingQueue = async function () {
       const apts = Array.isArray(d2) ? d2 : (d2.data || []);
       const activeStatuses = ['Agendado', 'Confirmado', 'Em Atendimento', 'Aguardando'];
       apts.filter(a => activeStatuses.includes(a.status) && a.patientName)
-        .filter(a => !patients.find(p => p.patientName === a.patientName))
-        .forEach(a => patients.push({
-          patientName: a.patientName,
-          manchesterColor: 'Verde',
-          status: a.status,
-          source: 'appointment',
-          doctorName: a.doctorName,
-          appointmentTime: a.appointmentTime
-        }));
+        .forEach(a => {
+          const nKey = normName(a.patientName);
+          if (!nKey || seenNames.has(nKey) || occupiedBedsPatients.has(nKey)) return;
+          seenNames.add(nKey);
+          patients.push({
+            patientName: a.patientName,
+            patientId: a.patientId,
+            manchesterColor: 'Verde',
+            status: a.status,
+            source: 'appointment',
+            doctorName: a.doctorName,
+            appointmentTime: a.appointmentTime
+          });
+        });
     }
   } catch (e) { }
 
@@ -565,9 +626,16 @@ async function openTVCallModal(preselectedName = '', preselectedColor = '', pres
     if (res.ok) {
       const data = await res.json();
       const rawArr = Array.isArray(data) ? data : (data.data || []);
-      waitingPatients = rawArr.filter(e =>
-        e.status && e.status !== 'Finalizado' && e.status !== 'Cancelado'
-      );
+      const seen = new Set();
+      waitingPatients = rawArr.filter(e => {
+        if (!e.patientName || !e.status) return false;
+        const s = String(e.status).trim();
+        if (['Finalizado', 'Cancelado', 'Internado', 'Alta', 'Óbito'].includes(s)) return false;
+        const nKey = removeAccents(String(e.patientName).toLowerCase().trim());
+        if (!nKey || seen.has(nKey)) return false;
+        seen.add(nKey);
+        return true;
+      });
     }
   } catch (e) { }
 

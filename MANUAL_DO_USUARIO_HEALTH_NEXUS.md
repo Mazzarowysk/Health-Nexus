@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.18)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.19)
 
-> **Health Nexus v2.9.18 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.19 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -1075,11 +1075,14 @@ Pensado especialmente para laptops e agilidade no plantão, o Guia de Fluxo agor
 
 - Todas as exibições de data de nascimento de pacientes no cabeçalho do prontuário médico (PEP), no modal de atendimento e nas fichas cadastrais seguem rigorosamente a máscara brasileira `DD/MM/AAAA` (ex.: `15/06/1985`), eliminando formatos invertidos (`AAAA-MM-DD`).
 
-### 📺 Diagramação Desobstruída da Fila de Espera no Painel TV (v2.9.15)
+### 📺 Diagramação Desobstruída & Eliminação de Duplicidades na Fila da TV (v2.9.19)
 
-- **Distribuição em Camadas Verticais:** Os cards de pacientes aguardando chamada na TV foram totalmente redesenhados para eliminar qualquer sobreposição (*remontagem*) entre elementos:
+- **Garantia de Unicidade (1 Card por Paciente):** A rotina da fila de espera do Painel TV (`loadTVWaitingQueue` e modal de chamada) realiza deduplicação estrita por identificador e nome do paciente. Mesmo que o histórico possua múltiplos registros em decorrência de passagens anteriores ou alterações de status, cada paciente é computado e exibido exatamente uma vez na fila do telão.
+- **Filtro Automático de Pacientes Internados e com Alta:** Pacientes já acolhidos em leitos hospitalares ou UTI (`status: 'Internado'`), alocados em leitos ativos ou que já receberam alta médica (`status: 'Alta'`) não permanecem na sala de espera aguardando convocação de consultório ambulatorial. O sistema filtra esses status automaticamente da fila do telão.
+- **Auto-Reconciliação e Fechamento no Banco de Dados:** Ao internar um paciente em leito ou carregar a lista de atendimentos, qualquer atendimento ambulatorial anterior aberto (`Em_Atendimento`) do mesmo paciente é automaticamente reconciliado e marcado como finalizado com a justificativa assistencial `Transferido para Internação`.
+- **Distribuição em Camadas Verticais sem Sobreposição:** Os cards da fila de espera foram desenhados para eliminar qualquer sobreposição (*remontagem*) entre elementos:
   1. **Linha Superior:** Avatar colorido com a classificação Manchester, nome completo do paciente em destaque e posição numérica na fila (`#01`, `#02`, etc.).
-  2. **Linha Intermediária:** Badge de status clínico (`Ag. Triagem`, `Ag. Atendimento`, `Internado`) com indicador luminoso e etiqueta indicativa caso o paciente esteja em foco.
+  2. **Linha Intermediária:** Badge de status clínico (`Ag. Triagem`, `Ag. Atendimento`) com indicador luminoso e etiqueta indicativa caso o paciente esteja em foco.
   3. **Linha Inferior:** Botões de ação direta (`Chamar na TV` e `Consultório` / `Triagem`) alinhados lado a lado com largura equilibrada (`flex: 1`), proporcionando acionamento ágil e seguro sem encavalar em textos ou crachás.
 
 ### 🩺 Central de Atendimentos Resiliente & Tolerante a Falhas (v2.9.16)

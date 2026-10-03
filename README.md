@@ -1,12 +1,18 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.18`  
+**Versão:** `2.9.19`  
 **Status:** Em produção (Production-Ready)  
-**Última atualização:** Setembro 2026
+**Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 📺 **Eliminação Definitiva de Duplicidades no Painel TV (Chamador) & Filtro de Internados (v2.9.19):**
+  1. **Deduplicação Estrita por Paciente na Fila:** Corrigida a ausência de controle de unicidade em `loadTVWaitingQueue`. Cada paciente agora é indexado e normalizado de forma única (`normName`), garantindo que um mesmo paciente jamais apareça em dois cards concorrentes (#90, #91, etc.) na fila do telão da recepção.
+  2. **Filtro Automático de Pacientes Internados e com Alta:** Pacientes já admitidos em leitos hospitalares, enfermarias ou UTI (`status: 'Internado'`), acomodados em leitos ocupados ou que receberam alta médica (`status: 'Alta'`) não aguardam na sala de espera e são filtrados automaticamente da fila do Painel TV.
+  3. **Auto-Reconciliação no Banco de Dados (`localDB`):** Ao carregar a fila ou registrar transferência para leito (`/transfer-to-bed`), o sistema identifica e encerra automaticamente atendimentos ambulatoriais órfãos (`Em_Atendimento`) de pacientes que já foram admitidos em leitos hospitalares, limpando registros residuais permanentemente.
+  4. **Conduta Clínica Consciente no Smart Flow Guide:** Ao abrir a aba do Painel TV com um paciente internado em foco (ex: Leito de UTI), o Guia de Fluxo identifica o paciente no leito e orienta a conduta correta (acesso ao Mapa de Leitos e Evolução no Prontuário PEP), eliminando recomendações inconsistentes de chamá-lo à recepção.
 
 - 📋 **Acionamento Completo do Botão "Ver Prescrição" no Card de Fluxo & Tabela da Farmácia (v2.9.18):**
   1. **Abertura Imediata do Receituário pelo Card de Fluxo:** O botão de ação recomendada `📋 Ver Prescrições de [Paciente] ➔` no Smart Flow Guide (Painel de Governança) agora executa a navegação completa: direciona para a aba de Farmácia, ativa a sub-aba de prescrições (`rx`), filtra a tabela pelo paciente em foco e abre instantaneamente o modal completo de **Receituário & Prescrição Médica** com todos os fármacos, doses, vias e checagens da enfermagem.

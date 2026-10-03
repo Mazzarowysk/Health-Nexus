@@ -1421,6 +1421,45 @@ function evaluateClinicalPossibilities(patient, activeTab) {
     }
 
     case 'tv_panel': {
+      if (isInterned) {
+        return {
+          currentStage: 5,
+          stageName: `Internado (${bedName || 'Leito'})`,
+          orderWarning,
+          primaryAction: {
+            title: `🛏️ Paciente Internado: ${firstName} (${bedName || 'Leito'})`,
+            desc: `Paciente ${pName} já se encontra internado(a) no ${bedName || 'leito hospitalar'}. Pacientes internados não aguardam na recepção. Acompanhe a evolução clínica no Mapa de Leitos ou Prontuário PEP.`,
+            btnText: `🛏️ Ver no Mapa de Leitos ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('leitos')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}', 'soap') : window.switchTab('consultorios')` },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Desmarcar Paciente', icon: '✕', onClick: "if(typeof window.clearActivePatientContext==='function'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext==='function'){window.setActivePatientContext(null);}" }
+          ]
+        };
+      }
+      if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta / Finalizado',
+          orderWarning,
+          primaryAction: {
+            title: `✅ Alta Registrada: ${firstName}`,
+            desc: `O atendimento de ${pName} foi finalizado com alta médica. O paciente não se encontra mais na fila de espera do telão.`,
+            btnText: `💰 Faturamento & TISS ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.switchTab('tiss')",
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Desmarcar Paciente', icon: '✕', onClick: "if(typeof window.clearActivePatientContext==='function'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext==='function'){window.setActivePatientContext(null);}" },
+            { label: 'Histórico Completo', icon: '📋', onClick: `window.openPatientHistoryModal ? window.openPatientHistoryModal('${patient.id}', '${safePNameEsc}') : window.switchTab('pacientes')` }
+          ]
+        };
+      }
       if (!isTriaged) {
         return {
           currentStage: 1,

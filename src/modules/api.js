@@ -766,6 +766,23 @@ export const apiFetch = async (url, options = {}) => {
           });
         }
 
+        // Reconciliação: fechar qualquer outro atendimento ambulatorial aberto para este paciente
+        const allPatientEncs = localDB.list('encounters') || [];
+        const normPName = removeAccents((pName || '').toLowerCase().trim());
+        allPatientEncs.forEach(oe => {
+          if (enc && String(oe.id) === String(enc.id)) return;
+          const oeNorm = removeAccents((oe.patientName || '').toLowerCase().trim());
+          const isSame = (pId && oe.patientId && String(oe.patientId) === String(pId)) || (normPName && oeNorm === normPName);
+          if (isSame && oe.status !== 'Finalizado' && oe.status !== 'Cancelado' && oe.status !== 'Alta') {
+            localDB.update('encounters', oe.id, {
+              ...oe,
+              status: 'Finalizado',
+              completed_at: new Date().toISOString(),
+              dischargeType: 'Transferido para Internação'
+            });
+          }
+        });
+
         // Criar ou atualizar registro de internação sincronizado com Kanban
         const getCanonicalKanbanSector = (sectorStr, bedStr = '', wardStr = '') => {
           if (typeof window !== 'undefined' && typeof window.normalizeKanbanSector === 'function') {
@@ -1342,6 +1359,12 @@ export const apiFetch = async (url, options = {}) => {
           let listData = localDB.list(table) || [];
           if (table === 'encounters') {
             const pats = localDB.list('patients') || [];
+            const beds = localDB.list('beds') || [];
+            const internedNames = new Set(
+              beds.filter(b => (b.status === 'Ocupado' || b.status === 'Ocupada') && b.patientName)
+                .map(b => removeAccents(String(b.patientName).toLowerCase().trim()))
+            );
+
             listData = listData.map(enc => {
               if (!enc.patientName || enc.patientName === 'undefined' || enc.patientName === 'null' || !String(enc.patientName).trim()) {
                 const p = pats.find(pt => String(pt.id) === String(enc.patientId || enc.patient_id));
@@ -1351,6 +1374,16 @@ export const apiFetch = async (url, options = {}) => {
                   localDB.update('encounters', enc.id, { ...enc, patientName: resolved });
                 }
               }
+
+              // Se o paciente está internado em leito, fechar atendimentos ambulatoriais duplicados
+              const normName = removeAccents(String(enc.patientName || '').toLowerCase().trim());
+              if (normName && internedNames.has(normName) && enc.status !== 'Internado' && enc.status !== 'Finalizado' && enc.status !== 'Alta' && enc.status !== 'Cancelado') {
+                enc.status = 'Finalizado';
+                enc.completed_at = new Date().toISOString();
+                enc.dischargeType = 'Transferido para Internação';
+                localDB.update('encounters', enc.id, enc);
+              }
+
               return enc;
             });
           }
