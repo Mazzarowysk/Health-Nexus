@@ -16,7 +16,7 @@ echo.
 echo ATENCAO: Mantenha esta janela aberta enquanto utilizar o sistema.
 echo ===================================================
 echo.
-start /min cmd /c "timeout /t 2 /nobreak >nul & start http://localhost:5173"
+start /min cmd /c "timeout /t 5 /nobreak >nul & start http://localhost:5173"
 npm run dev
 
 

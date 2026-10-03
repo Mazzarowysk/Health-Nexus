@@ -3887,9 +3887,9 @@ window.startEncounterPEP = async function(targetId, patientName, roomName) {
     showToast(`🩺 Iniciando atendimento de ${patientName} no ${roomName}`);
   }
 
-  // 3. Abre o PEP
+  // 3. Abre o PEP diretamente no formulário clínico SOAP para preenchimento imediato
   if (typeof window.openPEPModal === 'function') {
-    window.openPEPModal(targetId || patientName);
+    window.openPEPModal(targetId || patientName, 'soap');
   }
 
   // 4. Recarrega os consultórios para atualizar o card
@@ -7604,7 +7604,7 @@ async function loadConsultingRooms() {
                   <span style="font-weight: 700; font-size: 0.82rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${inProgressName}">${inProgressName}</span>
                   <span style="font-size: 0.65rem; background: rgba(99,102,241,0.35); color: #c7d2fe; border-radius: 4px; padding: 1px 5px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">Em Consulta</span>
                 </div>
-                <button class="btn" style="background: rgba(99,102,241,0.25); color: #c7d2fe; border: 1px solid rgba(99,102,241,0.45); font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;" onclick="event.stopPropagation(); if(typeof window.openPEPModal==='function') window.openPEPModal('${inProgressTargetId || inProgressName.replace(/'/g, "\\'")}');" title="Abrir Prontuário">
+                <button class="btn" style="background: rgba(99,102,241,0.25); color: #c7d2fe; border: 1px solid rgba(99,102,241,0.45); font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;" onclick="event.stopPropagation(); if(typeof window.openPEPModal==='function') window.openPEPModal('${inProgressTargetId || inProgressName.replace(/'/g, "\\'")}', 'soap');" title="Abrir Prontuário">
                   <i class="fa-solid fa-file-medical"></i> PEP
                 </button>
               </div>
@@ -7747,7 +7747,7 @@ async function openConsultorioDetailsModal(roomName) {
 
                 <!-- Ações Diretas de Consulta / PEP / Prescrição -->
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
-                  <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.85rem; padding: 9px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2,132,199,0.35);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${patientTargetId}', '${patientTargetName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientTargetName}');">
+                  <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.85rem; padding: 9px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2,132,199,0.35);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${patientTargetId}', '${patientTargetName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientTargetName}', 'soap');">
                     <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
                   </button>
                   <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.82rem; padding: 9px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('${patientTargetId}', '${patientTargetName}');">
@@ -7797,7 +7797,7 @@ async function openConsultorioDetailsModal(roomName) {
                       <button class="btn" style="background:rgba(14,165,233,0.18);border:1px solid rgba(14,165,233,0.35);color:#38bdf8;font-size:0.72rem;padding:5px 10px;border-radius:7px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" onclick="var rn=${JSON.stringify(roomName)}; var pn=${JSON.stringify(w.patientName||w.name||'')}; if(pn && typeof window.callPatientToTV==='function'){window.callPatientToTV(pn,rn);}else if(typeof window.switchTab==='function'){window.switchTab('tv');}" title="Chamar na TV">
                         <i class="fa-solid fa-tv"></i> TV
                       </button>
-                      <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.72rem; padding: 5px 10px; border-radius: 7px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${w.id || w.patientId || ''}', '${w.patientName || w.name}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${w.id || w.patientId || w.patientName}');">
+                      <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.72rem; padding: 5px 10px; border-radius: 7px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${w.id || w.patientId || ''}', '${w.patientName || w.name}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${w.id || w.patientId || w.patientName}', 'soap');">
                         <i class="fa-solid fa-file-medical"></i> Atender
                       </button>
                     </div>
@@ -7850,7 +7850,7 @@ async function openConsultorioDetailsModal(roomName) {
                       <span style="color: #94a3b8; font-size: 0.75rem;">Chamado por: <strong>${c.doctorName || 'Dr. Médico Plantonista'}</strong> &bull; ${c.calledAt ? new Date(c.calledAt).toLocaleTimeString().slice(0,5) : 'Recente'}</span>
                     </div>
                     <div style="display: flex; gap: 6px;">
-                      <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.76rem; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.3);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${c.patientId || ''}', '${c.patientName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${c.patientId || c.patientName}');">
+                      <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.76rem; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.3);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${c.patientId || ''}', '${c.patientName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${c.patientId || c.patientName}', 'soap');">
                         <i class="fa-solid fa-file-medical"></i> Atender (PEP)
                       </button>
                     </div>

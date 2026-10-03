@@ -869,13 +869,13 @@ export function renderAttendanceTab(contentArea) {
       const b = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-triar`);
       const pepBtn = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-open-pep-direct`);
       if (b) b.addEventListener('click', () => openTriageModal(e.id, e.patientName));
-      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
+      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id, 'soap'));
     });
     setCol('col-waiting', waiting, '#f59e0b', 'Nenhum paciente aguardando médico', buildWaitCard, (e) => {
       const b = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-call-consult`);
       const pepBtn = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-open-pep-direct`);
       if (b) b.addEventListener('click', () => updateStatus(e.id, 'Em_Atendimento', e.patientName, e.manchesterColor));
-      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id));
+      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id, 'soap'));
     });
     setCol('col-active', active, '#10b981', 'Nenhum paciente em consulta agora', buildActiveCard, (e) => {
       const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
@@ -883,7 +883,7 @@ export function renderAttendanceTab(contentArea) {
       const obsBtn = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-start-obs`);
       const bed = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-transfer-bed`);
       const fin = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-finish-consult`);
-      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
+      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id, 'soap'));
       if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
       if (obsBtn) obsBtn.addEventListener('click', async () => {
         try {
@@ -917,7 +917,7 @@ export function renderAttendanceTab(contentArea) {
       const rx = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-rx`);
       const bed = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-transfer-bed`);
       const alta = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-finish-obs`);
-      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id));
+      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id, 'soap'));
       if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
       if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
       if (alta) alta.addEventListener('click', async () => {

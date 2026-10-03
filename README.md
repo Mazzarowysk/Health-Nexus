@@ -8,6 +8,10 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 🩺 **Abertura Direta do Formulário Clínico no PEP & Eliminação de Botões Redundantes (v2.9.18):**
+  1. **Abertura Imediata no Formulário SOAP ao Atender:** Ao clicar em `Atender (PEP)` no Painel de Consultórios, na Central de Atendimentos ou no Guia de Fluxo, a janela do Prontuário Eletrônico abre diretamente no **Formulário do PEP (SOAP)** com todos os campos prontos para preenchimento imediato (Subjetivo, Objetivo com sinais vitais, Avaliação com CID-10, Conduta/Prescrição e resumo IA Copilot 2.0), eliminando a necessidade de cliques intermediários em abas ou listas.
+  2. **Eliminação de Botões Duplicados:** Corrigida a redundância visual onde o cabeçalho do modal e a lista de registros apresentavam simultaneamente dois botões idênticos "Incluir Novo PEP" a poucos pixels de distância. O cabeçalho foi despoluído (mantendo Teleconsulta, WhatsApp e Fechar) e a ação de nova evolução ficou concentrada de forma limpa e única no painel de histórico.
+  3. **Histórico Sempre Acessível:** A aba `📋 Histórico de PEPs Existentes` continua acessível a qualquer momento como segunda aba e pelo botão `← Voltar para Lista de PEPs` no formulário.
 - 💰 **Emissão de Guia TISS Individual & Fechamento de Lotes ANS (v2.9.18):**
   1. **Acionamento Direto na Tela de Faturamento:** Além do Smart Flow Guide, o botão principal **`📄 Emitir Guia Individual`** no cabeçalho da aba de Faturamento TISS abre a janela de faturamento imediatamente com tratamento de exceções blindado para qualquer paciente da base cadastral.
   2. **Seletor Dinâmico de Pacientes:** O modal conta com um campo suspenso dedicado (`Selecionar / Alternar Paciente para Emissão da Guia`), permitindo alternar instantaneamente entre qualquer paciente do hospital com recálculo automático de procedimentos, convênios e valores.

@@ -225,26 +225,23 @@ A 4ª coluna do Kanban e a aba dedicada **Observação do PS** operam em conform
 
 ![Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição](docs/screenshots/11-prontuario-pep.png)
 
-<h3 id="sec-3-0">3.0. Nova Experiência de Abertura: Listagem de PEPs Existentes & Inclusão Intuitiva</h3>
+<h3 id="sec-3-0">3.0. Fluxo Direto de Atendimento: Preenchimento Imediato do PEP (SOAP) & Histórico Unificado</h3>
 
-Ao clicar no botão **"Abrir PEP"** em qualquer módulo assistencial (Observação do Pronto-Socorro, Consultórios de Atendimento, Central de Leitos ou Relatórios Clínicos), o sistema adota um fluxo direto centrado na segurança e no histórico prévio do paciente:
+Ao clicar no botão **"Atender (PEP)"** nos Consultórios, na Central de Atendimentos ou no Guia de Fluxo, o sistema abre diretamente a tela de conduta clínica centrada na agilidade médica:
 
-1. **Abertura Padrão na Listagem (`📋 Listagem de PEPs Existentes`):**
-   - O profissional visualiza de imediato a **ordem cronológica decrescente rigorosa (mais recente sempre no topo, mais antigo embaixo)** de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).
-   - O sistema avalia os horários de atualização mais recentes (`updated_at`, `lastStatusUpdate`, `completed_at`, `discharged_at`, `created_at`), garantindo que qualquer nova anotação, alta ou rascunho em aberto assuma o primeiro lugar da lista automaticamente.
-   - Cada card do histórico apresenta:
-     - Setor ou ala de atendimento (com ícone visual dedicado).
-     - Data e hora exatas da evolução no padrão brasileiro (`DD/MM/AAAA às HH:MM`).
-     - Status assistencial (`✓ Assinado / Finalizado` ou `⏳ Rascunho / Em Andamento`).
-     - Nome do médico assistente e CRM.
-     - Hipótese diagnóstica / CID-10 e prévia dos blocos Subjetivo e Conduta.
-     - Botão **`👁️ Visualizar PEP Completo`**: abre o modo leitura estruturado com carimbo CFM e botão de retorno `← Voltar para Lista de PEPs`.
-     - Botão **`✏️ Continuar / Editar`**: permite retomar prontuários em aberto ou rascunhos.
+1. **Abertura Imediata no Formulário Clínico (`🩺 Formulário do PEP (SOAP)`):**
+   - O médico visualiza de pronto todos os campos estruturados prontos para digitação e conduta:
+     - **Subjetivo (Anamnese & Queixa):** pré-preenchido com a queixa da Triagem Manchester e suporte a ditado por voz.
+     - **Objetivo (Exame Físico & Achados):** integrado aos sinais vitais aferidos (PA, Temp, FC, SpO2) e escore MEWS.
+     - **Avaliação (Diagnóstico / CID-10):** busca inteligente com autocomplete rápido por código ou descrição clínica.
+     - **Plano Terapêutico & Prescrição:** verificação automática de interações medicamentosas graves e inserção de exames em 1 clique.
+     - **Resumo Clínico Preditivo por IA (Copilot 2.0):** síntese assistencial em 3 linhas com atalho direto ao PACS DICOM.
+     - **Desfecho:** alta ambulatorial, observação PS ou solicitação de internação hospitalar.
 
-2. **Inclusão Direta e Acessível (`➕ Incluir Novo PEP`):**
-   - Um botão em destaque no cabeçalho superior e no topo da lista permite abrir imediatamente uma folha limpa de evolução clínica (SOAP).
-   - No formulário de preenchimento, o cabeçalho exibe o botão **`← Voltar para Lista de PEPs`**, permitindo consultar dados anteriores sem perder o contexto do atendimento.
-   - Caso o paciente ainda não possua nenhum prontuário anterior (zero registros), o sistema apresenta uma tela inicial amigável com o botão **`➕ Incluir Primeiro PEP Agora`**.
+2. **Acesso Fácil e Limpo ao Histórico (`📋 Histórico de PEPs Existentes`):**
+   - Caso deseje consultar passagens anteriores ou evoluções de outros plantões, basta alternar para a segunda aba ou clicar em **`← Voltar para Lista de PEPs`**.
+   - As evoluções prévias são apresentadas em **ordem cronológica decrescente rigorosa (mais recente sempre no topo)**.
+   - A interface foi despoluída, eliminando botões redundantes e mantendo uma única ação intuitiva de nova evolução (`➕ Incluir Novo PEP`) caso o profissional opte por abrir nova folha a partir do histórico.
 
 ---
 

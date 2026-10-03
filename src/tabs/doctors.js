@@ -2275,9 +2275,11 @@ modal.style.left = '0';
 // ==========================================
 // PRONTUÁRIO ELETRÔNICO DO PACIENTE (PEP) & CONSULTÓRIO
 // ==========================================
-window.openPEPModal = async function(encounterId, initialTab = 'history') {
+window.openPEPModal = async function(encounterId, initialTab = 'soap') {
   const existing = document.getElementById('pep-modal');
   if (existing) existing.remove();
+
+  const isStartSoap = (initialTab === 'soap' || (typeof initialTab === 'object' && initialTab?.tab === 'soap') || !initialTab);
 
   const modal = document.createElement('div');
   modal.id = 'pep-modal';
@@ -2304,9 +2306,6 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button type="button" id="btn-pep-new-header" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: 1px solid rgba(56,189,248,0.4); color: #fff; font-size: 0.82rem; font-weight: 700; border-radius: 20px; padding: 7px 16px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 14px rgba(2,132,199,0.35);">
-              <i class="fa-solid fa-plus-circle"></i> Incluir Novo PEP
-            </button>
             <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
               <i class="fa-solid fa-video"></i> Teleconsulta
             </button>
@@ -2316,30 +2315,30 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
           </div>
         </div>
 
-        <!-- ABAS DO PEP -->
+        <!-- ABAS DO PEP (Formulário SOAP por primeiro como foco principal) -->
         <div style="display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,0.08);">
-          <button id="pep-tab-history" onclick="window._pepSwitchTab('history')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #a78bfa; background: transparent; border: none; border-bottom: 2.5px solid #7c3aed; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
-            <i class="fa-solid fa-folder-tree"></i> Listagem de PEPs Existentes <span id="pep-history-badge" style="background: rgba(99,102,241,0.25); color: #a5b4fc; border-radius: 20px; padding: 1px 8px; font-size: 0.72rem;">...</span>
-          </button>
-          <button id="pep-tab-soap" onclick="window._pepSwitchTab('soap')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #94a3b8; background: transparent; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
+          <button id="pep-tab-soap" onclick="window._pepSwitchTab('soap')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: ${isStartSoap ? '#a78bfa' : '#94a3b8'}; background: transparent; border: none; border-bottom: 2.5px solid ${isStartSoap ? '#7c3aed' : 'transparent'}; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
             <i class="fa-solid fa-stethoscope"></i> Formulário do PEP (SOAP)
           </button>
+          <button id="pep-tab-history" onclick="window._pepSwitchTab('history')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: ${!isStartSoap ? '#a78bfa' : '#94a3b8'}; background: transparent; border: none; border-bottom: 2.5px solid ${!isStartSoap ? '#7c3aed' : 'transparent'}; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
+            <i class="fa-solid fa-folder-tree"></i> Histórico de PEPs Existentes <span id="pep-history-badge" style="background: rgba(99,102,241,0.25); color: #a5b4fc; border-radius: 20px; padding: 1px 8px; font-size: 0.72rem;">...</span>
+          </button>
         </div>
       </div>
 
-      <!-- Painel de Histórico / Listagem de PEPs (ATIVO por padrão) -->
-      <div id="pep-history-panel" style="display: block; padding: 22px 24px; overflow-y: auto; flex: 1;">
-        <div style="text-align:center; color: var(--text-muted); padding:40px;">
-          <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 12px;"></i>
-          <div>Buscando histórico de prontuários do paciente...</div>
-        </div>
-      </div>
-
-      <!-- Painel do Formulário SOAP (oculto por padrão até clicar em Incluir Novo PEP ou Editar) -->
-      <div class="modal-body" id="pep-modal-body" style="display: none; padding: 22px 24px; overflow-y: auto; flex: 1;">
+      <!-- Painel do Formulário SOAP (ATIVO por padrão) -->
+      <div class="modal-body" id="pep-modal-body" style="display: ${isStartSoap ? 'block' : 'none'}; padding: 22px 24px; overflow-y: auto; flex: 1;">
         <div style="text-align: center; color: var(--text-muted); padding: 40px;">
           <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 12px;"></i>
           <div>Carregando formulário do PEP...</div>
+        </div>
+      </div>
+
+      <!-- Painel de Histórico / Listagem de PEPs -->
+      <div id="pep-history-panel" style="display: ${!isStartSoap ? 'block' : 'none'}; padding: 22px 24px; overflow-y: auto; flex: 1;">
+        <div style="text-align:center; color: var(--text-muted); padding:40px;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 12px;"></i>
+          <div>Buscando histórico de prontuários do paciente...</div>
         </div>
       </div>
     </div>
@@ -2381,14 +2380,6 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
       }
     }
   };
-
-  document.getElementById('btn-pep-new-header')?.addEventListener('click', () => {
-    if (typeof window._pepStartNewEvolution === 'function') {
-      window._pepStartNewEvolution();
-    } else {
-      window._pepSwitchTab('soap');
-    }
-  });
 
   document.getElementById('close-pep-modal').addEventListener('click', () => {
     stopVoiceDictation();
@@ -3516,7 +3507,7 @@ window.openPEPModal = async function(encounterId, initialTab = 'history') {
       window._renderPEPHistory(initialHistPanel, enc.id || encounterId);
     }
 
-    const startTab = (typeof initialTab === 'object' && initialTab !== null) ? (initialTab.tab || 'history') : initialTab;
+    const startTab = (typeof initialTab === 'object' && initialTab !== null) ? (initialTab.tab || 'soap') : (initialTab || 'soap');
     if (startTab === 'soap' && typeof window._pepSwitchTab === 'function') {
       window._pepSwitchTab('soap');
       setTimeout(() => {

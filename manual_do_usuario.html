@@ -997,29 +997,26 @@ flowchart TD
 </tbody></table>
 <hr>
 <h2 id="sec-3">3. Prontuário Eletrônico Médico (PEP SOAPE)</h2><p><img src="docs/screenshots/11-prontuario-pep.png" alt="Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição"></p>
-<h3 id="sec-3-0">3.0. Nova Experiência de Abertura: Listagem de PEPs Existentes & Inclusão Intuitiva</h3><p>Ao clicar no botão <strong>&quot;Abrir PEP&quot;</strong> em qualquer módulo assistencial (Observação do Pronto-Socorro, Consultórios de Atendimento, Central de Leitos ou Relatórios Clínicos), o sistema adota um fluxo direto centrado na segurança e no histórico prévio do paciente:</p>
+<h3 id="sec-3-0">3.0. Fluxo Direto de Atendimento: Preenchimento Imediato do PEP (SOAP) & Histórico Unificado</h3><p>Ao clicar no botão <strong>&quot;Atender (PEP)&quot;</strong> nos Consultórios, na Central de Atendimentos ou no Guia de Fluxo, o sistema abre diretamente a tela de conduta clínica centrada na agilidade médica:</p>
 <ol>
-<li><p><strong>Abertura Padrão na Listagem (<code>📋 Listagem de PEPs Existentes</code>):</strong></p>
+<li><p><strong>Abertura Imediata no Formulário Clínico (<code>🩺 Formulário do PEP (SOAP)</code>):</strong></p>
 <ul>
-<li>O profissional visualiza de imediato a <strong>ordem cronológica decrescente rigorosa (mais recente sempre no topo, mais antigo embaixo)</strong> de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).</li>
-<li>O sistema avalia os horários de atualização mais recentes (<code>updated_at</code>, <code>lastStatusUpdate</code>, <code>completed_at</code>, <code>discharged_at</code>, <code>created_at</code>), garantindo que qualquer nova anotação, alta ou rascunho em aberto assuma o primeiro lugar da lista automaticamente.</li>
-<li>Cada card do histórico apresenta:<ul>
-<li>Setor ou ala de atendimento (com ícone visual dedicado).</li>
-<li>Data e hora exatas da evolução no padrão brasileiro (<code>DD/MM/AAAA às HH:MM</code>).</li>
-<li>Status assistencial (<code>✓ Assinado / Finalizado</code> ou <code>⏳ Rascunho / Em Andamento</code>).</li>
-<li>Nome do médico assistente e CRM.</li>
-<li>Hipótese diagnóstica / CID-10 e prévia dos blocos Subjetivo e Conduta.</li>
-<li>Botão <strong><code>👁️ Visualizar PEP Completo</code></strong>: abre o modo leitura estruturado com carimbo CFM e botão de retorno <code>← Voltar para Lista de PEPs</code>.</li>
-<li>Botão <strong><code>✏️ Continuar / Editar</code></strong>: permite retomar prontuários em aberto ou rascunhos.</li>
+<li>O médico visualiza de pronto todos os campos estruturados prontos para digitação e conduta:<ul>
+<li><strong>Subjetivo (Anamnese &amp; Queixa):</strong> pré-preenchido com a queixa da Triagem Manchester e suporte a ditado por voz.</li>
+<li><strong>Objetivo (Exame Físico &amp; Achados):</strong> integrado aos sinais vitais aferidos (PA, Temp, FC, SpO2) e escore MEWS.</li>
+<li><strong>Avaliação (Diagnóstico / CID-10):</strong> busca inteligente com autocomplete rápido por código ou descrição clínica.</li>
+<li><strong>Plano Terapêutico &amp; Prescrição:</strong> verificação automática de interações medicamentosas graves e inserção de exames em 1 clique.</li>
+<li><strong>Resumo Clínico Preditivo por IA (Copilot 2.0):</strong> síntese assistencial em 3 linhas com atalho direto ao PACS DICOM.</li>
+<li><strong>Desfecho:</strong> alta ambulatorial, observação PS ou solicitação de internação hospitalar.</li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><strong>Inclusão Direta e Acessível (<code>➕ Incluir Novo PEP</code>):</strong></p>
+<li><p><strong>Acesso Fácil e Limpo ao Histórico (<code>📋 Histórico de PEPs Existentes</code>):</strong></p>
 <ul>
-<li>Um botão em destaque no cabeçalho superior e no topo da lista permite abrir imediatamente uma folha limpa de evolução clínica (SOAP).</li>
-<li>No formulário de preenchimento, o cabeçalho exibe o botão <strong><code>← Voltar para Lista de PEPs</code></strong>, permitindo consultar dados anteriores sem perder o contexto do atendimento.</li>
-<li>Caso o paciente ainda não possua nenhum prontuário anterior (zero registros), o sistema apresenta uma tela inicial amigável com o botão <strong><code>➕ Incluir Primeiro PEP Agora</code></strong>.</li>
+<li>Caso deseje consultar passagens anteriores ou evoluções de outros plantões, basta alternar para a segunda aba ou clicar em <strong><code>← Voltar para Lista de PEPs</code></strong>.</li>
+<li>As evoluções prévias são apresentadas em <strong>ordem cronológica decrescente rigorosa (mais recente sempre no topo)</strong>.</li>
+<li>A interface foi despoluída, eliminando botões redundantes e mantendo uma única ação intuitiva de nova evolução (<code>➕ Incluir Novo PEP</code>) caso o profissional opte por abrir nova folha a partir do histórico.</li>
 </ul>
 </li>
 </ol>
