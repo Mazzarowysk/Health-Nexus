@@ -1241,12 +1241,86 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
 
   modal.style.display = 'flex';
 
-  // Autocomplete de Medicamentos (ANVISA/RENAME)
-  if (!window.medicationsCatalog) {
+  // Autocomplete de Medicamentos (ANVISA/RENAME/Hospitalar)
+  const defaultHospitalCatalog = [
+    { nome: 'Ringer Lactato', dose: '500ml', via: 'EV' },
+    { nome: 'Ringer Lactato', dose: '1000mL', via: 'EV' },
+    { nome: 'Cloreto de Sódio 0,9% (Soro Fisiológico)', dose: '500mL', via: 'EV' },
+    { nome: 'Cloreto de Sódio 0,9% (Soro Fisiológico)', dose: '250mL', via: 'EV' },
+    { nome: 'Cloreto de Sódio 0,9% (Soro Fisiológico)', dose: '1000mL', via: 'EV' },
+    { nome: 'Soro Glicosado 5%', dose: '500mL', via: 'EV' },
+    { nome: 'Soro Glicosado 10%', dose: '500mL', via: 'EV' },
+    { nome: 'Glicose 50%', dose: '20mL (1 amp)', via: 'EV' },
+    { nome: 'Noradrenalina (Hemitartarato de Norepinefrina)', dose: '16mg/4mL (1 amp)', via: 'EV' },
+    { nome: 'Adrenalina (Epinefrina)', dose: '1mg/mL (1 amp)', via: 'EV' },
+    { nome: 'Adrenalina (Epinefrina)', dose: '0.5mg (1/2 amp)', via: 'IM' },
+    { nome: 'Dipirona Sódica', dose: '1g/2mL (1 amp)', via: 'EV' },
+    { nome: 'Dipirona Sódica', dose: '500mg (1 comp)', via: 'VO' },
+    { nome: 'Dipirona Sódica', dose: '500mg/mL (Gotas)', via: 'VO' },
+    { nome: 'Paracetamol', dose: '750mg (1 comp)', via: 'VO' },
+    { nome: 'Paracetamol', dose: '500mg (1 comp)', via: 'VO' },
+    { nome: 'Morfina (Dimorf)', dose: '10mg/mL (1 amp)', via: 'EV' },
+    { nome: 'Morfina (Dimorf)', dose: '2mg (fracionada)', via: 'EV' },
+    { nome: 'Fentanil (Fentanest)', dose: '50mcg/mL (2mL)', via: 'EV' },
+    { nome: 'Tramadol (Tramal)', dose: '100mg/2mL (1 amp)', via: 'EV' },
+    { nome: 'Cetoprofeno (Profenid)', dose: '100mg (1 frasco-ampola)', via: 'EV' },
+    { nome: 'Midazolam (Dormonid)', dose: '15mg/3mL (1 amp)', via: 'EV' },
+    { nome: 'Propofol (Diprivan)', dose: '200mg/20mL (1 amp)', via: 'EV' },
+    { nome: 'Diazepam', dose: '10mg/2mL (1 amp)', via: 'EV' },
+    { nome: 'Diazepam', dose: '10mg (1 comp)', via: 'VO' },
+    { nome: 'Clonazepam (Rivotril)', dose: '2mg (1 comp)', via: 'VO' },
+    { nome: 'Clonazepam (Rivotril)', dose: '2.5mg/mL (Gotas)', via: 'VO' },
+    { nome: 'Amoxicilina', dose: '500mg (1 cap)', via: 'VO' },
+    { nome: 'Amoxicilina + Clavulanato de Potássio', dose: '875mg+125mg (1 comp)', via: 'VO' },
+    { nome: 'Amoxicilina + Clavulanato de Potássio', dose: '1g + 200mg', via: 'EV' },
+    { nome: 'Ceftriaxona (Rocefin)', dose: '1g (1 frasco-ampola)', via: 'EV' },
+    { nome: 'Ceftriaxona (Rocefin)', dose: '2g', via: 'EV' },
+    { nome: 'Ciprofloxacino', dose: '400mg/200mL', via: 'EV' },
+    { nome: 'Ciprofloxacino', dose: '500mg (1 comp)', via: 'VO' },
+    { nome: 'Azitromicina', dose: '500mg (1 comp)', via: 'VO' },
+    { nome: 'Vancomicina', dose: '1g (1 frasco-ampola)', via: 'EV' },
+    { nome: 'Meropenem', dose: '1g (1 frasco-ampola)', via: 'EV' },
+    { nome: 'Piperacilina + Tazobactam', dose: '4.5g', via: 'EV' },
+    { nome: 'Ondansetrona (Vonau)', dose: '8mg/4mL (1 amp)', via: 'EV' },
+    { nome: 'Ondansetrona (Vonau Flash)', dose: '8mg (1 comp orodispersível)', via: 'VO' },
+    { nome: 'Metoclopramida (Plasil)', dose: '10mg/2mL (1 amp)', via: 'EV' },
+    { nome: 'Omeprazol', dose: '40mg (1 frasco-ampola)', via: 'EV' },
+    { nome: 'Omeprazol', dose: '20mg (1 cap)', via: 'VO' },
+    { nome: 'Hidrocortisona (Flebocortid)', dose: '500mg (1 frasco-ampola)', via: 'EV' },
+    { nome: 'Hidrocortisona (Flebocortid)', dose: '100mg (1 frasco-ampola)', via: 'EV' },
+    { nome: 'Dexametasona (Decadron)', dose: '4mg/mL (2.5mL)', via: 'EV' },
+    { nome: 'Furosemida (Lasix)', dose: '20mg/2mL (1 amp)', via: 'EV' },
+    { nome: 'Furosemida (Lasix)', dose: '40mg (1 comp)', via: 'VO' },
+    { nome: 'Enoxaparina (Clexane)', dose: '40mg (1 seringa)', via: 'SC' },
+    { nome: 'Enoxaparina (Clexane)', dose: '60mg (1 seringa)', via: 'SC' },
+    { nome: 'Amiodarona', dose: '150mg (1 amp)', via: 'EV' },
+    { nome: 'Amiodarona', dose: '200mg (1 comp)', via: 'VO' },
+    { nome: 'Atropina', dose: '0.5mg/mL (1 amp)', via: 'EV' },
+    { nome: 'Dobutamina', dose: '250mg/20mL (1 amp)', via: 'EV' },
+    { nome: 'Dopamina', dose: '50mg/10mL (1 amp)', via: 'EV' },
+    { nome: 'Insulina Regular Humana', dose: '100 UI/mL', via: 'SC' },
+    { nome: 'Insulina NPH Humana', dose: '100 UI/mL', via: 'SC' },
+    { nome: 'Losartana Potássica', dose: '50mg (1 comp)', via: 'VO' },
+    { nome: 'Metformina', dose: '850mg (1 comp)', via: 'VO' }
+  ];
+
+  if (!window.medicationsCatalog || window.medicationsCatalog.length === 0) {
+    window.medicationsCatalog = defaultHospitalCatalog;
     fetch('/assets/medicamentos.json')
-      .then(res => res.json())
-      .then(data => window.medicationsCatalog = data)
-      .catch(err => console.error('Erro ao carregar medicamentos', err));
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          // Mescla sem duplicar por nome
+          const merged = [...data];
+          defaultHospitalCatalog.forEach(dh => {
+            if (!merged.some(m => m.nome.toLowerCase() === dh.nome.toLowerCase())) {
+              merged.push(dh);
+            }
+          });
+          window.medicationsCatalog = merged;
+        }
+      })
+      .catch(err => console.warn('[Prescrição] Catálogo externo carregado com base padrão:', err));
   }
 
   setTimeout(() => {
@@ -1259,11 +1333,11 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
       acDropdown.style.background = 'var(--bg-secondary)';
       acDropdown.style.border = '1px solid var(--border-color)';
       acDropdown.style.borderRadius = '8px';
-      acDropdown.style.maxHeight = '200px';
+      acDropdown.style.maxHeight = '230px';
       acDropdown.style.overflowY = 'auto';
       acDropdown.style.zIndex = '3600';
       acDropdown.style.width = '100%';
-      acDropdown.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      acDropdown.style.boxShadow = '0 6px 16px rgba(0,0,0,0.25)';
       acDropdown.style.display = 'none';
 
       if (medNameInput && medNameInput.parentElement) {
@@ -1273,12 +1347,12 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
     }
 
     if (medNameInput) {
-      const removeAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const removeAccents = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
       let apiSearchTimeout = null;
 
       const mapRouteToPrescription = (rawRoute = '') => {
-        const r = rawRoute.toLowerCase();
+        const r = (rawRoute || '').toLowerCase();
         if (r.includes('oral') || r.includes('vo')) return 'VO';
         if (r.includes('intra') && (r.includes('ven') || r.includes('ev'))) return 'EV';
         if (r.includes('muscul') || r.includes('im')) return 'IM';
@@ -1288,23 +1362,51 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
         return 'VO';
       };
 
-      const renderMatches = (matches = [], apiMatches = [], query = '') => {
+      const renderMatches = (matches = [], apiMatches = [], query = '', isFinal = false, isSearching = false) => {
         if (matches.length === 0 && apiMatches.length === 0) {
-          acDropdown.innerHTML = `
-            <div style="padding: 10px 12px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; background: var(--bg-tertiary); border-radius: 6px;">
-              <div style="font-weight: 600; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                <i class="fa-solid fa-circle-info"></i> Medicamento livre / não tabelado
+          if (isSearching) {
+            acDropdown.innerHTML = `
+              <div style="padding: 10px 12px; font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); border-radius: 6px;">
+                <i class="fa-solid fa-circle-notch fa-spin" style="color: #38bdf8;"></i>
+                <span>Buscando <strong>"${query}"</strong> na ANVISA / catálogo oficial...</span>
               </div>
-              <div>"${query}" não está na lista padrão nem na ANVISA, mas <strong>pode ser prescrito normalmente</strong>. Preencha a dose/via e clique em <strong>(+)</strong>.</div>
-            </div>
-          `;
-          acDropdown.style.display = 'block';
+            `;
+            acDropdown.style.display = 'block';
+            return;
+          }
+
+          if (isFinal) {
+            acDropdown.innerHTML = `
+              <div style="padding: 10px 12px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; background: var(--bg-tertiary); border-radius: 6px;">
+                <div style="font-weight: 600; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                  <i class="fa-solid fa-circle-info"></i> Medicamento livre / não tabelado
+                </div>
+                <div>"${query}" não está na lista padrão nem na ANVISA, mas <strong>pode ser prescrito normalmente</strong>. Preencha a dose/via e clique em <strong>(+)</strong>.</div>
+              </div>
+            `;
+            acDropdown.style.display = 'block';
+            return;
+          }
+
+          acDropdown.style.display = 'none';
           return;
         }
 
         acDropdown.innerHTML = '';
 
-        // Renderiza primeiro os do catálogo hospitalar
+        // Se está buscando na API em segundo plano, adiciona cabeçalho sutil
+        if (isSearching) {
+          const searchingNotice = document.createElement('div');
+          searchingNotice.style.padding = '5px 12px';
+          searchingNotice.style.fontSize = '0.72rem';
+          searchingNotice.style.color = '#38bdf8';
+          searchingNotice.style.background = 'rgba(56,189,248,0.08)';
+          searchingNotice.style.borderBottom = '1px solid var(--border-color)';
+          searchingNotice.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin" style="margin-right: 5px;"></i> Consultando base ANVISA / OpenFDA para mais opções...`;
+          acDropdown.appendChild(searchingNotice);
+        }
+
+        // Renderiza itens do catálogo hospitalar
         matches.forEach(m => {
           const item = document.createElement('div');
           item.style.padding = '8px 12px';
@@ -1315,9 +1417,9 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
           item.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <strong>${m.nome}</strong>
-              <span style="font-size: 0.7rem; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 1px 6px; border-radius: 4px;">Hospitalar</span>
+              <span style="font-size: 0.7rem; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 1px 6px; border-radius: 4px;">🏥 Hospitalar</span>
             </div>
-            <div style="color:var(--text-muted); font-size:0.75rem; margin-top: 2px;">${m.dose} · Via <strong>${m.via}</strong></div>
+            <div style="color:var(--text-muted); font-size:0.75rem; margin-top: 2px;">${m.dose || ''} · Via <strong>${m.via || 'VO'}</strong></div>
           `;
 
           item.addEventListener('mouseover', () => item.style.background = 'var(--bg-tertiary)');
@@ -1327,8 +1429,8 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
             medNameInput.value = m.nome;
             const doseInput = document.getElementById('rx-med-dose');
             const routeSelect = document.getElementById('rx-med-route');
-            if (doseInput && !doseInput.value) doseInput.value = m.dose;
-            if (routeSelect) {
+            if (doseInput && !doseInput.value && m.dose) doseInput.value = m.dose;
+            if (routeSelect && m.via) {
               const opt = Array.from(routeSelect.options).find(o => o.value === m.via);
               if (opt) routeSelect.value = m.via;
             }
@@ -1345,9 +1447,10 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
           item.style.borderBottom = '1px solid var(--border-color)';
           item.style.fontSize = '0.8rem';
           item.style.color = 'var(--text-primary)';
-          const badgeColor = am.fonte && am.fonte.includes('ANVISA') ? '#10b981' : '#a78bfa';
-          const badgeBg = am.fonte && am.fonte.includes('ANVISA') ? 'rgba(16,185,129,0.15)' : 'rgba(167,139,250,0.15)';
-          const badgeLabel = am.fonte && am.fonte.includes('ANVISA') ? 'ANVISA' : 'OpenFDA';
+          const isAnvisa = am.fonte && am.fonte.includes('ANVISA');
+          const badgeColor = isAnvisa ? '#10b981' : '#a78bfa';
+          const badgeBg = isAnvisa ? 'rgba(16,185,129,0.15)' : 'rgba(167,139,250,0.15)';
+          const badgeLabel = isAnvisa ? 'ANVISA' : 'OpenFDA';
 
           item.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1386,46 +1489,80 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
 
       medNameInput.addEventListener('input', (e) => {
         clearTimeout(apiSearchTimeout);
-        const val = e.target.value.toLowerCase().trim();
-        const cleanVal = removeAccents(val);
+        const val = (e.target.value || '').trim();
+        const cleanVal = removeAccents(val.toLowerCase());
         if (val.length < 2) {
           acDropdown.style.display = 'none';
           return;
         }
 
-        const localMatches = (window.medicationsCatalog || []).filter(m => {
-          return removeAccents(m.nome.toLowerCase()).includes(cleanVal);
+        const catalog = window.medicationsCatalog || defaultHospitalCatalog;
+        const localMatches = catalog.filter(m => {
+          const nomeClean = removeAccents((m.nome || '').toLowerCase());
+          return nomeClean.includes(cleanVal);
         }).slice(0, 20);
 
-        // Exibe imediatamente os locais
-        renderMatches(localMatches, [], val);
+        // Exibe imediatamente os locais se houver, ou status de busca
+        renderMatches(localMatches, [], val, false, true);
 
-        // Dispara busca assíncrona na API de Medicamentos (ANVISA / OpenFDA) via backend
+        // Dispara busca na API de Medicamentos (ANVISA / OpenFDA) via backend com fallback resiliente
         apiSearchTimeout = setTimeout(async () => {
+          let apiDrugs = [];
+
           try {
             const res = await fetch(`/api/anvisa/buscar?q=${encodeURIComponent(val)}`);
             if (res.ok) {
               const data = await res.json();
-              if (data && data.success && Array.isArray(data.resultados) && data.resultados.length > 0) {
-                // Filtra para não duplicar medicamentos que já estão no catálogo local
-                const apiFiltered = data.resultados.filter(ar => {
-                  const arName = removeAccents((ar.nome || '').toLowerCase());
-                  const arPrinc = removeAccents((ar.principioAtivo || '').toLowerCase());
-                  return !localMatches.some(lm => {
-                    const lmName = removeAccents(lm.nome.toLowerCase());
-                    return lmName.includes(arName) || arName.includes(lmName) || (arPrinc && lmName.includes(arPrinc));
-                  });
-                }).slice(0, 15);
-
-                if (apiFiltered.length > 0 || localMatches.length > 0) {
-                  renderMatches(localMatches, apiFiltered, val);
-                }
+              if (data && data.success && Array.isArray(data.resultados)) {
+                apiDrugs = data.resultados;
               }
             }
           } catch (apiErr) {
-            // Em caso de falha de rede/offline, os resultados locais já foram renderizados
+            console.warn('[Prescrição] Backend indisponível para consulta ANVISA, tentando OpenFDA cliente:', apiErr);
           }
-        }, 300);
+
+          // Fallback resiliente direto para OpenFDA no cliente se o backend estiver indisponível ou retornar vazio
+          if (apiDrugs.length === 0) {
+            try {
+              const queryTerm = cleanVal.replace(/[^a-zA-Z0-9]/g, '');
+              if (queryTerm.length >= 2) {
+                const fdaRes = await fetch(`https://api.fda.gov/drug/label.json?search=(openfda.generic_name:*${queryTerm}*+OR+openfda.brand_name:*${queryTerm}*+OR+openfda.substance_name:*${queryTerm}*)&limit=6`);
+                if (fdaRes.ok) {
+                  const fdaData = await fdaRes.json();
+                  if (fdaData && fdaData.results) {
+                    apiDrugs = fdaData.results.map(item => {
+                      const ofda = item.openfda || {};
+                      const nomeMed = ofda.brand_name?.[0] || ofda.generic_name?.[0] || ofda.substance_name?.[0] || 'Medicamento Internacional';
+                      return {
+                        nome: nomeMed,
+                        principioAtivo: ofda.generic_name?.[0] || ofda.substance_name?.[0] || 'N/D',
+                        fabricante: ofda.manufacturer_name?.[0] || 'Internacional',
+                        categoria: ofda.pharm_class_epc?.[0] || 'Uso Farmacêutico',
+                        formaFarmaceutica: ofda.dosage_form?.[0] || 'N/D',
+                        viaAdministracao: ofda.route?.[0] || 'Oral / EV',
+                        fonte: 'OpenFDA'
+                      };
+                    }).filter(m => m.nome && m.nome !== 'N/D');
+                  }
+                }
+              }
+            } catch (fdaErr) {
+              // Silencioso
+            }
+          }
+
+          // Filtra para não duplicar medicamentos já exibidos
+          const apiFiltered = apiDrugs.filter(ar => {
+            const arName = removeAccents((ar.nome || '').toLowerCase());
+            const arPrinc = removeAccents((ar.principioAtivo || '').toLowerCase());
+            return !localMatches.some(lm => {
+              const lmName = removeAccents((lm.nome || '').toLowerCase());
+              return lmName.includes(arName) || arName.includes(lmName) || (arPrinc && lmName.includes(arPrinc));
+            });
+          }).slice(0, 15);
+
+          renderMatches(localMatches, apiFiltered, val, true, false);
+        }, 350);
       });
 
       document.addEventListener('click', (e) => {

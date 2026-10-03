@@ -1380,38 +1380,38 @@ flowchart TD
 </thead>
 <tbody><tr>
 <td align="left"><strong>Fármaco / Medicamento</strong></td>
-<td align="left"><code>#prescription-drug-search</code></td>
-<td align="left">Autocomplete</td>
-<td align="left">Busca por nome comercial ou princípio ativo</td>
-<td align="left"><code>Amoxicilina + Clavulanato 875mg</code></td>
+<td align="left"><code>#rx-med-name</code> / <code>#prescription-drug-search</code></td>
+<td align="left">Autocomplete Inteligente</td>
+<td align="left">Busca no catálogo hospitalar integrado e em tempo real nas bases ANVISA e OpenFDA. Ao digitar a partir de 2 letras, exibe crachás explicativos (<code>🏥 Hospitalar</code>, <code>⚡ ANVISA</code>, <code>⚡ OpenFDA</code>) com preenchimento automático da dose e via sugeridas. Caso não pertença a nenhuma tabela, permite prescrição livre como medicamento especial.</td>
+<td align="left"><code>Ringer Lactato</code>, <code>Noradrenalina</code>, <code>Amoxicilina 500mg</code></td>
 </tr>
 <tr>
 <td align="left"><strong>Dose Unitária</strong></td>
-<td align="left"><code>#prescription-dosage</code></td>
+<td align="left"><code>#rx-med-dose</code> / <code>#prescription-dosage</code></td>
 <td align="left">Texto curto</td>
 <td align="left">Valor e unidade de medida</td>
-<td align="left"><code>1 comprimido</code> ou <code>500 mg</code></td>
+<td align="left"><code>500mL</code>, <code>16mg/4mL (1 amp)</code>, <code>1 comprimido</code></td>
 </tr>
 <tr>
 <td align="left"><strong>Via de Administração</strong></td>
-<td align="left"><code>#prescription-route</code></td>
+<td align="left"><code>#rx-med-route</code> / <code>#prescription-route</code></td>
 <td align="left">Seletor</td>
 <td align="left">VO, EV, IM, SC, SL, Inalatória, Tópica</td>
-<td align="left"><code>Via Oral (VO)</code></td>
+<td align="left"><code>Endovenosa (EV)</code> ou <code>Via Oral (VO)</code></td>
 </tr>
 <tr>
 <td align="left"><strong>Posologia / Frequência</strong></td>
-<td align="left"><code>#prescription-freq</code></td>
+<td align="left"><code>#rx-med-freq</code> / <code>#prescription-freq</code></td>
 <td align="left">Seletor / Texto</td>
-<td align="left">8/8h, 12/12h, 1x ao dia, Se necessário</td>
-<td align="left"><code>De 8 em 8 horas por 7 dias</code></td>
+<td align="left">Dose Única, De 8 em 8h, De 6 em 6h, Contínua (BIC), Se necessário</td>
+<td align="left"><code>Dose Única em bólus</code> ou <code>De 8 em 8 horas</code></td>
 </tr>
 <tr>
 <td align="left"><strong>Orientações Especiais</strong></td>
-<td align="left"><code>#prescription-notes</code></td>
+<td align="left"><code>#rx-med-notes</code> / <code>#prescription-notes</code></td>
 <td align="left">Área de texto</td>
-<td align="left">Instruções para o paciente e enfermagem</td>
-<td align="left"><code>Tomar após as principais refeições com água.</code></td>
+<td align="left">Instruções para a equipe de enfermagem e paciente</td>
+<td align="left"><code>Infusão rápida em 30 a 60 minutos.</code></td>
 </tr>
 </tbody></table>
 <ul>

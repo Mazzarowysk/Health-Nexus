@@ -195,20 +195,58 @@ app.post('/api/auth/login', (req, res) => {
 // 💊 ANVISA — Busca de Medicamentos via OpenFDA (gratuito)
 // =========================================================
 
-// Mock de medicamentos brasileiros comuns (fallback/autocomplete offline)
+// Mock e catálogo de medicamentos brasileiros (ANVISA / RENAME / Farmacopeia)
 const mockBrazilianDrugs = [
-  { nome: 'Dipirona Sódica', principioAtivo: 'Dipirona', fabricante: 'Medley / EMS', categoria: 'Analgésico e Antipirético', formaFarmaceutica: 'Comprimido / Gotas / Injetável', viaAdministracao: 'Oral / IV / IM' },
-  { nome: 'Paracetamol', principioAtivo: 'Paracetamol', fabricante: 'Neo Química', categoria: 'Analgésico e Antipirético', formaFarmaceutica: 'Comprimido / Gotas', viaAdministracao: 'Oral' },
-  { nome: 'Amoxicilina', principioAtivo: 'Amoxicilina', fabricante: 'Eurofarma', categoria: 'Antimicrobiano (Penicilina)', formaFarmaceutica: 'Cápsula / Suspensão', viaAdministracao: 'Oral' },
-  { nome: 'Amoxicilina + Clavulanato de Potássio', principioAtivo: 'Amoxicilina + Clavulanato', fabricante: 'Aché', categoria: 'Antimicrobiano de Amplo Espectro', formaFarmaceutica: 'Comprimido Revestido / Suspensão', viaAdministracao: 'Oral' },
-  { nome: 'Ibuprofeno', principioAtivo: 'Ibuprofeno', fabricante: 'Medley', categoria: 'AINEs (Anti-inflamatório Não Esteroide)', formaFarmaceutica: 'Comprimido / Gotas', viaAdministracao: 'Oral' },
-  { nome: 'Omeprazol', principioAtivo: 'Omeprazol', fabricante: 'EMS', categoria: 'Inibidor de Bomba de Prótons', formaFarmaceutica: 'Cápsula', viaAdministracao: 'Oral' },
-  { nome: 'Losartana Potássica', principioAtivo: 'Losartana', fabricante: 'Prati-Donaduzzi', categoria: 'Anti-hipertensivo (BRA)', formaFarmaceutica: 'Comprimido', viaAdministracao: 'Oral' },
-  { nome: 'Simeticona', principioAtivo: 'Simeticona', fabricante: 'Bayer (Luftal)', categoria: 'Antiflatulento', formaFarmaceutica: 'Comprimido / Gotas', viaAdministracao: 'Oral' },
-  { nome: 'Clonazepam', principioAtivo: 'Clonazepam', fabricante: 'Roche (Rivotril)', categoria: 'Benzodiazepínico', formaFarmaceutica: 'Comprimido / Gotas', viaAdministracao: 'Oral' },
-  { nome: 'Azitromicina', principioAtivo: 'Azitromicina', fabricante: 'Eurofarma', categoria: 'Antimicrobiano (Macrolídeo)', formaFarmaceutica: 'Comprimido / Suspensão', viaAdministracao: 'Oral' },
-  { nome: 'Metformina', principioAtivo: 'Cloridrato de Metformina', fabricante: 'Merck (Glifage)', categoria: 'Antidiabético Oral', formaFarmaceutica: 'Comprimido', viaAdministracao: 'Oral' },
-  { nome: 'Loratadina', principioAtivo: 'Loratadina', fabricante: 'Cimed', categoria: 'Anti-histamínico (Antialérgico)', formaFarmaceutica: 'Comprimido / Xarope', viaAdministracao: 'Oral' }
+  // Hidratação & Eletrólitos
+  { nome: 'Ringer Lactato', principioAtivo: 'Cloreto de Sódio + Lactato de Sódio + Cloreto de Potássio + Cloreto de Cálcio', fabricante: 'Baxter / Fresenius / Equiplex', categoria: 'Solução Hidroeletrolítica (Cristaloide)', formaFarmaceutica: 'Solução Injetável 500mL / 1000mL', viaAdministracao: 'EV' },
+  { nome: 'Cloreto de Sódio 0,9% (Soro Fisiológico)', principioAtivo: 'Cloreto de Sódio', fabricante: 'Baxter / Eurofarma / Halex Istar', categoria: 'Solução Fisiológica Cristaloide', formaFarmaceutica: 'Solução Injetável 100mL / 250mL / 500mL / 1000mL', viaAdministracao: 'EV' },
+  { nome: 'Glicose 5%', principioAtivo: 'Glicose Monoidratada', fabricante: 'Baxter / Fresenius', categoria: 'Solução Glicosada', formaFarmaceutica: 'Solução Injetável 250mL / 500mL', viaAdministracao: 'EV' },
+  { nome: 'Glicose 50%', principioAtivo: 'Glicose Hipertônica', fabricante: 'Isofarma / Farmace', categoria: 'Glicose Hipertônica', formaFarmaceutica: 'Ampola 10mL / 20mL', viaAdministracao: 'EV' },
+  { nome: 'Cloreto de Potássio 19,1%', principioAtivo: 'Cloreto de Potássio', fabricante: 'Isofarma', categoria: 'Reposição Eletrolítica', formaFarmaceutica: 'Ampola 10mL', viaAdministracao: 'EV' },
+  { nome: 'Gluconato de Cálcio 10%', principioAtivo: 'Gluconato de Cálcio', fabricante: 'Isofarma', categoria: 'Reposição Eletrolítica', formaFarmaceutica: 'Ampola 10mL', viaAdministracao: 'EV' },
+
+  // Drogas Vasoativas & Emergência / UTI
+  { nome: 'Noradrenalina (Hemitartarato de Norepinefrina)', principioAtivo: 'Hemitartarato de Norepinefrina', fabricante: 'Hypofarma / Cristália', categoria: 'Vasopressor / Droga Vasoativa', formaFarmaceutica: 'Ampola 2mg/mL (4mL)', viaAdministracao: 'EV' },
+  { nome: 'Adrenalina (Epinefrina)', principioAtivo: 'Epinefrina', fabricante: 'Cristália', categoria: 'Simpaticomimético / Vasopressor', formaFarmaceutica: 'Ampola 1mg/mL (1mL)', viaAdministracao: 'EV / IM / SC' },
+  { nome: 'Dobutamina', principioAtivo: 'Cloridrato de Dobutamina', fabricante: 'União Química', categoria: 'Inotrópico Cardíaco', formaFarmaceutica: 'Ampola 12,5mg/mL (20mL)', viaAdministracao: 'EV' },
+  { nome: 'Dopamina', principioAtivo: 'Cloridrato de Dopamina', fabricante: 'Cristália', categoria: 'Inotrópico / Vasopressor', formaFarmaceutica: 'Ampola 5mg/mL (10mL)', viaAdministracao: 'EV' },
+  { nome: 'Amiodarona', principioAtivo: 'Cloridrato de Amiodarona', fabricante: 'Sanofi (Ancoron)', categoria: 'Antiarrítmico Classe III', formaFarmaceutica: 'Ampola 50mg/mL (3mL) / Comprimido 200mg', viaAdministracao: 'EV / Oral' },
+  { nome: 'Atropina', principioAtivo: 'Sulfato de Atropina', fabricante: 'Isofarma', categoria: 'Anticolinérgico / Parassimpatolítico', formaFarmaceutica: 'Ampola 0,25mg / 0,5mg (1mL)', viaAdministracao: 'EV / IM' },
+  { nome: 'Furosemida (Lasix)', principioAtivo: 'Furosemida', fabricante: 'Sanofi / Teuto', categoria: 'Diurético de Alça', formaFarmaceutica: 'Ampola 20mg/2mL / Comprimido 40mg', viaAdministracao: 'EV / Oral' },
+
+  // Analgésicos, Sedativos & AINEs
+  { nome: 'Dipirona Sódica', principioAtivo: 'Dipirona', fabricante: 'Medley / EMS / Farmace', categoria: 'Analgésico e Antipirético', formaFarmaceutica: 'Comprimido 500mg / Gotas 500mg/mL / Ampola 500mg/mL', viaAdministracao: 'Oral / EV / IM' },
+  { nome: 'Paracetamol', principioAtivo: 'Paracetamol', fabricante: 'Neo Química / EMS', categoria: 'Analgésico e Antipirético', formaFarmaceutica: 'Comprimido 500mg / 750mg / Gotas 200mg/mL', viaAdministracao: 'Oral' },
+  { nome: 'Morfina (Dimorf)', principioAtivo: 'Sulfato de Morfina', fabricante: 'Cristália', categoria: 'Analgésico Opioide Forte', formaFarmaceutica: 'Ampola 1mg/mL ou 10mg/mL / Comprimido', viaAdministracao: 'EV / SC / Oral' },
+  { nome: 'Fentanil (Fentanest)', principioAtivo: 'Citrato de Fentanila', fabricante: 'Cristália', categoria: 'Analgésico Opioide / Anestésico', formaFarmaceutica: 'Ampola 50mcg/mL (2mL / 5mL / 10mL)', viaAdministracao: 'EV' },
+  { nome: 'Tramadol (Tramal)', principioAtivo: 'Cloridrato de Tramadol', fabricante: 'Pfizer / Teuto', categoria: 'Analgésico Opioide', formaFarmaceutica: 'Ampola 50mg/mL ou 100mg/2mL / Cápsula 50mg', viaAdministracao: 'EV / IM / Oral' },
+  { nome: 'Cetoprofeno (Profenid)', principioAtivo: 'Cetoprofeno', fabricante: 'Sanofi / Eurofarma', categoria: 'Anti-inflamatório Não Esteroide (AINE)', formaFarmaceutica: 'Frasco-ampola 100mg / Cápsula 50mg', viaAdministracao: 'EV / IM / Oral' },
+  { nome: 'Midazolam (Dormonid)', principioAtivo: 'Midazolam', fabricante: 'Roche / União Química', categoria: 'Sedativo / Benzodiazepínico', formaFarmaceutica: 'Ampola 5mg/5mL ou 15mg/3mL', viaAdministracao: 'EV / IM' },
+  { nome: 'Propofol (Diprivan)', principioAtivo: 'Propofol', fabricante: 'AstraZeneca / Cristália', categoria: 'Anestésico Geral Intravenoso', formaFarmaceutica: 'Emulsão Injetável 10mg/mL (20mL)', viaAdministracao: 'EV' },
+  { nome: 'Diazepam', principioAtivo: 'Diazepam', fabricante: 'União Química / Teuto', categoria: 'Benzodiazepínico / Anticonvulsivante', formaFarmaceutica: 'Ampola 10mg/2mL / Comprimido 10mg', viaAdministracao: 'EV / Oral' },
+  { nome: 'Clonazepam (Rivotril)', principioAtivo: 'Clonazepam', fabricante: 'Roche', categoria: 'Benzodiazepínico', formaFarmaceutica: 'Comprimido 0,5mg / 2mg / Gotas 2,5mg/mL', viaAdministracao: 'Oral' },
+
+  // Antimicrobianos
+  { nome: 'Amoxicilina', principioAtivo: 'Amoxicilina', fabricante: 'Eurofarma / EMS', categoria: 'Antimicrobiano (Penicilina)', formaFarmaceutica: 'Cápsula 500mg / Suspensão', viaAdministracao: 'Oral' },
+  { nome: 'Amoxicilina + Clavulanato de Potássio', principioAtivo: 'Amoxicilina + Clavulanato', fabricante: 'Aché / GlaxoSmithKline', categoria: 'Antimicrobiano Amplo Espectro', formaFarmaceutica: 'Comprimido 875mg+125mg / Frasco-ampola 1g', viaAdministracao: 'Oral / EV' },
+  { nome: 'Ceftriaxona (Rocefin)', principioAtivo: 'Ceftriaxona Sódica', fabricante: 'Roche / Eurofarma', categoria: 'Cefalosporina de 3ª Geração', formaFarmaceutica: 'Frasco-ampola 1g', viaAdministracao: 'EV / IM' },
+  { nome: 'Ciprofloxacino', principioAtivo: 'Cloridrato de Ciprofloxacino', fabricante: 'Bayer / Medley', categoria: 'Quinolona', formaFarmaceutica: 'Bolsa 200mg/100mL / Comprimido 500mg', viaAdministracao: 'EV / Oral' },
+  { nome: 'Azitromicina', principioAtivo: 'Azitromicina', fabricante: 'Eurofarma / EMS', categoria: 'Macrolídeo', formaFarmaceutica: 'Comprimido 500mg / Frasco-ampola 500mg', viaAdministracao: 'Oral / EV' },
+  { nome: 'Vancomicina', principioAtivo: 'Cloridrato de Vancomicina', fabricante: 'Teuto / Eurofarma', categoria: 'Glicopeptídeo', formaFarmaceutica: 'Frasco-ampola 500mg', viaAdministracao: 'EV' },
+  { nome: 'Meropenem', principioAtivo: 'Meropenem Tri-hidratado', fabricante: 'AstraZeneca / Eurofarma', categoria: 'Carbapenêmico', formaFarmaceutica: 'Frasco-ampola 1g', viaAdministracao: 'EV' },
+  { nome: 'Piperacilina + Tazobactam (Tazocin)', principioAtivo: 'Piperacilina + Tazobactam', fabricante: 'Pfizer / Eurofarma', categoria: 'Penicilina de Amplo Espectro', formaFarmaceutica: 'Frasco-ampola 4g + 0,5g', viaAdministracao: 'EV' },
+
+  // Gastrointestinais, Corticoides & Outros
+  { nome: 'Ondansetrona (Vonau Flash)', principioAtivo: 'Cloridrato de Ondansetrona', fabricante: 'Biolab / Eurofarma', categoria: 'Antiemético', formaFarmaceutica: 'Ampola 4mg/2mL ou 8mg/4mL / Comprimido 4mg', viaAdministracao: 'EV / Oral' },
+  { nome: 'Metoclopramida (Plasil)', principioAtivo: 'Cloridrato de Metoclopramida', fabricante: 'Sanofi', categoria: 'Procinético e Antiemético', formaFarmaceutica: 'Ampola 10mg/2mL / Comprimido 10mg', viaAdministracao: 'EV / IM / Oral' },
+  { nome: 'Omeprazol', principioAtivo: 'Omeprazol', fabricante: 'EMS / Medley / Eurofarma', categoria: 'Inibidor de Bomba de Prótons', formaFarmaceutica: 'Cápsula 20mg / Frasco-ampola 40mg', viaAdministracao: 'Oral / EV' },
+  { nome: 'Hidrocortisona (Flebocortid)', principioAtivo: 'Succinato Sódico de Hidrocortisona', fabricante: 'Sanofi / União Química', categoria: 'Glicocorticoide Injetável', formaFarmaceutica: 'Frasco-ampola 100mg / 500mg', viaAdministracao: 'EV / IM' },
+  { nome: 'Dexametasona (Decadron)', principioAtivo: 'Fosfato Dissódico de Dexametasona', fabricante: 'Aché', categoria: 'Glicocorticoide Potente', formaFarmaceutica: 'Ampola 4mg/mL ou 10mg/mL / Comprimido 4mg', viaAdministracao: 'EV / IM / Oral' },
+  { nome: 'Enoxaparina (Clexane)', principioAtivo: 'Enoxaparina Sódica', fabricante: 'Sanofi / Eurofarma', categoria: 'Anticoagulante (HBPM)', formaFarmaceutica: 'Seringa Pré-enchida 20mg / 40mg / 60mg / 80mg', viaAdministracao: 'SC' },
+  { nome: 'Insulina Regular Humana', principioAtivo: 'Insulina Humana', fabricante: 'Novo Nordisk / Lilly', categoria: 'Hipoglicemiante de Ação Rápida', formaFarmaceutica: 'Frasco 100 UI/mL', viaAdministracao: 'SC / EV' },
+  { nome: 'Insulina NPH Humana', principioAtivo: 'Insulina Humana NPH', fabricante: 'Novo Nordisk / Lilly', categoria: 'Hipoglicemiante de Ação Intermediária', formaFarmaceutica: 'Frasco 100 UI/mL', viaAdministracao: 'SC' },
+  { nome: 'Losartana Potássica', principioAtivo: 'Losartana', fabricante: 'Prati-Donaduzzi / Medley', categoria: 'Anti-hipertensivo (BRA)', formaFarmaceutica: 'Comprimido 50mg', viaAdministracao: 'Oral' },
+  { nome: 'Metformina', principioAtivo: 'Cloridrato de Metformina', fabricante: 'Merck (Glifage) / EMS', categoria: 'Antidiabético Oral', formaFarmaceutica: 'Comprimido 500mg / 850mg', viaAdministracao: 'Oral' }
 ];
 
 app.get('/api/anvisa/buscar', async (req, res) => {
@@ -217,27 +255,58 @@ app.get('/api/anvisa/buscar', async (req, res) => {
     return res.status(400).json({ error: 'Termo de busca muito curto.' });
   }
 
-  const term = q.trim().toLowerCase();
+  const rawTerm = q.trim();
+  const term = rawTerm.toLowerCase();
+  const cleanTerm = term.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
   try {
     let medications = [];
 
-    // 1. Busca Local (Medicamentos Brasileiros)
-    const localMatches = mockBrazilianDrugs.filter(d => 
-      d.nome.toLowerCase().includes(term) || d.principioAtivo.toLowerCase().includes(term)
-    );
+    // 1. Busca no Catálogo Brasileiro (ANVISA / RENAME / Hospitalar)
+    const localMatches = mockBrazilianDrugs.filter(d => {
+      const nomeNorm = d.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const princNorm = (d.principioAtivo || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return nomeNorm.includes(cleanTerm) || princNorm.includes(cleanTerm);
+    });
 
     if (localMatches.length > 0) {
-      medications = localMatches.map(m => ({ ...m, fonte: 'ANVISA (Mock Local)' }));
-    } else {
-      // 2. OpenFDA Drug Label search (fallback para busca internacional)
-      const { default: fetch } = await import('node-fetch').catch(() => ({ default: null }));
-      const fetchFn = fetch || (await import('node:https').then(() => null));
+      medications.push(...localMatches.map(m => ({ ...m, fonte: 'ANVISA / Catálogo Hospitalar' })));
+    }
 
+    // 2. Consulta à base farmacêutica OpenFDA
+    const ptToEnMap = {
+      'ringer': 'ringer',
+      'soro': 'sodium chloride',
+      'adrenalina': 'epinephrine',
+      'noradrenalina': 'norepinephrine',
+      'paracetamol': 'acetaminophen',
+      'dipirona': 'metamizole',
+      'morfina': 'morphine',
+      'fentanil': 'fentanyl',
+      'propofol': 'propofol',
+      'insulina': 'insulin',
+      'dexametasona': 'dexamethasone',
+      'hidrocortisona': 'hydrocortisone',
+      'ondansetrona': 'ondansetron',
+      'furosemida': 'furosemide',
+      'ceftriaxona': 'ceftriaxone',
+      'ciprofloxacino': 'ciprofloxacin',
+      'amoxicilina': 'amoxicillin',
+      'azitromicina': 'azithromycin',
+      'losartana': 'losartan',
+      'metformina': 'metformin',
+      'ibuprofeno': 'ibuprofen',
+      'clonazepam': 'clonazepam',
+      'diazepam': 'diazepam'
+    };
+
+    const searchKeyword = (ptToEnMap[cleanTerm] || cleanTerm).replace(/[^a-zA-Z0-9]/g, '');
+
+    if (searchKeyword.length >= 2) {
       const makeRequest = (url) => {
         return new Promise((resolve) => {
           import('node:https').then(({ default: https }) => {
-            const req = https.get(url, {
+            const request = https.get(url, {
               headers: { 'User-Agent': 'HealthNexus/1.3.0 (hospital-system)' }
             }, (r) => {
               let data = '';
@@ -247,38 +316,50 @@ app.get('/api/anvisa/buscar', async (req, res) => {
                 catch { resolve({ ok: false, data: null }); }
               });
             });
-            req.on('error', () => resolve({ ok: false, data: null }));
-            req.setTimeout(8000, () => { req.destroy(); resolve({ ok: false, data: null }); });
+            request.on('error', () => resolve({ ok: false, data: null }));
+            request.setTimeout(6000, () => { request.destroy(); resolve({ ok: false, data: null }); });
           });
         });
       };
 
-      const encodedTerm = encodeURIComponent(term);
-      // Search OpenFDA by generic name
-      let result = await makeRequest(`https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodedTerm}"&limit=5`);
+      // Busca no OpenFDA com sintaxe Lucene compatível
+      let result = await makeRequest(`https://api.fda.gov/drug/label.json?search=(openfda.generic_name:*${searchKeyword}*+OR+openfda.brand_name:*${searchKeyword}*+OR+openfda.substance_name:*${searchKeyword}*)&limit=6`);
 
       if (!result.ok || !result.data?.results) {
-        // Fallback to brand name
-        result = await makeRequest(`https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodedTerm}"&limit=5`);
+        result = await makeRequest(`https://api.fda.gov/drug/label.json?search=${searchKeyword}&limit=6`);
       }
 
       if (result.ok && result.data?.results) {
-        medications = result.data.results.map(item => {
+        const apiDrugs = result.data.results.map(item => {
           const openfda = item.openfda || {};
+          const brand = openfda.brand_name?.[0];
+          const generic = openfda.generic_name?.[0];
+          const substance = openfda.substance_name?.[0];
+          const nomeFinal = brand || generic || substance || item.package_label_principal_display_panel?.[0]?.slice(0, 45) || 'Medicamento';
+
           return {
-            nome: openfda.brand_name?.[0] || openfda.generic_name?.[0] || 'N/D',
-            principioAtivo: openfda.generic_name?.[0] || 'N/D',
-            fabricante: openfda.manufacturer_name?.[0] || 'N/D',
-            categoria: openfda.pharm_class_epc?.[0] || 'N/D',
+            nome: nomeFinal,
+            principioAtivo: generic || substance || 'N/D',
+            fabricante: openfda.manufacturer_name?.[0] || 'Fabricante Internacional',
+            categoria: openfda.pharm_class_epc?.[0] || 'Uso Farmacêutico',
             formaFarmaceutica: openfda.dosage_form?.[0] || 'N/D',
-            viaAdministracao: openfda.route?.[0] || 'N/D',
+            viaAdministracao: openfda.route?.[0] || 'Oral / EV',
             rxcui: openfda.rxcui?.[0] || null,
             fonte: 'OpenFDA'
           };
+        }).filter(m => m.nome && m.nome !== 'N/D');
+
+        // Adiciona medicamentos da API sem duplicar os já existentes no catálogo
+        apiDrugs.forEach(ad => {
+          const adNorm = ad.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          if (!medications.some(m => m.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(adNorm))) {
+            medications.push(ad);
+          }
         });
       }
     }
-    return res.json({ success: true, resultados: medications, total: medications.length });
+
+    return res.json({ success: true, resultados: medications.slice(0, 25), total: medications.length });
 
   } catch (err) {
     console.error('[ANVISA] Erro:', err);

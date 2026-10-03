@@ -56,6 +56,19 @@ if (typeof removeAccents === 'function') window.removeAccents = removeAccents;
 // Inicia o Vercel Analytics
 inject();
 
+// Pré-carrega o catálogo de medicamentos para autocomplete instantâneo na Prescrição e Farmácia
+if (typeof window !== 'undefined') {
+  window.medicationsCatalog = window.medicationsCatalog || [];
+  fetch('/assets/medicamentos.json')
+    .then(r => r.ok ? r.json() : [])
+    .then(list => {
+      if (Array.isArray(list) && list.length > 0) {
+        window.medicationsCatalog = list;
+      }
+    })
+    .catch(err => console.warn('[Catálogo] Pré-carregamento de medicamentos:', err));
+}
+
 window.updateAppointmentStatus = async function(aptId, newStatus) {
   try {
     const res = await apiFetch('/api/appointments/' + aptId, {

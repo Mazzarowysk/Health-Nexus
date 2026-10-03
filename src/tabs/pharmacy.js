@@ -954,12 +954,47 @@ function openAddPharmModal(itemToEdit = null) {
     anvisaResults.innerHTML = '<div style="padding: 12px; color: var(--text-muted); font-size: 0.82rem; text-align: center;"><i class="fa-solid fa-circle-notch fa-spin"></i> Consultando medicamentos...</div>';
 
     try {
-      const resp = await fetch(`/api/anvisa/buscar?q=${encodeURIComponent(term)}`);
-      const data = await resp.json();
+      let resultados = [];
+      try {
+        const resp = await fetch(`/api/anvisa/buscar?q=${encodeURIComponent(term)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.success && Array.isArray(data.resultados)) {
+            resultados = data.resultados;
+          }
+        }
+      } catch (e) {
+        console.warn('[Farmácia] Falha na rota do backend, buscando fallback:', e);
+      }
 
-      if (!data.success || data.resultados.length === 0) {
+      // Fallback para OpenFDA direto ou catálogo local
+      if (resultados.length === 0) {
+        try {
+          const clean = term.toLowerCase().replace(/[^a-zA-Z0-9]/g, '');
+          const fdaRes = await fetch(`https://api.fda.gov/drug/label.json?search=(openfda.generic_name:*${clean}*+OR+openfda.brand_name:*${clean}*+OR+openfda.substance_name:*${clean}*)&limit=8`);
+          if (fdaRes.ok) {
+            const fdaData = await fdaRes.json();
+            if (fdaData && fdaData.results) {
+              resultados = fdaData.results.map(item => {
+                const ofda = item.openfda || {};
+                return {
+                  nome: ofda.brand_name?.[0] || ofda.generic_name?.[0] || 'Medicamento',
+                  principioAtivo: ofda.generic_name?.[0] || ofda.substance_name?.[0] || 'N/D',
+                  fabricante: ofda.manufacturer_name?.[0] || 'Internacional',
+                  categoria: ofda.pharm_class_epc?.[0] || 'Uso Farmacêutico',
+                  formaFarmaceutica: ofda.dosage_form?.[0] || 'N/D',
+                  viaAdministracao: ofda.route?.[0] || 'Oral'
+                };
+              });
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (resultados.length === 0) {
         anvisaResults.innerHTML = `<div style="padding: 12px; color: #f59e0b; font-size: 0.82rem; text-align: center;"><i class="fa-solid fa-triangle-exclamation"></i> Nenhum medicamento encontrado para "${term}".</div>`;
       } else {
+        const data = { resultados };
         anvisaResults.innerHTML = `
           <div style="display: flex; flex-direction: column;">
             ${data.resultados.map((med, i) => `

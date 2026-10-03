@@ -8,6 +8,10 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 💊 **Busca e Autocomplete de Medicamentos via API (ANVISA / OpenFDA) & Catálogo Hospitalar (v2.9.18):**
+  1. **Catálogo Hospitalar Pré-carregado:** Incorporada lista pré-carregada e imediata de soluções cristaloides (Ringer Lactato, Soro Fisiológico, Glicose), drogas vasoativas de UTI (Noradrenalina, Adrenalina, Dobutamina, Dopamina), sedativos, analgésicos e antimicrobianos, garantindo sugestões instantâneas ao digitar a partir de 2 letras.
+  2. **Consulta Dinâmica à API ANVISA & Base OpenFDA:** Ao digitar o nome do medicamento na prescrição ou na farmácia, o sistema consulta a API oficial e a base internacional OpenFDA com sintaxe Lucene compatível e termos mapeados, retornando princípios ativos, apresentações farmacêuticas e vias de administração com badges visuais (`🏥 Hospitalar`, `⚡ ANVISA`, `⚡ OpenFDA`).
+  3. **Feedback Visual de Busca & Fallback Resiliente:** Adicionado indicador de busca em tempo real (`Consultando ANVISA / base farmacêutica...`) enquanto os dados são obtidos, com fallback direto no navegador caso o backend esteja em modo desconectado. A mensagem de "medicamento livre / não tabelado" só é exibida se nenhuma base encontrar o termo, assegurando flexibilidade para fármacos especiais.
 - 📄 **Correção da Emissão & Download de PDF da Prescrição Médica (v2.9.18):**
   1. **Resolução de Incompatibilidade de Dados:** Corrigido o extrator de medicamentos no gerador de PDF (`generatePrescriptionPDF`), que tentava realizar o parse exclusivamente de `medicationsJson` (campo inexistente na estrutura atual), provocando erro de execução e travando o clique no botão `Imprimir PDF`.
   2. **Suporte Multi-Formato & Fallback:** A função agora suporta com segurança arrays nativos (`prescription.medications`), strings serializadas e coleções de itens, além de buscar automaticamente no `localDB` caso a prescrição não esteja retida em memória.

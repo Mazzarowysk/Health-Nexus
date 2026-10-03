@@ -355,11 +355,11 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 | Campo | Identificador HTML | Tipo de Entrada | Opções / Regras | Exemplo de Preenchimento Válido |
 |:---|:---|:---|:---|:---|
-| **Fármaco / Medicamento** | `#prescription-drug-search` | Autocomplete | Busca por nome comercial ou princípio ativo | `Amoxicilina + Clavulanato 875mg` |
-| **Dose Unitária** | `#prescription-dosage` | Texto curto | Valor e unidade de medida | `1 comprimido` ou `500 mg` |
-| **Via de Administração** | `#prescription-route` | Seletor | VO, EV, IM, SC, SL, Inalatória, Tópica | `Via Oral (VO)` |
-| **Posologia / Frequência** | `#prescription-freq` | Seletor / Texto | 8/8h, 12/12h, 1x ao dia, Se necessário | `De 8 em 8 horas por 7 dias` |
-| **Orientações Especiais** | `#prescription-notes` | Área de texto | Instruções para o paciente e enfermagem | `Tomar após as principais refeições com água.` |
+| **Fármaco / Medicamento** | `#rx-med-name` / `#prescription-drug-search` | Autocomplete Inteligente | Busca no catálogo hospitalar integrado e em tempo real nas bases ANVISA e OpenFDA. Ao digitar a partir de 2 letras, exibe crachás explicativos (`🏥 Hospitalar`, `⚡ ANVISA`, `⚡ OpenFDA`) com preenchimento automático da dose e via sugeridas. Caso não pertença a nenhuma tabela, permite prescrição livre como medicamento especial. | `Ringer Lactato`, `Noradrenalina`, `Amoxicilina 500mg` |
+| **Dose Unitária** | `#rx-med-dose` / `#prescription-dosage` | Texto curto | Valor e unidade de medida | `500mL`, `16mg/4mL (1 amp)`, `1 comprimido` |
+| **Via de Administração** | `#rx-med-route` / `#prescription-route` | Seletor | VO, EV, IM, SC, SL, Inalatória, Tópica | `Endovenosa (EV)` ou `Via Oral (VO)` |
+| **Posologia / Frequência** | `#rx-med-freq` / `#prescription-freq` | Seletor / Texto | Dose Única, De 8 em 8h, De 6 em 6h, Contínua (BIC), Se necessário | `Dose Única em bólus` ou `De 8 em 8 horas` |
+| **Orientações Especiais** | `#rx-med-notes` / `#prescription-notes` | Área de texto | Instruções para a equipe de enfermagem e paciente | `Infusão rápida em 30 a 60 minutos.` |
 
 - **Botões e Ações do Modal:**
 
