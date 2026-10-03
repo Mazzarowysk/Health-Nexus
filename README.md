@@ -8,6 +8,10 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 📄 **Correção da Emissão & Download de PDF da Prescrição Médica (v2.9.18):**
+  1. **Resolução de Incompatibilidade de Dados:** Corrigido o extrator de medicamentos no gerador de PDF (`generatePrescriptionPDF`), que tentava realizar o parse exclusivamente de `medicationsJson` (campo inexistente na estrutura atual), provocando erro de execução e travando o clique no botão `Imprimir PDF`.
+  2. **Suporte Multi-Formato & Fallback:** A função agora suporta com segurança arrays nativos (`prescription.medications`), strings serializadas e coleções de itens, além de buscar automaticamente no `localDB` caso a prescrição não esteja retida em memória.
+  3. **Proteção de Tabelas & Logomarca:** O cabeçalho e a renderização do AutoTable foram blindados contra falhas de imagem, garantindo que o documento seja baixado imediatamente com carimbo de autenticidade, prescritor e tabela de medicamentos preenchida.
 - 🩺 **Abertura Direta do Formulário Clínico no PEP & Eliminação de Botões Redundantes (v2.9.18):**
   1. **Abertura Imediata no Formulário SOAP ao Atender:** Ao clicar em `Atender (PEP)` no Painel de Consultórios, na Central de Atendimentos ou no Guia de Fluxo, a janela do Prontuário Eletrônico abre diretamente no **Formulário do PEP (SOAP)** com todos os campos prontos para preenchimento imediato (Subjetivo, Objetivo com sinais vitais, Avaliação com CID-10, Conduta/Prescrição e resumo IA Copilot 2.0), eliminando a necessidade de cliques intermediários em abas ou listas.
   2. **Eliminação de Botões Duplicados:** Corrigida a redundância visual onde o cabeçalho do modal e a lista de registros apresentavam simultaneamente dois botões idênticos "Incluir Novo PEP" a poucos pixels de distância. O cabeçalho foi despoluído (mantendo Teleconsulta, WhatsApp e Fechar) e a ação de nova evolução ficou concentrada de forma limpa e única no painel de histórico.

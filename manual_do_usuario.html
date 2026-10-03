@@ -1435,18 +1435,18 @@ flowchart TD
 <td align="left">Valida interação CDSS e inclui linha na receita.</td>
 </tr>
 <tr>
-<td align="left"><strong>Salvar &amp; Dispensar</strong></td>
-<td align="left"><code>#btn-save-dispense</code></td>
-<td align="left">Envia pedido direto à farmácia</td>
+<td align="left"><strong>Salvar Prescrição Médica</strong></td>
+<td align="left"><code>#btn-save-rx</code></td>
+<td align="left">Envia prescrição à Farmácia e libera checagem</td>
 <td align="left">Ao menos 1 medicamento na lista</td>
-<td align="left">Envia ordem de separação com baixa no estoque.</td>
+<td align="left">Registra prescrição com ID único e encaminha à farmácia.</td>
 </tr>
 <tr>
-<td align="left"><strong>Imprimir Receita (PDF)</strong></td>
-<td align="left"><code>#btn-print-rx-pdf</code></td>
-<td align="left">Gera PDF oficial padrão CFM com QR Code</td>
-<td align="left">Prescrição salva no sistema</td>
-<td align="left">Download de documento com carimbo digital SHA-256.</td>
+<td align="left"><strong>Imprimir PDF</strong></td>
+<td align="left"><code>.btn-pdf-rx</code></td>
+<td align="left">Gera e baixa instantaneamente o PDF oficial</td>
+<td align="left">Prescrição ativa selecionada</td>
+<td align="left">Download imediato do documento com dados do paciente, médico, medicamentos e checagens.</td>
 </tr>
 <tr>
 <td align="left"><strong>Fechar</strong></td>

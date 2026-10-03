@@ -909,114 +909,204 @@ window.switchTab = switchTab;
 
 // 1. PDF DA PRESCRIÇÃO MÉDICA
 window.generatePrescriptionPDF = async function (prescription, administrations = []) {
-  if (!window.jspdf) { alert('⚠️ Biblioteca PDF não carregada.'); return; }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  if (!prescription) {
+    if (typeof showToast === 'function') showToast('⚠️ Prescrição não informada para geração de PDF.', true);
+    return;
+  }
 
-  const loadLogo = () => new Promise(resolve => {
-    const img = new Image(); img.src = '/assets/logo.png';
-    img.onload = () => resolve(img); img.onerror = () => resolve(null);
-  });
+  if (typeof showToast === 'function') showToast('📄 Preparando PDF da prescrição médica...');
 
-  const logoImg = await loadLogo();
-
-  // Cabeçalho
-  doc.setFillColor(99, 102, 241);
-  doc.rect(0, 0, 210, 28, 'F');
-  if (logoImg) doc.addImage(logoImg, 'PNG', 8, 5, 18, 18);
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(15); doc.setFont('helvetica', 'bold');
-  doc.text('HEALTH NEXUS', 30, 13);
-  doc.setFontSize(8.5); doc.setFont('helvetica', 'normal');
-  doc.text('Sistema de Gestão Hospitalar & Prontuário', 30, 19);
-  doc.text('RECEITUÁRIO & PRESCRIÇÃO MÉDICA', 125, 13);
-  doc.text(`Data: ${new Date(prescription.created_at || Date.now()).toLocaleString('pt-BR')}`, 125, 19);
-
-  // Informações do Paciente e Médico
-  doc.setTextColor(30, 30, 50);
-  doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-  doc.text(`PACIENTE: ${prescription.patientName}`, 14, 38);
-  doc.setFontSize(9.5); doc.setFont('helvetica', 'normal');
-  doc.text(`MÉDICO PRESCRITOR: ${prescription.doctorName}`, 14, 45);
-  doc.text(`Nº PRESCRIÇÃO: #${prescription.id}`, 145, 45);
-
-  doc.setDrawColor(99, 102, 241); doc.setLineWidth(0.5);
-  doc.line(14, 49, 196, 49);
-
-  // Tabela de Medicamentos
-  let medications = [];
   try {
-    medications = typeof prescription.medicationsJson === 'string' ? JSON.parse(prescription.medicationsJson) : prescription.medicationsJson;
-  } catch (e) { medications = []; }
+    if (!window.jspdf) {
+      if (typeof showToast === 'function') showToast('⚠️ Biblioteca jsPDF ainda não carregada.', true);
+      else alert('⚠️ Biblioteca PDF não carregada.');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  const tableData = medications.map((m, idx) => [
-    `${idx + 1}. ${m.name}`,
-    m.dosage || '—',
-    m.route || 'VO',
-    m.frequency || '8/8h',
-    m.instructions || 'Conforme orientação'
-  ]);
+    // Carregar logotipo com tratamento seguro
+    const loadLogo = () => new Promise(resolve => {
+      const img = new Image();
+      img.src = '/assets/logo.png';
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+    });
 
-  doc.autoTable({
-    startY: 54,
-    head: [['Medicamento', 'Dose', 'Via', 'Frequência', 'Instruções']],
-    body: tableData,
-    theme: 'grid',
-    headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold', fontSize: 9 },
-    styles: { fontSize: 8.5, cellPadding: 3 },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
-    margin: { left: 14, right: 14 }
-  });
+    let logoImg = null;
+    try {
+      logoImg = await loadLogo();
+    } catch (_) {
+      logoImg = null;
+    }
 
-  let finalY = doc.lastAutoTable.finalY + 10;
+    // Cabeçalho Visual
+    doc.setFillColor(99, 102, 241);
+    doc.rect(0, 0, 210, 28, 'F');
+    if (logoImg) {
+      try {
+        doc.addImage(logoImg, 'PNG', 8, 5, 18, 18);
+      } catch (imgErr) {
+        console.warn('[PDF] Falha ao renderizar logo, prosseguindo com texto:', imgErr);
+      }
+    }
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(15);
+    doc.setFont('helvetica', 'bold');
+    doc.text('HEALTH NEXUS', 30, 13);
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Sistema de Gestão Hospitalar & Prontuário', 30, 19);
+    doc.text('RECEITUÁRIO & PRESCRIÇÃO MÉDICA', 125, 13);
+    const presDate = prescription.created_at || prescription.date || Date.now();
+    doc.text(`Data: ${new Date(presDate).toLocaleString('pt-BR')}`, 125, 19);
 
-  // Tabela de Administrações da Enfermagem se houver
-  if (administrations && administrations.length > 0) {
-    if (finalY > 220) { doc.addPage(); finalY = 20; }
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(16, 185, 129);
-    doc.text('REGISTRO DE ADMINISTRAÇÃO (ENFERMAGEM)', 14, finalY);
-    finalY += 5;
+    // Informações do Paciente e Médico
+    const pName = prescription.patientName || 'Paciente';
+    const dName = prescription.doctorName || 'Dr(a). Médico(a) Assistente';
+    const rxId = prescription.id || '';
 
-    const admData = administrations.map(a => [
-      a.medicationName,
-      a.nurseName,
-      new Date(a.administeredAt).toLocaleString('pt-BR'),
-      a.notes || 'Administrado'
+    doc.setTextColor(30, 30, 50);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`PACIENTE: ${pName}`, 14, 38);
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`MÉDICO PRESCRITOR: ${dName}`, 14, 45);
+    doc.text(`Nº PRESCRIÇÃO: #${rxId}`, 145, 45);
+
+    doc.setDrawColor(99, 102, 241);
+    doc.setLineWidth(0.5);
+    doc.line(14, 49, 196, 49);
+
+    // Extração Segura da Lista de Medicamentos (suporta array, medicationsJson ou items)
+    let medications = [];
+    if (Array.isArray(prescription.medications)) {
+      medications = prescription.medications;
+    } else if (Array.isArray(prescription.items)) {
+      medications = prescription.items;
+    } else if (prescription.medicationsJson) {
+      try {
+        medications = typeof prescription.medicationsJson === 'string'
+          ? JSON.parse(prescription.medicationsJson)
+          : prescription.medicationsJson;
+      } catch (e) {
+        medications = [];
+      }
+    } else if (typeof prescription.medications === 'string') {
+      try {
+        medications = JSON.parse(prescription.medications);
+      } catch (e) {
+        medications = [];
+      }
+    }
+    if (!Array.isArray(medications)) medications = [];
+
+    const tableData = medications.map((m, idx) => [
+      `${idx + 1}. ${m.name || m.medicationName || 'Medicamento'}`,
+      m.dosage || m.dose || '—',
+      m.route || m.via || 'VO',
+      m.frequency || m.freq || '8/8h',
+      m.instructions || m.notes || 'Conforme orientação'
     ]);
 
-    doc.autoTable({
-      startY: finalY,
-      head: [['Medicamento', 'Enfermeiro(a)', 'Data / Hora', 'Observações']],
-      body: admData,
-      theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold', fontSize: 8.5 },
-      styles: { fontSize: 8, cellPadding: 2.5 },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      margin: { left: 14, right: 14 }
-    });
-    finalY = doc.lastAutoTable.finalY + 10;
+    let finalY = 54;
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: 54,
+        head: [['Medicamento', 'Dose', 'Via', 'Frequência', 'Instruções']],
+        body: tableData.length > 0 ? tableData : [['Nenhum medicamento especificado', '—', '—', '—', '—']],
+        theme: 'grid',
+        headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+        styles: { fontSize: 8.5, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { left: 14, right: 14 }
+      });
+      finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY ? doc.lastAutoTable.finalY : 100) + 10;
+    } else {
+      // Fallback caso plugin autoTable não esteja disponível
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Medicamentos Prescritos:', 14, 58);
+      let curY = 64;
+      doc.setFont('helvetica', 'normal');
+      medications.forEach((m, idx) => {
+        doc.text(`${idx + 1}. ${m.name} | Dose: ${m.dosage || '—'} | Via: ${m.route || 'VO'} | Freq: ${m.frequency || '8/8h'} | ${m.instructions || ''}`, 14, curY);
+        curY += 6;
+      });
+      finalY = curY + 8;
+    }
+
+    // Tabela de Administrações da Enfermagem vinculadas a esta prescrição
+    const rxAdms = (Array.isArray(administrations) ? administrations : []).filter(a => a.prescriptionId === rxId);
+    if (rxAdms.length > 0) {
+      if (finalY > 215) { doc.addPage(); finalY = 20; }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(16, 185, 129);
+      doc.text('REGISTRO DE ADMINISTRAÇÃO (ENFERMAGEM)', 14, finalY);
+      finalY += 5;
+
+      const admData = rxAdms.map(a => [
+        a.medicationName || 'Medicamento',
+        a.nurseName || a.administeredBy || 'Enfermagem',
+        a.administeredAt ? new Date(a.administeredAt).toLocaleString('pt-BR') : 'Hoje',
+        a.notes || 'Administrado'
+      ]);
+
+      if (typeof doc.autoTable === 'function') {
+        doc.autoTable({
+          startY: finalY,
+          head: [['Medicamento', 'Enfermeiro(a)', 'Data / Hora', 'Observações']],
+          body: admData,
+          theme: 'grid',
+          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold', fontSize: 8.5 },
+          styles: { fontSize: 8, cellPadding: 2.5 },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          margin: { left: 14, right: 14 }
+        });
+        finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY ? doc.lastAutoTable.finalY : finalY + 40) + 10;
+      }
+    }
+
+    // Assinatura Médica
+    if (finalY > 235) { doc.addPage(); finalY = 30; }
+    doc.setDrawColor(150, 150, 150);
+    doc.setLineWidth(0.4);
+    doc.line(65, finalY + 15, 145, finalY + 15);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(50, 50, 70);
+    doc.text(dName, 105, finalY + 20, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 120);
+    doc.text('Assinatura e Carimbo do Profissional Responsável', 105, finalY + 24, { align: 'center' });
+
+    // Rodapé em todas as páginas
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(160, 160, 160);
+      doc.line(14, 283, 196, 283);
+      doc.text(`Health Nexus — Prescrição Hospitalar Oficial | Página ${i} de ${pageCount}`, 105, 288, { align: 'center' });
+    }
+
+    const safeName = pName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 25);
+    const filename = `prescricao_${safeName}_#${rxId}.pdf`;
+    doc.save(filename);
+    if (typeof showToast === 'function') {
+      showToast(`✅ Prescrição PDF (${filename}) baixada com sucesso!`);
+    }
+  } catch (err) {
+    console.error('[generatePrescriptionPDF] Erro ao gerar PDF:', err);
+    if (typeof showToast === 'function') {
+      showToast('❌ Erro ao gerar PDF da prescrição: ' + (err.message || err), true);
+    } else {
+      alert('Erro ao gerar PDF da prescrição: ' + (err.message || err));
+    }
   }
-
-  // Assinatura Médica
-  if (finalY > 235) { doc.addPage(); finalY = 30; }
-  doc.setDrawColor(150, 150, 150); doc.setLineWidth(0.4);
-  doc.line(65, finalY + 15, 145, finalY + 15);
-  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(50, 50, 70);
-  doc.text(prescription.doctorName, 105, finalY + 20, { align: 'center' });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100, 100, 120);
-  doc.text('Assinatura e Carimbo do Profissional Responsável', 105, finalY + 24, { align: 'center' });
-
-  // Rodapé
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8); doc.setTextColor(160, 160, 160);
-    doc.line(14, 283, 196, 283);
-    doc.text(`Health Nexus — Prescrição Hospitalar Oficial | Página ${i} de ${pageCount}`, 105, 288, { align: 'center' });
-  }
-
-  const safeName = (prescription.patientName || 'paciente').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 25);
-  doc.save(`prescricao_${safeName}_#${prescription.id}.pdf`);
 };
 
 window.openPrescriptionModal = async function (encounterId, patientName, patientId = '') {
@@ -1611,9 +1701,23 @@ window.openPrescriptionModal = async function (encounterId, patientName, patient
 
       // Event listeners para PDF e Checagem da Enfermagem
       container.querySelectorAll('.btn-pdf-rx').forEach(b => {
-        b.onclick = () => {
-          const presObj = prescriptions.find(p => p.id === b.dataset.id);
-          if (presObj) window.generatePrescriptionPDF(presObj, administrations);
+        b.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const targetId = String(b.dataset.id || '');
+          let presObj = prescriptions.find(p => String(p.id) === targetId);
+          if (!presObj && typeof localDB !== 'undefined' && localDB.list) {
+            const allRx = localDB.list('prescriptions') || [];
+            presObj = allRx.find(r => String(r.id) === targetId);
+          }
+          if (presObj) {
+            window.generatePrescriptionPDF(presObj, administrations);
+          } else {
+            console.error('[btn-pdf-rx] Prescrição não localizada:', targetId);
+            if (typeof showToast === 'function') {
+              showToast('❌ Prescrição médica não localizada para gerar o PDF.', true);
+            }
+          }
         };
       });
 

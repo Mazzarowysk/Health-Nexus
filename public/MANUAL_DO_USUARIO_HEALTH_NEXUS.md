@@ -366,8 +366,8 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 | Botão | Identificador HTML | Ação Disparada | Validação Prévia | Efeito no Sistema |
 |:---|:---|:---|:---|:---|
 | **Adicionar Fármaco** | `#btn-add-drug-item` | Insere o medicamento na lista ativa | Fármaco e posologia preenchidos | Valida interação CDSS e inclui linha na receita. |
-| **Salvar & Dispensar** | `#btn-save-dispense` | Envia pedido direto à farmácia | Ao menos 1 medicamento na lista | Envia ordem de separação com baixa no estoque. |
-| **Imprimir Receita (PDF)**| `#btn-print-rx-pdf` | Gera PDF oficial padrão CFM com QR Code| Prescrição salva no sistema | Download de documento com carimbo digital SHA-256. |
+| **Salvar Prescrição Médica** | `#btn-save-rx` | Envia prescrição à Farmácia e libera checagem | Ao menos 1 medicamento na lista | Registra prescrição com ID único e encaminha à farmácia. |
+| **Imprimir PDF** | `.btn-pdf-rx` | Gera e baixa instantaneamente o PDF oficial | Prescrição ativa selecionada | Download imediato do documento com dados do paciente, médico, medicamentos e checagens. |
 | **Fechar** | `#btn-close-prescription`| Encerra a visualização | Salva rascunho automático | Retorna à aba sem perder itens adicionados. |
 
 ---
