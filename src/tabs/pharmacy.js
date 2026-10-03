@@ -482,6 +482,12 @@ function renderPharmacyPrescriptions(prescriptions) {
          </div>`
       : `<span style="color: var(--text-muted); font-size: 0.76rem; font-style: italic;"><i class="fa-solid fa-hourglass-start"></i> Pendente de conferência farmacêutica</span>`;
 
+    const viewButton = `
+      <button class="btn btn-secondary btn-view-rx-action" data-id="${rx.id}" data-patient="${rx.patientName || 'Paciente'}" data-enc="${rx.encounterId || ''}" data-patient-id="${rx.patientId || ''}" style="font-size: 0.78rem; padding: 7px 11px; background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #c7d2fe; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap; border-radius: 8px; font-weight: 600;" title="Abrir Prescrição Médica Completa">
+        <i class="fa-solid fa-file-prescription"></i> Ver Prescrição
+      </button>
+    `;
+
     let actionButton = '';
     if (isPending) {
       if (canRelease) {
@@ -534,15 +540,31 @@ function renderPharmacyPrescriptions(prescriptions) {
           ${auditInfo}
         </td>
         <td style="padding: 12px; text-align: right;">
-          ${actionButton}
+          <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+            ${viewButton}
+            ${actionButton}
+          </div>
         </td>
       </tr>
     `;
   }).join('');
 
   // Event Listeners for action buttons
+  tbody.querySelectorAll('.btn-view-rx-action').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const encId = btn.dataset.enc || '';
+      const patientName = btn.dataset.patient || '';
+      const patientId = btn.dataset.patientId || '';
+      if (typeof window.openPrescriptionModal === 'function') {
+        window.openPrescriptionModal(encId, patientName, patientId);
+      }
+    });
+  });
+
   tbody.querySelectorAll('.btn-release-rx-action').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
       const rxId = btn.dataset.id;
       const patientName = btn.dataset.patient;
       await releasePrescriptionById(rxId, patientName);
@@ -550,7 +572,8 @@ function renderPharmacyPrescriptions(prescriptions) {
   });
 
   tbody.querySelectorAll('.btn-notify-pharm-action').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const rxId = btn.dataset.id;
       const patientName = btn.dataset.patient || 'Paciente';
       notifyPharmacyUrgent(rxId, patientName);
@@ -558,10 +581,16 @@ function renderPharmacyPrescriptions(prescriptions) {
   });
 
   tbody.querySelectorAll('.btn-print-rx-action').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const rxId = btn.dataset.id;
       const patientName = btn.dataset.patient;
-      showToast(`🖨️ Etiqueta de dispensação #${rxId.slice(-6)} emitida com sucesso para o leito de ${patientName}!`);
+      const rx = (currentPrescriptions || []).find(r => r.id === rxId) || (typeof localDB !== 'undefined' && localDB.get ? localDB.get('prescriptions', rxId) : null);
+      if (rx && typeof window.generatePrescriptionPDF === 'function') {
+        window.generatePrescriptionPDF(rx);
+      } else {
+        showToast(`🖨️ Etiqueta de dispensação #${rxId.slice(-6)} emitida com sucesso para o leito de ${patientName}!`);
+      }
     });
   });
 }

@@ -8,6 +8,10 @@
 
 ## 📘 Documentação & Manual do Usuário
 
+- 📋 **Acionamento Completo do Botão "Ver Prescrição" no Card de Fluxo & Tabela da Farmácia (v2.9.18):**
+  1. **Abertura Imediata do Receituário pelo Card de Fluxo:** O botão de ação recomendada `📋 Ver Prescrições de [Paciente] ➔` no Smart Flow Guide (Painel de Governança) agora executa a navegação completa: direciona para a aba de Farmácia, ativa a sub-aba de prescrições (`rx`), filtra a tabela pelo paciente em foco e abre instantaneamente o modal completo de **Receituário & Prescrição Médica** com todos os fármacos, doses, vias e checagens da enfermagem.
+  2. **Botão Dedicado "Ver Prescrição" na Tabela da Farmácia:** Cada linha de prescrição na tabela de circuito fechado da Farmácia passou a contar com o botão dedicado `📄 Ver Prescrição`, permitindo abrir a qualquer momento a visualização detalhada da receita médica.
+  3. **Emissão Direta de PDF na Etiqueta de Dispensação:** O botão `Etiqueta / Guia` aciona de forma integrada o download do PDF oficial da prescrição com todas as dosagens, aprazamento e identificação do prescritor.
 - 💊 **Busca e Autocomplete de Medicamentos via API (ANVISA / OpenFDA) & Catálogo Hospitalar (v2.9.18):**
   1. **Catálogo Hospitalar Pré-carregado:** Incorporada lista pré-carregada e imediata de soluções cristaloides (Ringer Lactato, Soro Fisiológico, Glicose), drogas vasoativas de UTI (Noradrenalina, Adrenalina, Dobutamina, Dopamina), sedativos, analgésicos e antimicrobianos, garantindo sugestões instantâneas ao digitar a partir de 2 letras.
   2. **Consulta Dinâmica à API ANVISA & Base OpenFDA:** Ao digitar o nome do medicamento na prescrição ou na farmácia, o sistema consulta a API oficial e a base internacional OpenFDA com sintaxe Lucene compatível e termos mapeados, retornando princípios ativos, apresentações farmacêuticas e vias de administração com badges visuais (`🏥 Hospitalar`, `⚡ ANVISA`, `⚡ OpenFDA`).

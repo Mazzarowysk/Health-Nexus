@@ -737,9 +737,16 @@ Na aba **Agenda**, realiza-se a marcação, controle de presença e integração
 
 <h2 id="sec-10">10. Farmácia & Dispensação de Medicamentos</h2>
 
-Na aba **Farmácia**, faz-se a gestão de estoque, lotes, validade e rastreabilidade de medicamentos críticos.
+Na aba **Farmácia**, faz-se a gestão de estoque, lotes, validade e rastreabilidade de medicamentos críticos, além da triagem e validação técnica de prescrições no circuito fechado.
 
 ![Figura 10.1: Farmácia Hospitalar — Estoque, Lotes e Rastreabilidade de Medicamentos](docs/screenshots/07-farmacia.png)
+
+### 📋 Fila de Triagem & Circuito Fechado de Prescrições
+Na sub-aba **Fila de Prescrições Hospitalares**, a equipe farmacêutica, médica e de enfermagem conta com ferramentas de checagem em tempo real:
+- **Botão `📄 Ver Prescrição`:** Presente em cada linha da tabela, abre instantaneamente o modal completo de **Receituário & Prescrição Médica** do paciente, exibindo a planilha com todos os fármacos, doses, vias, frequências, instruções de infusão e registro de checagens da enfermagem.
+- **Botão `✅ Validar & Liberar`:** Realiza a homologação farmacêutica no circuito fechado, gravando o CRF do responsável técnico e liberando a administração nos leitos.
+- **Botão `🖨️ Etiqueta / Guia`:** Emite a etiqueta de dispensação para o leito e aciona o download automático do PDF oficial da prescrição médica.
+- **Integração com o Card de Fluxo (Smart Flow Guide):** Ao clicar em `📋 Ver Prescrições de [Paciente] ➔` no painel lateral ou card flutuante, o sistema transiciona diretamente para a Farmácia, aplica o filtro pelo nome do paciente e abre a prescrição de forma imediata.
 
 ### 💊 Tabela de Catálogo de Medicamentos de Alto Giro e Emergência
 

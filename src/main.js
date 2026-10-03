@@ -500,7 +500,7 @@ function evaluateClinicalPossibilities(patient, activeTab) {
             desc: 'Circuito Fechado de Medicamentos: validação técnica de prescrições hospitalares antes da administração pela enfermagem nos leitos.',
             btnText: '📋 Ver Fila de Prescrições Hospitalares ➔',
             btnBg: 'linear-gradient(135deg, #059669, #047857)',
-            onClick: "window.switchPharmacySubTab ? window.switchPharmacySubTab('rx') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())",
+            onClick: "if (typeof window.switchTab === 'function') window.switchTab('farmacia'); if (typeof window.switchPharmacySubTab === 'function') window.switchPharmacySubTab('rx'); if (typeof window.loadPharmacyPrescriptions === 'function') window.loadPharmacyPrescriptions();",
             icon: '📋'
           },
           alternatives: [
@@ -1614,10 +1614,10 @@ function evaluateClinicalPossibilities(patient, activeTab) {
           primaryAction: {
             title: `💊 Farmácia: Prescrições de ${firstName}`,
             desc: `Consulte os medicamentos prescritos para ${pName} (${colorDisplay}) e valide no circuito fechado para liberação.`,
-            btnText: `📋 Ver Prescrições Hospitalares ➔`,
+            btnText: `📋 Ver Prescrições de ${firstName} ➔`,
             btnBg: 'linear-gradient(135deg, #059669, #047857)',
-            onClick: "window.switchPharmacySubTab ? window.switchPharmacySubTab('rx') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())",
-            icon: '💊'
+            onClick: `(function(){ if (typeof window.switchTab === 'function') window.switchTab('farmacia'); if (typeof window.switchPharmacySubTab === 'function') window.switchPharmacySubTab('rx'); const s = document.getElementById('pharm-search-rx'); if (s) { s.value = '${safePNameEsc}'; s.dispatchEvent(new Event('input')); } if (typeof window.openPrescriptionModal === 'function') { window.openPrescriptionModal('${activePatient.encounterId || ''}', '${safePNameEsc}', '${activePatient.id || ''}'); } })()`,
+            icon: '📋'
           },
           alternatives: [
             { label: 'Estoque Central', icon: '📦', onClick: "window.switchPharmacySubTab && window.switchPharmacySubTab('stock')" },
