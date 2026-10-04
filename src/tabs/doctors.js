@@ -1828,6 +1828,24 @@ modal.style.left = '0';
       !occupiedBed && patientHosps.length > 0 ? patientHosps[patientHosps.length - 1] : null
     );
 
+    const lastFinishedEnc = encounters.find(e => e.status === 'Finalizado' || e.status === 'Alta' || e.dischargeType);
+    const lastDischargeIso = (patient && (patient.lastDischargeDate || patient.last_discharge_date || patient.discharged_at)) ||
+                             (latestDischargedHosp && (latestDischargedHosp.discharged_at || latestDischargedHosp.discharge_date)) ||
+                             (lastFinishedEnc && (lastFinishedEnc.discharged_at || lastFinishedEnc.completed_at || lastFinishedEnc.closed_at || lastFinishedEnc.lastStatusUpdate));
+
+    let dischargeDisplayDate = '';
+    if (lastDischargeIso) {
+      const d = new Date(lastDischargeIso);
+      if (!isNaN(d.getTime())) {
+        dischargeDisplayDate = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} às ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      }
+    } else if (patient && (patient.status === 'Alta' || patient.status === 'Alta Concedida' || patient.receptionFinalized)) {
+      const now = new Date();
+      dischargeDisplayDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} às ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    const isPatientDischarged = !activeHosp && (patient.status === 'Alta' || patient.status === 'Alta Concedida' || !!lastDischargeIso || patient.receptionFinalized);
+
     const KANBAN_SECTORS = {
       pronto_socorro: 'Pronto Socorro',
       corredor_internacao: 'Corredor',
@@ -1923,22 +1941,27 @@ modal.style.left = '0';
           </div>
         </div>
       </div>
-      ` : (latestDischargedHosp ? `
-      <!-- SEÇÃO: Alta Hospitalar Concluída -->
-      <div style="margin-bottom: 24px; background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <div style="font-weight: 800; color: #34d399; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-circle-check"></i> Alta Hospitalar Registrada
+      ` : (isPatientDischarged ? `
+      <!-- SEÇÃO: Alta Médica / Hospitalar Homologada -->
+      <div style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 78, 59, 0.25)); border: 1.5px solid rgba(16, 185, 129, 0.5); border-radius: 14px; padding: 18px 22px; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.22); border: 1px solid rgba(16, 185, 129, 0.45); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 1.35rem; flex-shrink: 0;">
+              <i class="fa-solid fa-circle-check"></i>
             </div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-              Leito Desocupado: <strong style="color: var(--text-primary);">${latestDischargedHosp.bed || '102A'}</strong>
-              ${latestDischargedHosp.discharged_at || latestDischargedHosp.discharge_date ? ` | Data da Alta: <strong style="color: #6ee7b7;">${new Date(latestDischargedHosp.discharged_at || latestDischargedHosp.discharge_date).toLocaleDateString('pt-BR')} às ${new Date(latestDischargedHosp.discharged_at || latestDischargedHosp.discharge_date).toLocaleTimeString('pt-BR').slice(0,5)}</strong>` : ''}
-              <span style="display: inline-block; margin-left: 8px; background: rgba(250,204,21,0.15); color: #facc15; border: 1px solid rgba(250,204,21,0.3); font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;">Leito em Higienização / Liberado</span>
+            <div>
+              <div style="font-weight: 800; color: #34d399; font-size: 1.08rem; display: flex; align-items: center; gap: 8px;">
+                Alta Médica / Hospitalar Homologada
+              </div>
+              <div style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
+                <span>🗓️ Data da Última Alta Concedida: <strong style="color: #6ee7b7; font-size: 0.94rem;">${dischargeDisplayDate}</strong></span>
+                ${(latestDischargedHosp?.bed || occupiedBed?.bedNumber) ? `<span>🛌 Leito Desocupado: <strong style="color: #facc15;">${latestDischargedHosp?.bed || occupiedBed?.bedNumber}</strong></span>` : ''}
+                <span style="background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.4); font-size: 0.72rem; font-weight: 700; padding: 2px 10px; border-radius: 12px;">Prontuário Concluído</span>
+              </div>
             </div>
           </div>
           <div>
-            <span style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+            <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.5); padding: 8px 16px; border-radius: 10px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;">
               <i class="fa-solid fa-check-double"></i> Ciclo Assistencial Finalizado
             </span>
           </div>
@@ -3591,7 +3614,7 @@ async function savePEPData(encounterId, shouldFinalize) {
   }
 
   try {
-    await apiFetch('/api/encounters/' + encounterId + '/notes', {
+    await apiFetch('/api/encounters/' + encodeURIComponent(encounterId) + '/notes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3601,7 +3624,7 @@ async function savePEPData(encounterId, shouldFinalize) {
         assessmentContent,
         planContent
       })
-    });
+    }).catch(err => console.warn('[PEP] Falha não-bloqueante ao registrar nota:', err));
 
     if (shouldFinalize) {
       const encounters = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('encounters') : [];
@@ -3759,15 +3782,19 @@ async function savePEPData(encounterId, shouldFinalize) {
         }
         return;
       } else {
+        // ==========================================
+        // FLUXO DE ALTA MÉDICA / HOSPITALAR NO PEP
+        // ==========================================
         const nowIso = new Date().toISOString();
         let patRecord = null;
+        const patIdVal = enc?.patientId || enc?.id || (typeof encounterId === 'string' && !isNaN(encounterId) ? encounterId : null) || encounterId;
 
         if (typeof localDB !== 'undefined' && localDB) {
           try {
             const allPatients = (typeof localDB.list === 'function') ? localDB.list('patients') : [];
             patRecord = allPatients.find(p => (
               (p.fullName && patientName && p.fullName.toLowerCase().trim() === patientName.toLowerCase().trim()) ||
-              (p.id && (String(p.id) === String(encounterId) || String(p.id).toLowerCase() === String(encounterId).toLowerCase()))
+              (p.id && (String(p.id) === String(patIdVal) || String(p.id).toLowerCase() === String(patIdVal).toLowerCase()))
             ));
 
             if (patRecord && localDB.update) {
@@ -3777,12 +3804,47 @@ async function savePEPData(encounterId, shouldFinalize) {
                 lastDischargeDate: nowIso,
                 last_discharge_date: nowIso,
                 discharged_at: nowIso,
+                receptionFinalized: true,
                 updated_at: nowIso
               });
             }
 
-            // Finalizar todos os atendimentos/encounters do paciente
-            const patIdVal = patRecord?.id || encounterId;
+            // 1. Liberar todos os leitos ocupados deste paciente
+            const allBeds = (typeof localDB.list === 'function') ? localDB.list('beds') : [];
+            allBeds.forEach(b => {
+              const isMatch = (patIdVal && (String(b.patientId) === String(patIdVal) || String(b.patientId).toLowerCase() === String(patIdVal).toLowerCase())) ||
+                              (patientName && b.patientName && b.patientName.toLowerCase().trim() === patientName.toLowerCase().trim()) ||
+                              (b.encounterId && String(b.encounterId) === String(encounterId));
+              if (isMatch && (b.status === 'Ocupado' || b.status === 'Ocupada')) {
+                localDB.update('beds', b.id, {
+                  ...b,
+                  status: 'Higienizacao',
+                  previousPatientName: b.patientName || patientName,
+                  patientId: null,
+                  patientName: null,
+                  encounterId: null,
+                  dischargedAt: nowIso
+                });
+              }
+            });
+
+            // 2. Atualizar hospitalizações do paciente para Alta
+            const allHosps = (typeof localDB.list === 'function') ? localDB.list('hospitalizations') : [];
+            allHosps.forEach(h => {
+              const isMatch = (patIdVal && (String(h.patient_id) === String(patIdVal) || String(h.patientId) === String(patIdVal))) ||
+                              (patientName && h.patientName && h.patientName.toLowerCase().trim() === patientName.toLowerCase().trim()) ||
+                              (h.encounterId && String(h.encounterId) === String(encounterId));
+              if (isMatch && h.status !== 'Alta' && h.status !== 'Finalizado') {
+                localDB.update('hospitalizations', h.id, {
+                  ...h,
+                  status: 'Alta',
+                  discharged_at: nowIso,
+                  discharge_date: nowIso
+                });
+              }
+            });
+
+            // 3. Finalizar todos os atendimentos/encounters do paciente
             const allEncs = (typeof localDB.list === 'function') ? localDB.list('encounters') : [];
             allEncs.forEach(e => {
               const match = String(e.id) === String(encounterId) ||
@@ -3801,7 +3863,7 @@ async function savePEPData(encounterId, shouldFinalize) {
               }
             });
 
-            // Finalizar triagens do paciente
+            // 4. Finalizar triagens do paciente
             const allTriages = (typeof localDB.list === 'function') ? localDB.list('triages') : [];
             allTriages.forEach(t => {
               const match = (patIdVal && (String(t.patientId) === String(patIdVal) || String(t.patient_id) === String(patIdVal))) ||
@@ -3811,7 +3873,7 @@ async function savePEPData(encounterId, shouldFinalize) {
               }
             });
 
-            // Remover chamadas TV
+            // 5. Remover chamadas TV
             const allTv = (typeof localDB.list === 'function') ? localDB.list('tv_calls') : [];
             allTv.forEach(tv => {
               const match = (patIdVal && (String(tv.patientId) === String(patIdVal) || String(tv.patient_id) === String(patIdVal))) ||
@@ -3819,58 +3881,114 @@ async function savePEPData(encounterId, shouldFinalize) {
               if (match) localDB.remove('tv_calls', tv.id);
             });
 
-            // Invalidar caches
+            // 6. Inserir anotação clínica oficial de alta no prontuário
+            if (typeof localDB.insert === 'function') {
+              const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+              const dateFormatted = new Date().toLocaleDateString('pt-BR');
+              localDB.insert('clinical_notes', {
+                id: 'NOTE-' + Math.floor(Math.random() * 1000000),
+                patientId: patRecord?.id || patIdVal,
+                patientName: patientName,
+                encounterId: encounterId,
+                type: 'alta',
+                title: 'Alta Médica Homologada no PEP',
+                content: `Alta médica homologada por ${state?.user?.name || 'Dr. Médico Assistente'} em ${dateFormatted} às ${timeFormatted}. Consulta encerrada e leito liberado.`,
+                text: `✅ Alta médica homologada em ${dateFormatted} às ${timeFormatted}. Consulta encerrada e leito liberado.`,
+                created_at: nowIso,
+                author: `${perms.label || 'Médico'} (${state.user?.name || 'Corpo Clínico'})`
+              });
+            }
+
+            // 7. Invalidar caches
             if (typeof dataCache !== 'undefined' && dataCache) {
               if (dataCache.delete) {
                 dataCache.delete('patients');
+                dataCache.delete('beds');
+                dataCache.delete('hospitalizations');
                 dataCache.delete('encounters');
                 dataCache.delete('triages');
+                dataCache.delete('tv_calls');
               } else {
                 dataCache['patients'] = null;
+                dataCache['beds'] = null;
+                dataCache['hospitalizations'] = null;
                 dataCache['encounters'] = null;
                 dataCache['triages'] = null;
               }
             }
             if (typeof dataCacheTimestamps !== 'undefined' && dataCacheTimestamps?.delete) {
               dataCacheTimestamps.delete('patients');
+              dataCacheTimestamps.delete('beds');
+              dataCacheTimestamps.delete('hospitalizations');
               dataCacheTimestamps.delete('encounters');
               dataCacheTimestamps.delete('triages');
             }
           } catch (_) {}
         }
 
-        await apiFetch('/api/encounters/' + encounterId + '/status', {
+        await apiFetch('/api/encounters/' + encodeURIComponent(encounterId) + '/status', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'Finalizado' })
         }).catch(() => {});
 
+        const resolvedPatId = patRecord?.id || patIdVal;
+
         if (typeof window.setActivePatientContext === 'function') {
           window.setActivePatientContext({
-            id: patRecord?.id || encounterId,
-            patientId: patRecord?.id || encounterId,
+            id: resolvedPatId,
+            patientId: resolvedPatId,
             fullName: patientName,
             patientName: patientName,
             status: 'Alta',
+            room: 'Alta Médica Concedida',
             currentStep: 6,
             isDischarged: true,
-            lastDischargeDate: nowIso
+            lastDischargeDate: nowIso,
+            discharged_at: nowIso,
+            stage: 6
           });
         }
 
-        if (typeof window.showFlowCompletionNotification === 'function') {
-          window.showFlowCompletionNotification({
-            actionTitle: 'Alta Médica (Atendimento Finalizado)',
-            message: `O prontuário foi assinado e a consulta de ${patientName} foi concluída com Alta Médica.<br><br>👉 Atendimento finalizado! Proceda ao faturamento e emissão do lote TISS se aplicável.`,
-            targetTab: 'financeiro',
-            targetTabLabel: 'Faturamento & Lotes TISS ➔',
-            targetPatientName: patientName,
-            targetStatus: 'Alta',
-            actionType: 'go_finance'
-          });
-        } else {
-          showToast('⚡ Prontuário assinado e atendimento finalizado com Alta Médica!');
+        // 8. Fechar modal do PEP e modais ativos
+        const modal = document.getElementById('pep-modal');
+        if (modal) modal.remove();
+        if (typeof window.closeAllActiveModals === 'function') {
+          window.closeAllActiveModals();
         }
+
+        const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        if (typeof showToast === 'function') {
+          showToast(`✅ Alta médica concedida para ${patientName} às ${timeFormatted}! Abrindo prontuário...`, 'success');
+        }
+
+        // 9. Atualizar filas em background
+        if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
+        if (typeof renderTabContent === 'function' && state.activeTab === 'atendimento') renderTabContent();
+        if (typeof window.loadAttendanceData === 'function') window.loadAttendanceData();
+        if (typeof window.loadAndRenderKanban === 'function') window.loadAndRenderKanban();
+
+        // 10. REDIRECIONAMENTO IMEDIATO PARA A ABA PACIENTES
+        if (typeof window.switchTab === 'function') {
+          window.switchTab('pacientes');
+        }
+
+        // 11. Na aba Pacientes: recarregar tabela, filtrar o paciente e abrir prontuário pós-alta exibindo a data da alta
+        setTimeout(() => {
+          if (typeof window.loadPatientsTable === 'function') {
+            window.loadPatientsTable();
+          }
+          const searchInput = document.getElementById('search-input');
+          if (searchInput) {
+            searchInput.value = patientName;
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          if (typeof window.openPatientHistoryModal === 'function') {
+            window.openPatientHistoryModal(resolvedPatId, patientName);
+          }
+        }, 300);
+
+        return;
       }
 
       const modal = document.getElementById('pep-modal');

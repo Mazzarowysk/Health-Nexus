@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.19)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.20)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.19 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
+<p><strong>Health Nexus v2.9.20 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -486,6 +486,9 @@ flowchart TD
 <li><a href="#sec-3">Prontuário Eletrônico Médico (PEP SOAPE)</a></li>
 </ol>
 <ul>
+<li>3.0. <a href="#sec-3-0">Fluxo Direto de Atendimento: Preenchimento Imediato do PEP (SOAP) &amp; Histórico Unificado</a></li>
+<li>3.0.1. <a href="#sec-3-0-1">Alerta Pulsante de Observação &gt; 12h &amp; Governança Clínica (CFM nº 2.079/14)</a></li>
+<li>3.0.2. <a href="#sec-3-0-2">Homologação da Alta Médica / Hospitalar no PEP, Desocupação de Leito e Abertura Automática do Prontuário Pós-Alta (v2.9.20)</a></li>
 <li>3.1. <a href="#sec-3-1">Estrutura SOAPE</a></li>
 <li>3.2. <a href="#sec-3-2">Motor CDSS &amp; Alertas de Interações Medicamentosas</a></li>
 <li>3.3. <a href="#sec-3-3">Autocomplete CID-10</a></li>
@@ -1040,6 +1043,36 @@ flowchart TD
 <ul>
 <li>Ao lado do prontuário, o painel inteligente calcula em tempo real os <strong>parâmetros clínicos aferidos</strong> do paciente (PA, FC, Temp, SpO₂, MEWS e Classificação Manchester).</li>
 <li>Apresenta as instruções para a tomada de decisão médica, disponibilizando como ação primária o botão <strong><code>🛏️ Internar em Leito Hospitalar (Agravo) ➔</code></strong> e atalhos rápidos para <strong><code>🚪 Conceder Alta da Observação (Melhora)</code></strong> e <strong><code>💾 Salvar Evolução / Prescrição</code></strong>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="sec-3-0-2">3.0.2. Homologação da Alta Médica / Hospitalar no PEP, Desocupação de Leito e Abertura Automática do Prontuário Pós-Alta (v2.9.20)</h3><p>Ao selecionar o desfecho <strong>&quot;Alta Médica (Encerrar Consulta)&quot;</strong> ou <strong>&quot;Alta Hospitalar&quot;</strong> no Prontuário Eletrônico (PEP) e clicar em <strong>&quot;Assinar &amp; Encaminhar&quot;</strong>, o sistema executa a governança assistencial de desfecho em cadeia:</p>
+<ol>
+<li><p><strong>Desocupação Automática de Leito Hospitalar:</strong></p>
+<ul>
+<li>Caso o paciente esteja ocupando leito (UTI, Semi-UTI ou Enfermaria), o sistema move o leito imediatamente para o status <code>Higienizacao</code>, liberando o leito no Censo e no Kanban para a equipe de enfermagem e hotelaria.</li>
+<li>O registro de internação (<code>hospitalizations</code>) é encerrado com status <code>Alta</code> e registro exato do momento do desfecho (<code>discharge_date</code> e <code>discharged_at</code>).</li>
+</ul>
+</li>
+<li><p><strong>Finalização de Atendimentos &amp; Preservação Segura da Conduta:</strong></p>
+<ul>
+<li>Todos os atendimentos clínicos pendentes (<code>encounters</code>) e triagens em aberto são marcados como <code>Finalizado</code>.</li>
+<li>Eventuais chamadas no Painel TV são encerradas de imediato.</li>
+<li>A anotação médica de alta com hipóteses diagnósticas e prescrições é registrada com segurança no histórico do paciente (<code>clinical_notes</code>).</li>
+<li>O cadastro do paciente é atualizado com <code>status: &#39;Alta&#39;</code> e registro indelével da data/hora da concessão (<code>lastDischargeDate</code>).</li>
+</ul>
+</li>
+<li><p><strong>Transição Automática para a Aba Pacientes e Abertura do Prontuário Pós-Alta:</strong></p>
+<ul>
+<li>O modal do PEP fecha de forma suave e a interface navega de modo automático para a aba <strong>Pacientes</strong> (<code>switchTab(&#39;pacientes&#39;)</code>).</li>
+<li>A listagem de pacientes é recarregada e o campo de pesquisa é filtrado pelo nome do paciente recém-liberado.</li>
+<li>O <strong>Prontuário Pós-Alta / Histórico Consolidado</strong> (<code>openPatientHistoryModal</code>) abre de maneira automática, destacando o banner de confirmação clínica:<ul>
+<li>🗓️ <strong>Data da Última Alta Concedida:</strong> Exibição clara e acolhedora da data e horário exatos (<code>DD/MM/AAAA às HH:MM</code>).</li>
+<li>🛌 <strong>Leito Desocupado:</strong> Confirmação da liberação e encaminhamento do leito à higienização.</li>
+<li>🩺 <strong>Ciclo Clínico Finalizado:</strong> Garantia visual de encerramento seguro do episódio assistencial para a equipe médica e de recepção.</li>
+</ul>
+</li>
 </ul>
 </li>
 </ol>
@@ -3859,7 +3892,7 @@ flowchart TD
 </li>
 </ul>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.18 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.20 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

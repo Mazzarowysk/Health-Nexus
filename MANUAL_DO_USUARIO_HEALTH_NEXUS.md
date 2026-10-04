@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.19)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.20)
 
-> **Health Nexus v2.9.19 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.20 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
 
 ---
@@ -65,6 +65,9 @@ flowchart TD
   - 2.3. [Fila 2: Aguardando Médico (Chamada de Consultório)](#sec-2-3)
   - 2.4. [Fila 3: Em Atendimento (Ações do Médico)](#sec-2-4)
 - 3. [Prontuário Eletrônico Médico (PEP SOAPE)](#sec-3)
+  - 3.0. [Fluxo Direto de Atendimento: Preenchimento Imediato do PEP (SOAP) & Histórico Unificado](#sec-3-0)
+  - 3.0.1. [Alerta Pulsante de Observação > 12h & Governança Clínica (CFM nº 2.079/14)](#sec-3-0-1)
+  - 3.0.2. [Homologação da Alta Médica / Hospitalar no PEP, Desocupação de Leito e Abertura Automática do Prontuário Pós-Alta (v2.9.20)](#sec-3-0-2)
   - 3.1. [Estrutura SOAPE](#sec-3-1)
   - 3.2. [Motor CDSS & Alertas de Interações Medicamentosas](#sec-3-2)
   - 3.3. [Autocomplete CID-10](#sec-3-3)
@@ -262,6 +265,31 @@ Quando um paciente permanece em observação por tempo superior a 12 horas, o He
 2. **Guia Lateral de Governança Clínica (Smart Flow Guide):**
    - Ao lado do prontuário, o painel inteligente calcula em tempo real os **parâmetros clínicos aferidos** do paciente (PA, FC, Temp, SpO₂, MEWS e Classificação Manchester).
    - Apresenta as instruções para a tomada de decisão médica, disponibilizando como ação primária o botão **`🛏️ Internar em Leito Hospitalar (Agravo) ➔`** e atalhos rápidos para **`🚪 Conceder Alta da Observação (Melhora)`** e **`💾 Salvar Evolução / Prescrição`**.
+
+
+---
+
+<h3 id="sec-3-0-2">3.0.2. Homologação da Alta Médica / Hospitalar no PEP, Desocupação de Leito e Abertura Automática do Prontuário Pós-Alta (v2.9.20)</h3>
+
+Ao selecionar o desfecho **"Alta Médica (Encerrar Consulta)"** ou **"Alta Hospitalar"** no Prontuário Eletrônico (PEP) e clicar em **"Assinar & Encaminhar"**, o sistema executa a governança assistencial de desfecho em cadeia:
+
+1. **Desocupação Automática de Leito Hospitalar:**
+   - Caso o paciente esteja ocupando leito (UTI, Semi-UTI ou Enfermaria), o sistema move o leito imediatamente para o status `Higienizacao`, liberando o leito no Censo e no Kanban para a equipe de enfermagem e hotelaria.
+   - O registro de internação (`hospitalizations`) é encerrado com status `Alta` e registro exato do momento do desfecho (`discharge_date` e `discharged_at`).
+
+2. **Finalização de Atendimentos & Preservação Segura da Conduta:**
+   - Todos os atendimentos clínicos pendentes (`encounters`) e triagens em aberto são marcados como `Finalizado`.
+   - Eventuais chamadas no Painel TV são encerradas de imediato.
+   - A anotação médica de alta com hipóteses diagnósticas e prescrições é registrada com segurança no histórico do paciente (`clinical_notes`).
+   - O cadastro do paciente é atualizado com `status: 'Alta'` e registro indelével da data/hora da concessão (`lastDischargeDate`).
+
+3. **Transição Automática para a Aba Pacientes e Abertura do Prontuário Pós-Alta:**
+   - O modal do PEP fecha de forma suave e a interface navega de modo automático para a aba **Pacientes** (`switchTab('pacientes')`).
+   - A listagem de pacientes é recarregada e o campo de pesquisa é filtrado pelo nome do paciente recém-liberado.
+   - O **Prontuário Pós-Alta / Histórico Consolidado** (`openPatientHistoryModal`) abre de maneira automática, destacando o banner de confirmação clínica:
+     - 🗓️ **Data da Última Alta Concedida:** Exibição clara e acolhedora da data e horário exatos (`DD/MM/AAAA às HH:MM`).
+     - 🛌 **Leito Desocupado:** Confirmação da liberação e encaminhamento do leito à higienização.
+     - 🩺 **Ciclo Clínico Finalizado:** Garantia visual de encerramento seguro do episódio assistencial para a equipe médica e de recepção.
 
 ---
 
@@ -1158,6 +1186,6 @@ A posição escolhida fica salva no navegador do profissional (`localStorage: hn
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.18 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.20 do Health Nexus. Todos os direitos reservados.*
 
 

@@ -1,12 +1,21 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.19`  
+**Versão:** `2.9.20`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🚪 **Homologação Completa da Alta Médica no PEP & Abertura Automática do Prontuário Pós-Alta (v2.9.20):**
+  1. **Execução Completa da Alta no PEP:** Ao selecionar o desfecho "Alta Médica (Encerrar Consulta)" ou "Alta Hospitalar (Encerrar Internação & Liberar Leito)" e clicar em `✍️ Assinar & Encaminhar`, o sistema executa o encerramento assistencial integral:
+     - Libera imediatamente qualquer leito ocupado pelo paciente no censo hospitalar (ex: leitos de UTI, enfermaria ou observação), alterando o status para `Higienizacao`, limpando a ocupação e registrando o timestamp de liberação.
+     - Atualiza o registro de internação (`hospitalizations`) para `Alta` com data e hora.
+     - Finaliza todos os atendimentos (`encounters`) e triagens abertas do paciente, removendo chamadas pendentes no Painel TV.
+     - Registra anotação clínica oficial no prontuário (`clinical_notes`) e atualiza o cadastro do paciente com `status: 'Alta'`, `lastDischargeDate` e `receptionFinalized: true`.
+  2. **Transição Automática para a Aba Pacientes:** O modal do PEP é fechado e a aplicação transiciona automaticamente para a aba **Pacientes**, eliminando retenção indevida no consultório.
+  3. **Abertura do Prontuário com Destaque da Última Alta Concedida:** Na aba Pacientes, a tabela é filtrada pelo nome do paciente e o modal de **Prontuário & Histórico Clínico** abre imediatamente, exibindo no topo o card oficial de alta com a data e horário exatos da liberação (`🗓️ Data da Última Alta Concedida: DD/MM/AAAA às HH:MM`) e confirmação de ciclo assistencial finalizado.
 
 - 📺 **Eliminação Definitiva de Duplicidades no Painel TV (Chamador) & Filtro de Internados (v2.9.19):**
   1. **Deduplicação Estrita por Paciente na Fila:** Corrigida a ausência de controle de unicidade em `loadTVWaitingQueue`. Cada paciente agora é indexado e normalizado de forma única (`normName`), garantindo que um mesmo paciente jamais apareça em dois cards concorrentes (#90, #91, etc.) na fila do telão da recepção.

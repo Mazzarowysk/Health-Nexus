@@ -640,9 +640,44 @@ export const apiFetch = async (url, options = {}) => {
                 discharged_at: nowIso,
                 lastDischargeDate: nowIso,
                 last_discharge_date: nowIso,
+                receptionFinalized: true,
                 status: 'Alta'
               });
             }
+
+            // 5. Liberar leitos ocupados deste paciente
+            const allBeds = localDB.list('beds') || [];
+            allBeds.forEach(b => {
+              const isMatch = (pId && (String(b.patientId) === String(pId) || String(b.patientId).toLowerCase() === String(pId).toLowerCase())) ||
+                              (pName && b.patientName && b.patientName.toLowerCase().trim() === pName.toLowerCase().trim()) ||
+                              (b.encounterId && String(b.encounterId) === String(encounterId));
+              if (isMatch && (b.status === 'Ocupado' || b.status === 'Ocupada')) {
+                localDB.update('beds', b.id, {
+                  ...b,
+                  status: 'Higienizacao',
+                  previousPatientName: b.patientName || pName,
+                  patientId: null,
+                  patientName: null,
+                  encounterId: null,
+                  dischargedAt: nowIso
+                });
+              }
+            });
+
+            // 6. Atualizar hospitalizações deste paciente para Alta
+            const hosps = localDB.list('hospitalizations') || [];
+            hosps.forEach(h => {
+              const isMatch = (pId && (String(h.patient_id) === String(pId) || String(h.patientId) === String(pId))) ||
+                              (pName && h.patientName && h.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+              if (isMatch && h.status !== 'Alta' && h.status !== 'Finalizado') {
+                localDB.update('hospitalizations', h.id, {
+                  ...h,
+                  status: 'Alta',
+                  discharged_at: nowIso,
+                  discharge_date: nowIso
+                });
+              }
+            });
           }
 
           responseData = { status: 'success', data: updatedEncounter };
@@ -650,6 +685,33 @@ export const apiFetch = async (url, options = {}) => {
           status = 404; responseData = { message: 'Atendimento não encontrado.' };
         }
       }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/notes') && method === 'POST') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/notes/);
+      const encId = match ? decodeURIComponent(match[1]) : '';
+      const allEncounters = localDB.list('encounters') || [];
+      const enc = allEncounters.find(e => String(e.id) === String(encId) || String(e.encounterId) === String(encId) || String(e.patientId) === String(encId)) || {};
+      const allPatients = localDB.list('patients') || [];
+      const pat = allPatients.find(p => String(p.id) === String(enc.patientId || encId) || (enc.patientName && p.fullName && p.fullName.toLowerCase() === enc.patientName.toLowerCase()));
+
+      const pId = pat?.id || enc.patientId || encId;
+      const pName = pat?.fullName || enc.patientName || (typeof encId === 'string' && isNaN(encId) && !encId.startsWith('ENC-') ? encId : 'Paciente');
+
+      const newNote = {
+        id: 'note-' + Date.now(),
+        encounterId: enc.id || encId,
+        patientId: pId,
+        patientName: pName,
+        type: body?.noteType || 'Evolucao_Medica',
+        subjectiveContent: body?.subjectiveContent || '',
+        objectiveContent: body?.objectiveContent || '',
+        assessmentContent: body?.assessmentContent || '',
+        planContent: body?.planContent || '',
+        signed_by: (typeof state !== 'undefined' && state?.user?.name) || enc.doctorName || 'Dr. Médico Assistente',
+        created_at: new Date().toISOString()
+      };
+      localDB.insert('clinical_notes', newNote);
+      responseData = { success: true, data: newNote };
     }
     else if (url.includes('/api/encounters/') && url.includes('/start-observation') && method === 'PUT') {
       const match = url.match(/\/api\/encounters\/([^\/]+)\/start-observation/);
@@ -1106,7 +1168,8 @@ export const apiFetch = async (url, options = {}) => {
     }
     else if (url.includes('/api/patients/') && url.includes('/history') && method === 'GET') {
       const match = url.match(/\/api\/patients\/([^\/]+)\/history/);
-      const patientId = match ? match[1] : null;
+      const rawPatientId = match ? match[1] : null;
+      const patientId = rawPatientId ? decodeURIComponent(rawPatientId) : null;
       const allPatients = localDB.list('patients') || [];
       const cleanTargetId = String(patientId || '').trim();
       const cleanTargetName = cleanTargetId.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
