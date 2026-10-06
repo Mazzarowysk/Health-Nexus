@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.26)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.27)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.26 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente e etiquetas térmicas hospitalares. Testado e homologado com 100% das 18 abas operacionais.</p>
+<p><strong>Health Nexus v2.9.27 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido e circuito fechado de dispensação. Testado e homologado com 100% das 18 abas operacionais.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -579,6 +579,10 @@ flowchart TD
 </li>
 <li><ol start="21">
 <li><a href="#sec-21">Smart Flow Guide — Adaptação por Aba, Controle de Foco &amp; Desmarcação (v2.9.9) &amp; Painel Lateral Acoplado</a></li>
+</ol>
+</li>
+<li><ol start="22">
+<li><a href="#sec-22">Farmácia &amp; Estoque Hospitalar: Catálogo Essencial Abastecido, Circuito Fechado &amp; KPIs em Tempo Real (v2.9.27)</a></li>
 </ol>
 </li>
 </ul>
@@ -2808,7 +2812,35 @@ flowchart TD
 <hr>
 <h2 id="sec-10">10. Farmácia & Dispensação de Medicamentos</h2><p>Na aba <strong>Farmácia</strong>, faz-se a gestão de estoque, lotes, validade e rastreabilidade de medicamentos críticos.</p>
 <p><img src="docs/screenshots/07-farmacia.png" alt="Figura 10.1: Farmácia Hospitalar — Estoque, Lotes e Rastreabilidade de Medicamentos"></p>
-<h3>💊 Tabela de Catálogo de Medicamentos de Alto Giro e Emergência</h3>
+<h3>🏢 Arquitetura e Sub-Abas do Módulo de Farmácia (v2.9.27)</h3>
+<p>A aba <strong>Farmácia &amp; Estoque</strong> organiza o fluxo farmacêutico em duas visões integradas com contadores dinâmicos nos botões de navegação:</p>
+<ol>
+<li><p><strong>📦 Estoque Central &amp; Lotes (<code>#pharm-view-stock</code>):</strong></p>
+<ul>
+<li><strong>Visualização Padrão Imediata:</strong> Abre como tela principal da aba, apresentando a grade completa de itens hospitalares, lotes, dosagens, validades e saldo físico.</li>
+<li><strong>4 Cards de KPI em Tempo Real no Cabeçalho:</strong><ul>
+<li><code>Total de Itens Cadastrados</code> (<code>#kpi-pharm-total</code>): Quantidade de princípios ativos e apresentações registradas.</li>
+<li><code>Estoque Crítico / Reposição</code> (<code>#kpi-pharm-critical</code>): Itens com saldo igual ou abaixo da cota de segurança.</li>
+<li><code>Total de Unidades Físicas</code> (<code>#kpi-pharm-units</code>): Soma de todas as ampolas, comprimidos, bolsas e frascos disponíveis.</li>
+<li><code>Valor em Estoque (R$)</code> (<code>#kpi-pharm-value</code>): Avaliação financeira total do patrimônio armazenado no almoxarifado farmacêutico.</li>
+</ul>
+</li>
+<li><strong>Ações Rápidas do Cabeçalho:</strong><ul>
+<li><code>🌱 Restaurar Estoque Padrão</code> (<code>#btn-seed-pharm-stock</code>): Restaura e reabastece instantaneamente os 35 medicamentos hospitalares essenciais caso a base esteja vazia ou corrompida.</li>
+<li><code>➕ Novo Medicamento / Lote</code>: Formulário para inclusão manual de novos fármacos e lotes com código de barras.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>📋 Fila de Prescrições Hospitalares — Circuito Fechado (<code>#pharm-view-rx</code>):</strong></p>
+<ul>
+<li>Sub-aba com a fila de dispensação beira-leito para pacientes internados em leitos de UTI, Observação e Enfermarias.</li>
+<li>Exibe paciente, leito, data/hora da prescrição médica, medicamentos prescritos com posologia e botões de <code>Dispensar</code> e <code>Checagem Beira-Leito</code>.</li>
+<li>Badge numérico no botão da aba atualizado em tempo real com a quantidade de prescrições pendentes.</li>
+</ul>
+</li>
+</ol>
+<h3>💊 Tabela de Catálogo de Medicamentos de Alto Giro e Emergência (35 Itens Essenciais)</h3>
 <table>
 <thead>
 <tr>
@@ -2927,6 +2959,60 @@ flowchart TD
 <td align="center">2026-12-18</td>
 <td align="center">130 frascos</td>
 <td align="center">50 frascos</td>
+<td align="center">🟢 <code>Estoque Regular</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Meropenem 1g</strong></td>
+<td align="left">Frasco-ampola Pó (EV)</td>
+<td align="center"><code>L-3341</code></td>
+<td align="center">2027-06-30</td>
+<td align="center">85 frascos</td>
+<td align="center">30 frascos</td>
+<td align="center">🟢 <code>Estoque Regular</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Vancomicina 500mg</strong></td>
+<td align="left">Frasco-ampola Pó (EV)</td>
+<td align="center"><code>L-5519</code></td>
+<td align="center">2027-03-15</td>
+<td align="center">70 frascos</td>
+<td align="center">25 frascos</td>
+<td align="center">🟢 <code>Estoque Regular</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Insulina Regular Humana 100 UI/ml</strong></td>
+<td align="left">Frasco 10ml (SC/EV)</td>
+<td align="center"><code>L-7740</code></td>
+<td align="center">2026-12-31</td>
+<td align="center">42 frascos</td>
+<td align="center">20 frascos</td>
+<td align="center">🟢 <code>Estoque Regular</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Insulina NPH Humana 100 UI/ml</strong></td>
+<td align="left">Frasco 10ml (SC)</td>
+<td align="center"><code>L-7741</code></td>
+<td align="center">2026-12-31</td>
+<td align="center">38 frascos</td>
+<td align="center">20 frascos</td>
+<td align="center">🟢 <code>Estoque Regular</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Diazepam 10mg/2ml</strong></td>
+<td align="left">Ampola 2ml (EV/IM - Psicotrópico)</td>
+<td align="center"><code>L-1288</code></td>
+<td align="center">2027-09-10</td>
+<td align="center">65 ampolas</td>
+<td align="center">30 ampolas</td>
+<td align="center">🟢 <code>Estoque Regular</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Tramadol 50mg/ml</strong></td>
+<td align="left">Ampola 2ml (EV/IM)</td>
+<td align="center"><code>L-4091</code></td>
+<td align="center">2027-08-15</td>
+<td align="center">110 ampolas</td>
+<td align="center">40 ampolas</td>
 <td align="center">🟢 <code>Estoque Regular</code></td>
 </tr>
 </tbody></table>
@@ -3722,7 +3808,44 @@ flowchart TD
 <li><strong>Scroll Horizontal Seguro:</strong> Tabelas densas contam com barra de rolagem horizontal nativa suave para navegadores em notebooks e monitores de qualquer resolução.</li>
 </ul>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.24 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><a id="sec-22"></a></p>
+<h2>22. 💊 Farmácia &amp; Estoque Hospitalar: Catálogo Essencial Abastecido, Circuito Fechado &amp; KPIs em Tempo Real (v2.9.27)</h2>
+<p>A versão <strong>2.9.27</strong> resolveu de ponta a ponta o abastecimento, a visualização e a governança da farmácia hospitalar, assegurando que o sistema já inicialize totalmente operacional para o corpo clínico e farmacêutico:</p>
+<h3>22.1. Catálogo Pré-Carregado com 35 Medicamentos Hospitalares Essenciais</h3>
+<p>Eliminou-se a ocorrência de farmácia vazia ou desabastecida. O sistema agora conta com um rol abrangente pré-configurado contendo:</p>
+<ul>
+<li><strong>Antibióticos de Amplo Espectro e Reserva:</strong> Amoxicilina+Clavulanato, Ceftriaxona 1g, Meropenem 1g, Vancomicina 500mg, Ciprofloxacino 500mg, Azitromicina 500mg.</li>
+<li><strong>Analgésicos, Anti-inflamatórios e Opioides:</strong> Dipirona 500mg/ml, Paracetamol 750mg, Cetoprofeno 100mg, Tramadol 50mg/ml, Morfina 10mg/ml (entorpecente controlado).</li>
+<li><strong>Sedativos, Hipnóticos e Psicotrópicos:</strong> Diazepam 10mg/2ml, Midazolam 5mg/ml, Fentanil 0,05mg/ml.</li>
+<li><strong>Cardiovasculares e Antitrombóticos:</strong> Captopril 25mg, Losartana 50mg, Amiodarona 50mg/ml, Enoxaparina 40mg/0,4ml, Heparina Sódica 5.000 UI/ml.</li>
+<li><strong>Suporte Respiratório e Antialérgicos:</strong> Salbutamol Spray 100mcg, Prednisona 20mg, Hidrocortisona 500mg, Dexametasona 4mg/ml, Prometazina 50mg/2ml.</li>
+<li><strong>Gastroproterores e Antieméticos:</strong> Omeprazol 40mg, Ondansetrona 8mg/4ml, Metoclopramida 10mg/2ml.</li>
+<li><strong>Controle Glicêmico &amp; Metabólico:</strong> Insulina Regular 100 UI/ml, Insulina NPH 100 UI/ml.</li>
+<li><strong>Fluidos Parenterais e Eletrólitos:</strong> Soro Fisiológico 0,9% 500ml, Ringer com Lactato 500ml, Soro Glicosado 5% 500ml, Cloreto de Potássio 19,1%, Glicose 50% 10ml.</li>
+</ul>
+<p>Cada fármaco já possui dados reais de <strong>Lote</strong>, <strong>Data de Validade (2026 a 2028)</strong>, <strong>Estoque Atual</strong>, <strong>Estoque Mínimo de Segurança</strong>, <strong>Valor Unitário (R$)</strong> e <strong>Status do Lote</strong> (Regular, Abaixo do Mínimo ou Crítico).</p>
+<h3>22.2. Abertura Direta no Estoque Central &amp; Navegação por Sub-Abas</h3>
+<p>Ao clicar na aba <em>Farmácia</em>, o sistema agora exibe diretamente a tela do <strong>Estoque Central &amp; Lotes</strong>, garantindo acesso imediato à lista de insumos sem passos adicionais.</p>
+<ul>
+<li>A navegação entre o <strong>Estoque Central &amp; Lotes</strong> e a <strong>Fila de Prescrições Hospitalares</strong> conta com botões destacados e badges numéricos informando em tempo real a quantidade de itens em estoque e o total de prescrições aguardando dispensação.</li>
+</ul>
+<h3>22.3. KPIs em Tempo Real no Cabeçalho</h3>
+<p>Os 4 cartões analíticos do topo da farmácia são calculados dinamicamente com base nos registros ativos:</p>
+<ol>
+<li><code>Total de Medicamentos</code>: Quantidade total de fármacos cadastrados.</li>
+<li><code>Estoque Crítico</code>: Alerta com contagem de produtos que atingiram ou caíram abaixo do estoque mínimo.</li>
+<li><code>Unidades Físicas</code>: Somatório de ampolas, caixas, frascos e bolsas existentes fisicamente no hospital.</li>
+<li><code>Valor em Estoque</code>: Patrimônio total avaliado em reais com base nos preços de aquisição.</li>
+</ol>
+<h3>22.4. Circuito Fechado de Prescrições Hospitalares</h3>
+<p>A sub-aba da Fila de Prescrições já vem alimentada com prescrições ativas para pacientes internados em leitos de UTI, Observação e Enfermarias, permitindo à equipe de farmácia simular e executar o fluxo de conferência de lote, validação de aprazamento e dispensação beira-leito.</p>
+<h3>22.5. Rotina de Auto-Cura e Botão &quot;🌱 Restaurar Estoque Padrão&quot;</h3>
+<ul>
+<li><strong>Auto-Cura na Inicialização:</strong> Ao carregar a aplicação, se for detectado que a tabela de medicamentos está vazia, o sistema efetua o povoamento preventivo de forma transparente.</li>
+<li><strong>Ação Rápida de 1 Clique:</strong> No cabeçalho da farmácia, o botão <code>🌱 Restaurar Estoque Padrão</code> permite repovoar ou restabelecer os 35 medicamentos com um simples toque caso algum usuário tenha esvaziado a base local.</li>
+</ul>
+<hr>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.27 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

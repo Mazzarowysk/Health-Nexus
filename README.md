@@ -1,12 +1,25 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.26`  
+**Versão:** `2.9.27`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 💊 **Reabastecimento do Estoque Hospitalar, Circuito Fechado de Prescrições & KPIs em Tempo Real (v2.9.27):**
+  1. **Catálogo Hospitalar Pré-Carregado com 35 Medicamentos Essenciais:**
+     - Abastecimento completo automático das classes críticas: antibióticos (Amoxicilina+Clavulanato, Ceftriaxona, Meropenem, Vancomicina, Ciprofloxacino, Azitromicina), analgésicos e anti-inflamatórios (Dipirona, Paracetamol, Cetoprofeno, Tramadol, Morfina), sedativos e psicotrópicos (Diazepam, Midazolam, Fentanila), cardiovasculares e anti-hipertensivos (Captopril, Losartana, Amiodarona, Enoxaparina, Heparina), respiratórios e antialérgicos (Salbutamol, Prednisona, Hidrocortisona, Dexametasona, Prometazina), gástricos (Omeprazol, Ondansetrona, Metoclopramida), metabólicos (Insulina Regular, Insulina NPH) e fluidos parenterais (Soro Fisiológico 0,9%, Ringer Lactato, Soro Glicosado 5%).
+     - Todos os itens cadastrados com apresentação, forma farmacêutica, concentração, lote de rastreio, data de validade, estoque atual, estoque mínimo, preço unitário e status de abastecimento.
+  2. **Circuito Fechado de Prescrições Hospitalares (Fila de Dispensação Ativa):**
+     - Sub-aba com fila de prescrições hospitalares ativas vinculadas a pacientes e leitos reais (UTI, Observação e Enfermaria), permitindo conferência e dispensação segura no fluxo beira-leito.
+     - Indicadores de contagem dinâmica em badges nas abas: `Estoque Central & Lotes (35 itens)` e `Fila de Prescrições Hospitalares (5 pendentes)`.
+  3. **Correção e Atualização Dinâmica dos 4 Cards de KPI:**
+     - Os cartões analíticos do cabeçalho da farmácia agora refletem instantaneamente os dados do estoque: `Total de Itens Cadastrados`, `Alerta de Estoque Crítico`, `Total de Unidades Físicas` e `Valor Total do Patrimônio em Estoque (R$)`.
+  4. **Auto-Recuperação e Botão "🌱 Restaurar Estoque Padrão":**
+     - O sistema detecta automaticamente bases com estoque não inicializado na inicialização e preenche com o catálogo essencial.
+     - Botão de ação rápida no cabeçalho permite restaurar e reabastecer o catálogo completo em 1 clique a qualquer momento.
 
 - 🧪 **Homologação e Testes Automatizados Aba por Aba & Correção de Renderização do Kanban (v2.9.26):**
   1. **Auditoria Automatizada Completa das 18 Abas:** Bateria de testes automatizados via navegador simulado (Puppeteer) executada em cada uma das 18 abas do sistema (`dashboard`, `escalas`, `agenda`, `pacientes`, `atendimento`, `consulta_dinamica`, `observacao`, `tv_panel`, `estagnacao`, `leitos`, `kanban`, `farmacia`, `financeiro`, `tiss`, `medicos`, `consultorios`, `relatorios`, `configuracoes`).

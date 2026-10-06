@@ -1,5 +1,17 @@
-import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
+import { apiFetch as rawApiFetch, abbreviateName as rawAbbr, anonymizeCPF as rawAnon, cachedApiGet as rawCached } from '../modules/api.js';
+import { showToast as rawToast, showCustomAlert as rawAlert } from '../modules/ui.js';
+import { getRolePermissions as rawPerms } from '../modules/auth.js';
+import { switchTab as rawSwitch, renderTabContent as rawRenderTab, exportToPDF as rawExportPDF } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
+import * as localDB from '../localDB.js';
+
+// Fallbacks seguros de escopo global
+const apiFetch = typeof rawApiFetch === 'function' ? rawApiFetch : (typeof window !== 'undefined' && window.apiFetch ? window.apiFetch : fetch);
+const showToast = typeof rawToast === 'function' ? rawToast : (msg => typeof window !== 'undefined' && window.showToast ? window.showToast(msg) : alert(msg));
+const showCustomAlert = typeof rawAlert === 'function' ? rawAlert : (opt => typeof window !== 'undefined' && window.showCustomAlert ? window.showCustomAlert(opt) : alert(opt?.message || 'Aviso'));
+const getRolePermissions = typeof rawPerms === 'function' ? rawPerms : (u => ({ canManagePharmacy: true, label: 'Usuário' }));
+const switchTab = typeof rawSwitch === 'function' ? rawSwitch : ((t, b) => typeof window !== 'undefined' && window.switchTab ? window.switchTab(t, b) : null);
+const exportToPDF = typeof rawExportPDF === 'function' ? rawExportPDF : ((h, r, t, f) => typeof window !== 'undefined' && window.exportToPDF ? window.exportToPDF(h, r, t, f) : null);
 
 const API_URL = '/api';
 
@@ -9,16 +21,19 @@ async function renderPharmacyTab() {
 
   contentArea.innerHTML = `
     <div class="tab-section active">
-      <div class="tab-header-banner" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div class="tab-header-banner" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
         <div>
           <h2 style="font-size: 1.5rem; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-pills" style="color: #059669;"></i> Farmácia Hospitalar &amp; Circuito Fechado
           </h2>
           <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
-            Triagem farmacêutica, validação de prescrições, dispensação para leitos e controle de estoque central.
+            Controle de estoque central, dispensação para leitos e validação de prescrições em circuito fechado.
           </p>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button id="btn-seed-pharm-stock" class="btn btn-secondary" style="border-color: #3b82f6; color: #60a5fa;" title="Restaurar o catálogo completo de medicamentos hospitalares">
+            <i class="fa-solid fa-arrows-rotate"></i> Restaurar Estoque Padrão
+          </button>
           <button id="btn-dispense-med" class="btn btn-secondary" style="border-color: #059669; color: #10b981;">
             <i class="fa-solid fa-hand-holding-medical"></i> Dispensar Medicação
           </button>
@@ -29,18 +44,96 @@ async function renderPharmacyTab() {
       </div>
 
       <!-- SUBTABS DE NAVEGAÇÃO INTERNA DA FARMÁCIA -->
-      <div class="pharmacy-subtabs" style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-        <button type="button" id="subtab-btn-pharm-rx" class="btn" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; font-weight: 700; border-radius: 8px; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
-          <i class="fa-solid fa-clipboard-check"></i> Fila de Prescrições Hospitalares
-          <span id="badge-pending-rx-count" style="background: #f59e0b; color: #000; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-left: 4px; display: none;">0</span>
-        </button>
-        <button type="button" id="subtab-btn-pharm-stock" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 600; border-radius: 8px; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
+      <div class="pharmacy-subtabs" style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; flex-wrap: wrap;">
+        <button type="button" id="subtab-btn-pharm-stock" class="btn" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; font-weight: 700; border-radius: 8px; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
           <i class="fa-solid fa-boxes-stacked"></i> Estoque Central &amp; Lotes
+          <span id="badge-stock-count" style="background: #10b981; color: #000; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-left: 4px;">-- itens</span>
+        </button>
+        <button type="button" id="subtab-btn-pharm-rx" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 600; border-radius: 8px; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;">
+          <i class="fa-solid fa-clipboard-check"></i> Fila de Prescrições Hospitalares
+          <span id="badge-pending-rx-count" style="background: #f59e0b; color: #000; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-left: 4px;">-- pendentes</span>
         </button>
       </div>
 
-      <!-- VIEW 1: FILA DE PRESCRIÇÕES HOSPITALARES (CIRCUITO FECHADO) -->
-      <div id="pharm-view-rx" style="display: block;">
+      <!-- VIEW 1: ESTOQUE CENTRAL & LOTES (VISÃO PRINCIPAL) -->
+      <div id="pharm-view-stock" style="display: block;">
+        <!-- KPI CARDS FARMÁCIA -->
+        <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div id="kpi-card-pharm-all" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--color-primary); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>TOTAL DE ITENS</span>
+              <i class="fa-solid fa-boxes-stacked" style="color: var(--color-primary);"></i>
+            </div>
+            <div id="kpi-pharm-total" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 8px;">--</div>
+          </div>
+
+          <div id="kpi-card-pharm-critical" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>ESTOQUE CRÍTICO</span>
+              <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
+            </div>
+            <div id="kpi-pharm-critical" style="font-size: 1.8rem; font-weight: 700; color: #ef4444; margin-top: 8px;">--</div>
+          </div>
+
+          <div id="kpi-card-pharm-units" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>UNIDADES EM ESTOQUE</span>
+              <i class="fa-solid fa-capsules" style="color: #10b981;"></i>
+            </div>
+            <div id="kpi-pharm-units" style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 8px;">--</div>
+          </div>
+
+          <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; opacity: 0.8;">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+              <span>VALOR EM ESTOQUE</span>
+              <i class="fa-solid fa-brazilian-real-sign" style="color: #3b82f6;"></i>
+            </div>
+            <div id="kpi-pharm-value" style="font-size: 1.8rem; font-weight: 700; color: #3b82f6; margin-top: 8px;">R$ --</div>
+          </div>
+        </div>
+
+        <!-- TABELA DE ESTOQUE DA FARMÁCIA -->
+        <div class="card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-boxes-stacked" style="color: #10b981;"></i> Estoque Central de Medicamentos &amp; Insumos
+            </h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="pharm-search-input" class="form-input" placeholder="Buscar medicamento ou lote..." style="max-width: 240px;">
+              <button type="button" id="btn-clear-pharm-filter" style="background: var(--bg-tertiary, var(--bg-secondary)); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 40px; gap: 6px; font-size: 0.82rem; font-weight: 600; transition: all 0.2s ease; white-space: nowrap;" title="Limpar Filtro">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); text-align: left; font-size: 0.82rem; color: var(--text-secondary);">
+                  <th style="padding: 12px;">ID / CÓDIGO</th>
+                  <th style="padding: 12px;">MEDICAMENTO</th>
+                  <th style="padding: 12px;">DOSAGEM / APRESENTAÇÃO</th>
+                  <th style="padding: 12px;">LOTE / VALIDADE</th>
+                  <th style="padding: 12px;">QTD ESTOQUE</th>
+                  <th style="padding: 12px;">STATUS</th>
+                  <th style="padding: 12px;">PREÇO UNIT.</th>
+                  <th style="padding: 12px; text-align: right;">AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody id="pharmacy-table-body">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+                    <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Carregando estoque da farmácia...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: FILA DE PRESCRIÇÕES HOSPITALARES (CIRCUITO FECHADO) -->
+      <div id="pharm-view-rx" style="display: none;">
         <!-- KPI CARDS PRESCRIÇÕES -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
           <div id="kpi-card-rx-pending" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid #f59e0b; padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(245,158,11,0.15);">
@@ -111,81 +204,6 @@ async function renderPharmacyTab() {
           </div>
         </div>
       </div>
-
-      <!-- VIEW 2: ESTOQUE CENTRAL & LOTES (ORIGINAL) -->
-      <div id="pharm-view-stock" style="display: none;">
-        <!-- KPI CARDS FARMÁCIA -->
-        <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-          <div id="kpi-card-pharm-all" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--color-primary); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);">
-            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
-              <span>TOTAL DE ITENS</span>
-              <i class="fa-solid fa-boxes-stacked" style="color: var(--color-primary);"></i>
-            </div>
-            <div id="kpi-pharm-total" style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 8px;">--</div>
-          </div>
-
-          <div id="kpi-card-pharm-critical" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
-            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
-              <span>ESTOQUE CRÍTICO</span>
-              <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
-            </div>
-            <div id="kpi-pharm-critical" style="font-size: 1.8rem; font-weight: 700; color: #ef4444; margin-top: 8px;">--</div>
-          </div>
-
-          <div id="kpi-card-pharm-units" class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
-            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
-              <span>UNIDADES EM ESTOQUE</span>
-              <i class="fa-solid fa-capsules" style="color: #10b981;"></i>
-            </div>
-            <div id="kpi-pharm-units" style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 8px;">--</div>
-          </div>
-
-          <div class="kpi-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; opacity: 0.8;">
-            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
-              <span>VALOR EM ESTOQUE</span>
-              <i class="fa-solid fa-brazilian-real-sign" style="color: #3b82f6;"></i>
-            </div>
-            <div id="kpi-pharm-value" style="font-size: 1.8rem; font-weight: 700; color: #3b82f6; margin-top: 8px;">R$ --</div>
-          </div>
-        </div>
-
-        <!-- TABELA DE ESTOQUE DA FARMÁCIA -->
-        <div class="card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Estoque Central de Medicamentos &amp; Insumos</h3>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <input type="text" id="pharm-search-input" class="form-input" placeholder="Buscar medicamento ou lote..." style="max-width: 240px;">
-              <button type="button" id="btn-clear-pharm-filter" style="background: var(--bg-tertiary, var(--bg-secondary)); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 40px; gap: 6px; font-size: 0.82rem; font-weight: 600; transition: all 0.2s ease; white-space: nowrap;" title="Limpar Filtro" onmouseover="this.style.background='rgba(99,102,241,0.15)'" onmouseout="this.style.background='var(--bg-tertiary, var(--bg-secondary))'">
-                <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
-              </button>
-            </div>
-          </div>
-
-          <div class="table-responsive">
-            <table class="data-table" style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="border-bottom: 1px solid var(--border-color); text-align: left; font-size: 0.82rem; color: var(--text-secondary);">
-                  <th style="padding: 12px;">ID / CÓDIGO</th>
-                  <th style="padding: 12px;">MEDICAMENTO</th>
-                  <th style="padding: 12px;">DOSAGEM / APRESENTAÇÃO</th>
-                  <th style="padding: 12px;">LOTE / VALIDADE</th>
-                  <th style="padding: 12px;">QTD ESTOQUE</th>
-                  <th style="padding: 12px;">STATUS</th>
-                  <th style="padding: 12px;">PREÇO UNIT.</th>
-                  <th style="padding: 12px; text-align: right;">AÇÕES</th>
-                </tr>
-              </thead>
-              <tbody id="pharmacy-table-body">
-                <tr>
-                  <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-secondary);">
-                    <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Carregando estoque da farmácia...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
   `;
 
@@ -225,6 +243,19 @@ async function renderPharmacyTab() {
   });
 
   // Event Listeners Estoque
+  document.getElementById('btn-seed-pharm-stock')?.addEventListener('click', async () => {
+    try {
+      const full = localDB.getFullDB();
+      delete full.medications;
+      localDB.saveFullDB(full);
+      const reseeded = localDB.list('medications');
+      showToast(`✅ Catálogo da Farmácia restaurado com sucesso (${reseeded.length} medicamentos disponíveis)!`);
+      await loadPharmacyData();
+    } catch (err) {
+      showToast('Erro ao restaurar catálogo: ' + (err.message || err));
+    }
+  });
+
   document.getElementById('btn-add-pharm-item')?.addEventListener('click', () => openAddPharmModal());
   document.getElementById('btn-dispense-med')?.addEventListener('click', openDispenseMedModal);
   document.getElementById('pharm-search-input')?.addEventListener('input', (e) => {
@@ -352,12 +383,8 @@ async function loadPharmacyPrescriptions() {
 
     const badge = document.getElementById('badge-pending-rx-count');
     if (badge) {
-      if (pendingCount > 0) {
-        badge.textContent = pendingCount;
-        badge.style.display = 'inline-block';
-      } else {
-        badge.style.display = 'none';
-      }
+      badge.textContent = `${pendingCount} pendentes`;
+      badge.style.display = 'inline-block';
     }
 
     const kpiPending = document.getElementById('kpi-rx-pending');
@@ -685,19 +712,66 @@ let currentPharmacyItems = [];
 async function loadPharmacyData() {
   try {
     const res = await apiFetch('/api/pharmacy');
-    if (res.ok) {
+    if (res && res.ok) {
       const data = await res.json();
       currentPharmacyItems = data.data || [];
-      renderPharmacyTable(currentPharmacyItems);
     }
   } catch (err) {
-    showCustomAlert({ title: 'Erro', message: 'Falha ao buscar estoque da farmácia.', type: 'danger' });
+    console.warn('[Pharmacy] Falha ao consultar /api/pharmacy:', err);
   }
+
+  // Fallback e auto-recuperação pelo localDB
+  if (!currentPharmacyItems || currentPharmacyItems.length === 0) {
+    if (typeof localDB !== 'undefined' && localDB.list) {
+      currentPharmacyItems = localDB.list('medications') || [];
+    }
+  }
+
+  // Atualiza badge de contagem na subaba de estoque
+  const stockBadge = document.getElementById('badge-stock-count');
+  if (stockBadge) {
+    stockBadge.textContent = `${currentPharmacyItems.length} itens`;
+  }
+
+  renderPharmacyTable(currentPharmacyItems);
 }
 
 function renderPharmacyTable(items) {
   const tbody = document.getElementById('pharmacy-table-body');
   if (!tbody) return;
+
+  const totalItems = items.length;
+  let criticalCount = 0;
+  let totalUnits = 0;
+  let totalValue = 0;
+
+  // Calcula KPIs a partir de TODOS os itens
+  items.forEach(item => {
+    const qty = Number(item.stockQuantity || 0);
+    const min = Number(item.minStock || 10);
+    const price = Number(item.unitPrice || 0);
+    const isCritical = qty <= min;
+
+    totalUnits += qty;
+    totalValue += (qty * price);
+    if (isCritical) criticalCount++;
+  });
+
+  // Atualiza os cards de KPI na interface do Estoque
+  const elTotal = document.getElementById('kpi-pharm-total');
+  const elCritical = document.getElementById('kpi-pharm-critical');
+  const elUnits = document.getElementById('kpi-pharm-units');
+  const elValue = document.getElementById('kpi-pharm-value');
+  if (elTotal) elTotal.textContent = totalItems;
+  if (elCritical) elCritical.textContent = criticalCount;
+  if (elUnits) elUnits.textContent = totalUnits.toLocaleString('pt-BR');
+  if (elValue) elValue.textContent = totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  // Atualiza badge do botão da subaba
+  const stockBadge = document.getElementById('badge-stock-count');
+  if (stockBadge) {
+    stockBadge.textContent = `${totalItems} itens`;
+  }
 
   if (items.length === 0) {
     tbody.innerHTML = `
@@ -709,23 +783,6 @@ function renderPharmacyTable(items) {
     `;
     return;
   }
-
-  let totalItems = items.length;
-  let criticalCount = 0;
-  let totalUnits = 0;
-  let totalValue = 0;
-
-  // Calculte KPIs from ALL items
-  items.forEach(item => {
-    const qty = Number(item.stockQuantity || 0);
-    const min = Number(item.minStock || 10);
-    const price = Number(item.unitPrice || 0);
-    const isCritical = qty <= min;
-
-    totalUnits += qty;
-    totalValue += (qty * price);
-    if (isCritical) criticalCount++;
-  });
 
   // Apply filter for rendering
   let filteredItems = items;

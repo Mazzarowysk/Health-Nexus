@@ -654,6 +654,61 @@ function generateMedications() {
   });
 }
 
+function generateMockHospitalPrescriptions(patients, doctors, count = 8) {
+  const rxs = [];
+  const medPool = [
+    { name: 'Ceftriaxona 1g IV', dosage: '1g', route: 'Endovenosa (IV)', frequency: 'A cada 12 horas' },
+    { name: 'Omeprazol 40mg IV', dosage: '40mg', route: 'Endovenosa (IV)', frequency: '1x ao dia (manhã)' },
+    { name: 'Dipirona 1g IV', dosage: '1g (2ml)', route: 'Endovenosa (IV)', frequency: 'Se dor ou febre (6/6h)' },
+    { name: 'Soro Fisiológico 0,9% 500ml', dosage: '500ml', route: 'Endovenosa contínua', frequency: '28 gotas/min' },
+    { name: 'Enoxaparina 40mg SC', dosage: '40mg (0,4ml)', route: 'Subcutânea (SC)', frequency: '1x ao dia (à noite)' },
+    { name: 'Ondansetrona 8mg IV', dosage: '8mg (4ml)', route: 'Endovenosa (IV)', frequency: 'A cada 8 horas se náuseas' },
+    { name: 'Tramadol 50mg IV', dosage: '50mg diluído em 100ml SF', route: 'Endovenosa lenta', frequency: 'A cada 8 horas se dor intensa' },
+    { name: 'Amoxicilina + Clavulanato 500/125mg', dosage: '1 comprimido', route: 'Via Oral (VO)', frequency: 'A cada 8 horas' },
+    { name: 'Paracetamol 750mg', dosage: '1 comprimido', route: 'Via Oral (VO)', frequency: 'A cada 6 horas se dor' },
+    { name: 'Losartana Potássica 50mg', dosage: '1 comprimido', route: 'Via Oral (VO)', frequency: '1x ao dia pela manhã' },
+    { name: 'Furosemida 20mg IV', dosage: '20mg (1 ampola)', route: 'Endovenosa (IV)', frequency: '1x ao dia pela manhã' },
+    { name: 'Insulina Regular 100UI/ml', dosage: 'Conforme glicemia', route: 'Subcutânea (SC)', frequency: 'Antes das refeições' },
+    { name: 'Cetoprofeno 100mg IV', dosage: '100mg', route: 'Endovenosa (IV)', frequency: 'A cada 12 horas' }
+  ];
+
+  const bedsList = ['Leito UTI 01', 'Leito UTI 02', 'Leito 101 - Observação', 'Leito 102 - Observação', 'Leito 201 - Enfermaria', 'Leito 202 - Enfermaria', 'Leito 203 - Cirúrgico', 'Leito 305 - Cardiologia'];
+
+  for (let i = 0; i < count; i++) {
+    const pat = (patients && patients[i % patients.length]) || { id: 'PAT-' + i, fullName: 'Paciente ' + i };
+    const doc = (doctors && doctors[i % doctors.length]) || { name: 'Dr. Assistente' };
+    const isPending = i < 5;
+    const isUrgent = (i === 0 || i === 2);
+    
+    // Escolher de 2 a 4 medicamentos aleatórios
+    const chosenMeds = [];
+    const numMeds = 2 + (i % 3);
+    for (let m = 0; m < numMeds; m++) {
+      const medItem = medPool[(i * 3 + m) % medPool.length];
+      if (!chosenMeds.some(c => c.name === medItem.name)) {
+        chosenMeds.push(medItem);
+      }
+    }
+
+    rxs.push({
+      id: `RX-${78900 + i + 1}`,
+      patientId: pat.id,
+      patientName: pat.fullName || pat.name || 'Paciente',
+      encounterId: `ENC-00${i + 1}`,
+      doctorName: doc.name || 'Dr. Médico Assistente',
+      bed: bedsList[i % bedsList.length],
+      status: isPending ? 'Aguardando_Farmacia' : 'Liberado_Farmacia',
+      priority: isUrgent ? 'Urgente' : 'Rotina',
+      medications: chosenMeds,
+      releasedBy: isPending ? null : 'Farmacêutico Responsável (CRF-SP)',
+      releasedAt: isPending ? null : new Date(Date.now() - (i * 25) * 60000).toISOString(),
+      releaseNotes: isPending ? null : 'Validado e checado em circuito fechado.',
+      created_at: new Date(Date.now() - (i * 45 + 15) * 60000).toISOString()
+    });
+  }
+  return rxs;
+}
+
 function generateDutySchedules(doctors, nurses) {
   const schedules = [];
   const today = new Date();
@@ -870,6 +925,9 @@ export async function generateMockData(baseAmount = 300) {
   console.log('[MockGen] Gerando farmácia...');
   const medications = generateMedications();
 
+  console.log('[MockGen] Gerando prescrições hospitalares (Circuito Fechado)...');
+  const prescriptions = generateMockHospitalPrescriptions(patients, doctors, 8);
+
   console.log('[MockGen] Gerando escalas de plantão (Médicos e Enfermeiros)...');
   const duty_schedules = generateDutySchedules(doctors, nurses);
 
@@ -891,6 +949,7 @@ export async function generateMockData(baseAmount = 300) {
     financial_installments,
     tv_calls,
     medications,
+    prescriptions,
     duty_schedules,
     consultorios,
     tiss_batches: JSON.parse(JSON.stringify(MOCK_TISS_BATCHES)),

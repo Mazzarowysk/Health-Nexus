@@ -4100,12 +4100,28 @@ const initializeApp = async () => {
       if (Object.keys(fullDB).length === 0 || (fullDB.medications && fullDB.medications.length > 0 && fullDB.medications[0].stockQuantity === undefined)) {
         console.log('[Init] Banco de dados vazio detectado. Gerando dados simulados iniciais...');
         await generateMockData();
-      } else if (!fullDB.hospitalizations || fullDB.hospitalizations.length === 0) {
-        console.log('[Init] Tabela hospitalizations ausente ou vazia. Gerando internações para Kanban...');
-        const patients = fullDB.patients || [];
-        const doctors = fullDB.doctors || [];
-        if (patients.length > 0 && doctors.length > 0) {
-          fullDB.hospitalizations = generateHospitalizations(patients, doctors, 35);
+      } else {
+        let dbNeedsSave = false;
+        if (!fullDB.hospitalizations || fullDB.hospitalizations.length === 0) {
+          console.log('[Init] Tabela hospitalizations ausente ou vazia. Gerando internações para Kanban...');
+          const patients = fullDB.patients || [];
+          const doctors = fullDB.doctors || [];
+          if (patients.length > 0 && doctors.length > 0) {
+            fullDB.hospitalizations = generateHospitalizations(patients, doctors, 35);
+            dbNeedsSave = true;
+          }
+        }
+        if (!fullDB.medications || fullDB.medications.length === 0) {
+          console.log('[Init] Tabela medications vazia ou ausente. Populando estoque padrão da farmácia...');
+          fullDB.medications = localDB.list('medications') || [];
+          dbNeedsSave = true;
+        }
+        if (!fullDB.prescriptions || fullDB.prescriptions.length === 0) {
+          console.log('[Init] Tabela prescriptions vazia ou ausente. Populando fila de prescrições hospitalares...');
+          fullDB.prescriptions = localDB.list('prescriptions') || [];
+          dbNeedsSave = true;
+        }
+        if (dbNeedsSave) {
           localDB.saveFullDB(fullDB);
         }
       }
