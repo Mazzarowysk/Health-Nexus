@@ -1113,6 +1113,12 @@ O Health Nexus disponibiliza um módulo de impressão direta em impressoras tér
 1. **Pulseira do Paciente (100x30mm):** Contém Nome Completo em destaque, Data de Nascimento, Idade, CPF, Sexo, Convênio, Código do Atendimento, QR Code de segurança e Código de Barras Code-128 legível por leitores ópticos.
 2. **Etiquetas de Amostras / Tubos (50x30mm):** Compacta para tubos de sangue, urina e frascos de biópsia, contendo Identificador do Atendimento, Nome do Paciente, Data da Coleta e Código de Barras.
 
+### 20.4. Disposição Inteligente de Modais com o Painel Lateral Acoplado
+Todas as janelas e modais do sistema contam com ajuste dinâmico ao Smart Flow Guide acoplado:
+- **Área Útil Preservada:** Quando o painel lateral direito estiver acoplado (`420px`), o modal calcula seu centro e largura máxima considerando estritamente a área visível do sistema (`calc(100vw - 420px)`).
+- **Sem Ocultações:** O botão de fechar no canto superior direito, os botões de ação rápida e a tabela de dados permanecem 100% visíveis e confortáveis para o usuário, eliminando cortes ou sobreposições.
+- **Scroll Horizontal Seguro:** Tabelas densas contam com barra de rolagem horizontal nativa suave para navegadores em notebooks e monitores de qualquer resolução.
+
 ---
 
 *Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.24 do Health Nexus. Todos os direitos reservados.*

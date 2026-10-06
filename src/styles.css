@@ -5884,6 +5884,51 @@ body.hn-flow-dock-preview-bottom .app-container {
   margin-right: 0 !important;
 }
 
+/* ==========================================================================
+   AJUSTE DE MODAIS E DIÁLOGOS AO GUIA DE FLUXO ACOPLADO
+   Garante que nenhum modal ou cabeçalho fique sobreposto ou cortado pelos painéis
+   ========================================================================== */
+
+/* 1. Modais quando Acoplado à Direita */
+body.hn-flow-docked-right .modal-overlay,
+body.hn-flow-dock-preview-right .modal-overlay {
+  width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
+  max-width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
+  left: 0 !important;
+  right: auto !important;
+}
+
+/* 2. Modais quando Acoplado à Esquerda */
+body.hn-flow-docked-left .modal-overlay,
+body.hn-flow-dock-preview-left .modal-overlay {
+  width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
+  max-width: calc(100vw - var(--hn-flow-panel-width, 420px)) !important;
+  left: var(--hn-flow-panel-width, 420px) !important;
+  right: 0 !important;
+}
+
+/* 3. Modais quando Acoplado ao Topo */
+body.hn-flow-docked-top .modal-overlay,
+body.hn-flow-dock-preview-top .modal-overlay {
+  top: var(--hn-flow-panel-bar-height, 74px) !important;
+  height: calc(100vh - var(--hn-flow-panel-bar-height, 74px)) !important;
+}
+
+/* 4. Modais quando Acoplado à Base */
+body.hn-flow-docked-bottom .modal-overlay,
+body.hn-flow-dock-preview-bottom .modal-overlay {
+  bottom: var(--hn-flow-panel-bar-height, 74px) !important;
+  height: calc(100vh - var(--hn-flow-panel-bar-height, 74px)) !important;
+}
+
+/* Limite e centralização segura do conteúdo de modais */
+body.hn-flow-docked-right .modal-content,
+body.hn-flow-dock-preview-right .modal-content,
+body.hn-flow-docked-left .modal-content,
+body.hn-flow-dock-preview-left .modal-content {
+  max-width: calc(100% - 36px) !important;
+}
+
 /* Indicador e Zona Fantasma Neon de Encaixe em 4 Lados (Smart Drop Zone Preview) */
 #hn-dock-snap-indicator {
   position: fixed;

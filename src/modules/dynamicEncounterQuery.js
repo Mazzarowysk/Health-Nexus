@@ -141,32 +141,32 @@ export function openDynamicEncounterQueryModal() {
   modal.style.zIndex = '100000';
 
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 1200px; width: 95%; max-height: 94vh; display: flex; flex-direction: column; overflow: hidden; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 30px rgba(2, 132, 199, 0.2);">
+    <div class="modal-content dyn-query-modal-content" style="max-width: min(1260px, calc(100% - 32px)); width: 96%; max-height: 94vh; display: flex; flex-direction: column; overflow: hidden; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 30px rgba(2, 132, 199, 0.2); margin: auto;">
       
       <!-- Cabeçalho Estilizado -->
-      <div class="modal-header" style="position: relative; padding: 18px 24px; background: linear-gradient(135deg, #0c4a6e, #1e293b); border-bottom: 1px solid rgba(56, 189, 248, 0.25); display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8;">
-            <i class="fa-solid fa-magnifying-glass-chart" style="font-size: 1.3rem;"></i>
+      <div class="modal-header" style="position: relative; padding: 16px 20px; background: linear-gradient(135deg, #0c4a6e, #1e293b); border-bottom: 1px solid rgba(56, 189, 248, 0.25); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8; flex-shrink: 0;">
+            <i class="fa-solid fa-magnifying-glass-chart" style="font-size: 1.25rem;"></i>
           </div>
           <div>
-            <h3 style="font-family: Outfit, sans-serif; font-size: 1.25rem; font-weight: 700; color: #fff; margin: 0;">Atendimento: Consulta Dinâmica (Localizador Geral)</h3>
-            <div style="font-size: 0.8rem; color: #bae6fd;">Pesquisa, auditoria e rastreabilidade de passagens hospitalares por modalidade</div>
+            <h3 style="font-family: Outfit, sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin: 0;">Atendimento: Consulta Dinâmica (Localizador Geral)</h3>
+            <div style="font-size: 0.78rem; color: #bae6fd;">Pesquisa, auditoria e rastreabilidade de passagens hospitalares por modalidade</div>
           </div>
         </div>
 
-        <button type="button" id="close-dynamic-query-modal" class="modal-close" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Fechar">
+        <button type="button" id="close-dynamic-query-modal" class="modal-close" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Fechar Consulta">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <!-- Barra de Filtros Avançados (Inspirada no Padrão das Telas Legadas) -->
-      <div style="background: #1e293b; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; align-items: end;">
+      <div style="background: #1e293b; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; align-items: end;">
           
           <div>
-            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Modalidade do Atendimento:</label>
-            <select id="dyn-filter-modality" class="form-input" style="width: 100%; font-size: 0.82rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
+            <label style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Modalidade do Atendimento:</label>
+            <select id="dyn-filter-modality" class="form-input" style="width: 100%; font-size: 0.8rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
               <option value="all">Todas as Modalidades</option>
               <option value="66">66 - Pronto Socorro</option>
               <option value="35">35 - Internação</option>
@@ -176,23 +176,23 @@ export function openDynamicEncounterQueryModal() {
           </div>
 
           <div>
-            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Nome do Paciente:</label>
-            <input type="text" id="dyn-filter-name" class="form-input" placeholder="Buscar por nome ou CPF..." style="width: 100%; font-size: 0.82rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
+            <label style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Nome do Paciente:</label>
+            <input type="text" id="dyn-filter-name" class="form-input" placeholder="Buscar por nome ou CPF..." style="width: 100%; font-size: 0.8rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
           </div>
 
           <div>
-            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Setor / Ala Hospitalar:</label>
-            <input type="text" id="dyn-filter-sector" class="form-input" placeholder="Ex: Pronto Socorro, Cirúrgica, Tomografia..." style="width: 100%; font-size: 0.82rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
+            <label style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Setor / Ala Hospitalar:</label>
+            <input type="text" id="dyn-filter-sector" class="form-input" placeholder="Ex: Pronto Socorro, Tomografia..." style="width: 100%; font-size: 0.8rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
           </div>
 
           <div>
-            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Médico Responsável:</label>
-            <input type="text" id="dyn-filter-doctor" class="form-input" placeholder="Nome do médico..." style="width: 100%; font-size: 0.82rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
+            <label style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Médico Responsável:</label>
+            <input type="text" id="dyn-filter-doctor" class="form-input" placeholder="Nome do médico..." style="width: 100%; font-size: 0.8rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
           </div>
 
           <div>
-            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Convênio:</label>
-            <select id="dyn-filter-plan" class="form-input" style="width: 100%; font-size: 0.82rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
+            <label style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;">Convênio:</label>
+            <select id="dyn-filter-plan" class="form-input" style="width: 100%; font-size: 0.8rem; padding: 7px 10px; background: #0f172a; border-color: #334155; color: #fff; border-radius: 8px;">
               <option value="all">Todos os Convênios</option>
               <option value="SUS">SUS / UNIFICAD</option>
               <option value="Unimed">Unimed</option>
@@ -203,10 +203,10 @@ export function openDynamicEncounterQueryModal() {
           </div>
 
           <div style="display: flex; gap: 8px;">
-            <button type="button" id="btn-dyn-clear-filters" class="btn" style="flex: 1; font-size: 0.8rem; padding: 7px 12px; background: rgba(255,255,255,0.06); border: 1px solid #334155; color: #cbd5e1; border-radius: 8px; cursor: pointer;">
+            <button type="button" id="btn-dyn-clear-filters" class="btn" style="flex: 1; font-size: 0.78rem; padding: 7px 10px; background: rgba(255,255,255,0.06); border: 1px solid #334155; color: #cbd5e1; border-radius: 8px; cursor: pointer;">
               <i class="fa-solid fa-eraser"></i> Limpar
             </button>
-            <button type="button" id="btn-dyn-export-pdf" class="btn" style="flex: 1; font-size: 0.8rem; padding: 7px 12px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #c7d2fe; border-radius: 8px; cursor: pointer; font-weight: 700;">
+            <button type="button" id="btn-dyn-export-pdf" class="btn" style="flex: 1; font-size: 0.78rem; padding: 7px 10px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #c7d2fe; border-radius: 8px; cursor: pointer; font-weight: 700;">
               <i class="fa-solid fa-file-pdf"></i> PDF
             </button>
           </div>
@@ -215,7 +215,7 @@ export function openDynamicEncounterQueryModal() {
       </div>
 
       <!-- Contador de Registros -->
-      <div style="padding: 10px 24px; background: rgba(15,23,42,0.95); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
+      <div style="padding: 9px 20px; background: rgba(15,23,42,0.95); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; gap: 8px;">
         <div style="font-size: 0.78rem; color: #94a3b8;">
           Exibindo <strong id="dyn-count-filtered" style="color: #38bdf8;">${allPassages.length}</strong> de <span id="dyn-count-total">${allPassages.length}</span> atendimentos localizados
         </div>
@@ -224,9 +224,9 @@ export function openDynamicEncounterQueryModal() {
         </div>
       </div>
 
-      <!-- Grade / Tabela de Resultados -->
-      <div style="flex: 1; overflow-y: auto; padding: 0 24px 20px;">
-        <table class="table" style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82rem;">
+      <!-- Grade / Tabela de Resultados com Scroll Horizontal Seguro -->
+      <div style="flex: 1; overflow-y: auto; overflow-x: auto; padding: 0 20px 16px; -webkit-overflow-scrolling: touch; min-width: 0;">
+        <table class="table" style="width: 100%; min-width: 980px; border-collapse: collapse; margin-top: 8px; font-size: 0.82rem;">
           <thead style="position: sticky; top: 0; background: #0f172a; z-index: 5;">
             <tr style="border-bottom: 2px solid #334155; text-align: left; color: #94a3b8; font-size: 0.76rem; text-transform: uppercase;">
               <th style="padding: 10px 8px;">Número</th>
@@ -247,8 +247,8 @@ export function openDynamicEncounterQueryModal() {
       </div>
 
       <!-- Rodapé com Fechar -->
-      <div style="padding: 12px 24px; background: #0c1322; border-top: 1px solid #1e293b; display: flex; justify-content: flex-end;">
-        <button type="button" id="btn-dyn-close-footer" class="btn" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.82rem;">
+      <div style="padding: 10px 20px; background: #0c1322; border-top: 1px solid #1e293b; display: flex; justify-content: flex-end;">
+        <button type="button" id="btn-dyn-close-footer" class="btn" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 0.82rem;">
           Fechar Consulta
         </button>
       </div>
