@@ -57,57 +57,100 @@ export const EXAM_CATALOG = [
   { id: 'afp', cat: 'lab', name: 'Alfafetoproteína (AFP)', prep: 'Sem preparo', interval: 180, tags: 'figado cirrose' },
 
   // ---------- Imagem ----------
-  { id: 'rxtorax', cat: 'img', name: 'Radiografia de tórax (PA e perfil)', prep: 'Retirar objetos metálicos', interval: 30, tags: 'pulmao pneumonia rx' },
-  { id: 'rxabdome', cat: 'img', name: 'Radiografia de abdome (rotina de abdome agudo)', prep: 'Sem preparo', interval: 7, tags: 'abdome obstrucao rx' },
-  { id: 'usgabd', cat: 'img', name: 'Ultrassonografia de abdome total', prep: 'Jejum de 8 horas; bexiga cheia', interval: 180, tags: 'figado vesicula rim usg' },
-  { id: 'usgrins', cat: 'img', name: 'Ultrassonografia de rins e vias urinárias', prep: 'Bexiga cheia', interval: 180, tags: 'rim calculo usg' },
-  { id: 'dopplermmii', cat: 'img', name: 'Doppler venoso de membros inferiores', prep: 'Sem preparo', interval: 30, tags: 'trombose tvp' },
-  { id: 'dopplercar', cat: 'img', name: 'Doppler de carótidas e vertebrais', prep: 'Sem preparo', interval: 365, tags: 'avc aterosclerose' },
-  { id: 'mamografia', cat: 'img', name: 'Mamografia bilateral', prep: 'Não usar desodorante no dia', interval: 365, tags: 'mama rastreamento' },
-  { id: 'densitometria', cat: 'img', name: 'Densitometria óssea', prep: 'Suspender cálcio 24h antes', interval: 730, tags: 'osteoporose' },
-  { id: 'tccranio', cat: 'img', name: 'Tomografia de crânio sem contraste', prep: 'Sem preparo', interval: 0, tags: 'avc trauma cefaleia tc' },
-  { id: 'tctorax', cat: 'img', name: 'Tomografia de tórax', prep: 'Sem preparo (sem contraste)', interval: 90, tags: 'pulmao nodulo tc' },
-  { id: 'tcabdome', cat: 'img', name: 'Tomografia de abdome e pelve com contraste', prep: 'Jejum de 4h; creatinina recente', interval: 30, tags: 'abdome tc', contrast: true },
-  { id: 'angiotctorax', cat: 'img', name: 'Angiotomografia de tórax (protocolo TEP)', prep: 'Creatinina recente; acesso venoso calibroso', interval: 0, tags: 'embolia tep tc', contrast: true },
-  { id: 'angiotccor', cat: 'img', name: 'Angiotomografia de coronárias', prep: 'Jejum de 4h; FC controlada; creatinina recente', interval: 730, tags: 'coronaria cardiaca tc', contrast: true },
-  { id: 'rmcranio', cat: 'img', name: 'Ressonância magnética de crânio', prep: 'Checar marcapasso/implantes metálicos', interval: 180, tags: 'cerebro neuro rm' },
-  { id: 'rmcoluna', cat: 'img', name: 'Ressonância magnética de coluna', prep: 'Checar implantes metálicos', interval: 365, tags: 'coluna lombar hernia rm' },
-  { id: 'colangiorm', cat: 'img', name: 'Colangiorressonância', prep: 'Jejum de 6 horas', interval: 180, tags: 'vias biliares rm' },
+  { id: 'rxtorax', cat: 'img', name: 'Radiografia de tórax (PA e perfil) — Raio-X', prep: 'Retirar objetos metálicos do tórax', interval: 30, tags: 'raio raio-x raiox rx radiografia torax pulmao pneumonia derrame fratura costela infiltrado' },
+  { id: 'rxabdome', cat: 'img', name: 'Radiografia de abdome agudo / simples — Raio-X', prep: 'Sem preparo', interval: 7, tags: 'raio raio-x raiox rx radiografia abdome agudo obstrucao perfuracao calculo rotina' },
+  { id: 'rxcoluna', cat: 'img', name: 'Radiografia de coluna (cervical, dorsal ou lombar) — Raio-X', prep: 'Retirar adornos metálicos', interval: 30, tags: 'raio raio-x raiox rx radiografia coluna cervical toracica lombar lumbago dor costas trauma' },
+  { id: 'rxmembros', cat: 'img', name: 'Radiografia de membros / extremidades (ossos e articulações) — Raio-X', prep: 'Sem preparo', interval: 15, tags: 'raio raio-x raiox rx radiografia osso fratura membro extremidade braco perna joelho punho tornozelo cotovelo mao pe contusao entorse ortopedia trauma' },
+  { id: 'rxbacia', cat: 'img', name: 'Radiografia de bacia / pelve / quadril — Raio-X', prep: 'Sem preparo', interval: 30, tags: 'raio raio-x raiox rx radiografia bacia pelve quadril femur fêmur queda fratura idoso trauma' },
+  { id: 'rxseiosface', cat: 'img', name: 'Radiografia de seios da face — Raio-X', prep: 'Retirar objetos metálicos da face', interval: 30, tags: 'raio raio-x raiox rx radiografia seios da face sinusite face cefaleia' },
+  { id: 'usgabd', cat: 'img', name: 'Ultrassonografia de abdome total', prep: 'Jejum de 8 horas; bexiga cheia', interval: 180, tags: 'figado vesicula rim usg ultrassom ultrassonografia ecografia abdome' },
+  { id: 'usgrins', cat: 'img', name: 'Ultrassonografia de rins e vias urinárias', prep: 'Bexiga cheia', interval: 180, tags: 'rim calculo usg ultrassom ultrassonografia ecografia vias urinarias' },
+  { id: 'dopplermmii', cat: 'img', name: 'Doppler venoso de membros inferiores', prep: 'Sem preparo', interval: 30, tags: 'trombose tvp ultrassom doppler' },
+  { id: 'dopplercar', cat: 'img', name: 'Doppler de carótidas e vertebrais', prep: 'Sem preparo', interval: 365, tags: 'avc aterosclerose doppler' },
+  { id: 'mamografia', cat: 'img', name: 'Mamografia bilateral', prep: 'Não usar desodorante no dia', interval: 365, tags: 'mama rastreamento rx raio-x' },
+  { id: 'densitometria', cat: 'img', name: 'Densitometria óssea', prep: 'Suspender cálcio 24h antes', interval: 730, tags: 'osteoporose osso dxa' },
+  { id: 'tccranio', cat: 'img', name: 'Tomografia de crânio sem contraste', prep: 'Sem preparo', interval: 0, tags: 'avc trauma cefaleia tc tomografia cranio cerebro' },
+  { id: 'tctorax', cat: 'img', name: 'Tomografia de tórax', prep: 'Sem preparo (sem contraste)', interval: 90, tags: 'pulmao nodulo tc tomografia torax' },
+  { id: 'tcabdome', cat: 'img', name: 'Tomografia de abdome e pelve com contraste', prep: 'Jejum de 4h; creatinina recente', interval: 30, tags: 'abdome tc tomografia pelve contraste', contrast: true },
+  { id: 'angiotctorax', cat: 'img', name: 'Angiotomografia de tórax (protocolo TEP)', prep: 'Creatinina recente; acesso venoso calibroso', interval: 0, tags: 'embolia tep tc tomografia angio', contrast: true },
+  { id: 'angiotccor', cat: 'img', name: 'Angiotomografia de coronárias', prep: 'Jejum de 4h; FC controlada; credinina recente', interval: 730, tags: 'coronaria cardiaca tc tomografia angio', contrast: true },
+  { id: 'rmcranio', cat: 'img', name: 'Ressonância magnética de crânio', prep: 'Checar marcapasso/implantes metálicos', interval: 180, tags: 'cerebro neuro rm ressonancia cranio' },
+  { id: 'rmcoluna', cat: 'img', name: 'Ressonância magnética de coluna', prep: 'Checar implantes metálicos', interval: 365, tags: 'coluna lombar hernia rm ressonancia disco' },
+  { id: 'colangiorm', cat: 'img', name: 'Colangiorressonância', prep: 'Jejum de 6 horas', interval: 180, tags: 'vias biliares rm ressonancia colangio' },
 
   // ---------- Métodos gráficos ----------
-  { id: 'ecg', cat: 'graf', name: 'Eletrocardiograma de 12 derivações', prep: 'Sem preparo', interval: 0, tags: 'coracao arritmia dor toracica' },
-  { id: 'eco', cat: 'graf', name: 'Ecocardiograma transtorácico', prep: 'Sem preparo', interval: 365, tags: 'coracao insuficiencia cardiaca valvula' },
-  { id: 'holter', cat: 'graf', name: 'Holter 24 horas', prep: 'Banho antes da instalação', interval: 365, tags: 'arritmia palpitacao' },
-  { id: 'mapa', cat: 'graf', name: 'MAPA 24 horas', prep: 'Manter rotina habitual', interval: 365, tags: 'pressao hipertensao' },
-  { id: 'ergometrico', cat: 'graf', name: 'Teste ergométrico', prep: 'Roupa e tênis confortáveis; refeição leve 2h antes', interval: 365, tags: 'coronaria esforco' },
-  { id: 'espirometria', cat: 'graf', name: 'Espirometria com prova broncodilatadora', prep: 'Suspender broncodilatador conforme orientação', interval: 365, tags: 'asma dpoc pulmao' },
-  { id: 'eeg', cat: 'graf', name: 'Eletroencefalograma', prep: 'Cabelo limpo e seco, sem creme', interval: 365, tags: 'convulsao epilepsia' },
-  { id: 'fundoolho', cat: 'graf', name: 'Mapeamento de retina (fundo de olho)', prep: 'Virá com dilatação; trazer acompanhante', interval: 365, tags: 'diabetes retinopatia' },
-  { id: 'endoscopia', cat: 'graf', name: 'Endoscopia digestiva alta', prep: 'Jejum de 8 horas; acompanhante', interval: 365, tags: 'estomago dispepsia' },
-  { id: 'colonoscopia', cat: 'graf', name: 'Colonoscopia', prep: 'Preparo intestinal conforme protocolo; acompanhante', interval: 1825, tags: 'colon rastreamento' },
+  { id: 'ecg', cat: 'graf', name: 'Eletrocardiograma de 12 derivações', prep: 'Sem preparo', interval: 0, tags: 'coracao arritmia dor toracica ecg eletro eletrocardiograma' },
+  { id: 'eco', cat: 'graf', name: 'Ecocardiograma transtorácico', prep: 'Sem preparo', interval: 365, tags: 'coracao insuficiencia cardiaca valvula eco ecocardiograma' },
+  { id: 'holter', cat: 'graf', name: 'Holter 24 horas', prep: 'Banho antes da instalação', interval: 365, tags: 'arritmia palpitacao holter ecg' },
+  { id: 'mapa', cat: 'graf', name: 'MAPA 24 horas', prep: 'Manter rotina habitual', interval: 365, tags: 'pressao hipertensao mapa' },
+  { id: 'ergometrico', cat: 'graf', name: 'Teste ergométrico', prep: 'Roupa e tênis confortáveis; refeição leve 2h antes', interval: 365, tags: 'coronaria esforco esteira ecg' },
+  { id: 'espirometria', cat: 'graf', name: 'Espirometria com prova broncodilatadora', prep: 'Suspender broncodilatador conforme orientação', interval: 365, tags: 'asma dpoc pulmao funcao pulmonar' },
+  { id: 'eeg', cat: 'graf', name: 'Eletroencefalograma', prep: 'Cabelo limpo e seco, sem creme', interval: 365, tags: 'convulsao epilepsia eeg eletroencefalograma' },
+  { id: 'fundoolho', cat: 'graf', name: 'Mapeamento de retina (fundo de olho)', prep: 'Virá com dilatação; trazer acompanhante', interval: 365, tags: 'diabetes retinopatia fundo olho' },
+  { id: 'endoscopia', cat: 'graf', name: 'Endoscopia digestiva alta', prep: 'Jejum de 8 horas; acompanhante', interval: 365, tags: 'estomago dispepsia eda endoscopia' },
+  { id: 'colonoscopia', cat: 'graf', name: 'Colonoscopia', prep: 'Preparo intestinal conforme protocolo; acompanhante', interval: 1825, tags: 'colon rastreamento polipo intestino' },
 
   // ---------- Alta complexidade / medicina de precisão ----------
-  { id: 'petct', cat: 'adv', name: 'PET-CT com FDG', prep: 'Jejum de 6h; glicemia < 200 mg/dL', interval: 90, tags: 'oncologia estadiamento' },
-  { id: 'cintimiocardio', cat: 'adv', name: 'Cintilografia de perfusão miocárdica', prep: 'Jejum de 4h; suspender cafeína 24h', interval: 365, tags: 'coronaria isquemia' },
-  { id: 'rmcardiaca', cat: 'adv', name: 'Ressonância magnética cardíaca', prep: 'Checar implantes; função renal se contraste', interval: 365, tags: 'miocardiopatia' },
-  { id: 'ngs', cat: 'adv', name: 'Painel genético por sequenciamento (NGS)', prep: 'Termo de consentimento e aconselhamento genético', interval: 3650, tags: 'genetica hereditario' },
-  { id: 'biopsialiq', cat: 'adv', name: 'Biópsia líquida (DNA tumoral circulante)', prep: 'Sem preparo', interval: 90, tags: 'oncologia mutacao' },
-  { id: 'marcadores', cat: 'adv', name: 'Marcadores tumorais (CEA, CA 19-9, CA-125 conforme caso)', prep: 'Sem preparo', interval: 90, tags: 'oncologia seguimento' },
-  { id: 'rtpcr', cat: 'adv', name: 'Painel molecular respiratório (RT-PCR multiplex)', prep: 'Swab nasofaríngeo', interval: 7, tags: 'virus influenza covid' },
-  { id: 'farmacogen', cat: 'adv', name: 'Teste farmacogenético (CYP2C19, CYP2D6 e outros)', prep: 'Swab bucal ou sangue', interval: 3650, tags: 'medicamento resposta clopidogrel' },
-  { id: 'elastografia', cat: 'adv', name: 'Elastografia hepática', prep: 'Jejum de 3 horas', interval: 365, tags: 'figado fibrose' }
+  { id: 'petct', cat: 'adv', name: 'PET-CT com FDG', prep: 'Jejum de 6h; glicemia < 200 mg/dL', interval: 90, tags: 'oncologia estadiamento pet petct petscan' },
+  { id: 'cintimiocardio', cat: 'adv', name: 'Cintilografia de perfusão miocárdica', prep: 'Jejum de 4h; suspender cafeína 24h', interval: 365, tags: 'coronaria isquemia cintilografia' },
+  { id: 'rmcardiaca', cat: 'adv', name: 'Ressonância magnética cardíaca', prep: 'Checar implantes; função renal se contraste', interval: 365, tags: 'miocardiopatia ressonancia coracao' },
+  { id: 'ngs', cat: 'adv', name: 'Painel genético por sequenciamento (NGS)', prep: 'Termo de consentimento e aconselhamento genético', interval: 3650, tags: 'genetica hereditario sequenciamento ngs dna' },
+  { id: 'biopsialiq', cat: 'adv', name: 'Biópsia líquida (DNA tumoral circulante)', prep: 'Sem preparo', interval: 90, tags: 'oncologia mutacao biopsia liquida' },
+  { id: 'marcadores', cat: 'adv', name: 'Marcadores tumorais (CEA, CA 19-9, CA-125 conforme caso)', prep: 'Sem preparo', interval: 90, tags: 'oncologia seguimento cea ca125 ca199 marcadores' },
+  { id: 'rtpcr', cat: 'adv', name: 'Painel molecular respiratório (RT-PCR multiplex)', prep: 'Swab nasofaríngeo', interval: 7, tags: 'virus influenza covid pcr rtpcr resp' },
+  { id: 'farmacogen', cat: 'adv', name: 'Teste farmacogenético (CYP2C19, CYP2D6 e outros)', prep: 'Swab bucal ou sangue', interval: 3650, tags: 'medicamento resposta clopidogrel cyp2c19 farmaco' },
+  { id: 'elastografia', cat: 'adv', name: 'Elastografia hepática', prep: 'Jejum de 3 horas', interval: 365, tags: 'figado fibrose elastografia fibroscan' }
 ];
 
 const CATALOG_BY_ID = Object.fromEntries(EXAM_CATALOG.map(e => [e.id, e]));
 export const getExamById = (id) => CATALOG_BY_ID[id] || null;
 
 /* ------------------------------------------------------------------ */
-/* Utilidades                                                          */
+/* Utilidades & Sinônimos Clínicos                                     */
 /* ------------------------------------------------------------------ */
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const DAY = 86400000;
+
+export const EXAM_SEARCH_SYNONYMS = {
+  'raio': ['rx', 'radiografia', 'raiox', 'raio-x'],
+  'raiox': ['rx', 'radiografia', 'raio', 'raio-x'],
+  'rx': ['raio', 'radiografia', 'raiox', 'raio-x'],
+  'radiografia': ['rx', 'raio', 'raiox', 'raio-x'],
+  'radiografias': ['rx', 'raio', 'raiox', 'raio-x'],
+  'raios': ['rx', 'radiografia', 'raiox', 'raio-x'],
+  'tc': ['tomografia'],
+  'tomografia': ['tc'],
+  'rm': ['ressonancia'],
+  'ressonancia': ['rm'],
+  'usg': ['ultrassom', 'ultrassonografia', 'ecografia'],
+  'ultrassom': ['usg', 'ultrassonografia', 'ecografia'],
+  'ultrassonografia': ['usg', 'ultrassom', 'ecografia'],
+  'ecografia': ['usg', 'ultrassom', 'ultrassonografia'],
+  'ecg': ['eletrocardiograma', 'eletro'],
+  'eletro': ['ecg', 'eletrocardiograma'],
+  'eletrocardiograma': ['ecg', 'eletro'],
+  'eco': ['ecocardiograma'],
+  'ecocardiograma': ['eco'],
+  'eeg': ['eletroencefalograma'],
+  'eletroencefalograma': ['eeg']
+};
+
+export function matchExamQuery(exam, rawQuery) {
+  if (!rawQuery) return true;
+  const cleanQ = norm(rawQuery).replace(/[-_]/g, ' ').trim();
+  if (!cleanQ) return true;
+
+  const corpus = norm(`${exam.name} ${exam.tags || ''} ${exam.prep || ''}`).replace(/[-_]/g, ' ');
+  const terms = cleanQ.split(/\s+/).filter(Boolean);
+
+  return terms.every(term => {
+    if (corpus.includes(term)) return true;
+    const syns = EXAM_SEARCH_SYNONYMS[term] || [];
+    return syns.some(s => corpus.includes(norm(s).replace(/[-_]/g, ' ')));
+  });
+}
 
 function getDB() {
   try {
@@ -238,9 +281,12 @@ const ACUTE_RULES = [
   { re: /cefaleia|dor de cabeca/, label: 'Cefaleia', exams: ['tccranio'], note: 'Indicar imagem se houver sinais de alarme' },
   { re: /trauma craniano|tce|queda com batida/, label: 'Trauma de crânio', exams: ['tccranio'] },
   { re: /convuls|crise epilept/, label: 'Crise convulsiva', exams: ['glicemia', 'eletrolitos', 'calcio', 'tccranio', 'eeg'] },
-  { re: /tosse|coriza|sindrome gripal|influenza|covid/, label: 'Sintomas respiratórios', exams: ['rtpcr', 'rxtorax', 'hemograma'] },
+  { re: /tosse|coriza|sindrome gripal|influenza|covid|pneumonia/, label: 'Sintomas respiratórios', exams: ['rtpcr', 'rxtorax', 'hemograma'] },
+  { re: /fratura|entorse|queda|trauma|contusao|luxacao|dor no joelho|dor no ombro|dor no tornozelo|dor no pe|dor na mao|dor no punho/, label: 'Trauma / suspeita de fratura de extremidade', exams: ['rxmembros'] },
+  { re: /queda (da|de) propria altura|trauma de bacia|dor no quadril|dor na bacia|fratura de femur/, label: 'Trauma de bacia / quadril', exams: ['rxbacia'] },
+  { re: /sinusite|dor facial|congestao nasal|secrecao nasal purulenta/, label: 'Suspeita de sinusite', exams: ['rxseiosface'] },
   { re: /palpitac|taquicardia|arritmia/, label: 'Palpitações', exams: ['ecg', 'eletrolitos', 'tsh', 'holter'] },
-  { re: /lombalgia|dor lombar|ciatalgia/, label: 'Lombalgia', exams: ['rmcoluna'], note: 'Imagem só com sinais de alarme ou falha do tratamento' },
+  { re: /lombalgia|dor lombar|ciatalgia/, label: 'Lombalgia', exams: ['rxcoluna', 'rmcoluna'], note: 'Imagem indicada em sinais de alarme, trauma ou falha terapêutica' },
   { re: /sangramento|melena|hematemese|enterorragia/, label: 'Sangramento', exams: ['hemograma', 'coagulograma', 'endoscopia'] },
   { re: /atraso menstrual|gravidez|gestante|amenorreia/, label: 'Possível gestação', exams: ['betahcg'] }
 ];
@@ -570,10 +616,9 @@ export function mountExamOrdersSection(container, opts) {
   }
 
   function renderCatalog() {
-    const q = norm(state.query).trim();
     const list = EXAM_CATALOG.filter(e =>
       (state.category === 'all' || e.cat === state.category) &&
-      (!q || norm(e.name).includes(q) || norm(e.tags).includes(q))
+      matchExamQuery(e, state.query)
     );
     return `
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
@@ -582,7 +627,7 @@ export function mountExamOrdersSection(container, opts) {
       </div>
       <div style="position:relative; margin-bottom:8px;">
         <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#64748b; font-size:0.78rem;"></i>
-        <input type="text" id="exam-search-input" class="form-input" value="${esc(state.query)}" placeholder="Buscar exame pelo nome ou finalidade (ex: troponina, tireoide, PET)..." style="width:100%; padding-left:30px; font-size:0.82rem;" ${isReadOnly ? 'disabled' : ''}>
+        <input type="text" id="exam-search-input" class="form-input" value="${esc(state.query)}" placeholder="Buscar exame pelo nome, sigla ou suspeita (ex: raio-x, rx, tórax, troponina, tomografia)..." style="width:100%; padding-left:30px; font-size:0.82rem;" ${isReadOnly ? 'disabled' : ''}>
       </div>
       <div id="exam-catalog-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:6px; max-height:210px; overflow-y:auto; padding-right:4px;">
         ${list.length === 0 ? `<div style="font-size:0.76rem; color:var(--text-muted); padding:8px;">Nenhum exame encontrado com esse termo.</div>` : list.map(e => {
@@ -757,4 +802,5 @@ if (typeof window !== 'undefined') {
   window.EXAM_CATALOG = EXAM_CATALOG;
   window.predictExams = predictExams;
   window.printExamRequisition = printExamRequisition;
+  window.matchExamQuery = matchExamQuery;
 }

@@ -1,12 +1,25 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.27`  
+**Versão:** `2.9.28`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🩻 **Expansão do Catálogo de Raio-X & Busca Inteligente com Sinônimos Médicos no PEP (v2.9.28):**
+  1. **Catálogo Completo de Radiografia (Raio-X):** Inclusão e enriquecimento de exames radiológicos essenciais de pronto-socorro e ambulatório:
+     - *Radiografia de tórax (PA e perfil) — Raio-X* (com preparo para retirada de objetos metálicos do tórax e tags para pneumonia, derrame, costela, fratura, infiltrado);
+     - *Radiografia de abdome agudo / simples — Raio-X* (rotina de abdome agudo, perfuração, obstrução, cálculos);
+     - *Radiografia de coluna (cervical, dorsal ou lombar) — Raio-X* (trauma, lombociatalgia, dorsalgia);
+     - *Radiografia de membros / extremidades (ossos e articulações) — Raio-X* (fraturas, entorses, traumas em ombro, braço, punho, mão, quadril, joelho, perna, tornozelo, pé);
+     - *Radiografia de bacia / pelve / quadril — Raio-X* (quedas em idosos, fratura de fêmur e bacia);
+     - *Radiografia de seios da face — Raio-X* (suspeitas de sinusite e cefaleia facial).
+  2. **Motor de Busca Inteligente com Sinônimos Médicos:**
+     - Digitar `"raio"`, `"raio-x"`, `"raio x"`, `"raiox"`, `"rx"` ou `"radiografia"` agora localiza imediatamente todos os exames radiológicos cadastrados.
+     - Suporte multi-termos e sinônimos automáticos para outros métodos diagnósticos: `TC` ↔ `Tomografia`, `RM` ↔ `Ressonância`, `USG` ↔ `Ultrassom` / `Ultrassonografia` / `Ecografia`, `ECG` ↔ `Eletrocardiograma` / `Eletro`, `ECO` ↔ `Ecocardiograma`, `EEG` ↔ `Eletroencefalograma`.
+  3. **Apoio à Decisão Clínica Expandido (CPOE):** Regras de suspeita clínica no PEP para trauma de extremidades, queda de própria altura (fratura de bacia/fêmur) e sinusite aguda agora sugerem automaticamente os raios-x pertinentes na lista de sugestões com prioridade imediata.
 
 - 💊 **Reabastecimento do Estoque Hospitalar, Circuito Fechado de Prescrições & KPIs em Tempo Real (v2.9.27):**
   1. **Catálogo Hospitalar Pré-Carregado com 35 Medicamentos Essenciais:**

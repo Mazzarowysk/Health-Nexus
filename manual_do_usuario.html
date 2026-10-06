@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.27)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.28)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.27 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido e circuito fechado de dispensação. Testado e homologado com 100% das 18 abas operacionais.</p>
+<p><strong>Health Nexus v2.9.28 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido e circuito fechado de dispensação. Testado e homologado com 100% das 18 abas operacionais.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -1277,16 +1277,45 @@ flowchart TD
 <li><p><strong>Catálogo Multicomplexidade em 4 Eixos Assistenciais:</strong></p>
 <ul>
 <li><strong>🔬 Laboratório de Análises Clínicas:</strong> Hemograma completo, glicemia de jejum, hemoglobina glicada (HbA1c), perfil lipídico, creatinina sérica com estimativa de TFG, ureia, eletrólitos (Na/K/Mg), coagulograma (TAP/INR e TTPA), enzimas cardíacas (Troponina ultrassensível, CK-MB, NT-proBNP), marcadores de sepse (Lactato sérico arterial, hemoculturas em 2 pares), EAS e urocultura com antibiograma.</li>
-<li><strong>🩻 Imagem Convencional &amp; Seccional:</strong> Radiografias de tórax e abdome agudo, ultrassonografia de abdome e vias urinárias, Doppler vascular venoso de membros inferiores e carótidas, mamografia bilateral digital, tomografia computadorizada (crânio sem contraste, tórax, abdome e pelve com contraste, angiotomografia para protocolo TEP ou coronárias) e ressonância magnética (crânio, coluna, colangiorressonância).</li>
+<li><strong>🩻 Imagem Convencional (Raio-X) &amp; Seccional:</strong><ul>
+<li><em>Radiografia de Tórax (PA e perfil) — Raio-X</em>: preparo com retirada de objetos metálicos; investigação de pneumonia, derrame pleural, fraturas de costela e infiltrados.</li>
+<li><em>Radiografia de Abdome agudo / simples — Raio-X</em>: rotina de abdome agudo obstrutivo ou perfurativo e cálculos radiopacos.</li>
+<li><em>Radiografia de Coluna (cervical, dorsal ou lombar) — Raio-X</em>: investigação de dorsalgias, lombalgias agudas, compressões e traumas axiais.</li>
+<li><em>Radiografia de Membros / Extremidades (ossos e articulações) — Raio-X</em>: fraturas, contusões, entorses e traumas ortopédicos em ombro, braço, punho, mão, joelho, tornozelo e pé.</li>
+<li><em>Radiografia de Bacia / Pelve / Quadril — Raio-X</em>: quedas da própria altura em idosos, fratura de fêmur e bacia.</li>
+<li><em>Radiografia de Seios da Face — Raio-X</em>: sinusite aguda/crônica e dores faciais.</li>
+<li><em>Ultrassonografia</em>: abdome total, rins e vias urinárias.</li>
+<li><em>Doppler Vascular</em>: venoso de membros inferiores (TVP) e arterial de carótidas/vertebrais.</li>
+<li><em>Mamografia e Densitometria Óssea</em>: rastreamento de neoplasia de mama e osteoporose.</li>
+<li><em>Tomografia Computadorizada (TC)</em>: crânio sem contraste, tórax, abdome e pelve com contraste, angiotomografia para protocolo TEP ou coronárias.</li>
+<li><em>Ressonância Magnética (RM)</em>: crânio, coluna vertebral e colangiorressonância.</li>
+</ul>
+</li>
 <li><strong>📈 Métodos Gráficos &amp; Funcionais:</strong> Eletrocardiograma de 12 derivações (ECG), ecocardiograma transtorácico, Holter 24h, MAPA 24h, teste ergométrico, espirometria computadorizada e eletroencefalograma (EEG).</li>
 <li><strong>🧬 Alta Complexidade &amp; Medicina de Precisão:</strong> PET-CT oncológico com FDG, cintilografia miocárdica de esforço e repouso, painéis genéticos por NGS (Next-Generation Sequencing), biópsia líquida para DNA tumoral circulante, painéis moleculares RT-PCR multiplex e testes farmacogenéticos (CYP2C19/CYP2D6 para predição de resposta terapêutica individual).</li>
+</ul>
+</li>
+<li><p><strong>Motor de Busca Inteligente com Sinônimos Médicos:</strong></p>
+<ul>
+<li><strong>Reconhecimento Imediato de Raio-X:</strong> Ao digitar no campo de busca termos como <code>&quot;raio&quot;</code>, <code>&quot;raio-x&quot;</code>, <code>&quot;raio x&quot;</code>, <code>&quot;raiox&quot;</code>, <code>&quot;rx&quot;</code> ou <code>&quot;radiografia&quot;</code>, o sistema exibe instantaneamente todos os exames radiológicos cadastrados.</li>
+<li><strong>Equivalências Médicas Automáticas:</strong> A busca suporta correspondência multi-termos e sinônimos usuais da rotina hospitalar:<ul>
+<li><code>Raio-X</code> ↔ <code>RX</code> ↔ <code>Radiografia</code></li>
+<li><code>TC</code> ↔ <code>Tomografia</code></li>
+<li><code>RM</code> ↔ <code>Ressonância</code></li>
+<li><code>USG</code> ↔ <code>Ultrassom</code> ↔ <code>Ultrassonografia</code> ↔ <code>Ecografia</code></li>
+<li><code>ECG</code> ↔ <code>Eletrocardiograma</code> ↔ <code>Eletro</code></li>
+<li><code>ECO</code> ↔ <code>Ecocardiograma</code></li>
+<li><code>EEG</code> ↔ <code>Eletroencefalograma</code></li>
+</ul>
+</li>
+<li><strong>Busca por Suspeita ou Parte Anatômica:</strong> Pesquisar por <code>&quot;tórax&quot;</code>, <code>&quot;coluna&quot;</code>, <code>&quot;fratura&quot;</code> ou <code>&quot;pneumonia&quot;</code> localiza imediatamente o exame correspondente sem exigir a digitação do nome formal completo.</li>
 </ul>
 </li>
 <li><p><strong>Motor de Sugestões Preditivas Baseado no Histórico do Paciente:</strong></p>
 <ul>
 <li><strong>Condições Crônicas Preexistentes:</strong> Analisa automaticamente o histórico clínico e diagnósticos prévios. Pacientes diabéticos recebem sugestão de HbA1c, microalbuminúria e creatinina; pacientes hipertensos recebem perfil lipídico, ECG e eletrólitos; pacientes cardiopatas recebem NT-proBNP e ecocardiograma.</li>
 <li><strong>Monitorização Farmacológica Ativa:</strong> Detecta medicações de uso contínuo (anticoagulantes como Varfarina demandam controle de TAP/INR; antiarrítmicos como Amiodarona demandam TSH e função hepática; estabilizadores como Lítio demandam litemia periódica; estatinas demandam enzimas hepáticas).</li>
-<li><strong>Protocolos de Emergência Aguda:</strong> Cruza com a queixa atual e sinais vitais informados na triagem Manchester ou na anamnese (dor torácica sugere protocolo IAM com ECG, Troponina seriada e D-Dímero; suspeita de AVC sugere TC de crânio urgente e coagulograma).</li>
+<li><strong>Protocolos de Emergência Aguda &amp; Traumatologia:</strong> Cruza com a queixa atual e sinais vitais informados na triagem Manchester ou na anamnese (dor torácica sugere protocolo IAM com ECG, Troponina seriada e D-Dímero; suspeita de AVC sugere TC de crânio urgente e coagulograma; traumas, quedas e dores articulares sugerem Raio-X de membros, bacia ou coluna; sintomas respiratórios sugerem Raio-X de tórax e RT-PCR).</li>
 <li><strong>Rastreamento Populacional por Faixa Etária &amp; Sexo:</strong> Alinha condutas preventivas conforme diretrizes do Ministério da Saúde e OMS (mamografia bienal para mulheres de 50 a 69 anos, sangue oculto nas fezes dos 50 aos 75 anos, densitometria óssea aos 65 anos).</li>
 </ul>
 </li>

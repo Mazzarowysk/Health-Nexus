@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.27)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.28)
 
-> **Health Nexus v2.9.27 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido e circuito fechado de dispensação. Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.28 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido e circuito fechado de dispensação. Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -334,21 +334,44 @@ O Health Nexus disponibiliza no Prontuário Eletrônico (PEP) um módulo de **Co
 
 1. **Catálogo Multicomplexidade em 4 Eixos Assistenciais:**
    - **🔬 Laboratório de Análises Clínicas:** Hemograma completo, glicemia de jejum, hemoglobina glicada (HbA1c), perfil lipídico, creatinina sérica com estimativa de TFG, ureia, eletrólitos (Na/K/Mg), coagulograma (TAP/INR e TTPA), enzimas cardíacas (Troponina ultrassensível, CK-MB, NT-proBNP), marcadores de sepse (Lactato sérico arterial, hemoculturas em 2 pares), EAS e urocultura com antibiograma.
-   - **🩻 Imagem Convencional & Seccional:** Radiografias de tórax e abdome agudo, ultrassonografia de abdome e vias urinárias, Doppler vascular venoso de membros inferiores e carótidas, mamografia bilateral digital, tomografia computadorizada (crânio sem contraste, tórax, abdome e pelve com contraste, angiotomografia para protocolo TEP ou coronárias) e ressonância magnética (crânio, coluna, colangiorressonância).
+   - **🩻 Imagem Convencional (Raio-X) & Seccional:**
+     - *Radiografia de Tórax (PA e perfil) — Raio-X*: preparo com retirada de objetos metálicos; investigação de pneumonia, derrame pleural, fraturas de costela e infiltrados.
+     - *Radiografia de Abdome agudo / simples — Raio-X*: rotina de abdome agudo obstrutivo ou perfurativo e cálculos radiopacos.
+     - *Radiografia de Coluna (cervical, dorsal ou lombar) — Raio-X*: investigação de dorsalgias, lombalgias agudas, compressões e traumas axiais.
+     - *Radiografia de Membros / Extremidades (ossos e articulações) — Raio-X*: fraturas, contusões, entorses e traumas ortopédicos em ombro, braço, punho, mão, joelho, tornozelo e pé.
+     - *Radiografia de Bacia / Pelve / Quadril — Raio-X*: quedas da própria altura em idosos, fratura de fêmur e bacia.
+     - *Radiografia de Seios da Face — Raio-X*: sinusite aguda/crônica e dores faciais.
+     - *Ultrassonografia*: abdome total, rins e vias urinárias.
+     - *Doppler Vascular*: venoso de membros inferiores (TVP) e arterial de carótidas/vertebrais.
+     - *Mamografia e Densitometria Óssea*: rastreamento de neoplasia de mama e osteoporose.
+     - *Tomografia Computadorizada (TC)*: crânio sem contraste, tórax, abdome e pelve com contraste, angiotomografia para protocolo TEP ou coronárias.
+     - *Ressonância Magnética (RM)*: crânio, coluna vertebral e colangiorressonância.
    - **📈 Métodos Gráficos & Funcionais:** Eletrocardiograma de 12 derivações (ECG), ecocardiograma transtorácico, Holter 24h, MAPA 24h, teste ergométrico, espirometria computadorizada e eletroencefalograma (EEG).
    - **🧬 Alta Complexidade & Medicina de Precisão:** PET-CT oncológico com FDG, cintilografia miocárdica de esforço e repouso, painéis genéticos por NGS (Next-Generation Sequencing), biópsia líquida para DNA tumoral circulante, painéis moleculares RT-PCR multiplex e testes farmacogenéticos (CYP2C19/CYP2D6 para predição de resposta terapêutica individual).
 
-2. **Motor de Sugestões Preditivas Baseado no Histórico do Paciente:**
+2. **Motor de Busca Inteligente com Sinônimos Médicos:**
+   - **Reconhecimento Imediato de Raio-X:** Ao digitar no campo de busca termos como `"raio"`, `"raio-x"`, `"raio x"`, `"raiox"`, `"rx"` ou `"radiografia"`, o sistema exibe instantaneamente todos os exames radiológicos cadastrados.
+   - **Equivalências Médicas Automáticas:** A busca suporta correspondência multi-termos e sinônimos usuais da rotina hospitalar:
+     - `Raio-X` ↔ `RX` ↔ `Radiografia`
+     - `TC` ↔ `Tomografia`
+     - `RM` ↔ `Ressonância`
+     - `USG` ↔ `Ultrassom` ↔ `Ultrassonografia` ↔ `Ecografia`
+     - `ECG` ↔ `Eletrocardiograma` ↔ `Eletro`
+     - `ECO` ↔ `Ecocardiograma`
+     - `EEG` ↔ `Eletroencefalograma`
+   - **Busca por Suspeita ou Parte Anatômica:** Pesquisar por `"tórax"`, `"coluna"`, `"fratura"` ou `"pneumonia"` localiza imediatamente o exame correspondente sem exigir a digitação do nome formal completo.
+
+3. **Motor de Sugestões Preditivas Baseado no Histórico do Paciente:**
    - **Condições Crônicas Preexistentes:** Analisa automaticamente o histórico clínico e diagnósticos prévios. Pacientes diabéticos recebem sugestão de HbA1c, microalbuminúria e creatinina; pacientes hipertensos recebem perfil lipídico, ECG e eletrólitos; pacientes cardiopatas recebem NT-proBNP e ecocardiograma.
    - **Monitorização Farmacológica Ativa:** Detecta medicações de uso contínuo (anticoagulantes como Varfarina demandam controle de TAP/INR; antiarrítmicos como Amiodarona demandam TSH e função hepática; estabilizadores como Lítio demandam litemia periódica; estatinas demandam enzimas hepáticas).
-   - **Protocolos de Emergência Aguda:** Cruza com a queixa atual e sinais vitais informados na triagem Manchester ou na anamnese (dor torácica sugere protocolo IAM com ECG, Troponina seriada e D-Dímero; suspeita de AVC sugere TC de crânio urgente e coagulograma).
+   - **Protocolos de Emergência Aguda & Traumatologia:** Cruza com a queixa atual e sinais vitais informados na triagem Manchester ou na anamnese (dor torácica sugere protocolo IAM com ECG, Troponina seriada e D-Dímero; suspeita de AVC sugere TC de crânio urgente e coagulograma; traumas, quedas e dores articulares sugerem Raio-X de membros, bacia ou coluna; sintomas respiratórios sugerem Raio-X de tórax e RT-PCR).
    - **Rastreamento Populacional por Faixa Etária & Sexo:** Alinha condutas preventivas conforme diretrizes do Ministério da Saúde e OMS (mamografia bienal para mulheres de 50 a 69 anos, sangue oculto nas fezes dos 50 aos 75 anos, densitometria óssea aos 65 anos).
 
-3. **Trava Inteligente de Não-Duplicidade & Segurança de Contraste:**
+4. **Trava Inteligente de Não-Duplicidade & Segurança de Contraste:**
    - **Prevenção de Repetição Desnecessária:** Se um exame com intervalo protocolar longo (ex: HbA1c a cada 90 dias, ultrassom de rotina) já foi solicitado recentemente, o sistema emite alerta visual com os dias decorridos, evitando coletas invasivas desnecessárias e desperdício de insumos.
    - **Alerta de Contraste Iodado:** Em exames tomográficos contrastados, alerta para histórico de alergia ao iodo ou disfunção renal prévia, recomendando conferência da creatinina recente antes da infusão.
 
-4. **Emissão de Requisição & Encaminhamento:**
+5. **Emissão de Requisição & Encaminhamento:**
    - Botão **`🖨️ Salvar e Imprimir Requisição`**: Gera a folha oficial de solicitação de exames contendo dados do paciente, leito ou consultório, indicação clínica estruturada, prioridade (Rotina / Urgente / Emergência), preparos específicos e assinatura com CRM do médico solicitante.
    - Integração direta com a assinatura do PEP e armazenamento no banco de dados `exam_requests`.
 
