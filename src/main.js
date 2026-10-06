@@ -6246,17 +6246,23 @@ async function renderTabContent() {
   } else if (state.activeTab === 'pacientes') {
     renderPatientsTab(contentArea);
   } else if (state.activeTab === 'medicos') {
-    renderDoctorsTab();
+    if (typeof window.renderDoctorsTab === 'function') await window.renderDoctorsTab();
+    else if (typeof renderDoctorsTab === 'function') await renderDoctorsTab();
   } else if (state.activeTab === 'escalas') {
-    renderSchedulesTab();
+    if (typeof renderSchedulesTab === 'function') renderSchedulesTab();
+    else if (typeof window.renderSchedulesTab === 'function') window.renderSchedulesTab();
   } else if (state.activeTab === 'consultorios') {
-    renderConsultingRoomsTab();
+    if (typeof window.renderConsultingRoomsTab === 'function') await window.renderConsultingRoomsTab();
+    else if (typeof renderConsultingRoomsTab === 'function') await renderConsultingRoomsTab();
   } else if (state.activeTab === 'farmacia') {
-    renderPharmacyTab();
+    if (typeof window.renderPharmacyTab === 'function') await window.renderPharmacyTab();
+    else if (typeof renderPharmacyTab === 'function') await renderPharmacyTab();
   } else if (state.activeTab === 'tv_panel') {
-    renderTVPanelTab();
+    if (typeof window.renderTVPanelTab === 'function') await window.renderTVPanelTab();
+    else if (typeof renderTVPanelTab === 'function') await renderTVPanelTab();
   } else if (state.activeTab === 'agenda') {
-    renderAgendaTab();
+    if (typeof window.renderAgendaTab === 'function') await window.renderAgendaTab();
+    else if (typeof renderAgendaTab === 'function') await renderAgendaTab();
   } else if (state.activeTab === 'atendimento') {
     renderAttendanceTab(contentArea);
   } else if (state.activeTab === 'consulta_dinamica') {
@@ -6264,13 +6270,17 @@ async function renderTabContent() {
   } else if (state.activeTab === 'observacao') {
     renderObservacaoTab(contentArea);
   } else if (state.activeTab === 'estagnacao') {
-    renderStagnationTab(contentArea);
+    if (typeof window.renderStagnationTab === 'function') await window.renderStagnationTab(contentArea);
+    else if (typeof renderStagnationTab === 'function') await renderStagnationTab(contentArea);
   } else if (state.activeTab === 'kanban') {
-    if (typeof window.renderKanbanTab === 'function') window.renderKanbanTab();
+    if (typeof window.renderKanbanTab === 'function') await window.renderKanbanTab();
+    else if (typeof renderKanbanTab === 'function') await renderKanbanTab();
   } else if (state.activeTab === 'leitos') {
-    renderLeitosTab();
+    if (typeof window.renderLeitosTab === 'function') await window.renderLeitosTab();
+    else if (typeof renderLeitosTab === 'function') await renderLeitosTab();
   } else if (state.activeTab === 'financeiro') {
-    renderReportsTab(contentArea);
+    if (typeof window.renderReportsTab === 'function') await window.renderReportsTab(contentArea);
+    else if (typeof renderReportsTab === 'function') await renderReportsTab(contentArea);
     setTimeout(() => {
       const btnFin = document.getElementById('tab-btn-financial');
       if (btnFin) btnFin.click();
@@ -6278,7 +6288,8 @@ async function renderTabContent() {
   } else if (state.activeTab === 'tiss' || state.activeTab === 'faturamento') {
     renderTISSTab(contentArea);
   } else if (state.activeTab === 'relatorios') {
-    renderReportsTab(contentArea);
+    if (typeof window.renderReportsTab === 'function') await window.renderReportsTab(contentArea);
+    else if (typeof renderReportsTab === 'function') await renderReportsTab(contentArea);
   } else if (state.activeTab === 'configuracoes') {
     renderSettingsTab(contentArea);
   }

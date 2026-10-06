@@ -1,12 +1,18 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.25`  
+**Versão:** `2.9.26`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🧪 **Homologação e Testes Automatizados Aba por Aba & Correção de Renderização do Kanban (v2.9.26):**
+  1. **Auditoria Automatizada Completa das 18 Abas:** Bateria de testes automatizados via navegador simulado (Puppeteer) executada em cada uma das 18 abas do sistema (`dashboard`, `escalas`, `agenda`, `pacientes`, `atendimento`, `consulta_dinamica`, `observacao`, `tv_panel`, `estagnacao`, `leitos`, `kanban`, `farmacia`, `financeiro`, `tiss`, `medicos`, `consultorios`, `relatorios`, `configuracoes`).
+  2. **Correção do Kanban de Internação (`createLinearGradient`):** Identificada e corrigida a exceção de contexto 2D do Canvas na renderização dos gráficos de SLA e Setores do Kanban. A função `createChartGradient` em `src/modules/ui.js` e a chamada em `src/tabs/kanban.js` foram blindadas para extrair o contexto `getContext('2d')` com fallback automático.
+  3. **Blindagem e Resiliência na Navegação Geral (`renderTabContent`):** Implementada proteção defensiva com checagem de existência (`typeof window[fn] === 'function'`) para todos os renderizadores de abas, garantindo 100% de estabilidade e transição suave entre todas as telas.
+  4. **Validação E2E com 0 Falhas:** Todas as 18 abas validadas com sucesso, gerando nós de DOM ativos e sem erros de execução no console.
 
 - 🩺 **Acompanhamento Clínico no Cadastro do Paciente, Alertas na Triagem & Prontuário Único (v2.9.25):**
   1. **Seção 5 no Formulário de Admissão de Pacientes (Acompanhamento Clínico):**

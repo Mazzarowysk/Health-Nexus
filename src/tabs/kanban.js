@@ -905,13 +905,14 @@ function initKanbanChart(activePatients) {
     const centerVal = document.getElementById('kanban-chart-center-val');
     if (centerVal) centerVal.textContent = activePatients.length;
 
+    const c2dSector = ctxSector.getContext ? ctxSector.getContext('2d') : ctxSector;
     kanbanSectorChartInstance = new ChartClass(ctxSector, {
       type: 'doughnut',
       data: {
         labels: KANBAN_COLUMNS.map(c => c.shortLabel),
         datasets: [{
           data: KANBAN_COLUMNS.map(c => dataMap[c.id]),
-          backgroundColor: KANBAN_COLUMNS.map(c => window.createChartGradient(ctxSector, c.color, 'ee', '33')),
+          backgroundColor: KANBAN_COLUMNS.map(c => (window.createChartGradient ? window.createChartGradient(c2dSector, c.color, 'ee', '33') : c.color)),
           borderWidth: 2,
           borderColor: 'rgba(255, 255, 255, 0.08)',
           borderRadius: 8,
@@ -955,13 +956,14 @@ function initKanbanChart(activePatients) {
   if (ctxSla) {
     if (kanbanSlaChartInstance) kanbanSlaChartInstance.destroy();
 
+    const c2dSla = ctxSla.getContext ? ctxSla.getContext('2d') : ctxSla;
     kanbanSlaChartInstance = new ChartClass(ctxSla, {
       type: 'doughnut',
       data: {
         labels: ['No Prazo', 'Atenção', 'Meta Excedida'],
         datasets: [{
           data: [onTime, warning, exceeded],
-          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'].map(c => window.createChartGradient(ctxSla, c, 'ee', '33')),
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'].map(c => (window.createChartGradient ? window.createChartGradient(c2dSla, c, 'ee', '33') : c)),
           borderWidth: 2,
           borderColor: 'rgba(255, 255, 255, 0.08)',
           borderRadius: 8,

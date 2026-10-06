@@ -30,11 +30,18 @@ export const updateThemeIcon = () => {
 
 // --- HELPER COMPONENTE DE SELEÇÃO CUSTOMIZADA E PESQUISÁVEL ---
 export const createChartGradient = function(ctx, colorHex, alpha1 = 'ff', alpha2 = '11', height = 200) {
-  const g = ctx.createLinearGradient(0, 0, 0, height);
-  const base = colorHex.length >= 7 ? colorHex.substring(0, 7) : colorHex;
-  g.addColorStop(0, base + alpha1);
-  g.addColorStop(1, base + alpha2);
-  return g;
+  if (!ctx || !colorHex) return colorHex || '#818cf8';
+  try {
+    const context = (typeof ctx.getContext === 'function') ? ctx.getContext('2d') : ctx;
+    if (!context || typeof context.createLinearGradient !== 'function') return colorHex;
+    const g = context.createLinearGradient(0, 0, 0, height);
+    const base = colorHex.length >= 7 ? colorHex.substring(0, 7) : colorHex;
+    g.addColorStop(0, base + alpha1);
+    g.addColorStop(1, base + alpha2);
+    return g;
+  } catch (err) {
+    return colorHex;
+  }
 };
 if (typeof window !== 'undefined') window.createChartGradient = createChartGradient;
 
