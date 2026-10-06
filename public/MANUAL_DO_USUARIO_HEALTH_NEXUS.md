@@ -98,8 +98,8 @@ flowchart TD
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
 - 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
 - 19. [Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0)](#sec-19)
-- 20. [Consulta Dinâmica Multi-Modalidade, Prontuário Único SUS & Etiquetas Térmicas (v2.9.24)](#sec-20)
-- 20. [Smart Flow Guide — Adaptação por Aba, Controle de Foco & Desmarcação (v2.9.9) & Painel Lateral Acoplado](#sec-20)
+- 20. [Consulta Dinâmica Multi-Modalidade (Aba Lateral Dedicada), Prontuário Único SUS & Etiquetas Térmicas (v2.9.24)](#sec-20)
+- 21. [Smart Flow Guide — Adaptação por Aba, Controle de Foco & Desmarcação (v2.9.9) & Painel Lateral Acoplado](#sec-21)
 
 ---
 
@@ -1087,19 +1087,21 @@ Quando acoplado à lateral, o Smart Flow Guide oferece uma visão panorâmica e 
 ---
 
 <a id="sec-20"></a>
-## 20. 🏢 Consulta Dinâmica Multi-Modalidade, Prontuário Único SUS & Etiquetas Térmicas (v2.9.24)
+## 20. 🏢 Consulta Dinâmica Multi-Modalidade (Aba Lateral Dedicada), Prontuário Único SUS & Etiquetas Térmicas (v2.9.24)
 
-### 20.1. Módulo de Consulta Dinâmica de Atendimentos
-Inspirada nos sistemas legados hospitalares e adaptada à agilidade do Health Nexus, a **Consulta Dinâmica** unifica em uma só interface todos os atendimentos da instituição através do botão `🔍 Consulta Dinâmica` na Central de Atendimentos:
-- **Modalidades Integradas:** Filtro dinâmico por *Todas as Modalidades*, `66 - Pronto Socorro`, `35 - Internação`, `Ambulatório Geral` e `SADT / Paciente Externo`.
-- **Filtros Combinados:** Busca textual por Nome ou CPF do paciente, Médico Responsável, Especialidade, Setor Hospitalar, Convênio e Ordenação (Mais recente primeiro ou mais antigo primeiro).
-- **Grid Assistencial Completo:** Exibição imediata de Código do Atendimento, Modalidade, Paciente & CPF, Convênio, Setor/Leito, Médico & CRM, Classificação de Risco e Status da Passagem.
+### 20.1. Módulo de Consulta Dinâmica de Atendimentos (Aba Lateral Exclusiva)
+Inspirada nos sistemas legados hospitalares e adaptada à agilidade do Health Nexus, a **Consulta Dinâmica** agora conta com uma **aba exclusiva e dedicada no menu lateral de navegação** (`fa-magnifying-glass-chart`), posicionada logo abaixo de *Atendimentos*. Essa mudança garante visualização em tela cheia de todas as passagens do hospital, sem depender de janelas modais e sem sofrer cortes ou sobreposição pelo painel lateral de governança:
+- **Acesso Direto pelo Menu Lateral:** Clique no item `Consulta Dinâmica` na barra de navegação esquerda a qualquer momento para abrir o painel analítico completo.
+- **Atalho na Central de Atendimentos:** O botão `🔍 Consulta Dinâmica` permanece disponível no cabeçalho do Kanban de atendimentos, funcionando como atalho rápido que direciona instantaneamente para a aba dedicada.
+- **Cards Métricos no Topo (Filtro Rápido):** Contadores clicáveis de *Total Geral*, `66 - Pronto Socorro`, `35 - Internação`, `Ambulatório Geral` e `SADT / Paciente Externo` para filtrar o grid com um toque.
+- **Filtros Combinados:** Busca por Nome ou CPF do paciente, Médico Responsável, Especialidade, Setor Hospitalar, Convênio e Ordenação cronológica decrescente ou crescente.
+- **Grid Assistencial em Tela Cheia:** Exibição ampla de Código do Atendimento, Modalidade, Paciente & CPF, Convênio, Setor/Leito, Médico & CRM, Classificação de Risco e Status da Passagem.
 - **Ações Imediatas:**
   - `Evoluir / PEP`: Abre instantaneamente a folha de evolução SOAP e prescrição.
   - `Histórico`: Acessa a linha do tempo assistencial e histórico de internações.
   - `Imprimir PEP`: Gera o prontuário oficial consolidado em PDF.
-  - `Etiqueta`: Abre o modal de emissão de etiquetas térmicas.
-  - `Exportar CSV`: Exporta os dados filtrados para planilhas gerenciais.
+  - `Etiqueta`: Abre o modal de emissão de etiquetas térmicas (pulseiras e tubos).
+  - `Exportar PDF / Relatório`: Exporta relatório executivo completo da pesquisa.
 
 ### 20.2. Prontuário Único SUS: ID CROSS, Pasta Arquivo e Naturalidade
 O cadastro de pacientes e o cabeçalho assistencial foram alinhados com o padrão do SUS do Estado de São Paulo:

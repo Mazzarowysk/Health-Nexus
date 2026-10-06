@@ -35,7 +35,7 @@ import { getNexusAICopilotResponse } from './aiCopilot.js';
 import { inject } from '@vercel/analytics';
 import { openTelemedicineModal } from './modules/telemedicina.js';
 import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from './modules/clinicalAI.js';
-import { openDynamicEncounterQueryModal, openThermalLabelModal } from './modules/dynamicEncounterQuery.js';
+import { openDynamicEncounterQueryModal, openThermalLabelModal, renderDynamicQueryTab } from './modules/dynamicEncounterQuery.js';
 
 window.setActivePatientContext = setActivePatientContext;
 window.clearActivePatientContext = clearActivePatientContext;
@@ -2780,6 +2780,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     escalas:      { name: 'Escalas de Plantão', badge: 'Equipes', desc: 'Escalas médicas e de enfermagem.' },
     estagnacao:   { name: 'Alertas & Estagnação', badge: 'Gargalos', desc: 'Monitoramento em tempo real de pacientes com espera excessiva.' },
     observacao:   { name: 'Sala de Observação PS', badge: 'Monitoramento Contínuo', desc: 'Cuidados intensivos e monitorização de até 24h no PS.' },
+    consulta_dinamica: { name: 'Consulta Dinâmica', badge: 'Multi-Modalidade', desc: 'Localizador geral de atendimentos (PS, Internação, Ambulatório e SADT).' },
     configuracoes:{ name: 'Configurações', badge: 'Sistema', desc: 'Parâmetros operacionais e gestão de acessos.' }
   };
 
@@ -5285,6 +5286,7 @@ function renderAppStructure() {
     { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-check' },
     { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
     { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
+    { id: 'consulta_dinamica', label: 'Consulta Dinâmica', icon: 'fa-magnifying-glass-chart' },
     { id: 'observacao', label: 'Observação do PS', icon: 'fa-bed-pulse', hasBadge: true },
     { id: 'tv_panel', label: 'Painel TV (Chamador)', icon: 'fa-tv' },
     { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
@@ -6144,6 +6146,8 @@ function switchTab(tabName, isBack = false) {
     tv_panel:      'Painel TV (Chamador)',
     agenda:        'Agenda Médica',
     atendimento:   'Atendimentos',
+    consulta_dinamica: 'Consulta Dinâmica (Localizador Geral)',
+    observacao:    'Observação do PS',
     estagnacao:    'Alertas & Estagnação',
     leitos:        'Gestão de Leitos',
     kanban:        'Kanban de Internação',
@@ -6202,6 +6206,7 @@ function updateGlobalBackButton() {
     tv_panel: 'Painel TV',
     agenda: 'Agenda',
     atendimento: 'Atendimentos',
+    consulta_dinamica: 'Consulta Dinâmica',
     estagnacao: 'Alertas',
     leitos: 'Leitos',
     kanban: 'Kanban',
@@ -6254,6 +6259,8 @@ async function renderTabContent() {
     renderAgendaTab();
   } else if (state.activeTab === 'atendimento') {
     renderAttendanceTab(contentArea);
+  } else if (state.activeTab === 'consulta_dinamica') {
+    renderDynamicQueryTab(contentArea);
   } else if (state.activeTab === 'observacao') {
     renderObservacaoTab(contentArea);
   } else if (state.activeTab === 'estagnacao') {

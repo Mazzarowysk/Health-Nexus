@@ -574,11 +574,11 @@ flowchart TD
 </ol>
 </li>
 <li><ol start="20">
-<li><a href="#sec-20">Consulta Dinâmica Multi-Modalidade, Prontuário Único SUS &amp; Etiquetas Térmicas (v2.9.24)</a></li>
+<li><a href="#sec-20">Consulta Dinâmica Multi-Modalidade (Aba Lateral Dedicada), Prontuário Único SUS &amp; Etiquetas Térmicas (v2.9.24)</a></li>
 </ol>
 </li>
-<li><ol start="20">
-<li><a href="#sec-20">Smart Flow Guide — Adaptação por Aba, Controle de Foco &amp; Desmarcação (v2.9.9) &amp; Painel Lateral Acoplado</a></li>
+<li><ol start="21">
+<li><a href="#sec-21">Smart Flow Guide — Adaptação por Aba, Controle de Foco &amp; Desmarcação (v2.9.9) &amp; Painel Lateral Acoplado</a></li>
 </ol>
 </li>
 </ul>
@@ -3634,19 +3634,21 @@ flowchart TD
 </ul>
 <hr>
 <p><a id="sec-20"></a></p>
-<h2>20. 🏢 Consulta Dinâmica Multi-Modalidade, Prontuário Único SUS &amp; Etiquetas Térmicas (v2.9.24)</h2>
-<h3>20.1. Módulo de Consulta Dinâmica de Atendimentos</h3>
-<p>Inspirada nos sistemas legados hospitalares e adaptada à agilidade do Health Nexus, a <strong>Consulta Dinâmica</strong> unifica em uma só interface todos os atendimentos da instituição através do botão <code>🔍 Consulta Dinâmica</code> na Central de Atendimentos:</p>
+<h2>20. 🏢 Consulta Dinâmica Multi-Modalidade (Aba Lateral Dedicada), Prontuário Único SUS &amp; Etiquetas Térmicas (v2.9.24)</h2>
+<h3>20.1. Módulo de Consulta Dinâmica de Atendimentos (Aba Lateral Exclusiva)</h3>
+<p>Inspirada nos sistemas legados hospitalares e adaptada à agilidade do Health Nexus, a <strong>Consulta Dinâmica</strong> agora conta com uma <strong>aba exclusiva e dedicada no menu lateral de navegação</strong> (<code>fa-magnifying-glass-chart</code>), posicionada logo abaixo de <em>Atendimentos</em>. Essa mudança garante visualização em tela cheia de todas as passagens do hospital, sem depender de janelas modais e sem sofrer cortes ou sobreposição pelo painel lateral de governança:</p>
 <ul>
-<li><strong>Modalidades Integradas:</strong> Filtro dinâmico por <em>Todas as Modalidades</em>, <code>66 - Pronto Socorro</code>, <code>35 - Internação</code>, <code>Ambulatório Geral</code> e <code>SADT / Paciente Externo</code>.</li>
-<li><strong>Filtros Combinados:</strong> Busca textual por Nome ou CPF do paciente, Médico Responsável, Especialidade, Setor Hospitalar, Convênio e Ordenação (Mais recente primeiro ou mais antigo primeiro).</li>
-<li><strong>Grid Assistencial Completo:</strong> Exibição imediata de Código do Atendimento, Modalidade, Paciente &amp; CPF, Convênio, Setor/Leito, Médico &amp; CRM, Classificação de Risco e Status da Passagem.</li>
+<li><strong>Acesso Direto pelo Menu Lateral:</strong> Clique no item <code>Consulta Dinâmica</code> na barra de navegação esquerda a qualquer momento para abrir o painel analítico completo.</li>
+<li><strong>Atalho na Central de Atendimentos:</strong> O botão <code>🔍 Consulta Dinâmica</code> permanece disponível no cabeçalho do Kanban de atendimentos, funcionando como atalho rápido que direciona instantaneamente para a aba dedicada.</li>
+<li><strong>Cards Métricos no Topo (Filtro Rápido):</strong> Contadores clicáveis de <em>Total Geral</em>, <code>66 - Pronto Socorro</code>, <code>35 - Internação</code>, <code>Ambulatório Geral</code> e <code>SADT / Paciente Externo</code> para filtrar o grid com um toque.</li>
+<li><strong>Filtros Combinados:</strong> Busca por Nome ou CPF do paciente, Médico Responsável, Especialidade, Setor Hospitalar, Convênio e Ordenação cronológica decrescente ou crescente.</li>
+<li><strong>Grid Assistencial em Tela Cheia:</strong> Exibição ampla de Código do Atendimento, Modalidade, Paciente &amp; CPF, Convênio, Setor/Leito, Médico &amp; CRM, Classificação de Risco e Status da Passagem.</li>
 <li><strong>Ações Imediatas:</strong><ul>
 <li><code>Evoluir / PEP</code>: Abre instantaneamente a folha de evolução SOAP e prescrição.</li>
 <li><code>Histórico</code>: Acessa a linha do tempo assistencial e histórico de internações.</li>
 <li><code>Imprimir PEP</code>: Gera o prontuário oficial consolidado em PDF.</li>
-<li><code>Etiqueta</code>: Abre o modal de emissão de etiquetas térmicas.</li>
-<li><code>Exportar CSV</code>: Exporta os dados filtrados para planilhas gerenciais.</li>
+<li><code>Etiqueta</code>: Abre o modal de emissão de etiquetas térmicas (pulseiras e tubos).</li>
+<li><code>Exportar PDF / Relatório</code>: Exporta relatório executivo completo da pesquisa.</li>
 </ul>
 </li>
 </ul>

@@ -1464,6 +1464,12 @@ export function renderAttendanceTab(contentArea) {
     renderHistory(allHistory.filter(enc => removeAccents(enc.patientName||'').toLowerCase().includes(q)));
   });
 
+  document.getElementById('btn-dynamic-query')?.addEventListener('click', () => {
+    if (typeof window.switchTab === 'function') {
+      window.switchTab('consulta_dinamica');
+    }
+  });
+
   loadAndRenderKanban();
   const _atdAutoRefresh = setInterval(() => {
     if (state.activeTab === 'atendimento') loadAndRenderKanban();

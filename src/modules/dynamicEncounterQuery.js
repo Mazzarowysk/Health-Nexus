@@ -549,8 +549,362 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
   });
 }
 
+/**
+ * Renderiza a Aba Exclusiva de Consulta Dinâmica no container principal da aplicação (#main-content)
+ */
+export function renderDynamicQueryTab(container) {
+  if (!container) container = document.getElementById('main-content');
+  if (!container) return;
+
+  const allPassages = compileAllPassages();
+  
+  // Contagens por modalidade
+  const count66 = allPassages.filter(p => p.modCode === '66').length;
+  const count35 = allPassages.filter(p => p.modCode === '35').length;
+  const countAmb = allPassages.filter(p => p.modCode === 'ambulatorio').length;
+  const countSadt = allPassages.filter(p => p.modCode === 'sadt').length;
+
+  container.innerHTML = `
+    <div class="content-wrapper" style="padding: 24px; max-width: 1600px; margin: 0 auto; width: 100%;">
+      
+      <!-- Cabeçalho da Aba -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 1.5px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.5rem; box-shadow: 0 4px 20px rgba(56,189,248,0.2);">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+          </div>
+          <div>
+            <h2 style="font-family: Outfit, sans-serif; font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px;">
+              Consulta Dinâmica de Atendimentos
+              <span style="font-size: 0.72rem; font-weight: 700; background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">Localizador Geral</span>
+            </h2>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+              Pesquisa, auditoria e rastreabilidade unificada de passagens hospitalares (PS, Internação, Ambulatório e SADT)
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button type="button" id="tab-dyn-btn-refresh" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 9px 16px; border-radius: 10px; font-size: 0.84rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-rotate"></i> Atualizar Dados
+          </button>
+          <button type="button" id="tab-dyn-btn-export-pdf" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #fff; padding: 9px 18px; border-radius: 10px; font-size: 0.84rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(2,132,199,0.35);">
+            <i class="fa-solid fa-file-pdf"></i> Exportar Relatório PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Cards de Métricas Rápidas por Modalidade (Clicáveis para Filtrar) -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
+        <div class="metric-card dyn-stat-pill" data-mod="all" style="background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Total Geral</div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-top: 4px;">${allPassages.length}</div>
+          <div style="font-size: 0.72rem; color: #38bdf8; margin-top: 4px;">Todas as passagens</div>
+        </div>
+
+        <div class="metric-card dyn-stat-pill" data-mod="66" style="background: var(--bg-card); border: 1px solid rgba(239,68,68,0.25); border-radius: 14px; padding: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#ef4444'" onmouseout="this.style.borderColor='rgba(239,68,68,0.25)'">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #fca5a5; text-transform: uppercase;">66 - Pronto Socorro</div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: #ef4444; margin-top: 4px;">${count66}</div>
+          <div style="font-size: 0.72rem; color: #f87171; margin-top: 4px;">Urgência &amp; Emergência</div>
+        </div>
+
+        <div class="metric-card dyn-stat-pill" data-mod="35" style="background: var(--bg-card); border: 1px solid rgba(59,130,246,0.25); border-radius: 14px; padding: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='rgba(59,130,246,0.25)'">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #93c5fd; text-transform: uppercase;">35 - Internações</div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: #3b82f6; margin-top: 4px;">${count35}</div>
+          <div style="font-size: 0.72rem; color: #60a5fa; margin-top: 4px;">Enfermaria &amp; UTI</div>
+        </div>
+
+        <div class="metric-card dyn-stat-pill" data-mod="ambulatorio" style="background: var(--bg-card); border: 1px solid rgba(16,185,129,0.25); border-radius: 14px; padding: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='rgba(16,185,129,0.25)'">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #86efac; text-transform: uppercase;">Ambulatório</div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: #10b981; margin-top: 4px;">${countAmb}</div>
+          <div style="font-size: 0.72rem; color: #34d399; margin-top: 4px;">Consultas Eletivas</div>
+        </div>
+
+        <div class="metric-card dyn-stat-pill" data-mod="sadt" style="background: var(--bg-card); border: 1px solid rgba(56,189,248,0.25); border-radius: 14px; padding: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='rgba(56,189,248,0.25)'">
+          <div style="font-size: 0.74rem; font-weight: 700; color: #7dd3fc; text-transform: uppercase;">SADT (Externo)</div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: #38bdf8; margin-top: 4px;">${countSadt}</div>
+          <div style="font-size: 0.72rem; color: #38bdf8; margin-top: 4px;">Exames &amp; Apoio Diagnóstico</div>
+        </div>
+      </div>
+
+      <!-- Card de Filtros Avançados -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px 22px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; align-items: end;">
+          
+          <div>
+            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block;">Modalidade:</label>
+            <select id="tab-dyn-filter-modality" class="form-input" style="width: 100%; font-size: 0.82rem; padding: 8px 12px; background: var(--bg-tertiary); border-color: var(--border-color); color: #fff; border-radius: 8px;">
+              <option value="all">Todas as Modalidades</option>
+              <option value="66">66 - Pronto Socorro</option>
+              <option value="35">35 - Internação</option>
+              <option value="ambulatorio">Ambulatório / Eletivo</option>
+              <option value="sadt">Exames / SADT (Paciente Externo)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block;">Nome do Paciente / CPF:</label>
+            <input type="text" id="tab-dyn-filter-name" class="form-input" placeholder="Buscar por paciente ou documento..." style="width: 100%; font-size: 0.82rem; padding: 8px 12px; background: var(--bg-tertiary); border-color: var(--border-color); color: #fff; border-radius: 8px;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block;">Setor / Ala Hospitalar:</label>
+            <input type="text" id="tab-dyn-filter-sector" class="form-input" placeholder="Ex: Pronto Socorro, Tomografia, UTI..." style="width: 100%; font-size: 0.82rem; padding: 8px 12px; background: var(--bg-tertiary); border-color: var(--border-color); color: #fff; border-radius: 8px;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block;">Médico Responsável:</label>
+            <input type="text" id="tab-dyn-filter-doctor" class="form-input" placeholder="Nome do profissional..." style="width: 100%; font-size: 0.82rem; padding: 8px 12px; background: var(--bg-tertiary); border-color: var(--border-color); color: #fff; border-radius: 8px;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block;">Convênio:</label>
+            <select id="tab-dyn-filter-plan" class="form-input" style="width: 100%; font-size: 0.82rem; padding: 8px 12px; background: var(--bg-tertiary); border-color: var(--border-color); color: #fff; border-radius: 8px;">
+              <option value="all">Todos os Convênios</option>
+              <option value="SUS">SUS / UNIFICAD</option>
+              <option value="Unimed">Unimed</option>
+              <option value="Bradesco">Bradesco Saúde</option>
+              <option value="Amil">Amil</option>
+              <option value="Particular">Particular</option>
+            </select>
+          </div>
+
+          <div>
+            <button type="button" id="tab-dyn-btn-clear" class="btn" style="width: 100%; font-size: 0.82rem; padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: #cbd5e1; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i class="fa-solid fa-eraser"></i> Limpar Filtros
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Barra de Controle de Registros & Tabela -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-sm);">
+        <div style="padding: 12px 22px; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
+          <div style="font-size: 0.84rem; color: #94a3b8;">
+            Exibindo <strong id="tab-dyn-count-filtered" style="color: #38bdf8;">${allPassages.length}</strong> de <span>${allPassages.length}</span> atendimentos localizados
+          </div>
+          <div style="font-size: 0.78rem; color: #64748b;">
+            Ordenação: <strong style="color: #e2e8f0;">Cronológica Decrescente (Mais Recente no Topo)</strong>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto; padding: 0 10px 10px; -webkit-overflow-scrolling: touch;">
+          <table class="table" style="width: 100%; min-width: 1000px; border-collapse: collapse; margin-top: 4px; font-size: 0.83rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: #94a3b8; font-size: 0.76rem; text-transform: uppercase;">
+                <th style="padding: 12px 10px;">Número</th>
+                <th style="padding: 12px 10px;">Nome do Paciente</th>
+                <th style="padding: 12px 10px;">Data / Hora</th>
+                <th style="padding: 12px 10px;">Convênio</th>
+                <th style="padding: 12px 10px;">Médico</th>
+                <th style="padding: 12px 10px;">Setor</th>
+                <th style="padding: 12px 10px;">Modalidade</th>
+                <th style="padding: 12px 10px;">Conclusão</th>
+                <th style="padding: 12px 10px; text-align: right;">Ações Rápidas</th>
+              </tr>
+            </thead>
+            <tbody id="tab-dyn-tbody">
+              <!-- Renderizado via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  // Função de renderização das linhas na aba
+  function renderTabRows(items) {
+    const tbody = document.getElementById('tab-dyn-tbody');
+    const countEl = document.getElementById('tab-dyn-count-filtered');
+    if (!tbody) return;
+
+    if (countEl) countEl.textContent = items.length;
+
+    if (items.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
+            <i class="fa-solid fa-magnifying-glass" style="font-size: 2.2rem; margin-bottom: 12px; color: #64748b; display: block;"></i>
+            Nenhum atendimento localizado com os filtros selecionados.
+          </td>
+        </tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.map(p => {
+      const dateFormatted = p.date ? new Date(p.date).toLocaleString('pt-BR') : '—';
+      const modColor = p.modCode === '66' ? '#ef4444' : (p.modCode === '35' ? '#3b82f6' : (p.modCode === 'sadt' ? '#38bdf8' : '#10b981'));
+      const statusColor = p.status.includes('LIBERADO') || p.status.includes('ALTA') ? '#34d399' : (p.status.includes('AGUARDANDO') ? '#38bdf8' : '#fbbf24');
+
+      return `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+          <td style="padding: 12px 10px; font-family: monospace; font-size: 0.78rem; color: #a5b4fc; font-weight: 700;">
+            ${p.num || p.id}
+          </td>
+          <td style="padding: 12px 10px; font-weight: 600; color: #fff;">
+            ${p.patientName}
+          </td>
+          <td style="padding: 12px 10px; color: #cbd5e1; font-size: 0.8rem;">
+            ${dateFormatted}
+          </td>
+          <td style="padding: 12px 10px; color: #94a3b8; font-size: 0.78rem;">
+            <span style="background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">${p.plan}</span>
+          </td>
+          <td style="padding: 12px 10px; color: #e2e8f0; font-size: 0.8rem;">
+            ${p.doctor}
+          </td>
+          <td style="padding: 12px 10px; color: #cbd5e1; font-size: 0.8rem;">
+            ${p.sector}
+          </td>
+          <td style="padding: 12px 10px;">
+            <span style="background: ${modColor}20; color: ${modColor}; border: 1px solid ${modColor}50; padding: 3px 9px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">
+              ${p.modLabel}
+            </span>
+          </td>
+          <td style="padding: 12px 10px;">
+            <span style="color: ${statusColor}; font-weight: 700; font-size: 0.74rem;">
+              ● ${p.status}
+            </span>
+          </td>
+          <td style="padding: 12px 10px; text-align: right; white-space: nowrap;">
+            <button type="button" class="btn btn-sm tab-dyn-action-pep" data-patid="${p.patientId || p.id}" data-patname="${p.patientName}" style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(2,132,199,0.2); color: #38bdf8; border: 1px solid rgba(2,132,199,0.4); cursor: pointer; margin-right: 4px;" title="Abrir Prontuário Eletrônico">
+              <i class="fa-solid fa-stethoscope"></i> PEP
+            </button>
+            <button type="button" class="btn btn-sm tab-dyn-action-hist" data-patid="${p.patientId || p.id}" data-patname="${p.patientName}" style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(139,92,246,0.2); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.4); cursor: pointer; margin-right: 4px;" title="Ver Histórico Completo">
+              <i class="fa-solid fa-clock-rotate-left"></i> Histórico
+            </button>
+            <button type="button" class="btn btn-sm tab-dyn-action-pdf" data-patid="${p.patientId || p.id}" data-patname="${p.patientName}" style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); cursor: pointer; margin-right: 4px;" title="Exportar Prontuário em PDF com Exames">
+              <i class="fa-solid fa-file-pdf"></i>
+            </button>
+            <button type="button" class="btn btn-sm tab-dyn-action-label" data-patid="${p.patientId || p.id}" data-patname="${p.patientName}" data-num="${p.num || p.id}" data-sector="${p.sector}" style="padding: 5px 9px; font-size: 0.74rem; border-radius: 6px; background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); cursor: pointer;" title="Imprimir Etiqueta de Pulseira / Amostra">
+              <i class="fa-solid fa-tag"></i>
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('.tab-dyn-action-pep').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pat = btn.dataset.patid || btn.dataset.patname;
+        if (typeof window.openPEPModal === 'function') window.openPEPModal(pat, 'soap');
+      });
+    });
+
+    tbody.querySelectorAll('.tab-dyn-action-hist').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const patId = btn.dataset.patid;
+        const patName = btn.dataset.patname;
+        if (typeof window.openPatientHistoryModal === 'function') window.openPatientHistoryModal(patId, patName);
+      });
+    });
+
+    tbody.querySelectorAll('.tab-dyn-action-pdf').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const patId = btn.dataset.patid;
+        const patName = btn.dataset.patname;
+        if (typeof window.generatePatientPDF === 'function') {
+          window.generatePatientPDF(patId, patName);
+        }
+      });
+    });
+
+    tbody.querySelectorAll('.tab-dyn-action-label').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openThermalLabelModal({
+          patientName: btn.dataset.patname,
+          patientId: btn.dataset.patid,
+          number: btn.dataset.num,
+          sector: btn.dataset.sector
+        });
+      });
+    });
+  }
+
+  // Filtragem dinâmica na aba
+  function applyTabFilters() {
+    const mod = document.getElementById('tab-dyn-filter-modality')?.value || 'all';
+    const name = (document.getElementById('tab-dyn-filter-name')?.value || '').toLowerCase().trim();
+    const sector = (document.getElementById('tab-dyn-filter-sector')?.value || '').toLowerCase().trim();
+    const doctor = (document.getElementById('tab-dyn-filter-doctor')?.value || '').toLowerCase().trim();
+    const plan = document.getElementById('tab-dyn-filter-plan')?.value || 'all';
+
+    const filtered = allPassages.filter(p => {
+      if (mod !== 'all' && p.modCode !== mod) return false;
+      if (name && !p.patientName.toLowerCase().includes(name)) return false;
+      if (sector && !p.sector.toLowerCase().includes(sector)) return false;
+      if (doctor && !p.doctor.toLowerCase().includes(doctor)) return false;
+      if (plan !== 'all' && !p.plan.toLowerCase().includes(plan.toLowerCase())) return false;
+      return true;
+    });
+
+    renderTabRows(filtered);
+  }
+
+  // Event Listeners dos filtros
+  ['tab-dyn-filter-modality', 'tab-dyn-filter-plan'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', applyTabFilters);
+  });
+  ['tab-dyn-filter-name', 'tab-dyn-filter-sector', 'tab-dyn-filter-doctor'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', applyTabFilters);
+  });
+
+  // Limpar filtros
+  document.getElementById('tab-dyn-btn-clear')?.addEventListener('click', () => {
+    if (document.getElementById('tab-dyn-filter-modality')) document.getElementById('tab-dyn-filter-modality').value = 'all';
+    if (document.getElementById('tab-dyn-filter-name')) document.getElementById('tab-dyn-filter-name').value = '';
+    if (document.getElementById('tab-dyn-filter-sector')) document.getElementById('tab-dyn-filter-sector').value = '';
+    if (document.getElementById('tab-dyn-filter-doctor')) document.getElementById('tab-dyn-filter-doctor').value = '';
+    if (document.getElementById('tab-dyn-filter-plan')) document.getElementById('tab-dyn-filter-plan').value = 'all';
+    renderTabRows(allPassages);
+  });
+
+  // Atualizar
+  document.getElementById('tab-dyn-btn-refresh')?.addEventListener('click', () => {
+    renderDynamicQueryTab(container);
+  });
+
+  // Exportar PDF
+  document.getElementById('tab-dyn-btn-export-pdf')?.addEventListener('click', () => {
+    if (typeof window.exportToPDF === 'function') {
+      const headers = ['Número', 'Paciente', 'Data/Hora', 'Convênio', 'Médico', 'Setor', 'Modalidade', 'Status'];
+      const rows = allPassages.slice(0, 50).map(p => [
+        p.num || p.id,
+        p.patientName,
+        new Date(p.date).toLocaleString('pt-BR'),
+        p.plan,
+        p.doctor,
+        p.sector,
+        p.modLabel,
+        p.status
+      ]);
+      window.exportToPDF(headers, rows, 'Relatório Geral de Atendimentos — Consulta Dinâmica', 'atendimentos_dinamica.pdf');
+    } else {
+      if (typeof showToast === 'function') showToast('Exportação PDF iniciada.');
+    }
+  });
+
+  // Clicar nos cards de modalidade filtra automaticamente
+  container.querySelectorAll('.dyn-stat-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const mod = pill.dataset.mod;
+      const select = document.getElementById('tab-dyn-filter-modality');
+      if (select) {
+        select.value = mod;
+        applyTabFilters();
+      }
+    });
+  });
+
+  // Render inicial
+  renderTabRows(allPassages);
+}
+
 // Expor globalmente
 if (typeof window !== 'undefined') {
   window.openDynamicEncounterQueryModal = openDynamicEncounterQueryModal;
   window.openThermalLabelModal = openThermalLabelModal;
+  window.renderDynamicQueryTab = renderDynamicQueryTab;
 }
+
