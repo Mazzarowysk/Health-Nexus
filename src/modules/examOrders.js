@@ -349,6 +349,50 @@ export function saveExamRequest(request) {
     ...request
   };
   window.localDB.insert('exam_requests', record);
+
+  // Sincroniza o atendimento do paciente para que ele fique em "Aguardando_Exames" e continue ativo
+  try {
+    const encId = request.encounterId;
+    const patId = request.patientId;
+    const patName = request.patientName;
+    const db = window.localDB.getFullDB ? window.localDB.getFullDB() : {};
+
+    // 1. Atualizar encontro ativo
+    const allEncs = db.encounters || [];
+    let encToUpdate = null;
+    if (encId) encToUpdate = allEncs.find(e => String(e.id) === String(encId));
+    if (!encToUpdate && patId) {
+      encToUpdate = allEncs.find(e => String(e.patientId) === String(patId) && e.status !== 'Finalizado' && e.status !== 'Alta');
+    }
+    if (!encToUpdate && patName) {
+      encToUpdate = allEncs.find(e => e.patientName && e.patientName.toLowerCase().trim() === String(patName).toLowerCase().trim() && e.status !== 'Finalizado' && e.status !== 'Alta');
+    }
+
+    if (encToUpdate && encToUpdate.status !== 'Internado' && encToUpdate.status !== 'Em_Observacao') {
+      window.localDB.update('encounters', encToUpdate.id, {
+        status: 'Aguardando_Exames',
+        pendingExamsCount: (record.items || []).length,
+        lastExamRequestId: record.id,
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    // 2. Garantir que o paciente permaneça Ativo (não fique como Alta)
+    const allPatients = db.patients || [];
+    const pat = allPatients.find(p => (
+      (patId && String(p.id) === String(patId)) ||
+      (patName && p.fullName && p.fullName.toLowerCase().trim() === String(patName).toLowerCase().trim())
+    ));
+    if (pat && pat.status === 'Alta') {
+      window.localDB.update('patients', pat.id, {
+        status: 'Ativo',
+        updated_at: new Date().toISOString()
+      });
+    }
+  } catch (err) {
+    console.warn('[ExamOrders] Aviso na sincronização de status:', err);
+  }
+
   return record;
 }
 
@@ -624,6 +668,13 @@ export function mountExamOrdersSection(container, opts) {
         ${renderHistory()}
       </div>`;
     bind();
+    try {
+      if (typeof opts?.onSelectionChange === 'function') {
+        opts.onSelectionChange(state.selected.length, state.selected);
+      }
+    } catch (e) {
+      console.warn('[ExamOrders] onSelectionChange callback error:', e);
+    }
   }
 
   function bind() {

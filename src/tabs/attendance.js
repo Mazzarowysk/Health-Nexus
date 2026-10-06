@@ -33,10 +33,10 @@ export function renderAttendanceTab(contentArea) {
               <span>Ag. Médico</span>
             </div>
 
-            <div id="card-kpi-active" class="atd-metric-card" onclick="window.filterKanbanColumn('active')" title="Filtrar por Atendimentos em Consulta" style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+            <div id="card-kpi-active" class="atd-metric-card" onclick="window.filterKanbanColumn('active')" title="Filtrar por Atendimentos em Consulta ou Exames" style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
               <i class="fa-solid fa-user-doctor" style="font-size:0.9rem; color:#10b981;"></i>
               <strong id="kpi-consulta-num" style="font-size:0.95rem; font-weight:800; color:#34d399;">0</strong>
-              <span>Em Consulta</span>
+              <span>Em Consulta / Exames</span>
             </div>
 
             <div id="card-kpi-obs" class="atd-metric-card" onclick="window.filterKanbanColumn('obs')" title="Filtrar por Pacientes em Observação (PS)" style="background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
@@ -86,10 +86,10 @@ export function renderAttendanceTab(contentArea) {
           </div>
         </div>
 
-        <!-- Coluna Em Consulta -->
+        <!-- Coluna Em Consulta / Exames -->
         <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
           <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #10b981;">
-            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-doctor" style="color:#10b981;"></i> Em Consulta</span>
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-doctor" style="color:#10b981;"></i> Em Consulta / Exames</span>
             <span id="count-active" style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
           </div>
           <div id="col-active" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
@@ -580,6 +580,7 @@ export function renderAttendanceTab(contentArea) {
     const pName = getSafePatientName(e);
     const mc = getMC(e.manchesterColor);
     const isObs = e.status === 'Em_Observacao' || !!e.observation_started_at;
+    const isExams = e.status === 'Aguardando_Exames' || e.status === 'Aguardando_Resultado';
     const isSel = isPatientFocused(pName);
     const safePName = pName.replace(/'/g, "\\'");
     let obsBadgeHtml = '';
@@ -604,26 +605,52 @@ export function renderAttendanceTab(contentArea) {
           <span><i class="fa-solid fa-bed-pulse"></i> Obs PS: ${diffHours}h ${diffMins}m / 12h max</span>
         </div>`;
       }
+    } else if (isExams) {
+      let reqCount = 0;
+      let examNames = [];
+      try {
+        const db = (typeof window !== 'undefined' && window.localDB) ? window.localDB.getFullDB() : {};
+        const reqs = (db.exam_requests || []).filter(r => 
+          String(r.encounterId) === String(e.id) || 
+          String(r.patientId) === String(e.patientId) ||
+          (r.patientName && pName && r.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
+        );
+        const allItems = reqs.flatMap(r => r.items || []);
+        reqCount = allItems.length;
+        examNames = allItems.map(i => i.name || i.examId);
+      } catch (err) {}
+
+      obsBadgeHtml = `<div style="background:rgba(2,132,199,0.14); border:1px solid rgba(56,189,248,0.35); color:#e0f2fe; border-radius:8px; padding:7px 10px; font-size:0.74rem; margin-bottom:10px;">
+        <div style="font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-flask-vial"></i> Aguardando Exames ${reqCount > 0 ? `(${reqCount} pedidos)` : ''}
+        </div>
+        ${examNames.length ? `<div style="font-size:0.7rem; color:#cbd5e1; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${examNames.slice(0, 3).join(', ')}${examNames.length > 3 ? ` (+${examNames.length - 3})` : ''}</div>` : ''}
+      </div>`;
     }
 
+    const cardBorderColor = isObs ? '#f59e0b' : (isExams ? '#0284c7' : '#10b981');
+    const statusLabel = isObs ? 'Em Observação' : (isExams ? 'Aguardando Exames' : 'Em Consulta');
+    const statusColor = isObs ? '#f59e0b' : (isExams ? '#38bdf8' : '#10b981');
+    const timerColor = isObs ? '#f59e0b' : (isExams ? '#38bdf8' : '#10b981');
+
     return `
-      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(16,185,129,0.3)'};border-left:4px solid ${isObs ? '#f59e0b' : '#10b981'};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: '${e.status}', currentStep: 4, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : (isExams ? '1px solid rgba(2,132,199,0.45)' : '1px solid rgba(16,185,129,0.3)')};border-left:4px solid ${cardBorderColor};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: '${e.status}', currentStep: 4, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
         ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${pName}</div>
-          <span id="timer-${e.id}" style="font-size:0.7rem;color:#10b981;font-family:monospace;background:rgba(16,185,129,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+          <span id="timer-${e.id}" style="font-size:0.7rem;color:${timerColor};font-family:monospace;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${e.complaints || isObs ? '8px':'12px'};">
-          <span style="width:7px;height:7px;background:${isObs ? '#f59e0b' : '#10b981'};border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
-          <span style="font-size:0.75rem;color:${isObs ? '#f59e0b' : '#10b981'};font-weight:600;">${isObs ? 'Em Observação' : 'Em Consulta'}</span>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${e.complaints || isObs || isExams ? '8px':'12px'};">
+          <span style="width:7px;height:7px;background:${statusColor};border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
+          <span style="font-size:0.75rem;color:${statusColor};font-weight:700;">${statusLabel}</span>
           ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;margin-left:auto;">${mc.label}</span>`:''}
         </div>
         ${obsBadgeHtml}
         ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
         
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
-          <button class="btn btn-open-pep" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary);border-radius:var(--radius-md);cursor:pointer;" title="Prontuário Eletrônico">
-            <i class="fa-solid fa-file-medical"></i> PEP
+          <button class="btn btn-open-pep" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:${isExams ? 'rgba(2,132,199,0.15)' : 'var(--bg-secondary)'};border:1px solid ${isExams ? 'rgba(2,132,199,0.4)' : 'var(--border-color)'};color:${isExams ? '#38bdf8' : 'var(--text-primary)'};border-radius:var(--radius-md);cursor:pointer;font-weight:600;" title="Prontuário Eletrônico">
+            <i class="fa-solid fa-file-medical"></i> ${isExams ? 'Ver Exames' : 'PEP'}
           </button>
           <button class="btn btn-open-rx" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a78bfa;border-radius:var(--radius-md);cursor:pointer;" title="Prescrição de Medicações">
             <i class="fa-solid fa-scroll"></i> Prescrição
@@ -747,7 +774,7 @@ export function renderAttendanceTab(contentArea) {
       return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at);
     });
 
-    const active = [...uniqueEncs.filter(e => e.status === 'Em_Atendimento' && !e.observation_started_at && e.status !== 'Em_Observacao')].sort((a, b) => {
+    const active = [...uniqueEncs.filter(e => (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Exames' || e.status === 'Aguardando_Resultado') && !e.observation_started_at && e.status !== 'Em_Observacao')].sort((a, b) => {
       const aSel = isPatientFocused(a.patientName);
       const bSel = isPatientFocused(b.patientName);
       if (aSel && !bSel) return -1;

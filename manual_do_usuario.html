@@ -490,6 +490,11 @@ flowchart TD
 <li>3.2. <a href="#sec-3-2">Motor CDSS &amp; Alertas de Interações Medicamentosas</a></li>
 <li>3.3. <a href="#sec-3-3">Autocomplete CID-10</a></li>
 <li>3.4. <a href="#sec-3-4">Assinatura Eletrônica, Hash SHA-256 e QR Code CFM</a></li>
+<li>3.5. <a href="#sec-3-5">Solicitação Estruturada de Exames &amp; Previsão Clínica por IA (CPOE)</a><ul>
+<li>3.5.1. <a href="#sec-3-5-1">Para Onde Vão os Exames Solicitados e Como Acompanhá-los</a></li>
+<li>3.5.2. <a href="#sec-3-5-2">Prevenção de Alta Indevida &amp; Novo Desfecho: Aguardar Resultados de Exames</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><ol start="4">
@@ -1286,6 +1291,60 @@ flowchart TD
 <ul>
 <li>Botão <strong><code>🖨️ Salvar e Imprimir Requisição</code></strong>: Gera a folha oficial de solicitação de exames contendo dados do paciente, leito ou consultório, indicação clínica estruturada, prioridade (Rotina / Urgente / Emergência), preparos específicos e assinatura com CRM do médico solicitante.</li>
 <li>Integração direta com a assinatura do PEP e armazenamento no banco de dados <code>exam_requests</code>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="sec-3-5-1">3.5.1. Para Onde Vão os Exames Solicitados e Como Acompanhá-los no Fluxo Hospitalar</h3><p>Ao emitir e assinar um pedido de exames no Health Nexus, as requisições seguem uma rota assistencial estruturada e rastreável em múltiplos pontos do sistema:</p>
+<ol>
+<li><p><strong>Repositório Central de SADT (<code>exam_requests</code>):</strong></p>
+<ul>
+<li>Todos os exames geram um protocolo único de requisição indexado ao paciente, ao encontro clínico (<code>encounter</code>) e ao médico solicitante.</li>
+<li>O registro armazena a indicação clínica, a justificativa diagnóstica, os preparos orientados e o nível de prioridade (Rotina, Urgência ou Emergência).</li>
+</ul>
+</li>
+<li><p><strong>Aba &quot;🧪 Exames Solicitados&quot; no Prontuário &amp; Histórico do Paciente:</strong></p>
+<ul>
+<li>No modal de histórico consolidado do paciente (acessível em qualquer momento na Central de Atendimentos ou na aba Pacientes), uma aba exclusiva lista todas as requisições já feitas.</li>
+<li>A equipe assistencial pode visualizar o protocolo, a data/hora do pedido, a lista de exames, o médico solicitante e reimprimir a requisição oficial a qualquer momento com um clique.</li>
+</ul>
+</li>
+<li><p><strong>Painel Kanban de Atendimentos (Coluna &quot;Em Consulta / Exames&quot;):</strong></p>
+<ul>
+<li>O paciente não some da vista da equipe: ele permanece visível na 3ª coluna do Kanban.</li>
+<li>Um cartão com destaque visual em azul oceano exibe o badge pulsante <strong><code>🧪 Aguardando Exames (X pedidos)</code></strong>, apresentando em tempo real os exames que estão sendo colhidos ou realizados no setor de SADT (Laboratório ou Imagem).</li>
+</ul>
+</li>
+<li><p><strong>Histórico Integrado de Solicitações no Próprio PEP:</strong></p>
+<ul>
+<li>Em consultas ou reavaliações futuras, o setor de exames do PEP carrega a listagem de solicitações anteriores, permitindo ao médico conferir o que já foi solicitado antes de definir a conduta final.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="sec-3-5-2">3.5.2. Prevenção de Alta Indevida & Novo Desfecho: "🧪 Aguardar Resultados de Exames"</h3><p>Com o objetivo de tornar o fluxo 100% intuitivo e prevenir desfechos acidentais de alta enquanto o paciente ainda aguarda laudos diagnósticos, o sistema conta com uma blindagem assistencial preventiva:</p>
+<ol>
+<li><p><strong>Novo Desfecho Assistencial Dedicado:</strong></p>
+<ul>
+<li>No campo <strong>Desfecho do Atendimento</strong>, além de Alta Médica, Observação e Internação, foi incorporada a opção:<br><code>🧪 Aguardar Resultados de Exames (Laboratório / Imagem)</code>.</li>
+</ul>
+</li>
+<li><p><strong>Comutação Automática Inteligente:</strong></p>
+<ul>
+<li>Ao adicionar um ou mais exames à lista de pedidos no PEP, o sistema altera automaticamente o campo de desfecho para <strong>&quot;🧪 Aguardar Resultados de Exames&quot;</strong>.</li>
+<li>Um aviso orientador azul surge imediatamente na tela:<br><em>💡 &quot;Você incluiu exames no pedido. O desfecho foi ajustado automaticamente para &#39;Aguardar Resultados de Exames&#39; para manter o paciente ativo na fila e no consultório enquanto aguarda os laudos.&quot;</em></li>
+</ul>
+</li>
+<li><p><strong>Guarda Preventiva Contra Alta Acidental:</strong></p>
+<ul>
+<li>Se houver exames adicionados e o médico tentar mudar manualmente o desfecho para &quot;Alta Médica&quot;, o sistema apresenta uma janela de confirmação de segurança:<br><em>⚠️ &quot;Atenção: Há exames adicionados na solicitação. Dar alta agora liberará o paciente da fila de atendimento. Deseja realmente dar alta ao paciente com exames pendentes?&quot;</em></li>
+<li>Isso impede que cliques rápidos encerrem a passagem do paciente sem a devida reavaliação dos resultados laboratoriais e de imagem.</li>
+</ul>
+</li>
+<li><p><strong>Preservação de Encontros &amp; Auto-Cura de Cadastros:</strong></p>
+<ul>
+<li>O encontro clínico permanece ativo com status <code>Aguardando_Exames</code> e localização <code>Laboratório / Imagem — Aguardando Exames (Consultório)</code>.</li>
+<li>Se algum paciente tiver recebido alta inadvertidamente com exames pendentes, rotinas inteligentes restauram automaticamente o status para <code>Ativo</code> ao iniciar a sessão, garantindo integridade clínica total.</li>
 </ul>
 </li>
 </ol>

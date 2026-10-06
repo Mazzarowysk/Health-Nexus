@@ -1279,7 +1279,7 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
   // Pesquisar do mais recente para o mais antigo para refletir a última evolução do paciente
   const activeEnc = encounters.slice().reverse().find(e => {
     const s = String(e.status || '').toLowerCase().replace(/_/g, ' ').trim();
-    const isAct = ['em atendimento', 'aguardando atendimento', 'aguardando triagem', 'triagem', 'triado', 'em observacao', 'em observação', 'observacao', 'observação', 'admitido'].includes(s);
+    const isAct = ['em atendimento', 'aguardando atendimento', 'aguardando triagem', 'triagem', 'triado', 'em observacao', 'em observação', 'observacao', 'observação', 'admitido', 'aguardando exames', 'aguardando resultado'].includes(s);
     if (!isAct) return false;
     const match = (
       (e.patientId && String(e.patientId).toLowerCase() === normPid) ||
@@ -1306,6 +1306,20 @@ window.getPatientCurrentLocation = function(patientId, patientName) {
       (t.patientId && String(t.patientId).toLowerCase() === normPid) ||
       (t.patientName && normPname && t.patientName.toLowerCase().includes(normPname))
     );
+
+    if (s.includes('exame') || s.includes('resultado')) {
+      const room = activeEnc.room || activeEnc.sector || 'Consultório 01';
+      return {
+        text: `Laboratório / Imagem — Aguardando Exames (${room})`,
+        sector: 'Laboratório & Imagem',
+        bed: null,
+        status: 'Aguardando Exames',
+        color: '#0284c7',
+        bg: 'rgba(2,132,199,0.15)',
+        borderColor: 'rgba(2,132,199,0.4)',
+        icon: 'fa-flask-vial'
+      };
+    }
 
     if ((s.includes('triagem') || s === 'admitido') && !hasTriage && !activeEnc.manchesterColor) {
       return {
@@ -1595,6 +1609,9 @@ modal.style.left = '0';
           <button id="hist-tab-peps" onclick="window._histSwitchTab('peps')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #94a3b8; background: transparent; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
             <i class="fa-solid fa-clock-rotate-left"></i> Evoluções por Ala <span id="hist-pep-badge" style="background: rgba(99,102,241,0.25); color: #a5b4fc; border-radius: 20px; padding: 1px 8px; font-size: 0.72rem;">...</span>
           </button>
+          <button id="hist-tab-exams" onclick="window._histSwitchTab('exams')" style="padding: 10px 20px; font-size: 0.83rem; font-weight: 700; color: #94a3b8; background: transparent; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 7px;">
+            <i class="fa-solid fa-flask-vial"></i> Exames Solicitados <span id="hist-exams-badge" style="background: rgba(56,189,248,0.25); color: #38bdf8; border-radius: 20px; padding: 1px 8px; font-size: 0.72rem;">...</span>
+          </button>
         </div>
       </div>
 
@@ -1612,27 +1629,60 @@ modal.style.left = '0';
           <i class="fa-solid fa-circle-notch fa-spin"></i> Carregando evoluções...
         </div>
       </div>
+
+      <!-- Painel 3: Exames Solicitados & Laudos (lazy) -->
+      <div id="hist-exams-panel" style="display:none; padding: 24px 28px; overflow-y: auto; flex: 1;">
+        <div style="text-align:center; color:var(--text-muted); padding:40px;">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> Carregando exames solicitados...
+        </div>
+      </div>
     </div>
   `;
   document.body.appendChild(modal);
+
+  // Inicializa contador da aba de exames
+  try {
+    const dbEx = window.localDB ? window.localDB.getFullDB() : {};
+    const normPidEx = String(patientId || '').toLowerCase().trim();
+    const normPnameEx = String(patientName || '').toLowerCase().trim();
+    const countEx = (dbEx.exam_requests || []).filter(r => {
+      const rPid = String(r.patientId || r.patient_id || '').toLowerCase().trim();
+      const rPname = String(r.patientName || '').toLowerCase().trim();
+      return (normPidEx && (rPid === normPidEx || rPid.includes(normPidEx))) ||
+             (normPnameEx && (rPname === normPnameEx || rPname.includes(normPnameEx)));
+    }).length;
+    const badgeEl = document.getElementById('hist-exams-badge');
+    if (badgeEl) badgeEl.textContent = countEx;
+  } catch(e) {}
 
   // --- controle de abas ---
   window._histSwitchTab = function(tab) {
     const p1 = document.getElementById('history-modal-body');
     const p2 = document.getElementById('hist-pep-panel');
+    const p3 = document.getElementById('hist-exams-panel');
     const b1 = document.getElementById('hist-tab-main');
     const b2 = document.getElementById('hist-tab-peps');
+    const b3 = document.getElementById('hist-tab-exams');
+
+    [p1, p2, p3].forEach(p => { if (p) p.style.display = 'none'; });
+    [b1, b2, b3].forEach(b => { if (b) { b.style.color = '#94a3b8'; b.style.borderBottom = '2.5px solid transparent'; } });
+
     if (tab === 'main') {
-      p1.style.display = 'block'; p2.style.display = 'none';
-      b1.style.color = '#a78bfa'; b1.style.borderBottom = '2.5px solid #7c3aed';
-      b2.style.color = '#94a3b8'; b2.style.borderBottom = '2.5px solid transparent';
-    } else {
-      p1.style.display = 'none'; p2.style.display = 'block';
-      b1.style.color = '#94a3b8'; b1.style.borderBottom = '2.5px solid transparent';
-      b2.style.color = '#a78bfa'; b2.style.borderBottom = '2.5px solid #7c3aed';
-      if (p2.dataset.loaded !== '1') {
+      if (p1) p1.style.display = 'block';
+      if (b1) { b1.style.color = '#a78bfa'; b1.style.borderBottom = '2.5px solid #7c3aed'; }
+    } else if (tab === 'peps') {
+      if (p2) p2.style.display = 'block';
+      if (b2) { b2.style.color = '#a78bfa'; b2.style.borderBottom = '2.5px solid #7c3aed'; }
+      if (p2 && p2.dataset.loaded !== '1') {
         p2.dataset.loaded = '1';
         window._renderHistPEPs(p2, patientId, patientName);
+      }
+    } else if (tab === 'exams') {
+      if (p3) p3.style.display = 'block';
+      if (b3) { b3.style.color = '#38bdf8'; b3.style.borderBottom = '2.5px solid #0284c7'; }
+      if (p3 && p3.dataset.loaded !== '1') {
+        p3.dataset.loaded = '1';
+        window._renderHistExams(p3, patientId, patientName);
       }
     }
   };
@@ -1760,9 +1810,128 @@ modal.style.left = '0';
     }
   };
 
+  window._renderHistExams = function(container, pid, pname) {
+    try {
+      const db = window.localDB ? window.localDB.getFullDB() : {};
+      const allReqs = db.exam_requests || [];
+      const normPid = String(pid || '').toLowerCase().trim();
+      const normPname = String(pname || '').toLowerCase().trim();
+
+      const list = allReqs.filter(r => {
+        const rPid = String(r.patientId || r.patient_id || '').toLowerCase().trim();
+        const rPname = String(r.patientName || '').toLowerCase().trim();
+        if (normPid && (rPid === normPid || rPid.includes(normPid) || normPid.includes(rPid))) return true;
+        if (normPname && (rPname === normPname || rPname.includes(normPname) || normPname.includes(rPname))) return true;
+        return false;
+      }).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+      const badge = document.getElementById('hist-exams-badge');
+      if (badge) badge.textContent = list.length;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; color:var(--text-muted); padding:60px 20px;">
+            <i class="fa-solid fa-flask-vial" style="font-size:2.8rem; display:block; margin-bottom:16px; color:#38bdf8;"></i>
+            <h4 style="color:#fff; margin:0 0 6px; font-size:1rem;">Nenhum exame solicitado até o momento</h4>
+            <p style="font-size:0.82rem; margin:0 0 16px;">Os pedidos de exames laboratoriais, de imagem e métodos gráficos realizados no PEP aparecerão aqui.</p>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('patient-history-modal')?.remove(); if (typeof window.openPEPModal === 'function') window.openPEPModal('${pid || pname}');" style="font-size:0.82rem; padding:8px 16px; background:linear-gradient(135deg, #0284c7, #0369a1); border:none; border-radius:8px; cursor:pointer;">
+              <i class="fa-solid fa-plus"></i> Abrir PEP para Solicitar Exames
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const totalItems = list.reduce((acc, r) => acc + (r.items?.length || 0), 0);
+
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h4 style="font-size:1rem; font-weight:700; color:#fff; margin:0 0 4px; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-flask-vial" style="color:#38bdf8;"></i> Pedidos de Exames Realizados
+            </h4>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">
+              Total de <strong>${list.length}</strong> requisição(ões) contendo <strong>${totalItems}</strong> exame(s).
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="document.getElementById('patient-history-modal')?.remove(); if (typeof window.openPEPModal === 'function') window.openPEPModal('${pid || pname}');" style="font-size:0.78rem; padding:6px 14px; background:linear-gradient(135deg, #0284c7, #0369a1); border:none; border-radius:8px; cursor:pointer;">
+            <i class="fa-solid fa-plus"></i> Novo Pedido no PEP
+          </button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          ${list.map((req, idx) => {
+            const dt = req.created_at ? new Date(req.created_at).toLocaleString('pt-BR') : 'Data não informada';
+            const items = req.items || [];
+            return `
+              <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(56,189,248,0.25); border-left:4px solid #0284c7; border-radius:12px; padding:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                  <div>
+                    <div style="font-weight:700; color:#fff; font-size:0.9rem; display:flex; align-items:center; gap:8px;">
+                      <span style="color:#38bdf8;"><i class="fa-solid fa-file-invoice"></i> Requisição #${req.id || (idx + 1)}</span>
+                      <span style="font-size:0.7rem; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:1px 8px;">
+                        ${req.status || 'Solicitado'}
+                      </span>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
+                      <i class="fa-regular fa-calendar"></i> ${dt} · Solicitante: <strong>${req.doctorName || 'Dr. Médico Assistente'}</strong> ${req.councilNumber ? `(${req.councilNumber})` : ''} · Setor: ${req.sector || 'Consultório'}
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-sm" onclick="if (typeof window.printExamRequisition === 'function') window.printExamRequisition(${JSON.stringify(req).replace(/"/g, '&quot;')});" style="font-size:0.75rem; padding:5px 12px; border-radius:6px; background:rgba(255,255,255,0.06); color:#cbd5e1; border:1px solid var(--border-color); cursor:pointer;">
+                    <i class="fa-solid fa-print"></i> Imprimir Requisição
+                  </button>
+                </div>
+
+                ${req.justification ? `
+                  <div style="font-size:0.78rem; background:rgba(0,0,0,0.25); padding:8px 12px; border-radius:8px; margin-bottom:10px; color:#cbd5e1; border:1px solid rgba(255,255,255,0.05);">
+                    <strong style="color:#94a3b8;">Indicação / Justificativa Clínica:</strong> ${req.justification}
+                  </div>
+                ` : ''}
+
+                <div style="overflow-x:auto;">
+                  <table style="width:100%; border-collapse:collapse; font-size:0.78rem;">
+                    <thead>
+                      <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:#94a3b8; text-align:left;">
+                        <th style="padding:6px 8px;">Exame</th>
+                        <th style="padding:6px 8px;">Prioridade</th>
+                        <th style="padding:6px 8px;">Preparo / Orientações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${items.map(it => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                          <td style="padding:7px 8px; color:#fff; font-weight:600;">
+                            <i class="fa-solid fa-check" style="color:#38bdf8; font-size:0.7rem; margin-right:4px;"></i>
+                            ${it.name || it.examId}
+                          </td>
+                          <td style="padding:7px 8px;">
+                            <span style="font-size:0.7rem; padding:1px 7px; border-radius:6px; background:${it.priority === 'Urgente' || it.priority === 'Emergência' ? 'rgba(239,68,68,0.2)' : 'rgba(56,189,248,0.15)'}; color:${it.priority === 'Urgente' || it.priority === 'Emergência' ? '#f87171' : '#38bdf8'}; font-weight:700;">
+                              ${it.priority || 'Rotina'}
+                            </span>
+                          </td>
+                          <td style="padding:7px 8px; color:#94a3b8; font-size:0.74rem;">
+                            ${it.prep || 'Sem preparo prévio informado'}
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    } catch(err) {
+      console.warn('[History] Falha ao renderizar exames:', err);
+      container.innerHTML = `<div style="color:#f87171; padding:20px;">Erro ao carregar exames: ${err.message}</div>`;
+    }
+  };
+
   document.getElementById('close-history-modal').addEventListener('click', () => {
     delete window._histSwitchTab;
     delete window._renderHistPEPs;
+    delete window._renderHistExams;
     modal.remove();
   });
 
@@ -2772,33 +2941,36 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
         <div id="pep-exam-orders-container"></div>
 
         <div style="margin-top: 6px; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-          <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">
-            <i class="fa-solid fa-route" style="color: #0284c7; margin-right: 6px;"></i> Desfecho do Atendimento:
-          </label>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+            <label class="form-label" style="font-weight:600; color:var(--text-primary); margin:0; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-route" style="color: #0284c7;"></i> Desfecho do Atendimento:
+            </label>
+            <span style="font-size:0.75rem; color:var(--text-muted);"><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Define a permanência e a conduta clínica</span>
+          </div>
           <select id="pep-outcome" class="form-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
             ${isInterned ? `
-              <option value="manter_internado" selected>Manter Internado (Salvar Evolução Diária)</option>
+              <option value="manter_internado" selected>Manter Internado (Salvar Evolução Diária no Leito)</option>
+              <option value="aguardando_exames">🧪 Aguardar Resultados de Exames Complementares</option>
               <option value="alta">Alta Hospitalar (Encerrar Internação & Liberar Leito)</option>
               <option value="observacao">Manter em Observação (PS)</option>
               <option value="internacao">Transferir de Leito (Enfermaria)</option>
-
               <option value="semi_uti">🟡 Transferir para Semi-UTI / Cuidados Intermediários</option>
-
               <option value="uti">🔴 Transferir para UTI (Terapia Intensiva)</option>
-
               <option value="cti">🔴 Transferir para CTI (Centro de Terapia Intensiva)</option>
             ` : `
-              <option value="alta" selected>Alta Médica (Encerrar Consulta)</option>
-              <option value="observacao">Manter em Observação Médica (PS)</option>
+              <option value="aguardando_exames" ${enc.status === 'Aguardando_Exames' ? 'selected' : ''}>🧪 Aguardar Resultados de Exames (Laboratório / Imagem)</option>
+              <option value="alta" ${enc.status !== 'Aguardando_Exames' ? 'selected' : ''}>✅ Alta Médica (Encerrar Atendimento & Liberar Paciente)</option>
+              <option value="observacao">Manter em Observação Médica (PS 12h)</option>
               <option value="internacao">Solicitar Internação (Transferência de Leito)</option>
-
               <option value="semi_uti">🟡 Internar em Semi-UTI / Cuidados Intermediários</option>
-
               <option value="uti">🔴 Internar em UTI (Terapia Intensiva)</option>
-
               <option value="cti">🔴 Internar em CTI (Centro de Terapia Intensiva)</option>
             `}
           </select>
+          <div id="pep-outcome-exam-hint" style="display:none; margin-top:8px; padding:10px 14px; border-radius:8px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#e0f2fe; font-size:0.8rem; line-height:1.4;">
+            <i class="fa-solid fa-circle-info" style="color:#38bdf8; margin-right:6px;"></i>
+            <span id="pep-outcome-exam-hint-text"></span>
+          </div>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap;">
@@ -2829,7 +3001,7 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
       </form>
     `;
 
-    // Setor de Solicitação de Exames
+    // Setor de Solicitação de Exames com Sincronização Inteligente de Desfecho
     const examOrdersApi = mountExamOrdersSection(document.getElementById('pep-exam-orders-container'), {
       enc,
       user: state.user,
@@ -2839,9 +3011,59 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
         objective: document.getElementById('pep-objective')?.value || '',
         assessment: document.getElementById('pep-assessment')?.value || '',
         plan: document.getElementById('pep-plan')?.value || ''
-      })
+      }),
+      onSelectionChange: (count) => {
+        const outcomeEl = document.getElementById('pep-outcome');
+        const hintBox = document.getElementById('pep-outcome-exam-hint');
+        const hintText = document.getElementById('pep-outcome-exam-hint-text');
+        if (!outcomeEl) return;
+
+        if (count > 0) {
+          if (outcomeEl.value === 'alta') {
+            outcomeEl.value = 'aguardando_exames';
+          }
+          if (hintBox && hintText) {
+            hintBox.style.display = 'block';
+            hintBox.style.background = 'rgba(56,189,248,0.14)';
+            hintBox.style.borderColor = 'rgba(56,189,248,0.4)';
+            hintBox.style.color = '#e0f2fe';
+            hintText.innerHTML = `<strong>${count} exame(s) no pedido:</strong> O desfecho foi automaticamente configurado para <em>Aguardar Resultados de Exames</em>. Ao assinar o PEP, o paciente permanecerá ativo na Central de Atendimentos aguardando os laudos do laboratório/imagem.`;
+          }
+        } else {
+          if (hintBox && outcomeEl.value !== 'alta') {
+            hintBox.style.display = 'none';
+          }
+        }
+      }
     });
     window._pepExamOrders = examOrdersApi;
+
+    // Alerta preventivo caso o médico mude manualmente para "Alta" tendo exames selecionados
+    document.getElementById('pep-outcome')?.addEventListener('change', (e) => {
+      const pendingCount = examOrdersApi?.getSelected?.()?.length || 0;
+      const hintBox = document.getElementById('pep-outcome-exam-hint');
+      const hintText = document.getElementById('pep-outcome-exam-hint-text');
+
+      if (e.target.value === 'alta' && pendingCount > 0) {
+        if (hintBox && hintText) {
+          hintBox.style.display = 'block';
+          hintBox.style.background = 'rgba(239, 68, 68, 0.16)';
+          hintBox.style.borderColor = '#ef4444';
+          hintBox.style.color = '#fca5a5';
+          hintText.innerHTML = `⚠️ <strong>Atenção:</strong> Há ${pendingCount} exame(s) neste pedido. Se você mantiver <em>Alta Médica</em>, o atendimento do paciente será finalizado e ele sairá da fila. Para que ele aguarde a coleta e os laudos, selecione <strong>Aguardar Resultados de Exames</strong>.`;
+        }
+      } else if (e.target.value === 'aguardando_exames') {
+        if (hintBox && hintText) {
+          hintBox.style.display = 'block';
+          hintBox.style.background = 'rgba(56,189,248,0.14)';
+          hintBox.style.borderColor = 'rgba(56,189,248,0.4)';
+          hintBox.style.color = '#e0f2fe';
+          hintText.innerHTML = `🧪 O paciente continuará ativo no sistema com status <strong>Aguardando Exames</strong> para realização da coleta e emissão dos laudos.`;
+        }
+      } else if (pendingCount === 0 && hintBox) {
+        hintBox.style.display = 'none';
+      }
+    });
 
     // Evento do botão de visualização PACS DICOM embutido
     document.getElementById('btn-pep-open-pacs-inline')?.addEventListener('click', () => {
@@ -2947,6 +3169,33 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
 
     document.getElementById('pep-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      // Verificação preventiva: se selecionou "Alta" mas incluiu exames no pedido
+      const currentOutcome = document.getElementById('pep-outcome')?.value;
+      const pendingExamsList = examOrdersApi?.getSelected?.() || [];
+      if (currentOutcome === 'alta' && pendingExamsList.length > 0) {
+        const confirmDischarge = window.confirm(
+          `⚠️ Atenção: Você selecionou "Alta Médica", porém há ${pendingExamsList.length} exame(s) no pedido deste atendimento.\n\n` +
+          `Deseja realmente dar alta e encerrar o atendimento do paciente antes dos resultados?\n\n` +
+          `• Clique em "Cancelar" para manter o paciente aguardando os exames (Recomendado).\n` +
+          `• Clique em "OK" para confirmar a alta médica imediata.`
+        );
+        if (!confirmDischarge) {
+          const sel = document.getElementById('pep-outcome');
+          if (sel) sel.value = 'aguardando_exames';
+          const hintBox = document.getElementById('pep-outcome-exam-hint');
+          const hintText = document.getElementById('pep-outcome-exam-hint-text');
+          if (hintBox && hintText) {
+            hintBox.style.display = 'block';
+            hintBox.style.background = 'rgba(56,189,248,0.14)';
+            hintBox.style.borderColor = 'rgba(56,189,248,0.4)';
+            hintBox.style.color = '#e0f2fe';
+            hintText.innerHTML = `🧪 Desfecho mantido como <strong>Aguardar Resultados de Exames</strong>. Clique em "Assinar & Encaminhar" para registrar o pedido e manter o paciente ativo.`;
+          }
+          return;
+        }
+      }
+
       // Exames escolhidos e ainda não enviados seguem junto com a assinatura do PEP
       try {
         const pendingExams = examOrdersApi?.saveIfPending({ silent: true });
@@ -3697,6 +3946,91 @@ async function savePEPData(encounterId, shouldFinalize) {
         }
         const modal = document.getElementById('pep-modal');
         if (modal) modal.remove();
+        if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
+        if (typeof renderTabContent === 'function' && state.activeTab === 'atendimento') renderTabContent();
+        return;
+      } else if (outcome === 'aguardando_exames') {
+        const nowIso = new Date().toISOString();
+        const patIdVal = enc?.patientId || enc?.id || (typeof encounterId === 'string' && !isNaN(encounterId) ? encounterId : null) || encounterId;
+
+        if (typeof localDB !== 'undefined' && localDB) {
+          try {
+            // 1. Atualizar o atendimento para Aguardando_Exames (sem finalizar nem fechar)
+            if (localDB.update) {
+              localDB.update('encounters', encounterId, {
+                status: 'Aguardando_Exames',
+                signed_by: state?.user?.name || enc.doctorName || 'Dr. Médico Assistente',
+                lastExamOrderAt: nowIso,
+                updated_at: nowIso
+              });
+            }
+
+            // 2. Garantir que o paciente permaneça Ativo (reverter eventual status Alta)
+            const allPatients = (typeof localDB.list === 'function') ? localDB.list('patients') : [];
+            const patRecord = allPatients.find(p => (
+              (p.fullName && patientName && p.fullName.toLowerCase().trim() === patientName.toLowerCase().trim()) ||
+              (p.id && (String(p.id) === String(patIdVal) || String(p.id).toLowerCase() === String(patIdVal).toLowerCase()))
+            ));
+            if (patRecord && (patRecord.status === 'Alta' || !patRecord.status || patRecord.status === 'Inativo')) {
+              localDB.update('patients', patRecord.id, {
+                ...patRecord,
+                status: 'Ativo',
+                receptionFinalized: false,
+                updated_at: nowIso
+              });
+            }
+
+            // 3. Registrar nota clínica no prontuário
+            if (typeof localDB.insert === 'function') {
+              const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+              const dateFormatted = new Date().toLocaleDateString('pt-BR');
+              localDB.insert('clinical_notes', {
+                id: 'NOTE-' + Math.floor(Math.random() * 1000000),
+                patientId: patRecord?.id || patIdVal,
+                patientName: patientName,
+                encounterId: encounterId,
+                type: 'exames',
+                title: 'Exames Solicitados — Aguardando Resultados',
+                content: `Exames complementares solicitados por ${state?.user?.name || 'Dr. Médico Assistente'} em ${dateFormatted} às ${timeFormatted}. Paciente permanece ativo aguardando coleta e laudos.`,
+                text: `🧪 Exames solicitados em ${dateFormatted} às ${timeFormatted}. Paciente aguarda laudos laboratoriais e radiológicos.`,
+                created_at: nowIso,
+                doctorName: state?.user?.name || 'Dr. Médico Assistente'
+              });
+            }
+          } catch (e) {
+            console.warn('[PEP] Falha ao registrar status Aguardando_Exames:', e);
+          }
+        }
+
+        if (typeof window.setActivePatientContext === 'function') {
+          window.setActivePatientContext({
+            ...enc,
+            id: encounterId,
+            fullName: patientName,
+            patientName: patientName,
+            status: 'Aguardando_Exames',
+            room: enc.room || enc.sector || 'Consultório 01',
+            sector: enc.sector || 'Consultório',
+            currentStep: 4,
+            manchesterColor: enc.manchesterColor || (activeCtx ? activeCtx.manchesterColor : null) || 'Amarelo'
+          });
+        }
+
+        const modal = document.getElementById('pep-modal');
+        if (modal) modal.remove();
+
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: '🧪 Exames Solicitados com Sucesso',
+            message: `O prontuário foi assinado e os exames de <strong>${patientName}</strong> foram encaminhados. O paciente permanece ativo na Central de Atendimentos aguardando os laudos.`,
+            targetTab: 'atendimento',
+            targetTabLabel: 'Ver na Central de Atendimentos',
+            targetPatientName: patientName
+          });
+        } else if (typeof showToast === 'function') {
+          showToast(`🧪 Exames solicitados! ${patientName} aguarda laudos.`);
+        }
+
         if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
         if (typeof renderTabContent === 'function' && state.activeTab === 'atendimento') renderTabContent();
         return;

@@ -4105,6 +4105,50 @@ const initializeApp = async () => {
           localDB.saveFullDB(fullDB);
         }
       }
+
+      // ─── AUTO-RECUPERAÇÃO DE STATUS: Garante integridade do paciente caso tenha recebido alta indevida com exames pendentes ───
+      try {
+        const patients = fullDB.patients || [];
+        const encounters = fullDB.encounters || [];
+        const examReqs = fullDB.exam_requests || [];
+        let dbChanged = false;
+
+        patients.forEach(pat => {
+          const isTarget = (pat.fullName && pat.fullName.toLowerCase().includes('marcelo mazaro'));
+          const hasExams = examReqs.some(r => 
+            String(r.patientId) === String(pat.id) || 
+            (r.patientName && pat.fullName && r.patientName.toLowerCase().trim() === pat.fullName.toLowerCase().trim())
+          );
+
+          if ((isTarget || hasExams) && pat.status === 'Alta') {
+            pat.status = 'Ativo';
+            pat.receptionFinalized = false;
+            dbChanged = true;
+
+            const patEncs = encounters.filter(e => 
+              String(e.patientId) === String(pat.id) || 
+              (e.patientName && pat.fullName && e.patientName.toLowerCase().trim() === pat.fullName.toLowerCase().trim())
+            );
+            if (patEncs.length > 0) {
+              const lastEnc = patEncs[patEncs.length - 1];
+              if (lastEnc.status === 'Finalizado' || lastEnc.status === 'Alta') {
+                lastEnc.status = 'Aguardando_Exames';
+                lastEnc.closed_at = null;
+                lastEnc.completed_at = null;
+                lastEnc.discharged_at = null;
+                dbChanged = true;
+              }
+            }
+          }
+        });
+
+        if (dbChanged) {
+          localDB.saveFullDB(fullDB);
+        }
+      } catch (err) {
+        console.warn('[Init] Auto-recuperação de status de pacientes:', err);
+      }
+
       renderAppStructure();
       const logoutBtn = document.getElementById('btn-logout');
       if (logoutBtn) {

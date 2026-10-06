@@ -1,12 +1,20 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.21`  
+**Versão:** `2.9.22`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🛡️ **Rastreabilidade de Exames, Novo Desfecho no PEP & Proteção Contra Alta Acidental (v2.9.22):**
+  1. **Novo Desfecho Assistencial Dedicado no PEP:** Incorporada a opção `🧪 Aguardar Resultados de Exames (Laboratório / Imagem)` no seletor de desfechos do Prontuário Eletrônico, permitindo manter o paciente formalmente em atendimento ambulatorial enquanto aguarda a liberação dos laudos diagnósticos.
+  2. **Comutação Automática Inteligente & Banner Orientador:** Ao adicionar qualquer exame ao pedido no PEP, o sistema altera automaticamente o desfecho para `Aguardar Resultados de Exames` e exibe um banner orientador azul com explicação assistencial clara, eliminando a seleção acidental de alta.
+  3. **Guarda Preventiva Contra Alta Precoce:** Se o médico tentar mudar o desfecho para "Alta Médica" enquanto houver exames adicionados na requisição, o sistema intercepta e solicita confirmação explícita para evitar o encerramento inadvertido da passagem.
+  4. **Visibilidade Contínua no Kanban de Atendimentos:** O paciente com exames solicitados permanece ativo na coluna *"Em Consulta / Exames"* com cartão destacado em azul oceano, badge luminoso pulsante `🧪 Aguardando Exames (X pedidos)` e prévia dos exames pendentes.
+  5. **Aba Dedicada "🧪 Exames Solicitados" no Prontuário Consolidado:** O modal de histórico do paciente agora conta com a 3ª aba exclusiva de exames, listando número de protocolo, data/hora, lista completa de itens, prioridade, indicação clínica e botão de reimpressão da requisição técnica oficial.
+  6. **Auto-Recuperação de Cadastros (Auto-Cura):** Rotina preventiva na inicialização do sistema identifica e restaura para status `Ativo` e `Aguardando_Exames` qualquer paciente que tenha recebido alta indevida possuindo requisições de exames em aberto.
 
 - 🧪 **Setor Estruturado de Solicitação de Exames no PEP & Previsão Preditiva por IA (CPOE) (v2.9.21):**
   1. **Setor Dedicado de Exames no Prontuário Eletrônico:** Integrado logo após o Plano Terapêutico e antes do Desfecho do Atendimento, separando formalmente a prescrição de fármacos das solicitações diagnósticas (Computerized Physician Order Entry - CPOE).
