@@ -493,6 +493,7 @@ flowchart TD
 <li>3.5. <a href="#sec-3-5">Solicitação Estruturada de Exames &amp; Previsão Clínica por IA (CPOE)</a><ul>
 <li>3.5.1. <a href="#sec-3-5-1">Para Onde Vão os Exames Solicitados e Como Acompanhá-los</a></li>
 <li>3.5.2. <a href="#sec-3-5-2">Prevenção de Alta Indevida &amp; Novo Desfecho: Aguardar Resultados de Exames</a></li>
+<li>3.5.3. <a href="#sec-3-5-3">Exames Diagnósticos no PDF do Prontuário (PEP) &amp; Botões de Emissão Direta</a></li>
 </ul>
 </li>
 </ul>
@@ -1345,6 +1346,30 @@ flowchart TD
 <ul>
 <li>O encontro clínico permanece ativo com status <code>Aguardando_Exames</code> e localização <code>Laboratório / Imagem — Aguardando Exames (Consultório)</code>.</li>
 <li>Se algum paciente tiver recebido alta inadvertidamente com exames pendentes, rotinas inteligentes restauram automaticamente o status para <code>Ativo</code> ao iniciar a sessão, garantindo integridade clínica total.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="sec-3-5-3">3.5.3. Exames Diagnósticos no PDF do Prontuário (PEP) & Botões de Emissão Direta</h3><p>Todas as solicitações de exames diagnósticos e apoio terapêutico integram formalmente o documento oficial impresso do Prontuário Eletrônico do Paciente (PEP):</p>
+<ol>
+<li><p><strong>Seção Dedicada de SADT / CPOE no Relatório em PDF:</strong></p>
+<ul>
+<li>O documento em PDF exportado passa a contar com a seção:<br><strong><code>4. SOLICITAÇÕES DE EXAMES DIAGNÓSTICOS &amp; APOIO TERAPÊUTICO (SADT / CPOE)</code></strong>.</li>
+<li>A tabela estruturada consolida:<ul>
+<li><strong>Data / Hora:</strong> Registro temporal com segundo exato da requisição.</li>
+<li><strong>Protocolo:</strong> Código único e rastreável da requisição (<code>REQ-...</code>).</li>
+<li><strong>Exame / Modalidade &amp; Preparo:</strong> Nome do exame (laboratorial, radiológico, método gráfico ou genético) com orientações de preparo e jejum.</li>
+<li><strong>Prioridade:</strong> Nível clínico (Rotina, Urgência ou Emergência).</li>
+<li><strong>Indicação Clínica:</strong> Justificativa diagnóstica e hipótese investigada pelo médico.</li>
+<li><strong>Médico Solicitante:</strong> Nome completo do profissional e CRM autenticado.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Botões de Emissão Imediata Direto na Tela do PEP:</strong></p>
+<ul>
+<li><strong>Cabeçalho Superior:</strong> Botão <strong><code>📄 Imprimir PEP (PDF)</code></strong> ao lado dos atalhos de Teleconsulta e WhatsApp, permitindo exportar o prontuário completo a qualquer momento da consulta.</li>
+<li><strong>Rodapé do Formulário SOAP:</strong> Botão <strong><code>📄 Imprimir PEP (PDF)</code></strong> acessível tanto em modo de preenchimento ativo quanto em modo de somente leitura (auditoria), permitindo gerar o PDF antes ou depois de assinar e encaminhar.</li>
 </ul>
 </li>
 </ol>

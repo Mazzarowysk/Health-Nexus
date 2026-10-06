@@ -2499,6 +2499,9 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btn-pep-pdf-header" class="btn" style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #c7d2fe; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;" title="Gerar e Baixar Prontuário Completo (PEP) com Exames e Prescrições em PDF">
+              <i class="fa-solid fa-file-pdf"></i> Imprimir PEP (PDF)
+            </button>
             <button type="button" id="btn-pep-telemed-header" class="btn" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.78rem; font-weight: 700; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
               <i class="fa-solid fa-video"></i> Teleconsulta
             </button>
@@ -2760,7 +2763,17 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
       subtitleEl.innerHTML = `Paciente: <strong style="color:#fff;">${enc.patientName || 'Paciente'}</strong> · 📍 Localização: <span style="color:${pepLoc.color}; font-weight:700;">${pepLoc.text}</span>`;
     }
 
-    // Botões de Cabeçalho (Telemedicina e WhatsApp)
+    // Botões de Cabeçalho (PDF, Telemedicina e WhatsApp)
+    document.getElementById('btn-pep-pdf-header')?.addEventListener('click', () => {
+      const pid = enc.patientId || enc.id;
+      const pname = enc.patientName || 'Paciente';
+      if (typeof window.generatePatientPDF === 'function') {
+        window.generatePatientPDF(pid, pname);
+      } else if (typeof showToast === 'function') {
+        showToast('⚠️ Gerador de PDF não inicializado.', true);
+      }
+    });
+
     document.getElementById('btn-pep-telemed-header')?.addEventListener('click', () => {
       openTelemedicineModal({
         id: enc.patientId || enc.id,
@@ -2984,6 +2997,9 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
             <button type="button" onclick="window._pepSwitchTab('history')" class="btn" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; font-size: 0.82rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-arrow-left"></i> Voltar à Lista
             </button>
+            <button type="button" id="btn-pep-generate-pdf-form" class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #c7d2fe; padding: 8px 14px; font-size: 0.82rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;" title="Exportar Prontuário Completo do Paciente em PDF com Exames e Prescrições">
+              <i class="fa-solid fa-file-pdf"></i> Imprimir PEP (PDF)
+            </button>
             ${isReadOnly ? `
               <button type="button" class="btn" onclick="document.getElementById('pep-modal')?.remove()" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:8px 18px;">
                 <i class="fa-solid fa-xmark" style="margin-right:6px;"></i> Fechar Prontuário
@@ -3162,6 +3178,16 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
         checkPlanInteractions(notes.planContent);
       }
     }
+
+    document.getElementById('btn-pep-generate-pdf-form')?.addEventListener('click', () => {
+      const pid = enc.patientId || enc.id;
+      const pname = enc.patientName || 'Paciente';
+      if (typeof window.generatePatientPDF === 'function') {
+        window.generatePatientPDF(pid, pname);
+      } else if (typeof showToast === 'function') {
+        showToast('⚠️ Gerador de PDF não inicializado.', true);
+      }
+    });
 
     document.getElementById('btn-save-pep')?.addEventListener('click', async () => {
       await savePEPData(encounterId, false);

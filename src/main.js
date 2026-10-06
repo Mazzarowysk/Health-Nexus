@@ -7015,6 +7015,11 @@ window.generatePatientPDF = async function(patientId, patientName) {
     const clinicalNotes = (db.clinical_notes || []).filter(n => n.patientId === patient.id || n.patientName === patient.fullName);
     const appointments = (db.appointments || []).filter(a => a.patientId === patient.id || a.patientName === patient.fullName);
     const prescriptions = (db.prescriptions || []).filter(p => p.patientId === patient.id || p.patientName === patient.fullName);
+    const examRequests = (db.exam_requests || []).filter(r => 
+      (patient.id && String(r.patientId) === String(patient.id)) ||
+      (patient.fullName && r.patientName && r.patientName.toLowerCase().trim() === patient.fullName.toLowerCase().trim()) ||
+      (patientName && r.patientName && r.patientName.toLowerCase().trim() === patientName.toLowerCase().trim())
+    );
 
     data = {
       patient,
@@ -7023,6 +7028,7 @@ window.generatePatientPDF = async function(patientId, patientName) {
       clinical_notes: clinicalNotes,
       appointments,
       prescriptions,
+      exam_requests: examRequests,
       triages: encounters.map(e => ({
         id: 'TR-' + (e.id || '01'),
         manchester_priority: e.manchesterColor || 'AMARELO',
@@ -7057,6 +7063,21 @@ window.generatePatientPDF = async function(patientId, patientName) {
       if (cleanTargetName && p.patientName) {
         const cleanPName = p.patientName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         return cleanPName === cleanTargetName || cleanPName.includes(cleanTargetName) || cleanTargetName.includes(cleanPName);
+      }
+      return false;
+    });
+  }
+
+  let examRequests = data.exam_requests || [];
+  if (!examRequests || examRequests.length === 0) {
+    const allDbExams = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('exam_requests') : (db.exam_requests || []);
+    const cleanTargetName = (patient.fullName || patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    examRequests = allDbExams.filter(r => {
+      if (patient.id && String(r.patientId) === String(patient.id)) return true;
+      if (patientId && String(r.patientId) === String(patientId)) return true;
+      if (cleanTargetName && r.patientName) {
+        const cleanRName = r.patientName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        return cleanRName === cleanTargetName || cleanRName.includes(cleanTargetName) || cleanTargetName.includes(cleanRName);
       }
       return false;
     });
@@ -7325,6 +7346,70 @@ window.generatePatientPDF = async function(patientId, patientName) {
     currentY = 20;
   }
 
+  // --- SOLICITAÇÕES DE EXAMES DIAGNÓSTICOS & APOIO TERAPÊUTICO (SADT / CPOE) ---
+  const accentCyan = [2, 132, 199];
+  doc.setFillColor(...accentCyan);
+  doc.rect(12, currentY, 4, 10, 'F');
+  doc.setTextColor(...darkColor);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('4. SOLICITAÇÕES DE EXAMES DIAGNÓSTICOS & APOIO TERAPÊUTICO (SADT / CPOE)', 20, currentY + 7);
+  currentY += 14;
+
+  const examRows = [];
+  (examRequests || []).forEach(req => {
+    const reqDate = req.created_at ? new Date(req.created_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+    const doctor = req.doctorName ? `${req.doctorName}${req.crm ? ' (' + req.crm + ')' : ''}` : 'Corpo Clínico';
+    const just = req.justification || 'Avaliação clínica';
+    const proto = req.id || 'REQ-SADT';
+
+    (req.items || []).forEach(it => {
+      const prepText = it.prep ? `\n[Preparo: ${it.prep}]` : '';
+      examRows.push([
+        reqDate,
+        proto,
+        `${it.name || 'Exame Complementar'}${prepText}`,
+        it.priority || 'Rotina',
+        just,
+        doctor
+      ]);
+    });
+  });
+
+  if (examRows.length === 0) {
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(148, 163, 184);
+    doc.text('Nenhuma solicitação de exame complementar registrada neste ciclo.', 20, currentY);
+    currentY += 10;
+  } else {
+    doc.autoTable({
+      startY: currentY,
+      head: [['Data / Hora', 'Protocolo', 'Exame / Modalidade & Preparo', 'Prioridade', 'Indicação Clínica', 'Médico Solicitante']],
+      body: examRows,
+      theme: 'grid',
+      headStyles: { fillColor: accentCyan, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
+      columnStyles: {
+        0: { cellWidth: 26 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 36 },
+        5: { cellWidth: 32 }
+      },
+      margin: { left: 12, right: 12 }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 12;
+  }
+
+  // Verificar quebra de página
+  if (currentY > 230) {
+    doc.addPage();
+    currentY = 20;
+  }
+
   // --- EVOLUÇÕES CLÍNICAS E ANOTAÇÕES ---
   if (notes.length > 0) {
     doc.setFillColor(79, 70, 229);
@@ -7332,7 +7417,7 @@ window.generatePatientPDF = async function(patientId, patientName) {
     doc.setTextColor(...darkColor);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('4. EVOLUÇÕES CLÍNICAS & ANOTAÇÕES MULTIPROFISSIONAIS', 20, currentY + 7);
+    doc.text('5. EVOLUÇÕES CLÍNICAS & ANOTAÇÕES MULTIPROFISSIONAIS', 20, currentY + 7);
     currentY += 14;
 
     const noteRows = notes.map(n => {

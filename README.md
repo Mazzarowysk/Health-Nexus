@@ -1,12 +1,17 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.22`  
+**Versão:** `2.9.23`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 📄 **Inclusão Oficial de Exames no PDF do PEP & Botões de Emissão Imediata (v2.9.23):**
+  1. **Seção Dedicada de Apoio Diagnóstico no PDF (`4. SOLICITAÇÕES DE EXAMES DIAGNÓSTICOS & APOIO TERAPÊUTICO - SADT / CPOE`):** O documento impresso do Prontuário Eletrônico do Paciente agora integra todas as requisições de exames emitidas no atendimento com colunas para Data/Hora, Protocolo (`REQ-...`), Exame & Preparo orientado, Prioridade (Rotina / Urgência / Emergência), Indicação Clínica e CRM do Médico Solicitante.
+  2. **Botão de Emissão no Cabeçalho do PEP:** Adicionado o botão `📄 Imprimir PEP (PDF)` no topo do prontuário ao lado de Teleconsulta e WhatsApp para download instantâneo do prontuário completo.
+  3. **Botão no Rodapé do Formulário SOAP:** Incluído atalho `📄 Imprimir PEP (PDF)` tanto em modo de preenchimento ativo quanto em modo de auditoria/leitura.
 
 - 🛡️ **Rastreabilidade de Exames, Novo Desfecho no PEP & Proteção Contra Alta Acidental (v2.9.22):**
   1. **Novo Desfecho Assistencial Dedicado no PEP:** Incorporada a opção `🧪 Aguardar Resultados de Exames (Laboratório / Imagem)` no seletor de desfechos do Prontuário Eletrônico, permitindo manter o paciente formalmente em atendimento ambulatorial enquanto aguarda a liberação dos laudos diagnósticos.
