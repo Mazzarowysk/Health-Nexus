@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.10)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.24)
 
-> **Health Nexus v2.9.10 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.
+> **Health Nexus v2.9.24 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos, consulta dinâmica multi-modalidade e etiquetas térmicas hospitalares.
 
 ---
 
@@ -98,6 +98,7 @@ flowchart TD
 - 17. [Tabela de Máscaras, Atalhos & Teclas de Atalho](#sec-17)
 - 18. [Solução de Dúvidas Frequentes & Erros Comuns (FAQ)](#sec-18)
 - 19. [Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0)](#sec-19)
+- 20. [Consulta Dinâmica Multi-Modalidade, Prontuário Único SUS & Etiquetas Térmicas (v2.9.24)](#sec-20)
 - 20. [Smart Flow Guide — Adaptação por Aba, Controle de Foco & Desmarcação (v2.9.9) & Painel Lateral Acoplado](#sec-20)
 
 ---
@@ -1085,4 +1086,33 @@ Quando acoplado à lateral, o Smart Flow Guide oferece uma visão panorâmica e 
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.8 do Health Nexus. Todos os direitos reservados.*
+<a id="sec-20"></a>
+## 20. 🏢 Consulta Dinâmica Multi-Modalidade, Prontuário Único SUS & Etiquetas Térmicas (v2.9.24)
+
+### 20.1. Módulo de Consulta Dinâmica de Atendimentos
+Inspirada nos sistemas legados hospitalares e adaptada à agilidade do Health Nexus, a **Consulta Dinâmica** unifica em uma só interface todos os atendimentos da instituição através do botão `🔍 Consulta Dinâmica` na Central de Atendimentos:
+- **Modalidades Integradas:** Filtro dinâmico por *Todas as Modalidades*, `66 - Pronto Socorro`, `35 - Internação`, `Ambulatório Geral` e `SADT / Paciente Externo`.
+- **Filtros Combinados:** Busca textual por Nome ou CPF do paciente, Médico Responsável, Especialidade, Setor Hospitalar, Convênio e Ordenação (Mais recente primeiro ou mais antigo primeiro).
+- **Grid Assistencial Completo:** Exibição imediata de Código do Atendimento, Modalidade, Paciente & CPF, Convênio, Setor/Leito, Médico & CRM, Classificação de Risco e Status da Passagem.
+- **Ações Imediatas:**
+  - `Evoluir / PEP`: Abre instantaneamente a folha de evolução SOAP e prescrição.
+  - `Histórico`: Acessa a linha do tempo assistencial e histórico de internações.
+  - `Imprimir PEP`: Gera o prontuário oficial consolidado em PDF.
+  - `Etiqueta`: Abre o modal de emissão de etiquetas térmicas.
+  - `Exportar CSV`: Exporta os dados filtrados para planilhas gerenciais.
+
+### 20.2. Prontuário Único SUS: ID CROSS, Pasta Arquivo e Naturalidade
+O cadastro de pacientes e o cabeçalho assistencial foram alinhados com o padrão do SUS do Estado de São Paulo:
+- **ID Paciente CROSS (Regulação Estadual):** Código identificador de encaminhamento e vaga regulada via Central de Regulação de Ofertas de Serviços de Saúde (CROSS).
+- **Nº da Pasta / Arquivo Físico:** Identificação de prontuários em papel e caixas de arquivamento hospitalar legado.
+- **Naturalidade & RG:** Cidade/UF de nascimento e registro geral para integração com prontuário civil e certidões.
+- **Exibição Transversal:** Presente no cadastro de pacientes, no card de identificação do histórico clínico e no cabeçalho impresso do PDF do PEP.
+
+### 20.3. Emissão de Etiquetas Térmicas Hospitalares
+O Health Nexus disponibiliza um módulo de impressão direta em impressoras térmicas padrão (Argox, Zebra, Elgin) com diagramação precisa:
+1. **Pulseira do Paciente (100x30mm):** Contém Nome Completo em destaque, Data de Nascimento, Idade, CPF, Sexo, Convênio, Código do Atendimento, QR Code de segurança e Código de Barras Code-128 legível por leitores ópticos.
+2. **Etiquetas de Amostras / Tubos (50x30mm):** Compacta para tubos de sangue, urina e frascos de biópsia, contendo Identificador do Atendimento, Nome do Paciente, Data da Coleta e Código de Barras.
+
+---
+
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.24 do Health Nexus. Todos os direitos reservados.*

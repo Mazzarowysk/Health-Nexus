@@ -2071,10 +2071,13 @@ modal.style.left = '0';
           <div style="font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> ${patient.fullName || patientName}
           </div>
-          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap;">
+          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
             <span><strong>CPF:</strong> ${patient.cpf || 'Não informado'}</span>
             <span><strong>Nascimento:</strong> ${formatBirthDateBR(patient.birthDate)}</span>
             <span><strong>Gênero:</strong> ${patient.gender || 'Não informado'}</span>
+            ${patient.crossPatientId ? `<span style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); padding: 2px 8px; border-radius: 6px;"><strong>CROSS:</strong> ${patient.crossPatientId}</span>` : ''}
+            ${patient.physicalChartNumber ? `<span style="background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); padding: 2px 8px; border-radius: 6px;"><strong>Pasta:</strong> ${patient.physicalChartNumber}</span>` : ''}
+            ${patient.birthCity ? `<span><strong>Naturalidade:</strong> ${patient.birthCity}</span>` : ''}
           </div>
         </div>
         <div style="display: flex; gap: 10px;">

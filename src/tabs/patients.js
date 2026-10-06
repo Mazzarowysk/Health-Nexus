@@ -216,6 +216,35 @@ export function renderPatientsTab(contentArea) {
                 </div>
               </div>
             </div>
+
+            <!-- SEÇÃO 4: REGULAÇÃO SUS (CROSS) & ARQUIVO FÍSICO -->
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px; flex-shrink: 0;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-folder-tree"></i> 4. Regulação SUS (CROSS) &amp; Arquivo Físico
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="crossPatientId">ID Paciente CROSS (Regulação):</label>
+                  <input type="text" id="crossPatientId" class="form-input" placeholder="Ex: 1490028 ou código de vaga">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="physicalChartNumber">Nº Pasta / Arquivo Físico:</label>
+                  <input type="text" id="physicalChartNumber" class="form-input" placeholder="Ex: Pasta 0, Caixa 12">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="birthCity">Naturalidade (Cidade/UF):</label>
+                  <input type="text" id="birthCity" class="form-input" placeholder="Ex: Tupã / SP">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="rgNumber">Documento RG / UF:</label>
+                  <input type="text" id="rgNumber" class="form-input" placeholder="Ex: 60.765.922-1 SSP/SP">
+                </div>
+              </div>
+            </div>
             </div> <!-- Fim coluna 2 -->
           </div> <!-- Fim grid duas colunas -->
 
@@ -341,6 +370,10 @@ export function renderPatientsTab(contentArea) {
                 data-phone="${p.phone || ''}"
                 data-cellphone="${p.cellphone || ''}"
                 data-billing-value="${p.billingValue || ''}"
+                data-cross-id="${p.crossPatientId || ''}"
+                data-physical-chart="${p.physicalChartNumber || ''}"
+                data-birth-city="${p.birthCity || ''}"
+                data-rg-number="${p.rgNumber || ''}"
                 title="Alterar / Editar Paciente">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
@@ -393,6 +426,11 @@ export function renderPatientsTab(contentArea) {
         document.getElementById('phone').value = btn.getAttribute('data-phone');
         document.getElementById('cellphone').value = btn.getAttribute('data-cellphone');
         document.getElementById('billingValue').value = btn.getAttribute('data-billing-value');
+
+        if (document.getElementById('crossPatientId')) document.getElementById('crossPatientId').value = btn.getAttribute('data-cross-id') || '';
+        if (document.getElementById('physicalChartNumber')) document.getElementById('physicalChartNumber').value = btn.getAttribute('data-physical-chart') || '';
+        if (document.getElementById('birthCity')) document.getElementById('birthCity').value = btn.getAttribute('data-birth-city') || '';
+        if (document.getElementById('rgNumber')) document.getElementById('rgNumber').value = btn.getAttribute('data-rg-number') || '';
 
         document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--color-primary);"></i> Editar Paciente';
         document.getElementById('submit-btn').textContent = "Salvar Alterações";
@@ -693,6 +731,10 @@ export function renderPatientsTab(contentArea) {
   const resetForm = () => {
     document.getElementById('patient-form').reset();
     document.getElementById('editId').value = "";
+    if (document.getElementById('crossPatientId')) document.getElementById('crossPatientId').value = '';
+    if (document.getElementById('physicalChartNumber')) document.getElementById('physicalChartNumber').value = '';
+    if (document.getElementById('birthCity')) document.getElementById('birthCity').value = '';
+    if (document.getElementById('rgNumber')) document.getElementById('rgNumber').value = '';
     document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente';
     document.getElementById('submit-btn').textContent = "Registrar Paciente";
     const alertBadge = document.getElementById('responsible-alert-badge');
@@ -786,6 +828,10 @@ export function renderPatientsTab(contentArea) {
     const phone = document.getElementById('phone').value;
     const cellphone = document.getElementById('cellphone').value;
     const billingValue = document.getElementById('billingValue').value;
+    const crossPatientId = document.getElementById('crossPatientId')?.value || '';
+    const physicalChartNumber = document.getElementById('physicalChartNumber')?.value || '';
+    const birthCity = document.getElementById('birthCity')?.value || '';
+    const rgNumber = document.getElementById('rgNumber')?.value || '';
 
     const isEdit = !!editId;
     const url = isEdit ? `/api/patients/${editId}` : `/api/patients`;
@@ -802,7 +848,8 @@ export function renderPatientsTab(contentArea) {
       const payload = {
         fullName, cpf, birthDate, motherName, fatherName, organDonor, race, religion,
         healthPlan, cardNumber, responsibleName, responsibleCpf, responsiblePhone, responsibleRelationship,
-        cep, address, number, neighborhood, city, phone, cellphone, billingValue
+        cep, address, number, neighborhood, city, phone, cellphone, billingValue,
+        crossPatientId, physicalChartNumber, birthCity, rgNumber
       };
 
       const res = await apiFetch(url, {

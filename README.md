@@ -1,12 +1,19 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.23`  
+**Versão:** `2.9.24`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🏢 **Consulta Dinâmica Multi-Modalidade, Prontuário Único SUS & Etiquetas Térmicas (v2.9.24):**
+  1. **Módulo de Consulta Dinâmica de Atendimentos:** Novo botão `🔍 Consulta Dinâmica` na Central de Atendimentos abrindo interface analítica inspirada nos sistemas legados hospitalares SUS/Delphi com busca cruzada por Nome/CPF, Modalidade (66 - Pronto Socorro, 35 - Internação, Ambulatório e SADT Paciente Externo), Especialidade, Setor e Convênio.
+  2. **Ações Instantâneas no Grid de Atendimentos:** Acesso em 1 clique para Abertura de PEP, Histórico Clínico Completo, Exportação de PDF e Emissão de Etiquetas Térmicas diretamente pelo resultado da busca.
+  3. **Campos Oficiais do Prontuário Único SUS:** Inclusão de ID Paciente CROSS (Regulação Estadual SP), Nº da Pasta/Arquivo Físico, Naturalidade (Cidade/UF) e Documento RG no cadastro, no modal de histórico e no cabeçalho do PDF do PEP.
+  4. **Emissão de Etiquetas Térmicas Hospitalares:** Módulo integrado para geração e impressão em tempo real de Pulseira de Identificação Hospitalar (100x30mm) e Etiquetas de Frascos/Tubos Laboratoriais (50x30mm) com QR Code e código de barras padrão Code-128.
+  5. **Relatório Técnico Comparativo (PDF):** Dossiê executivo completo `Relatorio_Comparativo_Sistema_Legado_vs_Health_Nexus.pdf` confrontando as 12 telas do sistema legado hospitalar com a arquitetura moderna do Health Nexus.
 
 - 📄 **Inclusão Oficial de Exames no PDF do PEP & Botões de Emissão Imediata (v2.9.23):**
   1. **Seção Dedicada de Apoio Diagnóstico no PDF (`4. SOLICITAÇÕES DE EXAMES DIAGNÓSTICOS & APOIO TERAPÊUTICO - SADT / CPOE`):** O documento impresso do Prontuário Eletrônico do Paciente agora integra todas as requisições de exames emitidas no atendimento com colunas para Data/Hora, Protocolo (`REQ-...`), Exame & Preparo orientado, Prioridade (Rotina / Urgência / Emergência), Indicação Clínica e CRM do Médico Solicitante.

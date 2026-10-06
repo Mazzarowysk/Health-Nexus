@@ -50,6 +50,9 @@ export function renderAttendanceTab(contentArea) {
               <span>Ver Todos</span>
             </div>
           </div>
+          <button id="btn-dynamic-query" class="btn" style="font-size:0.85rem; padding:8px 14px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#fff; border:none; border-radius:8px; font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 4px 12px rgba(2,132,199,0.35);" title="Localizador e Consulta Dinâmica de Atendimentos Multi-Modalidade">
+            <i class="fa-solid fa-magnifying-glass-chart"></i> Consulta Dinâmica
+          </button>
           <button id="btn-open-admission-panel" class="btn btn-primary" style="font-size:0.85rem; padding:8px 14px;">
             <i class="fa-solid fa-plus"></i> Nova Admissão
           </button>
@@ -347,6 +350,11 @@ export function renderAttendanceTab(contentArea) {
     renderAdmList(admissionPatients.filter(p => removeAccents(p.fullName).toLowerCase().includes(q) || p.cpf.includes(q)));
   });
   document.getElementById('btn-open-admission-panel')?.addEventListener('click', openAdmissionPanel);
+  document.getElementById('btn-dynamic-query')?.addEventListener('click', () => {
+    if (typeof window.openDynamicEncounterQueryModal === 'function') {
+      window.openDynamicEncounterQueryModal();
+    }
+  });
   document.getElementById('btn-close-admission-panel')?.addEventListener('click', closeAdmissionPanel);
   document.getElementById('admission-overlay')?.addEventListener('click', closeAdmissionPanel);
 

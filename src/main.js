@@ -35,6 +35,7 @@ import { getNexusAICopilotResponse } from './aiCopilot.js';
 import { inject } from '@vercel/analytics';
 import { openTelemedicineModal } from './modules/telemedicina.js';
 import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from './modules/clinicalAI.js';
+import { openDynamicEncounterQueryModal, openThermalLabelModal } from './modules/dynamicEncounterQuery.js';
 
 window.setActivePatientContext = setActivePatientContext;
 window.clearActivePatientContext = clearActivePatientContext;
@@ -44,6 +45,8 @@ window.initFloatingWorkflowGuide = initFloatingWorkflowGuide;
 window.updateFloatingWorkflowGuide = updateFloatingWorkflowGuide;
 window.showSimulationSummaryModal = showSimulationSummaryModal;
 window.openTelemedicineModal = openTelemedicineModal;
+window.openDynamicEncounterQueryModal = openDynamicEncounterQueryModal;
+window.openThermalLabelModal = openThermalLabelModal;
 window.startVoiceDictation = startVoiceDictation;
 window.stopVoiceDictation = stopVoiceDictation;
 window.calculateMEWS = calculateMEWS;
@@ -7112,10 +7115,12 @@ window.generatePatientPDF = async function(patientId, patientName) {
   currentY = 36;
 
   // --- DADOS CADASTRAIS DO PACIENTE ---
+  const hasLegacyData = !!(patient.crossPatientId || patient.physicalChartNumber || patient.birthCity);
+  const boxHeight = hasLegacyData ? 37 : 32;
   doc.setFillColor(...lightGray);
-  doc.roundedRect(12, currentY, 186, 32, 2, 2, 'F');
+  doc.roundedRect(12, currentY, 186, boxHeight, 2, 2, 'F');
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(12, currentY, 186, 32, 2, 2, 'S');
+  doc.roundedRect(12, currentY, 186, boxHeight, 2, 2, 'S');
 
   doc.setTextColor(...darkColor);
   doc.setFontSize(11);
@@ -7133,10 +7138,21 @@ window.generatePatientPDF = async function(patientId, patientName) {
   doc.text(`Telefone: ${patient.phone || 'Não Informado'}`, 75, currentY + 21);
   doc.text(`Registro Geral (ID): #${(patient.id || patientId || '').toString().slice(0, 8).toUpperCase()}`, 140, currentY + 21);
 
-  doc.text(`Mãe: ${patient.motherName || 'Maria de Souza'}`, 16, currentY + 28);
+  doc.text(`Mãe: ${patient.motherName || 'Não Informado'}`, 16, currentY + 28);
   doc.text(`Convênio: ${patient.healthPlan || 'SUS - Sistema Único de Saúde'}`, 100, currentY + 28);
 
-  currentY += 40;
+  if (hasLegacyData) {
+    const extraParts = [];
+    if (patient.crossPatientId) extraParts.push(`CROSS Regulação: ${patient.crossPatientId}`);
+    if (patient.physicalChartNumber) extraParts.push(`Pasta Arquivo: ${patient.physicalChartNumber}`);
+    if (patient.birthCity) extraParts.push(`Naturalidade: ${patient.birthCity}`);
+    doc.setTextColor(30, 41, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.text(extraParts.join('   |   '), 16, currentY + 34);
+    currentY += 45;
+  } else {
+    currentY += 40;
+  }
 
   // --- CICLO ASSISTENCIAL: TRAJETÓRIA & CONSULTAS MÉDICAS ---
   doc.setFillColor(...primaryColor);
