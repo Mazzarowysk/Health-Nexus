@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.20)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.10)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.20 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
+<p><strong>Health Nexus v2.9.10 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos e fechamento de contas TISS/TUSS.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -486,9 +486,6 @@ flowchart TD
 <li><a href="#sec-3">Prontuário Eletrônico Médico (PEP SOAPE)</a></li>
 </ol>
 <ul>
-<li>3.0. <a href="#sec-3-0">Fluxo Direto de Atendimento: Preenchimento Imediato do PEP (SOAP) &amp; Histórico Unificado</a></li>
-<li>3.0.1. <a href="#sec-3-0-1">Alerta Pulsante de Observação &gt; 12h &amp; Governança Clínica (CFM nº 2.079/14)</a></li>
-<li>3.0.2. <a href="#sec-3-0-2">Homologação da Alta Médica / Hospitalar no PEP, Desocupação de Leito e Abertura Automática do Prontuário Pós-Alta (v2.9.20)</a></li>
 <li>3.1. <a href="#sec-3-1">Estrutura SOAPE</a></li>
 <li>3.2. <a href="#sec-3-2">Motor CDSS &amp; Alertas de Interações Medicamentosas</a></li>
 <li>3.3. <a href="#sec-3-3">Autocomplete CID-10</a></li>
@@ -508,8 +505,6 @@ flowchart TD
 <li>4.7. <a href="#sec-4-7">Modal de Aprovação de Acesso de Usuários</a></li>
 <li>4.8. <a href="#sec-4-8">Modal de Gestão de Usuários &amp; Troca de Perfil</a></li>
 <li>4.9. <a href="#sec-4-9">Modal de Alerta de Atendimento Pendente em Andamento (Prevenção de Duplicidades)</a></li>
-<li>4.10. <a href="#sec-4-10">Modal de Alerta de PEP Pendente de Finalização / Em Andamento</a></li>
-<li>4.11. <a href="#sec-4-11">Modal de Transferência &amp; Mudança de Setor Hospitalar</a></li>
 </ul>
 </li>
 <li><ol start="5">
@@ -573,7 +568,7 @@ flowchart TD
 </ol>
 </li>
 <li><ol start="20">
-<li><a href="#sec-20">Smart Flow Guide — Acoplamento Multidirecional em 4 Lados da Tela, Cockpit Horizontal &amp; Painel Lateral (v2.9.18)</a></li>
+<li><a href="#sec-20">Smart Flow Guide — Adaptação por Aba, Controle de Foco &amp; Desmarcação (v2.9.9) &amp; Painel Lateral Acoplado</a></li>
 </ol>
 </li>
 </ul>
@@ -1000,26 +995,28 @@ flowchart TD
 </tbody></table>
 <hr>
 <h2 id="sec-3">3. Prontuário Eletrônico Médico (PEP SOAPE)</h2><p><img src="docs/screenshots/11-prontuario-pep.png" alt="Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição"></p>
-<h3 id="sec-3-0">3.0. Fluxo Direto de Atendimento: Preenchimento Imediato do PEP (SOAP) & Histórico Unificado</h3><p>Ao clicar no botão <strong>&quot;Atender (PEP)&quot;</strong> nos Consultórios, na Central de Atendimentos ou no Guia de Fluxo, o sistema abre diretamente a tela de conduta clínica centrada na agilidade médica:</p>
+<h3 id="sec-3-0">3.0. Nova Experiência de Abertura: Listagem de PEPs Existentes & Inclusão Intuitiva</h3><p>Ao clicar no botão <strong>&quot;Abrir PEP&quot;</strong> em qualquer módulo assistencial (Observação do Pronto-Socorro, Consultórios de Atendimento, Central de Leitos ou Relatórios Clínicos), o sistema adota um fluxo direto centrado na segurança e no histórico prévio do paciente:</p>
 <ol>
-<li><p><strong>Abertura Imediata no Formulário Clínico (<code>🩺 Formulário do PEP (SOAP)</code>):</strong></p>
+<li><p><strong>Abertura Padrão na Listagem (<code>📋 Listagem de PEPs Existentes</code>):</strong></p>
 <ul>
-<li>O médico visualiza de pronto todos os campos estruturados prontos para digitação e conduta:<ul>
-<li><strong>Subjetivo (Anamnese &amp; Queixa):</strong> pré-preenchido com a queixa da Triagem Manchester e suporte a ditado por voz.</li>
-<li><strong>Objetivo (Exame Físico &amp; Achados):</strong> integrado aos sinais vitais aferidos (PA, Temp, FC, SpO2) e escore MEWS.</li>
-<li><strong>Avaliação (Diagnóstico / CID-10):</strong> busca inteligente com autocomplete rápido por código ou descrição clínica.</li>
-<li><strong>Plano Terapêutico &amp; Prescrição:</strong> verificação automática de interações medicamentosas graves e inserção de exames em 1 clique.</li>
-<li><strong>Resumo Clínico Preditivo por IA (Copilot 2.0):</strong> síntese assistencial em 3 linhas com atalho direto ao PACS DICOM.</li>
-<li><strong>Desfecho:</strong> alta ambulatorial, observação PS ou solicitação de internação hospitalar.</li>
+<li>O profissional visualiza de imediato a ordem cronológica decrescente de todas as evoluções clínicas registradas para aquele paciente em todas as passagens e setores hospitalares (Triagem, Consultório, Observação PS, UTI e Leitos).</li>
+<li>Cada card do histórico apresenta:<ul>
+<li>Setor ou ala de atendimento (com ícone visual dedicado).</li>
+<li>Data e hora exatas da evolução.</li>
+<li>Status assistencial (<code>✓ Assinado / Finalizado</code> ou <code>⏳ Rascunho / Em Andamento</code>).</li>
+<li>Nome do médico assistente e CRM.</li>
+<li>Hipótese diagnóstica / CID-10 e prévia dos blocos Subjetivo e Conduta.</li>
+<li>Botão <strong><code>👁️ Visualizar PEP Completo</code></strong>: abre o modo leitura estruturado com carimbo CFM e botão de retorno <code>← Voltar para Lista de PEPs</code>.</li>
+<li>Botão <strong><code>✏️ Continuar / Editar</code></strong>: permite retomar prontuários em aberto ou rascunhos.</li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><strong>Acesso Fácil e Limpo ao Histórico (<code>📋 Histórico de PEPs Existentes</code>):</strong></p>
+<li><p><strong>Inclusão Direta e Acessível (<code>➕ Incluir Novo PEP</code>):</strong></p>
 <ul>
-<li>Caso deseje consultar passagens anteriores ou evoluções de outros plantões, basta alternar para a segunda aba ou clicar em <strong><code>← Voltar para Lista de PEPs</code></strong>.</li>
-<li>As evoluções prévias são apresentadas em <strong>ordem cronológica decrescente rigorosa (mais recente sempre no topo)</strong>.</li>
-<li>A interface foi despoluída, eliminando botões redundantes e mantendo uma única ação intuitiva de nova evolução (<code>➕ Incluir Novo PEP</code>) caso o profissional opte por abrir nova folha a partir do histórico.</li>
+<li>Um botão em destaque no cabeçalho superior e no topo da lista permite abrir imediatamente uma folha limpa de evolução clínica (SOAP).</li>
+<li>No formulário de preenchimento, o cabeçalho exibe o botão <strong><code>← Voltar para Lista de PEPs</code></strong>, permitindo consultar dados anteriores sem perder o contexto do atendimento.</li>
+<li>Caso o paciente ainda não possua nenhum prontuário anterior (zero registros), o sistema apresenta uma tela inicial amigável com o botão <strong><code>➕ Incluir Primeiro PEP Agora</code></strong>.</li>
 </ul>
 </li>
 </ol>
@@ -1043,36 +1040,6 @@ flowchart TD
 <ul>
 <li>Ao lado do prontuário, o painel inteligente calcula em tempo real os <strong>parâmetros clínicos aferidos</strong> do paciente (PA, FC, Temp, SpO₂, MEWS e Classificação Manchester).</li>
 <li>Apresenta as instruções para a tomada de decisão médica, disponibilizando como ação primária o botão <strong><code>🛏️ Internar em Leito Hospitalar (Agravo) ➔</code></strong> e atalhos rápidos para <strong><code>🚪 Conceder Alta da Observação (Melhora)</code></strong> e <strong><code>💾 Salvar Evolução / Prescrição</code></strong>.</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="sec-3-0-2">3.0.2. Homologação da Alta Médica / Hospitalar no PEP, Desocupação de Leito e Abertura Automática do Prontuário Pós-Alta (v2.9.20)</h3><p>Ao selecionar o desfecho <strong>&quot;Alta Médica (Encerrar Consulta)&quot;</strong> ou <strong>&quot;Alta Hospitalar&quot;</strong> no Prontuário Eletrônico (PEP) e clicar em <strong>&quot;Assinar &amp; Encaminhar&quot;</strong>, o sistema executa a governança assistencial de desfecho em cadeia:</p>
-<ol>
-<li><p><strong>Desocupação Automática de Leito Hospitalar:</strong></p>
-<ul>
-<li>Caso o paciente esteja ocupando leito (UTI, Semi-UTI ou Enfermaria), o sistema move o leito imediatamente para o status <code>Higienizacao</code>, liberando o leito no Censo e no Kanban para a equipe de enfermagem e hotelaria.</li>
-<li>O registro de internação (<code>hospitalizations</code>) é encerrado com status <code>Alta</code> e registro exato do momento do desfecho (<code>discharge_date</code> e <code>discharged_at</code>).</li>
-</ul>
-</li>
-<li><p><strong>Finalização de Atendimentos &amp; Preservação Segura da Conduta:</strong></p>
-<ul>
-<li>Todos os atendimentos clínicos pendentes (<code>encounters</code>) e triagens em aberto são marcados como <code>Finalizado</code>.</li>
-<li>Eventuais chamadas no Painel TV são encerradas de imediato.</li>
-<li>A anotação médica de alta com hipóteses diagnósticas e prescrições é registrada com segurança no histórico do paciente (<code>clinical_notes</code>).</li>
-<li>O cadastro do paciente é atualizado com <code>status: &#39;Alta&#39;</code> e registro indelével da data/hora da concessão (<code>lastDischargeDate</code>).</li>
-</ul>
-</li>
-<li><p><strong>Transição Automática para a Aba Pacientes e Abertura do Prontuário Pós-Alta:</strong></p>
-<ul>
-<li>O modal do PEP fecha de forma suave e a interface navega de modo automático para a aba <strong>Pacientes</strong> (<code>switchTab(&#39;pacientes&#39;)</code>).</li>
-<li>A listagem de pacientes é recarregada e o campo de pesquisa é filtrado pelo nome do paciente recém-liberado.</li>
-<li>O <strong>Prontuário Pós-Alta / Histórico Consolidado</strong> (<code>openPatientHistoryModal</code>) abre de maneira automática, destacando o banner de confirmação clínica:<ul>
-<li>🗓️ <strong>Data da Última Alta Concedida:</strong> Exibição clara e acolhedora da data e horário exatos (<code>DD/MM/AAAA às HH:MM</code>).</li>
-<li>🛌 <strong>Leito Desocupado:</strong> Confirmação da liberação e encaminhamento do leito à higienização.</li>
-<li>🩺 <strong>Ciclo Clínico Finalizado:</strong> Garantia visual de encerramento seguro do episódio assistencial para a equipe médica e de recepção.</li>
-</ul>
-</li>
 </ul>
 </li>
 </ol>
@@ -1290,6 +1257,39 @@ flowchart TD
 </tr>
 </tbody></table>
 <hr>
+<h3 id="sec-3-5">3.5. Solicitação Estruturada de Exames & Previsão Clínica por IA (CPOE)</h3><p><img src="docs/screenshots/16-solicitacao-exames.png" alt="Figura 3.2: Setor de Solicitação de Exames no PEP — Catálogo Multicomplexidade, Sugestões Preditivas e Prevenção de Duplicidade"></p>
+<p>O Health Nexus disponibiliza no Prontuário Eletrônico (PEP) um módulo de <strong>Computerized Physician Order Entry (CPOE)</strong> dedicado à solicitação de exames diagnósticos, integrando o catálogo do nível básico ambulatorial à alta complexidade e medicina personalizada:</p>
+<ol>
+<li><p><strong>Catálogo Multicomplexidade em 4 Eixos Assistenciais:</strong></p>
+<ul>
+<li><strong>🔬 Laboratório de Análises Clínicas:</strong> Hemograma completo, glicemia de jejum, hemoglobina glicada (HbA1c), perfil lipídico, creatinina sérica com estimativa de TFG, ureia, eletrólitos (Na/K/Mg), coagulograma (TAP/INR e TTPA), enzimas cardíacas (Troponina ultrassensível, CK-MB, NT-proBNP), marcadores de sepse (Lactato sérico arterial, hemoculturas em 2 pares), EAS e urocultura com antibiograma.</li>
+<li><strong>🩻 Imagem Convencional &amp; Seccional:</strong> Radiografias de tórax e abdome agudo, ultrassonografia de abdome e vias urinárias, Doppler vascular venoso de membros inferiores e carótidas, mamografia bilateral digital, tomografia computadorizada (crânio sem contraste, tórax, abdome e pelve com contraste, angiotomografia para protocolo TEP ou coronárias) e ressonância magnética (crânio, coluna, colangiorressonância).</li>
+<li><strong>📈 Métodos Gráficos &amp; Funcionais:</strong> Eletrocardiograma de 12 derivações (ECG), ecocardiograma transtorácico, Holter 24h, MAPA 24h, teste ergométrico, espirometria computadorizada e eletroencefalograma (EEG).</li>
+<li><strong>🧬 Alta Complexidade &amp; Medicina de Precisão:</strong> PET-CT oncológico com FDG, cintilografia miocárdica de esforço e repouso, painéis genéticos por NGS (Next-Generation Sequencing), biópsia líquida para DNA tumoral circulante, painéis moleculares RT-PCR multiplex e testes farmacogenéticos (CYP2C19/CYP2D6 para predição de resposta terapêutica individual).</li>
+</ul>
+</li>
+<li><p><strong>Motor de Sugestões Preditivas Baseado no Histórico do Paciente:</strong></p>
+<ul>
+<li><strong>Condições Crônicas Preexistentes:</strong> Analisa automaticamente o histórico clínico e diagnósticos prévios. Pacientes diabéticos recebem sugestão de HbA1c, microalbuminúria e creatinina; pacientes hipertensos recebem perfil lipídico, ECG e eletrólitos; pacientes cardiopatas recebem NT-proBNP e ecocardiograma.</li>
+<li><strong>Monitorização Farmacológica Ativa:</strong> Detecta medicações de uso contínuo (anticoagulantes como Varfarina demandam controle de TAP/INR; antiarrítmicos como Amiodarona demandam TSH e função hepática; estabilizadores como Lítio demandam litemia periódica; estatinas demandam enzimas hepáticas).</li>
+<li><strong>Protocolos de Emergência Aguda:</strong> Cruza com a queixa atual e sinais vitais informados na triagem Manchester ou na anamnese (dor torácica sugere protocolo IAM com ECG, Troponina seriada e D-Dímero; suspeita de AVC sugere TC de crânio urgente e coagulograma).</li>
+<li><strong>Rastreamento Populacional por Faixa Etária &amp; Sexo:</strong> Alinha condutas preventivas conforme diretrizes do Ministério da Saúde e OMS (mamografia bienal para mulheres de 50 a 69 anos, sangue oculto nas fezes dos 50 aos 75 anos, densitometria óssea aos 65 anos).</li>
+</ul>
+</li>
+<li><p><strong>Trava Inteligente de Não-Duplicidade &amp; Segurança de Contraste:</strong></p>
+<ul>
+<li><strong>Prevenção de Repetição Desnecessária:</strong> Se um exame com intervalo protocolar longo (ex: HbA1c a cada 90 dias, ultrassom de rotina) já foi solicitado recentemente, o sistema emite alerta visual com os dias decorridos, evitando coletas invasivas desnecessárias e desperdício de insumos.</li>
+<li><strong>Alerta de Contraste Iodado:</strong> Em exames tomográficos contrastados, alerta para histórico de alergia ao iodo ou disfunção renal prévia, recomendando conferência da creatinina recente antes da infusão.</li>
+</ul>
+</li>
+<li><p><strong>Emissão de Requisição &amp; Encaminhamento:</strong></p>
+<ul>
+<li>Botão <strong><code>🖨️ Salvar e Imprimir Requisição</code></strong>: Gera a folha oficial de solicitação de exames contendo dados do paciente, leito ou consultório, indicação clínica estruturada, prioridade (Rotina / Urgente / Emergência), preparos específicos e assinatura com CRM do médico solicitante.</li>
+<li>Integração direta com a assinatura do PEP e armazenamento no banco de dados <code>exam_requests</code>.</li>
+</ul>
+</li>
+</ol>
+<hr>
 <h2 id="sec-4">4. Guia Completo de Todos os Modais do Sistema</h2><h3 id="sec-4-1">4.1. Modal de Triagem Manchester</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Clique no botão <code>Realizar Triagem</code> na coluna 1 do Kanban de Atendimentos.</li>
 <li><strong>Campos de Entrada do Formulário:</strong></li>
@@ -1413,38 +1413,38 @@ flowchart TD
 </thead>
 <tbody><tr>
 <td align="left"><strong>Fármaco / Medicamento</strong></td>
-<td align="left"><code>#rx-med-name</code> / <code>#prescription-drug-search</code></td>
-<td align="left">Autocomplete Inteligente</td>
-<td align="left">Busca no catálogo hospitalar integrado e em tempo real nas bases ANVISA e OpenFDA. Ao digitar a partir de 2 letras, exibe crachás explicativos (<code>🏥 Hospitalar</code>, <code>⚡ ANVISA</code>, <code>⚡ OpenFDA</code>) com preenchimento automático da dose e via sugeridas. Caso não pertença a nenhuma tabela, permite prescrição livre como medicamento especial.</td>
-<td align="left"><code>Ringer Lactato</code>, <code>Noradrenalina</code>, <code>Amoxicilina 500mg</code></td>
+<td align="left"><code>#prescription-drug-search</code></td>
+<td align="left">Autocomplete</td>
+<td align="left">Busca por nome comercial ou princípio ativo</td>
+<td align="left"><code>Amoxicilina + Clavulanato 875mg</code></td>
 </tr>
 <tr>
 <td align="left"><strong>Dose Unitária</strong></td>
-<td align="left"><code>#rx-med-dose</code> / <code>#prescription-dosage</code></td>
+<td align="left"><code>#prescription-dosage</code></td>
 <td align="left">Texto curto</td>
 <td align="left">Valor e unidade de medida</td>
-<td align="left"><code>500mL</code>, <code>16mg/4mL (1 amp)</code>, <code>1 comprimido</code></td>
+<td align="left"><code>1 comprimido</code> ou <code>500 mg</code></td>
 </tr>
 <tr>
 <td align="left"><strong>Via de Administração</strong></td>
-<td align="left"><code>#rx-med-route</code> / <code>#prescription-route</code></td>
+<td align="left"><code>#prescription-route</code></td>
 <td align="left">Seletor</td>
 <td align="left">VO, EV, IM, SC, SL, Inalatória, Tópica</td>
-<td align="left"><code>Endovenosa (EV)</code> ou <code>Via Oral (VO)</code></td>
+<td align="left"><code>Via Oral (VO)</code></td>
 </tr>
 <tr>
 <td align="left"><strong>Posologia / Frequência</strong></td>
-<td align="left"><code>#rx-med-freq</code> / <code>#prescription-freq</code></td>
+<td align="left"><code>#prescription-freq</code></td>
 <td align="left">Seletor / Texto</td>
-<td align="left">Dose Única, De 8 em 8h, De 6 em 6h, Contínua (BIC), Se necessário</td>
-<td align="left"><code>Dose Única em bólus</code> ou <code>De 8 em 8 horas</code></td>
+<td align="left">8/8h, 12/12h, 1x ao dia, Se necessário</td>
+<td align="left"><code>De 8 em 8 horas por 7 dias</code></td>
 </tr>
 <tr>
 <td align="left"><strong>Orientações Especiais</strong></td>
-<td align="left"><code>#rx-med-notes</code> / <code>#prescription-notes</code></td>
+<td align="left"><code>#prescription-notes</code></td>
 <td align="left">Área de texto</td>
-<td align="left">Instruções para a equipe de enfermagem e paciente</td>
-<td align="left"><code>Infusão rápida em 30 a 60 minutos.</code></td>
+<td align="left">Instruções para o paciente e enfermagem</td>
+<td align="left"><code>Tomar após as principais refeições com água.</code></td>
 </tr>
 </tbody></table>
 <ul>
@@ -1468,18 +1468,18 @@ flowchart TD
 <td align="left">Valida interação CDSS e inclui linha na receita.</td>
 </tr>
 <tr>
-<td align="left"><strong>Salvar Prescrição Médica</strong></td>
-<td align="left"><code>#btn-save-rx</code></td>
-<td align="left">Envia prescrição à Farmácia e libera checagem</td>
+<td align="left"><strong>Salvar &amp; Dispensar</strong></td>
+<td align="left"><code>#btn-save-dispense</code></td>
+<td align="left">Envia pedido direto à farmácia</td>
 <td align="left">Ao menos 1 medicamento na lista</td>
-<td align="left">Registra prescrição com ID único e encaminha à farmácia.</td>
+<td align="left">Envia ordem de separação com baixa no estoque.</td>
 </tr>
 <tr>
-<td align="left"><strong>Imprimir PDF</strong></td>
-<td align="left"><code>.btn-pdf-rx</code></td>
-<td align="left">Gera e baixa instantaneamente o PDF oficial</td>
-<td align="left">Prescrição ativa selecionada</td>
-<td align="left">Download imediato do documento com dados do paciente, médico, medicamentos e checagens.</td>
+<td align="left"><strong>Imprimir Receita (PDF)</strong></td>
+<td align="left"><code>#btn-print-rx-pdf</code></td>
+<td align="left">Gera PDF oficial padrão CFM com QR Code</td>
+<td align="left">Prescrição salva no sistema</td>
+<td align="left">Download de documento com carimbo digital SHA-256.</td>
 </tr>
 <tr>
 <td align="left"><strong>Fechar</strong></td>
@@ -2037,179 +2037,6 @@ flowchart TD
 <td align="left">Aborta a criação do atendimento</td>
 <td align="left">Nenhuma validação</td>
 <td align="left">Fecha o modal preservando os dados cadastrais e o atendimento atual sem alterações.</td>
-</tr>
-</tbody></table>
-<hr>
-<h3 id="sec-4-10">4.10. Modal de Alerta de PEP Pendente de Finalização / Em Andamento</h3><ul>
-<li><strong>Gatilho de Abertura:</strong> Disparado ao clicar no botão &quot;➕ Incluir Novo PEP&quot; (seja no cabeçalho do prontuário, no topo da listagem de PEPs ou no modo de leitura) caso o paciente já possua uma evolução médica em status de rascunho ou pendente de finalização/assinatura.</li>
-<li><strong>Finalidade Assistencial:</strong> Evitar fragmentação de condutas clínicas, proteger a cronologia das anotações médicas e alertar o profissional de saúde sobre evoluções pendentes antes de gerar folhas em duplicidade.</li>
-<li><strong>Informações Apresentadas no Modal:</strong></li>
-</ul>
-<table>
-<thead>
-<tr>
-<th align="left">Informação Exibida</th>
-<th align="left">Origem dos Dados</th>
-<th align="left">Descrição / Significado Clínico</th>
-<th align="left">Exemplo Visual</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>Identificação do Paciente</strong></td>
-<td align="left">Registro do Encontro</td>
-<td align="left">Nome completo do paciente em atendimento</td>
-<td align="left"><code>Marcelo Mazaro</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Local / Setor Clínico</strong></td>
-<td align="left">Encontro Ativo</td>
-<td align="left">Setor onde a evolução foi iniciada</td>
-<td align="left"><code>Consultório 01 / Observação</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Profissional Responsável</strong></td>
-<td align="left">Sessão do Médico</td>
-<td align="left">Nome do médico que abriu o rascunho anterior</td>
-<td align="left"><code>Dr. Roberto Farias (CRM 12345/SP)</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Última Atualização</strong></td>
-<td align="left">Timestamp do PEP</td>
-<td align="left">Data e hora do último salvamento do rascunho</td>
-<td align="left"><code>29/09/2026 às 21:10</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Hipótese / CID-10</strong></td>
-<td align="left">Campo Assessment</td>
-<td align="left">Prévia do diagnóstico anotado no rascunho</td>
-<td align="left"><code>J18.9 — Pneumonia não especificada</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Queixa / Subjetivo</strong></td>
-<td align="left">Campo Subjective</td>
-<td align="left">Prévia do relato anamnésico registrado</td>
-<td align="left"><code>Paciente refere tosse produtiva e febre...</code></td>
-</tr>
-</tbody></table>
-<ul>
-<li><strong>Botões e Ações de Decisão Clínica:</strong></li>
-</ul>
-<table>
-<thead>
-<tr>
-<th align="left">Botão</th>
-<th align="left">Identificador HTML</th>
-<th align="left">Ação Disparada</th>
-<th align="left">Validação Prévia</th>
-<th align="left">Efeito no Sistema</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>Continuar Editando PEP Existente</strong></td>
-<td align="left"><code>#btn-pep-pending-continue</code></td>
-<td align="left">Carrega o rascunho aberto na aba SOAP</td>
-<td align="left">Encontro pendente identificado</td>
-<td align="left">Comuta para o formulário SOAP carregando o texto previamente digitado para complementação e assinatura digital.</td>
-</tr>
-<tr>
-<td align="left"><strong>Abrir Nova Folha Mesmo Assim</strong></td>
-<td align="left"><code>#btn-pep-pending-new</code></td>
-<td align="left">Inicia uma nova folha de evolução limpa</td>
-<td align="left">Confirmação explícita do médico</td>
-<td align="left">Gera novo ID de evolução (<code>ENC-EVO-...</code>) preservando o histórico anterior intacto na listagem.</td>
-</tr>
-<tr>
-<td align="left"><strong>Cancelar</strong></td>
-<td align="left"><code>#btn-pep-pending-cancel</code></td>
-<td align="left">Fecha o alerta de segurança</td>
-<td align="left">Nenhuma validação</td>
-<td align="left">Retorna à tela anterior (listagem de PEPs) sem modificar o prontuário.</td>
-</tr>
-</tbody></table>
-<hr>
-<h3 id="sec-4-11">4.11. Modal de Transferência & Mudança de Setor Hospitalar</h3><ul>
-<li><p><strong>Gatilho de Abertura:</strong> Disparado ao clicar no botão <strong><code>Mover Setor</code></strong> na seção de internação ativa do Prontuário &amp; Histórico Clínico do Paciente ou pelo ícone de transferência nos cards do <strong>Kanban de Internação</strong>.</p>
-</li>
-<li><p><strong>Finalidade Assistencial e Operacional:</strong> Representa a movimentação física e administrativa do paciente internado entre diferentes unidades assistenciais da instituição (transferência interna / regulação intra-hospitalar). Esse procedimento é adotado clinicamente em situações como:</p>
-<ol>
-<li><strong>Agravo Clínico (Step-Up):</strong> Paciente em enfermaria ou observação que evolui com instabilidade hemodinâmica, choque ou insuficiência respiratória e necessita de leito em <strong>UTI / CTI Intensivo</strong>.</li>
-<li><strong>Melhora Clínica (Step-Down):</strong> Paciente que superou a fase crítica na UTI e é transferido para a <strong>Clínica Médica / Enfermaria</strong> para convalescença e desmame ventilatório/medicamentoso.</li>
-<li><strong>Indicação Cirúrgica:</strong> Paciente encaminhado para a <strong>Clínica Cirúrgica</strong> para preparo pré-operatório ou recuperação pós-anestésica.</li>
-<li><strong>Acomodação Transitória:</strong> Paciente aguardando liberação de leito definitivo alocado temporariamente em <strong>Corredor de Internação / Maca Transitória</strong>.</li>
-</ol>
-</li>
-<li><p><strong>Impacto e Sincronização em Cascata no Sistema:</strong></p>
-<ul>
-<li><strong>Kanban de Internação:</strong> O card do paciente transiciona automaticamente para a coluna da nova ala, reiniciando o cronômetro de permanência do setor (SLA) para auditoria de tempos hospitalares.</li>
-<li><strong>Censo de Leitos:</strong> O leito ocupado pelo paciente é atualizado com o novo setor assistencial.</li>
-<li><strong>Smart Flow Guide (Governança):</strong> O cockpit e o painel de governança atualizam instantaneamente a etiqueta de <code>Local</code> do paciente.</li>
-<li><strong>Faturamento Hospitalar TISS:</strong> A diária hospitalar e os procedimentos passam a ser contabilizados com base na tabela de diárias do novo setor (ex: diária de UTI vs enfermaria).</li>
-</ul>
-</li>
-<li><p><strong>Informações e Campos do Modal:</strong></p>
-</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th align="left">Campo / Elemento</th>
-<th align="left">Identificador HTML</th>
-<th align="left">Tipo / Origem</th>
-<th align="left">Função Operacional</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>Identificação do Paciente</strong></td>
-<td align="left"><code>#history-move-modal-content</code></td>
-<td align="left">Cabeçalho / Badge</td>
-<td align="left">Nome completo e avatar do paciente em transferência.</td>
-</tr>
-<tr>
-<td align="left"><strong>Setor Atual</strong></td>
-<td align="left"><code>#history-move-modal-content</code></td>
-<td align="left">Registro da Hospitalização</td>
-<td align="left">Ala onde o paciente se encontra no momento da abertura do modal.</td>
-</tr>
-<tr>
-<td align="left"><strong>Novo Setor de Destino</strong></td>
-<td align="left"><code>#history-new-sector-select</code></td>
-<td align="left">Seletor (<code>&lt;select&gt;</code>)</td>
-<td align="left">Lista as alas ativas: <em>Pronto-Socorro / Observação</em>, <em>Corredor de Internação</em>, <em>Clínica Cirúrgica</em>, <em>Clínica Médica / Enfermaria</em>, <em>UTI / CTI Intensivo</em>.</td>
-</tr>
-</tbody></table>
-<ul>
-<li><strong>Botões e Ações:</strong></li>
-</ul>
-<table>
-<thead>
-<tr>
-<th align="left">Botão</th>
-<th align="left">Identificador HTML</th>
-<th align="left">Ação Disparada</th>
-<th align="left">Validação Prévia</th>
-<th align="left">Efeito no Sistema</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>Confirmar Transferência</strong></td>
-<td align="left"><code>#history-move-confirm</code></td>
-<td align="left">Executa a mudança de ala</td>
-<td align="left">Permissão <code>canManageBeds</code> do usuário</td>
-<td align="left">Atualiza hospitalizações, leitos, encontros e o Guia de Governança, emite toast de sucesso, fecha os modais e <strong>redireciona imediatamente para o Kanban de Internação</strong> filtrando a coluna da nova ala e centralizando o card do paciente com realce visual (<em>spotlight</em>).</td>
-</tr>
-<tr>
-<td align="left"><strong>Cancelar</strong></td>
-<td align="left"><code>#history-move-cancel</code></td>
-<td align="left">Aborta a transferência</td>
-<td align="left">Nenhuma validação</td>
-<td align="left">Fecha o modal sem alterar o setor do paciente.</td>
-</tr>
-<tr>
-<td align="left"><strong>Fechar (X)</strong></td>
-<td align="left"><code>#history-move-close-btn</code></td>
-<td align="left">Encerra o modal</td>
-<td align="left">Nenhuma validação</td>
-<td align="left">Fecha o modal preservando os dados intactos.</td>
 </tr>
 </tbody></table>
 <hr>
@@ -2843,16 +2670,8 @@ flowchart TD
 </tr>
 </tbody></table>
 <hr>
-<h2 id="sec-10">10. Farmácia & Dispensação de Medicamentos</h2><p>Na aba <strong>Farmácia</strong>, faz-se a gestão de estoque, lotes, validade e rastreabilidade de medicamentos críticos, além da triagem e validação técnica de prescrições no circuito fechado.</p>
+<h2 id="sec-10">10. Farmácia & Dispensação de Medicamentos</h2><p>Na aba <strong>Farmácia</strong>, faz-se a gestão de estoque, lotes, validade e rastreabilidade de medicamentos críticos.</p>
 <p><img src="docs/screenshots/07-farmacia.png" alt="Figura 10.1: Farmácia Hospitalar — Estoque, Lotes e Rastreabilidade de Medicamentos"></p>
-<h3>📋 Fila de Triagem &amp; Circuito Fechado de Prescrições</h3>
-<p>Na sub-aba <strong>Fila de Prescrições Hospitalares</strong>, a equipe farmacêutica, médica e de enfermagem conta com ferramentas de checagem em tempo real:</p>
-<ul>
-<li><strong>Botão <code>📄 Ver Prescrição</code>:</strong> Presente em cada linha da tabela, abre instantaneamente o modal completo de <strong>Receituário &amp; Prescrição Médica</strong> do paciente, exibindo a planilha com todos os fármacos, doses, vias, frequências, instruções de infusão e registro de checagens da enfermagem.</li>
-<li><strong>Botão <code>✅ Validar &amp; Liberar</code>:</strong> Realiza a homologação farmacêutica no circuito fechado, gravando o CRF do responsável técnico e liberando a administração nos leitos.</li>
-<li><strong>Botão <code>🖨️ Etiqueta / Guia</code>:</strong> Emite a etiqueta de dispensação para o leito e aciona o download automático do PDF oficial da prescrição médica.</li>
-<li><strong>Integração com o Card de Fluxo (Smart Flow Guide):</strong> Ao clicar em <code>📋 Ver Prescrições de [Paciente] ➔</code> no painel lateral ou card flutuante, o sistema transiciona diretamente para a Farmácia, aplica o filtro pelo nome do paciente e abre a prescrição de forma imediata.</li>
-</ul>
 <h3>💊 Tabela de Catálogo de Medicamentos de Alto Giro e Emergência</h3>
 <table>
 <thead>
@@ -2976,21 +2795,8 @@ flowchart TD
 </tr>
 </tbody></table>
 <hr>
-<h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2><p>Na aba <strong>Faturamento TISS</strong>, gerenciam-se as guias de convênio, auditoria de procedimentos e arquivos XML ANS no padrão TISS versão 4.01.00.</p>
+<h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2><p>Na aba <strong>Faturamento TISS</strong>, gerenciam-se as guias de convênio, auditoria de procedimentos e arquivos XML ANS.</p>
 <p><img src="docs/screenshots/08-faturamento-tiss.png" alt="Figura 11.1: Faturamento TISS — Auditoria Preventiva e Procedimentos TUSS"></p>
-<h3>⚡ Emissão de Guia TISS pelo Card de Fluxo (Smart Flow Guide)</h3>
-<p>A partir da versão v2.9.18, a emissão de guias TISS é acionada diretamente pelo <strong>Smart Flow Guide (Etapa 7: Faturamento)</strong>:</p>
-<ol>
-<li><strong>Redirecionamento Automático:</strong> Ao clicar em <code>💰 Emitir Guia TISS de [Paciente] ➔</code>, o sistema transiciona de forma instantânea para a aba <code>Faturamento TISS</code> (<code>tiss</code>), garantindo que o faturista ou médico não fique retido em relatórios financeiros.</li>
-<li><strong>Modal de Emissão &amp; Fechamento:</strong> Abre-se a tela de emissão pré-preenchida com os dados cadastrais do paciente, número da carteirinha ou CNS, convênio contratado e a data/hora da alta homologada.</li>
-<li><strong>Apuração TUSS Automática:</strong> O sistema levanta automaticamente os procedimentos realizados durante a passagem hospitalar:<ul>
-<li><code>10101012</code>: Consulta Médica Pronto-Socorro / Acolhimento Manchester (R$ 180,00).</li>
-<li><code>20101015</code>: Avaliação Médica de Urgência &amp; Conduta Terapêutica (R$ 150,00).</li>
-<li><code>60011501</code>: Diária Hospitalar &amp; Assistência Multidisciplinar (R$ 450,00, caso tenha havido internação em leito).</li>
-</ul>
-</li>
-<li><strong>Vinculação e XML TISS ANS:</strong> A equipe pode vincular a guia a um lote aberto ou gerar um novo lote para a operadora, além de poder baixar o arquivo XML individual (<code>GUIA_TISS_[Paciente]_v401.xml</code>) ou o lote completo em conformidade com as regras da ANS.</li>
-</ol>
 <h3>💰 Tabela de Guias e Lotes de Faturamento TISS</h3>
 <table>
 <thead>
@@ -3735,164 +3541,11 @@ flowchart TD
 <h3>💡 Dicas de Produtividade no Plantão</h3>
 <ul>
 <li><strong>Em telas largas (Full HD ou superiores):</strong> Mantenha o painel acoplado à direita durante todo o plantão para monitorar a fila de pacientes sem sair do prontuário ou da triagem.</li>
-</ul>
-<h3>🔍 Expansão Suave Individual por Card no Hover (v2.9.14)</h3>
-<p>Pensado especialmente para laptops e agilidade no plantão, o Guia de Fluxo agora amplia individualmente cada card ao manter o mouse posicionado sobre ele:</p>
-<ol>
-<li><strong>Expansão Focalizada por Card:</strong><ul>
-<li>Ao manter o cursor sobre qualquer bloco interno (Módulo Atual, Paciente em Foco, Conduta Recomendada, Métricas do Radar Hospitalar ou Chips de Ação), o respectivo card executa uma transição suave com elevação (<code>translateY(-2px)</code> a <code>-3px</code>), ampliação proporcional (<code>scale(1.035)</code> a <code>scale(1.06)</code>) e borda luminosa ciano em alto contraste.</li>
-<li>O restante do painel e a tela central mantêm suas posições estáveis, garantindo conforto visual imediato sem qualquer deslocamento de layout (<em>zero layout shift</em>).</li>
-</ul>
-</li>
-<li><strong>Interface Limpa &amp; Sem Banners Intrusivos:</strong><ul>
-<li>Avisos visuais sobrepostos (como mensagens de &quot;Lupa Ativa&quot;) foram totalmente eliminados, mantendo as informações clínicas claras, desobstruídas e de leitura direta.</li>
-</ul>
-</li>
-<li><strong>Navegação Normal e Instantânea ao Clicar:</strong><ul>
-<li>O clique sobre qualquer card ou botão interno continua respondendo com agilidade, abrindo diretamente a etapa clínica selecionada (Triagem Manchester, Prontuário Eletrônico PEP, Prescrição ou Atendimentos).</li>
-</ul>
-</li>
-<li><strong>Retorno Automático:</strong><ul>
-<li>Ao afastar o cursor para fora do card, ele retorna suavemente à sua escala e contraste originais.</li>
-</ul>
-</li>
-</ol>
-<h3>📅 Padronização Brasileira de Datas de Nascimento (DD/MM/AAAA)</h3>
-<ul>
-<li>Todas as exibições de data de nascimento de pacientes no cabeçalho do prontuário médico (PEP), no modal de atendimento e nas fichas cadastrais seguem rigorosamente a máscara brasileira <code>DD/MM/AAAA</code> (ex.: <code>15/06/1985</code>), eliminando formatos invertidos (<code>AAAA-MM-DD</code>).</li>
-</ul>
-<h3>📺 Diagramação Desobstruída &amp; Eliminação de Duplicidades na Fila da TV (v2.9.19)</h3>
-<ul>
-<li><strong>Garantia de Unicidade (1 Card por Paciente):</strong> A rotina da fila de espera do Painel TV (<code>loadTVWaitingQueue</code> e modal de chamada) realiza deduplicação estrita por identificador e nome do paciente. Mesmo que o histórico possua múltiplos registros em decorrência de passagens anteriores ou alterações de status, cada paciente é computado e exibido exatamente uma vez na fila do telão.</li>
-<li><strong>Filtro Automático de Pacientes Internados e com Alta:</strong> Pacientes já acolhidos em leitos hospitalares ou UTI (<code>status: &#39;Internado&#39;</code>), alocados em leitos ativos ou que já receberam alta médica (<code>status: &#39;Alta&#39;</code>) não permanecem na sala de espera aguardando convocação de consultório ambulatorial. O sistema filtra esses status automaticamente da fila do telão.</li>
-<li><strong>Auto-Reconciliação e Fechamento no Banco de Dados:</strong> Ao internar um paciente em leito ou carregar a lista de atendimentos, qualquer atendimento ambulatorial anterior aberto (<code>Em_Atendimento</code>) do mesmo paciente é automaticamente reconciliado e marcado como finalizado com a justificativa assistencial <code>Transferido para Internação</code>.</li>
-<li><strong>Distribuição em Camadas Verticais sem Sobreposição:</strong> Os cards da fila de espera foram desenhados para eliminar qualquer sobreposição (<em>remontagem</em>) entre elementos:<ol>
-<li><strong>Linha Superior:</strong> Avatar colorido com a classificação Manchester, nome completo do paciente em destaque e posição numérica na fila (<code>#01</code>, <code>#02</code>, etc.).</li>
-<li><strong>Linha Intermediária:</strong> Badge de status clínico (<code>Ag. Triagem</code>, <code>Ag. Atendimento</code>) com indicador luminoso e etiqueta indicativa caso o paciente esteja em foco.</li>
-<li><strong>Linha Inferior:</strong> Botões de ação direta (<code>Chamar na TV</code> e <code>Consultório</code> / <code>Triagem</code>) alinhados lado a lado com largura equilibrada (<code>flex: 1</code>), proporcionando acionamento ágil e seguro sem encavalar em textos ou crachás.</li>
-</ol>
-</li>
-</ul>
-<h3>🩺 Central de Atendimentos Resiliente &amp; Tolerante a Falhas (v2.9.16)</h3>
-<ul>
-<li><strong>Eliminação de Mensagens de Falha Bloqueadoras:</strong> A Central de Atendimentos recebeu blindagem com carregamento resiliente em suas quatro colunas de fluxo (<em>Aguardando Triagem</em>, <em>Aguardando Médico</em>, <em>Em Consulta</em>, <em>Em Observação (PS)</em>):<ol>
-<li><strong>Auditoria de Escopo Global:</strong> Corrigidas as referências de governança clínica, garantindo compatibilidade estrita com todos os perfis de acesso e estados de sessão.</li>
-<li><strong>Persistência Local Integrada (Local-First):</strong> Caso a rede enfrente lentidão ou perda de pacotes, a plataforma recupera automaticamente as admissões e atendimentos a partir do banco de dados local (<code>localDB</code>), mantendo a equipe em atendimento contínuo.</li>
-<li><strong>Apresentação Acolhedora:</strong> Em caso de fila zerada, a tela apresenta mensagens claras e empáticas de fila vazia com ícone de confirmação e botão para atualização assistencial imediata.</li>
-</ol>
-</li>
-</ul>
-<h3>🔍 Varredura de Telas &amp; Fixação de Ícones de Ação (v2.9.17)</h3>
-<ul>
-<li><strong>Coluna de Ações Fixa (Sticky Right):</strong> Na listagem de Pacientes Cadastrados, Farmácia, TISS e Financeiro, a coluna de ações fica fixada permanentemente na margem direita (<code>sticky</code>). Mesmo que a tabela possua muitas colunas ou seja rolada horizontalmente, os 5 botões de ação essenciais (<em>Admitir no PS</em>, <em>Prontuário/Histórico</em>, <em>Gerar PDF</em>, <em>Editar Cadastro</em> e <em>Excluir</em>) permanecem sempre 100% visíveis, clicáveis e destacados.</li>
-<li><strong>Condensação Elegante de Colunas Secundárias:</strong> Em resoluções menores ou quando o Painel de Governança estiver acoplado à direita, dados complementares como telefone, cidade, data de nascimento e CPF passam a ser exibidos diretamente como subtexto informativo abaixo do nome do paciente. Essa abordagem economiza mais de 450px de largura útil na tela sem suprimir nenhum detalhe cadastral.</li>
-<li><strong>Kanban sem Esmagamento:</strong> As colunas do Kanban na Central de Atendimentos contam com largura mínima garantida (<code>minmax(250px, 1fr)</code>), prevenindo quebras indevidas de palavras ou corte de ícones nos botões clínicos (<em>PEP</em>, <em>Prescrição</em>, <em>Observação</em> e <em>Finalizar</em>).</li>
-</ul>
-<h3>🧭 Acoplamento Multidirecional em 4 Lados da Tela &amp; Cockpit Horizontal (v2.9.18)</h3>
-<p>O <strong>Guia de Fluxo Hospitalar (Smart Flow Guide / Painel de Governança)</strong> agora oferece total liberdade espacial para a equipe médica e de enfermagem, adaptando-se a qualquer monitor ou preferência de uso em <strong>4 orientações de acoplamento fixo</strong> e <strong>modo flutuante livre</strong>:</p>
-<table>
-<thead>
-<tr>
-<th align="left">Posição de Acoplamento</th>
-<th align="left">Formato &amp; Dimensões</th>
-<th align="left">Adaptação Visual do Sistema</th>
-<th align="left">Quando Utilizar no Plantão</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>➡️ Lateral Direita</strong></td>
-<td align="left">Barra lateral vertical de 420px de largura por 100vh</td>
-<td align="left">O conteúdo central recua à esquerda (<code>margin-right: 420px</code>), compactando tabelas e ajustando o Kanban</td>
-<td align="left">Padrão tradicional para monitores widescreen e acompanhamento contínuo da jornada</td>
-</tr>
-<tr>
-<td align="left"><strong>⬅️ Lateral Esquerda</strong></td>
-<td align="left">Barra lateral vertical de 420px de largura por 100vh</td>
-<td align="left">O conteúdo central e a barra de navegação recuam à direita (<code>margin-left: 420px</code>)</td>
-<td align="left">Usuários que preferem leitura assistencial da esquerda para a direita ou canhotos</td>
-</tr>
-<tr>
-<td align="left"><strong>⬆️ Topo da Tela (Cockpit Superior)</strong></td>
-<td align="left">Fita horizontal esbelta de 74px de altura por 100vw</td>
-<td align="left">O conteúdo central recua para baixo (<code>margin-top: 74px</code>), mantendo 100% da largura útil da tela</td>
-<td align="left">Ideal para prontuários extensos, tabelas largas e visualização panorâmica de leitos</td>
-</tr>
-<tr>
-<td align="left"><strong>⬇️ Base da Tela (Cockpit Inferior)</strong></td>
-<td align="left">Fita horizontal esbelta de 74px de altura por 100vw</td>
-<td align="left">O conteúdo central recua para cima (<code>margin-bottom: 74px</code>), sem perda de espaço horizontal</td>
-<td align="left">Excelente para faturamento, farmácia e auditoria com monitoramento de status no rodapé</td>
-</tr>
-<tr>
-<td align="left"><strong>🪟 Card Flutuante Livre</strong></td>
-<td align="left">Card compacto flutuante arrastável</td>
-<td align="left">Nenhuma alteração no layout da tela; pode ser posicionado onde for mais conveniente</td>
-<td align="left">Para quem prefere tela cheia e consulta pontual de condutas e atalhos</td>
-</tr>
-</tbody></table>
-<h4>🎯 Zonas de Encaixe com Iluminação Neon Dinâmica (Snap Inteligente)</h4>
-<p>Ao arrastar o card flutuante pela tela pelo cabeçalho:</p>
-<ol>
-<li><strong>Detecção Automática de Proximidade:</strong> Quando o card se aproxima de qualquer uma das bordas (menos de 130px nas laterais ou menos de 80px no topo/base), uma moldura luminosa em azul-neon surge destacando a borda correspondente.</li>
-<li><strong>Prévia Dinâmica da Tela:</strong> O sistema ajusta o espaço central em tempo real para mostrar exatamente como a tela ficará após a fixação.</li>
-<li><strong>Crachá de Orientação com 1 Toque:</strong> Um aviso centralizado indica a direção ativa (<code>➡️ Solte para Fixar na Lateral Direita</code>, <code>⬅️ Solte para Fixar na Lateral Esquerda</code>, <code>⬆️ Solte para Fixar no Topo da Tela</code> ou <code>⬇️ Solte para Fixar na Base da Tela</code>).</li>
-<li><strong>Fixação e Som de Confirmação:</strong> Ao soltar o mouse ou toque sobre a zona ativa, o painel se fixa suavemente emitindo um toque suave (<em>chime</em>) e exibindo aviso de confirmação.</li>
-</ol>
-<h4>🎛️ Menu Popover de Seleção Rápida em 1 Clique</h4>
-<p>No cabeçalho do painel ou do card flutuante, o botão com ícone de mira multidirecional (<code>fa-arrows-to-dot</code>) abre um menu suspenso com opções diretas:</p>
-<ul>
-<li><strong>Lateral Direita</strong></li>
-<li><strong>Lateral Esquerda</strong></li>
-<li><strong>Topo da Tela (Cockpit)</strong></li>
-<li><strong>Base da Tela (Cockpit)</strong></li>
-<li><strong>Desencaixar (Card Flutuante)</strong></li>
-</ul>
-<h4>🔄 Memória de Preferência do Usuário (Persistência Local)</h4>
-<p>A posição escolhida fica salva no navegador do profissional (<code>localStorage: hn_flow_dock_pos</code>). Ao abrir novos pacientes, alternar entre abas ou recarregar o sistema, o painel reabre exatamente na posição preferida, mantendo o ambiente de trabalho personalizado e produtivo.</p>
-<h3>⚡ Card de Fluxo como Espinha Dorsal Operacional &amp; Sincronização em Tempo Real da Alta</h3>
-<ul>
-<li><strong>Ação Recomendada como Guia do Plantão:</strong> O botão principal do Card de Fluxo atua como a espinha dorsal de todo o fluxo assistencial do Health Nexus. Ao clicar em condutas como <code>📋 Finalizar Atendimento na Recepção ➔</code>:<ol>
-<li><strong>Encerramento Automático:</strong> Todos os atendimentos (<em>encounters</em>) e triagens em aberto do paciente são finalizados no banco local (<code>localDB</code>) e sincronizados com a API.</li>
-<li><strong>Liberação de Leito &amp; Painel:</strong> Chamadas no Painel TV são encerradas e leitos ocupados são encaminhados para higienização.</li>
-<li><strong>Registro da Data e Hora da Alta:</strong> O cadastro do paciente é atualizado instantaneamente com o status <code>Alta</code>, gravando a data e a hora exatas (<code>lastDischargeDate</code>).</li>
-<li><strong>Avanço de Etapa:</strong> O Card de Fluxo avança de forma autônoma para a próxima fase recomendada (<code>💰 Ir para Faturamento &amp; TISS ➔</code>).</li>
-</ol>
-</li>
-<li><strong>Reflexo Imediato na Tabela de Pacientes Cadastrados:</strong><ul>
-<li>Seja ao conceder a alta médica no <strong>Prontuário Eletrônico (PEP)</strong> ou ao concluir o acolhimento pelo <strong>Card de Fluxo na Recepção</strong>, a coluna <em>Status / Localização Atual</em> na listagem de Pacientes exibe na hora a data e horário da última alta: <code>🟢 Alta — DD/MM/AAAA às HH:MM ➔</code>.</li>
-<li><strong>Prioridade da Alta Homologada:</strong> O sistema impede que atendimentos residuais ou antigos sobreponham a alta concedida, garantindo que o crachá verde de alta permaneça como indicador fiel da situação do paciente até uma nova admissão formal.</li>
-</ul>
-</li>
-</ul>
-<h3>💰 Emissão de Guia TISS Individual &amp; Fechamento de Lotes ANS (v2.9.18)</h3>
-<ul>
-<li><strong>Acionamento Direto na Aba Faturamento TISS:</strong><ol>
-<li>No topo da tela de <strong>Faturamento TISS / TUSS &amp; Auditoria ANS</strong>, o botão <strong><code>📄 Emitir Guia Individual</code></strong> (<code>#btn-tiss-new-guide</code>) abre a janela de faturamento imediatamente, mesmo na ausência de atendimento selecionado previamente na fila.</li>
-<li>O modal conta com tratamento resiliente de dados de pacientes (resolução de nomes, matrículas, classificação Manchester e altas hospitalares).</li>
-</ol>
-</li>
-<li><strong>Seletor Dinâmico de Pacientes:</strong><ul>
-<li>O campo suspenso <code>Selecionar / Alternar Paciente para Emissão da Guia</code> disponibiliza todos os pacientes cadastrados no sistema com CPF e plano de saúde vinculado.</li>
-<li>Ao alternar o paciente na lista, o modal atualiza dinamicamente em tempo real todos os dados cadastrais, operadora, matrícula, procedimentos realizados e valor total estimado da conta.</li>
-</ul>
-</li>
-<li><strong>Apuramento de Procedimentos TUSS &amp; Valores:</strong><ul>
-<li>O faturamento discrimina os procedimentos prestados:<ul>
-<li><strong>TUSS 10101012:</strong> Consulta Médica em Pronto-Socorro / Acolhimento Manchester (R$ 180,00).</li>
-<li><strong>TUSS 20101015:</strong> Avaliação e Prescrição Médica de Urgência &amp; Conduta (R$ 150,00).</li>
-<li><strong>TUSS 60011501:</strong> Diária Hospitalar em Leito / Assistência Médica Contínua (caso tenha havido internação ou observação prolongada).</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>Exportação XML &amp; Vínculo ao Lote:</strong><ul>
-<li><strong>Baixar XML Guia:</strong> Gera o arquivo eletrônico no padrão oficial XML TISS Versão 4.01.00 com validação de hash e formato exigido pela ANS.</li>
-<li><strong>Emitir e Salvar no Lote:</strong> Registra a conta no lote de faturamento selecionado (ou abre um novo lote sequencial com identificador automático), incrementando o valor apurado e o quantitativo de guias faturadas.</li>
-</ul>
-</li>
+<li><strong>Em telas menores ou tablets:</strong> Utilize o modo flutuante compacto e mova-o para o canto inferior direito para priorizar o espaço de digitação de anamnese e evolução.</li>
+<li><strong>Agilidade na chamada:</strong> Chame o próximo paciente no Painel de TV diretamente pelo botão de megafone no card ativo, sem trocar de aba.</li>
 </ul>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.20 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.8 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

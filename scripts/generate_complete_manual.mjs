@@ -324,6 +324,34 @@ O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescri�
 
 ---
 
+<h3 id="sec-3-5">3.5. Solicitação Estruturada de Exames & Previsão Clínica por IA (CPOE)</h3>
+
+![Figura 3.2: Setor de Solicitação de Exames no PEP — Catálogo Multicomplexidade, Sugestões Preditivas e Prevenção de Duplicidade](docs/screenshots/16-solicitacao-exames.png)
+
+O Health Nexus disponibiliza no Prontuário Eletrônico (PEP) um módulo de **Computerized Physician Order Entry (CPOE)** dedicado à solicitação de exames diagnósticos, integrando o catálogo do nível básico ambulatorial à alta complexidade e medicina personalizada:
+
+1. **Catálogo Multicomplexidade em 4 Eixos Assistenciais:**
+   - **🔬 Laboratório de Análises Clínicas:** Hemograma completo, glicemia de jejum, hemoglobina glicada (HbA1c), perfil lipídico, creatinina sérica com estimativa de TFG, ureia, eletrólitos (Na/K/Mg), coagulograma (TAP/INR e TTPA), enzimas cardíacas (Troponina ultrassensível, CK-MB, NT-proBNP), marcadores de sepse (Lactato sérico arterial, hemoculturas em 2 pares), EAS e urocultura com antibiograma.
+   - **🩻 Imagem Convencional & Seccional:** Radiografias de tórax e abdome agudo, ultrassonografia de abdome e vias urinárias, Doppler vascular venoso de membros inferiores e carótidas, mamografia bilateral digital, tomografia computadorizada (crânio sem contraste, tórax, abdome e pelve com contraste, angiotomografia para protocolo TEP ou coronárias) e ressonância magnética (crânio, coluna, colangiorressonância).
+   - **📈 Métodos Gráficos & Funcionais:** Eletrocardiograma de 12 derivações (ECG), ecocardiograma transtorácico, Holter 24h, MAPA 24h, teste ergométrico, espirometria computadorizada e eletroencefalograma (EEG).
+   - **🧬 Alta Complexidade & Medicina de Precisão:** PET-CT oncológico com FDG, cintilografia miocárdica de esforço e repouso, painéis genéticos por NGS (Next-Generation Sequencing), biópsia líquida para DNA tumoral circulante, painéis moleculares RT-PCR multiplex e testes farmacogenéticos (CYP2C19/CYP2D6 para predição de resposta terapêutica individual).
+
+2. **Motor de Sugestões Preditivas Baseado no Histórico do Paciente:**
+   - **Condições Crônicas Preexistentes:** Analisa automaticamente o histórico clínico e diagnósticos prévios. Pacientes diabéticos recebem sugestão de HbA1c, microalbuminúria e creatinina; pacientes hipertensos recebem perfil lipídico, ECG e eletrólitos; pacientes cardiopatas recebem NT-proBNP e ecocardiograma.
+   - **Monitorização Farmacológica Ativa:** Detecta medicações de uso contínuo (anticoagulantes como Varfarina demandam controle de TAP/INR; antiarrítmicos como Amiodarona demandam TSH e função hepática; estabilizadores como Lítio demandam litemia periódica; estatinas demandam enzimas hepáticas).
+   - **Protocolos de Emergência Aguda:** Cruza com a queixa atual e sinais vitais informados na triagem Manchester ou na anamnese (dor torácica sugere protocolo IAM com ECG, Troponina seriada e D-Dímero; suspeita de AVC sugere TC de crânio urgente e coagulograma).
+   - **Rastreamento Populacional por Faixa Etária & Sexo:** Alinha condutas preventivas conforme diretrizes do Ministério da Saúde e OMS (mamografia bienal para mulheres de 50 a 69 anos, sangue oculto nas fezes dos 50 aos 75 anos, densitometria óssea aos 65 anos).
+
+3. **Trava Inteligente de Não-Duplicidade & Segurança de Contraste:**
+   - **Prevenção de Repetição Desnecessária:** Se um exame com intervalo protocolar longo (ex: HbA1c a cada 90 dias, ultrassom de rotina) já foi solicitado recentemente, o sistema emite alerta visual com os dias decorridos, evitando coletas invasivas desnecessárias e desperdício de insumos.
+   - **Alerta de Contraste Iodado:** Em exames tomográficos contrastados, alerta para histórico de alergia ao iodo ou disfunção renal prévia, recomendando conferência da creatinina recente antes da infusão.
+
+4. **Emissão de Requisição & Encaminhamento:**
+   - Botão **\`🖨️ Salvar e Imprimir Requisição\`**: Gera a folha oficial de solicitação de exames contendo dados do paciente, leito ou consultório, indicação clínica estruturada, prioridade (Rotina / Urgente / Emergência), preparos específicos e assinatura com CRM do médico solicitante.
+   - Integração direta com a assinatura do PEP e armazenamento no banco de dados \`exam_requests\`.
+
+---
+
 <h2 id="sec-4">4. Guia Completo de Todos os Modais do Sistema</h2>
 
 <h3 id="sec-4-1">4.1. Modal de Triagem Manchester</h3>

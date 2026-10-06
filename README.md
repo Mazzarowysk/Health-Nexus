@@ -1,12 +1,27 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.20`  
+**Versão:** `2.9.21`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🧪 **Setor Estruturado de Solicitação de Exames no PEP & Previsão Preditiva por IA (CPOE) (v2.9.21):**
+  1. **Setor Dedicado de Exames no Prontuário Eletrônico:** Integrado logo após o Plano Terapêutico e antes do Desfecho do Atendimento, separando formalmente a prescrição de fármacos das solicitações diagnósticas (Computerized Physician Order Entry - CPOE).
+  2. **Catálogo Multicomplexidade Completo:** Cobertura de rotina básica ambulatorial até exames de ponta e medicina de precisão, divididos em 4 eixos com busca textual e tags rápidas:
+     - *Laboratório:* Hemograma completo, HbA1c, glicemia, perfil lipídico, creatinina com TFG, eletrólitos, coagulograma (TAP/INR), enzimas cardíacas (Troponina ultrassensível, CK-MB, NT-proBNP), lactato arterial, hemoculturas (2 pares), EAS e urocultura.
+     - *Imagem:* Radiografias de tórax e abdome, ultrassonografia total e de vias urinárias, Doppler vascular venoso e de carótidas, mamografia bilateral, tomografias computadorizadas (crânio, tórax, abdome com/sem contraste, angiotomografia TEP/coronárias) e ressonância magnética (crânio, coluna, colangiorressonância).
+     - *Métodos Gráficos:* ECG 12 derivações, ecocardiograma transtorácico, Holter 24h, MAPA 24h, ergometria, espirometria e EEG.
+     - *Alta Complexidade & Precisão:* PET-CT oncológico, cintilografia miocárdica, painéis genéticos NGS, biópsia líquida, RT-PCR multiplex respiratório e painel farmacogenético (CYP2C19/CYP2D6).
+  3. **Motor Preditivo Inteligente Baseado no Histórico do Paciente:**
+     - Identifica condições crônicas preexistentes no histórico (Diabetes sugere HbA1c, microalbuminúria e creatinina; Hipertensão sugere ECG e lipídico; Cardiopatias sugerem BNP e ecocardiograma).
+     - Monitora medicações contínuas (anticoagulantes como Varfarina sugerem coagulograma; amiodarona sugere TSH/fígado; lítio sugere litemia; estatinas sugerem enzimas hepáticas).
+     - Cruza com a queixa atual/sinais vitais (dor torácica sugere protocolo IAM com ECG e troponina; suspeita de AVC sugere TC de crânio e INR).
+     - Aplica diretrizes de rastreamento por idade e sexo (mamografia bienal 50-69 anos, sangue oculto nas fezes 50-75 anos, densitometria aos 65 anos).
+  4. **Trava de Não-Duplicidade & Alerta de Contraste:** Sinaliza exames repetidos com tempo decorrido para evitar duplicidades desnecessárias e alerta sobre risco renal ou alergia ao iodo em tomografias com contraste.
+  5. **Impressão da Requisição Médica Oficial & Persistência Local:** Permite emitir e imprimir requisições formatadas com indicação clínica, preparos e CRM do solicitante, além de salvar no banco `exam_requests` e anexar automaticamente os exames selecionados à assinatura do PEP.
 
 - 🚪 **Homologação Completa da Alta Médica no PEP & Abertura Automática do Prontuário Pós-Alta (v2.9.20):**
   1. **Execução Completa da Alta no PEP:** Ao selecionar o desfecho "Alta Médica (Encerrar Consulta)" ou "Alta Hospitalar (Encerrar Internação & Liberar Leito)" e clicar em `✍️ Assinar & Encaminhar`, o sistema executa o encerramento assistencial integral:

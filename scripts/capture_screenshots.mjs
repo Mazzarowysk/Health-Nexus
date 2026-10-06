@@ -218,6 +218,21 @@ export async function captureScreenshots() {
   fs.copyFileSync(pepFile, path.join(docDir, '11-prontuario-pep.png'));
   console.log('✓ Salvo: 11-prontuario-pep.png');
 
+  // ── Captura especial: Setor de Solicitação de Exames & Previsão Clínica ────
+  console.log('Capturando Setor de Solicitação de Exames (PEP)...');
+  await page.evaluate(() => {
+    const examEl = document.getElementById('pep-exam-orders');
+    if (examEl) {
+      examEl.scrollIntoView({ behavior: 'instant', block: 'center' });
+    }
+  });
+  await new Promise(r => setTimeout(r, 600));
+
+  const examFile = path.join(outDir, '16-solicitacao-exames.png');
+  await page.screenshot({ path: examFile });
+  fs.copyFileSync(examFile, path.join(docDir, '16-solicitacao-exames.png'));
+  console.log('✓ Salvo: 16-solicitacao-exames.png');
+
   await browser.close();
   console.log('--- ETAPA 1 CONCLUÍDA: TODOS OS PRINTS FORAM CAPTURADOS COM SUCESSO ---');
 }

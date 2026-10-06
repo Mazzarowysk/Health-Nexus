@@ -2,6 +2,7 @@ import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anon
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 import * as localDB from '../localDB.js';
 import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp, generateClinicalSummary3Lines, getSuggestedOrdersByComplaint } from '../modules/clinicalAI.js';
+import { mountExamOrdersSection } from '../modules/examOrders.js';
 import { openTelemedicineModal } from '../modules/telemedicina.js';
 import { openPACSViewerModal } from '../modules/pacsViewer.js';
 import { generatePrescriptionValidationHash, generateQRCodeSVGDataURL, openPublicPrescriptionValidator } from '../modules/prescriptionQRCode.js';
@@ -2767,6 +2768,9 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
           </div>
         </div>
 
+        <!-- Setor de Solicitação de Exames (catálogo + sugestões pelo histórico clínico) -->
+        <div id="pep-exam-orders-container"></div>
+
         <div style="margin-top: 6px; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
           <label class="form-label" style="font-weight:600; color:var(--text-primary); margin-bottom:6px; display:block;">
             <i class="fa-solid fa-route" style="color: #0284c7; margin-right: 6px;"></i> Desfecho do Atendimento:
@@ -2824,6 +2828,20 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
         </div>
       </form>
     `;
+
+    // Setor de Solicitação de Exames
+    const examOrdersApi = mountExamOrdersSection(document.getElementById('pep-exam-orders-container'), {
+      enc,
+      user: state.user,
+      isReadOnly,
+      getCurrentTexts: () => ({
+        subjective: document.getElementById('pep-subjective')?.value || '',
+        objective: document.getElementById('pep-objective')?.value || '',
+        assessment: document.getElementById('pep-assessment')?.value || '',
+        plan: document.getElementById('pep-plan')?.value || ''
+      })
+    });
+    window._pepExamOrders = examOrdersApi;
 
     // Evento do botão de visualização PACS DICOM embutido
     document.getElementById('btn-pep-open-pacs-inline')?.addEventListener('click', () => {
@@ -2929,6 +2947,11 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
 
     document.getElementById('pep-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      // Exames escolhidos e ainda não enviados seguem junto com a assinatura do PEP
+      try {
+        const pendingExams = examOrdersApi?.saveIfPending({ silent: true });
+        if (pendingExams && typeof showToast === 'function') showToast(`🧪 ${pendingExams.items.length} exame(s) enviados junto com o PEP.`);
+      } catch (err) { console.error('Erro ao salvar pedido de exames:', err); }
       await savePEPData(encounterId, true);
     });
 
