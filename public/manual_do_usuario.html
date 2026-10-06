@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.24)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.25)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.24 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos, consulta dinâmica multi-modalidade e etiquetas térmicas hospitalares.</p>
+<p><strong>Health Nexus v2.9.25 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade e etiquetas térmicas hospitalares.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -2225,10 +2225,58 @@ flowchart TD
 <tr>
 <td align="center"><strong>11</strong></td>
 <td align="left"><strong>Responsável Legal</strong></td>
-<td align="left"><code>#paciente-responsavel</code></td>
-<td align="left">Texto e telefone</td>
+<td align="left"><code>#responsibleName</code> / <code>#responsibleCpf</code></td>
+<td align="left">Texto e CPF formatado</td>
 <td align="left">Obrigatório se idade &lt; 18 anos ou &gt; 65 anos</td>
 <td align="left"><code>Tereza Ramos (Mãe) - (11) 98877-6655</code></td>
+</tr>
+<tr>
+<td align="center"><strong>12</strong></td>
+<td align="left"><strong>ID CROSS (Regulação SUS)</strong></td>
+<td align="left"><code>#crossPatientId</code></td>
+<td align="left">Código alfanumérico</td>
+<td align="left">Código de vaga ou ID do paciente no CROSS SP</td>
+<td align="left"><code>1490028</code></td>
+</tr>
+<tr>
+<td align="center"><strong>13</strong></td>
+<td align="left"><strong>Nº Pasta / Arquivo Físico</strong></td>
+<td align="left"><code>#physicalChartNumber</code></td>
+<td align="left">Texto alfanumérico</td>
+<td align="left">Localização da pasta do prontuário no SAME</td>
+<td align="left"><code>Pasta 0, Caixa 12</code></td>
+</tr>
+<tr>
+<td align="center"><strong>14</strong></td>
+<td align="left"><strong>Alergias &amp; Restrições</strong></td>
+<td align="left"><code>#allergies</code></td>
+<td align="left">Texto com tags rápidas</td>
+<td align="left">Gera alerta imediato no PEP, Triagem e Prescrição</td>
+<td align="left"><code>Dipirona, Penicilina, Contraste Iodado</code></td>
+</tr>
+<tr>
+<td align="center"><strong>15</strong></td>
+<td align="left"><strong>Comorbidades &amp; Crônicos</strong></td>
+<td align="left"><code>#medicalHistory</code></td>
+<td align="left">Texto com tags rápidas</td>
+<td align="left">Alimenta o motor preditivo IA CPOE de exames</td>
+<td align="left"><code>Hipertensão (HAS), Diabetes Mellitus (DM)</code></td>
+</tr>
+<tr>
+<td align="center"><strong>16</strong></td>
+<td align="left"><strong>Cirurgias Prévias &amp; Próteses</strong></td>
+<td align="left"><code>#surgicalHistory</code></td>
+<td align="left">Texto livre</td>
+<td align="left">Histórico cirúrgico prévio para suporte anestésico</td>
+<td align="left"><code>Apendicectomia (2018), Prótese de quadril</code></td>
+</tr>
+<tr>
+<td align="center"><strong>17</strong></td>
+<td align="left"><strong>Ocorrências &amp; Observações</strong></td>
+<td align="left"><code>#clinicalNotes</code></td>
+<td align="left">Texto livre</td>
+<td align="left">Cuidados especiais, risco de queda, acompanhante</td>
+<td align="left"><code>Risco de queda, Acompanhante contínuo</code></td>
 </tr>
 </tbody></table>
 <h3>🛡️ Tabela de Ações e Operações da Aba Pacientes</h3>

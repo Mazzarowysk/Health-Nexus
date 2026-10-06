@@ -157,10 +157,11 @@ export function renderAttendanceTab(contentArea) {
           <div class="modal-body">
             <form id="triage-form">
               <input type="hidden" id="triage-encounter-id">
-              <div style="background:rgba(139,92,246,0.08); padding:12px; border-radius:var(--radius-md); border:1px solid rgba(139,92,246,0.2); margin-bottom:20px;">
+              <div style="background:rgba(139,92,246,0.08); padding:12px; border-radius:var(--radius-md); border:1px solid rgba(139,92,246,0.2); margin-bottom:12px;">
                 <span style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:2px;">Paciente:</span>
                 <strong id="triage-patient-name" style="font-size:1.05rem; color:var(--text-primary);"></strong>
               </div>
+              <div id="triage-patient-clinical-alert" style="display:none; margin-bottom:16px;"></div>
               <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin-bottom:12px; color:var(--text-primary); border-left:3px solid #0284c7; padding-left:8px;">Sinais Vitais</h4>
               <div class="form-row">
                 <div class="form-group"><label class="form-label">* Pressão Arterial (mmHg):</label><input type="text" id="triage-pa" class="form-input" required placeholder="120/80"></div>
@@ -1156,6 +1157,51 @@ export function renderAttendanceTab(contentArea) {
     document.getElementById('triage-encounter-id').value = id;
     document.getElementById('triage-patient-name').textContent = name;
     
+    // Buscar antecedentes clínicos e alergias do paciente para alerta visual imediato na triagem
+    const clinicalAlertEl = document.getElementById('triage-patient-clinical-alert');
+    if (clinicalAlertEl) {
+      clinicalAlertEl.style.display = 'none';
+      clinicalAlertEl.innerHTML = '';
+      try {
+        const fullDb = window.localDB ? window.localDB.getFullDB() : {};
+        const encList = fullDb.encounters || [];
+        const currentEnc = encList.find(e => String(e.id) === String(id));
+        const patId = currentEnc?.patientId;
+        const patList = fullDb.patients || [];
+        const pat = patList.find(p => (patId && String(p.id) === String(patId)) || (p.fullName && p.fullName.toLowerCase() === name.toLowerCase()));
+
+        if (pat && (pat.allergies || pat.medicalHistory || pat.surgicalHistory)) {
+          let alertHtml = `<div style="background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;">`;
+          if (pat.allergies) {
+            alertHtml += `<div style="display: flex; align-items: center; gap: 6px; color: #fca5a5; font-size: 0.8rem; font-weight: 700;">
+              <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
+              <span>ALERTA DE ALERGIA:</span>
+              <strong style="color: #fff; background: rgba(239,68,68,0.25); padding: 1px 8px; border-radius: 4px;">${pat.allergies}</strong>
+            </div>`;
+          }
+          if (pat.medicalHistory) {
+            alertHtml += `<div style="display: flex; align-items: center; gap: 6px; color: #93c5fd; font-size: 0.78rem;">
+              <i class="fa-solid fa-notes-medical" style="color: #38bdf8;"></i>
+              <span>Antecedentes / Comorbidades:</span>
+              <strong style="color: #e2e8f0;">${pat.medicalHistory}</strong>
+            </div>`;
+          }
+          if (pat.surgicalHistory) {
+            alertHtml += `<div style="display: flex; align-items: center; gap: 6px; color: #cbd5e1; font-size: 0.75rem;">
+              <i class="fa-solid fa-syringe" style="color: #a78bfa;"></i>
+              <span>Cirurgias/Próteses:</span>
+              <span>${pat.surgicalHistory}</span>
+            </div>`;
+          }
+          alertHtml += `</div>`;
+          clinicalAlertEl.innerHTML = alertHtml;
+          clinicalAlertEl.style.display = 'block';
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar antecedentes para triagem:', err);
+      }
+    }
+
     // Pre-seleção padrão para garantir estado válido
     const defRadio = document.getElementById('color-amarelo') || document.querySelector('input[name="manchesterColor"]');
     if (defRadio) defRadio.checked = true;

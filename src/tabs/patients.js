@@ -102,6 +102,60 @@ export function renderPatientsTab(contentArea) {
                 </div>
               </div>
             </div> <!-- Fim Seção 1 -->
+
+            <!-- SEÇÃO 5: ANTECEDENTES, ALERGIAS & RESTRIÇÕES (ACOMPANHAMENTO CLÍNICO) -->
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; padding: 14px; margin-bottom: 0px; flex-shrink: 0;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #f87171; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-triangle-exclamation"></i> 5. Antecedentes, Alergias &amp; Restrições Clínicas
+                </span>
+                <span style="font-size: 0.68rem; background: rgba(239, 68, 68, 0.18); color: #fca5a5; padding: 2px 8px; border-radius: 10px; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.35);">Acompanhamento Clínico</span>
+              </div>
+
+              <!-- Alergias & Restrições -->
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" for="allergies" style="color: #fca5a5; display: flex; align-items: center; justify-content: space-between;">
+                  <span><i class="fa-solid fa-ban"></i> Alergias Medicamentosas &amp; Restrições:</span>
+                  <small style="color: var(--text-muted); font-size: 0.7rem;">Gera alerta no PEP e Triagem</small>
+                </label>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;" id="quick-allergy-tags">
+                  <span class="quick-tag-btn" data-target="allergies" data-val="Dipirona" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ Dipirona</span>
+                  <span class="quick-tag-btn" data-target="allergies" data-val="Penicilina" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ Penicilina</span>
+                  <span class="quick-tag-btn" data-target="allergies" data-val="AINEs / AAS" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ AINEs / AAS</span>
+                  <span class="quick-tag-btn" data-target="allergies" data-val="Contraste Iodado" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ Contraste Iodado</span>
+                  <span class="quick-tag-btn" data-target="allergies" data-val="Látex" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ Látex</span>
+                </div>
+                <input type="text" id="allergies" class="form-input" placeholder="Ex: Dipirona, Penicilina, Iodo, Frutos do mar, Nenhuma conhecida...">
+              </div>
+
+              <!-- Comorbidades e Doenças Crônicas -->
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" for="medicalHistory" style="color: #93c5fd; display: flex; align-items: center; justify-content: space-between;">
+                  <span><i class="fa-solid fa-notes-medical"></i> Comorbidades &amp; Doenças Crônicas:</span>
+                  <small style="color: var(--text-muted); font-size: 0.7rem;">Suporte à IA preditiva CPOE</small>
+                </label>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;" id="quick-comorbidity-tags">
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Hipertensão (HAS)" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Hipertensão</span>
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Diabetes Mellitus (DM)" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Diabetes</span>
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Cardiopatia" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Cardiopatia</span>
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Insuficiência Renal" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Insuficiência Renal</span>
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Asma / DPOC" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Asma/DPOC</span>
+                </div>
+                <input type="text" id="medicalHistory" class="form-input" placeholder="Ex: Hipertensão, Diabetes Tipo 2, Insuficiência Cardíaca...">
+              </div>
+
+              <!-- Cirurgias Prévias & Ocorrências -->
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="surgicalHistory"><i class="fa-solid fa-syringe"></i> Cirurgias Prévias / Próteses:</label>
+                  <input type="text" id="surgicalHistory" class="form-input" placeholder="Ex: Apendicectomia, Marcapasso, Prótese">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="clinicalNotes"><i class="fa-solid fa-comment-medical"></i> Ocorrências / Observações:</label>
+                  <input type="text" id="clinicalNotes" class="form-input" placeholder="Ex: Risco de queda, Acompanhante integral">
+                </div>
+              </div>
+            </div>
             </div> <!-- Fim coluna 1 -->
             
             <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px; max-height: 65vh;" class="custom-scrollbar"> <!-- Início coluna 2 -->
@@ -249,6 +303,9 @@ export function renderPatientsTab(contentArea) {
           </div> <!-- Fim grid duas colunas -->
 
             <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+              <button type="button" id="btn-view-patient-history-form" class="btn" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c4b5fd; font-weight: 700; cursor: pointer; display: none; min-width: 170px;" title="Abrir Histórico Completo de Passagens e PEPs">
+                <i class="fa-solid fa-clock-rotate-left"></i> Histórico de Atendimentos
+              </button>
               <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1; min-width: 150px;">
                 <i class="fa-solid fa-floppy-disk"></i> Salvar Cadastro
               </button>
@@ -316,7 +373,11 @@ export function renderPatientsTab(contentArea) {
         <tr class="patient-card-item ${isSelectedPat ? 'patient-pulse-selected' : ''}" data-patient-card-name="${(p.fullName||'').toLowerCase().replace(/"/g, '&quot;')}" data-patient-id="${p.id}">
           <td class="col-patient-id" style="font-family: monospace; font-weight: 600; font-size: 0.78rem; color: var(--color-primary); white-space: nowrap;">${p.id}</td>
           <td class="col-patient-name" style="font-weight: 600;">
-            ${p.fullName}
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span>${p.fullName}</span>
+              ${p.allergies ? `<span style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="Alergias: ${p.allergies}"><i class="fa-solid fa-ban" style="font-size: 0.6rem;"></i> Alergia</span>` : ''}
+              ${p.medicalHistory ? `<span style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: rgba(59, 130, 246, 0.18); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="Comorbidades: ${p.medicalHistory}"><i class="fa-solid fa-notes-medical" style="font-size: 0.6rem;"></i> Crônico</span>` : ''}
+            </div>
             <div style="color: var(--text-muted); font-size: 0.74rem; font-weight: normal; margin-top: 1px;">Mãe: ${p.motherName || '-'}</div>
             <div class="patient-compact-meta" style="display: none; font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; gap: 8px; flex-wrap: wrap;">
               <span><i class="fa-solid fa-id-card" style="font-size:0.65rem; color:#94a3b8; margin-right:3px;"></i>${p.cpf}</span>
@@ -374,6 +435,10 @@ export function renderPatientsTab(contentArea) {
                 data-physical-chart="${p.physicalChartNumber || ''}"
                 data-birth-city="${p.birthCity || ''}"
                 data-rg-number="${p.rgNumber || ''}"
+                data-allergies="${p.allergies || ''}"
+                data-medical-history="${p.medicalHistory || ''}"
+                data-surgical-history="${p.surgicalHistory || ''}"
+                data-clinical-notes="${p.clinicalNotes || ''}"
                 title="Alterar / Editar Paciente">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
@@ -431,6 +496,22 @@ export function renderPatientsTab(contentArea) {
         if (document.getElementById('physicalChartNumber')) document.getElementById('physicalChartNumber').value = btn.getAttribute('data-physical-chart') || '';
         if (document.getElementById('birthCity')) document.getElementById('birthCity').value = btn.getAttribute('data-birth-city') || '';
         if (document.getElementById('rgNumber')) document.getElementById('rgNumber').value = btn.getAttribute('data-rg-number') || '';
+        if (document.getElementById('allergies')) document.getElementById('allergies').value = btn.getAttribute('data-allergies') || '';
+        if (document.getElementById('medicalHistory')) document.getElementById('medicalHistory').value = btn.getAttribute('data-medical-history') || '';
+        if (document.getElementById('surgicalHistory')) document.getElementById('surgicalHistory').value = btn.getAttribute('data-surgical-history') || '';
+        if (document.getElementById('clinicalNotes')) document.getElementById('clinicalNotes').value = btn.getAttribute('data-clinical-notes') || '';
+
+        const btnViewHistory = document.getElementById('btn-view-patient-history-form');
+        if (btnViewHistory) {
+          btnViewHistory.style.display = 'inline-flex';
+          btnViewHistory.onclick = () => {
+            const pId = document.getElementById('editId').value;
+            const pName = document.getElementById('fullName').value;
+            if (pId && typeof window.openPatientHistoryModal === 'function') {
+              window.openPatientHistoryModal(pId, pName);
+            }
+          };
+        }
 
         document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--color-primary);"></i> Editar Paciente';
         document.getElementById('submit-btn').textContent = "Salvar Alterações";
@@ -735,6 +816,12 @@ export function renderPatientsTab(contentArea) {
     if (document.getElementById('physicalChartNumber')) document.getElementById('physicalChartNumber').value = '';
     if (document.getElementById('birthCity')) document.getElementById('birthCity').value = '';
     if (document.getElementById('rgNumber')) document.getElementById('rgNumber').value = '';
+    if (document.getElementById('allergies')) document.getElementById('allergies').value = '';
+    if (document.getElementById('medicalHistory')) document.getElementById('medicalHistory').value = '';
+    if (document.getElementById('surgicalHistory')) document.getElementById('surgicalHistory').value = '';
+    if (document.getElementById('clinicalNotes')) document.getElementById('clinicalNotes').value = '';
+    const btnViewHistory = document.getElementById('btn-view-patient-history-form');
+    if (btnViewHistory) btnViewHistory.style.display = 'none';
     document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente';
     document.getElementById('submit-btn').textContent = "Registrar Paciente";
     const alertBadge = document.getElementById('responsible-alert-badge');
@@ -832,6 +919,10 @@ export function renderPatientsTab(contentArea) {
     const physicalChartNumber = document.getElementById('physicalChartNumber')?.value || '';
     const birthCity = document.getElementById('birthCity')?.value || '';
     const rgNumber = document.getElementById('rgNumber')?.value || '';
+    const allergies = document.getElementById('allergies')?.value || '';
+    const medicalHistory = document.getElementById('medicalHistory')?.value || '';
+    const surgicalHistory = document.getElementById('surgicalHistory')?.value || '';
+    const clinicalNotes = document.getElementById('clinicalNotes')?.value || '';
 
     const isEdit = !!editId;
     const url = isEdit ? `/api/patients/${editId}` : `/api/patients`;
@@ -849,7 +940,8 @@ export function renderPatientsTab(contentArea) {
         fullName, cpf, birthDate, motherName, fatherName, organDonor, race, religion,
         healthPlan, cardNumber, responsibleName, responsibleCpf, responsiblePhone, responsibleRelationship,
         cep, address, number, neighborhood, city, phone, cellphone, billingValue,
-        crossPatientId, physicalChartNumber, birthCity, rgNumber
+        crossPatientId, physicalChartNumber, birthCity, rgNumber,
+        allergies, medicalHistory, surgicalHistory, clinicalNotes
       };
 
       const res = await apiFetch(url, {
@@ -875,7 +967,7 @@ export function renderPatientsTab(contentArea) {
           if (modalOverlay) modalOverlay.style.display = 'none';
         }
 
-        if (!isEdit) {
+        if (!isEdit || shouldDirectlyAdmit) {
           // Checar se o paciente já possui atendimento ativo no hospital
           if (typeof window.showActiveEncounterAlertModal === 'function') {
             const activeDecision = await window.showActiveEncounterAlertModal({
@@ -988,6 +1080,26 @@ export function renderPatientsTab(contentArea) {
     } else {
       shouldDirectlyAdmit = false;
     }
+  });
+
+  // Listener para tags rápidas de alergias e comorbidades
+  document.querySelectorAll('.quick-tag-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const val = btn.getAttribute('data-val');
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      const current = (input.value || '').trim();
+      if (!current) {
+        input.value = val;
+      } else {
+        const parts = current.split(',').map(s => s.trim().toLowerCase());
+        if (!parts.includes(val.toLowerCase())) {
+          input.value = `${current}, ${val}`;
+        }
+      }
+      input.focus();
+    });
   });
 
   loadAndRenderTable();

@@ -158,7 +158,7 @@ export function buildPatientClinicalContext({ patientId, patientName, currentEnc
   const historyText = norm([
     ...pastEncounters.map(e => [e.complaints, e.subjectiveContent, e.assessmentContent, e.planContent, e.diagnosis, e.cid].join(' ')),
     ...prescriptions.map(p => [p.medication, p.medicationName, p.items ? JSON.stringify(p.items) : '', p.notes].join(' ')),
-    patient?.comorbidities, patient?.notes, patient?.medicalHistory
+    patient?.comorbidities, patient?.notes, patient?.medicalHistory, patient?.surgicalHistory, patient?.clinicalNotes
   ].join(' \n '));
 
   const currentText = norm([currentTexts.complaint, currentTexts.subjective, currentTexts.objective, currentTexts.assessment].join(' '));

@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.24)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.25)
 
-> **Health Nexus v2.9.24 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), gestão de leitos, consulta dinâmica multi-modalidade e etiquetas térmicas hospitalares.
+> **Health Nexus v2.9.25 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade e etiquetas térmicas hospitalares.
 
 ---
 
@@ -647,7 +647,13 @@ Na aba **Pacientes**, o hospital mantém o cadastro centralizado e o acesso à t
 | **8** | **CEP Residencial** | `#paciente-cep` | Formato `00000-000` | 8 dígitos; autopreenchimento via API ViaCEP | `01310-100` |
 | **9** | **Logradouro & Número**| `#paciente-endereco` | Texto | Preenchido automaticamente via CEP + número | `Avenida Paulista, 1578, Apto 82` |
 | **10**| **Bairro, Cidade & UF** | `#paciente-cidade-uf` | Texto | Autopreenchido pelo CEP com sigla do estado | `Bela Vista - São Paulo / SP` |
-| **11**| **Responsável Legal** | `#paciente-responsavel` | Texto e telefone | Obrigatório se idade < 18 anos ou > 65 anos | `Tereza Ramos (Mãe) - (11) 98877-6655`|
+| **11**| **Responsável Legal** | `#responsibleName` / `#responsibleCpf` | Texto e CPF formatado | Obrigatório se idade < 18 anos ou > 65 anos | `Tereza Ramos (Mãe) - (11) 98877-6655`|
+| **12**| **ID CROSS (Regulação SUS)**| `#crossPatientId` | Código alfanumérico | Código de vaga ou ID do paciente no CROSS SP | `1490028` |
+| **13**| **Nº Pasta / Arquivo Físico**| `#physicalChartNumber` | Texto alfanumérico | Localização da pasta do prontuário no SAME | `Pasta 0, Caixa 12` |
+| **14**| **Alergias & Restrições** | `#allergies` | Texto com tags rápidas | Gera alerta imediato no PEP, Triagem e Prescrição | `Dipirona, Penicilina, Contraste Iodado` |
+| **15**| **Comorbidades & Crônicos**| `#medicalHistory` | Texto com tags rápidas | Alimenta o motor preditivo IA CPOE de exames | `Hipertensão (HAS), Diabetes Mellitus (DM)` |
+| **16**| **Cirurgias Prévias & Próteses**| `#surgicalHistory` | Texto livre | Histórico cirúrgico prévio para suporte anestésico | `Apendicectomia (2018), Prótese de quadril` |
+| **17**| **Ocorrências & Observações**| `#clinicalNotes` | Texto livre | Cuidados especiais, risco de queda, acompanhante | `Risco de queda, Acompanhante contínuo` |
 
 ### 🛡️ Tabela de Ações e Operações da Aba Pacientes
 

@@ -2090,6 +2090,52 @@ modal.style.left = '0';
         </div>
       </div>
 
+      <!-- SEÇÃO: Antecedentes & Acompanhamento Clínico -->
+      ${(patient.allergies || patient.medicalHistory || patient.surgicalHistory || patient.clinicalNotes) ? `
+      <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+          <div style="font-size: 0.82rem; font-weight: 700; color: #a78bfa; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-notes-medical"></i> Acompanhamento Clínico &amp; Antecedentes
+          </div>
+          <span style="font-size: 0.7rem; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 6px;">Prontuário Único</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+          ${patient.allergies ? `
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px 12px;">
+              <div style="font-size: 0.72rem; font-weight: 700; color: #fca5a5; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-ban" style="color: #ef4444;"></i> Alergias &amp; Restrições:
+              </div>
+              <div style="font-size: 0.82rem; font-weight: 700; color: #fff;">${patient.allergies}</div>
+            </div>
+          ` : ''}
+          ${patient.medicalHistory ? `
+            <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px 12px;">
+              <div style="font-size: 0.72rem; font-weight: 700; color: #93c5fd; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-heart-pulse" style="color: #38bdf8;"></i> Comorbidades &amp; Doenças Crônicas:
+              </div>
+              <div style="font-size: 0.82rem; font-weight: 600; color: #e2e8f0;">${patient.medicalHistory}</div>
+            </div>
+          ` : ''}
+          ${patient.surgicalHistory ? `
+            <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; padding: 10px 12px;">
+              <div style="font-size: 0.72rem; font-weight: 700; color: #d8b4fe; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-syringe" style="color: #c084fc;"></i> Cirurgias Prévias / Próteses:
+              </div>
+              <div style="font-size: 0.82rem; color: #e2e8f0;">${patient.surgicalHistory}</div>
+            </div>
+          ` : ''}
+          ${patient.clinicalNotes ? `
+            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px 12px;">
+              <div style="font-size: 0.72rem; font-weight: 700; color: #fde68a; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-comment-medical" style="color: #f59e0b;"></i> Observações &amp; Cuidados:
+              </div>
+              <div style="font-size: 0.82rem; color: #e2e8f0;">${patient.clinicalNotes}</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      ` : ''}
+
       ${activeHosp ? `
       <!-- SEÇÃO: Gestão de Internação Ativa -->
       <div style="margin-bottom: 24px; background: rgba(245, 158, 11, 0.08); border: 1.5px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 16px;">

@@ -1,12 +1,23 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.24`  
+**Versão:** `2.9.25`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🩺 **Acompanhamento Clínico no Cadastro do Paciente, Alertas na Triagem & Prontuário Único (v2.9.25):**
+  1. **Seção 5 no Formulário de Admissão de Pacientes (Acompanhamento Clínico):**
+     - Campo de *Alergias Medicamentosas & Restrições* com tags rápidas (`Dipirona`, `Penicilina`, `AINEs / AAS`, `Contraste Iodado`, `Látex`).
+     - Campo de *Comorbidades & Doenças Crônicas* com tags rápidas (`Hipertensão (HAS)`, `Diabetes Mellitus (DM)`, `Cardiopatia`, `Insuficiência Renal`, `Asma / DPOC`), alimentando diretamente o motor preditivo IA do CPOE de exames.
+     - Campo de *Cirurgias Prévias & Próteses*.
+     - Campo de *Ocorrências & Anotações Clínicas*.
+  2. **Atalho Direto para Histórico de Atendimentos no Formulário:** Botão `📋 Histórico de Atendimentos` presente no rodapé do modal durante a edição do paciente, permitindo abrir diretamente o prontuário consolidado de passagens e evoluções sem sair do fluxo.
+  3. **Alertas Visuais Imediatos na Triagem Manchester:** Abertura da Triagem Manchester consulta automaticamente o histórico do paciente e exibe banner de destaque em vermelho para alergias conhecidas e azul para comorbidades crônicas, elevando a segurança do paciente.
+  4. **Card de Antecedentes e Alergias no Prontuário & Histórico Clínico:** Exibição organizada e de fácil visualização no modal consolidado de Prontuário Único.
+  5. **Badges Visuais na Tabela de Pacientes:** Marcadores `Alergia` e `Crônico` na listagem geral para identificação ágil pela equipe da recepção e acolhimento.
 
 - 🏢 **Consulta Dinâmica Multi-Modalidade (Aba Lateral Exclusiva), Prontuário Único SUS & Etiquetas Térmicas (v2.9.24):**
   1. **Aba Exclusiva na Barra Lateral (Menu Principal):** A Consulta Dinâmica foi promovida a aba oficial de primeiro nível na navegação lateral do sistema (`fa-magnifying-glass-chart`), posicionada estrategicamente entre *Atendimentos* e *Observação do PS*. Proporciona visão analítica em tela cheia sem qualquer sobreposição por painéis ou cards laterais. O botão `🔍 Consulta Dinâmica` na Central de Atendimentos permanece como atalho direto.
