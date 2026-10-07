@@ -1,4 +1,4 @@
-import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
+import { apiFetch, showToast, abbreviateName, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, showCustomConfirm, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 
 // API_URL is not exported from main.js, define it locally
@@ -2476,7 +2476,16 @@ function renderReportsTab(contentArea) {
     batchBtn?.addEventListener('click', async () => {
       const checked = [...document.querySelectorAll('.modal-fin-row-check:checked')].map(c => c.dataset.id);
       if (checked.length === 0) return;
-      if (confirm(`Confirmar baixa manual em lote de ${checked.length} parcelas selecionadas?`)) {
+      const confirmed = typeof showCustomConfirm === 'function'
+        ? await showCustomConfirm({
+            title: 'Baixa em Lote de Parcelas',
+            message: `Deseja confirmar a baixa manual em lote de <strong>${checked.length} parcela(s)</strong> selecionadas?`,
+            confirmText: 'Sim, Baixar Parcelas',
+            cancelText: 'Cancelar',
+            type: 'success'
+          })
+        : confirm(`Confirmar baixa manual em lote de ${checked.length} parcelas selecionadas?`);
+      if (confirmed) {
         try {
           const response = await apiFetch('/api/financial/installments/pay-batch', {
             method: 'POST',

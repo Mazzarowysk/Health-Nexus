@@ -1,5 +1,5 @@
 
-import { apiFetch, showToast, abbreviateName, removeAccents, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
+import { apiFetch, showToast, abbreviateName, removeAccents, switchTab, setupCustomSelect, anonymizeCPF, exportToPDF, formatSyncDate, showCustomAlert, showCustomConfirm, renderTabContent, cachedApiGet, getRolePermissions } from '../main.js';
 import { state, dataCache, dataCacheTimestamps } from '../state.js';
 import { evaluatePrescriptionCDSS } from '../modules/clinicalAI.js';
 
@@ -934,7 +934,16 @@ window.showTrashModal = async function (type) {
         document.querySelectorAll('.btn-restore-item').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
-            if (confirm('Tem certeza de que deseja restaurar este item? Ele voltará para a listagem ativa.')) {
+            const confirmed = typeof showCustomConfirm === 'function'
+              ? await showCustomConfirm({
+                  title: 'Restaurar Item',
+                  message: 'Tem certeza de que deseja restaurar este item? Ele voltará para a listagem ativa.',
+                  confirmText: 'Sim, Restaurar',
+                  cancelText: 'Cancelar',
+                  type: 'info'
+                })
+              : confirm('Tem certeza de que deseja restaurar este item? Ele voltará para a listagem ativa.');
+            if (confirmed) {
               try {
                 const rRes = await apiFetch(`/api/${type}/${id}/restore`, { method: 'POST' });
                 if (rRes.ok) {
@@ -2456,7 +2465,16 @@ window.openDutyScheduleModal = async function () {
 };
 
 window.deleteDutySchedule = async function (id) {
-  if (!confirm('Deseja remover este plantonista da escala?')) return;
+  const confirmed = typeof showCustomConfirm === 'function'
+    ? await showCustomConfirm({
+        title: 'Remover da Escala',
+        message: 'Deseja realmente remover este profissional plantonista da escala?',
+        confirmText: 'Sim, Remover',
+        cancelText: 'Cancelar',
+        type: 'danger'
+      })
+    : confirm('Deseja remover este plantonista da escala?');
+  if (!confirmed) return;
   try {
     const res = await apiFetch(`/api/duty-schedules/${id}`, { method: 'DELETE' });
     if (res.ok) {

@@ -1274,7 +1274,20 @@ A sub-aba **Relatórios & Indicadores** oferece à diretoria clínica e gerênci
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.30 do Health Nexus. Todos os direitos reservados.*
+### 23.5. Janelas Flutuantes de Confirmação & Alertas Padronizados (v2.9.31)
+Com a versão **2.9.31**, os pop-ups nativos do navegador foram completamente substituídos pelas janelas flutuantes customizadas do próprio Health Nexus (`showCustomConfirm` e `showCustomAlert`):
+- **Identidade Visual Hospitalar:** Telas de confirmação (como a confirmação de Alta da Observação no Pronto-Socorro e as altas no Kanban) agora utilizam efeito de vidro fosco (*backdrop blur 10px*), paleta escura com bordas iluminadas e cabeçalhos com cores temáticas:
+  - Verde hospitalar (`#10b981`) para confirmações de alta médica e conclusões clínicas;
+  - Âmbar (`#f59e0b`) para avisos e condutas que exigem atenção;
+  - Vermelho (`#ef4444`) para ações críticas ou exclusões;
+  - Azul institucional (`#0284c7`) para mensagens informativas.
+- **Destaque Assistencial:** A mensagem exibe o nome do paciente em destaque e explica de forma clara os efeitos da ação (registro de data, horário e desfecho no prontuário).
+- **Acessibilidade e Rapidez:** O profissional pode pressionar `Enter` para confirmar imediatamente ou `Escape` para fechar e cancelar, além de poder clicar no botão de fechar (x) ou fora do modal.
+
+---
+
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.31 do Health Nexus. Todos os direitos reservados.*
+
 
 
 

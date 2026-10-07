@@ -1,12 +1,21 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.30`  
+**Versão:** `2.9.31`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🪟 **Janela Flutuante de Confirmação no Padrão Visual do Sistema (v2.9.31):**
+  1. **Substituição de Todos os Pop-ups Nativos do Navegador:** O diálogo padrão do navegador (`confirm()`) foi substituído em todo o sistema pela janela flutuante customizada `showCustomConfirm()`, eliminando caixas de texto genéricas do browser e trazendo harmonia estética com o Health Nexus.
+  2. **Identidade Visual Hospitalar:**
+     - Fundo com efeito de vidro fosco (*backdrop blur 10px*) e animação suave de entrada;
+     - Cards em paleta escura com bordas iluminadas e cantos arredondados modernos (18px);
+     - Cabeçalhos temáticos com ícones específicos: verde hospitalar para confirmações de alta médica e conclusões (`#10b981`), âmbar para atenções clínicas (`#f59e0b`), vermelho para exclusões (`#ef4444`) e azul para procedimentos (`#0284c7`);
+     - Destaque formatado para o nome do paciente, orientações e consequências da conduta assistencial.
+  3. **Acessibilidade e Ergonomia:** Suporte completo a atalhos de teclado (`Enter` para confirmar, `Escape` para fechar), botão de fechar (x) no cabeçalho e foco automático no botão de ação principal.
 
 - 🔬 **Central de Exames & Laboratório: Confirmação Visual Imediata do Aceite Técnico (v2.9.30):**
   1. **Feedback Visual Subentendido & Intuitivo:** Após o clique em `[✓ Aceitar Todos]`, o botão azul de ação é imediatamente substituído pelo selo verde de confirmação `[✓ Aceito (HH:MM)]`, eliminando qualquer ambiguidade ou impressão de que o botão ainda precisa ser clicado.

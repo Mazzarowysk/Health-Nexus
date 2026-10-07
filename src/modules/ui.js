@@ -210,37 +210,43 @@ export const showCustomAlert = ({ title = 'Aviso do Sistema', message = '', type
     const overlay = document.createElement('div');
     overlay.id = 'hn-custom-alert-modal';
     overlay.className = 'modal-overlay';
-    overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);';
+    overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(5, 10, 20, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); animation: fadeIn 0.2s ease;';
 
     let headerBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
     let iconClass = 'fa-circle-info';
+    let btnShadow = '0 6px 20px rgba(2, 132, 199, 0.4)';
 
     if (type === 'success') {
       headerBg = 'linear-gradient(135deg, #10b981, #059669)';
       iconClass = 'fa-circle-check';
+      btnShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
     } else if (type === 'warning') {
       headerBg = 'linear-gradient(135deg, #f59e0b, #d97706)';
       iconClass = 'fa-triangle-exclamation';
+      btnShadow = '0 6px 20px rgba(245, 158, 11, 0.4)';
     } else if (type === 'danger' || type === 'error') {
       headerBg = 'linear-gradient(135deg, #ef4444, #dc2626)';
       iconClass = 'fa-circle-xmark';
+      btnShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
     }
 
     overlay.innerHTML = `
-      <div class="sync-modal-card" style="max-width: 440px;">
-        <div class="sync-header-banner" style="background: ${headerBg}; padding: 16px 20px;">
-          <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+      <div class="sync-modal-card" style="max-width: 460px; width: 92%; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 0, 0, 0.5); animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div class="sync-header-banner" style="background: ${headerBg}; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; text-align: left;">
+          <h3 class="sync-header-title" style="font-size: 1.15rem; display: flex; align-items: center; gap: 10px; margin: 0; color: #ffffff; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">
             <i class="fa-solid ${iconClass}"></i> ${title}
           </h3>
-          <button id="btn-hn-alert-x" class="modal-close" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+          <button id="btn-hn-alert-x" style="background: rgba(0, 0, 0, 0.25); border: none; color: #ffffff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Fechar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
 
-        <div class="sync-modal-body" style="padding: 22px 24px; gap: 16px;">
-          <div style="font-size: 0.95rem; color: var(--text-primary, #f8fafc); line-height: 1.6; text-align: center;">
+        <div class="sync-modal-body" style="padding: 24px 26px; gap: 18px; background: #0f172a;">
+          <div style="font-size: 0.96rem; color: #e2e8f0; line-height: 1.6; text-align: left; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px 18px;">
             ${message}
           </div>
 
-          <button id="btn-hn-alert-ok" class="btn-sync-action" style="background: ${headerBg}; margin-top: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+          <button id="btn-hn-alert-ok" class="btn-sync-action" style="background: ${headerBg}; margin-top: 6px; box-shadow: ${btnShadow}; padding: 12px 20px; border-radius: 12px; font-weight: 700; color: #ffffff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; width: 100%;">
             <i class="fa-solid fa-check"></i> Entendido (OK)
           </button>
         </div>
@@ -250,17 +256,36 @@ export const showCustomAlert = ({ title = 'Aviso do Sistema', message = '', type
     document.body.appendChild(overlay);
 
     const close = () => {
+      document.removeEventListener('keydown', onKey);
       overlay.remove();
       resolve(true);
     };
 
+    const onKey = (e) => {
+      if (e.key === 'Escape' || e.key === 'Enter') close();
+    };
+
+    document.addEventListener('keydown', onKey);
     document.getElementById('btn-hn-alert-ok')?.addEventListener('click', close);
     document.getElementById('btn-hn-alert-x')?.addEventListener('click', close);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) close();
+    });
+
+    setTimeout(() => {
+      document.getElementById('btn-hn-alert-ok')?.focus();
+    }, 50);
   });
 };
 
-// --- MODAL FLUTUANTE DE CONFIRMAÇÃO DO SISTEMA ---
-export const showCustomConfirm = ({ title = 'Confirmação Necessária', message = '', confirmText = 'Sim, Confirmar', cancelText = 'Cancelar', type = 'warning' }) => {
+// --- MODAL FLUTUANTE DE CONFIRMAÇÃO DO SISTEMA (DESIGN HEALTH NEXUS) ---
+export const showCustomConfirm = ({
+  title = 'Confirmação Necessária',
+  message = '',
+  confirmText = 'Sim, Confirmar',
+  cancelText = 'Cancelar',
+  type = 'warning'
+}) => {
   return new Promise((resolve) => {
     const existing = document.getElementById('hn-custom-confirm-modal');
     if (existing) existing.remove();
@@ -268,30 +293,56 @@ export const showCustomConfirm = ({ title = 'Confirmação Necessária', message
     const overlay = document.createElement('div');
     overlay.id = 'hn-custom-confirm-modal';
     overlay.className = 'modal-overlay';
-    overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);';
+    overlay.style.cssText = 'z-index: 999999; display: flex; align-items: center; justify-content: center; background: rgba(5, 10, 20, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); animation: fadeIn 0.2s ease;';
 
-    let headerBg = type === 'danger' ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #f59e0b, #ea580c)';
-    let btnBg = type === 'danger' ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #f59e0b, #ea580c)';
+    let headerBg = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    let iconClass = 'fa-triangle-exclamation';
+    let btnBg = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    let btnIcon = 'fa-check';
+    let btnShadow = '0 6px 20px rgba(245, 158, 11, 0.4)';
+
+    if (type === 'success') {
+      headerBg = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+      iconClass = 'fa-circle-check';
+      btnBg = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+      btnIcon = 'fa-circle-check';
+      btnShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
+    } else if (type === 'danger' || type === 'error') {
+      headerBg = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+      iconClass = 'fa-triangle-exclamation';
+      btnBg = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+      btnIcon = 'fa-trash-can';
+      btnShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
+    } else if (type === 'info' || type === 'primary') {
+      headerBg = 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
+      iconClass = 'fa-circle-info';
+      btnBg = 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
+      btnIcon = 'fa-check';
+      btnShadow = '0 6px 20px rgba(2, 132, 199, 0.4)';
+    }
 
     overlay.innerHTML = `
-      <div class="sync-modal-card" style="max-width: 450px;">
-        <div class="sync-header-banner" style="background: ${headerBg}; padding: 16px 20px;">
-          <h3 class="sync-header-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-triangle-exclamation"></i> ${title}
+      <div class="sync-modal-card" style="max-width: 480px; width: 92%; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 0, 0, 0.5); animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div class="sync-header-banner" style="background: ${headerBg}; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; text-align: left;">
+          <h3 class="sync-header-title" style="font-size: 1.15rem; display: flex; align-items: center; gap: 10px; margin: 0; color: #ffffff; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+            <i class="fa-solid ${iconClass}"></i> ${title}
           </h3>
+          <button id="btn-hn-confirm-x" style="background: rgba(0, 0, 0, 0.25); border: none; color: #ffffff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Fechar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
 
-        <div class="sync-modal-body" style="padding: 22px 24px; gap: 16px;">
-          <div style="font-size: 0.95rem; color: var(--text-primary, #f8fafc); line-height: 1.6; text-align: center;">
+        <div class="sync-modal-body" style="padding: 24px 26px; gap: 18px; background: #0f172a;">
+          <div style="font-size: 0.96rem; color: #e2e8f0; line-height: 1.6; text-align: left; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px 18px;">
             ${message}
           </div>
 
-          <div style="display: flex; gap: 10px; width: 100%; margin-top: 6px;">
-            <button id="btn-hn-confirm-yes" class="btn-sync-action" style="background: ${btnBg}; flex: 1;">
-              <i class="fa-solid fa-check"></i> ${confirmText}
-            </button>
-            <button id="btn-hn-confirm-no" class="btn-sync-secondary" style="flex: 1; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px;">
+          <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px;">
+            <button id="btn-hn-confirm-no" class="btn-sync-secondary" style="flex: 1; border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05); color: #cbd5e1; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.92rem;">
               ${cancelText}
+            </button>
+            <button id="btn-hn-confirm-yes" class="btn-sync-action" style="background: ${btnBg}; flex: 1.2; box-shadow: ${btnShadow}; padding: 12px 18px; border-radius: 12px; font-weight: 700; color: #ffffff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem;">
+              <i class="fa-solid ${btnIcon}"></i> ${confirmText}
             </button>
           </div>
         </div>
@@ -300,15 +351,40 @@ export const showCustomConfirm = ({ title = 'Confirmação Necessária', message
 
     document.body.appendChild(overlay);
 
-    document.getElementById('btn-hn-confirm-yes')?.addEventListener('click', () => {
+    const onCleanUp = () => {
+      document.removeEventListener('keydown', onKey);
       overlay.remove();
+    };
+
+    const confirmYes = () => {
+      onCleanUp();
       resolve(true);
+    };
+
+    const confirmNo = () => {
+      onCleanUp();
+      resolve(false);
+    };
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') confirmNo();
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        confirmYes();
+      }
+    };
+
+    document.addEventListener('keydown', onKey);
+    document.getElementById('btn-hn-confirm-yes')?.addEventListener('click', confirmYes);
+    document.getElementById('btn-hn-confirm-no')?.addEventListener('click', confirmNo);
+    document.getElementById('btn-hn-confirm-x')?.addEventListener('click', confirmNo);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) confirmNo();
     });
 
-    document.getElementById('btn-hn-confirm-no')?.addEventListener('click', () => {
-      overlay.remove();
-      resolve(false);
-    });
+    setTimeout(() => {
+      document.getElementById('btn-hn-confirm-yes')?.focus();
+    }, 50);
   });
 };
 
@@ -803,6 +879,8 @@ if (typeof window !== 'undefined') {
   window.getActiveEncounterForPatient = getActiveEncounterForPatient;
   window.showActiveEncounterAlertModal = showActiveEncounterAlertModal;
   window.showPendingPEPAlertModal = showPendingPEPAlertModal;
+  window.showCustomConfirm = showCustomConfirm;
+  window.showCustomAlert = showCustomAlert;
 }
 
 

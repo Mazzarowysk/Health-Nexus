@@ -1,7 +1,7 @@
 // ─── MÓDULO DA ABA ATENDIMENTOS & TRIAGEM MANCHESTER (HEALTH NEXUS v2.7.2) ──────
 import { state } from '../state.js';
 import { apiFetch, removeAccents } from '../modules/api.js';
-import { showToast, showCustomAlert } from '../modules/ui.js';
+import { showToast, showCustomAlert, showCustomConfirm } from '../modules/ui.js';
 import { realtimeHub } from '../modules/realtime.js';
 import { setActivePatientContext, renderPatientJourneyStepper } from '../modules/journey.js';
 import { getRolePermissions } from '../modules/auth.js';
@@ -969,7 +969,16 @@ export function renderAttendanceTab(contentArea) {
       if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
       if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
       if (alta) alta.addEventListener('click', async () => {
-        if (!confirm(`Confirmar alta da observação para ${e.patientName}? O paciente receberá alta com registro de data e horário no prontuário.`)) return;
+        const confirmed = typeof showCustomConfirm === 'function'
+          ? await showCustomConfirm({
+              title: 'Confirmar Alta da Observação',
+              message: `Deseja conceder <strong>alta médica da observação</strong> para <strong>${e.patientName}</strong>?<br><br><span style="font-size:0.83rem; color:var(--text-muted, #94a3b8); display:inline-block; margin-top:2px;">O paciente receberá alta com registro de data, horário e desfecho clínico no prontuário.</span>`,
+              confirmText: 'Sim, Conceder Alta',
+              cancelText: 'Cancelar',
+              type: 'success'
+            })
+          : confirm(`Confirmar alta da observação para ${e.patientName}? O paciente receberá alta com registro de data e horário no prontuário.`);
+        if (!confirmed) return;
         try {
           const res = await apiFetch(`/api/encounters/${e.id}/finish-observation`, {
             method: 'POST',

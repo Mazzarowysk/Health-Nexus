@@ -199,6 +199,12 @@ export {
   openConsultorioDetailsModal, openRoomModal, deleteRoom, saveRoom
 };
 
+if (typeof window !== 'undefined') {
+  window.showCustomAlert = showCustomAlert;
+  window.showCustomConfirm = showCustomConfirm;
+  window.showToast = showToast;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SMART FLOW GUIDE — Card flutuante passo a passo (100% self-contained)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -8212,7 +8218,14 @@ async function saveRoom(roomId) {
 }
 
 async function deleteRoom(roomId) {
-  if (!confirm('Tem certeza que deseja excluir este consultório?')) return;
+  const confirmed = await showCustomConfirm({
+    title: 'Excluir Consultório',
+    message: 'Tem certeza que deseja excluir este consultório médico? Esta ação removerá o cadastro do sistema.',
+    confirmText: 'Sim, Excluir',
+    cancelText: 'Cancelar',
+    type: 'danger'
+  });
+  if (!confirmed) return;
   try {
     const res = await apiFetch(`/api/consulting-rooms/${roomId}`, { method: 'DELETE' });
     if (res.ok) {
@@ -8227,7 +8240,14 @@ async function deleteRoom(roomId) {
 }
 
 window.finishConsultation = async function(appointmentId, roomName) {
-  if (!confirm(`Deseja concluir o atendimento atual no ${roomName}?`)) return;
+  const confirmed = await showCustomConfirm({
+    title: 'Concluir Atendimento',
+    message: `Deseja concluir o atendimento atual no <strong>${roomName}</strong>?`,
+    confirmText: 'Sim, Concluir',
+    cancelText: 'Cancelar',
+    type: 'success'
+  });
+  if (!confirmed) return;
   try {
     const res = await apiFetch(`/api/appointments/${appointmentId}`, {
       method: 'PUT',

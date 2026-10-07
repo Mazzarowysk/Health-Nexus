@@ -562,7 +562,16 @@ async function renderDoctorsTab() {
         const id = btn.dataset.id;
         const current = btn.dataset.status;
         const nextStatus = current === 'Ativo' ? 'Inativo' : 'Ativo';
-        if (confirm(`Deseja realmente alterar o status deste médico para ${nextStatus}?`)) {
+        const confirmed = typeof showCustomConfirm === 'function'
+          ? await showCustomConfirm({
+              title: 'Alterar Status do Médico',
+              message: `Deseja realmente alterar o status deste profissional para <strong>${nextStatus}</strong>?`,
+              confirmText: 'Confirmar',
+              cancelText: 'Cancelar',
+              type: nextStatus === 'Inativo' ? 'warning' : 'success'
+            })
+          : confirm(`Deseja realmente alterar o status deste médico para ${nextStatus}?`);
+        if (confirmed) {
           try {
             const doc = allDoctorsCache.find(d => d.id === id);
             if (doc) {
@@ -3269,12 +3278,20 @@ window.openPEPModal = async function(encounterId, initialTab = 'soap') {
       const currentOutcome = document.getElementById('pep-outcome')?.value;
       const pendingExamsList = examOrdersApi?.getSelected?.() || [];
       if (currentOutcome === 'alta' && pendingExamsList.length > 0) {
-        const confirmDischarge = window.confirm(
-          `⚠️ Atenção: Você selecionou "Alta Médica", porém há ${pendingExamsList.length} exame(s) no pedido deste atendimento.\n\n` +
-          `Deseja realmente dar alta e encerrar o atendimento do paciente antes dos resultados?\n\n` +
-          `• Clique em "Cancelar" para manter o paciente aguardando os exames (Recomendado).\n` +
-          `• Clique em "OK" para confirmar a alta médica imediata.`
-        );
+        const confirmDischarge = typeof showCustomConfirm === 'function'
+          ? await showCustomConfirm({
+              title: 'Exames Pendentes no Pedido',
+              message: `Você selecionou <strong>Alta Médica</strong>, porém há <strong>${pendingExamsList.length} exame(s)</strong> no pedido deste atendimento.<br><br>Deseja realmente dar alta e encerrar o atendimento do paciente antes dos resultados?<br><br><small style="color:#94a3b8;">Recomendamos manter o paciente como <em>Aguardando Exames</em> até a liberação dos laudos.</small>`,
+              confirmText: 'Confirmar Alta Imediata',
+              cancelText: 'Aguardar Exames (Recomendado)',
+              type: 'warning'
+            })
+          : window.confirm(
+              `⚠️ Atenção: Você selecionou "Alta Médica", porém há ${pendingExamsList.length} exame(s) no pedido deste atendimento.\n\n` +
+              `Deseja realmente dar alta e encerrar o atendimento do paciente antes dos resultados?\n\n` +
+              `• Clique em "Cancelar" para manter o paciente aguardando os exames (Recomendado).\n` +
+              `• Clique em "OK" para confirmar a alta médica imediata.`
+            );
         if (!confirmDischarge) {
           const sel = document.getElementById('pep-outcome');
           if (sel) sel.value = 'aguardando_exames';

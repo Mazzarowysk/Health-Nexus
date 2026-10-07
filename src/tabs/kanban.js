@@ -801,13 +801,23 @@ window.saveKanbanEvolution = function(hospId) {
 };
 
 // ──── Alta ────
-window.dischargePatient = function(hospId) {
+window.dischargePatient = async function(hospId) {
   const hosp = (typeof localDB !== 'undefined' && localDB.getById) ? localDB.getById('hospitalizations', hospId) : null;
+  const pName = hosp?.patientName || hosp?.name || 'Paciente';
   if (typeof window.dischargePatientFromHistory === 'function') {
-    window.dischargePatientFromHistory(hospId, hosp?.patient_id || hosp?.patientId || '', hosp?.patientName || hosp?.name || 'Paciente');
+    window.dischargePatientFromHistory(hospId, hosp?.patient_id || hosp?.patientId || '', pName);
     return;
   }
-  if(confirm('Registrar ALTA para este paciente? Ele sai do Kanban.')) {
+  const confirmed = typeof window.showCustomConfirm === 'function'
+    ? await window.showCustomConfirm({
+        title: 'Confirmar Alta Hospitalar',
+        message: `Deseja registrar a <strong>alta médica</strong> para <strong>${pName}</strong>?<br><br><span style="font-size:0.83rem; color:var(--text-muted);">Esta ação desocupará o leito e removerá o paciente do Kanban ativo.</span>`,
+        confirmText: 'Sim, Conceder Alta',
+        cancelText: 'Cancelar',
+        type: 'success'
+      })
+    : confirm('Registrar ALTA para este paciente? Ele sai do Kanban.');
+  if (confirmed) {
     localDB.update('hospitalizations',hospId,{status:'Alta',discharge_date:new Date().toISOString()});
     if(window.showToast) window.showToast('Alta registrada com sucesso!');
     loadAndRenderKanban();
