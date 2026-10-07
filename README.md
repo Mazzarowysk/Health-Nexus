@@ -1,12 +1,18 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.29`  
+**Versão:** `2.9.30`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🔬 **Central de Exames & Laboratório: Confirmação Visual Imediata do Aceite Técnico (v2.9.30):**
+  1. **Feedback Visual Subentendido & Intuitivo:** Após o clique em `[✓ Aceitar Todos]`, o botão azul de ação é imediatamente substituído pelo selo verde de confirmação `[✓ Aceito (HH:MM)]`, eliminando qualquer ambiguidade ou impressão de que o botão ainda precisa ser clicado.
+  2. **Identificação de Status em Cada Exame:** Cada item individual da requisição agora exibe com clareza o seu estágio atual com chips coloridos: `[✓ Aceito / Em Análise]` (azul), `[Aguardando Aceite]` (âmbar) ou `[✓ Laudado]` (verde).
+  3. **Transição Suave para a Fase de Laudo:** Uma vez que o pedido é aceito pela bancada técnica, o foco do operador vai diretamente para o botão de ação principal `[✍️ Digitar Laudo]`.
+  4. **Atualização Dinâmica dos Contadores:** Sincronização em tempo real do badge numérico no menu lateral assim que o aceite é confirmado.
 
 - 🧪 **Aba Exclusiva "Exames & Laboratório (SADT)" — Ciclo Fechado de Laudos, Rastreabilidade & Analytics (v2.9.29):**
   1. **Nova Aba no Menu Principal (`fa-microscope`):** Adicionada oficialmente na barra lateral com badge de pendências em tempo real, integrando o corpo clínico solicitante (médicos) ao setor técnico executor (biomédicos, radiologistas e técnicos de laboratório).

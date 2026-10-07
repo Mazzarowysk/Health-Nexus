@@ -3911,9 +3911,11 @@ flowchart TD
 <li><strong>Data, Hora e Tempo Decorrido:</strong> Permite priorizar exames de urgência e emergência dentro do SLA.</li>
 </ul>
 </li>
-<li><strong>Aceite Técnico:</strong><ul>
-<li><strong>Aceite em Lote:</strong> O botão <code>✓ Aceitar Todos os Exames</code> aprova todos os itens da requisição de uma vez só, passando o status para <em>Em Andamento</em>.</li>
-<li><strong>Aceite Individual:</strong> Possibilidade de aceitar exame por exame em requisições mistas (ex: aceitar primeiro o Raio-X de Tórax e em seguida o Hemograma).</li>
+<li><strong>Aceite Técnico &amp; Confirmação Visual Inteligente (v2.9.30):</strong><ul>
+<li><strong>Aceite em Lote:</strong> O botão azul <code>✓ Aceitar Todos</code> aprova todos os exames pendentes de uma só vez.</li>
+<li><strong>Selo Subentendido de Aceite Concluído:</strong> Assim que acionado, o botão de ação desaparece e é automaticamente substituído pelo selo verde de confirmação <code>[✓ Aceito (HH:MM)]</code>, deixando claro e evidente que a bancada técnica já registrou o aceite e que o pedido está em andamento.</li>
+<li><strong>Chips de Status por Exame:</strong> Cada exame na lista ganha um marcador visual: <code>[✓ Aceito / Em Análise]</code> (azul), <code>[Aguardando Aceite]</code> (âmbar) ou <code>[✓ Laudado]</code> (verde).</li>
+<li><strong>Aceite Individual:</strong> Possibilidade de aceitar exame por exame em requisições mistas antes de laudar.</li>
 </ul>
 </li>
 <li><strong>Impressão da Requisição de Bancada:</strong> O botão de impressora gera a guia de trabalho para apoiar a coleta de sangue beira-leito ou o posicionamento na sala de radiologia.</li>
@@ -3946,7 +3948,7 @@ flowchart TD
 <li><strong>Emissão de Relatório Oficial:</strong> O botão <code>🖨️ Imprimir Relatório SADT</code> gera uma folha executiva em PDF para reuniões de comissão hospitalar e prestação de contas SUS/ANS.</li>
 </ol>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.29 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.30 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

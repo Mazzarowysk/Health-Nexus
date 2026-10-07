@@ -1242,9 +1242,11 @@ Ao abrir a bancada de trabalho, o setor técnico visualiza os cards de cada requ
   - **Médico Solicitante & CRM:** Identificação completa de quem prescreveu o exame.
   - **Setor de Origem:** Pronto-Socorro (PS), UTI Geral, Consultórios Eletivos, Leitos de Internação ou Observação.
   - **Data, Hora e Tempo Decorrido:** Permite priorizar exames de urgência e emergência dentro do SLA.
-- **Aceite Técnico:**
-  - **Aceite em Lote:** O botão `✓ Aceitar Todos os Exames` aprova todos os itens da requisição de uma vez só, passando o status para *Em Andamento*.
-  - **Aceite Individual:** Possibilidade de aceitar exame por exame em requisições mistas (ex: aceitar primeiro o Raio-X de Tórax e em seguida o Hemograma).
+- **Aceite Técnico & Confirmação Visual Inteligente (v2.9.30):**
+  - **Aceite em Lote:** O botão azul `✓ Aceitar Todos` aprova todos os exames pendentes de uma só vez.
+  - **Selo Subentendido de Aceite Concluído:** Assim que acionado, o botão de ação desaparece e é automaticamente substituído pelo selo verde de confirmação `[✓ Aceito (HH:MM)]`, deixando claro e evidente que a bancada técnica já registrou o aceite e que o pedido está em andamento.
+  - **Chips de Status por Exame:** Cada exame na lista ganha um marcador visual: `[✓ Aceito / Em Análise]` (azul), `[Aguardando Aceite]` (âmbar) ou `[✓ Laudado]` (verde).
+  - **Aceite Individual:** Possibilidade de aceitar exame por exame em requisições mistas antes de laudar.
 - **Impressão da Requisição de Bancada:** O botão de impressora gera a guia de trabalho para apoiar a coleta de sangue beira-leito ou o posicionamento na sala de radiologia.
 
 ---
@@ -1272,6 +1274,7 @@ A sub-aba **Relatórios & Indicadores** oferece à diretoria clínica e gerênci
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.29 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.30 do Health Nexus. Todos os direitos reservados.*
+
 
 

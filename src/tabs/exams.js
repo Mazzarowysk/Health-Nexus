@@ -405,11 +405,14 @@ function renderRequestCard(req) {
   // Status geral do lote
   const allCompleted = items.length > 0 && items.every(i => (i.status || req.status) === 'Concluído');
   const anyInProgress = items.some(i => (i.status || req.status) === 'Em Andamento');
+  const pendingItems = items.filter(i => (i.status || req.status || 'Solicitado') === 'Solicitado');
+  const pendingCount = pendingItems.length;
+  const isAllAccepted = items.length > 0 && pendingCount === 0;
 
   let batchBadge = `<span style="font-size:0.7rem; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); border-radius:12px; padding:2px 8px; font-weight:700;"><i class="fa-solid fa-clock"></i> Pendente de Aceite</span>`;
   if (allCompleted) {
     batchBadge = `<span style="font-size:0.7rem; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:2px 8px; font-weight:700;"><i class="fa-solid fa-check-double"></i> 100% Laudado &amp; Devolvido</span>`;
-  } else if (anyInProgress) {
+  } else if (anyInProgress || isAllAccepted) {
     batchBadge = `<span style="font-size:0.7rem; background:rgba(14,165,233,0.15); color:#38bdf8; border:1px solid rgba(14,165,233,0.3); border-radius:12px; padding:2px 8px; font-weight:700;"><i class="fa-solid fa-spinner fa-spin"></i> Em Análise / Coleta</span>`;
   }
 
@@ -443,13 +446,24 @@ function renderRequestCard(req) {
           </div>
         </div>
 
-        <!-- Ações Globais do Pedido -->
+        <!-- Ações Globais do Pedido: Botão Aceitar Todos quando pendente, ou Selo de Aceito quando já aceito -->
         <div style="display:flex; gap:6px; align-items:center;">
-          ${!allCompleted ? `
-            <button type="button" class="btn btn-sm btn-accept-all" data-req="${esc(req.id)}" style="background:rgba(14,165,233,0.15); border:1px solid rgba(14,165,233,0.35); color:#38bdf8; font-size:0.74rem; padding:5px 11px; border-radius:6px; cursor:pointer;" title="Dar aceite em todos os itens pendentes deste pedido">
-              <i class="fa-solid fa-check"></i> Aceitar Todos
+          ${pendingCount > 0 ? `
+            <button type="button" class="btn btn-sm btn-accept-all" data-req="${esc(req.id)}" style="background:rgba(14,165,233,0.18); border:1px solid rgba(14,165,233,0.45); color:#38bdf8; font-size:0.74rem; padding:5px 12px; border-radius:6px; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;" title="Confirmar aceite técnico de todos os itens deste pedido">
+              <i class="fa-solid fa-check"></i> Aceitar Todos ${pendingCount < items.length ? `(${pendingCount})` : ''}
             </button>
-          ` : ''}
+          ` : (allCompleted ? `
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); color:#34d399; font-size:0.74rem; padding:5px 12px; border-radius:6px; font-weight:700; cursor:default;" title="Todos os exames deste pedido foram concluídos e liberados ao prontuário médico.">
+              <i class="fa-solid fa-check-double"></i> 100% Concluído
+            </div>
+          ` : `
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.32); color:#34d399; font-size:0.74rem; padding:5px 12px; border-radius:6px; font-weight:600; cursor:default;" title="Aceite técnico já registrado em bancada. Pedido em execução técnica.">
+              <i class="fa-solid fa-circle-check" style="color:#10b981;"></i>
+              <span>Aceito ✓</span>
+              ${req.accepted_at ? `<small style="color:#a7f3d0; font-size:0.68rem; margin-left:2px;">(${new Date(req.accepted_at).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })})</small>` : ''}
+            </div>
+          `)}
+
           <button type="button" class="btn btn-sm btn-print-req" data-req="${esc(req.id)}" style="background:rgba(255,255,255,0.06); border:1px solid var(--border-color); color:#cbd5e1; font-size:0.74rem; padding:5px 10px; border-radius:6px; cursor:pointer;" title="Imprimir Requisição / Folha de Sala">
             <i class="fa-solid fa-print"></i> Imprimir
           </button>
@@ -485,6 +499,19 @@ function renderRequestCard(req) {
                   <span style="font-size:0.66rem; color:#94a3b8; background:rgba(255,255,255,0.05); padding:1px 6px; border-radius:4px;">
                     ${esc(item.priority || 'Rotina')}
                   </span>
+                  ${isDone ? `
+                    <span style="font-size:0.66rem; color:#34d399; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); border-radius:4px; padding:1px 6px; font-weight:600;">
+                      <i class="fa-solid fa-check"></i> Laudado
+                    </span>
+                  ` : (isInProgress ? `
+                    <span style="font-size:0.66rem; color:#38bdf8; background:rgba(14,165,233,0.12); border:1px solid rgba(14,165,233,0.25); border-radius:4px; padding:1px 6px; font-weight:600;">
+                      <i class="fa-solid fa-vial"></i> Aceito / Em Análise
+                    </span>
+                  ` : `
+                    <span style="font-size:0.66rem; color:#f59e0b; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.25); border-radius:4px; padding:1px 6px; font-weight:600;">
+                      <i class="fa-solid fa-clock"></i> Aguardando Aceite
+                    </span>
+                  `)}
                 </div>
 
                 <!-- Detalhes, preparo e notas -->
@@ -509,12 +536,12 @@ function renderRequestCard(req) {
               <!-- Ações por Item -->
               <div style="display:flex; gap:6px; align-items:center; white-space:nowrap;">
                 ${!isDone && !isInProgress ? `
-                  <button type="button" class="btn btn-sm btn-item-accept" data-req="${esc(req.id)}" data-idx="${idx}" style="background:rgba(14,165,233,0.14); border:1px solid rgba(14,165,233,0.3); color:#38bdf8; font-size:0.72rem; padding:4px 10px; border-radius:6px; cursor:pointer;">
+                  <button type="button" class="btn btn-sm btn-item-accept" data-req="${esc(req.id)}" data-idx="${idx}" style="background:rgba(14,165,233,0.14); border:1px solid rgba(14,165,233,0.3); color:#38bdf8; font-size:0.72rem; padding:4px 10px; border-radius:6px; cursor:pointer;" title="Dar aceite técnico neste exame específico">
                     <i class="fa-solid fa-hand-holding-hand"></i> Dar Aceite
                   </button>
                 ` : ''}
 
-                <button type="button" class="btn btn-sm btn-item-result" data-req="${esc(req.id)}" data-idx="${idx}" style="background:${isDone ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #10b981, #059669)'}; border:${isDone ? '1px solid var(--border-color)' : 'none'}; color:#fff; font-size:0.72rem; padding:5px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
+                <button type="button" class="btn btn-sm btn-item-result" data-req="${esc(req.id)}" data-idx="${idx}" style="background:${isDone ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #10b981, #059669)'}; border:${isDone ? '1px solid var(--border-color)' : 'none'}; color:#fff; font-size:0.72rem; padding:5px 12px; border-radius:6px; font-weight:600; cursor:pointer;" title="${isDone ? 'Editar laudo já liberado' : 'Digitar laudo técnico deste exame'}">
                   <i class="fa-solid ${isDone ? 'fa-pen-to-square' : 'fa-clipboard-check'}"></i> ${isDone ? 'Editar Laudo' : 'Digitar Laudo'}
                 </button>
               </div>
@@ -970,11 +997,14 @@ function acceptRequest(reqId) {
     (req.items || []).forEach(i => {
       if (i.status !== 'Concluído') {
         i.status = 'Em Andamento';
+        if (!i.accepted_at) i.accepted_at = new Date().toISOString();
+        if (!i.accepted_by) i.accepted_by = profName;
       }
     });
 
     window.localDB.update('exam_requests', reqId, req);
-    showToast(`✓ Aceite confirmado no pedido ${reqId} por ${profName}.`);
+    showToast(`✓ Aceite técnico confirmado para todos os exames! Fila em execução.`);
+    updateExamsNavBadge();
     renderExamsTab();
   } catch (e) {
     console.error('[ExamsTab] Erro ao aceitar pedido:', e);
@@ -1000,9 +1030,14 @@ function acceptItem(reqId, idx) {
     if (req.status === 'Solicitado') {
       req.status = 'Em Andamento';
     }
+    if (!req.accepted_at) {
+      req.accepted_at = new Date().toISOString();
+      req.accepted_by = profName;
+    }
 
     window.localDB.update('exam_requests', reqId, req);
     showToast(`✓ Exame "${req.items[idx].name}" aceito para execução.`);
+    updateExamsNavBadge();
     renderExamsTab();
   } catch (e) {
     console.error('[ExamsTab] Erro ao aceitar item:', e);
