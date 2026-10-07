@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.37)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.38)
 
-> **Health Nexus v2.9.37 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com suporte integral ao Modo Claro (Light Theme) e Ação Recomendada clínica ampliada para alta legibilidade com botão verde padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.38 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com tipografia ampliada de alto contraste, suavização de bordas divisórias no modo claro e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -1336,9 +1336,18 @@ Na versão **2.9.37**, o Smart Flow Guide recebeu harmonização visual completa
 - **Card de Ação Recomendada:** Fundo em suave gradiente azul-celeste (`#f0f9ff` a `#e0f2fe`), com borda sutil e botão verde de avanço de fluxo (`[ ➕ Cadastrar Novo Paciente Agora ➔ ]`) mantido em evidência.
 - **Radar e Subcards Integrados:** Os cartões de censo do radar e seleção de pacientes ganharam fundo branco puro, sombras suaves e métricas coloridas de alta legibilidade.
 
+### 24.3. Tipografia Substancialmente Ampliada & Alto Contraste (v2.9.38)
+Para garantir máxima facilidade e conforto na leitura tanto em ambientes de recepção quanto em consultórios e postos de enfermagem:
+- **Título da Ação:** Ampliado para `1.08rem` com peso `800` (negrito expressivo) e entrelinhas calibrado (`1.35`), tornando a próxima etapa imediatamente visível à primeira vista.
+- **Descrição da Conduta:** Ampliada para `0.90rem` com entrelinhas de `1.6` e peso `500`, extinguindo qualquer impressão de texto miúdo ou compacto.
+- **Badge de Status:** Pílula ampliada para `0.78rem` com negrito `800` e espaçamento refinado.
+- **Botão de Ação Padronizado:** Altura mínima de `48px`, padding `12px 20px`, fonte `0.95rem` em negrito `800` e estritamente 1 único sinal `➕` (`[ ➕ Cadastrar Novo Paciente Agora ➔ ]`).
+- **Suavização das Bordas Divisórias no Acoplamento:** Bordas de `1px solid rgba(0, 0, 0, 0.08)` com sombra suave, harmonizando o painel perfeitamente com o layout do dashboard sem criar divisões visuais pesadas.
+- **Radar Hospitalar com Métricas Nítidas:** Valores em `1.05rem` negrito `800` e rótulos nítidos em cinza escuro.
+
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.37 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.38 do Health Nexus. Todos os direitos reservados.*
 
 
 

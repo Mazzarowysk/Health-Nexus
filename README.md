@@ -1,12 +1,24 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.37`  
+**Versão:** `2.9.38`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🔬 **Tipografia Ampliada, Alto Contraste e Suavização de Bordas no Smart Flow Guide (v2.9.38):**
+  1. **Ampliação Substancial da Tipografia do Card de Ação:**
+     - **Título da Ação:** Ampliado para `1.08rem` com peso `800` (negrito expressivo) e entrelinhas confortável (`1.35`), proporcionando leitura imediata sem esforço;
+     - **Descrição da Conduta Clínica:** Ampliada para `0.90rem` com entrelinhas de `1.6` e peso `500`, eliminando completamente o texto miúdo;
+     - **Badge de Ação:** Ampliado para `0.78rem` com peso `800` e espaçamento entre letras calibrado (`0.8px`);
+     - **Botão de Ação Direta:** Altura mínima de `48px`, padding ergonômico de `12px 20px`, fonte `0.95rem` em negrito `800` e garantia de estritamente 1 único sinal `➕`.
+  2. **Alto Contraste WCAG AAA no Modo Claro:**
+     - Título em ardósia profunda `#0f172a` e descrição em `#1e293b` sobre fundo translúcido `#ffffff` / `#f0f9ff` com destaque lateral azul `#0284c7`;
+     - Radar Hospitalar calibrado com valores em `1.05rem` negrito e rótulos nítidos em cinza escuro.
+  3. **Suavização das Bordas Divisórias no Acoplamento:**
+     - Substituição de bordas rígidas de 2px por divisórias refinadas de `1px solid rgba(0, 0, 0, 0.08)` com sombra suave difusa, integrando o painel com naturalidade ao dashboard.
 
 - ☀️ **Suporte Integral ao Modo Claro (Light Theme) no Smart Flow Guide (v2.9.37):**
   1. **Adaptação Cromática Completa:** O Guia de Fluxo Inteligente (Smart Flow Guide) agora responde perfeitamente à alternância para o Modo Claro, abandonando o fundo escuro destoante quando o usuário opta pelo visual clean.

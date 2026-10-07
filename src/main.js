@@ -2567,11 +2567,11 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const topRow = document.createElement('div');
     topRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
     topRow.innerHTML = `
-      <div class="hn-fg-horiz-badge-wrap" style="display:flex;align-items:center;gap:5px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:${badgeColor};flex-shrink:0;">
+      <div class="hn-fg-horiz-badge-wrap" style="display:flex;align-items:center;gap:6px;font-size:0.74rem;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:${badgeColor};flex-shrink:0;">
         <span class="hn-fg-action-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dotColor};box-shadow:0 0 8px ${dotColor};"></span>
         <span class="hn-fg-horiz-badge">${actBadgeText}</span>
       </div>
-      <div class="hn-fg-horiz-title" style="font-size:0.88rem;font-weight:700;color:#ffffff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;" title="${actionTitle}">
+      <div class="hn-fg-horiz-title" style="font-size:0.98rem;font-weight:800;color:#ffffff;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;" title="${actionTitle}">
         ${actionTitle}
       </div>
     `;
@@ -2579,7 +2579,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     // Linha 2: Descrição Explicativa da Conduta em Detalhe (tipografia maior e alto contraste)
     const descRow = document.createElement('div');
     descRow.className = 'hn-fg-horiz-desc';
-    descRow.style.cssText = 'font-size:0.76rem;color:#e2e8f0;line-height:1.32;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;';
+    descRow.style.cssText = 'font-size:0.82rem;color:#e2e8f0;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:500;';
     descRow.title = actionDesc;
     descRow.textContent = actionDesc;
 
@@ -2593,9 +2593,9 @@ function createSmartFlowGuideCard(tabId, customMessage) {
 
     if (rawBtnText.startsWith('➕') || rawBtnText.startsWith('+')) {
       const textWithoutPlus = rawBtnText.replace(/^[➕\+]\s*/, '');
-      actBtnHtml = `<span style="font-size:0.92rem;font-weight:800;line-height:1;">➕</span> <span>${textWithoutPlus}</span>`;
+      actBtnHtml = `<span style="font-size:0.95rem;font-weight:800;line-height:1;">➕</span> <span>${textWithoutPlus}</span>`;
     } else if (rawIcon && !rawBtnText.startsWith(rawIcon)) {
-      actBtnHtml = `<span style="font-size:0.92rem;line-height:1;">${rawIcon}</span> <span>${rawBtnText}</span>`;
+      actBtnHtml = `<span style="font-size:0.95rem;line-height:1;">${rawIcon}</span> <span>${rawBtnText}</span>`;
     } else {
       actBtnHtml = `<span>${rawBtnText}</span>`;
     }
@@ -2604,7 +2604,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const actBtn = document.createElement('button');
     actBtn.id = 'hn-fg-horiz-action';
     actBtn.className = 'btn-next-step-pulse';
-    actBtn.style.cssText = `background:${pri.btnBg || 'linear-gradient(135deg, #0284c7, #0369a1)'};color:#ffffff;border:1px solid rgba(255,255,255,0.22);border-radius:9px;padding:9px 16px;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 16px rgba(2,132,199,0.38);white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;letter-spacing:0.2px;`;
+    actBtn.style.cssText = `background:${pri.btnBg || 'linear-gradient(135deg, #0284c7, #0369a1)'};color:#ffffff;border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:10px 18px;font-weight:800;font-size:0.88rem;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(2,132,199,0.38);white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;letter-spacing:0.2px;`;
     actBtn.innerHTML = actBtnHtml;
     actBtn.addEventListener('mouseenter', () => { actBtn.style.transform = 'translateY(-1px)'; });
     actBtn.addEventListener('mouseleave', () => { actBtn.style.transform = 'none'; });
@@ -3039,22 +3039,23 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const destLabel = pending.targetTabLabel || (pending.targetTab ? (tabShortLabels[pending.targetTab] || pending.targetTab) : 'Próxima Etapa');
 
     actionBlockHtml = `
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-          <span class="hn-fg-action-badge" style="font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; display: flex; align-items: center; gap: 5px;">
-            <span class="hn-fg-action-dot" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+      <div class="hn-flow-subcard hn-fg-action-card hn-fg-pending-action-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 95, 70, 0.22)); border: 1.5px solid rgba(16, 185, 129, 0.45); border-left: 4px solid #10b981; border-radius: 14px; padding: 18px 20px; box-shadow: 0 6px 24px rgba(16, 185, 129, 0.2);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span class="hn-fg-action-badge" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #34d399; display: flex; align-items: center; gap: 6px;">
+            <span class="hn-fg-action-dot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
             Ação Concluída &bull; Próximo Passo
           </span>
-          <button id="hn-fg-dismiss-action" title="Dispensar aviso desta etapa" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.72rem; padding: 1px 6px; border-radius: 5px; transition: all 0.15s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.05)'">
+          <button id="hn-fg-dismiss-action" title="Dispensar aviso desta etapa" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; transition: all 0.15s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.05)'">
             ✕
           </button>
         </div>
-        <div class="hn-fg-action-title" style="font-size: 0.84rem; font-weight: 700; color: #ffffff; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-bullhorn" style="color: #10b981; font-size: 0.85rem;"></i> ${pending.actionTitle}
+        <div class="hn-fg-action-title" style="font-size: 1.05rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; line-height: 1.35; letter-spacing: -0.2px;">
+          <i class="fa-solid fa-bullhorn" style="color: #10b981; font-size: 0.95rem;"></i> ${pending.actionTitle}
         </div>
-        <div class="hn-fg-action-desc" style="font-size: 0.72rem; color: #cbd5e1; line-height: 1.35; margin-bottom: 10px;">
+        <div class="hn-fg-action-desc" style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.55; margin-bottom: 16px; font-weight: 500;">
           ${pending.message}
         </div>
-        <button id="hn-fg-exec-action" class="btn-next-step-pulse" style="width: 100%; padding: 9px 12px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.15s;">
+        <button id="hn-fg-exec-action" class="btn-next-step-pulse" style="width: 100%; min-height: 46px; padding: 12px 20px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; font-weight: 800; font-size: 0.92rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4); text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.15s;">
           <span>🚀</span> ${destLabel ? (destLabel.includes('➔') ? destLabel : destLabel + ' ➔') : 'Avançar para Próxima Etapa ➔'}
         </button>
       </div>
@@ -3064,28 +3065,37 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     if (_SFG.pendingAction && !isPendingForCurrentTab && !isAnyModalOpen) {
       const pTabLabel = tabShortLabels[_SFG.pendingAction.targetTab] || _SFG.pendingAction.targetTab;
       crossTabPendingNotice = `
-        <div class="hn-flow-subcard" style="background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 5px 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-          <span style="font-size: 0.68rem; color: #6ee7b7; display: flex; align-items: center; gap: 5px;">
+        <div class="hn-flow-subcard" style="background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px;">
+          <span style="font-size: 0.72rem; color: #6ee7b7; display: flex; align-items: center; gap: 5px;">
             <span>🚀</span> Próximo passo sugerido: <strong>${pTabLabel}</strong>
           </span>
           <div style="display:flex;align-items:center;gap:4px">
-            <button onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); window.switchTab('${_SFG.pendingAction.targetTab}')" style="background: #10b981; color: #fff; border: none; padding: 2px 7px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; cursor: pointer;">Ir ➔</button>
-            <button onclick="window._SFG.pendingAction=null; if(typeof window.createSmartFlowGuideCard==='function') window.createSmartFlowGuideCard('${_SFG.activeTab}');" style="background: transparent; color: #94a3b8; border: none; font-size: 0.72rem; cursor: pointer; padding: 0 3px;" title="Dispensar sugestão">✕</button>
+            <button onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); window.switchTab('${_SFG.pendingAction.targetTab}')" style="background: #10b981; color: #fff; border: none; padding: 3px 8px; border-radius: 5px; font-size: 0.68rem; font-weight: 700; cursor: pointer;">Ir ➔</button>
+            <button onclick="window._SFG.pendingAction=null; if(typeof window.createSmartFlowGuideCard==='function') window.createSmartFlowGuideCard('${_SFG.activeTab}');" style="background: transparent; color: #94a3b8; border: none; font-size: 0.75rem; cursor: pointer; padding: 0 3px;" title="Dispensar sugestão">✕</button>
           </div>
         </div>
       `;
     }
 
+    const rawBtn = (evalResult.primaryAction.btnText || 'Avançar ➔').trim();
+    let cleanBtnText = rawBtn;
+    if (cleanBtnText.startsWith('➕') || cleanBtnText.startsWith('+')) {
+      const withoutPlus = cleanBtnText.replace(/^[➕\+]\s*/, '').trim();
+      cleanBtnText = '➕ ' + withoutPlus;
+    } else if (!cleanBtnText.includes('➔')) {
+      cleanBtnText = cleanBtnText + ' ➔';
+    }
+
     actionBlockHtml = crossTabPendingNotice + `
-      <div class="hn-flow-subcard hn-fg-action-card" style="background: ${evalResult.actionCardBg || 'linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4))'}; border: 1px solid ${evalResult.actionCardBorder || 'rgba(2, 132, 199, 0.3)'}; border-radius: 10px; padding: 11px 13px;">
-        <div style="display:flex;align-items:center;gap:5px;font-size:0.64rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${evalResult.actionBadge ? '#f87171' : '#38bdf8'};margin-bottom:4px">
-          <span class="hn-fg-action-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};box-shadow:0 0 6px ${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};"></span>
+      <div class="hn-flow-subcard hn-fg-action-card" style="background: ${evalResult.actionCardBg || 'linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4))'}; border: 1.5px solid ${evalResult.actionCardBorder || 'rgba(2, 132, 199, 0.3)'}; border-left: 5px solid #0284c7; border-radius: 14px; padding: 18px 20px; box-shadow: 0 6px 22px rgba(0, 0, 0, 0.12);">
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:${evalResult.actionBadge ? '#f87171' : '#38bdf8'};margin-bottom:8px">
+          <span class="hn-fg-action-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};box-shadow:0 0 8px ${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};"></span>
           <span class="hn-fg-action-badge">${evalResult.actionBadge || (isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada')}</span>
         </div>
-        <div class="hn-fg-action-title" style="font-size:0.86rem;font-weight:700;color:#ffffff;margin-bottom:5px;line-height:1.25">${evalResult.primaryAction.title}</div>
-        <div class="hn-fg-action-desc" style="font-size:0.74rem;color:#cbd5e1;line-height:1.35;margin-bottom:10px">${evalResult.primaryAction.desc}</div>
-        <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:10px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
-          ${evalResult.primaryAction.btnText}
+        <div class="hn-fg-action-title" style="font-size:1.08rem;font-weight:800;color:#ffffff;margin-bottom:8px;line-height:1.35;letter-spacing:-0.2px;">${evalResult.primaryAction.title}</div>
+        <div class="hn-fg-action-desc" style="font-size:0.90rem;color:#cbd5e1;line-height:1.6;margin-bottom:16px;font-weight:500;">${evalResult.primaryAction.desc}</div>
+        <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;min-height:48px;padding:12px 20px;background:${evalResult.primaryAction.btnBg || 'linear-gradient(135deg, #059669, #10b981)'};color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:11px;font-weight:800;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(16,185,129,0.4);letter-spacing:0.3px;transition:all 0.15s">
+          ${cleanBtnText}
         </button>
       </div>
     `;
