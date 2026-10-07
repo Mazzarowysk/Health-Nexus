@@ -1895,10 +1895,13 @@ modal.style.left = '0';
                         <th style="padding:6px 8px;">Exame</th>
                         <th style="padding:6px 8px;">Prioridade</th>
                         <th style="padding:6px 8px;">Preparo / Orientações</th>
+                        <th style="padding:6px 8px;">Status / Laudo</th>
                       </tr>
                     </thead>
                     <tbody>
-                      ${items.map(it => `
+                      ${items.map(it => {
+                        const isDone = (it.status || req.status) === 'Concluído' && it.result;
+                        return `
                         <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
                           <td style="padding:7px 8px; color:#fff; font-weight:600;">
                             <i class="fa-solid fa-check" style="color:#38bdf8; font-size:0.7rem; margin-right:4px;"></i>
@@ -1912,8 +1915,25 @@ modal.style.left = '0';
                           <td style="padding:7px 8px; color:#94a3b8; font-size:0.74rem;">
                             ${it.prep || 'Sem preparo prévio informado'}
                           </td>
+                          <td style="padding:7px 8px;">
+                            ${isDone ? `
+                              <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:4px 8px; font-size:0.73rem; color:#a7f3d0;">
+                                <div style="font-weight:700; color:#34d399; display:flex; align-items:center; gap:4px;">
+                                  <i class="fa-solid fa-square-check"></i> Laudo Liberado
+                                </div>
+                                <div style="font-size:0.71rem; color:#cbd5e1; margin-top:2px; max-height:45px; overflow:hidden; text-overflow:ellipsis;">
+                                  ${it.result}
+                                </div>
+                                ${it.resultProfessional ? `<div style="font-size:0.67rem; color:#94a3b8; margin-top:2px;">Resp: ${it.resultProfessional}</div>` : ''}
+                              </div>
+                            ` : `
+                              <span style="font-size:0.7rem; background:rgba(255,255,255,0.05); color:#94a3b8; padding:2px 7px; border-radius:6px;">
+                                <i class="fa-solid fa-clock"></i> Aguardando SADT
+                              </span>
+                            `}
+                          </td>
                         </tr>
-                      `).join('')}
+                      `}).join('')}
                     </tbody>
                   </table>
                 </div>

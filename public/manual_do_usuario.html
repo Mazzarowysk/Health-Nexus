@@ -464,6 +464,13 @@ flowchart TD
 <td align="left">Motor Anti-Glosa, verificação de carência e validação de procedimentos TUSS.</td>
 <td align="left">Faturamento, Financeiro, Master</td>
 </tr>
+<tr>
+<td align="center"><strong>14</strong></td>
+<td align="left"><strong>Exames &amp; Laboratório</strong></td>
+<td align="left">Central SADT: recebimento, aceite técnico, laudos e analytics</td>
+<td align="left">Ciclo fechado de exames, aceite individual/lote, laudo descritivo e relatórios por setor/médico.</td>
+<td align="left">Laboratório, Radiologia, Biomédico, Médico, Master</td>
+</tr>
 </tbody></table>
 <hr>
 <h2>📌 Sumário Executivo</h2>
@@ -583,6 +590,10 @@ flowchart TD
 </li>
 <li><ol start="22">
 <li><a href="#sec-22">Farmácia &amp; Estoque Hospitalar: Catálogo Essencial Abastecido, Circuito Fechado &amp; KPIs em Tempo Real (v2.9.27)</a></li>
+</ol>
+</li>
+<li><ol start="23">
+<li><a href="#sec-23">Central de Exames &amp; Laboratório (SADT): Aceite Técnico, Laudos &amp; Relatórios Gerenciais (v2.9.29)</a></li>
 </ol>
 </li>
 </ul>
@@ -3874,7 +3885,68 @@ flowchart TD
 <li><strong>Ação Rápida de 1 Clique:</strong> No cabeçalho da farmácia, o botão <code>🌱 Restaurar Estoque Padrão</code> permite repovoar ou restabelecer os 35 medicamentos com um simples toque caso algum usuário tenha esvaziado a base local.</li>
 </ul>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.27 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><a id="sec-23"></a></p>
+<h2>23. 🔬 Central de Exames &amp; Laboratório (SADT): Aceite Técnico, Laudos &amp; Relatórios Gerenciais (v2.9.29)</h2>
+<p>A versão <strong>2.9.29</strong> entrega a central exclusiva de <strong>Exames &amp; Laboratório</strong> (SADT - Serviço de Apoio Diagnóstico e Terapêutico), estabelecendo o ciclo fechado de solicitação, aceite, digitação de laudo e devolução direta ao prontuário médico:</p>
+<h3>23.1. Visão Geral da Central SADT &amp; Acesso Rápido</h3>
+<ul>
+<li><strong>Menu Lateral Dedicado:</strong> A aba <strong>Exames &amp; Laboratório</strong> (<code>fa-microscope</code>) conta com badge azul destacando a quantidade de pedidos que aguardam aceite do setor técnico.</li>
+<li><strong>Perfis Autorizados:</strong> Acesso liberado para Biomédicos, Farmacêuticos, Técnicos de Laboratório, Médicos Radiologistas, Equipe de Enfermagem e Administradores.</li>
+<li><strong>4 Indicadores em Tempo Real no Topo:</strong><ol>
+<li><code>Aguardando Aceite</code>: Total de requisições pendentes de validação técnica.</li>
+<li><code>Em Execução / Coleta</code>: Exames aceitos e em fase de coleta ou realização do exame de imagem.</li>
+<li><code>Laudados &amp; Devolvidos</code>: Total de exames com laudo concluído e integrados de volta ao PEP.</li>
+<li><code>Taxa de Liberação</code>: Percentual de cumprimento dos pedidos solicitados.</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h3>23.2. Fila de Trabalho (Bancada Técnica) &amp; Aceite de Pedidos</h3>
+<p>Ao abrir a bancada de trabalho, o setor técnico visualiza os cards de cada requisição hospitalar:</p>
+<ul>
+<li><strong>Rastreabilidade Imediata:</strong> Cada cartão exibe com clareza:<ul>
+<li><strong>Paciente:</strong> Nome completo, idade, número de prontuário e leito (quando internado).</li>
+<li><strong>Médico Solicitante &amp; CRM:</strong> Identificação completa de quem prescreveu o exame.</li>
+<li><strong>Setor de Origem:</strong> Pronto-Socorro (PS), UTI Geral, Consultórios Eletivos, Leitos de Internação ou Observação.</li>
+<li><strong>Data, Hora e Tempo Decorrido:</strong> Permite priorizar exames de urgência e emergência dentro do SLA.</li>
+</ul>
+</li>
+<li><strong>Aceite Técnico:</strong><ul>
+<li><strong>Aceite em Lote:</strong> O botão <code>✓ Aceitar Todos os Exames</code> aprova todos os itens da requisição de uma vez só, passando o status para <em>Em Andamento</em>.</li>
+<li><strong>Aceite Individual:</strong> Possibilidade de aceitar exame por exame em requisições mistas (ex: aceitar primeiro o Raio-X de Tórax e em seguida o Hemograma).</li>
+</ul>
+</li>
+<li><strong>Impressão da Requisição de Bancada:</strong> O botão de impressora gera a guia de trabalho para apoiar a coleta de sangue beira-leito ou o posicionamento na sala de radiologia.</li>
+</ul>
+<hr>
+<h3>23.3. Digitação de Laudos &amp; Devolução Automática ao Prontuário</h3>
+<p>Quando o exame é concluído, o profissional clica em <code>✍️ Digitar Laudo</code>:</p>
+<ul>
+<li><strong>Modelos Pré-Formatados Inteligentes:</strong><ul>
+<li><strong>Exames de Imagem (Raio-X, Tomografia, Ultrassom):</strong> O sistema carrega a estrutura padrão de radiologia com <em>Técnica</em>, <em>Análise Comparativa</em>, <em>Achados Radiológicos</em> e <em>Impressão Diagnóstica</em>.</li>
+<li><strong>Exames Laboratoriais (Hemograma, Bioquímica, Eletrólitos):</strong> O modal sugere a tabela com parâmetros e valores de referência.</li>
+</ul>
+</li>
+<li><strong>Conclusão Diagnóstica &amp; Responsável Técnico:</strong> Campo específico para a assinatura técnica do biomédico ou radiologista com número de conselho (CRBM / CRM).</li>
+<li><strong>Devolução Instantânea:</strong><ul>
+<li>O laudo é gravado no encontro clínico do paciente no PEP.</li>
+<li>O médico assistente visualiza o badge verde <code>✓ Laudo Liberado</code> com prévia do texto direto na evolução clínica e no histórico de exames.</li>
+<li>No painel Kanban do Pronto-Socorro, o paciente recebe o aviso visual <code>✅ Laudos Prontos — Chamar para Conduta</code>, permitindo reavaliação médica ágil e reduzindo o tempo de espera no hospital.</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3>23.4. Relatórios &amp; Indicadores SADT (Analytics)</h3>
+<p>A sub-aba <strong>Relatórios &amp; Indicadores</strong> oferece à diretoria clínica e gerência de diagnóstico:</p>
+<ol>
+<li><strong>Demandas por Modalidade:</strong> Divisão visual entre Análises Clínicas, Radiologia Convencional (Raio-X), Tomografia, Ultrassonografia e Eletrocardiograma.</li>
+<li><strong>Distribuição por Setor de Origem:</strong> Comparativo de requisições vindas do Pronto-Socorro, UTI, Enfermaria e Consultórios.</li>
+<li><strong>Médicos Mais Demandantes:</strong> Relação dos profissionais com maior número de solicitações e respectivos percentuais de laudos emitidos.</li>
+<li><strong>Top 10 Exames Mais Solicitados:</strong> Gráfico de barras indicando os exames de maior volume no período.</li>
+<li><strong>Emissão de Relatório Oficial:</strong> O botão <code>🖨️ Imprimir Relatório SADT</code> gera uma folha executiva em PDF para reuniões de comissão hospitalar e prestação de contas SUS/ANS.</li>
+</ol>
+<hr>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.29 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

@@ -18,12 +18,16 @@ import { renderAttendanceTab } from './tabs/attendance.js';
 import { renderObservacaoTab } from './tabs/observacao.js';
 import { renderTISSTab, executeTISSClosure, openTISSEmissionModal, exportTISSBatchXML, exportPatientTISSXML } from './tabs/tiss.js';
 import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.js';
+import { renderExamsTab, updateExamsNavBadge, openExamResultModal } from './tabs/exams.js';
 
 window.renderTISSTab = renderTISSTab;
 window.executeTISSClosure = executeTISSClosure;
 window.openTISSEmissionModal = openTISSEmissionModal;
 window.exportTISSBatchXML = exportTISSBatchXML;
 window.exportPatientTISSXML = exportPatientTISSXML;
+window.renderExamsTab = renderExamsTab;
+window.updateExamsNavBadge = updateExamsNavBadge;
+window.openExamResultModal = openExamResultModal;
 import { realtimeHub } from './modules/realtime.js';
 import { setActivePatientContext, clearActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD, initFloatingWorkflowGuide, updateFloatingWorkflowGuide } from './modules/journey.js';
 import { generateMockData, generateHospitalizations } from './mockDataGenerator.js';
@@ -5304,6 +5308,7 @@ function renderAppStructure() {
     { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
     { id: 'consulta_dinamica', label: 'Consulta Dinâmica', icon: 'fa-magnifying-glass-chart' },
     { id: 'observacao', label: 'Observação do PS', icon: 'fa-bed-pulse', hasBadge: true },
+    { id: 'exames', label: 'Exames & Laboratório', icon: 'fa-microscope', hasBadge: true },
     { id: 'tv_panel', label: 'Painel TV (Chamador)', icon: 'fa-tv' },
     { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
     { id: 'leitos', label: 'Leitos', icon: 'fa-bed-pulse' },
@@ -5334,6 +5339,9 @@ function renderAppStructure() {
     } else if (item.id === 'observacao') {
       badgeId = 'observacao-nav-badge';
       badgeBg = '#f59e0b';
+    } else if (item.id === 'exames') {
+      badgeId = 'exames-nav-badge';
+      badgeBg = '#0ea5e9';
     }
     return `
     <li>
@@ -5655,6 +5663,11 @@ function renderAppStructure() {
 
   // Renderizar o conteúdo da aba ativa
   renderTabContent();
+
+  // Atualizar contadores visuais e badges
+  if (typeof window.updateExamsNavBadge === 'function') {
+    window.updateExamsNavBadge();
+  }
 
   // Card Guia: garantir que aparece com prioridade logo após a montagem do app
   _SFG.hidden = false;
@@ -6164,6 +6177,7 @@ function switchTab(tabName, isBack = false) {
     atendimento:   'Atendimentos',
     consulta_dinamica: 'Consulta Dinâmica (Localizador Geral)',
     observacao:    'Observação do PS',
+    exames:        'Central de Exames & Laboratório (SADT)',
     estagnacao:    'Alertas & Estagnação',
     leitos:        'Gestão de Leitos',
     kanban:        'Kanban de Internação',
@@ -6223,6 +6237,8 @@ function updateGlobalBackButton() {
     agenda: 'Agenda',
     atendimento: 'Atendimentos',
     consulta_dinamica: 'Consulta Dinâmica',
+    observacao: 'Observação',
+    exames: 'Exames',
     estagnacao: 'Alertas',
     leitos: 'Leitos',
     kanban: 'Kanban',
@@ -6285,6 +6301,9 @@ async function renderTabContent() {
     renderDynamicQueryTab(contentArea);
   } else if (state.activeTab === 'observacao') {
     renderObservacaoTab(contentArea);
+  } else if (state.activeTab === 'exames') {
+    if (typeof window.renderExamsTab === 'function') window.renderExamsTab(contentArea);
+    else if (typeof renderExamsTab === 'function') renderExamsTab(contentArea);
   } else if (state.activeTab === 'estagnacao') {
     if (typeof window.renderStagnationTab === 'function') await window.renderStagnationTab(contentArea);
     else if (typeof renderStagnationTab === 'function') await renderStagnationTab(contentArea);

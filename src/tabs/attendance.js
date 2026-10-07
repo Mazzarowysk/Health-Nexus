@@ -616,6 +616,7 @@ export function renderAttendanceTab(contentArea) {
       }
     } else if (isExams) {
       let reqCount = 0;
+      let completedCount = 0;
       let examNames = [];
       try {
         const db = (typeof window !== 'undefined' && window.localDB) ? window.localDB.getFullDB() : {};
@@ -626,21 +627,32 @@ export function renderAttendanceTab(contentArea) {
         );
         const allItems = reqs.flatMap(r => r.items || []);
         reqCount = allItems.length;
+        completedCount = allItems.filter(i => (i.status || 'Solicitado') === 'Concluído').length;
         examNames = allItems.map(i => i.name || i.examId);
       } catch (err) {}
 
-      obsBadgeHtml = `<div style="background:rgba(2,132,199,0.14); border:1px solid rgba(56,189,248,0.35); color:#e0f2fe; border-radius:8px; padding:7px 10px; font-size:0.74rem; margin-bottom:10px;">
-        <div style="font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px;">
-          <i class="fa-solid fa-flask-vial"></i> Aguardando Exames ${reqCount > 0 ? `(${reqCount} pedidos)` : ''}
-        </div>
-        ${examNames.length ? `<div style="font-size:0.7rem; color:#cbd5e1; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${examNames.slice(0, 3).join(', ')}${examNames.length > 3 ? ` (+${examNames.length - 3})` : ''}</div>` : ''}
-      </div>`;
+      if (reqCount > 0 && completedCount === reqCount) {
+        obsBadgeHtml = `<div style="background:rgba(16,185,129,0.18); border:1px solid rgba(52,211,153,0.45); color:#d1fae5; border-radius:8px; padding:7px 10px; font-size:0.74rem; margin-bottom:10px; animation: pulse 2s infinite;">
+          <div style="font-weight:700; color:#34d399; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-square-check"></i> Laudos Prontos (${completedCount}/${reqCount}) — Chamar para Conduta
+          </div>
+          ${examNames.length ? `<div style="font-size:0.7rem; color:#a7f3d0; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${examNames.slice(0, 3).join(', ')}${examNames.length > 3 ? ` (+${examNames.length - 3})` : ''}</div>` : ''}
+        </div>`;
+      } else {
+        obsBadgeHtml = `<div style="background:rgba(2,132,199,0.14); border:1px solid rgba(56,189,248,0.35); color:#e0f2fe; border-radius:8px; padding:7px 10px; font-size:0.74rem; margin-bottom:10px;">
+          <div style="font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-flask-vial"></i> Aguardando Exames ${reqCount > 0 ? `(${completedCount}/${reqCount} prontos)` : ''}
+          </div>
+          ${examNames.length ? `<div style="font-size:0.7rem; color:#cbd5e1; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${examNames.slice(0, 3).join(', ')}${examNames.length > 3 ? ` (+${examNames.length - 3})` : ''}</div>` : ''}
+        </div>`;
+      }
     }
 
-    const cardBorderColor = isObs ? '#f59e0b' : (isExams ? '#0284c7' : '#10b981');
-    const statusLabel = isObs ? 'Em Observação' : (isExams ? 'Aguardando Exames' : 'Em Consulta');
-    const statusColor = isObs ? '#f59e0b' : (isExams ? '#38bdf8' : '#10b981');
-    const timerColor = isObs ? '#f59e0b' : (isExams ? '#38bdf8' : '#10b981');
+    const isAllDone = isExams && reqCount > 0 && completedCount === reqCount;
+    const cardBorderColor = isObs ? '#f59e0b' : (isAllDone ? '#10b981' : (isExams ? '#0284c7' : '#10b981'));
+    const statusLabel = isObs ? 'Em Observação' : (isAllDone ? 'Laudos Liberados' : (isExams ? 'Aguardando Exames' : 'Em Consulta'));
+    const statusColor = isObs ? '#f59e0b' : (isAllDone ? '#34d399' : (isExams ? '#38bdf8' : '#10b981'));
+    const timerColor = isObs ? '#f59e0b' : (isAllDone ? '#34d399' : (isExams ? '#38bdf8' : '#10b981'));
 
     return `
       <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : (isExams ? '1px solid rgba(2,132,199,0.45)' : '1px solid rgba(16,185,129,0.3)')};border-left:4px solid ${cardBorderColor};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: '${e.status}', currentStep: 4, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">

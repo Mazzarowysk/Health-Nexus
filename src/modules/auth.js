@@ -26,7 +26,7 @@ export const getRolePermissions = (user) => {
       role: 'Master',
       label: '👑 Master (Acesso Total)',
       badgeColor: 'linear-gradient(135deg, #f59e0b, #d97706)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consulta_dinamica', 'observacao', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consulta_dinamica', 'observacao', 'exames', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
       canApproveUsers: true,
       canManageUsers: true,
       canDeleteRecords: true,
@@ -36,7 +36,8 @@ export const getRolePermissions = (user) => {
       canManagePharmacy: true,
       canManageFinance: true,
       canManageSchedules: true,
-      canEditProfessionals: true
+      canEditProfessionals: true,
+      canManageExams: true
     };
   }
 
@@ -46,7 +47,7 @@ export const getRolePermissions = (user) => {
       role: 'Desenvolvedor',
       label: '💻 Desenvolvedor',
       badgeColor: 'linear-gradient(135deg, #0d9488, #0f766e)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consulta_dinamica', 'observacao', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consulta_dinamica', 'observacao', 'exames', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -56,7 +57,8 @@ export const getRolePermissions = (user) => {
       canManagePharmacy: true,
       canManageFinance: true,
       canManageSchedules: true,
-      canEditProfessionals: true
+      canEditProfessionals: true,
+      canManageExams: true
     };
   }
 
@@ -65,7 +67,7 @@ export const getRolePermissions = (user) => {
       role: 'Administrador',
       label: '🛠️ Administrador',
       badgeColor: 'linear-gradient(135deg, #0284c7, #0369a1)',
-      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consulta_dinamica', 'observacao', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
+      allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consulta_dinamica', 'observacao', 'exames', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'financeiro', 'tiss', 'relatorios', 'configuracoes'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: true,
@@ -75,7 +77,8 @@ export const getRolePermissions = (user) => {
       canManagePharmacy: true,
       canManageFinance: true,
       canManageSchedules: true,
-      canEditProfessionals: true
+      canEditProfessionals: true,
+      canManageExams: true
     };
   }
 
@@ -84,7 +87,7 @@ export const getRolePermissions = (user) => {
       role: 'Enfermeiro',
       label: '🩺 Enfermeiro(a)',
       badgeColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'atendimento', 'consulta_dinamica', 'observacao', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban'],
+      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'atendimento', 'consulta_dinamica', 'observacao', 'exames', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -94,7 +97,8 @@ export const getRolePermissions = (user) => {
       canManagePharmacy: true,
       canManageFinance: false,
       canManageSchedules: true,
-      canEditProfessionals: false
+      canEditProfessionals: false,
+      canManageExams: true
     };
   }
 
@@ -141,7 +145,7 @@ export const getRolePermissions = (user) => {
       role: 'Biomédico',
       label: '🧪 Biomédico(a)',
       badgeColor: 'linear-gradient(135deg, #14b8a6, #0d9488)',
-      allowedTabs: ['dashboard', 'pacientes', 'atendimento', 'consulta_dinamica', 'consultorios', 'relatorios'],
+      allowedTabs: ['dashboard', 'pacientes', 'exames', 'atendimento', 'consulta_dinamica', 'consultorios', 'relatorios'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -151,7 +155,8 @@ export const getRolePermissions = (user) => {
       canManagePharmacy: false,
       canManageFinance: false,
       canManageSchedules: false,
-      canEditProfessionals: false
+      canEditProfessionals: false,
+      canManageExams: true
     };
   }
 
@@ -179,7 +184,7 @@ export const getRolePermissions = (user) => {
       role: 'Auxiliar de Enfermagem',
       label: '🏥 Aux. de Enfermagem',
       badgeColor: 'linear-gradient(135deg, #64748b, #475569)',
-      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'atendimento', 'consulta_dinamica', 'observacao', 'consultorios', 'leitos', 'kanban'],
+      allowedTabs: ['dashboard', 'pacientes', 'escalas', 'atendimento', 'consulta_dinamica', 'observacao', 'exames', 'consultorios', 'leitos', 'kanban'],
       canApproveUsers: false,
       canManageUsers: false,
       canDeleteRecords: false,
@@ -189,7 +194,8 @@ export const getRolePermissions = (user) => {
       canManagePharmacy: false,
       canManageFinance: false,
       canManageSchedules: false,
-      canEditProfessionals: false
+      canEditProfessionals: false,
+      canManageExams: false
     };
   }
 
@@ -198,7 +204,7 @@ export const getRolePermissions = (user) => {
     role: 'Médico',
     label: '🩺 Médico',
     badgeColor: 'linear-gradient(135deg, #10b981, #059669)',
-    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consulta_dinamica', 'observacao', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'relatorios'],
+    allowedTabs: ['dashboard', 'pacientes', 'medicos', 'escalas', 'agenda', 'atendimento', 'consulta_dinamica', 'observacao', 'exames', 'consultorios', 'farmacia', 'tv_panel', 'estagnacao', 'leitos', 'kanban', 'relatorios'],
     canApproveUsers: false,
     canManageUsers: false,
     canDeleteRecords: false,
@@ -208,7 +214,8 @@ export const getRolePermissions = (user) => {
     canManagePharmacy: true,
     canManageFinance: false,
     canManageSchedules: true,
-    canEditProfessionals: false
+    canEditProfessionals: false,
+    canManageExams: true
   };
 };
 

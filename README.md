@@ -1,12 +1,29 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.28`  
+**Versão:** `2.9.29`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🧪 **Aba Exclusiva "Exames & Laboratório (SADT)" — Ciclo Fechado de Laudos, Rastreabilidade & Analytics (v2.9.29):**
+  1. **Nova Aba no Menu Principal (`fa-microscope`):** Adicionada oficialmente na barra lateral com badge de pendências em tempo real, integrando o corpo clínico solicitante (médicos) ao setor técnico executor (biomédicos, radiologistas e técnicos de laboratório).
+  2. **Bancada de Trabalho Técnica em Tempo Real:**
+     - Recepção instantânea de pedidos gerados no PEP (CPOE) organizados por gravidade com destaque para *Emergência* (vermelho), *Urgente* (âmbar) e *Rotina* (azul).
+     - Rastreabilidade total com identificação de quem pediu (médico e CRM), de qual setor (PS, Consultórios, UTI, Leitos, Observação), data/hora de abertura e tempo decorrido.
+     - Botão de ação rápida `[ 📥 Dar Aceite Técnico ]` por item ou em lote para sinalizar início da coleta/análise.
+  3. **Lançamento Estruturado de Laudos & Devolução Automática ao PEP:**
+     - Modal dedicado com formulário para resultados laboratoriais quantitativos/qualitativos e laudo descritivo completo para exames radiológicos e de imagem (Raio-X, Tomografia, Ultrassom).
+     - Identificação e assinatura do responsável técnico (Biomédico/Radiologista) com conclusão diagnóstica (*Normal*, *Alterado*, *Crítico*).
+     - Ao finalizar, o exame é devolvido automaticamente ao Prontuário do Paciente (PEP), atualizando o status do atendimento no Kanban para `✅ Laudos Prontos — Chamar para Conduta`.
+  4. **Sub-Aba de Indicadores & Relatórios SADT (Analytics):**
+     - Distribuição por modalidade diagnóstica (Laboratório, Raio-X & Imagem, Métodos Gráficos, Alta Complexidade).
+     - Volume de demanda por setor hospitalar solicitante.
+     - Ranking de médicos solicitantes e Top 10 exames mais demandados da instituição.
+     - Botão de exportação e impressão de Relatório Gerencial do SADT (PDF).
+  5. **Auto-Recuperação & Exemplos de Demonstração:** Botão de ação rápida `[ 🌱 Carregar Exemplos ]` para validar e demonstrar o fluxo completo de bancada em bases recém-iniciadas.
 
 - 🩻 **Expansão do Catálogo de Raio-X & Busca Inteligente com Sinônimos Médicos no PEP (v2.9.28):**
   1. **Catálogo Completo de Radiografia (Raio-X):** Inclusão e enriquecimento de exames radiológicos essenciais de pronto-socorro e ambulatório:
