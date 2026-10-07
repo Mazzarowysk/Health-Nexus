@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.32)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.33)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.32 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação e relatórios analíticos dinâmicos com filtros inclusivos e dados simulados integrados. Testado e homologado com 100% das 18 abas operacionais.</p>
+<p><strong>Health Nexus v2.9.33 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação e relatórios analíticos dinâmicos com filtros inclusivos e novo módulo de Exames &amp; Laboratório (SADT) integrado. Testado e homologado com 100% das 18 abas operacionais.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -3193,7 +3193,7 @@ flowchart TD
 </tr>
 </tbody></table>
 <hr>
-<h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2><p>Na aba <strong>Relatórios</strong>, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria, comutando entre 5 visões estruturadas: <strong>Pacientes</strong>, <strong>Atendimentos &amp; PEP</strong>, <strong>Financeiro</strong>, <strong>Por Médico</strong> e <strong>Escalas &amp; Plantões</strong>.</p>
+<h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2><p>Na aba <strong>Relatórios</strong>, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria, comutando entre 6 visões estruturadas: <strong>Pacientes</strong>, <strong>Atendimentos &amp; PEP</strong>, <strong>Financeiro</strong>, <strong>Por Médico</strong>, <strong>Escalas &amp; Plantões</strong> e <strong>Exames &amp; Laudos (SADT)</strong>.</p>
 <p><img src="docs/screenshots/14-relatorios.png" alt="Figura 12.1: Relatórios Analytics &amp; Indicadores Hospitalares — DRE e Ocupação"></p>
 <h3>📈 Tabela de Painéis Analíticos Hospitalares</h3>
 <table>
@@ -3241,12 +3241,42 @@ flowchart TD
 <td align="center">PDF / CSV</td>
 <td align="left">Gestão de Escalas &amp; Recursos Humanos</td>
 </tr>
+<tr>
+<td align="left"><strong>Exames &amp; Laudos (SADT)</strong></td>
+<td align="left">Pedidos, itens por modalidade, taxa de laudos prontos, TAT médio e casos críticos</td>
+<td align="center">Período / Modalidade / Status / Prioridade / Conclusão / Setor / Médico</td>
+<td align="center">PDF Laudos / Excel / CSV</td>
+<td align="left">Coordenação SADT, Radiologia &amp; Diretoria Clínica</td>
+</tr>
 </tbody></table>
-<h3>🛠️ Filtros Inteligentes &amp; Integração com Simulação de Dados (v2.9.32)</h3>
+<h3>🔬 Módulo Analítico de Exames &amp; Laudos (SADT) na Aba Relatórios (v2.9.33)</h3>
 <ol>
-<li><strong>Comportamento Padrão Inclusivo:</strong> Ao acessar o módulo ou após simular dados na aba de configurações, o seletor de Cidades e Status permanece como <em>&quot;Todos&quot;</em> por padrão, exibindo todos os registros gerados sem necessidade de marcação manual prévia.</li>
-<li><strong>Compatibilidade com Dados Simulados:</strong> O gerador de dados mock atribui automaticamente municípios brasileiros realistas (<code>city</code>) e faturamentos representativos (<code>billingValue</code>) a todos os pacientes simulados, garantindo gráficos e tabelas povoados imediatamente após a simulação.</li>
-<li><strong>Resiliência Local-First:</strong> Em caso de oscilação de rede ou cache em renovação, o módulo de relatórios lê diretamente a base local do hospital (<code>localDB</code>), assegurando integridade e agilidade analítica.</li>
+<li><strong>Acesso Direto em 1 Clique:</strong> Disponível através do card <code>[ 🔬 Exames &amp; Laudos ]</code> no cabeçalho de seleção da aba de Relatórios.</li>
+<li><strong>Filtros Especializados de Diagnóstico:</strong><ul>
+<li><strong>Modalidades:</strong> Laboratório Clínico, Radiologia / Raio-X, Métodos Gráficos (ECG) e Alta Complexidade (Tomografia / Ressonância).</li>
+<li><strong>Status &amp; Conclusões:</strong> Filtro cruzado entre estágio operacional (<em>Concluído</em>, <em>Em Andamento</em>, <em>Solicitado</em>) e resultado clínico (<em>Normal</em>, <em>Alterado</em>, <em>Crítico</em>).</li>
+<li><strong>Filtros Organizacionais:</strong> Seleção rápida por Setor Solicitante (PS, UTI, Leitos, Consultórios) e por Médico Solicitante (com CRM).</li>
+</ul>
+</li>
+<li><strong>Quadro Executivo de Indicadores (KPIs):</strong><ul>
+<li><em>Total de Pedidos e Exames:</em> Volume consolidado da instituição no período filtrado.</li>
+<li><em>Taxa de Laudos Prontos (%):</em> Percentual de exames com laudo já emitido e assinado.</li>
+<li><em>Casos Críticos Sinalizados:</em> Quantidade de resultados que exigem atenção médica imediata.</li>
+<li><em>Tempo Médio de Liberação (TAT):</em> Giro médio de tempo entre a solicitação médica e o laudo liberado.</li>
+</ul>
+</li>
+<li><strong>Gráficos Dinâmicos Chart.js:</strong><ul>
+<li><strong>Rosca de Modalidades:</strong> Visualização percentual entre exames de sangue, radiologia, ECG e tomografia.</li>
+<li><strong>Barras de Setor:</strong> Ranking de áreas do hospital que mais demandam exames diagnósticos.</li>
+<li><strong>Top 5 Exames Mais Solicitados:</strong> Destaque dos procedimentos com maior recorrência clínica.</li>
+</ul>
+</li>
+</ol>
+<h3>🛠️ Filtros Inteligentes &amp; Integração com Simulação de Dados (v2.9.32 / v2.9.33)</h3>
+<ol>
+<li><strong>Comportamento Padrão Inclusivo:</strong> Ao acessar o módulo ou após simular dados na aba de configurações, os seletores permanecem como <em>&quot;Todos&quot;</em> por padrão, exibindo todos os registros gerados sem descarte indevido.</li>
+<li><strong>Geração Realista de Exames Mock:</strong> O gerador de dados simulados agora popula automaticamente dezenas de pedidos de exames com status variados (<em>Concluído</em>, <em>Em Andamento</em>, <em>Solicitado</em>), laudos normais/críticos e tempos de atendimento realistas.</li>
+<li><strong>Resiliência Local-First:</strong> Em caso de oscilação de rede ou renovação de cache, o módulo de relatórios lê diretamente a base local do hospital (<code>localDB</code>), assegurando integridade e agilidade analítica.</li>
 </ol>
 <hr>
 <h2 id="sec-13">13. Painel de Chamada TV & Sala de Espera</h2><p>O <strong>Painel TV</strong> opera em tela cheia na sala de espera para direcionamento sonoro e visual dos pacientes por viva-voz sintetizado.</p>
@@ -3968,7 +3998,7 @@ flowchart TD
 <li><strong>Acessibilidade e Rapidez:</strong> O profissional pode pressionar <code>Enter</code> para confirmar imediatamente ou <code>Escape</code> para fechar e cancelar, além de poder clicar no botão de fechar (x) ou fora do modal.</li>
 </ul>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.31 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.33 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>

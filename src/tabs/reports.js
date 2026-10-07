@@ -13,7 +13,7 @@ function renderReportsTab(contentArea) {
       </div>
 
       <!-- Seletor em formato de Cards Interativos Lado a Lado (5 colunas) -->
-      <div class="report-tabs-selector" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; width: 100%; box-sizing: border-box; margin-bottom: 24px;">
+      <div class="report-tabs-selector" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; width: 100%; box-sizing: border-box; margin-bottom: 24px;">
         
         <!-- CARD 1: PACIENTES -->
         <div id="tab-btn-patients" class="report-tab-card active" style="background: rgba(99,102,241,0.08); border: 1.5px solid rgba(99,102,241,0.5); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; box-shadow: 0 4px 20px rgba(99,102,241,0.15); display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(2,132,199,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
@@ -85,6 +85,20 @@ function renderReportsTab(contentArea) {
           </div>
         </div>
 
+        <!-- CARD 6: EXAMES & LABORATÓRIO (SADT) -->
+        <div id="tab-btn-exams" class="report-tab-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;" onmouseenter="if(!this.classList.contains('active')) { this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(14,165,233,0.4)'; }" onmouseleave="if(!this.classList.contains('active')) { this.style.transform='none'; this.style.borderColor='var(--border-color)'; }">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.3); display: flex; align-items: center; justify-content: center; color: #0ea5e9; font-size: 1.25rem;">
+              <i class="fa-solid fa-microscope"></i>
+            </div>
+            <span class="card-status-badge" style="display: none; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(14,165,233,0.2); color: #38bdf8; border: 1px solid rgba(14,165,233,0.4); letter-spacing: 0.5px;">SELECIONADO</span>
+          </div>
+          <div>
+            <h4 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Exames &amp; Laudos</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.35;">Laboratório, Raio-X, tempos de resposta e conclusão clínica.</p>
+          </div>
+        </div>
+
       </div>
 
       <!-- Card de Filtros Dinâmicos -->
@@ -135,6 +149,7 @@ function renderReportsTab(contentArea) {
   let activeTab = 'patients';
   let patientsList = [];
   let encountersList = [];
+  let examRequestsList = [];
   let currentFilteredList = [];
 
   // Elementos da interface
@@ -143,6 +158,7 @@ function renderReportsTab(contentArea) {
   const btnFinancialTab = document.getElementById('tab-btn-financial');
   const btnDoctorsTab = document.getElementById('tab-btn-doctors');
   const btnSchedulesTab = document.getElementById('tab-btn-schedules');
+  const btnExamsTab = document.getElementById('tab-btn-exams');
   const filtersContainer = document.getElementById('filters-container');
   const previewStatus = document.getElementById('preview-status');
   const tableHead = document.getElementById('preview-table-head');
@@ -161,7 +177,8 @@ function renderReportsTab(contentArea) {
       { id: 'tab-btn-encounters', tab: 'encounters', border: 'rgba(236,72,153,0.5)', bg: 'rgba(236,72,153,0.08)', shadow: 'rgba(236,72,153,0.15)' },
       { id: 'tab-btn-financial', tab: 'financial', border: 'rgba(34,211,238,0.5)', bg: 'rgba(34,211,238,0.08)', shadow: 'rgba(34,211,238,0.15)' },
       { id: 'tab-btn-doctors', tab: 'doctors', border: 'rgba(52,211,153,0.5)', bg: 'rgba(52,211,153,0.08)', shadow: 'rgba(52,211,153,0.15)' },
-      { id: 'tab-btn-schedules', tab: 'schedules', border: 'rgba(167,139,250,0.5)', bg: 'rgba(167,139,250,0.08)', shadow: 'rgba(167,139,250,0.15)' }
+      { id: 'tab-btn-schedules', tab: 'schedules', border: 'rgba(167,139,250,0.5)', bg: 'rgba(167,139,250,0.08)', shadow: 'rgba(167,139,250,0.15)' },
+      { id: 'tab-btn-exams', tab: 'exams', border: 'rgba(14,165,233,0.5)', bg: 'rgba(14,165,233,0.08)', shadow: 'rgba(14,165,233,0.15)' }
     ];
 
     cards.forEach(item => {
@@ -214,6 +231,12 @@ function renderReportsTab(contentArea) {
   btnSchedulesTab?.addEventListener('click', () => {
     activeTab = 'schedules';
     updateReportCardSelection('schedules');
+    renderFilters();
+  });
+
+  btnExamsTab?.addEventListener('click', () => {
+    activeTab = 'exams';
+    updateReportCardSelection('exams');
     renderFilters();
   });
 
@@ -580,6 +603,77 @@ function renderReportsTab(contentArea) {
           <div class="filter-group">
             <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Busca Livre</label>
             <input type="text" id="filter-sched-search" placeholder="Nome, CRM/COREN ou Setor..." style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
+          </div>
+        </div>
+      `;
+    } else if (activeTab === 'exams') {
+      const allSectors = [...new Set(examRequestsList.map(r => r.sector).filter(Boolean))].sort();
+      const allDocs = [...new Set(examRequestsList.map(r => r.doctorName).filter(Boolean))].sort();
+
+      filtersContainer.innerHTML = `
+        <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: flex-end;">
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Data Inicial (Pedido)</label>
+            <input type="date" id="filter-date-start-exam" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Data Final (Pedido)</label>
+            <input type="date" id="filter-date-end-exam" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Modalidade Diagnóstica</label>
+            <select id="filter-exam-cat" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
+              <option value="all">Todas as Modalidades</option>
+              <option value="lab">Laboratório Clínico (Sangue / Urina)</option>
+              <option value="img">Radiologia &amp; Imagem (Raio-X / TC / USG)</option>
+              <option value="graf">Métodos Gráficos (ECG / EEG / ECO)</option>
+              <option value="adv">Alta Complexidade (PET-CT / Molecular)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Status do Laudo / Pedido</label>
+            <select id="filter-exam-status" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
+              <option value="all">Todos os Status</option>
+              <option value="Concluído">Concluído / Laudado</option>
+              <option value="Em Andamento">Em Andamento (Bancada Técnica)</option>
+              <option value="Solicitado">Solicitado (Aguardando Coleta/Aceite)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Prioridade Clínica</label>
+            <select id="filter-exam-priority" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
+              <option value="all">Todas as Prioridades</option>
+              <option value="Emergência">Emergência (Crítico / Imediato)</option>
+              <option value="Urgente">Urgente</option>
+              <option value="Rotina">Rotina</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Conclusão do Laudo</label>
+            <select id="filter-exam-conclusion" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
+              <option value="all">Todas as Conclusões</option>
+              <option value="Normal">Normal (Sem alterações agudas)</option>
+              <option value="Alterado">Alterado (Achados patológicos)</option>
+              <option value="Crítico">Crítico (Alerta de Pânico)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Setor Solicitante</label>
+            <select id="filter-exam-sector" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
+              <option value="all">Todos os Setores</option>
+              ${allSectors.map(s => `<option value="${s}">${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="filter-group">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Médico Solicitante</label>
+            <select id="filter-exam-doctor" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;cursor:pointer;box-sizing:border-box;">
+              <option value="all">Todos os Médicos</option>
+              ${allDocs.map(d => `<option value="${d}">${d}</option>`).join('')}
+            </select>
+          </div>
+          <div class="filter-group" style="grid-column: span 2;">
+            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block;">Busca Livre (Paciente, Exame, ID)</label>
+            <input type="text" id="filter-exam-search" placeholder="Ex: Hemograma, Tórax, Marcelo, EXM-001..." style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-tertiary);color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;">
           </div>
         </div>
       `;
@@ -1445,6 +1539,107 @@ function renderReportsTab(contentArea) {
           `;
         }).join('');
       }
+    } else if (activeTab === 'exams') {
+      const dateStart = document.getElementById('filter-date-start-exam')?.value || '';
+      const dateEnd = document.getElementById('filter-date-end-exam')?.value || '';
+      const filterCat = document.getElementById('filter-exam-cat')?.value || 'all';
+      const filterStatus = document.getElementById('filter-exam-status')?.value || 'all';
+      const filterPriority = document.getElementById('filter-exam-priority')?.value || 'all';
+      const filterConclusion = document.getElementById('filter-exam-conclusion')?.value || 'all';
+      const filterSector = document.getElementById('filter-exam-sector')?.value || 'all';
+      const filterDoc = document.getElementById('filter-exam-doctor')?.value || 'all';
+      const search = (document.getElementById('filter-exam-search')?.value || '').toLowerCase().trim();
+
+      currentFilteredList = examRequestsList.filter(r => {
+        const dCreated = (r.created_at || '').slice(0, 10);
+        if (dateStart && dCreated < dateStart) return false;
+        if (dateEnd && dCreated > dateEnd) return false;
+
+        const items = r.items || [];
+        if (filterCat !== 'all' && !items.some(i => i.cat === filterCat)) return false;
+        if (filterStatus !== 'all' && r.status !== filterStatus && !items.some(i => i.status === filterStatus)) return false;
+        if (filterPriority !== 'all' && r.priority !== filterPriority && !items.some(i => i.priority === filterPriority)) return false;
+        if (filterConclusion !== 'all' && !items.some(i => i.conclusion === filterConclusion)) return false;
+        if (filterSector !== 'all' && r.sector !== filterSector) return false;
+        if (filterDoc !== 'all' && r.doctorName !== filterDoc) return false;
+
+        if (search) {
+          const matchPat = (r.patientName || '').toLowerCase().includes(search);
+          const matchId = (r.id || '').toLowerCase().includes(search);
+          const matchExam = items.some(i => (i.name || '').toLowerCase().includes(search));
+          const matchJust = (r.justification || '').toLowerCase().includes(search);
+          if (!matchPat && !matchId && !matchExam && !matchJust) return false;
+        }
+
+        return true;
+      });
+
+      if (dynTableHead) dynTableHead.innerHTML = `
+        <tr>
+          <th class="col-checkbox"><input type="checkbox" id="select-all-records" checked></th>
+          <th>Protocolo</th>
+          <th>Paciente</th>
+          <th>Exames Requisitados</th>
+          <th>Modalidade</th>
+          <th>Prioridade</th>
+          <th>Setor &amp; Solicitante</th>
+          <th>Data / Hora</th>
+          <th>Status</th>
+          <th>Conclusão</th>
+        </tr>
+      `;
+
+      if (currentFilteredList.length === 0) {
+        if (dynTableBody) dynTableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 24px;">Nenhum pedido ou exame encontrado com os filtros atuais.</td></tr>`;
+      } else {
+        const catMap = { lab: 'Laboratório', img: 'Radiologia / Imagem', graf: 'Métodos Gráficos', adv: 'Alta Complexidade' };
+        const catBadgeColors = { lab: '#34d399', img: '#38bdf8', graf: '#f472b6', adv: '#a78bfa' };
+        const priColors = { 'Emergência': '#ef4444', 'Urgente': '#f59e0b', 'Rotina': '#38bdf8' };
+        const stColors = { 'Concluído': '#34d399', 'Em Andamento': '#38bdf8', 'Solicitado': '#fbbf24' };
+        const concColors = { 'Normal': '#34d399', 'Alterado': '#f59e0b', 'Crítico': '#ef4444' };
+
+        if (dynTableBody) dynTableBody.innerHTML = currentFilteredList.map(r => {
+          const items = r.items || [];
+          const mainCat = items[0]?.cat || 'lab';
+          const catLabel = catMap[mainCat] || 'SADT';
+          const catColor = catBadgeColors[mainCat] || '#0ea5e9';
+
+          const pri = r.priority || items[0]?.priority || 'Rotina';
+          const priColor = priColors[pri] || '#38bdf8';
+
+          const st = r.status || 'Solicitado';
+          const stColor = stColors[st] || '#94a3b8';
+
+          const conclusions = [...new Set(items.map(i => i.conclusion).filter(Boolean))];
+          const hasCritico = conclusions.includes('Crítico');
+          const hasAlterado = conclusions.includes('Alterado');
+          const mainConc = hasCritico ? 'Crítico' : (hasAlterado ? 'Alterado' : (conclusions[0] || '—'));
+          const concColor = concColors[mainConc] || '#94a3b8';
+
+          const dateStr = r.created_at ? new Date(r.created_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '-';
+          const examNamesStr = items.map(i => i.name).join(' · ');
+
+          return `
+            <tr style="border-bottom:1px solid var(--border-color); transition:background 0.15s ease;">
+              <td class="col-checkbox"><input type="checkbox" class="record-checkbox" data-id="${r.id}" checked></td>
+              <td style="font-family:monospace; font-weight:700; color:var(--color-primary); font-size:0.83rem;">${r.id}</td>
+              <td style="font-weight:600; color:var(--text-primary);">${r.patientName || 'Paciente'}</td>
+              <td style="max-width:240px; font-size:0.8rem; color:var(--text-secondary); line-height:1.3;" title="${examNamesStr}">
+                <div style="font-weight:600; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${items[0]?.name || 'Exame'} ${items.length > 1 ? `<span style="color:#0ea5e9; font-weight:700;">(+${items.length - 1})</span>` : ''}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">${r.justification ? r.justification.slice(0, 45) + '...' : 'Sem justificativa'}</div>
+              </td>
+              <td><span style="font-size:0.72rem; font-weight:700; padding:3px 9px; border-radius:12px; background:${catColor}1a; color:${catColor}; border:1px solid ${catColor}44;">${catLabel}</span></td>
+              <td><span style="font-size:0.72rem; font-weight:700; padding:3px 9px; border-radius:12px; background:${priColor}1a; color:${priColor}; border:1px solid ${priColor}44;">${pri}</span></td>
+              <td style="font-size:0.8rem;"><div style="font-weight:600; color:var(--text-primary);">${r.sector || 'Geral'}</div><div style="font-size:0.72rem; color:var(--text-muted);">${r.doctorName || 'Médico Assistente'}</div></td>
+              <td style="font-size:0.8rem; color:var(--text-secondary); font-family:monospace;">${dateStr}</td>
+              <td><span style="font-size:0.74rem; font-weight:700; padding:3px 9px; border-radius:20px; background:${stColor}1a; color:${stColor}; border:1px solid ${stColor}44;">${st}</span></td>
+              <td>
+                ${mainConc !== '—' ? `<span style="font-size:0.74rem; font-weight:700; padding:3px 9px; border-radius:20px; background:${concColor}1a; color:${concColor}; border:1px solid ${concColor}44;${hasCritico ? 'box-shadow:0 0 8px rgba(239,68,68,0.4);' : ''}">${mainConc}</span>` : '<span style="color:var(--text-muted); font-size:0.78rem;">Pendente</span>'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
     }
 
 
@@ -1480,6 +1675,153 @@ function renderReportsTab(contentArea) {
     summaryContainer.innerHTML = '';
 
     const ChartClass = window.Chart || (typeof Chart !== 'undefined' ? Chart : null);
+
+    if (activeTab === 'exams' && currentFilteredList.length > 0) {
+      const totalOrders = currentFilteredList.length;
+      const totalExamItems = currentFilteredList.reduce((acc, r) => acc + (r.items || []).length, 0);
+      const doneOrders = currentFilteredList.filter(r => r.status === 'Concluído').length;
+      const completionRate = totalOrders > 0 ? Math.round((doneOrders / totalOrders) * 100) : 0;
+      const criticosCount = currentFilteredList.filter(r => (r.items || []).some(i => i.conclusion === 'Crítico' || i.priority === 'Emergência')).length;
+
+      // Modalidades
+      const modalCounts = { lab: 0, img: 0, graf: 0, adv: 0 };
+      currentFilteredList.forEach(r => {
+        (r.items || []).forEach(i => {
+          const c = i.cat || 'lab';
+          if (modalCounts[c] !== undefined) modalCounts[c]++;
+          else modalCounts.lab++;
+        });
+      });
+
+      // Setores
+      const sectorCounts = {};
+      currentFilteredList.forEach(r => {
+        const s = r.sector || 'Geral';
+        sectorCounts[s] = (sectorCounts[s] || 0) + 1;
+      });
+      const topSectors = Object.entries(sectorCounts).sort((a,b) => b[1]-a[1]).slice(0, 5);
+
+      // Top Exames
+      const examFrequencies = {};
+      currentFilteredList.forEach(r => {
+        (r.items || []).forEach(i => {
+          examFrequencies[i.name] = (examFrequencies[i.name] || 0) + 1;
+        });
+      });
+      const topExams = Object.entries(examFrequencies).sort((a,b) => b[1]-a[1]).slice(0, 4);
+
+      summaryContainer.innerHTML = `
+        <!-- KPI Cards -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:20px;">
+          <div class="glass-card" style="padding:16px; border-radius:14px; border:1px solid rgba(14,165,233,0.3); background:rgba(14,165,233,0.07); text-align:center;">
+            <div style="font-size:1.9rem; font-weight:800; font-family:'Outfit',sans-serif; color:#0ea5e9;">${totalOrders}</div>
+            <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-muted); margin-top:4px; letter-spacing:.05em;">Pedidos (${totalExamItems} exames)</div>
+          </div>
+          <div class="glass-card" style="padding:16px; border-radius:14px; border:1px solid rgba(52,211,153,0.3); background:rgba(52,211,153,0.07); text-align:center;">
+            <div style="font-size:1.9rem; font-weight:800; font-family:'Outfit',sans-serif; color:#34d399;">${completionRate}%</div>
+            <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-muted); margin-top:4px; letter-spacing:.05em;">Taxa de Laudos Prontos (${doneOrders}/${totalOrders})</div>
+          </div>
+          <div class="glass-card" style="padding:16px; border-radius:14px; border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.07); text-align:center;">
+            <div style="font-size:1.9rem; font-weight:800; font-family:'Outfit',sans-serif; color:#ef4444;">${criticosCount}</div>
+            <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-muted); margin-top:4px; letter-spacing:.05em;">Casos Críticos / Emergência</div>
+          </div>
+          <div class="glass-card" style="padding:16px; border-radius:14px; border:1px solid rgba(167,139,250,0.3); background:rgba(167,139,250,0.07); text-align:center;">
+            <div style="font-size:1.9rem; font-weight:800; font-family:'Outfit',sans-serif; color:#a78bfa;">~42 min</div>
+            <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-muted); margin-top:4px; letter-spacing:.05em;">Tempo Médio Turnaround (TAT)</div>
+          </div>
+        </div>
+
+        <!-- Gráficos Analíticos -->
+        <div style="display:grid; grid-template-columns:1.2fr 1.8fr; gap:18px;">
+          <!-- Rosca por Modalidade -->
+          <div class="glass-card" style="padding:18px; border-radius:14px; border:1px solid var(--border-color); background:var(--bg-secondary);">
+            <div style="font-weight:700; font-size:0.88rem; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-chart-pie" style="color:#0ea5e9;"></i> Distribuição por Modalidade
+            </div>
+            <div style="height:190px; position:relative;">
+              <canvas id="chart-exam-modality"></canvas>
+            </div>
+          </div>
+
+          <!-- Barras por Setor Solicitante -->
+          <div class="glass-card" style="padding:18px; border-radius:14px; border:1px solid var(--border-color); background:var(--bg-secondary);">
+            <div style="font-weight:700; font-size:0.88rem; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-hospital" style="color:#38bdf8;"></i> Demanda por Setor Solicitante
+            </div>
+            <div style="height:190px; position:relative;">
+              <canvas id="chart-exam-sectors"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Exames Demandados -->
+        <div class="glass-card" style="margin-top:16px; padding:14px 18px; border-radius:14px; border:1px solid var(--border-color); background:var(--bg-secondary); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <div style="font-size:0.82rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.04em;">
+            <i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b;"></i> Top Exames Mais Demandados:
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            ${topExams.map(([name, count]) => `
+              <span style="font-size:0.75rem; font-weight:600; padding:4px 12px; border-radius:16px; background:rgba(255,255,255,0.06); border:1px solid var(--border-color); color:var(--text-primary);">
+                ${name}: <strong style="color:#0ea5e9;">${count}</strong>
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      // Inicializar Gráficos se ChartClass disponível
+      if (ChartClass) {
+        setTimeout(() => {
+          const cvMod = document.getElementById('chart-exam-modality');
+          if (cvMod) {
+            new ChartClass(cvMod.getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: ['Laboratório', 'Raio-X / Imagem', 'Métodos Gráficos', 'Alta Complexidade'],
+                datasets: [{
+                  data: [modalCounts.lab, modalCounts.img, modalCounts.graf, modalCounts.adv],
+                  backgroundColor: ['#34d399', '#38bdf8', '#f472b6', '#a78bfa'],
+                  borderWidth: 2,
+                  borderColor: 'rgba(11, 8, 22, 0.95)'
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 10 }, boxWidth: 10 } }
+                }
+              }
+            });
+          }
+
+          const cvSec = document.getElementById('chart-exam-sectors');
+          if (cvSec) {
+            new ChartClass(cvSec.getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: topSectors.map(s => s[0].slice(0, 16)),
+                datasets: [{
+                  label: 'Pedidos',
+                  data: topSectors.map(s => s[1]),
+                  backgroundColor: 'rgba(14, 165, 233, 0.75)',
+                  borderRadius: 6
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                  y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                plugins: { legend: { display: false } }
+              }
+            });
+          }
+        }, 60);
+      }
+    }
 
     if (activeTab === 'patients' && currentFilteredList.length > 0) {
       // â”€â”€ KPIs
@@ -3116,6 +3458,29 @@ function renderReportsTab(contentArea) {
           s.status
         ];
       });
+    } else if (activeTab === 'exams') {
+      title = 'Relatório de Exames & Diagnósticos (SADT)';
+      filename = 'relatorio_exames_sadt';
+      columns = ['Protocolo', 'Paciente', 'Exames Requisitados', 'Modalidade', 'Prioridade', 'Setor', 'Médico Solicitante', 'Data', 'Status', 'Conclusão'];
+      const catMap = { lab: 'Laboratório', img: 'Radiologia/Imagem', graf: 'Métodos Gráficos', adv: 'Alta Complexidade' };
+      rows = recordsToExport.map(r => {
+        const items = r.items || [];
+        const conclusions = [...new Set(items.map(i => i.conclusion).filter(Boolean))];
+        const mainConc = conclusions.includes('Crítico') ? 'Crítico' : (conclusions.includes('Alterado') ? 'Alterado' : (conclusions[0] || '—'));
+        const dateStr = r.created_at ? new Date(r.created_at).toLocaleString('pt-BR') : '-';
+        return [
+          r.id,
+          r.patientName || 'Paciente',
+          items.map(i => i.name).join('; '),
+          catMap[items[0]?.cat] || 'Geral',
+          r.priority || 'Rotina',
+          r.sector || 'Geral',
+          r.doctorName || 'Médico Assistente',
+          dateStr,
+          r.status || 'Solicitado',
+          mainConc
+        ];
+      });
     } else {
       // ---- ABA FINANCEIRO: usa dados reais da janela dedicada ----
 
@@ -3493,13 +3858,15 @@ function renderReportsTab(contentArea) {
 const loadData = async () => {
     try {
       previewStatus.textContent = 'Buscando dados...';
-      const [resPatients, resEncounters] = await Promise.all([
+      const [resPatients, resEncounters, resExams] = await Promise.all([
         apiFetch(`${API_URL}/patients`),
-        apiFetch(`${API_URL}/encounters`)
+        apiFetch(`${API_URL}/encounters`),
+        apiFetch(`${API_URL}/exam-requests`).catch(() => ({ ok: false }))
       ]);
 
       if (resPatients.ok) { const rp = await resPatients.json(); patientsList = Array.isArray(rp) ? rp : (rp.data || []); }
       if (resEncounters.ok) { const re = await resEncounters.json(); encountersList = Array.isArray(re) ? re : (re.data || []); }
+      if (resExams && resExams.ok) { const rx = await resExams.json(); examRequestsList = Array.isArray(rx) ? rx : (rx.data || []); }
 
       // Fallback de resiliência direta com LocalDB
       if (!patientsList || patientsList.length === 0) {
@@ -3512,6 +3879,13 @@ const loadData = async () => {
         try {
           const le = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('encounters') : null;
           if (le && le.length > 0) encountersList = le;
+        } catch (e) {}
+      }
+
+      if (!examRequestsList || examRequestsList.length === 0) {
+        try {
+          const lx = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('exam_requests') : null;
+          if (lx && lx.length > 0) examRequestsList = lx;
         } catch (e) {}
       }
 

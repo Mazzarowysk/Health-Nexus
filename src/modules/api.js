@@ -1374,6 +1374,7 @@ export const apiFetch = async (url, options = {}) => {
       if (table === 'beds') table = 'beds';
       if (table === 'financial') { table = 'financial_installments'; if (id === 'installments' || id === 'receitas') id = undefined; }
       if (table === 'tv') { table = 'tv_calls'; id = undefined; }
+      if (table === 'exam-requests' || table === 'exams') { table = 'exam_requests'; }
 
       // Validação de segurança estrita: Inclusão, alteração e exclusão de usuários permitida SOMENTE para MASTER
       if (table === 'users' && ['POST', 'PUT', 'DELETE'].includes(method)) {

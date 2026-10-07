@@ -840,6 +840,121 @@ function generateConsultorios(doctors) {
   }));
 }
 
+function generateMockExamRequests(patients, doctors, encounters, count = 45) {
+  const reqs = [];
+  const examPool = [
+    { examId: 'hemograma', name: 'Hemograma completo', cat: 'lab', prep: 'Jejum não obrigatório' },
+    { examId: 'pcr', name: 'Proteína C-reativa (PCR)', cat: 'lab', prep: 'Sem preparo' },
+    { examId: 'creatinina', name: 'Creatinina sérica (com TFG)', cat: 'lab', prep: 'Sem preparo' },
+    { examId: 'ureia', name: 'Ureia sérica', cat: 'lab', prep: 'Sem preparo' },
+    { examId: 'troponina', name: 'Troponina ultrassensível', cat: 'lab', prep: 'Sem preparo' },
+    { examId: 'glicemia', name: 'Glicemia de jejum', cat: 'lab', prep: 'Jejum de 8h' },
+    { examId: 'eletrolitos', name: 'Eletrólitos (Na, K, Mg)', cat: 'lab', prep: 'Sem preparo' },
+    { examId: 'coagulograma', name: 'Coagulograma (TAP/INR)', cat: 'lab', prep: 'Sem preparo' },
+    { examId: 'eas', name: 'Urina tipo 1 (EAS)', cat: 'lab', prep: 'Jato médio' },
+    { examId: 'rxtorax', name: 'Radiografia de tórax (PA e perfil) — Raio-X', cat: 'img', prep: 'Retirar objetos metálicos' },
+    { examId: 'rxabdome', name: 'Radiografia de abdome agudo — Raio-X', cat: 'img', prep: 'Sem preparo' },
+    { examId: 'rxmembros', name: 'Radiografia de membros / extremidades — Raio-X', cat: 'img', prep: 'Sem preparo' },
+    { examId: 'tccranio', name: 'Tomografia de crânio sem contraste', cat: 'img', prep: 'Sem preparo' },
+    { examId: 'usgabd', name: 'Ultrassonografia de abdome total', cat: 'img', prep: 'Jejum de 8h' },
+    { examId: 'ecg', name: 'Eletrocardiograma de 12 derivações', cat: 'graf', prep: 'Sem preparo' },
+    { examId: 'eco', name: 'Ecocardiograma transtorácico', cat: 'graf', prep: 'Sem preparo' },
+    { examId: 'petct', name: 'PET-CT com FDG', cat: 'adv', prep: 'Jejum de 6h' }
+  ];
+
+  const sectors = ['Pronto-Socorro / Emergência', 'Sala de Observação (PS)', 'UTI Adulto', 'Enfermaria Clínica', 'Consultório 01', 'Consultório 03'];
+  const indications = [
+    'Dor torácica atípica há 2 horas em investigação de síndrome coronariana',
+    'Dispneia e tosse produtiva febril; descartar broncopneumonia',
+    'Dor aguda em flanco direito com náuseas; investigar litíase ureteral',
+    'Queda de própria altura com trauma em membro inferior direito',
+    'Cefaleia súbita de forte intensidade; descartar hemorragia subaracnóidea',
+    'Desidratação moderada e distúrbio hidroeletrolítico em observação',
+    'Pico hipertensivo sintomático e turvação visual transitória',
+    'Trauma torácico fechado após acidente com contusão costal'
+  ];
+
+  for (let i = 0; i < count; i++) {
+    const pat = pick(patients);
+    const doc = pick(doctors);
+    const enc = (encounters && encounters.length) ? pick(encounters) : null;
+    const sector = pick(sectors);
+    const numItems = rnd(1, 3);
+    const chosenItems = [];
+    const usedIds = new Set();
+
+    for (let k = 0; k < numItems; k++) {
+      const ex = pick(examPool);
+      if (!usedIds.has(ex.examId)) {
+        usedIds.add(ex.examId);
+        const pri = (i % 5 === 0) ? 'Emergência' : (i % 2 === 0 ? 'Urgente' : 'Rotina');
+        
+        const itemRoll = Math.random();
+        let itemStatus = 'Concluído';
+        let conclusion = pick(['Normal', 'Normal', 'Alterado', 'Crítico']);
+        let resultText = '';
+
+        if (itemRoll < 0.20) {
+          itemStatus = 'Solicitado';
+          conclusion = null;
+        } else if (itemRoll < 0.45) {
+          itemStatus = 'Em Andamento';
+          conclusion = null;
+        } else {
+          itemStatus = 'Concluído';
+          if (ex.cat === 'lab') {
+            resultText = conclusion === 'Normal' ? 'Parâmetros séricos dentro dos limites de referência.' : (conclusion === 'Crítico' ? 'VALOR DE PÂNICO: Alteração expressiva comunicada imediatamente ao médico assistente.' : 'Discreta leucocitose com desvio à esquerda e elevação moderada de reagentes inflamatórios.');
+          } else if (ex.cat === 'img') {
+            resultText = conclusion === 'Normal' ? 'Estruturas anatômicas avaliadas sem evidência de lesões traumáticas ou expansivas agudas.' : (conclusion === 'Crítico' ? 'Fratura óssea com desvio / opacidade alveolar confluente compatível com condensação infecciosa.' : 'Discreto espessamento mucoso / sinais de artrose incipiente.');
+          } else {
+            resultText = conclusion === 'Normal' ? 'Ritmo sinusal regular, sem distúrbios da condução ou alterações isquêmicas agudas.' : 'Extrassístoles ventriculares isoladas; sem critérios de instabilidade elétrica.';
+          }
+        }
+
+        chosenItems.push({
+          examId: ex.examId,
+          name: ex.name,
+          cat: ex.cat,
+          prep: ex.prep,
+          priority: pri,
+          status: itemStatus,
+          conclusion,
+          result: resultText,
+          reportedBy: itemStatus === 'Concluído' ? (ex.cat === 'img' ? 'Dr. Laudo Radiológico (CRM-SP)' : 'Biomédico(a) de Plantão (CRBM-SP)') : null,
+          reportedAt: itemStatus === 'Concluído' ? pastDate(4) : null,
+          acceptedAt: itemStatus !== 'Solicitado' ? pastDate(8) : null
+        });
+      }
+    }
+
+    const allDone = chosenItems.every(it => it.status === 'Concluído');
+    const allPending = chosenItems.every(it => it.status === 'Solicitado');
+    const reqStatus = allDone ? 'Concluído' : (allPending ? 'Solicitado' : 'Em Andamento');
+
+    const createdAgo = rnd(2, 72);
+    const createdAt = new Date(Date.now() - createdAgo * 3600000).toISOString();
+
+    reqs.push({
+      id: `EXM-${String(i + 1).padStart(4, '0')}`,
+      patientId: pat.id,
+      patientName: pat.fullName,
+      encounterId: enc?.id || `ENC-${String(i + 1).padStart(3, '0')}`,
+      doctorName: doc.name,
+      councilNumber: doc.crm,
+      sector,
+      status: reqStatus,
+      priority: chosenItems.some(it => it.priority === 'Emergência') ? 'Emergência' : (chosenItems.some(it => it.priority === 'Urgente') ? 'Urgente' : 'Rotina'),
+      justification: pick(indications),
+      items: chosenItems,
+      created_at: createdAt,
+      accepted_at: reqStatus !== 'Solicitado' ? new Date(new Date(createdAt).getTime() + rnd(10, 40) * 60000).toISOString() : null,
+      completed_at: reqStatus === 'Concluído' ? new Date(new Date(createdAt).getTime() + rnd(60, 240) * 60000).toISOString() : null
+    });
+  }
+
+  return reqs;
+}
+
 // ──────────────────────────────────────────────
 // FUNÇÃO PRINCIPAL
 // ──────────────────────────────────────────────
@@ -946,6 +1061,10 @@ export async function generateMockData(baseAmount = 300) {
   console.log('[MockGen] Gerando consultórios...');
   const consultorios = generateConsultorios(doctors);
 
+  console.log('[MockGen] Gerando pedidos e laudos de exames (SADT)...');
+  const exam_requests = generateMockExamRequests(patients, doctors, encounters, 50);
+
+
   // ── 3. Montar e salvar banco completo ──
   const db = {
     settings: currentDB.settings || [],
@@ -964,6 +1083,7 @@ export async function generateMockData(baseAmount = 300) {
     prescriptions,
     duty_schedules,
     consultorios,
+    exam_requests,
     tiss_batches: JSON.parse(JSON.stringify(MOCK_TISS_BATCHES)),
     tiss_guides: [],
   };

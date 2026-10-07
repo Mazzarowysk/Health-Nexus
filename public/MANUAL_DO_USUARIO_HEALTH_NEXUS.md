@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.32)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.33)
 
-> **Health Nexus v2.9.32 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação e relatórios analíticos dinâmicos com filtros inclusivos e dados simulados integrados. Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.33 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação e relatórios analíticos dinâmicos com filtros inclusivos e novo módulo de Exames & Laboratório (SADT) integrado. Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -892,7 +892,7 @@ Na aba **Faturamento TISS**, gerenciam-se as guias de convênio, auditoria de pr
 
 <h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2>
 
-Na aba **Relatórios**, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria, comutando entre 5 visões estruturadas: **Pacientes**, **Atendimentos & PEP**, **Financeiro**, **Por Médico** e **Escalas & Plantões**.
+Na aba **Relatórios**, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria, comutando entre 6 visões estruturadas: **Pacientes**, **Atendimentos & PEP**, **Financeiro**, **Por Médico**, **Escalas & Plantões** e **Exames & Laudos (SADT)**.
 
 ![Figura 12.1: Relatórios Analytics & Indicadores Hospitalares — DRE e Ocupação](docs/screenshots/14-relatorios.png)
 
@@ -905,11 +905,28 @@ Na aba **Relatórios**, o sistema consolida inteligência de dados clínicos e f
 | **Financeiro & Títulos** | Receitas x Despesas, parcelas pagas, a vencer, vencidas e bonificadas | Vencimento / Categoria / Forma | PDF com DRE / Excel / CSV | Diretoria Financeira & Controladoria |
 | **Produtividade Médica** | Consultas concluídas, atendimentos hoje, taxa de conclusão e gráficos | Mensal / Individual / Especialidade | PDF Confidencial / CSV | Direção Clínica & Comissão de Ética |
 | **Escalas & Plantões** | Alocação de médicos e enfermeiros, setores, carga horária e status | Data do Plantão / Categoria | PDF / CSV | Gestão de Escalas & Recursos Humanos |
+| **Exames & Laudos (SADT)** | Pedidos, itens por modalidade, taxa de laudos prontos, TAT médio e casos críticos | Período / Modalidade / Status / Prioridade / Conclusão / Setor / Médico | PDF Laudos / Excel / CSV | Coordenação SADT, Radiologia & Diretoria Clínica |
 
-### 🛠️ Filtros Inteligentes & Integração com Simulação de Dados (v2.9.32)
-1. **Comportamento Padrão Inclusivo:** Ao acessar o módulo ou após simular dados na aba de configurações, o seletor de Cidades e Status permanece como *"Todos"* por padrão, exibindo todos os registros gerados sem necessidade de marcação manual prévia.
-2. **Compatibilidade com Dados Simulados:** O gerador de dados mock atribui automaticamente municípios brasileiros realistas (`city`) e faturamentos representativos (`billingValue`) a todos os pacientes simulados, garantindo gráficos e tabelas povoados imediatamente após a simulação.
-3. **Resiliência Local-First:** Em caso de oscilação de rede ou cache em renovação, o módulo de relatórios lê diretamente a base local do hospital (`localDB`), assegurando integridade e agilidade analítica.
+### 🔬 Módulo Analítico de Exames & Laudos (SADT) na Aba Relatórios (v2.9.33)
+1. **Acesso Direto em 1 Clique:** Disponível através do card `[ 🔬 Exames & Laudos ]` no cabeçalho de seleção da aba de Relatórios.
+2. **Filtros Especializados de Diagnóstico:**
+   - **Modalidades:** Laboratório Clínico, Radiologia / Raio-X, Métodos Gráficos (ECG) e Alta Complexidade (Tomografia / Ressonância).
+   - **Status & Conclusões:** Filtro cruzado entre estágio operacional (*Concluído*, *Em Andamento*, *Solicitado*) e resultado clínico (*Normal*, *Alterado*, *Crítico*).
+   - **Filtros Organizacionais:** Seleção rápida por Setor Solicitante (PS, UTI, Leitos, Consultórios) e por Médico Solicitante (com CRM).
+3. **Quadro Executivo de Indicadores (KPIs):**
+   - *Total de Pedidos e Exames:* Volume consolidado da instituição no período filtrado.
+   - *Taxa de Laudos Prontos (%):* Percentual de exames com laudo já emitido e assinado.
+   - *Casos Críticos Sinalizados:* Quantidade de resultados que exigem atenção médica imediata.
+   - *Tempo Médio de Liberação (TAT):* Giro médio de tempo entre a solicitação médica e o laudo liberado.
+4. **Gráficos Dinâmicos Chart.js:**
+   - **Rosca de Modalidades:** Visualização percentual entre exames de sangue, radiologia, ECG e tomografia.
+   - **Barras de Setor:** Ranking de áreas do hospital que mais demandam exames diagnósticos.
+   - **Top 5 Exames Mais Solicitados:** Destaque dos procedimentos com maior recorrência clínica.
+
+### 🛠️ Filtros Inteligentes & Integração com Simulação de Dados (v2.9.32 / v2.9.33)
+1. **Comportamento Padrão Inclusivo:** Ao acessar o módulo ou após simular dados na aba de configurações, os seletores permanecem como *"Todos"* por padrão, exibindo todos os registros gerados sem descarte indevido.
+2. **Geração Realista de Exames Mock:** O gerador de dados simulados agora popula automaticamente dezenas de pedidos de exames com status variados (*Concluído*, *Em Andamento*, *Solicitado*), laudos normais/críticos e tempos de atendimento realistas.
+3. **Resiliência Local-First:** Em caso de oscilação de rede ou renovação de cache, o módulo de relatórios lê diretamente a base local do hospital (`localDB`), assegurando integridade e agilidade analítica.
 
 ---
 
@@ -1291,7 +1308,7 @@ Com a versão **2.9.31**, os pop-ups nativos do navegador foram completamente su
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.31 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.33 do Health Nexus. Todos os direitos reservados.*
 
 
 

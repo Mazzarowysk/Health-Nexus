@@ -1,12 +1,35 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.32`  
+**Versão:** `2.9.33`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🔬 **Módulo Analítico e Relatórios de Exames & Laboratório SADT na Aba Relatórios (v2.9.33):**
+  1. **Novo Card Executivo `[ 🔬 Exames & Laudos ]`:** Integrado diretamente no seletor principal da aba de Relatórios (`src/tabs/reports.js`), complementando os painéis de Pacientes, Atendimentos, Financeiro, Médicos e Escalas.
+  2. **Filtros Clínicos Especializados:**
+     - **Período Temporal:** Seleção flexível com Data Inicial e Data Final.
+     - **Modalidade Diagnóstica:** Laboratório / Análises Clínicas, Radiologia / Raio-X, Métodos Gráficos (ECG) e Alta Complexidade (Tomografia / Ressonância).
+     - **Status do Laudo:** Concluído / Laudado, Em Andamento / Análise e Solicitado / Pendente.
+     - **Prioridade Clínica:** Emergência, Urgente e Rotina.
+     - **Conclusão Diagnóstica:** Normal, Alterado e Crítico.
+     - **Setores e Médicos Solicitantes:** Dropdowns dinâmicos e campo de busca livre por paciente, exame ou código.
+  3. **KPIs Executivos em Tempo Real:** 4 cartões de indicadores no topo do relatório:
+     - *Total de Pedidos e Exames Requisitados*;
+     - *Taxa de Conclusão / Laudos Prontos (%)*;
+     - *Exames Críticos Sinalizados*;
+     - *Tempo Médio de Atendimento e Liberação (TAT Médio)*.
+  4. **Gráficos e Estatísticas Visuais:**
+     - Gráfico em Rosca (Doughnut) de distribuição de exames por modalidade diagnóstica;
+     - Gráfico em Barras de volume de solicitações por setor hospitalar (PS, UTI, Internação, Consultórios);
+     - Painel dos 5 Exames Mais Solicitados da instituição com contagem e percentual.
+  5. **Tabela Assistencial Completa & Exportações Multi-Formato:**
+     - Listagem com chips visuais de prioridade, status e conclusão médica;
+     - Exportação instantânea em PDF com cabeçalho institucional, Excel (.xlsx) e CSV.
+  6. **Integração Plena com o Gerador de Dados Simulados (`mockDataGenerator.js`):** Criação automática de requisições de exames com itens realistas, laudos normais/críticos e tempos de TAT ao gerar dados de demonstração.
 
 - 📊 **Correção e Sincronização Completa da Aba Relatórios com Dados Simulados & Filtros Flexíveis (v2.9.32):**
   1. **Exibição Imediata de Pacientes Simulados:** Correção do gerador de dados simulados (`mockDataGenerator.js`) para incluir automaticamente município de residência (`city`) e faturamento acumulado (`billingValue`) nos 80 pacientes e atendimentos simulados.
