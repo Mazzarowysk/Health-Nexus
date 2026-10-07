@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.38)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.39)
 
-> **Health Nexus v2.9.38 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com tipografia ampliada de alto contraste, suavização de bordas divisórias no modo claro e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.39 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com eliminação definitiva de fundos pretos no Modo Claro, tipografia ampliada de alto contraste e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -1342,12 +1342,15 @@ Para garantir máxima facilidade e conforto na leitura tanto em ambientes de rec
 - **Descrição da Conduta:** Ampliada para `0.90rem` com entrelinhas de `1.6` e peso `500`, extinguindo qualquer impressão de texto miúdo ou compacto.
 - **Badge de Status:** Pílula ampliada para `0.78rem` com negrito `800` e espaçamento refinado.
 - **Botão de Ação Padronizado:** Altura mínima de `48px`, padding `12px 20px`, fonte `0.95rem` em negrito `800` e estritamente 1 único sinal `➕` (`[ ➕ Cadastrar Novo Paciente Agora ➔ ]`).
-- **Suavização das Bordas Divisórias no Acoplamento:** Bordas de `1px solid rgba(0, 0, 0, 0.08)` com sombra suave, harmonizando o painel perfeitamente com o layout do dashboard sem criar divisões visuais pesadas.
-- **Radar Hospitalar com Métricas Nítidas:** Valores em `1.05rem` negrito `800` e rótulos nítidos em cinza escuro.
+### 24.4. Eliminação Definitiva do Fundo Preto no Modo Claro (v2.9.39)
+Para assegurar harmonia visual absoluta quando o hospital opera no **Modo Claro (Light Theme)**:
+- **Resolução de Precedência Dinâmica no JavaScript:** As diretivas inline que forçavam fundo preto (`rgba(11, 15, 25, 0.98)`) foram substituídas por detecção reativa do tema (`document.body.classList.contains('light-theme')`), atribuindo fundo claro translúcido (`rgba(255, 255, 255, 0.98)`) em todos os modos: Painel Lateral (Direito/Esquerdo), Barra Horizontal Cockpit (Topo/Base), Card Flutuante Livre e Pílula Minimizada.
+- **Cabeçalho & Rodapé Claros:** O cabeçalho do painel adotou tonalidade `#f8fafc` com tipografia em ardósia escura `#0f172a`, e o rodapé de atalhos e dicas adotou acabamento suave com botões integrados em azul assistencial.
+- **Stepper & Subcards Sem Resíduos Escuros:** A trilha de 7 etapas, os cartões de seleção de paciente, o radar hospitalar e os chips rápidos renderizam com fundos claros, eliminando qualquer contraste pesado ou sensação de elemento destoante.
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.38 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.39 do Health Nexus. Todos os direitos reservados.*
 
 
 

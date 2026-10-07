@@ -1,12 +1,20 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.38`  
+**Versão:** `2.9.39`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- ☀️ **Eliminação Definitiva do Fundo Preto no Modo Claro no Smart Flow Guide (v2.9.39):**
+  1. **Substituição de Inline Styles Escuros Hardcoded:** O motor JavaScript do Smart Flow Guide agora detecta em tempo de execução a presença da classe `light-theme` e atribui dinamicamente fundos claros em vidro fosco (`rgba(255, 255, 255, 0.98)`), eliminando em definitivo a sobreposição do fundo preto `rgba(11, 15, 25, 0.98)` que persistia por precedência de inline style com `!important`.
+  2. **Harmonização de Todos os Modos de Fixação:**
+     - **Painel Lateral Acoplado (Direita / Esquerda):** Fundo branco translúcido elegante, cabeçalho claro `#f8fafc` com tipografia em ardósia escura `#0f172a`, divisórias suaves de 1px e sombra difusa integrada ao dashboard;
+     - **Barra Horizontal Cockpit (Topo / Base):** Fundo branco translúcido com borda suave e estepe clínico luminoso;
+     - **Card Flutuante Livre & Pílula Minimizada:** Transição cromática automática com fundo branco puro, sombras suaves e ícones assistenciais contrastantes.
+  3. **Subcards, Radar e Rodapé no Modo Claro:** Card de módulo, seleção de paciente, radar hospitalar e rodapé de dicas totalmente adaptados com fundos brancos/cinza-claros e texto legível em alto contraste.
 
 - 🔬 **Tipografia Ampliada, Alto Contraste e Suavização de Bordas no Smart Flow Guide (v2.9.38):**
   1. **Ampliação Substancial da Tipografia do Card de Ação:**

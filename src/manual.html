@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.38)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.39)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.38 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames &amp; SADT, Smart Flow Guide com tipografia ampliada de alto contraste, suavização de bordas divisórias no modo claro e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.</p>
+<p><strong>Health Nexus v2.9.39 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames &amp; SADT, Smart Flow Guide com eliminação definitiva de fundos pretos no Modo Claro, tipografia ampliada de alto contraste e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -4033,11 +4033,16 @@ flowchart TD
 <li><strong>Descrição da Conduta:</strong> Ampliada para <code>0.90rem</code> com entrelinhas de <code>1.6</code> e peso <code>500</code>, extinguindo qualquer impressão de texto miúdo ou compacto.</li>
 <li><strong>Badge de Status:</strong> Pílula ampliada para <code>0.78rem</code> com negrito <code>800</code> e espaçamento refinado.</li>
 <li><strong>Botão de Ação Padronizado:</strong> Altura mínima de <code>48px</code>, padding <code>12px 20px</code>, fonte <code>0.95rem</code> em negrito <code>800</code> e estritamente 1 único sinal <code>➕</code> (<code>[ ➕ Cadastrar Novo Paciente Agora ➔ ]</code>).</li>
-<li><strong>Suavização das Bordas Divisórias no Acoplamento:</strong> Bordas de <code>1px solid rgba(0, 0, 0, 0.08)</code> com sombra suave, harmonizando o painel perfeitamente com o layout do dashboard sem criar divisões visuais pesadas.</li>
-<li><strong>Radar Hospitalar com Métricas Nítidas:</strong> Valores em <code>1.05rem</code> negrito <code>800</code> e rótulos nítidos em cinza escuro.</li>
+</ul>
+<h3>24.4. Eliminação Definitiva do Fundo Preto no Modo Claro (v2.9.39)</h3>
+<p>Para assegurar harmonia visual absoluta quando o hospital opera no <strong>Modo Claro (Light Theme)</strong>:</p>
+<ul>
+<li><strong>Resolução de Precedência Dinâmica no JavaScript:</strong> As diretivas inline que forçavam fundo preto (<code>rgba(11, 15, 25, 0.98)</code>) foram substituídas por detecção reativa do tema (<code>document.body.classList.contains(&#39;light-theme&#39;)</code>), atribuindo fundo claro translúcido (<code>rgba(255, 255, 255, 0.98)</code>) em todos os modos: Painel Lateral (Direito/Esquerdo), Barra Horizontal Cockpit (Topo/Base), Card Flutuante Livre e Pílula Minimizada.</li>
+<li><strong>Cabeçalho &amp; Rodapé Claros:</strong> O cabeçalho do painel adotou tonalidade <code>#f8fafc</code> com tipografia em ardósia escura <code>#0f172a</code>, e o rodapé de atalhos e dicas adotou acabamento suave com botões integrados em azul assistencial.</li>
+<li><strong>Stepper &amp; Subcards Sem Resíduos Escuros:</strong> A trilha de 7 etapas, os cartões de seleção de paciente, o radar hospitalar e os chips rápidos renderizam com fundos claros, eliminando qualquer contraste pesado ou sensação de elemento destoante.</li>
 </ul>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.38 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.39 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>
