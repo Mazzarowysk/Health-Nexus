@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.36)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.37)
 
-> **Health Nexus v2.9.36 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT e Ação Recomendada clínica ampliada para alta legibilidade com botão verde padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.37 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com suporte integral ao Modo Claro (Light Theme) e Ação Recomendada clínica ampliada para alta legibilidade com botão verde padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -1318,7 +1318,27 @@ Com a versão **2.9.31**, os pop-ups nativos do navegador foram completamente su
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.36 do Health Nexus. Todos os direitos reservados.*
+## 24. 🧭 Smart Flow Guide — Guia de Fluxo Inteligente & Governança Clínica (v2.9.37)
+
+O **Smart Flow Guide** é o copiloto de governança assistencial do Health Nexus, projetado para orientar os profissionais de saúde e recepcionistas passo a passo pela jornada do paciente dentro do hospital.
+
+### 24.1. Posicionamento e Acoplamento Flexível em 4 Direções
+O Guia de Fluxo oferece ancoragem ergonômica que se adapta ao fluxo de trabalho do operador:
+- **Lateral Direita ou Esquerda (Painel Vertical):** Ocupa 420px na borda selecionada, com visão completa do paciente ativo, histórico de etapas, radar hospitalar e atalhos rápidos.
+- **Topo ou Base (Barra Cockpit Horizontal):** Altura calibrada de 86px com stepper horizontal das 7 etapas hospitalares e Card de Ação Recomendada em detalhe com botão verde de 1-clique.
+- **Card Flutuante Livre:** Arraste livre pelo cabeçalho para qualquer ponto da tela.
+- **Seletor Rápido de Fixação:** Através do ícone de ancoragem (`hn-fg-dock-picker-btn`), o usuário escolhe a posição com 1 clique ou simplesmente arrasta a alça do painel em direção à borda desejada.
+
+### 24.2. Suporte Integral ao Modo Claro (Light Theme)
+Na versão **2.9.37**, o Smart Flow Guide recebeu harmonização visual completa para o **Modo Claro**:
+- **Eliminação de Fundo Escuro Destoante:** Ao alternar para o tema claro pelo botão de tema no topo, o painel do fluxo transiciona instantaneamente para um visual clean com fundo em vidro fosco claro (`rgba(255, 255, 255, 0.96)`).
+- **Contraste e Legibilidade Hospitalar:** Títulos, badges e descrições das condutas ganharam tipografia nítida em tons de ardósia escuro (`#0f172a` e `#334155`), perfeitamente legíveis mesmo sob luz solar ou iluminação hospitalar intensa.
+- **Card de Ação Recomendada:** Fundo em suave gradiente azul-celeste (`#f0f9ff` a `#e0f2fe`), com borda sutil e botão verde de avanço de fluxo (`[ ➕ Cadastrar Novo Paciente Agora ➔ ]`) mantido em evidência.
+- **Radar e Subcards Integrados:** Os cartões de censo do radar e seleção de pacientes ganharam fundo branco puro, sombras suaves e métricas coloridas de alta legibilidade.
+
+---
+
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.37 do Health Nexus. Todos os direitos reservados.*
 
 
 

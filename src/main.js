@@ -2428,6 +2428,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   if (_SFG.minimized) {
     syncFlowDockClasses(null);
     const miniPill = document.createElement('div');
+    miniPill.className = 'hn-fg-mini-pill';
     miniPill.setAttribute('style', 'display:flex;align-items:center;gap:9px;padding:8px 15px;background:rgba(11,15,25,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-top:2px solid #0284c7;border-radius:28px;box-shadow:0 12px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.1);cursor:pointer;transition:transform 0.2s,border-color 0.2s;');
     miniPill.innerHTML = '<div style="width:24px;height:24px;border-radius:50%;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
       + '<span style="font-size:0.78rem;font-weight:700;color:#f1f5f9">Governança: <strong style="color:#38bdf8">' + evalResult.stageName + '</strong></span>'
@@ -2566,17 +2567,18 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const topRow = document.createElement('div');
     topRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
     topRow.innerHTML = `
-      <div style="display:flex;align-items:center;gap:5px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:${badgeColor};flex-shrink:0;">
-        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dotColor};box-shadow:0 0 8px ${dotColor};"></span>
-        <span>${actBadgeText}</span>
+      <div class="hn-fg-horiz-badge-wrap" style="display:flex;align-items:center;gap:5px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:${badgeColor};flex-shrink:0;">
+        <span class="hn-fg-action-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dotColor};box-shadow:0 0 8px ${dotColor};"></span>
+        <span class="hn-fg-horiz-badge">${actBadgeText}</span>
       </div>
-      <div style="font-size:0.88rem;font-weight:700;color:#ffffff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;" title="${actionTitle}">
+      <div class="hn-fg-horiz-title" style="font-size:0.88rem;font-weight:700;color:#ffffff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;" title="${actionTitle}">
         ${actionTitle}
       </div>
     `;
 
     // Linha 2: Descrição Explicativa da Conduta em Detalhe (tipografia maior e alto contraste)
     const descRow = document.createElement('div');
+    descRow.className = 'hn-fg-horiz-desc';
     descRow.style.cssText = 'font-size:0.76rem;color:#e2e8f0;line-height:1.32;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;';
     descRow.title = actionDesc;
     descRow.textContent = actionDesc;
@@ -2936,7 +2938,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
       + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;color:#a5b4fc;font-size:0.7rem;flex-shrink:0"><i class="fa-solid fa-user"></i></div>'
       + '<div style="min-width:0;line-height:1.2">'
-      + '<div style="font-size:0.82rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:' + (isDocked ? '200px' : '160px') + '">' + pName + '</div>'
+      + '<div class="hn-fg-patient-name" style="font-size:0.82rem;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:' + (isDocked ? '200px' : '160px') + '">' + pName + '</div>'
       + '<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:6px;background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';color:' + rInfo.text + '">' + rInfo.label + '</span></div>'
       + '</div>'
       + '</div>'
@@ -2944,7 +2946,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '<i class=\"fa-solid fa-xmark\"></i> Desmarcar'
       + '</button>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,0.22);border-radius:6px;padding:4px 8px;font-size:0.68rem">'
+      + '<div class="hn-fg-patient-location" style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,0.22);border-radius:6px;padding:4px 8px;font-size:0.68rem">'
       + '<div style="display:flex;align-items:center;gap:5px;min-width:0">'
       + '<span style="font-size:0.75rem">' + locationIcon + '</span>'
       + '<span style="color:#94a3b8;font-weight:600">Local:</span>'
@@ -2961,8 +2963,8 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       + '<div style="display:flex;align-items:center;gap:7px">'
       + '<span style="font-size:0.9rem;color:#64748b">👤</span>'
       + '<div style="line-height:1.2">'
-      + '<div style="font-size:0.76rem;font-weight:600;color:#94a3b8">Nenhum paciente selecionado</div>'
-      + '<div style="font-size:0.65rem;color:#64748b">Selecione na Recepção ou Triagem</div>'
+      + '<div class="hn-fg-patient-empty-title" style="font-size:0.76rem;font-weight:600;color:#94a3b8">Nenhum paciente selecionado</div>'
+      + '<div class="hn-fg-patient-empty-desc" style="font-size:0.65rem;color:#64748b">Selecione na Recepção ou Triagem</div>'
       + '</div>'
       + '</div>'
       + '<button onclick="if(typeof window.switchTab===\'function\') window.switchTab(\'pacientes\');" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;padding:3px 8px;border-radius:5px;font-size:0.65rem;font-weight:700;cursor:pointer;">Ver Lista</button>'
@@ -3037,20 +3039,19 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const destLabel = pending.targetTabLabel || (pending.targetTab ? (tabShortLabels[pending.targetTab] || pending.targetTab) : 'Próxima Etapa');
 
     actionBlockHtml = `
-      <div class="hn-flow-subcard hn-fg-action-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 95, 70, 0.22)); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 10px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-          <span style="font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; display: flex; align-items: center; gap: 5px;">
-            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+          <span class="hn-fg-action-badge" style="font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; display: flex; align-items: center; gap: 5px;">
+            <span class="hn-fg-action-dot" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
             Ação Concluída &bull; Próximo Passo
           </span>
           <button id="hn-fg-dismiss-action" title="Dispensar aviso desta etapa" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.72rem; padding: 1px 6px; border-radius: 5px; transition: all 0.15s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.05)'">
             ✕
           </button>
         </div>
-        <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+        <div class="hn-fg-action-title" style="font-size: 0.84rem; font-weight: 700; color: #ffffff; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-bullhorn" style="color: #10b981; font-size: 0.85rem;"></i> ${pending.actionTitle}
         </div>
-        <div style="font-size: 0.72rem; color: #cbd5e1; line-height: 1.35; margin-bottom: 10px;">
+        <div class="hn-fg-action-desc" style="font-size: 0.72rem; color: #cbd5e1; line-height: 1.35; margin-bottom: 10px;">
           ${pending.message}
         </div>
         <button id="hn-fg-exec-action" class="btn-next-step-pulse" style="width: 100%; padding: 9px 12px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.15s;">
@@ -3078,11 +3079,11 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     actionBlockHtml = crossTabPendingNotice + `
       <div class="hn-flow-subcard hn-fg-action-card" style="background: ${evalResult.actionCardBg || 'linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4))'}; border: 1px solid ${evalResult.actionCardBorder || 'rgba(2, 132, 199, 0.3)'}; border-radius: 10px; padding: 11px 13px;">
         <div style="display:flex;align-items:center;gap:5px;font-size:0.64rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${evalResult.actionBadge ? '#f87171' : '#38bdf8'};margin-bottom:4px">
-          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};box-shadow:0 0 6px ${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};"></span>
-          <span>${evalResult.actionBadge || (isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada')}</span>
+          <span class="hn-fg-action-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};box-shadow:0 0 6px ${evalResult.actionBadge ? '#ef4444' : '#38bdf8'};"></span>
+          <span class="hn-fg-action-badge">${evalResult.actionBadge || (isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada')}</span>
         </div>
-        <div style="font-size:0.86rem;font-weight:700;color:#ffffff;margin-bottom:5px;line-height:1.25">${evalResult.primaryAction.title}</div>
-        <div style="font-size:0.74rem;color:#cbd5e1;line-height:1.35;margin-bottom:10px">${evalResult.primaryAction.desc}</div>
+        <div class="hn-fg-action-title" style="font-size:0.86rem;font-weight:700;color:#ffffff;margin-bottom:5px;line-height:1.25">${evalResult.primaryAction.title}</div>
+        <div class="hn-fg-action-desc" style="font-size:0.74rem;color:#cbd5e1;line-height:1.35;margin-bottom:10px">${evalResult.primaryAction.desc}</div>
         <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;padding:10px 12px;background:${evalResult.primaryAction.btnBg};color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);letter-spacing:0.2px;transition:all 0.15s">
           ${evalResult.primaryAction.btnText}
         </button>
@@ -3108,27 +3109,27 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     } catch (_) {}
 
     radarHtml = `
-      <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 10px 12px;">
+      <div class="hn-fg-radar-container" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 10px 12px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px">Radar Hospitalar</span>
+          <span class="hn-fg-radar-title" style="font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px">Radar Hospitalar</span>
           <span style="font-size:0.58rem;font-weight:700;color:#10b981;background:rgba(16,185,129,0.15);padding:1px 6px;border-radius:6px">Ao Vivo</span>
         </div>
         <div class="hn-fg-radar-grid">
           <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('pacientes');" title="Ir para Recepção & Pacientes">
             <span style="font-size:0.64rem;color:#94a3b8">🏥 Recepção</span>
-            <span style="font-size:0.98rem;font-weight:700;color:#f8fafc">${patCount} <small style="font-size:0.62rem;color:#64748b">pacientes</small></span>
+            <span class="hn-fg-radar-val" style="font-size:0.98rem;font-weight:700;color:#f8fafc">${patCount} <small style="font-size:0.62rem;color:#64748b">pacientes</small></span>
           </div>
           <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('atendimento');" title="Ir para Triagem Manchester">
             <span style="font-size:0.64rem;color:#94a3b8">🩺 Triagem</span>
-            <span style="font-size:0.98rem;font-weight:700;color:#38bdf8">${waitTri} <small style="font-size:0.62rem;color:#64748b">fila</small></span>
+            <span class="hn-fg-radar-val" style="font-size:0.98rem;font-weight:700;color:#38bdf8">${waitTri} <small style="font-size:0.62rem;color:#64748b">fila</small></span>
           </div>
           <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('consultorios');" title="Ir para Consultórios Médicos">
             <span style="font-size:0.64rem;color:#94a3b8">👨‍⚕️ Consultórios</span>
-            <span style="font-size:0.98rem;font-weight:700;color:#fbbf24">${waitDoc} <small style="font-size:0.62rem;color:#64748b">aguardando</small></span>
+            <span class="hn-fg-radar-val" style="font-size:0.98rem;font-weight:700;color:#fbbf24">${waitDoc} <small style="font-size:0.62rem;color:#64748b">aguardando</small></span>
           </div>
           <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('leitos');" title="Ir para Gestão de Leitos">
             <span style="font-size:0.64rem;color:#94a3b8">🛏️ Leitos</span>
-            <span style="font-size:0.98rem;font-weight:700;color:#34d399">${occBeds}/${totalBeds || 0} <small style="font-size:0.62rem;color:#64748b">ocupados</small></span>
+            <span class="hn-fg-radar-val" style="font-size:0.98rem;font-weight:700;color:#34d399">${occBeds}/${totalBeds || 0} <small style="font-size:0.62rem;color:#64748b">ocupados</small></span>
           </div>
         </div>
       </div>
@@ -3171,6 +3172,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
   // Rodapé do Painel Acoplado Vertical com Dica de Desacoplamento
   if (isDocked && !isHorizontal) {
     const footer = document.createElement('div');
+    footer.className = 'hn-fg-docked-footer';
     footer.setAttribute('style', 'padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;color:#94a3b8;flex-shrink:0;');
     const sideTip = dockPos === 'left' ? 'direita' : 'esquerda';
     footer.innerHTML = '<span>💡 <strong>Dica:</strong> Arraste o cabeçalho para a ' + sideTip + ' para desacoplar.</span>'

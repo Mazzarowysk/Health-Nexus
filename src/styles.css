@@ -6456,6 +6456,269 @@ body.hn-flow-dock-preview-left .modal-content {
   50%, 100% { left: 200%; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SMART FLOW GUIDE — SUPORTE INTEGRAL AO MODO CLARO (LIGHT THEME)
+   Adaptação completa de painéis fixados, cards, cards de ação e tipografia
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Painel Principal e Containers */
+body.light-theme #hn-flow-guide,
+body.light-theme .floating-flow-guide {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f172a !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+}
+
+body.light-theme .floating-flow-guide.docked-panel {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f172a !important;
+}
+
+/* 2. Bordas e Sombras Suaves no Acoplamento do Modo Claro */
+body.light-theme .floating-flow-guide.docked-panel.dock-pos-right,
+body.light-theme .floating-flow-guide.docked-panel:not(.dock-pos-left):not(.dock-pos-top):not(.dock-pos-bottom) {
+  border-left: 2px solid #0284c7 !important;
+  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.08), inset 1px 0 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-theme .floating-flow-guide.docked-panel.dock-pos-left {
+  border-right: 2px solid #0284c7 !important;
+  box-shadow: 10px 0 35px rgba(0, 0, 0, 0.08), inset -1px 0 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-theme .floating-flow-guide.docked-panel.dock-pos-top {
+  border-bottom: 2px solid #0284c7 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-theme .floating-flow-guide.docked-panel.dock-pos-bottom {
+  border-top: 2px solid #0284c7 !important;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-theme .floating-flow-guide:not(.docked-panel):not(.minimized) {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-top: 2px solid #0284c7 !important;
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 3. Pílula Minimizada */
+body.light-theme .hn-fg-mini-pill {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  border-top: 2px solid #0284c7 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  color: #0f172a !important;
+}
+body.light-theme .hn-fg-mini-pill span {
+  color: #0f172a !important;
+}
+
+/* 4. Cabeçalho */
+body.light-theme #hn-fg-header {
+  background: rgba(248, 250, 252, 0.92) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07) !important;
+}
+body.light-theme #hn-fg-header span,
+body.light-theme #hn-fg-horiz-left span {
+  color: #0f172a !important;
+}
+body.light-theme #hn-fg-header button,
+body.light-theme #hn-fg-undock,
+body.light-theme #hn-fg-min,
+body.light-theme #hn-fg-close {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #475569 !important;
+}
+body.light-theme #hn-fg-header button:hover,
+body.light-theme #hn-fg-undock:hover,
+body.light-theme #hn-fg-min:hover,
+body.light-theme #hn-fg-close:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+}
+body.light-theme #hn-fg-dock-picker-btn {
+  background: rgba(2, 132, 199, 0.1) !important;
+  border: 1px solid rgba(2, 132, 199, 0.25) !important;
+  color: #0284c7 !important;
+}
+
+/* 5. Stepper Track */
+body.light-theme #hn-fg-track,
+body.light-theme #hn-fg-horiz-stepper {
+  background: rgba(241, 245, 249, 0.85) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+/* 6. Subcards de Contexto (Módulo e Paciente) */
+body.light-theme .hn-fg-screen-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+}
+body.light-theme .hn-fg-screen-card span:nth-child(2) {
+  color: #64748b !important;
+}
+body.light-theme .hn-fg-screen-card span:nth-child(3) {
+  color: #0f172a !important;
+}
+
+body.light-theme .hn-fg-patient-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+}
+body.light-theme .hn-fg-patient-name {
+  color: #0f172a !important;
+}
+body.light-theme .hn-fg-patient-empty-title {
+  color: #334155 !important;
+}
+body.light-theme .hn-fg-patient-empty-desc {
+  color: #64748b !important;
+}
+body.light-theme .hn-fg-patient-location {
+  background: #f8fafc !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+body.light-theme .hn-fg-patient-location span:nth-child(2) {
+  color: #64748b !important;
+}
+body.light-theme .hn-fg-patient-location span:nth-child(3) {
+  color: #0f172a !important;
+}
+
+/* 7. CARD DE AÇÃO RECOMENDADA NO MODO CLARO (Vertical e Horizontal) */
+body.light-theme .hn-fg-action-card,
+body.light-theme .hn-fg-horiz-action-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+  border: 1.5px solid rgba(2, 132, 199, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.light-theme .hn-fg-action-card:hover,
+body.light-theme .hn-fg-horiz-action-card:hover {
+  border-color: rgba(2, 132, 199, 0.65) !important;
+  box-shadow: 0 6px 22px rgba(2, 132, 199, 0.2) !important;
+}
+
+body.light-theme .hn-fg-pending-action-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12) !important;
+}
+
+body.light-theme .hn-fg-action-badge,
+body.light-theme .hn-fg-horiz-badge {
+  color: #0284c7 !important;
+}
+
+body.light-theme .hn-fg-pending-action-card .hn-fg-action-badge {
+  color: #059669 !important;
+}
+
+body.light-theme .hn-fg-action-title,
+body.light-theme .hn-fg-horiz-title {
+  color: #0f172a !important;
+}
+
+body.light-theme .hn-fg-pending-action-card .hn-fg-action-title {
+  color: #064e3b !important;
+}
+
+body.light-theme .hn-fg-action-desc,
+body.light-theme .hn-fg-horiz-desc {
+  color: #334155 !important;
+}
+
+body.light-theme .hn-fg-pending-action-card .hn-fg-action-desc {
+  color: #14532d !important;
+}
+
+/* 8. Radar Hospitalar */
+body.light-theme .hn-fg-radar-container {
+  background: rgba(248, 250, 252, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.07) !important;
+}
+body.light-theme .hn-fg-radar-title {
+  color: #64748b !important;
+}
+body.light-theme .hn-fg-radar-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+}
+body.light-theme .hn-fg-radar-card:hover {
+  background: #f0f9ff !important;
+  border-color: rgba(2, 132, 199, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12) !important;
+}
+body.light-theme .hn-fg-radar-card span:first-child {
+  color: #64748b !important;
+}
+body.light-theme .hn-fg-radar-val {
+  color: #0f172a !important;
+}
+
+/* 9. Outras Ações Rápidas (Chips de possibilidades) */
+body.light-theme .hn-possibility-chips-title span {
+  color: #64748b !important;
+}
+body.light-theme .hn-possibility-chip {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.09) !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+body.light-theme .hn-possibility-chip:hover {
+  background: #f1f5f9 !important;
+  border-color: rgba(2, 132, 199, 0.35) !important;
+  color: #0284c7 !important;
+}
+
+/* 10. Rodapé do Painel */
+body.light-theme .hn-fg-docked-footer {
+  background: rgba(248, 250, 252, 0.95) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.07) !important;
+  color: #64748b !important;
+}
+body.light-theme .hn-fg-docked-footer strong {
+  color: #334155 !important;
+}
+body.light-theme #hn-fg-undock-footer {
+  background: rgba(2, 132, 199, 0.1) !important;
+  border: 1px solid rgba(2, 132, 199, 0.25) !important;
+  color: #0284c7 !important;
+}
+
+/* 11. Popover Seletor de Fixação */
+body.light-theme .hn-dock-picker-popover {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12), 0 0 16px rgba(2, 132, 199, 0.1) !important;
+}
+body.light-theme .hn-dock-picker-title {
+  color: #64748b !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+body.light-theme .hn-dock-picker-item {
+  color: #1e293b !important;
+}
+body.light-theme .hn-dock-picker-item:hover {
+  background: rgba(2, 132, 199, 0.08) !important;
+  border-color: rgba(2, 132, 199, 0.25) !important;
+  color: #0284c7 !important;
+}
+body.light-theme .hn-dock-picker-item.active {
+  background: rgba(2, 132, 199, 0.14) !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+  font-weight: 700 !important;
+}
+
 /* ─── BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND PALETTE) ─────────────── */
 .global-search-wrapper {
   position: relative;

@@ -1,12 +1,22 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.36`  
+**Versão:** `2.9.37`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- ☀️ **Suporte Integral ao Modo Claro (Light Theme) no Smart Flow Guide (v2.9.37):**
+  1. **Adaptação Cromática Completa:** O Guia de Fluxo Inteligente (Smart Flow Guide) agora responde perfeitamente à alternância para o Modo Claro, abandonando o fundo escuro destoante quando o usuário opta pelo visual clean.
+  2. **Harmonização Visual de Todos os Componentes do Painel:**
+     - **Painel Lateral e Barra Horizontal:** Fundo translúcido refinado (`rgba(255, 255, 255, 0.96)`) com efeito glassmorphism e sombras sutis;
+     - **Card de Ação Recomendada (`hn-fg-action-card` e `hn-fg-horiz-action-card`):** Fundo suave em gradiente azul-celeste (`#f0f9ff` a `#e0f2fe`), borda azul-oceano delicada, títulos e textos em cinza-escuro de alto contraste (`#0f172a` e `#334155`), e botão de ação verde de alta evidência;
+     - **Card de Módulo e Paciente:** Fundo branco com bordas suaves, identificação nítida e botões de ação em azul assistencial;
+     - **Radar Hospitalar e Chips de Ações Rápidas:** Cards em branco puro com tipografia escura, números coloridos e botões interativos integrados ao padrão visual claro;
+     - **Cabeçalho, Stepper e Rodapé:** Textos e ícones em ardósia e azul, linhas e marcadores calibrados para alta legibilidade sob luz ambiente.
+  3. **Sincronização Instantânea:** A alternância entre temas (Sol / Lua) atualiza imediatamente todo o painel sem necessidade de recarregar a página.
 
 - 🔍 **Ampliação do Card de Ação Recomendada para Alta Legibilidade & Correção de Sinal de (+) Único (v2.9.36):**
   1. **Tipografia e Dimensões Ampliadas:**

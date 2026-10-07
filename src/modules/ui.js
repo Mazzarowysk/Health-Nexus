@@ -20,6 +20,10 @@ export const toggleTheme = () => {
   const isLight = document.body.classList.toggle('light-theme');
   localStorage.setItem('hn_theme', isLight ? 'light' : 'dark');
   updateThemeIcon();
+  if (typeof window !== 'undefined' && typeof window.createSmartFlowGuideCard === 'function') {
+    const actTab = (typeof state !== 'undefined' && state.activeTab) || (window._SFG && window._SFG.activeTab) || null;
+    window.createSmartFlowGuideCard(actTab);
+  }
 };
 
 export const updateThemeIcon = () => {
