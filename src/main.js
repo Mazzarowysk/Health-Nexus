@@ -2461,7 +2461,7 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       'right:0 !important',
       'width:100vw !important',
       'max-width:100vw !important',
-      'height:var(--hn-flow-panel-bar-height, 74px) !important',
+      'height:var(--hn-flow-panel-bar-height, 86px) !important',
       'background:rgba(11,15,25,0.98) !important',
       'backdrop-filter:blur(28px) saturate(180%) !important',
       '-webkit-backdrop-filter:blur(28px) saturate(180%) !important',
@@ -2542,10 +2542,10 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       }
     }, { passive: false });
 
-    // Bloco Ação Recomendada Principal com Informação Destacada em Detalhe
+    // Bloco Ação Recomendada Principal com Informação Destacada em Detalhe (Ampliada para Facilitar Leitura)
     const actionBox = document.createElement('div');
     actionBox.id = 'hn-fg-horiz-action-box';
-    actionBox.style.cssText = 'display:flex;align-items:center;gap:10px;flex-shrink:0;min-width:0;';
+    actionBox.style.cssText = 'display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:0;';
 
     const pri = evalResult.primaryAction || {};
     const actionTitle = pri.title || evalResult.stageName || 'Conduta Recomendada';
@@ -2555,41 +2555,55 @@ function createSmartFlowGuideCard(tabId, customMessage) {
     const badgeColor = isActDanger ? '#f87171' : '#38bdf8';
     const dotColor = isActDanger ? '#ef4444' : '#38bdf8';
 
-    // Subcard com Moldura e Informações Detalhadas (exatamente como no painel lateral)
+    // Subcard com Moldura e Informações Detalhadas Ampliadas (conforto visual e alta legibilidade)
     const cardContent = document.createElement('div');
     cardContent.className = 'hn-flow-subcard hn-fg-horiz-action-card';
 
     const textCol = document.createElement('div');
-    textCol.style.cssText = 'display:flex;flex-direction:column;gap:1px;min-width:0;max-width:320px;';
+    textCol.style.cssText = 'display:flex;flex-direction:column;gap:3px;min-width:0;max-width:440px;';
 
-    // Linha 1: Badge Luminoso + Título da Ação
+    // Linha 1: Badge Luminoso + Título da Ação com Destaque Maior
     const topRow = document.createElement('div');
-    topRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    topRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
     topRow.innerHTML = `
-      <div style="display:flex;align-items:center;gap:4px;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${badgeColor};flex-shrink:0;">
-        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${dotColor};box-shadow:0 0 6px ${dotColor};"></span>
+      <div style="display:flex;align-items:center;gap:5px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:${badgeColor};flex-shrink:0;">
+        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dotColor};box-shadow:0 0 8px ${dotColor};"></span>
         <span>${actBadgeText}</span>
       </div>
-      <div style="font-size:0.75rem;font-weight:700;color:#ffffff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${actionTitle}">
+      <div style="font-size:0.88rem;font-weight:700;color:#ffffff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;" title="${actionTitle}">
         ${actionTitle}
       </div>
     `;
 
-    // Linha 2: Descrição Explicativa da Conduta em Detalhe
+    // Linha 2: Descrição Explicativa da Conduta em Detalhe (tipografia maior e alto contraste)
     const descRow = document.createElement('div');
-    descRow.style.cssText = 'font-size:0.66rem;color:#cbd5e1;line-height:1.22;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;';
+    descRow.style.cssText = 'font-size:0.76rem;color:#e2e8f0;line-height:1.32;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;';
     descRow.title = actionDesc;
     descRow.textContent = actionDesc;
 
     textCol.appendChild(topRow);
     textCol.appendChild(descRow);
 
+    // Formatação do Botão: Garantir estritamente 1 único sinal de (+) sem duplicidades
+    let actBtnHtml = '';
+    const rawBtnText = (pri.btnText || 'Próximo Passo').trim();
+    const rawIcon = (pri.icon || '').trim();
+
+    if (rawBtnText.startsWith('➕') || rawBtnText.startsWith('+')) {
+      const textWithoutPlus = rawBtnText.replace(/^[➕\+]\s*/, '');
+      actBtnHtml = `<span style="font-size:0.92rem;font-weight:800;line-height:1;">➕</span> <span>${textWithoutPlus}</span>`;
+    } else if (rawIcon && !rawBtnText.startsWith(rawIcon)) {
+      actBtnHtml = `<span style="font-size:0.92rem;line-height:1;">${rawIcon}</span> <span>${rawBtnText}</span>`;
+    } else {
+      actBtnHtml = `<span>${rawBtnText}</span>`;
+    }
+
     // Botão de Ação Destacado com Pulso Luminoso
     const actBtn = document.createElement('button');
     actBtn.id = 'hn-fg-horiz-action';
     actBtn.className = 'btn-next-step-pulse';
-    actBtn.style.cssText = `background:${pri.btnBg || 'linear-gradient(135deg, #0284c7, #0369a1)'};color:#ffffff;border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:7px 13px;font-weight:700;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;letter-spacing:0.2px;`;
-    actBtn.innerHTML = `<span>${pri.icon || '⚡'}</span> <span>${pri.btnText || 'Próximo Passo'}</span>`;
+    actBtn.style.cssText = `background:${pri.btnBg || 'linear-gradient(135deg, #0284c7, #0369a1)'};color:#ffffff;border:1px solid rgba(255,255,255,0.22);border-radius:9px;padding:9px 16px;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 16px rgba(2,132,199,0.38);white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;letter-spacing:0.2px;`;
+    actBtn.innerHTML = actBtnHtml;
     actBtn.addEventListener('mouseenter', () => { actBtn.style.transform = 'translateY(-1px)'; });
     actBtn.addEventListener('mouseleave', () => { actBtn.style.transform = 'none'; });
     if (pri.onClick) {

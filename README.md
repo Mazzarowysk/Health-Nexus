@@ -1,12 +1,21 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.35`  
+**Versão:** `2.9.36`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🔍 **Ampliação do Card de Ação Recomendada para Alta Legibilidade & Correção de Sinal de (+) Único (v2.9.36):**
+  1. **Tipografia e Dimensões Ampliadas:**
+     - Título da conduta aumentado para `0.88rem` em branco nítido de alto contraste;
+     - Descrição clínica aumentada para `0.76rem` em tom claro (`#e2e8f0`) com entrelinhas de 1.32, tornando a leitura fluida e confortável;
+     - Largura do bloco de texto expandida para `440px`, permitindo exibição completa das orientações assistenciais;
+     - Altura da barra horizontal calibrada para `86px`, trazendo amplitude e respiro visual sem aperto.
+  2. **Correção de Duplicidade no Botão Verde (`+` Único):**
+     - Remoção da redundância entre o ícone do motor de regras e o texto do botão, garantindo estritamente 1 único sinal `[ ➕ Cadastrar Novo Paciente Agora ➔ ]`.
 
 - 💡 **Ação Recomendada em Detalhe na Barra Horizontal (Topo e Base) do Smart Flow Guide (v2.9.35):**
   1. **Equiparação Completa com o Modo Lateral:** Quando o Guia de Fluxo estiver acoplado no topo ou na parte inferior da tela, ele agora exibe exatamente o mesmo nível de riqueza e detalhamento do painel lateral.

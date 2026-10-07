@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.35)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.36)
 
-> **Health Nexus v2.9.35 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT e Ação Recomendada clínica em detalhe preservada em todas as orientações (lateral, topo e base). Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.36 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT e Ação Recomendada clínica ampliada para alta legibilidade com botão verde padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -1166,10 +1166,12 @@ Na versão **2.9.34**, o Smart Flow Guide nos modos de fixação horizontal (bar
 - **Rolagem Horizontal Inteligente por Roda do Mouse:** Caso a janela seja redimensionada ou utilizada em telas compactas, o operador pode navegar lateralmente pelas 7 etapas hospitalares apenas girando a roda do mouse (`wheel` horizontal suave), com total ergonomia e sem ruído visual.
 - **Espaçamento e Centralização Otimizados:** Os nós e separadores de etapas foram calibrados para garantir encaixe fluido e centralizado em monitores de qualquer resolução.
 
-### 💡 Ação Recomendada em Detalhe na Barra Horizontal (v2.9.35)
+### 💡 Ação Recomendada em Detalhe na Barra Horizontal (v2.9.35 / v2.9.36)
 
-Na versão **2.9.35**, a barra de Governança horizontal (fixada no topo ou na base) passou a exibir o mesmo nível de riqueza assistencial do painel lateral:
+Nas versões **2.9.35** e **2.9.36**, a barra de Governança horizontal (fixada no topo ou na base) passou por um aprimoramento ergonômico completo:
 - **Card de Ação Completo:** Além do botão de execução, a barra traz o bloco moldurado com a badge `• AÇÃO RECOMENDADA` (com ponto luminoso pulsante), o título completo da conduta (ex: `📑 Início do Fluxo: Cadastrar Novo Paciente`) e a descrição clínica detalhada explicando o porquê daquela ação e o benefício assistencial.
+- **Tipografia Ampliada para Fácil Leitura (v2.9.36):** Título ampliado para `0.88rem` em branco nítido, descrição em `0.76rem` claro (`#e2e8f0`) com entrelinhas arejadas, largura expandida para até `440px` de texto e altura da barra calibrada para `86px`, assegurando leitura imediata sem esforço visual.
+- **Padronização de Ícone Único no Botão Verde (+ Único) (v2.9.36):** Eliminação de duplicações de símbolos, garantindo estritamente 1 único sinal de mais `[ ➕ Cadastrar Novo Paciente Agora ➔ ]`.
 - **Equiparação Total de Contexto:** A equipe clínica e administrativa conta com a mesma clareza operacional independentemente da posição de fixação escolhida (lateral direita, esquerda, topo ou base).
 
 ---
@@ -1316,7 +1318,7 @@ Com a versão **2.9.31**, os pop-ups nativos do navegador foram completamente su
 
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.35 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.36 do Health Nexus. Todos os direitos reservados.*
 
 
 
