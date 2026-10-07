@@ -6368,6 +6368,42 @@ body.hn-flow-dock-preview-left .modal-content {
   box-shadow: 0 0 16px rgba(2, 132, 199, 0.25);
 }
 
+/* Card de Ação Recomendada em Detalhe na Barra Horizontal (Dock Topo / Base) */
+.hn-fg-horiz-action-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.14), rgba(15, 23, 42, 0.7));
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 11px;
+  padding: 6px 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  max-width: 540px;
+  min-width: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hn-fg-horiz-action-card:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55), 0 0 20px rgba(56, 189, 248, 0.25);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1400px) {
+  .hn-fg-horiz-action-card {
+    max-width: 440px;
+    gap: 8px;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .hn-fg-horiz-action-card {
+    max-width: 360px;
+  }
+}
+
 .hn-fg-docked-step-item.completed {
   border-color: rgba(16, 185, 129, 0.3);
 }

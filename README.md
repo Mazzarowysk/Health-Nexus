@@ -1,12 +1,21 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.34`  
+**Versão:** `2.9.35`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 💡 **Ação Recomendada em Detalhe na Barra Horizontal (Topo e Base) do Smart Flow Guide (v2.9.35):**
+  1. **Equiparação Completa com o Modo Lateral:** Quando o Guia de Fluxo estiver acoplado no topo ou na parte inferior da tela, ele agora exibe exatamente o mesmo nível de riqueza e detalhamento do painel lateral.
+  2. **Estrutura Visual do Card de Ação Integrado (`hn-fg-horiz-action-card`):**
+     - **Badge de Status com Ponto Pulsante:** Pílula luminosa ciano ou vermelha (`• AÇÃO RECOMENDADA` ou `• AÇÃO EM ANDAMENTO NO MODAL`);
+     - **Título da Ação em Destaque:** Título completo com ícone assistencial e alto contraste (ex: `📑 Início do Fluxo: Cadastrar Novo Paciente`);
+     - **Descrição Clínica Detalhada:** Texto explicativo orientando o porquê e como executar a conduta (ex: *"O ciclo assistencial começa na identificação do paciente. Cadastre a admissão na recepção..."*);
+     - **Botão de Ação com Pulso Luminoso:** Ação de 1-clique com gradiente de alta visibilidade (`btn-next-step-pulse`) perfeitamente integrado ao lado das orientações.
+  3. **Adaptação Responsiva Dinâmica:** O card se ajusta suavemente ao espaço livre da tela, garantindo leitura agradável sem comprometer o stepper das 7 etapas nem os controles de fixação.
 
 - 🧭 **Harmonização Visual do Smart Flow Guide & Eliminação de Scrollbar Cinza Destoante (v2.9.34):**
   1. **Remoção da Barra de Rolagem Nativa do Windows:** O stepper horizontal de etapas clínicas na barra de Governança (acoplamento inferior/superior) não renderiza mais a barra de rolagem cinza de 17px com setas, preservando a identidade visual dark e moderna.

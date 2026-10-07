@@ -2542,21 +2542,63 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       }
     }, { passive: false });
 
-    // Bloco Ação Recomendada Principal
+    // Bloco Ação Recomendada Principal com Informação Destacada em Detalhe
     const actionBox = document.createElement('div');
-    actionBox.style.cssText = 'display:flex;align-items:center;gap:8px;flex-shrink:0;';
+    actionBox.id = 'hn-fg-horiz-action-box';
+    actionBox.style.cssText = 'display:flex;align-items:center;gap:10px;flex-shrink:0;min-width:0;';
 
     const pri = evalResult.primaryAction || {};
+    const actionTitle = pri.title || evalResult.stageName || 'Conduta Recomendada';
+    const actionDesc = pri.desc || evalResult.recommendation || 'Acompanhe a linha de cuidado e execute o próximo passo.';
+    const actBadgeText = evalResult.actionBadge || 'Ação Recomendada';
+    const isActDanger = !!evalResult.actionBadge;
+    const badgeColor = isActDanger ? '#f87171' : '#38bdf8';
+    const dotColor = isActDanger ? '#ef4444' : '#38bdf8';
+
+    // Subcard com Moldura e Informações Detalhadas (exatamente como no painel lateral)
+    const cardContent = document.createElement('div');
+    cardContent.className = 'hn-flow-subcard hn-fg-horiz-action-card';
+
+    const textCol = document.createElement('div');
+    textCol.style.cssText = 'display:flex;flex-direction:column;gap:1px;min-width:0;max-width:320px;';
+
+    // Linha 1: Badge Luminoso + Título da Ação
+    const topRow = document.createElement('div');
+    topRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    topRow.innerHTML = `
+      <div style="display:flex;align-items:center;gap:4px;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${badgeColor};flex-shrink:0;">
+        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${dotColor};box-shadow:0 0 6px ${dotColor};"></span>
+        <span>${actBadgeText}</span>
+      </div>
+      <div style="font-size:0.75rem;font-weight:700;color:#ffffff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${actionTitle}">
+        ${actionTitle}
+      </div>
+    `;
+
+    // Linha 2: Descrição Explicativa da Conduta em Detalhe
+    const descRow = document.createElement('div');
+    descRow.style.cssText = 'font-size:0.66rem;color:#cbd5e1;line-height:1.22;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;';
+    descRow.title = actionDesc;
+    descRow.textContent = actionDesc;
+
+    textCol.appendChild(topRow);
+    textCol.appendChild(descRow);
+
+    // Botão de Ação Destacado com Pulso Luminoso
     const actBtn = document.createElement('button');
     actBtn.id = 'hn-fg-horiz-action';
-    actBtn.style.cssText = `background:${pri.btnBg || 'linear-gradient(135deg, #0284c7, #0369a1)'};color:#ffffff;border:none;border-radius:8px;padding:7px 14px;font-weight:700;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;`;
+    actBtn.className = 'btn-next-step-pulse';
+    actBtn.style.cssText = `background:${pri.btnBg || 'linear-gradient(135deg, #0284c7, #0369a1)'};color:#ffffff;border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:7px 13px;font-weight:700;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(2,132,199,0.35);white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;letter-spacing:0.2px;`;
     actBtn.innerHTML = `<span>${pri.icon || '⚡'}</span> <span>${pri.btnText || 'Próximo Passo'}</span>`;
     actBtn.addEventListener('mouseenter', () => { actBtn.style.transform = 'translateY(-1px)'; });
     actBtn.addEventListener('mouseleave', () => { actBtn.style.transform = 'none'; });
     if (pri.onClick) {
-      actBtn.setAttribute('onclick', pri.onClick);
+      actBtn.setAttribute('onclick', `if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${pri.onClick}`);
     }
-    actionBox.appendChild(actBtn);
+
+    cardContent.appendChild(textCol);
+    cardContent.appendChild(actBtn);
+    actionBox.appendChild(cardContent);
 
     // Bloco Controles: Seletor de Fixação + Desacoplar + Minimizar + Fechar
     const ctrlBox = document.createElement('div');
