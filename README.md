@@ -1,12 +1,23 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.31`  
+**Versão:** `2.9.32`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 📊 **Correção e Sincronização Completa da Aba Relatórios com Dados Simulados & Filtros Flexíveis (v2.9.32):**
+  1. **Exibição Imediata de Pacientes Simulados:** Correção do gerador de dados simulados (`mockDataGenerator.js`) para incluir automaticamente município de residência (`city`) e faturamento acumulado (`billingValue`) nos 80 pacientes e atendimentos simulados.
+  2. **Filtros de Cidades e Status Não Restritivos:**
+     - O seletor multi-select de Cidades agora preserva a seleção global `"Todas as Cidades"` como padrão inclusivo, impedindo o descarte indevido de pacientes quando nenhuma restrição for aplicada.
+     - Suporte automático a pacientes com cidade não informada ou cadastros parciais.
+  3. **Ampla Cobertura de Status de Atendimentos:**
+     - O dropdown de status da aba Atendimentos foi expandido para cobrir todo o ciclo hospitalar real: *Aguardando Triagem*, *Aguardando Consulta*, *Em Consulta*, *Em Observação*, *Aguardando Exames*, *Aguardando Laudos*, *Alta Hospitalar* e *Finalizado*.
+  4. **Auto-Enriquecimento Retrocompatível:**
+     - Ao carregar a aba de Relatórios, bases locais existentes com registros legados sem cidade ou faturamento são automaticamente normalizadas e enriquecidas, garantindo visualização instantânea de tabelas, contadores e gráficos sem necessidade de resetar a base.
+  5. **Resiliência Local-First no Carregamento:** Leitura direta e fallback prioritário para o armazenamento local caso requisições em memória ou de cache estejam em sincronização.
 
 - 🪟 **Janela Flutuante de Confirmação no Padrão Visual do Sistema (v2.9.31):**
   1. **Substituição de Todos os Pop-ups Nativos do Navegador:** O diálogo padrão do navegador (`confirm()`) foi substituído em todo o sistema pela janela flutuante customizada `showCustomConfirm()`, eliminando caixas de texto genéricas do browser e trazendo harmonia estética com o Health Nexus.

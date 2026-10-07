@@ -46,6 +46,12 @@ const CONSULTÓRIOS = ['Consultório 01','Consultório 02','Consultório 03','Co
 const BAIRROS = ['Centro','Jardim América','Vila Nova','Bela Vista','Morumbi',
   'Santo André','Ipiranga','Tatuapé','Pinheiros','Lapa','Consolação','Santana'];
 
+const CIDADES_SP = [
+  'São Paulo', 'Campinas', 'Santos', 'São Bernardo do Campo',
+  'Santo André', 'Osasco', 'Ribeirão Preto', 'Sorocaba',
+  'São José dos Campos', 'Guarulhos', 'Mogi das Cruzes', 'Jundiaí'
+];
+
 const MEDICAMENTOS = [
   { name: 'Dipirona 500mg', category: 'Analgésico', unit: 'Comprimido', minStock: 100 },
   { name: 'Paracetamol 750mg', category: 'Analgésico', unit: 'Comprimido', minStock: 100 },
@@ -157,6 +163,9 @@ function generatePatients(count = 80) {
     const birthYear = rnd(1940, 2015);
     const birthDate = `${birthYear}-${String(rnd(1,12)).padStart(2,'0')}-${String(rnd(1,28)).padStart(2,'0')}`;
     const age = new Date().getFullYear() - birthYear;
+    const city = pick(CIDADES_SP);
+    const billingRaw = rnd(300, 5200);
+    const billingValue = `R$ ${billingRaw.toLocaleString('pt-BR')},00`;
 
     patients.push({
       id: `PAT-${String(i + 1).padStart(3, '0')}`,
@@ -167,7 +176,9 @@ function generatePatients(count = 80) {
       gender: isFem ? 'Feminino' : 'Masculino',
       phone: randomPhone(),
       email: randomEmail(fullName),
-      address: `Rua ${pick(['das Flores','São José','Boa Vista','Tiradentes','XV de Novembro','Castro Alves'])}, ${rnd(10, 999)} - ${pick(BAIRROS)}`,
+      city,
+      billingValue,
+      address: `Rua ${pick(['das Flores','São José','Boa Vista','Tiradentes','XV de Novembro','Castro Alves'])}, ${rnd(10, 999)} - ${pick(BAIRROS)}, ${city} - SP`,
       status: Math.random() > 0.08 ? 'Ativo' : 'Inativo',
       healthPlan: pick(PLANOS),
       bloodType: pick(['A+','A-','B+','B-','AB+','AB-','O+','O-']),
@@ -367,6 +378,7 @@ function generateEncountersAndTriages(patients, doctors, count = 45) {
       id: encId,
       patientId: patient.id,
       patientName: patient.fullName,
+      city: patient.city || 'São Paulo',
       doctorId: status !== 'Aguardando_Triagem' ? doctor.id : null,
       doctorName: status !== 'Aguardando_Triagem' ? doctor.name : null,
       type: isObs ? 'Urgencia' : typeEnc,

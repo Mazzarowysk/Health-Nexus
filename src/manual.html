@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.28)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.32)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.28 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido e circuito fechado de dispensação. Testado e homologado com 100% das 18 abas operacionais.</p>
+<p><strong>Health Nexus v2.9.32 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação e relatórios analíticos dinâmicos com filtros inclusivos e dados simulados integrados. Testado e homologado com 100% das 18 abas operacionais.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -3193,7 +3193,7 @@ flowchart TD
 </tr>
 </tbody></table>
 <hr>
-<h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2><p>Na aba <strong>Relatórios</strong>, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria.</p>
+<h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2><p>Na aba <strong>Relatórios</strong>, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria, comutando entre 5 visões estruturadas: <strong>Pacientes</strong>, <strong>Atendimentos &amp; PEP</strong>, <strong>Financeiro</strong>, <strong>Por Médico</strong> e <strong>Escalas &amp; Plantões</strong>.</p>
 <p><img src="docs/screenshots/14-relatorios.png" alt="Figura 12.1: Relatórios Analytics &amp; Indicadores Hospitalares — DRE e Ocupação"></p>
 <h3>📈 Tabela de Painéis Analíticos Hospitalares</h3>
 <table>
@@ -3207,41 +3207,47 @@ flowchart TD
 </tr>
 </thead>
 <tbody><tr>
-<td align="left"><strong>DRE &amp; Finanças</strong></td>
-<td align="left">Receita bruta, ticket médio, glosas acumuladas, custos por leito</td>
-<td align="center">Diário / Mensal / Anual</td>
+<td align="left"><strong>Pacientes</strong></td>
+<td align="left">Cadastro completo, idade, cidade de residência e faturamento acumulado</td>
+<td align="center">Período / Cidades / Valor Mínimo</td>
 <td align="center">PDF Executivo / Excel / CSV</td>
-<td align="left">Diretoria Financeira &amp; Controladoria</td>
+<td align="left">Recepção &amp; Diretoria Assistencial</td>
 </tr>
 <tr>
-<td align="left"><strong>Atendimentos PS</strong></td>
-<td align="left">Volume por hora, taxa de conversão em internação, gravidade Manchester</td>
-<td align="center">Turno / Diário / Semanal</td>
-<td align="center">PDF / Excel</td>
+<td align="left"><strong>Atendimentos &amp; PEP</strong></td>
+<td align="left">Fila por status, gravidade Manchester, tipo e médico responsável</td>
+<td align="center">Admissão / Status / Manchester</td>
+<td align="center">PDF / Excel / CSV</td>
 <td align="left">Coordenação Médica &amp; Enfermagem</td>
 </tr>
 <tr>
-<td align="left"><strong>Ocupação &amp; Censo</strong></td>
-<td align="left">Taxa de ocupação de leitos, tempo médio de permanência (TMP), giro de leitos</td>
-<td align="center">Tempo Real / Mensal</td>
-<td align="center">PDF / Excel</td>
-<td align="left">Núcleo Interno de Regulação (NIR)</td>
+<td align="left"><strong>Financeiro &amp; Títulos</strong></td>
+<td align="left">Receitas x Despesas, parcelas pagas, a vencer, vencidas e bonificadas</td>
+<td align="center">Vencimento / Categoria / Forma</td>
+<td align="center">PDF com DRE / Excel / CSV</td>
+<td align="left">Diretoria Financeira &amp; Controladoria</td>
 </tr>
 <tr>
 <td align="left"><strong>Produtividade Médica</strong></td>
-<td align="left">Consultas finalizadas por profissional, adesão a protocolos de emergência</td>
-<td align="center">Mensal / Individual</td>
-<td align="center">PDF Confidencial</td>
+<td align="left">Consultas concluídas, atendimentos hoje, taxa de conclusão e gráficos</td>
+<td align="center">Mensal / Individual / Especialidade</td>
+<td align="center">PDF Confidencial / CSV</td>
 <td align="left">Direção Clínica &amp; Comissão de Ética</td>
 </tr>
 <tr>
-<td align="left"><strong>Auditoria TISS</strong></td>
-<td align="left">Taxa de conformidade de guias, procedimentos glosados, tempo de recurso</td>
-<td align="center">Quinzenal / Mensal</td>
-<td align="center">XML Lote / Relatório PDF</td>
-<td align="left">Faturamento &amp; Auditoria Médica</td>
+<td align="left"><strong>Escalas &amp; Plantões</strong></td>
+<td align="left">Alocação de médicos e enfermeiros, setores, carga horária e status</td>
+<td align="center">Data do Plantão / Categoria</td>
+<td align="center">PDF / CSV</td>
+<td align="left">Gestão de Escalas &amp; Recursos Humanos</td>
 </tr>
 </tbody></table>
+<h3>🛠️ Filtros Inteligentes &amp; Integração com Simulação de Dados (v2.9.32)</h3>
+<ol>
+<li><strong>Comportamento Padrão Inclusivo:</strong> Ao acessar o módulo ou após simular dados na aba de configurações, o seletor de Cidades e Status permanece como <em>&quot;Todos&quot;</em> por padrão, exibindo todos os registros gerados sem necessidade de marcação manual prévia.</li>
+<li><strong>Compatibilidade com Dados Simulados:</strong> O gerador de dados mock atribui automaticamente municípios brasileiros realistas (<code>city</code>) e faturamentos representativos (<code>billingValue</code>) a todos os pacientes simulados, garantindo gráficos e tabelas povoados imediatamente após a simulação.</li>
+<li><strong>Resiliência Local-First:</strong> Em caso de oscilação de rede ou cache em renovação, o módulo de relatórios lê diretamente a base local do hospital (<code>localDB</code>), assegurando integridade e agilidade analítica.</li>
+</ol>
 <hr>
 <h2 id="sec-13">13. Painel de Chamada TV & Sala de Espera</h2><p>O <strong>Painel TV</strong> opera em tela cheia na sala de espera para direcionamento sonoro e visual dos pacientes por viva-voz sintetizado.</p>
 <p><img src="docs/screenshots/09-painel-tv.png" alt="Figura 13.1: Painel TV — Chamador Audiovisual de Senhas com Voz Sintetizada pt-BR"></p>

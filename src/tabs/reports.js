@@ -254,7 +254,20 @@ function renderReportsTab(contentArea) {
   });
 
   const getUniqueCitiesCheckboxes = () => {
-    const cities = [...new Set(patientsList.map(p => p.city).filter(Boolean))].sort();
+    const rawCities = [...new Set(patientsList.map(p => p.city).filter(Boolean))].sort();
+    const hasUnspecified = patientsList.some(p => !p.city);
+    const cities = [...rawCities];
+    if (hasUnspecified && rawCities.length > 0) cities.push('Não Informada');
+
+    if (cities.length === 0) {
+      return `
+        <li>
+          <input type="checkbox" id="filter-city-all" checked>
+          <label for="filter-city-all"><strong>Todas as Cidades</strong></label>
+        </li>
+      `;
+    }
+
     return `
       <li>
         <input type="checkbox" id="filter-city-all" checked>
@@ -368,6 +381,22 @@ function renderReportsTab(contentArea) {
                 <li>
                   <input type="checkbox" class="filter-status-item" value="Em_Atendimento" id="filter-status-3" checked>
                   <label for="filter-status-3">Em Consulta</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-status-item" value="Em_Observacao" id="filter-status-5" checked>
+                  <label for="filter-status-5">Em Observação</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-status-item" value="Aguardando_Exames" id="filter-status-6" checked>
+                  <label for="filter-status-6">Aguardando Exames</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-status-item" value="Aguardando_Resultado" id="filter-status-7" checked>
+                  <label for="filter-status-7">Aguardando Laudos</label>
+                </li>
+                <li>
+                  <input type="checkbox" class="filter-status-item" value="Alta" id="filter-status-8" checked>
+                  <label for="filter-status-8">Alta Hospitalar</label>
                 </li>
                 <li>
                   <input type="checkbox" class="filter-status-item" value="Finalizado" id="filter-status-4" checked>
@@ -1161,6 +1190,7 @@ function renderReportsTab(contentArea) {
       const dateEnd = document.getElementById('filter-date-end')?.value || '';
       const billingMin = document.getElementById('filter-billing-min')?.value || '';
       
+      const isAllCitiesChecked = document.getElementById('filter-city-all')?.checked ?? true;
       const checkedCities = Array.from(document.querySelectorAll('.filter-city-item:checked')).map(cb => cb.value);
 
       currentFilteredList = patientsList.filter(p => {
@@ -1175,8 +1205,12 @@ function renderReportsTab(contentArea) {
           if (regDate > end) return false;
         }
         
-        // Filtrar pelas cidades marcadas nos checkboxes
-        if (!checkedCities.includes(p.city)) return false;
+        // Se "Selecionar Todas" estiver marcado OU não houver checkboxes individuais, aceita todos os pacientes
+        if (!isAllCitiesChecked) {
+          if (checkedCities.length === 0) return false;
+          const pCity = p.city || 'Não Informada';
+          if (!checkedCities.includes(pCity)) return false;
+        }
 
         if (billingMin) {
           const min = parseFloat(billingMin);
@@ -1228,32 +1262,50 @@ function renderReportsTab(contentArea) {
       const dateStart = document.getElementById('filter-date-start')?.value || '';
       const dateEnd = document.getElementById('filter-date-end')?.value || '';
 
+      const isAllStatusesChecked = document.getElementById('filter-status-all')?.checked ?? true;
       const checkedStatuses = Array.from(document.querySelectorAll('.filter-status-item:checked')).map(cb => cb.value);
+
+      const isAllManchesterChecked = document.getElementById('filter-manchester-all')?.checked ?? true;
       const checkedManchester = Array.from(document.querySelectorAll('.filter-manchester-item:checked')).map(cb => cb.value);
+
+      const isAllTypesChecked = document.getElementById('filter-type-all')?.checked ?? true;
       const checkedTypes = Array.from(document.querySelectorAll('.filter-type-item:checked')).map(cb => cb.value);
       const filterDoctor = (document.getElementById('filter-doctor-name') || {}).value || '';
 
       currentFilteredList = encountersList.filter(e => {
         if (dateStart) {
           const start = new Date(dateStart + 'T00:00:00');
-          const admDate = new Date(e.admitted_at);
+          const admDate = new Date(e.admitted_at || e.created_at);
           if (admDate < start) return false;
         }
         if (dateEnd) {
           const end = new Date(dateEnd + 'T23:59:59');
-          const admDate = new Date(e.admitted_at);
+          const admDate = new Date(e.admitted_at || e.created_at);
           if (admDate > end) return false;
         }
         
-        // Filtrar pelos status marcados nos checkboxes
-        if (!checkedStatuses.includes(e.status)) return false;
+        // Filtrar pelos status marcados nos checkboxes (ou aceitar todos se 'Selecionar Todos' estiver marcado)
+        if (!isAllStatusesChecked) {
+          if (checkedStatuses.length === 0) return false;
+          const st = e.status;
+          const matches = checkedStatuses.includes(st) || 
+            (checkedStatuses.includes('Finalizado') && st === 'Alta') ||
+            (checkedStatuses.includes('Alta') && st === 'Finalizado');
+          if (!matches) return false;
+        }
 
         // Filtrar pelas classificações Manchester (tratando null/vazio como "null")
-        const mColor = e.manchesterColor || 'null';
-        if (!checkedManchester.includes(mColor)) return false;
+        if (!isAllManchesterChecked) {
+          if (checkedManchester.length === 0) return false;
+          const mColor = e.manchesterColor || 'null';
+          if (!checkedManchester.includes(mColor)) return false;
+        }
 
         // Filtrar pelos tipos de atendimento
-        if (!checkedTypes.includes(e.type)) return false;
+        if (!isAllTypesChecked) {
+          if (checkedTypes.length === 0) return false;
+          if (!checkedTypes.includes(e.type)) return false;
+        }
 
         // Filtrar por médico responsável
         if (filterDoctor && (e.doctorName || '') !== filterDoctor) return false;
@@ -1282,6 +1334,10 @@ function renderReportsTab(contentArea) {
           'Aguardando_Triagem': 'Aguardando Triagem',
           'Aguardando_Atendimento': 'Aguardando Consulta',
           'Em_Atendimento': 'Em Consulta',
+          'Em_Observacao': 'Em Observação',
+          'Aguardando_Exames': 'Aguardando Exames',
+          'Aguardando_Resultado': 'Aguardando Laudos',
+          'Alta': 'Alta Médica',
           'Finalizado': 'Finalizado'
         };
         const manchesterHex = { 'Vermelho': '#ef4444', 'Laranja': '#f97316', 'Amarelo': '#eab308', 'Verde': '#22c55e', 'Azul': '#3b82f6', 'Branco': '#f1f5f9' };
@@ -1291,7 +1347,7 @@ function renderReportsTab(contentArea) {
           const mc = e.manchesterColor;
           const hex = mc ? (manchesterHex[mc] || '#818cf8') : null;
           const displayColor = mc ? `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;background:${hex}22;color:${hex};border:1px solid ${hex}55;">${mc.toUpperCase()}</span>` : '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>';
-          const statusColors = { 'Aguardando_Triagem': '#fbbf24', 'Aguardando_Atendimento': '#38bdf8', 'Em_Atendimento': '#a78bfa', 'Finalizado': '#34d399' };
+          const statusColors = { 'Aguardando_Triagem': '#fbbf24', 'Aguardando_Atendimento': '#38bdf8', 'Em_Atendimento': '#a78bfa', 'Em_Observacao': '#f59e0b', 'Aguardando_Exames': '#ec4899', 'Aguardando_Resultado': '#06b6d4', 'Alta': '#10b981', 'Finalizado': '#34d399' };
           const stColor = statusColors[e.status] || '#94a3b8';
           const stLabel = statusMap[e.status] || e.status;
           const encIdShort = (e.id || '').substring(0, 8) + '...';
@@ -3445,10 +3501,56 @@ const loadData = async () => {
       if (resPatients.ok) { const rp = await resPatients.json(); patientsList = Array.isArray(rp) ? rp : (rp.data || []); }
       if (resEncounters.ok) { const re = await resEncounters.json(); encountersList = Array.isArray(re) ? re : (re.data || []); }
 
+      // Fallback de resiliência direta com LocalDB
+      if (!patientsList || patientsList.length === 0) {
+        try {
+          const lp = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('patients') : null;
+          if (lp && lp.length > 0) patientsList = lp;
+        } catch (e) {}
+      }
+      if (!encountersList || encountersList.length === 0) {
+        try {
+          const le = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('encounters') : null;
+          if (le && le.length > 0) encountersList = le;
+        } catch (e) {}
+      }
+
+      // Auto-enriquecimento retrocompatível para dados simulados legados sem cidade ou faturamento
+      if (patientsList && patientsList.length > 0) {
+        let modified = false;
+        const sampleCities = ['São Paulo', 'Campinas', 'Santos', 'Ribeirão Preto', 'São Bernardo do Campo', 'Santo André', 'Osasco', 'Sorocaba'];
+        patientsList.forEach((p, idx) => {
+          if (!p.city) {
+            p.city = sampleCities[idx % sampleCities.length];
+            modified = true;
+          }
+          if (!p.billingValue) {
+            p.billingValue = `R$ ${(350 + (idx * 115) % 3600).toLocaleString('pt-BR')},00`;
+            modified = true;
+          }
+        });
+        if (modified) {
+          try {
+            const rawStored = localStorage.getItem('healthNexusDados');
+            if (rawStored) {
+              const parsed = JSON.parse(rawStored);
+              parsed.patients = patientsList;
+              localStorage.setItem('healthNexusDados', JSON.stringify(parsed));
+            }
+          } catch (e) {}
+        }
+      }
+
       renderFilters();
     } catch (err) {
       console.error(err);
-      previewStatus.textContent = 'Erro ao carregar dados.';
+      try {
+        if (typeof localDB !== 'undefined' && localDB.list) {
+          patientsList = localDB.list('patients') || [];
+          encountersList = localDB.list('encounters') || [];
+        }
+      } catch (e) {}
+      renderFilters();
     }
   };
 

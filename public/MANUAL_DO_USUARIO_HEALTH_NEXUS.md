@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.28)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.32)
 
-> **Health Nexus v2.9.28 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido e circuito fechado de dispensação. Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.32 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação e relatórios analíticos dinâmicos com filtros inclusivos e dados simulados integrados. Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -892,7 +892,7 @@ Na aba **Faturamento TISS**, gerenciam-se as guias de convênio, auditoria de pr
 
 <h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2>
 
-Na aba **Relatórios**, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria.
+Na aba **Relatórios**, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria, comutando entre 5 visões estruturadas: **Pacientes**, **Atendimentos & PEP**, **Financeiro**, **Por Médico** e **Escalas & Plantões**.
 
 ![Figura 12.1: Relatórios Analytics & Indicadores Hospitalares — DRE e Ocupação](docs/screenshots/14-relatorios.png)
 
@@ -900,11 +900,16 @@ Na aba **Relatórios**, o sistema consolida inteligência de dados clínicos e f
 
 | Painel Analítico | Principais Indicadores Consolidados | Granularidade Temporal | Formatos de Exportação | Público Decisor |
 |:---|:---|:---:|:---:|:---|
-| **DRE & Finanças** | Receita bruta, ticket médio, glosas acumuladas, custos por leito | Diário / Mensal / Anual | PDF Executivo / Excel / CSV | Diretoria Financeira & Controladoria |
-| **Atendimentos PS** | Volume por hora, taxa de conversão em internação, gravidade Manchester | Turno / Diário / Semanal | PDF / Excel | Coordenação Médica & Enfermagem |
-| **Ocupação & Censo**| Taxa de ocupação de leitos, tempo médio de permanência (TMP), giro de leitos| Tempo Real / Mensal | PDF / Excel | Núcleo Interno de Regulação (NIR) |
-| **Produtividade Médica**| Consultas finalizadas por profissional, adesão a protocolos de emergência| Mensal / Individual | PDF Confidencial | Direção Clínica & Comissão de Ética |
-| **Auditoria TISS** | Taxa de conformidade de guias, procedimentos glosados, tempo de recurso | Quinzenal / Mensal | XML Lote / Relatório PDF | Faturamento & Auditoria Médica |
+| **Pacientes** | Cadastro completo, idade, cidade de residência e faturamento acumulado | Período / Cidades / Valor Mínimo | PDF Executivo / Excel / CSV | Recepção & Diretoria Assistencial |
+| **Atendimentos & PEP** | Fila por status, gravidade Manchester, tipo e médico responsável | Admissão / Status / Manchester | PDF / Excel / CSV | Coordenação Médica & Enfermagem |
+| **Financeiro & Títulos** | Receitas x Despesas, parcelas pagas, a vencer, vencidas e bonificadas | Vencimento / Categoria / Forma | PDF com DRE / Excel / CSV | Diretoria Financeira & Controladoria |
+| **Produtividade Médica** | Consultas concluídas, atendimentos hoje, taxa de conclusão e gráficos | Mensal / Individual / Especialidade | PDF Confidencial / CSV | Direção Clínica & Comissão de Ética |
+| **Escalas & Plantões** | Alocação de médicos e enfermeiros, setores, carga horária e status | Data do Plantão / Categoria | PDF / CSV | Gestão de Escalas & Recursos Humanos |
+
+### 🛠️ Filtros Inteligentes & Integração com Simulação de Dados (v2.9.32)
+1. **Comportamento Padrão Inclusivo:** Ao acessar o módulo ou após simular dados na aba de configurações, o seletor de Cidades e Status permanece como *"Todos"* por padrão, exibindo todos os registros gerados sem necessidade de marcação manual prévia.
+2. **Compatibilidade com Dados Simulados:** O gerador de dados mock atribui automaticamente municípios brasileiros realistas (`city`) e faturamentos representativos (`billingValue`) a todos os pacientes simulados, garantindo gráficos e tabelas povoados imediatamente após a simulação.
+3. **Resiliência Local-First:** Em caso de oscilação de rede ou cache em renovação, o módulo de relatórios lê diretamente a base local do hospital (`localDB`), assegurando integridade e agilidade analítica.
 
 ---
 
