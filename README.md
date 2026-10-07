@@ -1,12 +1,18 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.33`  
+**Versão:** `2.9.34`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🧭 **Harmonização Visual do Smart Flow Guide & Eliminação de Scrollbar Cinza Destoante (v2.9.34):**
+  1. **Remoção da Barra de Rolagem Nativa do Windows:** O stepper horizontal de etapas clínicas na barra de Governança (acoplamento inferior/superior) não renderiza mais a barra de rolagem cinza de 17px com setas, preservando a identidade visual dark e moderna.
+  2. **Estilização Global de Scrollbars (Padrão Dark Slate & Ciano):** Implementado padrão universal para todas as barras de rolagem do sistema — espessura ultrafina (6px), trilho translúcido, thumb arredondado com efeito neon sutil ao passar o cursor e remoção completa de botões cinzas do navegador.
+  3. **Navegação Horizontal Ergonômica:** O stepper central agora suporta rolagem suave contínua através da roda do mouse (`wheel` horizontal), permitindo alternar entre as 7 etapas mesmo em telas compactas sem poluição visual.
+  4. **Proporções e Espaçamentos Balanceados:** Ajuste fino dos nós e separadores de etapas para garantir visualização desobstruída e centralizada em monitores de qualquer resolução.
 
 - 🔬 **Módulo Analítico e Relatórios de Exames & Laboratório SADT na Aba Relatórios (v2.9.33):**
   1. **Novo Card Executivo `[ 🔬 Exames & Laudos ]`:** Integrado diretamente no seletor principal da aba de Relatórios (`src/tabs/reports.js`), complementando os painéis de Pacientes, Atendimentos, Financeiro, Médicos e Escalas.

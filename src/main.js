@@ -2510,10 +2510,10 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       ${patBadge}
     `;
 
-    // Bloco Central: Stepper Compacto das 7 Etapas Hospitalares
+    // Bloco Central: Stepper Compacto das 7 Etapas Hospitalares (sem barra de rolagem cinza destoante)
     const centerBox = document.createElement('div');
     centerBox.id = 'hn-fg-horiz-stepper';
-    centerBox.style.cssText = 'display:flex;align-items:center;gap:6px;flex:1;max-width:680px;justify-content:center;overflow-x:auto;padding:0 8px;';
+    centerBox.style.cssText = 'display:flex;align-items:center;gap:4px;flex:1;max-width:720px;justify-content:center;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:0 8px;';
     centerBox.innerHTML = _SFG.steps.map(function(s, i) {
       const done = currentStageIdx > i;
       const now = currentStageIdx === i || (i === 6 && (_SFG.activeTab === 'financeiro' || _SFG.activeTab === 'tiss'));
@@ -2524,15 +2524,23 @@ function createSmartFlowGuideCard(tabId, customMessage) {
       const nodeColor = done ? '#34d399' : (isTarget || now) ? '#ffffff' : '#64748b';
       const labelColor = (isTarget || now) ? '#38bdf8' : done ? '#34d399' : '#94a3b8';
       const sep = i < _SFG.steps.length - 1
-        ? '<div style="flex:1;min-width:6px;max-width:20px;height:2px;background:' + (done ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.07)') + ';margin:0 2px"></div>'
+        ? '<div style="flex:1;min-width:3px;max-width:12px;height:2px;background:' + (done ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.07)') + ';margin:0 1px"></div>'
         : '';
 
-      return '<div onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); window.switchTab(\'' + s.tab + '\');" title="' + s.label + '" style="display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;padding:3px 6px;border-radius:8px;transition:background 0.15s;" onmouseenter="this.style.background=\'rgba(255,255,255,0.06)\'" onmouseleave="this.style.background=\'transparent\'">'
-        + '<div style="width:20px;height:20px;border-radius:50%;background:' + nodeBg + ';border:1px solid ' + nodeBorder + ';display:flex;align-items:center;justify-content:center;font-size:0.58rem;color:' + nodeColor + ';font-weight:700;">'
+      return '<div onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); window.switchTab(\'' + s.tab + '\');" title="' + s.label + '" style="display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;padding:2px 5px;border-radius:7px;transition:background 0.15s;" onmouseenter="this.style.background=\'rgba(255,255,255,0.06)\'" onmouseleave="this.style.background=\'transparent\'">'
+        + '<div style="width:19px;height:19px;border-radius:50%;background:' + nodeBg + ';border:1px solid ' + nodeBorder + ';display:flex;align-items:center;justify-content:center;font-size:0.56rem;color:' + nodeColor + ';font-weight:700;">'
         + (done ? '✓' : (i + 1)) + '</div>'
-        + '<span style="font-size:0.68rem;font-weight:' + ((now || isTarget) ? '700' : '500') + ';color:' + labelColor + ';white-space:nowrap">' + s.label.split(' ')[0] + '</span>'
+        + '<span style="font-size:0.67rem;font-weight:' + ((now || isTarget) ? '700' : '500') + ';color:' + labelColor + ';white-space:nowrap">' + s.label.split(' ')[0] + '</span>'
         + '</div>' + sep;
     }).join('');
+
+    // Rolagem horizontal suave com a roda do mouse sem exibir barra cinza nativa
+    centerBox.addEventListener('wheel', function(e) {
+      if (e.deltaY !== 0) {
+        centerBox.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
 
     // Bloco Ação Recomendada Principal
     const actionBox = document.createElement('div');
