@@ -1,12 +1,32 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.39`  
+**Versão:** `2.9.41`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🏷️ **Emissão de Etiquetas Hospitalares, Kit Admissão & Impressão Térmica / A4 (v2.9.41):**
+  1. **Seletores de Quantidade Flexíveis:**
+     - Pulseiras de Identificação (100x30mm) com controles `[-]` e `[+]` e atalhos rápidos `1x` e `2x`;
+     - Etiquetas de Amostras e Tubos (50x30mm) com atalhos rápidos `3x`, `5x`, `8x` e `10x` para identificação de tubos de coleta laboratorial (sangue, urina), biópsia e prontuário físico.
+  2. **Botão de 1-Clique "Imprimir Kit Admissão":**
+     - Emite simultaneamente o conjunto completo de pulseira + etiquetas de amostras (padrão: 1 Pulseira + 4 Tubos), agilizando a triagem e entrada do paciente no Pronto-Socorro ou Internação.
+     - Botões secundários dedicados para emitir apenas pulseiras ou apenas amostras.
+  3. **Suporte Duplo: Rolo Térmico ou Folha A4 Comum:**
+     - **Modo Impressora Térmica:** Formatação milimétrica exata (100x30mm e 50x30mm) com quebra de página automática no rolo contínuo para impressoras Zebra, Argox, Elgin e Datamax;
+     - **Modo Folha A4 / PDF:** Grade organizada e harmoniosa com pulseira no topo e grade de tubos em colunas, com bordas pontilhadas de recorte que evitam desperdício de papel em impressoras convencionais;
+     - **Códigos Vetoriais SVG de Alta Resolução:** Código de barras e QR Code CFM/SUS gerados em SVG nativo de alta definição, garantindo leitura óptica instantânea em qualquer resolução.
+
+- 🎯 **Ajuste de Alto Contraste e Legibilidade no Hover do Card de Ação (v2.9.40):**
+  1. **Eliminação do Conflito de Letras Escuras sobre Fundo Preto:**
+     - Corrigido o comportamento de ativação/hover do Card de Ação Recomendada (`hn-fg-action-card` e `hn-fg-horiz-action-card`), impedindo que o card assumisse fundo escuro no Modo Claro com tipografia preta ilegível.
+  2. **Harmonização Fina nos Dois Modos Visuais:**
+     - **Modo Claro:** Ao passar o mouse sobre o card ou qualquer subcard do painel, a superfície mantém um suave gradiente azul-celeste luminoso (`#ffffff` a `#e0f2fe`), com borda azul-oceano e texto grafite de alta nitidez (`#0f172a` e `#1e293b`), garantindo leitura imediata e confortável.
+     - **Modo Escuro:** No tema noturno, a ativação do card preserva o fundo azul-marinho profundo com tipografia branca cristalina (`#ffffff` e `#f1f5f9`), eliminando qualquer risco de perda de contraste.
+  3. **Subcards do Painel Harmonizados:** Cards de pacientes, radar hospitalar e atalhos rápidos agora mantêm contraste perfeito e estabilidade visual ao receber o foco do mouse.
 
 - ☀️ **Eliminação Definitiva do Fundo Preto no Modo Claro no Smart Flow Guide (v2.9.39):**
   1. **Substituição de Inline Styles Escuros Hardcoded:** O motor JavaScript do Smart Flow Guide agora detecta em tempo de execução a presença da classe `light-theme` e atribui dinamicamente fundos claros em vidro fosco (`rgba(255, 255, 255, 0.98)`), eliminando em definitivo a sobreposição do fundo preto `rgba(11, 15, 25, 0.98)` que persistia por precedência de inline style com `!important`.

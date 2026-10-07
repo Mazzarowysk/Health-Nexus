@@ -434,6 +434,7 @@ export function openDynamicEncounterQueryModal() {
 
 /**
  * Modal de Impressão de Etiquetas Térmicas Hospitalares (Pulseira e Amostra de Laboratório)
+ * Suporte a múltiplas cópias, Kit Admissão e formatos Rolo Térmico ou Folha A4
  */
 export function openThermalLabelModal({ patientName, patientId, number, sector }) {
   const existing = document.getElementById('thermal-label-modal');
@@ -450,61 +451,219 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
   const now = new Date();
   const dateStr = now.toLocaleDateString('pt-BR');
   const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const patIdClean = patientId ? patientId.toString().slice(0, 8) : '001';
+  const attendNum = number || '26.6.0001';
+  const sectorName = sector || 'PRONTO SOCORRO';
+
+  // Gerador de SVG de Código de Barras (vetorial nítido e universal para impressão)
+  const generateBarcodeSvg = () => `
+    <svg viewBox="0 0 140 26" width="100%" height="22" style="display:block;" preserveAspectRatio="none">
+      <rect x="0" y="0" width="3" height="26" fill="#000"/>
+      <rect x="5" y="0" width="2" height="26" fill="#000"/>
+      <rect x="9" y="0" width="4" height="26" fill="#000"/>
+      <rect x="15" y="0" width="1" height="26" fill="#000"/>
+      <rect x="18" y="0" width="3" height="26" fill="#000"/>
+      <rect x="23" y="0" width="2" height="26" fill="#000"/>
+      <rect x="27" y="0" width="5" height="26" fill="#000"/>
+      <rect x="34" y="0" width="2" height="26" fill="#000"/>
+      <rect x="38" y="0" width="3" height="26" fill="#000"/>
+      <rect x="43" y="0" width="1" height="26" fill="#000"/>
+      <rect x="46" y="0" width="4" height="26" fill="#000"/>
+      <rect x="52" y="0" width="2" height="26" fill="#000"/>
+      <rect x="56" y="0" width="3" height="26" fill="#000"/>
+      <rect x="61" y="0" width="5" height="26" fill="#000"/>
+      <rect x="68" y="0" width="2" height="26" fill="#000"/>
+      <rect x="72" y="0" width="1" height="26" fill="#000"/>
+      <rect x="75" y="0" width="4" height="26" fill="#000"/>
+      <rect x="81" y="0" width="2" height="26" fill="#000"/>
+      <rect x="85" y="0" width="3" height="26" fill="#000"/>
+      <rect x="90" y="0" width="2" height="26" fill="#000"/>
+      <rect x="94" y="0" width="4" height="26" fill="#000"/>
+      <rect x="100" y="0" width="1" height="26" fill="#000"/>
+      <rect x="103" y="0" width="3" height="26" fill="#000"/>
+      <rect x="108" y="0" width="5" height="26" fill="#000"/>
+      <rect x="115" y="0" width="2" height="26" fill="#000"/>
+      <rect x="119" y="0" width="3" height="26" fill="#000"/>
+      <rect x="124" y="0" width="2" height="26" fill="#000"/>
+      <rect x="128" y="0" width="4" height="26" fill="#000"/>
+      <rect x="134" y="0" width="2" height="26" fill="#000"/>
+      <rect x="137" y="0" width="3" height="26" fill="#000"/>
+    </svg>`;
+
+  // Gerador de SVG de QR Code (vetorial nítido e seguro)
+  const generateQrSvg = () => `
+    <svg viewBox="0 0 33 33" width="42" height="42" style="display:block;">
+      <rect width="33" height="33" fill="#fff"/>
+      <rect x="2" y="2" width="7" height="7" fill="#000"/>
+      <rect x="3" y="3" width="5" height="5" fill="#fff"/>
+      <rect x="4" y="4" width="3" height="3" fill="#000"/>
+      <rect x="24" y="2" width="7" height="7" fill="#000"/>
+      <rect x="25" y="3" width="5" height="5" fill="#fff"/>
+      <rect x="26" y="4" width="3" height="3" fill="#000"/>
+      <rect x="2" y="24" width="7" height="7" fill="#000"/>
+      <rect x="3" y="25" width="5" height="5" fill="#fff"/>
+      <rect x="4" y="26" width="3" height="3" fill="#000"/>
+      <rect x="10" y="4" width="1" height="1" fill="#000"/>
+      <rect x="13" y="4" width="2" height="1" fill="#000"/>
+      <rect x="17" y="4" width="1" height="1" fill="#000"/>
+      <rect x="20" y="4" width="2" height="1" fill="#000"/>
+      <rect x="4" y="10" width="1" height="1" fill="#000"/>
+      <rect x="4" y="13" width="1" height="2" fill="#000"/>
+      <rect x="4" y="17" width="1" height="1" fill="#000"/>
+      <rect x="4" y="20" width="1" height="2" fill="#000"/>
+      <rect x="12" y="12" width="3" height="3" fill="#000"/>
+      <rect x="18" y="12" width="2" height="2" fill="#000"/>
+      <rect x="11" y="17" width="2" height="2" fill="#000"/>
+      <rect x="15" y="16" width="2" height="3" fill="#000"/>
+      <rect x="20" y="17" width="3" height="2" fill="#000"/>
+      <rect x="25" y="12" width="2" height="3" fill="#000"/>
+      <rect x="26" y="18" width="3" height="2" fill="#000"/>
+      <rect x="12" y="22" width="2" height="2" fill="#000"/>
+      <rect x="16" y="22" width="3" height="2" fill="#000"/>
+      <rect x="21" y="23" width="2" height="3" fill="#000"/>
+      <rect x="25" y="24" width="3" height="2" fill="#000"/>
+    </svg>`;
 
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 550px; width: 92%; background: #0f172a; border: 1.5px solid rgba(245,158,11,0.4); border-radius: 16px; padding: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.85);">
+    <div class="modal-content" style="max-width: 620px; width: 94%; max-height: 90vh; overflow-y: auto; background: #0f172a; border: 1.5px solid rgba(245,158,11,0.4); border-radius: 16px; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.85);">
       
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+      <!-- Cabeçalho -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 12px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
-            <i class="fa-solid fa-tag"></i>
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); display: flex; align-items: center; justify-content: center; color: #fbbf24; font-size: 1.1rem;">
+            <i class="fa-solid fa-tags"></i>
           </div>
-          <h3 style="font-family: Outfit, sans-serif; font-size: 1.15rem; color: #fff; margin: 0;">Emissão de Etiquetas Térmicas</h3>
+          <div>
+            <h3 style="font-family: Outfit, sans-serif; font-size: 1.18rem; color: #fff; margin: 0; line-height: 1.2;">Emissão de Etiquetas Hospitalares</h3>
+            <span style="font-size: 0.74rem; color: #94a3b8;">Identificação do Paciente, Pulseiras e Tubos Laboratoriais</span>
+          </div>
         </div>
-        <button type="button" id="close-thermal-label-modal" style="background: transparent; border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer;">
+        <button type="button" id="close-thermal-label-modal" style="background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; padding: 4px;">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- Preview da Etiqueta de Pulseira (100x30mm) -->
-      <div style="margin-bottom: 18px;">
-        <label style="font-size: 0.76rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block;">1. Etiqueta da Pulseira do Paciente (Padrão Hospitalar 100x30mm):</label>
-        <div id="label-wristband-preview" style="background: #ffffff; color: #000; padding: 12px 16px; border-radius: 6px; font-family: monospace; border: 2px dashed #64748b; display: flex; justify-content: space-between; align-items: center;">
+      <!-- Resumo do Paciente -->
+      <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <div>
+          <span style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Paciente:</span>
+          <div style="font-size: 0.95rem; font-weight: 800; color: #38bdf8;">${patientName}</div>
+        </div>
+        <div style="display: flex; gap: 12px; font-size: 0.75rem; color: #cbd5e1;">
+          <div>ATEND: <strong style="color: #fff;">#${attendNum}</strong></div>
+          <div>SETOR: <strong style="color: #fff;">${sectorName}</strong></div>
+          <div>REG: <strong style="color: #fff;">#${patIdClean}</strong></div>
+        </div>
+      </div>
+
+      <!-- Opção de Formato de Saída (Térmica ou A4) -->
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 0.76rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; display: block;">Formato de Impressão:</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <label id="lbl-mode-thermal" style="display: flex; align-items: center; gap: 8px; background: rgba(2,132,199,0.15); border: 1.5px solid #0284c7; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 0.78rem; color: #e2e8f0;">
+            <input type="radio" name="label-print-mode" value="thermal" checked style="accent-color: #0284c7;">
+            <div>
+              <strong>🏷️ Impressora Térmica</strong>
+              <div style="font-size: 0.68rem; color: #94a3b8;">Rolo contínuo (Zebra, Argox, Elgin)</div>
+            </div>
+          </label>
+          <label id="lbl-mode-a4" style="display: flex; align-items: center; gap: 8px; background: rgba(30,41,59,0.5); border: 1.5px solid #334155; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 0.78rem; color: #e2e8f0;">
+            <input type="radio" name="label-print-mode" value="a4" style="accent-color: #0284c7;">
+            <div>
+              <strong>📄 Folha A4 Comum / PDF</strong>
+              <div style="font-size: 0.68rem; color: #94a3b8;">Grade organizada (várias por página)</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Seletor 1: Pulseiras de Identificação -->
+      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
           <div>
-            <div style="font-size: 0.72rem; font-weight: bold; letter-spacing: 0.5px;">HEALTH NEXUS HOSPITAL</div>
-            <div style="font-size: 0.95rem; font-weight: 900; margin: 2px 0;">${patientName}</div>
-            <div style="font-size: 0.75rem;">ATEND: <strong>#${number || '26.6.0001'}</strong> | SETOR: <strong>${sector || 'PRONTO SOCORRO'}</strong></div>
-            <div style="font-size: 0.7rem; color: #333;">EMISSÃO: ${dateStr} às ${timeStr}</div>
+            <label style="font-size: 0.78rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin: 0; display: block;">
+              1. Pulseira do Paciente (100x30mm)
+            </label>
+            <span style="font-size: 0.7rem; color: #94a3b8;">Identificação hospitalar com QR Code CFM/SUS</span>
           </div>
-          <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 12px;">
-            <i class="fa-solid fa-qrcode" style="font-size: 2.2rem; color: #000;"></i>
-            <div style="font-size: 0.6rem; margin-top: 2px;">CFM/SUS</div>
+          
+          <!-- Controles de Quantidade da Pulseira -->
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button type="button" id="btn-wb-minus" style="width: 28px; height: 28px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">-</button>
+            <input type="number" id="input-wb-qty" value="1" min="0" max="10" style="width: 44px; height: 28px; text-align: center; border-radius: 6px; background: #0f172a; border: 1px solid #0284c7; color: #fff; font-weight: bold; font-size: 0.85rem;">
+            <button type="button" id="btn-wb-plus" style="width: 28px; height: 28px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">+</button>
+            <div style="display: flex; gap: 4px; margin-left: 4px;">
+              <button type="button" class="btn-quick-wb" data-val="1" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: #334155; color: #cbd5e1; border: none; cursor: pointer;">1x</button>
+              <button type="button" class="btn-quick-wb" data-val="2" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: #334155; color: #cbd5e1; border: none; cursor: pointer;">2x</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview da Pulseira -->
+        <div id="label-wristband-preview" style="background: #ffffff; color: #000; padding: 10px 14px; border-radius: 6px; font-family: monospace; border: 2px dashed #64748b; display: flex; justify-content: space-between; align-items: center;">
+          <div style="flex: 1; padding-right: 8px;">
+            <div style="font-size: 0.72rem; font-weight: bold; letter-spacing: 0.5px; color: #000;">HEALTH NEXUS HOSPITAL</div>
+            <div style="font-size: 0.95rem; font-weight: 900; margin: 2px 0; color: #000;">${patientName}</div>
+            <div style="font-size: 0.74rem; color: #111;">ATEND: <strong>#${attendNum}</strong> | SETOR: <strong>${sectorName}</strong></div>
+            <div style="font-size: 0.68rem; color: #333;">EMISSÃO: ${dateStr} às ${timeStr} · REG: #${patIdClean}</div>
+          </div>
+          <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            ${generateQrSvg()}
+            <div style="font-size: 0.6rem; margin-top: 2px; font-weight: bold; color: #000;">CFM/SUS</div>
           </div>
         </div>
       </div>
 
-      <!-- Preview da Etiqueta de Amostras de Laboratório (50x30mm) -->
-      <div style="margin-bottom: 20px;">
-        <label style="font-size: 0.76rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block;">2. Etiqueta para Tubos e Frascos de Amostra (50x30mm):</label>
-        <div id="label-tube-preview" style="background: #ffffff; color: #000; padding: 10px 14px; border-radius: 6px; font-family: monospace; border: 2px dashed #64748b; display: flex; justify-content: space-between; align-items: center; width: 85%;">
+      <!-- Seletor 2: Etiquetas de Amostras / Tubos -->
+      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
           <div>
-            <div style="font-size: 0.8rem; font-weight: 900;">${patientName}</div>
-            <div style="font-size: 0.7rem;">REG: #${patientId ? patientId.toString().slice(0, 8) : '001'} · ${dateStr}</div>
-            <div style="font-size: 0.65rem; color: #333;"><i class="fa-solid fa-barcode"></i> ||||||||||||||||||||||||</div>
+            <label style="font-size: 0.78rem; font-weight: 800; color: #fbbf24; text-transform: uppercase; margin: 0; display: block;">
+              2. Etiquetas de Amostras &amp; Tubos (50x30mm)
+            </label>
+            <span style="font-size: 0.7rem; color: #94a3b8;">Para tubos de sangue, urina, exames e frascos</span>
+          </div>
+          
+          <!-- Controles de Quantidade das Amostras -->
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button type="button" id="btn-tube-minus" style="width: 28px; height: 28px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">-</button>
+            <input type="number" id="input-tube-qty" value="4" min="0" max="30" style="width: 44px; height: 28px; text-align: center; border-radius: 6px; background: #0f172a; border: 1px solid #f59e0b; color: #fff; font-weight: bold; font-size: 0.85rem;">
+            <button type="button" id="btn-tube-plus" style="width: 28px; height: 28px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">+</button>
+            <div style="display: flex; gap: 4px; margin-left: 4px;">
+              <button type="button" class="btn-quick-tube" data-val="3" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: #334155; color: #cbd5e1; border: none; cursor: pointer;">3x</button>
+              <button type="button" class="btn-quick-tube" data-val="5" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: #334155; color: #cbd5e1; border: none; cursor: pointer;">5x</button>
+              <button type="button" class="btn-quick-tube" data-val="8" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: #334155; color: #cbd5e1; border: none; cursor: pointer;">8x</button>
+              <button type="button" class="btn-quick-tube" data-val="10" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: #334155; color: #cbd5e1; border: none; cursor: pointer;">10x</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview da Etiqueta de Tubo -->
+        <div id="label-tube-preview" style="background: #ffffff; color: #000; padding: 10px 14px; border-radius: 6px; font-family: monospace; border: 2px dashed #64748b; display: flex; justify-content: space-between; align-items: center; max-width: 320px;">
+          <div style="flex: 1; padding-right: 6px;">
+            <div style="font-size: 0.82rem; font-weight: 900; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${patientName}</div>
+            <div style="font-size: 0.7rem; color: #111; margin: 2px 0;">ATD: <strong>#${attendNum}</strong> · ${dateStr}</div>
+            <div style="margin-top: 4px;">
+              ${generateBarcodeSvg()}
+              <div style="font-size: 0.58rem; text-align: center; color: #333; margin-top: 1px;">#${attendNum}</div>
+            </div>
           </div>
           <div>
-            <span style="font-size: 0.68rem; font-weight: 700; border: 1px solid #000; padding: 1px 4px;">SADT</span>
+            <span style="font-size: 0.68rem; font-weight: 700; border: 1.5px solid #000; padding: 2px 5px; border-radius: 3px;">SADT</span>
           </div>
         </div>
       </div>
 
-      <!-- Botões de Ação -->
-      <div style="display: flex; gap: 10px; justify-content: flex-end;">
-        <button type="button" id="btn-print-thermal-wristband" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-size: 0.82rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-print"></i> Imprimir Pulseira
+      <!-- Rodapé com Botões de Ação -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap; border-top: 1px solid #334155; padding-top: 14px;">
+        <button type="button" id="btn-print-only-wristband" class="btn" style="background: rgba(2,132,199,0.2); color: #38bdf8; border: 1px solid rgba(2,132,199,0.4); font-size: 0.8rem; font-weight: 700; padding: 9px 13px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-id-badge"></i> Só Pulseiras (<span id="txt-wb-btn-count">1</span>)
         </button>
-        <button type="button" id="btn-print-thermal-tube" class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 0.82rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-vial"></i> Imprimir Amostras
+        <button type="button" id="btn-print-only-tube" class="btn" style="background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); font-size: 0.8rem; font-weight: 700; padding: 9px 13px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-vial"></i> Só Amostras (<span id="txt-tube-btn-count">4</span>)
+        </button>
+        <button type="button" id="btn-print-admission-kit" class="btn" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-size: 0.84rem; font-weight: 800; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16,185,129,0.4);">
+          <i class="fa-solid fa-print"></i> <span id="txt-kit-btn-label">Imprimir Kit Admissão (1 Pulseira + 4 Tubos)</span>
         </button>
       </div>
 
@@ -513,35 +672,350 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
 
   document.body.appendChild(modal);
 
-  const printLabel = (elementId, title) => {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-    const printWin = window.open('', '_blank', 'width=450,height=300');
-    if (!printWin) return;
+  // Estados locais do modal
+  const stateLabels = {
+    wristbandQty: 1,
+    tubeQty: 4,
+    mode: 'thermal'
+  };
+
+  const inputWb = document.getElementById('input-wb-qty');
+  const inputTube = document.getElementById('input-tube-qty');
+  const txtWbBtnCount = document.getElementById('txt-wb-btn-count');
+  const txtTubeBtnCount = document.getElementById('txt-tube-btn-count');
+  const txtKitBtnLabel = document.getElementById('txt-kit-btn-label');
+  const lblThermal = document.getElementById('lbl-mode-thermal');
+  const lblA4 = document.getElementById('lbl-mode-a4');
+
+  function updateUiState() {
+    if (inputWb) inputWb.value = stateLabels.wristbandQty;
+    if (inputTube) inputTube.value = stateLabels.tubeQty;
+    if (txtWbBtnCount) txtWbBtnCount.textContent = stateLabels.wristbandQty;
+    if (txtTubeBtnCount) txtTubeBtnCount.textContent = stateLabels.tubeQty;
+    if (txtKitBtnLabel) {
+      txtKitBtnLabel.textContent = `Imprimir Kit Admissão (${stateLabels.wristbandQty} Pulseira${stateLabels.wristbandQty !== 1 ? 's' : ''} + ${stateLabels.tubeQty} Tubo${stateLabels.tubeQty !== 1 ? 's' : ''})`;
+    }
+
+    if (lblThermal && lblA4) {
+      if (stateLabels.mode === 'thermal') {
+        lblThermal.style.borderColor = '#0284c7';
+        lblThermal.style.background = 'rgba(2,132,199,0.15)';
+        lblA4.style.borderColor = '#334155';
+        lblA4.style.background = 'rgba(30,41,59,0.5)';
+      } else {
+        lblA4.style.borderColor = '#0284c7';
+        lblA4.style.background = 'rgba(2,132,199,0.15)';
+        lblThermal.style.borderColor = '#334155';
+        lblThermal.style.background = 'rgba(30,41,59,0.5)';
+      }
+    }
+  }
+
+  // Listeners de Formato
+  modal.querySelectorAll('input[name="label-print-mode"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      stateLabels.mode = e.target.value;
+      updateUiState();
+    });
+  });
+
+  // Listeners Pulseiras
+  document.getElementById('btn-wb-minus')?.addEventListener('click', () => {
+    if (stateLabels.wristbandQty > 0) stateLabels.wristbandQty--;
+    updateUiState();
+  });
+  document.getElementById('btn-wb-plus')?.addEventListener('click', () => {
+    if (stateLabels.wristbandQty < 10) stateLabels.wristbandQty++;
+    updateUiState();
+  });
+  inputWb?.addEventListener('change', (e) => {
+    const val = parseInt(e.target.value, 10);
+    stateLabels.wristbandQty = isNaN(val) ? 0 : Math.max(0, Math.min(10, val));
+    updateUiState();
+  });
+  modal.querySelectorAll('.btn-quick-wb').forEach(btn => {
+    btn.addEventListener('click', () => {
+      stateLabels.wristbandQty = parseInt(btn.dataset.val, 10);
+      updateUiState();
+    });
+  });
+
+  // Listeners Tubos
+  document.getElementById('btn-tube-minus')?.addEventListener('click', () => {
+    if (stateLabels.tubeQty > 0) stateLabels.tubeQty--;
+    updateUiState();
+  });
+  document.getElementById('btn-tube-plus')?.addEventListener('click', () => {
+    if (stateLabels.tubeQty < 30) stateLabels.tubeQty++;
+    updateUiState();
+  });
+  inputTube?.addEventListener('change', (e) => {
+    const val = parseInt(e.target.value, 10);
+    stateLabels.tubeQty = isNaN(val) ? 0 : Math.max(0, Math.min(30, val));
+    updateUiState();
+  });
+  modal.querySelectorAll('.btn-quick-tube').forEach(btn => {
+    btn.addEventListener('click', () => {
+      stateLabels.tubeQty = parseInt(btn.dataset.val, 10);
+      updateUiState();
+    });
+  });
+
+  // Motor de Impressão (Rolo Térmico ou Grade A4)
+  const executePrint = ({ wristbandCount, tubeCount, mode }) => {
+    const total = wristbandCount + tubeCount;
+    if (total <= 0) {
+      alert('Selecione ao menos 1 etiqueta para imprimir.');
+      return;
+    }
+
+    const printWin = window.open('', '_blank', 'width=780,height=620');
+    if (!printWin) {
+      alert('O navegador bloqueou a janela de impressão. Permita pop-ups para emitir etiquetas.');
+      return;
+    }
+
+    // HTML de 1 pulseira
+    const singleWristbandHtml = `
+      <div class="label-item label-wristband">
+        <div class="wb-content">
+          <div class="wb-hospital">HEALTH NEXUS HOSPITAL</div>
+          <div class="wb-patient">${patientName}</div>
+          <div class="wb-meta">ATEND: <strong>#${attendNum}</strong> | SETOR: <strong>${sectorName}</strong></div>
+          <div class="wb-sub">EMISSÃO: ${dateStr} às ${timeStr} · REG: #${patIdClean}</div>
+        </div>
+        <div class="wb-qr-wrap">
+          ${generateQrSvg()}
+          <div class="wb-sus-tag">CFM / SUS</div>
+        </div>
+      </div>
+    `;
+
+    // HTML de 1 tubo
+    const singleTubeHtml = `
+      <div class="label-item label-tube">
+        <div class="tube-top">
+          <div class="tube-patient">${patientName}</div>
+          <span class="tube-badge">SADT</span>
+        </div>
+        <div class="tube-meta">ATD: <strong>#${attendNum}</strong> · ${dateStr}</div>
+        <div class="tube-barcode-wrap">
+          ${generateBarcodeSvg()}
+          <div class="tube-code-text">#${attendNum}</div>
+        </div>
+      </div>
+    `;
+
+    let contentHtml = '';
+
+    if (mode === 'thermal') {
+      // Rolo Térmico: uma atrás da outra com quebra de página
+      for (let i = 0; i < wristbandCount; i++) {
+        contentHtml += singleWristbandHtml;
+      }
+      for (let j = 0; j < tubeCount; j++) {
+        contentHtml += singleTubeHtml;
+      }
+    } else {
+      // Folha A4: pulseiras no topo + grade organizada de tubos
+      contentHtml += '<div class="a4-sheet">';
+      if (wristbandCount > 0) {
+        contentHtml += '<div class="a4-wristbands-group">';
+        for (let i = 0; i < wristbandCount; i++) {
+          contentHtml += singleWristbandHtml;
+        }
+        contentHtml += '</div>';
+      }
+      if (tubeCount > 0) {
+        contentHtml += '<div class="a4-tubes-grid">';
+        for (let j = 0; j < tubeCount; j++) {
+          contentHtml += singleTubeHtml;
+        }
+        contentHtml += '</div>';
+      }
+      contentHtml += '</div>';
+    }
+
+    const cssStyles = mode === 'thermal' ? `
+      @page {
+        size: auto;
+        margin: 0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+        color: #000000;
+        font-family: Arial, sans-serif;
+      }
+      .label-item {
+        background: #ffffff;
+        color: #000000;
+        page-break-after: always;
+        break-after: page;
+        margin: 0;
+      }
+      .label-wristband {
+        width: 100mm;
+        height: 30mm;
+        max-width: 100mm;
+        max-height: 30mm;
+        padding: 3mm 4mm;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px dashed #cbd5e1;
+      }
+      .wb-content { flex: 1; padding-right: 3mm; }
+      .wb-hospital { font-size: 8pt; font-weight: bold; letter-spacing: 0.5px; }
+      .wb-patient { font-size: 11pt; font-weight: 900; margin: 1mm 0; line-height: 1.1; text-transform: uppercase; }
+      .wb-meta { font-size: 8pt; margin: 0.5mm 0; }
+      .wb-sub { font-size: 6.5pt; color: #333; }
+      .wb-qr-wrap { text-align: center; border-left: 1px dashed #999; padding-left: 3mm; display: flex; flex-direction: column; align-items: center; }
+      .wb-sus-tag { font-size: 6pt; font-weight: bold; margin-top: 1px; }
+
+      .label-tube {
+        width: 50mm;
+        height: 30mm;
+        max-width: 50mm;
+        max-height: 30mm;
+        padding: 2.5mm 3.5mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-bottom: 1px dashed #cbd5e1;
+      }
+      .tube-top { display: flex; justify-content: space-between; align-items: flex-start; }
+      .tube-patient { font-size: 8.5pt; font-weight: 900; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+      .tube-badge { font-size: 6pt; font-weight: bold; border: 1px solid #000; padding: 1px 3px; border-radius: 2px; }
+      .tube-meta { font-size: 7pt; margin: 1mm 0; }
+      .tube-barcode-wrap { margin-top: auto; }
+      .tube-code-text { font-size: 6pt; text-align: center; letter-spacing: 1px; margin-top: 1px; }
+    ` : `
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+        color: #000000;
+        font-family: Arial, sans-serif;
+      }
+      .a4-sheet {
+        display: flex;
+        flex-direction: column;
+        gap: 6mm;
+      }
+      .a4-wristbands-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5mm;
+      }
+      .a4-tubes-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 52mm);
+        gap: 5mm;
+      }
+      .label-item {
+        background: #ffffff;
+        color: #000000;
+        border: 1px dashed #94a3b8;
+        border-radius: 4px;
+      }
+      .label-wristband {
+        width: 100mm;
+        height: 30mm;
+        padding: 3mm 4mm;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .wb-content { flex: 1; padding-right: 3mm; }
+      .wb-hospital { font-size: 8pt; font-weight: bold; letter-spacing: 0.5px; }
+      .wb-patient { font-size: 11pt; font-weight: 900; margin: 1mm 0; line-height: 1.1; text-transform: uppercase; }
+      .wb-meta { font-size: 8pt; margin: 0.5mm 0; }
+      .wb-sub { font-size: 6.5pt; color: #333; }
+      .wb-qr-wrap { text-align: center; border-left: 1px dashed #999; padding-left: 3mm; display: flex; flex-direction: column; align-items: center; }
+      .wb-sus-tag { font-size: 6pt; font-weight: bold; margin-top: 1px; }
+
+      .label-tube {
+        width: 52mm;
+        height: 30mm;
+        padding: 2.5mm 3.5mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .tube-top { display: flex; justify-content: space-between; align-items: flex-start; }
+      .tube-patient { font-size: 8.5pt; font-weight: 900; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+      .tube-badge { font-size: 6pt; font-weight: bold; border: 1px solid #000; padding: 1px 3px; border-radius: 2px; }
+      .tube-meta { font-size: 7pt; margin: 1mm 0; }
+      .tube-barcode-wrap { margin-top: auto; }
+      .tube-code-text { font-size: 6pt; text-align: center; letter-spacing: 1px; margin-top: 1px; }
+    `;
+
     printWin.document.write(`
+      <!DOCTYPE html>
       <html>
         <head>
-          <title>${title}</title>
-          <style>
-            body { font-family: monospace; margin: 0; padding: 8px; display: flex; justify-content: center; align-items: center; }
-            @page { margin: 0; }
-          </style>
+          <meta charset="UTF-8">
+          <title>Etiquetas - ${patientName} (${total} un)</title>
+          <style>${cssStyles}</style>
         </head>
         <body>
-          ${el.outerHTML}
-          <script>window.onload = function() { window.print(); window.close(); };</script>
+          ${contentHtml}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.close();
+            };
+          </script>
         </body>
       </html>
     `);
     printWin.document.close();
+
+    // Feedback visual
+    if (typeof window.showToast === 'function') {
+      window.showToast(`🖨️ Enviado para impressão: ${wristbandCount} pulseira(s) e ${tubeCount} etiqueta(s) de amostra.`);
+    }
   };
 
-  document.getElementById('btn-print-thermal-wristband')?.addEventListener('click', () => {
-    printLabel('label-wristband-preview', 'Etiqueta de Pulseira');
+  // Botões de Ação
+  document.getElementById('btn-print-admission-kit')?.addEventListener('click', () => {
+    executePrint({
+      wristbandCount: stateLabels.wristbandQty,
+      tubeCount: stateLabels.tubeQty,
+      mode: stateLabels.mode
+    });
   });
 
-  document.getElementById('btn-print-thermal-tube')?.addEventListener('click', () => {
-    printLabel('label-tube-preview', 'Etiqueta de Tubos e Frascos');
+  document.getElementById('btn-print-only-wristband')?.addEventListener('click', () => {
+    if (stateLabels.wristbandQty <= 0) {
+      alert('Defina ao menos 1 pulseira para imprimir.');
+      return;
+    }
+    executePrint({
+      wristbandCount: stateLabels.wristbandQty,
+      tubeCount: 0,
+      mode: stateLabels.mode
+    });
+  });
+
+  document.getElementById('btn-print-only-tube')?.addEventListener('click', () => {
+    if (stateLabels.tubeQty <= 0) {
+      alert('Defina ao menos 1 etiqueta de amostra para imprimir.');
+      return;
+    }
+    executePrint({
+      wristbandCount: 0,
+      tubeCount: stateLabels.tubeQty,
+      mode: stateLabels.mode
+    });
   });
 
   document.getElementById('close-thermal-label-modal')?.addEventListener('click', () => {

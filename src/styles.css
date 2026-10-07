@@ -6900,10 +6900,13 @@ body.hn-flow-dock-preview .global-search-wrapper {
   z-index: 1;
 }
 
-/* Ao posicionar o mouse: o card 'descola' da superfície, eleva em 3D, projeta sombra profunda,
-   assume fundo sólido opaco de alto contraste e amplia o card e suas letras com nitidez */
+/* Ao posicionar o mouse / ativar o card:
+   No Modo Escuro (padrão): elevação 3D com fundo azul-marinho profundo e tipografia branca cristalina de alto contraste.
+   No Modo Claro: elevação sutil e elegante sobre gradiente azul-celeste luminoso com tipografia grafite nítida (#0f172a e #1e293b). */
+
+/* ─── 1. COMPORTAMENTO PADRÃO (MODO ESCURO) ─── */
 .hn-flow-subcard:hover {
-  transform: translate3d(0, -6px, 0) scale(1.075) !important;
+  transform: translate3d(0, -6px, 0) scale(1.05) !important;
   box-shadow: 0 20px 42px -4px rgba(0, 0, 0, 0.94),
               0 8px 18px -2px rgba(0, 0, 0, 0.75),
               0 0 26px rgba(56, 189, 248, 0.45),
@@ -6911,10 +6914,10 @@ body.hn-flow-dock-preview .global-search-wrapper {
   border-color: #38bdf8 !important;
   background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%) !important;
   z-index: 60 !important;
-  filter: contrast(1.1) brightness(1.08);
+  filter: contrast(1.05) brightness(1.05);
 }
 
-/* Realce nas tipografias e badges dos cards ao descolar */
+/* Realce nas tipografias e badges dos cards ao descolar (Modo Escuro) */
 .hn-flow-subcard:hover * {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
@@ -6933,9 +6936,9 @@ body.hn-flow-dock-preview .global-search-wrapper {
   color: #f8fafc !important;
 }
 
-/* Card de Ação Recomendada: elevação expressiva e gradiente azul profundo com alto relevo */
+/* Card de Ação Recomendada (Modo Escuro): elevação e gradiente com texto branco garantido */
 .hn-flow-subcard.hn-fg-action-card:hover {
-  transform: translate3d(0, -7px, 0) scale(1.07) !important;
+  transform: translate3d(0, -6px, 0) scale(1.05) !important;
   box-shadow: 0 24px 48px -6px rgba(0, 0, 0, 0.96),
               0 10px 24px -2px rgba(2, 132, 199, 0.5),
               0 0 32px rgba(56, 189, 248, 0.55),
@@ -6945,7 +6948,25 @@ body.hn-flow-dock-preview .global-search-wrapper {
   z-index: 65 !important;
 }
 
-/* Subcards do Radar Hospitalar: expansão evidente na grade de métricas com números e rótulos ampliados */
+.hn-flow-subcard.hn-fg-action-card:hover .hn-fg-action-title,
+.hn-flow-subcard.hn-fg-horiz-action-card:hover .hn-fg-horiz-title {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+.hn-flow-subcard.hn-fg-action-card:hover .hn-fg-action-desc,
+.hn-flow-subcard.hn-fg-horiz-action-card:hover .hn-fg-horiz-desc {
+  color: #f1f5f9 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+.hn-flow-subcard.hn-fg-action-card:hover .hn-fg-action-badge,
+.hn-flow-subcard.hn-fg-horiz-action-card:hover .hn-fg-horiz-badge {
+  color: #38bdf8 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Subcards do Radar Hospitalar (Modo Escuro) */
 .hn-flow-subcard.hn-fg-radar-card {
   transition: transform 0.28s cubic-bezier(0.2, 0.85, 0.32, 1.2),
               box-shadow 0.28s cubic-bezier(0.2, 0.85, 0.32, 1.2),
@@ -6954,7 +6975,7 @@ body.hn-flow-dock-preview .global-search-wrapper {
 }
 
 .hn-flow-subcard.hn-fg-radar-card:hover {
-  transform: translate3d(0, -6px, 0) scale(1.10) !important;
+  transform: translate3d(0, -5px, 0) scale(1.08) !important;
   box-shadow: 0 18px 36px -4px rgba(0, 0, 0, 0.95),
               0 6px 16px -2px rgba(2, 132, 199, 0.6),
               0 0 24px rgba(56, 189, 248, 0.5),
@@ -6970,7 +6991,7 @@ body.hn-flow-dock-preview .global-search-wrapper {
   color: #ffffff !important;
 }
 
-/* Chips de Ações Rápidas: descolamento e ampliação com clique tátil */
+/* Chips de Ações Rápidas (Modo Escuro) */
 .hn-flow-subcard.hn-possibility-chip {
   transition: transform 0.24s cubic-bezier(0.2, 0.85, 0.32, 1.2),
               box-shadow 0.24s ease,
@@ -6979,13 +7000,142 @@ body.hn-flow-dock-preview .global-search-wrapper {
 }
 
 .hn-flow-subcard.hn-possibility-chip:hover {
-  transform: translate3d(0, -4px, 0) scale(1.08) !important;
+  transform: translate3d(0, -4px, 0) scale(1.06) !important;
   box-shadow: 0 14px 28px -2px rgba(0, 0, 0, 0.85),
               0 0 20px rgba(56, 189, 248, 0.4),
               0 0 0 1px #38bdf8 !important;
   border-color: #38bdf8 !important;
   background: linear-gradient(145deg, #1e293b, #0f172a) !important;
   z-index: 60 !important;
+}
+
+/* ─── 2. COMPORTAMENTO EM MODO CLARO (LIGHT THEME) — LEITURA PERFEITA E ALTO CONTRASTE ─── */
+body.light-theme .hn-flow-subcard:hover {
+  transform: translate3d(0, -5px, 0) scale(1.03) !important;
+  box-shadow: 0 14px 30px -4px rgba(2, 132, 199, 0.18),
+              0 4px 10px -2px rgba(0, 0, 0, 0.05),
+              0 0 0 1.5px #0284c7 !important;
+  border-color: #0284c7 !important;
+  background: #ffffff !important;
+  z-index: 60 !important;
+  filter: none !important;
+}
+
+body.light-theme .hn-flow-subcard:hover * {
+  text-shadow: none !important;
+}
+
+/* Card de Ação Recomendada no Modo Claro: Fundo luminoso celeste, sem escurecimento, com texto nítido */
+body.light-theme .hn-flow-subcard.hn-fg-action-card:hover,
+body.light-theme .hn-flow-subcard.hn-fg-horiz-action-card:hover {
+  transform: translate3d(0, -5px, 0) scale(1.03) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%) !important;
+  border-color: #0284c7 !important;
+  border-left: 5px solid #0284c7 !important;
+  box-shadow: 0 16px 36px -4px rgba(2, 132, 199, 0.22),
+              0 6px 14px -2px rgba(0, 0, 0, 0.05),
+              0 0 0 1.5px #0284c7 !important;
+  z-index: 65 !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-action-card:hover .hn-fg-action-title,
+body.light-theme .hn-flow-subcard.hn-fg-action-card .hn-fg-action-title,
+body.light-theme .hn-flow-subcard.hn-fg-horiz-action-card:hover .hn-fg-horiz-title,
+body.light-theme .hn-flow-subcard.hn-fg-horiz-action-card .hn-fg-horiz-title {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-action-card:hover .hn-fg-action-desc,
+body.light-theme .hn-flow-subcard.hn-fg-action-card .hn-fg-action-desc,
+body.light-theme .hn-flow-subcard.hn-fg-horiz-action-card:hover .hn-fg-horiz-desc,
+body.light-theme .hn-flow-subcard.hn-fg-horiz-action-card .hn-fg-horiz-desc {
+  color: #1e293b !important;
+  text-shadow: none !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-action-card:hover .hn-fg-action-badge,
+body.light-theme .hn-flow-subcard.hn-fg-action-card .hn-fg-action-badge,
+body.light-theme .hn-flow-subcard.hn-fg-horiz-action-card:hover .hn-fg-horiz-badge,
+body.light-theme .hn-flow-subcard.hn-fg-horiz-action-card .hn-fg-horiz-badge {
+  color: #0284c7 !important;
+  text-shadow: none !important;
+}
+
+/* Card de Próximo Passo Pendente no Modo Claro */
+body.light-theme .hn-flow-subcard.hn-fg-pending-action-card:hover {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+  border-color: #10b981 !important;
+  border-left: 5px solid #059669 !important;
+  box-shadow: 0 14px 32px -4px rgba(16, 185, 129, 0.22) !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-pending-action-card:hover .hn-fg-action-title {
+  color: #064e3b !important;
+  text-shadow: none !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-pending-action-card:hover .hn-fg-action-desc {
+  color: #14532d !important;
+  text-shadow: none !important;
+}
+
+/* Radar Hospitalar no Modo Claro */
+body.light-theme .hn-flow-subcard.hn-fg-radar-card:hover {
+  background: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 10px 24px -2px rgba(2, 132, 199, 0.18), 0 0 0 1.5px #0284c7 !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-radar-card:hover span:first-child {
+  color: #475569 !important;
+  text-shadow: none !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-radar-card:hover span:last-child {
+  color: #0284c7 !important;
+  text-shadow: none !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-radar-card:hover .hn-fg-radar-val {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+/* Outras Ações Rápidas (Chips) no Modo Claro */
+body.light-theme .hn-flow-subcard.hn-possibility-chip:hover {
+  background: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+  box-shadow: 0 8px 20px -2px rgba(2, 132, 199, 0.16), 0 0 0 1px #0284c7 !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-possibility-chip:hover span {
+  color: #0284c7 !important;
+  text-shadow: none !important;
+}
+
+/* Card de Paciente e Card de Módulo no Modo Claro */
+body.light-theme .hn-flow-subcard.hn-fg-patient-card:hover,
+body.light-theme .hn-flow-subcard.hn-fg-screen-card:hover {
+  background: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 10px 24px -2px rgba(2, 132, 199, 0.14) !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-patient-card:hover .hn-fg-patient-name {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-patient-card:hover .hn-fg-patient-empty-title {
+  color: #334155 !important;
+  text-shadow: none !important;
+}
+
+body.light-theme .hn-flow-subcard.hn-fg-patient-card:hover .hn-fg-patient-empty-desc {
+  color: #64748b !important;
+  text-shadow: none !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════

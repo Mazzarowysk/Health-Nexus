@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.39)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.41)
 
-> **Health Nexus v2.9.39 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com eliminação definitiva de fundos pretos no Modo Claro, tipografia ampliada de alto contraste e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.41 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, emissão de etiquetas hospitalares (pulseira e amostras) com suporte a rolo térmico contínuo e grade A4, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com alto contraste garantido no hover/ativação de cards, tipografia ampliada e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -1348,10 +1348,32 @@ Para assegurar harmonia visual absoluta quando o hospital opera no **Modo Claro 
 - **Cabeçalho & Rodapé Claros:** O cabeçalho do painel adotou tonalidade `#f8fafc` com tipografia em ardósia escura `#0f172a`, e o rodapé de atalhos e dicas adotou acabamento suave com botões integrados em azul assistencial.
 - **Stepper & Subcards Sem Resíduos Escuros:** A trilha de 7 etapas, os cartões de seleção de paciente, o radar hospitalar e os chips rápidos renderizam com fundos claros, eliminando qualquer contraste pesado ou sensação de elemento destoante.
 
+### 24.5. Alto Contraste & Legibilidade Aprimorada no Hover dos Cards (v2.9.40)
+Na versão **2.9.40**, a experiência de interação e foco nos cards do Smart Flow Guide foi refinada:
+- **Zero Ilegibilidade no Modo Claro:** Ao posicionar o cursor ou focar o Card de Ação Recomendada (`hn-fg-action-card` e `hn-fg-horiz-action-card`), o card permanece em suave gradiente azul-celeste luminoso (`#ffffff` a `#e0f2fe`), com borda azul-oceano e texto grafite escuro de alto contraste (`#0f172a` para títulos e `#1e293b` para descrições). Foi eliminado o escurecimento acidental que deixava letras pretas sobre fundo preto.
+- **Brilho e Nitidez no Modo Escuro:** No tema noturno, ao interagir com o card, a superfície mantém seu azul-marinho profundo e as letras ganham cor branca pura (`#ffffff`) com texto de apoio em tom claro (`#f1f5f9`), proporcionando conforto visual imediato à equipe assistencial.
+- **Estabilidade em Subcards, Radar e Atalhos:** Os cards de identificação do paciente, métricas do radar hospitalar e botões de atalhos rápidos agora possuem transições estáveis e legíveis em qualquer iluminação.
+
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.39 do Health Nexus. Todos os direitos reservados.*
+## 25. 🏷️ Emissão de Etiquetas Hospitalares, Kit Admissão & Impressão Térmica / A4 (v2.9.41)
 
+O Health Nexus conta com um módulo completo de emissão de etiquetas hospitalares (pulseiras de identificação e etiquetas para tubos de exames/frascos de laboratório), acessível tanto na **Consulta Dinâmica** quanto nos fluxos assistenciais.
 
+### 25.1. Múltiplas Cópias e Seletores Rápidos de Quantidade
+Para atender com agilidade as rotinas de triagem e postos de enfermagem:
+- **Pulseiras do Paciente (100x30mm):** Controles de ajuste fino (`-` e `+`) com atalhos de seleção imediata `[ 1x ]` ou `[ 2x ]`. Contém Nome Completo, Número do Atendimento, Setor, Data/Hora, Registro e QR Code de segurança CFM/SUS.
+- **Etiquetas de Amostras e Tubos (50x30mm):** Controles de quantidade com atalhos diretos `[ 3x ]`, `[ 5x ]`, `[ 8x ]` e `[ 10x ]` para identificação de múltiplos tubos de coleta de sangue (EDTA, bioquímica, coagulograma), urina, frascos de biópsia e prontuário físico.
 
+### 25.2. Botão "Imprimir Kit Admissão" em 1 Clique
+- O botão de destaque principal `🚀 Imprimir Kit Admissão` dispara conjuntamente as pulseiras e a quantidade selecionada de etiquetas de amostras (padrão: 1 Pulseira + 4 Tubos), agilizando a entrada do paciente no Pronto-Socorro ou Internação.
+- Botões complementares permitem emitir separadamente apenas pulseiras ou apenas etiquetas de tubos quando necessário.
 
+### 25.3. Suporte Duplo: Impressora Térmica Contínua ou Folha A4 Comum
+- **🏷️ Impressora Térmica (Zebra / Argox / Elgin / Datamax):** Cada etiqueta é emitida no corte milimétrico exato (`100x30mm` e `50x30mm`) com quebra de página automática no rolo contínuo, sem sobras de papel.
+- **📄 Folha A4 Comum / PDF:** Para postos que utilizam impressoras convencionais (Laser ou Jato de Tinta) ou exportação em PDF, o sistema organiza os itens em uma grade estruturada (pulseiras no topo e tubos em colunas alinhadas), com linhas pontilhadas de recorte que evitam qualquer desperdício de papel.
+- **Vetores SVG Nítidos:** O Código de Barras e o QR Code são gerados em SVG vetorial de alta definição, garantindo leitura instantânea em leitores ópticos mesmo em impressões de 203 DPI.
+
+---
+
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.41 do Health Nexus. Todos os direitos reservados.*
