@@ -9,8 +9,10 @@ async function generateManual() {
   const htmlPath = path.resolve('manual_do_usuario.html');
   const mdContent = fs.readFileSync(mdPath, 'utf8');
 
-  // Convert raw marked code blocks for mermaid into <div class="mermaid">
+  // Parse do Markdown via marked
   let renderedBody = await marked.parse(mdContent);
+
+  // 1. Converter blocos Mermaid
   renderedBody = renderedBody
     .replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g, (match, p1) => {
       const decoded = p1
@@ -22,11 +24,27 @@ async function generateManual() {
       return `<div class="mermaid">\n${decoded}\n</div>`;
     });
 
+  // 2. Envelopar tabelas em containers com rolagem horizontal controlada (anti-overflow)
+  renderedBody = renderedBody.replace(/<table>([\s\S]*?)<\/table>/g, '<div class="table-container"><table class="manual-table">$1</table></div>');
+
+  // 3. Envelopar imagens em figuras responsivas com suporte a ampliação e legenda
+  renderedBody = renderedBody.replace(/<img\s+([^>]*?)src="([^"]+)"([^>]*?)>/gi, (match, before, src, after) => {
+    const altMatch = (before + after).match(/alt="([^"]*)"/i);
+    const alt = altMatch ? altMatch[1] : '';
+    return `<figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="${src}" alt="${alt}" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      ${alt ? `<figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> ${alt}</figcaption>` : ''}
+    </figure>`;
+  });
+
   const fullHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Manual do Usuário — Health Nexus v2.9.43</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -36,7 +54,7 @@ async function generateManual() {
       --primary: #4f46e5;
       --primary-dark: #3730a3;
       --secondary: #0ea5e9;
-      --bg: #0f172a;
+      --bg: #0b0f19;
       --bg-card: #1e293b;
       --bg-hover: #334155;
       --text: #f8fafc;
@@ -45,25 +63,124 @@ async function generateManual() {
       --accent-danger: #ef4444;
       --accent-warning: #f59e0b;
       --accent-success: #10b981;
+      --font-scale: 1;
+      --container-max-w: 1440px;
+    }
+
+    body.light-theme {
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-hover: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      color: #0f172a;
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      font-size: calc(15px * var(--font-scale, 1));
+      overflow-x: hidden;
+    }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #0b0f19;
-      color: #e2e8f0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 0;
       line-height: 1.7;
-      font-size: 15px;
+      overflow-x: hidden;
+      width: 100%;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* BARRA FIXA DE CONTROLE DE ZOOM & ACESSIBILIDADE */
+    .manual-utility-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10000;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      flex-wrap: wrap;
+    }
+
+    body.light-theme .manual-utility-bar {
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom-color: #e2e8f0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .manual-utility-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .util-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #cbd5e1;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      user-select: none;
+    }
+    body.light-theme .util-btn {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+
+    .util-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: #818cf8;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    body.light-theme .util-btn:hover {
+      background: #e2e8f0;
+      color: #1e1b4b;
+    }
+
+    .util-scale-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #38bdf8;
+      min-width: 48px;
+      text-align: center;
+      background: rgba(0,0,0,0.35);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    body.light-theme .util-scale-display {
+      background: #e2e8f0;
+      color: #0369a1;
+      border-color: #cbd5e1;
     }
 
     /* CAPA EXECUTIVA */
     .cover-page {
       background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
-      padding: 65px 40px;
+      padding: 50px 30px;
       border-bottom: 4px solid #6366f1;
       text-align: center;
       position: relative;
@@ -74,42 +191,44 @@ async function generateManual() {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: rgba(99,102,241,0.2);
-      border: 1px solid rgba(99,102,241,0.4);
-      padding: 8px 20px;
+      background: rgba(99,102,241,0.25);
+      border: 1px solid rgba(165,180,252,0.4);
+      padding: 7px 18px;
       border-radius: 999px;
-      color: #a5b4fc;
+      color: #c4b5fd;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .cover-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 2.8rem;
+      font-size: 2.5rem;
       font-weight: 800;
       color: #ffffff;
-      margin: 0 0 16px;
+      margin: 0 0 12px;
       letter-spacing: -0.02em;
       line-height: 1.2;
     }
 
     .cover-subtitle {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: #cbd5e1;
-      max-width: 760px;
-      margin: 0 auto 30px;
+      max-width: 800px;
+      margin: 0 auto 24px;
       font-weight: 400;
+      line-height: 1.5;
     }
 
     .cover-meta {
       display: flex;
       justify-content: center;
-      gap: 24px;
+      gap: 20px;
       font-size: 0.85rem;
-      color: #94a3b8;
+      color: #a5b4fc;
+      flex-wrap: wrap;
     }
 
     .cover-meta span {
@@ -118,13 +237,19 @@ async function generateManual() {
       gap: 6px;
     }
 
-    /* CONTAINER PRINCIPAL COM SIDEBAR */
+    /* CONTAINER PRINCIPAL RESPONSIVO */
     .layout-container {
       display: flex;
-      max-width: 1440px;
+      max-width: var(--container-max-w);
+      width: 100%;
       margin: 0 auto;
-      padding: 40px 20px;
-      gap: 40px;
+      padding: 30px 20px;
+      gap: 32px;
+      box-sizing: border-box;
+      transition: max-width 0.25s ease;
+    }
+    .layout-container.wide-mode {
+      max-width: 98%;
     }
 
     /* SIDEBAR NAVEGAÇÃO */
@@ -132,13 +257,15 @@ async function generateManual() {
       width: 320px;
       flex-shrink: 0;
       position: sticky;
-      top: 20px;
-      max-height: calc(100vh - 40px);
+      top: 70px;
+      max-height: calc(100vh - 90px);
       overflow-y: auto;
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 24px 16px;
+      padding: 20px 14px;
+      scrollbar-width: thin;
+      box-sizing: border-box;
     }
 
     .sidebar-title {
@@ -147,8 +274,8 @@ async function generateManual() {
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #6366f1;
-      margin-bottom: 14px;
+      color: #818cf8;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -165,9 +292,9 @@ async function generateManual() {
     }
 
     .sidebar nav a {
-      color: #94a3b8;
+      color: var(--text-muted);
       text-decoration: none;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 500;
       display: block;
       padding: 8px 12px;
@@ -179,7 +306,7 @@ async function generateManual() {
     .sidebar nav a.level-3 {
       padding-left: 24px;
       font-size: 0.78rem;
-      color: #64748b;
+      opacity: 0.85;
     }
 
     .sidebar nav a:hover {
@@ -195,39 +322,41 @@ async function generateManual() {
       border-left: 3px solid #6366f1;
     }
 
-    /* CONTEÚDO DA DOCUMENTAÇÃO */
+    /* CONTEÚDO PRINCIPAL (ÁREA DE TEXTO) */
     .content-area {
       flex: 1;
-      background: #1e293b;
-      border: 1px solid #334155;
+      min-width: 0; /* IMPEDE ESTOURO LATERAL */
+      max-width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 50px 60px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      min-width: 0;
+      padding: 40px 48px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
     h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 2rem;
+      font-size: 1.9rem;
       font-weight: 800;
-      color: #ffffff;
-      border-bottom: 2px solid #334155;
+      color: var(--text);
+      border-bottom: 2px solid var(--border);
       padding-bottom: 12px;
-      margin-top: 50px;
-      scroll-margin-top: 30px;
+      margin-top: 40px;
+      scroll-margin-top: 80px;
     }
-
     h1:first-child { margin-top: 0; }
 
     h2 {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.45rem;
+      font-size: 1.4rem;
       font-weight: 700;
       color: #818cf8;
-      margin-top: 40px;
-      margin-bottom: 16px;
-      scroll-margin-top: 30px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      margin-top: 36px;
+      margin-bottom: 14px;
+      scroll-margin-top: 80px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       padding-bottom: 6px;
     }
 
@@ -236,33 +365,110 @@ async function generateManual() {
       font-size: 1.15rem;
       font-weight: 600;
       color: #38bdf8;
-      margin-top: 28px;
-      scroll-margin-top: 30px;
+      margin-top: 26px;
+      scroll-margin-top: 80px;
     }
 
-    p { margin-bottom: 16px; color: #cbd5e1; }
+    p { margin-bottom: 16px; color: var(--text); }
     ul, ol { padding-left: 24px; margin-bottom: 20px; }
-    li { margin-bottom: 8px; color: #cbd5e1; }
+    li { margin-bottom: 8px; color: var(--text); }
 
     blockquote {
-      background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(56,189,248,0.05));
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(56,189,248,0.06));
       border: 1px solid rgba(99,102,241,0.3);
       border-left: 4px solid #6366f1;
       border-radius: 12px;
       padding: 18px 22px;
       margin: 24px 0;
-      color: #e2e8f0;
+      color: var(--text);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #0f172a;
-      text-align: left;
-      margin: 24px 0;
+    /* FIGURAS E IMAGENS COM ZOOM E PROTEÇÃO 100% */
+    .manual-img-figure {
+      margin: 32px 0;
+      padding: 0;
+      text-align: center;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .img-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
       border-radius: 12px;
       overflow: hidden;
-      border: 1px solid #334155;
+    }
+
+    .manual-img-figure img,
+    img {
+      max-width: 100% !important;
+      height: auto !important;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      cursor: zoom-in;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      box-sizing: border-box;
+    }
+
+    .manual-img-figure img:hover,
+    img:hover {
+      transform: scale(1.008);
+      box-shadow: 0 16px 45px rgba(99, 102, 241, 0.35);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .img-zoom-hint {
+      position: absolute;
+      bottom: 12px;
+      right: 14px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      opacity: 0.9;
+    }
+
+    .manual-figcaption {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+      display: block;
+      font-style: italic;
+    }
+
+    /* TABELAS RESPONSIVAS DENTRO DE CONTAINER COM SCROLL */
+    .table-container {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      margin: 24px 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+    }
+    body.light-theme .table-container {
+      background: #ffffff;
+    }
+
+    table, .manual-table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+      text-align: left;
+      margin: 0;
+      border: none;
     }
 
     th {
@@ -273,19 +479,25 @@ async function generateManual() {
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      padding: 14px 18px;
-      border-bottom: 1px solid #334155;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    body.light-theme th {
+      background: #e0e7ff;
+      color: #3730a3;
     }
 
     td {
-      padding: 14px 18px;
-      border-bottom: 1px solid #1e293b;
-      color: #cbd5e1;
-      font-size: 0.92rem;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.90rem;
     }
 
     tr:last-child td { border-bottom: none; }
     tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    body.light-theme tr:nth-child(even) { background: #f8fafc; }
 
     code {
       font-family: 'JetBrains Mono', monospace;
@@ -295,6 +507,10 @@ async function generateManual() {
       border-radius: 6px;
       font-size: 0.88em;
       border: 1px solid rgba(99,102,241,0.2);
+    }
+    body.light-theme code {
+      background: #e0e7ff;
+      color: #4338ca;
     }
 
     pre code {
@@ -310,39 +526,102 @@ async function generateManual() {
       background: #0f172a;
       padding: 20px;
       border-radius: 16px;
-      border: 1px solid #334155;
+      border: 1px solid var(--border);
       margin: 24px 0;
       text-align: center;
       overflow-x: auto;
+      max-width: 100%;
+    }
+    body.light-theme .mermaid {
+      background: #f8fafc;
+    }
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
     }
 
-    @media (max-width: 900px) {
-      .layout-container { flex-direction: column; }
-      .sidebar { width: 100%; height: auto; position: static; max-height: 350px; }
-      .content-area { padding: 30px 20px; }
+    /* MODAL LIGHTBOX PARA ZOOM DE IMAGEM */
+    #manual-lightbox-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: rgba(5, 7, 15, 0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      cursor: zoom-out;
+    }
+    #manual-lightbox-modal.active {
+      display: flex;
+    }
+    #manual-lightbox-img {
+      max-width: 95vw;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+      border: 2px solid rgba(255,255,255,0.2);
+      object-fit: contain;
+      cursor: default;
+      transition: transform 0.2s ease;
+    }
+
+    /* MEDIA QUERIES RESPONSIVAS */
+    @media (max-width: 1100px) {
+      .layout-container { flex-direction: column; padding: 20px 14px; gap: 20px; }
+      .sidebar { width: 100%; height: auto; position: static; max-height: 380px; }
+      .content-area { padding: 30px 20px; border-radius: 16px; }
+      .manual-utility-bar { padding: 10px 14px; }
+    }
+    @media (max-width: 640px) {
+      .cover-title { font-size: 1.8rem; }
+      .cover-page { padding: 36px 16px; }
+      .content-area { padding: 20px 14px; }
+      .util-btn span { display: none; }
     }
   </style>
 </head>
 <body>
 
+  <!-- BARRA DE UTILITÁRIOS & CONTROLES DE ZOOM -->
+  <div class="manual-utility-bar">
+    <div class="manual-utility-group">
+      <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-magnifying-glass"></i> Zoom:</span>
+      <button class="util-btn" id="btn-zoom-out" title="Diminuir Zoom / Fonte"><i class="fa-solid fa-minus"></i></button>
+      <span class="util-scale-display" id="zoom-scale-text">100%</span>
+      <button class="util-btn" id="btn-zoom-in" title="Aumentar Zoom / Fonte"><i class="fa-solid fa-plus"></i></button>
+      <button class="util-btn" id="btn-zoom-reset" title="Redefinir Zoom para 100%"><i class="fa-solid fa-rotate-left"></i> <span>100%</span></button>
+    </div>
+
+    <div class="manual-utility-group">
+      <button class="util-btn" id="btn-toggle-width" title="Alternar Largura de Leitura"><i class="fa-solid fa-arrows-left-right-to-line"></i> <span id="width-btn-text">Leitura Focada</span></button>
+      <button class="util-btn" id="btn-toggle-theme" title="Alternar Modo Escuro / Claro"><i class="fa-solid fa-circle-half-stroke"></i> <span>Tema</span></button>
+      <a class="util-btn" href="Manual_do_Usuario_Health_Nexus.pdf" download title="Baixar Versão Oficial em PDF"><i class="fa-solid fa-file-pdf" style="color: #f87171;"></i> <span>PDF</span></a>
+      <button class="util-btn" onclick="window.print()" title="Imprimir Manual"><i class="fa-solid fa-print"></i> <span>Imprimir</span></button>
+    </div>
+  </div>
+
   <div class="cover-page">
     <div class="brand-badge">
-      <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.8.0
+      <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.9.43
     </div>
     <h1 class="cover-title">Manual do Usuário & Guia Operacional Definitivo</h1>
-    <p class="cover-subtitle">Documentação técnica publicação-grade de todas as telas, botões, protocolos de emergência, IA preditiva, QR Code CFM, PACS DICOM e faturamento TISS 4.01.</p>
+    <p class="cover-subtitle">Documentação técnica publicação-grade de todas as telas, botões, protocolos de emergência, IA preditiva, QR Code CFM, PACS DICOM, Consulta Dinâmica e etiquetas Pimaco/térmicas.</p>
     <div class="cover-meta">
       <span><i class="fa-solid fa-book-open"></i> Edição Oficial 2026</span>
       <span><i class="fa-solid fa-shield-halved"></i> Triagem Manchester & CDSS</span>
+      <span><i class="fa-solid fa-tags"></i> Pimaco 6180 / 6281 & Térmica</span>
       <span><i class="fa-solid fa-file-invoice-dollar"></i> TISS v4.01.00 ANS</span>
     </div>
   </div>
 
-  <div class="layout-container">
+  <div class="layout-container" id="main-layout-container">
     <aside class="sidebar">
-      <div class="sidebar-title"><i class="fa-solid fa-list-ul"></i> Sumário Rápido</div>
+      <div class="sidebar-title"><i class="fa-solid fa-list-ul"></i> Sumário do Manual</div>
       <div style="margin-bottom: 14px; position: relative;">
-        <input type="text" id="sidebar-search-input" placeholder="🔍 Pesquisar no manual..." style="width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 9px 12px 9px 34px; color: #f8fafc; font-size: 0.82rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
+        <input type="text" id="sidebar-search-input" placeholder="🔍 Pesquisar no manual..." style="width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px 9px 34px; color: #f8fafc; font-size: 0.82rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--border)'">
         <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.78rem;"></i>
       </div>
       <nav>
@@ -357,47 +636,117 @@ async function generateManual() {
     </main>
   </div>
 
+  <!-- LIGHTBOX PARA ZOOM DE IMAGEM -->
+  <div id="manual-lightbox-modal">
+    <img id="manual-lightbox-img" src="" alt="Imagem Ampliada" />
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+      // 1. Inicializar Mermaid
+      if (window.mermaid) {
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+      }
 
+      // 2. Controle Dinâmico de Zoom / Escala de Fonte
+      let currentScale = 1;
+      const zoomText = document.getElementById('zoom-scale-text');
+
+      const setZoom = (scale) => {
+        currentScale = Math.min(Math.max(scale, 0.75), 1.6);
+        document.documentElement.style.setProperty('--font-scale', currentScale);
+        if (zoomText) zoomText.textContent = Math.round(currentScale * 100) + '%';
+        try { localStorage.setItem('hn_manual_zoom', currentScale); } catch(e) {}
+      };
+
+      try {
+        const savedZoom = parseFloat(localStorage.getItem('hn_manual_zoom'));
+        if (savedZoom && !isNaN(savedZoom)) setZoom(savedZoom);
+      } catch(e) {}
+
+      document.getElementById('btn-zoom-in')?.addEventListener('click', () => setZoom(currentScale + 0.1));
+      document.getElementById('btn-zoom-out')?.addEventListener('click', () => setZoom(currentScale - 0.1));
+      document.getElementById('btn-zoom-reset')?.addEventListener('click', () => setZoom(1));
+
+      // 3. Alternar Largura de Leitura (Focada vs Ampla)
+      const layoutContainer = document.getElementById('main-layout-container');
+      const widthBtnText = document.getElementById('width-btn-text');
+      document.getElementById('btn-toggle-width')?.addEventListener('click', () => {
+        layoutContainer?.classList.toggle('wide-mode');
+        const isWide = layoutContainer?.classList.contains('wide-mode');
+        if (widthBtnText) widthBtnText.textContent = isWide ? 'Largura Ampla' : 'Leitura Focada';
+      });
+
+      // 4. Alternar Modo Escuro / Claro
+      document.getElementById('btn-toggle-theme')?.addEventListener('click', () => {
+        document.body.classList.toggle('light-theme');
+        try { localStorage.setItem('hn_manual_theme', document.body.classList.contains('light-theme') ? 'light' : 'dark'); } catch(e) {}
+      });
+      try {
+        if (localStorage.getItem('hn_manual_theme') === 'light') {
+          document.body.classList.add('light-theme');
+        }
+      } catch(e) {}
+
+      // 5. Lightbox Modal para Ampliar Prints / Imagens ao Clicar
+      const lightboxModal = document.getElementById('manual-lightbox-modal');
+      const lightboxImg = document.getElementById('manual-lightbox-img');
+
+      document.querySelectorAll('.zoomable-manual-img, .manual-img-figure img, main.content-area img').forEach(img => {
+        img.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (lightboxModal && lightboxImg) {
+            lightboxImg.src = img.src;
+            lightboxImg.alt = img.alt || 'Imagem do Manual';
+            lightboxModal.classList.add('active');
+          }
+        });
+      });
+
+      lightboxModal?.addEventListener('click', () => {
+        lightboxModal.classList.remove('active');
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightboxModal?.classList.contains('active')) {
+          lightboxModal.classList.remove('active');
+        }
+      });
+
+      // 6. Popular Sumário Lateral Dinâmico
       const mainContent = document.getElementById('doc-main-content');
       const sidebarNav = document.getElementById('sidebar-nav');
       if (!mainContent || !sidebarNav) return;
 
       const headings = mainContent.querySelectorAll('h2, h3');
       let navHtml = '';
-      const headingElements = [];
 
       headings.forEach((heading, idx) => {
         const text = heading.textContent.trim();
-        const id = 'sec-' + (idx + 1) + '-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const id = heading.id || ('sec-' + (idx + 1) + '-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
         heading.id = id;
 
         const isH2 = heading.tagName === 'H2';
         const levelClass = isH2 ? 'level-2' : 'level-3';
 
         navHtml += '<li><a href="#' + id + '" data-target="' + id + '" class="' + levelClass + '">' + text + '</a></li>';
-        headingElements.push({ id, el: heading });
       });
 
       sidebarNav.innerHTML = navHtml;
 
+      // 7. Busca em Tempo Real no Sumário Lateral
       const searchInput = document.getElementById('sidebar-search-input');
       if (searchInput) {
         searchInput.addEventListener('input', (e) => {
           const q = e.target.value.toLowerCase().trim();
           sidebarNav.querySelectorAll('li').forEach(li => {
             const txt = li.textContent.toLowerCase();
-            if (!q || txt.includes(q)) {
-              li.style.display = 'block';
-            } else {
-              li.style.display = 'none';
-            }
+            li.style.display = (!q || txt.includes(q)) ? 'block' : 'none';
           });
         });
       }
 
+      // 8. Rolagem Suave para Seções
       sidebarNav.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', (e) => {
           e.preventDefault();
@@ -422,7 +771,7 @@ async function generateManual() {
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Manual do Usuário — Health Nexus v2.8.0</title>
+  <title>Manual do Usuário — Health Nexus v2.9.43</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -438,7 +787,7 @@ async function generateManual() {
       font-family: 'Inter', sans-serif;
       color: #1e293b;
       line-height: 1.6;
-      font-size: 11.5pt;
+      font-size: 11pt;
       margin: 0;
       padding: 0;
       background: #ffffff;
@@ -569,11 +918,48 @@ async function generateManual() {
       break-inside: avoid;
     }
 
+    /* IMAGENS PERFEITAMENTE ENQUADRADAS NO PDF A4 */
+    img {
+      max-width: 100% !important;
+      height: auto !important;
+      display: block;
+      margin: 14px auto;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .manual-img-figure {
+      margin: 14px 0;
+      text-align: center;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .manual-figcaption {
+      font-size: 8.5pt;
+      color: #64748b;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .img-zoom-hint {
+      display: none !important;
+    }
+
     /* TABELAS EM PDF - RESISTENTES A QUEBRA E OVERFLOW */
+    .table-container {
+      width: 100%;
+      margin: 18px 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 18px 0;
+      margin: 0;
       font-size: 9.5pt;
       page-break-inside: avoid;
       break-inside: avoid;
@@ -596,14 +982,14 @@ async function generateManual() {
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.03em;
-      padding: 9px 12px;
+      padding: 8px 10px;
       border: 1px solid #cbd5e1;
       text-align: left;
     }
 
     td {
       border: 1px solid #cbd5e1;
-      padding: 8px 12px;
+      padding: 8px 10px;
       color: #334155;
       vertical-align: top;
       word-break: break-word;
@@ -684,14 +1070,13 @@ async function generateManual() {
     
     await page.setContent(pdfHtml, { waitUntil: 'networkidle0' });
 
-    // Ensure Mermaid diagrams are rendered to SVG before printing to PDF
+    // Renderizar diagramas Mermaid antes da impressão para PDF
     await page.evaluate(async () => {
       if (window.mermaid) {
         await window.mermaid.run();
       }
     });
 
-    // Short wait to ensure SVG fonts and canvas elements settle
     await new Promise(resolve => setTimeout(resolve, 1200));
 
     await page.pdf({

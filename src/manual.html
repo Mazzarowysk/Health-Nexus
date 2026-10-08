@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Manual do Usuário — Health Nexus v2.9.43</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
       --primary: #4f46e5;
       --primary-dark: #3730a3;
       --secondary: #0ea5e9;
-      --bg: #0f172a;
+      --bg: #0b0f19;
       --bg-card: #1e293b;
       --bg-hover: #334155;
       --text: #f8fafc;
@@ -21,25 +21,124 @@
       --accent-danger: #ef4444;
       --accent-warning: #f59e0b;
       --accent-success: #10b981;
+      --font-scale: 1;
+      --container-max-w: 1440px;
+    }
+
+    body.light-theme {
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-hover: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      color: #0f172a;
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      font-size: calc(15px * var(--font-scale, 1));
+      overflow-x: hidden;
+    }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #0b0f19;
-      color: #e2e8f0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 0;
       line-height: 1.7;
-      font-size: 15px;
+      overflow-x: hidden;
+      width: 100%;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* BARRA FIXA DE CONTROLE DE ZOOM & ACESSIBILIDADE */
+    .manual-utility-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10000;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      flex-wrap: wrap;
+    }
+
+    body.light-theme .manual-utility-bar {
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom-color: #e2e8f0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .manual-utility-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .util-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #cbd5e1;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      user-select: none;
+    }
+    body.light-theme .util-btn {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+
+    .util-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: #818cf8;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    body.light-theme .util-btn:hover {
+      background: #e2e8f0;
+      color: #1e1b4b;
+    }
+
+    .util-scale-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #38bdf8;
+      min-width: 48px;
+      text-align: center;
+      background: rgba(0,0,0,0.35);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    body.light-theme .util-scale-display {
+      background: #e2e8f0;
+      color: #0369a1;
+      border-color: #cbd5e1;
     }
 
     /* CAPA EXECUTIVA */
     .cover-page {
       background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
-      padding: 65px 40px;
+      padding: 50px 30px;
       border-bottom: 4px solid #6366f1;
       text-align: center;
       position: relative;
@@ -50,42 +149,44 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: rgba(99,102,241,0.2);
-      border: 1px solid rgba(99,102,241,0.4);
-      padding: 8px 20px;
+      background: rgba(99,102,241,0.25);
+      border: 1px solid rgba(165,180,252,0.4);
+      padding: 7px 18px;
       border-radius: 999px;
-      color: #a5b4fc;
+      color: #c4b5fd;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .cover-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 2.8rem;
+      font-size: 2.5rem;
       font-weight: 800;
       color: #ffffff;
-      margin: 0 0 16px;
+      margin: 0 0 12px;
       letter-spacing: -0.02em;
       line-height: 1.2;
     }
 
     .cover-subtitle {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: #cbd5e1;
-      max-width: 760px;
-      margin: 0 auto 30px;
+      max-width: 800px;
+      margin: 0 auto 24px;
       font-weight: 400;
+      line-height: 1.5;
     }
 
     .cover-meta {
       display: flex;
       justify-content: center;
-      gap: 24px;
+      gap: 20px;
       font-size: 0.85rem;
-      color: #94a3b8;
+      color: #a5b4fc;
+      flex-wrap: wrap;
     }
 
     .cover-meta span {
@@ -94,13 +195,19 @@
       gap: 6px;
     }
 
-    /* CONTAINER PRINCIPAL COM SIDEBAR */
+    /* CONTAINER PRINCIPAL RESPONSIVO */
     .layout-container {
       display: flex;
-      max-width: 1440px;
+      max-width: var(--container-max-w);
+      width: 100%;
       margin: 0 auto;
-      padding: 40px 20px;
-      gap: 40px;
+      padding: 30px 20px;
+      gap: 32px;
+      box-sizing: border-box;
+      transition: max-width 0.25s ease;
+    }
+    .layout-container.wide-mode {
+      max-width: 98%;
     }
 
     /* SIDEBAR NAVEGAÇÃO */
@@ -108,13 +215,15 @@
       width: 320px;
       flex-shrink: 0;
       position: sticky;
-      top: 20px;
-      max-height: calc(100vh - 40px);
+      top: 70px;
+      max-height: calc(100vh - 90px);
       overflow-y: auto;
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 24px 16px;
+      padding: 20px 14px;
+      scrollbar-width: thin;
+      box-sizing: border-box;
     }
 
     .sidebar-title {
@@ -123,8 +232,8 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #6366f1;
-      margin-bottom: 14px;
+      color: #818cf8;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -141,9 +250,9 @@
     }
 
     .sidebar nav a {
-      color: #94a3b8;
+      color: var(--text-muted);
       text-decoration: none;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 500;
       display: block;
       padding: 8px 12px;
@@ -155,7 +264,7 @@
     .sidebar nav a.level-3 {
       padding-left: 24px;
       font-size: 0.78rem;
-      color: #64748b;
+      opacity: 0.85;
     }
 
     .sidebar nav a:hover {
@@ -171,39 +280,41 @@
       border-left: 3px solid #6366f1;
     }
 
-    /* CONTEÚDO DA DOCUMENTAÇÃO */
+    /* CONTEÚDO PRINCIPAL (ÁREA DE TEXTO) */
     .content-area {
       flex: 1;
-      background: #1e293b;
-      border: 1px solid #334155;
+      min-width: 0; /* IMPEDE ESTOURO LATERAL */
+      max-width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 50px 60px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      min-width: 0;
+      padding: 40px 48px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
     h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 2rem;
+      font-size: 1.9rem;
       font-weight: 800;
-      color: #ffffff;
-      border-bottom: 2px solid #334155;
+      color: var(--text);
+      border-bottom: 2px solid var(--border);
       padding-bottom: 12px;
-      margin-top: 50px;
-      scroll-margin-top: 30px;
+      margin-top: 40px;
+      scroll-margin-top: 80px;
     }
-
     h1:first-child { margin-top: 0; }
 
     h2 {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.45rem;
+      font-size: 1.4rem;
       font-weight: 700;
       color: #818cf8;
-      margin-top: 40px;
-      margin-bottom: 16px;
-      scroll-margin-top: 30px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      margin-top: 36px;
+      margin-bottom: 14px;
+      scroll-margin-top: 80px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       padding-bottom: 6px;
     }
 
@@ -212,33 +323,110 @@
       font-size: 1.15rem;
       font-weight: 600;
       color: #38bdf8;
-      margin-top: 28px;
-      scroll-margin-top: 30px;
+      margin-top: 26px;
+      scroll-margin-top: 80px;
     }
 
-    p { margin-bottom: 16px; color: #cbd5e1; }
+    p { margin-bottom: 16px; color: var(--text); }
     ul, ol { padding-left: 24px; margin-bottom: 20px; }
-    li { margin-bottom: 8px; color: #cbd5e1; }
+    li { margin-bottom: 8px; color: var(--text); }
 
     blockquote {
-      background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(56,189,248,0.05));
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(56,189,248,0.06));
       border: 1px solid rgba(99,102,241,0.3);
       border-left: 4px solid #6366f1;
       border-radius: 12px;
       padding: 18px 22px;
       margin: 24px 0;
-      color: #e2e8f0;
+      color: var(--text);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #0f172a;
-      text-align: left;
-      margin: 24px 0;
+    /* FIGURAS E IMAGENS COM ZOOM E PROTEÇÃO 100% */
+    .manual-img-figure {
+      margin: 32px 0;
+      padding: 0;
+      text-align: center;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .img-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
       border-radius: 12px;
       overflow: hidden;
-      border: 1px solid #334155;
+    }
+
+    .manual-img-figure img,
+    img {
+      max-width: 100% !important;
+      height: auto !important;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      cursor: zoom-in;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      box-sizing: border-box;
+    }
+
+    .manual-img-figure img:hover,
+    img:hover {
+      transform: scale(1.008);
+      box-shadow: 0 16px 45px rgba(99, 102, 241, 0.35);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .img-zoom-hint {
+      position: absolute;
+      bottom: 12px;
+      right: 14px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      opacity: 0.9;
+    }
+
+    .manual-figcaption {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+      display: block;
+      font-style: italic;
+    }
+
+    /* TABELAS RESPONSIVAS DENTRO DE CONTAINER COM SCROLL */
+    .table-container {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      margin: 24px 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+    }
+    body.light-theme .table-container {
+      background: #ffffff;
+    }
+
+    table, .manual-table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+      text-align: left;
+      margin: 0;
+      border: none;
     }
 
     th {
@@ -249,19 +437,25 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      padding: 14px 18px;
-      border-bottom: 1px solid #334155;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    body.light-theme th {
+      background: #e0e7ff;
+      color: #3730a3;
     }
 
     td {
-      padding: 14px 18px;
-      border-bottom: 1px solid #1e293b;
-      color: #cbd5e1;
-      font-size: 0.92rem;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.90rem;
     }
 
     tr:last-child td { border-bottom: none; }
     tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    body.light-theme tr:nth-child(even) { background: #f8fafc; }
 
     code {
       font-family: 'JetBrains Mono', monospace;
@@ -271,6 +465,10 @@
       border-radius: 6px;
       font-size: 0.88em;
       border: 1px solid rgba(99,102,241,0.2);
+    }
+    body.light-theme code {
+      background: #e0e7ff;
+      color: #4338ca;
     }
 
     pre code {
@@ -286,39 +484,102 @@
       background: #0f172a;
       padding: 20px;
       border-radius: 16px;
-      border: 1px solid #334155;
+      border: 1px solid var(--border);
       margin: 24px 0;
       text-align: center;
       overflow-x: auto;
+      max-width: 100%;
+    }
+    body.light-theme .mermaid {
+      background: #f8fafc;
+    }
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
     }
 
-    @media (max-width: 900px) {
-      .layout-container { flex-direction: column; }
-      .sidebar { width: 100%; height: auto; position: static; max-height: 350px; }
-      .content-area { padding: 30px 20px; }
+    /* MODAL LIGHTBOX PARA ZOOM DE IMAGEM */
+    #manual-lightbox-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: rgba(5, 7, 15, 0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      cursor: zoom-out;
+    }
+    #manual-lightbox-modal.active {
+      display: flex;
+    }
+    #manual-lightbox-img {
+      max-width: 95vw;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+      border: 2px solid rgba(255,255,255,0.2);
+      object-fit: contain;
+      cursor: default;
+      transition: transform 0.2s ease;
+    }
+
+    /* MEDIA QUERIES RESPONSIVAS */
+    @media (max-width: 1100px) {
+      .layout-container { flex-direction: column; padding: 20px 14px; gap: 20px; }
+      .sidebar { width: 100%; height: auto; position: static; max-height: 380px; }
+      .content-area { padding: 30px 20px; border-radius: 16px; }
+      .manual-utility-bar { padding: 10px 14px; }
+    }
+    @media (max-width: 640px) {
+      .cover-title { font-size: 1.8rem; }
+      .cover-page { padding: 36px 16px; }
+      .content-area { padding: 20px 14px; }
+      .util-btn span { display: none; }
     }
   </style>
 </head>
 <body>
 
+  <!-- BARRA DE UTILITÁRIOS & CONTROLES DE ZOOM -->
+  <div class="manual-utility-bar">
+    <div class="manual-utility-group">
+      <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-magnifying-glass"></i> Zoom:</span>
+      <button class="util-btn" id="btn-zoom-out" title="Diminuir Zoom / Fonte"><i class="fa-solid fa-minus"></i></button>
+      <span class="util-scale-display" id="zoom-scale-text">100%</span>
+      <button class="util-btn" id="btn-zoom-in" title="Aumentar Zoom / Fonte"><i class="fa-solid fa-plus"></i></button>
+      <button class="util-btn" id="btn-zoom-reset" title="Redefinir Zoom para 100%"><i class="fa-solid fa-rotate-left"></i> <span>100%</span></button>
+    </div>
+
+    <div class="manual-utility-group">
+      <button class="util-btn" id="btn-toggle-width" title="Alternar Largura de Leitura"><i class="fa-solid fa-arrows-left-right-to-line"></i> <span id="width-btn-text">Leitura Focada</span></button>
+      <button class="util-btn" id="btn-toggle-theme" title="Alternar Modo Escuro / Claro"><i class="fa-solid fa-circle-half-stroke"></i> <span>Tema</span></button>
+      <a class="util-btn" href="Manual_do_Usuario_Health_Nexus.pdf" download title="Baixar Versão Oficial em PDF"><i class="fa-solid fa-file-pdf" style="color: #f87171;"></i> <span>PDF</span></a>
+      <button class="util-btn" onclick="window.print()" title="Imprimir Manual"><i class="fa-solid fa-print"></i> <span>Imprimir</span></button>
+    </div>
+  </div>
+
   <div class="cover-page">
     <div class="brand-badge">
-      <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.8.0
+      <i class="fa-solid fa-hospital-user"></i> Health Nexus v2.9.43
     </div>
     <h1 class="cover-title">Manual do Usuário & Guia Operacional Definitivo</h1>
-    <p class="cover-subtitle">Documentação técnica publicação-grade de todas as telas, botões, protocolos de emergência, IA preditiva, QR Code CFM, PACS DICOM e faturamento TISS 4.01.</p>
+    <p class="cover-subtitle">Documentação técnica publicação-grade de todas as telas, botões, protocolos de emergência, IA preditiva, QR Code CFM, PACS DICOM, Consulta Dinâmica e etiquetas Pimaco/térmicas.</p>
     <div class="cover-meta">
       <span><i class="fa-solid fa-book-open"></i> Edição Oficial 2026</span>
       <span><i class="fa-solid fa-shield-halved"></i> Triagem Manchester & CDSS</span>
+      <span><i class="fa-solid fa-tags"></i> Pimaco 6180 / 6281 & Térmica</span>
       <span><i class="fa-solid fa-file-invoice-dollar"></i> TISS v4.01.00 ANS</span>
     </div>
   </div>
 
-  <div class="layout-container">
+  <div class="layout-container" id="main-layout-container">
     <aside class="sidebar">
-      <div class="sidebar-title"><i class="fa-solid fa-list-ul"></i> Sumário Rápido</div>
+      <div class="sidebar-title"><i class="fa-solid fa-list-ul"></i> Sumário do Manual</div>
       <div style="margin-bottom: 14px; position: relative;">
-        <input type="text" id="sidebar-search-input" placeholder="🔍 Pesquisar no manual..." style="width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 9px 12px 9px 34px; color: #f8fafc; font-size: 0.82rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
+        <input type="text" id="sidebar-search-input" placeholder="🔍 Pesquisar no manual..." style="width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px 9px 34px; color: #f8fafc; font-size: 0.82rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='var(--border)'">
         <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.78rem;"></i>
       </div>
       <nav>
@@ -363,7 +624,7 @@ flowchart TD
 </div>
 <hr>
 <h3>Particularidades e Diferenciais das Abas do Health Nexus</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="center">#</th>
@@ -471,7 +732,7 @@ flowchart TD
 <td align="left">Ciclo fechado de exames, aceite individual/lote, laudo descritivo e relatórios por setor/médico.</td>
 <td align="left">Laboratório, Radiologia, Biomédico, Médico, Master</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2>📌 Sumário Executivo</h2>
 <ul>
@@ -599,9 +860,15 @@ flowchart TD
 </ul>
 <hr>
 <h2 id="sec-1">1. Visão Geral & Arquitetura do Fluxo Hospitalar</h2><p>O <strong>Health Nexus</strong> organiza a jornada assistencial do paciente desde a recepção até a alta definitiva ou internação em UTI/Enfermaria, respeitando os níveis de autorização definidos pela matriz de segurança.</p>
-<p><img src="docs/screenshots/01-dashboard.png" alt="Figura 1.1: Dashboard Executivo Health Nexus — Visão Geral e Indicadores Hospitalares"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/01-dashboard.png" alt="Figura 1.1: Dashboard Executivo Health Nexus — Visão Geral e Indicadores Hospitalares" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 1.1: Dashboard Executivo Health Nexus — Visão Geral e Indicadores Hospitalares</figcaption>
+    </figure></p>
 <h3>🔒 Perfis de Acesso &amp; Matriz de Permissões (RBAC)</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Perfil</th>
@@ -684,11 +951,17 @@ flowchart TD
 <td align="left">Testes de Carga de Guias</td>
 <td align="left">Dual-Pipeline Sync &amp; Console</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
-<h2 id="sec-2">2. Central de Atendimentos & Painel Kanban</h2><p><img src="docs/screenshots/03-triagem-kanban.png" alt="Figura 2.1: Painel Kanban da Central de Atendimentos — Triagem Manchester e Filas Clínicas"></p>
+<h2 id="sec-2">2. Central de Atendimentos & Painel Kanban</h2><p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/03-triagem-kanban.png" alt="Figura 2.1: Painel Kanban da Central de Atendimentos — Triagem Manchester e Filas Clínicas" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 2.1: Painel Kanban da Central de Atendimentos — Triagem Manchester e Filas Clínicas</figcaption>
+    </figure></p>
 <h3 id="sec-2-1">2.1. Cards Métricos e Filtros de Fila</h3><p>No topo da aba <strong>Atendimentos</strong>, encontram-se os 5 <strong>Cards Métricos Clicáveis</strong> para controle imediato do fluxo:</p>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Card</th>
@@ -739,11 +1012,11 @@ flowchart TD
 <td align="left">Reseta os filtros e exibe as 4 colunas lado a lado no painel Kanban integrado.</td>
 <td align="left">Visão global do pronto-socorro</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-2-2">2.2. Fila 1: Aguardando Triagem (Protocolo de Manchester)</h3><p>Pacientes admitidos na recepção dão entrada nesta fila para classificação de risco pela enfermagem.</p>
 <h4>Tabela de Parâmetros Clínicos e Sinais Vitais da Triagem</h4>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Parâmetro Clínico</th>
@@ -818,9 +1091,9 @@ flowchart TD
 <td align="left">8 a 10 (Dor Intensa / Insuportável)</td>
 <td align="left">Analgesia escalonada imediata</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h4>Tabela de Classificação de Risco (Manchester) e Metas de Tempo</h4>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="center">Cor de Risco</th>
@@ -871,11 +1144,11 @@ flowchart TD
 <td align="center">Queixas Crônicas / Troca de Receita / Atestados</td>
 <td align="left">Orientação de atendimento em Unidade Básica de Saúde.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-2-3">2.3. Fila 2: Aguardando Médico (Chamada de Consultório)</h3><p>Nesta coluna, os pacientes são ordenados por <strong>Gravidade Manchester</strong> e <strong>Tempo de Espera Decorrido</strong>.</p>
 <h4>Tabela de Operações da Fila de Espera Médica</h4>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Ação no Card</th>
@@ -920,11 +1193,11 @@ flowchart TD
 <td align="left">Altera status para &quot;Evadido&quot;</td>
 <td align="left">Libera a fila e gera log de auditoria com data e hora exatas.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-2-4">2.4. Fila 3: Em Consulta (Ações do Médico no Consultório)</h3><p>Coluna onde o médico realiza a consulta ativa. Cada card contém botões de ação clínica:</p>
 <h4>Tabela de Controles e Botões de Ação do Médico no Consultório</h4>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -962,7 +1235,7 @@ flowchart TD
 <td align="left">Diagnóstico CID-10 e conduta final</td>
 <td align="left">Emite atestado, receita, guia de faturamento e encerra a conta.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-2-5">2.5. Fila 4: Em Observação (PS) & Aba Dedicada de Observação</h3><p>A 4ª coluna do Kanban e a aba dedicada <strong>Observação do PS</strong> operam em conformidade estrita com a <strong>Resolução CFM nº 2.079/14</strong>:</p>
 <ul>
@@ -979,7 +1252,7 @@ flowchart TD
 </li>
 </ul>
 <h4>Tabela de Ações Clínicas na Observação do PS</h4>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -1017,7 +1290,7 @@ flowchart TD
 <td align="left">Confirmação do operador</td>
 <td align="left">Finaliza o atendimento no PS, libera a poltrona e atualiza a aba Pacientes com status &quot;Alta&quot; e carimbo de data/hora.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-2-8">2.8. Localizador Universal & Consulta Dinâmica Multi-Modalidade</h3><p>O botão <strong>&quot;Consulta Dinâmica&quot;</strong> localizado no cabeçalho da Central de Atendimentos abre a janela de busca avançada em tempo real. Esta ferramenta atende equipes de recepção, acolhimento, enfermagem e coordenação médica:</p>
 <ul>
@@ -1025,9 +1298,21 @@ flowchart TD
 <li><strong>Filtros por Modalidade:</strong> Alternância com um clique entre Ambulatório, Pronto-Socorro / Urgência, Observação, Internação e Pacientes com Alta.</li>
 <li><strong>Ações Imediatas:</strong> Cada card de resultado disponibiliza botões para emissão instantânea de etiquetas hospitalares (<code>🏷️ Imprimir Etiquetas</code>) e acesso direto ao prontuário (<code>🩺 Abrir PEP</code>).</li>
 </ul>
-<p><img src="docs/screenshots/17-consulta-dinamica.png" alt="Figura 2.2: Consulta Dinâmica de Atendimentos Multi-Modalidade — Localizador em Tempo Real e Emissão Rápida"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/17-consulta-dinamica.png" alt="Figura 2.2: Consulta Dinâmica de Atendimentos Multi-Modalidade — Localizador em Tempo Real e Emissão Rápida" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 2.2: Consulta Dinâmica de Atendimentos Multi-Modalidade — Localizador em Tempo Real e Emissão Rápida</figcaption>
+    </figure></p>
 <hr>
-<h2 id="sec-3">3. Prontuário Eletrônico Médico (PEP SOAPE)</h2><p><img src="docs/screenshots/11-prontuario-pep.png" alt="Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição"></p>
+<h2 id="sec-3">3. Prontuário Eletrônico Médico (PEP SOAPE)</h2><p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/11-prontuario-pep.png" alt="Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição</figcaption>
+    </figure></p>
 <h3 id="sec-3-0">3.0. Nova Experiência de Abertura: Listagem de PEPs Existentes & Inclusão Intuitiva</h3><p>Ao clicar no botão <strong>&quot;Abrir PEP&quot;</strong> em qualquer módulo assistencial (Observação do Pronto-Socorro, Consultórios de Atendimento, Central de Leitos ou Relatórios Clínicos), o sistema adota um fluxo direto centrado na segurança e no histórico prévio do paciente:</p>
 <ol>
 <li><p><strong>Abertura Padrão na Listagem (<code>📋 Listagem de PEPs Existentes</code>):</strong></p>
@@ -1077,7 +1362,7 @@ flowchart TD
 </li>
 </ol>
 <hr>
-<h3 id="sec-3-1">3.1. Estrutura SOAPE</h3><table>
+<h3 id="sec-3-1">3.1. Estrutura SOAPE</h3><div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Bloco SOAPE</th>
@@ -1116,10 +1401,10 @@ flowchart TD
 <td align="left">Acompanhamento temporal da resposta às condutas</td>
 <td align="left"><em>&quot;Após 30 minutos de analgesia, paciente relata melhora substancial da dor (EVA 2/10). ECG evidenciou supradesnivelamento de ST em V1-V4.&quot;</em></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-3-2">3.2. Motor CDSS & Alertas de Interações Medicamentosas</h3><p>O módulo de Suporte à Decisão Clínica (CDSS) monitora ativamente as prescrições para prevenir eventos adversos graves:</p>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Interação Fármaco A + B</th>
@@ -1185,9 +1470,9 @@ flowchart TD
 <td align="left"><strong>Rabdomiólise e insuficiência renal aguda</strong></td>
 <td align="left">Recomenda suspensão temporária da estatina durante o antifúngico.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
-<h3 id="sec-3-3">3.3. Autocomplete CID-10 e Diagnósticos Frequentes</h3><table>
+<h3 id="sec-3-3">3.3. Autocomplete CID-10 e Diagnósticos Frequentes</h3><div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="center">Código CID-10</th>
@@ -1253,9 +1538,9 @@ flowchart TD
 <td align="left">Investigação Diagnóstica em Observação</td>
 <td align="left">Amilase, Lipase, EAS urina, Ultrassonografia total.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
-<h3 id="sec-3-4">3.4. Assinatura Eletrônica, Hash SHA-256 e QR Code CFM</h3><table>
+<h3 id="sec-3-4">3.4. Assinatura Eletrônica, Hash SHA-256 e QR Code CFM</h3><div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Requisito de Segurança</th>
@@ -1288,9 +1573,15 @@ flowchart TD
 <td align="left">Conselho Regional de Medicina</td>
 <td align="left">Vincula juridicamente a autoria da receita ou laudo ao profissional habilitado.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
-<h3 id="sec-3-5">3.5. Solicitação Estruturada de Exames & Previsão Clínica por IA (CPOE)</h3><p><img src="docs/screenshots/16-solicitacao-exames.png" alt="Figura 3.2: Setor de Solicitação de Exames no PEP — Catálogo Multicomplexidade, Sugestões Preditivas e Prevenção de Duplicidade"></p>
+<h3 id="sec-3-5">3.5. Solicitação Estruturada de Exames & Previsão Clínica por IA (CPOE)</h3><p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/16-solicitacao-exames.png" alt="Figura 3.2: Setor de Solicitação de Exames no PEP — Catálogo Multicomplexidade, Sugestões Preditivas e Prevenção de Duplicidade" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 3.2: Setor de Solicitação de Exames no PEP — Catálogo Multicomplexidade, Sugestões Preditivas e Prevenção de Duplicidade</figcaption>
+    </figure></p>
 <p>O Health Nexus disponibiliza no Prontuário Eletrônico (PEP) um módulo de <strong>Computerized Physician Order Entry (CPOE)</strong> dedicado à solicitação de exames diagnósticos, integrando o catálogo do nível básico ambulatorial à alta complexidade e medicina personalizada:</p>
 <ol>
 <li><p><strong>Catálogo Multicomplexidade em 4 Eixos Assistenciais:</strong></p>
@@ -1434,7 +1725,7 @@ flowchart TD
 <li><strong>Gatilho de Abertura:</strong> Clique no botão <code>Realizar Triagem</code> na coluna 1 do Kanban de Atendimentos.</li>
 <li><strong>Campos de Entrada do Formulário:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo</th>
@@ -1500,11 +1791,11 @@ flowchart TD
 <td align="left">Mínimo de 10 caracteres explicativos</td>
 <td align="left"><code>Cefaleia holocraniana pulsátil há 1 dia.</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações do Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -1535,13 +1826,13 @@ flowchart TD
 <td align="left">Nenhuma validação exigida</td>
 <td align="left">Descarta alterações e mantém o paciente na fila de triagem.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-4-2">4.2. Modal de Prescrição & Receituário Médico</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Clique no botão <code>Prescrição</code> no card do paciente ou dentro do PEP Médico.</li>
 <li><strong>Campos de Entrada do Formulário:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo</th>
@@ -1586,11 +1877,11 @@ flowchart TD
 <td align="left">Instruções para o paciente e enfermagem</td>
 <td align="left"><code>Tomar após as principais refeições com água.</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações do Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -1628,13 +1919,13 @@ flowchart TD
 <td align="left">Salva rascunho automático</td>
 <td align="left">Retorna à aba sem perder itens adicionados.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-4-3">4.3. Modal de Transferência & Alocação de Leito</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Clique no botão <code>Transferir Leito</code> ou <code>Internar</code> no card do paciente na Central de Atendimentos ou na Observação.</li>
 <li><strong>Campos de Entrada do Formulário:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo</th>
@@ -1672,11 +1963,11 @@ flowchart TD
 <td align="left">Mínimo 15 caracteres para auditoria</td>
 <td align="left"><code>Necessidade de suporte ventilatório mecânico invasivo.</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações do Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -1707,13 +1998,13 @@ flowchart TD
 <td align="left">Nenhuma validação exigida</td>
 <td align="left">Mantém o paciente no local atual.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-4-4">4.4. Modal de Nova Admissão & Entrada de Paciente</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Clique no botão <code>+ Nova Admissão</code> no topo da Central de Atendimentos ou tecle <code>Alt + N</code>.</li>
 <li><strong>Campos de Entrada do Formulário:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo</th>
@@ -1758,11 +2049,11 @@ flowchart TD
 <td align="left">Descreve o motivo da procura médica</td>
 <td align="left"><code>Febre persistente há 3 dias e tosse produtiva.</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações do Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -1793,13 +2084,13 @@ flowchart TD
 <td align="left">Nenhuma validação</td>
 <td align="left">Fecha o modal sem registrar atendimento.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-4-5">4.5. Modal de Direcionamento & Reatribuição de Fila</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Na aba <strong>Estagnação</strong>, clique no botão <code>Direcionar</code> de um paciente com tempo excedido.</li>
 <li><strong>Campos de Entrada do Formulário:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo</th>
@@ -1837,11 +2128,11 @@ flowchart TD
 <td align="left">Justificativa do remanejamento urgente</td>
 <td align="left"><code>Paciente aguarda laudo de tomografia para desfecho.</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações do Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -1872,13 +2163,13 @@ flowchart TD
 <td align="left">Nenhuma validação</td>
 <td align="left">Mantém paciente na fila de alerta de estagnação.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-4-6">4.6. Modal de Histórico Pós-Alta & Prontuário Consolidado</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Clique no botão <code>Histórico</code> no cabeçalho ou na aba <strong>Pacientes</strong>.</li>
 <li><strong>Campos e Filtros do Histórico:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo / Filtro</th>
@@ -1909,11 +2200,11 @@ flowchart TD
 <td align="left">Alta médica, Internação, Transferência</td>
 <td align="left"><code>Alta Médica Curada</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações do Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -1944,13 +2235,13 @@ flowchart TD
 <td align="left">Nenhuma validação</td>
 <td align="left">Retorna à tela anterior.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-4-7">4.7. Modal de Aprovação de Acesso de Usuários</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Exclusivo do <strong>Administrador Master</strong> na aba de Gestão de Usuários e Estagnação.</li>
 <li><strong>Campos de Validação do Operador:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo Informativo</th>
@@ -1983,11 +2274,11 @@ flowchart TD
 <td align="left">CRM / COREN informado</td>
 <td align="left">Checagem de regularidade no conselho de classe.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações do Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -2018,13 +2309,13 @@ flowchart TD
 <td align="left">Confirmação do administrador</td>
 <td align="left">Bloqueia credencial e envia notificação de recusa.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-4-8">4.8. Modal de Gestão de Usuários & Troca de Perfil</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Clique no avatar ou nome do usuário logado no canto superior direito do cabeçalho.</li>
 <li><strong>Campos de Configuração da Conta:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo</th>
@@ -2062,11 +2353,11 @@ flowchart TD
 <td align="left">Deve coincidir com a nova senha</td>
 <td align="left"><code>Nexus@2026Secure</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações do Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -2097,14 +2388,14 @@ flowchart TD
 <td align="left">Nenhuma validação</td>
 <td align="left">Mantém as configurações originais da conta.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h3 id="sec-4-9">4.9. Modal de Alerta de Atendimento Pendente em Andamento (Prevenção de Duplicidades)</h3><ul>
 <li><strong>Gatilho de Abertura:</strong> Disparado automaticamente na Recepção (cadastro de novo paciente ou botão &quot;Admitir&quot; na tabela de pacientes) ou na Central de Atendimento (Kanban) caso o operador tente abrir um atendimento para um paciente que já possui uma passagem ativa no hospital (em Triagem, Consultório, Observação do PS ou Leito).</li>
 <li><strong>Finalidade Assistencial:</strong> Prevenir geração de cards duplicados, prescrições paralelas e inconsistências no prontuário eletrônico.</li>
 <li><strong>Informações Apresentadas no Modal:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Informação Exibida</th>
@@ -2143,11 +2434,11 @@ flowchart TD
 <td align="left">Data/hora de admissão e tempo total transcorrido no PS</td>
 <td align="left"><code>28h 33m no Pronto-Socorro</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <ul>
 <li><strong>Botões e Ações de Decisão Assistencial:</strong></li>
 </ul>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Botão</th>
@@ -2178,12 +2469,18 @@ flowchart TD
 <td align="left">Nenhuma validação</td>
 <td align="left">Fecha o modal preservando os dados cadastrais e o atendimento atual sem alterações.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-5">5. Gestão de Pacientes & Linha do Cuidado Completa</h2><p>Na aba <strong>Pacientes</strong>, o hospital mantém o cadastro centralizado e o acesso à trajetória clínica completa.</p>
-<p><img src="docs/screenshots/02-pacientes.png" alt="Figura 5.1: Módulo de Pacientes — Admissão com 11 Campos SUS e Linha do Cuidado"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/02-pacientes.png" alt="Figura 5.1: Módulo de Pacientes — Admissão com 11 Campos SUS e Linha do Cuidado" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 5.1: Módulo de Pacientes — Admissão com 11 Campos SUS e Linha do Cuidado</figcaption>
+    </figure></p>
 <h3>📋 Tabela de Campos Cadastrais do Paciente (Padrão 11 Campos SUS)</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="center">#</th>
@@ -2330,9 +2627,9 @@ flowchart TD
 <td align="left">Cuidados especiais, risco de queda, acompanhante</td>
 <td align="left"><code>Risco de queda, Acompanhante contínuo</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>🛡️ Tabela de Ações e Operações da Aba Pacientes</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Ação no Painel</th>
@@ -2384,12 +2681,18 @@ flowchart TD
 <td align="left">Exclusivo Administrador Master</td>
 <td align="left">Restaura prontuário com integridade intacta.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-6">6. Gestão da Equipe Médica & Corpo Clínico</h2><p>Na aba <strong>Médicos</strong>, gerencia-se o corpo clínico, especialidades, consultórios e status de plantão ativo.</p>
-<p><img src="docs/screenshots/12-medicos.png" alt="Figura 6.1: Corpo Clínico — Escala de Plantões e Especialidades Médicas"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/12-medicos.png" alt="Figura 6.1: Corpo Clínico — Escala de Plantões e Especialidades Médicas" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 6.1: Corpo Clínico — Escala de Plantões e Especialidades Médicas</figcaption>
+    </figure></p>
 <h3>🩺 Tabela de Cadastro e Status do Corpo Clínico</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Médico(a)</th>
@@ -2473,9 +2776,9 @@ flowchart TD
 <td align="center">🟢 <code>Em Plantão</code></td>
 <td align="left"><code>🩺 Triagem MEWS</code>, <code>Troca Turno</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>⚙️ Tabela de Operações de Gestão do Corpo Clínico</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Operação</th>
@@ -2513,12 +2816,18 @@ flowchart TD
 <td align="left">Ausência justificada de médico</td>
 <td align="left">Move todos os pacientes em espera para o novo médico sem atraso.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-7">7. Gestão de Consultórios & Salas de Atendimento</h2><p>Na aba <strong>Consultórios</strong>, gerencia-se a infraestrutura física de atendimento ambulatorial e emergencial.</p>
-<p><img src="docs/screenshots/04-consultorios.png" alt="Figura 7.1: Painel de Consultórios — Ocupação de Salas e Médicos Plantonistas"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/04-consultorios.png" alt="Figura 7.1: Painel de Consultórios — Ocupação de Salas e Médicos Plantonistas" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 7.1: Painel de Consultórios — Ocupação de Salas e Médicos Plantonistas</figcaption>
+    </figure></p>
 <h3>🚪 Tabela de Status e Ocupação das Salas de Atendimento</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Sala / Consultório</th>
@@ -2620,13 +2929,25 @@ flowchart TD
 <td align="center">30 min</td>
 <td align="left"><code>Realizar Redução</code>, <code>Imobilizar</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-8">8. Gestão Avançada de Leitos, Censo & Histórico</h2><p>Na aba <strong>Leitos</strong>, o hospital monitora a taxa de ocupação em tempo real, giros de leito e desinfecção.</p>
-<p><img src="docs/screenshots/05-censo-leitos.png" alt="Figura 8.1: Censo de Leitos — Cards Tricolores de Vagas (Vago, Ocupado e Higienização)"></p>
-<p><img src="docs/screenshots/06-kanban-internacao.png" alt="Figura 8.2: Kanban Hospitalar — Gestão de Pacientes Internados por Setor"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/05-censo-leitos.png" alt="Figura 8.1: Censo de Leitos — Cards Tricolores de Vagas (Vago, Ocupado e Higienização)" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 8.1: Censo de Leitos — Cards Tricolores de Vagas (Vago, Ocupado e Higienização)</figcaption>
+    </figure></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/06-kanban-internacao.png" alt="Figura 8.2: Kanban Hospitalar — Gestão de Pacientes Internados por Setor" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 8.2: Kanban Hospitalar — Gestão de Pacientes Internados por Setor</figcaption>
+    </figure></p>
 <h3>🛏️ Tabela do Censo Hospitalar e Mapa de Leitos</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Leito ID</th>
@@ -2746,7 +3067,7 @@ flowchart TD
 <td align="center">🔴 <code>Ocupado</code></td>
 <td align="left"><code>🩺 PEP Pediátrico</code>, <code>Acompanhante</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h4>⚡ Destaque Spotlight Pulsante &amp; Sincronização em Tempo Real (v2.8.1)</h4>
 <ul>
 <li><strong>Realce Imediato no Mapa:</strong> Ao confirmar uma internação pelo PEP (desfecho &quot;Solicitar Internação&quot; &rarr; modal de leitos) ou pelo botão &quot;Alocar Leito&quot;, o sistema invalida de forma imediata o cache em memória do navegador (<code>invalidateCacheForUrl</code>). O card do leito é instantaneamente destacado com animação de pulso luminoso (<code>patient-pulse-selected patient-spotlight-glow</code>), badge <code>⚡ Paciente em Foco</code> e scroll suave centralizado.</li>
@@ -2755,9 +3076,15 @@ flowchart TD
 </ul>
 <hr>
 <h2 id="sec-9">9. Agenda, Escala Médica & Consultas Eletivas</h2><p>Na aba <strong>Agenda</strong>, realiza-se a marcação, controle de presença e integração com lembretes via WhatsApp.</p>
-<p><img src="docs/screenshots/13-agenda.png" alt="Figura 9.1: Agenda de Consultas — Grade Horária e Lembretes WhatsApp"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/13-agenda.png" alt="Figura 9.1: Agenda de Consultas — Grade Horária e Lembretes WhatsApp" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 9.1: Agenda de Consultas — Grade Horária e Lembretes WhatsApp</figcaption>
+    </figure></p>
 <h3>📅 Tabela de Operações da Grade de Agendamentos</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Operação</th>
@@ -2809,9 +3136,9 @@ flowchart TD
 <td align="left">Vaga fica livre imediatamente para outros pacientes.</td>
 <td align="left">Recepção, Médico</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>⏱️ Tabela de Tipos de Turnos e Regras das Escalas de Plantão</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Turno de Trabalho</th>
@@ -2856,10 +3183,16 @@ flowchart TD
 <td align="center">Folga de 36 horas subsequente</td>
 <td align="left">Escala padrão de enfermagem hospitalar.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-10">10. Farmácia & Dispensação de Medicamentos</h2><p>Na aba <strong>Farmácia</strong>, faz-se a gestão de estoque, lotes, validade e rastreabilidade de medicamentos críticos.</p>
-<p><img src="docs/screenshots/07-farmacia.png" alt="Figura 10.1: Farmácia Hospitalar — Estoque, Lotes e Rastreabilidade de Medicamentos"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/07-farmacia.png" alt="Figura 10.1: Farmácia Hospitalar — Estoque, Lotes e Rastreabilidade de Medicamentos" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 10.1: Farmácia Hospitalar — Estoque, Lotes e Rastreabilidade de Medicamentos</figcaption>
+    </figure></p>
 <h3>🏢 Arquitetura e Sub-Abas do Módulo de Farmácia (v2.9.27)</h3>
 <p>A aba <strong>Farmácia &amp; Estoque</strong> organiza o fluxo farmacêutico em duas visões integradas com contadores dinâmicos nos botões de navegação:</p>
 <ol>
@@ -2889,7 +3222,7 @@ flowchart TD
 </li>
 </ol>
 <h3>💊 Tabela de Catálogo de Medicamentos de Alto Giro e Emergência (35 Itens Essenciais)</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Fármaco / Princípio Ativo</th>
@@ -3063,12 +3396,18 @@ flowchart TD
 <td align="center">40 ampolas</td>
 <td align="center">🟢 <code>Estoque Regular</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-11">11. Faturamento, Guias TISS & Gestão Financeira</h2><p>Na aba <strong>Faturamento TISS</strong>, gerenciam-se as guias de convênio, auditoria de procedimentos e arquivos XML ANS.</p>
-<p><img src="docs/screenshots/08-faturamento-tiss.png" alt="Figura 11.1: Faturamento TISS — Auditoria Preventiva e Procedimentos TUSS"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/08-faturamento-tiss.png" alt="Figura 11.1: Faturamento TISS — Auditoria Preventiva e Procedimentos TUSS" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 11.1: Faturamento TISS — Auditoria Preventiva e Procedimentos TUSS</figcaption>
+    </figure></p>
 <h3>💰 Tabela de Guias e Lotes de Faturamento TISS</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Guia ID</th>
@@ -3152,9 +3491,9 @@ flowchart TD
 <td align="center">🟡 <code>Pendente Auditoria</code></td>
 <td align="left"><code>🛡️ Auditar</code>, <code>Anexar Laudo</code></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>📊 Tabela de Procedimentos Frequentes da Tabela TUSS</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="center">Código TUSS</th>
@@ -3199,12 +3538,18 @@ flowchart TD
 <td align="center">R$ 1.800,00 a R$ 3.500,00</td>
 <td align="left">Prescrição diária, relatório de admissão e evolução.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-12">12. Relatórios Analytics & Indicadores Hospitalares</h2><p>Na aba <strong>Relatórios</strong>, o sistema consolida inteligência de dados clínicos e financeiros para a diretoria, comutando entre 6 visões estruturadas: <strong>Pacientes</strong>, <strong>Atendimentos &amp; PEP</strong>, <strong>Financeiro</strong>, <strong>Por Médico</strong>, <strong>Escalas &amp; Plantões</strong> e <strong>Exames &amp; Laudos (SADT)</strong>.</p>
-<p><img src="docs/screenshots/14-relatorios.png" alt="Figura 12.1: Relatórios Analytics &amp; Indicadores Hospitalares — DRE e Ocupação"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/14-relatorios.png" alt="Figura 12.1: Relatórios Analytics &amp; Indicadores Hospitalares — DRE e Ocupação" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 12.1: Relatórios Analytics &amp; Indicadores Hospitalares — DRE e Ocupação</figcaption>
+    </figure></p>
 <h3>📈 Tabela de Painéis Analíticos Hospitalares</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Painel Analítico</th>
@@ -3256,7 +3601,7 @@ flowchart TD
 <td align="center">PDF Laudos / Excel / CSV</td>
 <td align="left">Coordenação SADT, Radiologia &amp; Diretoria Clínica</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>🔬 Módulo Analítico de Exames &amp; Laudos (SADT) na Aba Relatórios (v2.9.33)</h3>
 <ol>
 <li><strong>Acesso Direto em 1 Clique:</strong> Disponível através do card <code>[ 🔬 Exames &amp; Laudos ]</code> no cabeçalho de seleção da aba de Relatórios.</li>
@@ -3288,9 +3633,15 @@ flowchart TD
 </ol>
 <hr>
 <h2 id="sec-13">13. Painel de Chamada TV & Sala de Espera</h2><p>O <strong>Painel TV</strong> opera em tela cheia na sala de espera para direcionamento sonoro e visual dos pacientes por viva-voz sintetizado.</p>
-<p><img src="docs/screenshots/09-painel-tv.png" alt="Figura 13.1: Painel TV — Chamador Audiovisual de Senhas com Voz Sintetizada pt-BR"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/09-painel-tv.png" alt="Figura 13.1: Painel TV — Chamador Audiovisual de Senhas com Voz Sintetizada pt-BR" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 13.1: Painel TV — Chamador Audiovisual de Senhas com Voz Sintetizada pt-BR</figcaption>
+    </figure></p>
 <h3>📺 Tabela de Elementos do Painel TV</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Componente da Tela</th>
@@ -3323,9 +3674,9 @@ flowchart TD
 <td align="left">Javascript Date Engine</td>
 <td align="left">Orientação temporal e conforto na espera assistencial.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>🎛️ Tabela de Controles e Modos do Chamador TV</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Ação / Controle</th>
@@ -3358,12 +3709,18 @@ flowchart TD
 <td align="left">Escolhe entre sinal sonoro Clássico, Suave ou Emergencial.</td>
 <td align="left">TI / Recepção</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-14">14. Central de Estagnação & Aprovações de Acesso</h2><p>Painel de controle de gargalos clínicos e permanência de pacientes em observação no PS acima de 12 horas.</p>
-<p><img src="docs/screenshots/10-estagnacao.png" alt="Figura 14.1: Central de Estagnação — Monitoramento de Permanência Prolongada no PS"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/10-estagnacao.png" alt="Figura 14.1: Central de Estagnação — Monitoramento de Permanência Prolongada no PS" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 14.1: Central de Estagnação — Monitoramento de Permanência Prolongada no PS</figcaption>
+    </figure></p>
 <h3>⏳ Tabela de Níveis de Alerta de Permanência (PS 12h)</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Nível de Alerta</th>
@@ -3394,9 +3751,9 @@ flowchart TD
 <td align="left"><strong>Gargalo assistencial estagnado</strong></td>
 <td align="left">Reatribuição imediata de consultório ou vaga urgente em leito.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>🛡️ Tabela de Gestão de Aprovação de Acessos (RBAC)</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo / Operação</th>
@@ -3423,12 +3780,18 @@ flowchart TD
 <td align="left">Impede acesso a privilégios administrativos</td>
 <td align="left">Define cargo restrito ou cancela o cadastro do operador.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-15">15. Configurações, Backup e Sincronização em Nuvem (Turso Cloud)</h2><p>Administração global do sistema, parâmetros do banco local-first e sincronização distribuída com Turso Cloud DB.</p>
-<p><img src="docs/screenshots/15-configuracoes.png" alt="Figura 15.1: Painel de Configurações — Sincronização Turso Cloud e Backup JSON"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/15-configuracoes.png" alt="Figura 15.1: Painel de Configurações — Sincronização Turso Cloud e Backup JSON" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 15.1: Painel de Configurações — Sincronização Turso Cloud e Backup JSON</figcaption>
+    </figure></p>
 <h3>☁️ Tabela de Recursos de Sincronização e Banco de Dados</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Funcionalidade</th>
@@ -3467,11 +3830,11 @@ flowchart TD
 <td align="left">Limpa prontuários preservando contas de usuários essenciais</td>
 <td align="left">Reinício de base sem perda de acessos da equipe médica.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-16">16. Sistema de Avisos, Notificações & Toasts</h2><p>Sistema centralizado de alertas visuais instantâneos (<em>Toasts</em>) e direcionamento assistencial reativo.</p>
 <h3>🔔 Tabela de Tipos de Notificações do Sistema</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Tipo de Aviso</th>
@@ -3509,10 +3872,10 @@ flowchart TD
 <td align="left">Paciente chamado para consultório ou internado</td>
 <td align="left">Botão <strong>&quot;IR PARA A ABA ➔&quot;</strong> com rolagem suave e efeito Glow.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-17">17. Tabela de Máscaras, Atalhos & Teclas de Atalho</h2><h3>⌨️ Tabela de Teclas de Atalho do Teclado</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="center">Tecla de Atalho</th>
@@ -3550,9 +3913,9 @@ flowchart TD
 <td align="left">Em qualquer modal aberto</td>
 <td align="left">Fecha o modal ativo e retorna ao painel sem salvar dados parciais.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>📝 Tabela de Máscaras e Formatos de Entrada de Dados</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Campo Clínico / Cadastral</th>
@@ -3603,10 +3966,10 @@ flowchart TD
 <td align="left">Código terminológico unificado de 8 dígitos</td>
 <td align="left"><code>10101012</code> (Consulta em consultório)</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-18">18. Solução de Dúvidas Frequentes & Erros Comuns (FAQ)</h2><h3>❓ Tabela de Diagnóstico e Resolução de Dúvidas</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Dúvida / Situação Operacional</th>
@@ -3654,11 +4017,11 @@ flowchart TD
 <td align="left">Instabilidade temporária de rede</td>
 <td align="left">O sistema aciona o Fallback HTTP nativo automaticamente. Se persistir, clique em &quot;Sincronizar Agora&quot; nas Configurações.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-19">19. Novas Funcionalidades Avançadas Assistenciais & Tecnológicas (v2.8.0) 🚀</h2><p>O <strong>Health Nexus v2.8.0</strong> consolida 6 pilares de alta complexidade hospitalar e inteligência clínica:</p>
 <h3>⏱️ Tabela de Metas Clínicas dos Protocolos de Emergência Aguda</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Protocolo de Emergência</th>
@@ -3685,9 +4048,9 @@ flowchart TD
 <td align="center"><strong>Pacote da 1ª Hora</strong></td>
 <td align="left">Coleta de 2 pares de hemoculturas, dosagem de lactato sérico, antibiótico de amplo espectro e ressuscitação volêmica (30 ml/kg).</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>🩻 Tabela de Ferramentas do Visualizador PACS / DICOM Integrado</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Ferramenta no Canvas</th>
@@ -3720,9 +4083,9 @@ flowchart TD
 <td align="left">Mede distâncias em milímetros reais na imagem</td>
 <td align="left">Mensuração precisa de diâmetro de lesões, cálculos e desvios de linha média.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>🛡️ Tabela de Validações do Motor Anti-Glosa TISS / ANS 4.01.00</h3>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Regra de Auditoria</th>
@@ -3755,7 +4118,7 @@ flowchart TD
 <td align="left">Procedimento realizado antes do término de carência</td>
 <td align="left">Sinaliza a guia como <em>Pendente de Recurso Administrativo</em>.</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <hr>
 <h2 id="sec-20">20. Smart Flow Guide — Adaptação por Aba, Controle de Foco & Desmarcação (v2.9.9) & Painel Lateral Acoplado 🧭</h2><p>O <strong>Smart Flow Guide</strong> funciona como a espinha dorsal de governança assistencial do Health Nexus, acompanhando a equipe em qualquer tela do complexo hospitalar. Na versão <strong>2.9.9</strong>, ele aprimora a inteligência de contexto assistencial e o gerenciamento de foco: as recomendações adaptam-se de forma dinâmica e imediata à <strong>aba em que o operador está navegando</strong>, com controle total de foco para selecionar ou desmarcar pacientes a qualquer momento, sem retenção persistente indesejada.</p>
 <h3>🎯 Controle de Foco &amp; Desmarcação Rápida de Paciente (v2.9.9)</h3>
@@ -3810,7 +4173,7 @@ flowchart TD
 </ul>
 <h3>📋 Recursos Exclusivos do Painel Lateral Estendido</h3>
 <p>Quando acoplado à lateral, o Smart Flow Guide oferece uma visão panorâmica e imediata do plantão:</p>
-<table>
+<div class="table-container"><table class="manual-table">
 <thead>
 <tr>
 <th align="left">Bloco de Informação</th>
@@ -3843,7 +4206,7 @@ flowchart TD
 <td align="left">Chips rápidos para prescrever, solicitar leito, transferir ou fechar atendimento</td>
 <td align="left">Abertura dos respectivos modais sem precisar procurar nos menus</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <h3>🧭 Harmonização Visual do Smart Flow Guide &amp; Eliminação de Barras Cinzas Destoantes (v2.9.34)</h3>
 <p>Na versão <strong>2.9.34</strong>, o Smart Flow Guide nos modos de fixação horizontal (barra inferior ou superior de Governança) passou por refinamento estético:</p>
 <ul>
@@ -4084,54 +4447,130 @@ flowchart TD
 <li><strong>💡 Posição Inicial Customizada (Aproveitamento Total de Folhas):</strong><br>Caso o posto já tenha utilizado algumas etiquetas de uma folha aberta, o operador pode definir em qual etiqueta iniciar a impressão (ex: <em>iniciar na etiqueta nº 5</em>). O sistema preserva em branco os espaços já destacados, impedindo qualquer perda de papel.</li>
 <li><strong>⚡ Botões de Preenchimento Rápido:</strong><br>Atalhos de 1 clique para <code>Preencher Folha Inteira (30 un ou 20 un)</code> ou <code>Preencher 1 Coluna (10 un)</code>.</li>
 </ul>
-<p><img src="docs/screenshots/18-etiquetas-pimaco.png" alt="Figura 25.1: Emissão de Etiquetas Térmicas e Cartelas Adesivas Pimaco — Modelos 6180 e 6281 com Seleção de Posição Inicial"></p>
+<p><figure class="manual-img-figure">
+      <div class="img-wrapper">
+        <img src="docs/screenshots/18-etiquetas-pimaco.png" alt="Figura 25.1: Emissão de Etiquetas Térmicas e Cartelas Adesivas Pimaco — Modelos 6180 e 6281 com Seleção de Posição Inicial" class="zoomable-manual-img" loading="lazy" />
+        <span class="img-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> Clique para ampliar</span>
+      </div>
+      <figcaption class="manual-figcaption"><i class="fa-solid fa-camera"></i> Figura 25.1: Emissão de Etiquetas Térmicas e Cartelas Adesivas Pimaco — Modelos 6180 e 6281 com Seleção de Posição Inicial</figcaption>
+    </figure></p>
 <hr>
 <p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.43 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>
 
+  <!-- LIGHTBOX PARA ZOOM DE IMAGEM -->
+  <div id="manual-lightbox-modal">
+    <img id="manual-lightbox-img" src="" alt="Imagem Ampliada" />
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+      // 1. Inicializar Mermaid
+      if (window.mermaid) {
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+      }
 
+      // 2. Controle Dinâmico de Zoom / Escala de Fonte
+      let currentScale = 1;
+      const zoomText = document.getElementById('zoom-scale-text');
+
+      const setZoom = (scale) => {
+        currentScale = Math.min(Math.max(scale, 0.75), 1.6);
+        document.documentElement.style.setProperty('--font-scale', currentScale);
+        if (zoomText) zoomText.textContent = Math.round(currentScale * 100) + '%';
+        try { localStorage.setItem('hn_manual_zoom', currentScale); } catch(e) {}
+      };
+
+      try {
+        const savedZoom = parseFloat(localStorage.getItem('hn_manual_zoom'));
+        if (savedZoom && !isNaN(savedZoom)) setZoom(savedZoom);
+      } catch(e) {}
+
+      document.getElementById('btn-zoom-in')?.addEventListener('click', () => setZoom(currentScale + 0.1));
+      document.getElementById('btn-zoom-out')?.addEventListener('click', () => setZoom(currentScale - 0.1));
+      document.getElementById('btn-zoom-reset')?.addEventListener('click', () => setZoom(1));
+
+      // 3. Alternar Largura de Leitura (Focada vs Ampla)
+      const layoutContainer = document.getElementById('main-layout-container');
+      const widthBtnText = document.getElementById('width-btn-text');
+      document.getElementById('btn-toggle-width')?.addEventListener('click', () => {
+        layoutContainer?.classList.toggle('wide-mode');
+        const isWide = layoutContainer?.classList.contains('wide-mode');
+        if (widthBtnText) widthBtnText.textContent = isWide ? 'Largura Ampla' : 'Leitura Focada';
+      });
+
+      // 4. Alternar Modo Escuro / Claro
+      document.getElementById('btn-toggle-theme')?.addEventListener('click', () => {
+        document.body.classList.toggle('light-theme');
+        try { localStorage.setItem('hn_manual_theme', document.body.classList.contains('light-theme') ? 'light' : 'dark'); } catch(e) {}
+      });
+      try {
+        if (localStorage.getItem('hn_manual_theme') === 'light') {
+          document.body.classList.add('light-theme');
+        }
+      } catch(e) {}
+
+      // 5. Lightbox Modal para Ampliar Prints / Imagens ao Clicar
+      const lightboxModal = document.getElementById('manual-lightbox-modal');
+      const lightboxImg = document.getElementById('manual-lightbox-img');
+
+      document.querySelectorAll('.zoomable-manual-img, .manual-img-figure img, main.content-area img').forEach(img => {
+        img.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (lightboxModal && lightboxImg) {
+            lightboxImg.src = img.src;
+            lightboxImg.alt = img.alt || 'Imagem do Manual';
+            lightboxModal.classList.add('active');
+          }
+        });
+      });
+
+      lightboxModal?.addEventListener('click', () => {
+        lightboxModal.classList.remove('active');
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightboxModal?.classList.contains('active')) {
+          lightboxModal.classList.remove('active');
+        }
+      });
+
+      // 6. Popular Sumário Lateral Dinâmico
       const mainContent = document.getElementById('doc-main-content');
       const sidebarNav = document.getElementById('sidebar-nav');
       if (!mainContent || !sidebarNav) return;
 
       const headings = mainContent.querySelectorAll('h2, h3');
       let navHtml = '';
-      const headingElements = [];
 
       headings.forEach((heading, idx) => {
         const text = heading.textContent.trim();
-        const id = 'sec-' + (idx + 1) + '-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const id = heading.id || ('sec-' + (idx + 1) + '-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
         heading.id = id;
 
         const isH2 = heading.tagName === 'H2';
         const levelClass = isH2 ? 'level-2' : 'level-3';
 
         navHtml += '<li><a href="#' + id + '" data-target="' + id + '" class="' + levelClass + '">' + text + '</a></li>';
-        headingElements.push({ id, el: heading });
       });
 
       sidebarNav.innerHTML = navHtml;
 
+      // 7. Busca em Tempo Real no Sumário Lateral
       const searchInput = document.getElementById('sidebar-search-input');
       if (searchInput) {
         searchInput.addEventListener('input', (e) => {
           const q = e.target.value.toLowerCase().trim();
           sidebarNav.querySelectorAll('li').forEach(li => {
             const txt = li.textContent.toLowerCase();
-            if (!q || txt.includes(q)) {
-              li.style.display = 'block';
-            } else {
-              li.style.display = 'none';
-            }
+            li.style.display = (!q || txt.includes(q)) ? 'block' : 'none';
           });
         });
       }
 
+      // 8. Rolagem Suave para Seções
       sidebarNav.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', (e) => {
           e.preventDefault();
