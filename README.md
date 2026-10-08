@@ -1,12 +1,26 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.41`  
+**Versão:** `2.9.42`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 📄 **Suporte Completo a Cartelas de Etiquetas Pimaco 6180 & 6281 (v2.9.42):**
+  1. **Cartela Pimaco 6180 / 6080 (30 etiquetas por folha A4):**
+     - Diagramação oficial 3 colunas × 10 linhas (66,7 × 25,4 mm cada);
+     - Perfeito para tubos de coleta de sangue, urina, exames laboratoriais, frascos de biópsia e pastas físicas;
+     - Layout milimétrico com dados do atendimento, código de barras vetorial e identificação hospitalar.
+  2. **Cartela Pimaco 6281 / 6181 (20 etiquetas por folha A4):**
+     - Diagramação oficial 2 colunas × 10 linhas (101,6 × 25,4 mm cada);
+     - Formato retangular longo ideal para pulseiras adesivas, etiquetas de leito e identificação de prontuário;
+     - Inclui QR Code de segurança CFM/SUS e dados detalhados da passagem.
+  3. **Aproveitamento Inteligente da Folha (Posição Inicial Customizada):**
+     - Seletor de posição inicial (1 a 30 para Pimaco 6180, 1 a 20 para Pimaco 6281);
+     - Permite reaproveitar folhas que já tiveram etiquetas destacadas, iniciando a impressão exatamente a partir da etiqueta vazia;
+     - Botões rápidos de **"Preencher Folha Inteira"** ou **"Preencher 1 Coluna (10 un)"** com 1 clique.
 
 - 🏷️ **Emissão de Etiquetas Hospitalares, Kit Admissão & Impressão Térmica / A4 (v2.9.41):**
   1. **Seletores de Quantidade Flexíveis:**

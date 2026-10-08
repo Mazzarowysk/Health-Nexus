@@ -1,7 +1,7 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.41)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.42)
 
-> **Health Nexus v2.9.41 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
-> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, emissão de etiquetas hospitalares (pulseira e amostras) com suporte a rolo térmico contínuo e grade A4, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com alto contraste garantido no hover/ativação de cards, tipografia ampliada e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
+> **Health Nexus v2.9.42 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, emissão de etiquetas hospitalares (pulseira e amostras) com suporte a rolo térmico contínuo, cartelas adesivas Pimaco 6180 (30 un) e Pimaco 6281 (20 un) com posição inicial customizada, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com alto contraste garantido no hover/ativação de cards, tipografia ampliada e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
 
 ---
 
@@ -1374,6 +1374,17 @@ Para atender com agilidade as rotinas de triagem e postos de enfermagem:
 - **📄 Folha A4 Comum / PDF:** Para postos que utilizam impressoras convencionais (Laser ou Jato de Tinta) ou exportação em PDF, o sistema organiza os itens em uma grade estruturada (pulseiras no topo e tubos em colunas alinhadas), com linhas pontilhadas de recorte que evitam qualquer desperdício de papel.
 - **Vetores SVG Nítidos:** O Código de Barras e o QR Code são gerados em SVG vetorial de alta definição, garantindo leitura instantânea em leitores ópticos mesmo em impressões de 203 DPI.
 
+### 25.4. Integração com Cartelas Autoadesivas Pimaco 6180 & 6281 (v2.9.42)
+Para unidades de saúde e laboratórios que utilizam impressoras convencionais (Laser ou Jato de Tinta) com folhas de etiquetas adesivas Pimaco:
+- **📄 Cartela Pimaco 6180 / 6080 (30 etiquetas por folha A4):**  
+  Diagramada com precisão milimétrica em 3 colunas por 10 linhas (`66,7 × 25,4 mm`). Contém identificação do paciente, atendimento, setor/leito, data/hora e código de barras compacto. Ideal para tubos de sangue, urina, frascos e prontuário físico.
+- **📄 Cartela Pimaco 6281 / 6181 (20 etiquetas por folha A4):**  
+  Diagramada em 2 colunas por 10 linhas (`101,6 × 25,4 mm`), proporcionando formato alongado excelente para pulseiras adesivas, etiquetas de leito e identificação de pastas médicas. Acompanha QR Code de segurança CFM/SUS.
+- **💡 Posição Inicial Customizada (Aproveitamento Total de Folhas):**  
+  Caso o posto já tenha utilizado algumas etiquetas de uma folha aberta, o operador pode definir em qual etiqueta iniciar a impressão (ex: *iniciar na etiqueta nº 5*). O sistema preserva em branco os espaços já destacados, impedindo qualquer perda de papel.
+- **⚡ Botões de Preenchimento Rápido:**  
+  Atalhos de 1 clique para `Preencher Folha Inteira (30 un ou 20 un)` ou `Preencher 1 Coluna (10 un)`.
+
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.41 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.42 do Health Nexus. Todos os direitos reservados.*

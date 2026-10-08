@@ -433,8 +433,8 @@ export function openDynamicEncounterQueryModal() {
 }
 
 /**
- * Modal de Impressão de Etiquetas Térmicas Hospitalares (Pulseira e Amostra de Laboratório)
- * Suporte a múltiplas cópias, Kit Admissão e formatos Rolo Térmico ou Folha A4
+ * Modal de Impressão de Etiquetas Hospitalares
+ * Suporte a Impressora Térmica Contínua, Cartelas Pimaco 6180 (30 un), Pimaco 6281 (20 un) e Folha A4 Comum
  */
 export function openThermalLabelModal({ patientName, patientId, number, sector }) {
   const existing = document.getElementById('thermal-label-modal');
@@ -457,7 +457,7 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
 
   // Gerador de SVG de Código de Barras (vetorial nítido e universal para impressão)
   const generateBarcodeSvg = () => `
-    <svg viewBox="0 0 140 26" width="100%" height="22" style="display:block;" preserveAspectRatio="none">
+    <svg viewBox="0 0 140 26" width="100%" height="20" style="display:block;" preserveAspectRatio="none">
       <rect x="0" y="0" width="3" height="26" fill="#000"/>
       <rect x="5" y="0" width="2" height="26" fill="#000"/>
       <rect x="9" y="0" width="4" height="26" fill="#000"/>
@@ -492,7 +492,7 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
 
   // Gerador de SVG de QR Code (vetorial nítido e seguro)
   const generateQrSvg = () => `
-    <svg viewBox="0 0 33 33" width="42" height="42" style="display:block;">
+    <svg viewBox="0 0 33 33" width="40" height="40" style="display:block;">
       <rect width="33" height="33" fill="#fff"/>
       <rect x="2" y="2" width="7" height="7" fill="#000"/>
       <rect x="3" y="3" width="5" height="5" fill="#fff"/>
@@ -525,7 +525,7 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
     </svg>`;
 
   modal.innerHTML = `
-    <div class="modal-content" style="max-width: 620px; width: 94%; max-height: 90vh; overflow-y: auto; background: #0f172a; border: 1.5px solid rgba(245,158,11,0.4); border-radius: 16px; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.85);">
+    <div class="modal-content" style="max-width: 660px; width: 95%; max-height: 90vh; overflow-y: auto; background: #0f172a; border: 1.5px solid rgba(245,158,11,0.4); border-radius: 16px; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.85);">
       
       <!-- Cabeçalho -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 12px;">
@@ -535,7 +535,7 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
           </div>
           <div>
             <h3 style="font-family: Outfit, sans-serif; font-size: 1.18rem; color: #fff; margin: 0; line-height: 1.2;">Emissão de Etiquetas Hospitalares</h3>
-            <span style="font-size: 0.74rem; color: #94a3b8;">Identificação do Paciente, Pulseiras e Tubos Laboratoriais</span>
+            <span style="font-size: 0.74rem; color: #94a3b8;">Impressora Térmica ou Cartelas Adesivas Pimaco (6180 / 6281)</span>
           </div>
         </div>
         <button type="button" id="close-thermal-label-modal" style="background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; padding: 4px;">
@@ -556,29 +556,82 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
         </div>
       </div>
 
-      <!-- Opção de Formato de Saída (Térmica ou A4) -->
+      <!-- Seletor de Formato de Impressão (4 Modos: Térmica, Pimaco 6180, Pimaco 6281, A4 Comum) -->
       <div style="margin-bottom: 16px;">
-        <label style="font-size: 0.76rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; display: block;">Formato de Impressão:</label>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <label id="lbl-mode-thermal" style="display: flex; align-items: center; gap: 8px; background: rgba(2,132,199,0.15); border: 1.5px solid #0284c7; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 0.78rem; color: #e2e8f0;">
+        <label style="font-size: 0.76rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; display: block;">Formato de Saída:</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          
+          <label id="lbl-mode-thermal" class="mode-card" style="display: flex; align-items: center; gap: 8px; background: rgba(2,132,199,0.15); border: 1.5px solid #0284c7; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 0.76rem; color: #e2e8f0;">
             <input type="radio" name="label-print-mode" value="thermal" checked style="accent-color: #0284c7;">
             <div>
-              <strong>🏷️ Impressora Térmica</strong>
-              <div style="font-size: 0.68rem; color: #94a3b8;">Rolo contínuo (Zebra, Argox, Elgin)</div>
+              <strong>🏷️ Rolo Térmico Contínuo</strong>
+              <div style="font-size: 0.67rem; color: #94a3b8;">Zebra, Argox, Elgin (100x30 / 50x30)</div>
             </div>
           </label>
-          <label id="lbl-mode-a4" style="display: flex; align-items: center; gap: 8px; background: rgba(30,41,59,0.5); border: 1.5px solid #334155; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 0.78rem; color: #e2e8f0;">
+
+          <label id="lbl-mode-pimaco6180" class="mode-card" style="display: flex; align-items: center; gap: 8px; background: rgba(30,41,59,0.5); border: 1.5px solid #334155; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 0.76rem; color: #e2e8f0;">
+            <input type="radio" name="label-print-mode" value="pimaco_6180" style="accent-color: #0284c7;">
+            <div>
+              <strong>📄 Pimaco 6180 / 6080</strong>
+              <div style="font-size: 0.67rem; color: #fbbf24;">30 etiq/folha · 3x10 (66,7 x 25,4mm)</div>
+            </div>
+          </label>
+
+          <label id="lbl-mode-pimaco6281" class="mode-card" style="display: flex; align-items: center; gap: 8px; background: rgba(30,41,59,0.5); border: 1.5px solid #334155; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 0.76rem; color: #e2e8f0;">
+            <input type="radio" name="label-print-mode" value="pimaco_6281" style="accent-color: #0284c7;">
+            <div>
+              <strong>📄 Pimaco 6281 / 6181</strong>
+              <div style="font-size: 0.67rem; color: #38bdf8;">20 etiq/folha · 2x10 (101,6 x 25,4mm)</div>
+            </div>
+          </label>
+
+          <label id="lbl-mode-a4" class="mode-card" style="display: flex; align-items: center; gap: 8px; background: rgba(30,41,59,0.5); border: 1.5px solid #334155; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 0.76rem; color: #e2e8f0;">
             <input type="radio" name="label-print-mode" value="a4" style="accent-color: #0284c7;">
             <div>
-              <strong>📄 Folha A4 Comum / PDF</strong>
-              <div style="font-size: 0.68rem; color: #94a3b8;">Grade organizada (várias por página)</div>
+              <strong>✂️ Folha A4 Sulfite / Comum</strong>
+              <div style="font-size: 0.67rem; color: #94a3b8;">Grade com linhas para recorte manual</div>
             </div>
           </label>
+
         </div>
       </div>
 
-      <!-- Seletor 1: Pulseiras de Identificação -->
-      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
+      <!-- Configurações Específicas de Cartela Pimaco (Posição Inicial para não perder folhas) -->
+      <div id="pimaco-config-box" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.4); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div style="font-size: 0.78rem; font-weight: 800; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-arrows-split-up-and-left"></i> Aproveitamento Inteligente da Folha Pimaco
+            </div>
+            <div style="font-size: 0.7rem; color: #cbd5e1; margin-top: 2px;">
+              Já usou algumas etiquetas da folha? Comece a impressão na etiqueta disponível.
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">Começar na etiqueta nº:</label>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button type="button" id="btn-pimaco-start-minus" style="width: 26px; height: 26px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">-</button>
+              <input type="number" id="input-pimaco-start" value="1" min="1" max="30" style="width: 44px; height: 26px; text-align: center; border-radius: 6px; background: #0f172a; border: 1px solid #f59e0b; color: #fff; font-weight: bold; font-size: 0.85rem;">
+              <button type="button" id="btn-pimaco-start-plus" style="width: 26px; height: 26px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
+          <button type="button" id="btn-fill-whole-pimaco" style="padding: 4px 10px; font-size: 0.7rem; border-radius: 6px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; cursor: pointer; font-weight: 700;">
+            <i class="fa-solid fa-layer-group"></i> Preencher Folha Inteira (<span id="txt-pimaco-capacity">30</span> un)
+          </button>
+          <button type="button" id="btn-fill-col-pimaco" style="padding: 4px 10px; font-size: 0.7rem; border-radius: 6px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; cursor: pointer; font-weight: 700;">
+            <i class="fa-solid fa-table-columns"></i> Preencher 1 Coluna (10 un)
+          </button>
+          <button type="button" id="btn-reset-pimaco-qty" style="padding: 4px 10px; font-size: 0.7rem; border-radius: 6px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1; cursor: pointer;">
+            Resetar Quantidade Padrão
+          </button>
+        </div>
+      </div>
+
+      <!-- Seletor 1: Pulseiras de Identificação (100x30mm ou Pimaco 6281) -->
+      <div id="sec-wristband-box" style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
           <div>
             <label style="font-size: 0.78rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin: 0; display: block;">
@@ -587,10 +640,9 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
             <span style="font-size: 0.7rem; color: #94a3b8;">Identificação hospitalar com QR Code CFM/SUS</span>
           </div>
           
-          <!-- Controles de Quantidade da Pulseira -->
           <div style="display: flex; align-items: center; gap: 6px;">
             <button type="button" id="btn-wb-minus" style="width: 28px; height: 28px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">-</button>
-            <input type="number" id="input-wb-qty" value="1" min="0" max="10" style="width: 44px; height: 28px; text-align: center; border-radius: 6px; background: #0f172a; border: 1px solid #0284c7; color: #fff; font-weight: bold; font-size: 0.85rem;">
+            <input type="number" id="input-wb-qty" value="1" min="0" max="30" style="width: 44px; height: 28px; text-align: center; border-radius: 6px; background: #0f172a; border: 1px solid #0284c7; color: #fff; font-weight: bold; font-size: 0.85rem;">
             <button type="button" id="btn-wb-plus" style="width: 28px; height: 28px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">+</button>
             <div style="display: flex; gap: 4px; margin-left: 4px;">
               <button type="button" class="btn-quick-wb" data-val="1" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: #334155; color: #cbd5e1; border: none; cursor: pointer;">1x</button>
@@ -614,20 +666,19 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
         </div>
       </div>
 
-      <!-- Seletor 2: Etiquetas de Amostras / Tubos -->
-      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; margin-bottom: 20px;">
+      <!-- Seletor 2: Etiquetas de Amostras / Tubos (Pimaco 6180 ou Térmica 50x30) -->
+      <div id="sec-tube-box" style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
           <div>
             <label style="font-size: 0.78rem; font-weight: 800; color: #fbbf24; text-transform: uppercase; margin: 0; display: block;">
-              2. Etiquetas de Amostras &amp; Tubos (50x30mm)
+              2. Etiquetas de Amostras &amp; Tubos
             </label>
-            <span style="font-size: 0.7rem; color: #94a3b8;">Para tubos de sangue, urina, exames e frascos</span>
+            <span style="font-size: 0.7rem; color: #94a3b8;">Para tubos de sangue, urina, exames, frascos e prontuário físico</span>
           </div>
           
-          <!-- Controles de Quantidade das Amostras -->
           <div style="display: flex; align-items: center; gap: 6px;">
             <button type="button" id="btn-tube-minus" style="width: 28px; height: 28px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">-</button>
-            <input type="number" id="input-tube-qty" value="4" min="0" max="30" style="width: 44px; height: 28px; text-align: center; border-radius: 6px; background: #0f172a; border: 1px solid #f59e0b; color: #fff; font-weight: bold; font-size: 0.85rem;">
+            <input type="number" id="input-tube-qty" value="4" min="0" max="60" style="width: 44px; height: 28px; text-align: center; border-radius: 6px; background: #0f172a; border: 1px solid #f59e0b; color: #fff; font-weight: bold; font-size: 0.85rem;">
             <button type="button" id="btn-tube-plus" style="width: 28px; height: 28px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: #fff; cursor: pointer; font-weight: bold;">+</button>
             <div style="display: flex; gap: 4px; margin-left: 4px;">
               <button type="button" class="btn-quick-tube" data-val="3" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: #334155; color: #cbd5e1; border: none; cursor: pointer;">3x</button>
@@ -639,7 +690,7 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
         </div>
 
         <!-- Preview da Etiqueta de Tubo -->
-        <div id="label-tube-preview" style="background: #ffffff; color: #000; padding: 10px 14px; border-radius: 6px; font-family: monospace; border: 2px dashed #64748b; display: flex; justify-content: space-between; align-items: center; max-width: 320px;">
+        <div id="label-tube-preview" style="background: #ffffff; color: #000; padding: 8px 12px; border-radius: 6px; font-family: monospace; border: 2px dashed #64748b; display: flex; justify-content: space-between; align-items: center; max-width: 320px;">
           <div style="flex: 1; padding-right: 6px;">
             <div style="font-size: 0.82rem; font-weight: 900; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${patientName}</div>
             <div style="font-size: 0.7rem; color: #111; margin: 2px 0;">ATD: <strong>#${attendNum}</strong> · ${dateStr}</div>
@@ -676,47 +727,119 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
   const stateLabels = {
     wristbandQty: 1,
     tubeQty: 4,
-    mode: 'thermal'
+    mode: 'thermal',
+    pimacoStart: 1
   };
 
   const inputWb = document.getElementById('input-wb-qty');
   const inputTube = document.getElementById('input-tube-qty');
+  const inputPimacoStart = document.getElementById('input-pimaco-start');
   const txtWbBtnCount = document.getElementById('txt-wb-btn-count');
   const txtTubeBtnCount = document.getElementById('txt-tube-btn-count');
   const txtKitBtnLabel = document.getElementById('txt-kit-btn-label');
-  const lblThermal = document.getElementById('lbl-mode-thermal');
-  const lblA4 = document.getElementById('lbl-mode-a4');
+  const txtPimacoCap = document.getElementById('txt-pimaco-capacity');
+  const pimacoBox = document.getElementById('pimaco-config-box');
+
+  const modeCards = {
+    thermal: document.getElementById('lbl-mode-thermal'),
+    pimaco_6180: document.getElementById('lbl-mode-pimaco6180'),
+    pimaco_6281: document.getElementById('lbl-mode-pimaco6281'),
+    a4: document.getElementById('lbl-mode-a4')
+  };
 
   function updateUiState() {
     if (inputWb) inputWb.value = stateLabels.wristbandQty;
     if (inputTube) inputTube.value = stateLabels.tubeQty;
+    if (inputPimacoStart) inputPimacoStart.value = stateLabels.pimacoStart;
     if (txtWbBtnCount) txtWbBtnCount.textContent = stateLabels.wristbandQty;
     if (txtTubeBtnCount) txtTubeBtnCount.textContent = stateLabels.tubeQty;
-    if (txtKitBtnLabel) {
-      txtKitBtnLabel.textContent = `Imprimir Kit Admissão (${stateLabels.wristbandQty} Pulseira${stateLabels.wristbandQty !== 1 ? 's' : ''} + ${stateLabels.tubeQty} Tubo${stateLabels.tubeQty !== 1 ? 's' : ''})`;
+
+    const isPimaco = stateLabels.mode.startsWith('pimaco_');
+    if (pimacoBox) pimacoBox.style.display = isPimaco ? 'block' : 'none';
+
+    if (txtPimacoCap) {
+      txtPimacoCap.textContent = stateLabels.mode === 'pimaco_6281' ? '20' : '30';
     }
 
-    if (lblThermal && lblA4) {
-      if (stateLabels.mode === 'thermal') {
-        lblThermal.style.borderColor = '#0284c7';
-        lblThermal.style.background = 'rgba(2,132,199,0.15)';
-        lblA4.style.borderColor = '#334155';
-        lblA4.style.background = 'rgba(30,41,59,0.5)';
+    if (txtKitBtnLabel) {
+      if (stateLabels.mode === 'pimaco_6180') {
+        txtKitBtnLabel.textContent = `Imprimir Cartela Pimaco 6180 (${stateLabels.tubeQty || 1} Etiquetas)`;
+      } else if (stateLabels.mode === 'pimaco_6281') {
+        const total = (stateLabels.wristbandQty || 0) + (stateLabels.tubeQty || 0);
+        txtKitBtnLabel.textContent = `Imprimir Cartela Pimaco 6281 (${total || 1} Etiquetas)`;
       } else {
-        lblA4.style.borderColor = '#0284c7';
-        lblA4.style.background = 'rgba(2,132,199,0.15)';
-        lblThermal.style.borderColor = '#334155';
-        lblThermal.style.background = 'rgba(30,41,59,0.5)';
+        txtKitBtnLabel.textContent = `Imprimir Kit Admissão (${stateLabels.wristbandQty} Pulseira${stateLabels.wristbandQty !== 1 ? 's' : ''} + ${stateLabels.tubeQty} Tubo${stateLabels.tubeQty !== 1 ? 's' : ''})`;
       }
     }
+
+    // Atualiza bordas e fundos dos cards de modo
+    Object.keys(modeCards).forEach(key => {
+      const el = modeCards[key];
+      if (!el) return;
+      if (stateLabels.mode === key) {
+        el.style.borderColor = key.startsWith('pimaco') ? '#f59e0b' : '#0284c7';
+        el.style.background = key.startsWith('pimaco') ? 'rgba(245,158,11,0.15)' : 'rgba(2,132,199,0.15)';
+      } else {
+        el.style.borderColor = '#334155';
+        el.style.background = 'rgba(30,41,59,0.5)';
+      }
+    });
   }
 
   // Listeners de Formato
   modal.querySelectorAll('input[name="label-print-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
       stateLabels.mode = e.target.value;
+      if (stateLabels.mode === 'pimaco_6180') {
+        stateLabels.tubeQty = Math.max(stateLabels.tubeQty, 10);
+      } else if (stateLabels.mode === 'pimaco_6281') {
+        stateLabels.wristbandQty = Math.max(stateLabels.wristbandQty, 2);
+      }
       updateUiState();
     });
+  });
+
+  // Listeners de Posição Inicial Pimaco
+  document.getElementById('btn-pimaco-start-minus')?.addEventListener('click', () => {
+    if (stateLabels.pimacoStart > 1) stateLabels.pimacoStart--;
+    updateUiState();
+  });
+  document.getElementById('btn-pimaco-start-plus')?.addEventListener('click', () => {
+    const maxStart = stateLabels.mode === 'pimaco_6281' ? 20 : 30;
+    if (stateLabels.pimacoStart < maxStart) stateLabels.pimacoStart++;
+    updateUiState();
+  });
+  inputPimacoStart?.addEventListener('change', (e) => {
+    const maxStart = stateLabels.mode === 'pimaco_6281' ? 20 : 30;
+    const val = parseInt(e.target.value, 10);
+    stateLabels.pimacoStart = isNaN(val) ? 1 : Math.max(1, Math.min(maxStart, val));
+    updateUiState();
+  });
+
+  // Atalhos de Preenchimento Pimaco
+  document.getElementById('btn-fill-whole-pimaco')?.addEventListener('click', () => {
+    const cap = stateLabels.mode === 'pimaco_6281' ? 20 : 30;
+    const available = Math.max(1, cap - (stateLabels.pimacoStart - 1));
+    if (stateLabels.mode === 'pimaco_6180') {
+      stateLabels.tubeQty = available;
+      stateLabels.wristbandQty = 0;
+    } else {
+      stateLabels.wristbandQty = Math.min(2, available);
+      stateLabels.tubeQty = Math.max(0, available - stateLabels.wristbandQty);
+    }
+    updateUiState();
+  });
+
+  document.getElementById('btn-fill-col-pimaco')?.addEventListener('click', () => {
+    stateLabels.tubeQty = 10;
+    updateUiState();
+  });
+
+  document.getElementById('btn-reset-pimaco-qty')?.addEventListener('click', () => {
+    stateLabels.wristbandQty = 1;
+    stateLabels.tubeQty = 4;
+    stateLabels.pimacoStart = 1;
+    updateUiState();
   });
 
   // Listeners Pulseiras
@@ -725,12 +848,12 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
     updateUiState();
   });
   document.getElementById('btn-wb-plus')?.addEventListener('click', () => {
-    if (stateLabels.wristbandQty < 10) stateLabels.wristbandQty++;
+    if (stateLabels.wristbandQty < 30) stateLabels.wristbandQty++;
     updateUiState();
   });
   inputWb?.addEventListener('change', (e) => {
     const val = parseInt(e.target.value, 10);
-    stateLabels.wristbandQty = isNaN(val) ? 0 : Math.max(0, Math.min(10, val));
+    stateLabels.wristbandQty = isNaN(val) ? 0 : Math.max(0, Math.min(30, val));
     updateUiState();
   });
   modal.querySelectorAll('.btn-quick-wb').forEach(btn => {
@@ -746,12 +869,12 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
     updateUiState();
   });
   document.getElementById('btn-tube-plus')?.addEventListener('click', () => {
-    if (stateLabels.tubeQty < 30) stateLabels.tubeQty++;
+    if (stateLabels.tubeQty < 60) stateLabels.tubeQty++;
     updateUiState();
   });
   inputTube?.addEventListener('change', (e) => {
     const val = parseInt(e.target.value, 10);
-    stateLabels.tubeQty = isNaN(val) ? 0 : Math.max(0, Math.min(30, val));
+    stateLabels.tubeQty = isNaN(val) ? 0 : Math.max(0, Math.min(60, val));
     updateUiState();
   });
   modal.querySelectorAll('.btn-quick-tube').forEach(btn => {
@@ -761,21 +884,21 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
     });
   });
 
-  // Motor de Impressão (Rolo Térmico ou Grade A4)
-  const executePrint = ({ wristbandCount, tubeCount, mode }) => {
+  // Motor de Impressão Multiformato (Térmica, Pimaco 6180, Pimaco 6281 e A4)
+  const executePrint = ({ wristbandCount, tubeCount, mode, pimacoStart = 1 }) => {
     const total = wristbandCount + tubeCount;
     if (total <= 0) {
       alert('Selecione ao menos 1 etiqueta para imprimir.');
       return;
     }
 
-    const printWin = window.open('', '_blank', 'width=780,height=620');
+    const printWin = window.open('', '_blank', 'width=850,height=650');
     if (!printWin) {
       alert('O navegador bloqueou a janela de impressão. Permita pop-ups para emitir etiquetas.');
       return;
     }
 
-    // HTML de 1 pulseira
+    // HTML de 1 pulseira térmica/A4 (100x30mm)
     const singleWristbandHtml = `
       <div class="label-item label-wristband">
         <div class="wb-content">
@@ -791,7 +914,7 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
       </div>
     `;
 
-    // HTML de 1 tubo
+    // HTML de 1 tubo térmico/A4 (50x30mm)
     const singleTubeHtml = `
       <div class="label-item label-tube">
         <div class="tube-top">
@@ -806,18 +929,259 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
       </div>
     `;
 
-    let contentHtml = '';
+    // HTML de 1 etiqueta Pimaco 6180 (66,7 x 25,4mm)
+    const singlePimaco6180Html = `
+      <div class="pimaco-6180-label">
+        <div class="p6180-header">HEALTH NEXUS · #${attendNum}</div>
+        <div class="p6180-patient">${patientName}</div>
+        <div class="p6180-info">SETOR: <strong>${sectorName}</strong> · REG: #${patIdClean}</div>
+        <div class="p6180-bottom">
+          <div class="p6180-time">${dateStr} ${timeStr}</div>
+          <div class="p6180-barcode">${generateBarcodeSvg()}</div>
+        </div>
+      </div>
+    `;
 
-    if (mode === 'thermal') {
-      // Rolo Térmico: uma atrás da outra com quebra de página
+    // HTML de 1 etiqueta Pimaco 6281 (101,6 x 25,4mm)
+    const singlePimaco6281Html = `
+      <div class="pimaco-6281-label">
+        <div class="p6281-left">
+          <div class="p6281-header">HEALTH NEXUS HOSPITAL · REG: #${patIdClean}</div>
+          <div class="p6281-patient">${patientName}</div>
+          <div class="p6281-info">ATEND: <strong>#${attendNum}</strong> | SETOR: <strong>${sectorName}</strong></div>
+          <div class="p6281-time">EMISSÃO: ${dateStr} às ${timeStr}</div>
+        </div>
+        <div class="p6281-right">
+          ${generateQrSvg()}
+          <div class="p6281-tag">CFM/SUS</div>
+        </div>
+      </div>
+    `;
+
+    let contentHtml = '';
+    let cssStyles = '';
+
+    if (mode === 'pimaco_6180') {
+      // Pimaco 6180: 30 etiquetas por folha A4 (3 colunas x 10 linhas)
+      const count = tubeCount > 0 ? tubeCount : total;
+      const capacity = 30;
+      let currentOffset = pimacoStart - 1;
+      let remaining = count;
+
+      while (remaining > 0 || currentOffset > 0) {
+        contentHtml += '<div class="pimaco-6180-sheet">';
+        // Adiciona blanks antes da posição inicial
+        for (let b = 0; b < currentOffset; b++) {
+          contentHtml += '<div class="pimaco-blank"></div>';
+        }
+        const slotsInThisSheet = capacity - currentOffset;
+        const toPrint = Math.min(remaining, slotsInThisSheet);
+        for (let i = 0; i < toPrint; i++) {
+          contentHtml += singlePimaco6180Html;
+        }
+        remaining -= toPrint;
+        currentOffset = 0; // próximas folhas começam do topo
+        contentHtml += '</div>';
+        if (remaining <= 0) break;
+      }
+
+      cssStyles = `
+        @page {
+          size: A4 portrait;
+          margin: 0;
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
+          color: #000000;
+          font-family: Arial, sans-serif;
+        }
+        .pimaco-6180-sheet {
+          width: 210mm;
+          height: 297mm;
+          padding-top: 21.2mm;
+          padding-left: 4.0mm;
+          padding-right: 4.0mm;
+          display: grid;
+          grid-template-columns: 66.7mm 66.7mm 66.7mm;
+          grid-template-rows: repeat(10, 25.4mm);
+          column-gap: 2.9mm;
+          row-gap: 0mm;
+          page-break-after: always;
+          break-after: page;
+        }
+        .pimaco-blank { visibility: hidden; width: 66.7mm; height: 25.4mm; }
+        .pimaco-6180-label {
+          width: 66.7mm;
+          height: 25.4mm;
+          max-width: 66.7mm;
+          max-height: 25.4mm;
+          padding: 1.5mm 2.2mm;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          overflow: hidden;
+          box-sizing: border-box;
+          border: 0.2mm solid transparent;
+        }
+        @media screen {
+          .pimaco-6180-label { border: 1px dashed #cbd5e1; }
+        }
+        .p6180-header { font-size: 6pt; font-weight: bold; color: #333; text-transform: uppercase; }
+        .p6180-patient { font-size: 8.5pt; font-weight: 900; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; color: #000; margin: 0.5mm 0; }
+        .p6180-info { font-size: 6.5pt; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .p6180-bottom { display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; }
+        .p6180-time { font-size: 5.5pt; color: #444; }
+        .p6180-barcode { width: 34mm; }
+      `;
+
+    } else if (mode === 'pimaco_6281') {
+      // Pimaco 6281: 20 etiquetas por folha A4 (2 colunas x 10 linhas)
+      const count = total;
+      const capacity = 20;
+      let currentOffset = pimacoStart - 1;
+      let remaining = count;
+
+      while (remaining > 0 || currentOffset > 0) {
+        contentHtml += '<div class="pimaco-6281-sheet">';
+        for (let b = 0; b < currentOffset; b++) {
+          contentHtml += '<div class="pimaco-blank"></div>';
+        }
+        const slotsInThisSheet = capacity - currentOffset;
+        const toPrint = Math.min(remaining, slotsInThisSheet);
+        for (let i = 0; i < toPrint; i++) {
+          contentHtml += singlePimaco6281Html;
+        }
+        remaining -= toPrint;
+        currentOffset = 0;
+        contentHtml += '</div>';
+        if (remaining <= 0) break;
+      }
+
+      cssStyles = `
+        @page {
+          size: A4 portrait;
+          margin: 0;
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
+          color: #000000;
+          font-family: Arial, sans-serif;
+        }
+        .pimaco-6281-sheet {
+          width: 210mm;
+          height: 297mm;
+          padding-top: 21.2mm;
+          padding-left: 3.4mm;
+          padding-right: 3.4mm;
+          display: grid;
+          grid-template-columns: 101.6mm 101.6mm;
+          grid-template-rows: repeat(10, 25.4mm);
+          column-gap: 2.0mm;
+          row-gap: 0mm;
+          page-break-after: always;
+          break-after: page;
+        }
+        .pimaco-blank { visibility: hidden; width: 101.6mm; height: 25.4mm; }
+        .pimaco-6281-label {
+          width: 101.6mm;
+          height: 25.4mm;
+          max-width: 101.6mm;
+          max-height: 25.4mm;
+          padding: 2.0mm 3.2mm;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          overflow: hidden;
+          box-sizing: border-box;
+          border: 0.2mm solid transparent;
+        }
+        @media screen {
+          .pimaco-6281-label { border: 1px dashed #cbd5e1; }
+        }
+        .p6281-left { flex: 1; padding-right: 3mm; }
+        .p6281-header { font-size: 6.5pt; font-weight: bold; color: #333; }
+        .p6281-patient { font-size: 9.5pt; font-weight: 900; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; color: #000; margin: 0.5mm 0; }
+        .p6281-info { font-size: 7pt; color: #111; }
+        .p6281-time { font-size: 6pt; color: #444; }
+        .p6281-right { text-align: center; border-left: 1px dashed #999; padding-left: 2.5mm; display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+        .p6281-tag { font-size: 5.5pt; font-weight: bold; margin-top: 1px; }
+      `;
+
+    } else if (mode === 'thermal') {
+      // Rolo Térmico Contínuo (Zebra / Argox / Elgin)
       for (let i = 0; i < wristbandCount; i++) {
         contentHtml += singleWristbandHtml;
       }
       for (let j = 0; j < tubeCount; j++) {
         contentHtml += singleTubeHtml;
       }
+
+      cssStyles = `
+        @page {
+          size: auto;
+          margin: 0;
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
+          color: #000000;
+          font-family: Arial, sans-serif;
+        }
+        .label-item {
+          background: #ffffff;
+          color: #000000;
+          page-break-after: always;
+          break-after: page;
+          margin: 0;
+        }
+        .label-wristband {
+          width: 100mm;
+          height: 30mm;
+          max-width: 100mm;
+          max-height: 30mm;
+          padding: 3mm 4mm;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 1px dashed #cbd5e1;
+        }
+        .wb-content { flex: 1; padding-right: 3mm; }
+        .wb-hospital { font-size: 8pt; font-weight: bold; letter-spacing: 0.5px; }
+        .wb-patient { font-size: 11pt; font-weight: 900; margin: 1mm 0; line-height: 1.1; text-transform: uppercase; }
+        .wb-meta { font-size: 8pt; margin: 0.5mm 0; }
+        .wb-sub { font-size: 6.5pt; color: #333; }
+        .wb-qr-wrap { text-align: center; border-left: 1px dashed #999; padding-left: 3mm; display: flex; flex-direction: column; align-items: center; }
+        .wb-sus-tag { font-size: 6pt; font-weight: bold; margin-top: 1px; }
+
+        .label-tube {
+          width: 50mm;
+          height: 30mm;
+          max-width: 50mm;
+          max-height: 30mm;
+          padding: 2.5mm 3.5mm;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          border-bottom: 1px dashed #cbd5e1;
+        }
+        .tube-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .tube-patient { font-size: 8.5pt; font-weight: 900; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+        .tube-badge { font-size: 6pt; font-weight: bold; border: 1px solid #000; padding: 1px 3px; border-radius: 2px; }
+        .tube-meta { font-size: 7pt; margin: 1mm 0; }
+        .tube-barcode-wrap { margin-top: auto; }
+        .tube-code-text { font-size: 6pt; text-align: center; letter-spacing: 1px; margin-top: 1px; }
+      `;
+
     } else {
-      // Folha A4: pulseiras no topo + grade organizada de tubos
+      // Folha A4 Sulfite / Comum com marcas de recorte
       contentHtml += '<div class="a4-sheet">';
       if (wristbandCount > 0) {
         contentHtml += '<div class="a4-wristbands-group">';
@@ -834,136 +1198,80 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
         contentHtml += '</div>';
       }
       contentHtml += '</div>';
+
+      cssStyles = `
+        @page {
+          size: A4 portrait;
+          margin: 10mm;
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
+          color: #000000;
+          font-family: Arial, sans-serif;
+        }
+        .a4-sheet {
+          display: flex;
+          flex-direction: column;
+          gap: 6mm;
+        }
+        .a4-wristbands-group {
+          display: flex;
+          flex-direction: column;
+          gap: 5mm;
+        }
+        .a4-tubes-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 52mm);
+          gap: 5mm;
+        }
+        .label-item {
+          background: #ffffff;
+          color: #000000;
+          border: 1px dashed #94a3b8;
+          border-radius: 4px;
+        }
+        .label-wristband {
+          width: 100mm;
+          height: 30mm;
+          padding: 3mm 4mm;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .wb-content { flex: 1; padding-right: 3mm; }
+        .wb-hospital { font-size: 8pt; font-weight: bold; letter-spacing: 0.5px; }
+        .wb-patient { font-size: 11pt; font-weight: 900; margin: 1mm 0; line-height: 1.1; text-transform: uppercase; }
+        .wb-meta { font-size: 8pt; margin: 0.5mm 0; }
+        .wb-sub { font-size: 6.5pt; color: #333; }
+        .wb-qr-wrap { text-align: center; border-left: 1px dashed #999; padding-left: 3mm; display: flex; flex-direction: column; align-items: center; }
+        .wb-sus-tag { font-size: 6pt; font-weight: bold; margin-top: 1px; }
+
+        .label-tube {
+          width: 52mm;
+          height: 30mm;
+          padding: 2.5mm 3.5mm;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .tube-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .tube-patient { font-size: 8.5pt; font-weight: 900; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+        .tube-badge { font-size: 6pt; font-weight: bold; border: 1px solid #000; padding: 1px 3px; border-radius: 2px; }
+        .tube-meta { font-size: 7pt; margin: 1mm 0; }
+        .tube-barcode-wrap { margin-top: auto; }
+        .tube-code-text { font-size: 6pt; text-align: center; letter-spacing: 1px; margin-top: 1px; }
+      `;
     }
-
-    const cssStyles = mode === 'thermal' ? `
-      @page {
-        size: auto;
-        margin: 0;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        padding: 0;
-        background: #ffffff;
-        color: #000000;
-        font-family: Arial, sans-serif;
-      }
-      .label-item {
-        background: #ffffff;
-        color: #000000;
-        page-break-after: always;
-        break-after: page;
-        margin: 0;
-      }
-      .label-wristband {
-        width: 100mm;
-        height: 30mm;
-        max-width: 100mm;
-        max-height: 30mm;
-        padding: 3mm 4mm;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px dashed #cbd5e1;
-      }
-      .wb-content { flex: 1; padding-right: 3mm; }
-      .wb-hospital { font-size: 8pt; font-weight: bold; letter-spacing: 0.5px; }
-      .wb-patient { font-size: 11pt; font-weight: 900; margin: 1mm 0; line-height: 1.1; text-transform: uppercase; }
-      .wb-meta { font-size: 8pt; margin: 0.5mm 0; }
-      .wb-sub { font-size: 6.5pt; color: #333; }
-      .wb-qr-wrap { text-align: center; border-left: 1px dashed #999; padding-left: 3mm; display: flex; flex-direction: column; align-items: center; }
-      .wb-sus-tag { font-size: 6pt; font-weight: bold; margin-top: 1px; }
-
-      .label-tube {
-        width: 50mm;
-        height: 30mm;
-        max-width: 50mm;
-        max-height: 30mm;
-        padding: 2.5mm 3.5mm;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        border-bottom: 1px dashed #cbd5e1;
-      }
-      .tube-top { display: flex; justify-content: space-between; align-items: flex-start; }
-      .tube-patient { font-size: 8.5pt; font-weight: 900; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
-      .tube-badge { font-size: 6pt; font-weight: bold; border: 1px solid #000; padding: 1px 3px; border-radius: 2px; }
-      .tube-meta { font-size: 7pt; margin: 1mm 0; }
-      .tube-barcode-wrap { margin-top: auto; }
-      .tube-code-text { font-size: 6pt; text-align: center; letter-spacing: 1px; margin-top: 1px; }
-    ` : `
-      @page {
-        size: A4 portrait;
-        margin: 10mm;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        padding: 0;
-        background: #ffffff;
-        color: #000000;
-        font-family: Arial, sans-serif;
-      }
-      .a4-sheet {
-        display: flex;
-        flex-direction: column;
-        gap: 6mm;
-      }
-      .a4-wristbands-group {
-        display: flex;
-        flex-direction: column;
-        gap: 5mm;
-      }
-      .a4-tubes-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 52mm);
-        gap: 5mm;
-      }
-      .label-item {
-        background: #ffffff;
-        color: #000000;
-        border: 1px dashed #94a3b8;
-        border-radius: 4px;
-      }
-      .label-wristband {
-        width: 100mm;
-        height: 30mm;
-        padding: 3mm 4mm;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .wb-content { flex: 1; padding-right: 3mm; }
-      .wb-hospital { font-size: 8pt; font-weight: bold; letter-spacing: 0.5px; }
-      .wb-patient { font-size: 11pt; font-weight: 900; margin: 1mm 0; line-height: 1.1; text-transform: uppercase; }
-      .wb-meta { font-size: 8pt; margin: 0.5mm 0; }
-      .wb-sub { font-size: 6.5pt; color: #333; }
-      .wb-qr-wrap { text-align: center; border-left: 1px dashed #999; padding-left: 3mm; display: flex; flex-direction: column; align-items: center; }
-      .wb-sus-tag { font-size: 6pt; font-weight: bold; margin-top: 1px; }
-
-      .label-tube {
-        width: 52mm;
-        height: 30mm;
-        padding: 2.5mm 3.5mm;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      .tube-top { display: flex; justify-content: space-between; align-items: flex-start; }
-      .tube-patient { font-size: 8.5pt; font-weight: 900; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
-      .tube-badge { font-size: 6pt; font-weight: bold; border: 1px solid #000; padding: 1px 3px; border-radius: 2px; }
-      .tube-meta { font-size: 7pt; margin: 1mm 0; }
-      .tube-barcode-wrap { margin-top: auto; }
-      .tube-code-text { font-size: 6pt; text-align: center; letter-spacing: 1px; margin-top: 1px; }
-    `;
 
     printWin.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="UTF-8">
-          <title>Etiquetas - ${patientName} (${total} un)</title>
+          <title>Etiquetas Pimaco/Térmica - ${patientName} (${total} un)</title>
           <style>${cssStyles}</style>
         </head>
         <body>
@@ -981,7 +1289,8 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
 
     // Feedback visual
     if (typeof window.showToast === 'function') {
-      window.showToast(`🖨️ Enviado para impressão: ${wristbandCount} pulseira(s) e ${tubeCount} etiqueta(s) de amostra.`);
+      const modeLabel = mode === 'pimaco_6180' ? 'Pimaco 6180 (30 un)' : (mode === 'pimaco_6281' ? 'Pimaco 6281 (20 un)' : (mode === 'thermal' ? 'Térmica Contínua' : 'A4 Sulfite'));
+      window.showToast(`🖨️ Impressão disparada com sucesso no formato ${modeLabel}!`);
     }
   };
 
@@ -990,7 +1299,8 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
     executePrint({
       wristbandCount: stateLabels.wristbandQty,
       tubeCount: stateLabels.tubeQty,
-      mode: stateLabels.mode
+      mode: stateLabels.mode,
+      pimacoStart: stateLabels.pimacoStart
     });
   });
 
@@ -1002,7 +1312,8 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
     executePrint({
       wristbandCount: stateLabels.wristbandQty,
       tubeCount: 0,
-      mode: stateLabels.mode
+      mode: stateLabels.mode,
+      pimacoStart: stateLabels.pimacoStart
     });
   });
 
@@ -1014,7 +1325,8 @@ export function openThermalLabelModal({ patientName, patientId, number, sector }
     executePrint({
       wristbandCount: 0,
       tubeCount: stateLabels.tubeQty,
-      mode: stateLabels.mode
+      mode: stateLabels.mode,
+      pimacoStart: stateLabels.pimacoStart
     });
   });
 
