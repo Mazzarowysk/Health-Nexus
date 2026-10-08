@@ -1,12 +1,17 @@
 # Health Nexus — Sistema de Gestão Hospitalar
 
-**Versão:** `2.9.42`  
+**Versão:** `2.9.43`  
 **Status:** Em produção (Production-Ready)  
 **Última atualização:** Outubro 2026
 
 ---
 
 ## 📘 Documentação & Manual do Usuário
+
+- 🔍 **Busca em Tempo Real & Manuais Sincronizados (v2.9.43):**
+  1. **Motor de Busca Semântica & NLP Ampliado:** Expansão de sinônimos semânticos e indexação completa para etiquetas hospitalares, cartelas Pimaco (6180/6281), rolos térmicos, pulseiras, tubos/amostras, kits de admissão e consulta dinâmica.
+  2. **Manual Interativo Tabbed & Nexus AI Copilot:** Novos módulos dedicados com atalhos, direcionamento assistencial humano, descrições passo a passo e resolução imediata de dúvidas.
+  3. **Manuais em HTML & PDF 100% Recompilados:** Integração das figuras atualizadas (`17-consulta-dinamica.png` e `18-etiquetas-pimaco.png`) na documentação oficial e sincronização de todos os artefatos.
 
 - 📄 **Suporte Completo a Cartelas de Etiquetas Pimaco 6180 & 6281 (v2.9.42):**
   1. **Cartela Pimaco 6180 / 6080 (30 etiquetas por folha A4):**

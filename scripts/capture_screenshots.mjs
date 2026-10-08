@@ -128,7 +128,9 @@ export async function captureScreenshots() {
   });
 
   // 1. Acessar aplicação e injetar credencial Master
-  await page.goto('http://localhost:5173/', { waitUntil: 'networkidle2' });
+  const appUrl = process.env.APP_URL || 'https://health-nexus-beryl.vercel.app/';
+  console.log(`Conectando em: ${appUrl}`);
+  await page.goto(appUrl, { waitUntil: 'networkidle2' });
   await page.evaluate(() => {
     sessionStorage.setItem('hn_token', 'mock-master-token-valid');
     sessionStorage.setItem('hn_user', JSON.stringify({
@@ -232,6 +234,72 @@ export async function captureScreenshots() {
   await page.screenshot({ path: examFile });
   fs.copyFileSync(examFile, path.join(docDir, '16-solicitacao-exames.png'));
   console.log('✓ Salvo: 16-solicitacao-exames.png');
+
+  // ── Fechar PEP antes de abrir novos modais ────────────────────────────────
+  await page.evaluate(() => {
+    const pepModal = document.getElementById('pepModal') || document.querySelector('.modal-content')?.closest('.modal-overlay');
+    if (pepModal) pepModal.remove();
+  });
+  await new Promise(r => setTimeout(r, 600));
+
+  // ── Captura especial: Consulta Dinâmica de Atendimentos Multi-Modalidade ──
+  console.log('Capturando Consulta Dinâmica de Atendimentos (17-consulta-dinamica.png)...');
+  await page.evaluate(() => {
+    if (typeof window.switchTab === 'function') window.switchTab('atendimento');
+  });
+  await new Promise(r => setTimeout(r, 800));
+
+  await page.evaluate(() => {
+    if (typeof window.openDynamicEncounterQueryModal === 'function') {
+      window.openDynamicEncounterQueryModal();
+    }
+  });
+
+  try {
+    await page.waitForSelector('#hn-dynamic-query-modal', { timeout: 4000 });
+  } catch (e) {}
+  await new Promise(r => setTimeout(r, 1000));
+
+  const dynamicQueryFile = path.join(outDir, '17-consulta-dinamica.png');
+  await page.screenshot({ path: dynamicQueryFile });
+  fs.copyFileSync(dynamicQueryFile, path.join(docDir, '17-consulta-dinamica.png'));
+  console.log('✓ Salvo: 17-consulta-dinamica.png');
+
+  // ── Captura especial: Emissão de Etiquetas Pimaco & Térmicas ──────────────
+  console.log('Capturando Modal de Emissão de Etiquetas Pimaco (18-etiquetas-pimaco.png)...');
+  await page.evaluate(() => {
+    if (typeof window.openThermalLabelModal === 'function') {
+      window.openThermalLabelModal({
+        patientName: 'Maria Silva Oliveira',
+        prontuario: 'PR-2026-0842',
+        birthDate: '1984-05-12',
+        convenio: 'Unimed Saúde',
+        manchesterColor: 'Amarelo',
+        encounterId: 'enc-mock-123',
+        attendanceDate: '07/10/2026 14:30'
+      });
+    }
+  });
+
+  try {
+    await page.waitForSelector('#hn-thermal-label-modal', { timeout: 4000 });
+  } catch (e) {}
+  await new Promise(r => setTimeout(r, 600));
+
+  // Alterar seleção para Pimaco 6180 para exibir o layout visual em grade
+  await page.evaluate(() => {
+    const select = document.getElementById('hn-label-format-select');
+    if (select) {
+      select.value = 'pimaco_6180';
+      select.dispatchEvent(new Event('change'));
+    }
+  });
+  await new Promise(r => setTimeout(r, 1000));
+
+  const pimacoFile = path.join(outDir, '18-etiquetas-pimaco.png');
+  await page.screenshot({ path: pimacoFile });
+  fs.copyFileSync(pimacoFile, path.join(docDir, '18-etiquetas-pimaco.png'));
+  console.log('✓ Salvo: 18-etiquetas-pimaco.png');
 
   await browser.close();
   console.log('--- ETAPA 1 CONCLUÍDA: TODOS OS PRINTS FORAM CAPTURADOS COM SUCESSO ---');

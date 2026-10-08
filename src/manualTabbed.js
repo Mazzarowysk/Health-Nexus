@@ -29,7 +29,13 @@ export const SEMANTIC_SYNONYMS = {
   // Entidades: Financeiro / Faturamento
   financeiro: ['financeiro', 'faturamento', 'cobranca', 'fatura', 'parcela', 'baixa', 'pagamento', 'convenio', 'receita', 'despesa'],
   // Relatórios / Impressão
-  relatorio: ['relatorio', 'relatorios', 'exportar', 'exportacao', 'imprimir', 'impressao', 'pdf', 'excel', 'planilha', 'csv', 'grafico', 'metricas', 'indicadores', 'kpi']
+  relatorio: ['relatorio', 'relatorios', 'exportar', 'exportacao', 'imprimir', 'impressao', 'pdf', 'excel', 'planilha', 'csv', 'grafico', 'metricas', 'indicadores', 'kpi'],
+  // Entidades: Etiquetas, Pulseiras e Cartelas Pimaco
+  etiqueta: ['etiqueta', 'etiquetas', 'pulseira', 'pulseiras', 'amostra', 'amostras', 'tubo', 'tubos', 'pimaco', 'pimaco 6180', 'pimaco 6281', '6180', '6281', 'termica', 'termicas', 'rolo', 'zebra', 'argox', 'elgin', 'adesivo', 'adesivos', 'cartela', 'cartelas', 'imprimir etiqueta', 'imprimir etiquetas', 'kit admissao', 'codigo de barras'],
+  // Localizador / Consulta Dinâmica de Passagens
+  dinamica: ['dinamica', 'consulta dinamica', 'localizador', 'passagens', 'filtro de passagens', 'rastreabilidade', 'busca de atendimentos', 'pesquisa em tempo real', 'historico de passagens'],
+  // Solicitação de Exames Complementares & Diagnóstico
+  exame: ['exame', 'exames', 'solicitacao', 'solicitar exame', 'laboratorio', 'laboratorial', 'imagem', 'laudo', 'laudos', 'hemograma', 'raio x', 'tomografia', 'pedido de exame']
 };
 
 export const expandQueryTokens = (rawQuery) => {
@@ -1288,6 +1294,103 @@ export const manualData = [
       { q: 'Qual versão do padrão TISS é gerada pelo Health Nexus?', a: 'O sistema utiliza a versão oficial TISS v4.01.00 com tabela de codificação TUSS atualizada da ANS.' },
       { q: 'Como auditar as guias antes do envio aos convênios?', a: 'Na aba Faturamento TISS, utilize o filtro de status "Pendente Auditoria" e clique em "Executar Auditoria Anti-Glosa".' }
     ]
+  },
+  {
+    id: 'consulta_dinamica',
+    title: 'Consulta Dinâmica & Etiquetas Pimaco',
+    icon: 'fa-tags',
+    color: '#10b981',
+    summary: 'Localizador instantâneo de atendimentos em tempo real e emissão flexível de etiquetas térmicas e cartelas Pimaco (6180 e 6281).',
+    roles: ['Master', 'Médico', 'Enfermeiro', 'Recepcionista', 'Farmacêutico'],
+    buttons: [
+      {
+        icon: 'fa-barcode',
+        name: '🏷️ Emissão de Etiquetas Pimaco & Térmicas',
+        type: 'Identificação & Impressão',
+        color: '#10b981',
+        description: 'Dispara a emissão de etiquetas do paciente com suporte a múltiplos formatos: Rolo Contínuo Térmico (Zebra, Argox, Elgin), Folha Pimaco 6180 (Carta - 30 etiquetas por folha), Folha Pimaco 6281 (A4 - 65 etiquetas por folha) e Folha A4 Geral de Atendimento. Gera código de barras Code 128, prontuário, data de nascimento, convênio, classificação de triagem e data/hora do acolhimento.',
+        shortcut: 'Central de Atendimentos -> Consulta Dinâmica -> Botão Imprimir Etiquetas',
+        rules: 'Calcula espaçamentos milimétricos sem quebra de página. Permite selecionar a quantidade de cópias e o formato desejado.',
+        keywords: ['etiqueta', 'etiquetas', 'pimaco', 'pimaco 6180', 'pimaco 6281', 'termica', 'rolo', 'zebra', 'argox', 'elgin', 'adesivo', 'cartela', 'imprimir etiqueta', 'pulseira', 'amostra', 'codigo de barras']
+      },
+      {
+        icon: 'fa-id-badge',
+        name: '🪪 Kit Admissão Rápido (1 Pulseira + 3 Amostras + 1 PEP)',
+        type: 'Acolhimento Ágil',
+        color: '#0284c7',
+        description: 'Imprime em um único clique o conjunto essencial para a admissão do paciente: 1 etiqueta para a pulseira de identificação no punho, 3 etiquetas para identificação de tubos de coleta e amostras laboratoriais e 1 etiqueta para a pasta do prontuário físico.',
+        shortcut: 'Modal de Etiquetas -> Botão "Imprimir Kit Admissão"',
+        rules: 'Gera automaticamente as 5 etiquetas formatadas com identificação clara da finalidade em cada adesivo.',
+        keywords: ['kit admissao', 'pulseira', 'tubos', 'amostras', 'kit acolhimento', 'admissao rapida', 'etiqueta punho', 'coleta de sangue']
+      },
+      {
+        icon: 'fa-arrow-down-short-wide',
+        name: '🎯 Seletor de Posição Inicial na Cartela (Offset Pimaco)',
+        type: 'Economia de Insumos',
+        color: '#f59e0b',
+        description: 'Permite informar em qual adesivo da folha a impressão deve começar (de 1 a 30 para Pimaco 6180 ou de 1 a 65 para Pimaco 6281). Isso permite reaproveitar folhas parcialmente impressas em dias anteriores, evitando o descarte desnecessário de material.',
+        shortcut: 'Modal de Etiquetas -> Campo "Iniciar na etiqueta nº"',
+        rules: 'O sistema preenche as posições anteriores com espaços vazios transparentes para que a impressora comece exatamente onde a folha ainda tem adesivos disponíveis.',
+        keywords: ['posicao inicial', 'offset', 'economia de etiquetas', 'reaproveitamento', 'pular etiquetas', 'cartela usada', 'pimaco offset']
+      },
+      {
+        icon: 'fa-magnifying-glass-chart',
+        name: '🔍 Consulta Dinâmica Multi-Modalidade',
+        type: 'Localizador Global',
+        color: '#38bdf8',
+        description: 'Localizador instantâneo de passagens de pacientes no hospital. Permite buscar em tempo real por Nome, CPF ou Prontuário, aplicando filtros rápidos por modalidade (Ambulatório, Urgência/PS, Observação, Internação ou Alta).',
+        shortcut: 'Central de Atendimentos -> Botão "Consulta Dinâmica"',
+        rules: 'Atualização reativa com busca em tempo real via debounce e sincronização contínua com a base local e na nuvem.',
+        keywords: ['consulta dinamica', 'pesquisar atendimento', 'localizador', 'passagens', 'filtro de passagens', 'rastreabilidade', 'busca tempo real']
+      }
+    ],
+    workflow: [
+      { step: 1, title: 'Abrir Localizador', desc: 'Na Central de Atendimentos, clique no botão azul "Consulta Dinâmica" no topo da tela.' },
+      { step: 2, title: 'Buscar Atendimento', desc: 'Digite o nome ou CPF do paciente para encontrar a passagem desejada na lista.' },
+      { step: 3, title: 'Escolher Formato & Imprimir', desc: 'Clique em "Imprimir Etiquetas", selecione o modelo (Térmica ou Cartela Pimaco), informe o ponto inicial da folha se necessário e clique em Imprimir.' }
+    ],
+    faq: [
+      { q: 'Como evitar o desperdício de folhas Pimaco que já tiveram algumas etiquetas usadas?', a: 'Basta informar no campo "Iniciar na etiqueta nº" a posição do próximo adesivo disponível na cartela. O sistema pulará os espaços já destacados.' },
+      { q: 'Quais impressoras térmicas são aceitas pelo sistema?', a: 'Qualquer impressora térmica com driver instalado no Windows (Zebra, Argox, Elgin, Datamax, Bematech). O sistema utiliza a largura padrão de 80mm com ajuste responsivo.' }
+    ]
+  },
+  {
+    id: 'exames',
+    title: 'Exames & Apoio Diagnóstico',
+    icon: 'fa-vial-virus',
+    color: '#06b6d4',
+    summary: 'Solicitação eletrônica de exames laboratoriais e radiológicos, emissão de guias e visualizador PACS DICOM integrado ao prontuário.',
+    roles: ['Médico', 'Enfermeiro', 'Master'],
+    buttons: [
+      {
+        icon: 'fa-file-lines',
+        name: '🧪 Solicitação Eletrônica de Exames Complementares',
+        type: 'Prescrição & Apoio Diagnóstico',
+        color: '#0284c7',
+        description: 'Permite ao médico assistente selecionar exames de patologia clínica (Hemograma, Bioquímica, Coagulograma, Urina) e diagnóstico por imagem (Raio-X, TC, RM, Ultrassom) com justificativa clínica, cálculo de risco e emissão do pedido em PDF para a coleta ou laboratório.',
+        shortcut: 'PEP -> Setor de Solicitação de Exames Complementares',
+        rules: 'Gera pedido autenticado com CRM do profissional e alertas preditivos de MEWS integrados.',
+        keywords: ['solicitar exame', 'pedido de exame', 'hemograma', 'laboratorio', 'laudo', 'guia de exames', 'exames complementares']
+      },
+      {
+        icon: 'fa-x-ray',
+        name: '🩻 Visualizador Radiológico PACS / DICOM',
+        type: 'Diagnóstico por Imagem',
+        color: '#06b6d4',
+        description: 'Visualizador em tela cheia com ferramentas de manipulação de imagens diagnósticas: controle de contraste (Window/Level), ampliação, medições anatômicas e inversão de cores para auxílio na tomada de decisão rápida.',
+        shortcut: 'PEP -> Visualizador Radiológico DICOM',
+        rules: 'Carregamento otimizado de imagens sem necessidade de softwares pesados instalados localmente.',
+        keywords: ['pacs', 'dicom', 'raio x', 'tomografia', 'imagem radiologica', 'laudo imagem', 'visualizador de exames']
+      }
+    ],
+    workflow: [
+      { step: 1, title: 'Acessar o Prontuário', desc: 'Abra o PEP do paciente no Consultório ou na Central de Atendimentos.' },
+      { step: 2, title: 'Adicionar Exames', desc: 'No setor de Exames, marque os procedimentos solicitados ou digite os nomes específicos com a justificativa clínica.' },
+      { step: 3, title: 'Gerar Guia & Encaminhar', desc: 'Clique em "Gerar Pedido de Exames" para imprimir as requisições ou direcionar para a coleta do laboratório.' }
+    ],
+    faq: [
+      { q: 'Onde encontro o resultado de um exame emitido?', a: 'Os resultados liberados pelo laboratório ou laudos de imagem ficam anexados cronologicamente na aba Histórico do Prontuário do paciente.' }
+    ]
   }
 ];
 
@@ -1473,6 +1576,8 @@ export const MODULE_TAB_MAP = {
   'agenda': 'agenda',
   'recepcao': 'pacientes',
   'prontuario': 'atendimento',
+  'consulta_dinamica': 'atendimento',
+  'exames': 'consultorios',
   'tv': 'tv_panel',
   'estagnacao': 'estagnacao',
   'leitos': 'leitos',
@@ -1581,6 +1686,12 @@ export const navigateFromManualToSystem = (moduleId, btnName = '', actionType = 
     setTimeout(() => { document.getElementById('btn-open-doctor-modal')?.click(); }, 350);
   } else if (actionType === 'openPatientModal' || (btnName && btnName.includes('Novo Paciente'))) {
     setTimeout(() => { document.getElementById('btn-open-patient-modal')?.click(); }, 350);
+  } else if (actionType === 'openDynamicQueryModal' || moduleId === 'consulta_dinamica' || (btnName && (btnName.includes('Etiqueta') || btnName.includes('Consulta Dinâmica')))) {
+    setTimeout(() => {
+      if (typeof window.openDynamicEncounterQueryModal === 'function') {
+        window.openDynamicEncounterQueryModal();
+      }
+    }, 350);
   }
 
   // Ativar beacon flutuante para retorno assistido

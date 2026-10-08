@@ -178,6 +178,47 @@ export const getNexusAICopilotResponse = (q, raw) => {
     return { title: 'Nexus AI Copilot', summary: 'Para <strong>cancelar ou excluir uma cobrança</strong>, acesse 💰 <strong>Financeiro</strong>, localize a fatura e clique em Cancelar/Estornar.', actionText: '💰 Abrir Financeiro', actionType: 'switchTab', actionTarget: 'financeiro' };
   }
 
+  // ── ETIQUETAS HOSPITALARES & CARTELAS PIMACO ──────────────────────────
+  if (has('etiqueta', 'pimaco', 'pulseira', 'amostra', 'tubo', 'kit admissao', 'rolo termico', 'zebra', 'argox', 'cartela', 'imprimir etiqueta')) {
+    return {
+      title: 'Nexus AI Copilot — Emissão de Etiquetas & Cartelas Pimaco',
+      summary: `Para <strong>imprimir etiquetas do paciente, pulseiras ou amostras de laboratório</strong>:<br>
+• Acesse 🏥 <strong>Central de Atendimentos</strong> e clique no botão azul <strong>"Consulta Dinâmica"</strong>.<br>
+• Localize o atendimento e clique no botão verde <strong>"Imprimir Etiquetas"</strong>.<br>
+• No modal, selecione a modalidade desejada: <strong>Rolo Contínuo / Térmica</strong>, <strong>Pimaco 6180</strong> (Carta, 30 etiquetas/folha), <strong>Pimaco 6281</strong> (A4, 65 etiquetas/folha) ou <strong>Kit Admissão</strong> (1 pulseira + 3 amostras + 1 prontuário).<br>
+• Você também pode definir a <strong>posição inicial na folha</strong> para reaproveitar cartelas que já foram parcialmente impressas.`,
+      actionText: '🏥 Abrir Central de Atendimentos',
+      actionType: 'openDynamicQueryModal',
+      actionTarget: 'atendimento'
+    };
+  }
+
+  // ── CONSULTA DINÂMICA DE ATENDIMENTOS (LOCALIZADOR MULTI-MODALIDADE) ──
+  if (has('consulta dinamica', 'pesquisa em tempo real', 'rastrear passagem', 'localizador de atendimento', 'filtro de passagens', 'buscar atendimento')) {
+    return {
+      title: 'Nexus AI Copilot — Consulta Dinâmica de Atendimentos',
+      summary: `A <strong>Consulta Dinâmica</strong> é o localizador global de atendimentos do Health Nexus. Ela permite pesquisar por <strong>Nome, CPF ou Prontuário</strong> em tempo real, filtrar por status (Triagem, Espera, Em Consulta, Alta), e disparar diretamente a <strong>Emissão de Etiquetas</strong> ou abertura do <strong>PEP</strong>.<br>
+Clique no botão <strong>"Consulta Dinâmica"</strong> no topo da Central de Atendimentos para abrir.`,
+      actionText: '🔍 Abrir Central de Atendimentos',
+      actionType: 'openDynamicQueryModal',
+      actionTarget: 'atendimento'
+    };
+  }
+
+  // ── EXAMES & LAUDOS CLÍNICOS ─────────────────────────────────────────
+  if (has('exame', 'exames', 'solicitar exame', 'laboratorio', 'laudo', 'raio-x', 'tomografia', 'hemograma', 'pedido de exame')) {
+    return {
+      title: 'Nexus AI Copilot — Gestão de Pedidos & Resultados de Exames',
+      summary: `Para <strong>solicitar ou acompanhar exames laboratoriais e de imagem</strong>:<br>
+• Abra o prontuário do paciente (PEP) na aba 🩺 <strong>Consultórios</strong> ou na 🏥 <strong>Central de Atendimentos</strong>.<br>
+• Navegue até o setor <strong>"Solicitação de Exames Complementares"</strong>.<br>
+• Selecione os exames pré-configurados (Hemograma, PCR, Raio-X, TC, etc.), justifique a hipótese diagnóstica e clique em <strong>"Gerar Pedido"</strong> com impressão instantânea.`,
+      actionText: '🩺 Ir para Consultórios & PEP',
+      actionType: 'switchTab',
+      actionTarget: 'consultorios'
+    };
+  }
+
   // ── RELATÓRIOS ───────────────────────────────────────────────────────
   if (has('relatorio', 'exportar relatorio', 'imprimir relatorio', 'pdf relatorio', 'metricas', 'indicadores', 'excel', 'csv')) {
     return { title: 'Nexus AI Copilot', summary: 'Os <strong>Relatórios & Métricas</strong> estão disponíveis na aba 📊 <strong>Relatórios</strong>. Gere PDFs e planilhas de atendimentos, internações, farmácia, financeiro e muito mais com filtros de período.', actionText: '📊 Abrir Relatórios', actionType: 'switchTab', actionTarget: 'relatorios' };
@@ -201,6 +242,39 @@ export const getNexusAICopilotResponse = (q, raw) => {
   // ── ALERTAS / ESTAGNAÇÃO ─────────────────────────────────────────────
   if (has('alerta', 'estagnacao', 'tempo espera', 'paciente aguardando', 'fila longa', 'delay atendimento')) {
     return { title: 'Nexus AI Copilot', summary: 'Os <strong>Alertas & Estagnação</strong> monitoram pacientes aguardando além do tempo protocolar por triagem Manchester. Acesse para identificar gargalos no atendimento.', actionText: '⚠️ Ver Alertas', actionType: 'switchTab', actionTarget: 'estagnacao' };
+  }
+
+  // ── TELEMEDICINA & VIDEOCHAMADA ──────────────────────────────────────
+  if (has('telemedicina', 'teleconsulta', 'videochamada', 'atendimento remoto', 'consulta online')) {
+    return {
+      title: 'Nexus AI Copilot — Telemedicina & Teleconsulta',
+      summary: 'O Health Nexus possui módulo de <strong>Telemedicina integrada</strong> com salas de videochamada criptografadas ponto a ponto, gravação de consentimento e atendimento sincronizado ao Prontuário Eletrônico (PEP).',
+      actionText: '🩺 Ir para Consultórios & PEP',
+      actionType: 'switchTab',
+      actionTarget: 'consultorios'
+    };
+  }
+
+  // ── DITADO POR VOZ & VOICE-TO-SOAP ───────────────────────────────────
+  if (has('ditado por voz', 'voice-to-soap', 'transcricao de voz', 'gravar anamnese', 'reconhecimento de voz')) {
+    return {
+      title: 'Nexus AI Copilot — Ditado Clínico Voice-to-SOAP',
+      summary: 'O motor <strong>Voice-to-SOAP</strong> permite ao médico ditar a consulta em linguagem natural através do microfone. A inteligência clínica processa a fala e preenche automaticamente os campos Subjetivo, Objetivo, Avaliação e Plano no prontuário.',
+      actionText: '🩺 Ir para Consultórios & PEP',
+      actionType: 'switchTab',
+      actionTarget: 'consultorios'
+    };
+  }
+
+  // ── WHATSAPP & COMUNICAÇÃO ASSISTENCIAL ──────────────────────────────
+  if (has('whatsapp', 'mensagem paciente', 'lembrete consulta', 'notificacao whatsapp')) {
+    return {
+      title: 'Nexus AI Copilot — Notificações Assistenciais via WhatsApp',
+      summary: 'Envio de <strong>lembretes de agendamento, orientações pós-atendimento e receitas digitais</strong> via WhatsApp diretamente a partir da Agenda ou do PEP com apenas um clique.',
+      actionText: '📅 Abrir Agenda',
+      actionType: 'switchTab',
+      actionTarget: 'agenda'
+    };
   }
 
   // ── MANUAL / AJUDA ───────────────────────────────────────────────────

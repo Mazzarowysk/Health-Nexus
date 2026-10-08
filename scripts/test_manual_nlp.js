@@ -16,7 +16,14 @@ const testQueries = [
   'excluir paciente',
   'cadastrar medico',
   'novo leito',
-  'faturamento'
+  'faturamento',
+  'etiqueta',
+  'etiquetas pimaco',
+  'pimaco 6180',
+  'pulseira',
+  'kit admissao',
+  'consulta dinamica',
+  'solicitar exames'
 ];
 
 console.log('🧪 INICIANDO TESTES DE BUSCA E PLN DO MANUAL INTERATIVO:\n');

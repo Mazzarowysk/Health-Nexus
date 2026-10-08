@@ -1,6 +1,6 @@
-# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.42)
+# 📘 Manual do Usuário Completo & Guia Operacional — Health Nexus (v2.9.43)
 
-> **Health Nexus v2.9.42 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
+> **Health Nexus v2.9.43 — Gestão Hospitalar, Suporte Clínico Integrado & Faturamento TISS 4.01**  
 > Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, emissão de etiquetas hospitalares (pulseira e amostras) com suporte a rolo térmico contínuo, cartelas adesivas Pimaco 6180 (30 un) e Pimaco 6281 (20 un) com posição inicial customizada, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames & SADT, Smart Flow Guide com alto contraste garantido no hover/ativação de cards, tipografia ampliada e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.
 
 ---
@@ -224,6 +224,18 @@ A 4ª coluna do Kanban e a aba dedicada **Observação do PS** operam em conform
 | **Prescrição** | 📜 | Prescrição de medicações rápidas | Medicamento e via | Prescreve hidratação venosa, analgésicos e antieméticos no PS. |
 | **Internar** | 🛏️ | Abre modal de alocação de leito | Setor (UTI/Enfermaria) | Transfere o paciente para a Central de Leitos e libera a vaga de observação. |
 | **Alta Obs** | 🚶 | Concede alta da observação médica | Confirmação do operador | Finaliza o atendimento no PS, libera a poltrona e atualiza a aba Pacientes com status "Alta" e carimbo de data/hora. |
+
+---
+
+<h3 id="sec-2-8">2.8. Localizador Universal & Consulta Dinâmica Multi-Modalidade</h3>
+
+O botão **"Consulta Dinâmica"** localizado no cabeçalho da Central de Atendimentos abre a janela de busca avançada em tempo real. Esta ferramenta atende equipes de recepção, acolhimento, enfermagem e coordenação médica:
+
+- **Busca Instantânea:** Digitação reativa por Nome do Paciente, CPF ou Prontuário, com filtragem imediata em milissegundos.
+- **Filtros por Modalidade:** Alternância com um clique entre Ambulatório, Pronto-Socorro / Urgência, Observação, Internação e Pacientes com Alta.
+- **Ações Imediatas:** Cada card de resultado disponibiliza botões para emissão instantânea de etiquetas hospitalares (`🏷️ Imprimir Etiquetas`) e acesso direto ao prontuário (`🩺 Abrir PEP`).
+
+![Figura 2.2: Consulta Dinâmica de Atendimentos Multi-Modalidade — Localizador em Tempo Real e Emissão Rápida](docs/screenshots/17-consulta-dinamica.png)
 
 ---
 
@@ -1385,6 +1397,8 @@ Para unidades de saúde e laboratórios que utilizam impressoras convencionais (
 - **⚡ Botões de Preenchimento Rápido:**  
   Atalhos de 1 clique para `Preencher Folha Inteira (30 un ou 20 un)` ou `Preencher 1 Coluna (10 un)`.
 
+![Figura 25.1: Emissão de Etiquetas Térmicas e Cartelas Adesivas Pimaco — Modelos 6180 e 6281 com Seleção de Posição Inicial](docs/screenshots/18-etiquetas-pimaco.png)
+
 ---
 
-*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.42 do Health Nexus. Todos os direitos reservados.*
+*Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.43 do Health Nexus. Todos os direitos reservados.*

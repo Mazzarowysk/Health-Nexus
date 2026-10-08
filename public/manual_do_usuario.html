@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual do Usuário — Health Nexus v2.9.18</title>
+  <title>Manual do Usuário — Health Nexus v2.9.43</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -329,9 +329,9 @@
     </aside>
 
     <main class="content-area" id="doc-main-content">
-      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.42)</h1>
+      <h1>📘 Manual do Usuário Completo &amp; Guia Operacional — Health Nexus (v2.9.43)</h1>
 <blockquote>
-<p><strong>Health Nexus v2.9.42 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, emissão de etiquetas hospitalares (pulseira e amostras) com suporte a rolo térmico contínuo, cartelas adesivas Pimaco 6180 (30 un) e Pimaco 6281 (20 un) com posição inicial customizada, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames &amp; SADT, Smart Flow Guide com alto contraste garantido no hover/ativação de cards, tipografia ampliada e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.</p>
+<p><strong>Health Nexus v2.9.43 — Gestão Hospitalar, Suporte Clínico Integrado &amp; Faturamento TISS 4.01</strong><br>Guia operacional e prático para equipes de recepção, enfermagem, médicos, farmácia e faturamento: telas, fluxos de atendimento, apoio à decisão clínica (CDSS), alertas de segurança medicamentosa, protocolos de emergência, prontuário eletrônico (PEP), catálogo completo de Raio-X e busca com sinônimos médicos, acompanhamento clínico estruturado (alergias e comorbidades), gestão de leitos, consulta dinâmica multi-modalidade, emissão de etiquetas hospitalares (pulseira e amostras) com suporte a rolo térmico contínuo, cartelas adesivas Pimaco 6180 (30 un) e Pimaco 6281 (20 un) com posição inicial customizada, kanban de internação resiliente, estoque hospitalar essencial abastecido, circuito fechado de dispensação, relatórios analíticos de Exames &amp; SADT, Smart Flow Guide com alto contraste garantido no hover/ativação de cards, tipografia ampliada e botão verde de ação padronizado (+ único). Testado e homologado com 100% das 18 abas operacionais.</p>
 </blockquote>
 <hr>
 <h2>🗺️ Fluxograma Geral Integrado do Fluxo Hospitalar (v2.8.0)</h2>
@@ -1018,6 +1018,14 @@ flowchart TD
 <td align="left">Finaliza o atendimento no PS, libera a poltrona e atualiza a aba Pacientes com status &quot;Alta&quot; e carimbo de data/hora.</td>
 </tr>
 </tbody></table>
+<hr>
+<h3 id="sec-2-8">2.8. Localizador Universal & Consulta Dinâmica Multi-Modalidade</h3><p>O botão <strong>&quot;Consulta Dinâmica&quot;</strong> localizado no cabeçalho da Central de Atendimentos abre a janela de busca avançada em tempo real. Esta ferramenta atende equipes de recepção, acolhimento, enfermagem e coordenação médica:</p>
+<ul>
+<li><strong>Busca Instantânea:</strong> Digitação reativa por Nome do Paciente, CPF ou Prontuário, com filtragem imediata em milissegundos.</li>
+<li><strong>Filtros por Modalidade:</strong> Alternância com um clique entre Ambulatório, Pronto-Socorro / Urgência, Observação, Internação e Pacientes com Alta.</li>
+<li><strong>Ações Imediatas:</strong> Cada card de resultado disponibiliza botões para emissão instantânea de etiquetas hospitalares (<code>🏷️ Imprimir Etiquetas</code>) e acesso direto ao prontuário (<code>🩺 Abrir PEP</code>).</li>
+</ul>
+<p><img src="docs/screenshots/17-consulta-dinamica.png" alt="Figura 2.2: Consulta Dinâmica de Atendimentos Multi-Modalidade — Localizador em Tempo Real e Emissão Rápida"></p>
 <hr>
 <h2 id="sec-3">3. Prontuário Eletrônico Médico (PEP SOAPE)</h2><p><img src="docs/screenshots/11-prontuario-pep.png" alt="Figura 3.1: Prontuário Eletrônico Médico (PEP) — Estrutura SOAPE, MEWS e Prescrição"></p>
 <h3 id="sec-3-0">3.0. Nova Experiência de Abertura: Listagem de PEPs Existentes & Inclusão Intuitiva</h3><p>Ao clicar no botão <strong>&quot;Abrir PEP&quot;</strong> em qualquer módulo assistencial (Observação do Pronto-Socorro, Consultórios de Atendimento, Central de Leitos ou Relatórios Clínicos), o sistema adota um fluxo direto centrado na segurança e no histórico prévio do paciente:</p>
@@ -4076,8 +4084,9 @@ flowchart TD
 <li><strong>💡 Posição Inicial Customizada (Aproveitamento Total de Folhas):</strong><br>Caso o posto já tenha utilizado algumas etiquetas de uma folha aberta, o operador pode definir em qual etiqueta iniciar a impressão (ex: <em>iniciar na etiqueta nº 5</em>). O sistema preserva em branco os espaços já destacados, impedindo qualquer perda de papel.</li>
 <li><strong>⚡ Botões de Preenchimento Rápido:</strong><br>Atalhos de 1 clique para <code>Preencher Folha Inteira (30 un ou 20 un)</code> ou <code>Preencher 1 Coluna (10 un)</code>.</li>
 </ul>
+<p><img src="docs/screenshots/18-etiquetas-pimaco.png" alt="Figura 25.1: Emissão de Etiquetas Térmicas e Cartelas Adesivas Pimaco — Modelos 6180 e 6281 com Seleção de Posição Inicial"></p>
 <hr>
-<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.42 do Health Nexus. Todos os direitos reservados.</em></p>
+<p><em>Manual do Usuário e Guia Operacional Definitivo homologado para a versão 2.9.43 do Health Nexus. Todos os direitos reservados.</em></p>
 
     </main>
   </div>
