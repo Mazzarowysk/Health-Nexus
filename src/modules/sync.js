@@ -6,6 +6,22 @@ import * as localDB from '../localDB.js';
 import { state } from '../state.js';
 import { showToast, showCustomAlert } from './ui.js';
 
+// Vault padrão de contingência para conexões diretas (navegador ou Vercel sem proxy backend)
+const DEFAULT_TURSO_DIRECT = {
+  u: 'https://health-nexus-mazzarowysk.aws-us-east-1.turso.io/v2/pipeline',
+  t: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODYxNDU1NTgsImlkIjoiMDE5Zjc1YmYtMTUwMS03YmMyLTlkYTQtZTA1ZGIxMzdiYjEyIiwia2lkIjoiU0RZWEtINkIzZWg1b3JtRDBPRXpUbmhUaGpFMllXRXJxbjhCNVFnSmVLZyIsInJpZCI6Ijg4YTY2NjM0LTM3YWQtNGEyZC04ZmUxLTFmYjM3ZDAxNGE4YiJ9.teLr9MEIIXvjkOJh_nUWWaGwJuF0vnFwaMdUsyQLQba1kLOP30ziYQJkCWDDbADYl74zhYLujOwdr0Gg5EWoAg'
+};
+
+const getDirectTursoCredentials = () => {
+  const customUrl = (typeof localStorage !== 'undefined' && localStorage.getItem('turso_custom_url')) || '';
+  const customToken = (typeof localStorage !== 'undefined' && localStorage.getItem('turso_custom_token')) || '';
+  if (customUrl && customToken) {
+    const directUrl = customUrl.replace(/^libsql:\/\//i, 'https://').replace(/\/$/, '') + '/v2/pipeline';
+    return { url: directUrl, token: customToken };
+  }
+  return { url: DEFAULT_TURSO_DIRECT.u, token: DEFAULT_TURSO_DIRECT.t };
+};
+
 // Helper para formatação de datas pt-BR (ex: 20/07/2026, 16:06:49)
 export const formatSyncDate = (isoOrDate) => {
   if (!isoOrDate || isoOrDate === 'Sem dados') return 'Sem dados';
@@ -311,13 +327,9 @@ export class SyncManager {
   }
 
   async pushDirectToTurso(dados_json, config_json) {
-    const customUrl = (typeof localStorage !== 'undefined' && localStorage.getItem('turso_custom_url')) || '';
-    const customToken = (typeof localStorage !== 'undefined' && localStorage.getItem('turso_custom_token')) || '';
-    if (!customUrl || !customToken) {
-      throw new Error('Conexão direta requer proxy /api/turso ou credenciais customizadas.');
-    }
-    const directUrl = customUrl.replace(/^libsql:\/\//i, 'https://').replace(/\/$/, '') + '/v2/pipeline';
-    const directToken = customToken;
+    const creds = getDirectTursoCredentials();
+    const directUrl = creds.url;
+    const directToken = creds.token;
     const now = Date.now();
 
     const pipelineBody = {
@@ -345,13 +357,9 @@ export class SyncManager {
   }
 
   async pullDirectFromTurso() {
-    const customUrl = (typeof localStorage !== 'undefined' && localStorage.getItem('turso_custom_url')) || '';
-    const customToken = (typeof localStorage !== 'undefined' && localStorage.getItem('turso_custom_token')) || '';
-    if (!customUrl || !customToken) {
-      throw new Error('Conexão direta requer proxy /api/turso ou credenciais customizadas.');
-    }
-    const directUrl = customUrl.replace(/^libsql:\/\//i, 'https://').replace(/\/$/, '') + '/v2/pipeline';
-    const directToken = customToken;
+    const creds = getDirectTursoCredentials();
+    const directUrl = creds.url;
+    const directToken = creds.token;
 
     const pipelineBody = {
       requests: [
