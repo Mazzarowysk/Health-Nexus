@@ -586,7 +586,7 @@ export const syncManager = new SyncManager();
 
 export const getSyncStatus = async () => {
   const isVercel = window.location.hostname.includes('vercel.app');
-  const localUpdated = localDB.getLocalUpdatedAt();
+  let localUpdated = localDB.getLocalUpdatedAt();
   
   try {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -616,6 +616,22 @@ export const getSyncStatus = async () => {
       } catch(e) {}
     }
 
+    // Se o cliente local não possui pacientes (base zerada/vazia ou recém-aberta em outro navegador)
+    // mas a Nuvem Turso possui dados cadastrados, a nuvem SEMPRE prevalece sobre a base vazia local!
+    let localPatientsCount = 0;
+    try {
+      const stored = localStorage.getItem('healthNexusDados');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        localPatientsCount = (parsed.patients || []).length;
+      }
+    } catch (_) {}
+
+    // Se o banco local estiver vazio de pacientes e a nuvem possuir dados, força cloudUpdated como autoritativo
+    if (localPatientsCount === 0 && cloudUpdated > 0) {
+      localUpdated = 0;
+    }
+
     const local_updates = (localUpdated > cloudUpdated && cloudUpdated > 0) ? 1 : 0;
     const synchronized = (localUpdated === cloudUpdated) || (local_updates === 0);
 
@@ -624,9 +640,9 @@ export const getSyncStatus = async () => {
       cloudReachable: !cloudOffline,
       synchronized: synchronized,
       local_updates: local_updates,
-      localTimestamps: { main_data: localUpdated || cloudUpdated },
+      localTimestamps: { main_data: localUpdated },
       cloudTimestamps: { main_data: cloudUpdated },
-      lastLocalBackup: localUpdated || cloudUpdated,
+      lastLocalBackup: localUpdated,
       lastCloudBackup: cloudUpdated,
       isVercel: isVercel,
       conflict: false
