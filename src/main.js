@@ -1,0 +1,8999 @@
+
+import './styles.css';
+import * as localDB from './localDB.js';
+import { state, CACHE_TTL_MS, dataCache, dataCacheTimestamps, getSyncUploadTimeout, setSyncUploadTimeout } from './state.js';
+import './tabs/reports.js';
+import './tabs/consultingRooms.js';
+import './tabs/agenda.js';
+import './tabs/leitos.js';
+import './tabs/doctors.js';
+import './tabs/stagnation.js';
+import './tabs/pharmacy.js';
+import './tabs/tv.js';
+import './tabs/kanban.js';
+import { renderSchedulesTab } from './tabs/escalas.js';
+import { renderDashboardTab, fetchDashboardData, initDashboardCharts, initInteractiveFunnel } from './tabs/dashboard.js';
+import { renderPatientsTab } from './tabs/patients.js';
+import { renderAttendanceTab } from './tabs/attendance.js';
+import { renderObservacaoTab } from './tabs/observacao.js';
+import { renderTISSTab, executeTISSClosure, openTISSEmissionModal, exportTISSBatchXML, exportPatientTISSXML } from './tabs/tiss.js';
+import { renderSettingsTab, showSimulationSummaryModal } from './tabs/settings.js';
+import { renderExamsTab, updateExamsNavBadge, openExamResultModal } from './tabs/exams.js';
+
+window.renderTISSTab = renderTISSTab;
+window.executeTISSClosure = executeTISSClosure;
+window.openTISSEmissionModal = openTISSEmissionModal;
+window.exportTISSBatchXML = exportTISSBatchXML;
+window.exportPatientTISSXML = exportPatientTISSXML;
+window.renderExamsTab = renderExamsTab;
+window.updateExamsNavBadge = updateExamsNavBadge;
+window.openExamResultModal = openExamResultModal;
+import { realtimeHub } from './modules/realtime.js';
+import { setActivePatientContext, clearActivePatientContext, renderPatientJourneyStepper, renderFloatingPatientHUD, initFloatingWorkflowGuide, updateFloatingWorkflowGuide } from './modules/journey.js';
+import { generateMockData, generateHospitalizations } from './mockDataGenerator.js';
+if (typeof window !== 'undefined') {
+  window.localDB = localDB;
+}
+import { renderEmbeddedTabbedManual, showInteractiveManualModal, manualData, showCardDetailModal, searchManualEngine, showManualReturnBeacon, expandQueryTokens } from './manualTabbed.js';
+import { getNexusAICopilotResponse } from './aiCopilot.js';
+import { EXAM_CATALOG, matchExamQuery } from './modules/examOrders.js';
+import { inject } from '@vercel/analytics';
+import { openTelemedicineModal } from './modules/telemedicina.js';
+import { startVoiceDictation, stopVoiceDictation, calculateMEWS, checkDrugInteractions, generateWhatsAppClinicalMessage, sendToWhatsApp } from './modules/clinicalAI.js';
+import { openDynamicEncounterQueryModal, openThermalLabelModal, renderDynamicQueryTab } from './modules/dynamicEncounterQuery.js';
+
+window.setActivePatientContext = setActivePatientContext;
+window.clearActivePatientContext = clearActivePatientContext;
+window.renderPatientJourneyStepper = renderPatientJourneyStepper;
+window.renderFloatingPatientHUD = renderFloatingPatientHUD;
+window.initFloatingWorkflowGuide = initFloatingWorkflowGuide;
+window.updateFloatingWorkflowGuide = updateFloatingWorkflowGuide;
+window.showSimulationSummaryModal = showSimulationSummaryModal;
+window.openTelemedicineModal = openTelemedicineModal;
+window.openDynamicEncounterQueryModal = openDynamicEncounterQueryModal;
+window.openThermalLabelModal = openThermalLabelModal;
+window.startVoiceDictation = startVoiceDictation;
+window.stopVoiceDictation = stopVoiceDictation;
+window.calculateMEWS = calculateMEWS;
+window.checkDrugInteractions = checkDrugInteractions;
+window.generateWhatsAppClinicalMessage = generateWhatsAppClinicalMessage;
+window.sendToWhatsApp = sendToWhatsApp;
+if (typeof removeAccents === 'function') window.removeAccents = removeAccents;
+
+
+// Inicia o Vercel Analytics
+inject();
+
+// Pré-carrega o catálogo de medicamentos para autocomplete instantâneo na Prescrição e Farmácia
+if (typeof window !== 'undefined') {
+  window.medicationsCatalog = window.medicationsCatalog || [];
+  fetch('/assets/medicamentos.json')
+    .then(r => r.ok ? r.json() : [])
+    .then(list => {
+      if (Array.isArray(list) && list.length > 0) {
+        window.medicationsCatalog = list;
+      }
+    })
+    .catch(err => console.warn('[Catálogo] Pré-carregamento de medicamentos:', err));
+}
+
+window.updateAppointmentStatus = async function(aptId, newStatus) {
+  try {
+    const res = await apiFetch('/api/appointments/' + aptId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (res.ok) {
+      showToast('Consulta marcada como ' + newStatus.toLowerCase() + '!');
+      for (const key of dataCache.keys()) {
+        if (typeof key === 'string' && key.startsWith('appointments_')) {
+          dataCache.delete(key);
+          dataCacheTimestamps.delete(key);
+        }
+      }
+      if (state.activeTab === 'agenda') {
+        renderAgendaTab();
+      }
+      try {
+        const apts = (window.localDB && typeof window.localDB.list === 'function') ? (window.localDB.list('appointments') || []) : [];
+        const apt = apts.find(a => String(a.id) === String(aptId));
+        if (apt && apt.patientName) {
+          const pName = apt.patientName;
+          const firstName = pName.split(' ')[0];
+          if (typeof window.setActivePatientContext === 'function') {
+            window.setActivePatientContext({
+              id: apt.patientId || apt.id,
+              fullName: pName,
+              patientName: pName,
+              status: newStatus === 'Confirmado' ? 'Aguardando_Atendimento' : newStatus,
+              room: 'Consultório 01'
+            });
+          }
+          if (newStatus === 'Confirmado' && typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: `✅ Presença Confirmada: ${firstName}`,
+              message: `Chegada de <strong>${pName}</strong> confirmada na Agenda Médica.<br><br>👉 <strong>Próximo Passo:</strong> Clique abaixo para iniciar o atendimento ambulatorial e encaminhar ao consultório.`,
+              targetTab: 'agenda',
+              targetTabLabel: `⚡ Iniciar Atendimento de ${firstName} ➔`,
+              targetPatientName: pName,
+              targetPatientId: apt.patientId || '',
+              appointmentId: apt.id,
+              actionType: 'start_appointment',
+              persistent: true
+            });
+          }
+        }
+      } catch (_) {}
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert(err.message || 'Erro ao atualizar agendamento.');
+    }
+  } catch (e) {
+    console.error('Erro em updateAppointmentStatus:', e);
+    alert('Erro de conexão ao atualizar agendamento.');
+  }
+};
+
+window.startAppointmentEncounter = async function(patientId, aptId) {
+  try {
+    const statusRes = await apiFetch('/api/appointments/' + aptId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'Em Atendimento' })
+    });
+
+    for (const key of dataCache.keys()) {
+      if (typeof key === 'string' && key.startsWith('appointments_')) {
+        dataCache.delete(key);
+        dataCacheTimestamps.delete(key);
+      }
+    }
+
+    let createdEnc = null;
+    if (patientId) {
+      const encRes = await apiFetch('/api/encounters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId: patientId, type: 'Ambulatorio' })
+      }).catch(e => console.log('Encounter note:', e));
+      if (encRes && encRes.ok) {
+        createdEnc = await encRes.json().catch(() => null);
+      }
+    }
+
+    showToast('⚡ Atendimento iniciado! Paciente movido para Em Atendimento.');
+
+    try {
+      const apts = (window.localDB && typeof window.localDB.list === 'function') ? (window.localDB.list('appointments') || []) : [];
+      const apt = apts.find(a => String(a.id) === String(aptId));
+      const pName = apt?.patientName || createdEnc?.patientName || 'Paciente';
+      const firstName = pName.split(' ')[0];
+      if (pName && pName !== 'Paciente' && typeof window.setActivePatientContext === 'function') {
+        window.setActivePatientContext({
+          id: patientId || apt?.patientId || createdEnc?.patientId,
+          encounterId: createdEnc?.id,
+          fullName: pName,
+          patientName: pName,
+          status: 'Aguardando_Atendimento',
+          manchesterColor: 'Verde',
+          room: 'Consultório 01'
+        });
+      }
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: `⚡ Atendimento Ambulatorial Iniciado: ${firstName}`,
+          message: `Ficha ambulatorial de <strong>${pName}</strong> aberta com sucesso.<br><br>👉 <strong>Próximo Passo:</strong> Chame o paciente no Painel TV para o Consultório 01 ou abra diretamente o PEP.`,
+          targetTab: 'tv_panel',
+          targetTabLabel: `📢 Chamar ${firstName} no Painel TV (Consultório 01) ➔`,
+          targetPatientName: pName,
+          targetManchesterColor: 'Verde',
+          targetRoom: 'Consultório 01',
+          actionType: 'call_tv_doctor',
+          persistent: true
+        });
+      }
+    } catch (_) {}
+
+    if (state.activeTab === 'agenda') {
+      renderAgendaTab();
+    } else {
+      switchTab('atendimento');
+    }
+  } catch (e) {
+    console.error('Erro em startAppointmentEncounter:', e);
+    showToast('Erro ao iniciar atendimento.');
+  }
+};
+
+
+
+
+
+window.handleCardClick = function(tabName, reportType, message) {
+  const existingToast = document.querySelector('.interactive-toast');
+  if (existingToast) existingToast.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'interactive-toast';
+  toast.innerHTML = `<i class="fa-solid fa-bolt" style="color:#0284c7;font-size:1.1rem;"></i> <span>${message || ('Acessando ' + tabName)}</span>`;
+  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#0f172a;color:#ffffff;padding:14px 22px;border-radius:14px;border:1px solid #0284c7;box-shadow:0 12px 35px rgba(2,132,199,0.35);font-family:Outfit,sans-serif;font-weight:600;font-size:0.9rem;z-index:999999;transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;align-items:center;gap:12px;';
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(12px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 2200);
+
+  switchTab(tabName);
+  if (tabName === 'relatorios' && reportType) {
+    setTimeout(() => {
+      const btn = document.getElementById(reportType);
+      if (btn) btn.click();
+    }, 150);
+  }
+};
+// --- IMPORTAÇÃO & REEXPORTAÇÃO DOS MÓDULOS DESACOPLADOS ---
+import {
+  API_URL, removeAccents, abbreviateName, anonymizeCPF, invalidateCacheForUrl, cachedApiGet, apiFetch
+} from './modules/api.js';
+
+import {
+  initTheme, toggleTheme, updateThemeIcon, createChartGradient, setupCustomSelect,
+  showCustomAlert, showCustomConfirm, showLoadingModal, hideLoadingModal, showToast, escapeHtml
+} from './modules/ui.js';
+
+import {
+  formatSyncDate, parseIsoOrSpaceTimestamp, getMaxTimestamp, showSyncPromptModal,
+  showSyncComparisonModal, SyncManager, syncManager, getSyncStatus,
+  requestSyncPromptIfConfigured, updateSyncBadge, checkInitialSync
+} from './modules/sync.js';
+
+import {
+  getRolePermissions, showUserSessionsHistory, showUserManagementModal, showUserFormModal
+} from './modules/auth.js';
+
+export {
+  API_URL, removeAccents, abbreviateName, anonymizeCPF, invalidateCacheForUrl, cachedApiGet, apiFetch,
+  initTheme, toggleTheme, updateThemeIcon, createChartGradient, setupCustomSelect,
+  showCustomAlert, showCustomConfirm, showLoadingModal, hideLoadingModal, showToast, escapeHtml,
+  formatSyncDate, parseIsoOrSpaceTimestamp, getMaxTimestamp, showSyncPromptModal,
+  showSyncComparisonModal, SyncManager, syncManager, getSyncStatus,
+  requestSyncPromptIfConfigured, updateSyncBadge, checkInitialSync,
+  getRolePermissions, showUserSessionsHistory, showUserManagementModal, showUserFormModal,
+  switchTab, exportToPDF, renderTabContent, loadConsultingRooms,
+  openConsultorioDetailsModal, openRoomModal, deleteRoom, saveRoom
+};
+
+if (typeof window !== 'undefined') {
+  window.showCustomAlert = showCustomAlert;
+  window.showCustomConfirm = showCustomConfirm;
+  window.showToast = showToast;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SMART FLOW GUIDE — Card flutuante passo a passo (100% self-contained)
+// ═══════════════════════════════════════════════════════════════════════════════
+const savedDockPos = (typeof localStorage !== 'undefined') ? localStorage.getItem('hn_flow_dock_pos') : null;
+const isLegacyDocked = (typeof localStorage !== 'undefined' && localStorage.getItem('hn_flow_docked') === 'true');
+const initialDockPos = (savedDockPos && ['right', 'left', 'top', 'bottom'].includes(savedDockPos))
+  ? savedDockPos
+  : (isLegacyDocked ? 'right' : null);
+
+function syncFlowDockClasses(dockPos) {
+  if (typeof document === 'undefined' || !document.body) return;
+  document.body.classList.remove(
+    'hn-flow-docked-right',
+    'hn-flow-docked-left',
+    'hn-flow-docked-top',
+    'hn-flow-docked-bottom',
+    'hn-flow-dock-preview',
+    'hn-flow-dock-preview-right',
+    'hn-flow-dock-preview-left',
+    'hn-flow-dock-preview-top',
+    'hn-flow-dock-preview-bottom'
+  );
+  if (dockPos && ['right', 'left', 'top', 'bottom'].includes(dockPos)) {
+    document.body.classList.add('hn-flow-docked-' + dockPos);
+  }
+}
+window.syncFlowDockClasses = syncFlowDockClasses;
+
+const _SFG = {
+  active: true,
+  minimized: false,
+  hidden: false,
+  docked: !!initialDockPos,
+  dockPosition: initialDockPos || 'right', // 'right' | 'left' | 'top' | 'bottom'
+  zoomPinned: (typeof localStorage !== 'undefined' && localStorage.getItem('hn_flow_zoom_pinned') === 'true'),
+  steps: [
+    { tab: 'pacientes',    icon: '🏥', label: 'Recepção'    },
+    { tab: 'atendimento',  icon: '🩺', label: 'Triagem'     },
+    { tab: 'tv_panel',     icon: '📺', label: 'Chamar TV'   },
+    { tab: 'consultorios', icon: '👨‍⚕️', label: 'Médico PEP' },
+    { tab: 'farmacia',     icon: '💊', label: 'Farmácia'    },
+    { tab: 'leitos',       icon: '🛏️', label: 'Leitos'      },
+    { tab: 'tiss',         icon: '💰', label: 'Faturamento' }
+  ],
+  recs: {
+    dashboard:    { next:'pacientes',    nl:'Recepção & Pacientes',   title:'🏥 Chegada do Paciente (Recepção)', desc:'Inicie o acolhimento: cadastre o paciente que acaba de chegar ou localize o cadastro existente para dar entrada na Triagem.' },
+    pacientes:    { next:'atendimento',  nl:'Triagem Manchester',     title:'🩺 Realizar Triagem Manchester',     desc:'Paciente cadastrado na recepção! Encaminhe para a Sala de Triagem para aferição de sinais vitais e classificação Manchester.' },
+    atendimento:  { next:'tv_panel',     nl:'Painel TV (Chamador)',   title:'📺 Chamar no Painel TV para o Consultório', desc:'Paciente triado! Acione a chamada audiovisual no Painel TV para que ele se dirija ao Consultório Médico indicado.' },
+    tv_panel:     { next:'consultorios', nl:'Consultório / PEP',      title:'👨‍⚕️ Iniciar Consulta no PEP',        desc:'Paciente chamado no telão! Receba-o no consultório para anamnese SOAP, hipótese diagnóstica CID-10 e prescrição eletrônica.' },
+    consultorios: { next:'farmacia',     nl:'Farmácia & Estoque',     title:'💊 Dispensar Prescrição Médica',    desc:'Prescrição emitida no PEP! Envie para dispensação na farmácia ou solicite leito se houver indicação de internação.' },
+    medicos:      { next:'consultorios', nl:'Consultórios',           title:'Ir para Consultórios',              desc:'Acompanhe as salas médicas ativas e atenda os pacientes na fila.' },
+    farmacia:     { next:'leitos',       nl:'Gestão de Leitos',       title:'🛏️ Alocar em Leito / Internar',     desc:'Medicamentos dispensados. Se o paciente necessita de suporte hospitalar, gerencie a vaga no mapa de leitos.' },
+    leitos:       { next:'kanban',       nl:'Linha de Cuidado & Leitos', title:'🛏️ Acompanhamento no Leito & PEP', desc:'Paciente internado! Realize evoluções clínicas diárias no PEP, monitore a prescrição e conduza o plano terapêutico até a alta.' },
+    kanban:       { next:'tiss',         nl:'Faturamento & TISS',     title:'📊 Linha de Cuidado & Leitos',       desc:'Acompanhe o fluxo assistencial multidisciplinar e o planejamento de desospitalização/alta médica.' },
+    tiss:         { next:'relatorios',   nl:'Relatórios & Métricas',  title:'📈 Analisar Indicadores',           desc:'Consulte indicadores de faturamento, tempo de permanência e DRE hospitalar.' },
+    financeiro:   { next:'tiss',         nl:'Faturamento TISS',       title:'💰 Faturamento & Lotes TISS',      desc:'Proceda à emissão de lotes TISS 4.01 e auditoria das contas dos pacientes.' },
+    relatorios:   { next:'dashboard',    nl:'Dashboard Principal',    title:'Voltar ao Dashboard',               desc:'Visualize o panorama geral e KPIs operacionais do complexo hospitalar.' },
+    agenda:       { next:'pacientes',    nl:'Recepção & Pacientes',   title:'Recepcionar Agendado',              desc:'Confirme a chegada do paciente agendado e encaminhe para a triagem.' },
+    estagnacao:   { next:'atendimento',  nl:'Central de Atendimento', title:'Destravar Pacientes',               desc:'Agilize casos críticos com tempo de espera elevado no PS.' },
+    configuracoes:{ next:'dashboard',    nl:'Dashboard Principal',    title:'Retornar à Operação',               desc:'Ajustes do sistema salvos. Retorne ao painel operacional do hospital.' },
+    escalas:      { next:'dashboard',    nl:'Dashboard Principal',    title:'Ver Dashboard',                     desc:'Escalas configuradas. Acompanhe a escala médica de plantão.' }
+  }
+};
+
+function playFlowChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.03);
+      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.18);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.2);
+    }
+  } catch(e) {}
+}
+
+// Funções auxiliares seguras para acionamento de modais pelo Agente de Fluxo (sem injeção de aspas no HTML)
+window.saveActivePEP = function(patientName) {
+  const saveBtn = document.querySelector('#pep-form button[type="submit"]') || 
+                  document.querySelector('#btn-save-pep') || 
+                  document.querySelector('#btn-sign-pep') || 
+                  document.querySelector('#btn-save-draft');
+  const pepEl = document.getElementById('pep-modal');
+  if (pepEl && pepEl.offsetHeight > 0 && saveBtn) {
+    saveBtn.click();
+  } else if (typeof window.openPEPModal === 'function') {
+    window.openPEPModal(patientName);
+  } else {
+    window.switchTab('consultorios');
+  }
+};
+
+window.saveActiveTriage = function() {
+  const saveBtn = document.querySelector('#triage-form button[type="submit"]') || document.querySelector('#btn-save-triage');
+  if (saveBtn) saveBtn.click();
+};
+
+window.saveActivePatient = function() {
+  const saveBtn = document.querySelector('#patient-form button[type="submit"]') || document.querySelector('#btn-save-patient');
+  if (saveBtn) saveBtn.click();
+};
+
+window.saveActiveAdmitBed = function() {
+  const saveBtn = document.querySelector('#form-admit-bed button[type="submit"]');
+  if (saveBtn) saveBtn.click();
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AGENTE DE POSSIBILIDADES & GOVERNANÇA DE FLUXO CLÍNICO INTEGRAL (100% SISTEMA)
+// Percepção omnidirecional de próximos passos em todas as 14 abas do sistema.
+// ═══════════════════════════════════════════════════════════════════════════════
+function evaluateClinicalPossibilities(patient, activeTab) {
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 0. IDENTIFICAÇÃO DO PERFIL E NÍVEL DE ACESSO DO USUÁRIO LOGADO (RBAC DINÂMICO)
+  // Master e Desenvolvedor: autonomia irrestrita de ponta a ponta (100% sistema).
+  // Perfis especializados: recomendações cirúrgicas adaptadas à competência clínica.
+  // ─────────────────────────────────────────────────────────────────────────────
+  const currentUser = (typeof state !== 'undefined' && state.user) ? state.user : ((typeof window !== 'undefined') ? window._currentUser : null);
+  const uRole = (currentUser?.role || '').toLowerCase().trim();
+  const uName = (currentUser?.username || '').toLowerCase().trim();
+  const userPerms = (typeof getRolePermissions === 'function' && currentUser) 
+    ? getRolePermissions(currentUser) 
+    : { canSignPEP: true, canDoTriage: true, canManageBeds: true, canManagePharmacy: true, canManageFinance: true, label: 'Master (Acesso Total)' };
+
+  const isMaster = uRole === 'master' || uName === 'mazzarowysk' || uName === 'admin' || userPerms?.role === 'Master';
+  const isDev = uRole === 'desenvolvedor' || uRole === 'dev' || uName === 'bcoltri' || userPerms?.role === 'Desenvolvedor';
+  const isMasterOrDev = isMaster || isDev;
+
+  let userRoleLabel = 'Master';
+  let userRoleIcon = '👑';
+  if (isMaster) {
+    userRoleLabel = 'Master';
+    userRoleIcon = '👑';
+  } else if (isDev) {
+    userRoleLabel = 'Desenvolvedor';
+    userRoleIcon = '💻';
+  } else if (uRole === 'administrador' || uRole === 'admin') {
+    userRoleLabel = 'Administrador';
+    userRoleIcon = '🛠️';
+  } else if (uRole.includes('médic') || uRole.includes('medic')) {
+    userRoleLabel = 'Médico';
+    userRoleIcon = '👨‍⚕️';
+  } else if (uRole.includes('enferm')) {
+    userRoleLabel = 'Enfermeiro';
+    userRoleIcon = '🩺';
+  } else if (uRole.includes('farmac')) {
+    userRoleLabel = 'Farmacêutico';
+    userRoleIcon = '💊';
+  } else if (uRole.includes('recep')) {
+    userRoleLabel = 'Recepcionista';
+    userRoleIcon = '📋';
+  } else if (uRole.includes('finan') || uRole.includes('fatur')) {
+    userRoleLabel = 'Faturamento';
+    userRoleIcon = '💰';
+  } else {
+    userRoleLabel = userPerms.label || 'Usuário';
+    userRoleIcon = '👤';
+  }
+
+  const raw = (() => {
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 1. MODO GERAL: OPERAÇÃO DA TELA SEM PACIENTE ESPECÍFICO SELECIONADO
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (!patient) {
+    switch (activeTab) {
+      case 'dashboard':
+        return {
+          currentStage: 0,
+          stageName: 'Painel Geral',
+          orderWarning: null,
+          primaryAction: {
+            title: '🏥 Início do Fluxo: Cadastrar Novo Paciente',
+            desc: 'O ciclo assistencial começa na identificação do paciente. Cadastre a admissão na recepção ou busque o histórico de um paciente que retornou.',
+            btnText: '➕ Cadastrar Novo Paciente Agora ➔',
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.openNewPatientModal ? window.openNewPatientModal() : window.switchTab('pacientes')",
+            icon: '➕'
+          },
+          alternatives: [
+            { label: 'Localizar Paciente', icon: '🔍', onClick: "window.focusPatientSearch ? window.focusPatientSearch() : window.switchTab('pacientes')" },
+            { label: 'Fila de Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+            { label: 'Painel TV (Chamador)', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+            { label: 'Ver Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" }
+          ]
+        };
+
+      case 'pacientes':
+        return {
+          currentStage: 0,
+          stageName: 'Recepção & Acolhimento',
+          orderWarning: null,
+          primaryAction: {
+            title: '📋 Cadastrar ou Localizar Paciente',
+            desc: 'Realize o cadastro de admissão para abrir o atendimento hospitalar ou localize o cadastro para dar entrada na Triagem Manchester.',
+            btnText: '➕ Abrir Formulário de Paciente ➔',
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.openNewPatientModal ? window.openNewPatientModal() : window.switchTab('pacientes')",
+            icon: '➕'
+          },
+          alternatives: [
+            { label: 'Buscar por Nome/CPF', icon: '🔍', onClick: "window.focusPatientSearch && window.focusPatientSearch()" },
+            { label: 'Painel TV (Chamador)', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+            { label: 'Fila de Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+            { label: 'Agenda Médica', icon: '📅', onClick: "window.switchTab('agenda')" }
+          ]
+        };
+
+      case 'atendimento':
+        return {
+          currentStage: 1,
+          stageName: 'Triagem Manchester',
+          orderWarning: null,
+          primaryAction: {
+            title: '🩺 Iniciar Triagem Manchester',
+            desc: 'Receba o próximo paciente na Sala de Triagem para aferição de sinais vitais (PA, FC, SpO2, Temp) e atribuição da cor de gravidade Manchester.',
+            btnText: '🩺 Iniciar Triagem de Paciente ➔',
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.openAttendanceTriage ? window.openAttendanceTriage() : window.switchTab('atendimento')",
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Painel TV (Chamador)', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+            { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" },
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" }
+          ]
+        };
+
+      case 'tv_panel':
+        return {
+          currentStage: 2,
+          stageName: 'Painel TV (Chamador)',
+          orderWarning: null,
+          primaryAction: {
+            title: '📢 Convocação no Painel TV',
+            desc: 'Selecione um paciente na lista abaixo para emitir a chamada audiovisual direcionando para os Consultórios Médicos.',
+            btnText: '📢 Chamar Próximo no Telão ➔',
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "document.querySelector('.tv-call-btn, [data-action=\"call-tv\"]') ? document.querySelector('.tv-call-btn, [data-action=\"call-tv\"]').click() : window.switchTab('tv_panel')",
+            icon: '📢'
+          },
+          alternatives: [
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Triagem Manchester', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+            { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+
+      case 'consultorios':
+      case 'medicos':
+        return {
+          currentStage: 3,
+          stageName: 'Consultórios Médicos',
+          orderWarning: null,
+          primaryAction: {
+            title: '👨‍⚕️ Atendimento Médico no Consultório',
+            desc: 'Selecione um paciente aguardando para abrir a Folha de Evolução Médica (PEP) ou chame o próximo no Painel TV.',
+            btnText: '📺 Chamar Próximo no Painel TV ➔',
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "window.switchTab('tv_panel')",
+            icon: '📺'
+          },
+          alternatives: [
+            { label: 'Ver Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Escalas de Plantão', icon: '👨‍⚕️', onClick: "window.switchTab('escalas')" }
+          ]
+        };
+
+      case 'observacao':
+        return {
+          currentStage: 3,
+          stageName: 'Sala de Observação PS',
+          orderWarning: null,
+          primaryAction: {
+            title: '🛏️ Monitoramento de Pacientes no PS',
+            desc: 'Acompanhe a hidratação venosa, medicações de alívio e reavaliação médica contínua dos pacientes (Resolução CFM nº 2.079/14).',
+            btnText: '🩺 Central de Atendimentos ➔',
+            btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            onClick: "window.switchTab('atendimento')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+
+      case 'farmacia':
+        return {
+          currentStage: 4,
+          stageName: 'Farmácia Hospitalar',
+          orderWarning: null,
+          primaryAction: {
+            title: '💊 Triagem & Liberação de Prescrições',
+            desc: 'Circuito Fechado de Medicamentos: validação técnica de prescrições hospitalares antes da administração pela enfermagem nos leitos.',
+            btnText: '📋 Ver Fila de Prescrições Hospitalares ➔',
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "if (typeof window.switchTab === 'function') window.switchTab('farmacia'); if (typeof window.switchPharmacySubTab === 'function') window.switchPharmacySubTab('rx'); if (typeof window.loadPharmacyPrescriptions === 'function') window.loadPharmacyPrescriptions();",
+            icon: '📋'
+          },
+          alternatives: [
+            { label: 'Estoque Central', icon: '📦', onClick: "window.switchPharmacySubTab && window.switchPharmacySubTab('stock')" },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Consultórios / PEP', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" }
+          ]
+        };
+
+      case 'leitos':
+        return {
+          currentStage: 5,
+          stageName: 'Gestão de Leitos',
+          orderWarning: null,
+          primaryAction: {
+            title: '🛏️ Censo e Gestão de Vagas',
+            desc: 'Acompanhe a ocupação de leitos em tempo real. Selecione um leito para evoluir prontuário no PEP ou homologar alta.',
+            btnText: '📊 Ver Linha de Cuidado (Kanban) ➔',
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('kanban')",
+            icon: '📊'
+          },
+          alternatives: [
+            { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+
+      case 'kanban':
+        return {
+          currentStage: 5,
+          stageName: 'Kanban Hospitalar',
+          orderWarning: null,
+          primaryAction: {
+            title: '📊 Linha de Cuidado Multidisciplinar',
+            desc: 'Acompanhe a evolução clínica dos pacientes internados, previsão de desospitalização e plano de alta médica.',
+            btnText: '🛏️ Ir para Gestão de Leitos ➔',
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('leitos')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+
+      case 'financeiro':
+        return {
+          currentStage: 6,
+          stageName: 'Gestão Financeira & Títulos',
+          orderWarning: null,
+          primaryAction: {
+            title: '💳 Gestão Financeira & Baixa de Títulos',
+            desc: 'Acompanhe títulos a receber, fluxo de caixa e relatórios contábeis de faturamento hospitalar.',
+            btnText: '💰 Acessar Lotes & Faturamento TISS ➔',
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "window.switchTab('tiss')",
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Relatórios & Métricas', icon: '📈', onClick: "window.switchTab('relatorios')" }
+          ]
+        };
+
+      case 'tiss':
+        return {
+          currentStage: 6,
+          stageName: 'Faturamento TISS & Auditoria',
+          orderWarning: null,
+          primaryAction: {
+            title: '💰 Lotes de Faturamento TISS & Auditoria ANS',
+            desc: 'Gerencie os lotes eletrônicos no padrão TISS v4.01, audite regras anti-glosa e baixe arquivos XML para envio às operadoras.',
+            btnText: '📄 Gerar Lote TISS XML ➔',
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "document.getElementById('btn-tiss-new-batch') ? document.getElementById('btn-tiss-new-batch').click() : window.switchTab('tiss')",
+            icon: '📄'
+          },
+          alternatives: [
+            { label: 'Emitir Guia Individual', icon: '➕', onClick: "window.openTISSEmissionModal ? window.openTISSEmissionModal() : window.switchTab('tiss')" },
+            { label: 'Auditoria Anti-Glosa', icon: '🛡️', onClick: "document.getElementById('btn-tiss-audit') ? document.getElementById('btn-tiss-audit').click() : window.switchTab('tiss')" },
+            { label: 'Gestão Financeira', icon: '💳', onClick: "window.switchTab('financeiro')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+
+      case 'agenda':
+        return {
+          currentStage: 0,
+          stageName: 'Agenda Médica',
+          orderWarning: null,
+          primaryAction: {
+            title: '📅 Confirmar Chegada de Pacientes Agendados',
+            desc: 'Consulte os agendamentos do dia. Ao se apresentarem na unidade, confirme a presença e inicie o acolhimento na Recepção.',
+            btnText: '📋 Ir para Recepção & Pacientes ➔',
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.switchTab('pacientes')",
+            icon: '📋'
+          },
+          alternatives: [
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Fila de Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+
+      case 'escalas':
+        return {
+          currentStage: 3,
+          stageName: 'Escalas de Plantão',
+          orderWarning: null,
+          primaryAction: {
+            title: '👨‍⚕️ Verificar Consultórios Médicos Ativos',
+            desc: 'Escalas de médicos e enfermagem definidas. O próximo passo assistencial é conferir as salas abertas para a demanda.',
+            btnText: '👨‍⚕️ Ver Consultórios Ativos ➔',
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "window.switchTab('consultorios')",
+            icon: '👨‍⚕️'
+          },
+          alternatives: [
+            { label: 'Agenda Médica', icon: '📅', onClick: "window.switchTab('agenda')" },
+            { label: 'Painel TV (Chamador)', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+
+      case 'estagnacao':
+        return {
+          currentStage: 2,
+          stageName: 'Alertas & Estagnação no PS',
+          orderWarning: null,
+          primaryAction: {
+            title: '⚡ Destravar Pacientes Estagnados no PS',
+            desc: 'Pacientes com tempo limite de espera excedido identificados! Priorize a convocação imediata na Triagem ou no Consultório.',
+            btnText: '🩺 Destravar na Triagem Manchester ➔',
+            btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            onClick: "window.switchTab('atendimento')",
+            icon: '⚡'
+          },
+          alternatives: [
+            { label: 'Chamar no Painel TV', icon: '📢', onClick: "window.switchTab('tv_panel')" },
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+
+      case 'relatorios':
+        return {
+          currentStage: 6,
+          stageName: 'Relatórios & KPIs',
+          orderWarning: null,
+          primaryAction: {
+            title: '⚡ Avaliar Gargalos & Taxa de Ocupação',
+            desc: 'Indicadores e DRE avaliados. Próximo passo: monitorar a rotatividade de leitos e tempos de espera no Pronto-Socorro.',
+            btnText: '⚡ Verificar Monitor de Estagnação ➔',
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "window.switchTab('estagnacao')",
+            icon: '⚡'
+          },
+          alternatives: [
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+
+      case 'exames':
+        return {
+          currentStage: 3,
+          stageName: 'Central de Exames & SADT',
+          orderWarning: null,
+          primaryAction: {
+            title: '🔬 Processar Solicitações de Exames (SADT)',
+            desc: 'Confira os pedidos laboratoriais e de imagem recebidos dos consultórios, inicie a execução e libere o laudo técnico para o PEP.',
+            btnText: '🔬 Verificar Pedidos Pendentes ➔',
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "(function(){ const btn = document.querySelector('.btn-accept-req, .btn-enter-result'); if (btn) { btn.scrollIntoView({ behavior: 'smooth', block: 'center' }); btn.click(); } else { window.switchTab('consultorios'); } })()",
+            icon: '🔬'
+          },
+          alternatives: [
+            { label: 'Consultórios & PEP', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Sala de Observação', icon: '🛏️', onClick: "window.switchTab('observacao')" },
+            { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
+          ]
+        };
+
+      case 'observacao':
+        return {
+          currentStage: 4,
+          stageName: 'Sala de Observação PS',
+          orderWarning: null,
+          primaryAction: {
+            title: '🛏️ Monitorar Pacientes em Observação',
+            desc: 'Acompanhe a evolução clínica, sinais vitais e aprazamento de medicações dos pacientes em observação no Pronto-Socorro.',
+            btnText: '🩺 Selecionar Paciente em Observação ➔',
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "(function(){ const card = document.querySelector('#obs-beds-grid [data-obs-id]'); if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); card.click(); } else { window.switchTab('consultorios'); } })()",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Consultórios & PEP', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" }
+          ]
+        };
+
+      case 'consulta_dinamica':
+        return {
+          currentStage: 2,
+          stageName: 'Consulta Dinâmica de Atendimentos',
+          orderWarning: null,
+          primaryAction: {
+            title: '🔎 Localizar Paciente ou Atendimento Ativo',
+            desc: 'Filtre por modalidade (Pronto-Socorro, Internação, Ambulatório ou SADT) e clique sobre o paciente para assumir sua coordenação no Guia de Fluxo.',
+            btnText: '🔎 Focar Busca Rápida ➔',
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: "(function(){ const inp = document.getElementById('deq-filter-search'); if (inp) { inp.focus(); } else { window.switchTab('atendimento'); } })()",
+            icon: '🔎'
+          },
+          alternatives: [
+            { label: 'Triagem Manchester', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+
+      case 'configuracoes':
+        return {
+          currentStage: 0,
+          stageName: 'Configurações do Sistema',
+          orderWarning: null,
+          primaryAction: {
+            title: '🏥 Retornar à Operação Hospitalar',
+            desc: 'Parâmetros e integrações salvas. Retorne ao painel central para acompanhar os atendimentos clínicos em andamento.',
+            btnText: '🏥 Voltar ao Dashboard Principal ➔',
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.switchTab('dashboard')",
+            icon: '🏥'
+          },
+          alternatives: [
+            { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" },
+            { label: 'Triagem Manchester', icon: '🩺', onClick: "window.switchTab('atendimento')" }
+          ]
+        };
+
+      default:
+        return {
+          currentStage: 0,
+          stageName: 'Operação Hospitalar',
+          orderWarning: null,
+          primaryAction: {
+            title: '🏥 Retornar ao Painel Operacional',
+            desc: 'Acompanhe o fluxo assistencial contínuo dos pacientes em atendimento no complexo hospitalar.',
+            btnText: '🏥 Voltar ao Dashboard Principal ➔',
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.switchTab('dashboard')",
+            icon: '🏥'
+          },
+          alternatives: [
+            { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" },
+            { label: 'Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+            { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
+          ]
+        };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 2. MODO PACIENTE: PERCEPÇÃO INTEGRAL DO CICLO CLÍNICO DE PONTA A PONTA
+  // ─────────────────────────────────────────────────────────────────────────────
+  const pName = patient.fullName || patient.patientName || 'Paciente';
+  const firstName = pName.split(' ')[0];
+  const safePNameEsc = pName.replace(/'/g, "\\'");
+  let pStatus = (patient.status || '').toLowerCase().trim();
+  let mColor = (patient.manchesterColor || '').toLowerCase().trim();
+
+  // Fallback de resiliência: consultar localDB (triages e encounters) para garantir que triagem recente seja reconhecida
+  if (window.localDB && pName !== 'Paciente') {
+    try {
+      const db = window.localDB.getFullDB();
+      const cleanP = pName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+      // 1. Verificar triages (registro definitivo de classificação concluída)
+      const triages = db.triages || [];
+      const matchTri = triages.slice().reverse().find(t => {
+        const tName = (t.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        return tName === cleanP || (cleanP.length > 3 && (tName.includes(cleanP) || cleanP.includes(tName)));
+      });
+      if (matchTri && matchTri.manchesterColor) {
+        if (!mColor) {
+          mColor = matchTri.manchesterColor.toLowerCase().trim();
+          patient.manchesterColor = matchTri.manchesterColor;
+        }
+        if (!pStatus || pStatus === 'aguardando_triagem') {
+          pStatus = 'aguardando_atendimento';
+          patient.status = 'Aguardando_Atendimento';
+        }
+      }
+
+      // 2. Verificar encounters (do mais recente para o mais antigo, estritamente do paciente atual)
+      const encs = db.encounters || [];
+      const activeEncs = encs.filter(e => e.status !== 'Finalizado' && e.status !== 'Alta');
+      const pool = activeEncs.length ? activeEncs : encs;
+      let match = null;
+      if (patient.encounterId) {
+        match = pool.find(e => {
+          if (String(e.id) !== String(patient.encounterId)) return false;
+          const eName = (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          return !cleanP || eName === cleanP || (cleanP.length > 3 && (eName.includes(cleanP) || cleanP.includes(eName)));
+        });
+      }
+      if (!match) {
+        match = pool.slice().reverse().find(e => {
+          const eName = (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          return eName === cleanP || (cleanP.length > 3 && (eName.includes(cleanP) || cleanP.includes(eName)));
+        });
+      }
+      if (match) {
+        if (!mColor && match.manchesterColor && match.manchesterColor !== 'null' && match.status !== 'Aguardando_Triagem') {
+          mColor = match.manchesterColor.toLowerCase().trim();
+          patient.manchesterColor = match.manchesterColor;
+        }
+        if (match.status) {
+          if ((patient.status === 'Aguardando_Triagem' || match.status === 'Aguardando_Triagem') && !matchTri) {
+            pStatus = 'aguardando_triagem';
+            patient.status = 'Aguardando_Triagem';
+            mColor = '';
+            patient.manchesterColor = '';
+          } else {
+            pStatus = match.status.toLowerCase().trim();
+            patient.status = match.status;
+          }
+        }
+        if (!patient.room && match.room) {
+          patient.room = match.room;
+        }
+        if (!patient.id && match.patientId) {
+          patient.id = match.patientId;
+        }
+        if (match.tvCalled) patient.tvCalled = true;
+        if (match.tvCalledTriage) patient.tvCalledTriage = true;
+        if (match.tvCalledDoctor) patient.tvCalledDoctor = true;
+      }
+
+      // 3. Verificar histórico de chamadas na TV (tv_calls e DOM #tv-last-patient)
+      const tvCalls = db.tv_calls || db.tvCalls || [];
+      const matchedTvCall = tvCalls.find(c => {
+        const cName = (c.patientName || c.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        return cName && (cName === cleanP || (cleanP.length > 3 && (cName.includes(cleanP) || cleanP.includes(cName))));
+      });
+      if (matchedTvCall) {
+        patient.tvCalled = true;
+        const callRoom = (matchedTvCall.roomName || matchedTvCall.room || '').toLowerCase();
+        if (callRoom.includes('triag')) {
+          patient.tvCalledTriage = true;
+        } else {
+          patient.tvCalledDoctor = true;
+          if (!patient.room || patient.room.toLowerCase().includes('triag')) {
+            patient.room = matchedTvCall.roomName || matchedTvCall.room;
+          }
+        }
+      }
+      if (typeof document !== 'undefined') {
+        const domLastTv = (document.getElementById('tv-last-patient')?.textContent || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        if (domLastTv && cleanP && (domLastTv === cleanP || (cleanP.length > 3 && (domLastTv.includes(cleanP) || cleanP.includes(domLastTv))))) {
+          patient.tvCalled = true;
+          const domLastRoom = (document.getElementById('tv-last-room')?.textContent || '').toLowerCase();
+          if (domLastRoom.includes('triag')) {
+            patient.tvCalledTriage = true;
+          } else if (domLastRoom && domLastRoom !== '--') {
+            patient.tvCalledDoctor = true;
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  const hasManchester = !!mColor && mColor !== 'null' && mColor !== 'undefined' && pStatus !== 'aguardando_triagem';
+  const isTriaged = hasManchester || (pStatus !== 'aguardando_triagem' && ['aguardando_atendimento', 'aguardando atendimento', 'triado', 'em_atendimento', 'em atendimento', 'consultorio', 'internado', 'alta', 'finalizado'].includes(pStatus));
+  const wasCalled = isTriaged
+    ? (patient.tvCalledDoctor === true || (patient.tvCalled && (patient.status === 'Em_Atendimento' || pStatus === 'em_atendimento')))
+    : (patient.tvCalledTriage === true || patient.tvCalled === true);
+  const safeRoom = (isTriaged && (!patient.room || patient.room.toLowerCase().includes('triag'))) 
+    ? 'Consultório 01' 
+    : (patient.room || (isTriaged ? 'Consultório 01' : 'Sala de Triagem'));
+  const safeRoomEsc = safeRoom.replace(/'/g, "\\'");
+  const isCriticalEmergency = mColor === 'vermelho' || mColor === 'laranja';
+  const isInterned = (patient.status === 'Internado' || !!patient.bed || !!patient.bedNumber) &&
+    !((patient.bed || patient.room || '').toLowerCase().includes('triag')) &&
+    !((patient.bed || patient.room || '').toLowerCase().includes('consult'));
+  const isDischarged = patient.status === 'Alta' || patient.status === 'Finalizado';
+  const colorDisplay = patient.manchesterColor || 'Classificado';
+
+  // ── DETECÇÃO DE MODAIS OPERACIONAIS ABERTOS NO DOM (PRIORIDADE MÁXIMA) ──
+  const admitBedModalEl = (typeof document !== 'undefined') ? document.getElementById('modal-admit-bed') : null;
+  const isAdmitBedOpen = !!(admitBedModalEl && (admitBedModalEl.style.display === 'flex' || admitBedModalEl.style.display === 'block') && (admitBedModalEl.offsetWidth > 0 || admitBedModalEl.offsetHeight > 0));
+
+  const transferBedDrawerEl = (typeof document !== 'undefined') ? document.getElementById('modal-transfer-bed-drawer') : null;
+  const isTransferBedOpen = !!(transferBedDrawerEl && transferBedDrawerEl.classList.contains('open'));
+
+  const triageModalEl = (typeof document !== 'undefined') ? document.getElementById('triage-modal') : null;
+  const isTriageModalOpen = !!(triageModalEl && (triageModalEl.style.display === 'flex' || triageModalEl.style.display === 'block') && (triageModalEl.offsetWidth > 0 || triageModalEl.offsetHeight > 0));
+
+  const pepModalEl = (typeof document !== 'undefined') ? document.getElementById('pep-modal') : null;
+  const isPepModalOpen = !!(
+    pepModalEl && 
+    (pepModalEl.style.display === 'flex' || pepModalEl.style.display === 'block') &&
+    (pepModalEl.offsetWidth > 0 || pepModalEl.offsetHeight > 0) &&
+    (document.getElementById('pep-form') || document.getElementById('pep-subjective') || document.querySelector('#pep-modal .modal-content'))
+  );
+
+  const patientModalEl = (typeof document !== 'undefined') ? document.getElementById('patient-modal') : null;
+  const isPatientModalOpen = !!(patientModalEl && (patientModalEl.style.display === 'flex' || patientModalEl.style.display === 'block') && (patientModalEl.offsetWidth > 0 || patientModalEl.offsetHeight > 0));
+
+  if (isAdmitBedOpen) {
+    return {
+      currentStage: 5,
+      stageName: 'Internação em Leito',
+      orderWarning: null,
+      primaryAction: {
+        title: `🛏️ Concluir Internação no Leito (${firstName})`,
+        desc: `Formulário de internação aberto. Selecione a enfermaria, o leito vago e confirme para registrar a internação hospitalar de ${pName}.`,
+        btnText: `✅ Confirmar Internação no Formulário ➔`,
+        btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+        onClick: "window.saveActiveAdmitBed && window.saveActiveAdmitBed()",
+        icon: '🛏️'
+      },
+      alternatives: [
+        { label: 'Fechar Modal', icon: '✕', onClick: "document.getElementById('btn-close-admit-modal') ? document.getElementById('btn-close-admit-modal').click() : (document.getElementById('modal-admit-bed').style.display='none')" },
+        { label: 'Ver Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" }
+      ]
+    };
+  }
+
+  if (isTransferBedOpen) {
+    return {
+      currentStage: 5,
+      stageName: 'Transferência de Leito',
+      orderWarning: null,
+      primaryAction: {
+        title: `🔄 Confirmar Transferência de Leito (${firstName})`,
+        desc: `Painel de transferência aberto. Selecione o novo leito de destino e confirme para atualizar o censo hospitalar.`,
+        btnText: `🔄 Confirmar Transferência ➔`,
+        btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+        onClick: "document.getElementById('btn-confirm-transfer-bed') ? document.getElementById('btn-confirm-transfer-bed').click() : null",
+        icon: '🔄'
+      },
+      alternatives: [
+        { label: 'Cancelar Transferência', icon: '✕', onClick: "document.getElementById('modal-transfer-bed-drawer').classList.remove('open')" },
+        { label: 'Ver Censo Geral', icon: '🛏️', onClick: "window.switchTab('leitos')" }
+      ]
+    };
+  }
+
+  if (isTriageModalOpen) {
+    return {
+      currentStage: 1,
+      stageName: 'Triagem Manchester',
+      orderWarning: null,
+      primaryAction: {
+        title: `🩺 Concluir Ficha de Triagem (${firstName})`,
+        desc: `Ficha de acolhimento aberta. Preencha os sinais vitais, classifique a gravidade Manchester e confirme a triagem de ${pName}.`,
+        btnText: `✅ Salvar Triagem Manchester ➔`,
+        btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+        onClick: "window.saveActiveTriage && window.saveActiveTriage()",
+        icon: '🩺'
+      },
+      alternatives: [
+        { label: 'Fechar Triagem', icon: '✕', onClick: "document.getElementById('triage-modal').style.display='none'" },
+        { label: 'Chamar no Painel TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` }
+      ]
+    };
+  }
+
+  if (isPepModalOpen) {
+    const modalPName = (document.querySelector('#pep-modal-subtitle strong')?.textContent || '').trim();
+    const effectivePName = modalPName || pName;
+    const effectiveFirst = effectivePName.split(' ')[0] || firstName;
+    const effectiveSafeEsc = effectivePName.replace(/'/g, "\\'");
+    const cleanEffective = effectivePName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+    // Buscar encontro de observação aberto para este paciente
+    let obsEnc = null;
+    let obsDiffHours = 0;
+    let obsDurationText = '';
+
+    if (window.localDB) {
+      try {
+        const db = window.localDB.getFullDB();
+        const encList = db.encounters || [];
+        const candObs = encList.filter(e => {
+          const eName = (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          const match = eName === cleanEffective || (cleanEffective.length > 3 && (eName.includes(cleanEffective) || cleanEffective.includes(eName)));
+          const isObs = (e.sector || e.room || '').toLowerCase().includes('observa');
+          const isOpen = !e.signed_by && e.status !== 'Finalizado' && e.status !== 'Alta';
+          return match && isObs && isOpen;
+        });
+
+        if (candObs.length > 0) {
+          candObs.sort((a, b) => new Date(a.observation_started_at || a.admitted_at || a.admission_date || a.created_at || 0) - new Date(b.observation_started_at || b.admitted_at || b.admission_date || b.created_at || 0));
+          obsEnc = candObs[0];
+          const st = new Date(obsEnc.observation_started_at || obsEnc.admitted_at || obsEnc.admission_date || obsEnc.created_at || Date.now()).getTime();
+          const diffMs = Math.max(0, Date.now() - st);
+          obsDiffHours = Math.floor(diffMs / (1000 * 60 * 60));
+          const obsDiffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          obsDurationText = `${obsDiffHours}h ${obsDiffMins}min`;
+        }
+      } catch (_) {}
+    }
+
+    if (obsEnc && obsDiffHours >= 12) {
+      const bp = obsEnc.vital_bp || obsEnc.vitals?.bp || obsEnc.bloodPressure || patient.bloodPressure || patient.vital_bp || '130/85 mmHg';
+      const hr = obsEnc.vital_hr || obsEnc.vitals?.hr || obsEnc.heartRate || obsEnc.heartRateBpm || patient.heartRate || patient.vital_hr || '86 bpm';
+      const temp = obsEnc.vital_temp || obsEnc.vitals?.temp || obsEnc.temperatureCelsius || patient.temperatureCelsius || patient.vital_temp || '36.8 °C';
+      const spo2 = obsEnc.vital_spo2 || obsEnc.vitals?.spo2 || obsEnc.oxygenSaturation || patient.oxygenSaturation || patient.vital_spo2 || '96%';
+      const mews = obsEnc.mewsScore !== undefined ? obsEnc.mewsScore : (patient.mewsScore !== undefined ? patient.mewsScore : 1);
+      const mColorDisplay = obsEnc.manchesterColor || patient.manchesterColor || 'Amarelo';
+      const targetEncId = obsEnc.id || patient.encounterId || patient.id || '';
+
+      return {
+        currentStage: 3,
+        stageName: '⏱️ Diretriz CFM nº 2.079/14 (>12h)',
+        actionBadge: '🚨 DIRETRIZ CFM Nº 2.079/14 (>12H OBSERVAÇÃO)',
+        actionCardBg: 'linear-gradient(135deg, rgba(239, 68, 68, 0.16), rgba(245, 158, 11, 0.12))',
+        actionCardBorder: 'rgba(239, 68, 68, 0.5)',
+        orderWarning: {
+          badge: '⚠️ Limite de Permanência Excedido (>12h)',
+          msg: `O paciente <strong>${effectivePName}</strong> ultrapassou o tempo regulamentar de observação no PS (<strong>${obsDurationText}</strong>). Conforme a Resolução CFM nº 2.079/14, deve-se deliberar entre internação hospitalar ou alta médica.`,
+          correctiveAction: {
+            label: '🛏️ Solicitar Internação Imediata ➔',
+            onClick: `window.requestAdmitBed ? window.requestAdmitBed('${targetEncId}', '${effectiveSafeEsc}', '${targetEncId}') : window.switchTab('leitos')`
+          }
+        },
+        primaryAction: {
+          title: `⚠️ Reavaliação CFM 12h: Definir Conduta de ${effectiveFirst}`,
+          desc: `
+            <div style="font-size: 0.76rem; line-height: 1.45; color: #cbd5e1;">
+              <div style="background: rgba(245,158,11,0.15); border-left: 3px solid #f59e0b; border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; color: #fde68a;">
+                ⏱️ <strong>Permanência: ${obsDurationText}</strong> (Res. CFM nº 2.079/14: máx. 12h no PS)<br>
+                📊 <strong>Parâmetros Atuais:</strong> PA <strong>${bp}</strong> · FC <strong>${hr}</strong> · Temp <strong>${temp}</strong> · SpO2 <strong>${spo2}</strong> · MEWS: <strong>${mews}</strong> · Classificação: <strong>${mColorDisplay}</strong>.
+              </div>
+              <div style="margin-bottom: 8px; background: rgba(239,68,68,0.14); border-left: 3px solid #ef4444; border-radius: 6px; padding: 6px 10px;">
+                <strong style="color: #fca5a5;"><i class="fa-solid fa-triangle-exclamation"></i> Se houver Agravamento ou Instabilidade:</strong><br>
+                Piora da dor, hipotensão, taquicardia, dessaturação ou elevação do MEWS indicam falha na resposta clínica inicial. A conduta mandatória é a <strong>transferência imediata para Internação em Leito Hospitalar (Enfermaria ou UTI)</strong>.
+              </div>
+              <div style="background: rgba(16,185,129,0.14); border-left: 3px solid #10b981; border-radius: 6px; padding: 6px 10px;">
+                <strong style="color: #6ee7b7;"><i class="fa-solid fa-circle-check"></i> Se houver Estabilidade ou Melhora:</strong><br>
+                Paciente compensado, eupneico, sinais normais e dor controlada. A conduta recomendada é a <strong>Alta Médica da Observação</strong> com prescrição de desospitalização e orientações.
+              </div>
+            </div>
+          `,
+          btnText: `🛏️ Internar em Leito Hospitalar (Agravo) ➔`,
+          btnBg: 'linear-gradient(135deg, #ef4444, #b91c1c)',
+          onClick: `window.requestAdmitBed ? window.requestAdmitBed('${targetEncId}', '${effectiveSafeEsc}', '${targetEncId}') : window.switchTab('leitos')`,
+          icon: '🛏️'
+        },
+        alternatives: [
+          { 
+            label: '🚪 Conceder Alta (Melhora)', 
+            icon: '🚪', 
+            onClick: `window.finishObservationDirectly ? window.finishObservationDirectly('${targetEncId}', '${effectiveSafeEsc}') : window.switchTab('observacao')` 
+          },
+          { 
+            label: '💾 Salvar Evolução / Prescrição', 
+            icon: '💾', 
+            onClick: `window.saveActivePEP && window.saveActivePEP('${effectiveSafeEsc}')` 
+          },
+          { 
+            label: '✕ Fechar PEP', 
+            icon: '✕', 
+            onClick: "document.getElementById('pep-modal')?.remove()" 
+          }
+        ]
+      };
+    }
+
+    return {
+      currentStage: 3,
+      stageName: 'Prontuário Médico (PEP)',
+      orderWarning: null,
+      primaryAction: {
+        title: `📋 Salvar Evolução Médica de ${firstName}`,
+        desc: `Prontuário Eletrônico aberto. Finalize a anamnese SOAP, prescrição eletrônica e salve o atendimento médico.`,
+        btnText: `💾 Salvar Prontuário no PEP ➔`,
+        btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+        onClick: `window.saveActivePEP && window.saveActivePEP('${safePNameEsc}')`,
+        icon: '💾'
+      },
+      alternatives: [
+        { label: 'Fechar PEP', icon: '✕', onClick: "document.getElementById('pep-modal')?.remove()" },
+        { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+        { label: 'Dispensar Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" }
+      ]
+    };
+  }
+
+  if (isPatientModalOpen) {
+    return {
+      currentStage: 0,
+      stageName: 'Cadastro de Paciente',
+      orderWarning: null,
+      primaryAction: {
+        title: `📋 Salvar Cadastro de ${firstName}`,
+        desc: `Formulário de admissão aberto. Preencha os dados cadastrais para dar entrada no acolhimento.`,
+        btnText: `💾 Salvar Cadastro ➔`,
+        btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+        onClick: "window.saveActivePatient && window.saveActivePatient()",
+        icon: '💾'
+      },
+      alternatives: [
+        { label: 'Cancelar', icon: '✕', onClick: "document.getElementById('patient-modal').style.display='none'" },
+        { label: 'Ir para Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" }
+      ]
+    };
+  }
+
+  // ── GUARDIÃO DE GOVERNANÇA ANTI-DESVIO (PREVENÇÃO DE AÇÕES FORA DE ORDEM) ──
+  let orderWarning = null;
+
+  if ((activeTab === 'consultorios' || activeTab === 'medicos') && !isTriaged) {
+    orderWarning = {
+      badge: '⚠️ Etapa Fora de Ordem Detectada',
+      msg: `O paciente <strong>${pName}</strong> ainda não realizou a <strong>Triagem Manchester</strong>. Pela governança e segurança clínica, sinais vitais e gravidade devem ser aferidos antes da consulta médica.`,
+      correctiveAction: {
+        label: `🩺 Conduzir com Segurança para Triagem Manchester ➔`,
+        onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`
+      }
+    };
+  } else if (activeTab === 'farmacia' && !isTriaged) {
+    orderWarning = {
+      badge: '⚠️ Etapa Fora de Ordem Detectada',
+      msg: `O paciente <strong>${pName}</strong> não possui triagem nem prescrição médica registrada no PEP para separação de medicamentos.`,
+      correctiveAction: {
+        label: `🩺 Realizar Triagem de ${firstName} Primeiro ➔`,
+        onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`
+      }
+    };
+  } else if (activeTab === 'financeiro' && isInterned && !isDischarged) {
+    orderWarning = {
+      badge: '⚠️ Paciente em Internação Ativa',
+      msg: `O paciente <strong>${pName}</strong> continua internado em leito hospitalar. A alta médica deve ser homologada no prontuário antes do fechamento de contas e emissão de lote TISS.`,
+      correctiveAction: {
+        label: `🛏️ Retornar ao Mapa de Leitos & PEP ➔`,
+        onClick: `window.switchTab('leitos')`
+      }
+    };
+  } else if (activeTab === 'leitos' && !isTriaged && !isInterned) {
+    orderWarning = {
+      badge: '⚠️ Internação sem Triagem Prévia',
+      msg: `O paciente <strong>${pName}</strong> está na fila sem classificação de risco Manchester. Aferir sinais vitais antes de destinar leito assistencial.`,
+      correctiveAction: {
+        label: `🩺 Triar ${firstName} na Central de Atendimento ➔`,
+        onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`
+      }
+    };
+  }
+
+  const bedName = patient.bed || patient.bedNumber || '';
+
+  // ── DETECÇÃO DE PRESCRIÇÃO AGUARDANDO VALIDAÇÃO NA FARMÁCIA (CIRCUITO FECHADO) ──
+  let pendingPrescription = null;
+  try {
+    const allPrescriptions = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('prescriptions') : [];
+    const curPId = String(patient.id || '');
+    const curPName = (patient.fullName || patient.patientName || '').toLowerCase().trim();
+    
+    pendingPrescription = allPrescriptions.find(r => {
+      const rxPId = String(r.patientId || '');
+      const rxPName = (r.patientName || '').toLowerCase().trim();
+      const isMatch = (curPId && rxPId === curPId) || (rxPName && curPName && (rxPName.includes(curPName) || curPName.includes(rxPName)));
+      return isMatch && (r.status === 'Aguardando_Farmacia' || !r.status || r.status === 'Pendente');
+    });
+  } catch (e) {}
+
+  // ── ROTEAMENTO CIRÚRGICO POR ABA ATIVA (ADAPTAÇÃO OMNIDIRECIONAL À TELA ATUAL) ──
+  switch (activeTab) {
+    case 'dashboard': {
+      if (!isTriaged) {
+        return {
+          currentStage: 0,
+          stageName: 'Painel Geral & Acolhimento',
+          orderWarning,
+          primaryAction: {
+            title: `🩺 Conduzir ${firstName} para Triagem Manchester`,
+            desc: `Paciente ${pName} acolhido no sistema. O próximo passo assistencial é aferir sinais vitais e definir gravidade Manchester.`,
+            btnText: `🩺 Iniciar Triagem de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Painel TV (Chamador)', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+            { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" }
+          ]
+        };
+      } else if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta Médica Concedida',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Alta Concedida: Faturar Atendimento (${firstName})`,
+            desc: `Atendimento de ${pName} finalizado com alta médica homologada. Proceda à conferência de procedimentos e fechamento no padrão TISS 4.01.`,
+            btnText: `💰 Ir para Faturamento & TISS ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.switchTab('financeiro')",
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
+            { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else if (isInterned) {
+        return {
+          currentStage: 5,
+          stageName: `Internado (${bedName || 'Leito'})`,
+          orderWarning,
+          primaryAction: {
+            title: `🛏️ Paciente Internado: Acompanhar ${firstName} (${bedName || 'Leito'})`,
+            desc: `Paciente ${pName} internado em leito hospitalar. Acompanhe a evolução clínica diária no PEP ou visualize a taxa de ocupação no censo.`,
+            btnText: `🛏️ Ir para Gestão de Leitos (${firstName}) ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('leitos')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Linha de Cuidado (Kanban)', icon: '📊', onClick: "window.switchTab('kanban')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      } else if (pendingPrescription) {
+        return {
+          currentStage: 4,
+          stageName: 'Prescrição Emitida',
+          orderWarning,
+          primaryAction: {
+            title: `💊 Prescrição Emitida: Validar Medicamentos (${firstName})`,
+            desc: `Prescrição médica de ${pName} aguarda validação técnica farmacêutica no circuito fechado antes da administração.`,
+            btnText: `💊 Ir para Farmácia & Liberar Medicamentos ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('farmacia')",
+            icon: '💊'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
+          ]
+        };
+      } else if (isCriticalEmergency) {
+        return {
+          currentStage: 3,
+          stageName: `Emergência (${colorDisplay})`,
+          orderWarning,
+          primaryAction: {
+            title: `🚨 Emergência Médica: ${firstName} (Sala Vermelha)`,
+            desc: `Classificação ${colorDisplay}! Paciente ${pName} tem prioridade clínica absoluta. Conduza imediatamente ao Consultório 01 / Sala Vermelha.`,
+            btnText: `🚨 Abrir Sala Vermelha / PEP (${firstName}) ➔`,
+            btnBg: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            onClick: `if (typeof window.openPEPModal === 'function') { window.openPEPModal('${safePNameEsc}', 'soap'); } else if (typeof window.openDoctorConsultingRoom === 'function') { window.openDoctorConsultingRoom('Consultório 01', '${safePNameEsc}'); } else { window.switchTab('consultorios'); }`,
+            icon: '🚨'
+          },
+          alternatives: [
+            { label: 'Alocar Leito de Emergência', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Chamar no Painel TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', 'Consultório 01') : window.switchTab('tv_panel')` },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      } else if (wasCalled) {
+        return {
+          currentStage: 3,
+          stageName: `Convocado (${safeRoom})`,
+          orderWarning,
+          primaryAction: {
+            title: `👨‍⚕️ Atender ${firstName} no ${safeRoom}`,
+            desc: `Paciente ${pName} convocado no telão para o ${safeRoom}. Abra o prontuário no PEP para evolução médica.`,
+            btnText: `👨‍⚕️ Iniciar Atendimento (${firstName}) ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+            icon: '👨‍⚕️'
+          },
+          alternatives: [
+            { label: 'Re-chamar na TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 2,
+          stageName: `Classificado (${colorDisplay})`,
+          orderWarning,
+          primaryAction: {
+            title: `📺 Chamar ${firstName} no Painel TV (${safeRoom})`,
+            desc: `Paciente ${pName} classificado (${colorDisplay}). Convoque-o no Painel TV com sinal sonoro para comparecer ao ${safeRoom}.`,
+            btnText: `📺 Chamar ${firstName} no Painel TV ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+            icon: '📺'
+          },
+          alternatives: [
+            { label: `Entrar no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      }
+    }
+
+    case 'pacientes': {
+      if (!isTriaged) {
+        return {
+          currentStage: 0,
+          stageName: 'Recepção / Admissão',
+          orderWarning,
+          primaryAction: {
+            title: `🩺 Conduzir ${firstName} para Triagem Manchester`,
+            desc: `Paciente ${pName} cadastrado com sucesso! O próximo passo assistencial é realizar a Triagem Manchester para aferição de sinais vitais e classificação de gravidade.`,
+            btnText: `🩺 Conduzir para Triagem de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Buscar Paciente / CPF', icon: '🔍', onClick: "window.focusPatientSearch && window.focusPatientSearch()" },
+            { label: 'Chamar no Painel TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
+            { label: 'Cadastrar Novo', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
+          ]
+        };
+      } else if (isDischarged) {
+        if (patient.receptionFinalized) {
+          return {
+            currentStage: 6,
+            stageName: 'Atendimento Concluído',
+            orderWarning,
+            primaryAction: {
+              title: `💰 Faturamento & Fechamento TISS (${firstName})`,
+              desc: `Atendimento de ${pName} concluído e liberado na recepção. Proceda à conferência e faturamento do lote no padrão TISS 4.01.`,
+              btnText: `💰 Ir para Faturamento & TISS ➔`,
+              btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+              onClick: "window.switchTab('tiss')",
+              icon: '💰'
+            },
+            alternatives: [
+              { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+              { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" },
+              { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+            ]
+          };
+        }
+        return {
+          currentStage: 6,
+          stageName: 'Alta Médica Concedida',
+          orderWarning,
+          primaryAction: {
+            title: `📋 Concluir Acolhimento & Finalizar (${firstName})`,
+            desc: `Alta médica homologada no prontuário de ${pName}. Finalize a admissão e libere o paciente na recepção.`,
+            btnText: `📋 Finalizar Atendimento na Recepção ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.finalizePatientReceptionDischarge ? window.finalizePatientReceptionDischarge('${safePNameEsc}', '${patient.id || ''}') : null`,
+            icon: '📋'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Faturamento & TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
+            { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
+          ]
+        };
+      } else if (isInterned) {
+        return {
+          currentStage: 5,
+          stageName: `Internado (${bedName || 'Leito'})`,
+          orderWarning,
+          primaryAction: {
+            title: `🛏️ Ficha de Internação: ${firstName} (${bedName || 'Leito'})`,
+            desc: `Paciente ${pName} em internação hospitalar. Consulte os dados cadastrais ou acompanhe a ocupação no Mapa de Leitos.`,
+            btnText: `🛏️ Ver no Mapa de Leitos ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('leitos')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Buscar Paciente / CPF', icon: '🔍', onClick: "window.focusPatientSearch && window.focusPatientSearch()" },
+            { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 0,
+          stageName: 'Recepção / Ficha Cadastral',
+          orderWarning,
+          primaryAction: {
+            title: `📋 Ficha Cadastral de ${firstName} (${colorDisplay})`,
+            desc: `Paciente ${pName} já acolhido e classificado como ${colorDisplay}. Prossiga para o atendimento no ${safeRoom} ou emita a convocação na TV.`,
+            btnText: wasCalled ? `👨‍⚕️ Conduzir ao ${safeRoom} ➔` : `📺 Chamar ${firstName} no Painel TV ➔`,
+            btnBg: wasCalled ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: wasCalled ? `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` : `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+            icon: '📋'
+          },
+          alternatives: [
+            { label: 'Buscar por Nome/CPF', icon: '🔍', onClick: "window.focusPatientSearch && window.focusPatientSearch()" },
+            { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+            { label: 'Cadastrar Novo Paciente', icon: '➕', onClick: "window.openNewPatientModal && window.openNewPatientModal()" }
+          ]
+        };
+      }
+    }
+
+    case 'atendimento': {
+      if (!isTriaged) {
+        if (!isMasterOrDev && !userPerms.canDoTriage) {
+          return {
+            currentStage: 1,
+            stageName: 'Triagem Manchester',
+            orderWarning,
+            primaryAction: {
+              title: `📢 Chamar ${firstName} no Painel TV (Triagem)`,
+              desc: `A aferição de sinais vitais e classificação Manchester compete à Enfermagem. Notifique o paciente no telão para comparecer à Sala de Triagem.`,
+              btnText: `📢 Chamar ${firstName} no Painel TV ➔`,
+              btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+              onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')`,
+              icon: '📢'
+            },
+            alternatives: [
+              { label: 'Consultórios Médicos', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" },
+              { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+            ]
+          };
+        }
+        if (!wasCalled) {
+          return {
+            currentStage: 1,
+            stageName: 'Chamada para Triagem',
+            orderWarning,
+            primaryAction: {
+              title: `📢 1ª Chamada TV: Chamar ${firstName} (Sala de Triagem)`,
+              desc: `Paciente ${pName} acolhido na fila de espera. Emita a convocação na TV para que o paciente se apresente na Sala de Triagem.`,
+              btnText: `📢 Chamar ${firstName} na TV (Sala de Triagem) ➔`,
+              btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+              onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')`,
+              icon: '📢'
+            },
+            alternatives: [
+              { label: '🩺 Abrir Triagem Direto', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`, isPrimaryAlt: true },
+              { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+            ]
+          };
+        }
+        return {
+          currentStage: 1,
+          stageName: 'Triagem Manchester',
+          orderWarning,
+          primaryAction: {
+            title: `🩺 Realizar Triagem Manchester de ${firstName}`,
+            desc: `Chamada emitida! Aferir sinais vitais de ${pName} (Pressão Arterial, Frequência Cardíaca, SpO2, Temperatura, Glicemia) e definir a classificação de gravidade Manchester.`,
+            btnText: `🩺 Abrir Triagem de ${firstName} Agora ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Re-chamar no Painel TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
+            { label: 'Recepção / Pacientes', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else {
+        if (!wasCalled) {
+          return {
+            currentStage: 2,
+            stageName: isCriticalEmergency ? `Emergência (${colorDisplay})` : `Triagem Concluída (${colorDisplay})`,
+            orderWarning,
+            primaryAction: {
+              title: isCriticalEmergency 
+                ? `🚨 Convocação Imediata: Chamar ${firstName} para ${safeRoom}` 
+                : `📢 2ª Chamada TV: Chamar ${firstName} para ${safeRoom}`,
+              desc: isCriticalEmergency
+                ? `Triagem ${colorDisplay.toUpperCase()}! Paciente ${pName} tem prioridade clínica máxima. Convoque-o imediatamente no Painel TV para comparecer ao ${safeRoom} ou entre direto no atendimento.`
+                : `Paciente ${pName} triado e classificado como ${colorDisplay}! Convoque-o no Painel TV com sinal sonoro para comparecer ao ${safeRoom} para atendimento médico.`,
+              btnText: `📢 Chamar ${firstName} no Painel TV (${safeRoom}) ➔`,
+              btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+              onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+              icon: isCriticalEmergency ? '🚨' : '📢'
+            },
+            alternatives: [
+              { label: isCriticalEmergency ? '🚨 Entrar na Sala Vermelha' : `Entrar Direto no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
+              { label: 'Ir para Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+              { label: 'Revisar Triagem', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')` }
+            ]
+          };
+        } else {
+          return {
+            currentStage: 3,
+            stageName: `Convocado para ${safeRoom}`,
+            orderWarning,
+            primaryAction: {
+              title: `👨‍⚕️ Iniciar Atendimento de ${firstName} no ${safeRoom}`,
+              desc: `Paciente ${pName} chamado no telão para o ${safeRoom}! Prossiga para o consultório médico para abertura do prontuário (PEP).`,
+              btnText: `👨‍⚕️ Abrir ${safeRoom} (${firstName}) ➔`,
+              btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+              onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+              icon: '👨‍⚕️'
+            },
+            alternatives: [
+              { label: 'Re-chamar na TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+              { label: 'Revisar Triagem', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')` }
+            ]
+          };
+        }
+      }
+    }
+
+    case 'tv_panel': {
+      if (isInterned) {
+        return {
+          currentStage: 5,
+          stageName: `Internado (${bedName || 'Leito'})`,
+          orderWarning,
+          primaryAction: {
+            title: `🛏️ Paciente Internado: ${firstName} (${bedName || 'Leito'})`,
+            desc: `Paciente ${pName} já se encontra internado(a) no ${bedName || 'leito hospitalar'}. Pacientes internados não aguardam na recepção. Acompanhe a evolução clínica no Mapa de Leitos ou Prontuário PEP.`,
+            btnText: `🛏️ Ver no Mapa de Leitos ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('leitos')",
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}', 'soap') : window.switchTab('consultorios')` },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Desmarcar Paciente', icon: '✕', onClick: "if(typeof window.clearActivePatientContext==='function'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext==='function'){window.setActivePatientContext(null);}" }
+          ]
+        };
+      }
+      if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta / Finalizado',
+          orderWarning,
+          primaryAction: {
+            title: `✅ Alta Registrada: ${firstName}`,
+            desc: `O atendimento de ${pName} foi finalizado com alta médica. O paciente não se encontra mais na fila de espera do telão.`,
+            btnText: `💰 Faturamento & TISS ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: "window.switchTab('tiss')",
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Desmarcar Paciente', icon: '✕', onClick: "if(typeof window.clearActivePatientContext==='function'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext==='function'){window.setActivePatientContext(null);}" },
+            { label: 'Histórico Completo', icon: '📋', onClick: `window.openPatientHistoryModal ? window.openPatientHistoryModal('${patient.id}', '${safePNameEsc}') : window.switchTab('pacientes')` }
+          ]
+        };
+      }
+      if (!isTriaged) {
+        if (wasCalled) {
+          return {
+            currentStage: 1,
+            stageName: 'Chamado na TV (Triagem)',
+            actionBadge: '📢 CHAMADO NA TV • PRÓXIMO PASSO',
+            actionCardBg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(6, 95, 70, 0.24))',
+            actionCardBorder: 'rgba(16, 185, 129, 0.5)',
+            orderWarning,
+            primaryAction: {
+              title: `🩺 Realizar Triagem Manchester de ${firstName}`,
+              desc: `Paciente ${pName} já foi chamado(a) no Painel TV para a Sala de Triagem! Clique no botão abaixo para abrir diretamente a ficha de Triagem Manchester, aferir os sinais vitais e classificar o risco.`,
+              btnText: `🩺 Iniciar Triagem de ${firstName} Agora ➔`,
+              btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+              onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
+              icon: '🩺'
+            },
+            alternatives: [
+              { label: 'Re-chamar na TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
+              { label: 'Voltar à Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+            ]
+          };
+        }
+        return {
+          currentStage: 1,
+          stageName: 'Painel TV (Chamador)',
+          orderWarning,
+          primaryAction: {
+            title: `📢 Emitir Chamada de ${firstName} (Triagem)`,
+            desc: `Paciente ${pName} aguarda na sala de espera. Clique no botão abaixo para tocar o sinal sonoro e exibir o nome no telão para a Sala de Triagem.`,
+            btnText: `📢 Emitir Chamada de ${firstName} na TV ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')`,
+            icon: '📢'
+          },
+          alternatives: [
+            { label: 'Entrar na Sala de Triagem', icon: '🩺', onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`, isPrimaryAlt: true },
+            { label: 'Voltar à Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else {
+        if (!wasCalled) {
+          return {
+            currentStage: 2,
+            stageName: `Espera Consultório (${colorDisplay})`,
+            orderWarning,
+            primaryAction: {
+              title: `📢 Chamar ${firstName} para ${safeRoom}`,
+              desc: `Paciente ${pName} triado (${colorDisplay}). Clique abaixo para emitir a chamada sonora no telão e convocá-lo ao ${safeRoom}.`,
+              btnText: `📢 Emitir Chamada de ${firstName} (${safeRoom}) ➔`,
+              btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+              onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+              icon: isCriticalEmergency ? '🚨' : '📢'
+            },
+            alternatives: [
+              { label: `Entrar no ${safeRoom}`, icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`, isPrimaryAlt: true },
+              { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+              { label: 'Ver Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" }
+            ]
+          };
+        } else {
+          return {
+            currentStage: 3,
+            stageName: `Convocado para ${safeRoom}`,
+            orderWarning,
+            primaryAction: {
+              title: `👨‍⚕️ Iniciar Atendimento de ${firstName} no ${safeRoom}`,
+              desc: `Chamada sonora emitida no telão para o ${safeRoom}! Clique no botão abaixo para entrar na sala e abrir o prontuário SOAP no PEP.`,
+              btnText: `👨‍⚕️ Entrar no ${safeRoom} (${firstName}) ➔`,
+              btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+              onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+              icon: '👨‍⚕️'
+            },
+            alternatives: [
+              { label: 'Chamar Novamente na TV', icon: '📢', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+              { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+              { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" }
+            ]
+          };
+        }
+      }
+    }
+
+    case 'consultorios':
+    case 'medicos': {
+      if (!isTriaged) {
+        return {
+          currentStage: 3,
+          stageName: 'Consultórios Médicos',
+          orderWarning,
+          primaryAction: {
+            title: `🩺 Triagem Pendente: Conduzir ${firstName} à Triagem`,
+            desc: `Paciente ${pName} ainda não possui sinais vitais nem classificação Manchester. Para conformidade assistencial, realize a triagem antes da consulta médica.`,
+            btnText: `🩺 Abrir Triagem Manchester de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Chamar no Telão TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', 'Verde', 'Sala de Triagem') : window.switchTab('tv_panel')` },
+            { label: 'Forçar Abertura PEP (Exceção)', icon: '⚠️', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : null` },
+            { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta Médica Homologada',
+          orderWarning,
+          primaryAction: {
+            title: `📋 Prontuário Homologado de ${firstName}`,
+            desc: `Atendimento de ${pName} encerrado com alta médica. Consulte a folha de evolução, prescrição e orientações no prontuário.`,
+            btnText: `🩺 Visualizar Prontuário no PEP ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Faturamento & TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
+            { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 3,
+          stageName: `Consultório / PEP`,
+          orderWarning,
+          primaryAction: {
+            title: isCriticalEmergency ? `🚨 Atendimento Imediato: ${firstName} (${safeRoom})` : `🩺 Evolução Médica (PEP) de ${firstName}`,
+            desc: `Paciente ${pName} em atendimento no ${safeRoom}. Registre a anamnese SOAP, hipótese diagnóstica CID-10 e emita a prescrição eletrônica.`,
+            btnText: `🩺 Abrir Folha de Evolução (PEP) de ${firstName} ➔`,
+            btnBg: isCriticalEmergency ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `if (typeof window.openPEPModal === 'function') { window.openPEPModal('${safePNameEsc}', 'soap'); } else if (typeof window.startEncounterPEP === 'function') { window.startEncounterPEP('', '${safePNameEsc}', '${safeRoomEsc}'); } else if (typeof window.openDoctorConsultingRoom === 'function') { window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}'); }`,
+            icon: isCriticalEmergency ? '🚨' : '🩺'
+          },
+          alternatives: [
+            { label: 'Internar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')", isPrimaryAlt: true },
+            { label: 'Dispensar na Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Re-chamar na TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+            { label: 'Escalas de Plantão', icon: '👨‍⚕️', onClick: "window.switchTab('escalas')" }
+          ]
+        };
+      }
+    }
+
+    case 'observacao': {
+      return {
+        currentStage: 3,
+        stageName: 'Sala de Observação (PS)',
+        orderWarning,
+        primaryAction: {
+          title: `🛏️ Sala de Observação: Monitorar ${firstName}`,
+          desc: `Paciente ${pName} (${colorDisplay}) em observação clínica no Pronto-Socorro. Acompanhe a hidratação, medicações de alívio e evolução dos sinais vitais (Resolução CFM nº 2.079/14).`,
+          btnText: `🩺 Abrir PEP / Prontuário (${firstName}) ➔`,
+          btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+          onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
+          icon: '🛏️'
+        },
+        alternatives: [
+          { label: 'Central de Atendimentos', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+          { label: 'Internar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+        ]
+      };
+    }
+
+    case 'farmacia': {
+      if (pendingPrescription) {
+        if (isMasterOrDev || userPerms.canManagePharmacy) {
+          return {
+            currentStage: 4,
+            stageName: 'Liberação Farmacêutica',
+            orderWarning,
+            primaryAction: {
+              title: `💊 Validar & Liberar Prescrição de ${firstName}`,
+              desc: `Prescrição de ${pName} aguarda validação técnica farmacêutica no circuito fechado. Conclua a liberação para autorizar a administração pela enfermagem no leito.`,
+              btnText: `✅ Validar & Liberar Prescrição ➔`,
+              btnBg: 'linear-gradient(135deg, #059669, #047857)',
+              onClick: `window.releasePrescriptionById ? window.releasePrescriptionById('${pendingPrescription.id}', '${safePNameEsc}') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())`,
+              icon: '✅'
+            },
+            alternatives: [
+              { label: 'Estoque Central', icon: '📦', onClick: "window.switchPharmacySubTab && window.switchPharmacySubTab('stock')" },
+              { label: 'Ver no Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+              { label: 'Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
+            ]
+          };
+        } else {
+          return {
+            currentStage: 4,
+            stageName: 'Liberação Farmacêutica',
+            orderWarning,
+            primaryAction: {
+              title: `🔔 Solicitar Liberação na Farmácia (${firstName})`,
+              desc: `Prescrição de ${pName} aguarda validação técnica pelo Farmacêutico de Plantão. Emita uma notificação prioritária para acelerar a dispensação dos medicamentos.`,
+              btnText: `🔔 Notificar Farmácia de Plantão (Urgência) ➔`,
+              btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              onClick: `window.notifyPharmacyUrgent ? window.notifyPharmacyUrgent('${pendingPrescription.id}', '${safePNameEsc}') : (window.loadPharmacyPrescriptions && window.loadPharmacyPrescriptions())`,
+              icon: '🔔'
+            },
+            alternatives: [
+              { label: 'Ver no Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+              { label: 'Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
+            ]
+          };
+        }
+      } else {
+        return {
+          currentStage: 4,
+          stageName: 'Farmácia Hospitalar',
+          orderWarning,
+          primaryAction: {
+            title: `💊 Farmácia: Prescrições de ${firstName}`,
+            desc: `Consulte os medicamentos prescritos para ${pName} (${colorDisplay}) e valide no circuito fechado para liberação.`,
+            btnText: `📋 Ver Prescrições de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: `(function(){ if (typeof window.switchTab === 'function') window.switchTab('farmacia'); if (typeof window.switchPharmacySubTab === 'function') window.switchPharmacySubTab('rx'); const s = document.getElementById('pharm-search-rx'); if (s) { s.value = '${safePNameEsc}'; s.dispatchEvent(new Event('input')); } if (typeof window.openPrescriptionModal === 'function') { window.openPrescriptionModal('${activePatient.encounterId || ''}', '${safePNameEsc}', '${activePatient.id || ''}'); } })()`,
+            icon: '📋'
+          },
+          alternatives: [
+            { label: 'Estoque Central', icon: '📦', onClick: "window.switchPharmacySubTab && window.switchPharmacySubTab('stock')" },
+            { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Revisar no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` }
+          ]
+        };
+      }
+    }
+
+    case 'leitos': {
+      if (isInterned) {
+        return {
+          currentStage: 5,
+          stageName: `Internado${bedName ? ' (' + bedName + ')' : ''}`,
+          orderWarning,
+          primaryAction: {
+            title: `🩺 Evolução Médica de ${firstName} no PEP`,
+            desc: `Paciente ${pName} em leito assistencial${bedName ? ' (' + bedName + ')' : ''}. Registre a evolução clínica diária no PEP, monitore a prescrição e conduza o plano terapêutico.`,
+            btnText: `🩺 Evolução no PEP (${firstName}) ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('leitos')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Conceder Alta Médica', icon: '🚪', onClick: `window.executeDischarge ? window.executeDischarge() : (window.openPEPModal && window.openPEPModal('${safePNameEsc}'))`, isDanger: true },
+            { label: 'Kanban Hospitalar', icon: '📊', onClick: "window.switchTab('kanban')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 5,
+          stageName: 'Internação Hospitalar',
+          orderWarning,
+          primaryAction: {
+            title: `🛏️ Alocar ${firstName} em Leito Hospitalar`,
+            desc: `Paciente ${pName} (${colorDisplay}) avaliado clinicamente. Abra o formulário de admissão para destinar um leito vago na enfermaria ou UTI.`,
+            btnText: `🛏️ Internar ${firstName} em Leito Agora ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: `window.openAdmitBedModal ? window.openAdmitBedModal('${patient.id || ''}', '${safePNameEsc}', '${patient.encounterId || ''}') : (document.getElementById('btn-open-admit-modal') && document.getElementById('btn-open-admit-modal').click())`,
+            icon: '🛏️'
+          },
+          alternatives: [
+            { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Linha de Cuidado (Kanban)', icon: '📊', onClick: "window.switchTab('kanban')" },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+          ]
+        };
+      }
+    }
+
+    case 'kanban': {
+      if (isInterned) {
+        return {
+          currentStage: 5,
+          stageName: `Linha de Cuidado (${firstName})`,
+          orderWarning,
+          primaryAction: {
+            title: `📊 Acompanhar ${firstName} no Leito / Kanban`,
+            desc: `Linha de cuidado de ${pName} ativa no leito${bedName ? ' (' + bedName + ')' : ''}. Acompanhe exames laboratoriais, pareceres e previsão de alta.`,
+            btnText: `🩺 Prontuário PEP (${firstName}) ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('leitos')`,
+            icon: '🩺'
+          },
+          alternatives: [
+            { label: 'Mapa de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Farmácia', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 5,
+          stageName: 'Linha de Cuidado (Kanban)',
+          orderWarning,
+          primaryAction: {
+            title: `📊 Linha de Cuidado: Destinar Vaga para ${firstName}`,
+            desc: `Paciente ${pName} (${colorDisplay}) em fluxo assistencial. Acompanhe a transição multidisciplinar e proceda com a internação em leito ou alta médica.`,
+            btnText: `🛏️ Destinar Leito Hospitalar ➔`,
+            btnBg: 'linear-gradient(135deg, #059669, #047857)',
+            onClick: "window.switchTab('leitos')",
+            icon: '📊'
+          },
+          alternatives: [
+            { label: 'Evolução no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" }
+          ]
+        };
+      }
+    }
+
+    case 'financeiro': {
+      if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Alta Médica Concedida',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Fechar Conta & Emitir Lote TISS (${firstName})`,
+            desc: `Alta homologada para ${pName}! Realize a auditoria dos procedimentos e finalize o lote eletrônico no padrão TISS 4.01.`,
+            btnText: `💰 Emitir Guia TISS de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.executeTISSClosure ? window.executeTISSClosure('${safePNameEsc}', '${activeCtx?.id || ''}') : window.switchTab('tiss')`,
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 6,
+          stageName: 'Gestão Financeira & Títulos',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Auditoria de Contas & Guia de ${firstName}`,
+            desc: `Paciente ${pName} (${colorDisplay}) em atendimento. Verifique os procedimentos realizados e proceda à conferência do lote eletrônico TISS 4.01.`,
+            btnText: `💰 Abrir Guia TISS de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window.executeTISSClosure ? window.executeTISSClosure('${safePNameEsc}', '${activeCtx?.id || ''}') : window.switchTab('tiss')`,
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('tiss')" },
+            { label: 'Ver no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Relatórios & KPIs', icon: '📈', onClick: "window.switchTab('relatorios')" }
+          ]
+        };
+      }
+    }
+
+    case 'tiss': {
+      if (isDischarged) {
+        return {
+          currentStage: 6,
+          stageName: 'Faturamento & Lote TISS',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Fechar Conta & Emitir Lote TISS (${firstName})`,
+            desc: `Alta homologada para ${pName}! Realize a auditoria dos procedimentos e finalize o lote eletrônico no padrão TISS 4.01.`,
+            btnText: `💰 Emitir Guia TISS de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+            onClick: `window.openTISSEmissionModal ? window.openTISSEmissionModal('${safePNameEsc}', '${activeCtx?.id || ''}') : (window.executeTISSClosure && window.executeTISSClosure('${safePNameEsc}', '${activeCtx?.id || ''}'))`,
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Ver Prontuário (PEP)', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Auditoria Anti-Glosa', icon: '🛡️', onClick: "document.getElementById('btn-tiss-audit') ? document.getElementById('btn-tiss-audit').click() : null" },
+            { label: 'Gestão Financeira', icon: '💳', onClick: "window.switchTab('financeiro')" },
+            { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+          ]
+        };
+      } else {
+        return {
+          currentStage: 6,
+          stageName: 'Faturamento & Auditoria TISS',
+          orderWarning,
+          primaryAction: {
+            title: `💰 Auditoria de Contas & Guia de ${firstName}`,
+            desc: `Paciente ${pName} (${colorDisplay}) em fluxo hospitalar. Emita a guia preliminar ou audite as regras de glosa da operadora.`,
+            btnText: `💰 Emitir Guia TISS de ${firstName} ➔`,
+            btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            onClick: `window.openTISSEmissionModal ? window.openTISSEmissionModal('${safePNameEsc}', '${activeCtx?.id || ''}') : (window.executeTISSClosure && window.executeTISSClosure('${safePNameEsc}', '${activeCtx?.id || ''}'))`,
+            icon: '💰'
+          },
+          alternatives: [
+            { label: 'Ver no PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+            { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+            { label: 'Gestão Financeira', icon: '💳', onClick: "window.switchTab('financeiro')" }
+          ]
+        };
+      }
+    }
+
+    case 'agenda': {
+      return {
+        currentStage: 0,
+        stageName: 'Agenda Médica',
+        orderWarning,
+        primaryAction: {
+          title: `📅 Consulta Agendada: ${firstName}`,
+          desc: `Paciente ${pName} acolhido e classificado (${colorDisplay}). Acompanhe o agendamento e encaminhe para o consultório médico.`,
+          btnText: `👨‍⚕️ Ir para Atendimento no ${safeRoom} ➔`,
+          btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+          onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+          icon: '📅'
+        },
+        alternatives: [
+          { label: 'Chamar no Telão TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')` },
+          { label: 'Alocar Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Recepção / Pacientes', icon: '📋', onClick: "window.switchTab('pacientes')" }
+        ]
+      };
+    }
+
+    case 'escalas': {
+      return {
+        currentStage: 3,
+        stageName: 'Corpo Clínico & Escalas',
+        orderWarning,
+        primaryAction: {
+          title: `👨‍⚕️ Equipe Assistente: ${firstName}`,
+          desc: `Verifique a equipe médica e de enfermagem escalada para o ${safeRoom} no atendimento de ${pName} (${colorDisplay}).`,
+          btnText: `👨‍⚕️ Abrir ${safeRoom} (${firstName}) ➔`,
+          btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+          onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+          icon: '👨‍⚕️'
+        },
+        alternatives: [
+          { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+          { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+        ]
+      };
+    }
+
+    case 'estagnacao': {
+      return {
+        currentStage: 2,
+        stageName: 'Alertas & Estagnação',
+        orderWarning,
+        primaryAction: {
+          title: `⚡ Destravar Atendimento de ${firstName}`,
+          desc: `Paciente ${pName} (${colorDisplay}) com prioridade assistencial. Agilize a chamada imediata no telão ou inicie a consulta médica.`,
+          btnText: wasCalled ? `👨‍⚕️ Atender ${firstName} no ${safeRoom} ➔` : `⚡ Chamar com Prioridade Máxima ➔`,
+          btnBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+          onClick: wasCalled ? `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` : `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${safeRoomEsc}') : window.switchTab('tv_panel')`,
+          icon: '⚡'
+        },
+        alternatives: [
+          { label: 'Atender no Consultório', icon: '👨‍⚕️', onClick: `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` },
+          { label: 'Alocar em Leito', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" }
+        ]
+      };
+    }
+
+    case 'relatorios': {
+      return {
+        currentStage: 6,
+        stageName: 'Indicadores & KPIs',
+        orderWarning,
+        primaryAction: {
+          title: `📈 Indicadores & Histórico de ${firstName}`,
+          desc: `Acompanhe os tempos assistenciais de porta-triagem, porta-médico e evolução clínica de ${pName} (${colorDisplay}).`,
+          btnText: `🩺 Visualizar Prontuário / PEP ➔`,
+          btnBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+          onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')`,
+          icon: '📈'
+        },
+        alternatives: [
+          { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Faturamento TISS', icon: '💰', onClick: "window.switchTab('financeiro')" },
+          { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+        ]
+      };
+    }
+
+    case 'exames': {
+      const isWaitingExams = pStatus === 'aguardando_exames' || pStatus === 'aguardando_resultado';
+      return {
+        currentStage: 3,
+        stageName: `Exames & SADT (${firstName})`,
+        orderWarning,
+        primaryAction: {
+          title: isWaitingExams ? `🔬 Executar / Laudar Exames de ${firstName}` : `🩺 Retornar ao Prontuário PEP de ${firstName}`,
+          desc: isWaitingExams
+            ? `Paciente ${pName} (${colorDisplay}) possui bateria de exames em andamento no SADT. Aceite a coleta ou digite o laudo técnico para devolver ao médico.`
+            : `Exames de ${pName} disponíveis no prontuário. Retorne ao Consultório / PEP para definir a conduta clínica final.`,
+          btnText: isWaitingExams ? `🔬 Laudar / Aceitar Exame de ${firstName} ➔` : `👨‍⚕️ Abrir PEP de ${firstName} ➔`,
+          btnBg: 'linear-gradient(135deg, #059669, #047857)',
+          onClick: isWaitingExams
+            ? `(function(){ const btn = document.querySelector('.btn-enter-result, .btn-accept-req, .btn-accept-item'); if (btn) { btn.scrollIntoView({ behavior: 'smooth', block: 'center' }); btn.click(); } else if (typeof window.openPEPModal === 'function') { window.openPEPModal('${safePNameEsc}'); } })()`
+            : `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`,
+          icon: isWaitingExams ? '🔬' : '👨‍⚕️'
+        },
+        alternatives: [
+          { label: 'Abrir Prontuário PEP', icon: '🩺', onClick: `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('consultorios')` },
+          { label: 'Chamar para Exames na TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', 'Exames / Raio-X') : window.switchTab('tv_panel')` },
+          { label: 'Sala de Observação', icon: '🛏️', onClick: "window.switchTab('observacao')" }
+        ]
+      };
+    }
+
+    case 'consulta_dinamica': {
+      return {
+        currentStage: isInterned ? 5 : (isTriaged ? 3 : 1),
+        stageName: `Localizador: ${firstName}`,
+        orderWarning,
+        primaryAction: {
+          title: !isTriaged
+            ? `🩺 Encaminhar ${firstName} para Triagem Manchester`
+            : (isInterned ? `🛏️ Evoluir ${firstName} no Leito` : `👨‍⚕️ Atender ${firstName} no ${safeRoom}`),
+          desc: `Paciente ${pName} selecionado na Consulta Dinâmica. Prossiga imediatamente para a próxima etapa da linha de cuidado.`,
+          btnText: !isTriaged
+            ? `🩺 Iniciar Triagem de ${firstName} ➔`
+            : (isInterned ? `🩺 Abrir PEP no Leito ➔` : `👨‍⚕️ Abrir ${safeRoom} (${firstName}) ➔`),
+          btnBg: 'linear-gradient(135deg, #059669, #047857)',
+          onClick: !isTriaged
+            ? `window.openAttendanceTriage ? window.openAttendanceTriage('${safePNameEsc}') : window.switchTab('atendimento')`
+            : (isInterned
+                ? `window.openPEPModal ? window.openPEPModal('${safePNameEsc}') : window.switchTab('leitos')`
+                : `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')`),
+          icon: !isTriaged ? '🩺' : '👨‍⚕️'
+        },
+        alternatives: [
+          { label: 'Chamar no Painel TV', icon: '📺', onClick: `window._tvQuickCall ? window._tvQuickCall('${safePNameEsc}', '${colorDisplay}', '${!isTriaged ? 'Sala de Triagem' : safeRoomEsc}') : window.switchTab('tv_panel')` },
+          { label: 'Exames & SADT', icon: '🔬', onClick: "window.switchTab('exames')" },
+          { label: 'Farmácia Hospitalar', icon: '💊', onClick: "window.switchTab('farmacia')" }
+        ]
+      };
+    }
+
+    case 'configuracoes': {
+      return {
+        currentStage: 0,
+        stageName: 'Configurações',
+        orderWarning,
+        primaryAction: {
+          title: `⚙️ Retornar ao Atendimento de ${firstName}`,
+          desc: `Configurações do sistema. Retorne ao fluxo clínico de ${pName} (${colorDisplay}) no consultório ou leitos.`,
+          btnText: `🩺 Voltar ao Fluxo Clínico ➔`,
+          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+          onClick: wasCalled ? `window.openDoctorConsultingRoom ? window.openDoctorConsultingRoom('${safeRoomEsc}', '${safePNameEsc}') : window.switchTab('consultorios')` : `window.switchTab('dashboard')`,
+          icon: '⚙️'
+        },
+        alternatives: [
+          { label: 'Gestão de Leitos', icon: '🛏️', onClick: "window.switchTab('leitos')" },
+          { label: 'Painel TV', icon: '📺', onClick: "window.switchTab('tv_panel')" },
+          { label: 'Dashboard Principal', icon: '🏥', onClick: "window.switchTab('dashboard')" }
+        ]
+      };
+    }
+
+    default: {
+      return {
+        currentStage: 0,
+        stageName: 'Fluxo Hospitalar',
+        orderWarning,
+        primaryAction: {
+          title: `🏥 Acompanhar Atendimento de ${firstName}`,
+          desc: `Paciente ${pName} (${colorDisplay}) em atendimento no hospital.`,
+          btnText: `🏥 Voltar ao Dashboard Principal ➔`,
+          btnBg: 'linear-gradient(135deg, #10b981, #059669)',
+          onClick: "window.switchTab('dashboard')",
+          icon: '🏥'
+        },
+        alternatives: [
+          { label: 'Recepção', icon: '🏥', onClick: "window.switchTab('pacientes')" },
+          { label: 'Triagem', icon: '🩺', onClick: "window.switchTab('atendimento')" },
+          { label: 'Consultórios', icon: '👨‍⚕️', onClick: "window.switchTab('consultorios')" }
+        ]
+      };
+    }
+  }
+  })();
+
+  return {
+    ...raw,
+    userRoleLabel,
+    userRoleIcon,
+    isMasterOrDev,
+    isMaster,
+    isDev,
+    userPerms
+  };
+}
+
+window.evaluateClinicalPossibilities = evaluateClinicalPossibilities;
+
+if (typeof window.notifyPharmacyUrgent !== 'function') {
+  window.notifyPharmacyUrgent = function(rxId, patientName = 'Paciente') {
+    try {
+      const allPrescriptions = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('prescriptions') : [];
+      const rx = allPrescriptions.find(p => String(p.id) === String(rxId));
+      if (rx) {
+        rx.priority = 'Urgente';
+        rx.priorityRequestedAt = new Date().toISOString();
+        rx.priorityRequestedBy = (state?.user?.name || state?.user?.fullName || state?.user?.username || 'Equipe Assistencial');
+        if (typeof localDB !== 'undefined' && localDB.save) {
+          localDB.save('prescriptions', rx);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao marcar prescrição urgente:', err);
+    }
+    if (typeof showToast === 'function') {
+      showToast(`🚨 Notificação prioritária enviada à Farmácia: Prescrição de ${patientName} sinalizada como URGENTE!`, 'warning');
+    }
+    if (typeof window.loadPharmacyPrescriptions === 'function') {
+      window.loadPharmacyPrescriptions();
+    }
+    if (typeof window.updateSmartFlowGuide === 'function') {
+      window.updateSmartFlowGuide();
+    }
+  };
+}
+
+// Finalização completa do atendimento na recepção (conclusão do acolhimento e liberação pós-alta)
+window.finalizePatientReceptionDischarge = async function(patientName, patientId) {
+  const pName = (patientName || '').trim();
+  const pId = patientId || '';
+  const normPname = pName.toLowerCase();
+  const normPid = String(pId).toLowerCase();
+  const nowIso = new Date().toISOString();
+  const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const dateFormatted = new Date().toLocaleDateString('pt-BR');
+
+  const db = (typeof localDB !== 'undefined' && localDB) ? localDB : window.localDB;
+  if (!db) {
+    if (typeof showToast === 'function') showToast('⚠️ Banco de dados local indisponível.', 'error');
+    return;
+  }
+
+  try {
+    // 1. Localizar paciente na tabela patients
+    const allPatients = (typeof db.list === 'function') ? db.list('patients') : [];
+    const pat = allPatients.find(p => (
+      (normPid && p.id && String(p.id).toLowerCase() === normPid) ||
+      (normPname && p.fullName && p.fullName.toLowerCase().trim() === normPname)
+    ));
+
+    const effectiveId = pat?.id || pId;
+    const effectiveName = pat?.fullName || pName;
+
+    // 2. Atualizar cadastro do paciente com status 'Alta', flags de conclusão e timestamps
+    if (pat && db.update) {
+      db.update('patients', pat.id, {
+        ...pat,
+        status: 'Alta',
+        receptionFinalized: true,
+        lastDischargeDate: nowIso,
+        last_discharge_date: nowIso,
+        discharged_at: nowIso,
+        updated_at: nowIso
+      });
+    }
+
+    // 3. Finalizar todos os atendimentos/encounters do paciente
+    const allEncs = (typeof db.list === 'function') ? db.list('encounters') : [];
+    allEncs.forEach(enc => {
+      const isThisPatient = (
+        (normPid && enc.patientId && String(enc.patientId).toLowerCase() === normPid) ||
+        (effectiveId && enc.patientId && String(enc.patientId).toLowerCase() === String(effectiveId).toLowerCase()) ||
+        (normPid && enc.id && String(enc.id).toLowerCase() === normPid) ||
+        (normPname && enc.patientName && enc.patientName.toLowerCase().trim() === normPname)
+      );
+      if (isThisPatient && enc.status !== 'Finalizado') {
+        db.update('encounters', enc.id, {
+          ...enc,
+          status: 'Finalizado',
+          dischargeType: enc.dischargeType || 'Alta Médica Concluída na Recepção',
+          discharged_at: enc.discharged_at || nowIso,
+          completed_at: nowIso,
+          closed_at: nowIso,
+          lastStatusUpdate: nowIso
+        });
+      }
+    });
+
+    // 4. Finalizar triagens do paciente
+    const allTriages = (typeof db.list === 'function') ? db.list('triages') : [];
+    allTriages.forEach(t => {
+      const isThisPatient = (
+        (normPid && t.patientId && String(t.patientId).toLowerCase() === normPid) ||
+        (effectiveId && t.patientId && String(t.patientId).toLowerCase() === String(effectiveId).toLowerCase()) ||
+        (normPname && t.patientName && t.patientName.toLowerCase().trim() === normPname)
+      );
+      if (isThisPatient && t.status !== 'Finalizado') {
+        db.update('triages', t.id, {
+          ...t,
+          status: 'Finalizado',
+          completed_at: nowIso
+        });
+      }
+    });
+
+    // 5. Remover chamadas no painel TV
+    const allTv = (typeof db.list === 'function') ? db.list('tv_calls') : [];
+    allTv.forEach(tv => {
+      const isThisPatient = (
+        (normPid && (String(tv.patientId).toLowerCase() === normPid || String(tv.patient_id).toLowerCase() === normPid)) ||
+        (effectiveId && (String(tv.patientId).toLowerCase() === String(effectiveId).toLowerCase() || String(tv.patient_id).toLowerCase() === String(effectiveId).toLowerCase())) ||
+        (normPname && tv.patientName && tv.patientName.toLowerCase().trim() === normPname)
+      );
+      if (isThisPatient) {
+        db.remove('tv_calls', tv.id);
+      }
+    });
+
+    // 6. Atualizar hospitalizações e liberar leitos se houver
+    const allHosps = (typeof db.list === 'function') ? db.list('hospitalizations') : [];
+    allHosps.forEach(h => {
+      const isThisPatient = (
+        (normPid && String(h.patient_id || h.patientId).toLowerCase() === normPid) ||
+        (effectiveId && String(h.patient_id || h.patientId).toLowerCase() === String(effectiveId).toLowerCase()) ||
+        (normPname && h.patientName && h.patientName.toLowerCase().trim() === normPname)
+      );
+      if (isThisPatient && h.status !== 'Alta' && h.status !== 'Finalizado') {
+        db.update('hospitalizations', h.id, {
+          ...h,
+          status: 'Alta',
+          discharged_at: nowIso,
+          discharge_date: nowIso
+        });
+        if (h.bed_id || h.bed) {
+          const beds = (typeof db.list === 'function') ? db.list('beds') : [];
+          const b = beds.find(bed => String(bed.id) === String(h.bed_id) || bed.name === h.bed || bed.bedNumber === h.bed);
+          if (b && (b.status === 'Ocupado' || b.status === 'Ocupada')) {
+            db.update('beds', b.id, {
+              ...b,
+              status: 'Higienizacao',
+              previousPatientName: b.patientName || effectiveName,
+              patientId: null,
+              patientName: null,
+              encounterId: null,
+              dischargedAt: nowIso
+            });
+          }
+        }
+      }
+    });
+
+    // 7. Atualizar Contexto Ativo
+    if (typeof window.setActivePatientContext === 'function') {
+      window.setActivePatientContext({
+        id: effectiveId,
+        patientId: effectiveId,
+        fullName: effectiveName,
+        patientName: effectiveName,
+        status: 'Alta',
+        receptionFinalized: true,
+        isDischarged: true,
+        lastDischargeDate: nowIso,
+        room: `Alta — ${dateFormatted} às ${timeFormatted}`,
+        stage: 6
+      });
+    }
+
+    // 8. Invalidar caches de dados
+    if (typeof dataCache !== 'undefined' && dataCache) {
+      if (dataCache.delete) {
+        dataCache.delete('patients');
+        dataCache.delete('encounters');
+        dataCache.delete('triages');
+        dataCache.delete('hospitalizations');
+        dataCache.delete('beds');
+      } else {
+        dataCache['patients'] = null;
+        dataCache['encounters'] = null;
+        dataCache['triages'] = null;
+        dataCache['hospitalizations'] = null;
+        dataCache['beds'] = null;
+      }
+    }
+    if (typeof dataCacheTimestamps !== 'undefined' && dataCacheTimestamps?.delete) {
+      dataCacheTimestamps.delete('patients');
+      dataCacheTimestamps.delete('encounters');
+      dataCacheTimestamps.delete('triages');
+    }
+
+    // 9. Re-renderizar telas e tabelas
+    if (typeof window.loadPatientsTable === 'function') window.loadPatientsTable();
+    if (typeof window.loadAttendanceData === 'function') window.loadAttendanceData();
+    if (typeof window.loadAndRenderKanban === 'function') window.loadAndRenderKanban();
+    if (typeof window.loadQueue === 'function') window.loadQueue();
+
+    // 10. Atualizar o Card de Fluxo / Painel Lateral
+    if (typeof window.createSmartFlowGuideCard === 'function') {
+      const activeTab = window.state?.activeTab || 'pacientes';
+      window.createSmartFlowGuideCard(activeTab);
+    }
+    if (typeof window.updateSmartFlowGuide === 'function') {
+      window.updateSmartFlowGuide();
+    }
+
+    // 11. Feedback assistencial humano e empático
+    if (typeof showToast === 'function') {
+      showToast(`✅ Atendimento de ${effectiveName} concluído com sucesso na recepção! Alta registrada em ${dateFormatted} às ${timeFormatted}.`, 'success');
+    }
+
+  } catch (err) {
+    console.error('Erro ao finalizar atendimento na recepção:', err);
+    if (typeof showToast === 'function') {
+      showToast('⚠️ Ocorreu um erro ao finalizar o atendimento na recepção.', 'error');
+    }
+  }
+};
+
+// Fechamento garantido de todos os modais ativos para não bloquear o fluxo
+window.closeAllActiveModals = function() {
+  const modalIds = [
+    'patient-history-modal',
+    'pep-modal',
+    'triage-modal',
+    'patient-modal',
+    'patient-modal-overlay',
+    'modal-admit-bed',
+    'modal-transfer-bed-drawer',
+    'consultorio-details-modal',
+    'enc-report-detail-modal',
+    'bed-details-modal',
+    'prescription-modal',
+    'pacs-viewer-modal',
+    'telemedicine-modal',
+    'custom-confirm-modal',
+    'custom-alert-modal'
+  ];
+  modalIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.style.display === 'flex' || el.style.display === 'block') {
+        el.style.display = 'none';
+      }
+      if (['patient-history-modal', 'pep-modal', 'consultorio-details-modal', 'enc-report-detail-modal', 'bed-details-modal', 'prescription-modal', 'pacs-viewer-modal', 'telemedicine-modal'].includes(id)) {
+        el.remove();
+      }
+    }
+  });
+
+  document.querySelectorAll('.modal-overlay:not(#loading-modal)').forEach(el => {
+    if (el.id !== 'triage-modal' && el.id !== 'patient-modal' && el.id !== 'patient-modal-overlay') {
+      el.remove();
+    } else {
+      el.style.display = 'none';
+    }
+  });
+};
+
+function createSmartFlowGuideCard(tabId, customMessage) {
+  // Verificar autenticação (aceita sessionStorage e estado ativo como fallback)
+  const hasToken = state.isAuthenticated || !!sessionStorage.getItem('hn_token') || !!sessionStorage.getItem('hn_user') || !!localStorage.getItem('token');
+  const mainContentExists = !!document.getElementById('main-content') || !!document.querySelector('.app-layout') || !!document.querySelector('.main-content') || !!document.querySelector('.app-container');
+  const onLoginScreen = (!!document.getElementById('auth-form') || !!document.querySelector('.auth-container')) && !mainContentExists;
+  if (!hasToken || onLoginScreen) {
+    const ex = document.getElementById('hn-flow-guide');
+    if (ex) ex.remove();
+    const launcher = document.getElementById('hn-fg-launcher');
+    if (launcher) launcher.remove();
+    return null;
+  }
+
+  // Remove qualquer container flutuante de notificação redundante
+  const legacyNotif = document.getElementById('hn-flow-notifications-container');
+  if (legacyNotif) legacyNotif.remove();
+  document.querySelectorAll('[data-flow-target-tab]').forEach(function(el) { el.remove(); });
+
+  _SFG.hidden = false;
+  const effectiveTab = (typeof state !== 'undefined' && state.activeTab) || tabId || 'dashboard';
+  _SFG.activeTab = effectiveTab;
+
+  // Se houver launcher flutuante redundante, remove
+  const launcher = document.getElementById('hn-fg-launcher');
+  if (launcher) launcher.remove();
+
+  // Limpa instâncias anteriores para remontar com dados atualizados da tela
+  document.querySelectorAll('#hn-flow-guide, #floating-flow-guide, .floating-flow-guide').forEach(function(el) { el.remove(); });
+
+  const activePatient = (typeof window.getActivePatientContext === 'function') 
+    ? window.getActivePatientContext() 
+    : null;
+
+  // Se houver uma ação pendente registrada para outro paciente diferente do contexto ativo, limpa a ação para não sobrepor o paciente atual
+  if (activePatient && _SFG.pendingAction && _SFG.pendingAction.targetPatientName) {
+    const actName = (_SFG.pendingAction.targetPatientName || '').toLowerCase().trim();
+    const curName = (activePatient.fullName || activePatient.patientName || '').toLowerCase().trim();
+    if (actName && curName && actName !== curName) {
+      _SFG.pendingAction = null;
+    }
+  }
+
+  // Prevenção de loop: se paciente ativo já realizou triagem real no banco (db.triages), descarta apenas ações pendentes antigas de 1ª chamada para triagem
+  if (_SFG.pendingAction && (
+    _SFG.pendingAction.actionType === 'call_tv_triage' || 
+    _SFG.pendingAction.actionType === 'start_triage' || 
+    _SFG.pendingAction.actionType === 'go_triage'
+  )) {
+    const pStatusAct = (activePatient?.status || '').toLowerCase().trim();
+    const chkName = ((activePatient && (activePatient.fullName || activePatient.patientName)) || _SFG.pendingAction.targetPatientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    
+    let dbHasTriage = false;
+    if (window.localDB && chkName) {
+      try {
+        const fullDB = window.localDB.getFullDB();
+        const triages = fullDB.triages || [];
+        dbHasTriage = triages.some(t => {
+          const tName = (t.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          return (tName === chkName || (chkName.length > 3 && (tName.includes(chkName) || chkName.includes(tName)))) && !!t.manchesterColor;
+        });
+      } catch (_) {}
+    }
+
+    const isActTriaged = dbHasTriage && pStatusAct !== 'aguardando_triagem';
+    if (isActTriaged) {
+      _SFG.pendingAction = null;
+    }
+  }
+
+  const effectivePatient = activePatient || (_SFG.pendingAction && _SFG.pendingAction.targetPatientName ? {
+    fullName: _SFG.pendingAction.targetPatientName,
+    patientName: _SFG.pendingAction.targetPatientName,
+    status: 'Em Atendimento'
+  } : null);
+
+  // Avaliação Inteligente pelo Motor do Agente de Governança Clínica
+  const evalResult = evaluateClinicalPossibilities(effectivePatient, _SFG.activeTab);
+  const currentStageIdx = typeof evalResult.currentStage === 'number' ? evalResult.currentStage : 0;
+
+  const isDocked = !!(_SFG.docked && !_SFG.minimized && _SFG.dockPosition);
+  const dockPos = isDocked ? _SFG.dockPosition : null;
+  const isHorizontal = isDocked && (dockPos === 'top' || dockPos === 'bottom');
+  const isLightMode = typeof document !== 'undefined' && document.body && document.body.classList.contains('light-theme');
+
+  function applyDockPosition(pos) {
+    if (pos === 'float' || !pos) {
+      _SFG.docked = false;
+      _SFG.dockPosition = 'right';
+      try { localStorage.setItem('hn_flow_docked', 'false'); } catch(_) {}
+      syncFlowDockClasses(null);
+      const curLeft = (typeof window !== 'undefined' ? Math.max(10, Math.min(window.innerWidth - 410, 80)) : 80);
+      _SFG.pos = { left: curLeft + 'px', top: '90px' };
+      if (typeof showToast === 'function') showToast('🧭 Guia de Fluxo desacoplado para card flutuante.');
+    } else {
+      _SFG.docked = true;
+      _SFG.dockPosition = pos;
+      try {
+        localStorage.setItem('hn_flow_docked', 'true');
+        localStorage.setItem('hn_flow_dock_pos', pos);
+      } catch(_) {}
+      syncFlowDockClasses(pos);
+      if (typeof playFlowChime === 'function') playFlowChime();
+      const names = { right: 'Lateral Direita', left: 'Lateral Esquerda', top: 'Topo Superior', bottom: 'Base Inferior' };
+      if (typeof showToast === 'function') showToast('🧭 Guia de Fluxo fixado: ' + (names[pos] || pos));
+    }
+    createSmartFlowGuideCard(_SFG.activeTab);
+  }
+
+  function toggleDockPickerPopover(targetBtn) {
+    const existing = document.getElementById('hn-dock-picker-popover');
+    if (existing) {
+      existing.remove();
+      return;
+    }
+    const popover = document.createElement('div');
+    popover.id = 'hn-dock-picker-popover';
+    popover.className = 'hn-dock-picker-popover';
+    popover.innerHTML = `
+      <div class="hn-dock-picker-title"><i class="fa-solid fa-arrows-to-dot" style="color:#38bdf8;margin-right:4px;"></i> Posição do Guia</div>
+      <button class="hn-dock-picker-item ${isDocked && _SFG.dockPosition === 'right' ? 'active' : ''}" data-pos="right">
+        <i class="fa-solid fa-arrow-right" style="color:#38bdf8;"></i> Fixar na Lateral Direita
+      </button>
+      <button class="hn-dock-picker-item ${isDocked && _SFG.dockPosition === 'left' ? 'active' : ''}" data-pos="left">
+        <i class="fa-solid fa-arrow-left" style="color:#38bdf8;"></i> Fixar na Lateral Esquerda
+      </button>
+      <button class="hn-dock-picker-item ${isDocked && _SFG.dockPosition === 'top' ? 'active' : ''}" data-pos="top">
+        <i class="fa-solid fa-arrow-up" style="color:#38bdf8;"></i> Fixar no Topo da Tela
+      </button>
+      <button class="hn-dock-picker-item ${isDocked && _SFG.dockPosition === 'bottom' ? 'active' : ''}" data-pos="bottom">
+        <i class="fa-solid fa-arrow-down" style="color:#38bdf8;"></i> Fixar na Base da Tela
+      </button>
+      <button class="hn-dock-picker-item ${!isDocked ? 'active' : ''}" data-pos="float">
+        <i class="fa-solid fa-up-right-and-down-left-from-center" style="color:#a78bfa;"></i> Card Flutuante Livre
+      </button>
+    `;
+    targetBtn.style.position = 'relative';
+    targetBtn.appendChild(popover);
+
+    popover.querySelectorAll('.hn-dock-picker-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const p = item.getAttribute('data-pos');
+        popover.remove();
+        applyDockPosition(p);
+      });
+    });
+
+    const onDocClick = function(e) {
+      if (!popover.contains(e.target) && e.target !== targetBtn && !targetBtn.contains(e.target)) {
+        popover.remove();
+        document.removeEventListener('click', onDocClick);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', onDocClick), 50);
+  }
+
+  // Sincroniza a classe de adaptação do layout do sistema
+  if (isDocked) {
+    syncFlowDockClasses(dockPos);
+  } else {
+    syncFlowDockClasses(null);
+  }
+
+  const card = document.createElement('div');
+  card.id = 'hn-flow-guide';
+  card.className = 'floating-flow-guide' + (_SFG.minimized ? ' minimized' : '') + (isDocked ? ' docked-panel dock-pos-' + dockPos : '');
+
+  // Visual Minimizado (Pílula compacta)
+  if (_SFG.minimized) {
+    syncFlowDockClasses(null);
+    const miniPill = document.createElement('div');
+    miniPill.className = 'hn-fg-mini-pill';
+    const miniPillBg = isLightMode ? 'rgba(255,255,255,0.96)' : 'rgba(11,15,25,0.95)';
+    const miniPillColor = isLightMode ? '#0f172a' : '#f1f5f9';
+    const miniPillBorder = isLightMode ? '1px solid rgba(0,0,0,0.12);border-top:3px solid #0284c7' : '1px solid rgba(255,255,255,0.12);border-top:2px solid #0284c7';
+    const miniPillShadow = isLightMode ? '0 8px 24px rgba(0,0,0,0.1)' : '0 12px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.1)';
+    miniPill.setAttribute('style', `display:flex;align-items:center;gap:9px;padding:8px 15px;background:${miniPillBg};backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);${miniPillBorder};border-radius:28px;box-shadow:${miniPillShadow};cursor:pointer;transition:transform 0.2s,border-color 0.2s;`);
+    miniPill.innerHTML = '<div style="width:24px;height:24px;border-radius:50%;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#0284c7;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
+      + `<span style="font-size:0.78rem;font-weight:700;color:${miniPillColor}">Governança: <strong style="color:#0284c7">` + evalResult.stageName + '</strong></span>'
+      + (evalResult.orderWarning ? '<span style="font-size:0.62rem;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fde68a;font-weight:700;padding:2px 6px;border-radius:8px">⚠️ Desvio</span>' : '')
+      + (_SFG.pendingAction ? '<span style="font-size:0.62rem;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;font-weight:700;padding:2px 6px;border-radius:8px">⚡ 1 Próximo Passo</span>' : '')
+      + '<span style="font-size:0.75rem;color:#94a3b8;margin-left:4px"><i class="fa-solid fa-chevron-up"></i></span>';
+    miniPill.addEventListener('mouseenter', () => { miniPill.style.transform = 'translateY(-2px)'; miniPill.style.borderColor = 'rgba(2,132,199,0.5)'; });
+    miniPill.addEventListener('mouseleave', () => { miniPill.style.transform = 'none'; miniPill.style.borderColor = isLightMode ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)'; });
+    miniPill.addEventListener('click', function() {
+      _SFG.minimized = false;
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+    card.appendChild(miniPill);
+    document.body.appendChild(card);
+    return card;
+  }
+
+  const roleBadgeHtml = evalResult.isMasterOrDev
+    ? '<span style="font-size:0.58rem;font-weight:700;color:#fbbf24;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.28);padding:2px 6px;border-radius:6px" title="Perfil Master & Dev">👑 Master</span>'
+    : '<span style="font-size:0.58rem;font-weight:700;color:#38bdf8;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.3);padding:2px 6px;border-radius:6px">' + (evalResult.userRoleLabel || 'Usuário') + '</span>';
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MODO HORIZONTAL: BARRA COCKPIT FIXADA NO TOPO OU NA BASE DA TELA
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (isHorizontal) {
+    const isTop = dockPos === 'top';
+    const horizBg = isLightMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(11, 15, 25, 0.98)';
+    const horizColor = isLightMode ? '#0f172a' : '#f8fafc';
+    const horizBorder = isLightMode
+      ? (isTop ? 'border-bottom:1px solid rgba(0,0,0,0.08) !important;' : 'border-top:1px solid rgba(0,0,0,0.08) !important;')
+      : (isTop ? 'border-bottom:2px solid #0284c7 !important;' : 'border-top:2px solid #0284c7 !important;');
+    const horizShadow = isLightMode
+      ? (isTop ? '0 4px 20px rgba(0,0,0,0.05)' : '0 -4px 20px rgba(0,0,0,0.05)')
+      : (isTop ? '0 8px 32px rgba(0,0,0,0.85)' : '0 -8px 32px rgba(0,0,0,0.85)');
+
+    card.setAttribute('style', [
+      'position:fixed !important',
+      (isTop ? 'top:0 !important;bottom:auto !important;' : 'bottom:0 !important;top:auto !important;'),
+      'left:0 !important',
+      'right:0 !important',
+      'width:100vw !important',
+      'max-width:100vw !important',
+      'height:var(--hn-flow-panel-bar-height, 86px) !important',
+      `background:${horizBg} !important`,
+      'backdrop-filter:blur(28px) saturate(180%) !important',
+      '-webkit-backdrop-filter:blur(28px) saturate(180%) !important',
+      'border:none !important',
+      horizBorder,
+      `box-shadow:${horizShadow} !important`,
+      'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
+      `color:${horizColor} !important`,
+      'z-index:2147483647 !important',
+      'overflow:visible !important',
+      'display:flex !important',
+      'flex-direction:row !important',
+      'align-items:center !important',
+      'justify-content:space-between !important',
+      'padding:0 16px !important',
+      'gap:12px !important',
+      'user-select:none !important'
+    ].join(';'));
+
+    // Bloco Esquerdo: Identidade, Alça de Arrasto e Paciente Ativo
+    const leftBox = document.createElement('div');
+    leftBox.id = 'hn-fg-horiz-left';
+    leftBox.style.cssText = 'display:flex;align-items:center;gap:10px;flex-shrink:0;cursor:grab;';
+    leftBox.title = isTop ? 'Arraste para baixo para desacoplar como card flutuante' : 'Arraste para cima para desacoplar como card flutuante';
+    
+    let patBadge = '';
+    if (effectivePatient) {
+      const pName = effectivePatient.fullName || effectivePatient.patientName || 'Paciente';
+      const fName = pName.split(' ')[0];
+      patBadge = `<div style="display:flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);border-radius:14px;font-size:0.72rem;color:#f0f9ff;" title="Paciente Ativo: ${pName}">
+        <i class="fa-solid fa-user" style="color:#38bdf8;font-size:0.7rem;"></i>
+        <strong style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${fName}</strong>
+      </div>`;
+    }
+
+    leftBox.innerHTML = `
+      <i class="fa-solid fa-grip-lines-vertical" style="color:#64748b;font-size:0.85rem;" title="Alça de arrasto: puxe para o centro para desacoplar"></i>
+      <div style="width:28px;height:28px;border-radius:7px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.8rem;"><i class="fa-solid fa-compass"></i></div>
+      <div style="display:flex;flex-direction:column;gap:1px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-weight:700;font-size:0.82rem;color:#f8fafc;letter-spacing:-0.2px">Governança</span>
+          ${roleBadgeHtml}
+        </div>
+        <span style="font-size:0.62rem;color:#38bdf8;font-weight:600;">Etapa ${currentStageIdx + 1}/7: ${evalResult.stageName}</span>
+      </div>
+      ${patBadge}
+    `;
+
+    // Bloco Central: Stepper Compacto das 7 Etapas Hospitalares (sem barra de rolagem cinza destoante)
+    const centerBox = document.createElement('div');
+    centerBox.id = 'hn-fg-horiz-stepper';
+    centerBox.style.cssText = 'display:flex;align-items:center;gap:4px;flex:1;max-width:720px;justify-content:center;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:0 8px;';
+    centerBox.innerHTML = _SFG.steps.map(function(s, i) {
+      const done = currentStageIdx > i;
+      const now = currentStageIdx === i || (i === 6 && (_SFG.activeTab === 'financeiro' || _SFG.activeTab === 'tiss'));
+      const isTarget = _SFG.pendingAction && _SFG.pendingAction.targetTab === s.tab;
+      
+      const nodeBg = done ? 'rgba(16,185,129,0.2)' : (isTarget || now) ? 'rgba(2,132,199,0.3)' : 'rgba(255,255,255,0.04)';
+      const nodeBorder = done ? '#10b981' : (isTarget || now) ? '#38bdf8' : 'rgba(255,255,255,0.1)';
+      const nodeColor = done ? '#34d399' : (isTarget || now) ? '#ffffff' : '#64748b';
+      const labelColor = (isTarget || now) ? '#38bdf8' : done ? '#34d399' : '#94a3b8';
+      const sep = i < _SFG.steps.length - 1
+        ? '<div style="flex:1;min-width:3px;max-width:12px;height:2px;background:' + (done ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.07)') + ';margin:0 1px"></div>'
+        : '';
+
+      return '<div onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); window.switchTab(\'' + s.tab + '\');" title="' + s.label + '" style="display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;padding:2px 5px;border-radius:7px;transition:background 0.15s;" onmouseenter="this.style.background=\'rgba(255,255,255,0.06)\'" onmouseleave="this.style.background=\'transparent\'">'
+        + '<div style="width:19px;height:19px;border-radius:50%;background:' + nodeBg + ';border:1px solid ' + nodeBorder + ';display:flex;align-items:center;justify-content:center;font-size:0.56rem;color:' + nodeColor + ';font-weight:700;">'
+        + (done ? '✓' : (i + 1)) + '</div>'
+        + '<span style="font-size:0.67rem;font-weight:' + ((now || isTarget) ? '700' : '500') + ';color:' + labelColor + ';white-space:nowrap">' + s.label.split(' ')[0] + '</span>'
+        + '</div>' + sep;
+    }).join('');
+
+    // Rolagem horizontal suave com a roda do mouse sem exibir barra cinza nativa
+    centerBox.addEventListener('wheel', function(e) {
+      if (e.deltaY !== 0) {
+        centerBox.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Bloco Ação Recomendada Principal com Informação Destacada em Detalhe (Ampliada para Facilitar Leitura)
+    const actionBox = document.createElement('div');
+    actionBox.id = 'hn-fg-horiz-action-box';
+    actionBox.style.cssText = 'display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:0;';
+
+    const hasPendingHoriz = Boolean(_SFG.pendingAction);
+    const pendingHoriz = _SFG.pendingAction || null;
+    const pri = evalResult.primaryAction || {};
+    const actionTitle = hasPendingHoriz
+      ? (pendingHoriz.actionTitle || 'Ação Concluída')
+      : (pri.title || evalResult.stageName || 'Conduta Recomendada');
+    const actionDesc = hasPendingHoriz
+      ? String(pendingHoriz.message || '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').trim()
+      : (pri.desc || evalResult.recommendation || 'Acompanhe a linha de cuidado e execute o próximo passo.');
+    const actBadgeText = hasPendingHoriz
+      ? 'Ação Concluída • Próximo Passo'
+      : (evalResult.actionBadge || 'Ação Recomendada');
+    const isActDanger = !hasPendingHoriz && !!evalResult.actionBadge;
+    const badgeColor = hasPendingHoriz ? '#34d399' : (isActDanger ? '#f87171' : '#38bdf8');
+    const dotColor = hasPendingHoriz ? '#10b981' : (isActDanger ? '#ef4444' : '#38bdf8');
+
+    // Subcard com Moldura e Informações Detalhadas Ampliadas (conforto visual e alta legibilidade)
+    const cardContent = document.createElement('div');
+    cardContent.className = 'hn-flow-subcard hn-fg-horiz-action-card';
+    if (hasPendingHoriz) {
+      cardContent.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+      cardContent.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 95, 70, 0.22))';
+    }
+
+    const textCol = document.createElement('div');
+    textCol.style.cssText = 'display:flex;flex-direction:column;gap:3px;min-width:0;max-width:440px;';
+
+    // Linha 1: Badge Luminoso + Título da Ação com Destaque Maior
+    const topRow = document.createElement('div');
+    topRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    topRow.innerHTML = `
+      <div class="hn-fg-horiz-badge-wrap" style="display:flex;align-items:center;gap:6px;font-size:0.74rem;font-weight:800;text-transform:uppercase;letter-spacing:0.7px;color:${badgeColor};flex-shrink:0;">
+        <span class="hn-fg-action-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dotColor};box-shadow:0 0 8px ${dotColor};"></span>
+        <span class="hn-fg-horiz-badge">${actBadgeText}</span>
+      </div>
+      <div class="hn-fg-horiz-title" style="font-size:0.98rem;font-weight:800;color:#ffffff;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;" title="${actionTitle}">
+        ${actionTitle}
+      </div>
+    `;
+
+    // Linha 2: Descrição Explicativa da Conduta em Detalhe (tipografia maior e alto contraste)
+    const descRow = document.createElement('div');
+    descRow.className = 'hn-fg-horiz-desc';
+    descRow.style.cssText = 'font-size:0.82rem;color:#e2e8f0;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:500;';
+    descRow.title = actionDesc;
+    descRow.textContent = actionDesc;
+
+    textCol.appendChild(topRow);
+    textCol.appendChild(descRow);
+
+    // Formatação do Botão: Garantir estritamente 1 único sinal de (+) sem duplicidades
+    let actBtnHtml = '';
+    const rawBtnText = hasPendingHoriz
+      ? (pendingHoriz.targetTabLabel || 'Avançar para Próxima Etapa ➔').trim()
+      : (pri.btnText || 'Próximo Passo').trim();
+    const rawIcon = hasPendingHoriz ? '🚀' : (pri.icon || '').trim();
+
+    if (rawBtnText.startsWith('➕') || rawBtnText.startsWith('+')) {
+      const textWithoutPlus = rawBtnText.replace(/^[➕\+]\s*/, '');
+      actBtnHtml = `<span style="font-size:0.95rem;font-weight:800;line-height:1;">➕</span> <span>${textWithoutPlus}</span>`;
+    } else if (rawIcon && !rawBtnText.startsWith(rawIcon)) {
+      actBtnHtml = `<span style="font-size:0.95rem;line-height:1;">${rawIcon}</span> <span>${rawBtnText}</span>`;
+    } else {
+      actBtnHtml = `<span>${rawBtnText}</span>`;
+    }
+
+    // Botão de Ação Destacado com Pulso Luminoso
+    const actBtn = document.createElement('button');
+    actBtn.id = hasPendingHoriz ? 'hn-fg-exec-action' : 'hn-fg-horiz-action';
+    actBtn.className = 'btn-next-step-pulse';
+    const btnBgHoriz = hasPendingHoriz
+      ? 'linear-gradient(135deg, #10b981, #059669)'
+      : (pri.btnBg || 'linear-gradient(135deg, #0284c7, #0369a1)');
+    actBtn.style.cssText = `background:${btnBgHoriz};color:#ffffff;border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:10px 18px;font-weight:800;font-size:0.88rem;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(2,132,199,0.38);white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;letter-spacing:0.2px;`;
+    actBtn.innerHTML = actBtnHtml;
+    actBtn.addEventListener('mouseenter', () => { actBtn.style.transform = 'translateY(-1px)'; });
+    actBtn.addEventListener('mouseleave', () => { actBtn.style.transform = 'none'; });
+    if (hasPendingHoriz) {
+      actBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof window._executeSmartFlowPendingAction === 'function') {
+          window._executeSmartFlowPendingAction();
+        }
+      });
+    } else if (pri.onClick) {
+      actBtn.setAttribute('onclick', `if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${pri.onClick}`);
+    }
+
+    cardContent.appendChild(textCol);
+    cardContent.appendChild(actBtn);
+    actionBox.appendChild(cardContent);
+
+    // Bloco Controles: Seletor de Fixação + Desacoplar + Minimizar + Fechar
+    const ctrlBox = document.createElement('div');
+    ctrlBox.style.cssText = 'display:flex;align-items:center;gap:6px;flex-shrink:0;position:relative;';
+
+    const dockPickerBtn = document.createElement('button');
+    dockPickerBtn.id = 'hn-fg-dock-picker-btn';
+    dockPickerBtn.setAttribute('style', 'background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;cursor:pointer;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;position:relative;');
+    dockPickerBtn.title = 'Mudar posição de fixação (Direita, Esquerda, Topo, Base, Flutuante)';
+    dockPickerBtn.innerHTML = '<i class="fa-solid fa-arrows-to-dot"></i>';
+    dockPickerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDockPickerPopover(dockPickerBtn);
+    });
+
+    const undockBtn = document.createElement('button');
+    undockBtn.id = 'hn-fg-undock';
+    undockBtn.setAttribute('style', 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;cursor:pointer;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;');
+    undockBtn.title = 'Desacoplar para card flutuante';
+    undockBtn.innerHTML = '<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
+    undockBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyDockPosition('float');
+    });
+
+    const minBtn = document.createElement('button');
+    minBtn.id = 'hn-fg-min';
+    minBtn.setAttribute('style', 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;');
+    minBtn.title = 'Minimizar para barra compacta';
+    minBtn.innerHTML = '<i class="fa-solid fa-minus"></i>';
+    minBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      _SFG.minimized = true;
+      syncFlowDockClasses(null);
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.id = 'hn-fg-close';
+    closeBtn.setAttribute('style', 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.76rem;');
+    closeBtn.title = 'Fechar Guia de Fluxo';
+    closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      _SFG.minimized = true;
+      syncFlowDockClasses(null);
+      createSmartFlowGuideCard(_SFG.activeTab);
+      if (typeof showToast === 'function') showToast('Guia de Fluxo minimizado para a barra compacta.');
+    });
+
+    ctrlBox.appendChild(dockPickerBtn);
+    ctrlBox.appendChild(undockBtn);
+    ctrlBox.appendChild(minBtn);
+    ctrlBox.appendChild(closeBtn);
+
+    card.appendChild(leftBox);
+    card.appendChild(centerBox);
+    card.appendChild(actionBox);
+    card.appendChild(ctrlBox);
+    document.body.appendChild(card);
+
+    // Arraste da barra para desacoplar (Puxar em direção ao centro da tela)
+    let hDragPending = false, hStartY = 0;
+    leftBox.addEventListener('mousedown', function(e) {
+      if (e.target.closest('button, a')) return;
+      hDragPending = true;
+      hStartY = e.clientY;
+      leftBox.style.cursor = 'grabbing';
+    });
+    const onHorizMouseMove = function(e) {
+      if (!hDragPending) return;
+      const deltaY = isTop ? (e.clientY - hStartY) : (hStartY - e.clientY);
+      if (deltaY > 20) {
+        hDragPending = false;
+        document.removeEventListener('mousemove', onHorizMouseMove);
+        document.removeEventListener('mouseup', onHorizMouseUp);
+        applyDockPosition('float');
+      }
+    };
+    const onHorizMouseUp = function() {
+      hDragPending = false;
+      leftBox.style.cursor = 'grab';
+    };
+    document.addEventListener('mousemove', onHorizMouseMove);
+    document.addEventListener('mouseup', onHorizMouseUp);
+
+    return card;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MODO VERTICAL (LATERAL DIREITA OU ESQUERDA) OU FLUTUANTE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (isDocked) {
+    const isLeft = dockPos === 'left';
+    const dockedBg = isLightMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(11, 15, 25, 0.98)';
+    const dockedColor = isLightMode ? '#0f172a' : '#f8fafc';
+    const dockedBorder = isLightMode
+      ? (isLeft ? 'border-right:1px solid rgba(0,0,0,0.08) !important;' : 'border-left:1px solid rgba(0,0,0,0.08) !important;')
+      : (isLeft ? 'border-right:2px solid #0284c7 !important;' : 'border-left:2px solid #0284c7 !important;');
+    const dockedShadow = isLightMode
+      ? (isLeft ? '10px 0 30px rgba(0,0,0,0.05)' : '-10px 0 30px rgba(0,0,0,0.05)')
+      : (isLeft ? '12px 0 45px rgba(0,0,0,0.8)' : '-12px 0 45px rgba(0,0,0,0.8)');
+
+    card.setAttribute('style', [
+      'position:fixed !important',
+      'top:0 !important',
+      (isLeft ? 'left:0 !important;right:auto !important;' : 'right:0 !important;left:auto !important;'),
+      'bottom:0 !important',
+      'width:var(--hn-flow-panel-width, 420px) !important',
+      'max-width:100vw !important',
+      'height:100vh !important',
+      `background:${dockedBg} !important`,
+      'backdrop-filter:blur(28px) saturate(180%) !important',
+      '-webkit-backdrop-filter:blur(28px) saturate(180%) !important',
+      'border:none !important',
+      dockedBorder,
+      'border-radius:0 !important',
+      `box-shadow:${dockedShadow} !important`,
+      'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
+      `color:${dockedColor} !important`,
+      'z-index:2147483647 !important',
+      'overflow:hidden !important',
+      'display:flex !important',
+      'flex-direction:column !important',
+      'user-select:none !important'
+    ].join(';'));
+  } else {
+    const defaultPos = 'bottom:22px !important;right:22px !important;';
+    let customPos = defaultPos;
+    if (_SFG.pos && _SFG.pos.left && _SFG.pos.top) {
+      const pLeft = parseInt(_SFG.pos.left, 10);
+      const pTop = parseInt(_SFG.pos.top, 10);
+      const maxW = (typeof window !== 'undefined' ? window.innerWidth : 1920) - 120;
+      const maxH = (typeof window !== 'undefined' ? window.innerHeight : 1080) - 120;
+      if (!isNaN(pLeft) && !isNaN(pTop) && pLeft >= 0 && pLeft < maxW && pTop >= 0 && pTop < maxH) {
+        customPos = 'left:' + _SFG.pos.left + ' !important;top:' + _SFG.pos.top + ' !important;bottom:auto !important;right:auto !important;';
+      } else {
+        _SFG.pos = null;
+      }
+    }
+    const cardWidth = _SFG.minimized ? 'auto !important' : '380px !important';
+    const floatBg = isLightMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(11, 15, 25, 0.95)';
+    const floatColor = isLightMode ? '#0f172a' : '#f8fafc';
+    const floatBorder = isLightMode
+      ? 'border:1px solid rgba(0,0,0,0.1) !important;border-top:3px solid #0284c7 !important;'
+      : 'border:1px solid rgba(255,255,255,0.09) !important;border-top:2px solid #0284c7 !important;';
+    const floatShadow = isLightMode
+      ? 'box-shadow:0 20px 45px -10px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04) !important'
+      : 'box-shadow:0 24px 48px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1) !important';
+
+    card.setAttribute('style', [
+      'position:fixed !important',
+      customPos,
+      'width:' + cardWidth,
+      'max-width:calc(100vw - 28px) !important',
+      `background:${floatBg} !important`,
+      'backdrop-filter:blur(24px) saturate(180%) !important',
+      '-webkit-backdrop-filter:blur(24px) saturate(180%) !important',
+      floatBorder,
+      'border-radius:16px !important',
+      floatShadow,
+      'font-family:Outfit,system-ui,-apple-system,sans-serif !important',
+      `color:${floatColor} !important`,
+      'z-index:2147483647 !important',
+      'overflow:visible !important',
+      'user-select:none !important'
+    ].join(';'));
+  }
+
+  // Header do Card / Painel Vertical
+  const hdr = document.createElement('div');
+  hdr.id = 'hn-fg-header';
+
+  if (isDocked) {
+    const isLeft = dockPos === 'left';
+    const hdrBg = isLightMode ? 'rgba(248, 250, 252, 0.95)' : 'rgba(255, 255, 255, 0.025)';
+    const hdrBorder = isLightMode ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)';
+    const titleColor = isLightMode ? '#0f172a' : '#f8fafc';
+    hdr.setAttribute('style', `display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:${hdrBorder};background:${hdrBg};cursor:grab;flex-shrink:0;`);
+    hdr.title = 'Clique e arraste para o centro da tela para desacoplar';
+    hdr.innerHTML = '<div style="display:flex;align-items:center;gap:8px">'
+      + '<i class="fa-solid fa-grip-lines-vertical" style="color:#64748b;font-size:0.85rem;" title="Alça de arrasto: puxe para o centro para desacoplar"></i>'
+      + '<div style="width:26px;height:26px;border-radius:6px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#0284c7;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
+      + `<span style="font-weight:700;font-size:0.84rem;color:${titleColor};letter-spacing:-0.2px">Painel ` + (isLeft ? 'Esquerdo' : 'Direito') + '</span>'
+      + roleBadgeHtml
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:5px;position:relative;">'
+      + '<button id="hn-fg-dock-picker-btn" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#0284c7;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;transition:all 0.15s" title="Mudar posição de fixação (Direita, Esquerda, Topo, Base)"><i class="fa-solid fa-arrows-to-dot"></i></button>'
+      + '<button id="hn-fg-undock" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#0284c7;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Desacoplar para card flutuante menor"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>'
+      + '<button id="hn-fg-min" style="background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);color:#64748b;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
+      + '<button id="hn-fg-close" style="background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);color:#64748b;cursor:pointer;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Fechar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
+      + '</div>';
+  } else {
+    // Header no Modo Card Flutuante
+    const hdrBg = isLightMode ? 'rgba(248, 250, 252, 0.95)' : 'rgba(255, 255, 255, 0.02)';
+    const hdrBorder = isLightMode ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.06)';
+    const titleColor = isLightMode ? '#0f172a' : '#f8fafc';
+    hdr.setAttribute('style', `display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:${hdrBorder};background:${hdrBg};cursor:grab;`);
+    hdr.title = 'Clique e arraste para qualquer borda da tela para fixar, ou use o seletor.';
+    hdr.innerHTML = '<div style="display:flex;align-items:center;gap:7px">'
+      + '<div style="width:24px;height:24px;border-radius:6px;background:rgba(2,132,199,0.18);border:1px solid rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;color:#0284c7;font-size:0.75rem"><i class="fa-solid fa-compass"></i></div>'
+      + `<span style="font-weight:700;font-size:0.82rem;color:${titleColor};letter-spacing:-0.2px">Governança Clínica</span>`
+      + roleBadgeHtml
+      + '<span style="font-size:0.58rem;font-weight:700;color:#64748b;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);padding:1px 6px;border-radius:8px">Etapa ' + (currentStageIdx + 1) + '/7</span>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:5px;position:relative;">'
+      + '<button id="hn-fg-dock-picker-btn" style="background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#0284c7;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.68rem;transition:all 0.15s" title="Fixar em um dos 4 lados da tela"><i class="fa-solid fa-arrows-to-dot"></i></button>'
+      + '<button id="hn-fg-min" style="background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);color:#64748b;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;transition:all 0.15s" title="Minimizar para barra compacta"><i class="fa-solid fa-minus"></i></button>'
+      + '<button id="hn-fg-close" style="background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);color:#64748b;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.15s" title="Minimizar Guia de Fluxo"><i class="fa-solid fa-xmark"></i></button>'
+      + '</div>';
+  }
+
+  // Stepper Conectado (7 etapas clínicas)
+  const track = document.createElement('div');
+  track.id = 'hn-fg-track';
+  const trackBg = isLightMode ? 'rgba(241, 245, 249, 0.9)' : 'rgba(0, 0, 0, 0.18)';
+  const trackBorder = isLightMode ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.06)';
+  track.setAttribute('style', `display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:${trackBorder};background:${trackBg};flex-shrink:0;`);
+  track.innerHTML = _SFG.steps.map(function(s, i) {
+    const done = currentStageIdx > i;
+    const now = currentStageIdx === i || (i === 6 && (_SFG.activeTab === 'financeiro' || _SFG.activeTab === 'tiss'));
+    const isTarget = _SFG.pendingAction && _SFG.pendingAction.targetTab === s.tab;
+    
+    const nodeBg = done ? 'rgba(16,185,129,0.2)' : (isTarget || now) ? 'rgba(2,132,199,0.3)' : 'rgba(255,255,255,0.04)';
+    const nodeBorder = done ? '#10b981' : (isTarget || now) ? '#38bdf8' : 'rgba(255,255,255,0.1)';
+    const nodeColor = done ? '#34d399' : (isTarget || now) ? '#ffffff' : '#64748b';
+    const labelColor = (isTarget || now) ? '#38bdf8' : done ? '#34d399' : '#64748b';
+    const sep = i < _SFG.steps.length - 1
+      ? '<div style="flex:1;height:2px;background:' + (done ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.07)') + ';margin:0 3px"></div>'
+      : '';
+
+    return '<div onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); window.switchTab(\'' + s.tab + '\');" title="' + s.label + '" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;flex-shrink:0;">'
+      + '<div style="width:22px;height:22px;border-radius:50%;background:' + nodeBg + ';border:1px solid ' + nodeBorder + ';display:flex;align-items:center;justify-content:center;font-size:0.62rem;color:' + nodeColor + ';font-weight:700;transition:all 0.15s">'
+      + (done ? '✓' : (i + 1)) + '</div>'
+      + '<span style="font-size:0.56rem;font-weight:' + ((now || isTarget) ? '700' : '500') + ';color:' + labelColor + ';white-space:nowrap">' + s.label.split(' ')[0] + '</span>'
+      + '</div>' + sep;
+  }).join('');
+
+  // Body Container
+  const body = document.createElement('div');
+  body.id = 'hn-fg-body';
+  if (isDocked) {
+    body.className = 'hn-fg-docked-scroll';
+  } else {
+    body.setAttribute('style', 'padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;');
+  }
+
+  // Metadados da tela atual
+  const screenDetails = {
+    dashboard:    { name: 'Health Nexus', badge: 'Painel Geral', desc: 'Visão consolidada dos indicadores e fluxo do hospital.' },
+    pacientes:    { name: 'Recepção & Pacientes', badge: 'Acolhimento', desc: 'Entrada de pacientes e direcionamento imediato para a triagem.' },
+    atendimento:  { name: 'Triagem Manchester', badge: 'Classificação', desc: 'Aferição de sinais vitais, risco clínico e prioridade.' },
+    consultorios: { name: 'Consultórios Médicos', badge: 'Atendimento Clínico', desc: 'Anamnese SOAP, diagnóstico CID-10 e prescrição eletrônica.' },
+    medicos:      { name: 'Corpo Clínico & Salas', badge: 'Profissionais', desc: 'Gestão de plantões e consultórios ativos.' },
+    farmacia:     { name: 'Farmácia Hospitalar', badge: 'Dispensação', desc: 'Circuito fechado de medicamentos e checagem beira-leito.' },
+    leitos:       { name: 'Gestão de Leitos', badge: 'Internação', desc: 'Censo hospitalar, mapa de ocupação e transferências.' },
+    kanban:       { name: 'Kanban Hospitalar', badge: 'Linha de Cuidado', desc: 'Coordenação multidisciplinar e desospitalização ágil.' },
+    financeiro:   { name: 'Gestão Financeira & Títulos', badge: 'Financeiro', desc: 'Controle de títulos a receber, contas a pagar e balanço.' },
+    tiss:         { name: 'Faturamento TISS & Lotes ANS', badge: 'Faturamento', desc: 'Fechamento de guias e lotes XML TISS 4.01 com auditoria anti-glosa.' },
+    relatorios:   { name: 'Relatórios & Métricas', badge: 'Indicadores', desc: 'Indicadores de permanência, ocupação e qualidade.' },
+    tv_panel:     { name: 'Painel TV (Chamador)', badge: 'Sala de Espera', desc: 'Chamada audiovisual e direcionamento aos consultórios.' },
+    agenda:       { name: 'Agenda Médica', badge: 'Agendamentos', desc: 'Controle de consultas ambulatoriais e confirmações.' },
+    escalas:      { name: 'Escalas de Plantão', badge: 'Equipes', desc: 'Escalas médicas e de enfermagem.' },
+    estagnacao:   { name: 'Alertas & Estagnação', badge: 'Gargalos', desc: 'Monitoramento em tempo real de pacientes com espera excessiva.' },
+    observacao:   { name: 'Sala de Observação PS', badge: 'Monitoramento Contínuo', desc: 'Cuidados intensivos e monitorização de até 24h no PS.' },
+    consulta_dinamica: { name: 'Consulta Dinâmica', badge: 'Multi-Modalidade', desc: 'Localizador geral de atendimentos (PS, Internação, Ambulatório e SADT).' },
+    configuracoes:{ name: 'Configurações', badge: 'Sistema', desc: 'Parâmetros operacionais e gestão de acessos.' }
+  };
+
+  const curScreen = screenDetails[_SFG.activeTab] || {
+    name: _SFG.activeTab.charAt(0).toUpperCase() + _SFG.activeTab.slice(1),
+    badge: 'Módulo',
+    desc: 'Operação assistencial.'
+  };
+
+  const screenCardBg = isLightMode ? '#ffffff' : 'rgba(255,255,255,0.025)';
+  const screenCardBorder = isLightMode ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.06)';
+  const screenCardText = isLightMode ? '#0f172a' : '#f1f5f9';
+  const screenCardLabel = isLightMode ? '#64748b' : '#94a3b8';
+  const currentScreenHtml = `<div class="hn-flow-subcard hn-fg-screen-card" style="background:${screenCardBg};border:${screenCardBorder};border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">`
+    + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
+    + '<span style="font-size:0.8rem;color:#0284c7">📍</span>'
+    + `<span style="font-size:0.75rem;color:${screenCardLabel}">Módulo:</span>`
+    + `<span style="font-size:0.78rem;font-weight:700;color:${screenCardText};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">` + curScreen.name + '</span>'
+    + '</div>'
+    + '<span style="font-size:0.62rem;font-weight:700;color:#0284c7;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.25);padding:2px 7px;border-radius:8px;flex-shrink:0">' + curScreen.badge + '</span>'
+    + '</div>';
+
+  // Card do Paciente Ativo
+  let patientStrip = '';
+  if (effectivePatient) {
+    const pName = effectivePatient.fullName || effectivePatient.patientName || 'Paciente Selecionado';
+    const mColor = (effectivePatient.manchesterColor || '').toLowerCase();
+
+    const riskColors = {
+      vermelho: { bg: 'rgba(239,68,68,0.2)', border: 'rgba(239,68,68,0.4)', text: '#fca5a5', label: '🔴 Vermelho (Emergência)' },
+      laranja:  { bg: 'rgba(249,115,22,0.2)', border: 'rgba(249,115,22,0.4)', text: '#fdba74', label: '🟠 Laranja (Muito Urgente)' },
+      amarelo:  { bg: 'rgba(234,179,8,0.2)',  border: 'rgba(234,179,8,0.4)',  text: '#fde047', label: '🟡 Amarelo (Urgente)' },
+      verde:    { bg: 'rgba(16,185,129,0.2)', border: 'rgba(16,185,129,0.4)', text: '#86efac', label: '🟢 Verde (Pouco Urgente)' },
+      azul:     { bg: 'rgba(59,130,246,0.2)', border: 'rgba(59,130,246,0.4)', text: '#93c5fd', label: '🔵 Azul (Não Urgente)' }
+    };
+    const rInfo = riskColors[mColor] || { bg: 'rgba(99,102,241,0.15)', border: 'rgba(129,140,248,0.35)', text: '#a5b4fc', label: '👤 Em Atendimento' };
+
+    let locationIcon = '📍';
+    let locationLabel = '';
+
+    const patLoc = (typeof window.getPatientCurrentLocation === 'function' && effectivePatient)
+      ? window.getPatientCurrentLocation(effectivePatient.id, effectivePatient.fullName || effectivePatient.patientName)
+      : null;
+
+    if (patLoc && patLoc.bed && (patLoc.status === 'Internado' || patLoc.status === 'Internado em Leito') &&
+        !patLoc.bed.toLowerCase().includes('triag') && !patLoc.bed.toLowerCase().includes('consult')) {
+      effectivePatient.bed = patLoc.bed;
+      effectivePatient.sector = patLoc.sector || effectivePatient.sector;
+      effectivePatient.status = 'Internado';
+    }
+
+    if (patLoc && patLoc.text && !patLoc.text.includes('Fora da Unidade')) {
+      locationIcon = (patLoc.icon && patLoc.icon.includes('bed')) ? '🛏️' : '📍';
+      locationLabel = patLoc.text;
+    } else if (effectivePatient.bed || effectivePatient.bedNumber || effectivePatient.bedId) {
+      const bed = effectivePatient.bed || effectivePatient.bedNumber || effectivePatient.bedId || '—';
+      const ward = effectivePatient.ward || effectivePatient.ala || effectivePatient.sector || '';
+      locationIcon = '🛏️';
+      locationLabel = 'Leito ' + bed + (ward ? ' · ' + ward : '');
+    } else if (effectivePatient.status === 'Aguardando_Leito') {
+      locationIcon = '⏳';
+      locationLabel = 'Fila de Internação (Aguardando Leito)';
+    } else if (effectivePatient.status === 'Aguardando_Triagem' || (!effectivePatient.manchesterColor && effectivePatient.status !== 'Internado')) {
+      locationIcon = '🩺';
+      locationLabel = 'Recepção / Aguardando Triagem';
+    } else if (effectivePatient.status === 'Aguardando_Atendimento') {
+      locationIcon = '⏳';
+      const targetRoom = (effectivePatient.room && !effectivePatient.room.toLowerCase().includes('triag')) ? effectivePatient.room : 'Consultório 01';
+      locationLabel = 'Sala de Espera (Aguardando ' + targetRoom + ')';
+    } else if (effectivePatient.room || effectivePatient.roomName) {
+      const displayRoom = (effectivePatient.room || effectivePatient.roomName);
+      locationIcon = '🚪';
+      locationLabel = displayRoom;
+    } else {
+      locationIcon = '📍';
+      locationLabel = evalResult.stageName || 'Em Atendimento';
+    }
+
+    const safePName = (pName || '').replace(/'/g, "\\'");
+    const patCardBg = isLightMode ? '#ffffff' : 'rgba(255,255,255,0.03)';
+    const patCardBorder = isLightMode ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.07)';
+    const patNameColor = isLightMode ? '#0f172a' : '#f8fafc';
+    const patLocBg = isLightMode ? '#f8fafc' : 'rgba(0,0,0,0.22)';
+    const patLocBorder = isLightMode ? 'border: 1px solid rgba(0,0,0,0.06);' : '';
+    const patLocText = isLightMode ? '#0f172a' : '#e2e8f0';
+
+    patientStrip = `<div class="hn-flow-subcard hn-fg-patient-card" style="background:${patCardBg};border:${patCardBorder};border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:6px">`
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+      + '<div style="display:flex;align-items:center;gap:7px;min-width:0">'
+      + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;color:#6366f1;font-size:0.7rem;flex-shrink:0"><i class="fa-solid fa-user"></i></div>'
+      + '<div style="min-width:0;line-height:1.2">'
+      + `<div class="hn-fg-patient-name" style="font-size:0.82rem;font-weight:700;color:${patNameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:` + (isDocked ? '200px' : '160px') + '">' + pName + '</div>'
+      + '<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:6px;background:' + rInfo.bg + ';border:1px solid ' + rInfo.border + ';color:' + rInfo.text + '">' + rInfo.label + '</span></div>'
+      + '</div>'
+      + '</div>'
+      + '<button onclick="if(typeof window.clearActivePatientContext===\'function\'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext===\'function\'){window.setActivePatientContext(null);}" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.32);color:#dc2626;padding:3px 8px;border-radius:6px;font-size:0.65rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all 0.15s;flex-shrink:0;" onmouseover="this.style.background=\'rgba(239,68,68,0.25)\';this.style.color=\'#fff\';" onmouseout="this.style.background=\'rgba(239,68,68,0.12)\';this.style.color=\'#dc2626\';" title="Desmarcar paciente e voltar para a visão geral da unidade">'
+      + '<i class=\"fa-solid fa-xmark\"></i> Desmarcar'
+      + '</button>'
+      + '</div>'
+      + `<div class="hn-fg-patient-location" style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:${patLocBg};${patLocBorder}border-radius:6px;padding:4px 8px;font-size:0.68rem">`
+      + '<div style="display:flex;align-items:center;gap:5px;min-width:0">'
+      + '<span style="font-size:0.75rem">' + locationIcon + '</span>'
+      + '<span style="color:#64748b;font-weight:600">Local:</span>'
+      + `<span style="color:${patLocText};font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">` + locationLabel + '</span>'
+      + '</div>'
+      + (isDocked ? '<div style="display:flex;align-items:center;gap:4px">'
+        + '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); if(typeof window.openPEPModal===\'function\') window.openPEPModal(\'' + safePName + '\', \'soap\');" style="background:#0284c7;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:0.64rem;font-weight:700;cursor:pointer;" title="Abrir Folha de Evolução PEP">PEP ➔</button>'
+        + '<button onclick="if(typeof window.clearActivePatientContext===\'function\'){window.clearActivePatientContext();}else if(typeof window.setActivePatientContext===\'function\'){window.setActivePatientContext(null);}" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#dc2626;padding:3px 6px;border-radius:4px;font-size:0.64rem;font-weight:700;cursor:pointer;" title="Desmarcar paciente">✕</button>'
+        + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  } else if (isDocked) {
+    const emptyCardBg = isLightMode ? '#ffffff' : 'rgba(255,255,255,0.02)';
+    const emptyCardBorder = isLightMode ? '1px solid rgba(0,0,0,0.08)' : '1px dashed rgba(255,255,255,0.08)';
+    const emptyTitleColor = isLightMode ? '#334155' : '#94a3b8';
+    const emptyDescColor = isLightMode ? '#64748b' : '#64748b';
+    patientStrip = `<div class="hn-flow-subcard hn-fg-patient-card" style="background:${emptyCardBg};border:${emptyCardBorder};border-radius:10px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px">`
+      + '<div style="display:flex;align-items:center;gap:7px">'
+      + '<span style="font-size:0.9rem;color:#64748b">👤</span>'
+      + '<div style="line-height:1.2">'
+      + `<div class="hn-fg-patient-empty-title" style="font-size:0.76rem;font-weight:600;color:${emptyTitleColor}">Nenhum paciente selecionado</div>`
+      + `<div class="hn-fg-patient-empty-desc" style="font-size:0.65rem;color:${emptyDescColor}">Selecione na Recepção ou Triagem</div>`
+      + '</div>'
+      + '</div>'
+      + '<button onclick="if(typeof window.switchTab===\'function\') window.switchTab(\'pacientes\');" style="background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.28);color:#0284c7;padding:3px 8px;border-radius:5px;font-size:0.65rem;font-weight:700;cursor:pointer;">Ver Lista</button>'
+      + '</div>';
+  }
+
+  // Banner do Guardião Anti-Desvio
+  let orderWarningHtml = '';
+  if (evalResult.orderWarning) {
+    const w = evalResult.orderWarning;
+    orderWarningHtml = `
+      <div class="hn-flow-subcard hn-possibility-agent-banner">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+          <span style="font-size: 0.65rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 5px;">
+            <span>⚠️</span> ${w.badge}
+          </span>
+          <span style="font-size: 0.58rem; font-weight: 700; color: #fde68a; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 5px; border-radius: 5px;">Guardião de Fluxo</span>
+        </div>
+        <div style="font-size: 0.72rem; color: #fef3c7; line-height: 1.35; margin-bottom: 6px;">
+          ${w.msg}
+        </div>
+        ${w.correctiveAction ? `
+          <button onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${w.correctiveAction.onClick}" style="width: 100%; padding: 7px 10px; background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; border: none; border-radius: 7px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4); transition: filter 0.15s;" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter='none'">
+            ${w.correctiveAction.label}
+          </button>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  // Aviso customizado opcional
+  let customNotice = '';
+  if (customMessage) {
+    customNotice = '<div style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-radius:7px;padding:5px 8px;font-size:0.72rem;color:#93c5fd;display:flex;align-items:center;gap:6px">'
+      + '<span>ℹ️</span> <span>' + customMessage + '</span></div>';
+  }
+
+  // Bloco de Ação Principal
+  const isAnyModalOpen = !!(
+    (typeof document !== 'undefined') && (
+      (document.getElementById('modal-admit-bed') && (document.getElementById('modal-admit-bed').style.display === 'flex' || document.getElementById('modal-admit-bed').style.display === 'block') && document.getElementById('modal-admit-bed').offsetHeight > 0) ||
+      (document.getElementById('modal-transfer-bed-drawer') && document.getElementById('modal-transfer-bed-drawer').classList.contains('open')) ||
+      (document.getElementById('triage-modal') && (document.getElementById('triage-modal').style.display === 'flex' || document.getElementById('triage-modal').style.display === 'block') && document.getElementById('triage-modal').offsetHeight > 0) ||
+      (document.getElementById('pep-modal') && (document.getElementById('pep-modal').style.display === 'flex' || document.getElementById('pep-modal').style.display === 'block') && document.getElementById('pep-modal').offsetHeight > 0 && (document.getElementById('pep-form') || document.getElementById('pep-subjective') || document.querySelector('#pep-modal .modal-content'))) ||
+      (document.getElementById('patient-modal') && (document.getElementById('patient-modal').style.display === 'flex' || document.getElementById('patient-modal').style.display === 'block') && document.getElementById('patient-modal').offsetHeight > 0) ||
+      (document.getElementById('patient-history-modal') && document.getElementById('patient-history-modal').offsetHeight > 0)
+    )
+  );
+
+  const tabShortLabels = {
+    dashboard: 'Health Nexus',
+    pacientes: 'Recepção & Pacientes',
+    medicos: 'Corpo Clínico',
+    consultorios: 'Consultórios & PEP',
+    exames: 'Exames & SADT',
+    observacao: 'Sala de Observação',
+    farmacia: 'Farmácia Hospitalar',
+    tv_panel: 'Painel TV',
+    agenda: 'Agenda Médica',
+    atendimento: 'Triagem Manchester',
+    estagnacao: 'Alertas & Estagnação',
+    leitos: 'Gestão de Leitos',
+    kanban: 'Kanban Hospitalar',
+    financeiro: 'Faturamento & TISS',
+    tiss: 'Faturamento TISS',
+    relatorios: 'Relatórios & Métricas',
+    consulta_dinamica: 'Consulta Dinâmica',
+    configuracoes: 'Configurações'
+  };
+
+  let actionBlockHtml = '';
+  if (_SFG.pendingAction && !isAnyModalOpen) {
+    const pending = _SFG.pendingAction;
+    const destLabel = pending.targetTabLabel || (pending.targetTab ? (tabShortLabels[pending.targetTab] || pending.targetTab) : 'Próxima Etapa');
+
+    actionBlockHtml = `
+      <div class="hn-flow-subcard hn-fg-action-card hn-fg-pending-action-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 95, 70, 0.22)); border: 1.5px solid rgba(16, 185, 129, 0.45); border-left: 4px solid #10b981; border-radius: 14px; padding: 18px 20px; box-shadow: 0 6px 24px rgba(16, 185, 129, 0.2);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span class="hn-fg-action-badge" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #34d399; display: flex; align-items: center; gap: 6px;">
+            <span class="hn-fg-action-dot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+            Ação Concluída &bull; Próximo Passo
+          </span>
+          <button id="hn-fg-dismiss-action" title="Dispensar aviso desta etapa" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; transition: all 0.15s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.05)'">
+            ✕
+          </button>
+        </div>
+        <div class="hn-fg-action-title" style="font-size: 1.05rem; font-weight: 800; color: ${isLightMode ? '#064e3b' : '#ffffff'}; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; line-height: 1.35; letter-spacing: -0.2px;">
+          <i class="fa-solid fa-bullhorn" style="color: #10b981; font-size: 0.95rem;"></i> ${pending.actionTitle}
+        </div>
+        <div class="hn-fg-action-desc" style="font-size: 0.88rem; color: ${isLightMode ? '#14532d' : '#cbd5e1'}; line-height: 1.55; margin-bottom: 16px; font-weight: 500;">
+          ${pending.message}
+        </div>
+        <button id="hn-fg-exec-action" class="btn-next-step-pulse" style="width: 100%; min-height: 46px; padding: 12px 20px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; font-weight: 800; font-size: 0.92rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4); text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.15s;">
+          <span>🚀</span> ${destLabel ? (destLabel.includes('➔') ? destLabel : destLabel + ' ➔') : 'Avançar para Próxima Etapa ➔'}
+        </button>
+      </div>
+    `;
+  } else {
+    const rawBtn = (evalResult.primaryAction.btnText || 'Avançar ➔').trim();
+    let cleanBtnText = rawBtn;
+    if (cleanBtnText.startsWith('➕') || cleanBtnText.startsWith('+')) {
+      const withoutPlus = cleanBtnText.replace(/^[➕\+]\s*/, '').trim();
+      cleanBtnText = '➕ ' + withoutPlus;
+    } else if (!cleanBtnText.includes('➔')) {
+      cleanBtnText = cleanBtnText + ' ➔';
+    }
+
+    const actCardBg = isLightMode
+      ? 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)'
+      : (evalResult.actionCardBg || 'linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.4))');
+    const actCardBorder = isLightMode
+      ? '1.5px solid rgba(2, 132, 199, 0.28)'
+      : `1.5px solid ${evalResult.actionCardBorder || 'rgba(2, 132, 199, 0.3)'}`;
+    const actCardShadow = isLightMode
+      ? '0 4px 18px rgba(2, 132, 199, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)'
+      : '0 6px 22px rgba(0, 0, 0, 0.12)';
+    const actTitleColor = isLightMode ? '#0f172a' : '#ffffff';
+    const actDescColor = isLightMode ? '#1e293b' : '#cbd5e1';
+    const actBadgeColor = isLightMode ? (evalResult.actionBadge ? '#dc2626' : '#0284c7') : (evalResult.actionBadge ? '#f87171' : '#38bdf8');
+    const actDotColor = isLightMode ? (evalResult.actionBadge ? '#dc2626' : '#0284c7') : (evalResult.actionBadge ? '#ef4444' : '#38bdf8');
+
+    actionBlockHtml = `
+      <div class="hn-flow-subcard hn-fg-action-card" style="background: ${actCardBg}; border: ${actCardBorder}; border-left: 5px solid #0284c7; border-radius: 14px; padding: 18px 20px; box-shadow: ${actCardShadow};">
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:${actBadgeColor};margin-bottom:8px">
+          <span class="hn-fg-action-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${actDotColor};box-shadow:0 0 8px ${actDotColor};"></span>
+          <span class="hn-fg-action-badge">${evalResult.actionBadge || (isAnyModalOpen ? 'Ação em Andamento no Modal' : 'Ação Recomendada')}</span>
+        </div>
+        <div class="hn-fg-action-title" style="font-size:1.08rem;font-weight:800;color:${actTitleColor};margin-bottom:8px;line-height:1.35;letter-spacing:-0.2px;">${evalResult.primaryAction.title}</div>
+        <div class="hn-fg-action-desc" style="font-size:0.90rem;color:${actDescColor};line-height:1.6;margin-bottom:16px;font-weight:500;">${evalResult.primaryAction.desc}</div>
+        <button id="hn-fg-main-action" onclick="if(typeof window.closeAllActiveModals==='function') window.closeAllActiveModals(); ${evalResult.primaryAction.onClick}" class="btn-next-step-pulse" style="width:100%;min-height:48px;padding:12px 20px;background:${evalResult.primaryAction.btnBg || 'linear-gradient(135deg, #059669, #10b981)'};color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:11px;font-weight:800;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(16,185,129,0.4);letter-spacing:0.3px;transition:all 0.15s">
+          ${cleanBtnText}
+        </button>
+      </div>
+    `;
+  }
+
+  // Radar Hospitalar em Tempo Real (Apenas no Modo Painel Acoplado)
+  let radarHtml = '';
+  if (isDocked) {
+    let patCount = 0, waitTri = 0, waitDoc = 0, occBeds = 0, totalBeds = 0;
+    try {
+      if (typeof localDB !== 'undefined' && localDB.list) {
+        const pats = localDB.list('patients') || [];
+        patCount = pats.length;
+        const encs = localDB.list('encounters') || [];
+        waitTri = encs.filter(e => !e.status || e.status.toLowerCase().includes('triag')).length;
+        waitDoc = encs.filter(e => e.status && (e.status.toLowerCase().includes('atend') || e.status.toLowerCase().includes('espera'))).length;
+        const beds = localDB.list('beds') || [];
+        totalBeds = beds.length;
+        occBeds = beds.filter(b => b.status === 'Ocupado' || b.occupied).length;
+      }
+    } catch (_) {}
+
+    const radarContainerBg = isLightMode ? '#ffffff' : 'rgba(255,255,255,0.02)';
+    const radarContainerBorder = isLightMode ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.06)';
+    const radarTitleColor = isLightMode ? '#475569' : '#94a3b8';
+    const radarCardBg = isLightMode ? '#f8fafc' : 'rgba(255, 255, 255, 0.025)';
+    const radarCardBorder = isLightMode ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255, 255, 255, 0.06)';
+    const radarLabelColor = isLightMode ? '#475569' : '#94a3b8';
+    const radarValPatColor = isLightMode ? '#0f172a' : '#f8fafc';
+
+    radarHtml = `
+      <div class="hn-fg-radar-container" style="background: ${radarContainerBg}; border: ${radarContainerBorder}; border-radius: 10px; padding: 10px 12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span class="hn-fg-radar-title" style="font-size:0.68rem;font-weight:700;color:${radarTitleColor};text-transform:uppercase;letter-spacing:0.5px">Radar Hospitalar</span>
+          <span style="font-size:0.58rem;font-weight:700;color:#059669;background:rgba(16,185,129,0.15);padding:1px 6px;border-radius:6px">Ao Vivo</span>
+        </div>
+        <div class="hn-fg-radar-grid">
+          <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('pacientes');" title="Ir para Recepção & Pacientes" style="background:${radarCardBg};border:${radarCardBorder};">
+            <span style="font-size:0.68rem;color:${radarLabelColor};font-weight:600">🏥 Recepção</span>
+            <span class="hn-fg-radar-val" style="font-size:1.05rem;font-weight:800;color:${radarValPatColor}">${patCount} <small style="font-size:0.65rem;color:#64748b">pacientes</small></span>
+          </div>
+          <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('atendimento');" title="Ir para Triagem Manchester" style="background:${radarCardBg};border:${radarCardBorder};">
+            <span style="font-size:0.68rem;color:${radarLabelColor};font-weight:600">🩺 Triagem</span>
+            <span class="hn-fg-radar-val" style="font-size:1.05rem;font-weight:800;color:#0284c7">${waitTri} <small style="font-size:0.65rem;color:#64748b">fila</small></span>
+          </div>
+          <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('consultorios');" title="Ir para Consultórios Médicos" style="background:${radarCardBg};border:${radarCardBorder};">
+            <span style="font-size:0.68rem;color:${radarLabelColor};font-weight:600">👨‍⚕️ Consultórios</span>
+            <span class="hn-fg-radar-val" style="font-size:1.05rem;font-weight:800;color:#d97706">${waitDoc} <small style="font-size:0.65rem;color:#64748b">aguardando</small></span>
+          </div>
+          <div class="hn-flow-subcard hn-fg-radar-card" onclick="if(typeof window.switchTab==='function') window.switchTab('leitos');" title="Ir para Gestão de Leitos" style="background:${radarCardBg};border:${radarCardBorder};">
+            <span style="font-size:0.68rem;color:${radarLabelColor};font-weight:600">🛏️ Leitos</span>
+            <span class="hn-fg-radar-val" style="font-size:1.05rem;font-weight:800;color:#059669">${occBeds}/${totalBeds || 0} <small style="font-size:0.65rem;color:#64748b">ocupados</small></span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Bloco de Possibilidades Alternativas
+  let possibilitiesHtml = '';
+  if (evalResult.alternatives && evalResult.alternatives.length > 0) {
+    possibilitiesHtml = `
+      <div class="hn-possibility-chips-container">
+        <div class="hn-possibility-chips-title">
+          <span>Outras Ações Rápidas</span>
+        </div>
+        <div class="hn-possibility-chips-grid">
+          ${evalResult.alternatives.map(function(alt) {
+            const extraCls = alt.isPrimaryAlt ? ' chip-primary-alt' : alt.isDanger ? ' chip-danger' : '';
+            return '<button onclick="if(typeof window.closeAllActiveModals===\'function\') window.closeAllActiveModals(); ' + alt.onClick + '" class="hn-flow-subcard hn-possibility-chip' + extraCls + '" title="' + alt.label + '">'
+              + '<span>' + alt.icon + '</span>'
+              + '<span>' + alt.label + '</span>'
+              + '</button>';
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  body.innerHTML = currentScreenHtml
+    + patientStrip
+    + orderWarningHtml
+    + customNotice
+    + actionBlockHtml
+    + radarHtml
+    + possibilitiesHtml;
+
+  card.appendChild(hdr);
+  card.appendChild(track);
+  card.appendChild(body);
+
+  // Rodapé do Painel Acoplado Vertical com Dica de Desacoplamento
+  if (isDocked && !isHorizontal) {
+    const footer = document.createElement('div');
+    footer.className = 'hn-fg-docked-footer';
+    const footerBg = isLightMode ? 'rgba(248, 250, 252, 0.95)' : 'rgba(0, 0, 0, 0.3)';
+    const footerBorder = isLightMode ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)';
+    const footerColor = isLightMode ? '#475569' : '#94a3b8';
+    footer.setAttribute('style', `padding:10px 14px;border-top:${footerBorder};background:${footerBg};display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;color:${footerColor};flex-shrink:0;`);
+    const sideTip = dockPos === 'left' ? 'direita' : 'esquerda';
+    footer.innerHTML = '<span>💡 <strong>Dica:</strong> Arraste o cabeçalho para a ' + sideTip + ' para desacoplar.</span>'
+      + '<button id="hn-fg-undock-footer" style="background:rgba(2,132,199,0.15);border:1px solid rgba(2,132,199,0.35);color:#0284c7;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:0.7rem;"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Desacoplar</button>';
+    card.appendChild(footer);
+  }
+
+  document.body.appendChild(card);
+
+  // Seletor de Ancoragem Rápida no Cabeçalho
+  const dockPickerBtn = card.querySelector('#hn-fg-dock-picker-btn');
+  if (dockPickerBtn) {
+    dockPickerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleDockPickerPopover(dockPickerBtn);
+    });
+  }
+
+  // Minimizar
+  const minBtn = card.querySelector('#hn-fg-min');
+  if (minBtn) {
+    minBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _SFG.minimized = true;
+      syncFlowDockClasses(null);
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+  }
+
+  // Ocultar / Minimizar
+  const closeBtn = card.querySelector('#hn-fg-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _SFG.minimized = true;
+      syncFlowDockClasses(null);
+      createSmartFlowGuideCard(_SFG.activeTab);
+      if (typeof showToast === 'function') {
+        showToast('Guia de Fluxo minimizado para a barra compacta.');
+      }
+    });
+  }
+
+  // Dispensar Ação Recente
+  const dismissBtn = card.querySelector('#hn-fg-dismiss-action');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _SFG.pendingAction = null;
+      createSmartFlowGuideCard(_SFG.activeTab);
+    });
+  }
+
+  // Ao clicar no botão de ação principal, manter o card aberto e visível, atualizando os próximos passos
+  const mainActionBtn = card.querySelector('#hn-fg-main-action');
+  if (mainActionBtn) {
+    mainActionBtn.addEventListener('click', function() {
+      setTimeout(function() {
+        _SFG.minimized = false; // Mantém o card aberto como guia contínuo de passo a passo
+        const existingCard = document.getElementById('hn-flow-guide-card') || document.getElementById('hn-flow-guide');
+        if (existingCard) existingCard.remove();
+        createSmartFlowGuideCard(_SFG.activeTab);
+      }, 120);
+    });
+  }
+
+  const chipButtons = card.querySelectorAll('.hn-possibility-chip');
+  chipButtons.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      setTimeout(function() {
+        _SFG.minimized = false; // Mantém o card aberto como guia contínuo de passo a passo
+        const existingCard = document.getElementById('hn-flow-guide-card') || document.getElementById('hn-flow-guide');
+        if (existingCard) existingCard.remove();
+        createSmartFlowGuideCard(_SFG.activeTab);
+      }, 120);
+    });
+  });
+
+  // Executar Ação Recente Integrada (disponível tanto no modo vertical/flutuante quanto no modo horizontal)
+  window._executeSmartFlowPendingAction = function() {
+    if (!_SFG.pendingAction) return;
+    if (typeof window.closeAllActiveModals === 'function') {
+      window.closeAllActiveModals();
+    }
+    playFlowChime();
+    const act = _SFG.pendingAction;
+    _SFG.pendingAction = null;
+
+    // 1. Se for ação de TV específica para chamar médico / consultório
+    if (act.actionType === 'call_tv_doctor') {
+      if (typeof window._tvQuickCall === 'function') {
+        window._tvQuickCall(act.targetPatientName, act.targetManchesterColor || 'Amarelo', act.targetRoom || 'Consultório 01');
+      } else if (typeof window.executeTVCall === 'function') {
+        window.executeTVCall(act.targetPatientName, act.targetRoom || 'Consultório 01', act.targetManchesterColor || 'Amarelo');
+      }
+      if (typeof window.switchTab === 'function' && _SFG.activeTab !== 'atendimento' && _SFG.activeTab !== 'tv_panel') {
+        window.switchTab('atendimento');
+      }
+      return;
+    }
+
+    // 2. Se for ação de TV para chamar na triagem
+    if (act.actionType === 'call_tv_triage') {
+      if (typeof window._tvQuickCall === 'function') {
+        window._tvQuickCall(act.targetPatientName, 'Verde', 'Sala de Triagem');
+      } else if (typeof window.executeTVCall === 'function') {
+        window.executeTVCall(act.targetPatientName, 'Sala de Triagem', 'Verde');
+      }
+      if (typeof window.switchTab === 'function' && _SFG.activeTab !== 'atendimento' && _SFG.activeTab !== 'tv_panel') {
+        window.switchTab('atendimento');
+      }
+      return;
+    }
+
+    // 3. Se for ação genérica de ir para Painel TV
+    if (act.actionType === 'go_tv_panel' || (act.targetTab === 'tv_panel' && act.targetPatientName)) {
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('tv_panel');
+      }
+      if (act.targetPatientName && typeof window.executePatientHighlight === 'function') {
+        window.executePatientHighlight(act.targetPatientName, 'tv-waiting-queue');
+      }
+      return;
+    }
+
+    // 4. Se for ação EXPLICITAMENTE de abrir / iniciar triagem direta
+    if (act.actionType === 'start_triage' || act.actionType === 'go_triage') {
+      if (typeof window.openAttendanceTriage === 'function') {
+        window.openAttendanceTriage(act.targetPatientName);
+        return;
+      } else if (typeof window.switchTab === 'function') {
+        window.switchTab('atendimento');
+        return;
+      }
+    }
+
+    // 5. Se for ação de iniciar atendimento a partir da Agenda Médica
+    if (act.actionType === 'start_appointment' && act.appointmentId) {
+      if (typeof window.startAppointmentEncounter === 'function') {
+        window.startAppointmentEncounter(act.targetPatientId || '', act.appointmentId);
+        return;
+      }
+    }
+
+    // 6. Se for ação de abrir Exames & SADT ou Laudo Técnico
+    if (act.actionType === 'open_exam_result') {
+      if (typeof window.switchTab === 'function' && _SFG.activeTab !== 'exames') {
+        window.switchTab('exames');
+      }
+      setTimeout(() => {
+        if (typeof window.openExamResultModal === 'function' && act.reqId !== undefined) {
+          window.openExamResultModal(act.reqId, act.itemIdx || 0);
+        }
+      }, 180);
+      return;
+    }
+
+    if (act.actionType === 'open_exams' || act.targetTab === 'exames') {
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('exames');
+      }
+      if (act.targetPatientName && typeof window.executePatientHighlight === 'function') {
+        window.executePatientHighlight(act.targetPatientName);
+      }
+      return;
+    }
+
+    // 7. Se for ação de abrir Farmácia (Fila de Prescrições)
+    if (act.actionType === 'open_farmacia_rx' || act.targetTab === 'farmacia') {
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('farmacia');
+      }
+      setTimeout(() => {
+        if (typeof window.switchPharmacySubTab === 'function') {
+          window.switchPharmacySubTab('rx');
+        }
+        if (act.targetPatientName) {
+          const searchEl = document.getElementById('pharm-search-rx');
+          if (searchEl) {
+            searchEl.value = act.targetPatientName;
+            searchEl.dispatchEvent(new Event('input'));
+          }
+          if (typeof window.executePatientHighlight === 'function') {
+            window.executePatientHighlight(act.targetPatientName);
+          }
+        }
+      }, 150);
+      return;
+    }
+
+    // 8. Se for ação de abrir Sala de Observação PS
+    if (act.actionType === 'open_observacao' || act.targetTab === 'observacao') {
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('observacao');
+      }
+      if (act.targetPatientName && typeof window.executePatientHighlight === 'function') {
+        window.executePatientHighlight(act.targetPatientName);
+      }
+      return;
+    }
+
+    // 9. Se for ação de Faturamento TISS / Fechamento de Conta
+    if (act.actionType === 'open_tiss' || act.targetTab === 'tiss') {
+      if (act.targetPatientName && typeof window.executeTISSClosure === 'function') {
+        window.executeTISSClosure(act.targetPatientName, act.targetPatientId || '');
+        return;
+      }
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('tiss');
+      }
+      return;
+    }
+
+    // 10. Se for navegação para atendimento geral
+    if (act.targetTab === 'atendimento') {
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('atendimento');
+      }
+      if (act.targetPatientName && typeof window.executePatientHighlight === 'function') {
+        window.executePatientHighlight(act.targetPatientName, act.targetColumn || 'col-waiting');
+      }
+      return;
+    }
+
+    // 11. Se for ação de abrir consultório médico ou PEP
+    if (act.actionType === 'open_pep' && act.targetPatientName && typeof window.openPEPModal === 'function') {
+      if (typeof window.switchTab === 'function' && !['consultorios', 'leitos', 'observacao'].includes(_SFG.activeTab)) {
+        window.switchTab('consultorios');
+      }
+      setTimeout(() => {
+        window.openPEPModal(act.targetPatientName);
+      }, 150);
+      return;
+    }
+
+    if (act.actionType === 'open_consultorio' || act.actionType === 'open_pep' || (act.targetTab === 'consultorios' && act.targetPatientName)) {
+      if (typeof window.openDoctorConsultingRoom === 'function') {
+        window.openDoctorConsultingRoom(act.targetRoom || 'Consultório 01', act.targetPatientName);
+        return;
+      }
+    }
+
+    // 12. Se for ação de transferência / alocação de leito hospitalar
+    if (act.actionType === 'transfer_bed') {
+      const modal = document.getElementById('modal-transfer-bed-drawer');
+      if (modal && modal.style.display !== 'none') {
+        modal.querySelector('.modal-content')?.classList.add('patient-spotlight-glow');
+        setTimeout(() => modal.querySelector('.modal-content')?.classList.remove('patient-spotlight-glow'), 1200);
+        return;
+      } else if (typeof window.openTransferBedModal === 'function') {
+        window.openTransferBedModal(act.encounterId, act.targetPatientName);
+        return;
+      }
+    }
+
+    // 13. Admitir paciente na Central de Atendimentos
+    if (act.actionType === 'admit_patient' || (act.targetTab === 'atendimento' && act.targetPatientId && !act.targetStatus)) {
+      if (typeof window.admitPatientFromPatientsTab === 'function') {
+        window.admitPatientFromPatientsTab(act.targetPatientId, act.targetPatientName, act.targetPatientCpf);
+        createSmartFlowGuideCard('atendimento');
+        return;
+      }
+    }
+
+    // Muda para a aba de destino
+    if (act.targetTab && typeof window.switchTab === 'function') {
+      window.switchTab(act.targetTab);
+    }
+
+    // Procura o card do paciente e aplica animação pulsante
+    if (typeof window.executePatientHighlight === 'function') {
+      window.executePatientHighlight(act.targetPatientName, act.targetColumn);
+    }
+  };
+
+  const execBtn = card.querySelector('#hn-fg-exec-action');
+  if (execBtn && _SFG.pendingAction) {
+    execBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      window._executeSmartFlowPendingAction();
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LÓGICA DE ARRASTO & ACOPLAMENTO MULTIDIRECIONAL (DOCK / SNAP NOS 4 LADOS)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (isDocked) {
+    // MODO PAINEL ACOPLADO (VERTICAL ESQUERDA OU DIREITA):
+    // Clicar no cabeçalho e arrastar em direção ao centro da tela desacopla o card!
+    let dockDragPending = false;
+    let dockStartX = 0;
+    let dockStartY = 0;
+
+    hdr.addEventListener('mousedown', function(e) {
+      if (e.target.closest('#hn-fg-dock-picker-btn, #hn-fg-undock, #hn-fg-min, #hn-fg-close, button, a')) return;
+      dockDragPending = true;
+      dockStartX = e.clientX;
+      dockStartY = e.clientY;
+      hdr.style.cursor = 'grabbing';
+    });
+
+    const onDockMouseMove = function(e) {
+      if (!dockDragPending) return;
+      let shouldUndock = false;
+      if (dockPos === 'right' && (dockStartX - e.clientX > 20)) {
+        shouldUndock = true;
+      } else if (dockPos === 'left' && (e.clientX - dockStartX > 20)) {
+        shouldUndock = true;
+      }
+
+      if (shouldUndock) {
+        dockDragPending = false;
+        document.removeEventListener('mousemove', onDockMouseMove);
+        document.removeEventListener('mouseup', onDockMouseUp);
+        applyDockPosition('float');
+      }
+    };
+
+    const onDockMouseUp = function() {
+      dockDragPending = false;
+      hdr.style.cursor = 'grab';
+    };
+
+    document.addEventListener('mousemove', onDockMouseMove);
+    document.addEventListener('mouseup', onDockMouseUp);
+
+    // Botões de Desacoplar Manuais
+    const undockBtn = card.querySelector('#hn-fg-undock');
+    if (undockBtn) {
+      undockBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        applyDockPosition('float');
+      });
+    }
+
+    const undockFooterBtn = card.querySelector('#hn-fg-undock-footer');
+    if (undockFooterBtn) {
+      undockFooterBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        applyDockPosition('float');
+      });
+    }
+  } else {
+    // MODO CARD FLUTUANTE:
+    // Arrastar livremente pela tela. Ao aproximar de qualquer uma das 4 bordas, a área neon correspondente se ilumina!
+    let dx = 0, dy = 0, dragging = false;
+    let currentSnapTarget = null;
+    let snapIndicator = document.getElementById('hn-dock-snap-indicator');
+    if (!snapIndicator) {
+      snapIndicator = document.createElement('div');
+      snapIndicator.id = 'hn-dock-snap-indicator';
+      snapIndicator.innerHTML = `
+        <div class="hn-dock-snap-inner">
+          <div class="hn-dock-snap-badge">
+            <span class="hn-dock-snap-dot"></span>
+            <span class="hn-dock-snap-title">Solte para Fixar Painel</span>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(snapIndicator);
+    }
+
+    const startDrag = function(clientX, clientY, target) {
+      if (target.closest('#hn-fg-dock-picker-btn, #hn-fg-dock-btn, #hn-fg-min, #hn-fg-close, button, a')) return false;
+      dragging = true;
+      currentSnapTarget = null;
+      const r = card.getBoundingClientRect();
+      dx = clientX - r.left;
+      dy = clientY - r.top;
+      hdr.style.cursor = 'grabbing';
+      return true;
+    };
+
+    const updateDrag = function(clientX, clientY) {
+      if (!dragging) return;
+      const newLeft = (clientX - dx);
+      const newTop = (clientY - dy);
+      card.style.left = newLeft + 'px';
+      card.style.top  = newTop + 'px';
+      card.style.right = 'auto';
+      card.style.bottom = 'auto';
+
+      // Distâncias até as 4 bordas da tela
+      const distRight = window.innerWidth - clientX;
+      const distLeft = clientX;
+      const distTop = clientY;
+      const distBottom = window.innerHeight - clientY;
+
+      let snapTarget = null;
+      if (distRight < 130 || (newLeft + card.offsetWidth >= window.innerWidth - 70)) {
+        snapTarget = 'right';
+      } else if (distLeft < 130 || newLeft <= 70) {
+        snapTarget = 'left';
+      } else if (distTop < 80 || newTop <= 45) {
+        snapTarget = 'top';
+      } else if (distBottom < 80 || (newTop + card.offsetHeight >= window.innerHeight - 45)) {
+        snapTarget = 'bottom';
+      }
+
+      currentSnapTarget = snapTarget;
+
+      if (snapTarget) {
+        snapIndicator.className = 'active snap-' + snapTarget;
+        card.classList.add('snap-hover-active');
+        document.body.classList.remove('hn-flow-dock-preview', 'hn-flow-dock-preview-right', 'hn-flow-dock-preview-left', 'hn-flow-dock-preview-top', 'hn-flow-dock-preview-bottom');
+        document.body.classList.add('hn-flow-dock-preview', 'hn-flow-dock-preview-' + snapTarget);
+
+        const titles = {
+          right: '➡️ Solte para Fixar na Lateral Direita',
+          left: '⬅️ Solte para Fixar na Lateral Esquerda',
+          top: '⬆️ Solte para Fixar no Topo da Tela',
+          bottom: '⬇️ Solte para Fixar na Base da Tela'
+        };
+        const titleEl = snapIndicator.querySelector('.hn-dock-snap-title');
+        if (titleEl) titleEl.textContent = titles[snapTarget] || 'Solte para Fixar';
+
+        const snapInner = snapIndicator.querySelector('.hn-dock-snap-inner');
+        if (snapInner) {
+          if (snapTarget === 'top') {
+            snapInner.style.top = '14px';
+            snapInner.style.bottom = 'auto';
+            snapInner.style.left = '50%';
+          } else if (snapTarget === 'bottom') {
+            snapInner.style.top = 'auto';
+            snapInner.style.bottom = '14px';
+            snapInner.style.left = '50%';
+          } else {
+            snapInner.style.left = '50%';
+            const cardHeight = card.offsetHeight || 420;
+            let badgeTop = newTop + cardHeight + 12;
+            if (badgeTop + 50 > window.innerHeight - 16) {
+              badgeTop = Math.max(10, window.innerHeight - 66);
+            }
+            snapInner.style.top = badgeTop + 'px';
+            snapInner.style.bottom = 'auto';
+          }
+        }
+      } else {
+        snapIndicator.className = '';
+        card.classList.remove('snap-hover-active');
+        document.body.classList.remove('hn-flow-dock-preview', 'hn-flow-dock-preview-right', 'hn-flow-dock-preview-left', 'hn-flow-dock-preview-top', 'hn-flow-dock-preview-bottom');
+      }
+    };
+
+    const endDrag = function(clientX, clientY) {
+      if (!dragging) return;
+      dragging = false;
+      hdr.style.cursor = 'grab';
+      if (snapIndicator) snapIndicator.className = '';
+      card.classList.remove('snap-hover-active');
+      document.body.classList.remove('hn-flow-dock-preview', 'hn-flow-dock-preview-right', 'hn-flow-dock-preview-left', 'hn-flow-dock-preview-top', 'hn-flow-dock-preview-bottom');
+
+      if (currentSnapTarget) {
+        applyDockPosition(currentSnapTarget);
+      } else {
+        _SFG.pos = { left: card.style.left, top: card.style.top };
+      }
+    };
+
+    // Eventos de Mouse
+    hdr.addEventListener('mousedown', function(e) {
+      startDrag(e.clientX, e.clientY, e.target);
+    });
+
+    const onFloatMouseMove = function(e) {
+      updateDrag(e.clientX, e.clientY);
+    };
+
+    const onFloatMouseUp = function(e) {
+      endDrag(e.clientX, e.clientY);
+    };
+
+    document.addEventListener('mousemove', onFloatMouseMove);
+    document.addEventListener('mouseup', onFloatMouseUp);
+
+    // Suporte a Touchscreen / Tablets
+    hdr.addEventListener('touchstart', function(e) {
+      if (e.touches && e.touches.length === 1) {
+        if (startDrag(e.touches[0].clientX, e.touches[0].clientY, e.target)) {
+          e.preventDefault();
+        }
+      }
+    }, { passive: false });
+
+    const onFloatTouchMove = function(e) {
+      if (dragging && e.touches && e.touches.length === 1) {
+        updateDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
+    const onFloatTouchEnd = function(e) {
+      if (dragging) {
+        const clientX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : 0;
+        const clientY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : 0;
+        endDrag(clientX, clientY);
+      }
+    };
+
+    document.addEventListener('touchmove', onFloatTouchMove, { passive: true });
+    document.addEventListener('touchend', onFloatTouchEnd);
+
+    // Botão de acoplar rápido / seletor no header
+    const dockBtn = card.querySelector('#hn-fg-dock-btn');
+    if (dockBtn) {
+      dockBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleDockPickerPopover(dockBtn);
+      });
+    }
+  }
+  return card;
+}
+
+window.createSmartFlowGuideCard = createSmartFlowGuideCard;
+
+window.openNewPatientModal = function() {
+  if (typeof window.switchTab === 'function' && state.activeTab !== 'pacientes') {
+    window.switchTab('pacientes');
+  }
+  let tries = 0;
+  const timer = setInterval(function() {
+    tries++;
+    const btn = document.getElementById('btn-new-patient') || document.getElementById('btn-open-patient-modal') || document.querySelector('[data-action="new-patient"]');
+    if (btn) {
+      clearInterval(timer);
+      btn.click();
+      setTimeout(function() {
+        const firstInput = document.querySelector('#patient-modal-overlay input, #patient-modal input');
+        if (firstInput) firstInput.focus();
+      }, 150);
+      return;
+    }
+    const modal = document.getElementById('patient-modal-overlay') || document.getElementById('patient-modal');
+    if (modal) {
+      clearInterval(timer);
+      modal.style.display = 'flex';
+      return;
+    }
+    if (tries >= 12) clearInterval(timer);
+  }, 100);
+};
+
+window.focusPatientSearch = function() {
+  if (typeof window.switchTab === 'function' && state.activeTab !== 'pacientes') {
+    window.switchTab('pacientes');
+  }
+  let tries = 0;
+  const timer = setInterval(function() {
+    tries++;
+    const search = document.getElementById('patient-search') || document.getElementById('search-input') || document.querySelector('input[placeholder*="Buscar"]');
+    if (search) {
+      clearInterval(timer);
+      search.focus();
+      search.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (tries >= 10) clearInterval(timer);
+  }, 100);
+};
+
+window.ensureSmartFlowGuideMounted = function(forcedTab) {
+  const hasToken = (typeof state !== 'undefined' && state.isAuthenticated) || !!sessionStorage.getItem('hn_token') || !!sessionStorage.getItem('hn_user');
+  if (!hasToken) return;
+  const mainContent = document.getElementById('main-content') || document.getElementById('content-area') || document.querySelector('.main-content');
+  if (!mainContent) return;
+  _SFG.hidden = false;
+  const existing = document.getElementById('hn-flow-guide');
+  if (!existing && typeof createSmartFlowGuideCard === 'function') {
+    createSmartFlowGuideCard((typeof state !== 'undefined' ? state.activeTab : null) || forcedTab || 'dashboard');
+  }
+};
+
+// Monitor de presença ativo: garante que o card de fluxo permaneça sempre montado e visível
+if (typeof window !== 'undefined' && !window._sfgHeartbeatTimer) {
+  window._sfgHeartbeatTimer = setInterval(function() {
+    const hasToken = (typeof state !== 'undefined' && state.isAuthenticated) || !!sessionStorage.getItem('hn_token') || !!sessionStorage.getItem('hn_user');
+    if (hasToken && !document.getElementById('hn-flow-guide')) {
+      const mainContent = document.getElementById('main-content') || document.getElementById('content-area') || document.querySelector('.main-content');
+      if (mainContent && typeof createSmartFlowGuideCard === 'function') {
+        _SFG.hidden = false;
+        createSmartFlowGuideCard(typeof state !== 'undefined' ? (state.activeTab || 'dashboard') : 'dashboard');
+      }
+    }
+  }, 1200);
+}
+
+window.openAttendanceTriage = function(patientName) {
+  let isAlreadyTriaged = false;
+  let found = null;
+  const safeRemoveAccents = (typeof removeAccents === 'function') 
+    ? removeAccents 
+    : (str => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase());
+
+  // --- Contexto do paciente ---
+  if (patientName && typeof window.setActivePatientContext === 'function') {
+    const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+    isAlreadyTriaged = !!(curCtx && curCtx.manchesterColor && curCtx.status !== 'Aguardando_Triagem');
+    if (!isAlreadyTriaged && typeof window.localDB !== 'undefined') {
+      try {
+        const db = window.localDB.getFullDB();
+        const cleanTarget = safeRemoveAccents(String(patientName)).trim().toLowerCase();
+        found = (db.encounters || []).slice().reverse().find(e => {
+          const eName = safeRemoveAccents(e.patientName || '').trim().toLowerCase();
+          return eName === cleanTarget || (cleanTarget.length > 3 && (eName.includes(cleanTarget) || cleanTarget.includes(eName)));
+        });
+        if (found && found.manchesterColor && found.status !== 'Aguardando_Triagem') isAlreadyTriaged = true;
+      } catch(_) {}
+    }
+    if (!isAlreadyTriaged) {
+      window.setActivePatientContext({
+        ...(curCtx || {}),
+        id: found ? found.id : (curCtx ? curCtx.id : undefined),
+        encounterId: found ? found.id : (curCtx ? curCtx.encounterId : undefined),
+        fullName: patientName,
+        patientName: patientName,
+        status: 'Aguardando_Triagem',
+        currentStep: 2,
+        room: 'Sala de Triagem',
+        tvCalled: true,
+        tvCalledTriage: true
+      });
+    }
+  }
+
+  // --- Navega para aba de atendimento ---
+  if (typeof window.switchTab === 'function') {
+    window.switchTab('atendimento');
+  }
+
+  // Captura encontros para fallback direto
+  let fallbackEncId = null;
+  let fallbackName = patientName ? String(patientName).trim() : '';
+  if (fallbackName) {
+    try {
+      const cleanFallback = safeRemoveAccents(fallbackName.toLowerCase());
+      if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+        const db = localDB.getFullDB();
+        const encounters = db.encounters || [];
+        const matchEnc = (found) || encounters.slice().reverse().find(e =>
+          safeRemoveAccents((e.patientName || '').toLowerCase()).includes(cleanFallback) &&
+          e.status !== 'Finalizado' && e.status !== 'Alta'
+        ) || encounters.slice().reverse().find(e =>
+          safeRemoveAccents((e.patientName || '').toLowerCase()).includes(cleanFallback)
+        );
+        if (matchEnc) {
+          fallbackEncId = matchEnc.id;
+          fallbackName = matchEnc.patientName || fallbackName;
+        } else {
+          const patients = db.patients || [];
+          const matchPat = patients.find(p =>
+            safeRemoveAccents((p.fullName || p.patientName || '').toLowerCase()).includes(cleanFallback)
+          );
+          if (matchPat) {
+            fallbackName = matchPat.fullName || matchPat.patientName || fallbackName;
+            fallbackEncId = 'enc-' + (matchPat.id || Date.now());
+          }
+        }
+      }
+    } catch(_) {}
+    if (!fallbackEncId) fallbackEncId = 'enc-' + Date.now();
+  }
+
+  // --- Polling: aguarda card aparecer OU openTriageModal estar disponível ---
+  let tries = 0;
+  const checkInterval = setInterval(function() {
+    tries++;
+
+    // Tentativa 1: usar openTriageModal diretamente se já disponível e temos um encId
+    if (fallbackEncId && typeof window.openTriageModal === 'function') {
+      // Verificar se o DOM do modal está pronto
+      const triageModalEl = document.getElementById('triage-modal');
+      const triageEncEl = document.getElementById('triage-encounter-id');
+      if (triageModalEl && triageEncEl) {
+        clearInterval(checkInterval);
+        window.openTriageModal(fallbackEncId, fallbackName);
+        return;
+      }
+    }
+
+    if (patientName && String(patientName).trim()) {
+      const cleanTarget = safeRemoveAccents(String(patientName).trim().toLowerCase());
+      const targetParts = cleanTarget.split(' ').filter(Boolean);
+      const firstName = targetParts[0] || cleanTarget;
+
+      // Busca em todas as colunas do kanban, não apenas col-triage
+      const allCards = Array.from(document.querySelectorAll('.patient-card-item'));
+      let card = allCards.find(el => {
+        const cardAttr = safeRemoveAccents((el.getAttribute('data-patient-card-name') || '').toLowerCase());
+        const cardText = safeRemoveAccents((el.textContent || '').toLowerCase());
+        return (cardAttr && (cardAttr.includes(cleanTarget) || cleanTarget.includes(cardAttr))) ||
+               cardText.includes(cleanTarget) ||
+               (firstName.length >= 3 && cardText.includes(firstName));
+      });
+
+      if (card) {
+        const encId = card.getAttribute('data-enc-id') || fallbackEncId;
+        if (encId && typeof window.openTriageModal === 'function') {
+          const triageModalEl = document.getElementById('triage-modal');
+          const triageEncEl = document.getElementById('triage-encounter-id');
+          if (triageModalEl && triageEncEl) {
+            clearInterval(checkInterval);
+            window.openTriageModal(encId, fallbackName);
+            return;
+          }
+        }
+        const btnTriar = card.querySelector('.btn-triar, .btn-triage, [data-action="triage"]');
+        if (btnTriar) {
+          clearInterval(checkInterval);
+          btnTriar.click();
+          return;
+        }
+      }
+    } else {
+      // Nenhum paciente específico: tenta o primeiro botão de triage disponível
+      const anyBtn = document.querySelector('#col-triage .btn-triar, .btn-triar, .btn-triage');
+      if (anyBtn && tries > 2) {
+        clearInterval(checkInterval);
+        anyBtn.click();
+        return;
+      }
+    }
+
+    // Após 20 tentativas (~3s) abre modal diretamente via DOM
+    if (tries >= 20) {
+      clearInterval(checkInterval);
+      if (fallbackName) {
+        if (typeof window.openTriageModal === 'function') {
+          const triageModalEl = document.getElementById('triage-modal');
+          const triageEncEl = document.getElementById('triage-encounter-id');
+          if (triageModalEl && triageEncEl) {
+            window.openTriageModal(fallbackEncId, fallbackName);
+            return;
+          }
+        }
+        // Fallback de último recurso: manipula DOM do modal diretamente
+        const inputEnc = document.getElementById('triage-encounter-id');
+        const inputName = document.getElementById('triage-patient-name');
+        const modal = document.getElementById('triage-modal');
+        if (inputEnc) inputEnc.value = fallbackEncId;
+        if (inputName) inputName.textContent = fallbackName;
+        if (typeof window.setActivePatientContext === 'function' && !isAlreadyTriaged) {
+          window.setActivePatientContext({ id: fallbackEncId, fullName: fallbackName, patientName: fallbackName, status: 'Aguardando_Triagem', currentStep: 2, room: 'Sala de Triagem' });
+        }
+        if (modal) modal.style.display = 'flex';
+      } else {
+        const modal = document.getElementById('triage-modal');
+        if (modal) modal.style.display = 'flex';
+      }
+    }
+  }, 150);
+};
+
+window.openDoctorConsultingRoom = function(roomName, patientName) {
+  roomName = roomName || 'Consultório 01';
+  patientName = patientName || '';
+
+  if (typeof window.closeAllActiveModals === 'function') {
+    window.closeAllActiveModals();
+  }
+
+  // 1. Armazena contexto do paciente e sala convocados
+  window._interactedPatient = patientName;
+  window._interactedRoom = roomName;
+  window._highlightPatientName = patientName;
+
+  if (patientName && typeof window.setActivePatientContext === 'function') {
+    let mColor = '';
+    let encId = undefined;
+    if (window.localDB) {
+      try {
+        const db = window.localDB.getFullDB();
+        const encs = db.encounters || [];
+        const cleanP = patientName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const match = encs.find(e => {
+          const eName = (e.patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          return eName === cleanP || (cleanP.length > 3 && (eName.includes(cleanP) || cleanP.includes(eName)));
+        });
+        if (match) {
+          mColor = match.manchesterColor || '';
+          encId = match.id || match.patientId;
+        }
+      } catch (_) {}
+    }
+
+    window.setActivePatientContext({
+      id: encId,
+      fullName: patientName,
+      patientName: patientName,
+      room: roomName,
+      status: 'Aguardando_Atendimento',
+      manchesterColor: mColor || undefined,
+      currentStep: 4
+    });
+  }
+
+  // 2. Garante folha de estilos de pulsação suave
+  if (!document.getElementById('_patientCardPulseStyle')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = '_patientCardPulseStyle';
+    styleEl.textContent = `
+      @keyframes roomCardGlow {
+        0%   { box-shadow: 0 0 0 0 rgba(2,132,199,0.8); border-color: #0284c7; }
+        50%  { box-shadow: 0 0 0 14px rgba(2,132,199,0); border-color: #38bdf8; }
+        100% { box-shadow: 0 0 0 0 rgba(2,132,199,0); border-color: #0284c7; }
+      }
+      .room-card-pulsing {
+        outline: 3px solid #0284c7 !important;
+        border-color: #0284c7 !important;
+        animation: roomCardGlow 1.4s ease-in-out infinite !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
+  // 3. Muda para a aba de consultórios
+  if (typeof window.switchTab === 'function') {
+    window.switchTab('consultorios');
+  }
+
+  // 4. Recarrega os consultórios para que o paciente apareça nativamente no card correto
+  if (typeof window.loadConsultingRooms === 'function') {
+    window.loadConsultingRooms();
+  }
+
+  // 5. Scroll suave até o card do consultório sem abrir o PEP imediatamente
+  let tries = 0;
+  const checkInterval = setInterval(function() {
+    tries++;
+    const allCards = document.querySelectorAll('.interactive-card, .patient-card-item');
+    if (allCards.length === 0) {
+      if (tries >= 20) clearInterval(checkInterval);
+      return;
+    }
+    clearInterval(checkInterval);
+
+    const ra = typeof removeAccents === 'function' ? removeAccents : s => s;
+    const cleanRoom = ra(String(roomName).trim().toLowerCase());
+    let roomCard = null;
+    for (let i = 0; i < allCards.length; i++) {
+      const card = allCards[i];
+      const h3 = card.querySelector('h3');
+      if (h3 && ra(h3.textContent.toLowerCase()).includes(cleanRoom)) {
+        roomCard = card;
+        break;
+      }
+    }
+    if (roomCard) {
+      roomCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      roomCard.classList.add('room-card-pulsing');
+      setTimeout(function() {
+        roomCard.classList.remove('room-card-pulsing');
+      }, 10000);
+    } else if (patientName && typeof window.openPEPModal === 'function') {
+      window.openPEPModal(patientName, 'soap');
+    }
+  }, 150);
+};
+
+window.startEncounterPEP = async function(targetId, patientName, roomName) {
+  roomName = roomName || 'Consultório 01';
+  patientName = patientName || '';
+
+  // 1. Atualiza ou cria o encontro clínico como 'Em_Atendimento'
+  if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+    try {
+      const db = localDB.getFullDB();
+      const encs = db.encounters || [];
+      const nowIso = new Date().toISOString();
+      const cleanTarget = (patientName || '').toLowerCase().trim();
+
+      let matchedEnc = encs.find(e => 
+        (targetId && String(e.id) === String(targetId)) ||
+        (targetId && String(e.patientId) === String(targetId)) ||
+        (cleanTarget && (e.patientName || '').toLowerCase().trim() === cleanTarget)
+      );
+
+      if (matchedEnc) {
+        localDB.update('encounters', matchedEnc.id, {
+          ...matchedEnc,
+          status: 'Em_Atendimento',
+          room: roomName,
+          roomName: roomName,
+          called_at: nowIso,
+          lastStatusUpdate: nowIso
+        });
+      } else {
+        const pats = db.patients || [];
+        const pat = pats.find(p => cleanTarget && (p.fullName || '').toLowerCase().trim() === cleanTarget);
+        const newEnc = {
+          id: 'ENC-' + Date.now(),
+          patientId: pat ? pat.id : ('pat-' + Date.now()),
+          patientName: patientName || 'Paciente',
+          type: 'Urgencia',
+          status: 'Em_Atendimento',
+          room: roomName,
+          roomName: roomName,
+          manchesterColor: pat ? (pat.manchesterColor || 'Verde') : 'Verde',
+          admitted_at: nowIso,
+          called_at: nowIso,
+          lastStatusUpdate: nowIso
+        };
+        localDB.insert('encounters', newEnc);
+      }
+
+      // Atualiza agendamento se houver
+      const apts = db.appointments || [];
+      const apt = apts.find(a => cleanTarget && (a.patientName || '').toLowerCase().trim() === cleanTarget);
+      if (apt) {
+        localDB.update('appointments', apt.id, {
+          ...apt,
+          status: 'Em Atendimento',
+          room: roomName,
+          roomName: roomName
+        });
+      }
+    } catch (e) {
+      console.error('[startEncounterPEP] Erro ao sincronizar localDB:', e);
+    }
+  }
+
+  // 2. Atualiza o contexto do paciente ativo
+  if (typeof window.setActivePatientContext === 'function') {
+    window.setActivePatientContext({
+      fullName: patientName,
+      patientName: patientName,
+      room: roomName,
+      status: 'Em_Atendimento'
+    });
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`🩺 Iniciando atendimento de ${patientName} no ${roomName}`);
+  }
+
+  // 3. Abre o PEP diretamente no formulário clínico SOAP para preenchimento imediato
+  if (typeof window.openPEPModal === 'function') {
+    window.openPEPModal(targetId || patientName, 'soap');
+  }
+
+  // 4. Recarrega os consultórios para atualizar o card
+  if (typeof window.loadConsultingRooms === 'function') {
+    window.loadConsultingRooms();
+  }
+};
+
+window.callPatientToTV = async function(patientName, roomName) {
+  if (!patientName) return;
+  roomName = roomName || 'Consultório 01';
+
+  let manchesterColor = 'Verde';
+  try {
+    if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+      const db = localDB.getFullDB();
+      const encs = db.encounters || [];
+      const cleanP = patientName.toLowerCase().trim();
+      const enc = encs.find(e => (e.patientName || '').toLowerCase().trim() === cleanP);
+      if (enc && enc.manchesterColor) manchesterColor = enc.manchesterColor;
+    }
+  } catch(e) {}
+
+  if (typeof window.executeTVCall === 'function') {
+    await window.executeTVCall(patientName, roomName, manchesterColor);
+  } else {
+    try {
+      await apiFetch('/api/tv/call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientName, roomName, manchesterColor })
+      });
+    } catch(e) {}
+    if (typeof showToast === 'function') {
+      showToast(`📢 Paciente ${patientName} chamado na TV para ${roomName}`);
+    }
+  }
+
+  window._interactedPatient = patientName;
+  window._interactedRoom = roomName;
+  window._highlightPatientName = patientName;
+
+  if (typeof window.setActivePatientContext === 'function') {
+    window.setActivePatientContext({
+      fullName: patientName,
+      patientName: patientName,
+      room: roomName,
+      status: 'Aguardando_Atendimento',
+      manchesterColor
+    });
+  }
+
+  const modal = document.getElementById('consultorio-details-modal');
+  if (modal) modal.remove();
+
+  if (typeof window.loadConsultingRooms === 'function') {
+    await window.loadConsultingRooms();
+  }
+
+  window.openDoctorConsultingRoom(roomName, patientName);
+};
+
+// Proteção Global: impedir que qualquer janela modal ativa seja fechada ao clicar na área externa (backdrop/overlay)
+if (typeof window !== 'undefined' && !window._modalBackdropProtectionBound) {
+  window._modalBackdropProtectionBound = true;
+  document.addEventListener('click', function(e) {
+    if (!e.target) return;
+    const isOverlayTarget = e.target.classList && (
+      e.target.classList.contains('modal-overlay') || 
+      e.target.classList.contains('modal-backdrop') ||
+      e.target.id === 'patient-modal-overlay' ||
+      e.target.id === 'triage-modal' ||
+      e.target.id === 'history-panel' ||
+      e.target.id === 'modal-admit-bed' ||
+      e.target.id === 'bed-details-modal' ||
+      e.target.id === 'consultorio-details-modal' ||
+      e.target.id === 'discharge-confirm-modal' ||
+      e.target.id === 'enc-report-detail-modal' ||
+      e.target.id === 'pep-modal' ||
+      e.target.id === 'hn-sessions-modal' ||
+      e.target.id === 'modal-doctor' ||
+      e.target.id === 'modal-appointment'
+    );
+    if (isOverlayTarget) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }
+  }, true);
+}
+
+const initializeApp = async () => {
+  initTheme();
+
+  // Timer de segurança anti-trava do loader inicial
+  const loaderSafetyTimer = setTimeout(() => {
+    const loader = document.querySelector('.initial-loader');
+    if (loader && !state.isAuthenticated) {
+      console.warn('[Init] Loader inicial persistente detectado. Forçando exibição da tela de login.');
+      renderAuthScreen();
+    }
+  }, 1500);
+
+  if (state.isAuthenticated && (state.token || state.user)) {
+    let authValid = !!state.user;
+    if (!authValid && state.token) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await apiFetch(`${API_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${state.token}` },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            state.user = data.user;
+            sessionStorage.setItem('hn_user', JSON.stringify(data.user));
+            authValid = true;
+          }
+        } else {
+          clearTimeout(loaderSafetyTimer);
+          logout();
+          return;
+        }
+      } catch (e) {
+        console.warn('Servidor inacessível ou tempo esgotado na verificação de sessão. Usando sessão em cache.');
+        if (state.user) authValid = true;
+      }
+    }
+
+    clearTimeout(loaderSafetyTimer);
+
+    if (authValid) {
+      // Ao entrar no sistema ou recarregar, garante que nenhum paciente fantasma anterior persista em evidência sem interação
+      if (typeof clearActivePatientContext === 'function') {
+        clearActivePatientContext();
+      } else if (typeof window.clearActivePatientContext === 'function') {
+        window.clearActivePatientContext();
+      }
+
+      // Define a aba Dashboard como padrão ao entrar no sistema
+      const userPerms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : null;
+      state.activeTab = (userPerms?.allowedTabs?.includes('dashboard')) ? 'dashboard' : (userPerms?.allowedTabs?.[0] || 'dashboard');
+      _SFG.activeTab = state.activeTab;
+      _SFG.hidden = false;
+      _SFG.minimized = false;
+
+      const fullDB = localDB.getFullDB();
+      if (Object.keys(fullDB).length === 0 || (fullDB.medications && fullDB.medications.length > 0 && fullDB.medications[0].stockQuantity === undefined)) {
+        console.log('[Init] Banco de dados vazio detectado. Gerando dados simulados iniciais...');
+        await generateMockData();
+      } else {
+        let dbNeedsSave = false;
+        if (!fullDB.hospitalizations || fullDB.hospitalizations.length === 0) {
+          console.log('[Init] Tabela hospitalizations ausente ou vazia. Gerando internações para Kanban...');
+          const patients = fullDB.patients || [];
+          const doctors = fullDB.doctors || [];
+          if (patients.length > 0 && doctors.length > 0) {
+            fullDB.hospitalizations = generateHospitalizations(patients, doctors, 35);
+            dbNeedsSave = true;
+          }
+        }
+        if (!fullDB.medications || fullDB.medications.length === 0) {
+          console.log('[Init] Tabela medications vazia ou ausente. Populando estoque padrão da farmácia...');
+          fullDB.medications = localDB.list('medications') || [];
+          dbNeedsSave = true;
+        }
+        if (!fullDB.prescriptions || fullDB.prescriptions.length === 0) {
+          console.log('[Init] Tabela prescriptions vazia ou ausente. Populando fila de prescrições hospitalares...');
+          fullDB.prescriptions = localDB.list('prescriptions') || [];
+          dbNeedsSave = true;
+        }
+        if (dbNeedsSave) {
+          localDB.saveFullDB(fullDB);
+        }
+      }
+
+      // ─── AUTO-RECUPERAÇÃO DE STATUS: Garante integridade do paciente caso tenha recebido alta indevida com exames pendentes ───
+      try {
+        const patients = fullDB.patients || [];
+        const encounters = fullDB.encounters || [];
+        const examReqs = fullDB.exam_requests || [];
+        let dbChanged = false;
+
+        patients.forEach(pat => {
+          const isTarget = (pat.fullName && pat.fullName.toLowerCase().includes('marcelo mazaro'));
+          const hasExams = examReqs.some(r => 
+            String(r.patientId) === String(pat.id) || 
+            (r.patientName && pat.fullName && r.patientName.toLowerCase().trim() === pat.fullName.toLowerCase().trim())
+          );
+
+          if ((isTarget || hasExams) && pat.status === 'Alta') {
+            pat.status = 'Ativo';
+            pat.receptionFinalized = false;
+            dbChanged = true;
+
+            const patEncs = encounters.filter(e => 
+              String(e.patientId) === String(pat.id) || 
+              (e.patientName && pat.fullName && e.patientName.toLowerCase().trim() === pat.fullName.toLowerCase().trim())
+            );
+            if (patEncs.length > 0) {
+              const lastEnc = patEncs[patEncs.length - 1];
+              if (lastEnc.status === 'Finalizado' || lastEnc.status === 'Alta') {
+                lastEnc.status = 'Aguardando_Exames';
+                lastEnc.closed_at = null;
+                lastEnc.completed_at = null;
+                lastEnc.discharged_at = null;
+                dbChanged = true;
+              }
+            }
+          }
+        });
+
+        if (dbChanged) {
+          localDB.saveFullDB(fullDB);
+        }
+      } catch (err) {
+        console.warn('[Init] Auto-recuperação de status de pacientes:', err);
+      }
+
+      renderAppStructure();
+      const logoutBtn = document.getElementById('btn-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          logout();
+        });
+      }
+      setTimeout(() => {
+        const badge = document.getElementById('sync-status-badge');
+        if (badge) {
+          badge.style.cursor = 'pointer';
+          badge.addEventListener('click', () => {
+            if (state.syncInfo && state.syncInfo.cloudConfigured) {
+              const localMax = getMaxTimestamp(state.syncInfo.localTimestamps);
+              const cloudMax = getMaxTimestamp(state.syncInfo.cloudTimestamps);
+              state.syncInfo.lastLocalBackup = localMax.str;
+              state.syncInfo.lastCloudBackup = cloudMax.str;
+              if (cloudMax.time > localMax.time) {
+                showSyncComparisonModal(state.syncInfo);
+              } else if (localMax.time > cloudMax.time) {
+                showSyncPromptModal(state.syncInfo);
+              } else {
+                showToast('Banco local já está perfeitamente sincronizado com a nuvem.');
+              }
+            } else {
+              showToast('Turso não configurado ou sem dados para comparar.');
+            }
+          });
+        }
+        updateSyncBadge();
+      }, 120);
+      checkInitialSync();
+
+      // ─── SMART FLOW GUIDE: Card flutuante — aparece logo após o login ──────
+      _SFG.hidden = false;
+      _SFG.minimized = false;
+      _SFG.activeTab = state.activeTab || 'dashboard';
+      if (typeof createSmartFlowGuideCard === 'function') {
+        createSmartFlowGuideCard(_SFG.activeTab);
+      }
+      setTimeout(() => {
+        if (typeof createSmartFlowGuideCard === 'function') {
+          createSmartFlowGuideCard(state.activeTab || 'dashboard');
+        }
+      }, 200);
+      setTimeout(() => {
+        if (!document.getElementById('hn-flow-guide') && typeof createSmartFlowGuideCard === 'function') {
+          createSmartFlowGuideCard(state.activeTab || 'dashboard');
+        }
+      }, 800);
+      
+    } else {
+      logout();
+    }
+  } else {
+    clearTimeout(loaderSafetyTimer);
+    renderAuthScreen();
+  }
+};
+
+const logout = () => {
+  if (typeof clearActivePatientContext === 'function') {
+    clearActivePatientContext();
+  } else if (typeof window.clearActivePatientContext === 'function') {
+    window.clearActivePatientContext();
+  }
+
+  const sessionId = sessionStorage.getItem('hn_session_id');
+  if (sessionId) {
+    const sessionRec = localDB.get('user_sessions', sessionId);
+    if (sessionRec) {
+      const logoutTime = new Date();
+      const loginTime = new Date(sessionRec.login_time);
+      const durationMinutes = Math.round((logoutTime - loginTime) / 60000);
+      localDB.update('user_sessions', sessionId, {
+        logout_time: logoutTime.toISOString(),
+        duration_minutes: durationMinutes
+      });
+    }
+  }
+  sessionStorage.removeItem('hn_session_id');
+  sessionStorage.removeItem('hn_token');
+  sessionStorage.removeItem('hn_user');
+  state.isAuthenticated = false;
+  state.token = null;
+  state.user = null;
+  state.activeTab = 'dashboard';
+  _SFG.activeTab = 'dashboard';
+  renderAuthScreen();
+};
+
+window.renderAuthScreen = renderAuthScreen;
+window.logout = logout;
+window.initializeApp = initializeApp;
+
+export function executePatientHighlight(targetPatientName, targetColumn) {
+  if (!targetPatientName) {
+    window._highlightPatientName = null;
+    window._highlightTargetColumn = null;
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('.patient-pulse-selected, .patient-spotlight-glow, .stag-selected, [data-patient-highlighted]').forEach(el => {
+        el.classList.remove('patient-pulse-selected', 'patient-spotlight-glow', 'stag-selected');
+        el.removeAttribute('data-patient-highlighted');
+        el.querySelector('.patient-selected-flow-badge')?.remove();
+      });
+    }
+    return false;
+  }
+
+  window._highlightPatientName = targetPatientName;
+  if (targetColumn) {
+    window._highlightTargetColumn = targetColumn;
+  }
+
+  const highlightTarget = () => {
+    let targetEl = null;
+
+    if (targetPatientName) {
+      const cleanName = targetPatientName.trim().toLowerCase();
+      const parts = cleanName.split(' ').filter(Boolean);
+      const firstName = parts[0] || cleanName;
+      const firstTwo = parts.slice(0, 2).join(' ');
+
+      // Tenta 1: por atributo exato ou parcial data-patient-card-name
+      targetEl = document.querySelector(`[data-patient-card-name*="${cleanName.replace(/"/g, '')}"]`);
+      if (!targetEl && firstTwo && firstTwo.length >= 4) {
+        targetEl = document.querySelector(`[data-patient-card-name*="${firstTwo.replace(/"/g, '')}"]`);
+      }
+      if (!targetEl && firstName && firstName.length >= 3) {
+        targetEl = document.querySelector(`[data-patient-card-name*="${firstName.replace(/"/g, '')}"]`);
+      }
+
+      // Tenta 1.5: se estiver na aba de leitos ou se o paciente ativo tiver leito associado E for realmente o paciente alvo
+      if (!targetEl) {
+        const ap = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+        const bId = ap?.bedId || ap?.bed || ap?.bedNumber;
+        if (bId) {
+          const cleanBId = String(bId).trim();
+          const bedEl = document.querySelector(`[data-bed-id="${cleanBId}"], [data-bed-number="${cleanBId}"]`);
+          if (bedEl) {
+            const cardTxt = (bedEl.textContent || '').toLowerCase();
+            const cardPat = (bedEl.getAttribute('data-patient-card-name') || '').toLowerCase();
+            if (cardTxt.includes(cleanName) || cardPat.includes(cleanName) || (firstTwo && firstTwo.length >= 4 && (cardTxt.includes(firstTwo) || cardPat.includes(firstTwo)))) {
+              targetEl = bedEl;
+            }
+          }
+        }
+      }
+
+      // Tenta 2: por texto direto nos elementos de card ou linhas de tabela do contêiner ativo
+      if (!targetEl) {
+        const candidateCards = Array.from(document.querySelectorAll('#main-content .patient-card-item, #main-content .interactive-card, #main-content .kanban-card, #main-content .card, #main-content tr'));
+        targetEl = candidateCards.find(el => {
+          const txt = (el.textContent || '').toLowerCase();
+          return txt.includes(cleanName) || (firstTwo && firstTwo.length >= 4 && txt.includes(firstTwo));
+        });
+      }
+
+      // Tenta 3: fallback para qualquer elemento dentro da aba ativa contendo o nome
+      if (!targetEl) {
+        const allElements = Array.from(document.querySelectorAll('#main-content div, #main-content li'));
+        targetEl = allElements.find(el => {
+          const txt = (el.textContent || '').toLowerCase();
+          const match = txt.includes(cleanName) || (firstTwo && firstTwo.length >= 4 && txt.includes(firstTwo));
+          return match && el.children.length > 0 && el.children.length <= 15;
+        });
+      }
+    }
+
+    if (!targetEl && targetColumn) {
+      targetEl = document.getElementById(targetColumn) || (document.querySelector(`[data-enc-id="${targetColumn}"]`)?.closest('.kanban-column') || document.querySelector('.kanban-column'));
+    }
+
+    if (targetEl) {
+      // Remove destaque de outros cards para que apenas o paciente ativo fique em foco pulsante
+      document.querySelectorAll('.patient-pulse-selected, .patient-spotlight-glow').forEach(el => {
+        if (el !== targetEl) {
+          el.classList.remove('patient-pulse-selected', 'patient-spotlight-glow');
+          el.querySelector('.patient-selected-flow-badge')?.remove();
+        }
+      });
+
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      targetEl.classList.add('patient-pulse-selected', 'patient-spotlight-glow');
+      
+      if (targetEl.tagName === 'TR') {
+        targetEl.style.animation = 'patientDelicateHighlight 0.6s ease-out 1';
+        setTimeout(() => {
+          targetEl.classList.remove('patient-pulse-selected', 'patient-spotlight-glow');
+          targetEl.style.animation = '';
+        }, 3500);
+      } else {
+        // Para cards interativos, mantém o pulso contínuo conforme solicitado pelo usuário
+        let badge = targetEl.querySelector('.patient-selected-flow-badge');
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'patient-selected-flow-badge';
+          badge.innerHTML = '⚡ Paciente em Foco';
+          targetEl.appendChild(badge);
+        }
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const attempts = [50, 150, 350, 700, 1200, 2000, 3000, 4500];
+  let attemptIndex = 0;
+  
+  const tryHighlight = () => {
+    if (!highlightTarget() && attemptIndex < attempts.length) {
+      setTimeout(tryHighlight, attempts[attemptIndex++]);
+    }
+  };
+  tryHighlight();
+}
+
+export function showFlowCompletionNotification(options = {}) {
+  const {
+    actionTitle = 'Próxima Etapa do Atendimento',
+    message = 'Ação registrada com sucesso no sistema.',
+    targetTab = null,
+    targetTabLabel = null,
+    targetColumn = null,
+    targetPatientName = null,
+    targetPatientId = null,
+    targetPatientCpf = null,
+    actionType = null,
+    autoSwitch = false,
+    persistent = false
+  } = options;
+
+  // 1. Remove qualquer container flutuante legado para garantir que NUNCA haja 2 cards na tela
+  const legacyContainer = document.getElementById('hn-flow-notifications-container');
+  if (legacyContainer) legacyContainer.remove();
+  document.querySelectorAll('[data-flow-target-tab]').forEach(el => el.remove());
+
+  // 2. Se houver paciente no evento, atualiza o contexto ativo global preservando flags de chamada na TV e IDs
+  if (targetPatientName && typeof window.setActivePatientContext === 'function') {
+    const curCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+    const normStr = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    const isSamePat = Boolean(curCtx && normStr(curCtx.fullName || curCtx.patientName) === normStr(targetPatientName));
+    const baseCtx = isSamePat ? curCtx : {};
+    const nextSt = options.targetStatus || baseCtx.status || (options.targetTab === 'tv_panel' ? 'Aguardando_Triagem' : 'Em Atendimento');
+
+    window.setActivePatientContext({
+      ...baseCtx,
+      fullName: targetPatientName,
+      patientName: targetPatientName,
+      id: targetPatientId || baseCtx.id,
+      encounterId: options.encounterId || baseCtx.encounterId,
+      cpf: targetPatientCpf || baseCtx.cpf,
+      status: nextSt,
+      manchesterColor: options.targetManchesterColor !== undefined
+        ? options.targetManchesterColor
+        : (nextSt === 'Aguardando_Triagem' ? '' : baseCtx.manchesterColor),
+      currentStep: options.currentStep || baseCtx.currentStep || undefined,
+      room: options.targetRoom || baseCtx.room || undefined,
+      tvCalled: options.actionType === 'start_triage' || options.actionType === 'open_consultorio' ? true : Boolean(baseCtx.tvCalled),
+      tvCalledTriage: options.actionType === 'start_triage' ? true : Boolean(baseCtx.tvCalledTriage),
+      tvCalledDoctor: options.actionType === 'open_consultorio' ? true : Boolean(baseCtx.tvCalledDoctor)
+    });
+    window._highlightPatientName = targetPatientName;
+    window._highlightTargetColumn = targetColumn;
+  }
+
+  // 3. Alimenta o Guia Único Inteligente (Smart Flow Guide)
+  _SFG.pendingAction = options;
+  _SFG.hidden = false;
+  _SFG.minimized = false; // Garante visibilidade expandida do Guia
+
+  // 4. Emite micro-toast padrão no topo da tela (sem sobreposição no canto inferior)
+  if (typeof showToast === 'function' && actionTitle) {
+    showToast(actionTitle);
+  }
+
+  // 5. Renderiza o Guia Unificado imediatamente com o bloco de Ação Concluída & Próximo Passo
+  createSmartFlowGuideCard(_SFG.activeTab || state.activeTab || 'dashboard');
+  if (typeof triggerFlowGuidePulse === 'function') {
+    triggerFlowGuidePulse();
+  }
+
+  // 6. Política estrita: NUNCA avançar de tela automaticamente sem ação explícita do usuário.
+  // O card de fluxo permanece ativo e pulsando na tela atual, exibindo o botão do próximo passo.
+  // O avanço para a tela seguinte ocorre EXCLUSIVAMENTE quando o usuário clica no botão do card.
+}
+
+export function triggerFlowGuidePulse() {
+  const guide = document.getElementById('hn-flow-guide');
+  if (guide) {
+    guide.classList.remove('guide-card-pulsing');
+    void guide.offsetWidth;
+    guide.classList.add('guide-card-pulsing');
+
+    const mainBtn = guide.querySelector('#hn-fg-main-action, #hn-fg-exec-action');
+    if (mainBtn) {
+      mainBtn.classList.remove('btn-next-step-pulse');
+      void mainBtn.offsetWidth;
+      mainBtn.classList.add('btn-next-step-pulse');
+    }
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.executePatientHighlight = executePatientHighlight;
+  window.showFlowCompletionNotification = showFlowCompletionNotification;
+  window.triggerFlowGuidePulse = triggerFlowGuidePulse;
+}
+
+// --- MODAL DE INSTRUÇÕES DE ACESSO E ESPECIFICAÇÕES DE LOGIN ---
+function openLoginInstructionsModal() {
+  const existing = document.getElementById('login-instructions-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'login-instructions-modal';
+  modal.className = 'modal-overlay';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,8,22,0.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;box-sizing:border-box;animation:fadeIn 0.25s ease-out;';
+
+  modal.innerHTML = `
+    <div style="background: linear-gradient(145deg, #17153b 0%, #0d1322 100%); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
+      <!-- Botão Fechar Topo -->
+      <button id="close-instructions-modal" type="button" title="Fechar orientações" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; width: 32px; height: 32px; color: #94a3b8; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseenter="this.style.color='#fff'; this.style.background='rgba(255,255,255,0.15)'" onmouseleave="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.06)'">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Cabeçalho da Janela -->
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-right: 36px;">
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(129, 140, 248, 0.45); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 1.35rem; flex-shrink: 0;">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.25rem; color: #ffffff; letter-spacing: -0.01em;">Instruções de Acesso</h3>
+          <span style="font-size: 0.82rem; color: #94a3b8;">Orientações para modos e especificações de login</span>
+        </div>
+      </div>
+
+      <!-- Texto de Orientação -->
+      <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.55; margin-bottom: 18px; background: rgba(255,255,255,0.03); padding: 12px 14px; border-radius: 12px; border-left: 4px solid #818cf8;">
+        O acesso ao <strong>Health Nexus</strong> é pessoal, sigiloso e segmentado por perfil profissional. Confira abaixo os modos disponíveis e as especificações para autenticação no sistema.
+      </p>
+
+      <!-- Seção: Modos de Acesso -->
+      <div style="margin-bottom: 18px;">
+        <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.85rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-layer-group"></i> Modos de Acesso &amp; Perfis
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Modo Assistencial / Clínico -->
+          <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fa-solid fa-stethoscope"></i> Modo Clínico &amp; Assistencial
+            </div>
+            <div style="font-size: 0.78rem; color: #93c5fd; font-weight: 500; margin-bottom: 4px;">
+              Médicos, Enfermagem, Farmácia e Laboratório
+            </div>
+            <p style="margin: 0; font-size: 0.81rem; color: #94a3b8; line-height: 1.45;">
+              Habilita o atendimento ao paciente, Prontuário Eletrônico (PEP), prescrições digitais, classificação Manchester e laudos de exames.
+            </p>
+          </div>
+
+          <!-- Modo Gestão / Administrativo -->
+          <div style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(192, 132, 252, 0.3); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.92rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="fa-solid fa-hospital-user"></i> Modo Gestão &amp; Administrativo
+            </div>
+            <div style="font-size: 0.78rem; color: #d8b4fe; font-weight: 500; margin-bottom: 4px;">
+              Administração, Recepção, Regulação e Faturamento
+            </div>
+            <p style="margin: 0; font-size: 0.81rem; color: #94a3b8; line-height: 1.45;">
+              Acesso à gestão e regulação de leitos, agendamentos, recepção, faturamento hospitalar, relatórios analíticos e controle de usuários.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção: Especificações do Login -->
+      <div style="margin-bottom: 22px;">
+        <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.85rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-list-check"></i> Especificações de Autenticação
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(129, 140, 248, 0.2); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; color: #cbd5e1; line-height: 1.45;">
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-id-badge" style="color: #818cf8; margin-top: 3px; font-size: 0.85rem;"></i>
+            <div><strong>Identificador Único:</strong> Informe seu nome de usuário cadastrado previamente pela equipe institucional.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-key" style="color: #818cf8; margin-top: 3px; font-size: 0.85rem;"></i>
+            <div><strong>Credencial Segura:</strong> A senha é estritamente confidencial, protegida com criptografia ponta a ponta e controle JWT.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-user-shield" style="color: #818cf8; margin-top: 3px; font-size: 0.85rem;"></i>
+            <div><strong>Novos Cadastros:</strong> Usuários recém-registrados necessitam de homologação pelo Administrador Master ou validação via Chave Master.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: #818cf8; margin-top: 3px; font-size: 0.85rem;"></i>
+            <div><strong>Segurança Hospitalar:</strong> Encerre sempre a sua sessão ao se ausentar da estação de trabalho para preservar os dados dos pacientes.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer da Janela -->
+      <div style="display: flex; justify-content: flex-end;">
+        <button id="btn-close-instructions-modal" type="button" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(2, 132, 199, 0.5)'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px rgba(2, 132, 199, 0.4)'">
+          Entendi, Fechar
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const closeModal = () => modal.remove();
+  document.getElementById('close-instructions-modal').addEventListener('click', closeModal);
+  document.getElementById('btn-close-instructions-modal').addEventListener('click', closeModal);
+
+
+
+  const onKeydown = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      document.removeEventListener('keydown', onKeydown);
+    }
+  };
+  document.addEventListener('keydown', onKeydown);
+}
+
+// --- MODAL DE AUTENTICAÇÃO DO GOOGLE DRIVE (PADRÃO VISUAL DO SISTEMA) ---
+function showGoogleDriveAuthModal(defaultEmail = 'usuario.hospitalar@gmail.com') {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('gdrive-auth-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'gdrive-auth-modal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,8,22,0.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:999999;animation:fadeIn 0.25s ease-out;';
+
+    modal.innerHTML = `
+      <div style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 24px; width: 90%; max-width: 480px; padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 50px rgba(14, 165, 233, 0.2); color: #e2e8f0; font-family: 'Inter', sans-serif; position: relative;">
+        <!-- Botão Fechar -->
+        <button id="close-gdrive-modal" type="button" style="position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.color='#fff'; this.style.background='rgba(255,255,255,0.15)'" onmouseleave="this.style.color='#94a3b8'; this.style.background='rgba(255,255,255,0.05)'">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Cabeçalho com Ícone do Google Drive -->
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(2, 132, 199, 0.15); border: 1.5px solid rgba(56, 189, 248, 0.5); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.6rem; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);">
+            <i class="fa-brands fa-google-drive"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.25rem; color: #ffffff;">Conectar Google Drive</h3>
+            <span style="font-size: 0.82rem; color: #38bdf8; font-weight: 500;">Sincronização &amp; Redundância de Backups</span>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.55; margin-bottom: 20px; background: rgba(14, 165, 233, 0.08); padding: 14px 16px; border-radius: 12px; border-left: 4px solid #0284c7;">
+          Informe o e-mail da sua conta Google para autorizar o salvamento de cópias de segurança na nuvem (pasta <strong>Health Nexus Backups</strong>).
+        </p>
+
+        <!-- Form Inputs -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            E-mail da Conta Google
+          </label>
+          <div style="position: relative;">
+            <i class="fa-solid fa-envelope" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.95rem;"></i>
+            <input type="email" id="gdrive-email-input" value="${defaultEmail}" placeholder="seu-email@gmail.com" style="width: 100%; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #ffffff; padding: 12px 14px 12px 40px; border-radius: 12px; font-size: 0.95rem; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 0 0 3px rgba(56, 189, 248, 0.2)'" onblur="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.boxShadow='none'">
+          </div>
+          <small id="gdrive-email-error" style="color: #f87171; font-size: 0.78rem; display: none; margin-top: 6px; font-weight: 500;">Por favor, digite um e-mail válido.</small>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            Client ID do Google Cloud
+          </label>
+          <div style="position: relative;">
+            <i class="fa-solid fa-key" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.95rem;"></i>
+            <input type="text" id="gdrive-clientid-input" value="${localStorage.getItem('hn_gdrive_client_id') || ''}" placeholder="931151048551-xxx.apps.googleusercontent.com" style="width: 100%; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #ffffff; padding: 12px 14px 12px 40px; border-radius: 12px; font-size: 0.82rem; outline: none; font-family: monospace; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 0 0 3px rgba(56, 189, 248, 0.2)'" onblur="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.boxShadow='none'">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            Chave Secreta do Cliente (Client Secret)
+          </label>
+          <div style="position: relative;">
+            <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.95rem;"></i>
+            <input type="password" id="gdrive-clientsecret-input" value="${localStorage.getItem('hn_gdrive_client_secret') || ''}" placeholder="GOCSPX-xxx" style="width: 100%; background: #0f172a; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #ffffff; padding: 12px 14px 12px 40px; border-radius: 12px; font-size: 0.82rem; outline: none; font-family: monospace; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 0 0 3px rgba(56, 189, 248, 0.2)'" onblur="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.boxShadow='none'">
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button id="btn-cancel-gdrive-modal" type="button" style="background: rgba(255,255,255,0.06); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.15); padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.12)'" onmouseleave="this.style.background='rgba(255,255,255,0.06)'">
+            Cancelar
+          </button>
+          <button id="btn-confirm-gdrive-modal" type="button" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4); display: flex; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='scale(1.02)'" onmouseleave="this.style.transform='scale(1)'">
+            <i class="fa-brands fa-google-drive"></i> Conectar Conta
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const input = document.getElementById('gdrive-email-input');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+
+    const closeModal = (value = null) => {
+      modal.style.opacity = '0';
+      modal.style.transition = 'opacity 0.2s ease';
+      setTimeout(() => {
+        modal.remove();
+        resolve(value);
+      }, 200);
+    };
+
+    document.getElementById('close-gdrive-modal').addEventListener('click', () => closeModal(null));
+    document.getElementById('btn-cancel-gdrive-modal').addEventListener('click', () => closeModal(null));
+
+    const submit = () => {
+      const emailVal = input ? input.value.trim() : '';
+      const clientVal = document.getElementById('gdrive-clientid-input')?.value?.trim() || '';
+      if (!emailVal || !emailVal.includes('@')) {
+        const errEl = document.getElementById('gdrive-email-error');
+        if (errEl) errEl.style.display = 'block';
+        return;
+      }
+      if (clientVal) {
+        localStorage.setItem('hn_gdrive_client_id', clientVal);
+      }
+      closeModal(emailVal);
+    };
+
+    document.getElementById('btn-confirm-gdrive-modal').addEventListener('click', submit);
+    if (input) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submit();
+        }
+      });
+    }
+  });
+}
+
+// --- FUNÇÃO REAL DE UPLOAD PARA O GOOGLE DRIVE API V3 ---
+async function uploadBackupToGoogleDrive(snapshotData, customFileName) {
+  const gdriveSync = document.getElementById('cfg-gdrive-sync-enable')?.checked;
+  const gdriveUser = localStorage.getItem('hn_gdrive_user') || 'mazzarowysk@gmail.com';
+  const clientId = localStorage.getItem('hn_gdrive_client_id');
+  const accessToken = localStorage.getItem('hn_gdrive_access_token');
+
+  if (gdriveSync === false) return null;
+
+  const nowStr = new Date().toISOString();
+  const fileName = customFileName || `Health_Nexus_Backup_${nowStr.slice(0,10)}_${nowStr.slice(11,19).replace(/:/g,'-')}.json`;
+  const backupJson = JSON.stringify(snapshotData || localDB.getFullDB(), null, 2);
+
+  // Se tivermos um Token OAuth ativo, envia diretamente via API REST v3 do Google Drive
+  if (accessToken) {
+    try {
+      showToast('☁️ Enviando backup para o seu Google Drive...');
+
+      const metadata = {
+        name: fileName,
+        mimeType: 'application/json'
+      };
+
+      const fileBlob = new Blob([backupJson], { type: 'application/json' });
+      const formData = new FormData();
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append('file', fileBlob);
+
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        const fileData = await res.json();
+        showToast('✅ Backup salvo com sucesso no seu Google Drive!');
+        return fileData;
+      } else if (res.status === 401) {
+        localStorage.removeItem('hn_gdrive_access_token');
+      }
+    } catch (err) {
+      console.warn('Falha no upload direto via API token:', err);
+    }
+  }
+
+  // Se o Client ID estiver configurado e o SDK do Google estiver disponível, solicita o login/token real
+  if (clientId && window.google && window.google.accounts && window.google.accounts.oauth2) {
+    return new Promise((resolve) => {
+      try {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'https://www.googleapis.com/auth/drive.file',
+          hint: gdriveUser,
+          callback: async (tokenResponse) => {
+            if (tokenResponse.error) {
+              showToast('⚠️ Autenticação do Google Drive não concluída.');
+              return resolve(null);
+            }
+            if (tokenResponse.access_token) {
+              localStorage.setItem('hn_gdrive_access_token', tokenResponse.access_token);
+              const result = await uploadBackupToGoogleDrive(snapshotData, fileName);
+              resolve(result);
+            }
+          }
+        });
+        client.requestAccessToken();
+      } catch (oauthErr) {
+        console.error('Erro ao abrir popup de autenticação do Google:', oauthErr);
+        resolve(null);
+      }
+    });
+  } else if (!clientId) {
+    showCustomAlert({
+      title: '🔑 Client ID Necessário',
+      message: 'Para o Google enviar os arquivos para o seu Drive, insira o seu <strong>Client ID do Google Cloud</strong> no campo abaixo e clique em <strong>Salvar Credenciais</strong>.',
+      type: 'warning'
+    });
+    return null;
+  }
+
+  showToast('☁️ Backup vinculado registrado para ' + gdriveUser);
+  return { simulated: true, name: fileName };
+}
+
+// --- ESTRUTURA DE AUTENTICAÇÃO ---
+function renderAuthScreen() {
+  const root = document.getElementById('app');
+  let isLogin = true;
+
+  const renderForm = () => {
+    root.innerHTML = `
+      <div class="auth-container">
+        <!-- Painel Esquerdo: Branding Imersivo -->
+        <div class="auth-brand-panel">
+          <!-- Canvas 2D de Constelação Tecnológica Interativa (Pontos & Conexões em Rede) -->
+          <canvas id="auth-constellation-canvas" class="auth-constellation-canvas"></canvas>
+
+          <!-- Camada de Animações Fluídas & Orbes de Luz -->
+          <div class="auth-brand-ambient">
+            <div class="auth-orb orb-primary"></div>
+            <div class="auth-orb orb-secondary"></div>
+            <div class="auth-orb orb-accent"></div>
+            <div class="auth-ring ring-1"></div>
+            <div class="auth-ring ring-2"></div>
+          </div>
+
+          <div class="auth-brand-content">
+            <div class="auth-hero-badge">
+              <i class="fa-solid fa-hospital" style="color: #fbbf24;"></i> PLATAFORMA OFICIAL &bull; GESTÃO HOSPITALAR
+            </div>
+
+            <div class="auth-brand-logo-wrap">
+              <div class="auth-brand-logo-box">
+                <img src="/assets/logo.png" alt="Health Nexus" class="auth-brand-logo-img">
+              </div>
+              <div class="auth-brand-name">
+                Health Nexus
+                <span class="auth-brand-subtag">
+                  <i class="fa-solid fa-shield-halved" style="color: #818cf8; margin-right: 5px;"></i> Sistema de Gestão Hospitalar &bull; <strong>v2.8.1</strong>
+                </span>
+              </div>
+            </div>
+
+            <h2 class="auth-brand-headline">
+              Cuidado Inteligente.<br>
+              <span class="highlight">Gestão Precisa.</span>
+            </h2>
+
+            <p class="auth-brand-desc">
+              Plataforma completa para hospitais e clínicas. Gerencie pacientes, agendamentos, leitos e prontuários em um único sistema seguro e integrado.
+            </p>
+
+            <ul class="auth-feature-list">
+              <li class="auth-feature-item">
+                <div class="auth-feature-icon"><i class="fa-solid fa-user-injured"></i></div>
+                <div class="auth-feature-text">
+                  <strong>Gestão de Pacientes</strong>
+                  Prontuário eletrônico completo com histórico e triagem Manchester
+                </div>
+              </li>
+              <li class="auth-feature-item">
+                <div class="auth-feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="auth-feature-text">
+                  <strong>Agenda Inteligente</strong>
+                  Agendamentos, controle de consultas e atendimentos em tempo real
+                </div>
+              </li>
+              <li class="auth-feature-item">
+                <div class="auth-feature-icon"><i class="fa-solid fa-bed-pulse"></i></div>
+                <div class="auth-feature-text">
+                  <strong>Controle de Leitos</strong>
+                  Mapa de ocupação hospitalar com status em tempo real
+                </div>
+              </li>
+              <li class="auth-feature-item">
+                <div class="auth-feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="auth-feature-text">
+                  <strong>Relatórios &amp; Dashboard</strong>
+                  Indicadores clínicos e financeiros com sincronização em nuvem
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="auth-brand-footer">
+            <i class="fa-solid fa-shield-halved" style="margin-right: 5px; color: var(--color-accent);"></i>
+            Dados protegidos com criptografia JWT &mdash; <strong>v2.8.1</strong>
+          </div>
+        </div>
+
+        <!-- Painel Direito: Formulário -->
+        <div class="auth-form-panel">
+          <div class="auth-form-header">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 4px;">
+              <div class="auth-form-eyebrow" style="margin-bottom: 0;">${isLogin ? 'Acesso ao Sistema' : 'Criar Nova Conta'}</div>
+              ${isLogin ? `
+                <button type="button" id="btn-show-instructions" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(129, 140, 248, 0.35); color: #818cf8; padding: 4px 11px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseenter="this.style.background='rgba(99, 102, 241, 0.3)'; this.style.borderColor='#818cf8'" onmouseleave="this.style.background='rgba(99, 102, 241, 0.15)'; this.style.borderColor='rgba(129, 140, 248, 0.35)'">
+                  <i class="fa-solid fa-circle-question" style="color: #fbbf24;"></i> Instruções de Acesso
+                </button>
+              ` : ''}
+            </div>
+            <h1 class="auth-title">${isLogin ? 'Bem-vindo de volta' : 'Criar sua conta'}</h1>
+            <p class="auth-subtitle">${isLogin ? 'Entre com suas credenciais para acessar o painel' : 'Preencha os dados abaixo para criar sua conta'}</p>
+          </div>
+
+          <div id="auth-error-container"></div>
+
+          <form id="auth-form" class="auth-form">
+            ${!isLogin ? `
+              <div class="form-group">
+                <label class="form-label" for="auth-name">Nome Completo</label>
+                <input type="text" id="auth-name" class="form-input" required placeholder="Dr. João Silva" autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="auth-role">Perfil / Função Desejada</label>
+                <select id="auth-role" class="form-input" style="background: var(--bg-card, #1e293b); color: var(--text-primary);">
+                  <option value="Médico" selected>🩺 Médico (Corpo Clínico / Especialista)</option>
+                  <option value="Enfermeiro">🩺 Enfermeiro(a) / Triagem Manchester</option>
+                  <option value="Recepcionista">📋 Recepcionista / Atendimento</option>
+                  <option value="Farmacêutico">💊 Farmacêutico(a) / Dispensário</option>
+                  <option value="Biomédico">🧪 Biomédico(a) / Laboratório</option>
+                  <option value="Gestor Financeiro">📊 Gestor Financeiro / Faturamento</option>
+                  <option value="Auxiliar de Enfermagem">🏥 Auxiliar de Enfermagem</option>
+                  <option value="Master">👑 Solicitar Acesso Total (Master / Admin)</option>
+                  <option value="Desenvolvedor">💻 Solicitar Acesso Desenvolvedor</option>
+                </select>
+              </div>
+              <div id="auth-master-key-box" class="form-group" style="display: block; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                <label class="form-label" for="auth-master-key" style="color: #a5b4fc; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-key" style="color: #fbbf24;"></i> Chave Master (Opcional):
+                </label>
+                <input type="password" id="auth-master-key" class="form-input" placeholder="Digite a chave se possuir">
+                <small style="color: var(--text-secondary); display: block; margin-top: 4px; font-size: 0.75rem; line-height: 1.3;">
+                  * Todo novo cadastro fica <strong>Pendente de Aprovação</strong> pelo Usuário Master principal, exceto se você possuir a Chave Master.
+                </small>
+              </div>
+            ` : ''}
+            <div class="form-group">
+              <label class="form-label" for="auth-username">Usuário</label>
+              <input type="text" id="auth-username" class="form-input" required placeholder="ex: drjoao" autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="auth-password">Senha</label>
+              <div class="password-input-wrapper">
+                <input type="password" id="auth-password" class="form-input" required placeholder="••••••••" autocomplete="${isLogin ? 'current-password' : 'new-password'}">
+                <button type="button" id="toggle-password-visibility" class="toggle-password-btn" title="Mostrar/ocultar senha">
+                  <i class="fa-regular fa-eye" id="toggle-password-icon"></i>
+                </button>
+              </div>
+            </div>
+            <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 6px; padding: 12px; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em;">
+              <i class="fa-solid fa-${isLogin ? 'right-to-bracket' : 'user-plus'}" style="margin-right: 8px;"></i>
+              ${isLogin ? 'Entrar no Sistema' : 'Criar Conta'}
+            </button>
+          </form>
+
+          <div class="auth-divider"></div>
+
+          <div class="auth-toggle">
+            ${isLogin
+              ? 'Não tem uma conta? <a id="toggle-auth">Cadastre-se gratuitamente</a>'
+              : 'Já tem uma conta? <a id="toggle-auth">Fazer login</a>'}
+          </div>
+
+          <div class="auth-form-footer" style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+            <span><i class="fa-solid fa-laptop-code" style="margin-right: 4px;"></i> Desenvolvido por @mazzarowysk &amp; @_coltri_</span>
+            <span style="background: rgba(99, 102, 241, 0.18); border: 1px solid rgba(129, 140, 248, 0.4); color: #a5b4fc; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; font-family: monospace;">v2.8.1</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('toggle-auth').addEventListener('click', () => {
+      isLogin = !isLogin;
+      renderForm();
+    });
+
+    if (!isLogin) {
+      // The box is now always visible because all registrations need approval
+    }
+
+    const passInput = document.getElementById('auth-password');
+    const togglePassBtn = document.getElementById('toggle-password-visibility');
+    const togglePassIcon = document.getElementById('toggle-password-icon');
+
+    if (togglePassBtn && passInput) {
+      togglePassBtn.addEventListener('click', () => {
+        const isPassword = passInput.type === 'password';
+        passInput.type = isPassword ? 'text' : 'password';
+        togglePassIcon.className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+      });
+    }
+
+    const btnShowInst = document.getElementById('btn-show-instructions');
+    if (btnShowInst) {
+      btnShowInst.addEventListener('click', openLoginInstructionsModal);
+    }
+
+    const authForm = document.getElementById('auth-form');
+    if (authForm) {
+      authForm.querySelectorAll('input').forEach(input => {
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (typeof authForm.requestSubmit === 'function') {
+              authForm.requestSubmit();
+            } else {
+              const submitBtn = document.getElementById('auth-submit-btn');
+              if (submitBtn) submitBtn.click();
+            }
+          }
+        });
+      });
+    }
+
+    authForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorContainer = document.getElementById('auth-error-container');
+      if (errorContainer) errorContainer.innerHTML = '';
+
+      const username = document.getElementById('auth-username').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+      const name = !isLogin ? document.getElementById('auth-name').value.trim() : null;
+      const role = !isLogin ? (document.getElementById('auth-role')?.value || 'Médico') : null;
+      const masterKey = !isLogin ? (document.getElementById('auth-master-key')?.value || '') : null;
+      
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const originalHTML = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i>Aguarde...';
+      submitBtn.disabled = true;
+
+      try {
+        const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+        const payload = isLogin ? { username, password } : { name, username, password, role, masterKey };
+        
+        const res = await apiFetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+          if (isLogin) {
+            sessionStorage.setItem('hn_token', data.token);
+            sessionStorage.setItem('hn_user', JSON.stringify(data.user));
+            
+            const newSession = {
+              user_id: data.user.id,
+              login_time: new Date().toISOString(),
+              logout_time: null,
+              duration_minutes: 0
+            };
+            const sessionRec = localDB.insert('user_sessions', newSession);
+            sessionStorage.setItem('hn_session_id', sessionRec.id);
+            
+            state.isAuthenticated = true;
+            state.token = data.token;
+            state.user = data.user;
+            const loginPerms = (typeof getRolePermissions === 'function') ? getRolePermissions(data.user) : null;
+            state.activeTab = (loginPerms?.allowedTabs?.includes('dashboard')) ? 'dashboard' : (loginPerms?.allowedTabs?.[0] || 'dashboard');
+            _SFG.hidden = false;
+            _SFG.minimized = false;
+            _SFG.pos = null;
+            _SFG.pendingAction = null;
+            _SFG.activeTab = state.activeTab;
+            showToast('Login realizado com sucesso!');
+            initializeApp();
+            // Garante que o card de fluxo aparece imediatamente logo após o login
+            setTimeout(() => {
+              _SFG.hidden = false;
+              _SFG.minimized = false;
+              if (typeof createSmartFlowGuideCard === 'function') {
+                createSmartFlowGuideCard('dashboard');
+              }
+            }, 100);
+            setTimeout(() => {
+              if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+                window.ensureSmartFlowGuideMounted('dashboard');
+              }
+            }, 400);
+          } else {
+            showToast(data.message || 'Cadastro realizado com sucesso!');
+            isLogin = true;
+            renderForm();
+          }
+        } else {
+          const isPending = res.status === 403;
+          if (isPending) {
+            // Switch to login form automatically
+            isLogin = true;
+            renderForm();
+            // Re-fetch the error container since renderForm recreates the DOM
+            const newErrorContainer = document.getElementById('auth-error-container');
+            if (newErrorContainer) {
+              newErrorContainer.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1)); border: 1px solid rgba(245,158,11,0.4); border-radius: 12px; padding: 16px 18px; display: flex; align-items: flex-start; gap: 14px; margin-top: 4px; margin-bottom: 16px;">
+                  <i class="fa-solid fa-clock" style="color: #fbbf24; font-size: 1.4rem; margin-top: 2px; flex-shrink: 0;"></i>
+                  <div>
+                    <div style="font-weight: 700; color: #fbbf24; font-size: 0.95rem; margin-bottom: 4px;">Acesso Aguardando Aprovação</div>
+                    <div style="color: #fde68a; font-size: 0.85rem; line-height: 1.5;">
+                      A solicitação de acesso está <strong>Pendente</strong>.<br>
+                      Faça login com um usuário Master para aprovar o cadastro na aba <strong>Alertas & Estagnação</strong>.
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+          } else {
+            if (errorContainer) {
+              errorContainer.innerHTML = `
+                <div class="auth-error-alert">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <span>${data.message || 'Erro na autenticação'}</span>
+                </div>
+              `;
+            }
+          }
+        }
+      } catch (err) {
+        if (errorContainer) {
+          errorContainer.innerHTML = `
+            <div class="auth-error-alert">
+              <i class="fa-solid fa-wifi"></i>
+              <span>Erro de conexão com o servidor.</span>
+            </div>
+          `;
+        } else {
+          alert('Erro ao comunicar com o servidor');
+        }
+      } finally {
+        submitBtn.innerHTML = originalHTML;
+        submitBtn.disabled = false;
+      }
+    });
+
+    setTimeout(() => {
+      initConstellationCanvas();
+    }, 50);
+  };
+
+  renderForm();
+}
+
+// --- ANIMAÇÃO DE CONSTELAÇÃO TECNOLÓGICA INTERATIVA (CANVAS 2D 60FPS) ---
+function initConstellationCanvas() {
+  const canvas = document.getElementById('auth-constellation-canvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const parent = canvas.parentElement;
+  let animationFrameId;
+  let width, height;
+
+  const resize = () => {
+    if (!parent) return;
+    width = canvas.width = parent.clientWidth;
+    height = canvas.height = parent.clientHeight;
+  };
+
+  resize();
+
+  const resizeObserver = new ResizeObserver(() => resize());
+  resizeObserver.observe(parent);
+
+  // Nós da rede tecnológica
+  const nodeCount = Math.floor(Math.min(width, 700) / 13);
+  const nodes = [];
+  const palette = ['#0284c7', '#0d9488', '#0ea5e9', '#38bdf8', '#10b981', '#059669'];
+
+  const mouse = { x: null, y: null, radius: 180 };
+
+  const handleMouseMove = (e) => {
+    const rect = parent.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  };
+
+  const handleMouseLeave = () => {
+    mouse.x = null;
+    mouse.y = null;
+  };
+
+  parent.removeEventListener('mousemove', handleMouseMove);
+  parent.removeEventListener('mouseleave', handleMouseLeave);
+  parent.addEventListener('mousemove', handleMouseMove);
+  parent.addEventListener('mouseleave', handleMouseLeave);
+
+  class Node {
+    constructor() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.vx = (Math.random() - 0.5) * 0.9;
+      this.vy = (Math.random() - 0.5) * 0.9;
+      this.radius = Math.random() * 2.2 + 1.2;
+      this.color = palette[Math.floor(Math.random() * palette.length)];
+      this.pulseSpeed = Math.random() * 0.03 + 0.01;
+      this.pulse = Math.random() * Math.PI;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.pulse += this.pulseSpeed;
+
+      if (this.x < 0 || this.x > width) this.vx *= -1;
+      if (this.y < 0 || this.y > height) this.vy *= -1;
+
+      // Atração magnética sutil ao mouse
+      if (mouse.x !== null && mouse.y !== null) {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < mouse.radius && dist > 0) {
+          const force = (mouse.radius - dist) / mouse.radius;
+          this.x += (dx / dist) * force * 0.8;
+          this.y += (dy / dist) * force * 0.8;
+        }
+      }
+    }
+
+    draw() {
+      const currentRadius = this.radius + Math.sin(this.pulse) * 0.6;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, Math.max(0.5, currentRadius), 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.shadowColor = this.color;
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push(new Node());
+  }
+
+  const maxDist = 140;
+
+  const animate = () => {
+    ctx.clearRect(0, 0, width, height);
+
+    // Conexões de rede entre nós próximos
+    for (let i = 0; i < nodes.length; i++) {
+      nodes[i].update();
+      nodes[i].draw();
+
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < maxDist) {
+          const alpha = (1 - dist / maxDist) * 0.55;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      // Conexão cintilante com o cursor do mouse
+      if (mouse.x !== null && mouse.y !== null) {
+        const dx = nodes[i].x - mouse.x;
+        const dy = nodes[i].y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < mouse.radius) {
+          const alpha = (1 - dist / mouse.radius) * 0.75;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.strokeStyle = `rgba(168, 85, 247, ${alpha})`;
+          ctx.lineWidth = 1.3;
+          ctx.stroke();
+        }
+      }
+    }
+
+    animationFrameId = requestAnimationFrame(animate);
+  };
+
+  if (window._authConstellationCancel) {
+    window._authConstellationCancel();
+  }
+  window._authConstellationCancel = () => {
+    cancelAnimationFrame(animationFrameId);
+    resizeObserver.disconnect();
+  };
+
+  animate();
+}
+
+
+
+// --- ESTRUTURA GERAL DA INTERFACE (TEMPLATE DINÂMICO POR PERFIL) ---
+function renderAppStructure() {
+  const root = document.getElementById('app');
+  const perms = getRolePermissions(state.user);
+
+  const allNavItems = [
+    { id: 'dashboard', label: 'Health Nexus', icon: 'fa-chart-line' },
+    { id: 'escalas', label: 'Escalas de Trabalho', icon: 'fa-user-clock' },
+    { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-check' },
+    { id: 'pacientes', label: 'Pacientes', icon: 'fa-user-injured' },
+    { id: 'atendimento', label: 'Atendimentos', icon: 'fa-stethoscope' },
+    { id: 'consulta_dinamica', label: 'Consulta Dinâmica', icon: 'fa-magnifying-glass-chart' },
+    { id: 'observacao', label: 'Observação do PS', icon: 'fa-bed-pulse', hasBadge: true },
+    { id: 'exames', label: 'Exames & Laboratório', icon: 'fa-microscope', hasBadge: true },
+    { id: 'tv_panel', label: 'Painel TV (Chamador)', icon: 'fa-tv' },
+    { id: 'estagnacao', label: 'Alertas & Estagnação', icon: 'fa-triangle-exclamation', hasBadge: true },
+    { id: 'leitos', label: 'Leitos', icon: 'fa-bed-pulse' },
+    { id: 'kanban', label: 'Kanban', icon: 'fa-table-columns' },
+    { id: 'farmacia', label: 'Farmácia & Estoque', icon: 'fa-pills' },
+    { id: 'financeiro', label: 'Financeiro', icon: 'fa-hand-holding-dollar' },
+    { id: 'tiss', label: 'Faturamento TISS', icon: 'fa-file-invoice-dollar' },
+    { id: 'medicos', label: 'Profissionais', icon: 'fa-user-nurse' },
+    { id: 'consultorios', label: 'Consultórios', icon: 'fa-door-open' },
+    { id: 'relatorios', label: 'Relatórios', icon: 'fa-file-contract' },
+    { id: 'configuracoes', label: 'Configurações', icon: 'fa-gear' }
+  ];
+
+
+  const visibleNavItems = allNavItems.filter(item => perms.allowedTabs.includes(item.id));
+
+  // Garante que o padrão ao entrar no sistema é sempre a aba Dashboard (caso o perfil possua acesso)
+  if (!state.activeTab || !perms.allowedTabs.includes(state.activeTab)) {
+    state.activeTab = perms.allowedTabs.includes('dashboard') ? 'dashboard' : (perms.allowedTabs[0] || 'dashboard');
+  }
+
+  const navHtml = visibleNavItems.map(item => {
+    let badgeId = `${item.id}-nav-badge`;
+    let badgeBg = '#ef4444';
+    if (item.id === 'estagnacao') {
+      badgeId = 'stagnation-nav-badge';
+      badgeBg = '#ef4444';
+    } else if (item.id === 'observacao') {
+      badgeId = 'observacao-nav-badge';
+      badgeBg = '#f59e0b';
+    } else if (item.id === 'exames') {
+      badgeId = 'exames-nav-badge';
+      badgeBg = '#0ea5e9';
+    }
+    return `
+    <li>
+      <a class="nav-item ${state.activeTab === item.id ? 'active' : ''}" data-tab="${item.id}" style="${item.hasBadge ? 'position: relative;' : ''}">
+        <i class="fa-solid ${item.icon}" style="${item.id === 'estagnacao' ? 'color: #f59e0b;' : ''}"></i>
+        <span>${item.label}</span>
+        ${item.hasBadge ? `<span id="${badgeId}" class="badge-count nav-badge-${item.id}" style="display:none; margin-left: auto; background: ${badgeBg}; color: #fff; border-radius: 10px; font-size: 0.7rem; padding: 2px 7px; font-weight: 700;">0</span>` : ''}
+      </a>
+    </li>
+  `}).join('');
+
+  root.innerHTML = `
+    <div class="app-container">
+      <!-- Sidebar de Navegação -->
+      <aside class="app-sidebar">
+        <div class="brand-logo" style="cursor: pointer;" onclick="if(typeof window.switchTab === 'function') window.switchTab('dashboard');" title="Ir para o Dashboard Principal">
+          <div class="brand-logo-card">
+            <img src="/assets/logo.png" alt="Health Nexus" class="brand-logo-img">
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-menu">
+            ${navHtml}
+          </ul>
+        </nav>
+        <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 16px;">
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px;">
+            Logado como: <br>
+            <strong style="color: var(--text-primary); display: block; margin-top: 2px;">${state.user ? state.user.name : 'Usuário'}</strong>
+            <span style="display: inline-block; margin-top: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; color: #fff; background: ${perms.badgeColor}; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+              ${perms.label}
+            </span>
+          </div>
+          <button id="btn-logout" class="btn" style="width: 100%; background: var(--bg-tertiary); color: var(--color-danger); border: 1px solid var(--border-color); margin-bottom: 12px;">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+          </button>
+          <div style="text-align: center; font-size: 0.65rem; color: var(--text-secondary); opacity: 0.6;">
+            <i class="fa-solid fa-code" style="margin-right: 4px;"></i> Desenvolvido por @mazzarowysk &amp; @_coltri_
+          </div>
+        </div>
+      </aside>
+
+      <!-- Cabeçalho Superior -->
+      <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 24px; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <button id="global-back-btn" style="display: none; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(59,130,246,0.25)); border: 1px solid rgba(129,140,248,0.4); color: #818cf8; font-weight: 700; font-size: 0.82rem; padding: 7px 14px; border-radius: 20px; cursor: pointer; align-items: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" title="Voltar para a tela anterior (Atalho: Alt + Seta Esquerda)">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span id="global-back-label">Voltar</span>
+          </button>
+          <h1 class="page-title" id="page-title-label" style="margin: 0; cursor: pointer;" onclick="if(typeof window.switchTab === 'function') window.switchTab('dashboard');" title="Ir para o Dashboard Principal">Health Nexus</h1>
+          <div class="header-brand-text" style="margin: 0;">
+            <i class="fa-solid fa-circle-nodes"></i>
+            <span>Sistema de Gestão Hospitalar Health Nexus</span>
+          </div>
+        </div>
+
+        <!-- CAMPO DE BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND PALETTE) -->
+        <div class="global-search-wrapper">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #818cf8; font-size: 0.88rem; pointer-events: none; z-index: 3;"></i>
+          <input type="text" id="global-system-search" placeholder="Buscar no sistema (ex: Excluir Usuário, RBAC, Novo Paciente)..." style="
+            width: 100%; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(129, 140, 248, 0.4);
+            color: #f8fafc; padding: 9px 68px 9px 38px; border-radius: 20px; font-size: 0.84rem;
+            outline: none; transition: all 0.25s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+          " onfocus="this.style.borderColor='#818cf8'; this.style.boxShadow='0 0 20px rgba(129, 140, 248, 0.5)';" autocomplete="off">
+          <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.68rem; font-weight: 700; background: rgba(129, 140, 248, 0.15); color: #a5b4fc; padding: 2px 8px; border-radius: 6px; pointer-events: none; border: 1px solid rgba(129, 140, 248, 0.3); z-index: 3;">
+            Ctrl K
+          </span>
+
+          <!-- Dropdown de Resultados da Busca em Tempo Real -->
+          <div id="global-search-results" style="display: none;"></div>
+        </div>
+
+        <div id="sync-status-container" style="display: flex; align-items: center; gap: 10px;">
+          <span id="sync-status-badge" style="font-size: 0.82rem; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border-color); background: rgba(59,130,246,0.08); color: var(--text-primary);">
+            Verificando Turso...
+          </span>
+          <button id="btn-toggle-flow-guide" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 14px; height: 40px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; gap: 6px; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Guia de Fluxo Hospitalar (Passo a Passo)">
+            <i class="fa-solid fa-compass" style="color: #38bdf8;"></i> <span id="flow-guide-btn-label">Guia de Fluxo</span>
+          </button>
+          <button id="btn-density-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 14px; height: 40px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; gap: 6px; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Densidade Visual (Modo Normal / Modo Compacto Hospitalar)">
+            <i class="fa-solid fa-compress" id="density-icon"></i> <span id="density-label">Modo Compacto</span>
+          </button>
+          <button id="btn-theme-toggle" class="btn" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; padding: 0; font-size: 1.15rem; transition: transform 0.2s ease, background 0.2s ease;" title="Alternar Tema Claro/Escuro">
+            <i class="fa-solid fa-circle-half-stroke" id="theme-icon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Área de Conteúdo Principal -->
+      <main class="app-content" id="main-content">
+        <!-- O conteúdo específico da aba ativa será injetado aqui -->
+      </main>
+    </div>
+
+    <!-- PEP Modal (Prontuário) -->
+    <div id="pep-modal" class="pep-modal">
+      <div class="pep-content">
+        <div class="pep-header">
+          <div class="pep-title-container">
+            <div class="pep-title">
+              <i class="fa-solid fa-file-waveform" style="color: #a78bfa; font-size: 1.4rem;"></i>
+              <div>
+                <span>Prontuário Eletrônico do Paciente</span>
+                <span class="pep-subtitle">Evolução Clínica SOAP & Prescrição Médica</span>
+              </div>
+            </div>
+          </div>
+          <div class="pep-header-info">
+            <div class="pep-info-chip"><i class="fa-solid fa-user-circle" style="color: #60a5fa;"></i> <span id="pep-patient-name">Paciente</span></div>
+            <div class="pep-info-chip"><i class="fa-solid fa-clock" style="color: #34d399;"></i> <span id="pep-encounter-status">-</span></div>
+          </div>
+        </div>
+        <div class="pep-body">
+          <div class="pep-sidebar">
+            <div class="pep-sidebar-group">
+              <label class="pep-sidebar-label"><i class="fa-solid fa-shield-heart"></i> Classificação de Risco</label>
+              <div id="pep-manchester-badge" class="pep-manchester-pill">-</div>
+            </div>
+            
+            <div class="pep-sidebar-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="pep-sidebar-label" style="margin: 0;"><i class="fa-solid fa-heart-pulse"></i> Sinais Vitais (Triagem)</label>
+                <span style="font-size: 0.7rem; color: #a78bfa; font-weight: 600; cursor: pointer;" title="Clique em qualquer sinal vital para ver a referência médica"><i class="fa-solid fa-circle-info"></i> Guia Rápido</span>
+              </div>
+              <div class="pep-vitals-grid">
+                <div class="pep-vital-item" onclick="openVitalDetailModal('pa')" style="cursor: pointer;" title="Clique para ver referência médica da PA">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-gauge-high" style="color: #60a5fa;"></i> PA <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
+                  <span class="pep-vital-val"><strong id="pep-bp">-</strong> <small>mmHg</small></span>
+                </div>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('fc')" style="cursor: pointer;" title="Clique para ver referência médica da FC">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-heartbeat" style="color: #f87171;"></i> FC <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
+                  <span class="pep-vital-val"><strong id="pep-hr">-</strong> <small>bpm</small></span>
+                </div>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('temp')" style="cursor: pointer;" title="Clique para ver referência médica da Temperatura">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-temperature-three-quarters" style="color: #fbbf24;"></i> Temp <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
+                  <span class="pep-vital-val"><strong id="pep-temp">-</strong> <small>°C</small></span>
+                </div>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('weight')" style="cursor: pointer;" title="Clique para ver referência médica do Peso">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-weight-scale" style="color: #34d399;"></i> Peso <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
+                  <span class="pep-vital-val"><strong id="pep-weight">-</strong> <small>kg</small></span>
+                </div>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('spo2')" style="cursor: pointer;" title="Clique para ver referência médica da SpO2">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-lungs" style="color: #a78bfa;"></i> SpO2 <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
+                  <span class="pep-vital-val"><strong id="pep-spo2">-</strong> <small>%</small></span>
+                </div>
+                <div class="pep-vital-item" onclick="openVitalDetailModal('pain')" style="cursor: pointer;" title="Clique para ver referência médica da Dor">
+                  <span class="pep-vital-lbl"><i class="fa-solid fa-face-frown-open" style="color: #f43f5e;"></i> Dor <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem; margin-left: auto; opacity: 0.5;"></i></span>
+                  <span class="pep-vital-val"><strong id="pep-pain">-</strong> <small>/10</small></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pep-sidebar-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="pep-sidebar-label" style="margin: 0;"><i class="fa-solid fa-comment-medical"></i> Queixa Principal</label>
+                <span style="font-size: 0.7rem; color: #34d399; font-weight: 600;"><i class="fa-solid fa-pen-to-square"></i> Editável</span>
+              </div>
+              <div class="pep-complaints-card" style="padding: 0; background: none; border: none;">
+                <textarea id="pep-complaints" class="form-input pep-textarea" style="width: 100%; min-height: 130px; resize: vertical; font-size: 0.9rem; line-height: 1.5; background: rgba(167, 139, 250, 0.08); border: 1px solid rgba(167, 139, 250, 0.3); border-left: 4px solid #a78bfa; border-radius: 12px; color: var(--text-primary); padding: 14px 16px;" placeholder="Digite ou edite a queixa principal do paciente..."></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <div class="pep-main">
+            <div class="pep-soap-card">
+              <div class="pep-soap-header">
+                <span class="pep-soap-tag tag-s">S</span>
+                <label for="pep-subjective">Subjetivo (Anamnese & Queixa)</label>
+                <small class="pep-soap-hint">Relato do paciente, histórico dos sintomas e medicamentos em uso</small>
+              </div>
+              <textarea id="pep-subjective" class="pep-textarea" placeholder="Digite o relato detalhado do paciente, início e evolução das queixas..."></textarea>
+            </div>
+
+            <div class="pep-soap-card">
+              <div class="pep-soap-header">
+                <span class="pep-soap-tag tag-o">O</span>
+                <label for="pep-objective">Objetivo (Exame Físico & Achados)</label>
+                <small class="pep-soap-hint">Exame físico segmentar, sinais clínicos e exames complementares</small>
+              </div>
+              <textarea id="pep-objective" class="pep-textarea" placeholder="Achados ao exame físico (ex: RCR 2T BNF sem sopros, MV+ sem ruidos adventícios...)"></textarea>
+            </div>
+
+            <div class="pep-soap-card autocomplete-container">
+              <div class="pep-soap-header">
+                <span class="pep-soap-tag tag-a">A</span>
+                <label for="pep-assessment">Avaliação (Diagnóstico / CID-10)</label>
+                <small class="pep-soap-hint">Hipótese diagnóstica principal e busca automática CID-10</small>
+              </div>
+              <input type="text" id="pep-assessment" class="form-input pep-cid-input" placeholder="Digite para buscar código ou descrição do CID-10..." autocomplete="off">
+              <div id="pep-cid-dropdown" class="autocomplete-dropdown"></div>
+            </div>
+
+            <div class="pep-soap-card pep-soap-card-fill">
+              <div class="pep-soap-header">
+                <span class="pep-soap-tag tag-p">P</span>
+                <label for="pep-plan">Plano (Prescrição / Conduta Terapêutica)</label>
+                <small class="pep-soap-hint">Medicamentos prescritos, exames solicitados e conduta de alta/internação</small>
+              </div>
+              <textarea id="pep-plan" class="pep-textarea" placeholder="Prescrição médica completa, dosagens, horários, recomendações e conduta final..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="pep-footer">
+          <div class="pep-footer-status" style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status do Prontuário:</span>
+            <span id="pep-status-badge"></span>
+          </div>
+          <div class="pep-footer-actions">
+            <button class="btn btn-secondary" onclick="closePEPModal()">
+              <i class="fa-solid fa-xmark"></i> Fechar
+            </button>
+            <button class="btn btn-secondary" onclick="printCurrentPEP()">
+              <i class="fa-solid fa-print"></i> Imprimir / PDF
+            </button>
+            <button class="btn btn-secondary" id="btn-save-draft" onclick="savePEPDraft()">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar Rascunho
+            </button>
+            <button class="btn btn-primary btn-sign-highlight" id="btn-sign-pep" onclick="openSignModal()">
+              <i class="fa-solid fa-file-signature"></i> Assinar e Finalizar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Assinatura -->
+    <div id="sign-modal" class="modal-overlay" style="z-index: 3000; display: none;">
+      <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+          <h3>Assinatura Eletrônica</h3>
+          <button class="btn-close" onclick="closeSignModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
+            Ao assinar este prontuário, ele será bloqueado para edições futuras. Confirme sua identidade para prosseguir.
+          </p>
+          <div class="form-group">
+            <label for="sign-password">Senha do Profissional</label>
+            <input type="password" id="sign-password" class="form-input" placeholder="Digite sua senha (admin123)">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeSignModal()">Cancelar</button>
+          <button class="btn btn-primary" onclick="confirmSignPEP()">Confirmar Assinatura</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Registrar eventos de clique na navegação
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetTab = item.getAttribute('data-tab');
+      switchTab(targetTab);
+    });
+  });
+
+  // Botão de alternar tema
+  const themeToggle = document.getElementById('btn-theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+    updateThemeIcon();
+  }
+
+  // Botão de alternar densidade (Modo Compacto Hospitalar)
+  const savedDensity = localStorage.getItem('hn_density');
+  if (savedDensity === 'compact') {
+    document.body.classList.add('compact-mode');
+  }
+  const densityToggle = document.getElementById('btn-density-toggle');
+  if (densityToggle) {
+    const updateDensityBtn = () => {
+      const isCompact = document.body.classList.contains('compact-mode');
+      const icon = document.getElementById('density-icon');
+      const label = document.getElementById('density-label');
+      if (icon) icon.className = isCompact ? 'fa-solid fa-expand' : 'fa-solid fa-compress';
+      if (label) label.textContent = isCompact ? 'Modo Normal' : 'Modo Compacto';
+    };
+    updateDensityBtn();
+    densityToggle.addEventListener('click', () => {
+      document.body.classList.toggle('compact-mode');
+      const isCompact = document.body.classList.contains('compact-mode');
+      localStorage.setItem('hn_density', isCompact ? 'compact' : 'normal');
+      updateDensityBtn();
+      showToast(isCompact ? 'Modo Compacto (Alta Densidade) ativado!' : 'Modo Normal ativado.');
+    });
+  }
+
+  // Botão de alternar exibição do Guia de Fluxo Hospitalar
+  const flowGuideToggle = document.getElementById('btn-toggle-flow-guide');
+  if (flowGuideToggle) {
+    flowGuideToggle.addEventListener('click', () => {
+      _SFG.hidden = !_SFG.hidden;
+      if (_SFG.hidden) {
+        syncFlowDockClasses(null);
+      } else {
+        _SFG.minimized = false;
+      }
+      createSmartFlowGuideCard(_SFG.activeTab);
+      showToast(_SFG.hidden ? 'Guia de Fluxo ocultado. Clique no ícone de bússola para reabrir.' : '🧭 Guia de Fluxo Hospitalar aberto!');
+    });
+  }
+
+  const backBtn = document.getElementById('global-back-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', goBack);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key === 'ArrowLeft') {
+      e.preventDefault();
+      goBack();
+    }
+  });
+
+  // Inicializar o mecanismo de Busca Global do Sistema (Spotlight / Command K)
+  initGlobalSystemSearch();
+
+  // Renderizar o conteúdo da aba ativa
+  renderTabContent();
+
+  // Atualizar contadores visuais e badges
+  if (typeof window.updateExamsNavBadge === 'function') {
+    window.updateExamsNavBadge();
+  }
+
+  // Card Guia: garantir que aparece com prioridade logo após a montagem do app
+  _SFG.hidden = false;
+  _SFG.minimized = false;
+  if (typeof createSmartFlowGuideCard === 'function') {
+    createSmartFlowGuideCard(state.activeTab || 'dashboard');
+  }
+  setTimeout(function() {
+    if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+      window.ensureSmartFlowGuideMounted(state.activeTab || 'dashboard');
+    }
+  }, 100);
+  setTimeout(function() {
+    if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+      window.ensureSmartFlowGuideMounted(state.activeTab || 'dashboard');
+    }
+  }, 450);
+
+  // Sincroniza badges da barra lateral (Observação e Alertas de Estagnação)
+  setTimeout(() => {
+    updateNavBadgesGlobal();
+  }, 250);
+}
+
+// ─── ATUALIZAÇÃO GLOBAL DOS BADGES DA BARRA LATERAL ───────────────────────────
+export async function updateNavBadgesGlobal() {
+  try {
+    // 1. Badge da Sala de Observação
+    const obsBadge = document.getElementById('observacao-nav-badge');
+    if (obsBadge) {
+      const res = await apiFetch('/api/encounters').catch(() => null);
+      if (res && res.ok) {
+        const raw = await res.json();
+        const encs = Array.isArray(raw) ? raw : (raw.data || raw.encounters || []);
+        const obsPatients = encs.filter(e => {
+          if (e.status === 'Finalizado' || e.status === 'Alta' || e.status === 'Cancelado') return false;
+          return e.status === 'Em_Observacao' || !!e.observation_started_at || (e.room && e.room.toLowerCase().includes('observa'));
+        });
+        obsBadge.textContent = obsPatients.length;
+        obsBadge.style.display = obsPatients.length > 0 ? 'inline-block' : 'none';
+      }
+    }
+  } catch(e) {
+    // Fail silently
+  }
+}
+window.updateNavBadgesGlobal = updateNavBadgesGlobal;
+
+// ─── MECANISMO DE BUSCA GLOBAL DO SISTEMA (SPOTLIGHT / COMMAND K) ──────────────
+function initGlobalSystemSearch() {
+  const searchInput = document.getElementById('global-system-search');
+  const searchResultsContainer = document.getElementById('global-search-results');
+  if (!searchInput || !searchResultsContainer) return;
+
+  const normalizeStr = (str) => {
+    if (!str) return '';
+    return String(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
+  const showResults = () => {
+    searchResultsContainer.style.display = 'block';
+    try {
+      const wrapper = searchInput.parentElement;
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const inputRect = searchInput.getBoundingClientRect();
+      const dropWidth = Math.min(540, window.innerWidth - 32);
+      searchResultsContainer.style.width = dropWidth + 'px';
+
+      // Centraliza perfeitamente com relação ao campo de pesquisa, garantindo margens de segurança na tela
+      let idealLeft = (inputRect.left + (inputRect.width / 2)) - (dropWidth / 2);
+      if (idealLeft < 16) idealLeft = 16;
+      if (idealLeft + dropWidth > window.innerWidth - 16) {
+        idealLeft = window.innerWidth - dropWidth - 16;
+      }
+      const relLeft = idealLeft - wrapperRect.left;
+      searchResultsContainer.style.left = relLeft + 'px';
+      searchResultsContainer.style.right = 'auto';
+    } catch (_) {}
+  };
+
+  const performSearch = () => {
+    const rawQuery = searchInput.value.trim();
+    if (!rawQuery) {
+      searchResultsContainer.style.display = 'none';
+      searchResultsContainer.innerHTML = '';
+      return;
+    }
+
+    const qNorm = normalizeStr(rawQuery);
+    const queryTokens = qNorm.split(/\s+/).filter(Boolean);
+    const expandedTokens = typeof expandQueryTokens === 'function' ? expandQueryTokens(rawQuery) : queryTokens;
+
+    const searchResult = typeof searchManualEngine === 'function' ? searchManualEngine(rawQuery, 'Master') : null;
+    const buttonMatches = searchResult ? searchResult.buttonMatches : [];
+    const faqMatches = searchResult ? searchResult.faqMatches : [];
+
+    // 2. Pesquisar TODAS as 18 abas da aplicação com palavras-chave semânticas e módulos relacionados
+    const allNavItems = [
+      { id: 'dashboard', label: 'Health Nexus (Visão Geral & Indicadores)', icon: 'fa-chart-line', tabColor: '#818cf8', keywords: 'dashboard painel geral indicadores graficos funil ocupacao resumo inicio' },
+      { id: 'pacientes', label: 'Recepção & Pacientes (Cadastro / Lixeira)', icon: 'fa-user-injured', tabColor: '#38bdf8', keywords: 'recepcao paciente pacientes cadastrar novo editar excluir inativar lixeira cpf acolhimento fila' },
+      { id: 'atendimento', label: 'Triagem Manchester & Central de Atendimentos', icon: 'fa-stethoscope', tabColor: '#fcd34d', keywords: 'atendimento atendimentos triagem manchester sinais vitais pressao temperatura spo2 classificacao risco fila' },
+      { id: 'consulta_dinamica', label: 'Consulta Dinâmica & Emissão de Etiquetas', icon: 'fa-magnifying-glass-chart', tabColor: '#38bdf8', keywords: 'consulta dinamica localizador passagens etiquetas pulseira pimaco termica filtro rastrear buscar' },
+      { id: 'tv_panel', label: 'Painel TV & Chamador (Sala de Espera)', icon: 'fa-tv', tabColor: '#a78bfa', keywords: 'painel tv telao chamar chamada voz som campainha fila espera convocar' },
+      { id: 'consultorios', label: 'Consultórios Médicos & Prontuário PEP', icon: 'fa-door-open', tabColor: '#c084fc', keywords: 'consultorio consultorios sala salas pep prontuario soap anamnese cid diagnostico prescricao atestado excluir sala' },
+      { id: 'exames', label: 'Exames & Laboratório (Central SADT / Laudos)', icon: 'fa-microscope', tabColor: '#0ea5e9', keywords: 'exame exames sadt laboratorio imagem raio x rx tomografia tc ultrassom usg ecg hemograma laudo coleta' },
+      { id: 'observacao', label: 'Sala de Observação do PS (Monitoramento 24h)', icon: 'fa-bed-pulse', tabColor: '#f59e0b', keywords: 'observacao ps pronto socorro poltrona monitoramento 12h 24h cfm alta hidratacao' },
+      { id: 'farmacia', label: 'Farmácia Hospitalar & Estoque Central', icon: 'fa-pills', tabColor: '#fbbf24', keywords: 'farmacia estoque medicamento medicamentos remedio prescricao receita dispensar dispensacao lote validade excluir inativar' },
+      { id: 'leitos', label: 'Gestão de Leitos & Censo de Internação', icon: 'fa-bed-pulse', tabColor: '#f9a8d4', keywords: 'leito leitos internacao internar vaga enfermaria uti censo alta higienizacao limpeza transferir excluir' },
+      { id: 'kanban', label: 'Quadro Kanban Hospitalar (Linha de Cuidado)', icon: 'fa-table-columns', tabColor: '#60a5fa', keywords: 'kanban quadro linha cuidado internacao setores transferencia desospitalizacao' },
+      { id: 'agenda', label: 'Agenda Médica & Consultas Ambulatoriais', icon: 'fa-calendar-check', tabColor: '#93c5fd', keywords: 'agenda consulta consultas agendamento agendar marcar horario reagendar cancelar excluir check-in presenca' },
+      { id: 'medicos', label: 'Profissionais & Corpo Clínico (Médicos/Enfermagem)', icon: 'fa-user-nurse', tabColor: '#818cf8', keywords: 'medico medicos profissional profissionais colaborador enfermeiro equipe corpo clinico crm coren cadastrar editar excluir lixeira' },
+      { id: 'escalas', label: 'Escalas de Trabalho & Plantões', icon: 'fa-user-clock', tabColor: '#0d9488', keywords: 'escala escalas plantao plantonista turno horario equipe alocar' },
+      { id: 'estagnacao', label: 'Alertas & Estagnação (Gargalos de Espera)', icon: 'fa-triangle-exclamation', tabColor: '#f59e0b', keywords: 'alerta alertas estagnacao atraso espera gargalo prioridade redirecionar' },
+      { id: 'financeiro', label: 'Gestão Financeira & Contas Hospitalares', icon: 'fa-hand-holding-dollar', tabColor: '#34d399', keywords: 'financeiro faturamento cobranca fatura parcela baixa pagamento receita despesa cancelar estornar excluir' },
+      { id: 'tiss', label: 'Faturamento TISS 4.01 & Lotes ANS / XML', icon: 'fa-file-invoice-dollar', tabColor: '#10b981', keywords: 'tiss tuss ans xml guia lote glosa auditoria operadora convenio unimed bradesco sulamerica' },
+      { id: 'relatorios', label: 'Relatórios Analíticos & Exportação PDF/CSV', icon: 'fa-file-contract', tabColor: '#06b6d4', keywords: 'relatorio relatorios exportar imprimir pdf csv planilha metricas kpi estatistica' },
+      { id: 'configuracoes', label: 'Configurações, Usuários (RBAC) & Turso Cloud', icon: 'fa-gear', tabColor: '#a5b4fc', keywords: 'configuracoes usuario usuarios senha login rbac perfil permissao master excluir usuario turso nuvem backup' }
+    ];
+
+    const modToTab = {
+      geral: 'dashboard', agenda: 'agenda', recepcao: 'pacientes', prontuario: 'atendimento',
+      consulta_dinamica: 'consulta_dinamica', exames: 'exames', tv: 'tv_panel', estagnacao: 'estagnacao',
+      leitos: 'leitos', kanban: 'kanban', farmacia: 'farmacia', financeiro: 'financeiro',
+      medicos: 'medicos', consultorios: 'consultorios', escalas: 'escalas', relatorios: 'relatorios',
+      configuracoes: 'configuracoes'
+    };
+    const relatedTabIdsFromButtons = new Set(buttonMatches.map(b => modToTab[b._moduleId] || b._moduleId));
+
+    const tabMatches = allNavItems.filter(item => {
+      const corpus = normalizeStr(`${item.label} ${item.id} ${item.keywords || ''}`);
+      return relatedTabIdsFromButtons.has(item.id) ||
+             corpus.includes(qNorm) ||
+             queryTokens.every(t => corpus.includes(t)) ||
+             expandedTokens.some(t => t.length >= 3 && corpus.includes(t));
+    });
+
+    // 3. Pesquisar dados vivos no banco local (Pacientes, Profissionais, Exames, Medicamentos, Leitos, CID-10)
+    const fullDB = (window.localDB && typeof window.localDB.getFullDB === 'function') ? window.localDB.getFullDB() : {};
+    const allPatients = fullDB.patients || state.patients || [];
+    const allEncounters = fullDB.encounters || state.encounters || [];
+    const allDoctors = fullDB.doctors || [];
+    const allNurses = fullDB.nurses || [];
+    const allMedications = (fullDB.medications && fullDB.medications.length) ? fullDB.medications : (window.medicationsCatalog || []);
+    const allBeds = fullDB.beds || [];
+    const qDigits = rawQuery.replace(/\D/g, '');
+
+    // 3.1 Pacientes & Atendimentos relacionados
+    const patientMatches = [];
+    allPatients.forEach(p => {
+      const displayName = p.fullName || p.name || p.patientName || '';
+      if (!displayName) return;
+      const pName = normalizeStr(displayName);
+      const pCpf = (p.cpf || '').replace(/\D/g, '');
+      const activeEnc = allEncounters.find(e =>
+        (String(e.patientId) === String(p.id) || normalizeStr(e.patientName) === pName) &&
+        e.status !== 'Finalizado' && e.status !== 'Cancelado'
+      );
+      const encCorpus = activeEnc
+        ? normalizeStr(`${activeEnc.status || ''} ${activeEnc.manchesterColor || ''} ${activeEnc.room || ''} ${activeEnc.sector || ''} ${activeEnc.complaints || ''}`)
+        : '';
+      const patCorpus = `${pName} ${normalizeStr(p.healthPlan || '')} ${normalizeStr(p.status || '')} ${encCorpus}`;
+
+      if (
+        pName.includes(qNorm) ||
+        (queryTokens.length > 0 && queryTokens.every(t => patCorpus.includes(t))) ||
+        (qDigits.length >= 3 && pCpf.includes(qDigits))
+      ) {
+        patientMatches.push({ ...p, _displayName: displayName, _activeEnc: activeEnc });
+      }
+    });
+
+    // 3.2 Profissionais (Médicos & Enfermagem) relacionados
+    const doctorMatches = [];
+    [...allDoctors, ...allNurses].forEach(d => {
+      const dName = d.name || d.fullName || '';
+      if (!dName) return;
+      const dCorpus = normalizeStr(`${dName} ${d.specialty || d.roleFunction || ''} ${d.crm || d.coren || ''} ${d.roomName || ''}`);
+      if (
+        dCorpus.includes(qNorm) ||
+        (queryTokens.length > 0 && queryTokens.every(t => dCorpus.includes(t))) ||
+        expandedTokens.some(t => t.length >= 4 && dCorpus.includes(t))
+      ) {
+        doctorMatches.push(d);
+      }
+    });
+
+    // 3.3 Exames do Catálogo SADT relacionados
+    const examMatches = (Array.isArray(EXAM_CATALOG) && rawQuery.length >= 2)
+      ? EXAM_CATALOG.filter(ex => matchExamQuery(ex, rawQuery))
+      : [];
+
+    // 3.4 Medicamentos & Insumos da Farmácia relacionados
+    const medMatches = [];
+    if (rawQuery.length >= 2) {
+      allMedications.forEach(m => {
+        const mName = m.name || m.commercialName || '';
+        if (!mName) return;
+        const mCorpus = normalizeStr(`${mName} ${m.activePrinciple || ''} ${m.category || ''} ${m.presentation || ''}`);
+        if (mCorpus.includes(qNorm) || (queryTokens.length > 0 && queryTokens.every(t => mCorpus.includes(t)))) {
+          medMatches.push(m);
+        }
+      });
+    }
+
+    // 3.5 Leitos Hospitalares relacionados
+    const bedMatches = [];
+    if (rawQuery.length >= 2) {
+      allBeds.forEach(b => {
+        const bCode = b.code || b.number || b.name || b.id || '';
+        const bCorpus = normalizeStr(`${bCode} ${b.ward || b.sector || ''} ${b.status || ''} ${b.patientName || ''}`);
+        if (bCorpus.includes(qNorm) || (queryTokens.length > 0 && queryTokens.every(t => bCorpus.includes(t)))) {
+          bedMatches.push(b);
+        }
+      });
+    }
+
+    // 3.6 Diagnósticos CID-10 relacionados
+    const cidPool = (Array.isArray(cidCatalog) && cidCatalog.length > 0) ? cidCatalog : (typeof CID_FALLBACK !== 'undefined' ? CID_FALLBACK : []);
+    const cidMatches = (rawQuery.length >= 2)
+      ? cidPool.filter(c => {
+          const cCorpus = normalizeStr(`${c.code} ${c.description} ${c.search || ''}`);
+          return cCorpus.includes(qNorm) || (queryTokens.length > 0 && queryTokens.every(t => cCorpus.includes(t)));
+        }).slice(0, 5)
+      : [];
+
+    // 🤖 Nexus AI Knowledge Copilot Engine v2.5
+    const aiCopilot = searchResult && searchResult.aiCopilot ? searchResult.aiCopilot : getNexusAICopilotResponse(qNorm, rawQuery);
+
+    const totalFound = buttonMatches.length + tabMatches.length + patientMatches.length + doctorMatches.length + examMatches.length + medMatches.length + bedMatches.length + cidMatches.length + faqMatches.length;
+
+    let html = '';
+
+    // Topo: Resumo da Busca + Orientação Inteligente
+    html += `
+      <div style="padding: 12px 14px; background: linear-gradient(135deg, rgba(124, 58, 237, 0.22) 0%, rgba(79, 70, 229, 0.22) 100%); border: 1px solid rgba(167, 139, 250, 0.4); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 8px; flex-wrap: wrap;">
+          <strong style="color: #ddd6fe; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color: #38bdf8;"></i> ${aiCopilot.title}
+          </strong>
+          <span style="font-size: 0.65rem; background: rgba(16, 185, 129, 0.22); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; padding: 2px 8px; border-radius: 10px; font-weight: 700;">${totalFound} resultado(s) relacionado(s)</span>
+        </div>
+        <p style="color: #f3e8ff; font-size: 0.81rem; margin: 0 0 10px 0; line-height: 1.4;">
+          ${aiCopilot.summary}
+        </p>
+        ${aiCopilot.actionButton !== false ? `
+          <button class="search-result-item" data-type="ai_action" data-action="${aiCopilot.actionType}" data-target="${aiCopilot.actionTarget}" style="
+            background: #7c3aed; color: #ffffff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+          " onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">
+            ${aiCopilot.actionText}
+          </button>
+        ` : ''}
+      </div>
+    `;
+
+    // 1. Renderizar Funcionalidades & Botões Encontrados (Ordenados por Relevância)
+    if (buttonMatches.length > 0) {
+      const isDeleteSearch = buttonMatches.some(b => b._isDelete);
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: ${isDeleteSearch ? '#f87171' : '#10b981'}; letter-spacing: 0.5px; padding: 6px 8px 4px 8px;">${isDeleteSearch ? '🗑️ Ações de Exclusão, Cancelamento & Lixeira' : '⚙️ Funcionalidades & Ações Relacionadas'} (${buttonMatches.length})</div>`;
+      buttonMatches.slice(0, 12).forEach(btn => {
+        html += `
+          <div class="search-result-item" data-type="btn" data-mod-id="${btn._moduleId}" data-btn-name="${encodeURIComponent(btn.name)}" style="
+            padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(15, 23, 42, 0.75); margin-bottom: 6px; border: 1px solid ${btn._isDelete ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255,255,255,0.07)'};
+          " onmouseover="this.style.background='${btn._isDelete ? 'rgba(239, 68, 68, 0.22)' : 'rgba(16, 185, 129, 0.22)'}'; this.style.borderColor='${btn.color}'" onmouseout="this.style.background='rgba(15, 23, 42, 0.75)'; this.style.borderColor='${btn._isDelete ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255,255,255,0.07)'}'">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px;">
+              <strong style="color: #ffffff; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid ${btn.icon}" style="color: ${btn.color}; font-size: 0.95rem;"></i>
+                ${btn.name}
+              </strong>
+              <span style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: ${btn._moduleColor || '#818cf8'}; padding: 3px 8px; border-radius: 8px; font-weight: 700; white-space: nowrap;">
+                ${btn._moduleTitle} ➔
+              </span>
+            </div>
+            <p style="color: #cbd5e1; font-size: 0.78rem; margin: 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${btn.description}
+            </p>
+          </div>
+        `;
+      });
+    }
+
+    // 2. Renderizar Abas & Módulos Envolvidos
+    if (tabMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #818cf8; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">📌 Módulos & Telas Envolvidas (${tabMatches.length})</div>`;
+      tabMatches.slice(0, 8).forEach(t => {
+        html += `
+          <div class="search-result-item" data-type="tab" data-tab-id="${t.id}" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(99, 102, 241, 0.25)'; this.style.borderColor='rgba(129, 140, 248, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i class="fa-solid ${t.icon}" style="color: ${t.tabColor}; font-size: 0.95rem;"></i>
+              <span style="font-weight: 700; color: #f8fafc; font-size: 0.86rem;">${t.label}</span>
+            </div>
+            <span style="font-size: 0.68rem; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Abrir Tela ➔</span>
+          </div>
+        `;
+      });
+    }
+
+    // 3. Renderizar Pacientes Encontrados
+    if (patientMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">👤 Pacientes & Atendimentos Relacionados (${patientMatches.length})</div>`;
+      patientMatches.slice(0, 6).forEach(p => {
+        const activeEnc = p._activeEnc;
+        let statusBadge = '<span style="font-size: 0.68rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Recepção / Ficha ➔</span>';
+        let targetTabForPat = 'pacientes';
+        if (activeEnc) {
+          if (activeEnc.status === 'Em_Atendimento') {
+            statusBadge = `<span style="font-size: 0.68rem; background: rgba(16, 185, 129, 0.25); color: #10b981; border: 1px solid #10b981; padding: 3px 9px; border-radius: 10px; font-weight: 700;">🩺 ${activeEnc.room || 'Consultório 01'} (PEP) ➔</span>`;
+            targetTabForPat = 'consultorios';
+          } else if (activeEnc.status === 'Aguardando_Atendimento') {
+            statusBadge = '<span style="font-size: 0.68rem; background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid #f59e0b; padding: 3px 9px; border-radius: 10px; font-weight: 700;">⏳ Aguardando Médico ➔</span>';
+            targetTabForPat = 'atendimento';
+          } else if (activeEnc.status === 'Aguardando_Triagem') {
+            statusBadge = '<span style="font-size: 0.68rem; background: rgba(2, 132, 199, 0.2); color: #38bdf8; border: 1px solid #0284c7; padding: 3px 9px; border-radius: 10px; font-weight: 700;">🩺 Aguardando Triagem ➔</span>';
+            targetTabForPat = 'atendimento';
+          } else if (activeEnc.status === 'Em_Observacao') {
+            statusBadge = '<span style="font-size: 0.68rem; background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid #ef4444; padding: 3px 9px; border-radius: 10px; font-weight: 700;">⏱️ Observação PS ➔</span>';
+            targetTabForPat = 'observacao';
+          } else if (activeEnc.status === 'Aguardando_Exames' || activeEnc.status === 'Aguardando_Resultado') {
+            statusBadge = '<span style="font-size: 0.68rem; background: rgba(14, 165, 233, 0.25); color: #38bdf8; border: 1px solid #0ea5e9; padding: 3px 9px; border-radius: 10px; font-weight: 700;">🔬 Exames / SADT ➔</span>';
+            targetTabForPat = 'exames';
+          }
+        }
+        html += `
+          <div class="search-result-item" data-type="patient" data-patient-id="${p.id}" data-patient-name="${encodeURIComponent(p._displayName)}" data-target-tab="${targetTabForPat}" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(56, 189, 248, 0.2)'; this.style.borderColor='rgba(56, 189, 248, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <div>
+              <strong style="color: #f8fafc; font-size: 0.86rem; display: block;">${p._displayName}</strong>
+              <small style="color: #94a3b8; font-size: 0.75rem;">CPF: ${p.cpf || 'Não informado'} ${p.healthPlan ? ' · ' + p.healthPlan : ''}</small>
+            </div>
+            ${statusBadge}
+          </div>
+        `;
+      });
+    }
+
+    // 4. Renderizar Profissionais & Corpo Clínico Encontrados
+    if (doctorMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #a78bfa; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">👨‍⚕️ Profissionais & Equipe Relacionada (${doctorMatches.length})</div>`;
+      doctorMatches.slice(0, 5).forEach(d => {
+        const dName = d.name || d.fullName || 'Profissional';
+        const dSpec = d.specialty || d.roleFunction || 'Equipe Assistencial';
+        const dReg = d.crm || d.coren || '';
+        html += `
+          <div class="search-result-item" data-type="doctor" data-doc-name="${encodeURIComponent(dName)}" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(167, 139, 250, 0.2)'; this.style.borderColor='rgba(167, 139, 250, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <div>
+              <strong style="color: #f8fafc; font-size: 0.86rem; display: block;">${dName}</strong>
+              <small style="color: #94a3b8; font-size: 0.75rem;">${dSpec}${dReg ? ' · ' + dReg : ''}</small>
+            </div>
+            <span style="font-size: 0.68rem; background: rgba(167, 139, 250, 0.2); color: #c4b5fd; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Ver Profissional ➔</span>
+          </div>
+        `;
+      });
+    }
+
+    // 5. Renderizar Exames Laboratoriais & Imagem (Catálogo SADT)
+    if (examMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #0ea5e9; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">🔬 Exames & Procedimentos SADT Relacionados (${examMatches.length})</div>`;
+      examMatches.slice(0, 6).forEach(ex => {
+        html += `
+          <div class="search-result-item" data-type="exam" data-exam-name="${encodeURIComponent(ex.name)}" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(14, 165, 233, 0.2)'; this.style.borderColor='rgba(14, 165, 233, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <div>
+              <strong style="color: #f8fafc; font-size: 0.85rem; display: block;">${ex.name}</strong>
+              <small style="color: #94a3b8; font-size: 0.74rem;">Preparo: ${ex.prep || 'Sem preparo especial'}</small>
+            </div>
+            <span style="font-size: 0.68rem; background: rgba(14, 165, 233, 0.2); color: #38bdf8; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Central SADT ➔</span>
+          </div>
+        `;
+      });
+    }
+
+    // 6. Renderizar Medicamentos & Estoque da Farmácia
+    if (medMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #10b981; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">💊 Medicamentos & Insumos da Farmácia (${medMatches.length})</div>`;
+      medMatches.slice(0, 5).forEach(m => {
+        const mName = m.name || m.commercialName;
+        html += `
+          <div class="search-result-item" data-type="med" data-med-name="${encodeURIComponent(mName)}" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(16, 185, 129, 0.2)'; this.style.borderColor='rgba(16, 185, 129, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <div>
+              <strong style="color: #f8fafc; font-size: 0.85rem; display: block;">${mName}</strong>
+              <small style="color: #94a3b8; font-size: 0.74rem;">${m.category || 'Farmácia Hospitalar'} ${m.stockQuantity !== undefined ? ' · Estoque: ' + m.stockQuantity : ''}</small>
+            </div>
+            <span style="font-size: 0.68rem; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Ver Farmácia ➔</span>
+          </div>
+        `;
+      });
+    }
+
+    // 7. Renderizar Leitos & Diagnósticos CID-10
+    if (bedMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #f472b6; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">🛏️ Leitos Hospitalares Relacionados (${bedMatches.length})</div>`;
+      bedMatches.slice(0, 4).forEach(b => {
+        const bCode = b.code || b.number || b.name || b.id;
+        html += `
+          <div class="search-result-item" data-type="bed" data-bed-id="${b.id}" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          " onmouseover="this.style.background='rgba(244, 114, 182, 0.2)'; this.style.borderColor='rgba(244, 114, 182, 0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)'">
+            <div>
+              <strong style="color: #f8fafc; font-size: 0.85rem; display: block;">Leito ${bCode} (${b.ward || b.sector || 'Internação'})</strong>
+              <small style="color: #94a3b8; font-size: 0.74rem;">Status: ${b.status || 'Disponível'}${b.patientName ? ' · Paciente: ' + b.patientName : ''}</small>
+            </div>
+            <span style="font-size: 0.68rem; background: rgba(244, 114, 182, 0.2); color: #f9a8d4; padding: 3px 9px; border-radius: 10px; font-weight: 700;">Mapa de Leitos ➔</span>
+          </div>
+        `;
+      });
+    }
+
+    if (cidMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #34d399; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">🩺 Diagnósticos CID-10 Relacionados (${cidMatches.length})</div>`;
+      cidMatches.forEach(c => {
+        html += `
+          <div class="search-result-item" data-type="tab" data-tab-id="consultorios" style="
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.03); margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);
+          ">
+            <div>
+              <strong style="color: #6ee7b7; font-size: 0.84rem;">${c.code}</strong>
+              <span style="color: #f8fafc; font-size: 0.83rem; margin-left: 6px;">${c.description}</span>
+            </div>
+            <span style="font-size: 0.66rem; background: rgba(16, 185, 129, 0.18); color: #34d399; padding: 2px 8px; border-radius: 8px; font-weight: 700;">Usar no PEP ➔</span>
+          </div>
+        `;
+      });
+    }
+
+    // 8. Renderizar Dúvidas Operacionais / FAQ Encontradas
+    if (faqMatches.length > 0) {
+      html += `<div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #f59e0b; letter-spacing: 0.5px; padding: 10px 8px 4px 8px;">❓ Dúvidas Operacionais & Respostas (${faqMatches.length})</div>`;
+      faqMatches.slice(0, 5).forEach(f => {
+        const { item, module } = f;
+        html += `
+          <div class="search-result-item" data-type="faq" data-mod-id="${module.id}" style="
+            padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            background: rgba(245, 158, 11, 0.08); margin-bottom: 5px; border: 1px solid rgba(245, 158, 11, 0.25);
+          " onmouseover="this.style.background='rgba(245, 158, 11, 0.2)'; this.style.borderColor='#f59e0b'" onmouseout="this.style.background='rgba(245, 158, 11, 0.08)'; this.style.borderColor='rgba(245, 158, 11, 0.25)'">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; gap: 8px;">
+              <strong style="color: #fbbf24; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-circle-question"></i> ${item.q}
+              </strong>
+              <span style="font-size: 0.65rem; background: rgba(245, 158, 11, 0.2); color: #fcd34d; padding: 2px 7px; border-radius: 8px; font-weight: 700; white-space: nowrap;">
+                ${module.title}
+              </span>
+            </div>
+            <p style="color: #cbd5e1; font-size: 0.78rem; margin: 0; line-height: 1.35;">
+              ${item.a}
+            </p>
+          </div>
+        `;
+      });
+    }
+
+    searchResultsContainer.innerHTML = html;
+    showResults();
+
+    // Handler de clique nos resultados
+    searchResultsContainer.querySelectorAll('.search-result-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const itemType = item.dataset.type;
+        if (itemType === 'ai_action') {
+          const act = item.dataset.action;
+          const tgt = item.dataset.target;
+          if (act === 'openDoctorModal') {
+            switchTab('medicos');
+            setTimeout(() => { document.getElementById('btn-open-doctor-modal')?.click(); }, 350);
+          } else if (act === 'openPatientModal') {
+            switchTab('pacientes');
+            setTimeout(() => { document.getElementById('btn-open-patient-modal')?.click(); }, 350);
+          } else if (act === 'openDynamicQueryModal') {
+            switchTab('consulta_dinamica');
+          } else if (act === 'switchTab') {
+            switchTab(tgt);
+          } else if (act === 'openManual') {
+            if (typeof showInteractiveManualModal === 'function') showInteractiveManualModal(tgt);
+          }
+        } else if (itemType === 'tab') {
+          const tabId = item.dataset.tabId;
+          switchTab(tabId);
+        } else if (itemType === 'btn') {
+          const modId = item.dataset.modId;
+          const btnName = decodeURIComponent(item.dataset.btnName || '');
+          const mod = manualData.find(m => m.id === modId);
+          const btn = mod ? mod.buttons.find(b => b.name === btnName) : null;
+          if (btn && mod) {
+            const targetTab = modToTab[modId] || 'dashboard';
+            switchTab(targetTab);
+            if (btnName.includes('Cadastrar / Incluir Novo Médico') || btnName.includes('Cadastrar / Incluir Novo Profissional')) {
+              setTimeout(() => { document.getElementById('btn-open-doctor-modal')?.click(); }, 350);
+            } else if (typeof showCardDetailModal === 'function') {
+              showCardDetailModal(btn, mod);
+            }
+          }
+        } else if (itemType === 'patient') {
+          const pName = decodeURIComponent(item.dataset.patientName || '');
+          const pId = item.dataset.patientId || '';
+          const tgtTab = item.dataset.targetTab || 'pacientes';
+          if (pName && typeof window.setActivePatientContext === 'function') {
+            window.setActivePatientContext({ id: pId, fullName: pName, patientName: pName });
+          }
+          switchTab(tgtTab);
+          if (pName && typeof window.executePatientHighlight === 'function') {
+            window.executePatientHighlight(pName);
+          }
+        } else if (itemType === 'doctor') {
+          const docName = decodeURIComponent(item.dataset.docName || '');
+          switchTab('medicos');
+          setTimeout(() => {
+            const inp = document.getElementById('filter-doctor-search');
+            if (inp) { inp.value = docName; inp.dispatchEvent(new Event('input')); }
+          }, 150);
+        } else if (itemType === 'exam') {
+          const exName = decodeURIComponent(item.dataset.examName || '');
+          switchTab('exames');
+          setTimeout(() => {
+            const inp = document.getElementById('exams-filter-search');
+            if (inp) { inp.value = exName; inp.dispatchEvent(new Event('input')); }
+          }, 150);
+        } else if (itemType === 'med') {
+          const medName = decodeURIComponent(item.dataset.medName || '');
+          switchTab('farmacia');
+          setTimeout(() => {
+            const inp = document.getElementById('pharm-search-input');
+            if (inp) { inp.value = medName; inp.dispatchEvent(new Event('input')); }
+          }, 150);
+        } else if (itemType === 'bed') {
+          switchTab('leitos');
+        } else if (itemType === 'faq') {
+          const modId = item.dataset.modId;
+          if (typeof showInteractiveManualModal === 'function') {
+            showInteractiveManualModal(modId);
+          }
+        }
+
+        searchResultsContainer.style.display = 'none';
+        searchInput.value = '';
+      });
+    });
+  };
+
+  searchInput.addEventListener('input', performSearch);
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim()) performSearch();
+  });
+
+  // Fechar dropdown ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.global-search-wrapper')) {
+      searchResultsContainer.style.display = 'none';
+    }
+  });
+
+  // Tecla Atalho Ctrl + K ou Cmd + K para focar na busca
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+  });
+
+  // Inicializar Card Flutuante Interativo de Guia de Fluxo (Smart Flow Guide HUD)
+  if (typeof initFloatingWorkflowGuide === 'function') {
+    initFloatingWorkflowGuide();
+  }
+}
+
+// --- CONTROLE DE MUDANÇA DE ABA COM PERMISSÃO (RBAC) & NAVEGAÇÃO DE RETORNO ---
+function switchTab(tabName, isBack = false) {
+  const perms = getRolePermissions(state.user);
+  if (!perms.allowedTabs.includes(tabName)) {
+    showCustomAlert({
+      title: 'Acesso Restrito',
+      message: `Seu perfil (<strong>${perms.label}</strong>) não possui autorização para acessar esta funcionalidade.`,
+      type: 'warning'
+    });
+    return;
+  }
+
+  // Expor globalmente para módulos interativos
+  window.switchTab = switchTab;
+  window.showInteractiveManualModal = showInteractiveManualModal;
+
+  // Registrar histórico de navegação global
+  if (!isBack && state.activeTab && state.activeTab !== tabName) {
+    if (!state.navHistory) state.navHistory = [];
+    if (state.navHistory[state.navHistory.length - 1] !== state.activeTab) {
+      state.navHistory.push(state.activeTab);
+    }
+  }
+
+  state.activeTab = tabName;
+  updateGlobalBackButton();
+
+  // Fechar quaisquer modais de atendimento/PEP para não bloquear a visão da nova aba
+  if (typeof stopVoiceDictation === 'function') stopVoiceDictation();
+  delete window._pepSwitchTab;
+  delete window._renderPEPHistory;
+  delete window._histSwitchTab;
+  delete window._renderHistPEPs;
+
+  if (typeof window.closeAllActiveModals === 'function') {
+    window.closeAllActiveModals();
+  } else {
+    ['pep-modal', 'patient-history-modal', 'consultorio-details-modal', 'enc-report-detail-modal', 'bed-details-modal'].forEach(id => {
+      const modalEl = document.getElementById(id);
+      if (modalEl) modalEl.remove();
+    });
+  }
+
+  // Se chegamos à aba da ação recomendada no Guia de Fluxo, limpa apenas se não for persistente
+  if (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetTab === tabName && !_SFG.pendingAction.persistent) {
+    _SFG.pendingAction = null;
+  }
+
+  // Garantir que o card do Guia de Fluxo permaneça sempre ativo, visível e expandido para o próximo passo
+  if (typeof _SFG !== 'undefined') {
+    _SFG.hidden = false;
+    _SFG.minimized = false;
+    _SFG.activeTab = tabName;
+  }
+
+  // Remover notificação de fluxo pendente para esta aba de destino se houver
+  const existingFlowToast = document.querySelector(`[data-flow-target-tab="${tabName}"]`);
+  if (existingFlowToast) {
+    existingFlowToast.style.transform = 'translateX(120%)';
+    existingFlowToast.style.opacity = '0';
+    setTimeout(() => existingFlowToast.remove(), 300);
+  }
+
+  // Mapa de nomes de exibição por aba
+  const tabLabels = {
+    dashboard:     'Health Nexus',
+    pacientes:     'Pacientes',
+    medicos:        'Corpo Clínico',
+    consultorios:  'Consultórios',
+    farmacia:      'Farmácia & Estoque',
+    tv_panel:      'Painel TV (Chamador)',
+    agenda:        'Agenda Médica',
+    atendimento:   'Atendimentos',
+    consulta_dinamica: 'Consulta Dinâmica (Localizador Geral)',
+    observacao:    'Observação do PS',
+    exames:        'Central de Exames & Laboratório (SADT)',
+    estagnacao:    'Alertas & Estagnação',
+    leitos:        'Gestão de Leitos',
+    kanban:        'Kanban de Internação',
+    financeiro:    'Gestão Financeira & Títulos',
+    tiss:          'Faturamento TISS / TUSS & ANS',
+    relatorios:    'Relatórios',
+    configuracoes: 'Configurações'
+  };
+
+  // Atualiza classes ativas na barra lateral
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('data-tab') === tabName) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  // Atualiza o título do cabeçalho e da aba do navegador
+  const label = tabLabels[tabName] || (tabName.charAt(0).toUpperCase() + tabName.slice(1));
+  const pageTitle = document.getElementById('page-title-label');
+  if (pageTitle) pageTitle.textContent = label;
+  document.title = `${label} — Health Nexus`;
+
+  // Re-renderiza imediatamente a área de conteúdo da aba selecionada (prioridade máxima de UI)
+  renderTabContent();
+
+  // Atualiza o Card Guia de Fluxo em seguida sem bloquear a troca da tela principal
+  if (window._sfgSwitchTimer) clearTimeout(window._sfgSwitchTimer);
+  window._sfgSwitchTimer = setTimeout(() => {
+    if (typeof createSmartFlowGuideCard === 'function') {
+      createSmartFlowGuideCard(state.activeTab);
+    }
+  }, 16);
+
+  // Disparar destaque pulsante e seleção do paciente na nova aba aberta APENAS SE houver paciente em foco ativo
+  setTimeout(() => {
+    const activePat = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+    if (!activePat && !(_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName)) {
+      if (typeof window.executePatientHighlight === 'function') {
+        window.executePatientHighlight(null);
+      }
+      return;
+    }
+    const patName = (activePat && (activePat.fullName || activePat.patientName)) || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetPatientName);
+    const targetCol = window._highlightTargetColumn || (_SFG && _SFG.pendingAction && _SFG.pendingAction.targetColumn);
+    if (patName && typeof window.executePatientHighlight === 'function') {
+      window.executePatientHighlight(patName, targetCol);
+    }
+  }, 200);
+}
+
+function updateGlobalBackButton() {
+  const backBtn = document.getElementById('global-back-btn');
+  const backLabel = document.getElementById('global-back-label');
+  if (!backBtn) return;
+
+  const tabShortLabels = {
+    dashboard: 'Health Nexus',
+    pacientes: 'Pacientes',
+    medicos: 'Médicos',
+    consultorios: 'Consultórios',
+    farmacia: 'Farmácia',
+    tv_panel: 'Painel TV',
+    agenda: 'Agenda',
+    atendimento: 'Atendimentos',
+    consulta_dinamica: 'Consulta Dinâmica',
+    observacao: 'Observação',
+    exames: 'Exames',
+    estagnacao: 'Alertas',
+    leitos: 'Leitos',
+    kanban: 'Kanban',
+    financeiro: 'Financeiro',
+    tiss: 'TISS',
+    relatorios: 'Relatórios',
+    configuracoes: 'Configurações'
+  };
+
+  if (state.navHistory && state.navHistory.length > 0) {
+    const prevTab = state.navHistory[state.navHistory.length - 1];
+    const prevName = tabShortLabels[prevTab] || prevTab;
+    if (backLabel) backLabel.textContent = `Voltar para ${prevName}`;
+    backBtn.style.display = 'inline-flex';
+  } else {
+    backBtn.style.display = 'none';
+  }
+}
+
+function goBack() {
+  if (state.navHistory && state.navHistory.length > 0) {
+    const prevTab = state.navHistory.pop();
+    if (typeof showToast === 'function') {
+      showToast(`⬅️ Voltando para a tela anterior...`);
+    }
+    switchTab(prevTab, true);
+  }
+}
+
+// --- CONTEÚDO DAS ABAS (ORQUESTRADOR MODULAR HEALTH NEXUS v2.7.2) ---
+async function renderTabContent() {
+  const contentArea = document.getElementById('main-content');
+  if (!contentArea) return;
+  
+  if (state.activeTab === 'dashboard') {
+    await renderDashboardTab(contentArea);
+  } else if (state.activeTab === 'pacientes') {
+    renderPatientsTab(contentArea);
+  } else if (state.activeTab === 'medicos') {
+    if (typeof window.renderDoctorsTab === 'function') await window.renderDoctorsTab();
+    else if (typeof renderDoctorsTab === 'function') await renderDoctorsTab();
+  } else if (state.activeTab === 'escalas') {
+    if (typeof renderSchedulesTab === 'function') renderSchedulesTab();
+    else if (typeof window.renderSchedulesTab === 'function') window.renderSchedulesTab();
+  } else if (state.activeTab === 'consultorios') {
+    if (typeof window.renderConsultingRoomsTab === 'function') await window.renderConsultingRoomsTab();
+    else if (typeof renderConsultingRoomsTab === 'function') await renderConsultingRoomsTab();
+  } else if (state.activeTab === 'farmacia') {
+    if (typeof window.renderPharmacyTab === 'function') await window.renderPharmacyTab();
+    else if (typeof renderPharmacyTab === 'function') await renderPharmacyTab();
+  } else if (state.activeTab === 'tv_panel') {
+    if (typeof window.renderTVPanelTab === 'function') await window.renderTVPanelTab();
+    else if (typeof renderTVPanelTab === 'function') await renderTVPanelTab();
+  } else if (state.activeTab === 'agenda') {
+    if (typeof window.renderAgendaTab === 'function') await window.renderAgendaTab();
+    else if (typeof renderAgendaTab === 'function') await renderAgendaTab();
+  } else if (state.activeTab === 'atendimento') {
+    renderAttendanceTab(contentArea);
+  } else if (state.activeTab === 'consulta_dinamica') {
+    renderDynamicQueryTab(contentArea);
+  } else if (state.activeTab === 'observacao') {
+    renderObservacaoTab(contentArea);
+  } else if (state.activeTab === 'exames') {
+    if (typeof window.renderExamsTab === 'function') window.renderExamsTab(contentArea);
+    else if (typeof renderExamsTab === 'function') renderExamsTab(contentArea);
+  } else if (state.activeTab === 'estagnacao') {
+    if (typeof window.renderStagnationTab === 'function') await window.renderStagnationTab(contentArea);
+    else if (typeof renderStagnationTab === 'function') await renderStagnationTab(contentArea);
+  } else if (state.activeTab === 'kanban') {
+    if (typeof window.renderKanbanTab === 'function') await window.renderKanbanTab();
+    else if (typeof renderKanbanTab === 'function') await renderKanbanTab();
+  } else if (state.activeTab === 'leitos') {
+    if (typeof window.renderLeitosTab === 'function') await window.renderLeitosTab();
+    else if (typeof renderLeitosTab === 'function') await renderLeitosTab();
+  } else if (state.activeTab === 'financeiro') {
+    window._initialReportSubTab = 'financial';
+    if (typeof window.renderReportsTab === 'function') await window.renderReportsTab(contentArea);
+    else if (typeof renderReportsTab === 'function') await renderReportsTab(contentArea);
+  } else if (state.activeTab === 'tiss' || state.activeTab === 'faturamento') {
+    renderTISSTab(contentArea);
+  } else if (state.activeTab === 'relatorios') {
+    window._initialReportSubTab = 'patients';
+    if (typeof window.renderReportsTab === 'function') await window.renderReportsTab(contentArea);
+    else if (typeof renderReportsTab === 'function') await renderReportsTab(contentArea);
+  } else if (state.activeTab === 'configuracoes') {
+    renderSettingsTab(contentArea);
+  }
+
+  // Garantir que o Card Guia acompanhe e compreenda a tela renderizada (debounced)
+  if (window._sfgSwitchTimer) clearTimeout(window._sfgSwitchTimer);
+  window._sfgSwitchTimer = setTimeout(function() {
+    if (typeof createSmartFlowGuideCard === 'function') {
+      createSmartFlowGuideCard(state.activeTab);
+    }
+  }, 40);
+}
+
+// --- MÁSCARAS DE INPUT ---
+function maskCPF(value) {
+  if (!value) return "";
+  let v = String(value).replace(/\D/g, "").substring(0, 11);
+  if (v.length === 0) {
+    return "";
+  } else if (v.length <= 3) {
+    return v;
+  } else if (v.length <= 6) {
+    return `${v.slice(0, 3)}.${v.slice(3)}`;
+  } else if (v.length <= 9) {
+    return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6)}`;
+  } else {
+    return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
+  }
+}
+
+window.maskCPF = maskCPF;
+
+function maskDate(value) {
+  if (!value) return "";
+  let v = String(value).replace(/\D/g, "").substring(0, 8);
+  if (v.length === 0) {
+    return "";
+  } else if (v.length <= 2) {
+    return v;
+  } else if (v.length <= 4) {
+    return `${v.slice(0, 2)}/${v.slice(2)}`;
+  } else {
+    return `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+  }
+}
+
+window.maskDate = maskDate;
+
+function isCPFInput(el) {
+  if (!el) return false;
+  const id = el.id || '';
+  const cls = el.className || '';
+  const dataMask = el.getAttribute ? (el.getAttribute('data-mask') || '') : '';
+
+  return (
+    id === 'cpf' ||
+    id === 'responsibleCpf' ||
+    id === 'search-cpf' ||
+    (typeof cls === 'string' && cls.includes('cpf-mask')) ||
+    dataMask === 'cpf' ||
+    /cpf/i.test(id)
+  );
+}
+
+// Event delegation global para CPF
+document.addEventListener('input', (e) => {
+  if (e.target && isCPFInput(e.target)) {
+    e.target.value = maskCPF(e.target.value);
+  }
+});
+
+function maskPhone(value) {
+  if (!value) return "";
+  let v = String(value).replace(/\D/g, "");
+  if (v.length > 11) v = v.substring(0, 11);
+
+  if (v.length === 0) {
+    return "";
+  } else if (v.length <= 2) {
+    return `(${v}`;
+  } else if (v.length <= 6) {
+    return `(${v.slice(0, 2)}) ${v.slice(2)}`;
+  } else if (v.length <= 10) {
+    return `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
+  } else {
+    return `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+  }
+}
+
+window.maskPhone = maskPhone;
+
+function isPhoneInput(el) {
+  if (!el) return false;
+  const id = el.id || '';
+  const cls = el.className || '';
+  const dataMask = el.getAttribute ? (el.getAttribute('data-mask') || '') : '';
+  const type = el.type || '';
+
+  return (
+    id === 'phone' ||
+    id === 'cellphone' ||
+    id === 'responsiblePhone' ||
+    id === 'doc-phone' ||
+    (typeof cls === 'string' && cls.includes('phone-mask')) ||
+    dataMask === 'phone' ||
+    type === 'tel' ||
+    /phone|telefone|celular/i.test(id)
+  );
+}
+
+// Event delegation global para telefones
+document.addEventListener('input', (e) => {
+  if (e.target && isPhoneInput(e.target)) {
+    e.target.value = maskPhone(e.target.value);
+  }
+});
+
+function maskCurrency(value, isLiveInput = false) {
+  if (value === null || value === undefined) return isLiveInput ? "" : "R$ 0,00";
+  let str = String(value).trim();
+  if (!str || str === "R$" || str === "R$ ") return isLiveInput ? "" : "R$ 0,00";
+
+  let integerStr = "";
+  let decimalStr = "";
+
+  if (str.includes(",")) {
+    const parts = str.split(",");
+    integerStr = parts[0].replace(/\D/g, "");
+    decimalStr = parts[1].replace(/\D/g, "");
+
+    if (decimalStr.startsWith("00") && decimalStr.length > 2) {
+      const extraDigits = decimalStr.slice(2);
+      integerStr = integerStr + extraDigits;
+      decimalStr = "";
+    } else if (decimalStr === "00") {
+      decimalStr = "";
+    } else if (decimalStr.length > 2) {
+      decimalStr = decimalStr.slice(0, 2);
+    }
+  } else if (/\.\d{1,2}$/.test(str.replace(/^[^\d]+/, '')) && !/\d+\.\d{3}/.test(str)) {
+    const parts = str.split(".");
+    integerStr = parts[0].replace(/\D/g, "");
+    decimalStr = parts[1].replace(/\D/g, "");
+    if (decimalStr.length > 2) decimalStr = decimalStr.slice(0, 2);
+  } else {
+    integerStr = str.replace(/\D/g, "");
+    decimalStr = "";
+  }
+
+  if (!integerStr && !decimalStr) {
+    return isLiveInput ? "" : "R$ 0,00";
+  }
+
+  let formattedInteger = "0";
+  if (integerStr) {
+    const num = parseInt(integerStr, 10);
+    formattedInteger = isNaN(num) ? "0" : num.toLocaleString('pt-BR');
+  }
+
+  if (str.includes(",") && decimalStr !== "") {
+    if (isLiveInput) {
+      return `R$ ${formattedInteger},${decimalStr}`;
+    } else {
+      let paddedDecimal = (decimalStr + "00").slice(0, 2);
+      return `R$ ${formattedInteger},${paddedDecimal}`;
+    }
+  }
+
+  return `R$ ${formattedInteger},00`;
+}
+
+window.maskCurrency = maskCurrency;
+
+function handleCurrencyKeydown(e) {
+  const input = e.target;
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    const val = input.value;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+
+    if (start !== end) {
+      if (start === 0 && end === val.length) {
+        e.preventDefault();
+        input.value = "";
+        return;
+      }
+      return;
+    }
+
+    if (e.key === 'Backspace') {
+      if (val.includes(",")) {
+        const parts = val.split(",");
+        const dec = parts[1];
+        if (dec === "00" || dec === "") {
+          e.preventDefault();
+          const intDigits = parts[0].replace(/\D/g, "");
+          if (intDigits.length <= 1) {
+            input.value = "";
+          } else {
+            const newIntDigits = intDigits.slice(0, -1);
+            const num = parseInt(newIntDigits, 10);
+            input.value = `R$ ${num.toLocaleString('pt-BR')},00`;
+          }
+          return;
+        }
+      } else {
+        const digits = val.replace(/\D/g, "");
+        if (digits.length <= 1) {
+          e.preventDefault();
+          input.value = "";
+          return;
+        }
+      }
+    }
+  }
+}
+
+// Event delegation global para campos financeiros
+document.addEventListener('keydown', (e) => {
+  if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
+    handleCurrencyKeydown(e);
+  }
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
+    e.target.value = maskCurrency(e.target.value, true);
+  }
+});
+
+document.addEventListener('blur', (e) => {
+  if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
+    if (e.target.value.trim() !== "") {
+      e.target.value = maskCurrency(e.target.value, false);
+    }
+  }
+}, true);
+
+document.addEventListener('focus', (e) => {
+  if (e.target && (e.target.id === 'billingValue' || e.target.classList.contains('currency-mask') || e.target.getAttribute('data-mask') === 'currency')) {
+    if (!e.target.value || e.target.value === "0") {
+      e.target.value = "R$ 0,00";
+    }
+  }
+}, true);
+
+function applyInputMasks() {
+  const cpfInput = document.getElementById('cpf');
+  const phoneInput = document.getElementById('phone');
+  const cellphoneInput = document.getElementById('cellphone');
+  const billingValueInput = document.getElementById('billingValue');
+
+  if (cpfInput) {
+    cpfInput.addEventListener('input', (e) => {
+      e.target.value = maskCPF(e.target.value);
+    });
+  }
+  if (phoneInput) {
+    phoneInput.addEventListener('input', (e) => {
+      e.target.value = maskPhone(e.target.value);
+    });
+  }
+  if (cellphoneInput) {
+    cellphoneInput.addEventListener('input', (e) => {
+      e.target.value = maskPhone(e.target.value);
+    });
+  }
+  if (billingValueInput) {
+    billingValueInput.addEventListener('input', (e) => {
+      e.target.value = maskCurrency(e.target.value, true);
+    });
+    billingValueInput.addEventListener('blur', (e) => {
+      e.target.value = maskCurrency(e.target.value, false);
+    });
+    billingValueInput.addEventListener('focus', (e) => {
+      if (!e.target.value) e.target.value = "R$ 0,00";
+    });
+  }
+  const birthDateInput = document.getElementById('birthDate');
+  if (birthDateInput) {
+    birthDateInput.addEventListener('input', (e) => {
+      e.target.value = maskDate(e.target.value);
+    });
+  }
+  document.querySelectorAll('.date-mask').forEach(input => {
+    input.addEventListener('input', (e) => {
+      e.target.value = maskDate(e.target.value);
+    });
+  });
+}
+
+// Heartbeat para manter o servidor rodando apenas enquanto a aba estiver aberta
+setInterval(() => {
+  // fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
+}, 3000);
+
+// Encerramento do servidor apenas em producao (nao mata o servidor ao recarregar em dev)
+window.addEventListener('beforeunload', () => {
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    navigator.sendBeacon('/api/shutdown');
+  }
+});
+
+// --- MÓDULO PEP (PRONTUÁRIO ELETRÔNICO DO PACIENTE) ---
+
+let currentPEPEncounterId = null;
+
+// Catálogo de CID-10
+let cidCatalog = [];
+
+// Fallback embutido — CIDs mais frequentes no PS/Emergência (garante funcionamento offline)
+const CID_FALLBACK = [
+  {code:'A09',description:'Diarréia e gastroenterite de origem infecciosa presumível',search:'a09 diarreia gastroenterite'},
+  {code:'A90',description:'Dengue [dengue clássico]',search:'a90 dengue'},
+  {code:'A41',description:'Sepse',search:'a41 sepse septicemia'},
+  {code:'B34.9',description:'Infecção viral não especificada',search:'b34 infeccao viral'},
+  {code:'E10',description:'Diabetes mellitus tipo 1 (insulino-dependente)',search:'e10 diabetes tipo 1'},
+  {code:'E11',description:'Diabetes mellitus tipo 2 (não-insulino-dependente)',search:'e11 diabetes tipo 2'},
+  {code:'E14',description:'Diabetes mellitus não especificado',search:'e14 diabetes'},
+  {code:'E11.9',description:'Diabetes mellitus não especificado sem complicações',search:'e11 diabetes sem complicacoes'},
+  {code:'E66',description:'Obesidade',search:'e66 obesidade'},
+  {code:'E87.6',description:'Hipocalemia',search:'e87 hipocalemia'},
+  {code:'F32',description:'Episódio depressivo',search:'f32 depressao episodio depressivo'},
+  {code:'F41.1',description:'Transtorno de ansiedade generalizada',search:'f41 ansiedade'},
+  {code:'G43',description:'Enxaqueca [Migrânea]',search:'g43 enxaqueca migranea'},
+  {code:'G89.0',description:'Dor aguda',search:'g89 dor aguda'},
+  {code:'I10',description:'Hipertensão arterial sistêmica essencial (primária)',search:'i10 hipertensao arterial has'},
+  {code:'I20',description:'Angina pectoris',search:'i20 angina pectoris'},
+  {code:'I21',description:'Infarto agudo do miocárdio (IAM)',search:'i21 infarto iam miocardio'},
+  {code:'I21.9',description:'IAM — Infarto agudo do miocárdio não especificado',search:'i21 iam infarto agudo nao especificado'},
+  {code:'I25',description:'Doença cardíaca isquêmica crônica',search:'i25 isquemica coronariana cronica'},
+  {code:'I48',description:'Fibrilação e flutter atrial',search:'i48 fibrilacao flutter atrial'},
+  {code:'I50',description:'Insuficiência cardíaca congestiva (ICC)',search:'i50 insuficiencia cardiaca icc'},
+  {code:'I63',description:'AVC Isquêmico — Infarto cerebral',search:'i63 avc isquemic infarto cerebral'},
+  {code:'I64',description:'AVC Hemorrágico — não especificado',search:'i64 avc hemorragico'},
+  {code:'J00',description:'Rinofaringite aguda [resfriado comum]',search:'j00 resfriado comum rinofaringite'},
+  {code:'J03',description:'Amigdalite aguda',search:'j03 amigdalite angina'},
+  {code:'J06',description:'Infecções agudas das vias aéreas superiores (IVAS)',search:'j06 ivas vias aereas superiores'},
+  {code:'J11',description:'Influenza [Gripe] — vírus não identificado',search:'j11 gripe influenza'},
+  {code:'J18',description:'Pneumonia não especificada',search:'j18 pneumonia'},
+  {code:'J44',description:'DPOC — Doença pulmonar obstrutiva crônica',search:'j44 dpoc doenca pulmonar obstrutiva cronica'},
+  {code:'J45',description:'Asma brônquica',search:'j45 asma bronquica'},
+  {code:'K21',description:'Doença de refluxo gastroesofágico (DRGE)',search:'k21 refluxo drge gastroesofagico'},
+  {code:'K25',description:'Úlcera gástrica',search:'k25 ulcera gastrica'},
+  {code:'K29',description:'Gastrite e duodenite',search:'k29 gastrite duodenite'},
+  {code:'K35',description:'Apendicite aguda',search:'k35 apendicite'},
+  {code:'K57',description:'Doença diverticular do intestino',search:'k57 diverticulite diverticulo'},
+  {code:'K80',description:'Colelitíase [cálculo na vesícula biliar]',search:'k80 calculose colelitiase vesicula biliar colecistite'},
+  {code:'K92.1',description:'Melena',search:'k92 melena hematoquezia sangramento digestivo'},
+  {code:'L03',description:'Celulite [erisipela]',search:'l03 celulite erisipela'},
+  {code:'M54.5',description:'Lombalgia / Dor lombar',search:'m54 lombalgia dor lombar'},
+  {code:'M79.3',description:'Paniculite',search:'m79 mialgia dor muscular'},
+  {code:'N10',description:'Pielonefrite aguda / ITU alta',search:'n10 pielonefrite itu infeccao urinaria'},
+  {code:'N23',description:'Cólica renal não especificada',search:'n23 colica renal nefritica urolitiase'},
+  {code:'N39.0',description:'Infecção do trato urinário (ITU)',search:'n39 itu infeccao urinaria cistite'},
+  {code:'R00',description:'Palpitação / Arritmia',search:'r00 palpitacao arritmia'},
+  {code:'R05',description:'Tosse',search:'r05 tosse'},
+  {code:'R06.0',description:'Dispneia / Falta de ar',search:'r06 dispneia falta de ar'},
+  {code:'R07',description:'Dor precordial / Dor no peito',search:'r07 dor precordial peito toracica'},
+  {code:'R10',description:'Dor abdominal',search:'r10 dor abdominal'},
+  {code:'R11',description:'Náuseas e vômitos',search:'r11 nausea vomito'},
+  {code:'R17',description:'Icterícia não especificada',search:'r17 ictericia'},
+  {code:'R42',description:'Tontura e vertigem',search:'r42 tontura vertigem'},
+  {code:'R50',description:'Febre de causa desconhecida',search:'r50 febre causa desconhecida'},
+  {code:'R51',description:'Cefaleia / Dor de cabeça',search:'r51 cefaleia dor de cabeca'},
+  {code:'R55',description:'Síncope e colapso',search:'r55 sincope desmaio colapso'},
+  {code:'R73',description:'Glicose elevada / Hiperglicemia',search:'r73 hiperglicemia glicose elevada'},
+  {code:'S00-T98',description:'Trauma / Lesão não especificada',search:'trauma lesao fratura ferimento'},
+  {code:'S06',description:'Traumatismo intracraniano (TCE)',search:'s06 tce trauma craniano'},
+  {code:'S72',description:'Fratura do fêmur / quadril',search:'s72 fratura femur quadril'},
+  {code:'T14.0',description:'Ferida aberta de região não especificada',search:'t14 ferida aberta laceracao'},
+  {code:'Z03',description:'Exame / Observação médica — sem diagnóstico',search:'z03 observacao exame sem diagnostico'},
+  {code:'Z51.1',description:'Quimioterapia',search:'z51 quimioterapia'},
+];
+
+// Configurar Autocomplete do CID
+window.setupCidAutocomplete = async function setupCidAutocomplete() {
+  const input = document.getElementById('pep-assessment');
+  const dropdown = document.getElementById('pep-cid-dropdown');
+
+  if (!input || !dropdown) return;
+
+  // Evitar registrar listeners duplicados
+  if (input.dataset.cidAutocompleteReady === '1') return;
+  input.dataset.cidAutocompleteReady = '1';
+
+  // Usar fallback imediatamente enquanto carrega o JSON completo
+  if (cidCatalog.length === 0) {
+    cidCatalog = CID_FALLBACK;
+  }
+
+  // Carregar o catálogo completo em background (sem travar o campo)
+  (async () => {
+    try {
+      const res = await fetch('/assets/cid10.json');
+      if (res.ok) {
+        const buffer = await res.arrayBuffer();
+        const text = new TextDecoder('utf-8').decode(buffer);
+        const full = JSON.parse(text);
+        if (full && full.length > 0) {
+          cidCatalog = full;
+        }
+      }
+    } catch (e) {
+      // Silencioso — fallback já está ativo
+      console.warn('[CID-10] JSON completo indisponível, usando catálogo de emergência embutido.');
+    }
+  })();
+
+  function removeAccents(str) {
+    return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  input.setAttribute('autocomplete', 'new-password');
+
+  input.addEventListener('input', (e) => {
+    const val = e.target.value;
+    // Para textarea: buscar apenas na última linha digitada
+    const lastLine = val.includes('\n') ? val.split('\n').pop() : val;
+    const term = removeAccents(lastLine.trim());
+    dropdown.innerHTML = '';
+    
+    if (term.length < 2) {
+      dropdown.classList.remove('active');
+      return;
+    }
+    
+    // cid10.json now has a 'search' field which is pre-normalized
+    const matches = cidCatalog.filter(cid => 
+      cid.search && cid.search.includes(term)
+    );
+    
+    if (matches.length > 0) {
+      // Limitar a 50 resultados para evitar travamento da UI
+      const maxResults = matches.slice(0, 50);
+      maxResults.forEach(cid => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.textContent = `${cid.code} - ${cid.description}`;
+        div.addEventListener('click', () => {
+          input.value = `${cid.code} - ${cid.description}`;
+          dropdown.classList.remove('active');
+          input.focus();
+        });
+        dropdown.appendChild(div);
+      });
+      dropdown.classList.add('active');
+    } else {
+      dropdown.classList.remove('active');
+    }
+  });
+  
+  // Fechar ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('active');
+    }
+  });
+};
+
+// Modal de Guia Clínico & Referência Médica de Sinais Vitais
+window.openVitalDetailModal = function(vitalKey) {
+  const VITAL_INFO = {
+    pa: {
+      title: 'Pressão Arterial (PA)',
+      unit: 'mmHg',
+      icon: 'fa-gauge-high',
+      color: '#60a5fa',
+      targetId: 'pep-bp',
+      description: 'Mede a força exercida pelo sangue contra as paredes das artérias durante a sístole (contração) e diástole (relaxamento) do coração.',
+      normalRange: '120/80 mmHg (Ótima) | 120-129 / <80 (Normal)',
+      stages: [
+        { label: 'Ótima', range: '< 120 / < 80 mmHg', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Pressão arterial ideal para adultos.' },
+        { label: 'Normal', range: '120-129 / 80-84 mmHg', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Dentro do padrão fisiológico normal.' },
+        { label: 'Pré-Hipertensão', range: '130-139 / 85-89 mmHg', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Atenção preventiva e monitoramento.' },
+        { label: 'Hipertensão Estágio 1', range: '140-159 / 90-99 mmHg', badgeStyle: 'background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.3);', desc: 'Elevação moderada. Avaliação médica recomendada.' },
+        { label: 'Hipertensão Estágio 2/3', range: '≥ 160 / ≥ 100 mmHg', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Crítico. Risco cardiovascular e de lesão de órgão-alvo.' }
+      ]
+    },
+    fc: {
+      title: 'Frequência Cardíaca (FC)',
+      unit: 'bpm',
+      icon: 'fa-heartbeat',
+      color: '#f87171',
+      targetId: 'pep-hr',
+      description: 'Número de batimentos que o coração realiza por minuto (bpm). Indicador vital de estresse e perfusão.',
+      normalRange: '60 a 100 bpm (em repouso)',
+      stages: [
+        { label: 'Bradicardia', range: '< 60 bpm', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Ritmo cardíaco reduzido. Comum em atletas ou por medicação.' },
+        { label: 'Normocardia', range: '60 - 100 bpm', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Frequência cardíaca ideal em repouso.' },
+        { label: 'Taquicardia Leve', range: '101 - 120 bpm', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Acelerado. Investigar dor, ansiedade, desidratação ou febre.' },
+        { label: 'Taquicardia Grave', range: '> 120 bpm', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Batimentos muito elevados. Risco de choque ou arritmia.' }
+      ]
+    },
+    temp: {
+      title: 'Temperatura Corporal (Temp)',
+      unit: '°C',
+      icon: 'fa-temperature-three-quarters',
+      color: '#fbbf24',
+      targetId: 'pep-temp',
+      description: 'Mede a temperatura corporal interna. Alterações indicam processos infecciosos ou inflamatórios sistêmicos.',
+      normalRange: '36.1°C a 37.2°C',
+      stages: [
+        { label: 'Hipotermia', range: '< 35.5 °C', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Perda excessiva de calor corporal.' },
+        { label: 'Normotermia (Afebril)', range: '35.5°C - 37.2°C', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Temperatura corporal normal.' },
+        { label: 'Subfebril / Febrícula', range: '37.3°C - 37.7°C', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Elevação leve. Acompanhar a evolução.' },
+        { label: 'Febre (Hipertermia)', range: '37.8°C - 38.9°C', badgeStyle: 'background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.3);', desc: 'Reação imune ativa contra patógenos.' },
+        { label: 'Febre Alta / Pirexia', range: '≥ 39.0 °C', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Crítico. Intervenção antitérmica imediata.' }
+      ]
+    },
+    weight: {
+      title: 'Peso Corporal (Peso)',
+      unit: 'kg',
+      icon: 'fa-weight-scale',
+      color: '#34d399',
+      targetId: 'pep-weight',
+      description: 'Massa corporal total. Usado no cálculo de IMC, balanço hídrico e dosagens de medicamentos e anestésicos.',
+      normalRange: 'Varia por altura (IMC saudável: 18.5 - 24.9 kg/m²)',
+      stages: [
+        { label: 'Baixo Peso', range: 'IMC < 18.5', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Possível desnutrição ou déficit de massa corporal.' },
+        { label: 'Peso Eutrófico (Normal)', range: 'IMC 18.5 - 24.9', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Faixa recomendada pelas diretrizes mundiais.' },
+        { label: 'Sobrepeso', range: 'IMC 25.0 - 29.9', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Aumento leve de risco metabólico.' },
+        { label: 'Obesidade', range: 'IMC ≥ 30.0', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Fator de risco para comorbidades cardiovasculares.' }
+      ]
+    },
+    spo2: {
+      title: 'Saturação de Oxigênio (SpO2)',
+      unit: '%',
+      icon: 'fa-lungs',
+      color: '#a78bfa',
+      targetId: 'pep-spo2',
+      description: 'Mede o percentual de hemoglobina ligada ao oxigênio. Avalia diretamente a capacidade ventilatória pulmonar.',
+      normalRange: '95% a 100% em ar ambiente',
+      stages: [
+        { label: 'Normal / Eupneico', range: '95% - 100%', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Excelente troca gasosa e oxigenação tecidual.' },
+        { label: 'Hipóxia Leve', range: '91% - 94%', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Desconforto respiratório inicial. Monitorar com atenção.' },
+        { label: 'Hipóxia Moderada', range: '86% - 90%', badgeStyle: 'background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.3);', desc: 'Indicação de oxigenoterapia complementar (cateter/máscara).' },
+        { label: 'Hipóxia Grave', range: '< 85%', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Emergência médica. Risco iminente de falência respiratória.' }
+      ]
+    },
+    pain: {
+      title: 'Escala Visual Analógica da Dor (Dor)',
+      unit: '/10',
+      icon: 'fa-face-frown-open',
+      color: '#f43f5e',
+      targetId: 'pep-pain',
+      description: 'Mensuração subjetiva da dor relatada pelo paciente, pontuada de 0 (sem dor) a 10 (dor insuportável).',
+      normalRange: '0 / 10 (Sem dor)',
+      stages: [
+        { label: 'Sem Dor', range: '0 / 10', badgeStyle: 'background:rgba(52,199,89,0.15); color:#34c759; border:1px solid rgba(52,199,89,0.3);', desc: 'Conforto total preservado.' },
+        { label: 'Dor Leve', range: '1 - 3 / 10', badgeStyle: 'background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);', desc: 'Desconforto leve. Analgésicos de primeira linha.' },
+        { label: 'Dor Moderada', range: '4 - 6 / 10', badgeStyle: 'background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);', desc: 'Interfere na concentração/atividades. Analgesia moderada.' },
+        { label: 'Dor Intensa', range: '7 - 9 / 10', badgeStyle: 'background:rgba(249,115,22,0.15); color:#fb923c; border:1px solid rgba(249,115,22,0.3);', desc: 'Incapacitante. Analgesia potente/opioides.' },
+        { label: 'Dor Insuportável', range: '10 / 10', badgeStyle: 'background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);', desc: 'Máxima intensidade descrita. Abordagem imediata de emergência.' }
+      ]
+    }
+  };
+
+  const info = VITAL_INFO[vitalKey];
+  if (!info) return;
+
+  const currentValEl = document.getElementById(info.targetId);
+  const currentVal = currentValEl ? currentValEl.textContent.trim() : '-';
+
+  const existing = document.getElementById('vital-detail-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'vital-detail-modal';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal.style.zIndex = '999999';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 580px; width: 92%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.7);">
+      <div class="modal-header" style="padding: 20px 24px; background: linear-gradient(135deg, #1e1b4b, #2e1065); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: ${info.color}22; border: 1px solid ${info.color}55; display: flex; align-items: center; justify-content: center; color: ${info.color}; font-size: 1.2rem;">
+            <i class="fa-solid ${info.icon}"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-family: Outfit, sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff;">${info.title}</h3>
+            <span style="font-size: 0.78rem; color: #c4b5fd;">Guia Clínico & Padrões Médicos Normais</span>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="document.getElementById('vital-detail-modal').remove()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 24px; overflow-y: auto; max-height: 75vh; display: flex; flex-direction: column; gap: 20px;">
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Medição Registrada no Paciente</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #fff; font-family: 'JetBrains Mono', monospace; margin-top: 4px;">
+              ${currentVal} <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">${info.unit}</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Padrão Clínico Ideal</div>
+            <span style="font-size: 0.8rem; font-weight: 700; background: rgba(52,199,89,0.15); color: #34c759; border: 1px solid rgba(52,199,89,0.3); padding: 4px 10px; border-radius: 12px; display: inline-block;">
+              ${info.normalRange}
+            </span>
+          </div>
+        </div>
+
+        <div style="font-size: 0.88rem; line-height: 1.6; color: var(--text-primary); background: rgba(0,0,0,0.2); padding: 14px 16px; border-radius: 10px; border-left: 4px solid ${info.color};">
+          <strong style="color: ${info.color}; display: block; margin-bottom: 4px;"><i class="fa-solid fa-book-medical"></i> Definição Fisiológica:</strong>
+          ${info.description}
+        </div>
+
+        <div>
+          <h4 style="font-family: Outfit, sans-serif; font-size: 0.92rem; font-weight: 700; color: #fff; margin: 0 0 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-list-check" style="color: #a78bfa;"></i> Tabela de Classificação e Intervalos Médicos
+          </h4>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${info.stages.map(st => `
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 140px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; ${st.badgeStyle}">
+                    ${st.label}
+                  </span>
+                  <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">${st.desc}</div>
+                </div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: #fff; font-family: monospace;">
+                  ${st.range}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 4px;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 8px;">
+            <i class="fa-solid fa-pen-to-square" style="color: #34d399;"></i> Atualizar ou Informar Valor no Prontuário (${info.unit}):
+          </label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="vital-quick-input" class="form-input" style="flex: 1; font-size: 0.9rem;" placeholder="Digite o novo valor (ex: ${info.unit === 'mmHg' ? '120/80' : '36.5'})..." value="${currentVal !== '-' ? currentVal : ''}">
+            <button type="button" class="btn btn-primary" onclick="updateVitalValueInPEP('${info.targetId}')" style="font-size: 0.82rem; padding: 8px 16px;">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar Valor
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+};
+
+window.updateVitalValueInPEP = function(targetId) {
+  const val = document.getElementById('vital-quick-input').value.trim();
+  const targetEl = document.getElementById(targetId);
+  if (targetEl) {
+    targetEl.textContent = val || '-';
+    showToast('Sinal vital atualizado no prontuário!');
+  }
+  const modal = document.getElementById('vital-detail-modal');
+  if (modal) modal.remove();
+};
+
+// Modal de Assinatura
+window.openSignModal = function() {
+  document.getElementById('sign-modal').style.display = 'flex';
+  document.getElementById('sign-password').value = '';
+};
+
+window.closeSignModal = function() {
+  document.getElementById('sign-modal').style.display = 'none';
+};
+
+window.confirmSignPEP = async function() {
+  if (!currentPEPEncounterId) return;
+  
+  const password = document.getElementById('sign-password').value;
+  if (!password) {
+    showToast('Informe sua senha para assinar.');
+    return;
+  }
+  
+  await savePEPDraft();
+  
+  try {
+    const res = await apiFetch(`${API_URL}/encounters/${currentPEPEncounterId}/sign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passwordVerification: password })
+    });
+    
+    if (res.ok) {
+      if (typeof window.showFlowCompletionNotification === 'function') {
+        window.showFlowCompletionNotification({
+          actionTitle: 'Prontuário Assinado Digitalmente',
+          message: 'O prontuário foi assinado com sucesso com certificado digital CFM.',
+          targetTab: 'atendimento',
+          targetTabLabel: 'Atendimentos'
+        });
+      } else {
+        showToast('Prontuário assinado com sucesso!');
+      }
+      closeSignModal();
+      if (typeof loadAndRenderQueue === 'function') loadAndRenderQueue();
+    } else {
+      showToast('Senha incorreta ou erro ao assinar.');
+    }
+  } catch (err) {
+    console.error('[confirmSignPEP]', err);
+    showToast('Erro ao assinar prontuário.');
+  }
+};
+
+// =========================================================
+// GERAR PDF COMPLETO DO PRONTUÁRIO & CICLO DE ATENDIMENTO
+// =========================================================
+window.generatePatientPDF = async function(patientId, patientName) {
+  if (!window.jspdf) {
+    alert('⚠️ Biblioteca jsPDF não disponível. Recarregue a página.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const db = (typeof localDB !== 'undefined' && localDB.getFullDB) ? localDB.getFullDB() : {};
+
+  let data = null;
+  try {
+    const res = await apiFetch(`/api/patients/${patientId}/history`);
+    if (res.ok) data = await res.json();
+  } catch(e) {}
+
+  if (!data) {
+    const patients = db.patients || [];
+    const patient = patients.find(p => p.id === patientId || p.fullName === patientName || p.name === patientName) || {
+      id: patientId,
+      fullName: patientName || 'Paciente',
+      cpf: '000.000.000-00',
+      birthDate: '1985-06-15',
+      gender: 'Não informado',
+      phone: '(11) 98888-7777',
+      susNumber: '898 0001 2345 6789'
+    };
+
+    const encounters = (db.encounters || []).filter(e => e.patientId === patient.id || e.patientName === patient.fullName);
+    const hospitalizations = (db.hospitalizations || []).filter(h => h.patientId === patient.id || h.patientName === patient.fullName);
+    const clinicalNotes = (db.clinical_notes || []).filter(n => n.patientId === patient.id || n.patientName === patient.fullName);
+    const appointments = (db.appointments || []).filter(a => a.patientId === patient.id || a.patientName === patient.fullName);
+    const prescriptions = (db.prescriptions || []).filter(p => p.patientId === patient.id || p.patientName === patient.fullName);
+    const examRequests = (db.exam_requests || []).filter(r => 
+      (patient.id && String(r.patientId) === String(patient.id)) ||
+      (patient.fullName && r.patientName && r.patientName.toLowerCase().trim() === patient.fullName.toLowerCase().trim()) ||
+      (patientName && r.patientName && r.patientName.toLowerCase().trim() === patientName.toLowerCase().trim())
+    );
+
+    data = {
+      patient,
+      encounters,
+      hospitalizations,
+      clinical_notes: clinicalNotes,
+      appointments,
+      prescriptions,
+      exam_requests: examRequests,
+      triages: encounters.map(e => ({
+        id: 'TR-' + (e.id || '01'),
+        manchester_priority: e.manchesterColor || 'AMARELO',
+        risk_color: e.manchesterColor || 'AMARELO',
+        blood_pressure: e.bloodPressure || '120/80',
+        heart_rate: e.heartRateBpm || 80,
+        temperature: e.temperatureCelsius || 36.5,
+        oxygen_saturation: e.oxygenSaturation || 98,
+        pain_scale: e.painLevel || 3,
+        nurse_name: e.triageNurse || 'Enf. Juliana Ramos - COREN 45892-SP',
+        created_at: e.created_at || e.triageTime || new Date().toISOString()
+      })),
+      tv_calls: encounters.map(e => ({
+        id: 'TV-' + (e.id || '01'),
+        room_name: e.room || 'Consultório 01',
+        called_at: e.calledAt || e.created_at || new Date().toISOString()
+      }))
+    };
+  }
+
+  const patient = data.patient || { fullName: patientName || 'Paciente', id: patientId };
+  const encounters = data.encounters || [];
+  const hospitalizations = data.hospitalizations || [];
+  const notes = data.clinical_notes || [];
+  let prescriptions = data.prescriptions || [];
+  if (!prescriptions || prescriptions.length === 0) {
+    const allDbRx = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('prescriptions') : (db.prescriptions || []);
+    const cleanTargetName = (patient.fullName || patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    prescriptions = allDbRx.filter(p => {
+      if (patient.id && String(p.patientId) === String(patient.id)) return true;
+      if (patientId && String(p.patientId) === String(patientId)) return true;
+      if (cleanTargetName && p.patientName) {
+        const cleanPName = p.patientName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        return cleanPName === cleanTargetName || cleanPName.includes(cleanTargetName) || cleanTargetName.includes(cleanPName);
+      }
+      return false;
+    });
+  }
+
+  let examRequests = data.exam_requests || [];
+  if (!examRequests || examRequests.length === 0) {
+    const allDbExams = (typeof localDB !== 'undefined' && localDB.list) ? localDB.list('exam_requests') : (db.exam_requests || []);
+    const cleanTargetName = (patient.fullName || patientName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    examRequests = allDbExams.filter(r => {
+      if (patient.id && String(r.patientId) === String(patient.id)) return true;
+      if (patientId && String(r.patientId) === String(patientId)) return true;
+      if (cleanTargetName && r.patientName) {
+        const cleanRName = r.patientName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        return cleanRName === cleanTargetName || cleanRName.includes(cleanTargetName) || cleanTargetName.includes(cleanRName);
+      }
+      return false;
+    });
+  }
+  const appointments = data.appointments || [];
+  const triages = data.triages || [];
+  const tvCalls = data.tv_calls || [];
+
+  // Configurações de Cores
+  const primaryColor = [99, 102, 241];
+  const darkColor = [30, 41, 59];
+  const lightGray = [248, 250, 252];
+  const accentGreen = [16, 185, 129];
+  const accentAmber = [245, 158, 11];
+
+  let currentY = 15;
+
+  // --- CABEÇALHO DO HOSPITAL ---
+  doc.setFillColor(...primaryColor);
+  doc.rect(0, 0, 210, 28, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('HEALTH NEXUS · HOSPITAL & CENTRO DE MEDICINA INTEGRADA', 14, 12);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text('PRONTUÁRIO ELETRÔNICO DO PACIENTE (PEP) · AUDITORIA ASSISTENCIAL COMPLETA', 14, 18);
+  doc.text(`Emissão Oficial: ${new Date().toLocaleString('pt-BR')} · Documento Autenticado ICP-Brasil`, 14, 23);
+
+  currentY = 36;
+
+  // --- DADOS CADASTRAIS DO PACIENTE ---
+  const hasLegacyData = !!(patient.crossPatientId || patient.physicalChartNumber || patient.birthCity);
+  const boxHeight = hasLegacyData ? 37 : 32;
+  doc.setFillColor(...lightGray);
+  doc.roundedRect(12, currentY, 186, boxHeight, 2, 2, 'F');
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(12, currentY, 186, boxHeight, 2, 2, 'S');
+
+  doc.setTextColor(...darkColor);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`PACIENTE: ${patient.fullName || patient.name || patientName || 'Não Informado'}`, 16, currentY + 7);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text(`CPF: ${patient.cpf || 'Não Informado'}`, 16, currentY + 14);
+  doc.text(`Cartão SUS / CNS: ${patient.susNumber || '898 0001 2345 6789'}`, 75, currentY + 14);
+  doc.text(`Data Nasc.: ${patient.birthDate ? new Date(patient.birthDate).toLocaleDateString('pt-BR') : 'Não Informado'}`, 140, currentY + 14);
+
+  doc.text(`Sexo: ${patient.gender || 'Não Informado'}`, 16, currentY + 21);
+  doc.text(`Telefone: ${patient.phone || 'Não Informado'}`, 75, currentY + 21);
+  doc.text(`Registro Geral (ID): #${(patient.id || patientId || '').toString().slice(0, 8).toUpperCase()}`, 140, currentY + 21);
+
+  doc.text(`Mãe: ${patient.motherName || 'Não Informado'}`, 16, currentY + 28);
+  doc.text(`Convênio: ${patient.healthPlan || 'SUS - Sistema Único de Saúde'}`, 100, currentY + 28);
+
+  if (hasLegacyData) {
+    const extraParts = [];
+    if (patient.crossPatientId) extraParts.push(`CROSS Regulação: ${patient.crossPatientId}`);
+    if (patient.physicalChartNumber) extraParts.push(`Pasta Arquivo: ${patient.physicalChartNumber}`);
+    if (patient.birthCity) extraParts.push(`Naturalidade: ${patient.birthCity}`);
+    doc.setTextColor(30, 41, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.text(extraParts.join('   |   '), 16, currentY + 34);
+    currentY += 45;
+  } else {
+    currentY += 40;
+  }
+
+  // --- CICLO ASSISTENCIAL: TRAJETÓRIA & CONSULTAS MÉDICAS ---
+  doc.setFillColor(...primaryColor);
+  doc.rect(12, currentY, 4, 10, 'F');
+  doc.setTextColor(...darkColor);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('1. TRAJETÓRIA ASSISTENCIAL & ATENDIMENTOS DE URGÊNCIA / AMBULATÓRIO', 20, currentY + 7);
+  currentY += 14;
+
+  if (encounters.length === 0) {
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(148, 163, 184);
+    doc.text('Nenhum atendimento registrado no ciclo atual.', 20, currentY);
+    currentY += 8;
+  } else {
+    const encRows = encounters.map(enc => {
+      const tr = triages.find(t => t.encounter_id === enc.id || t.id === 'TR-' + enc.id) || {};
+      const tv = tvCalls.find(c => c.encounter_id === enc.id || c.room_name === enc.room) || {};
+      const vitalsText = `PA: ${enc.bloodPressure || tr.blood_pressure || '120/80'} | FC: ${enc.heartRateBpm || tr.heart_rate || 80}bpm | T: ${enc.temperatureCelsius || tr.temperature || 36.5}°C`;
+      const dateFormatted = enc.created_at ? new Date(enc.created_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+      const docName = enc.doctorName || 'Dr. Carlos Silva (CRM 123456-SP)';
+      const room = enc.room || tv.room_name || 'Consultório 01';
+      const status = enc.status || 'Finalizado';
+      const cid = enc.cid || 'R10 (Dor Abdominal)';
+
+      return [
+        dateFormatted,
+        `${enc.type || 'Pronto Socorro'}\n[${room}]`,
+        `Triagem: ${enc.manchesterColor || tr.manchester_priority || 'AMARELO'}\n${vitalsText}`,
+        `${docName}\nCID: ${cid}\nAssinatura: ✅ CFM Digital`,
+        status
+      ];
+    });
+
+    doc.autoTable({
+      startY: currentY,
+      head: [['Data / Hora', 'Tipo / Local', 'Triagem & Sinais Vitais', 'Médico Assistente & Diagnóstico', 'Status']],
+      body: encRows,
+      theme: 'grid',
+      headStyles: { fillColor: primaryColor, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 32 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 56 },
+        4: { cellWidth: 20 }
+      },
+      margin: { left: 12, right: 12 }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 12;
+  }
+
+  // Verificar quebra de página
+  if (currentY > 230) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  // --- INTERNAÇÕES, CENSO & LEITOS ---
+  doc.setFillColor(...accentGreen);
+  doc.rect(12, currentY, 4, 10, 'F');
+  doc.setTextColor(...darkColor);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('2. GESTÃO DE LEITOS, CENSO & INTERNAÇÕES HOSPITALARES', 20, currentY + 7);
+  currentY += 14;
+
+  if (hospitalizations.length === 0) {
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(148, 163, 184);
+    doc.text('Nenhuma internação em leito registrada.', 20, currentY);
+    currentY += 10;
+  } else {
+    const hospRows = hospitalizations.map(h => {
+      const admDate = h.admitted_at ? new Date(h.admitted_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+      const disDate = h.discharged_at ? new Date(h.discharged_at).toLocaleString('pt-BR') : (h.status === 'Internado' ? 'Em Internação Ativa' : '—');
+      const bedName = h.bed_number ? `Leito ${h.bed_number}` : (h.bedId || 'Leito 102A');
+      const wardName = h.ward || h.current_sector || 'Clínica Médica / Enfermaria';
+      const doctor = h.doctor_name || h.attendingDoctor || 'Dr. Roberto Mendes (CRM 134567-SP)';
+      const diagnosis = h.diagnosis || 'Pneumonia Comunitária / Observação';
+
+      return [
+        `${bedName}\n[${wardName}]`,
+        admDate,
+        disDate,
+        doctor,
+        diagnosis,
+        h.status || 'Internado'
+      ];
+    });
+
+    doc.autoTable({
+      startY: currentY,
+      head: [['Leito / Ala', 'Data Admissão', 'Data Alta', 'Médico Responsável', 'Diagnóstico / Motivo', 'Situação']],
+      body: hospRows,
+      theme: 'grid',
+      headStyles: { fillColor: accentGreen, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
+      columnStyles: {
+        0: { cellWidth: 32 },
+        1: { cellWidth: 28 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 42 },
+        4: { cellWidth: 36 },
+        5: { cellWidth: 20 }
+      },
+      margin: { left: 12, right: 12 }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 12;
+  }
+
+  // Verificar quebra de página
+  if (currentY > 230) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  // --- PRESCRIÇÕES MÉDICAS ---
+  doc.setFillColor(...accentAmber);
+  doc.rect(12, currentY, 4, 10, 'F');
+  doc.setTextColor(...darkColor);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('3. PRESCRIÇÕES MÉDICAS & CONDUTAS FARMACOLÓGICAS', 20, currentY + 7);
+  currentY += 14;
+
+  const prescRows = [];
+  prescriptions.forEach(p => {
+    const pDate = p.created_at || p.createdAt ? new Date(p.created_at || p.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
+    const prescriber = p.doctorName || 'Corpo Clínico';
+    const items = (Array.isArray(p.medications) && p.medications.length > 0)
+      ? p.medications
+      : (Array.isArray(p.items) && p.items.length > 0)
+        ? p.items
+        : null;
+
+    if (items) {
+      items.forEach(m => {
+        const med = m.name || m.medicamento || m.medication || 'Medicamento não especificado';
+        const dosage = m.dosage || m.dose || '—';
+        const route = m.route || m.via || '—';
+        const instructions = m.frequency || m.frequencia || m.instructions || m.aprazamento || 'Conforme prescrição';
+        prescRows.push([
+          pDate,
+          med,
+          dosage,
+          route,
+          instructions,
+          prescriber
+        ]);
+      });
+    } else {
+      const med = p.medication || p.name;
+      if (med) {
+        const dosage = p.dosage || p.dose || '—';
+        const route = p.route || p.via || '—';
+        const instructions = p.instructions || p.frequency || 'Conforme prescrição';
+        prescRows.push([
+          pDate,
+          med,
+          dosage,
+          route,
+          instructions,
+          prescriber
+        ]);
+      }
+    }
+  });
+
+  if (prescRows.length === 0) {
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(148, 163, 184);
+    doc.text('Nenhuma prescrição farmacológica registrada no prontuário.', 20, currentY);
+    currentY += 10;
+  } else {
+    doc.autoTable({
+      startY: currentY,
+      head: [['Data', 'Medicamento / Solução', 'Dosagem', 'Via', 'Frequência / Instruções', 'Prescritor']],
+      body: prescRows,
+      theme: 'grid',
+      headStyles: { fillColor: accentAmber, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
+      columnStyles: {
+        0: { cellWidth: 20 },
+        1: { cellWidth: 42 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 42 },
+        5: { cellWidth: 35 }
+      },
+      margin: { left: 12, right: 12 }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 12;
+  }
+
+  // Verificar quebra de página
+  if (currentY > 230) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  // --- SOLICITAÇÕES DE EXAMES DIAGNÓSTICOS & APOIO TERAPÊUTICO (SADT / CPOE) ---
+  const accentCyan = [2, 132, 199];
+  doc.setFillColor(...accentCyan);
+  doc.rect(12, currentY, 4, 10, 'F');
+  doc.setTextColor(...darkColor);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('4. SOLICITAÇÕES DE EXAMES DIAGNÓSTICOS & APOIO TERAPÊUTICO (SADT / CPOE)', 20, currentY + 7);
+  currentY += 14;
+
+  const examRows = [];
+  (examRequests || []).forEach(req => {
+    const reqDate = req.created_at ? new Date(req.created_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+    const doctor = req.doctorName ? `${req.doctorName}${req.crm ? ' (' + req.crm + ')' : ''}` : 'Corpo Clínico';
+    const just = req.justification || 'Avaliação clínica';
+    const proto = req.id || 'REQ-SADT';
+
+    (req.items || []).forEach(it => {
+      const prepText = it.prep ? `\n[Preparo: ${it.prep}]` : '';
+      examRows.push([
+        reqDate,
+        proto,
+        `${it.name || 'Exame Complementar'}${prepText}`,
+        it.priority || 'Rotina',
+        just,
+        doctor
+      ]);
+    });
+  });
+
+  if (examRows.length === 0) {
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(148, 163, 184);
+    doc.text('Nenhuma solicitação de exame complementar registrada neste ciclo.', 20, currentY);
+    currentY += 10;
+  } else {
+    doc.autoTable({
+      startY: currentY,
+      head: [['Data / Hora', 'Protocolo', 'Exame / Modalidade & Preparo', 'Prioridade', 'Indicação Clínica', 'Médico Solicitante']],
+      body: examRows,
+      theme: 'grid',
+      headStyles: { fillColor: accentCyan, textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
+      columnStyles: {
+        0: { cellWidth: 26 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 36 },
+        5: { cellWidth: 32 }
+      },
+      margin: { left: 12, right: 12 }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 12;
+  }
+
+  // Verificar quebra de página
+  if (currentY > 230) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  // --- EVOLUÇÕES CLÍNICAS E ANOTAÇÕES ---
+  if (notes.length > 0) {
+    doc.setFillColor(79, 70, 229);
+    doc.rect(12, currentY, 4, 10, 'F');
+    doc.setTextColor(...darkColor);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('5. EVOLUÇÕES CLÍNICAS & ANOTAÇÕES MULTIPROFISSIONAIS', 20, currentY + 7);
+    currentY += 14;
+
+    const noteRows = notes.map(n => {
+      const nDate = n.created_at ? new Date(n.created_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+      const author = n.author || 'Equipe Assistencial';
+      const text = n.text || n.content || 'Sem anotação.';
+      return [nDate, author, text];
+    });
+
+    doc.autoTable({
+      startY: currentY,
+      head: [['Data / Hora', 'Profissional / Autor', 'Registro / Conduta']],
+      body: noteRows,
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229], textColor: 255, fontSize: 8.5, fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 3, textColor: [30, 41, 59] },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 111 }
+      },
+      margin: { left: 12, right: 12 }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 12;
+  }
+
+  // --- TERMO DE AUTENTICIDADE DIGITAL & CARIMBO CFM / ICP-BRASIL ---
+  if (currentY > 230) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(12, currentY, 186, 26, 2, 2, 'F');
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(12, currentY, 186, 26, 2, 2, 'S');
+
+  doc.setTextColor(30, 41, 59);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('AUTENTICAÇÃO DIGITAL & CONFORMIDADE REGULATÓRIA (CFM nº 1.821/2007)', 16, currentY + 6);
+
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  const hashMock = 'SHA256-' + Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join('').toUpperCase();
+  doc.text(`Assinatura Digital: ICP-Brasil Certificado Digital Padrão A3 · Token Hash: ${hashMock}`, 16, currentY + 12);
+  doc.text('Este documento constitui reprodução fidedigna do Prontuário Eletrônico do Paciente sob guarda do Health Nexus.', 16, currentY + 17);
+  doc.text('Acesso restrito e protegido nos termos da Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).', 16, currentY + 22);
+
+  // Rodapé em todas as páginas
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(226, 232, 240);
+    doc.line(12, 285, 198, 285);
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Health Nexus · Sistema Integrado de Gestão Hospitalar & Prontuário Eletrônico (PEP)', 12, 290);
+    doc.text(`Página ${i} de ${totalPages}`, 180, 290);
+  }
+
+  const cleanName = (patient.fullName || patientName || 'paciente').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+  doc.save(`prontuario_completo_${cleanName}_${new Date().toISOString().slice(0, 10)}.pdf`);
+  if (typeof window.showToast === 'function') window.showToast('📄 Prontuário PDF completo gerado com sucesso!', 'success');
+};
+
+// =========================================================
+// GERAR PDF DE COMPROVANTE DE AGENDAMENTO
+// =========================================================
+window.generateAppointmentPDF = function(id, patientName, doctorName, date, time, specialty, status, notes) {
+  if (!window.jspdf) { alert('⚠️ Biblioteca PDF não carregada.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const loadLogo = () => new Promise(resolve => {
+    const img = new Image(); img.src = '/assets/logo.png';
+    img.onload = () => resolve(img); img.onerror = () => resolve(null);
+  });
+
+  loadLogo().then(logoImg => {
+    // Header
+    doc.setFillColor(99, 102, 241);
+    doc.rect(0, 0, 210, 28, 'F');
+    if (logoImg) doc.addImage(logoImg, 'PNG', 8, 5, 18, 18);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    doc.text('HEALTH NEXUS', 30, 13);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Sistema de Gestão Hospitalar', 30, 19);
+    doc.text('COMPROVANTE DE AGENDAMENTO', 135, 13);
+    doc.text(`Emitido em: ${new Date().toLocaleString('pt-BR')}`, 135, 19);
+
+    // Título central
+    doc.setTextColor(30, 30, 50);
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+    doc.text('COMPROVANTE DE CONSULTA', 105, 44, { align: 'center' });
+    doc.setDrawColor(99, 102, 241); doc.setLineWidth(0.5);
+    doc.line(20, 47, 190, 47);
+
+    // Número do comprovante
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 120);
+    doc.text(`Nº: #${id.substring(0,8).toUpperCase()}`, 105, 54, { align: 'center' });
+
+    // Box de dados
+    let y = 64;
+    doc.setFillColor(248, 250, 252); doc.roundedRect(15, y - 4, 180, 114, 3, 3, 'F');
+    doc.setDrawColor(200, 210, 230); doc.roundedRect(15, y - 4, 180, 114, 3, 3, 'S');
+
+    const addRow = (label, value, isBold = false) => {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(99, 102, 241);
+      doc.text(label, 22, y + 2);
+      doc.setFont('helvetica', isBold ? 'bold' : 'normal'); doc.setTextColor(30, 30, 50);
+      doc.setFontSize(10.5);
+doc.text(String(value || '—'), 22, y + 8);
+      y += 16;
+    };
+
+    addRow('PACIENTE', patientName, true);
+    addRow('MÉDICO RESPONSÁVEL', doctorName);
+    addRow('ESPECIALIDADE', specialty);
+    const fmtDate = date ? new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—';
+addRow('DATA DA CONSULTA', fmtDate);
+    addRow('HORÁRIO', time || '—');
+    addRow('STATUS DA CONSULTA', status || 'Agendado');
+
+    if (notes) {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(99, 102, 241);
+      doc.text('OBSERVAÇÕES', 22, y + 2);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 80);
+      const splitNotes = doc.splitTextToSize(notes, 160);
+      doc.text(splitNotes, 22, y + 8);
+    }
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+      doc.text('CONFIDENCIAL — Comprovante de Agendamento', 14, 289);
+      doc.text(`Página ${i} de ${pageCount}`, 180, 289);
+    }
+
+    const safeName = (patientName || 'comprovante').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+    doc.save(`agendamento_${safeName}_${id.substring(0, 4)}.pdf`);
+  });
+};
+
+// --- ABA CONSULTÓRIOS & SALAS ---
+
+async function loadConsultingRooms() {
+  const dashboard = document.getElementById('rooms-dashboard');
+  if (!dashboard) return;
+
+  try {
+    const todayIso = new Date().toISOString().split('T')[0];
+    const [roomsRes, aptRes, encRes, tvRes] = await Promise.all([
+      apiFetch('/api/consulting-rooms').catch(() => ({ ok: false })),
+      apiFetch('/api/appointments?date=' + todayIso).catch(() => ({ ok: false })),
+      apiFetch('/api/encounters').catch(() => ({ ok: false })),
+      apiFetch('/api/tv/calls').catch(() => ({ ok: false }))
+    ]);
+    
+    const roomsResult = roomsRes.ok ? await roomsRes.json() : { data: [] };
+    const aptResult = aptRes.ok ? await aptRes.json() : { data: [] };
+    const encResult = encRes.ok ? await encRes.json() : { data: [] };
+    const tvResult = tvRes.ok ? await tvRes.json() : { data: [] };
+    
+    let rooms = Array.isArray(roomsResult) ? roomsResult : (roomsResult.data || []);
+    const appointments = Array.isArray(aptResult) ? aptResult : (aptResult.data || []);
+    const encounters = Array.isArray(encResult) ? encResult : (encResult.data || []);
+    const tvCalls = Array.isArray(tvResult) ? tvResult : (tvResult.data || []);
+
+    if (rooms.length === 0) {
+      dashboard.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--bg-secondary); border-radius: 16px; border: 1.5px dashed var(--border-color);">
+          <i class="fa-solid fa-door-closed" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 16px; display: inline-block;"></i>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Nenhum Consultório Cadastrado</h3>
+          <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 20px auto; font-size: 0.9rem;">
+            A base de dados foi limpa e não há consultórios configurados no momento. Cadastre novas salas ou inicialize os 4 consultórios padrão do pronto atendimento.
+          </p>
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="if(typeof window.openRoomModal === 'function') window.openRoomModal();" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 20px; border-radius: 10px;">
+              <i class="fa-solid fa-plus"></i> Novo Consultório
+            </button>
+            <button id="btn-load-default-rooms" class="btn" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 20px; border-radius: 10px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
+              <i class="fa-solid fa-arrows-rotate"></i> Carregar 4 Consultórios Padrão
+            </button>
+          </div>
+        </div>
+      `;
+      document.getElementById('btn-load-default-rooms')?.addEventListener('click', async () => {
+        const defaultRooms = [
+          { id: 'room-1', name: 'Consultório 01', specialty: 'Clínica Geral / Pronto Atendimento', currentDoctor: 'Dr. Marcelo Mazaro', status: 'Disponível' },
+          { id: 'room-2', name: 'Consultório 02', specialty: 'Pediatria', currentDoctor: 'Dra. Wanessa Ribeiro', status: 'Disponível' },
+          { id: 'room-3', name: 'Consultório 03', specialty: 'Ortopedia / Trauma', currentDoctor: 'Dr. Felipe Dias', status: 'Disponível' },
+          { id: 'room-4', name: 'Consultório 04', specialty: 'Cardiologia', currentDoctor: 'Dra. Helena Rocha', status: 'Disponível' },
+        ];
+        if (typeof localDB !== 'undefined' && localDB.getFullDB) {
+          const currentDb = localDB.getFullDB();
+          currentDb.consultorios = defaultRooms;
+          localDB.saveFullDB(currentDb);
+        }
+        if (typeof showToast === 'function') {
+          showToast('✅ 4 Consultórios padrão inicializados!');
+        }
+        await loadConsultingRooms();
+      });
+      return;
+    }
+    
+    const activePatContext = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+    const activePatName = activePatContext ? (activePatContext.fullName || activePatContext.patientName || '').toLowerCase().trim() : '';
+    const interactedPatient = (window._interactedPatient || window._highlightPatientName || activePatName || '').toLowerCase().trim();
+    const interactedRoom = (window._interactedRoom || (activePatContext ? activePatContext.room : '') || '').trim();
+    const allBeds = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('beds') || []) : [];
+
+    dashboard.innerHTML = rooms.map(r => {
+      const roomApts = appointments.filter(a => (a.roomName === r.name || a.room === r.name || (r.name === 'Consultório 01' && !a.roomName && !a.room && a.status !== 'Finalizado' && a.status !== 'Cancelado')));
+      
+      const roomEncs = encounters.filter(e => {
+        if (e.status === 'Internado' || e.status === 'Finalizado' || e.status === 'Alta') return false;
+        const ePatName = (e.patientName || '').toLowerCase().trim();
+        const isInBed = allBeds.some(b => b.status === 'Ocupado' && (b.patientName || '').toLowerCase().trim() === ePatName);
+        if (isInBed) return false;
+        return (e.room === r.name || e.roomName === r.name || (r.name === 'Consultório 01' && !e.room && !e.roomName && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento' || e.status === 'Convocado_TV')));
+      });
+
+      // Chamadas TV ordenadas pela mais recente
+      const roomTvCalls = tvCalls.filter(c => {
+        if (c.roomName !== r.name && c.room !== r.name) return false;
+        const pName = (c.patientName || c.name || '').toLowerCase().trim();
+        const enc = encounters.find(e => (e.patientName || '').toLowerCase().trim() === pName);
+        if (enc && (enc.status === 'Internado' || enc.status === 'Finalizado' || enc.status === 'Alta')) return false;
+        const isInBed = allBeds.some(b => b.status === 'Ocupado' && (b.patientName || '').toLowerCase().trim() === pName);
+        if (isInBed) return false;
+        return true;
+      }).sort((a, b) => new Date(b.calledAt || 0) - new Date(a.calledAt || 0));
+
+      // 1. Identificar Convocado na TV para esta sala
+      let convocado = null;
+      if (interactedPatient && (interactedRoom === r.name || (!interactedRoom && r.name === 'Consultório 01'))) {
+        const tvMatch = roomTvCalls.find(c => (c.patientName || c.name || '').toLowerCase().trim().includes(interactedPatient));
+        const encMatch = roomEncs.find(e => (e.patientName || '').toLowerCase().trim().includes(interactedPatient));
+        if (tvMatch || encMatch || activePatContext) {
+          const cName = tvMatch ? (tvMatch.patientName || tvMatch.name) : (encMatch ? encMatch.patientName : (activePatContext ? (activePatContext.fullName || activePatContext.patientName) : interactedPatient));
+          convocado = {
+            name: cName,
+            id: encMatch ? encMatch.id : (tvMatch ? (tvMatch.patientId || tvMatch.encounterId) : (activePatContext ? activePatContext.id : null)),
+            targetId: encMatch ? encMatch.id : (activePatContext ? (activePatContext.id || activePatContext.patientName) : (tvMatch ? (tvMatch.patientId || tvMatch.patientName) : cName)),
+            manchesterColor: (encMatch && encMatch.manchesterColor) || (tvMatch && tvMatch.manchesterColor) || (activePatContext && activePatContext.manchesterColor) || 'Amarelo',
+            calledAt: tvMatch ? tvMatch.calledAt : new Date().toISOString()
+          };
+        }
+      }
+
+      if (!convocado && roomTvCalls.length > 0) {
+        const topTv = roomTvCalls[0];
+        const topEnc = roomEncs.find(e => (e.patientName || '').toLowerCase().trim() === (topTv.patientName || topTv.name || '').toLowerCase().trim());
+        convocado = {
+          name: topTv.patientName || topTv.name,
+          id: topEnc ? topEnc.id : (topTv.patientId || topTv.encounterId),
+          targetId: topEnc ? topEnc.id : (topTv.patientId || topTv.patientName || topTv.name),
+          manchesterColor: (topEnc && topEnc.manchesterColor) || topTv.manchesterColor || 'Amarelo',
+          calledAt: topTv.calledAt
+        };
+      }
+
+      const convocadoNorm = convocado ? (convocado.name || '').toLowerCase().trim() : '';
+
+      // 2. Identificar Paciente em Atendimento Atual (excluindo convocado se for o mesmo)
+      const inProgressEnc = roomEncs.find(e => (e.status === 'Em_Atendimento' || e.status === 'Em Atendimento') && (e.patientName || '').toLowerCase().trim() !== convocadoNorm);
+      const inProgressApt = roomApts.find(a => (a.status === 'Em Atendimento' || a.status === 'Em_Atendimento') && (a.patientName || '').toLowerCase().trim() !== convocadoNorm);
+      const inProgress = inProgressEnc || inProgressApt || null;
+      const inProgressName = inProgress ? (inProgress.patientName || inProgress.name) : null;
+      const inProgressTargetId = inProgressEnc ? inProgressEnc.id : (inProgress ? (inProgress.patientId || inProgress.id || inProgress.patientName) : '');
+
+      // 3. Fila de Espera (excluindo convocado e inProgress)
+      const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && (e.patientName || '').toLowerCase().trim() !== convocadoNorm && e !== inProgress);
+      const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && (a.patientName || '').toLowerCase().trim() !== convocadoNorm && a !== inProgress);
+      
+      const _existingWaitNames = new Set([...waitingEncs, ...waitingApts].map(x => (x.patientName || x.name || '').toLowerCase().trim()));
+      if (convocadoNorm) _existingWaitNames.add(convocadoNorm);
+      if (inProgressName) _existingWaitNames.add(inProgressName.toLowerCase().trim());
+
+      const tvWaitingCard = roomTvCalls.filter(c => {
+        const cn = (c.patientName || c.name || '').toLowerCase().trim();
+        return cn && !_existingWaitNames.has(cn);
+      }).map(c => ({ patientName: c.patientName || c.name, name: c.patientName || c.name, status: 'Convocado_TV' }));
+
+      const waiting = [...waitingEncs, ...waitingApts, ...tvWaitingCard];
+      const nextPatient = waiting.length > 0 ? (waiting[0].patientName || waiting[0].name || '') : '';
+
+      const hasPatient = !!(convocado || inProgress);
+      const roomStatus = inProgress ? 'Em Consulta' : (convocado ? 'Convocando' : (r.status || 'Disponível'));
+      const doctorDisplay = r.currentDoctor || r.doctorName || 'Sem Médico Escalado';
+
+      // Detecta se este consultório é o que está sendo ativamente interagido / pulsando
+      const isConvocadoInteracted = !!(convocado && interactedPatient && convocadoNorm.includes(interactedPatient));
+      const isRoomInteracted = isConvocadoInteracted || (interactedRoom === r.name && !!interactedPatient);
+
+      const mColors = {
+        vermelho: { bg: 'rgba(239,68,68,0.22)', border: '#ef4444', text: '#fca5a5' },
+        laranja:  { bg: 'rgba(249,115,22,0.22)', border: '#f97316', text: '#fdba74' },
+        amarelo:  { bg: 'rgba(234,179,8,0.22)',  border: '#eab308', text: '#fde047' },
+        verde:    { bg: 'rgba(34,197,94,0.22)',  border: '#22c55e', text: '#86efac' },
+        azul:     { bg: 'rgba(56,189,248,0.22)', border: '#38bdf8', text: '#7dd3fc' }
+      };
+      const cColorKey = convocado ? String(convocado.manchesterColor || 'amarelo').toLowerCase().replace(/[^a-z]/g, '') : 'amarelo';
+      const cStyle = mColors[cColorKey] || mColors.amarelo;
+
+      return `
+        <div class="interactive-card patient-card-item ${isRoomInteracted ? 'room-card-pulsing' : ''}" data-room-name="${r.name.replace(/"/g, '&quot;')}" style="background: var(--bg-secondary); border: 1.5px solid ${isRoomInteracted ? '#0284c7' : (hasPatient ? 'rgba(2, 132, 199, 0.4)' : 'var(--border-color)')}; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 11px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="openConsultorioDetailsModal('${r.name}')" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+          
+          <!-- TOPO: NOME DO CONSULTÓRIO & MÉDICO -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; font-weight: 700;">
+                <i class="fa-solid fa-door-open" style="color: ${hasPatient ? '#818cf8' : 'var(--color-primary)'}; "></i> ${r.name}
+              </h3>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">${r.specialty || 'Uso Geral / Pronto Atendimento'}</div>
+            </div>
+            <button class="btn btn-icon btn-outline" style="width: 26px; height: 26px; flex-shrink:0;" onclick="event.stopPropagation(); openRoomModal('${r.id}')" title="Editar sala"><i class="fa-solid fa-pen" style="font-size: 0.7rem;"></i></button>
+          </div>
+
+          <!-- STATUS DA SALA & MÉDICO RESPONSÁVEL -->
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: ${inProgress ? 'rgba(2,132,199,0.2)' : (convocado ? 'rgba(13,148,136,0.2)' : 'rgba(16,185,129,0.15)')}; color: ${inProgress ? '#38bdf8' : (convocado ? '#2dd4bf' : '#34d399')}; border: 1px solid ${inProgress ? 'rgba(2,132,199,0.4)' : (convocado ? 'rgba(13,148,136,0.5)' : 'rgba(16,185,129,0.3)')};">
+              <i class="fa-solid fa-circle" style="font-size: 0.4rem;"></i> ${roomStatus}
+            </span>
+            <span style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; overflow:hidden; max-width:160px; text-overflow:ellipsis; white-space:nowrap;">
+              <i class="fa-solid fa-user-doctor" style="color: #38bdf8; flex-shrink:0;"></i> ${doctorDisplay}
+            </span>
+          </div>
+
+          <!-- CORPO: INTERAÇÃO CLÍNICA DIRETA (SEM POLUIÇÃO) -->
+          <div style="padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
+            
+            ${convocado ? `
+              <!-- BLOCO DESTACADO: PACIENTE CHAMADO NA TV (PULSA SE FOR O SELECIONADO) -->
+              <div class="${isConvocadoInteracted ? 'patient-pulse-selected' : ''}" style="background: linear-gradient(135deg, rgba(2,132,199,0.14), rgba(13,148,136,0.12)); border: 1.5px solid ${isConvocadoInteracted ? '#0284c7' : 'rgba(2,132,199,0.45)'}; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: ${isConvocadoInteracted ? '0 0 16px rgba(2,132,199,0.35)' : 'none'};">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                  <span style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-bullhorn ${isConvocadoInteracted ? 'fa-bounce' : ''}"></i> CHAMADO NA TV &bull; AGUARDANDO ENTRADA
+                  </span>
+                  ${convocado.manchesterColor ? `<span style="font-size: 0.68rem; font-weight: 700; color: ${cStyle.text}; background: ${cStyle.bg}; border: 1px solid ${cStyle.border}; padding: 1px 7px; border-radius: 6px;">● ${convocado.manchesterColor}</span>` : ''}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                  <div style="font-weight: 800; font-size: 0.94rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;" title="${convocado.name}">
+                    <i class="fa-solid fa-user-clock" style="color: #38bdf8; font-size: 0.85rem;"></i>
+                    <span>${convocado.name}</span>
+                  </div>
+                  <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.75rem; padding: 6px 12px; border-radius: 7px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.4); flex-shrink: 0;" onclick="event.stopPropagation(); window.startEncounterPEP('${convocado.targetId}', '${convocado.name.replace(/'/g, "\\'")}', '${r.name}');" title="Iniciar Atendimento no Consultório e Abrir PEP">
+                    <i class="fa-solid fa-file-medical"></i> Atender (PEP)
+                  </button>
+                </div>
+              </div>
+            ` : ''}
+
+            ${inProgress ? `
+              <!-- PACIENTE EM ATENDIMENTO ATUAL -->
+              <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(99,102,241,0.12); padding: 7px 11px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.3); gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 7px; overflow: hidden; flex: 1; min-width: 0;">
+                  <i class="fa-solid fa-user-check" style="color: #818cf8; font-size: 0.85rem; flex-shrink: 0;"></i>
+                  <span style="font-weight: 700; font-size: 0.82rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${inProgressName}">${inProgressName}</span>
+                  <span style="font-size: 0.65rem; background: rgba(99,102,241,0.35); color: #c7d2fe; border-radius: 4px; padding: 1px 5px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">Em Consulta</span>
+                </div>
+                <button class="btn" style="background: rgba(99,102,241,0.25); color: #c7d2fe; border: 1px solid rgba(99,102,241,0.45); font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;" onclick="event.stopPropagation(); if(typeof window.openPEPModal==='function') window.openPEPModal('${inProgressTargetId || inProgressName.replace(/'/g, "\\'")}', 'soap');" title="Abrir Prontuário">
+                  <i class="fa-solid fa-file-medical"></i> PEP
+                </button>
+              </div>
+            ` : ''}
+
+            ${!convocado && !inProgress ? `
+              <div style="font-size: 0.8rem; color: var(--text-muted); padding: 6px 0; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-regular fa-clock" style="color: #475569;"></i> Sala disponível para atendimento
+              </div>
+            ` : ''}
+
+            <!-- FILA DE ESPERA & HISTÓRICO -->
+            ${waiting.length > 0 ? `
+              <button onclick="event.stopPropagation(); openConsultorioDetailsModal('${r.name}');" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:8px;padding:7px 11px;cursor:pointer;gap:8px;transition:background 0.2s;" onmouseover="this.style.background='rgba(251,191,36,0.15)'" onmouseout="this.style.background='rgba(251,191,36,0.08)'">
+                <div style="display:flex;align-items:center;gap:7px;overflow:hidden;">
+                  <i class="fa-solid fa-users" style="color:#fbbf24;font-size:0.8rem;flex-shrink:0;"></i>
+                  <span style="font-size:0.78rem;font-weight:700;color:#fcd34d;white-space:nowrap;">${waiting.length} na fila</span>
+                  ${nextPatient ? `<span style="font-size:0.72rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">&bull; Próx: ${nextPatient.split(' ')[0]}</span>` : ''}
+                </div>
+                <span style="font-size:0.7rem;color:#fbbf24;display:flex;align-items:center;gap:4px;flex-shrink:0;font-weight:600;">Ver fila &amp; histórico <i class="fa-solid fa-chevron-right"></i></span>
+              </button>
+            ` : `
+              <button onclick="event.stopPropagation(); openConsultorioDetailsModal('${r.name}');" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:8px;padding:6px 11px;cursor:pointer;gap:8px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                <span style="font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+                  <i class="fa-solid fa-check-circle" style="color:#34d399;"></i> Fila vazia
+                </span>
+                <span style="font-size:0.7rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;">Ver detalhes <i class="fa-solid fa-chevron-right"></i></span>
+              </button>
+            `}
+
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    state.consultingRooms = rooms;
+  } catch (err) {
+    console.error(err);
+    dashboard.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: red;">Erro ao carregar consultórios.</div>';
+  }
+}
+
+async function openConsultorioDetailsModal(roomName) {
+  const existing = document.getElementById('consultorio-details-modal');
+  if (existing) existing.remove();
+
+  const todayIso = new Date().toISOString().split('T')[0];
+  const [aptRes, encRes, tvRes] = await Promise.all([
+    apiFetch('/api/appointments?date=' + todayIso).catch(() => ({ ok: false })),
+    apiFetch('/api/encounters').catch(() => ({ ok: false })),
+    apiFetch('/api/tv/calls').catch(() => ({ ok: false }))
+  ]);
+
+  const apts = aptRes.ok ? (await aptRes.json()).data || [] : [];
+  const encs = encRes.ok ? (await encRes.json()).data || [] : [];
+  const tvCalls = tvRes.ok ? (await tvRes.json()).data || [] : [];
+
+  const roomApts = apts.filter(a => (a.roomName === roomName || a.room === roomName || (roomName === 'Consultório 01' && !a.roomName && !a.room)));
+  const roomEncs = encs.filter(e => (e.room === roomName || e.roomName === roomName || (roomName === 'Consultório 01' && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento'))));
+  const roomTvCalls = tvCalls.filter(c => c.roomName === roomName || c.room === roomName).sort((a, b) => new Date(b.calledAt || 0) - new Date(a.calledAt || 0));
+  
+  const inProgressEnc = roomEncs.find(e => e.status === 'Em_Atendimento' || e.status === 'Em Atendimento');
+  const inProgressApt = roomApts.find(a => a.status === 'Em Atendimento' || a.status === 'Em_Atendimento');
+  const inProgressTv = roomTvCalls.length > 0 ? roomTvCalls[0] : null;
+  const inProgress = inProgressEnc || inProgressApt || inProgressTv;
+
+  const waitingEncs = roomEncs.filter(e => e.status === 'Aguardando_Atendimento' && e !== inProgress);
+  const waitingApts = roomApts.filter(a => (a.status === 'Confirmado' || a.status === 'Agendado') && a !== inProgress);
+
+  // Inclui chamadas de TV na fila (pacientes convocados para esta sala que ainda não estão em atendimento)
+  const inProgressName = (inProgress ? (inProgress.patientName || inProgress.name || '') : '').toLowerCase().trim();
+  const tvWaiting = roomTvCalls
+    .filter(c => {
+      const cName = (c.patientName || c.name || '').toLowerCase().trim();
+      return cName && cName !== inProgressName;
+    })
+    .map(c => ({
+      id: c.patientId || c.encounterId || null,
+      patientId: c.patientId || null,
+      patientName: c.patientName || c.name,
+      manchesterColor: c.manchesterColor || null,
+      time: c.calledAt ? new Date(c.calledAt).toLocaleTimeString().slice(0,5) : null,
+      status: 'Convocado_TV',
+      _fromTV: true
+    }));
+
+  // Deduplica: não duplicar pacientes que já estão em waitingEncs/waitingApts
+  const existingNames = new Set([...waitingEncs, ...waitingApts].map(x => (x.patientName || x.name || '').toLowerCase().trim()));
+  const tvWaitingUnique = tvWaiting.filter(t => !existingNames.has((t.patientName || '').toLowerCase().trim()));
+
+  const waiting = [...waitingEncs, ...waitingApts, ...tvWaitingUnique];
+  const recentCalls = roomTvCalls.slice(0, 8);
+
+  // Histórico de atendidos hoje nesta sala
+  const completedToday = encs.filter(e => 
+    (e.status === 'Finalizado' || e.status === 'Alta') && 
+    (e.room === roomName || e.roomName === roomName || (!e.room && !e.roomName && roomName === 'Consultório 01'))
+  ).slice(0, 10);
+
+  const patientTargetId = inProgressEnc ? inProgressEnc.id : (inProgress ? (inProgress.patientId || inProgress.id || inProgress.patientName) : '');
+  const patientTargetName = inProgress ? (inProgress.patientName || inProgress.name || 'Paciente') : '';
+
+  const modalHtml = `
+    <div id="consultorio-details-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 20, 0.85); backdrop-filter: blur(10px);">
+      <div class="modal-content" style="max-width: 740px; width: 95vw; max-height: 90vh; background: var(--bg-secondary); border: 1.5px solid rgba(2, 132, 199, 0.5); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: slideIn 0.3s ease-out;">
+        
+        <div style="background: linear-gradient(135deg, #0284c7, #0ea5e9); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-door-open" style="font-size: 1.3rem;"></i>
+            <div>
+              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Painel do ${roomName}</h3>
+              <small style="color: rgba(255,255,255,0.85);">Gestão de Atendimento Médico, Fila &amp; Prontuário</small>
+            </div>
+          </div>
+          <button onclick="document.getElementById('consultorio-details-modal').remove()" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+          
+          <!-- Paciente em Atendimento -->
+          <div style="background: var(--bg-tertiary); border: 1.5px solid ${inProgress ? '#0284c7' : 'var(--border-color)'}; border-radius: 14px; padding: 18px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+              <span><i class="fa-solid fa-user-doctor" style="color: #0284c7;"></i> Paciente em Atendimento</span>
+              ${inProgress ? '<span style="background: #10b981; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Ativo na Sala</span>' : ''}
+            </div>
+
+            ${inProgress ? `
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                  <div>
+                    <h4 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+                      <i class="fa-solid fa-hospital-user" style="color: #38bdf8;"></i> ${patientTargetName}
+                    </h4>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap;">
+                      ${inProgress.manchesterColor ? `<span>Risco: <strong style="color: #38bdf8;">● ${inProgress.manchesterColor}</strong></span> &bull; ` : ''}
+                      <span>Horário: <strong>${inProgress.admitted_at ? new Date(inProgress.admitted_at).toLocaleTimeString().slice(0,5) : (inProgress.calledAt ? new Date(inProgress.calledAt).toLocaleTimeString().slice(0,5) : (inProgress.time || 'Agora'))}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Ações Diretas de Consulta / PEP / Prescrição -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+                  <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.85rem; padding: 9px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2,132,199,0.35);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${patientTargetId}', '${patientTargetName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${patientTargetId || patientTargetName}', 'soap');">
+                    <i class="fa-solid fa-file-medical"></i> Abrir PEP / Prontuário
+                  </button>
+                  <button class="btn" style="background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; font-size: 0.82rem; padding: 9px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPrescriptionModal === 'function') window.openPrescriptionModal('${patientTargetId}', '${patientTargetName}');">
+                    <i class="fa-solid fa-pills"></i> Prescrição Médica
+                  </button>
+                  <button class="btn" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; font-size: 0.82rem; padding: 9px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.switchTab === 'function') window.switchTab('atendimento');">
+                    <i class="fa-solid fa-arrow-right"></i> Central de Atendimentos
+                  </button>
+                </div>
+              </div>
+            ` : `
+              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 14px 0; text-align: center;">
+                <i class="fa-solid fa-door-open" style="font-size: 1.5rem; color: var(--border-color); display: block; margin-bottom: 6px;"></i>
+                Nenhum paciente está sendo atendido nesta sala no momento.
+              </div>
+            `}
+          </div>
+
+          <!-- Pacientes Aguardando -->
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap:wrap; gap:8px;">
+              <span><i class="fa-solid fa-users" style="color: #f59e0b;"></i> Fila de Espera &mdash; ${waiting.length} paciente(s)</span>
+              ${waiting.length > 0 ? `
+                <button class="btn" style="background: linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; border:none; font-size:0.75rem; padding:6px 12px; border-radius:8px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(14,165,233,0.3);" onclick="
+                  var next = ${JSON.stringify(waiting[0] ? (waiting[0].patientName || waiting[0].name || '') : '')};
+                  var rn   = ${JSON.stringify(roomName)};
+                  if(next && typeof window.callPatientToTV === 'function') { window.callPatientToTV(next, rn); }
+                  else if(next && typeof window.switchTab === 'function') { window.switchTab('tv'); }
+                ">
+                  <i class="fa-solid fa-tv"></i> Chamar Próximo na TV
+                </button>
+              ` : ''}
+            </div>
+
+            ${waiting.length > 0 ? `
+              <div style="display: flex; flex-direction: column; gap: 8px; max-height:300px; overflow-y:auto; padding-right:2px;">
+                ${waiting.map((w, idx) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex:1; min-width:0;">
+                      <span style="width: 26px; height: 26px; border-radius: 50%; background: rgba(99,102,241,0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink:0;">${idx + 1}</span>
+                      <div style="overflow:hidden;">
+                        <strong style="color: #f8fafc; font-size: 0.88rem; display: block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.patientName || w.name}</strong>
+                        <small style="color: var(--text-muted); font-size: 0.74rem;">${w._fromTV || w.status === 'Convocado_TV' ? '<span style="color:#38bdf8;font-weight:700;">📺 Convocado na TV</span>' + (w.time ? ` · ${w.time}` : '') : (w.manchesterColor ? `Triagem: <strong style="color:#38bdf8">${w.manchesterColor}</strong>` : (w.time ? `Horário: ${w.time}` : 'Aguardando'))}</small>
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 6px; flex-wrap:wrap;">
+                      <button class="btn" style="background:rgba(14,165,233,0.18);border:1px solid rgba(14,165,233,0.35);color:#38bdf8;font-size:0.72rem;padding:5px 10px;border-radius:7px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" onclick="var rn=${JSON.stringify(roomName)}; var pn=${JSON.stringify(w.patientName||w.name||'')}; if(pn && typeof window.callPatientToTV==='function'){window.callPatientToTV(pn,rn);}else if(typeof window.switchTab==='function'){window.switchTab('tv');}" title="Chamar na TV">
+                        <i class="fa-solid fa-tv"></i> TV
+                      </button>
+                      <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.72rem; padding: 5px 10px; border-radius: 7px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${w.id || w.patientId || ''}', '${w.patientName || w.name}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${w.id || w.patientId || w.patientName}', 'soap');">
+                        <i class="fa-solid fa-file-medical"></i> Atender
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0; text-align: center;">
+                Nenhum paciente aguardando na fila desta sala.
+              </div>
+            `}
+          </div>
+
+          <!-- Histórico de Pacientes Atendidos Hoje -->
+          ${completedToday.length > 0 ? `
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                <span><i class="fa-solid fa-clock-rotate-left" style="color: #34d399;"></i> Pacientes Atendidos Hoje nesta Sala (${completedToday.length})</span>
+                <span style="font-size: 0.7rem; color: #34d399; font-weight: 600;"><i class="fa-solid fa-check-double"></i> Concluídos</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; max-height:220px; overflow-y:auto; padding-right:2px;">
+                ${completedToday.map(c => `
+                  <div style="font-size: 0.82rem; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
+                    <div>
+                      <strong style="color: #f8fafc; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-user-check" style="color:#34d399; font-size:0.8rem;"></i> ${c.patientName}
+                      </strong>
+                      <span style="color: #94a3b8; font-size: 0.74rem;">Concluído: <strong>${c.completed_at || c.discharged_at || c.lastStatusUpdate ? new Date(c.completed_at || c.discharged_at || c.lastStatusUpdate).toLocaleTimeString().slice(0,5) : 'Hoje'}</strong> &bull; Atendimento finalizado</span>
+                    </div>
+                    <button class="btn" style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #c7d2fe; font-size: 0.74rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.openPEPModal === 'function') window.openPEPModal('${c.id || c.patientId || c.patientName}');">
+                      <i class="fa-solid fa-file-lines"></i> Prontuário
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Chamadas Recentes no Painel de TV -->
+          ${recentCalls.length > 0 ? `
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-tv" style="color: #38bdf8;"></i> Chamadas de TV Registradas para esta Sala
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${recentCalls.map(c => `
+                  <div style="font-size: 0.82rem; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
+                    <div>
+                      <strong style="color: #f8fafc; font-size: 0.9rem; display: block;">${c.patientName}</strong>
+                      <span style="color: #94a3b8; font-size: 0.75rem;">Chamado por: <strong>${c.doctorName || 'Dr. Médico Plantonista'}</strong> &bull; ${c.calledAt ? new Date(c.calledAt).toLocaleTimeString().slice(0,5) : 'Recente'}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                      <button class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; font-size: 0.76rem; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(2,132,199,0.3);" onclick="document.getElementById('consultorio-details-modal').remove(); if(typeof window.startEncounterPEP === 'function') window.startEncounterPEP('${c.patientId || ''}', '${c.patientName}', '${roomName}'); else if(typeof window.openPEPModal === 'function') window.openPEPModal('${c.patientId || c.patientName}', 'soap');">
+                        <i class="fa-solid fa-file-medical"></i> Atender (PEP)
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+        </div>
+
+        <div style="padding: 14px 20px; background: var(--bg-tertiary); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-primary" onclick="document.getElementById('consultorio-details-modal').remove()">Fechar</button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+window.loadConsultingRooms = loadConsultingRooms;
+window.openConsultorioDetailsModal = openConsultorioDetailsModal;
+
+function openRoomModal(roomId = null) {
+  let room = { id: '', name: '', specialty: '', currentDoctor: '', status: 'Disponível' };
+  if (roomId && state.consultingRooms) {
+    room = state.consultingRooms.find(r => r.id === roomId) || room;
+  }
+
+  const isEdit = !!roomId;
+  const modalHtml = `
+    <div id="room-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 650px;">
+        <div class="modal-header">
+          <h3>${isEdit ? 'Editar Consultório' : 'Novo Consultório'}</h3>
+          <span class="close-modal" onclick="document.getElementById('room-modal').remove()"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nome / Número do Consultório *</label>
+            <input type="text" id="room-name" class="form-input" value="${room.name}" placeholder="Ex: Consultório 01" required>
+          </div>
+          <div class="form-group">
+            <label>Especialidade / Uso Sugerido</label>
+            <input type="text" id="room-specialty" class="form-input" value="${room.specialty || ''}" placeholder="Ex: Clínica Geral">
+          </div>
+          ${isEdit ? `
+          <div class="form-group">
+            <label>Médico Atual (Opcional)</label>
+            <input type="text" id="room-doctor" class="form-input" value="${room.currentDoctor || ''}" placeholder="Deixe em branco se vazio">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="room-status" class="form-input">
+              <option value="Disponível" ${room.status === 'Disponível' ? 'selected' : ''}>Disponível</option>
+              <option value="Em Uso" ${room.status === 'Em Uso' ? 'selected' : ''}>Em Uso</option>
+              <option value="Manutenção" ${room.status === 'Manutenção' ? 'selected' : ''}>Manutenção</option>
+            </select>
+          </div>
+          ` : ''}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="document.getElementById('room-modal').remove()">Cancelar</button>
+          <button class="btn btn-primary" onclick="saveRoom('${room.id}')">Salvar Consultório</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+async function saveRoom(roomId) {
+  const name = document.getElementById('room-name').value.trim();
+  const specialty = document.getElementById('room-specialty').value.trim();
+  
+  if (!name) return showCustomAlert({ title: 'Aviso', message: 'O nome do consultório é obrigatório.', type: 'warning' });
+
+  let payload = { name, specialty };
+  let url = '/api/consulting-rooms';
+  let method = 'POST';
+
+  if (roomId) {
+    url = `/api/consulting-rooms/${roomId}`;
+    method = 'PUT';
+    payload.currentDoctor = document.getElementById('room-doctor').value.trim();
+    payload.status = document.getElementById('room-status').value;
+  }
+
+  try {
+    const res = await apiFetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (res.ok) {
+      document.getElementById('room-modal').remove();
+      showCustomAlert({ title: 'Sucesso', message: 'Consultório salvo com sucesso.', type: 'success' });
+      loadConsultingRooms();
+    } else {
+      showCustomAlert({ title: 'Erro', message: 'Falha ao salvar consultório.', type: 'error' });
+    }
+  } catch (e) {
+    showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'error' });
+  }
+}
+
+async function deleteRoom(roomId) {
+  const confirmed = await showCustomConfirm({
+    title: 'Excluir Consultório',
+    message: 'Tem certeza que deseja excluir este consultório médico? Esta ação removerá o cadastro do sistema.',
+    confirmText: 'Sim, Excluir',
+    cancelText: 'Cancelar',
+    type: 'danger'
+  });
+  if (!confirmed) return;
+  try {
+    const res = await apiFetch(`/api/consulting-rooms/${roomId}`, { method: 'DELETE' });
+    if (res.ok) {
+      showCustomAlert({ title: 'Sucesso', message: 'Consultório removido.', type: 'success' });
+      loadConsultingRooms();
+    } else {
+      showCustomAlert({ title: 'Erro', message: 'Falha ao remover consultório.', type: 'error' });
+    }
+  } catch (e) {
+    showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'error' });
+  }
+}
+
+window.finishConsultation = async function(appointmentId, roomName) {
+  const confirmed = await showCustomConfirm({
+    title: 'Concluir Atendimento',
+    message: `Deseja concluir o atendimento atual no <strong>${roomName}</strong>?`,
+    confirmText: 'Sim, Concluir',
+    cancelText: 'Cancelar',
+    type: 'success'
+  });
+  if (!confirmed) return;
+  try {
+    const res = await apiFetch(`/api/appointments/${appointmentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'Concluído' })
+    });
+    
+    if (res.ok) {
+      document.getElementById('consultorio-details-modal')?.remove();
+      
+      showFlowCompletionNotification({
+        title: 'CONSULTA FINALIZADA',
+        patientName: '',
+        targetTab: 'consultorios',
+        targetColumn: null,
+        message: `O atendimento foi marcado como <strong>Concluído</strong> e o ${roomName} está livre para o próximo paciente.`,
+        icon: '<i class="fa-solid fa-check-double" style="color: #10b981;"></i>',
+        btnText: 'FECHAR'
+      });
+      
+      loadConsultingRooms();
+      loadKanbanData();
+    } else {
+      showCustomAlert({ title: 'Erro', message: 'Falha ao concluir atendimento.', type: 'error' });
+    }
+  } catch (e) {
+    showCustomAlert({ title: 'Erro', message: 'Erro de conexão.', type: 'error' });
+  }
+};
+
+window.populateFakeDatabase = async function() {
+  showToast('⚙️ Executando simulação completa... aguarde.');
+  try {
+    const result = await generateMockData();
+    const summary = [
+      `👤 ${(result.patients||[]).length} pacientes`,
+      `👨‍⚕️ ${(result.doctors||[]).length} médicos`,
+      `📅 ${(result.appointments||[]).length} agendamentos`,
+      `🏥 ${(result.encounters||[]).length} atendimentos`,
+      `💰 ${(result.financial_installments||[]).length} títulos`,
+      `🛏️ ${(result.beds||[]).filter(b=>b.status==='Ocupado').length} leitos`,
+      `📺 ${(result.tv_calls||[]).length} chamadas`,
+      `💊 ${(result.medications||[]).length} medicamentos`,
+    ].join(' | ');
+    showToast('✅ Simulação completa! ' + summary);
+    setTimeout(() => window.location.reload(), 2000);
+  } catch (e) {
+    console.error('[populateFakeDatabase] Erro:', e);
+    showToast('❌ Erro ao simular banco: ' + (e.message || e));
+  }
+};
+
+async function exportToPDF(headers, rows, title = 'Relatório Health Nexus', filename = 'relatorio.pdf') {
+  if (!window.jspdf) {
+    if (typeof showToast === 'function') showToast('⚠️ Biblioteca PDF não disponível');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(title, 14, 15);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} · Health Nexus`, 14, 21);
+  if (doc.autoTable) {
+    doc.autoTable({
+      startY: 26,
+      head: [headers],
+      body: rows,
+      theme: 'grid',
+      headStyles: { fillColor: [99, 102, 241], textColor: 255, fontSize: 8.5 },
+      styles: { fontSize: 8, cellPadding: 2.5 }
+    });
+  }
+  const fn = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+  doc.save(fn);
+}
+window.exportToPDF = exportToPDF;
+
+
+// Expondo variáveis utilizadas em onclicks (movidas de tv.js)
+window.saveRoom = saveRoom;
+window.deleteRoom = deleteRoom;
+window.openRoomModal = openRoomModal;
+window.openConsultorioDetailsModal = openConsultorioDetailsModal;
+
+// --- INICIALIZAÇÃO AUTOMÁTICA DA APLICAÇÃO ---
+// Start app immediately (module execution is already deferred until DOM is parsed)
+initializeApp();

@@ -1,0 +1,1106 @@
+// ─── MÓDULO DA ABA PACIENTES (HEALTH NEXUS v2.7.2) ──────────────────────────────
+import { state, dataCache } from '../state.js';
+import { apiFetch, cachedApiGet, removeAccents } from '../modules/api.js';
+import { showToast, showCustomAlert, showCustomConfirm, escapeHtml } from '../modules/ui.js';
+import { syncManager } from '../modules/sync.js';
+import { getRolePermissions } from '../modules/auth.js';
+
+export function renderPatientsTab(contentArea) {
+  contentArea.innerHTML = `
+    <div class="tab-section active">
+      <!-- Coluna Única: Lista com Busca Inteligente -->
+      <div class="patients-list-container" style="width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <h3 style="margin: 0; font-family: 'Outfit'; font-weight: 600;">Pacientes Cadastrados</h3>
+            <button id="btn-new-patient" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem; font-weight: 600; border-radius: 8px;"><i class="fa-solid fa-plus"></i> Novo Paciente</button>
+          </div>
+          <button id="patients-trash-btn" class="btn" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; transition: all 0.2s;"><i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i> Lixeira</button>
+        </div>
+        
+        <div class="search-container">
+          <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="search-input" class="search-input" placeholder="Buscar paciente por nome, CPF, cidade ou ID (ignora caixa e acentos)...">
+          </div>
+        </div>
+
+        <div id="patients-table-wrapper" style="overflow-x: auto;">
+          <div style="text-align: center; color: var(--text-secondary); padding: 40px;">Carregando registros...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Admissão de Paciente -->
+    <div id="patient-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+      <div class="patients-form-container" style="background: var(--bg-secondary); width: 95%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s ease-out;">
+        <button type="button" id="btn-close-patient-modal" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
+        <h3 id="form-title" style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente
+        </h3>
+        <form id="patient-form" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+          <input type="hidden" id="editId">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; flex: 1; overflow: hidden; align-items: start;">
+            <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px; max-height: 65vh;" class="custom-scrollbar">
+
+          <!-- SEÇÃO 1: DADOS PESSOAIS & FILIAÇÃO -->
+          <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-user"></i> 1. Dados Pessoais &amp; Filiação
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="fullName">* Nome Completo (Civil):</label>
+                <input type="text" id="fullName" class="form-input" required placeholder="Nome completo do paciente">
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="cpf">* CPF:</label>
+                  <input type="text" id="cpf" class="form-input" required placeholder="000.000.000-00" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="birthDate">* Data de Nascimento:</label>
+                  <input type="text" id="birthDate" class="form-input date-mask" required placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric" autocomplete="off">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="motherName">* Nome da Mãe (Obrigatório SUS):</label>
+                  <input type="text" id="motherName" class="form-input" placeholder="Nome completo da mãe" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="fatherName">Nome do Pai:</label>
+                  <input type="text" id="fatherName" class="form-input" placeholder="Nome completo do pai (opcional)">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="organDonor">Doador de Órgãos:</label>
+                  <select id="organDonor" class="form-input">
+                    <option value="Não Declarado">Não Declarado</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="race">Raça / Cor (IBGE):</label>
+                  <select id="race" class="form-input">
+                    <option value="Parda">Parda</option>
+                    <option value="Branca">Branca</option>
+                    <option value="Preta">Preta</option>
+                    <option value="Amarela">Amarela</option>
+                    <option value="Indígena">Indígena</option>
+                    <option value="Não Informado">Não Informado</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="religion">Religião / Crença:</label>
+                  <input type="text" id="religion" class="form-input" placeholder="Ex: Católica, Evangélica, etc.">
+                </div>
+              </div>
+            </div> <!-- Fim Seção 1 -->
+
+            <!-- SEÇÃO 5: ANTECEDENTES, ALERGIAS & RESTRIÇÕES (ACOMPANHAMENTO CLÍNICO) -->
+            <div style="background: var(--bg-tertiary); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; padding: 14px; margin-bottom: 0px; flex-shrink: 0;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #f87171; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-triangle-exclamation"></i> 5. Antecedentes, Alergias &amp; Restrições Clínicas
+                </span>
+                <span style="font-size: 0.68rem; background: rgba(239, 68, 68, 0.18); color: #fca5a5; padding: 2px 8px; border-radius: 10px; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.35);">Acompanhamento Clínico</span>
+              </div>
+
+              <!-- Alergias & Restrições -->
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" for="allergies" style="color: #fca5a5; display: flex; align-items: center; justify-content: space-between;">
+                  <span><i class="fa-solid fa-ban"></i> Alergias Medicamentosas &amp; Restrições:</span>
+                  <small style="color: var(--text-muted); font-size: 0.7rem;">Gera alerta no PEP e Triagem</small>
+                </label>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;" id="quick-allergy-tags">
+                  <span class="quick-tag-btn" data-target="allergies" data-val="Dipirona" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ Dipirona</span>
+                  <span class="quick-tag-btn" data-target="allergies" data-val="Penicilina" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ Penicilina</span>
+                  <span class="quick-tag-btn" data-target="allergies" data-val="AINEs / AAS" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ AINEs / AAS</span>
+                  <span class="quick-tag-btn" data-target="allergies" data-val="Contraste Iodado" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ Contraste Iodado</span>
+                  <span class="quick-tag-btn" data-target="allergies" data-val="Látex" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">+ Látex</span>
+                </div>
+                <input type="text" id="allergies" class="form-input" placeholder="Ex: Dipirona, Penicilina, Iodo, Frutos do mar, Nenhuma conhecida...">
+              </div>
+
+              <!-- Comorbidades e Doenças Crônicas -->
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" for="medicalHistory" style="color: #93c5fd; display: flex; align-items: center; justify-content: space-between;">
+                  <span><i class="fa-solid fa-notes-medical"></i> Comorbidades &amp; Doenças Crônicas:</span>
+                  <small style="color: var(--text-muted); font-size: 0.7rem;">Suporte à IA preditiva CPOE</small>
+                </label>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;" id="quick-comorbidity-tags">
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Hipertensão (HAS)" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Hipertensão</span>
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Diabetes Mellitus (DM)" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Diabetes</span>
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Cardiopatia" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Cardiopatia</span>
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Insuficiência Renal" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Insuficiência Renal</span>
+                  <span class="quick-tag-btn" data-target="medicalHistory" data-val="Asma / DPOC" style="font-size: 0.72rem; cursor: pointer; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">+ Asma/DPOC</span>
+                </div>
+                <input type="text" id="medicalHistory" class="form-input" placeholder="Ex: Hipertensão, Diabetes Tipo 2, Insuficiência Cardíaca...">
+              </div>
+
+              <!-- Cirurgias Prévias & Ocorrências -->
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="surgicalHistory"><i class="fa-solid fa-syringe"></i> Cirurgias Prévias / Próteses:</label>
+                  <input type="text" id="surgicalHistory" class="form-input" placeholder="Ex: Apendicectomia, Marcapasso, Prótese">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="clinicalNotes"><i class="fa-solid fa-comment-medical"></i> Ocorrências / Observações:</label>
+                  <input type="text" id="clinicalNotes" class="form-input" placeholder="Ex: Risco de queda, Acompanhante integral">
+                </div>
+              </div>
+            </div>
+            </div> <!-- Fim coluna 1 -->
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px; max-height: 65vh;" class="custom-scrollbar"> <!-- Início coluna 2 -->
+            <!-- SEÇÃO 2: CONVÊNIO & CONTATO -->
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px; flex-shrink: 0;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-hospital-user"></i> 2. Convênio &amp; Contato
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="healthPlan">Plano de Saúde / Convênio:</label>
+                  <select id="healthPlan" class="form-input">
+                    <option value="Particular">Particular</option>
+                    <option value="SUS">SUS (Sistema Único de Saúde)</option>
+                    <option value="Unimed">Unimed</option>
+                    <option value="Bradesco Saúde">Bradesco Saúde</option>
+                    <option value="Amil">Amil</option>
+                    <option value="SulAmérica">SulAmérica</option>
+                    <option value="Outro">Outro Convênio</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="cardNumber">Nº Carteirinha / Cartão SUS:</label>
+                  <input type="text" id="cardNumber" class="form-input" placeholder="000 0000 0000 0000">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="cep">CEP (Busca Auto):</label>
+                  <div style="position: relative; display: flex; align-items: center;">
+                    <input type="text" id="cep" class="form-input" placeholder="00000-000" inputmode="numeric" maxlength="9" style="padding-right: 36px;">
+                    <button type="button" id="btn-search-cep" title="Buscar Endereço pelo CEP" style="position: absolute; right: 8px; background: transparent; border: none; color: #818cf8; cursor: pointer; font-size: 1rem; padding: 4px;">
+                      <i class="fa-solid fa-magnifying-glass" id="cep-search-icon"></i>
+                      <i class="fa-solid fa-spinner fa-spin" id="cep-loading-icon" style="display: none;"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group" style="flex: 2;">
+                  <label class="form-label" for="address">Endereço (Rua/Av):</label>
+                  <input type="text" id="address" class="form-input" placeholder="Ex: Rua Santa Anita">
+                </div>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="number">Número / Compl.:</label>
+                  <input type="text" id="number" class="form-input" placeholder="Ex: 120 / Ap 42">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="neighborhood">Bairro:</label>
+                  <input type="text" id="neighborhood" class="form-input" placeholder="Ex: Vila Promissão">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="city">Cidade / UF:</label>
+                  <input type="text" id="city" class="form-input" placeholder="Ex: Osvaldo Cruz - SP">
+                </div>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="phone">Telefone Fixo:</label>
+                  <input type="text" id="phone" class="form-input phone-mask" placeholder="(18) 3528-5022">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cellphone">Celular / WhatsApp:</label>
+                  <input type="text" id="cellphone" class="form-input phone-mask" placeholder="(18) 98817-5809">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="billingValue">Valor Consulta/Tabela:</label>
+                  <input type="text" id="billingValue" class="form-input currency-mask" placeholder="R$ 0,00">
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 3: RESPONSÁVEL LEGAL -->
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px; flex-shrink: 0;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-users"></i> 3. Responsável Legal / Acompanhante
+              </div>
+
+              <div id="responsible-alert-badge" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; margin-bottom: 12px;">
+                <i class="fa-solid fa-circle-info"></i> Preenchimento obrigatório para menores de 18 anos ou maiores de 65 anos.
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                  <label class="form-label" for="responsibleName" id="lbl-responsibleName">Nome do Responsável:</label>
+                  <input type="text" id="responsibleName" class="form-input" placeholder="Nome completo do responsável legal">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="responsibleCpf" id="lbl-responsibleCpf">CPF Responsável:</label>
+                  <input type="text" id="responsibleCpf" class="form-input" placeholder="000.000.000-00" inputmode="numeric">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="responsiblePhone">Telefone Responsável:</label>
+                  <input type="text" id="responsiblePhone" class="form-input phone-mask" placeholder="(18) 99999-0000">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="responsibleRelationship">Grau de Parentesco:</label>
+                  <select id="responsibleRelationship" class="form-input">
+                    <option value="Pai/Mãe">Pai / Mãe</option>
+                    <option value="Cônjuge">Cônjuge / Esposo(a)</option>
+                    <option value="Filho(a)">Filho(a)</option>
+                    <option value="Tutor(a)">Tutor(a) Legal</option>
+                    <option value="Outro">Outro Parentesco</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 4: REGULAÇÃO SUS (CROSS) & ARQUIVO FÍSICO -->
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 0px; flex-shrink: 0;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-folder-tree"></i> 4. Regulação SUS (CROSS) &amp; Arquivo Físico
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="crossPatientId">ID Paciente CROSS (Regulação):</label>
+                  <input type="text" id="crossPatientId" class="form-input" placeholder="Ex: 1490028 ou código de vaga">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="physicalChartNumber">Nº Pasta / Arquivo Físico:</label>
+                  <input type="text" id="physicalChartNumber" class="form-input" placeholder="Ex: Pasta 0, Caixa 12">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="birthCity">Naturalidade (Cidade/UF):</label>
+                  <input type="text" id="birthCity" class="form-input" placeholder="Ex: Tupã / SP">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label" for="rgNumber">Documento RG / UF:</label>
+                  <input type="text" id="rgNumber" class="form-input" placeholder="Ex: 60.765.922-1 SSP/SP">
+                </div>
+              </div>
+            </div>
+            </div> <!-- Fim coluna 2 -->
+          </div> <!-- Fim grid duas colunas -->
+
+            <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+              <button type="button" id="btn-view-patient-history-form" class="btn" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c4b5fd; font-weight: 700; cursor: pointer; display: none; min-width: 170px;" title="Abrir Histórico Completo de Passagens e PEPs">
+                <i class="fa-solid fa-clock-rotate-left"></i> Histórico de Atendimentos
+              </button>
+              <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1; min-width: 150px;">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Cadastro
+              </button>
+              <button type="button" id="submit-and-admit-btn" class="btn" style="flex: 1.2; min-width: 190px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                <i class="fa-solid fa-truck-medical"></i> Salvar e Admitir no PS
+              </button>
+              <button type="button" id="cancel-edit-btn" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary); flex: 0.6; min-width: 90px;">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+  `;
+
+  if (typeof window.applyInputMasks === 'function') window.applyInputMasks();
+
+  let allPatients = [];
+
+  const renderTableRows = (patientsToRender) => {
+    const wrapper = document.getElementById('patients-table-wrapper');
+    if (!wrapper) return;
+    
+    if (patientsToRender.length === 0) {
+      wrapper.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhum paciente encontrado.</div>`;
+      return;
+    }
+
+    let tableHtml = `
+      <table class="patients-table">
+        <thead>
+          <tr>
+            <th class="col-patient-id">ID</th>
+            <th class="col-patient-name">Nome Completo</th>
+            <th class="col-patient-loc">
+              <span class="col-loc-full">📍 Status / Localização Atual</span>
+              <span class="col-loc-compact" style="display:none;">📍 Localização</span>
+            </th>
+            <th class="col-patient-cpf">CPF</th>
+            <th class="col-patient-dob">Data Nasc.</th>
+            <th class="col-patient-city">Cidade</th>
+            <th class="col-patient-phones">Telefones</th>
+            <th class="col-patient-val">Valor</th>
+            <th class="col-patient-actions" style="text-align: right;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    patientsToRender.forEach(p => {
+      let formattedDate = p.birthDate;
+      if (p.birthDate && p.birthDate.includes('-')) {
+        const [y, m, d] = p.birthDate.split('-');
+        formattedDate = `${d}/${m}/${y}`;
+      }
+      
+      const phonesList = [p.phone, p.cellphone].filter(Boolean);
+      const phonesDisplay = phonesList.length > 1
+        ? `<div style="font-size: 0.8rem; line-height: 1.25;">${phonesList[0]}<br><span style="color: var(--text-muted); font-size: 0.74rem;">${phonesList[1]}</span></div>`
+        : (phonesList[0] || '—');
+      const loc = (typeof window.getPatientCurrentLocation === 'function') ? window.getPatientCurrentLocation(p.id, p.fullName) : { text: 'Fora da Unidade', color: '#94a3b8', icon: 'fa-user', bg: 'rgba(148,163,184,0.12)', borderColor: 'rgba(148,163,184,0.3)' };
+      
+      const activePatCtx = (typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      const isSelectedPat = !!(activePatCtx && (activePatCtx.fullName || activePatCtx.patientName || '').toLowerCase().trim() === (p.fullName || '').toLowerCase().trim());
+
+      tableHtml += `
+        <tr class="patient-card-item ${isSelectedPat ? 'patient-pulse-selected' : ''}" data-patient-card-name="${escapeHtml((p.fullName||'').toLowerCase())}" data-patient-id="${escapeHtml(p.id)}">
+          <td class="col-patient-id" style="font-family: monospace; font-weight: 600; font-size: 0.78rem; color: var(--color-primary); white-space: nowrap;">${escapeHtml(p.id)}</td>
+          <td class="col-patient-name" style="font-weight: 600;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span>${escapeHtml(p.fullName)}</span>
+              ${p.allergies ? `<span style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="Alergias: ${escapeHtml(p.allergies)}"><i class="fa-solid fa-ban" style="font-size: 0.6rem;"></i> Alergia</span>` : ''}
+              ${p.medicalHistory ? `<span style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: rgba(59, 130, 246, 0.18); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="Comorbidades: ${escapeHtml(p.medicalHistory)}"><i class="fa-solid fa-notes-medical" style="font-size: 0.6rem;"></i> Crônico</span>` : ''}
+            </div>
+            <div style="color: var(--text-muted); font-size: 0.74rem; font-weight: normal; margin-top: 1px;">Mãe: ${escapeHtml(p.motherName || '-')}</div>
+            <div class="patient-compact-meta" style="display: none; font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; gap: 8px; flex-wrap: wrap;">
+              <span><i class="fa-solid fa-id-card" style="font-size:0.65rem; color:#94a3b8; margin-right:3px;"></i>${escapeHtml(p.cpf)}</span>
+              <span><i class="fa-solid fa-cake-candles" style="font-size:0.65rem; color:#f59e0b; margin-right:3px;"></i>${escapeHtml(formattedDate)}</span>
+              ${phonesList[0] ? `<span><i class="fa-solid fa-phone" style="font-size:0.65rem; color:#38bdf8; margin-right:3px;"></i>${escapeHtml(phonesList[0])}</span>` : ''}
+              ${p.city ? `<span><i class="fa-solid fa-location-dot" style="font-size:0.65rem; color:#a78bfa; margin-right:3px;"></i>${escapeHtml(p.city)}</span>` : ''}
+            </div>
+          </td>
+          <td class="col-patient-loc" onclick="window.handleLocationBadgeClick('${escapeHtml(p.id)}', '${escapeHtml((p.fullName||'').replace(/'/g, "\\'"))}')" style="cursor: pointer;" title="Clique para ir direto ao atendimento / PEP do paciente no ${escapeHtml(loc.sector || 'Consultório')}">
+            <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 16px; font-size: 0.74rem; font-weight: 700; background: ${loc.bg}; color: ${loc.color}; border: 1px solid ${loc.borderColor}; white-space: nowrap; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease;">
+              <i class="fa-solid ${loc.icon}"></i> ${escapeHtml(loc.sector || loc.text)} ${loc.bed ? `(${escapeHtml(loc.bed)})` : ''} <i class="fa-solid fa-arrow-right" style="font-size:0.62rem; margin-left:2px; opacity:0.8;"></i>
+            </span>
+          </td>
+          <td class="col-patient-cpf" style="font-family: monospace; font-size: 0.84rem; white-space: nowrap;">${escapeHtml(p.cpf)}</td>
+          <td class="col-patient-dob" style="white-space: nowrap; font-size: 0.84rem;">${escapeHtml(formattedDate)}</td>
+          <td class="col-patient-city" style="white-space: nowrap; font-size: 0.84rem;">${escapeHtml(p.city || '-')}</td>
+          <td class="col-patient-phones" style="white-space: nowrap;">${phonesDisplay}</td>
+          <td class="col-patient-val" style="font-family: monospace; font-weight: 600; font-size: 0.84rem; white-space: nowrap;">${escapeHtml(p.billingValue || 'R$ 0,00')}</td>
+          <td class="col-patient-actions" style="white-space: nowrap; text-align: right;">
+            <div class="actions-cell">
+              <button class="btn-icon btn-icon-admit" onclick="window.admitPatientFromPatientsTab('${escapeHtml(p.id)}', '${escapeHtml((p.fullName||'').replace(/'/g, "\\'"))}', '${escapeHtml(p.cpf||'')}')" title="Admitir / Atender este Paciente">
+                <i class="fa-solid fa-hospital-user"></i>
+              </button>
+              <button class="btn-icon btn-icon-history" onclick="window.openPatientHistoryModal('${escapeHtml(p.id)}', '${escapeHtml((p.fullName||'').replace(/'/g, "\\'"))}')" title="Ver Prontuário & Histórico Pós-Alta">
+                <i class="fa-solid fa-file-medical"></i>
+              </button>
+              <button class="btn-icon btn-icon-pdf" onclick="window.generatePatientPDF('${escapeHtml(p.id)}', '${escapeHtml((p.fullName||'').replace(/'/g, "\\'"))}')" title="Gerar Prontuário PDF">
+                <i class="fa-solid fa-file-pdf"></i>
+              </button>
+              <button class="btn-icon btn-icon-edit" 
+                data-edit-id="${escapeHtml(p.id)}" 
+                data-full-name="${escapeHtml(p.fullName || '')}" 
+                data-cpf="${escapeHtml(p.cpf || '')}" 
+                data-birth-date="${escapeHtml(formattedDate || p.birthDate || '')}"
+                data-mother-name="${escapeHtml(p.motherName || '')}"
+                data-father-name="${escapeHtml(p.fatherName || '')}"
+                data-organ-donor="${escapeHtml(p.organDonor || 'Não Declarado')}"
+                data-race="${escapeHtml(p.race || 'Parda')}"
+                data-religion="${escapeHtml(p.religion || '')}"
+                data-health-plan="${escapeHtml(p.healthPlan || 'Particular')}"
+                data-card-number="${escapeHtml(p.cardNumber || '')}"
+                data-responsible-name="${escapeHtml(p.responsibleName || '')}"
+                data-responsible-cpf="${escapeHtml(p.responsibleCpf || '')}"
+                data-responsible-phone="${escapeHtml(p.responsiblePhone || '')}"
+                data-responsible-relationship="${escapeHtml(p.responsibleRelationship || 'Pai/Mãe')}"
+                data-cep="${escapeHtml(p.cep || '')}"
+                data-address="${escapeHtml(p.address || '')}"
+                data-number="${escapeHtml(p.number || '')}"
+                data-neighborhood="${escapeHtml(p.neighborhood || '')}"
+                data-city="${escapeHtml(p.city || '')}"
+                data-phone="${escapeHtml(p.phone || '')}"
+                data-cellphone="${escapeHtml(p.cellphone || '')}"
+                data-billing-value="${escapeHtml(p.billingValue || '')}"
+                data-cross-id="${escapeHtml(p.crossPatientId || '')}"
+                data-physical-chart="${escapeHtml(p.physicalChartNumber || '')}"
+                data-birth-city="${escapeHtml(p.birthCity || '')}"
+                data-rg-number="${escapeHtml(p.rgNumber || '')}"
+                data-allergies="${escapeHtml(p.allergies || '')}"
+                data-medical-history="${escapeHtml(p.medicalHistory || '')}"
+                data-surgical-history="${escapeHtml(p.surgicalHistory || '')}"
+                data-clinical-notes="${escapeHtml(p.clinicalNotes || '')}"
+                title="Alterar / Editar Paciente">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="btn-icon btn-icon-delete" data-delete-id="${p.id}" title="Excluir Paciente">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    tableHtml += `</tbody></table>`;
+    wrapper.innerHTML = tableHtml;
+
+    if (!wrapper.dataset.delegated) {
+      wrapper.dataset.delegated = '1';
+      wrapper.addEventListener('click', async (e) => {
+        const editBtn = e.target.closest('.btn-icon-edit');
+        if (editBtn) {
+          document.getElementById('editId').value = editBtn.getAttribute('data-edit-id');
+          document.getElementById('fullName').value = editBtn.getAttribute('data-full-name');
+          document.getElementById('cpf').value = editBtn.getAttribute('data-cpf');
+          
+          const rawDate = editBtn.getAttribute('data-birth-date') || '';
+          let displayBirthDate = rawDate;
+          if (rawDate.includes('-')) {
+            const parts = rawDate.split('-');
+            if (parts.length === 3) displayBirthDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          }
+          document.getElementById('birthDate').value = displayBirthDate;
+          
+          if (document.getElementById('motherName')) document.getElementById('motherName').value = editBtn.getAttribute('data-mother-name') || '';
+          if (document.getElementById('fatherName')) document.getElementById('fatherName').value = editBtn.getAttribute('data-father-name') || '';
+          if (document.getElementById('organDonor')) document.getElementById('organDonor').value = editBtn.getAttribute('data-organ-donor') || 'Não Declarado';
+          if (document.getElementById('race')) document.getElementById('race').value = editBtn.getAttribute('data-race') || 'Parda';
+          if (document.getElementById('religion')) document.getElementById('religion').value = editBtn.getAttribute('data-religion') || '';
+          if (document.getElementById('healthPlan')) document.getElementById('healthPlan').value = editBtn.getAttribute('data-health-plan') || 'Particular';
+          if (document.getElementById('cardNumber')) document.getElementById('cardNumber').value = editBtn.getAttribute('data-card-number') || '';
+          if (document.getElementById('responsibleName')) document.getElementById('responsibleName').value = editBtn.getAttribute('data-responsible-name') || '';
+          if (document.getElementById('responsibleCpf')) document.getElementById('responsibleCpf').value = editBtn.getAttribute('data-responsible-cpf') || '';
+          if (document.getElementById('responsiblePhone')) document.getElementById('responsiblePhone').value = editBtn.getAttribute('data-responsible-phone') || '';
+          if (document.getElementById('responsibleRelationship')) document.getElementById('responsibleRelationship').value = editBtn.getAttribute('data-responsible-relationship') || 'Pai/Mãe';
+
+          const cepEl = document.getElementById('cep');
+          if (cepEl) cepEl.value = editBtn.getAttribute('data-cep') || '';
+          document.getElementById('address').value = editBtn.getAttribute('data-address');
+          const numEl = document.getElementById('number');
+          if (numEl) numEl.value = editBtn.getAttribute('data-number') || '';
+          const neighEl = document.getElementById('neighborhood');
+          if (neighEl) neighEl.value = editBtn.getAttribute('data-neighborhood') || '';
+          document.getElementById('city').value = editBtn.getAttribute('data-city');
+          document.getElementById('phone').value = editBtn.getAttribute('data-phone');
+          document.getElementById('cellphone').value = editBtn.getAttribute('data-cellphone');
+          document.getElementById('billingValue').value = editBtn.getAttribute('data-billing-value');
+
+          if (document.getElementById('crossPatientId')) document.getElementById('crossPatientId').value = editBtn.getAttribute('data-cross-id') || '';
+          if (document.getElementById('physicalChartNumber')) document.getElementById('physicalChartNumber').value = editBtn.getAttribute('data-physical-chart') || '';
+          if (document.getElementById('birthCity')) document.getElementById('birthCity').value = editBtn.getAttribute('data-birth-city') || '';
+          if (document.getElementById('rgNumber')) document.getElementById('rgNumber').value = editBtn.getAttribute('data-rg-number') || '';
+          if (document.getElementById('allergies')) document.getElementById('allergies').value = editBtn.getAttribute('data-allergies') || '';
+          if (document.getElementById('medicalHistory')) document.getElementById('medicalHistory').value = editBtn.getAttribute('data-medical-history') || '';
+          if (document.getElementById('surgicalHistory')) document.getElementById('surgicalHistory').value = editBtn.getAttribute('data-surgical-history') || '';
+          if (document.getElementById('clinicalNotes')) document.getElementById('clinicalNotes').value = editBtn.getAttribute('data-clinical-notes') || '';
+
+          const btnViewHistory = document.getElementById('btn-view-patient-history-form');
+          if (btnViewHistory) {
+            btnViewHistory.style.display = 'inline-flex';
+            btnViewHistory.onclick = () => {
+              const pId = document.getElementById('editId').value;
+              const pName = document.getElementById('fullName').value;
+              if (pId && typeof window.openPatientHistoryModal === 'function') {
+                window.openPatientHistoryModal(pId, pName);
+              }
+            };
+          }
+
+          document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--color-primary);"></i> Editar Paciente';
+          document.getElementById('submit-btn').textContent = "Salvar Alterações";
+
+          checkAgeValidation();
+
+          const modalOverlay = document.getElementById('patient-modal-overlay');
+          if (modalOverlay) modalOverlay.style.display = 'flex';
+          return;
+        }
+
+        const deleteBtn = e.target.closest('.btn-icon-delete');
+        if (deleteBtn) {
+          const perms = getRolePermissions(state.user);
+          if (!perms.canDeleteRecords) {
+            showCustomAlert({
+              title: 'Acesso Restrito',
+              message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão para excluir registros de pacientes. Apenas Administradores e Master podem realizar esta operação.`,
+              type: 'warning'
+            });
+            return;
+          }
+
+          const id = deleteBtn.getAttribute('data-delete-id');
+          const confirmed = await showCustomConfirm({
+            title: 'Excluir Paciente',
+            message: 'Tem certeza de que deseja excluir este paciente do sistema?',
+            confirmText: 'Sim, Excluir',
+            cancelText: 'Cancelar',
+            type: 'danger'
+          });
+
+          if (confirmed) {
+            try {
+              const deleteRes = await apiFetch(`/api/patients/${id}`, { method: 'DELETE' });
+              if (deleteRes.ok) {
+                loadAndRenderTable();
+                if (document.getElementById('editId').value === id) {
+                  resetForm();
+                }
+                state.loading = true;
+              } else {
+                showCustomAlert({ title: 'Erro', message: 'Erro ao excluir paciente.', type: 'danger' });
+              }
+            } catch (err) {
+              showCustomAlert({ title: 'Erro', message: 'Erro ao conectar-se à API.', type: 'danger' });
+            }
+          }
+          return;
+        }
+
+        if (e.target.closest('.actions-cell') || e.target.closest('button') || e.target.closest('.col-patient-loc')) return;
+        const tr = e.target.closest('tr.patient-card-item');
+        if (tr) {
+          const pid = tr.getAttribute('data-patient-id');
+          const pName = tr.querySelector('td:nth-child(2)')?.firstChild?.textContent?.trim() || tr.getAttribute('data-patient-card-name');
+          if (pName && typeof window.setActivePatientContext === 'function') {
+            let curStatus = 'Aguardando_Triagem';
+            let mColor = '';
+            let curRoom = 'Sala de Triagem';
+            if (window.localDB) {
+              const db = window.localDB.getFullDB();
+              const encs = db.encounters || [];
+              const match = encs.find(enc => String(enc.patientId) === String(pid) || (enc.patientName && enc.patientName.toLowerCase() === pName.toLowerCase()));
+              if (match) {
+                curStatus = match.status || curStatus;
+                mColor = match.manchesterColor || '';
+                const isTriaged = !!mColor || ['aguardando_atendimento', 'em_atendimento', 'internado'].includes((curStatus || '').toLowerCase());
+                curRoom = match.room || (isTriaged ? 'Consultório 01' : 'Sala de Triagem');
+              }
+            }
+            window.setActivePatientContext({
+              id: pid,
+              fullName: pName,
+              patientName: pName,
+              manchesterColor: mColor,
+              status: curStatus,
+              room: curRoom
+            });
+            wrapper.querySelectorAll('tr.patient-card-item').forEach(r => r.classList.remove('patient-pulse-selected'));
+            tr.classList.add('patient-pulse-selected');
+            if (typeof window.ensureSmartFlowGuideMounted === 'function') {
+              window.ensureSmartFlowGuideMounted('pacientes');
+            }
+          }
+        }
+      });
+    }
+  };
+
+  const checkAgeValidation = () => {
+    const birthVal = document.getElementById('birthDate')?.value?.trim();
+    if (!birthVal || birthVal.length < 10) return;
+
+    let birth = null;
+    if (birthVal.includes('/')) {
+      const parts = birthVal.split('/');
+      if (parts.length === 3) {
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const y = parseInt(parts[2], 10);
+        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+          birth = new Date(y, m - 1, d, 12, 0, 0);
+        }
+      }
+    } else if (birthVal.includes('-')) {
+      const parts = birthVal.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const d = parseInt(parts[2], 10);
+        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+          birth = new Date(y, m - 1, d, 12, 0, 0);
+        }
+      }
+    }
+
+    if (!birth || isNaN(birth.getTime())) return;
+
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+    const alertBadge = document.getElementById('responsible-alert-badge');
+    const respName = document.getElementById('responsibleName');
+    const respCpf = document.getElementById('responsibleCpf');
+    const lblName = document.getElementById('lbl-responsibleName');
+    const lblCpf = document.getElementById('lbl-responsibleCpf');
+
+    if (age < 18 || age > 65) {
+      if (alertBadge) {
+        alertBadge.style.display = 'block';
+        alertBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>Idade (${age} anos):</strong> Menores de 18 anos ou maiores de 65 anos exigem o preenchimento do Responsável Legal.`;
+      }
+      if (respName) respName.required = true;
+      if (respCpf) respCpf.required = true;
+      if (lblName) lblName.textContent = '* Nome do Responsável (Obrigatório):';
+      if (lblCpf) lblCpf.textContent = '* CPF Responsável (Obrigatório):';
+    } else {
+      if (alertBadge) alertBadge.style.display = 'none';
+      if (respName) respName.required = false;
+      if (respCpf) respCpf.required = false;
+      if (lblName) lblName.textContent = 'Nome do Responsável:';
+      if (lblCpf) lblCpf.textContent = 'CPF Responsável:';
+    }
+  };
+
+  const birthInput = document.getElementById('birthDate');
+  if (birthInput) {
+    birthInput.addEventListener('input', (e) => {
+      if (typeof window.maskDate === 'function') {
+        e.target.value = window.maskDate(e.target.value);
+      }
+      checkAgeValidation();
+    });
+    birthInput.addEventListener('change', checkAgeValidation);
+  }
+
+  const cepInput = document.getElementById('cep');
+  const btnSearchCep = document.getElementById('btn-search-cep');
+  let lastSearchedCep = '';
+
+  const executeCepLookup = async () => {
+    if (!cepInput) return;
+    let rawVal = cepInput.value || '';
+    let cleanVal = rawVal.replace(/\D/g, '');
+    if (cleanVal.length > 8) cleanVal = cleanVal.substring(0, 8);
+
+    if (cleanVal.length > 5) {
+      cepInput.value = cleanVal.substring(0, 5) + '-' + cleanVal.substring(5);
+    } else {
+      cepInput.value = cleanVal;
+    }
+
+    if (cleanVal.length !== 8) return;
+    if (cleanVal === lastSearchedCep) return;
+    lastSearchedCep = cleanVal;
+
+    const searchIcon = document.getElementById('cep-search-icon');
+    const loadingIcon = document.getElementById('cep-loading-icon');
+    if (searchIcon) searchIcon.style.display = 'none';
+    if (loadingIcon) loadingIcon.style.display = 'inline-block';
+
+    try {
+      let foundData = null;
+
+      // 1. Tentativa via ViaCEP
+      try {
+        const r1 = await fetch(`https://viacep.com.br/ws/${cleanVal}/json/`);
+        if (r1.ok) {
+          const d1 = await r1.json();
+          if (!d1.erro && d1.localidade) {
+            foundData = {
+              street: d1.logradouro || '',
+              neighborhood: d1.bairro || '',
+              city: `${d1.localidade} - ${d1.uf}`
+            };
+          }
+        }
+      } catch (e) {}
+
+      // 2. Fallback via BrasilAPI
+      if (!foundData) {
+        try {
+          const r2 = await fetch(`https://brasilapi.com.br/api/cep/v1/${cleanVal}`);
+          if (r2.ok) {
+            const d2 = await r2.json();
+            if (d2.city) {
+              foundData = {
+                street: d2.street || '',
+                neighborhood: d2.neighborhood || '',
+                city: `${d2.city} - ${d2.state}`
+              };
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 3. Fallback via Backend API
+      if (!foundData) {
+        try {
+          const r3 = await apiFetch(`/api/cep/${cleanVal}`);
+          if (r3.ok) {
+            const p3 = await r3.json();
+            if (p3.status === 'success' && p3.data) {
+              foundData = {
+                street: p3.data.street || p3.data.address || '',
+                neighborhood: p3.data.neighborhood || '',
+                city: p3.data.city
+              };
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (foundData) {
+        const addressInput = document.getElementById('address');
+        const neighborhoodInput = document.getElementById('neighborhood');
+        const cityInput = document.getElementById('city');
+        const numberInput = document.getElementById('number');
+
+        if (addressInput && foundData.street) addressInput.value = foundData.street;
+        if (neighborhoodInput && foundData.neighborhood) neighborhoodInput.value = foundData.neighborhood;
+        if (cityInput && foundData.city) cityInput.value = foundData.city;
+
+        showToast(`Endereço localizado: ${foundData.city}`);
+        if (numberInput) numberInput.focus();
+      } else {
+        showCustomAlert({
+          title: 'CEP Não Encontrado',
+          message: `Não foi possível localizar o endereço para o CEP <strong>${cepInput.value}</strong>. Por favor, digite o endereço manualmente.`,
+          type: 'warning'
+        });
+      }
+    } catch (err) {
+      console.error('Erro na busca de CEP:', err);
+    } finally {
+      if (searchIcon) searchIcon.style.display = 'inline-block';
+      if (loadingIcon) loadingIcon.style.display = 'none';
+    }
+  };
+
+  if (cepInput) {
+    cepInput.addEventListener('input', executeCepLookup);
+    cepInput.addEventListener('change', executeCepLookup);
+    cepInput.addEventListener('blur', executeCepLookup);
+  }
+  if (btnSearchCep) {
+    btnSearchCep.addEventListener('click', () => {
+      lastSearchedCep = '';
+      executeCepLookup();
+    });
+  }
+
+  const loadAndRenderTable = async () => {
+    try {
+      if (typeof window !== 'undefined' && window.localDB && typeof window.localDB.list === 'function') {
+        allPatients = window.localDB.list('patients') || [];
+        renderTableRows(allPatients);
+        return;
+      }
+      const result = await cachedApiGet(`/api/patients`, 'patients');
+      allPatients = Array.isArray(result) ? result : (result.data || []);
+      renderTableRows(allPatients);
+    } catch (err) {
+      console.error('Erro ao carregar pacientes:', err);
+      const wrapper = document.getElementById('patients-table-wrapper');
+      if (wrapper) wrapper.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px;">Erro ao carregar dados do banco de dados.</div>`;
+    }
+  };
+  window.loadPatientsTable = loadAndRenderTable;
+  window.loadPatients = loadAndRenderTable;
+
+  const resetForm = () => {
+    document.getElementById('patient-form').reset();
+    document.getElementById('editId').value = "";
+    if (document.getElementById('crossPatientId')) document.getElementById('crossPatientId').value = '';
+    if (document.getElementById('physicalChartNumber')) document.getElementById('physicalChartNumber').value = '';
+    if (document.getElementById('birthCity')) document.getElementById('birthCity').value = '';
+    if (document.getElementById('rgNumber')) document.getElementById('rgNumber').value = '';
+    if (document.getElementById('allergies')) document.getElementById('allergies').value = '';
+    if (document.getElementById('medicalHistory')) document.getElementById('medicalHistory').value = '';
+    if (document.getElementById('surgicalHistory')) document.getElementById('surgicalHistory').value = '';
+    if (document.getElementById('clinicalNotes')) document.getElementById('clinicalNotes').value = '';
+    const btnViewHistory = document.getElementById('btn-view-patient-history-form');
+    if (btnViewHistory) btnViewHistory.style.display = 'none';
+    document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-id-card" style="color: var(--color-primary);"></i> Admissão de Paciente';
+    document.getElementById('submit-btn').textContent = "Registrar Paciente";
+    const alertBadge = document.getElementById('responsible-alert-badge');
+    if (alertBadge) alertBadge.style.display = 'none';
+    
+    const modalOverlay = document.getElementById('patient-modal-overlay');
+    if (modalOverlay) modalOverlay.style.display = 'none';
+  };
+
+  document.getElementById('cancel-edit-btn')?.addEventListener('click', resetForm);
+  document.getElementById('btn-close-patient-modal')?.addEventListener('click', resetForm);
+  document.getElementById('btn-new-patient')?.addEventListener('click', () => {
+    resetForm();
+    const modalOverlay = document.getElementById('patient-modal-overlay');
+    if (modalOverlay) modalOverlay.style.display = 'flex';
+  });
+
+  document.getElementById('patients-trash-btn')?.addEventListener('click', () => {
+    if (typeof window.showTrashModal === 'function') window.showTrashModal('patients');
+  });
+
+  document.getElementById('search-input')?.addEventListener('input', (e) => {
+    const query = removeAccents(e.target.value.trim());
+    const filtered = allPatients.filter(p => {
+      return removeAccents(p.fullName).includes(query) ||
+             removeAccents(p.cpf).includes(query) ||
+             removeAccents(p.city || '').includes(query) ||
+             removeAccents(p.id).includes(query);
+    });
+    renderTableRows(filtered);
+  });
+
+  document.getElementById('patient-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('editId').value;
+    const fullName = document.getElementById('fullName').value;
+    const cpf = document.getElementById('cpf').value;
+    const birthDateInput = (document.getElementById('birthDate')?.value || '').trim();
+    
+    // Validação estrita do formato DD/MM/AAAA
+    let birthDate = birthDateInput;
+    if (birthDateInput.includes('/')) {
+      const parts = birthDateInput.split('/');
+      if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const y = parseInt(parts[2], 10);
+        const currentYear = new Date().getFullYear();
+        if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || y > currentYear) {
+          showCustomAlert({
+            title: 'Data Inválida',
+            message: 'Por favor, informe uma data de nascimento válida no formato DD/MM/AAAA.',
+            type: 'warning'
+          });
+          return;
+        }
+        birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      } else {
+        showCustomAlert({
+          title: 'Data Incompleta',
+          message: 'Por favor, preencha a data de nascimento completa no formato DD/MM/AAAA (10 dígitos).',
+          type: 'warning'
+        });
+        return;
+      }
+    } else if (birthDateInput.length < 10) {
+      showCustomAlert({
+        title: 'Data Incompleta',
+        message: 'Por favor, informe a data de nascimento no formato DD/MM/AAAA.',
+        type: 'warning'
+      });
+      return;
+    }
+
+    const motherName = document.getElementById('motherName')?.value || '';
+    const fatherName = document.getElementById('fatherName')?.value || '';
+    const organDonor = document.getElementById('organDonor')?.value || 'Não Declarado';
+    const race = document.getElementById('race')?.value || 'Parda';
+    const religion = document.getElementById('religion')?.value || '';
+    const healthPlan = document.getElementById('healthPlan')?.value || 'Particular';
+    const cardNumber = document.getElementById('cardNumber')?.value || '';
+    const responsibleName = document.getElementById('responsibleName')?.value || '';
+    const responsibleCpf = document.getElementById('responsibleCpf')?.value || '';
+    const responsiblePhone = document.getElementById('responsiblePhone')?.value || '';
+    const responsibleRelationship = document.getElementById('responsibleRelationship')?.value || 'Pai/Mãe';
+    const cep = document.getElementById('cep')?.value || '';
+    const address = document.getElementById('address').value;
+    const number = document.getElementById('number')?.value || '';
+    const neighborhood = document.getElementById('neighborhood')?.value || '';
+    const city = document.getElementById('city').value;
+    const phone = document.getElementById('phone').value;
+    const cellphone = document.getElementById('cellphone').value;
+    const billingValue = document.getElementById('billingValue').value;
+    const crossPatientId = document.getElementById('crossPatientId')?.value || '';
+    const physicalChartNumber = document.getElementById('physicalChartNumber')?.value || '';
+    const birthCity = document.getElementById('birthCity')?.value || '';
+    const rgNumber = document.getElementById('rgNumber')?.value || '';
+    const allergies = document.getElementById('allergies')?.value || '';
+    const medicalHistory = document.getElementById('medicalHistory')?.value || '';
+    const surgicalHistory = document.getElementById('surgicalHistory')?.value || '';
+    const clinicalNotes = document.getElementById('clinicalNotes')?.value || '';
+
+    const isEdit = !!editId;
+    const url = isEdit ? `/api/patients/${editId}` : `/api/patients`;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const submitButton = document.getElementById('submit-btn');
+    const originalSubmitText = submitButton?.textContent || '';
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Salvando...';
+      }
+
+      const payload = {
+        fullName, cpf, birthDate, motherName, fatherName, organDonor, race, religion,
+        healthPlan, cardNumber, responsibleName, responsibleCpf, responsiblePhone, responsibleRelationship,
+        cep, address, number, neighborhood, city, phone, cellphone, billingValue,
+        crossPatientId, physicalChartNumber, birthCity, rgNumber,
+        allergies, medicalHistory, surgicalHistory, clinicalNotes
+      };
+
+      const res = await apiFetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        data = {};
+      }
+
+      if (res.ok) {
+        const savedPatientId = (data.data && data.data.id) || payload.id || editId;
+
+        try {
+          resetForm();
+        } catch (e) {
+          const modalOverlay = document.getElementById('patient-modal-overlay');
+          if (modalOverlay) modalOverlay.style.display = 'none';
+        }
+
+        if (!isEdit || shouldDirectlyAdmit) {
+          // Checar se o paciente já possui atendimento ativo no hospital
+          if (typeof window.showActiveEncounterAlertModal === 'function') {
+            const activeDecision = await window.showActiveEncounterAlertModal({
+              patientId: savedPatientId,
+              patientName: fullName,
+              patientCpf: cpf
+            });
+            if (activeDecision.action === 'cancel' || activeDecision.action === 'view') {
+              showToast(`Cadastro de ${fullName} preservado.`);
+              loadAndRenderTable();
+              return;
+            }
+          }
+
+          let savedEncounterId = null;
+          try {
+            const encRes = await apiFetch(`/api/encounters`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                patientId: savedPatientId,
+                patientName: fullName,
+                type: 'Urgencia',
+                status: 'Aguardando_Triagem',
+                admitted_at: new Date().toISOString()
+              })
+            });
+            if (encRes && encRes.ok) {
+              const encData = await encRes.json();
+              savedEncounterId = encData?.data?.id || encData?.id;
+            }
+          } catch (e) {
+            console.error('Erro ao admitir no PS:', e);
+          }
+
+          window._highlightPatientName = fullName;
+          window._highlightTargetColumn = 'col-triage';
+
+          if (typeof window.setActivePatientContext === 'function') {
+            window.setActivePatientContext({
+              id: savedPatientId,
+              encounterId: savedEncounterId,
+              fullName: fullName,
+              patientName: fullName,
+              cpf: cpf,
+              status: 'Aguardando_Triagem',
+              currentStep: 2,
+              room: 'Sala de Triagem',
+              manchesterColor: null,
+              tvCalled: false
+            });
+          }
+
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: '📢 1ª Chamada TV: Chamar para Triagem',
+              message: `O paciente <strong>${fullName}</strong> foi cadastrado e acolhido no Pronto-Socorro.<br><br>👉 Conduzido à Central de Atendimento! <strong>Chame o paciente no Painel TV para a Sala de Triagem</strong> ou inicie a Triagem Manchester diretamente.`,
+              targetTab: 'atendimento',
+              targetTabLabel: `📢 Chamar ${fullName.split(' ')[0]} na TV (Sala de Triagem) ➔`,
+              targetColumn: 'col-triage',
+              targetPatientName: fullName,
+              targetPatientId: savedPatientId,
+              targetPatientCpf: cpf,
+              targetStatus: 'Aguardando_Triagem',
+              targetRoom: 'Sala de Triagem',
+              actionType: 'call_tv_triage',
+              autoSwitch: true,
+              persistent: true
+            });
+          }
+
+          showToast(`✅ Paciente ${fullName} cadastrado com sucesso! Direcionando para Atendimento...`);
+
+          // Direciona automaticamente para Atendimento para a 1ª chamada na TV / Triagem
+          if (typeof window.switchTab === 'function') {
+            window.switchTab('atendimento');
+          }
+        } else {
+          showToast(`✅ Paciente atualizado com sucesso!`);
+        }
+
+        try {
+          if (typeof syncManager !== 'undefined' && syncManager && typeof syncManager.pushToCloud === 'function') {
+            syncManager.pushToCloud(false).catch(() => null);
+          }
+        } catch (e) {}
+
+        state.loading = true;
+      } else {
+        showCustomAlert({ title: 'Erro', message: data.message || 'Falha ao salvar paciente.', type: 'danger' });
+      }
+    } catch (err) {
+      console.error('Erro ao conectar-se à API:', err);
+      showCustomAlert({ title: 'Erro', message: 'Erro ao conectar-se à API: ' + (err.message || ''), type: 'danger' });
+    } finally {
+      shouldDirectlyAdmit = false;
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalSubmitText;
+      }
+    }
+  });
+
+  let shouldDirectlyAdmit = false;
+  document.getElementById('submit-and-admit-btn')?.addEventListener('click', () => {
+    shouldDirectlyAdmit = true;
+    const form = document.getElementById('patient-form');
+    if (form && form.reportValidity()) {
+      form.dispatchEvent(new Event('submit', { cancelable: true }));
+    } else {
+      shouldDirectlyAdmit = false;
+    }
+  });
+
+  // Listener para tags rápidas de alergias e comorbidades
+  document.querySelectorAll('.quick-tag-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const val = btn.getAttribute('data-val');
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      const current = (input.value || '').trim();
+      if (!current) {
+        input.value = val;
+      } else {
+        const parts = current.split(',').map(s => s.trim().toLowerCase());
+        if (!parts.includes(val.toLowerCase())) {
+          input.value = `${current}, ${val}`;
+        }
+      }
+      input.focus();
+    });
+  });
+
+  loadAndRenderTable();
+}

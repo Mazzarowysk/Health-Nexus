@@ -1,0 +1,1545 @@
+// ─── MÓDULO DA ABA ATENDIMENTOS & TRIAGEM MANCHESTER (HEALTH NEXUS v2.7.2) ──────
+import { state } from '../state.js';
+import { apiFetch, removeAccents } from '../modules/api.js';
+import { showToast, showCustomAlert, showCustomConfirm, escapeHtml } from '../modules/ui.js';
+import { realtimeHub } from '../modules/realtime.js';
+import { setActivePatientContext, renderPatientJourneyStepper } from '../modules/journey.js';
+import { getRolePermissions } from '../modules/auth.js';
+import { calculateMEWS, generateWhatsAppClinicalMessage, sendToWhatsApp } from '../modules/clinicalAI.js';
+import { detectEmergencyProtocolByComplaint, startEmergencyProtocol } from '../modules/emergencyProtocols.js';
+
+export function renderAttendanceTab(contentArea) {
+  contentArea.innerHTML = `
+    <div class="tab-section active" id="atendimento-root">
+      <!-- Header do Módulo -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-family:'Outfit'; font-weight:700; font-size:1.4rem; margin:0; color:var(--text-primary);">
+            <i class="fa-solid fa-hospital-user" style="color:var(--color-primary);"></i> Central de Atendimentos
+          </h2>
+          <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">Gestão do fluxo clínico em tempo real</p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div id="atd-kpi-bar" style="display:flex; gap:8px; align-items:center;">
+            <div id="card-kpi-triage" class="atd-metric-card" onclick="window.filterKanbanColumn('triage')" title="Filtrar por Fila de Triagem" style="background:rgba(139,92,246,0.12); color:#a78bfa; border:1px solid rgba(139,92,246,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+              <i class="fa-solid fa-stethoscope" style="font-size:0.9rem; color:#0284c7;"></i>
+              <strong id="kpi-triagem-num" style="font-size:0.95rem; font-weight:800; color:#a78bfa;">0</strong>
+              <span>Triagem</span>
+            </div>
+
+            <div id="card-kpi-waiting" class="atd-metric-card" onclick="window.filterKanbanColumn('waiting')" title="Filtrar por Pacientes Aguardando Médico" style="background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+              <i class="fa-solid fa-hourglass-half" style="font-size:0.9rem; color:#f59e0b;"></i>
+              <strong id="kpi-aguardando-num" style="font-size:0.95rem; font-weight:800; color:#fbbf24;">0</strong>
+              <span>Ag. Médico</span>
+            </div>
+
+            <div id="card-kpi-active" class="atd-metric-card" onclick="window.filterKanbanColumn('active')" title="Filtrar por Atendimentos em Consulta ou Exames" style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+              <i class="fa-solid fa-user-doctor" style="font-size:0.9rem; color:#10b981;"></i>
+              <strong id="kpi-consulta-num" style="font-size:0.95rem; font-weight:800; color:#34d399;">0</strong>
+              <span>Em Consulta / Exames</span>
+            </div>
+
+            <div id="card-kpi-obs" class="atd-metric-card" onclick="window.filterKanbanColumn('obs')" title="Filtrar por Pacientes em Observação (PS)" style="background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+              <i class="fa-solid fa-bed-pulse" style="font-size:0.9rem; color:#f59e0b;"></i>
+              <strong id="kpi-observacao-num" style="font-size:0.95rem; font-weight:800; color:#fbbf24;">0</strong>
+              <span>Em Observação</span>
+            </div>
+
+            <div id="card-kpi-all" class="atd-metric-card active-filter" onclick="window.filterKanbanColumn('all')" title="Exibir Todas as Colunas" style="background:rgba(255,255,255,0.05); color:var(--text-primary); border:1px solid rgba(255,255,255,0.15); border-radius:20px; height:38px; padding:0 14px; display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+              <i class="fa-solid fa-layer-group" style="font-size:0.85rem; color:var(--text-muted);"></i>
+              <span>Ver Todos</span>
+            </div>
+          </div>
+          <button id="btn-dynamic-query" class="btn" style="font-size:0.85rem; padding:8px 14px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#fff; border:none; border-radius:8px; font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 4px 12px rgba(2,132,199,0.35);" title="Localizador e Consulta Dinâmica de Atendimentos Multi-Modalidade">
+            <i class="fa-solid fa-magnifying-glass-chart"></i> Consulta Dinâmica
+          </button>
+          <button id="btn-open-admission-panel" class="btn btn-primary" style="font-size:0.85rem; padding:8px 14px;">
+            <i class="fa-solid fa-plus"></i> Nova Admissão
+          </button>
+          <button id="btn-show-history" class="btn" style="font-size:0.85rem; padding:8px 14px; background:var(--bg-tertiary); border-color:var(--border-color); color:var(--text-secondary);">
+            <i class="fa-solid fa-clock-rotate-left"></i> Histórico
+          </button>
+        </div>
+      </div>
+
+      <!-- Container Dinâmico da Linha de Cuidado Guiada (Patient Journey Stepper) -->
+      <div id="atd-journey-stepper-container"></div>
+
+      <!-- Painel Kanban (4 Colunas) -->
+      <div id="kanban-grid-container" class="kanban-board-grid">
+        <!-- Coluna Triagem -->
+        <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #0284c7;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-nurse" style="color:#0284c7;"></i> Aguardando Triagem</span>
+            <span id="count-triage" style="background:rgba(139,92,246,0.2); color:#0284c7; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
+          </div>
+          <div id="col-triage" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
+            <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#0284c7; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Fila vazia</div>
+          </div>
+        </div>
+
+        <!-- Coluna Aguardando Médico -->
+        <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #f59e0b;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-stethoscope" style="color:#f59e0b;"></i> Aguardando Médico</span>
+            <span id="count-waiting" style="background:rgba(245,158,11,0.2); color:#f59e0b; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
+          </div>
+          <div id="col-waiting" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
+            <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#f59e0b; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Nenhum aguardando</div>
+          </div>
+        </div>
+
+        <!-- Coluna Em Consulta / Exames -->
+        <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #10b981;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-user-doctor" style="color:#10b981;"></i> Em Consulta / Exames</span>
+            <span id="count-active" style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
+          </div>
+          <div id="col-active" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
+            <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#10b981; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Nenhum em atendimento</div>
+          </div>
+        </div>
+
+        <!-- Coluna Em Observação (PS) -->
+        <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-color); overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg-tertiary); border-bottom:1px solid var(--border-color); border-top:3px solid #f59e0b;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-bed-pulse" style="color:#f59e0b;"></i> Em Observação (PS)</span>
+            <span id="count-obs" style="background:rgba(245,158,11,0.2); color:#fbbf24; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:12px;">0</span>
+          </div>
+          <div id="col-obs" style="padding:12px; min-height:200px; display:flex; flex-direction:column; gap:10px;">
+            <div style="text-align:center; color:var(--text-muted); padding:30px 16px; font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:#f59e0b; font-size:1.5rem; display:block; margin-bottom:8px;"></i>Nenhum em observação</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel de Admissão (slide-in drawer) -->
+      <div id="admission-panel" style="display:none; position:fixed; top:0; right:0; width:420px; max-width:100vw; height:100vh; background:var(--bg-secondary); border-left:1px solid var(--border-color); z-index:1050; box-shadow:-6px 0 24px rgba(0,0,0,0.3); flex-direction:column; transform:translateX(100%); transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 20px; border-bottom:1px solid var(--border-color); background:var(--bg-tertiary);">
+          <h3 style="margin:0; font-family:'Outfit'; font-weight:700; font-size:1.05rem;"><i class="fa-solid fa-hospital-user" style="color:var(--color-primary);"></i> Nova Admissão</h3>
+          <button id="btn-close-admission-panel" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.2rem; padding:4px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:18px 20px; flex:1; overflow-y:auto;">
+          <div class="search-wrapper" style="margin-bottom:12px;">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="adm-search-input" class="search-input" placeholder="Buscar por nome ou CPF...">
+          </div>
+          <div id="adm-patient-list" style="max-height:260px; overflow-y:auto; border:1px solid var(--border-color); border-radius:var(--radius-md); margin-bottom:16px;">
+            <div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">Carregando...</div>
+          </div>
+          <div id="adm-selected-info" style="display:none; background:rgba(0,100,255,0.07); border:1px solid rgba(0,100,255,0.2); border-radius:var(--radius-md); padding:14px; margin-bottom:16px;">
+            <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:4px;">Paciente selecionado:</div>
+            <div id="adm-selected-name" style="font-weight:700; color:var(--color-primary); font-size:1rem;"></div>
+            <div id="adm-selected-cpf" style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;"></div>
+          </div>
+          <input type="hidden" id="selected-patient-id">
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <button id="btn-admit-urgencia" class="btn btn-primary" style="flex:1; font-size:0.85rem;" disabled>
+              <i class="fa-solid fa-truck-medical"></i> Urgência (PS)
+            </button>
+            <button id="btn-admit-ambulatorio" class="btn" style="flex:1; font-size:0.85rem; background:var(--bg-tertiary); border-color:var(--border-color); color:var(--text-primary);" disabled>
+              <i class="fa-solid fa-user-doctor"></i> Ambulatório
+            </button>
+          </div>
+          <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.5; border-top:1px solid var(--border-color); padding-top:12px; margin-top:4px;">
+            <i class="fa-solid fa-circle-info"></i> Urgência vai para triagem Manchester. Ambulatório vai direto para fila médica.
+          </p>
+        </div>
+      </div>
+      <div id="admission-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1049;"></div>
+
+      <!-- Modal de Triagem -->
+      <div id="triage-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="max-width:580px; width:95vw; max-height:92vh; overflow-y:auto;">
+          <div class="modal-header">
+            <h3><i class="fa-solid fa-user-nurse" style="color:#0284c7;"></i> Triagem Manchester</h3>
+            <button type="button" class="modal-close" id="close-triage-modal"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="modal-body">
+            <form id="triage-form">
+              <input type="hidden" id="triage-encounter-id">
+              <div style="background:rgba(139,92,246,0.08); padding:12px; border-radius:var(--radius-md); border:1px solid rgba(139,92,246,0.2); margin-bottom:12px;">
+                <span style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:2px;">Paciente:</span>
+                <strong id="triage-patient-name" style="font-size:1.05rem; color:var(--text-primary);"></strong>
+              </div>
+              <div id="triage-patient-clinical-alert" style="display:none; margin-bottom:16px;"></div>
+              <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin-bottom:12px; color:var(--text-primary); border-left:3px solid #0284c7; padding-left:8px;">Sinais Vitais</h4>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">* Pressão Arterial (mmHg):</label><input type="text" id="triage-pa" class="form-input" required placeholder="120/80"></div>
+                <div class="form-group"><label class="form-label">* Temperatura (°C):</label><input type="text" id="triage-temp" class="form-input" required placeholder="36.8" inputmode="decimal"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Freq. Cardíaca (bpm):</label><input type="number" id="triage-fc" class="form-input" min="30" max="220" placeholder="80"></div>
+                <div class="form-group"><label class="form-label">Saturação O₂ (%):</label><input type="number" id="triage-spo2" class="form-input" min="50" max="100" placeholder="98"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Peso (kg):</label><input type="text" id="triage-peso" class="form-input" placeholder="70.0" inputmode="decimal"></div>
+                <div class="form-group"><label class="form-label">Glicemia (mg/dL):</label><input type="number" id="triage-glicemia" class="form-input" min="30" max="700" placeholder="100"></div>
+              </div>
+
+              <!-- Card Dinâmico de MEWS e Sinais Vitais -->
+              <div id="triage-mews-preview" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 10px; padding: 10px 14px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-heart-pulse" style="color: #818cf8;"></i>
+                  <span style="font-size: 0.8rem; color: var(--text-primary);">Escore MEWS Preditivo:</span>
+                  <strong id="triage-mews-score-val" style="font-size: 0.85rem; color: #34d399;">0 (Baixo Risco)</strong>
+                </div>
+                <span id="triage-mews-suggest" style="font-size: 0.74rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); padding: 2px 8px; border-radius: 8px;">Sinais Estáveis</span>
+              </div>
+
+              <h4 style="font-family:'Outfit'; font-weight:600; font-size:0.9rem; margin:16px 0 12px; color:var(--text-primary); border-left:3px solid #0284c7; padding-left:8px;">* Classificação de Risco</h4>
+              <div class="manchester-selector">
+                <div class="manchester-option vermelho"><input type="radio" id="color-vermelho" name="manchesterColor" value="Vermelho"><label for="color-vermelho" class="manchester-label"><i class="fa-solid fa-triangle-exclamation"></i><span>Emergência</span></label></div>
+                <div class="manchester-option laranja"><input type="radio" id="color-laranja" name="manchesterColor" value="Laranja"><label for="color-laranja" class="manchester-label"><i class="fa-solid fa-circle-exclamation"></i><span>Muito Urgente</span></label></div>
+                <div class="manchester-option amarelo"><input type="radio" id="color-amarelo" name="manchesterColor" value="Amarelo" checked><label for="color-amarelo" class="manchester-label"><i class="fa-solid fa-circle-info"></i><span>Urgente</span></label></div>
+                <div class="manchester-option verde"><input type="radio" id="color-verde" name="manchesterColor" value="Verde"><label for="color-verde" class="manchester-label"><i class="fa-solid fa-circle-check"></i><span>Pouco Urgente</span></label></div>
+                <div class="manchester-option azul"><input type="radio" id="color-azul" name="manchesterColor" value="Azul"><label for="color-azul" class="manchester-label"><i class="fa-solid fa-circle"></i><span>Não Urgente</span></label></div>
+              </div>
+              <div class="form-group" style="margin-top:18px;">
+                <label class="form-label">Queixa Principal / Sintomatologia:</label>
+                <textarea id="triage-complaints" class="form-input" rows="3" placeholder="Descreva a queixa principal do paciente (opcional)..."></textarea>
+              </div>
+              <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap;">
+                <button type="button" id="btn-cancel-triage" class="btn" style="background:var(--bg-tertiary); color:var(--text-primary); border-color:var(--border-color);">Cancelar</button>
+                <button type="button" id="btn-submit-triage-obs" class="btn" style="background:linear-gradient(135deg,rgba(245,158,11,0.9),#d97706); border:none; color:#fff; font-weight:800; font-size:0.85rem; padding:10px 14px; border-radius:8px; box-shadow:0 4px 14px rgba(245,158,11,0.35); cursor:pointer;">
+                  <i class="fa-solid fa-bed-pulse"></i> Encaminhar p/ Observação (PS)
+                </button>
+                <button type="submit" id="btn-submit-triage-consult" class="btn btn-primary" style="background:linear-gradient(135deg,#10b981,#059669); border:none; color:#fff; font-weight:800; font-size:0.85rem; padding:10px 16px; border-radius:8px; box-shadow:0 4px 14px rgba(16,185,129,0.35); cursor:pointer;">
+                  <i class="fa-solid fa-stethoscope"></i> Encaminhar p/ Consultório
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Histórico -->
+      <div id="history-panel" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="max-width:760px; width:95vw; max-height:88vh; display:flex; flex-direction:column;">
+          <div class="modal-header">
+            <h3><i class="fa-solid fa-clock-rotate-left" style="color:var(--color-primary);"></i> Histórico de Atendimentos</h3>
+            <button type="button" class="modal-close" id="close-history-panel"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div style="padding:16px 20px; border-bottom:1px solid var(--border-color);">
+            <div class="search-wrapper">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input type="text" id="history-search" class="search-input" placeholder="Buscar por nome do paciente...">
+            </div>
+          </div>
+          <div id="history-list" style="overflow-y:auto; flex:1; padding:16px 20px;">
+            <div style="text-align:center; color:var(--text-muted); padding:40px; font-size:0.9rem;">Carregando histórico...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  let admissionPatients = [];
+  let selectedPatient = null;
+  let allEncounters = [];
+  let allHistory = [];
+  let activeKanbanTimers = [];
+
+  const getWaitTimeText = (since) => {
+    const s = Math.max(0, Math.floor((Date.now() - new Date(since).getTime()) / 1000));
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}min`;
+    return `${Math.floor(m/60)}h ${m%60}m`;
+  };
+
+  const getMC = (color) => ({
+    'Vermelho': { bg:'#7f1d1d', border:'#dc2626', text:'#fca5a5', label:'Emergência' },
+    'Laranja':  { bg:'#431407', border:'#ea580c', text:'#fb923c', label:'Muito Urgente' },
+    'Amarelo':  { bg:'#422006', border:'#ca8a04', text:'#fde047', label:'Urgente' },
+    'Verde':    { bg:'#052e16', border:'#16a34a', text:'#86efac', label:'Pouco Urgente' },
+    'Azul':     { bg:'#0c1a4e', border:'#2563eb', text:'#93c5fd', label:'Não Urgente' },
+  }[color] || { bg:'var(--bg-tertiary)', border:'var(--border-color)', text:'var(--text-secondary)', label: color || '—' });
+
+  const openAdmissionPanel = () => {
+    const p = document.getElementById('admission-panel');
+    const o = document.getElementById('admission-overlay');
+    if (!p || !o) return;
+    p.style.display = 'flex';
+    o.style.display = 'block';
+    setTimeout(() => { p.style.transform = 'translateX(0)'; }, 10);
+    
+    const searchWrapper = document.querySelector('#admission-panel .search-wrapper');
+    if (searchWrapper) searchWrapper.style.display = 'block';
+    const searchInput = document.getElementById('adm-search-input');
+    if (searchInput) searchInput.value = '';
+    
+    loadAdmissionPatients();
+  };
+
+  const closeAdmissionPanel = () => {
+    const p = document.getElementById('admission-panel');
+    const o = document.getElementById('admission-overlay');
+    if (!p || !o) return;
+    p.style.transform = 'translateX(100%)';
+    setTimeout(() => { p.style.display = 'none'; o.style.display = 'none'; }, 350);
+    selectedPatient = null;
+    const pid = document.getElementById('selected-patient-id');
+    if (pid) pid.value = '';
+    const selInfo = document.getElementById('adm-selected-info');
+    if (selInfo) selInfo.style.display = 'none';
+    const btnUrg = document.getElementById('btn-admit-urgencia');
+    if (btnUrg) btnUrg.disabled = true;
+    const btnAmb = document.getElementById('btn-admit-ambulatorio');
+    if (btnAmb) btnAmb.disabled = true;
+  };
+
+  const loadAdmissionPatients = async () => {
+    try {
+      const res = await apiFetch(`/api/patients`);
+      admissionPatients = await res.json();
+      renderAdmList(admissionPatients);
+    } catch {
+      const c = document.getElementById('adm-patient-list');
+      if (c) c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.83rem;">Erro ao carregar.</div>';
+    }
+  };
+
+  const renderAdmList = (list) => {
+    const c = document.getElementById('adm-patient-list');
+    if (!c) return;
+    if (!list.length) { c.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.83rem;">Nenhum paciente encontrado.</div>'; return; }
+    c.innerHTML = list.slice(0,50).map(p => `<div class="patient-select-item adm-list-item" data-id="${p.id}" data-name="${p.fullName}" data-cpf="${p.cpf}" style="padding:10px 12px;border-bottom:1px solid var(--border-color);cursor:pointer;transition:background 0.15s;"><div style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">${p.fullName}</div><div style="font-size:0.73rem;color:var(--text-muted);">CPF: ${p.cpf}</div></div>`).join('');
+    c.querySelectorAll('.adm-list-item').forEach(el => {
+      el.addEventListener('click', () => {
+        c.querySelectorAll('.adm-list-item').forEach(i => { i.classList.remove('selected'); i.style.background = ''; });
+        el.classList.add('selected'); el.style.background = 'rgba(0,100,255,0.08)';
+        selectedPatient = { id: el.dataset.id, fullName: el.dataset.name, cpf: el.dataset.cpf };
+        document.getElementById('selected-patient-id').value = el.dataset.id;
+        document.getElementById('adm-selected-name').textContent = el.dataset.name;
+        document.getElementById('adm-selected-cpf').textContent = 'CPF: ' + el.dataset.cpf;
+        document.getElementById('adm-selected-info').style.display = 'block';
+        document.getElementById('btn-admit-urgencia').disabled = false;
+        document.getElementById('btn-admit-ambulatorio').disabled = false;
+      });
+    });
+  };
+
+  window.openAdmissionForPatient = (patientId, fullName, cpf) => {
+    openAdmissionPanel();
+    setTimeout(() => {
+      selectedPatient = { id: patientId, fullName, cpf };
+      const selectedIdInput = document.getElementById('selected-patient-id');
+      const infoBox = document.getElementById('adm-selected-info');
+      const nameEl = document.getElementById('adm-selected-name');
+      const cpfEl = document.getElementById('adm-selected-cpf');
+      const btnUrg = document.getElementById('btn-admit-urgencia');
+      const btnAmb = document.getElementById('btn-admit-ambulatorio');
+      const patientList = document.getElementById('adm-patient-list');
+
+      if (selectedIdInput && infoBox && nameEl) {
+        selectedIdInput.value = patientId;
+        nameEl.textContent = fullName;
+        if (cpfEl) cpfEl.textContent = cpf ? 'CPF: ' + cpf : 'CPF Não Informado';
+        infoBox.style.display = 'block';
+        if (btnUrg) btnUrg.disabled = false;
+        if (btnAmb) btnAmb.disabled = false;
+
+        if (patientList) {
+          patientList.innerHTML = `<div style="padding:16px 20px;text-align:center;color:#38bdf8;font-weight:700;"><i class="fa-solid fa-circle-check" style="font-size:1.6rem;display:block;margin-bottom:8px;color:#10b981;"></i> Paciente <strong>${fullName}</strong> pré-selecionado!<br><span style="font-size:0.8rem;color:#cbd5e1;font-weight:normal;display:block;margin-top:4px;">Selecione o tipo de admissão desejado abaixo:<br><strong>Urgência (PS)</strong> para Triagem Manchester ou <strong>Ambulatório</strong> para consulta direta.</span></div>`;
+        }
+      }
+    }, 150);
+  };
+
+  document.getElementById('adm-search-input')?.addEventListener('input', e => {
+    const q = removeAccents(e.target.value.toLowerCase());
+    renderAdmList(admissionPatients.filter(p => removeAccents(p.fullName).toLowerCase().includes(q) || p.cpf.includes(q)));
+  });
+  document.getElementById('btn-open-admission-panel')?.addEventListener('click', openAdmissionPanel);
+  document.getElementById('btn-dynamic-query')?.addEventListener('click', () => {
+    if (typeof window.openDynamicEncounterQueryModal === 'function') {
+      window.openDynamicEncounterQueryModal();
+    }
+  });
+  document.getElementById('btn-close-admission-panel')?.addEventListener('click', closeAdmissionPanel);
+  document.getElementById('admission-overlay')?.addEventListener('click', closeAdmissionPanel);
+
+  const createEncounter = async (type) => {
+    const patientId = document.getElementById('selected-patient-id').value;
+    if (!patientId) return;
+    const patientName = document.getElementById('adm-selected-name')?.textContent || (typeof selectedPatient !== 'undefined' ? selectedPatient?.fullName : null) || 'Paciente';
+
+    // Verificação de Atendimento Ativo Pendente de Direcionamento
+    if (typeof window.showActiveEncounterAlertModal === 'function') {
+      const activeDecision = await window.showActiveEncounterAlertModal({
+        patientId,
+        patientName
+      });
+      if (activeDecision.action === 'cancel') {
+        return;
+      }
+      if (activeDecision.action === 'view') {
+        closeAdmissionPanel();
+        return;
+      }
+    }
+
+    const btn = document.getElementById(type === 'Urgencia' ? 'btn-admit-urgencia' : 'btn-admit-ambulatorio');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Admitindo...';
+    try {
+      const bodyData = { 
+        patientId, 
+        patientName,
+        type, 
+        status: 'Aguardando_Triagem',
+        admitted_at: new Date().toISOString()
+      };
+      const res = await apiFetch(`/api/encounters`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(bodyData) });
+      const d = await res.json();
+      if (res.ok) {
+        showToast(`✅ ${patientName} admitido(a)!`);
+        closeAdmissionPanel();
+        if (typeof window.setActivePatientContext === 'function') {
+          window.setActivePatientContext({
+            id: d.data?.id || patientId,
+            fullName: patientName,
+            patientName: patientName,
+            status: 'Aguardando_Triagem',
+            currentStep: 1,
+            manchesterColor: null
+          });
+        }
+        if (typeof window.showFlowCompletionNotification === 'function') {
+          window.showFlowCompletionNotification({
+            actionTitle: '🩺 Próxima Etapa: Realizar Triagem Manchester',
+            message: `O paciente <strong>${patientName}</strong> foi admitido no fluxo de <strong>${type === 'Urgencia' ? 'Urgência (PS)' : 'Ambulatório'}</strong>.<br><br>👉 <strong>Clique no botão abaixo no Guia de Fluxo</strong> para abrir a <strong>Triagem Manchester</strong> e aferir os sinais vitais.`,
+            targetTab: 'atendimento',
+            targetTabLabel: `🩺 Abrir Triagem (${patientName.split(' ')[0]}) ➔`,
+            targetColumn: 'col-triage',
+            targetPatientName: patientName,
+            targetPatientId: patientId,
+            targetStatus: 'Aguardando_Triagem',
+            targetRoom: 'Sala de Triagem',
+            actionType: 'go_triage',
+            autoSwitch: false,
+            persistent: true
+          });
+        }
+        await loadAndRenderKanban();
+      } else {
+        showToast(`❌ ${d.message || 'Erro ao admitir.'}`, true);
+        btn.disabled = false;
+        btn.innerHTML = type === 'Urgencia' ? '<i class="fa-solid fa-truck-medical"></i> Urgência (PS)' : '<i class="fa-solid fa-user-doctor"></i> Ambulatório';
+      }
+    } catch { showToast('❌ Erro de conexão.', true); btn.disabled = false; }
+  };
+  document.getElementById('btn-admit-urgencia')?.addEventListener('click', () => createEncounter('Urgencia'));
+  document.getElementById('btn-admit-ambulatorio')?.addEventListener('click', () => createEncounter('Ambulatorial'));
+
+  const colorPri = { Vermelho:5, Laranja:4, Amarelo:3, Verde:2, Azul:1 };
+
+  const startLiveTimer = (id, since) => {
+    const tick = () => { const el = document.getElementById(`timer-${id}`); if (el) el.textContent = getWaitTimeText(since); else clearInterval(t); };
+    tick();
+    const t = setInterval(tick, 10000);
+    activeKanbanTimers.push(t);
+  };
+
+  const getActiveFocusedPatientName = () => {
+    try {
+      const ap = (typeof window !== 'undefined' && typeof window.getActivePatientContext === 'function') ? window.getActivePatientContext() : null;
+      const sfg = (typeof window !== 'undefined' && window._SFG) ? window._SFG : null;
+      const pendingName = sfg?.pendingAction?.targetPatientName;
+      if (!ap && !pendingName) return '';
+      return ((ap && (ap.fullName || ap.patientName)) || pendingName || '').toLowerCase().trim();
+    } catch (_) {
+      return '';
+    }
+  };
+
+  const isPatientFocused = (patientName) => {
+    try {
+      if (!patientName) return false;
+      const targetName = getActiveFocusedPatientName();
+      if (!targetName) return false;
+      const cleanCard = patientName.toLowerCase().trim();
+      return cleanCard === targetName || cleanCard.includes(targetName) || targetName.includes(cleanCard);
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const getSafePatientName = (e) => {
+    let name = e?.patientName;
+    if (!name || name === 'undefined' || name === 'null' || !String(name).trim()) {
+      name = e?.fullName || e?.name || e?.patient_name || e?.paciente;
+    }
+    // Se ainda não encontrou, tenta buscar pelo ID do paciente cadastrado
+    if (!name || name === 'undefined' || name === 'null' || !String(name).trim()) {
+      const pId = e?.patientId || e?.patient_id;
+      if (pId) {
+        try {
+          const db = (typeof window !== 'undefined' && window.localDB) ? window.localDB.getFullDB() : null;
+          const p = (db?.patients || []).find(pt => String(pt.id) === String(pId) || String(pt.cpf) === String(pId));
+          if (p && (p.fullName || p.name)) {
+            name = p.fullName || p.name;
+          }
+        } catch (_) {}
+      }
+    }
+    // Tenta buscar por histórico de triagem ou agendamento vinculado
+    if (!name || name === 'undefined' || name === 'null' || !String(name).trim()) {
+      try {
+        const db = (typeof window !== 'undefined' && window.localDB) ? window.localDB.getFullDB() : null;
+        const tri = db?.triages?.find(t => t.encounterId === e?.id || (e?.patientId && t.patientId === e.patientId));
+        if (tri && tri.patientName && tri.patientName !== 'undefined' && tri.patientName !== 'null') {
+          name = tri.patientName;
+        }
+        if (!name || name === 'undefined' || name === 'null') {
+          const apt = db?.appointments?.find(a => (e?.patientId && a.patientId === e.patientId));
+          if (apt && apt.patientName && apt.patientName !== 'undefined' && apt.patientName !== 'null') {
+            name = apt.patientName;
+          }
+        }
+      } catch (_) {}
+    }
+    if (!name || name === 'undefined' || name === 'null' || !String(name).trim()) {
+      name = 'Paciente em Atendimento';
+    }
+    name = String(name).trim();
+    // Auto-recuperação persistente no localDB para curar registros corrompidos anteriores
+    if (e && e.patientName !== name) {
+      e.patientName = name;
+      if (typeof window !== 'undefined' && window.localDB && typeof window.localDB.update === 'function' && e.id) {
+        try {
+          window.localDB.update('encounters', e.id, { ...e, patientName: name });
+        } catch (_) {}
+      }
+    }
+    return name;
+  };
+
+  const buildTriageCard = (e) => {
+    const pName = getSafePatientName(e);
+    const isSel = isPatientFocused(pName);
+    const safePName = pName.replace(/'/g, "\\'");
+    const isCalled = !!e.called_at || !!e.tvCalled;
+    // Se o paciente está em foco:
+    // Se ainda não foi chamado na TV, o botão "Chamar TV" fica ativado e pulsando!
+    // Se já foi chamado, "Realizar Triagem" fica em destaque pulsante verde e "Re-chamar TV" ativo!
+    const tvBtnClass = (!isCalled && isSel) ? 'btn-call-tv-highlight' : 'btn-secondary';
+    const triarBtnClass = (isCalled && isSel) ? 'btn-triage-highlight' : 'btn-primary';
+
+    return `
+    <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:${isSel ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(15, 23, 42, 0.98) 100%)' : 'var(--bg-tertiary)'};border:${isSel ? '2px solid #38bdf8' : '1px solid var(--border-color)'};border-left:5px solid #0284c7;border-radius:var(--radius-md);padding:14px;margin-bottom:6px;box-shadow:${isSel ? '0 0 35px rgba(56,189,248,0.75), inset 0 0 16px rgba(56,189,248,0.2)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', status: 'Aguardando_Triagem', currentStep: 2 }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+      ${isSel ? '<span class="patient-selected-flow-badge">⚡ Paciente em Foco</span>' : ''}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="font-weight:700;font-size:0.92rem;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+          ${isSel ? '<span style="width:8px;height:8px;border-radius:50%;background:#38bdf8;display:inline-block;box-shadow:0 0 8px #38bdf8;"></span>' : ''}
+          ${pName}
+        </div>
+        <span id="timer-${e.id}" style="font-size:0.7rem;color:#0284c7;font-family:monospace;background:rgba(2,132,199,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+        <i class="fa-solid fa-tag" style="color:#0284c7;"></i> ${e.type==='Urgencia'?'Urgência / PS':'Ambulatório'}
+        ${isCalled ? '<span style="font-size:0.7rem;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);padding:1px 6px;border-radius:6px;font-weight:600;"><i class="fa-solid fa-bullhorn"></i> Chamado TV</span>' : '<span style="font-size:0.7rem;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);padding:1px 6px;border-radius:6px;font-weight:600;"><i class="fa-solid fa-clock"></i> Aguardando Chamada TV</span>'}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="btn ${tvBtnClass} btn-quick-tv-triage" onclick="event.stopPropagation(); if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', 'Verde', 'Sala de Triagem'); } else if(typeof window.executeTVCall==='function'){ window.executeTVCall('${safePName}', 'Sala de Triagem', 'Verde'); }" style="flex:1;font-size:0.8rem;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Chamar no Painel TV para Sala de Triagem">
+          <i class="fa-solid fa-bullhorn"></i> ${isCalled ? 'Re-chamar TV' : 'Chamar TV'}
+        </button>
+        <button class="btn ${triarBtnClass} btn-triar" data-enc-id="${e.id}" style="flex:1.2;font-size:0.8rem;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Abrir Triagem Manchester">
+          <i class="fa-solid fa-user-nurse"></i> Realizar Triagem
+        </button>
+        <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${pName.replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:8px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+          <i class="fa-solid fa-file-medical"></i> PEP
+        </button>
+      </div>
+    </div>`;
+  };
+
+  const buildWaitCard = (e) => {
+    const pName = getSafePatientName(e);
+    const mc = getMC(e.manchesterColor);
+    const isSel = isPatientFocused(pName);
+    const safePName = pName.replace(/'/g, "\\'");
+    return `
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:${isSel ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(15, 23, 42, 0.98) 100%)' : 'var(--bg-tertiary)'};border:${isSel ? '2px solid #38bdf8' : '1px solid var(--border-color)'};border-left:5px solid ${mc.border};border-radius:var(--radius-md);padding:14px;margin-bottom:6px;box-shadow:${isSel ? '0 0 35px rgba(56,189,248,0.75), inset 0 0 16px rgba(56,189,248,0.2)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Aguardando_Atendimento', currentStep: 3, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+        ${isSel ? '<span class="patient-selected-flow-badge">⚡ Paciente em Foco</span>' : ''}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div style="font-weight:700;font-size:0.92rem;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+            ${isSel ? '<span style="width:8px;height:8px;border-radius:50%;background:#38bdf8;display:inline-block;box-shadow:0 0 8px #38bdf8;"></span>' : ''}
+            ${pName}
+          </div>
+          <span id="timer-${e.id}" style="font-size:0.7rem;color:${mc.text};font-family:monospace;background:${mc.bg};padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${e.bloodPressure||e.temperatureCelsius?'10px':'12px'};">
+          <span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:2px 8px;font-weight:600;">● ${mc.label}</span>
+          <span style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-secondary);border-radius:10px;padding:2px 8px;">${e.type==='Urgencia'?'Urgência':'Ambulatório'}</span>
+        </div>
+        ${e.bloodPressure||e.temperatureCelsius?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">${e.bloodPressure?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">PA</span><br><strong style="color:var(--text-primary);">${escapeHtml(e.bloodPressure)}</strong></div>`:''} ${e.temperatureCelsius?`<div style="background:var(--bg-secondary);border-radius:6px;padding:5px 8px;font-size:0.72rem;"><span style="color:var(--text-muted);">Temp.</span><br><strong style="color:var(--text-primary);">${escapeHtml(e.temperatureCelsius)}°C</strong></div>`:''}</div>`:''}
+        ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${escapeHtml(e.complaints)}"</p>`:''}
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button class="btn btn-primary btn-call-consult ${isSel ? 'btn-call-tv-highlight' : ''}" data-enc-id="${e.id}" onclick="event.stopPropagation(); if(typeof window._tvQuickCall==='function'){ window._tvQuickCall('${safePName}', '${e.manchesterColor||'Amarelo'}', 'Consultório 01'); } else if(typeof window.executeTVCall==='function'){ window.executeTVCall('${safePName}', 'Consultório 01', '${e.manchesterColor||'Amarelo'}'); }" style="flex:1;font-size:0.8rem;padding:8px 10px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Emitir 2ª Chamada TV para Consultório 01">
+            <i class="fa-solid fa-bullhorn"></i> Chamar TV
+          </button>
+          <button class="btn btn-secondary btn-open-pep-direct" data-enc-id="${e.id}" data-patient-id="${e.patientId}" data-patient-name="${pName.replace(/"/g, '&quot;')}" style="font-size:0.75rem;padding:8px 10px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);color:#38bdf8;border-radius:6px;cursor:pointer;font-weight:600;" title="Abrir PEP / Prontuário Médico">
+            <i class="fa-solid fa-file-medical"></i> PEP
+          </button>
+        </div>
+      </div>`;
+  };
+
+  const buildActiveCard = (e) => {
+    const pName = getSafePatientName(e);
+    const mc = getMC(e.manchesterColor);
+    const isObs = e.status === 'Em_Observacao' || !!e.observation_started_at;
+    const isExams = e.status === 'Aguardando_Exames' || e.status === 'Aguardando_Resultado';
+    const isSel = isPatientFocused(pName);
+    const safePName = pName.replace(/'/g, "\\'");
+    let obsBadgeHtml = '';
+
+    if (isObs) {
+      const obsStart = new Date(e.observation_started_at || e.admitted_at).getTime();
+      const diffMs = Math.max(0, Date.now() - obsStart);
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+      if (diffHours >= 12) {
+        obsBadgeHtml = `<div style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#f87171; border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; animation:pulse 1.5s infinite;">
+          <span><i class="fa-solid fa-triangle-exclamation"></i> EXCEDEU 12H PS: ${diffHours}h ${diffMins}m</span>
+          <span style="font-size:0.68rem; background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px;">TRANSFERIR</span>
+        </div>`;
+      } else if (diffHours >= 10) {
+        obsBadgeHtml = `<div style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fbbf24; border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+          <span><i class="fa-solid fa-clock"></i> Atenção (Limite 12h): ${diffHours}h ${diffMins}m</span>
+        </div>`;
+      } else {
+        obsBadgeHtml = `<div style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#60a5fa; border-radius:8px; padding:5px 10px; font-size:0.73rem; font-weight:600; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+          <span><i class="fa-solid fa-bed-pulse"></i> Obs PS: ${diffHours}h ${diffMins}m / 12h max</span>
+        </div>`;
+      }
+    } else if (isExams) {
+      let reqCount = 0;
+      let completedCount = 0;
+      let examNames = [];
+      try {
+        const db = (typeof window !== 'undefined' && window.localDB) ? window.localDB.getFullDB() : {};
+        const reqs = (db.exam_requests || []).filter(r => 
+          String(r.encounterId) === String(e.id) || 
+          String(r.patientId) === String(e.patientId) ||
+          (r.patientName && pName && r.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
+        );
+        const allItems = reqs.flatMap(r => r.items || []);
+        reqCount = allItems.length;
+        completedCount = allItems.filter(i => (i.status || 'Solicitado') === 'Concluído').length;
+        examNames = allItems.map(i => i.name || i.examId);
+      } catch (err) {}
+
+      if (reqCount > 0 && completedCount === reqCount) {
+        obsBadgeHtml = `<div style="background:rgba(16,185,129,0.18); border:1px solid rgba(52,211,153,0.45); color:#d1fae5; border-radius:8px; padding:7px 10px; font-size:0.74rem; margin-bottom:10px; animation: pulse 2s infinite;">
+          <div style="font-weight:700; color:#34d399; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-square-check"></i> Laudos Prontos (${completedCount}/${reqCount}) — Chamar para Conduta
+          </div>
+          ${examNames.length ? `<div style="font-size:0.7rem; color:#a7f3d0; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${examNames.slice(0, 3).join(', ')}${examNames.length > 3 ? ` (+${examNames.length - 3})` : ''}</div>` : ''}
+        </div>`;
+      } else {
+        obsBadgeHtml = `<div style="background:rgba(2,132,199,0.14); border:1px solid rgba(56,189,248,0.35); color:#e0f2fe; border-radius:8px; padding:7px 10px; font-size:0.74rem; margin-bottom:10px;">
+          <div style="font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-flask-vial"></i> Aguardando Exames ${reqCount > 0 ? `(${completedCount}/${reqCount} prontos)` : ''}
+          </div>
+          ${examNames.length ? `<div style="font-size:0.7rem; color:#cbd5e1; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${examNames.slice(0, 3).join(', ')}${examNames.length > 3 ? ` (+${examNames.length - 3})` : ''}</div>` : ''}
+        </div>`;
+      }
+    }
+
+    const isAllDone = isExams && reqCount > 0 && completedCount === reqCount;
+    const cardBorderColor = isObs ? '#f59e0b' : (isAllDone ? '#10b981' : (isExams ? '#0284c7' : '#10b981'));
+    const statusLabel = isObs ? 'Em Observação' : (isAllDone ? 'Laudos Liberados' : (isExams ? 'Aguardando Exames' : 'Em Consulta'));
+    const statusColor = isObs ? '#f59e0b' : (isAllDone ? '#34d399' : (isExams ? '#38bdf8' : '#10b981'));
+    const timerColor = isObs ? '#f59e0b' : (isAllDone ? '#34d399' : (isExams ? '#38bdf8' : '#10b981'));
+
+    return `
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : (isExams ? '1px solid rgba(2,132,199,0.45)' : '1px solid rgba(16,185,129,0.3)')};border-left:4px solid ${cardBorderColor};border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: '${e.status}', currentStep: 4, room: 'Consultório 01' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+        ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${pName}</div>
+          <span id="timer-${e.id}" style="font-size:0.7rem;color:${timerColor};font-family:monospace;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${e.complaints || isObs || isExams ? '8px':'12px'};">
+          <span style="width:7px;height:7px;background:${statusColor};border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
+          <span style="font-size:0.75rem;color:${statusColor};font-weight:700;">${statusLabel}</span>
+          ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;margin-left:auto;">${mc.label}</span>`:''}
+        </div>
+        ${obsBadgeHtml}
+        ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+          <button class="btn btn-open-pep" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:${isExams ? 'rgba(2,132,199,0.15)' : 'var(--bg-secondary)'};border:1px solid ${isExams ? 'rgba(2,132,199,0.4)' : 'var(--border-color)'};color:${isExams ? '#38bdf8' : 'var(--text-primary)'};border-radius:var(--radius-md);cursor:pointer;font-weight:600;" title="Prontuário Eletrônico">
+            <i class="fa-solid fa-file-medical"></i> ${isExams ? 'Ver Exames' : 'PEP'}
+          </button>
+          <button class="btn btn-open-rx" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a78bfa;border-radius:var(--radius-md);cursor:pointer;" title="Prescrição de Medicações">
+            <i class="fa-solid fa-scroll"></i> Prescrição
+          </button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+          ${!isObs ? `
+            <button class="btn btn-start-obs" data-enc-id="${e.id}" style="font-size:0.72rem;padding:6px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fbbf24;border-radius:var(--radius-md);cursor:pointer;" title="Iniciar tempo de observação médica">
+              <i class="fa-solid fa-clock"></i> Observação
+            </button>
+          ` : `
+            <button class="btn btn-transfer-bed" data-enc-id="${e.id}" style="font-size:0.72rem;padding:6px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:var(--radius-md);cursor:pointer;font-weight:700;" title="Subir paciente para leito de internação">
+              <i class="fa-solid fa-bed"></i> Internar
+            </button>
+          `}
+          <button class="btn btn-primary btn-finish-consult" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:linear-gradient(135deg,#10b981,#059669);border:none;cursor:pointer;">
+            <i class="fa-solid fa-circle-check"></i> Finalizar
+          </button>
+        </div>
+      </div>`;
+  };
+
+  const buildObsCard = (e) => {
+    const pName = getSafePatientName(e);
+    const mc = getMC(e.manchesterColor);
+    const isSel = isPatientFocused(pName);
+    const safePName = pName.replace(/'/g, "\\'");
+    const obsStart = new Date(e.observation_started_at || e.admitted_at).getTime();
+    const diffMs = Math.max(0, Date.now() - obsStart);
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    let obsBadgeHtml = '';
+    if (diffHours >= 12) {
+      obsBadgeHtml = `<div style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#f87171; border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; animation:pulse 1.5s infinite;">
+        <span><i class="fa-solid fa-triangle-exclamation"></i> EXCEDEU 12H PS: ${diffHours}h ${diffMins}m</span>
+        <span style="font-size:0.68rem; background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px;">INTERNAR</span>
+      </div>`;
+    } else if (diffHours >= 10) {
+      obsBadgeHtml = `<div style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fbbf24; border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+        <span><i class="fa-solid fa-clock"></i> Limite 12h: ${diffHours}h ${diffMins}m</span>
+      </div>`;
+    } else {
+      obsBadgeHtml = `<div style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#fbbf24; border-radius:8px; padding:5px 10px; font-size:0.73rem; font-weight:600; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+        <span><i class="fa-solid fa-bed-pulse"></i> Obs PS: ${diffHours}h ${diffMins}m / 12h max</span>
+      </div>`;
+    }
+
+    return `
+      <div class="patient-card-item ${isSel ? 'patient-pulse-selected patient-spotlight-glow' : ''}" data-patient-card-name="${pName.replace(/"/g, '&quot;')}" data-enc-id="${e.id}" style="background:var(--bg-tertiary);border:${isSel ? '2.5px solid #38bdf8' : '1px solid rgba(245,158,11,0.3)'};border-left:4px solid #f59e0b;border-radius:var(--radius-md);padding:14px;margin-bottom:4px;box-shadow:${isSel ? '0 0 20px rgba(56,189,248,0.5)' : 'none'};position:relative;cursor:pointer;" onclick="if(typeof window.setActivePatientContext==='function') window.setActivePatientContext({ id: '${e.id}', fullName: '${safePName}', patientName: '${safePName}', manchesterColor: '${e.manchesterColor||'Amarelo'}', status: 'Em_Observacao', currentStep: 4, room: 'Sala de Observação' }); if(typeof window.ensureSmartFlowGuideMounted==='function') window.ensureSmartFlowGuideMounted('atendimento');">
+        ${isSel ? '<span class="patient-selected-flow-badge" style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:10px;box-shadow:0 3px 10px rgba(56,189,248,0.55);z-index:9;letter-spacing:0.5px;">⚡ Paciente em Foco</span>' : ''}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div style="font-weight:700;font-size:0.88rem;color:var(--text-primary);">${pName}</div>
+          <span id="timer-${e.id}" style="font-size:0.7rem;color:#fbbf24;font-family:monospace;background:rgba(245,158,11,0.1);padding:2px 6px;border-radius:4px;white-space:nowrap;"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <span style="width:7px;height:7px;background:#f59e0b;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
+          <span style="font-size:0.75rem;color:#fbbf24;font-weight:600;">Em Observação (PS)</span>
+          ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;margin-left:auto;">${mc.label}</span>`:''}
+        </div>
+        ${obsBadgeHtml}
+        ${e.bloodPressure||e.temperatureCelsius?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">${e.bloodPressure?`<div style="background:var(--bg-secondary);border-radius:6px;padding:4px 6px;font-size:0.7rem;"><span style="color:var(--text-muted);">PA:</span> <strong style="color:var(--text-primary);">${e.bloodPressure}</strong></div>`:''} ${e.temperatureCelsius?`<div style="background:var(--bg-secondary);border-radius:6px;padding:4px 6px;font-size:0.7rem;"><span style="color:var(--text-muted);">Temp:</span> <strong style="color:var(--text-primary);">${e.temperatureCelsius}°C</strong></div>`:''}</div>`:''}
+        ${e.complaints?`<p style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;margin:0 0 10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">"${e.complaints}"</p>`:''}
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+          <button class="btn btn-open-pep" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary);border-radius:var(--radius-md);cursor:pointer;" title="Prontuário Eletrônico">
+            <i class="fa-solid fa-file-medical"></i> PEP
+          </button>
+          <button class="btn btn-open-rx" data-enc-id="${e.id}" style="font-size:0.75rem;padding:6px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a78bfa;border-radius:var(--radius-md);cursor:pointer;" title="Prescrição de Medicações">
+            <i class="fa-solid fa-scroll"></i> Prescrição
+          </button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+          <button class="btn btn-transfer-bed" data-enc-id="${e.id}" style="font-size:0.72rem;padding:6px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:var(--radius-md);cursor:pointer;font-weight:700;" title="Subir paciente para leito de internação">
+            <i class="fa-solid fa-bed"></i> Internar
+          </button>
+          <button class="btn btn-finish-obs" data-enc-id="${e.id}" style="font-size:0.72rem;padding:6px;background:linear-gradient(135deg,#10b981,#059669);border:none;color:#fff;border-radius:var(--radius-md);cursor:pointer;font-weight:700;" title="Dar Alta da Observação">
+            <i class="fa-solid fa-person-walking-arrow-right"></i> Alta Obs
+          </button>
+        </div>
+      </div>`;
+  };
+
+  const renderKanban = (encounters) => {
+    activeKanbanTimers.forEach(t => clearInterval(t));
+    activeKanbanTimers = [];
+
+    // Deduplicação dos encontros por paciente: mantém o encontro mais recente e avançado
+    const patientSeen = new Set();
+    const sortedEncs = [...(encounters || [])].sort((a, b) => {
+      const tA = new Date(a.observation_started_at || a.admitted_at || a.created_at || 0).getTime();
+      const tB = new Date(b.observation_started_at || b.admitted_at || b.created_at || 0).getTime();
+      return tB - tA; // mais recente primeiro
+    });
+
+    const uniqueEncs = [];
+    sortedEncs.forEach(e => {
+      if (e.status === 'Finalizado' || e.status === 'Alta' || e.status === 'Cancelado') return;
+      const validName = getSafePatientName(e);
+      const key = (e.patientId ? `id:${String(e.patientId).trim().toLowerCase()}` : '') ||
+                  `name:${validName.toLowerCase()}` || `enc:${e.id}`;
+      if (!patientSeen.has(key)) {
+        patientSeen.add(key);
+        uniqueEncs.push(e);
+      }
+    });
+
+    const triage = [...uniqueEncs.filter(e => e.status === 'Aguardando_Triagem')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return new Date(b.admitted_at || b.created_at || 0) - new Date(a.admitted_at || a.created_at || 0);
+    });
+
+    const waiting = [...uniqueEncs.filter(e => e.status === 'Aguardando_Atendimento')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0) || new Date(a.admitted_at)-new Date(b.admitted_at);
+    });
+
+    const active = [...uniqueEncs.filter(e => (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Exames' || e.status === 'Aguardando_Resultado') && !e.observation_started_at && e.status !== 'Em_Observacao')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return 0;
+    });
+
+    const obs = [...uniqueEncs.filter(e => (e.status === 'Em_Observacao' || !!e.observation_started_at) && e.status !== 'Finalizado' && e.status !== 'Alta')].sort((a, b) => {
+      const aSel = isPatientFocused(a.patientName);
+      const bSel = isPatientFocused(b.patientName);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return (colorPri[b.manchesterColor]||0)-(colorPri[a.manchesterColor]||0);
+    });
+
+    window.filterKanbanColumn = function(type) {
+      const colTriage = document.getElementById('col-triage')?.parentElement;
+      const colWaiting = document.getElementById('col-waiting')?.parentElement;
+      const colActive = document.getElementById('col-active')?.parentElement;
+      const colObs = document.getElementById('col-obs')?.parentElement;
+      if (!colTriage || !colWaiting || !colActive || !colObs) return;
+      const grid = colTriage.parentElement;
+
+      ['triage', 'waiting', 'active', 'obs', 'all'].forEach(t => {
+        const card = document.getElementById(`card-kpi-${t}`);
+        if (card) {
+          if (t === type) {
+            card.classList.add('active-filter');
+            card.style.opacity = '1';
+          } else {
+            card.classList.remove('active-filter');
+            card.style.opacity = type === 'all' ? '1' : '0.55';
+          }
+        }
+      });
+
+      if (type === 'all') {
+        grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        colTriage.style.display = 'block';
+        colWaiting.style.display = 'block';
+        colActive.style.display = 'block';
+        colObs.style.display = 'block';
+      } else if (type === 'triage') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'block';
+        colWaiting.style.display = 'none';
+        colActive.style.display = 'none';
+        colObs.style.display = 'none';
+      } else if (type === 'waiting') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'none';
+        colWaiting.style.display = 'block';
+        colActive.style.display = 'none';
+        colObs.style.display = 'none';
+      } else if (type === 'active') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'none';
+        colWaiting.style.display = 'none';
+        colActive.style.display = 'block';
+        colObs.style.display = 'none';
+      } else if (type === 'obs') {
+        grid.style.gridTemplateColumns = '1fr';
+        colTriage.style.display = 'none';
+        colWaiting.style.display = 'none';
+        colActive.style.display = 'none';
+        colObs.style.display = 'block';
+      }
+    };
+
+    const countTr = document.getElementById('count-triage');
+    if (countTr) countTr.textContent = triage.length;
+    const countWt = document.getElementById('count-waiting');
+    if (countWt) countWt.textContent = waiting.length;
+    const countAc = document.getElementById('count-active');
+    if (countAc) countAc.textContent = active.length;
+    const countOb = document.getElementById('count-obs');
+    if (countOb) countOb.textContent = obs.length;
+
+    const kpiTr = document.getElementById('kpi-triagem-num');
+    if (kpiTr) kpiTr.textContent = triage.length;
+    const kpiWt = document.getElementById('kpi-aguardando-num');
+    if (kpiWt) kpiWt.textContent = waiting.length;
+    const kpiAc = document.getElementById('kpi-consulta-num');
+    if (kpiAc) kpiAc.textContent = active.length;
+    const kpiOb = document.getElementById('kpi-observacao-num');
+    if (kpiOb) kpiOb.textContent = obs.length;
+
+    // Atualizar badge lateral de Observação
+    const navObsBadge = document.getElementById('observacao-nav-badge') || document.getElementById('nav-badge-observacao');
+    if (navObsBadge) {
+      navObsBadge.textContent = obs.length;
+      navObsBadge.style.display = obs.length > 0 ? 'inline-block' : 'none';
+    }
+
+    const setCol = (id, items, emptyColor, emptyMsg, buildFn, bindFn) => {
+      const col = document.getElementById(id);
+      if (!col) return;
+      if (!items || !items.length) { 
+        col.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:30px 16px;font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:${emptyColor};font-size:1.5rem;display:block;margin-bottom:8px;"></i>${emptyMsg}</div>`; 
+        return; 
+      }
+      try {
+        col.innerHTML = items.map(buildFn).join('');
+        items.forEach(e => { 
+          try {
+            bindFn(e); 
+            startLiveTimer(e.id, e.admitted_at); 
+          } catch(errBind) {
+            console.warn(`[attendance] Erro ao associar eventos no item ${e.id}:`, errBind);
+          }
+        });
+      } catch (colErr) {
+        console.error(`[attendance] Erro ao renderizar coluna ${id}:`, colErr);
+        col.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:24px 16px;font-size:0.82rem;"><i class="fa-solid fa-check-circle" style="color:${emptyColor};font-size:1.3rem;display:block;margin-bottom:6px;"></i>${emptyMsg}</div>`;
+      }
+    };
+
+    setCol('col-triage', triage, '#0284c7', 'Fila de triagem vazia', buildTriageCard, (e) => {
+      const b = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-triar`);
+      const pepBtn = document.querySelector(`#col-triage [data-enc-id="${e.id}"].btn-open-pep-direct`);
+      if (b) b.addEventListener('click', () => openTriageModal(e.id, e.patientName));
+      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id, 'soap'));
+    });
+    setCol('col-waiting', waiting, '#f59e0b', 'Nenhum paciente aguardando médico', buildWaitCard, (e) => {
+      const b = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-call-consult`);
+      const pepBtn = document.querySelector(`#col-waiting [data-enc-id="${e.id}"].btn-open-pep-direct`);
+      if (b) b.addEventListener('click', () => updateStatus(e.id, 'Em_Atendimento', e.patientName, e.manchesterColor));
+      if (pepBtn) pepBtn.addEventListener('click', () => window.openPEPModal(e.id, 'soap'));
+    });
+    setCol('col-active', active, '#10b981', 'Nenhum paciente em consulta agora', buildActiveCard, (e) => {
+      const pep = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-pep`);
+      const rx = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-open-rx`);
+      const obsBtn = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-start-obs`);
+      const bed = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-transfer-bed`);
+      const fin = document.querySelector(`#col-active [data-enc-id="${e.id}"].btn-finish-consult`);
+      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id, 'soap'));
+      if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
+      if (obsBtn) obsBtn.addEventListener('click', async () => {
+        try {
+          const res = await apiFetch(`/api/encounters/${e.id}/start-observation`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes: 'Paciente colocado em observação médica no PS' })
+          });
+          if (res.ok) {
+            showToast('⏱️ Paciente colocado em Observação Médica (Cronômetro 12h iniciado)');
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: '⏱️ Observação Médica PS Iniciada',
+                message: `O paciente <strong>${e.patientName}</strong> foi colocado em observação médica. O tempo de permanência de 12 horas está ativo na coluna 'Em Observação (PS)'.`,
+                targetTab: 'atendimento',
+                targetTabLabel: 'Ver na Coluna Observação (PS)',
+                targetColumn: 'col-obs',
+                persistent: true
+              });
+            }
+            await loadAndRenderKanban();
+          }
+        } catch(err) { showToast('Erro ao iniciar observação.', true); }
+      });
+      if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
+      if (fin) fin.addEventListener('click', () => updateStatus(e.id, 'Finalizado', e.patientName));
+    });
+
+    setCol('col-obs', obs, '#f59e0b', 'Nenhum paciente em observação', buildObsCard, (e) => {
+      const pep = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-pep`);
+      const rx = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-open-rx`);
+      const bed = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-transfer-bed`);
+      const alta = document.querySelector(`#col-obs [data-enc-id="${e.id}"].btn-finish-obs`);
+      if (pep) pep.addEventListener('click', () => window.openPEPModal(e.id, 'soap'));
+      if (rx) rx.addEventListener('click', () => window.openPrescriptionModal(e.id, e.patientName, e.patientId));
+      if (bed) bed.addEventListener('click', () => window.openTransferBedModal(e.id, e.patientName));
+      if (alta) alta.addEventListener('click', async () => {
+        const confirmed = typeof showCustomConfirm === 'function'
+          ? await showCustomConfirm({
+              title: 'Confirmar Alta da Observação',
+              message: `Deseja conceder <strong>alta médica da observação</strong> para <strong>${e.patientName}</strong>?<br><br><span style="font-size:0.83rem; color:var(--text-muted, #94a3b8); display:inline-block; margin-top:2px;">O paciente receberá alta com registro de data, horário e desfecho clínico no prontuário.</span>`,
+              confirmText: 'Sim, Conceder Alta',
+              cancelText: 'Cancelar',
+              type: 'success'
+            })
+          : confirm(`Confirmar alta da observação para ${e.patientName}? O paciente receberá alta com registro de data e horário no prontuário.`);
+        if (!confirmed) return;
+        try {
+          const res = await apiFetch(`/api/encounters/${e.id}/finish-observation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dischargeNotes: 'Alta concedida após período de observação no PS com melhora clínica.' })
+          });
+          if (res.ok) {
+            showToast(`✅ Alta da observação registrada para ${e.patientName}.`);
+            if (typeof window.showFlowCompletionNotification === 'function') {
+              window.showFlowCompletionNotification({
+                actionTitle: '🏥 Alta da Observação Concedida',
+                message: `O paciente <strong>${e.patientName}</strong> recebeu alta da observação médica do PS. Status atualizado na aba Pacientes.`,
+                targetTab: 'pacientes',
+                targetTabLabel: 'Ver Registro em Pacientes',
+                persistent: true
+              });
+            }
+            await loadAndRenderKanban();
+          } else {
+            showToast('Erro ao registrar alta da observação.', true);
+          }
+        } catch (err) {
+          showToast('Erro de conexão ao dar alta.', true);
+        }
+      });
+    });
+
+    // Auto-scroll e destaque imediato do paciente em foco
+    setTimeout(() => {
+      const selectedEl = document.querySelector('#main-content .patient-pulse-selected');
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      }
+    }, 120);
+  };
+
+  const loadAndRenderKanban = async () => {
+    try {
+      let encounters = [];
+      try {
+        const res = await apiFetch(`/api/encounters`);
+        if (res && res.ok) {
+          const json = await res.json();
+          encounters = Array.isArray(json) ? json : (json?.data || []);
+        }
+      } catch (fetchErr) {
+        console.warn('[attendance] Falha ao consultar /api/encounters via apiFetch:', fetchErr);
+      }
+
+      // Se apiFetch não retornou registros ou falhou, usar fallback do localDB
+      if (!encounters || !encounters.length) {
+        if (typeof window !== 'undefined' && window.localDB) {
+          encounters = window.localDB.list('encounters') || [];
+        }
+      }
+
+      allEncounters = encounters || [];
+      renderKanban(allEncounters);
+    } catch (err) {
+      console.error('[attendance] Erro ao carregar/renderizar Kanban de Atendimentos:', err);
+      try {
+        renderKanban(allEncounters || []);
+      } catch (renderErr) {
+        console.error('[attendance] Falha crítica ao renderizar colunas:', renderErr);
+        ['col-triage','col-waiting','col-active','col-obs'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = `
+            <div style="text-align:center;padding:24px 16px;color:var(--text-muted);font-size:0.82rem;">
+              <i class="fa-solid fa-check-circle" style="color:var(--text-muted);font-size:1.4rem;display:block;margin-bottom:8px;"></i>
+              Fila vazia no momento.<br>
+              <button class="btn btn-secondary" onclick="window.loadAndRenderAttendanceKanban()" style="margin-top:10px;font-size:0.75rem;padding:4px 10px;">
+                <i class="fa-solid fa-rotate"></i> Atualizar
+              </button>
+            </div>`;
+        });
+      }
+    }
+  };
+  window.loadAndRenderAttendanceKanban = loadAndRenderKanban;
+
+  const updateStatus = async (id, status, patientName, manchesterColor) => {
+    try {
+      const res = await apiFetch(`/api/encounters/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status }) });
+      if (res.ok) {
+        if (status === 'Em_Atendimento') {
+          setActivePatientContext({ 
+            id, 
+            fullName: patientName, 
+            patientName, 
+            manchesterColor,
+            status: 'Em_Atendimento',
+            room: 'Consultório 01',
+            roomName: 'Consultório 01',
+            currentStep: 4,
+            tvCalled: true
+          });
+          const stepperContainer = document.getElementById('atd-journey-stepper-container');
+          if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'consulta');
+
+          try {
+            const todayIso = new Date().toISOString().split('T')[0];
+            const db = window.localDB.getFullDB();
+            const apts = db.appointments || [];
+            let existingApt = apts.find(a => (a.patientName && a.patientName.toLowerCase() === (patientName || '').toLowerCase()) && (a.date === todayIso || !a.date));
+            if (existingApt) {
+              window.localDB.update('appointments', existingApt.id, {
+                ...existingApt,
+                status: 'Em Atendimento',
+                roomName: 'Consultório 01',
+                room: 'Consultório 01'
+              });
+            } else {
+              window.localDB.insert('appointments', {
+                id: 'apt-' + Date.now(),
+                patientName: patientName,
+                doctorName: (state.user && state.user.fullName) || 'Dr. Médico Plantonista',
+                date: todayIso,
+                time: new Date().toLocaleTimeString().slice(0, 5),
+                status: 'Em Atendimento',
+                roomName: 'Consultório 01',
+                room: 'Consultório 01',
+                specialty: 'Clínica Geral'
+              });
+            }
+          } catch (err) { console.error('Erro ao sync agendamento consultorio:', err); }
+
+          const callPayload = {
+            patientName: patientName,
+            roomName: 'Consultório 01',
+            manchesterColor: manchesterColor || 'Verde',
+            doctorName: (state.user && state.user.fullName) || 'Dr. Médico Plantonista'
+          };
+
+          if (typeof window.executeTVCall === 'function') {
+            await window.executeTVCall(patientName, 'Consultório 01', manchesterColor || 'Verde');
+          } else {
+            apiFetch('/api/tv/call', {
+              method: 'POST',
+              body: JSON.stringify(callPayload)
+            }).catch(() => {});
+
+            realtimeHub.broadcastTVCall(callPayload);
+
+            if ('speechSynthesis' in window) {
+              const text = `Atenção: Paciente ${patientName}, favor dirigir-se ao Consultório 01.`;
+              const utterance = new SpeechSynthesisUtterance(text);
+              utterance.lang = 'pt-BR';
+              utterance.rate = 0.9;
+              window.speechSynthesis.speak(utterance);
+            }
+          }
+
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: `📢 Paciente Chamado para Consultório 01`,
+              message: `O paciente <strong>${patientName}</strong> foi chamado para o <strong>Consultório 01</strong>.`,
+              targetTab: 'consultorios',
+              targetTabLabel: 'Consultório 01 (Salas & Consultórios)',
+              targetColumn: 'Consultório 01',
+              targetPatientName: patientName,
+              persistent: true
+            });
+          }
+        } else if (status === 'Finalizado') {
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: `✅ Atendimento Finalizado`,
+              message: `O atendimento de <strong>${patientName}</strong> foi concluído com sucesso. O histórico foi salvo no prontuário.`,
+              targetTab: 'atendimento',
+              targetTabLabel: 'Atendimentos & Relatórios',
+              persistent: true
+            });
+          }
+        }
+        const msgs = { 'Em_Atendimento': `📣 ${patientName} chamado(a) para consulta!`, 'Finalizado': `✅ Atendimento de ${patientName} finalizado.` };
+        showToast(msgs[status] || 'Status atualizado.');
+        await loadAndRenderKanban();
+      } else { showToast('❌ Erro ao atualizar status.', true); }
+    } catch { showToast('❌ Erro de conexão.', true); }
+  };
+
+  const openTriageModal = (id, name) => {
+    const perms = (typeof getRolePermissions === 'function') ? getRolePermissions(state.user) : { canDoTriage: true, label: 'Usuário' };
+    if (!perms.canDoTriage) {
+      showCustomAlert({
+        title: 'Acesso Restrito',
+        message: `Seu perfil (<strong>${perms.label}</strong>) não possui permissão clínica para realizar Triagem Manchester. Esta operação é restrita a Enfermeiros e Médicos.`,
+        type: 'warning'
+      });
+      return;
+    }
+
+    setActivePatientContext({ id, fullName: name, patientName: name, status: 'Aguardando_Triagem', currentStep: 2, room: 'Sala de Triagem' });
+    const stepperContainer = document.getElementById('atd-journey-stepper-container');
+    if (stepperContainer) renderPatientJourneyStepper(stepperContainer, 'triagem');
+
+    document.getElementById('triage-encounter-id').value = id;
+    document.getElementById('triage-patient-name').textContent = name;
+    
+    // Buscar antecedentes clínicos e alergias do paciente para alerta visual imediato na triagem
+    const clinicalAlertEl = document.getElementById('triage-patient-clinical-alert');
+    if (clinicalAlertEl) {
+      clinicalAlertEl.style.display = 'none';
+      clinicalAlertEl.innerHTML = '';
+      try {
+        const fullDb = window.localDB ? window.localDB.getFullDB() : {};
+        const encList = fullDb.encounters || [];
+        const currentEnc = encList.find(e => String(e.id) === String(id));
+        const patId = currentEnc?.patientId;
+        const patList = fullDb.patients || [];
+        const pat = patList.find(p => (patId && String(p.id) === String(patId)) || (p.fullName && p.fullName.toLowerCase() === name.toLowerCase()));
+
+        if (pat && (pat.allergies || pat.medicalHistory || pat.surgicalHistory)) {
+          let alertHtml = `<div style="background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;">`;
+          if (pat.allergies) {
+            alertHtml += `<div style="display: flex; align-items: center; gap: 6px; color: #fca5a5; font-size: 0.8rem; font-weight: 700;">
+              <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
+              <span>ALERTA DE ALERGIA:</span>
+              <strong style="color: #fff; background: rgba(239,68,68,0.25); padding: 1px 8px; border-radius: 4px;">${pat.allergies}</strong>
+            </div>`;
+          }
+          if (pat.medicalHistory) {
+            alertHtml += `<div style="display: flex; align-items: center; gap: 6px; color: #93c5fd; font-size: 0.78rem;">
+              <i class="fa-solid fa-notes-medical" style="color: #38bdf8;"></i>
+              <span>Antecedentes / Comorbidades:</span>
+              <strong style="color: #e2e8f0;">${pat.medicalHistory}</strong>
+            </div>`;
+          }
+          if (pat.surgicalHistory) {
+            alertHtml += `<div style="display: flex; align-items: center; gap: 6px; color: #cbd5e1; font-size: 0.75rem;">
+              <i class="fa-solid fa-syringe" style="color: #a78bfa;"></i>
+              <span>Cirurgias/Próteses:</span>
+              <span>${pat.surgicalHistory}</span>
+            </div>`;
+          }
+          alertHtml += `</div>`;
+          clinicalAlertEl.innerHTML = alertHtml;
+          clinicalAlertEl.style.display = 'block';
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar antecedentes para triagem:', err);
+      }
+    }
+
+    // Pre-seleção padrão para garantir estado válido
+    const defRadio = document.getElementById('color-amarelo') || document.querySelector('input[name="manchesterColor"]');
+    if (defRadio) defRadio.checked = true;
+
+    document.getElementById('triage-modal').style.display = 'flex';
+  };
+  window.openTriageModal = openTriageModal;
+  const closeTriageModal = () => { document.getElementById('triage-modal').style.display = 'none'; document.getElementById('triage-form').reset(); };
+  document.getElementById('close-triage-modal')?.addEventListener('click', closeTriageModal);
+  document.getElementById('btn-cancel-triage')?.addEventListener('click', closeTriageModal);
+  document.getElementById('triage-modal')?.addEventListener('click', e => { if (e.target === document.getElementById('triage-modal')) closeTriageModal(); });
+
+  // Garantir clique suave em toda a área das opções Manchester
+  document.querySelectorAll('.manchester-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const r = opt.querySelector('input[type="radio"]');
+      if (r) r.checked = true;
+    });
+  });
+
+  const updateTriageMEWS = () => {
+    const pa = document.getElementById('triage-pa')?.value || '';
+    const temp = document.getElementById('triage-temp')?.value || '';
+    const fc = document.getElementById('triage-fc')?.value || '';
+    const spo2 = document.getElementById('triage-spo2')?.value || '';
+
+    const mews = calculateMEWS({
+      bloodPressure: pa,
+      temperatureCelsius: temp,
+      heartRateBpm: fc,
+      oxygenSaturation: spo2
+    });
+
+    const scoreEl = document.getElementById('triage-mews-score-val');
+    const suggestEl = document.getElementById('triage-mews-suggest');
+    const previewEl = document.getElementById('triage-mews-preview');
+
+    if (scoreEl && suggestEl && previewEl) {
+      scoreEl.textContent = `${mews.score} (${mews.riskLevel})`;
+      scoreEl.style.color = mews.badgeColor;
+      previewEl.style.background = mews.badgeBg;
+      previewEl.style.border = `1px solid ${mews.badgeColor}`;
+
+      if (mews.isSepsisAlert) {
+        suggestEl.innerHTML = '<strong style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ALERTA SEPSE / EMERGÊNCIA</strong>';
+        const rad = document.getElementById('color-vermelho');
+        if (rad) rad.checked = true;
+      } else if (mews.score >= 5) {
+        suggestEl.innerHTML = '<span style="color: #f87171; font-weight:700;">Recomendado: Laranja</span>';
+        const rad = document.getElementById('color-laranja');
+        if (rad) rad.checked = true;
+      } else if (mews.score >= 3) {
+        suggestEl.innerHTML = '<span style="color: #fbbf24; font-weight:600;">Recomendado: Amarelo</span>';
+        const rad = document.getElementById('color-amarelo');
+        if (rad) rad.checked = true;
+      } else {
+        suggestEl.innerHTML = '<span style="color: #34d399;">Sinais Vitais Estáveis</span>';
+      }
+    }
+  };
+
+  document.getElementById('triage-pa')?.addEventListener('input', e => {
+    let raw = e.target.value;
+    if (raw.includes('/')) {
+      const parts = raw.split('/');
+      const sys = parts[0].replace(/\D/g, '').slice(0, 3);
+      const dia = parts[1].replace(/\D/g, '').slice(0, 3);
+      e.target.value = (parts.length > 1 || raw.endsWith('/')) ? `${sys}/${dia}` : sys;
+    } else {
+      let digits = raw.replace(/\D/g, '').slice(0, 6);
+      if (digits.length === 4) {
+        const firstTwo = parseInt(digits.slice(0, 2), 10);
+        if (firstTwo >= 60 && firstTwo <= 99) {
+          e.target.value = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+        } else {
+          e.target.value = digits;
+        }
+      } else if (digits.length >= 5) {
+        e.target.value = `${digits.slice(0, 3)}/${digits.slice(3)}`;
+      } else {
+        e.target.value = digits;
+      }
+    }
+    updateTriageMEWS();
+  });
+  document.getElementById('triage-temp')?.addEventListener('input', updateTriageMEWS);
+  document.getElementById('triage-fc')?.addEventListener('input', updateTriageMEWS);
+  document.getElementById('triage-spo2')?.addEventListener('input', updateTriageMEWS);
+  document.getElementById('triage-glicemia')?.addEventListener('input', updateTriageMEWS);
+  document.getElementById('triage-peso')?.addEventListener('input', updateTriageMEWS);
+
+  let triageSubmitDestination = 'consultorio';
+
+  document.getElementById('btn-submit-triage-obs')?.addEventListener('click', () => {
+    triageSubmitDestination = 'observacao';
+    document.getElementById('triage-form')?.requestSubmit();
+  });
+
+  document.getElementById('btn-submit-triage-consult')?.addEventListener('click', () => {
+    triageSubmitDestination = 'consultorio';
+  });
+
+  document.getElementById('triage-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    let radio = document.querySelector('input[name="manchesterColor"]:checked');
+    if (!radio) {
+      const fallbackRad = document.getElementById('color-amarelo') || document.querySelector('input[name="manchesterColor"]');
+      if (fallbackRad) { fallbackRad.checked = true; radio = fallbackRad; }
+    }
+    const colorValue = radio ? radio.value : 'Amarelo';
+    const encId = document.getElementById('triage-encounter-id').value;
+    const isObsDestination = triageSubmitDestination === 'observacao';
+
+    const submitBtns = e.target.querySelectorAll('button[type="submit"], button#btn-submit-triage-obs');
+    submitBtns.forEach(btn => {
+      btn.disabled = true;
+    });
+    const consultBtn = document.getElementById('btn-submit-triage-consult');
+    if (consultBtn) consultBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Encaminhando...';
+
+    try {
+      const complaintsVal = document.getElementById('triage-complaints')?.value?.trim() || 'Avaliação clínica no Pronto-Socorro';
+      const res = await apiFetch(`/api/encounters/${encId}/triage`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          manchesterColor: colorValue,
+          destination: isObsDestination ? 'observacao' : 'consultorio',
+          bloodPressure: document.getElementById('triage-pa')?.value || '',
+          temperatureCelsius: document.getElementById('triage-temp')?.value || '',
+          heartRateBpm: document.getElementById('triage-fc')?.value || '',
+          spo2: document.getElementById('triage-spo2')?.value || '',
+          weightKg: document.getElementById('triage-peso')?.value || '',
+          glicemia: document.getElementById('triage-glicemia')?.value || '',
+          complaints: complaintsVal
+        })
+      });
+      if (res.ok) {
+        const pName = document.getElementById('triage-patient-name')?.textContent || 'Paciente';
+        const firstName = pName.split(' ')[0] || pName;
+        const complaintsText = complaintsVal;
+        closeTriageModal();
+
+        // Limpa ação pendente de triagem anterior no Guia de Fluxo
+        if (typeof window !== 'undefined' && window._SFG) {
+          window._SFG.pendingAction = null;
+        }
+
+        // 🚨 Ativação automática de Protocolo de Emergência (IAM, AVC, Sepse)
+        try {
+          const protoMatch = detectEmergencyProtocolByComplaint(complaintsText);
+          if (protoMatch) {
+            const protoId = protoMatch.id || (protoMatch.protocol && protoMatch.protocol.id);
+            const protoName = protoMatch.name || (protoMatch.protocol && protoMatch.protocol.name) || 'Emergência';
+            if (protoId) {
+              startEmergencyProtocol(encId, pName, protoId);
+              showToast(`🚨 Protocolo de Emergência (${protoName}) ativado com sucesso! Cronômetro iniciado.`, false);
+            }
+          }
+        } catch (protoErr) {
+          console.warn('Aviso ao registrar protocolo de emergência:', protoErr);
+        }
+
+        if (isObsDestination) {
+          // Encaminhado diretamente para Observação do PS
+          setActivePatientContext({
+            id: encId,
+            encounterId: encId,
+            fullName: pName,
+            patientName: pName,
+            manchesterColor: colorValue,
+            status: 'Em_Observacao',
+            currentStep: 4,
+            room: 'Sala de Observação',
+            tvCalled: false
+          });
+
+          window._highlightPatientName = pName;
+          window._highlightTargetColumn = 'col-obs';
+
+          showToast(`🛏️ Triagem de ${pName} concluída (${colorValue})! Encaminhado para Sala de Observação.`);
+
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: `🛏️ Paciente Encaminhado para Observação (PS)`,
+              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue.toUpperCase()}</strong> e encaminhado diretamente para a <strong>Observação do Pronto-Socorro</strong>.<br><br>👉 O tempo de permanência de 12 horas está ativo na coluna <strong>Em Observação (PS)</strong> e na aba dedicada <strong>Observação do PS</strong>.`,
+              targetTab: 'observacao',
+              targetTabLabel: `🛏️ Abrir Observação do PS ➔`,
+              targetColumn: 'col-obs',
+              targetPatientName: pName,
+              targetPatientId: encId,
+              targetManchesterColor: colorValue,
+              targetRoom: 'Sala de Observação',
+              targetStatus: 'Em_Observacao',
+              currentStep: 4,
+              persistent: true
+            });
+          }
+        } else {
+          // Encaminhado para Consultório / Aguardando Médico
+          setActivePatientContext({
+            id: encId,
+            encounterId: encId,
+            fullName: pName,
+            patientName: pName,
+            manchesterColor: colorValue,
+            status: 'Aguardando_Atendimento',
+            currentStep: 3, // Etapa 3 de 7: Chamada TV Consulta / Aguardando Médico
+            room: 'Consultório 01',
+            tvCalled: false
+          });
+
+          const stepperContainer = document.getElementById('atd-journey-stepper-container');
+          if (stepperContainer && typeof renderPatientJourneyStepper === 'function') {
+            renderPatientJourneyStepper(stepperContainer, 'chamador');
+          }
+
+          window._highlightPatientName = pName;
+          window._highlightTargetColumn = 'col-waiting';
+
+          showToast(`✅ Triagem de ${pName} salva com sucesso (${colorValue})! Encaminhado para Atendimento.`);
+          
+          if (typeof window.showFlowCompletionNotification === 'function') {
+            window.showFlowCompletionNotification({
+              actionTitle: `📢 Chamar para Atendimento em Consultório`,
+              message: `O paciente <strong>${pName}</strong> foi classificado como <strong>${colorValue.toUpperCase()}</strong> e encaminhado para <strong>Atendimento (Aguardando Médico)</strong>.<br><br>👉 Próxima etapa assistencial: <strong>Convoque o paciente no Painel TV para o Consultório 01</strong> para iniciar a consulta médica.`,
+              targetTab: 'atendimento',
+              targetTabLabel: `📢 Chamar ${firstName} no Painel TV (Consultório 01) ➔`,
+              targetColumn: 'col-waiting',
+              targetPatientName: pName,
+              targetPatientId: encId,
+              targetManchesterColor: colorValue,
+              targetRoom: 'Consultório 01',
+              targetStatus: 'Aguardando_Atendimento',
+              currentStep: 3,
+              actionType: 'call_tv_doctor',
+              persistent: true
+            });
+          }
+        }
+
+        triageSubmitDestination = 'consultorio';
+
+        if (typeof state !== 'undefined' && state.activeTab !== 'atendimento' && typeof window.switchTab === 'function') {
+          window.switchTab('atendimento');
+        }
+
+        if (typeof window.triggerFlowGuidePulse === 'function') {
+          window.triggerFlowGuidePulse();
+        }
+        await loadAndRenderKanban();
+      }
+      else { const d=await res.json(); showToast(`❌ ${d.message||'Erro ao salvar triagem.'}`,true); }
+    } catch (err) { 
+      console.error('Erro ao salvar triagem:', err);
+      showToast('❌ Erro ao salvar triagem.', true); 
+    }
+    finally { 
+      document.querySelectorAll('#triage-form button[type="submit"], #triage-form button#btn-submit-triage-obs').forEach(b => {
+        b.disabled = false;
+      });
+      const cBtn = document.getElementById('btn-submit-triage-consult');
+      if (cBtn) cBtn.innerHTML = '<i class="fa-solid fa-stethoscope"></i> Encaminhar p/ Consultório';
+      const oBtn = document.getElementById('btn-submit-triage-obs');
+      if (oBtn) oBtn.innerHTML = '<i class="fa-solid fa-bed-pulse"></i> Encaminhar p/ Observação (PS)';
+      triageSubmitDestination = 'consultorio';
+    }
+  });
+
+  const renderHistory = (list) => {
+    const el = document.getElementById('history-list');
+    if (!el) return;
+    if (!list.length) { el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:0.9rem;"><i class="fa-solid fa-inbox"></i><br>Nenhum atendimento finalizado.</div>'; return; }
+    el.innerHTML = list.map(e => {
+      const pName = getSafePatientName(e);
+      const mc = getMC(e.manchesterColor);
+      return `<div style="border:1px solid var(--border-color);border-left:4px solid ${mc.border};border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;background:var(--bg-tertiary);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-weight:700;color:var(--text-primary);font-size:0.9rem;">${pName}</span>
+          ${e.manchesterColor?`<span style="font-size:0.7rem;background:${mc.bg};color:${mc.text};border:1px solid ${mc.border};border-radius:10px;padding:1px 8px;">${mc.label}</span>`:''}
+        </div>
+        <div style="font-size:0.74rem;color:var(--text-muted);display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+          <span><i class="fa-solid fa-tag"></i> ${e.type==='Urgencia'?'Urgência':'Ambulatório'}</span>
+          <span><i class="fa-solid fa-calendar-plus"></i> ${e.admitted_at?new Date(e.admitted_at).toLocaleString('pt-BR'):'—'}</span>
+          ${e.bloodPressure?`<span><i class="fa-solid fa-heart-pulse"></i> PA: ${e.bloodPressure}</span>`:'<span></span>'}
+          <span><i class="fa-solid fa-flag-checkered"></i> ${e.completed_at?new Date(e.completed_at).toLocaleString('pt-BR'):'—'}</span>
+        </div>
+        ${e.complaints?`<p style="font-size:0.77rem;color:var(--text-secondary);font-style:italic;margin:8px 0 0;">"${e.complaints}"</p>`:''}
+      </div>`;
+    }).join('');
+  };
+
+  document.getElementById('btn-show-history')?.addEventListener('click', async () => {
+    document.getElementById('history-panel').style.display = 'flex';
+    try {
+      const res = await apiFetch(`/api/encounters`);
+      const encJson = await res.json();
+      const encountersList = Array.isArray(encJson) ? encJson : (encJson?.data || []);
+      allHistory = encountersList.filter(e => e.status === 'Finalizado').reverse();
+      renderHistory(allHistory);
+    } catch { document.getElementById('history-list').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">Erro ao carregar histórico.</div>'; }
+  });
+  document.getElementById('close-history-panel')?.addEventListener('click', () => document.getElementById('history-panel').style.display = 'none');
+  document.getElementById('history-panel')?.addEventListener('click', e => { if (e.target === document.getElementById('history-panel')) document.getElementById('history-panel').style.display = 'none'; });
+  document.getElementById('history-search')?.addEventListener('input', e => {
+    const q = removeAccents(e.target.value.toLowerCase());
+    renderHistory(allHistory.filter(enc => removeAccents(enc.patientName||'').toLowerCase().includes(q)));
+  });
+
+  document.getElementById('btn-dynamic-query')?.addEventListener('click', () => {
+    if (typeof window.switchTab === 'function') {
+      window.switchTab('consulta_dinamica');
+    }
+  });
+
+  loadAndRenderKanban();
+  const _atdAutoRefresh = setInterval(() => {
+    if (state.activeTab === 'atendimento') loadAndRenderKanban();
+    else clearInterval(_atdAutoRefresh);
+  }, 30000);
+}

@@ -1,0 +1,1622 @@
+// ==========================================
+// Health Nexus — API & LocalDB Router Module
+// Interceptador Local-First com suporte a cache e sync
+// ==========================================
+
+import * as localDB from '../localDB.js';
+import { state, CACHE_TTL_MS, dataCache, dataCacheTimestamps } from '../state.js';
+
+export const API_URL = '/api';
+
+// Helper de remoção de acentos para busca flexível
+export const removeAccents = (str) => {
+  if (!str) return '';
+  return String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
+
+export const abbreviateName = (fullName) => {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length <= 2) return fullName;
+  const firstName = parts[0];
+  const middleInitials = parts.slice(1, -1).map(p => p.charAt(0).toUpperCase() + '.').join(' ');
+  const lastName = parts[parts.length - 1];
+  return `${firstName} ${middleInitials} ${lastName}`;
+};
+
+export const anonymizeCPF = (cpf) => {
+  if (!cpf) return '***.***.***-**';
+  const clean = cpf.replace(/\D/g, '');
+  if (clean.length === 11) {
+    return `${clean.substring(0, 3)}.***.***-${clean.substring(9)}`;
+  }
+  return cpf;
+};
+
+export const invalidateCacheForUrl = (url) => {
+  if (!url) return;
+
+  if (url.includes('/patients')) {
+    dataCache.delete('patients');
+    dataCacheTimestamps.delete('patients');
+  }
+
+  if (url.includes('/appointments') || url.includes('/encounters') || url.includes('/transfer-to-bed') || url.includes('hospitalizations')) {
+    dataCache.delete('encounters');
+    dataCacheTimestamps.delete('encounters');
+    dataCache.delete('appointments');
+    dataCacheTimestamps.delete('appointments');
+    for (const key of dataCache.keys()) {
+      if (typeof key === 'string' && (key.includes('/appointments') || key.includes('/encounters') || key === 'encounters' || key === 'appointments')) {
+        dataCache.delete(key);
+        dataCacheTimestamps.delete(key);
+      }
+    }
+  }
+
+  if (url.includes('/beds') || url.includes('/transfer-to-bed') || url.includes('hospitalizations')) {
+    dataCache.delete('beds');
+    dataCacheTimestamps.delete('beds');
+    for (const key of dataCache.keys()) {
+      if (typeof key === 'string' && (key.includes('/beds') || key === 'beds')) {
+        dataCache.delete(key);
+        dataCacheTimestamps.delete(key);
+      }
+    }
+  }
+
+  if (url.includes('/dashboard') || url.includes('/beds') || url.includes('/transfer-to-bed') || url.includes('/encounters')) {
+    dataCache.delete('dashboard');
+    dataCacheTimestamps.delete('dashboard');
+  }
+};
+
+export const cachedApiGet = async (url, cacheKey = null) => {
+  const cacheId = cacheKey || url;
+  const cachedValue = dataCache.get(cacheId);
+  const cachedAt = dataCacheTimestamps.get(cacheId) || 0;
+
+  if (cachedValue !== undefined && (Date.now() - cachedAt < CACHE_TTL_MS)) {
+    return cachedValue;
+  }
+
+  const response = await apiFetch(url);
+  if (!response.ok) {
+    throw new Error(`Falha ao buscar ${url}`);
+  }
+
+  const payload = await response.json();
+  const result = payload.data !== undefined ? payload.data : payload;
+
+  dataCache.set(cacheId, result);
+  dataCacheTimestamps.set(cacheId, Date.now());
+  return result;
+};
+
+export const apiFetch = async (url, options = {}) => {
+  const method = (options.method || 'GET').toUpperCase();
+  const body = options.body ? JSON.parse(options.body) : null;
+  let responseData = null;
+  let status = 200;
+
+  try {
+    // Rotas de Autenticação
+    if (url.includes('/api/auth/login')) {
+      let cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+      if (cleanInput === 'mazzarowyk') cleanInput = 'mazzarowysk';
+
+      let users = localDB.list('users') || [];
+      let user = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
+      
+      // Fallback: se não encontrou localmente, tenta buscar versão da nuvem
+      if (!user) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 1200);
+          const res = await fetch('/api/turso', { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            const cloudPayload = await res.json();
+            if (cloudPayload && cloudPayload.dados_json && cloudPayload.dados_json !== '{}') {
+              localDB.overwriteLocal(cloudPayload);
+              users = localDB.list('users') || [];
+              user = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (user) {
+        if (user.status === 'Pendente') {
+          status = 403;
+          responseData = { message: 'Cadastro pendente de aprovação pelo Usuário Master.' };
+        } else {
+          const providedPassword = (body.password || '').trim();
+          const storedPassword = (user.password || '').trim();
+          const hashedProvided = localDB.hashPassword ? localDB.hashPassword(providedPassword) : providedPassword;
+
+          // Contas institucionais protegidas que não aceitam senha genérica '123456'
+          const accountSpecificPasswords = {
+            mazzarowysk: ['T@zm4n1c0054180', 'Health@2026', 'health@2026'],
+            admin: ['admin123', 'healthnexus2026', 'Health@2026'],
+            bcoltri: ['bcoltritupa'],
+            ffacco: ['caliope'],
+            pforte: ['pfortesantos'],
+            silviacwb: ['silvia2013'],
+            ljordao: ['manobraw'],
+            medico123: ['medico123', '123456', 'Health@2026']
+          };
+
+          const isProtectedAccount = Object.prototype.hasOwnProperty.call(accountSpecificPasswords, cleanInput) && cleanInput !== 'medico123';
+          const specificAllowed = accountSpecificPasswords[cleanInput] || [];
+          const demoFallbackPasswords = ['Health@2026', 'health@2026', '123456'];
+
+          const matchesStored = Boolean(
+            storedPassword && (
+              providedPassword === storedPassword ||
+              hashedProvided === storedPassword
+            )
+          );
+          const matchesSpecific = specificAllowed.includes(providedPassword);
+          const matchesDemoFallback = !isProtectedAccount && !storedPassword && demoFallbackPasswords.includes(providedPassword);
+
+          const isPasswordCorrect = matchesStored || matchesSpecific || matchesDemoFallback;
+
+          if (isPasswordCorrect) {
+            const { password: _omittedPassword, ...safeUser } = user;
+            const sessionToken = localDB.hashPassword
+              ? `hn_jwt_${localDB.hashPassword(`${safeUser.id || ''}::${safeUser.username || ''}::${safeUser.role || ''}`)}`
+              : 'mock-jwt-token';
+            responseData = { token: sessionToken, user: safeUser };
+          } else {
+            status = 401;
+            responseData = { message: 'Senha incorreta. Verifique suas credenciais.' };
+          }
+        }
+      } else {
+        status = 401;
+        responseData = { message: 'Usuário não encontrado' };
+      }
+    } 
+    else if (url.includes('/api/auth/register')) {
+      const users = localDB.list('users') || [];
+      const cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+      const existingUser = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
+      
+      if (existingUser) {
+        status = 400; responseData = { message: 'Nome de usuário já existe' };
+      } else {
+        const isAdminKeyValid = body.masterKey === 'admin123' || body.masterKey === 'healthnexus2026';
+        let statusStr = 'Pendente';
+        if (isAdminKeyValid) statusStr = 'Ativo';
+        
+        const newUser = {
+          name: body.name,
+          username: body.username,
+          role: body.role,
+          password: body.password,
+          status: statusStr,
+          master_key_requested: statusStr === 'Pendente' ? 1 : 0
+        };
+        
+        const inserted = localDB.insert('users', newUser);
+        if (statusStr === 'Pendente') {
+          status = 403; responseData = { message: 'Aguardando Aprovação' };
+        } else {
+          responseData = { message: 'Cadastro realizado com sucesso!', user: inserted };
+        }
+      }
+    }
+    else if (url.includes('/api/auth/me')) {
+      const storedUser = JSON.parse(sessionStorage.getItem('hn_user') || 'null');
+      if (storedUser) {
+        responseData = { user: storedUser };
+      } else {
+        status = 401;
+        responseData = { message: 'Usuário não autenticado' };
+      }
+    }
+    else if (url.includes('/api/turso')) {
+      // Repassar chamadas Turso diretamente para a rede
+      return fetch(url, options);
+    }
+    else if (url.includes('/api/dashboard/summary')) {
+      const patients = localDB.list('patients') || [];
+      const encounters = localDB.list('encounters') || [];
+      const triages = localDB.list('triages') || [];
+      const beds = localDB.list('beds') || [];
+      const appointments = localDB.list('appointments') || [];
+      const financial = localDB.list('financial_installments') || [];
+      const hospitalizations = localDB.list('hospitalizations') || [];
+      const prescriptions = localDB.list('prescriptions') || [];
+
+      // 1. Pacientes Ativos
+      const activePatients = patients.length;
+
+      // 2. Tempo Médio de Espera Triagem
+      let totalWait = 0;
+      let waitCount = 0;
+      const now = Date.now();
+      encounters.forEach(enc => {
+        if (enc.status === 'Aguardando_Triagem' || enc.status === 'Aguardando_Atendimento') {
+          const adm = enc.admitted_at ? new Date(enc.admitted_at).getTime() : (enc.created_at ? new Date(enc.created_at).getTime() : now);
+          const diffMin = Math.max(1, Math.floor((now - adm) / 60000));
+          totalWait += diffMin;
+          waitCount++;
+        }
+      });
+      const averageWaitTimeMinutes = waitCount > 0 ? Math.round(totalWait / waitCount) : 12;
+
+      // 3. Financeiro (Receita do Mês)
+      let totalRevenue = 0;
+      financial.forEach(f => {
+        if (f.type === 'Receita' || !f.type) {
+          totalRevenue += parseFloat(f.amount || f.finalAmount || 0);
+        }
+      });
+
+      // 4. Ocupação de Leitos por Ala
+      const totalBeds = beds.length;
+      const occupiedBeds = beds.filter(b => b.status === 'Ocupado').length;
+      const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+
+      // Categorias de Leitos
+      const utiCount = beds.filter(b => (b.type?.includes('UTI') || b.ward?.includes('UTI')) && b.status === 'Ocupado').length;
+      const enfCount = beds.filter(b => (b.type?.includes('Enfermaria') || b.ward?.includes('Clínica Médica')) && b.status === 'Ocupado').length;
+      const pedCount = beds.filter(b => (b.type?.includes('Pediatria') || b.ward?.includes('Pediatria')) && b.status === 'Ocupado').length;
+      const matCount = beds.filter(b => (b.type?.includes('Maternidade') || b.ward?.includes('Maternidade')) && b.status === 'Ocupado').length;
+      const freeBeds = beds.filter(b => b.status !== 'Ocupado').length;
+
+      const occupancyData = [
+        { label: 'UTI Adulto', value: utiCount, color: '#f43f5e' },
+        { label: 'Enfermaria', value: enfCount, color: '#0d9488' },
+        { label: 'Pediatria', value: pedCount, color: '#00f2fe' },
+        { label: 'Maternidade', value: matCount, color: '#f59e0b' },
+        { label: 'Disponíveis', value: freeBeds, color: '#10b981' }
+      ];
+
+      // 5. Histórico Semanal / Mensal de Atendimentos
+      const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      const weekCounts = {
+        'Seg': { urgencia: 0, ambulatorial: 0 },
+        'Ter': { urgencia: 0, ambulatorial: 0 },
+        'Qua': { urgencia: 0, ambulatorial: 0 },
+        'Qui': { urgencia: 0, ambulatorial: 0 },
+        'Sex': { urgencia: 0, ambulatorial: 0 },
+        'Sáb': { urgencia: 0, ambulatorial: 0 },
+        'Dom': { urgencia: 0, ambulatorial: 0 }
+      };
+
+      encounters.forEach(enc => {
+        const d = new Date(enc.admitted_at || enc.created_at || Date.now());
+        const dayName = dayNames[d.getDay()];
+        if (weekCounts[dayName]) {
+          if (enc.type === 'Urgencia' || enc.status === 'Aguardando_Triagem' || enc.manchesterColor) {
+            weekCounts[dayName].urgencia++;
+          } else {
+            weekCounts[dayName].ambulatorial++;
+          }
+        }
+      });
+
+      appointments.forEach(apt => {
+        const d = new Date(apt.appointmentDate || apt.date || apt.created_at || Date.now());
+        const dayName = dayNames[d.getDay()];
+        if (weekCounts[dayName]) {
+          weekCounts[dayName].ambulatorial++;
+        }
+      });
+
+      const appointmentsHistory = [
+        { label: 'Seg', urgencia: weekCounts['Seg'].urgencia, ambulatorial: weekCounts['Seg'].ambulatorial },
+        { label: 'Ter', urgencia: weekCounts['Ter'].urgencia, ambulatorial: weekCounts['Ter'].ambulatorial },
+        { label: 'Qua', urgencia: weekCounts['Qua'].urgencia, ambulatorial: weekCounts['Qua'].ambulatorial },
+        { label: 'Qui', urgencia: weekCounts['Qui'].urgencia, ambulatorial: weekCounts['Qui'].ambulatorial },
+        { label: 'Sex', urgencia: weekCounts['Sex'].urgencia, ambulatorial: weekCounts['Sex'].ambulatorial },
+        { label: 'Sáb', urgencia: weekCounts['Sáb'].urgencia, ambulatorial: weekCounts['Sáb'].ambulatorial },
+        { label: 'Dom', urgencia: weekCounts['Dom'].urgencia, ambulatorial: weekCounts['Dom'].ambulatorial }
+      ];
+
+      // 6. Manchester Data
+      const manchesterCounts = { Vermelho: 0, Laranja: 0, Amarelo: 0, Verde: 0, Azul: 0 };
+      triages.forEach(t => {
+        const c = t.color || t.classification;
+        if (manchesterCounts[c] !== undefined) manchesterCounts[c]++;
+      });
+      encounters.forEach(e => {
+        if (e.manchesterColor && manchesterCounts[e.manchesterColor] !== undefined) {
+          manchesterCounts[e.manchesterColor]++;
+        }
+      });
+      const manchesterData = [
+        manchesterCounts.Vermelho || 0,
+        manchesterCounts.Laranja || 0,
+        manchesterCounts.Amarelo || 0,
+        manchesterCounts.Verde || 0,
+        manchesterCounts.Azul || 0
+      ];
+
+      // 7. Funil de Atendimento Hospitalar Dinâmico
+      const stage1_recepcao = encounters.length > 0 ? encounters.length : patients.length;
+      const stage2_triagem = triages.length > 0 ? triages.length : (stage1_recepcao > 0 ? Math.round(stage1_recepcao * 0.85) : 0);
+      const stage3_consultorio = encounters.filter(e => ['Em_Atendimento', 'Aguardando_Exames', 'Aguardando_Resultado', 'Alta', 'Finalizado'].includes(e.status)).length || (stage2_triagem > 0 ? Math.round(stage2_triagem * 0.75) : 0);
+      const stage4_exames = prescriptions.length > 0 ? prescriptions.length : encounters.filter(e => ['Aguardando_Exames', 'Aguardando_Resultado'].includes(e.status)).length || (stage3_consultorio > 0 ? Math.round(stage3_consultorio * 0.45) : 0);
+      const stage5_alta = encounters.filter(e => e.status === 'Alta' || e.status === 'Finalizado').length || (stage3_consultorio > 0 ? Math.round(stage3_consultorio * 0.35) : 0);
+
+      const funnelData = {
+        recepcao: stage1_recepcao,
+        triagem: stage2_triagem,
+        consultorio: stage3_consultorio,
+        exames: stage4_exames,
+        alta: stage5_alta
+      };
+
+      // 8. Dados do Fluxo Kanban de Internação Dinâmico
+      const matchKanbanSector = (sectorStr, targetId) => {
+        if (!sectorStr) return false;
+        const s = String(sectorStr).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const t = String(targetId).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        if (s === t || s === t.replace(/_/g, '') || s === t.replace(/_/g, ' ')) return true;
+        switch (targetId) {
+          case 'pronto_socorro': return s.includes('pronto') || s.includes('socorro') || s === 'ps' || s.startsWith('ps') || s.includes('(ps)') || s.includes('obs');
+          case 'corredor_internacao': return s.includes('corredor');
+          case 'clinica_cirurgica': return s.includes('cirurg') || s.includes('cirurgia');
+          case 'clinica_medica': return s.includes('medic') || s.includes('enferm') || s.includes('sus') || s === 'clinica';
+          case 'uti': return s.includes('uti') || s.includes('intensiv');
+          default: return s.includes(targetId);
+        }
+      };
+
+      const activeHosps = hospitalizations.filter(h => {
+        const st = (h.status || '').toLowerCase().trim();
+        return st !== 'alta' && st !== 'cancelado' && st !== 'finalizado' && st !== 'óbito';
+      });
+
+      const kanbanCounts = [
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'pronto_socorro')).length,
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'corredor_internacao')).length,
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'clinica_cirurgica')).length,
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'clinica_medica')).length,
+        activeHosps.filter(h => matchKanbanSector(h.current_sector || h.sector || h.currentSector || h.ward || '', 'uti')).length,
+      ];
+      const kanbanTotal = kanbanCounts.reduce((a, b) => a + b, 0);
+      const kanbanData = {
+        counts: kanbanCounts,
+        total: kanbanTotal
+      };
+
+      responseData = {
+        activePatients,
+        occupancyRate,
+        averageWaitTimeMinutes,
+        dailyAppointmentsCount: appointments.length,
+        billingSummary: { totalRevenue, pendingClaims: 0 },
+        occupancyData,
+        appointmentsHistory,
+        manchesterData,
+        funnelData,
+        kanbanData
+      };
+    }
+    else if (url.includes('/api/stagnation/alerts')) {
+      const allEncounters = localDB.list('encounters') || [];
+      const alerts = [];
+      let criticalCount = 0;
+      let warningCount = 0;
+      
+      const now = new Date();
+      allEncounters.forEach(enc => {
+        if (enc.status === 'Finalizado' || enc.status === 'Cancelado') return;
+        
+        let elapsedMin = 0;
+        if (enc.lastStatusUpdate) {
+           const updateTime = new Date(enc.lastStatusUpdate);
+           elapsedMin = Math.floor((now - updateTime) / 60000);
+        } else if (enc.timestamp) {
+           const updateTime = new Date(enc.timestamp);
+           elapsedMin = Math.floor((now - updateTime) / 60000);
+        }
+        
+        if (elapsedMin > 15) {
+          const isCritical = elapsedMin > 30;
+          if (isCritical) criticalCount++; else warningCount++;
+          
+          let patient = { fullName: 'Desconhecido', cpf: '' };
+          if (enc.patientId) {
+             patient = localDB.get('patients', enc.patientId) || patient;
+          }
+          
+          alerts.push({
+            id: enc.id,
+            patientName: patient.fullName,
+            patientCpf: patient.cpf,
+            status: enc.status,
+            room: enc.room || enc.location || '-',
+            elapsedMin: elapsedMin,
+            severity: isCritical ? 'CRITICAL' : 'WARNING',
+            reason: `Aguardando no status '${enc.status}' há ${elapsedMin} min`,
+            recommendedAction: 'Verificar situação e prosseguir com atendimento.'
+          });
+        }
+      });
+      
+      alerts.sort((a, b) => b.elapsedMin - a.elapsedMin);
+      responseData = { alerts, criticalCount, warningCount };
+    }
+    else if (url.includes('/api/stagnation/reassign') && method === 'POST') {
+      const { encounterId, room, status: newStatus } = body || {};
+      const allEncounters = localDB.list('encounters') || [];
+      const enc = allEncounters.find(e => e.id === encounterId || e.encounterId === encounterId || e.patientId === encounterId);
+
+      if (enc) {
+        const updated = {
+          ...enc,
+          room: room || enc.room || 'UTI / Internação',
+          status: newStatus || enc.status || 'Aguardando_Leito',
+          lastStatusUpdate: new Date().toISOString()
+        };
+        localDB.update('encounters', enc.id, updated);
+        responseData = { status: 'success', data: updated };
+      } else {
+        const pats = localDB.list('patients') || [];
+        const matchedPat = pats.find(p => String(p.id) === String(encounterId));
+        const newEnc = {
+          id: encounterId || `enc-${Date.now()}`,
+          patientId: matchedPat?.id || encounterId,
+          patientName: body?.patientName || matchedPat?.fullName || matchedPat?.name || 'Paciente',
+          room: room || 'UTI / Internação',
+          status: newStatus || 'Aguardando_Leito',
+          lastStatusUpdate: new Date().toISOString()
+        };
+        localDB.insert('encounters', newEnc);
+        responseData = { status: 'success', data: newEnc };
+      }
+    }
+    else if (url.includes('/approve-master') && method === 'PUT') {
+      const currentUser = typeof state !== 'undefined' && state.user ? state.user : null;
+      const cUsername = (currentUser?.username || '').replace('@', '').toLowerCase().trim();
+      const isMasterRequester = cUsername === 'admin' || cUsername === 'mazzarowysk' || currentUser?.role === 'Master';
+      if (!isMasterRequester) {
+        status = 403;
+        responseData = { message: 'Acesso negado: Somente o perfil MASTER pode aprovar ou rejeitar solicitações de acesso.' };
+      } else {
+        const match = url.match(/\/api\/users\/([^\/]+)\/approve-master/);
+        const uid = match ? match[1] : null;
+        if (uid) {
+          const u = localDB.get('users', uid);
+          if (u) {
+            const isReject = body?.action === 'reject';
+            const newRole = isReject ? (body?.role || 'Médico') : (body?.role || u.role || 'Médico');
+            const updated = {
+              ...u,
+              role: newRole,
+              status: isReject ? 'Recusado' : 'Ativo',
+              master_key_requested: 0,
+              updated_at: new Date().toISOString()
+            };
+            localDB.update('users', uid, updated);
+            responseData = { status: 'success', message: isReject ? 'Solicitação recusada.' : 'Acesso aprovado com sucesso!' };
+          } else {
+            status = 404; responseData = { message: 'Usuário não encontrado' };
+          }
+        }
+      }
+    }
+    else if (url.includes('/api/settings/reset') && method === 'POST') {
+      localDB.clear();
+      responseData = { status: 'success', message: 'Banco de dados zerado com sucesso.' };
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/triage') && method === 'POST') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/triage/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        let enc = allEncounters.slice().reverse().find(e => 
+          (String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId)) &&
+          e.status !== 'Finalizado' && e.status !== 'Alta'
+        ) || allEncounters.slice().reverse().find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        
+        if (!enc) {
+          const patients = localDB.list('patients') || [];
+          const pat = patients.find(p => String(p.id) === String(encounterId)) || {};
+          enc = {
+            id: encounterId.startsWith('enc-') ? encounterId : `enc-${Date.now()}`,
+            patientId: pat.id || encounterId,
+            patientName: pat.fullName || pat.name || 'Paciente',
+            type: 'Urgencia',
+            status: 'Aguardando_Atendimento',
+            admitted_at: new Date().toISOString()
+          };
+          localDB.insert('encounters', enc);
+        }
+
+        const colorVal = body.manchesterColor || enc.manchesterColor || 'Amarelo';
+        const isObs = body.destination === 'observacao' || body.status === 'Em_Observacao';
+        const targetStatus = isObs ? 'Em_Observacao' : (body.status || 'Aguardando_Atendimento');
+        const targetRoom = isObs ? 'Sala de Observação' : (body.room || 'Consultório 01');
+
+        const updatedEncounter = {
+            ...enc,
+            manchesterColor: colorVal,
+            bloodPressure: body.bloodPressure || enc.bloodPressure || '',
+            temperatureCelsius: body.temperatureCelsius || enc.temperatureCelsius || '',
+            heartRateBpm: body.heartRateBpm || enc.heartRateBpm || '',
+            weightKg: body.weightKg || enc.weightKg || '',
+            spo2: body.spo2 || body.oxygenSaturation || enc.spo2 || '',
+            glicemia: body.glicemia || body.glucose || enc.glicemia || '',
+            mewsScore: body.mewsScore || enc.mewsScore || '',
+            complaints: body.complaints || enc.complaints || 'Avaliação clínica no Pronto-Socorro',
+            room: targetRoom,
+            status: targetStatus,
+            observation_started_at: isObs ? (enc.observation_started_at || new Date().toISOString()) : enc.observation_started_at,
+            tvCalled: false,
+            triaged_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+
+        localDB.insert('triages', {
+          id: `tri-${Date.now()}`,
+          encounterId: enc.id,
+          patientId: enc.patientId,
+          patientName: enc.patientName,
+          manchesterColor: colorVal,
+          color: colorVal,
+          classification: colorVal,
+          bloodPressure: body.bloodPressure || '',
+          temperatureCelsius: body.temperatureCelsius || '',
+          heartRateBpm: body.heartRateBpm || '',
+          spo2: body.spo2 || '',
+          glicemia: body.glicemia || '',
+          weightKg: body.weightKg || '',
+          complaints: body.complaints || '',
+          triaged_at: new Date().toISOString()
+        });
+
+        responseData = { status: 'success', data: updatedEncounter, message: 'Triagem registrada com sucesso.' };
+      }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/status') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/status/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        if (enc) {
+          const newStatus = body.status || enc.status;
+          const nowIso = new Date().toISOString();
+          const updatedEncounter = {
+            ...enc,
+            ...body,
+            status: newStatus,
+            lastStatusUpdate: nowIso,
+            ...(newStatus === 'Finalizado' ? { completed_at: nowIso, discharged_at: nowIso } : {}),
+            ...(newStatus === 'Em_Atendimento' ? { called_at: nowIso } : {})
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+
+          if (newStatus === 'Finalizado') {
+            const pId = enc.patientId || enc.patient_id || enc.id;
+            const pName = enc.patientName;
+
+            // 1. Finalizar triagens do paciente
+            const triages = localDB.list('triages') || [];
+            triages.forEach(t => {
+              const matchPat = (pId && String(t.patientId) === String(pId)) ||
+                               (pName && t.patientName && t.patientName.toLowerCase().trim() === pName.toLowerCase().trim()) ||
+                               String(t.encounterId) === String(encounterId) ||
+                               String(t.id) === String(encounterId);
+              if (matchPat && t.status !== 'Finalizado') {
+                localDB.update('triages', t.id, { ...t, status: 'Finalizado', completed_at: nowIso });
+              }
+            });
+
+            // 2. Remover chamadas de TV ativas deste paciente
+            const tvCalls = localDB.list('tv_calls') || [];
+            tvCalls.forEach(tv => {
+              const matchPat = (pId && (String(tv.patientId) === String(pId) || String(tv.patient_id) === String(pId))) ||
+                               (pName && tv.patientName && tv.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+              if (matchPat) {
+                localDB.remove('tv_calls', tv.id);
+              }
+            });
+
+            // 3. Finalizar agendamentos ativos
+            const apts = localDB.list('appointments') || [];
+            apts.forEach(a => {
+              const matchPat = (pId && String(a.patientId) === String(pId)) ||
+                               (pName && a.patientName && a.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+              if (matchPat && a.status !== 'Finalizado' && a.status !== 'Cancelado') {
+                localDB.update('appointments', a.id, { ...a, status: 'Finalizado', completed_at: nowIso });
+              }
+            });
+
+            // 3.5 Finalizar todos os atendimentos/encounters em aberto deste paciente
+            allEncounters.forEach(otherEnc => {
+              if (String(otherEnc.id) !== String(enc.id)) {
+                const matchOther = (pId && (String(otherEnc.patientId) === String(pId) || String(otherEnc.patient_id) === String(pId))) ||
+                                   (pName && otherEnc.patientName && otherEnc.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+                if (matchOther && otherEnc.status !== 'Finalizado' && otherEnc.status !== 'Cancelado') {
+                  localDB.update('encounters', otherEnc.id, {
+                    ...otherEnc,
+                    status: 'Finalizado',
+                    dischargeType: otherEnc.dischargeType || 'Alta Médica Concluída',
+                    discharged_at: nowIso,
+                    completed_at: nowIso,
+                    lastStatusUpdate: nowIso
+                  });
+                }
+              }
+            });
+
+            // 4. Registrar Alta no cadastro do Paciente
+            const patients = localDB.list('patients') || [];
+            const pat = patients.find(p => String(p.id) === String(pId) || (pName && p.fullName && p.fullName.toLowerCase().trim() === pName.toLowerCase().trim()));
+            if (pat) {
+              localDB.update('patients', pat.id, {
+                ...pat,
+                discharged_at: nowIso,
+                lastDischargeDate: nowIso,
+                last_discharge_date: nowIso,
+                receptionFinalized: true,
+                status: 'Alta'
+              });
+            }
+
+            // 5. Liberar leitos ocupados deste paciente
+            const allBeds = localDB.list('beds') || [];
+            allBeds.forEach(b => {
+              const isMatch = (pId && (String(b.patientId) === String(pId) || String(b.patientId).toLowerCase() === String(pId).toLowerCase())) ||
+                              (pName && b.patientName && b.patientName.toLowerCase().trim() === pName.toLowerCase().trim()) ||
+                              (b.encounterId && String(b.encounterId) === String(encounterId));
+              if (isMatch && (b.status === 'Ocupado' || b.status === 'Ocupada')) {
+                localDB.update('beds', b.id, {
+                  ...b,
+                  status: 'Higienizacao',
+                  previousPatientName: b.patientName || pName,
+                  patientId: null,
+                  patientName: null,
+                  encounterId: null,
+                  dischargedAt: nowIso
+                });
+              }
+            });
+
+            // 6. Atualizar hospitalizações deste paciente para Alta
+            const hosps = localDB.list('hospitalizations') || [];
+            hosps.forEach(h => {
+              const isMatch = (pId && (String(h.patient_id) === String(pId) || String(h.patientId) === String(pId))) ||
+                              (pName && h.patientName && h.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+              if (isMatch && h.status !== 'Alta' && h.status !== 'Finalizado') {
+                localDB.update('hospitalizations', h.id, {
+                  ...h,
+                  status: 'Alta',
+                  discharged_at: nowIso,
+                  discharge_date: nowIso
+                });
+              }
+            });
+          }
+
+          responseData = { status: 'success', data: updatedEncounter };
+        } else {
+          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/notes') && method === 'POST') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/notes/);
+      const encId = match ? decodeURIComponent(match[1]) : '';
+      const allEncounters = localDB.list('encounters') || [];
+      const enc = allEncounters.find(e => String(e.id) === String(encId) || String(e.encounterId) === String(encId) || String(e.patientId) === String(encId)) || {};
+      const allPatients = localDB.list('patients') || [];
+      const pat = allPatients.find(p => String(p.id) === String(enc.patientId || encId) || (enc.patientName && p.fullName && p.fullName.toLowerCase() === enc.patientName.toLowerCase()));
+
+      const pId = pat?.id || enc.patientId || encId;
+      const pName = pat?.fullName || enc.patientName || (typeof encId === 'string' && isNaN(encId) && !encId.startsWith('ENC-') ? encId : 'Paciente');
+
+      const newNote = {
+        id: 'note-' + Date.now(),
+        encounterId: enc.id || encId,
+        patientId: pId,
+        patientName: pName,
+        type: body?.noteType || 'Evolucao_Medica',
+        subjectiveContent: body?.subjectiveContent || '',
+        objectiveContent: body?.objectiveContent || '',
+        assessmentContent: body?.assessmentContent || '',
+        planContent: body?.planContent || '',
+        signed_by: (typeof state !== 'undefined' && state?.user?.name) || enc.doctorName || 'Dr. Médico Assistente',
+        created_at: new Date().toISOString()
+      };
+      localDB.insert('clinical_notes', newNote);
+      responseData = { success: true, data: newNote };
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/start-observation') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/start-observation/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        if (enc) {
+          const updatedEncounter = {
+            ...enc,
+            status: 'Em_Observacao',
+            room: 'Sala de Observação',
+            observation_started_at: enc.observation_started_at || new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+          responseData = { status: 'success', data: updatedEncounter };
+        } else {
+          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/finish-observation') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/finish-observation/);
+      const encounterId = match ? match[1] : null;
+      if (encounterId) {
+        const allEncounters = localDB.list('encounters') || [];
+        const enc = allEncounters.find(e => String(e.id) === String(encounterId) || String(e.encounterId) === String(encounterId) || String(e.patientId) === String(encounterId));
+        if (enc) {
+          const nowIso = new Date().toISOString();
+          const updatedEncounter = {
+            ...enc,
+            status: 'Finalizado',
+            dischargeType: 'Alta da Observação',
+            discharged_at: nowIso,
+            completed_at: nowIso,
+            lastStatusUpdate: nowIso
+          };
+          localDB.update('encounters', enc.id, updatedEncounter);
+
+          // Atualizar cadastro do paciente
+          const patients = localDB.list('patients') || [];
+          const pat = patients.find(p => (enc.patientId && String(p.id) === String(enc.patientId)) || (enc.patientName && p.fullName && p.fullName.toLowerCase() === enc.patientName.toLowerCase()));
+          if (pat) {
+            localDB.update('patients', pat.id, {
+              ...pat,
+              status: 'Alta',
+              lastDischargeDate: nowIso,
+              last_discharge_date: nowIso,
+              discharged_at: nowIso
+            });
+          }
+
+          responseData = { status: 'success', data: updatedEncounter, message: 'Alta da observação realizada com sucesso.' };
+        } else {
+          status = 404; responseData = { message: 'Atendimento não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/transfer-to-bed') && method === 'PUT') {
+      const match = url.match(/\/api\/encounters\/([^\/]+)\/transfer-to-bed/);
+      const encounterId = match ? match[1] : null;
+      const { bedId, patientName, patientId } = body;
+
+      const allBeds = localDB.list('beds') || [];
+      const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+
+      if (bed) {
+        const encs = localDB.list('encounters') || [];
+        const enc = encs.find(e => String(e.id) === String(encounterId) || (patientName && e.patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim()));
+        const pId = patientId || (enc ? enc.patientId : null) || 'pat-' + Date.now();
+        const pName = patientName || (enc ? enc.patientName : 'Paciente');
+
+        // Liberar automaticamente qualquer outro leito previamente ocupado pelo mesmo paciente
+        allBeds.forEach(oldBed => {
+          if (String(oldBed.id) !== String(bed.id)) {
+            const isSamePatient = (pId && oldBed.patientId && String(oldBed.patientId) === String(pId)) ||
+                                  (pName && oldBed.patientName && oldBed.patientName.toLowerCase().trim() === pName.toLowerCase().trim());
+            if (isSamePatient && oldBed.status === 'Ocupado') {
+              localDB.update('beds', oldBed.id, {
+                ...oldBed,
+                status: 'Higienizacao',
+                previousPatientName: oldBed.patientName || pName,
+                patientId: null,
+                patientName: null,
+                encounterId: null,
+                dischargedAt: new Date().toISOString()
+              });
+            }
+          }
+        });
+
+        const updatedBed = {
+          ...bed,
+          status: 'Ocupado',
+          patientId: pId,
+          patientName: pName,
+          admittedAt: new Date().toISOString(),
+          encounterId: encounterId || (enc ? enc.id : null)
+        };
+        localDB.update('beds', bed.id, updatedBed);
+
+        if (enc) {
+          localDB.update('encounters', enc.id, {
+            ...enc,
+            status: 'Internado',
+            room: null,
+            roomName: null,
+            previousRoom: enc.room || enc.roomName || null,
+            bed: bed.bedNumber || bed.number,
+            bedId: bed.id,
+            hospitalized_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          });
+        }
+
+        // Reconciliação: fechar qualquer outro atendimento ambulatorial aberto para este paciente
+        const allPatientEncs = localDB.list('encounters') || [];
+        const normPName = removeAccents((pName || '').toLowerCase().trim());
+        allPatientEncs.forEach(oe => {
+          if (enc && String(oe.id) === String(enc.id)) return;
+          const oeNorm = removeAccents((oe.patientName || '').toLowerCase().trim());
+          const isSame = (pId && oe.patientId && String(oe.patientId) === String(pId)) || (normPName && oeNorm === normPName);
+          if (isSame && oe.status !== 'Finalizado' && oe.status !== 'Cancelado' && oe.status !== 'Alta') {
+            localDB.update('encounters', oe.id, {
+              ...oe,
+              status: 'Finalizado',
+              completed_at: new Date().toISOString(),
+              dischargeType: 'Transferido para Internação'
+            });
+          }
+        });
+
+        // Criar ou atualizar registro de internação sincronizado com Kanban
+        const getCanonicalKanbanSector = (sectorStr, bedStr = '', wardStr = '') => {
+          if (typeof window !== 'undefined' && typeof window.normalizeKanbanSector === 'function') {
+            return window.normalizeKanbanSector(sectorStr, bedStr, wardStr);
+          }
+          const combined = `${sectorStr || ''} ${bedStr || ''} ${wardStr || ''}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          if (combined.includes('uti') || combined.includes('cti') || combined.includes('intensiv')) return 'uti';
+          if (combined.includes('pronto') || combined.includes('socorro') || combined.includes('ps') || combined.includes('obs')) return 'pronto_socorro';
+          if (combined.includes('corredor') || combined.includes('maca')) return 'corredor_internacao';
+          if (combined.includes('cirurg')) return 'clinica_cirurgica';
+          return 'clinica_medica';
+        };
+
+        const kanbanCol = getCanonicalKanbanSector(bed.sector || bed.type, bed.bedNumber || bed.number, bed.ward);
+        const hosps = localDB.list('hospitalizations') || [];
+        const activeHosp = hosps.find(h => h.patient_id === pId && h.status !== 'Alta');
+        if (activeHosp) {
+          localDB.update('hospitalizations', activeHosp.id, {
+            ...activeHosp,
+            bed_id: bed.id,
+            bed: bed.bedNumber || bed.number,
+            current_sector: kanbanCol,
+            sector: bed.sector || bed.type || 'Enfermaria',
+            ward: bed.ward || bed.type || 'Enfermaria',
+            status: 'Internado'
+          });
+        } else {
+          localDB.insert('hospitalizations', {
+            id: 'hosp-' + Date.now(),
+            patient_id: pId,
+            patientName: pName,
+            bed_id: bed.id,
+            bed: bed.bedNumber || bed.number,
+            current_sector: kanbanCol,
+            sector: bed.sector || bed.type || 'Enfermaria',
+            ward: bed.ward || bed.type || 'Enfermaria',
+            admitted_at: new Date().toISOString(),
+            status: 'Internado'
+          });
+        }
+
+        responseData = { status: 'success', data: updatedBed, message: 'Paciente transferido para internação com sucesso.' };
+      } else {
+        status = 404; responseData = { message: 'Leito não encontrado.' };
+      }
+    }
+    else if (url.includes('/api/beds/admit') && method === 'POST') {
+      const { bedId, patientId, patientName, encounterId } = body;
+      const allBeds = localDB.list('beds') || [];
+      const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+
+      if (bed) {
+        // Liberar automaticamente qualquer outro leito previamente ocupado pelo mesmo paciente
+        allBeds.forEach(oldBed => {
+          if (String(oldBed.id) !== String(bed.id)) {
+            const isSamePatient = (patientId && oldBed.patientId && String(oldBed.patientId) === String(patientId)) ||
+                                  (patientName && oldBed.patientName && oldBed.patientName.toLowerCase().trim() === patientName.toLowerCase().trim());
+            if (isSamePatient && oldBed.status === 'Ocupado') {
+              localDB.update('beds', oldBed.id, {
+                ...oldBed,
+                status: 'Higienizacao',
+                previousPatientName: oldBed.patientName || patientName,
+                patientId: null,
+                patientName: null,
+                encounterId: null,
+                dischargedAt: new Date().toISOString()
+              });
+            }
+          }
+        });
+
+        const updatedBed = {
+          ...bed,
+          status: 'Ocupado',
+          patientId: patientId,
+          patientName: patientName,
+          admittedAt: new Date().toISOString(),
+          encounterId: encounterId || null
+        };
+        localDB.update('beds', bed.id, updatedBed);
+
+        const encs = localDB.list('encounters') || [];
+        const enc = encounterId
+          ? encs.find(e => String(e.id) === String(encounterId))
+          : encs.find(e => (String(e.patientId) === String(patientId) || (e.patientName && patientName && e.patientName.toLowerCase().trim() === patientName.toLowerCase().trim())) && (e.status === 'Em_Atendimento' || e.status === 'Aguardando_Atendimento' || e.status === 'Triado'));
+        if (enc) {
+          localDB.update('encounters', enc.id, {
+            ...enc,
+            status: 'Internado',
+            room: null,
+            roomName: null,
+            previousRoom: enc.room || enc.roomName || null,
+            bed: bed.bedNumber || bed.number,
+            bedId: bed.id,
+            hospitalized_at: new Date().toISOString(),
+            lastStatusUpdate: new Date().toISOString()
+          });
+        }
+
+        const getCanonicalKanbanSector = (sectorStr, bedStr = '', wardStr = '') => {
+          if (typeof window !== 'undefined' && typeof window.normalizeKanbanSector === 'function') {
+            return window.normalizeKanbanSector(sectorStr, bedStr, wardStr);
+          }
+          const combined = `${sectorStr || ''} ${bedStr || ''} ${wardStr || ''}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          if (combined.includes('uti') || combined.includes('cti') || combined.includes('intensiv')) return 'uti';
+          if (combined.includes('pronto') || combined.includes('socorro') || combined.includes('ps') || combined.includes('obs')) return 'pronto_socorro';
+          if (combined.includes('corredor') || combined.includes('maca')) return 'corredor_internacao';
+          if (combined.includes('cirurg')) return 'clinica_cirurgica';
+          return 'clinica_medica';
+        };
+
+        const kanbanCol = getCanonicalKanbanSector(bed.sector || bed.type, bed.bedNumber || bed.number, bed.ward);
+        const hosps = localDB.list('hospitalizations') || [];
+        const activeHosp = hosps.find(h => h.patient_id === patientId && h.status !== 'Alta');
+        if (activeHosp) {
+          localDB.update('hospitalizations', activeHosp.id, {
+            ...activeHosp,
+            bed_id: bed.id,
+            bed: bed.bedNumber || bed.number,
+            current_sector: kanbanCol,
+            sector: bed.sector || bed.type || 'Enfermaria',
+            ward: bed.ward || bed.type || 'Enfermaria',
+            status: 'Internado'
+          });
+        } else {
+          localDB.insert('hospitalizations', {
+            id: 'hosp-' + Date.now(),
+            patient_id: patientId,
+            patientName: patientName,
+            bed_id: bed.id,
+            bed: bed.bedNumber || bed.number,
+            current_sector: kanbanCol,
+            sector: bed.sector || bed.type || 'Enfermaria',
+            ward: bed.ward || bed.type || 'Enfermaria',
+            admitted_at: new Date().toISOString(),
+            status: 'Internado'
+          });
+        }
+
+        responseData = { status: 'success', data: updatedBed, message: 'Paciente internado no leito com sucesso.' };
+      } else {
+        status = 404; responseData = { message: 'Leito não encontrado.' };
+      }
+    }
+    else if (url.includes('/api/beds/discharge') && method === 'POST') {
+      const { bedId } = body;
+      const allBeds = localDB.list('beds') || [];
+      const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+
+      if (bed) {
+        const prevPatientId = bed.patientId;
+        const prevPatientName = bed.patientName;
+        const nowIso = new Date().toISOString();
+
+        const updatedBed = {
+          ...bed,
+          status: 'Higienizacao',
+          previousPatientName: prevPatientName || bed.previousPatientName,
+          patientId: null,
+          patientName: null,
+          dischargedAt: nowIso
+        };
+        localDB.update('beds', bed.id, updatedBed);
+
+        // Verificar se o paciente ainda está ativo em outro leito antes de dar alta geral
+        const currentBeds = localDB.list('beds') || [];
+        const otherActiveBed = currentBeds.find(other => 
+          String(other.id) !== String(bed.id) && 
+          other.status === 'Ocupado' && 
+          ((prevPatientId && String(other.patientId) === String(prevPatientId)) ||
+           (prevPatientName && other.patientName && other.patientName.toLowerCase().trim() === prevPatientName.toLowerCase().trim()))
+        );
+
+        // Dar alta em todas as internações correspondentes apenas se não estiver em outro leito
+        if (!otherActiveBed) {
+          const hosps = localDB.list('hospitalizations') || [];
+          hosps.forEach(h => {
+            const matchBed = String(h.bed_id) === String(bed.id) || String(h.bedId) === String(bed.id) || 
+                             h.bed === bed.bedNumber || h.bed === bed.number ||
+                             (h.bed && bed.bedNumber && (h.bed.includes(bed.bedNumber) || bed.bedNumber.includes(h.bed))) ||
+                             (h.bed && bed.number && (h.bed.includes(bed.number) || bed.number.includes(h.bed)));
+            const matchPatient = (prevPatientId && (String(h.patient_id) === String(prevPatientId) || String(h.patientId) === String(prevPatientId))) ||
+                                 (prevPatientName && h.patientName && h.patientName.toLowerCase() === prevPatientName.toLowerCase());
+            
+            if ((matchBed || matchPatient) && h.status !== 'Alta') {
+              localDB.update('hospitalizations', h.id, {
+                ...h,
+                status: 'Alta',
+                discharge_date: nowIso,
+                discharged_at: nowIso
+              });
+            }
+          });
+
+          // Dar alta nos encounters ativos do paciente
+          if (prevPatientId || prevPatientName) {
+            const encs = localDB.list('encounters') || [];
+            encs.forEach(enc => {
+              const matchPatient = (prevPatientId && (String(enc.patientId) === String(prevPatientId) || String(enc.patient_id) === String(prevPatientId))) ||
+                                   (prevPatientName && enc.patientName && enc.patientName.toLowerCase() === prevPatientName.toLowerCase());
+              if (matchPatient && (enc.status === 'Internado' || enc.status === 'Em_Atendimento' || enc.status === 'Aguardando_Atendimento')) {
+                localDB.update('encounters', enc.id, {
+                  ...enc,
+                  status: 'Finalizado',
+                  dischargeType: 'Alta Hospitalar',
+                  discharged_at: nowIso,
+                  completed_at: nowIso,
+                  lastStatusUpdate: nowIso
+                });
+              }
+            });
+
+            // Registrar anotação clínica de alta
+            localDB.insert('clinical_notes', {
+              id: 'NOTE-' + Math.floor(Math.random() * 1000000),
+              patientId: prevPatientId || 'pat-01',
+              text: `✅ Alta Hospitalar realizada no Leito ${bed.number || bed.bedNumber || bed.id}. Paciente liberado e leito encaminhado para Higienização.`,
+              created_at: nowIso,
+              author: 'Gestão de Leitos (Sistema)'
+            });
+
+            // Atualizar status e última alta no cadastro do paciente
+            const allPatients = localDB.list('patients') || [];
+            const patientObj = allPatients.find(p => (prevPatientId && String(p.id) === String(prevPatientId)) || (prevPatientName && p.fullName && p.fullName.toLowerCase() === prevPatientName.toLowerCase()));
+            if (patientObj) {
+              localDB.update('patients', patientObj.id, {
+                ...patientObj,
+                status: 'Alta',
+                lastDischargeDate: nowIso,
+                last_discharge_date: nowIso,
+                discharged_at: nowIso
+              });
+              dataCache.delete('patients');
+              dataCacheTimestamps.delete('patients');
+            }
+          }
+        }
+
+        responseData = { status: 'success', data: updatedBed, message: 'Alta concedida e leito encaminhado para higienização.' };
+      } else {
+        status = 404; responseData = { message: 'Leito não encontrado.' };
+      }
+    }
+    else if (url.includes('/api/beds/') && url.includes('/status') && method === 'PUT') {
+      const match = url.match(/\/api\/beds\/([^\/]+)\/status/);
+      const bedId = match ? match[1] : null;
+      if (bedId) {
+        const allBeds = localDB.list('beds') || [];
+        const bed = allBeds.find(b => String(b.id) === String(bedId) || b.bedNumber === bedId || b.number === bedId);
+        if (bed) {
+          const newStatus = body.status || 'Vago';
+          const isClearingPatient = newStatus === 'Vago' || newStatus === 'Higienizacao' || newStatus === 'Higienização' || newStatus === 'Limpeza' || newStatus === 'Manutenção';
+          const prevPatientId = bed.patientId;
+          const prevPatientName = bed.patientName;
+          const nowIso = new Date().toISOString();
+
+          const updatedBed = {
+            ...bed,
+            status: newStatus,
+            ...(isClearingPatient ? {
+              previousPatientName: prevPatientName || bed.previousPatientName,
+              patientId: null,
+              patientName: null,
+              dischargedAt: nowIso
+            } : {})
+          };
+          localDB.update('beds', bed.id, updatedBed);
+
+          // Se estava ocupado e foi para higienização/vago, dar alta nas internações apenas se não houver outro leito ativo
+          if (isClearingPatient && (prevPatientId || prevPatientName)) {
+            const currentBeds = localDB.list('beds') || [];
+            const otherActiveBed = currentBeds.find(other => 
+              String(other.id) !== String(bed.id) && 
+              other.status === 'Ocupado' && 
+              ((prevPatientId && String(other.patientId) === String(prevPatientId)) ||
+               (prevPatientName && other.patientName && other.patientName.toLowerCase().trim() === prevPatientName.toLowerCase().trim()))
+            );
+
+            if (!otherActiveBed) {
+              const hosps = localDB.list('hospitalizations') || [];
+              hosps.forEach(h => {
+                const matchBed = String(h.bed_id) === String(bed.id) || String(h.bedId) === String(bed.id) || 
+                                 h.bed === bed.bedNumber || h.bed === bed.number ||
+                                 (h.bed && bed.bedNumber && (h.bed.includes(bed.bedNumber) || bed.bedNumber.includes(h.bed))) ||
+                                 (h.bed && bed.number && (h.bed.includes(bed.number) || bed.number.includes(h.bed)));
+                const matchPatient = (prevPatientId && (String(h.patient_id) === String(prevPatientId) || String(h.patientId) === String(prevPatientId))) ||
+                                     (prevPatientName && h.patientName && h.patientName.toLowerCase() === prevPatientName.toLowerCase());
+                if ((matchBed || matchPatient) && h.status !== 'Alta') {
+                  localDB.update('hospitalizations', h.id, {
+                    ...h,
+                    status: 'Alta',
+                    discharge_date: nowIso,
+                    discharged_at: nowIso
+                  });
+                }
+              });
+
+              const encs = localDB.list('encounters') || [];
+              encs.forEach(enc => {
+                const matchPatient = (prevPatientId && (String(enc.patientId) === String(prevPatientId) || String(enc.patient_id) === String(prevPatientId))) ||
+                                     (prevPatientName && enc.patientName && enc.patientName.toLowerCase() === prevPatientName.toLowerCase());
+                if (matchPatient && (enc.status === 'Internado' || enc.status === 'Em_Atendimento')) {
+                  localDB.update('encounters', enc.id, {
+                    ...enc,
+                    status: 'Finalizado',
+                    dischargeType: 'Alta Hospitalar',
+                    discharged_at: nowIso,
+                    completed_at: nowIso,
+                    lastStatusUpdate: nowIso
+                  });
+                }
+              });
+            }
+          }
+
+          responseData = { status: 'success', data: updatedBed };
+        } else {
+          status = 404; responseData = { message: 'Leito não encontrado.' };
+        }
+      }
+    }
+    else if (url.includes('/api/patients/') && url.includes('/history') && method === 'GET') {
+      const match = url.match(/\/api\/patients\/([^\/]+)\/history/);
+      const rawPatientId = match ? match[1] : null;
+      const patientId = rawPatientId ? decodeURIComponent(rawPatientId) : null;
+      const allPatients = localDB.list('patients') || [];
+      const cleanTargetId = String(patientId || '').trim();
+      const cleanTargetName = cleanTargetId.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      const patient = allPatients.find(p => 
+        String(p.id) === cleanTargetId || 
+        (p.fullName && p.fullName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(cleanTargetName))
+      ) || { id: patientId, fullName: patientId };
+
+      const normPName = (patient.fullName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+      const matchesPatient = (item, idField = 'patientId') => {
+        if (item[idField] && (String(item[idField]) === String(patient.id) || String(item[idField]) === cleanTargetId)) return true;
+        if (normPName && item.patientName) {
+          const itemPName = item.patientName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+          return itemPName === normPName || itemPName.includes(normPName) || normPName.includes(itemPName);
+        }
+        return false;
+      };
+
+      const allEncounters = localDB.list('encounters') || [];
+      const encounters = allEncounters.filter(e => matchesPatient(e, 'patientId'));
+
+      const allAppointments = localDB.list('appointments') || [];
+      const appointments = allAppointments.filter(a => matchesPatient(a, 'patientId'));
+
+      const allHosps = localDB.list('hospitalizations') || [];
+      const hospitalizations = allHosps.filter(h => matchesPatient(h, 'patient_id') || matchesPatient(h, 'patientId'));
+
+      const allTv = localDB.list('tv_calls') || [];
+      const tvCalls = allTv.filter(t => matchesPatient(t, 'patientId'));
+
+      const allTriages = localDB.list('triages') || [];
+      const triages = allTriages.filter(t => matchesPatient(t, 'patientId'));
+
+      const allPrescriptions = localDB.list('prescriptions') || [];
+      const prescriptions = allPrescriptions.filter(p => matchesPatient(p, 'patientId'));
+
+      const allNotes = localDB.list('clinical_notes') || [];
+      const clinicalNotes = allNotes.filter(n => matchesPatient(n, 'patientId'));
+
+      responseData = {
+        patient,
+        encounters,
+        appointments,
+        hospitalizations,
+        tvCalls,
+        triages,
+        prescriptions,
+        clinicalNotes
+      };
+    }
+    else if (url.includes('/api/encounters/') && url.includes('/prescriptions')) {
+      const match = url.match(/\/api\/encounters\/([^\/\?]+)\/prescriptions/);
+      const encId = match ? match[1] : '';
+      if (method === 'GET') {
+        const allRx = localDB.list('prescriptions') || [];
+        const allAdmins = localDB.list('prescription_administrations') || [];
+        const allEncs = localDB.list('encounters') || [];
+        const targetEnc = allEncs.find(e => e.id === encId);
+        const pName = targetEnc?.patientName?.toLowerCase()?.trim();
+        const pId = targetEnc?.patientId;
+
+        const filtered = allRx.filter(r => 
+          r.encounterId === encId ||
+          (pId && r.patientId === pId) ||
+          (pName && r.patientName && r.patientName.toLowerCase().trim() === pName)
+        );
+        responseData = {
+          success: true,
+          data: {
+            prescriptions: filtered,
+            administrations: allAdmins.filter(a => filtered.some(f => f.id === a.prescriptionId))
+          }
+        };
+      } else if (method === 'POST') {
+        const newRx = {
+          id: 'rx-' + Date.now(),
+          encounterId: encId,
+          patientId: body?.patientId,
+          patientName: body?.patientName,
+          doctorName: body?.doctorName || 'Dr(a). Médico(a) Assistente',
+          medications: body?.medications || [],
+          status: 'Aguardando_Farmacia',
+          created_at: new Date().toISOString()
+        };
+        localDB.insert('prescriptions', newRx);
+
+        // Registrar auditoria e rastreabilidade na timeline do paciente
+        try {
+          const medSummary = (body?.medications || []).map(m => `${m.name} (${m.dosage || m.dose || ''} ${m.route || m.via || ''})`).join(', ');
+          localDB.insert('clinical_notes', {
+            id: 'note-rx-' + Date.now(),
+            patientId: body?.patientId,
+            patientName: body?.patientName,
+            encounterId: encId,
+            type: 'prescricao',
+            title: 'Prescrição Médica Emitida (Aguardando Farmácia)',
+            content: `Prescrição emitida pelo ${body?.doctorName || 'Dr. Médico'}. Itens: ${medSummary}. Status: Aguardando conferência e liberação da Farmácia Hospitalar.`,
+            author: body?.doctorName || 'Corpo Clínico',
+            created_at: new Date().toISOString()
+          });
+        } catch (e) {}
+
+        responseData = { success: true, data: newRx };
+      }
+    }
+    else if (url.includes('/api/prescriptions/') && url.includes('/release')) {
+      const match = url.match(/\/api\/prescriptions\/([^\/\?]+)\/release/);
+      const presId = match ? match[1] : '';
+      const allRx = localDB.list('prescriptions') || [];
+      const rx = allRx.find(r => r.id === presId);
+      if (rx) {
+        const updatedRx = {
+          ...rx,
+          status: 'Liberado_Farmacia',
+          releasedBy: body?.releasedBy || (typeof state !== 'undefined' && state.user?.name) || 'Farmacêutico Clínico',
+          releasedAt: new Date().toISOString(),
+          releaseNotes: body?.notes || 'Prescrição checada e dispensada para o leito com sucesso.'
+        };
+        localDB.update('prescriptions', presId, updatedRx);
+
+        // Registrar no histórico do paciente a liberação formal
+        try {
+          localDB.insert('clinical_notes', {
+            id: 'note-rel-' + Date.now(),
+            patientId: rx.patientId,
+            patientName: rx.patientName,
+            encounterId: rx.encounterId,
+            type: 'farmacia',
+            title: 'Prescrição Liberada pela Farmácia Hospitalar',
+            content: `Medicamentos liberados e dispensados por ${updatedRx.releasedBy} em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString().slice(0,5)}. Autorizado para administração da enfermagem no leito.`,
+            author: updatedRx.releasedBy,
+            created_at: new Date().toISOString()
+          });
+        } catch (e) {}
+
+        // Atualizar status no cadastro do encontro/paciente como Liberado
+        try {
+          if (rx.encounterId) {
+            const enc = localDB.get('encounters', rx.encounterId);
+            if (enc) {
+              localDB.update('encounters', rx.encounterId, { ...enc, pharmacyStatus: 'Liberado' });
+            }
+          }
+          if (rx.patientId) {
+            const pt = localDB.get('patients', rx.patientId);
+            if (pt) {
+              localDB.update('patients', rx.patientId, { ...pt, pharmacyStatus: 'Liberado' });
+            }
+          }
+        } catch (e) {}
+
+        responseData = { success: true, data: updatedRx };
+      } else {
+        status = 404;
+        responseData = { success: false, message: 'Prescrição não encontrada.' };
+      }
+    }
+    else if (url.includes('/api/pharmacy/pending-prescriptions')) {
+      const allRx = localDB.list('prescriptions') || [];
+      const pending = allRx.filter(r => r.status === 'Aguardando_Farmacia');
+      const released = allRx.filter(r => r.status === 'Liberado_Farmacia');
+      responseData = {
+        success: true,
+        data: {
+          pending,
+          released,
+          totalPending: pending.length,
+          totalReleased: released.length
+        }
+      };
+    }
+    else if (url.includes('/api/prescriptions/') && url.includes('/administer')) {
+      const match = url.match(/\/api\/prescriptions\/([^\/\?]+)\/administer/);
+      const presId = match ? match[1] : '';
+      const newAdmin = {
+        id: 'adm-' + Date.now(),
+        prescriptionId: presId,
+        medicationIndex: body?.medicationIndex ?? 0,
+        administeredBy: body?.administeredBy || 'Equipe de Enfermagem',
+        administeredAt: new Date().toISOString(),
+        notes: body?.notes || 'Medicamento administrado e checado com sucesso.'
+      };
+      localDB.insert('prescription_administrations', newAdmin);
+      responseData = { success: true, data: newAdmin };
+    }
+    else {
+      // Rotas CRUD padrão
+      const parts = url.split('?')[0].replace('/api/', '').split('/');
+      let table = parts[0];
+      let id = parts[1];
+
+      if (table === 'encounters') table = 'encounters';
+      if (table === 'patients') table = 'patients';
+      if (table === 'appointments') table = 'appointments';
+      if (table === 'triages') table = 'triages';
+      if (table === 'clinical-notes') table = 'clinical_notes';
+      if (table === 'prescriptions') table = 'prescriptions';
+      if (table === 'pharmacy') table = 'medications';
+      if (table === 'consulting-rooms') table = 'consultorios';
+      if (table === 'beds') table = 'beds';
+      if (table === 'financial') { table = 'financial_installments'; if (id === 'installments' || id === 'receitas') id = undefined; }
+      if (table === 'tv') { table = 'tv_calls'; id = undefined; }
+      if (table === 'exam-requests' || table === 'exams') { table = 'exam_requests'; }
+
+      // Validação de segurança estrita: Inclusão, alteração e exclusão de usuários permitida SOMENTE para MASTER
+      if (table === 'users' && ['POST', 'PUT', 'DELETE'].includes(method)) {
+        const currentUser = typeof state !== 'undefined' && state.user ? state.user : null;
+        const cUsername = (currentUser?.username || '').replace('@', '').toLowerCase().trim();
+        const isMasterRequester = cUsername === 'admin' || cUsername === 'mazzarowysk' || currentUser?.role === 'Master';
+        if (!isMasterRequester) {
+          status = 403;
+          responseData = { message: 'Acesso negado: Inclusão, alteração e exclusão de usuários é permitida somente pelo perfil MASTER.' };
+          return {
+            ok: false,
+            status: 403,
+            json: async () => responseData,
+            text: async () => JSON.stringify(responseData)
+          };
+        }
+      }
+
+      if (table === 'users' && method === 'DELETE') {
+        const targetUser = localDB.get('users', id);
+        const tUser = (targetUser?.username || '').replace('@', '').toLowerCase().trim();
+        if (tUser === 'mazzarowysk') {
+          status = 403;
+          responseData = { message: 'Operação proibida: O usuário Master principal não pode ser excluído.' };
+          return {
+            ok: false,
+            status: 403,
+            json: async () => responseData,
+            text: async () => JSON.stringify(responseData)
+          };
+        }
+      }
+
+      if (method === 'GET') {
+        if (id) {
+          let item = localDB.get(table, id);
+          if (table === 'encounters' && item) {
+            if (!item.patientName || item.patientName === 'undefined' || item.patientName === 'null') {
+              const pats = localDB.list('patients') || [];
+              const p = pats.find(pt => String(pt.id) === String(item.patientId || item.patient_id));
+              item.patientName = p ? (p.fullName || p.name) : (item.fullName || item.name || 'Paciente');
+            }
+          }
+          responseData = item;
+        } else {
+          let listData = localDB.list(table) || [];
+          if (table === 'encounters') {
+            const pats = localDB.list('patients') || [];
+            const patMap = new Map();
+            for (let i = 0; i < pats.length; i++) {
+              patMap.set(String(pats[i].id), pats[i]);
+            }
+            const beds = localDB.list('beds') || [];
+            const internedNames = new Set(
+              beds.filter(b => (b.status === 'Ocupado' || b.status === 'Ocupada') && b.patientName)
+                .map(b => removeAccents(String(b.patientName).toLowerCase().trim()))
+            );
+
+            let encModified = false;
+            listData = listData.map(enc => {
+              if (!enc.patientName || enc.patientName === 'undefined' || enc.patientName === 'null' || !String(enc.patientName).trim()) {
+                const p = patMap.get(String(enc.patientId || enc.patient_id));
+                const resolved = p ? (p.fullName || p.name) : (enc.fullName || enc.name || 'Paciente em Atendimento');
+                if (enc.patientName !== resolved) {
+                  enc.patientName = resolved;
+                  encModified = true;
+                }
+              }
+
+              // Se o paciente está internado em leito, fechar atendimentos ambulatoriais duplicados
+              const normName = removeAccents(String(enc.patientName || '').toLowerCase().trim());
+              if (normName && internedNames.has(normName) && enc.status !== 'Internado' && enc.status !== 'Finalizado' && enc.status !== 'Alta' && enc.status !== 'Cancelado') {
+                enc.status = 'Finalizado';
+                enc.completed_at = new Date().toISOString();
+                enc.dischargeType = 'Transferido para Internação';
+                encModified = true;
+              }
+
+              return enc;
+            });
+            if (encModified) {
+              localDB.saveFullDB(localDB.getFullDB(), true);
+            }
+          }
+          responseData = { data: listData };
+        }
+      } else if (method === 'POST') {
+        if (table === 'users') {
+          const users = localDB.list('users') || [];
+          const cleanInput = (body.username || '').replace('@', '').toLowerCase().trim();
+          const exists = users.find(u => (u.username || '').replace('@', '').toLowerCase().trim() === cleanInput);
+          if (exists) {
+            status = 400;
+            responseData = { message: 'Nome de usuário já existe no sistema.' };
+            return {
+              ok: false,
+              status: 400,
+              json: async () => responseData,
+              text: async () => JSON.stringify(responseData)
+            };
+          }
+          const newUser = {
+            ...body,
+            id: body.id || 'usr-' + Date.now(),
+            status: 'Ativo',
+            created_at: new Date().toISOString()
+          };
+          responseData = { data: localDB.insert(table, newUser), message: 'Usuário cadastrado com sucesso pelo Master!' };
+        } else if (table === 'tv_calls') {
+          body.calledAt = new Date().toISOString();
+          const pName = (body.patientName || '').trim();
+          const targetRoom = body.roomName || body.room || 'Consultório 01';
+          body.roomName = targetRoom;
+          body.room = targetRoom;
+          const isTriageCall = targetRoom.toLowerCase().includes('triag');
+
+          if (body.patientId || pName) {
+            const allEncounters = localDB.list('encounters') || [];
+            // Buscar do mais recente para o mais antigo, preferindo encontros não finalizados
+            const activeEncs = allEncounters.filter(e => e.status !== 'Finalizado' && e.status !== 'Alta');
+            const pool = activeEncs.length ? activeEncs : allEncounters;
+            const enc = pool.slice().reverse().find(e => 
+              (body.patientId && String(e.patientId) === String(body.patientId)) || 
+              (pName && e.patientName && e.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
+            );
+            if (enc) {
+              const nextStatus = isTriageCall 
+                ? (enc.status || 'Aguardando_Triagem') 
+                : (enc.status === 'Aguardando_Triagem' ? 'Aguardando_Triagem' : 'Em_Atendimento');
+              localDB.update('encounters', enc.id, { 
+                ...enc, 
+                status: nextStatus,
+                room: targetRoom,
+                roomName: targetRoom,
+                called_at: new Date().toISOString(),
+                lastStatusUpdate: new Date().toISOString()
+              });
+            } else {
+              localDB.insert('encounters', {
+                id: 'ENC-' + Date.now(),
+                patientName: pName,
+                patientId: body.patientId || ('pat-' + Date.now()),
+                type: 'Urgencia',
+                status: isTriageCall ? 'Aguardando_Triagem' : 'Em_Atendimento',
+                room: targetRoom,
+                roomName: targetRoom,
+                manchesterColor: isTriageCall ? null : (body.manchesterColor || 'Verde'),
+                admitted_at: new Date().toISOString(),
+                called_at: new Date().toISOString(),
+                lastStatusUpdate: new Date().toISOString()
+              });
+            }
+
+            const allApts = localDB.list('appointments') || [];
+            const apt = allApts.find(a => 
+              (body.patientId && String(a.patientId) === String(body.patientId)) || 
+              (pName && a.patientName && a.patientName.toLowerCase().trim() === pName.toLowerCase().trim())
+            );
+            if (apt) {
+              localDB.update('appointments', apt.id, { 
+                ...apt, 
+                status: isTriageCall ? 'Aguardando Triagem' : 'Em Atendimento',
+                room: targetRoom,
+                roomName: targetRoom
+              });
+            }
+          }
+          responseData = { data: localDB.insert(table, body) };
+        } else if (table === 'encounters') {
+          const pName = removeAccents((body.patientName || '').trim().toLowerCase());
+          const pId = body.patientId;
+          // Se for uma nova admissão, arquivar atendimentos anteriores abertos do mesmo paciente para evitar colisões
+          if (pName || pId) {
+            const allEncs = localDB.list('encounters') || [];
+            allEncs.forEach(oldE => {
+              const oldName = removeAccents((oldE.patientName || '').trim().toLowerCase());
+              const matches = (pId && String(oldE.patientId) === String(pId)) ||
+                              (pName && oldName && oldName === pName);
+              if (matches && oldE.status !== 'Finalizado' && oldE.status !== 'Alta' && oldE.status !== 'Cancelado') {
+                localDB.update('encounters', oldE.id, {
+                  ...oldE,
+                  status: 'Finalizado',
+                  completed_at: new Date().toISOString(),
+                  dischargeType: 'Novo Atendimento Iniciado'
+                });
+              }
+            });
+          }
+          responseData = { data: localDB.insert(table, body) };
+        } else {
+          responseData = { data: localDB.insert(table, body) };
+        }
+      } else if (method === 'PUT') {
+        if (table === 'users') {
+          const existing = localDB.get('users', id) || {};
+          const updated = { ...existing, ...body, updated_at: new Date().toISOString() };
+          if (!body.password && existing.password) {
+            updated.password = existing.password;
+          }
+          responseData = { data: localDB.update(table, id, updated), message: 'Usuário alterado com sucesso pelo Master!' };
+        } else {
+          responseData = { data: localDB.update(table, id, body) };
+        }
+      } else if (method === 'DELETE') {
+        localDB.remove(table, id);
+        responseData = { message: 'Removido com sucesso' };
+      }
+    }
+  } catch(e) {
+    console.error('LocalDB API Error:', e);
+    status = 500;
+    responseData = { message: e.message };
+  }
+
+  const mockRes = {
+    ok: status >= 200 && status < 300,
+    status: status,
+    json: async () => responseData,
+    text: async () => JSON.stringify(responseData)
+  };
+
+  if (mockRes.ok && ['POST', 'PUT', 'DELETE'].includes(method)) {
+    invalidateCacheForUrl(url);
+  }
+
+  return mockRes;
+};

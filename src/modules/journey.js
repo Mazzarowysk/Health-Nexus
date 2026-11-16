@@ -1,0 +1,439 @@
+// ─── MÓDULO DE LINHA DE CUIDADO GUIADA, HUD FLUTUANTE & SMART FLOW GUIDE ───
+// Health Nexus Enterprise — Orquestrador da Jornada do Paciente
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { state } from '../state.js';
+import { showToast, makeDraggable } from './ui.js';
+import { apiFetch } from './api.js';
+
+// Limpa qualquer contexto de paciente persistido em localStorage legado para não assombrar novas sessões
+try {
+  localStorage.removeItem('activePatientContext');
+} catch (_) {}
+
+let activePatientContext = (() => {
+  try {
+    const saved = sessionStorage.getItem('activePatientContext');
+    return saved ? JSON.parse(saved) : null;
+  } catch(e) { return null; }
+})();
+let isGuideMinimized = false;
+let currentActiveTabId = 'dashboard';
+let lastActionMessage = null;
+
+const WORKFLOW_STEPS = [
+  { id: 'recepcao', tab: 'pacientes', label: '1. Recepção', icon: 'fa-id-card' },
+  { id: 'triagem', tab: 'atendimento', label: '2. Triagem', icon: 'fa-user-nurse' },
+  { id: 'chamador', tab: 'tv_panel', label: '3. Chamada TV', icon: 'fa-tv' },
+  { id: 'consulta', tab: 'consultorios', label: '4. Médico/PEP', icon: 'fa-user-doctor' },
+  { id: 'farmacia', tab: 'farmacia', label: '5. Farmácia', icon: 'fa-pills' },
+  { id: 'leitos', tab: 'leitos', label: '6. Leitos/Alta', icon: 'fa-bed-pulse' }
+];
+
+const TAB_NEXT_RECOMMENDATION = {
+  dashboard: {
+    currentLabel: 'Dashboard Executivo',
+    title: 'Iniciar Fluxo Hospitalar',
+    desc: 'Cadastre um paciente ou inicie um atendimento na Recepção.',
+    nextTab: 'pacientes',
+    nextLabel: 'Recepção & Pacientes',
+    icon: 'fa-hospital-user'
+  },
+  pacientes: {
+    currentLabel: 'Recepção & Pacientes',
+    title: 'Encaminhar para Triagem Manchester',
+    desc: 'Paciente cadastrado! Encaminhe para a aferição de sinais vitais e classificação de risco na Triagem.',
+    nextTab: 'atendimento',
+    nextLabel: 'Central de Atendimento (Triagem)',
+    icon: 'fa-user-nurse'
+  },
+  atendimento: {
+    currentLabel: 'Triagem & Manchester',
+    title: 'Chamar no Painel TV (Consultório)',
+    desc: 'Paciente triado! Convoque o paciente no telão do Painel TV para direcioná-lo ao consultório médico.',
+    nextTab: 'tv_panel',
+    nextLabel: 'Painel TV (Chamador)',
+    icon: 'fa-tv'
+  },
+  tv_panel: {
+    currentLabel: 'Painel TV (Chamador)',
+    title: 'Atender no Consultório (PEP)',
+    desc: 'Paciente chamado na TV! Inicie a consulta médica, anamnese SOAP e prescrição no PEP.',
+    nextTab: 'consultorios',
+    nextLabel: 'Salas & Consultórios / PEP',
+    icon: 'fa-user-doctor'
+  },
+  consultorios: {
+    currentLabel: 'Salas & Consultórios',
+    title: 'Dispensar Medicação / Internar',
+    desc: 'Prescrição realizada! Envie para a Farmácia ou direcione para Leito.',
+    nextTab: 'farmacia',
+    nextLabel: 'Farmácia & Estoque',
+    icon: 'fa-pills'
+  },
+  medicos: {
+    currentLabel: 'Corpo Clínico',
+    title: 'Ir para Consultórios & Atendimentos',
+    desc: 'Acompanhe as salas médicas ativas e atenda os pacientes na fila.',
+    nextTab: 'consultorios',
+    nextLabel: 'Salas & Consultórios',
+    icon: 'fa-stethoscope'
+  },
+  farmacia: {
+    currentLabel: 'Farmácia & Medicamentos',
+    title: 'Alocar Leito ou Faturamento',
+    desc: 'Medicamentos dispensados. Acompanhe a internação no Mapa de Leitos.',
+    nextTab: 'leitos',
+    nextLabel: 'Gestão de Leitos & Internação',
+    icon: 'fa-bed-pulse'
+  },
+  observacao: {
+    currentLabel: 'Sala de Observação PS',
+    title: 'Reavaliação Clínica & Sequência de Condutas',
+    desc: 'Paciente sob observação contínua no PS. Reavalie no PEP, administre medicação venosa e defina internação ou alta.',
+    nextTab: 'consultorios',
+    nextLabel: 'Evolução PEP / Desfecho',
+    icon: 'fa-clock'
+  },
+  leitos: {
+    currentLabel: 'Gestão de Leitos',
+    title: 'Evolução Clínica & Cuidado no Leito',
+    desc: 'Paciente internado! Conduza a evolução diária no PEP e monitore a assistência até a alta.',
+    nextTab: 'leitos',
+    nextLabel: 'Evolução no PEP / Leitos',
+    icon: 'fa-user-doctor'
+  },
+  kanban: {
+    currentLabel: 'Kanban Hospitalar',
+    title: 'Faturamento & Fechamento de Contas',
+    desc: 'Gere os lotes eletrônicos no padrão TISS 4.01 para as operadoras.',
+    nextTab: 'financeiro',
+    nextLabel: 'Faturamento & Financeiro',
+    icon: 'fa-file-invoice-dollar'
+  },
+  financeiro: {
+    currentLabel: 'Faturamento & TISS',
+    title: 'Relatórios & Métricas Estratégicas',
+    desc: 'Consulte os gráficos analíticos, DRE e indicadores de desempenho.',
+    nextTab: 'relatorios',
+    nextLabel: 'Relatórios & Métricas',
+    icon: 'fa-chart-pie'
+  },
+  relatorios: {
+    currentLabel: 'Relatórios Gerenciais',
+    title: 'Voltar ao Dashboard Geral',
+    desc: 'Acompanhe as taxas de resolutividade e ocupação do hospital.',
+    nextTab: 'dashboard',
+    nextLabel: 'Dashboard Principal',
+    icon: 'fa-gauge-high'
+  },
+  agenda: {
+    currentLabel: 'Agenda & Consultas',
+    title: 'Recepção de Agendados',
+    desc: 'Confirme a chegada do paciente e envie para a Triagem.',
+    nextTab: 'pacientes',
+    nextLabel: 'Recepção & Pacientes',
+    icon: 'fa-hospital-user'
+  },
+  estagnacao: {
+    currentLabel: 'Alertas & Estagnação',
+    title: 'Destravar Pacientes Críticos',
+    desc: 'Agilize pacientes com tempo de espera elevado no PS ou Leitos.',
+    nextTab: 'atendimento',
+    nextLabel: 'Central de Atendimento',
+    icon: 'fa-triangle-exclamation'
+  },
+  configuracoes: {
+    currentLabel: 'Configurações do Sistema',
+    title: 'Retornar ao Dashboard',
+    desc: 'Ajustes concluídos. Retorne à operação geral.',
+    nextTab: 'dashboard',
+    nextLabel: 'Dashboard Principal',
+    icon: 'fa-gauge-high'
+  }
+};
+
+// ─── GERENCIAMENTO DE CONTEXTO DO PACIENTE ───────────────────────────────────
+
+export const setActivePatientContext = (patient) => {
+  if (!patient) {
+    activePatientContext = null;
+    window._highlightPatientName = null;
+    window._highlightTargetColumn = null;
+    window._interactedPatient = null;
+    window._interactedRoom = null;
+    try { 
+      sessionStorage.removeItem('activePatientContext');
+      localStorage.removeItem('activePatientContext'); 
+    } catch(e) {}
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('.patient-pulse-selected, .patient-spotlight-glow, .stag-selected, [data-patient-highlighted]').forEach(el => {
+        el.classList.remove('patient-pulse-selected', 'patient-spotlight-glow', 'stag-selected');
+        el.removeAttribute('data-patient-highlighted');
+        el.querySelector('.patient-selected-flow-badge')?.remove();
+      });
+    }
+  } else {
+    const existing = activePatientContext || {};
+    const newName = (patient.fullName || patient.patientName || '').toLowerCase().trim();
+    const oldName = (existing.fullName || existing.patientName || '').toLowerCase().trim();
+
+    // Se o nome mudou ou é um paciente diferente, descarta COMPLETAMENTE os dados da sessão anterior
+    if (newName && oldName && newName !== oldName) {
+      activePatientContext = {
+        ...patient,
+        fullName: patient.fullName || patient.patientName,
+        patientName: patient.patientName || patient.fullName
+      };
+    } else {
+      activePatientContext = {
+        ...existing,
+        ...patient,
+        fullName: patient.fullName || patient.patientName || existing.fullName || existing.patientName,
+        patientName: patient.patientName || patient.fullName || existing.patientName || existing.fullName
+      };
+    }
+    const pName = activePatientContext.fullName || activePatientContext.patientName;
+    window._highlightPatientName = pName;
+    try { 
+      sessionStorage.setItem('activePatientContext', JSON.stringify(activePatientContext));
+      localStorage.removeItem('activePatientContext'); // Garante que não fique em localStorage legado
+    } catch(e) {}
+    if (pName && typeof window.executePatientHighlight === 'function') {
+      setTimeout(() => window.executePatientHighlight(pName), 80);
+    }
+  }
+  const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (currentActiveTabId || 'dashboard');
+  updateFloatingWorkflowGuide(realTab);
+};
+
+export const clearActivePatientContext = () => {
+  setActivePatientContext(null);
+  if (typeof window !== 'undefined') {
+    if (window._SFG) {
+      window._SFG.pendingAction = null;
+    }
+    window._highlightPatientName = null;
+    window._highlightTargetColumn = null;
+    window._interactedPatient = null;
+    window._interactedRoom = null;
+    const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (currentActiveTabId || 'dashboard');
+    if (typeof window.createSmartFlowGuideCard === 'function') {
+      window.createSmartFlowGuideCard(realTab);
+    }
+    if (typeof showToast === 'function') {
+      showToast('Foco no paciente liberado. Visão geral da unidade ativada.');
+    }
+  }
+};
+
+export const getActivePatientContext = () => activePatientContext;
+
+export function getManchesterColor(color) {
+  const map = {
+    'Vermelho': '#ef4444',
+    'Laranja': '#f97316',
+    'Amarelo': '#eab308',
+    'Verde': '#10b981',
+    'Azul': '#3b82f6'
+  };
+  return map[color] || '#10b981';
+}
+
+// ─── INICIALIZAÇÃO DO CARD FLUTUANTE GUIA DE FLUXO (SMART FLOW GUIDE) ────────
+
+export function initFloatingWorkflowGuide() {
+  document.querySelectorAll('#floating-flow-guide, #hn-flow-guide, .floating-flow-guide').forEach(el => el.remove());
+  const realTab = (typeof state !== 'undefined' && state.activeTab) ? state.activeTab : (currentActiveTabId || 'dashboard');
+  currentActiveTabId = realTab;
+  if (typeof window.createSmartFlowGuideCard === 'function') {
+    window.createSmartFlowGuideCard(realTab);
+  }
+}
+
+export function updateFloatingWorkflowGuide(tabId = 'dashboard', lastAction = null) {
+  document.querySelectorAll('#floating-flow-guide, #hn-flow-guide, .floating-flow-guide').forEach(el => el.remove());
+  const realTab = tabId || (typeof state !== 'undefined' && state.activeTab) || currentActiveTabId || 'dashboard';
+  currentActiveTabId = realTab;
+  if (typeof state !== 'undefined' && tabId) state.activeTab = tabId;
+  if (lastAction) lastActionMessage = lastAction;
+  if (typeof window.createSmartFlowGuideCard === 'function') {
+    window.createSmartFlowGuideCard(realTab, lastAction);
+  }
+}
+
+// ─── STEPPER DE LINHA DE CUIDADO DENTRO DAS ABAS ──────────────────────────────
+
+export function renderPatientJourneyStepper(container, currentStep = 'consulta') {
+  if (!container || !activePatientContext) return;
+
+  const stepOrder = ['recepcao', 'triagem', 'chamador', 'consulta', 'farmacia', 'leitos'];
+  let currentIndex = typeof currentStep === 'number' ? currentStep : stepOrder.indexOf(currentStep);
+  if (currentIndex < 0) {
+    const st = (activePatientContext.status || '').toLowerCase().trim();
+    if (st.includes('internado') || activePatientContext.bed) {
+      currentIndex = 5; // Leitos
+    } else if (st.includes('aguardando_atendimento') || st.includes('aguardando atendimento') || activePatientContext.manchesterColor) {
+      currentIndex = activePatientContext.tvCalled ? 3 : 2; // Chamador TV ou Médico/PEP
+    } else if (st.includes('aguardando_triagem') || st.includes('aguardando triagem')) {
+      currentIndex = 1; // Triagem
+    } else {
+      currentIndex = 0; // Recepção
+    }
+  }
+
+  container.innerHTML = `
+    <div class="patient-journey-stepper">
+      <div class="stepper-header-info">
+        <div class="stepper-patient-avatar">
+          <i class="fa-solid fa-hospital-user"></i>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary);">
+            ${activePatientContext.fullName || activePatientContext.patientName || 'Paciente Ativo'}
+          </div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">
+            CPF: ${activePatientContext.cpf || '—'} | Risco: ${activePatientContext.manchesterColor ? `<strong style="color: ${getManchesterColor(activePatientContext.manchesterColor)};">${activePatientContext.manchesterColor}</strong>` : `<span style="color: #94a3b8; font-style: italic;">Pendente (Não Triado)</span>`}
+          </div>
+        </div>
+      </div>
+
+      <div class="stepper-steps-track">
+        ${WORKFLOW_STEPS.map((step, idx) => {
+          let statusClass = 'pending';
+          if (idx < currentIndex) statusClass = 'completed';
+          else if (idx === currentIndex) statusClass = 'active';
+
+          return `
+            <div class="stepper-step ${statusClass}" onclick="window.switchTab('${step.tab}')" title="Ir para ${step.label}">
+              <i class="fa-solid ${statusClass === 'completed' ? 'fa-check' : step.icon}"></i>
+              <span>${step.label}</span>
+            </div>
+            ${idx < WORKFLOW_STEPS.length - 1 ? '<i class="fa-solid fa-chevron-right stepper-arrow"></i>' : ''}
+          `;
+        }).join('')}
+      </div>
+
+      <div>
+        <button class="btn btn-sm" onclick="window.showClinicalHandoffModal()" style="font-size: 0.76rem; padding: 6px 12px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+          <i class="fa-solid fa-bolt"></i> Desfecho Rápido
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ─── MODAL DE DESFECHO CLÍNICO RÁPIDO (1-CLICK HAND-OFF) ──────────────────────
+
+export function showClinicalHandoffModal() {
+  if (!activePatientContext) {
+    showToast('⚠️ Selecione um paciente primeiro.');
+    return;
+  }
+
+  let modal = document.getElementById('clinical-handoff-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'clinical-handoff-modal';
+    modal.className = 'modal-overlay';
+    document.body.appendChild(modal);
+  }
+
+  const pName = activePatientContext.fullName || activePatientContext.patientName;
+
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 680px; width: 95vw;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-bolt" style="color: #10b981;"></i> Desfecho Clínico Rápido (1-Click Hand-off)</h3>
+        <button type="button" class="modal-close" onclick="document.getElementById('clinical-handoff-modal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
+          Defina o destino clínico para <strong>${pName}</strong>. O sistema executará a transição de setor e notificará a equipe responsável imediatamente.
+        </p>
+
+        <div class="handoff-options-grid">
+          <!-- Opção 1: Alta Médica -->
+          <div class="handoff-option-card alta" onclick="window.executeHandoffAction('alta')">
+            <div style="font-size: 1.3rem; color: #10b981;"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+              <strong style="color: #34d399; font-size: 0.92rem; display: block; margin-bottom: 4px;">Alta Médica Imediata</strong>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Finaliza o atendimento, gera o resumo clínico e libera a vaga do consultório.</p>
+            </div>
+          </div>
+
+          <!-- Opção 2: Observação no PS -->
+          <div class="handoff-option-card obs" onclick="window.executeHandoffAction('observacao')">
+            <div style="font-size: 1.3rem; color: #f59e0b;"><i class="fa-solid fa-clock"></i></div>
+            <div>
+              <strong style="color: #fbbf24; font-size: 0.92rem; display: block; margin-bottom: 4px;">Observação PS (12 Horas)</strong>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Inicia o cronômetro de permanência no Pronto-Socorro com monitoramento contínuo.</p>
+            </div>
+          </div>
+
+          <!-- Opção 3: Solicitar Internação -->
+          <div class="handoff-option-card internar" onclick="window.executeHandoffAction('internacao')">
+            <div style="font-size: 1.3rem; color: #ef4444;"><i class="fa-solid fa-bed-pulse"></i></div>
+            <div>
+              <strong style="color: #f87171; font-size: 0.92rem; display: block; margin-bottom: 4px;">Solicitar Internação / Leito</strong>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Direciona para o Mapa de Leitos para alocação em Enfermaria ou UTI.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+export async function executeHandoffAction(action) {
+  const modal = document.getElementById('clinical-handoff-modal');
+  if (modal) modal.style.display = 'none';
+
+  const p = activePatientContext;
+  if (!p) return;
+
+  const pName = p.fullName || p.patientName;
+
+  if (action === 'alta') {
+    showToast(`✅ Alta concedida para ${pName}! Atendimento finalizado.`);
+    updateFloatingWorkflowGuide('atendimento', `Alta médica de ${pName}`);
+    if (typeof window.showFlowCompletionNotification === 'function') {
+      window.showFlowCompletionNotification({
+        actionTitle: '✅ Alta Médica Concluída',
+        message: `O paciente <strong>${pName}</strong> recebeu alta médica. O relatório foi arquivado no prontuário.`,
+        targetTab: 'atendimento',
+        targetTabLabel: 'Central de Atendimentos',
+        persistent: true
+      });
+    }
+  } else if (action === 'observacao') {
+    showToast(`⏱️ ${pName} colocado em Observação Médica (12h PS).`);
+    updateFloatingWorkflowGuide('atendimento', `Observação PS para ${pName}`);
+    if (typeof window.switchTab === 'function') window.switchTab('atendimento');
+  } else if (action === 'internacao') {
+    showToast(`🏥 Solicitando internação para ${pName}... Abrindo Mapa de Leitos.`);
+    updateFloatingWorkflowGuide('leitos', `Solicitação de Leito para ${pName}`);
+    if (typeof window.switchTab === 'function') window.switchTab('leitos');
+  }
+}
+
+export function renderFloatingPatientHUD() {
+  updateFloatingWorkflowGuide();
+}
+
+// Vinculação global ao window
+if (typeof window !== 'undefined') {
+  window.initFloatingWorkflowGuide = initFloatingWorkflowGuide;
+  window.updateFloatingWorkflowGuide = updateFloatingWorkflowGuide;
+  window.renderFloatingPatientHUD = renderFloatingPatientHUD;
+  window.setActivePatientContext = setActivePatientContext;
+  window.getActivePatientContext = getActivePatientContext;
+  window.clearActivePatientContext = clearActivePatientContext;
+  window.renderPatientJourneyStepper = renderPatientJourneyStepper;
+  window.showClinicalHandoffModal = showClinicalHandoffModal;
+  window.executeHandoffAction = executeHandoffAction;
+
+  // NOTA: O card só é inicializado pelo main.js APÓS autenticação.
+  // Não auto-inicializar aqui para evitar criar o card na tela de login.
+}
