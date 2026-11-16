@@ -4595,6 +4595,23 @@ const initializeApp = async () => {
       _SFG.minimized = false;
 
       const fullDB = localDB.getFullDB();
+      const hasStoredLocalData = !!localStorage.getItem('healthNexusDados');
+
+      if (!hasStoredLocalData) {
+        // Tentativa de sincronização imediata com Turso Cloud antes de gerar mock local
+        console.log('[Init] Nenhum banco local detectado. Verificando dados existentes na nuvem Turso...');
+        try {
+          const cloudStatus = await getSyncStatus();
+          if (cloudStatus && cloudStatus.cloudConfigured && cloudStatus.cloudTimestamps?.main_data > 0) {
+            console.log('[Init] Nuvem possui dados ativos. Baixando da nuvem...');
+            await syncManager.pullFromCloud();
+            return; // O pullFromCloud já sobrescreve o banco local e recarrega a página perfeitamente
+          }
+        } catch (eCloud) {
+          console.warn('[Init] Verificação prévia da nuvem falhou, gerando mock inicial:', eCloud);
+        }
+      }
+
       if (Object.keys(fullDB).length === 0 || (fullDB.medications && fullDB.medications.length > 0 && fullDB.medications[0].stockQuantity === undefined)) {
         console.log('[Init] Banco de dados vazio detectado. Gerando dados simulados iniciais...');
         await generateMockData();
