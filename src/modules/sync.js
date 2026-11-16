@@ -356,6 +356,43 @@ export class SyncManager {
     return { success: true, updated_at: now };
   }
 
+  async getDirectTursoStatus() {
+    const creds = getDirectTursoCredentials();
+    const directUrl = creds.url;
+    const directToken = creds.token;
+
+    const pipelineBody = {
+      requests: [
+        { type: 'execute', stmt: { sql: `SELECT id, updated_at FROM ocz_sync WHERE id = 'main';` } }
+      ]
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    try {
+      const res = await fetch(directUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${directToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(pipelineBody),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) return { updated_at: 0 };
+      const data = await res.json();
+      const execResult = data?.results?.[0]?.response?.result;
+      if (!execResult || !execResult.rows || execResult.rows.length === 0) {
+        return { updated_at: 0 };
+      }
+      return { updated_at: Number(execResult.rows[0][1]?.value || 0) };
+    } catch (e) {
+      clearTimeout(timeoutId);
+      return { updated_at: 0 };
+    }
+  }
+
   async pullDirectFromTurso() {
     const creds = getDirectTursoCredentials();
     const directUrl = creds.url;
@@ -367,14 +404,18 @@ export class SyncManager {
       ]
     };
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(directUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${directToken}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(pipelineBody)
+      body: JSON.stringify(pipelineBody),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`Turso HTTP Direct retornou status ${res.status}`);
     const data = await res.json();
@@ -411,10 +452,10 @@ export class SyncManager {
       let success = false;
       let newUpdatedAt = Date.now();
 
-      // Tentativa 1: Via Endpoint Proxy da Vercel / Express
+      // Tentativa 1: Via Endpoint Proxy da Vercel / Express (timeout ágil de 2.5s para não travar a UI)
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
         const res = await fetch('/api/turso?sync=1', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -431,10 +472,10 @@ export class SyncManager {
           }
         }
       } catch (errProxy) {
-        console.warn('[SyncManager] Proxy /api/turso indisponível, tentando direto:', errProxy.message);
+        // Fallback imediato para Turso HTTP Direct
       }
 
-      // Tentativa 2: Fallback direto via HTTP Pipeline do Turso
+      // Tentativa 2: Fallback direto via HTTP Pipeline do Turso (extremamente rápido ~1s)
       if (!success) {
         try {
           const directResult = await this.pushDirectToTurso(dados_json, config_json);
@@ -482,10 +523,10 @@ export class SyncManager {
     try {
       let payload = null;
 
-      // Tentativa 1: Endpoint Proxy
+      // Tentativa 1: Endpoint Proxy (timeout ágil de 2.5s)
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
         const res = await fetch('/api/turso', { signal: controller.signal });
         clearTimeout(timeoutId);
         if (res.ok) {
@@ -495,7 +536,7 @@ export class SyncManager {
           }
         }
       } catch (e) {
-        console.warn('[SyncManager] Erro proxy pull, tentando direto:', e.message);
+        // Fallback imediato para Turso Direct
       }
 
       // Tentativa 2: Fallback Direto
@@ -549,7 +590,7 @@ export const getSyncStatus = async () => {
   
   try {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timeoutId = controller ? setTimeout(() => controller.abort(), 6000) : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 1800) : null;
 
     let res = await fetch('/api/turso?status=1', { signal: controller?.signal }).catch(() => null);
     if (timeoutId) clearTimeout(timeoutId);
@@ -567,7 +608,7 @@ export const getSyncStatus = async () => {
 
     if (cloudOffline || cloudUpdated === 0) {
       try {
-        const direct = await syncManager.pullDirectFromTurso();
+        const direct = await syncManager.getDirectTursoStatus();
         if (direct && direct.updated_at) {
           cloudUpdated = direct.updated_at;
           cloudOffline = false;
