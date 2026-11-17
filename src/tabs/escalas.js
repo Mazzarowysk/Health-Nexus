@@ -36,8 +36,8 @@ export function renderSchedulesTab() {
           </p>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button id="btn-export-schedules" class="btn" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
-            <i class="fa-solid fa-print"></i> Imprimir Escala
+          <button id="btn-export-schedules" class="btn" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); display: inline-flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+            <i class="fa-solid fa-calendar-week" style="color: #0284c7;"></i> Abrir Escalas
           </button>
           <button id="btn-add-schedule" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; box-shadow: 0 4px 12px rgba(2,132,199,0.3);">
             <i class="fa-solid fa-plus"></i> Novo Plantão
@@ -383,9 +383,9 @@ function attachEventListeners() {
   document.getElementById('btn-add-schedule')?.addEventListener('click', () => openScheduleModal());
   document.getElementById('btn-add-schedule-empty')?.addEventListener('click', () => openScheduleModal());
 
-  // Exportar / Imprimir
+  // Abrir Modal de Visualização e Exportação de Escalas
   document.getElementById('btn-export-schedules')?.addEventListener('click', () => {
-    window.print();
+    openSchedulesViewModal();
   });
 
   // Delegar Editar e Excluir
@@ -685,4 +685,449 @@ function confirmDeleteSchedule(id) {
       renderSchedulesTab();
     }
   });
+}
+
+// =========================================================
+// MODAL DE VISUALIZAÇÃO E EXPORTAÇÃO PROFISSIONAL DE ESCALAS
+// =========================================================
+export function openSchedulesViewModal() {
+  const existing = document.getElementById('hn-schedules-view-modal');
+  if (existing) existing.remove();
+
+  const rawSchedules = localDB.list('duty_schedules') || [];
+  const doctors = localDB.list('doctors') || [];
+  const nurses = localDB.list('nurses') || [];
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  let modalSubTab = currentSubTab || 'medicos'; // 'medicos', 'enfermeiros', 'todos'
+  let modalDateFilter = currentDateFilter || 'today'; // 'today', 'week', 'month', 'all'
+  let modalShiftFilter = 'all';
+  let modalSearch = '';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay active';
+  overlay.id = 'hn-schedules-view-modal';
+  overlay.style.cssText = 'position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 20, 0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center; z-index: 100100; animation: fadeIn 0.25s ease-out; padding: 20px;';
+
+  const filterSchedules = () => {
+    let list = [...rawSchedules];
+
+    // Categoria
+    if (modalSubTab === 'medicos') {
+      list = list.filter(s => s.category === 'medico' || s.crm_coren?.includes('CRM') || (!s.category && !s.crm_coren?.includes('COREN')));
+    } else if (modalSubTab === 'enfermeiros') {
+      list = list.filter(s => s.category === 'enfermeiro' || s.crm_coren?.includes('COREN'));
+    }
+
+    // Data
+    const today = new Date();
+    if (modalDateFilter === 'today') {
+      list = list.filter(s => s.shiftDate === todayStr);
+    } else if (modalDateFilter === 'week') {
+      const startWeek = new Date(today);
+      startWeek.setDate(today.getDate() - today.getDay());
+      const endWeek = new Date(today);
+      endWeek.setDate(today.getDate() + (6 - today.getDay()));
+      const sStr = startWeek.toISOString().split('T')[0];
+      const eStr = endWeek.toISOString().split('T')[0];
+      list = list.filter(s => s.shiftDate >= sStr && s.shiftDate <= eStr);
+    } else if (modalDateFilter === 'month') {
+      const monthPrefix = todayStr.substring(0, 7);
+      list = list.filter(s => (s.shiftDate || '').startsWith(monthPrefix));
+    }
+
+    // Turno
+    if (modalShiftFilter !== 'all') {
+      list = list.filter(s => (s.shiftType || '').includes(modalShiftFilter));
+    }
+
+    // Busca
+    if (modalSearch.trim()) {
+      const term = modalSearch.toLowerCase().trim();
+      list = list.filter(s => 
+        (s.professionalName || '').toLowerCase().includes(term) ||
+        (s.crm_coren || '').toLowerCase().includes(term) ||
+        (s.roomName || s.sector || '').toLowerCase().includes(term) ||
+        (s.specialty_role || '').toLowerCase().includes(term)
+      );
+    }
+
+    // Ordenar por data asc, turno asc, nome asc
+    list.sort((a, b) => {
+      const dDiff = (a.shiftDate || '').localeCompare(b.shiftDate || '');
+      if (dDiff !== 0) return dDiff;
+      return (a.professionalName || '').localeCompare(b.professionalName || '', 'pt-BR');
+    });
+
+    return list;
+  };
+
+  overlay.innerHTML = `
+    <div class="modal-card animate-scale-up" style="max-width: 1080px; width: 95%; height: 92vh; display: flex; flex-direction: column; background: var(--bg-primary, #090d16); border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 20px; box-shadow: 0 25px 70px rgba(0,0,0,0.85); color: #f8fafc; overflow: hidden;">
+      
+      <!-- Cabeçalho Oficial com Logomarca do Health Nexus -->
+      <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 18px 26px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.15); flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+            <img src="/assets/logo.png" alt="Health Nexus" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.onerror=null; this.parentNode.innerHTML='<i class=\\'fa-solid fa-hospital\\' style=\\'font-size: 1.4rem; color: #fff;\\'></i>'">
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #bae6fd; background: rgba(255,255,255,0.12); padding: 2px 8px; border-radius: 6px;">Quadro Operacional</span>
+              <span style="font-size: 0.72rem; color: #e0f2fe;"><i class="fa-solid fa-circle-check" style="color: #34d399;"></i> Sistema Integrado</span>
+            </div>
+            <h3 style="margin: 2px 0 0 0; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.25rem; color: #ffffff; letter-spacing: -0.3px;">
+              Escalas de Trabalho &amp; Plantões Hospitalares
+            </h3>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button id="modal-btn-export-pdf" class="btn" style="background: #ffffff; color: #0284c7; font-weight: 700; font-size: 0.88rem; padding: 9px 18px; border-radius: 10px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.25)';">
+            <i class="fa-solid fa-file-pdf" style="font-size: 1.1rem; color: #ef4444;"></i> Exportar Escala em PDF
+          </button>
+          <button id="modal-btn-print-view" class="btn" style="background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; font-size: 0.85rem; padding: 9px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.25); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" title="Imprimir Direto na Impressora">
+            <i class="fa-solid fa-print"></i> Imprimir
+          </button>
+          <button id="modal-btn-close-view" style="background: rgba(255,255,255,0.15); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; transition: background 0.2s;" title="Fechar janela">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros e Busca Rápida -->
+      <div style="background: var(--bg-secondary, #0e1526); padding: 14px 26px; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.1)); display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; flex-shrink: 0;">
+        <!-- Abas Categoria -->
+        <div style="display: flex; gap: 6px; background: var(--bg-tertiary, #151e33); padding: 4px; border-radius: 10px; border: 1px solid var(--border-color, rgba(255,255,255,0.08));">
+          <button class="modal-tab-btn ${modalSubTab === 'medicos' ? 'active' : ''}" data-tab="medicos" style="padding: 6px 14px; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; background: ${modalSubTab === 'medicos' ? '#0284c7' : 'transparent'}; color: ${modalSubTab === 'medicos' ? '#fff' : 'var(--text-secondary, #94a3b8)'};">
+            <i class="fa-solid fa-user-doctor"></i> Médicos
+          </button>
+          <button class="modal-tab-btn ${modalSubTab === 'enfermeiros' ? 'active' : ''}" data-tab="enfermeiros" style="padding: 6px 14px; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; background: ${modalSubTab === 'enfermeiros' ? '#0284c7' : 'transparent'}; color: ${modalSubTab === 'enfermeiros' ? '#fff' : 'var(--text-secondary, #94a3b8)'};">
+            <i class="fa-solid fa-user-nurse"></i> Enfermagem
+          </button>
+          <button class="modal-tab-btn ${modalSubTab === 'todos' ? 'active' : ''}" data-tab="todos" style="padding: 6px 14px; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; background: ${modalSubTab === 'todos' ? '#0284c7' : 'transparent'}; color: ${modalSubTab === 'todos' ? '#fff' : 'var(--text-secondary, #94a3b8)'};">
+            <i class="fa-solid fa-users"></i> Todos os Plantões
+          </button>
+        </div>
+
+        <!-- Filtros Combinados -->
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div style="position: relative; min-width: 220px;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted, #64748b);"></i>
+            <input type="text" id="modal-filter-search" class="form-input" placeholder="Buscar profissional, CRM, setor..." value="${modalSearch}" style="padding-left: 32px; height: 36px; font-size: 0.82rem; border-radius: 8px; background: var(--bg-tertiary, #151e33); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); color: #fff;">
+          </div>
+
+          <select id="modal-filter-date" class="form-input" style="height: 36px; font-size: 0.82rem; border-radius: 8px; background: var(--bg-tertiary, #151e33); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); color: #fff; padding: 0 10px;">
+            <option value="today" ${modalDateFilter === 'today' ? 'selected' : ''}>Hoje (${todayStr})</option>
+            <option value="week" ${modalDateFilter === 'week' ? 'selected' : ''}>Esta Semana</option>
+            <option value="month" ${modalDateFilter === 'month' ? 'selected' : ''}>Este Mês</option>
+            <option value="all" ${modalDateFilter === 'all' ? 'selected' : ''}>Todas as Datas</option>
+          </select>
+
+          <select id="modal-filter-shift" class="form-input" style="height: 36px; font-size: 0.82rem; border-radius: 8px; background: var(--bg-tertiary, #151e33); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); color: #fff; padding: 0 10px;">
+            <option value="all">Todos os Turnos</option>
+            <option value="Manhã">Manhã (6h)</option>
+            <option value="Tarde">Tarde (6h)</option>
+            <option value="Noite">Noite (12h)</option>
+            <option value="24h">Plantão 24h</option>
+            <option value="12x36">12x36</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Resumo Rápido da Visualização Atual -->
+      <div id="modal-schedules-summary" style="padding: 10px 26px; background: rgba(2, 132, 199, 0.08); border-bottom: 1px solid rgba(2, 132, 199, 0.2); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+        <!-- Preenchido dinamicamente -->
+      </div>
+
+      <!-- Tabela / Relatório Elegante de Escalas -->
+      <div id="modal-schedules-table-container" style="flex: 1; overflow-y: auto; padding: 20px 26px;">
+        <!-- Preenchido via renderTableContent() -->
+      </div>
+
+      <!-- Rodapé Institucional -->
+      <div style="background: var(--bg-secondary, #0e1526); padding: 12px 26px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.1)); display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted, #64748b); flex-shrink: 0;">
+        <span style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-shield-halved" style="color: #38bdf8;"></i> Health Nexus — Gestão Hospitalar &amp; Governança Assistencial
+        </span>
+        <div style="display: flex; gap: 12px;">
+          <button id="modal-btn-close-bottom" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem; border-radius: 8px;">Fechar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const tableContainer = document.getElementById('modal-schedules-table-container');
+  const summaryEl = document.getElementById('modal-schedules-summary');
+
+  const renderTableContent = () => {
+    const list = filterSchedules();
+
+    // Atualizar resumo
+    const countMedicos = list.filter(s => s.category === 'medico' || s.crm_coren?.includes('CRM')).length;
+    const countEnfermeiros = list.filter(s => s.category === 'enfermeiro' || s.crm_coren?.includes('COREN')).length;
+    
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        <span style="color: #e0f2fe;">
+          Exibindo <strong>${list.length}</strong> plantão(ões) escalados 
+          ${modalSubTab === 'todos' ? `(${countMedicos} médicos, ${countEnfermeiros} enfermagem)` : ''}
+        </span>
+        <span style="color: #94a3b8; font-size: 0.76rem;">
+          <i class="fa-solid fa-clock" style="color: #38bdf8; margin-right: 4px;"></i> Horário do Servidor: ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+        </span>
+      `;
+    }
+
+    if (list.length === 0) {
+      tableContainer.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-secondary, #0e1526); border-radius: 14px; border: 1.5px dashed var(--border-color, rgba(255,255,255,0.1));">
+          <i class="fa-solid fa-calendar-xmark" style="font-size: 3rem; color: var(--text-muted, #64748b); opacity: 0.5; margin-bottom: 12px; display: inline-block;"></i>
+          <h4 style="margin: 0; color: var(--text-primary, #fff); font-size: 1.1rem; font-weight: 700;">Nenhum plantão localizado</h4>
+          <p style="color: var(--text-secondary, #94a3b8); margin: 6px auto 0 auto; max-width: 440px; font-size: 0.88rem;">
+            Nenhum registro coincide com os filtros de data, turno ou pesquisa selecionados nesta janela.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    tableContainer.innerHTML = `
+      <div style="background: var(--bg-secondary, #0e1526); border-radius: 12px; border: 1px solid var(--border-color, rgba(255,255,255,0.1)); overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+          <thead>
+            <tr style="background: var(--bg-tertiary, #151e33); border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.15)); color: #94a3b8; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.5px;">
+              <th style="padding: 12px 16px;">Data</th>
+              <th style="padding: 12px 16px;">Profissional</th>
+              <th style="padding: 12px 16px;">Conselho (CRM/COREN)</th>
+              <th style="padding: 12px 16px;">Especialidade / Função</th>
+              <th style="padding: 12px 16px;">Turno</th>
+              <th style="padding: 12px 16px;">Setor / Local</th>
+              <th style="padding: 12px 16px; text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map((item, idx) => {
+              const isMed = item.category === 'medico' || item.crm_coren?.includes('CRM');
+              const dParts = (item.shiftDate || '').split('-');
+              const dateFmt = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : (item.shiftDate || '—');
+              const isToday = item.shiftDate === todayStr;
+
+              const statusColor = item.status === 'Em Andamento' ? '#10b981' :
+                                  item.status === 'Troca Solicitada' ? '#f59e0b' :
+                                  item.status === 'Ausente' ? '#ef4444' : '#0284c7';
+
+              return `
+                <tr style="border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.06)); background: ${idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)'}; transition: background 0.15s;" onmouseover="this.style.background='rgba(2,132,199,0.08)'" onmouseout="this.style.background='${idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)'}'">
+                  <td style="padding: 12px 16px; font-weight: 700; color: #f8fafc; white-space: nowrap;">
+                    ${dateFmt}
+                    ${isToday ? '<span style="background: #10b981; color: #fff; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; margin-left: 6px; font-weight: 800;">HOJE</span>' : ''}
+                  </td>
+                  <td style="padding: 12px 16px; font-weight: 600; color: #ffffff;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <i class="fa-solid ${isMed ? 'fa-user-doctor' : 'fa-user-nurse'}" style="color: ${isMed ? '#38bdf8' : '#2dd4bf'}; font-size: 0.85rem;"></i>
+                      <span>${item.professionalName || 'Profissional'}</span>
+                    </div>
+                  </td>
+                  <td style="padding: 12px 16px; color: #94a3b8; font-family: monospace; font-size: 0.82rem;">
+                    ${item.crm_coren || '—'}
+                  </td>
+                  <td style="padding: 12px 16px; color: #cbd5e1;">
+                    ${item.specialty_role || (isMed ? 'Clínica Geral' : 'Enfermagem')}
+                  </td>
+                  <td style="padding: 12px 16px; white-space: nowrap; color: #f1f5f9;">
+                    <span style="display: inline-flex; align-items: center; gap: 5px;">
+                      <i class="fa-regular fa-clock" style="color: #0284c7; font-size: 0.8rem;"></i>
+                      ${item.shiftType || 'Manhã'} (${item.workloadHours || 6}h)
+                    </span>
+                  </td>
+                  <td style="padding: 12px 16px; color: #e2e8f0; font-weight: 500;">
+                    <i class="fa-solid fa-location-dot" style="color: #f43f5e; font-size: 0.75rem; margin-right: 4px;"></i>
+                    ${item.roomName || item.sector || 'Consultório 01'}
+                  </td>
+                  <td style="padding: 12px 16px; text-align: center; white-space: nowrap;">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: ${statusColor}; background: ${statusColor}22; border: 1px solid ${statusColor}55; padding: 2px 10px; border-radius: 12px;">
+                      ${item.status || 'Confirmado'}
+                    </span>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  };
+
+  // Eventos de Filtro
+  overlay.querySelectorAll('.modal-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      overlay.querySelectorAll('.modal-tab-btn').forEach(b => {
+        b.style.background = 'transparent';
+        b.style.color = 'var(--text-secondary, #94a3b8)';
+      });
+      btn.style.background = '#0284c7';
+      btn.style.color = '#fff';
+      modalSubTab = btn.getAttribute('data-tab');
+      renderTableContent();
+    });
+  });
+
+  const searchInput = overlay.querySelector('#modal-filter-search');
+  searchInput?.addEventListener('input', (e) => {
+    modalSearch = e.target.value;
+    renderTableContent();
+  });
+
+  const dateSelect = overlay.querySelector('#modal-filter-date');
+  dateSelect?.addEventListener('change', (e) => {
+    modalDateFilter = e.target.value;
+    renderTableContent();
+  });
+
+  const shiftSelect = overlay.querySelector('#modal-filter-shift');
+  shiftSelect?.addEventListener('change', (e) => {
+    modalShiftFilter = e.target.value;
+    renderTableContent();
+  });
+
+  // Fechar Modal
+  const closeModal = () => overlay.remove();
+  overlay.querySelector('#modal-btn-close-view')?.addEventListener('click', closeModal);
+  overlay.querySelector('#modal-btn-close-bottom')?.addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+
+  // Imprimir Direto
+  overlay.querySelector('#modal-btn-print-view')?.addEventListener('click', () => {
+    window.print();
+  });
+
+  // Exportar PDF Profissional com Logomarca
+  overlay.querySelector('#modal-btn-export-pdf')?.addEventListener('click', async () => {
+    const list = filterSchedules();
+    if (list.length === 0) {
+      showToast('Nenhum plantão para exportar.', 'warning');
+      return;
+    }
+
+    if (!window.jspdf) {
+      showToast('Biblioteca jsPDF não disponível.', 'error');
+      return;
+    }
+
+    showToast('Gerando PDF da Escala com logomarca...', 'info');
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    // Função para carregar imagem da logo
+    const loadLogo = () => new Promise(resolve => {
+      const img = new Image();
+      img.src = '/assets/logo.png';
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+    });
+
+    const logoImg = await loadLogo();
+
+    // Cabeçalho Oficial
+    doc.setFillColor(2, 132, 199);
+    doc.rect(0, 0, 297, 28, 'F');
+
+    if (logoImg) {
+      try {
+        doc.addImage(logoImg, 'PNG', 12, 4, 20, 20);
+      } catch (e) {
+        console.warn('Erro ao inserir logo no PDF:', e);
+      }
+    }
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(15);
+    doc.setFont('helvetica', 'bold');
+    doc.text('HEALTH NEXUS · HOSPITAL & CENTRO DE MEDICINA INTEGRADA', logoImg ? 36 : 14, 12);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('ESCALA OFICIAL DE TRABALHO & PLANTÕES HOSPITALARES', logoImg ? 36 : 14, 18);
+    doc.text(`Emissão: ${new Date().toLocaleString('pt-BR')} · Período: ${modalDateFilter.toUpperCase()} · Categoria: ${modalSubTab.toUpperCase()}`, logoImg ? 36 : 14, 23);
+
+    // Linha decorativa
+    doc.setDrawColor(56, 189, 248);
+    doc.setLineWidth(0.8);
+    doc.line(0, 28, 297, 28);
+
+    // Preparar Linhas para a Tabela
+    const headers = ['Data', 'Profissional', 'Conselho', 'Especialidade / Função', 'Turno / Horas', 'Setor / Consultório', 'Status'];
+    const rows = list.map(item => {
+      const dParts = (item.shiftDate || '').split('-');
+      const dateFmt = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : (item.shiftDate || '—');
+      return [
+        dateFmt,
+        item.professionalName || 'Profissional',
+        item.crm_coren || '—',
+        item.specialty_role || (item.category === 'medico' ? 'Clínica Geral' : 'Enfermagem'),
+        `${item.shiftType || 'Manhã'} (${item.workloadHours || 6}h)`,
+        item.roomName || item.sector || 'Consultório 01',
+        item.status || 'Confirmado'
+      ];
+    });
+
+    if (doc.autoTable) {
+      doc.autoTable({
+        startY: 34,
+        head: [headers],
+        body: rows,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [2, 132, 199],
+          textColor: 255,
+          fontSize: 8.5,
+          fontStyle: 'bold'
+        },
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+          textColor: [30, 41, 59]
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 24, fontStyle: 'bold' },
+          1: { cellWidth: 55, fontStyle: 'bold' },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 48 },
+          4: { cellWidth: 38 },
+          5: { cellWidth: 50 },
+          6: { cellWidth: 26, halign: 'center' }
+        },
+        margin: { left: 12, right: 12 }
+      });
+    }
+
+    // Rodapé em todas as páginas
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(12, 198, 285, 198);
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Health Nexus · Sistema Integrado de Gestão Hospitalar e Governança Assistencial', 12, 203);
+      doc.text(`Documento gerado para controle interno e afixação · Página ${i} de ${totalPages}`, 205, 203);
+    }
+
+    const safeCategory = modalSubTab.toLowerCase();
+    const safeDate = todayStr.replace(/-/g, '');
+    doc.save(`escala_hospitalar_${safeCategory}_${safeDate}.pdf`);
+    showToast('📄 Escala exportada em PDF com sucesso!', 'success');
+  });
+
+  // Render inicial
+  renderTableContent();
 }

@@ -1040,14 +1040,14 @@ export const manualData = [
         keywords: ['cadastrar plantão', 'novo plantão', 'escala de trabalho', 'incluir plantão', 'escala médica', 'escala enfermagem', 'novo turno']
       },
       {
-        icon: 'fa-print',
-        name: '🖨️ Imprimir Escala Mensal',
+        icon: 'fa-calendar-week',
+        name: '📅 Abrir Escalas & Exportar PDF',
         type: 'Impressão / Relatório',
         color: '#3b82f6',
-        description: 'Gera relatório formatado da escala de plantão para afixação nos quadros do hospital.',
-        shortcut: 'Botão Imprimir Escala',
-        rules: 'Exibe nome do profissional, registro CRM/COREN, setor e horários.',
-        keywords: ['imprimir escala', 'relatório escala', 'quadro de plantão', 'pdf escala', 'exportar escala']
+        description: 'Abre a janela integrada de visualização e exportação da escala de plantão com logomarca e layout profissional para afixação e arquivo.',
+        shortcut: 'Botão "Abrir Escalas"',
+        rules: 'Permite filtrar por Médicos, Enfermagem ou Todos, filtrar turnos e datas, além de gerar PDF formatado em orientação paisagem com a logomarca do hospital.',
+        keywords: ['abrir escalas', 'imprimir escala', 'relatório escala', 'quadro de plantão', 'pdf escala', 'exportar escala']
       },
       {
         icon: 'fa-trash-can',
