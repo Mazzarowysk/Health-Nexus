@@ -1038,23 +1038,45 @@ export function openSchedulesViewModal() {
     doc.setFillColor(2, 132, 199);
     doc.rect(0, 0, 297, 28, 'F');
 
+    // Inserir logomarca respeitando a proporção original de aspecto (1024x558 ~ 1.835)
+    let textStartX = 14;
     if (logoImg) {
       try {
-        doc.addImage(logoImg, 'PNG', 12, 4, 20, 20);
+        const logoTargetHeight = 18; // mm
+        const imgAspect = (logoImg.naturalWidth && logoImg.naturalHeight)
+          ? (logoImg.naturalWidth / logoImg.naturalHeight)
+          : (1024 / 558);
+        const logoTargetWidth = logoTargetHeight * imgAspect; // ~33 mm
+        const logoY = 5; // Centralizado verticalmente na barra de 28mm (28 - 18) / 2 = 5
+        const logoX = 14;
+
+        // Fundo suave branco com cantos arredondados para destacar a logo institucional com nitidez
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(logoX - 2, logoY - 1, logoTargetWidth + 4, logoTargetHeight + 2, 2, 2, 'F');
+
+        doc.addImage(logoImg, 'PNG', logoX, logoY, logoTargetWidth, logoTargetHeight);
+        textStartX = logoX + logoTargetWidth + 8;
       } catch (e) {
         console.warn('Erro ao inserir logo no PDF:', e);
       }
     }
 
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(15);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('HEALTH NEXUS · HOSPITAL & CENTRO DE MEDICINA INTEGRADA', logoImg ? 36 : 14, 12);
+    doc.text('HEALTH NEXUS · HOSPITAL & CENTRO DE MEDICINA INTEGRADA', textStartX, 12);
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('ESCALA OFICIAL DE TRABALHO & PLANTÕES HOSPITALARES', logoImg ? 36 : 14, 18);
-    doc.text(`Emissão: ${new Date().toLocaleString('pt-BR')} · Período: ${modalDateFilter.toUpperCase()} · Categoria: ${modalSubTab.toUpperCase()}`, logoImg ? 36 : 14, 23);
+    doc.text('ESCALA OFICIAL DE TRABALHO & PLANTÕES HOSPITALARES', textStartX, 18);
+    
+    const periodoLabel = modalDateFilter === 'today' ? `HOJE (${todayStr})` :
+                         modalDateFilter === 'week' ? 'ESTA SEMANA' :
+                         modalDateFilter === 'month' ? 'ESTE MÊS' : 'TODAS AS DATAS';
+    const categoriaLabel = modalSubTab === 'medicos' ? 'MÉDICOS' :
+                           modalSubTab === 'enfermeiros' ? 'ENFERMAGEM' : 'TODOS OS PROFISSIONAIS';
+
+    doc.text(`Emissão: ${new Date().toLocaleString('pt-BR')} · Período: ${periodoLabel} · Categoria: ${categoriaLabel}`, textStartX, 23);
 
     // Linha decorativa
     doc.setDrawColor(56, 189, 248);
