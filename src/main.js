@@ -8342,6 +8342,9 @@ async function loadConsultingRooms() {
     const encounters = Array.isArray(encResult) ? encResult : (encResult.data || []);
     const tvCalls = Array.isArray(tvResult) ? tvResult : (tvResult.data || []);
 
+    // Ordenar os consultórios e salas em ordem alfabética natural (ex: Consultório 01, 02... Consultório 6, Sala...)
+    rooms.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pt-BR', { numeric: true, sensitivity: 'base' }));
+
     if (rooms.length === 0) {
       dashboard.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--bg-secondary); border-radius: 16px; border: 1.5px dashed var(--border-color);">
@@ -8814,6 +8817,33 @@ function openRoomModal(roomId = null) {
     room = state.consultingRooms.find(r => r.id === roomId) || room;
   }
 
+  // Obter listagem de médicos cadastrados (tabela doctors e usuários com perfil Médico)
+  const doctorsList = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('doctors') || []) : [];
+  const doctorUsers = (typeof localDB !== 'undefined' && localDB.list) ? (localDB.list('users') || []).filter(u => u.role === 'Médico') : [];
+  
+  // Unificar médicos sem duplicidade por nome
+  const uniqueDocsMap = new Map();
+  doctorsList.forEach(d => {
+    if (d && d.name) {
+      uniqueDocsMap.set(d.name.trim().toLowerCase(), {
+        name: d.name.trim(),
+        specialty: d.specialty || 'Clínica Médica',
+        crm: d.crm || ''
+      });
+    }
+  });
+  doctorUsers.forEach(u => {
+    const docName = (u.name || u.fullName || u.username || '').trim();
+    if (docName && !uniqueDocsMap.has(docName.toLowerCase())) {
+      uniqueDocsMap.set(docName.toLowerCase(), {
+        name: docName,
+        specialty: u.specialty || 'Clínica Médica',
+        crm: u.crm || ''
+      });
+    }
+  });
+  const allDoctors = Array.from(uniqueDocsMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
   const isEdit = !!roomId;
   const modalHtml = `
     <div id="room-modal" class="modal-overlay">
@@ -8831,11 +8861,50 @@ function openRoomModal(roomId = null) {
             <label>Especialidade / Uso Sugerido</label>
             <input type="text" id="room-specialty" class="form-input" value="${room.specialty || ''}" placeholder="Ex: Clínica Geral">
           </div>
-          ${isEdit ? `
+          
           <div class="form-group">
-            <label>Médico Atual (Opcional)</label>
-            <input type="text" id="room-doctor" class="form-input" value="${room.currentDoctor || ''}" placeholder="Deixe em branco se vazio">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="margin: 0;">Médico Atual (Opcional)</label>
+              <button type="button" id="btn-toggle-doctors-dropdown" class="btn" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="Ver e selecionar médicos cadastrados">
+                <i class="fa-solid fa-user-doctor"></i> Escolher da Lista (${allDoctors.length})
+              </button>
+            </div>
+            
+            <div style="position: relative;">
+              <input type="text" id="room-doctor" class="form-input" list="room-doctors-datalist" value="${room.currentDoctor || ''}" placeholder="Digite o nome ou escolha na lista..." style="padding-right: 36px;">
+              <button type="button" id="btn-trigger-room-doctor-list" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" title="Mostrar listagem de médicos">
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.85rem;"></i>
+              </button>
+              
+              <!-- Datalist nativo para auto-complete rápido -->
+              <datalist id="room-doctors-datalist">
+                ${allDoctors.map(d => `<option value="${d.name}">${d.specialty ? `(${d.specialty})` : ''} ${d.crm ? `CRM: ${d.crm}` : ''}</option>`).join('')}
+              </datalist>
+
+              <!-- Painel flutuante de seleção de médicos -->
+              <div id="room-doctors-popover" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 220px; overflow-y: auto; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4); padding: 6px;">
+                <div style="padding: 6px 10px; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; border-bottom: 1px solid var(--border-color); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+                  <span>MÉDICOS CADASTRADOS</span>
+                  <span style="font-size: 0.7rem; color: #38bdf8;">Clique para selecionar</span>
+                </div>
+                ${allDoctors.length === 0 ? `
+                  <div style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">
+                    Nenhum médico cadastrado no momento.
+                  </div>
+                ` : allDoctors.map(d => `
+                  <div class="doctor-pick-item" data-doctor-name="${d.name.replace(/"/g, '&quot;')}" data-doctor-specialty="${(d.specialty || '').replace(/"/g, '&quot;')}" style="padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; font-size: 0.85rem;" onmouseover="this.style.background='rgba(2,132,199,0.15)'" onmouseout="this.style.background='transparent'">
+                    <span style="font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-user-doctor" style="color: #38bdf8; font-size: 0.8rem;"></i> ${d.name}
+                    </span>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); background: var(--bg-primary); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color);">
+                      ${d.specialty || 'Clínica Médica'}
+                    </span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
           </div>
+
           <div class="form-group">
             <label>Status</label>
             <select id="room-status" class="form-input">
@@ -8844,7 +8913,6 @@ function openRoomModal(roomId = null) {
               <option value="Manutenção" ${room.status === 'Manutenção' ? 'selected' : ''}>Manutenção</option>
             </select>
           </div>
-          ` : ''}
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" onclick="document.getElementById('room-modal').remove()">Cancelar</button>
@@ -8855,23 +8923,59 @@ function openRoomModal(roomId = null) {
   `;
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  // Handlers para o seletor / dropdown de médicos
+  const popover = document.getElementById('room-doctors-popover');
+  const toggleBtn = document.getElementById('btn-toggle-doctors-dropdown');
+  const triggerBtn = document.getElementById('btn-trigger-room-doctor-list');
+  const doctorInput = document.getElementById('room-doctor');
+  const specialtyInput = document.getElementById('room-specialty');
+
+  const togglePopover = (e) => {
+    e?.stopPropagation();
+    if (!popover) return;
+    popover.style.display = popover.style.display === 'block' ? 'none' : 'block';
+  };
+
+  toggleBtn?.addEventListener('click', togglePopover);
+  triggerBtn?.addEventListener('click', togglePopover);
+
+  // Fechar dropdown ao clicar fora
+  document.addEventListener('click', function closeDocPopover(ev) {
+    if (popover && !popover.contains(ev.target) && ev.target !== toggleBtn && ev.target !== triggerBtn) {
+      popover.style.display = 'none';
+    }
+  });
+
+  // Selecionar médico da lista
+  popover?.querySelectorAll('.doctor-pick-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const docName = item.getAttribute('data-doctor-name') || '';
+      const docSpec = item.getAttribute('data-doctor-specialty') || '';
+      if (doctorInput) doctorInput.value = docName;
+      if (specialtyInput && !specialtyInput.value.trim() && docSpec) {
+        specialtyInput.value = docSpec;
+      }
+      if (popover) popover.style.display = 'none';
+    });
+  });
 }
 
 async function saveRoom(roomId) {
   const name = document.getElementById('room-name').value.trim();
   const specialty = document.getElementById('room-specialty').value.trim();
+  const currentDoctor = document.getElementById('room-doctor')?.value.trim() || '';
+  const status = document.getElementById('room-status')?.value || 'Disponível';
   
   if (!name) return showCustomAlert({ title: 'Aviso', message: 'O nome do consultório é obrigatório.', type: 'warning' });
 
-  let payload = { name, specialty };
+  let payload = { name, specialty, currentDoctor, status };
   let url = '/api/consulting-rooms';
   let method = 'POST';
 
   if (roomId) {
     url = `/api/consulting-rooms/${roomId}`;
     method = 'PUT';
-    payload.currentDoctor = document.getElementById('room-doctor').value.trim();
-    payload.status = document.getElementById('room-status').value;
   }
 
   try {
