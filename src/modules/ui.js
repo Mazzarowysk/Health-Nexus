@@ -79,12 +79,12 @@ export const setupCustomSelect = (container, hiddenInput, items, placeholder, on
   container.innerHTML = `
     <div class="custom-select-trigger" tabindex="0">${getLabelHtml(selectedItem)}</div>
     <div class="custom-select-options-panel">
-      <div class="custom-select-search-wrapper" style="display: flex; gap: 8px;">
+      <div class="custom-select-search-wrapper" style="display: flex; gap: 8px; align-items: center;">
         <div style="position: relative; flex: 1;">
-          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-          <input type="text" class="custom-select-search-input" placeholder="🔍 Digite para filtrar por nome ou CPF..." autocomplete="off" style="width: 100%; padding-left: 36px; padding-right: 8px;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; pointer-events: none;"></i>
+          <input type="text" class="custom-select-search-input" placeholder="Digite para filtrar por nome ou CPF..." autocomplete="off" style="width: 100%; padding-left: 36px; padding-right: 8px;">
         </div>
-        <button type="button" class="btn btn-clear-search" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Limpar Filtro">
+        <button type="button" class="btn btn-clear-search" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0 14px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Limpar Filtro">
           <i class="fa-solid fa-filter-circle-xmark"></i>
         </button>
       </div>

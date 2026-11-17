@@ -189,8 +189,26 @@ async function renderAgendaTab() {
 
   const loadDoctorsList = async () => {
     try {
-      const docList = await cachedApiGet('/api/doctors', 'doctors');
-      const doctors = Array.isArray(docList) ? docList.filter(d => (d.status || 'Ativo') === 'Ativo') : [];
+      let doctors = [];
+      try {
+        const docList = await cachedApiGet('/api/doctors', 'doctors');
+        doctors = Array.isArray(docList) ? docList.filter(d => (d.status || 'Ativo') === 'Ativo') : [];
+      } catch (err) {}
+
+      // Fallback abrangente: coletar médicos de doctors + users (role 'Médico') caso lista retorne vazia
+      if (doctors.length === 0 && typeof localDB !== 'undefined' && localDB.list) {
+        const dbDocs = localDB.list('doctors') || [];
+        const dbUsers = (localDB.list('users') || []).filter(u => u.role === 'Médico');
+        const docMapFallback = new Map();
+        dbDocs.forEach(d => { if (d?.name) docMapFallback.set(d.name.trim().toLowerCase(), d); });
+        dbUsers.forEach(u => {
+          const uName = (u.name || u.fullName || u.username || '').trim();
+          if (uName && !docMapFallback.has(uName.toLowerCase())) {
+            docMapFallback.set(uName.toLowerCase(), { name: uName, specialty: u.specialty || 'Clínica Geral' });
+          }
+        });
+        doctors = Array.from(docMapFallback.values());
+      }
       
       const filterSelect = document.getElementById('filter-agenda-doctor');
       const modalSelect = document.getElementById('apt-doctor');
@@ -204,7 +222,7 @@ async function renderAgendaTab() {
         doctors.forEach(d => {
           const opt = document.createElement('option');
           opt.value = d.name;
-          opt.textContent = d.name + ' (' + d.specialty + ')';
+          opt.textContent = d.name + ' (' + (d.specialty || 'Clínica Geral') + ')';
           filterSelect.appendChild(opt);
         });
         filterSelect.value = curVal;
@@ -215,8 +233,8 @@ async function renderAgendaTab() {
         doctors.forEach(d => {
           const opt = document.createElement('option');
           opt.value = d.name;
-          opt.textContent = d.name + ' — ' + d.specialty;
-          opt.dataset.specialty = d.specialty;
+          opt.textContent = d.name + ' — ' + (d.specialty || 'Clínica Geral');
+          opt.dataset.specialty = d.specialty || 'Clínica Geral';
           modalSelect.appendChild(opt);
         });
       }
@@ -225,8 +243,30 @@ async function renderAgendaTab() {
 
   const loadRoomsList = async () => {
     try {
-      const rList = await cachedApiGet('/api/consulting-rooms', 'consulting_rooms');
-      const rooms = Array.isArray(rList) ? rList : (rList.data || []);
+      let rooms = [];
+      try {
+        const rList = await cachedApiGet('/api/consulting-rooms', 'consulting_rooms');
+        rooms = Array.isArray(rList) ? rList : (rList.data || []);
+      } catch (err) {}
+
+      // Fallback para consultórios caso a base venha zerada
+      if (rooms.length === 0 && typeof localDB !== 'undefined' && localDB.list) {
+        rooms = localDB.list('consultorios') || [];
+      }
+      if (rooms.length === 0) {
+        rooms = [
+          { id: 'room-1', name: 'Consultório 01' },
+          { id: 'room-2', name: 'Consultório 02' },
+          { id: 'room-3', name: 'Consultório 03' },
+          { id: 'room-4', name: 'Consultório 04' },
+          { id: 'room-5', name: 'Consultório 05' },
+          { id: 'room-6', name: 'Consultório 6' },
+          { id: 'room-7', name: 'Sala de Emergência' },
+          { id: 'room-8', name: 'Sala de Procedimentos' }
+        ];
+      }
+      // Ordenação alfabética natural
+      rooms.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pt-BR', { numeric: true, sensitivity: 'base' }));
       
       const filterSelect = document.getElementById('filter-agenda-room');
       const modalSelect = document.getElementById('apt-room');
